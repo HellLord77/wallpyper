@@ -1,5 +1,6 @@
 import atexit
 import os
+import tempfile
 
 
 # noinspection PyUnusedLocal
@@ -8,8 +9,8 @@ def _handler(*args, **kwargs):
 
 
 def _uid():
-    import sys
     import hashlib
+    import sys
     with open(sys.argv[0], 'rb') as file:
         return hashlib.md5(file.read()).hexdigest()
 
@@ -18,10 +19,10 @@ def _uid():
 def init(uid=_uid(),
          crash_handler=_handler, crash_handler_args=(), crash_handler_kwargs={},
          exit_handler=_handler, exit_handler_args=(), exit_handler_kwargs={}):
-    temp_path = os.environ['TEMP']
-    path = os.path.join(temp_path, uid)
+    temp_dir = tempfile.gettempdir()
+    os.makedirs(temp_dir, exist_ok=True)
+    path = os.path.join(temp_dir, uid)
     flags = os.O_CREAT | os.O_EXCL
-    os.makedirs(temp_path, exist_ok=True)
     try:
         _descriptor = os.open(path, flags)
     except FileExistsError:

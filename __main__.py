@@ -5,13 +5,15 @@ import sys
 import threading
 import winreg
 
+# TODO: remove requests
 import requests
 import wx
 import wx.adv
 import wx.lib.embeddedimage
 
 import singleton
-import windows
+# TODO: add sys.platform
+import win32
 
 singleton.init(crash_handler=print, crash_handler_args=('[#] Crash',),
                exit_handler=print, exit_handler_args=('[#] Exit',))
@@ -29,11 +31,9 @@ ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhFFEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
 )
 URL = 'https://wallhaven.cc/api/v1/'
-APPDATA_PATH = os.environ['APPDATA']
-CACHEDFILES_PATH = os.path.join(APPDATA_PATH, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
-CONFIG_PATH = os.path.join(APPDATA_PATH, f'{NAME}.ini')
+CONFIG_PATH = os.path.join(win32.APPDATA_DIR, f'{NAME}.ini')
 PICTURES_PATH = os.path.join(os.environ['USERPROFILE'], 'Pictures', NAME)
-TEMP_PATH = os.path.join(os.environ['TEMP'], NAME)
+TEMP_DIR = os.path.join(win32.TEMP_DIR, NAME)
 configs = {
     'auto_change': False,
     'change_interval': 3600000,
@@ -233,6 +233,7 @@ def get_ratio():
     display_resolution = wx.DisplaySize()
     display_ratio = display_resolution[0] / display_resolution[1]
     d0 = 1024
+    optimal_ratio = ratios[0]
     for ratio in ratios:
         if ratio[0] != '_':
             w, h = ratio.split('x')
@@ -277,13 +278,13 @@ def show_frame(frame):
 
 
 def remove_temp():
-    if os.path.isdir(TEMP_PATH):
-        temp_files = os.listdir(TEMP_PATH)
+    if os.path.isdir(TEMP_DIR):
+        temp_files = os.listdir(TEMP_DIR)
         for temp_file in temp_files:
-            temp_file_path = os.path.join(TEMP_PATH, temp_file)
+            temp_file_path = os.path.join(TEMP_DIR, temp_file)
             os.remove(temp_file_path)
         else:
-            os.rmdir(TEMP_PATH)
+            os.rmdir(TEMP_DIR)
 
 
 class TaskBarIcon(wx.adv.TaskBarIcon):
@@ -466,12 +467,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
     def on_save(self, _):
         self.save_wallpaper.Enable(False)
-        path = windows.get_wallpaper_path()
+        path = win32.get_wallpaper_path()
         name = os.path.basename(path)
         saved = Wallpaper(path, None, os.path.dirname(path), self.save_path, name).save()
         if not saved:
-            path = os.path.join(CACHEDFILES_PATH, next(os.walk(CACHEDFILES_PATH))[2][0])
-            saved = Wallpaper(path, None, CACHEDFILES_PATH, self.save_path, name).save()
+            path = os.path.join(win32.WALLPAPER_DIR, next(os.walk(win32.WALLPAPER_DIR))[2][0])
+            saved = Wallpaper(path, None, win32.WALLPAPER_DIR, self.save_path, name).save()
         self.save_wallpaper.Enable(True)
         return saved
 
@@ -583,11 +584,10 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             wallpaper_data = self.search_data.pop()
             wallpaper_path = wallpaper_data['path']
             wallpaper_file_size = wallpaper_data['file_size']
-            wallpaper = Wallpaper(wallpaper_path, wallpaper_file_size, TEMP_PATH, self.save_path, None,
-                                  self.func_progress)
+            wallpaper = Wallpaper(wallpaper_path, wallpaper_file_size, TEMP_DIR, self.save_path,
+                                  os.path.basename(wallpaper_path), self.func_progress)
             wallpaper.get()
-            # TODO: verify wallpaper hash
-            windows.set_wallpaper(wallpaper.temp_path, wallpaper.save_path)
+            win32.set_wallpaper(wallpaper.temp_path, wallpaper.save_path)
             wallpaper.save() if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
         self.change_wallpaper.SetItemLabel('Change Wallpaper')
@@ -704,10 +704,10 @@ class Search:
 class Wallpaper:
     buffer = 1
 
-    def __init__(self, path, file_size, temp_path, save_path, file_name=None, callback=None):
-        self.temp_path = os.path.join(temp_path, os.path.basename(path))
-        self.save_path = os.path.join(save_path, file_name or os.path.basename(path))
-        self.save_dir = save_path
+    def __init__(self, path, file_size, temp_dir, save_dir, name, callback=None):
+        self.temp_path = os.path.join(temp_dir, os.path.basename(path))
+        self.save_path = os.path.join(save_dir, name)
+        self.save_dir = save_dir
         self.file_size = file_size
         self.response = requests.get(path, stream=True) if self.file_size else None
         self.callback = callback
@@ -728,14 +728,14 @@ class Wallpaper:
                 downloaded += len(chunk)
                 print(f'[{str("#" * progress).ljust(100)}] {downloaded}', end='\r')
         print()
+        # TODO: verify wallpaper hash
 
-    def save(self):
+    def save(self):  # copy file
         if os.path.isfile(self.temp_path):
-            if not os.path.isfile(self.save_path):
+            if not os.path.exists(self.save_path):
                 with open(self.temp_path, 'rb') as cache_file:
                     data = cache_file.read()
-                save_dir = os.path.dirname(self.save_path)
-                os.makedirs(save_dir, exist_ok=True)
+                os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
                 with open(self.save_path, 'wb') as save_file:
                     save_file.write(data)
                 if os.path.isfile(self.temp_path) and os.path.isfile(self.save_path):
