@@ -20,13 +20,6 @@ def get_wallpaper_path():
 def set_wallpaper(*paths):
     for path in paths:
         if os.path.isfile(path):
-            return ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, None, path, SPIF_SENDWININICHANGE)
-    return 0
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()
+            ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, None, path, SPIF_SENDWININICHANGE)
+            return True
+    return False

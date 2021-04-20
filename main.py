@@ -1,8 +1,9 @@
 import filecmp
 import os
-import random
+import shutil
 import sys
 import threading
+# TODO: do not touch registry
 import winreg
 
 # TODO: remove requests
@@ -11,6 +12,7 @@ import wx
 import wx.adv
 import wx.lib.embeddedimage
 
+import request
 import singleton
 # TODO: add sys.platform
 import win32
@@ -19,6 +21,7 @@ singleton.init(crash_handler=print, crash_handler_args=('[#] Crash',),
                exit_handler=print, exit_handler_args=('[#] Exit',))
 DEFAULT_FRAME_STYLE = wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP | wx.FRAME_TOOL_WINDOW
 NAME = 'wxWallhaven'
+VERSION = '0.1'
 ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c'
     b'+/evenEQhA0gooYOxvRxQfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z'
@@ -51,7 +54,7 @@ interval = {
     '10800000': '3 Hour',
     '21600000': '6 Hour'
 }
-params = {
+paramsEX = {
     'apikey': None,
     'q': None,
     'categories': '111',
@@ -158,7 +161,7 @@ def create_submenu_items(item_submenu, dict_, kind):
 
 def get_param_submenu_items_id(item_submenu):
     id = item_submenu.GetHelp()
-    param = params[id]
+    param = paramsEX[id]
     submenu = item_submenu.GetSubMenu()
     submenu_items = submenu.GetMenuItems()
     return param, submenu_items, id
@@ -193,7 +196,7 @@ def update_params_1(item_submenu):
         state = submenu_item.IsChecked()
         param += str(int(state))
     else:
-        params[id] = param
+        paramsEX[id] = param
 
 
 def update_params_2(item_submenu):
@@ -202,7 +205,7 @@ def update_params_2(item_submenu):
         if submenu_item.IsChecked():
             param = submenu_item.GetHelp()
             param = param.replace('#', '')
-            params[id] = None if param == 'None' else param
+            paramsEX[id] = None if param == 'None' else param
             break
 
 
@@ -213,27 +216,27 @@ def update_params_3(item_submenu):
         if submenu_item.IsChecked():
             dim = submenu_item.GetHelp()
             param += f'{dim},'
-        param = param or None
-        params[id] = param
+    param = param or None
+    paramsEX[id] = param
 
 
 def modify_search_query(textctrl, loop):
     search_query = textctrl.GetLineText(0)
-    params['q'] = search_query or None
+    paramsEX['q'] = search_query or None
     loop.Exit()
 
 
 def verify_api_key(api_key):
     url = os.path.join(URL, 'settings')
-    response = requests.get(url=url, params={'apikey': api_key})
-    return response.status_code
+    response = request.urlopen(url, {'apikey': api_key})
+    return response
 
 
 def get_ratio():
     display_resolution = wx.DisplaySize()
     display_ratio = display_resolution[0] / display_resolution[1]
     d0 = 1024
-    optimal_ratio = ratios[0]
+    optimal_ratio = next(iter(ratios.values()))
     for ratio in ratios:
         if ratio[0] != '_':
             w, h = ratio.split('x')
@@ -252,9 +255,9 @@ def on_modify_search_query(_):
     frame = wx.Frame(None, wx.ID_ANY, 'Search Query', style=DEFAULT_FRAME_STYLE)
     frame.Bind(wx.EVT_CLOSE, lambda _: loop.Exit())
     panel = wx.Panel(frame, wx.ID_ANY)
-    staticbox = wx.StaticBox(panel, wx.ID_ANY, f'Current Search Query: {params["q"]}')
+    staticbox = wx.StaticBox(panel, wx.ID_ANY, f'Current Search Query: {paramsEX["q"]}')
     sizer = wx.StaticBoxSizer(staticbox)
-    textctrl = wx.TextCtrl(panel, wx.ID_ANY, (params['q'] or ''), style=wx.TE_PROCESS_ENTER)
+    textctrl = wx.TextCtrl(panel, wx.ID_ANY, (paramsEX['q'] or ''), style=wx.TE_PROCESS_ENTER)
     textctrl.Bind(wx.EVT_TEXT_ENTER, func)
     sizer.Add(textctrl, wx.EXPAND)
     button = wx.Button(panel, wx.ID_ANY, 'Modify Search Query')
@@ -296,20 +299,19 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
         app.Bind(wx.EVT_END_SESSION, self.on_exit)
-        self.config = Config(CONFIG_PATH, configs, params)
+        self.config = Config(CONFIG_PATH, configs, paramsEX)
         self.config.load()
         self.save_path = configs['save_path']
         self.change_interval = configs['change_interval']
-        self.bk_categories = params['categories']
-        self.bk_purity = params['purity']
-        self.bk_atleast_1 = self.bk_atleast_2 = params['atleast']
-        self.bk_resolutions_1 = self.bk_resolutions_2 = params['resolutions']
-        self.bk_ratios = params['ratios']
+        self.bk_categories = paramsEX['categories']
+        self.bk_purity = paramsEX['purity']
+        self.bk_atleast_1 = self.bk_atleast_2 = paramsEX['atleast']
+        self.bk_resolutions_1 = self.bk_resolutions_2 = paramsEX['resolutions']
+        self.bk_ratios = paramsEX['ratios']
         self.bk_search_params = {}
         self.search_data = []
         self.search = None
-        self.func_progress = lambda progress: self.change_wallpaper.SetItemLabel(
-            f'Change Wallpaper ({progress:03}%)')
+        self.func = lambda progress: self.change_wallpaper.SetItemLabel(f'Change Wallpaper ({progress:03}%)')
         self.thread = threading.Thread(target=self.change)
         self.display_ratio = get_ratio()
         self.timer = wx.Timer(self)
@@ -328,10 +330,10 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         create_item(self.menu, 'Modify Save Folder', self.on_modify_save_folder)
         self.menu.AppendSeparator()
         self.use_api_key = self.menu.AppendCheckItem(wx.ID_ANY, 'Use API Key')
-        self.use_api_key.Check(bool(configs['use_api_key'] and params['apikey']))
+        self.use_api_key.Check(bool(configs['use_api_key'] and paramsEX['apikey']))
         create_item(self.menu, 'Modify API Key', self.on_modify_api_key)
         self.remove_api_key = create_item(self.menu, 'Remove API Key', self.on_remove_api_key)
-        self.remove_api_key.Enable(bool(params['apikey']))
+        self.remove_api_key.Enable(bool(paramsEX['apikey']))
         self.menu.AppendSeparator()
         create_item(self.menu, 'Modify Search Query', on_modify_search_query)
         self.item_submenu_categories = self.menu.AppendSubMenu(wx.Menu(), 'Category', 'categories')
@@ -373,7 +375,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.on_change() if sys.argv[(-1)] == '-c' else None
 
     def update_popup_menu(self):
-        if params['apikey']:
+        if paramsEX['apikey']:
             self.use_api_key.Enable(True)
         else:
             self.use_api_key.Enable(False)
@@ -388,13 +390,13 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         state_1 = submenu_sorting.FindItemById(submenu_sorting.FindItem('Toplist')).IsChecked()
         state_2 = submenu_sorting.FindItemById(submenu_sorting.FindItem('Hot')).IsChecked()
         self.item_submenu_topRange.Enable(state_1 or state_2)
-        atleast = params['atleast']
+        atleast = paramsEX['atleast']
         if self.bk_atleast_1 != atleast:
             if atleast:
-                params['resolutions'] = None
+                paramsEX['resolutions'] = None
                 parse_params_3(self.item_submenu_resolutions)
-        elif self.bk_resolutions_1 != params['resolutions']:
-            params['atleast'] = 'None'
+        elif self.bk_resolutions_1 != paramsEX['resolutions']:
+            paramsEX['atleast'] = 'None'
             parse_params_2(self.item_submenu_atleast)
 
     def parse_interval(self):
@@ -439,16 +441,16 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         update_params_2(self.item_submenu_colors)
 
     def fix_categories_purity(self):
-        if not int(params['categories']):
-            params['categories'] = self.bk_categories
+        if not int(paramsEX['categories']):
+            paramsEX['categories'] = self.bk_categories
             parse_params_1(self.item_submenu_categories)
-        if not int(params['purity']):
-            params['purity'] = self.bk_purity
+        if not int(paramsEX['purity']):
+            paramsEX['purity'] = self.bk_purity
             parse_params_1(self.item_submenu_purity)
 
     def on_right_down(self, _):
-        self.bk_atleast_1 = params['atleast']
-        self.bk_resolutions_1 = params['resolutions']
+        self.bk_atleast_1 = paramsEX['atleast']
+        self.bk_resolutions_1 = paramsEX['resolutions']
         self.PopupMenu(self.menu)
         self.update_interval()
         self.update_params()
@@ -469,10 +471,17 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.save_wallpaper.Enable(False)
         path = win32.get_wallpaper_path()
         name = os.path.basename(path)
-        saved = Wallpaper(path, None, os.path.dirname(path), self.save_path, name).save()
+        save_path = os.path.join(self.save_path, name)
+        saved = copy_file(path, save_path)
         if not saved:
-            path = os.path.join(win32.WALLPAPER_DIR, next(os.walk(win32.WALLPAPER_DIR))[2][0])
-            saved = Wallpaper(path, None, win32.WALLPAPER_DIR, self.save_path, name).save()
+            cache_name = next(os.walk(win32.WALLPAPER_DIR))[2][0]
+            save_path_2 = os.path.join(self.save_path, cache_name)
+            saved = copy_file(path, save_path_2)
+            if not saved:
+                cache_path = os.path.join(win32.WALLPAPER_DIR, cache_name)
+                saved = copy_file(cache_path, save_path)
+                if not saved:
+                    saved = copy_file(cache_path, save_path_2)
         self.save_wallpaper.Enable(True)
         return saved
 
@@ -506,7 +515,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         frame.CreateStatusBar()
         frame.SetStatusText('[#] Get API Key from https://wallhaven.cc/settings/account')
         panel = wx.Panel(frame, wx.ID_ANY)
-        staticbox = wx.StaticBox(panel, wx.ID_ANY, f'Current API Key: {params["apikey"]}')
+        staticbox = wx.StaticBox(panel, wx.ID_ANY, f'Current API Key: {paramsEX["apikey"]}')
         sizer = wx.StaticBoxSizer(staticbox)
         button = wx.Button(panel, wx.ID_ANY, 'Fetch API Key From Clipboard && Modify API Key After Verifying')
         button.Bind(wx.EVT_BUTTON, lambda _: self.modify_api_key(frame, button, loop))
@@ -519,7 +528,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         frame.Destroy()
 
     def on_remove_api_key(self, _):
-        params['apikey'] = None
+        paramsEX['apikey'] = None
         self.remove_api_key.Enable(False)
 
     def on_auto_ratio(self, _=None):
@@ -529,16 +538,16 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.item_submenu_resolutions.Enable(enable)
         self.item_submenu_ratios.Enable(enable)
         if state:
-            self.bk_atleast_2 = params['atleast']
-            self.bk_resolutions_2 = params['resolutions']
-            self.bk_ratios = params['ratios']
-            params['atleast'] = 'None'
-            params['resolutions'] = None
-            params['ratios'] = f'{self.display_ratio},'
+            self.bk_atleast_2 = paramsEX['atleast']
+            self.bk_resolutions_2 = paramsEX['resolutions']
+            self.bk_ratios = paramsEX['ratios']
+            paramsEX['atleast'] = 'None'
+            paramsEX['resolutions'] = None
+            paramsEX['ratios'] = f'{self.display_ratio},'
         else:
-            params['atleast'] = self.bk_atleast_2
-            params['resolutions'] = self.bk_resolutions_2
-            params['ratios'] = self.bk_ratios
+            paramsEX['atleast'] = self.bk_atleast_2
+            paramsEX['resolutions'] = self.bk_resolutions_2
+            paramsEX['ratios'] = self.bk_ratios
         parse_params_2(self.item_submenu_atleast)
         parse_params_3(self.item_submenu_resolutions)
         parse_params_3(self.item_submenu_ratios)
@@ -572,23 +581,22 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.change_wallpaper.Enable(False)
         self.change_wallpaper.SetItemLabel('Change Wallpaper (000%)')
         self.fix_categories_purity()
-        search_params = dict(params)
+        search_params = dict(paramsEX)
         search_params['apikey'] = search_params['apikey'] if self.use_api_key.IsChecked() else None
         if self.bk_search_params != search_params:
             self.search = Search(search_params)
             self.search_data = []
         if not self.search_data:
             self.search_data = self.search.get()
-            random.shuffle(self.search_data)
         if self.search_data:
             wallpaper_data = self.search_data.pop()
-            wallpaper_path = wallpaper_data['path']
-            wallpaper_file_size = wallpaper_data['file_size']
-            wallpaper = Wallpaper(wallpaper_path, wallpaper_file_size, TEMP_DIR, self.save_path,
-                                  os.path.basename(wallpaper_path), self.func_progress)
-            wallpaper.get()
-            win32.set_wallpaper(wallpaper.temp_path, wallpaper.save_path)
-            wallpaper.save() if self.auto_save.IsChecked() else None
+            path = wallpaper_data['path']
+            name = os.path.basename(path)
+            temp_path = os.path.join(TEMP_DIR, name)
+            save_path = os.path.join(self.save_path, name)
+            request.urlretrieve(path, temp_path, wallpaper_data['file_size'] // 100, callback=self.func)
+            win32.set_wallpaper(temp_path, save_path)
+            copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
         self.change_wallpaper.SetItemLabel('Change Wallpaper')
         self.change_wallpaper.Enable(True)
@@ -610,14 +618,14 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         text_data = wx.TextDataObject()
         wx.TheClipboard.GetData(text_data)
         api_key = text_data.GetText()
-        status_code = verify_api_key(api_key)
-        if status_code == 200:
-            params['apikey'] = api_key
+        response = verify_api_key(api_key)
+        if response.status_code == 200:
+            paramsEX['apikey'] = api_key
             self.remove_api_key.Enable(True)
             loop.Exit()
         else:
             # noinspection PyProtectedMember,PyUnresolvedReferences
-            frame.SetStatusText(f'[#] Invalid API Key ({requests.status_codes._codes[status_code][0]})')
+            frame.SetStatusText(f'[#] Invalid API Key ({response.reason})')
             app.Yield()
             button.Enable()
             button.SetFocus()
@@ -633,6 +641,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.config.save()
 
 
+# TODO: rework Config
 class Config:
     import pickle
 
@@ -680,7 +689,7 @@ class Search:
     def get(self):
         data = []
         try:
-            response = requests.get(url=self.url, params=self.params)
+            response = request.urlopen(self.url, self.params)
             status_code = response.status_code
             if status_code == 200:
                 data, self.meta = response.json().values()
@@ -701,46 +710,29 @@ class Search:
         self.params['seed'] = self.seed
 
 
-class Wallpaper:
-    buffer = 1
+def log(msg):
+    print(f"[!] {msg}")
 
-    def __init__(self, path, file_size, temp_dir, save_dir, name, callback=None):
-        self.temp_path = os.path.join(temp_dir, os.path.basename(path))
-        self.save_path = os.path.join(save_dir, name)
-        self.save_dir = save_dir
-        self.file_size = file_size
-        self.response = requests.get(path, stream=True) if self.file_size else None
-        self.callback = callback
 
-    def get(self):
-        if os.path.isfile(self.temp_path) or os.path.isfile(self.save_path):
-            return
-        temp_dir = os.path.dirname(self.temp_path)
-        os.makedirs(temp_dir, exist_ok=True)
-        downloaded = progress = 0
-        chunk_size = self.file_size // 100 * self.buffer
-        iter_content = self.response.iter_content(chunk_size)
-        with open(self.temp_path, 'wb') as cache_file:
-            for chunk in iter_content:
-                cache_file.write(chunk)
-                progress += self.buffer if progress < 100 else 0
-                self.callback(progress) if self.callback else None
-                downloaded += len(chunk)
-                print(f'[{str("#" * progress).ljust(100)}] {downloaded}', end='\r')
-        print()
-        # TODO: verify wallpaper hash
-
-    def save(self):  # copy file
-        if os.path.isfile(self.temp_path):
-            if not os.path.exists(self.save_path):
-                with open(self.temp_path, 'rb') as cache_file:
-                    data = cache_file.read()
-                os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
-                with open(self.save_path, 'wb') as save_file:
-                    save_file.write(data)
-                if os.path.isfile(self.temp_path) and os.path.isfile(self.save_path):
-                    return filecmp.cmp(self.temp_path, self.temp_path)
-        return False
+def copy_file(src_path, dest_path):
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    if not os.path.exists(dest_path):
+        try:
+            shutil.copyfile(src_path, dest_path)
+        except FileNotFoundError as err:
+            log(err)
+        except PermissionError as err:
+            log(err)
+    else:
+        log(f"FileExistsError: '{dest_path}'")
+    try:
+        if filecmp.cmp(src_path, dest_path):
+            return True
+        else:
+            log(f"MismatchError: '{src_path}' '{dest_path}'")
+    except FileNotFoundError as err:
+        log(err)
+    return False
 
 
 if __name__ == '__main__':
