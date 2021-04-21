@@ -575,7 +575,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             name = os.path.basename(path)
             temp_path = os.path.join(TEMP_DIR, name)
             save_path = os.path.join(self.save_path, name)
-            request.urlretrieve(path, temp_path, chunk_count=20, callback=log)
+            request.urlretrieve(path, temp_path, chunk_count=20, callback=self.func)
             win32.set_wallpaper(temp_path, save_path)
             copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
