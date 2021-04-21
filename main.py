@@ -1,10 +1,9 @@
 import filecmp
 import os
+import pickle
 import shutil
 import sys
 import threading
-# TODO: do not touch registry
-import winreg
 
 # TODO: remove requests
 import requests
@@ -133,7 +132,7 @@ colors = {color: color for color in colors}
 
 def create_item(menu, label, func):
     item = wx.MenuItem(menu, wx.ID_ANY, label)
-    menu.Bind(wx.EVT_MENU, func, id=(item.GetId()))
+    menu.Bind(wx.EVT_MENU, func, id=item.GetId())
     menu.Append(item)
     return item
 
@@ -280,18 +279,7 @@ def show_frame(frame):
     frame.Raise()
 
 
-def remove_temp():
-    if os.path.isdir(TEMP_DIR):
-        temp_files = os.listdir(TEMP_DIR)
-        for temp_file in temp_files:
-            temp_file_path = os.path.join(TEMP_DIR, temp_file)
-            os.remove(temp_file_path)
-        else:
-            os.rmdir(TEMP_DIR)
-
-
 class TaskBarIcon(wx.adv.TaskBarIcon):
-
     def __init__(self):
         super().__init__()
         self.icon = ICON.GetIcon()
@@ -360,11 +348,11 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.item_submenu_resolutions = self.menu.AppendSubMenu(wx.Menu(), 'Exact Resolution', 'resolutions')
         create_submenu_items(self.item_submenu_resolutions, resolutions, wx.ITEM_CHECK)
         self.menu.AppendSeparator()
-        self.auto_startup = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Startup')
-        self.auto_startup.Check(configs['auto_startup'])
+        self.autorun = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Startup')
+        self.autorun.Check(configs['auto_startup'])
         self.save_configuration = self.menu.AppendCheckItem(wx.ID_ANY, 'Save Configuration')
         self.save_configuration.Check(self.config.exists)
-        self.menu.Bind(wx.EVT_MENU, self.on_auto_startup, id=(self.auto_startup.GetId()))
+        self.menu.Bind(wx.EVT_MENU, self.on_auto_startup, id=self.autorun.GetId())
         create_item(self.menu, 'Exit Wallhaven', self.on_exit)
         self.parse_interval()
         self.parse_params()
@@ -372,7 +360,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.on_auto_change()
         self.on_auto_ratio()
         self.on_auto_startup()
-        self.on_change() if sys.argv[(-1)] == '-c' else None
+        if 'change' in sys.argv:
+            self.on_change()
 
     def update_popup_menu(self):
         if paramsEX['apikey']:
@@ -465,7 +454,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         state = self.auto_change.IsChecked()
         self.item_submenu_interval.Enable(state)
         self.timer.Start(self.change_interval) if state else self.timer.Stop()
-        self.on_auto_startup() if self.auto_startup.IsChecked() else None
+        if self.autorun.IsChecked():
+            self.on_auto_startup()
 
     def on_save(self, _):
         self.save_wallpaper.Enable(False)
@@ -554,27 +544,18 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         update_params_2(self.item_submenu_atleast)
 
     def on_auto_startup(self, _=None):
-        key = 'wallhaven'
         path = os.path.realpath(sys.argv[0])
-        value = f'"{path}" -c' if self.auto_change.IsChecked() else f'"{path}"'
-        sub_key = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run'
-        handle = winreg.OpenKey(winreg.HKEY_CURRENT_USER, sub_key, 0, winreg.KEY_SET_VALUE)
-        if self.auto_startup.IsChecked():
-            try:
-                winreg.SetValueEx(handle, key, 0, winreg.REG_SZ, value)
-            except PermissionError:
-                self.auto_startup.Check(False)
-
+        if self.autorun.IsChecked():
+            win32.register_autorun(NAME, path, 'change' if self.auto_change.IsChecked() else '')
         else:
-            try:
-                winreg.DeleteValue(handle, key)
-            except FileNotFoundError:
-                pass
+            win32.unregister_autorun(NAME)
 
     def on_exit(self, _):
-        self.save_config() if self.save_configuration.IsChecked() else os.remove(CONFIG_PATH) if os.path.isfile(
-            CONFIG_PATH) else None
-        remove_temp()
+        if self.save_configuration.IsChecked():
+            self.save_config()
+        elif os.path.isfile(CONFIG_PATH):
+            os.remove(CONFIG_PATH)
+        remove_temp_files()
         wx.CallAfter(self.Destroy)
 
     def change(self):
@@ -594,7 +575,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             name = os.path.basename(path)
             temp_path = os.path.join(TEMP_DIR, name)
             save_path = os.path.join(self.save_path, name)
-            request.urlretrieve(path, temp_path, wallpaper_data['file_size'] // 100, callback=self.func)
+            request.urlretrieve(path, temp_path, chunk_count=20, callback=log)
             win32.set_wallpaper(temp_path, save_path)
             copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
@@ -637,14 +618,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
                         'save_path': self.save_path,
                         'use_api_key': self.use_api_key.IsChecked(),
                         'auto_ratio': self.auto_ratio.IsChecked(),
-                        'auto_startup': self.auto_startup.IsChecked()})
+                        'auto_startup': self.autorun.IsChecked()})
         self.config.save()
 
 
 # TODO: rework Config
 class Config:
-    import pickle
-
     def __init__(self, path, *config):
         self.path = path
         self.config = config
@@ -659,8 +638,8 @@ class Config:
             with open(self.path, 'rb') as file:
                 pickled = file.read()
             try:
-                config = self.pickle.loads(pickled)
-            except self.pickle.UnpicklingError:
+                config = pickle.loads(pickled)
+            except pickle.UnpicklingError:
                 print('[#] UnpicklingError')
 
         return config
@@ -671,13 +650,12 @@ class Config:
         [current.update(saved) for current, saved in zipped]
 
     def save(self):
-        pickled = self.pickle.dumps(self.config)
+        pickled = pickle.dumps(self.config)
         with open(self.path, 'wb') as file:
             file.write(pickled)
 
 
 class Search:
-
     def __init__(self, params):
         self.url = os.path.join(URL, 'search')
         self.params = dict(params)
@@ -733,6 +711,11 @@ def copy_file(src_path, dest_path):
     except FileNotFoundError as err:
         log(err)
     return False
+
+
+def remove_temp_files():
+    shutil.rmtree(TEMP_DIR, onerror=lambda *args: log(args[2][1]))
+    return not os.path.exists(TEMP_DIR)
 
 
 if __name__ == '__main__':
