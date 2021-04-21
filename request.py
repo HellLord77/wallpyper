@@ -15,9 +15,9 @@ class Response:
     def __init__(self, response, stream=False):
         self._content = b''
         self.chunk_size = CHUNK_SIZE
-        self.reason = response.msg
+        self.reason = response.reason
         self.response = response
-        self.status_code = response.status
+        self.status = 418 if isinstance(response, urllib.error.URLError) else response.status
         if not stream:
             self._content = response.read()
 
@@ -55,12 +55,12 @@ def urlopen(url, params=None, stream=False):
         return Response(urllib.request.urlopen(request), stream)
     except (urllib.error.HTTPError, urllib.error.URLError) as response:
         # noinspection PyTypeChecker
-        return Response(response, stream)
+        return Response(response, True)
 
 
 def urlretrieve(url, path, chunk_size=CHUNK_SIZE, content_length=0, chunk_count=0, callback=lambda arg: None):
     response = urlopen(url, stream=True)
-    if response.status_code == 200:
+    if response.status == 200:
         if not content_length:
             content_length_header = response.response.getheader(CONTENT_LENGTH)
             content_length = int(content_length_header) if content_length_header else MAX

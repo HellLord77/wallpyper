@@ -9,6 +9,7 @@ SPIF_SENDWININICHANGE = 0x2
 
 AUTORUN_DIR = os.path.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 APPDATA_DIR = os.environ['APPDATA']
+PICTURES_DIR = os.path.join(os.environ['USERPROFILE'], 'Pictures')
 TEMP_DIR = os.environ['TEMP']
 WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
 

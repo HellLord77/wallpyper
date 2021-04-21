@@ -5,8 +5,6 @@ import shutil
 import sys
 import threading
 
-# TODO: remove requests
-import requests
 import wx
 import wx.adv
 import wx.lib.embeddedimage
@@ -16,11 +14,8 @@ import singleton
 # TODO: add sys.platform
 import win32
 
-singleton.init(crash_handler=print, crash_handler_args=('[#] Crash',),
-               exit_handler=print, exit_handler_args=('[#] Exit',))
 DEFAULT_FRAME_STYLE = wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP | wx.FRAME_TOOL_WINDOW
 NAME = 'wxWallhaven'
-VERSION = '0.1'
 ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c'
     b'+/evenEQhA0gooYOxvRxQfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z'
@@ -34,13 +29,12 @@ ICON = wx.lib.embeddedimage.PyEmbeddedImage(
 )
 URL = 'https://wallhaven.cc/api/v1/'
 CONFIG_PATH = os.path.join(win32.APPDATA_DIR, f'{NAME}.ini')
-PICTURES_PATH = os.path.join(os.environ['USERPROFILE'], 'Pictures', NAME)
 TEMP_DIR = os.path.join(win32.TEMP_DIR, NAME)
 configs = {
     'auto_change': False,
     'change_interval': 3600000,
     'auto_save': False,
-    'save_path': PICTURES_PATH,
+    'save_dir': os.path.join(win32.PICTURES_DIR, NAME),
     'use_api_key': True,
     'auto_ratio': True,
     'auto_startup': False
@@ -289,7 +283,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         app.Bind(wx.EVT_END_SESSION, self.on_exit)
         self.config = Config(CONFIG_PATH, configs, paramsEX)
         self.config.load()
-        self.save_path = configs['save_path']
+        self.save_path = configs['save_dir']
         self.change_interval = configs['change_interval']
         self.bk_categories = paramsEX['categories']
         self.bk_purity = paramsEX['purity']
@@ -575,7 +569,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             name = os.path.basename(path)
             temp_path = os.path.join(TEMP_DIR, name)
             save_path = os.path.join(self.save_path, name)
-            request.urlretrieve(path, temp_path, chunk_count=20, callback=self.func)
+            request.urlretrieve(path, temp_path, chunk_count=100, callback=self.func)
             win32.set_wallpaper(temp_path, save_path)
             copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
@@ -600,7 +594,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         wx.TheClipboard.GetData(text_data)
         api_key = text_data.GetText()
         response = verify_api_key(api_key)
-        if response.status_code == 200:
+        if response.status == 200:
             paramsEX['apikey'] = api_key
             self.remove_api_key.Enable(True)
             loop.Exit()
@@ -615,14 +609,14 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         configs.update({'auto_change': self.auto_change.IsChecked(),
                         'change_interval': self.change_interval,
                         'auto_save': self.auto_save.IsChecked(),
-                        'save_path': self.save_path,
+                        'save_dir': self.save_path,
                         'use_api_key': self.use_api_key.IsChecked(),
                         'auto_ratio': self.auto_ratio.IsChecked(),
                         'auto_startup': self.autorun.IsChecked()})
         self.config.save()
 
 
-# TODO: rework Config
+# TODO: rework Config, based on module (wallhaven)
 class Config:
     def __init__(self, path, *config):
         self.path = path
@@ -666,18 +660,13 @@ class Search:
 
     def get(self):
         data = []
-        try:
-            response = request.urlopen(self.url, self.params)
-            status_code = response.status_code
-            if status_code == 200:
-                data, self.meta = response.json().values()
-                self.set()
-        except requests.exceptions.ConnectionError:
-            status_code = 418
+        response = request.urlopen(self.url, self.params)
+        if response.status == 200:
+            data, self.meta = response.json().values()
+            self.set()
         else:
-            # noinspection PyUnresolvedReferences,PyProtectedMember
-            print(f'[#] {requests.status_codes._codes[status_code][0]}')
-            return data
+            log(response.reason)
+        return data
 
     def set(self):
         if self.page == 1:
@@ -719,6 +708,8 @@ def remove_temp_files():
 
 
 if __name__ == '__main__':
+    singleton.init(crash_hook=log, crash_hook_args=('Crash',), exit_hook=log, exit_hook_args=('Exit',))
+
     app = wx.App()
     TaskBarIcon()
     app.MainLoop()

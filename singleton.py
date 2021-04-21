@@ -4,7 +4,7 @@ import tempfile
 
 
 # noinspection PyUnusedLocal
-def _handler(*args, **kwargs):
+def _hook(*args, **kwargs):
     pass
 
 
@@ -16,8 +16,8 @@ def _uid():
 
 
 def init(uid=_uid(),
-         crash_handler=_handler, crash_handler_args=(), crash_handler_kwargs=None,
-         exit_handler=_handler, exit_handler_args=(), exit_handler_kwargs=None):
+         crash_hook=_hook, crash_hook_args=(), crash_hook_kwargs=None,
+         exit_hook=_hook, exit_hook_args=(), exit_hook_kwargs=None):
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -28,10 +28,10 @@ def init(uid=_uid(),
         try:
             os.remove(path)
         except PermissionError:
-            exit_handler(*exit_handler_args, **exit_handler_kwargs or {})
+            exit_hook(*exit_hook_args, **exit_hook_kwargs or {})
             raise SystemExit
         else:
-            crash_handler(*crash_handler_args, **crash_handler_kwargs or {})
+            crash_hook(*crash_hook_args, **crash_hook_kwargs or {})
             _descriptor = os.open(path, flags)
     else:
         atexit.register(os.remove, path)
