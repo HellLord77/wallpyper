@@ -28,6 +28,7 @@ ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhFFEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
 )
 URL = 'https://wallhaven.cc/api/v1/'
+# TODO: os.path.join -> win32.join_path
 CONFIG_PATH = os.path.join(win32.APPDATA_DIR, f'{NAME}.ini')
 TEMP_DIR = os.path.join(win32.TEMP_DIR, NAME)
 configs = {
@@ -188,8 +189,7 @@ def update_params_1(item_submenu):
     for submenu_item in submenu_items:
         state = submenu_item.IsChecked()
         param += str(int(state))
-    else:
-        paramsEX[id] = param
+    paramsEX[id] = param
 
 
 def update_params_2(item_submenu):
@@ -594,7 +594,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         wx.TheClipboard.GetData(text_data)
         api_key = text_data.GetText()
         response = verify_api_key(api_key)
-        if response.status == 200:
+        if response.status_code == 200:
             paramsEX['apikey'] = api_key
             self.remove_api_key.Enable(True)
             loop.Exit()
@@ -661,7 +661,7 @@ class Search:
     def get(self):
         data = []
         response = request.urlopen(self.url, self.params)
-        if response.status == 200:
+        if response.status_code == 200:
             data, self.meta = response.json().values()
             self.set()
         else:
