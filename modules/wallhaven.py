@@ -24,8 +24,8 @@ DEFAULT_CONFIG = {
 CONFIG = {}
 
 
-def init():
-    # TODO: verify CONFIG, fallback to DEFAULT_CONFIG
+def sanitize_config():
+    # TODO: validate & sanitize CONFIG, fallback to DEFAULT_CONFIG if necessary
     ...
 
 

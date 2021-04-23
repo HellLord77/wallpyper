@@ -12,13 +12,21 @@ import wx.adv
 import wx.lib.embeddedimage
 
 import modules.wallhaven
+import platforms.win32
 import request
 import singleton
-# TODO: add sys.platform
-import win32
+
+NAME = 'wxWallhaven'
+CONFIG = configparser.ConfigParser()
+MODULE = modules.wallhaven
+PLATFORM = platforms.win32
+
+CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')
+TEMP_DIR = os.path.join(PLATFORM.TEMP_DIR, NAME)
+
+# 0.0.1
 
 DEFAULT_FRAME_STYLE = wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP | wx.FRAME_TOOL_WINDOW
-NAME = 'wxWallhaven'
 ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c'
     b'+/evenEQhA0gooYOxvRxQfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z'
@@ -30,17 +38,12 @@ ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'/f3aDabqNVqODs7Q5Zl8N5XwrKwdNbBWvvkf2F9u91Go9EAgaC1xtXVFRYXF2GtrcTOFTqujYYxBsYYWGuQ5zmur6'
     b'+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhFFEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
 )
-URL = 'https://wallhaven.cc/api/v1/'
-# CONFIG_PATH = os.path.join(win32.APPDATA_DIR, f'{NAME}.ini')
-CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')
-CONFIG = configparser.ConfigParser()
-MODULE = modules.wallhaven
-TEMP_DIR = os.path.join(win32.TEMP_DIR, NAME)
+# CONFIG_PATH = os.path.join(OS.APPDATA_DIR, f'{NAME}.ini')
 configs = {
     'auto_change': False,
     'change_interval': 3600000,
     'auto_save': False,
-    'save_dir': os.path.join(win32.PICTURES_DIR, NAME),
+    'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
     'use_api_key': True,
     'auto_ratio': True,
     'auto_startup': False
@@ -225,7 +228,7 @@ def modify_search_query(textctrl, loop):
 
 
 def verify_api_key(api_key):
-    url = os.path.join(URL, 'settings')
+    url = os.path.join(MODULE.BASE_URL, 'settings')
     response = request.urlopen(url, {'apikey': api_key})
     return response
 
@@ -458,16 +461,16 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
     def on_save(self, _):
         self.save_wallpaper.Enable(False)
-        path = win32.get_wallpaper_path()
+        path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         save_path = os.path.join(self.save_path, name)
         saved = copy_file(path, save_path)
         if not saved:
-            cache_name = next(os.walk(win32.WALLPAPER_DIR))[2][0]
+            cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
             save_path_2 = os.path.join(self.save_path, cache_name)
             saved = copy_file(path, save_path_2)
             if not saved:
-                cache_path = os.path.join(win32.WALLPAPER_DIR, cache_name)
+                cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
                 saved = copy_file(cache_path, save_path)
                 if not saved:
                     saved = copy_file(cache_path, save_path_2)
@@ -545,9 +548,9 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
     def on_auto_startup(self, _=None):
         path = os.path.realpath(sys.argv[0])
         if self.autorun.IsChecked():
-            win32.register_autorun(NAME, path, 'change' if self.auto_change.IsChecked() else '')
+            PLATFORM.register_autorun(NAME, path, 'change' if self.auto_change.IsChecked() else '')
         else:
-            win32.unregister_autorun(NAME)
+            PLATFORM.unregister_autorun(NAME)
 
     def on_exit(self, _):
         if self.save_configuration.IsChecked():
@@ -575,7 +578,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             temp_path = os.path.join(TEMP_DIR, name)
             save_path = os.path.join(self.save_path, name)
             request.urlretrieve(path, temp_path, chunk_count=100, callback=self.func)
-            win32.set_wallpaper(temp_path, save_path)
+            PLATFORM.set_wallpaper(temp_path, save_path)
             copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
         self.change_wallpaper.SetItemLabel('Change Wallpaper')
@@ -656,7 +659,7 @@ class Config:
 
 class Search:
     def __init__(self, params):
-        self.url = os.path.join(URL, 'search')
+        self.url = os.path.join(MODULE.BASE_URL, 'search')
         self.params = dict(params)
         self.page = 1
         self.last_page = 1
@@ -681,6 +684,8 @@ class Search:
         self.params['page'] = self.page
         self.params['seed'] = self.seed
 
+
+# 0.0.2
 
 def log(msg: typing.Any) -> None:
     print(f"[!] {msg}")
@@ -712,7 +717,7 @@ def remove_temp_files() -> bool:
     return not os.path.exists(TEMP_DIR)
 
 
-def load_config():
+def load_config() -> bool:
     CONFIG.read(CONFIG_PATH)
     if CONFIG.has_section(MODULE.NAME):
         for key, value in MODULE.DEFAULT_CONFIG.items():
@@ -720,6 +725,13 @@ def load_config():
         return True
     MODULE.CONFIG = MODULE.DEFAULT_CONFIG.copy()
     return False
+
+
+def save_config() -> bool:
+    CONFIG[MODULE.NAME] = MODULE.CONFIG
+    with open(CONFIG_PATH, 'w') as file:
+        CONFIG.write(file)
+    return True
 
 
 if __name__ == '__main__':

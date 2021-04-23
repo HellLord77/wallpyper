@@ -28,9 +28,8 @@ def init(uid: str = _uid(),
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
-    flags = os.O_CREAT | os.O_EXCL
     try:
-        file = os.open(path, flags)
+        file = os.open(path, os.O_CREAT | os.O_EXCL)
     except FileExistsError:
         try:
             os.remove(path)
@@ -39,6 +38,6 @@ def init(uid: str = _uid(),
             raise SystemExit
         else:
             crash_hook(*crash_hook_args, **crash_hook_kwargs)
-            file = os.open(path, flags)
+            file = os.open(path, os.O_CREAT | os.O_EXCL)
     atexit.register(os.remove, path)
     atexit.register(os.close, file)
