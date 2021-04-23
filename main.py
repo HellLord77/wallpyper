@@ -236,12 +236,6 @@ def modify_search_query(textctrl, loop):
     loop.Exit()
 
 
-def verify_api_key(api_key):
-    url = os.path.join(MODULE.BASE_URL, 'settings')
-    response = request.urlopen(url, {'apikey': api_key})
-    return response
-
-
 def get_ratio():
     display_resolution = wx.DisplaySize()
     display_ratio = display_resolution[0] / display_resolution[1]
@@ -563,8 +557,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
     def on_exit(self, _):
         if self.save_configuration.IsChecked():
             self.save_config()
-        elif os.path.isfile(CONFIG_PATH):
-            os.remove(CONFIG_PATH)
+        else:
+            config.remove()
         remove_temp_files()
         wx.CallAfter(self.Destroy)
 
@@ -609,14 +603,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         text_data = wx.TextDataObject()
         wx.TheClipboard.GetData(text_data)
         api_key = text_data.GetText()
-        response = verify_api_key(api_key)
-        if response.status_code == 200:
+        if MODULE.authenticate(api_key):
             paramsEX['apikey'] = api_key
             self.remove_api_key.Enable(True)
             loop.Exit()
         else:
-            # noinspection PyProtectedMember,PyUnresolvedReferences
-            frame.SetStatusText(f'[#] Invalid API Key ({response.reason})')
+            frame.SetStatusText(f'[#] Invalid API Key')
             app.Yield()
             button.Enable()
             button.SetFocus()
@@ -694,7 +686,7 @@ def remove_temp_files() -> bool:
 
 if __name__ == '__main__':
     singleton.init(f'{NAME}_{singleton.uid()}.lock', log, log, ('Crash',), ('Exit',))
-    config.init()
+    config.load()
 
     app = wx.App()
     TaskBarIcon()
