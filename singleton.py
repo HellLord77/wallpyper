@@ -12,22 +12,22 @@ def _hook(*args: typing.Any,
     pass
 
 
-def _uid(path: str = sys.argv[0]) -> str:
+def uid(path: str = sys.argv[0]) -> str:
     with open(path, 'rb') as file:
         return hashlib.md5(file.read()).hexdigest()
 
 
 # noinspection PyDefaultArgument
-def init(uid: str = _uid(),
+def init(name: str = uid(),
          crash_hook: typing.Callable = _hook,
-         crash_hook_args: typing.Iterable = (),
-         crash_hook_kwargs: typing.Mapping[str, typing.Any] = {},
          exit_hook: typing.Callable = _hook,
+         crash_hook_args: typing.Iterable = (),
          exit_hook_args: typing.Iterable = (),
+         crash_hook_kwargs: typing.Mapping[str, typing.Any] = {},
          exit_hook_kwargs: typing.Mapping[str, typing.Any] = {}) -> None:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
-    path = os.path.join(temp_dir, uid)
+    path = os.path.join(temp_dir, name)
     try:
         file = os.open(path, os.O_CREAT | os.O_EXCL)
     except FileExistsError:

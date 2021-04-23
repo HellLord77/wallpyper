@@ -1,7 +1,6 @@
 import configparser
 import filecmp
 import os
-import pickle
 import shutil
 import sys
 import threading
@@ -11,34 +10,44 @@ import wx
 import wx.adv
 import wx.lib.embeddedimage
 
+import config
 import modules.wallhaven
 import platforms.win32
 import request
 import singleton
 
-NAME = 'wxWallhaven'
-CONFIG = configparser.ConfigParser()
-MODULE = modules.wallhaven
+NAME = 'WALLPYPER'
+CONFIGPARSER = configparser.ConfigParser()
+MODULES = (modules.wallhaven,)
+MODULE = MODULES[0]
 PLATFORM = platforms.win32
+DEFAULT_CONFIG = {
+    'auto_change': 'false',
+    'change_interval': '3600000',
+    'auto_save': 'false',
+    'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
+    'auto_startup': 'false'
+}
 
-CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')
+CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')  # os.path.join(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 TEMP_DIR = os.path.join(PLATFORM.TEMP_DIR, NAME)
+
+CONFIG = {}
 
 # 0.0.1
 
 DEFAULT_FRAME_STYLE = wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP | wx.FRAME_TOOL_WINDOW
 ICON = wx.lib.embeddedimage.PyEmbeddedImage(
-    b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c'
-    b'+/evenEQhA0gooYOxvRxQfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z'
-    b'+c4Mu729fROCe2eMWyKimHPOAIAxhn8HEeFpzTImbuJYfmTfbm7aURTNJ'
-    b'/X6iyRJOOcCAFWAYiYQoQgEaKVpNBzm2pjvcqTUUlKvR0IIHkIAUSEuo6xKREVOBM45k1GU9vv9V9w5F0spORGhBPwvjDF4v7'
-    b'+PnZ0dSCm58z6WgQIjCvD+z105FygtKE9BIBwcHOD15iamp6bgvQcRMe6dh3MeIQSEEGCMQav1GScnJ2g0Guh2uwCAr1++YjAY4OX0dLXX'
-    b'+wBeJL46/uHhIWZmZrC6uoqFhQVMTEyAMYbT01Osra2hvGqhc'
-    b'+DOuQoQQkCr1cLc3Bza7TaWl5chhADnHJeXl1hZWakApUaWAM45GGNYX19HCAHn5+eYnJxEs9lEnudIkgTj4+Ow1lYA5xxkmZRt293dhXMO9'
-    b'/f3aDabqNVqODs7Q5Zl8N5XwrKwdNbBWvvkf2F9u91Go9EAgaC1xtXVFRYXF2GtrcTOFTqujYYxBsYYWGuQ5zmur6'
-    b'+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhFFEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
+    b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c+/evenEQhA0gooYOxvRx'
+    b'QfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z+c4Mu729fROCe2eMWyKimHPOAIAxhn8HEeFpzTImbu'
+    b'JYfmTfbm7aURTNJ/X6iyRJOOcCAFWAYiYQoQgEaKVpNBzm2pjvcqTUUlKvR0IIHkIAUSEuo6xKREVOBM45k1GU9vv9V9w5F0spORGhBPwvjDF4v7+'
+    b'PnZ0dSCm58z6WgQIjCvD+z105FygtKE9BIBwcHOD15iamp6bgvQcRMe6dh3MeIQSEEGCMQav1GScnJ2g0Guh2uwCAr1++YjAY4OX0dLXX+wBeJL46'
+    b'/uHhIWZmZrC6uoqFhQVMTEyAMYbT01Osra2hvGqhc+DOuQoQQkCr1cLc3Bza7TaWl5chhADnHJeXl1hZWakApUaWAM45GGNYX19HCAHn5+eYnJxEs'
+    b'9lEnudIkgTj4+Ow1lYA5xxkmZRt293dhXMO9/f3aDabqNVqODs7Q5Zl8N5XwrKwdNbBWvvkf2F9u91Go9EAgaC1xtXVFRYXF2GtrcTOFTqujYYxBs'
+    b'YYWGuQ5zmur6+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhF'
+    b'FEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f'
+    b'7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
 )
-# CONFIG_PATH = os.path.join(OS.APPDATA_DIR, f'{NAME}.ini')
 configs = {
     'auto_change': False,
     'change_interval': 3600000,
@@ -289,8 +298,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
         app.Bind(wx.EVT_END_SESSION, self.on_exit)
-        self.config = Config(CONFIG_PATH, configs, paramsEX)
-        self.config.load()
+        config.load()
         self.save_path = configs['save_dir']
         self.change_interval = configs['change_interval']
         self.bk_categories = paramsEX['categories']
@@ -353,7 +361,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.autorun = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Startup')
         self.autorun.Check(configs['auto_startup'])
         self.save_configuration = self.menu.AppendCheckItem(wx.ID_ANY, 'Save Configuration')
-        self.save_configuration.Check(self.config.exists)
+        self.save_configuration.Check(config.exists())
         self.menu.Bind(wx.EVT_MENU, self.on_auto_startup, id=self.autorun.GetId())
         create_item(self.menu, 'Exit Wallhaven', self.on_exit)
         self.parse_interval()
@@ -621,40 +629,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
                         'use_api_key': self.use_api_key.IsChecked(),
                         'auto_ratio': self.auto_ratio.IsChecked(),
                         'auto_startup': self.autorun.IsChecked()})
-        self.config.save()
-
-
-# TODO: rework Config, based on module (wallhaven)
-class Config:
-    def __init__(self, path, *config):
-        self.path = path
-        self.config = config
-        self.exists = self._exists()
-
-    def _exists(self):
-        return False
-
-    def get(self):
-        config = self.config
-        if self.exists:
-            with open(self.path, 'rb') as file:
-                pickled = file.read()
-            try:
-                config = pickle.loads(pickled)
-            except pickle.UnpicklingError:
-                print('[#] UnpicklingError')
-
-        return config
-
-    def load(self):
-        config = self.get()
-        zipped = zip(self.config, config)
-        [current.update(saved) for current, saved in zipped]
-
-    def save(self):
-        pickled = pickle.dumps(self.config)
-        with open(self.path, 'wb') as file:
-            file.write(pickled)
+        config.save()
 
 
 class Search:
@@ -717,25 +692,9 @@ def remove_temp_files() -> bool:
     return not os.path.exists(TEMP_DIR)
 
 
-def load_config() -> bool:
-    CONFIG.read(CONFIG_PATH)
-    if CONFIG.has_section(MODULE.NAME):
-        for key, value in MODULE.DEFAULT_CONFIG.items():
-            MODULE.CONFIG[key] = CONFIG.get(MODULE.NAME, key, fallback=value)
-        return True
-    MODULE.CONFIG = MODULE.DEFAULT_CONFIG.copy()
-    return False
-
-
-def save_config() -> bool:
-    CONFIG[MODULE.NAME] = MODULE.CONFIG
-    with open(CONFIG_PATH, 'w') as file:
-        CONFIG.write(file)
-    return True
-
-
 if __name__ == '__main__':
-    singleton.init(crash_hook=log, crash_hook_args=('Crash',), exit_hook=log, exit_hook_args=('Exit',))
+    singleton.init(f'{NAME}_{singleton.uid()}.lock', log, log, ('Crash',), ('Exit',))
+    config.init()
 
     app = wx.App()
     TaskBarIcon()

@@ -53,7 +53,7 @@ class Response:
 
 # noinspection PyDefaultArgument
 def urlopen(url: str,
-            params: typing.Mapping[str, str] = dict(),
+            params: typing.Mapping[str, str] = {},
             stream: bool = False) -> Response:
     query = dict()
     if params:

@@ -3,10 +3,10 @@ import os
 import shlex
 import winreg
 
-MAX_PATH = 0x104
-SPI_GETDESKWALLPAPER = 0x73
-SPI_SETDESKWALLPAPER = 0x14
-SPIF_SENDWININICHANGE = 0x2
+_MAX_PATH = 0x104
+_SPI_GETDESKWALLPAPER = 0x73
+_SPI_SETDESKWALLPAPER = 0x14
+_SPIF_SENDWININICHANGE = 0x2
 
 AUTORUN_DIR = os.path.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 APPDATA_DIR = os.environ['APPDATA']
@@ -38,14 +38,14 @@ def unregister_autorun(name: str) -> bool:
 
 
 def get_wallpaper_path() -> str:
-    path = ctypes.create_unicode_buffer(MAX_PATH)
-    ctypes.windll.user32.SystemParametersInfoW(SPI_GETDESKWALLPAPER, MAX_PATH, ctypes.byref(path), None)
+    path = ctypes.create_unicode_buffer(_MAX_PATH)
+    ctypes.windll.user32.SystemParametersInfoW(_SPI_GETDESKWALLPAPER, _MAX_PATH, ctypes.byref(path), None)
     return path.value
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, None, path, SPIF_SENDWININICHANGE)
+            ctypes.windll.user32.SystemParametersInfoW(_SPI_SETDESKWALLPAPER, None, path, _SPIF_SENDWININICHANGE)
             return True
     return False

@@ -25,7 +25,7 @@ CONFIG = {}
 
 
 def sanitize_config():
-    # TODO: validate & sanitize CONFIG, fallback to DEFAULT_CONFIG if necessary
+    # TODO: validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
     ...
 
 
