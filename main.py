@@ -1,14 +1,17 @@
+import configparser
 import filecmp
 import os
 import pickle
 import shutil
 import sys
 import threading
+import typing
 
 import wx
 import wx.adv
 import wx.lib.embeddedimage
 
+import modules.wallhaven
 import request
 import singleton
 # TODO: add sys.platform
@@ -28,8 +31,10 @@ ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhFFEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
 )
 URL = 'https://wallhaven.cc/api/v1/'
-# TODO: os.path.join -> win32.join_path
-CONFIG_PATH = os.path.join(win32.APPDATA_DIR, f'{NAME}.ini')
+# CONFIG_PATH = os.path.join(win32.APPDATA_DIR, f'{NAME}.ini')
+CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')
+CONFIG = configparser.ConfigParser()
+MODULE = modules.wallhaven
 TEMP_DIR = os.path.join(win32.TEMP_DIR, NAME)
 configs = {
     'auto_change': False,
@@ -677,11 +682,11 @@ class Search:
         self.params['seed'] = self.seed
 
 
-def log(msg):
+def log(msg: typing.Any) -> None:
     print(f"[!] {msg}")
 
 
-def copy_file(src_path, dest_path):
+def copy_file(src_path: typing.Text, dest_path: typing.Text) -> bool:
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     if not os.path.exists(dest_path):
         try:
@@ -702,9 +707,19 @@ def copy_file(src_path, dest_path):
     return False
 
 
-def remove_temp_files():
+def remove_temp_files() -> bool:
     shutil.rmtree(TEMP_DIR, onerror=lambda *args: log(args[2][1]))
     return not os.path.exists(TEMP_DIR)
+
+
+def load_config():
+    CONFIG.read(CONFIG_PATH)
+    if CONFIG.has_section(MODULE.NAME):
+        for key, value in MODULE.DEFAULT_CONFIG.items():
+            MODULE.CONFIG[key] = CONFIG.get(MODULE.NAME, key, fallback=value)
+        return True
+    MODULE.CONFIG = MODULE.DEFAULT_CONFIG.copy()
+    return False
 
 
 if __name__ == '__main__':

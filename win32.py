@@ -1,5 +1,6 @@
 import ctypes
 import os
+import shlex
 import winreg
 
 MAX_PATH = 0x104
@@ -7,21 +8,18 @@ SPI_GETDESKWALLPAPER = 0x73
 SPI_SETDESKWALLPAPER = 0x14
 SPIF_SENDWININICHANGE = 0x2
 
-
-def join_path(*paths: str) -> str:
-    return '\\'.join(paths)
-
-
-AUTORUN_DIR = join_path('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
+AUTORUN_DIR = os.path.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 APPDATA_DIR = os.environ['APPDATA']
-PICTURES_DIR = join_path(os.environ['USERPROFILE'], 'Pictures')
+PICTURES_DIR = os.path.join(os.environ['USERPROFILE'], 'Pictures')
 TEMP_DIR = os.environ['TEMP']
-WALLPAPER_DIR = join_path(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
+WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
 
 
-def register_autorun(name: str, path: str, *args: str) -> bool:
+def register_autorun(name: str,
+                     path: str,
+                     *args: str) -> bool:
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, AUTORUN_DIR, access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE)
-    value = f'"{path}"' + ' '.join(arg for arg in args if arg)
+    value = shlex.join((path,) + args)
     try:
         winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
     except PermissionError:
