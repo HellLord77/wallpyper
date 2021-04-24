@@ -7,9 +7,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+_CONTENT_LENGTH = 'content-length'
+_MAX_SIZE = sys.maxsize
+
 CHUNK_SIZE = 1024
-CONTENT_LENGTH = 'content-length'
-MAX_SIZE = sys.maxsize
 USER_AGENT = 'request/0.0.1'
 
 
@@ -45,25 +46,40 @@ class Response:
         return self._content
 
     def json(self) -> typing.Union[dict, list, str, int, float, bool, None]:
-        return json.loads(self.text())
+        try:
+            return json.loads(self.text())
+        except json.decoder.JSONDecodeError:
+            return {}
 
     def text(self) -> str:
         return self.content.decode()
+
+
+def urljoin(base: str,
+            *urls: str) -> str:
+    for url in urls:
+        base = f'{urllib.parse.urljoin(base, url)}/'
+    return base if base.endswith('/') else f'{base}/'
 
 
 # noinspection PyDefaultArgument
 def urlopen(url: str,
             params: typing.Mapping[str, str] = {},
             stream: bool = False) -> Response:
-    query = dict()
+    query = {}
     if params:
         for key, value in params.items():
-            query[key] = value
-    request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', headers={'User-Agent': USER_AGENT})
+            if value:
+                query[key] = value
     try:
-        return Response(urllib.request.urlopen(request), stream)
-    except urllib.error.URLError as response:
-        return Response(response, True)
+        request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', headers={'User-Agent': USER_AGENT})
+    except ValueError as err:
+        return Response(urllib.error.URLError(err), True)
+    else:
+        try:
+            return Response(urllib.request.urlopen(request), stream)
+        except urllib.error.URLError as response:
+            return Response(response, True)
 
 
 # noinspection PyDefaultArgument
@@ -78,9 +94,9 @@ def urlretrieve(url: str,
     response = urlopen(url, stream=True)
     if response.status_code == 200:
         if not size:
-            content_length = response.raw.getheader(CONTENT_LENGTH)
-            size = int(content_length) if content_length else MAX_SIZE
-        response.chunk_size = max(size // chunk_count if size != MAX_SIZE and chunk_count else chunk_size, CHUNK_SIZE)
+            content_length = response.raw.getheader(_CONTENT_LENGTH)
+            size = int(content_length) if content_length else _MAX_SIZE
+        response.chunk_size = max(size // chunk_count if size != _MAX_SIZE and chunk_count else chunk_size, CHUNK_SIZE)
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as file:

@@ -1,20 +1,17 @@
 import configparser
-import filecmp
 import os
 import shutil
 import sys
 import threading
-import typing
 
 import wx
 import wx.adv
 import wx.lib.embeddedimage
 
-import config
+import libs.singleton
 import modules.wallhaven
 import platforms.win32
-import request
-import singleton
+import utils
 
 NAME = 'WALLPYPER'
 CONFIGPARSER = configparser.ConfigParser()
@@ -236,7 +233,7 @@ def modify_search_query(textctrl, loop):
     loop.Exit()
 
 
-def get_ratio():
+def get_optimal_ratio():
     display_resolution = wx.DisplaySize()
     display_ratio = display_resolution[0] / display_resolution[1]
     d0 = 1024
@@ -292,7 +289,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
         app.Bind(wx.EVT_END_SESSION, self.on_exit)
-        config.load()
+        load_config()
         self.save_path = configs['save_dir']
         self.change_interval = configs['change_interval']
         self.bk_categories = paramsEX['categories']
@@ -305,7 +302,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.search = None
         self.func = lambda progress: self.change_wallpaper.SetItemLabel(f'Change Wallpaper ({progress:03}%)')
         self.thread = threading.Thread(target=self.change)
-        self.display_ratio = get_ratio()
+        self.display_ratio = get_optimal_ratio()
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_change, self.timer)
         self.menu = wx.Menu()
@@ -355,7 +352,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.autorun = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Startup')
         self.autorun.Check(configs['auto_startup'])
         self.save_configuration = self.menu.AppendCheckItem(wx.ID_ANY, 'Save Configuration')
-        self.save_configuration.Check(config.exists())
+        self.save_configuration.Check(utils.exists_file(CONFIG_PATH))
         self.menu.Bind(wx.EVT_MENU, self.on_auto_startup, id=self.autorun.GetId())
         create_item(self.menu, 'Exit Wallhaven', self.on_exit)
         self.parse_interval()
@@ -466,16 +463,16 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         save_path = os.path.join(self.save_path, name)
-        saved = copy_file(path, save_path)
+        saved = utils.copy_file(path, save_path)
         if not saved:
             cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
             save_path_2 = os.path.join(self.save_path, cache_name)
-            saved = copy_file(path, save_path_2)
+            saved = utils.copy_file(path, save_path_2)
             if not saved:
                 cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
-                saved = copy_file(cache_path, save_path)
+                saved = utils.copy_file(cache_path, save_path)
                 if not saved:
-                    saved = copy_file(cache_path, save_path_2)
+                    saved = utils.copy_file(cache_path, save_path_2)
         self.save_wallpaper.Enable(True)
         return saved
 
@@ -558,8 +555,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         if self.save_configuration.IsChecked():
             self.save_config()
         else:
-            config.remove()
-        remove_temp_files()
+            utils.delete_file(CONFIG_PATH)
+        delete_temp()
         wx.CallAfter(self.Destroy)
 
     def change(self):
@@ -579,9 +576,9 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             name = os.path.basename(path)
             temp_path = os.path.join(TEMP_DIR, name)
             save_path = os.path.join(self.save_path, name)
-            request.urlretrieve(path, temp_path, chunk_count=100, callback=self.func)
+            utils.download_url(path, temp_path, chunk_count=100, callback=self.func)
             PLATFORM.set_wallpaper(temp_path, save_path)
-            copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
+            utils.copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
         self.bk_search_params = dict(search_params)
         self.change_wallpaper.SetItemLabel('Change Wallpaper')
         self.change_wallpaper.Enable(True)
@@ -621,12 +618,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
                         'use_api_key': self.use_api_key.IsChecked(),
                         'auto_ratio': self.auto_ratio.IsChecked(),
                         'auto_startup': self.autorun.IsChecked()})
-        config.save()
+        save_config()
 
 
 class Search:
     def __init__(self, params):
-        self.url = os.path.join(MODULE.BASE_URL, 'search')
+        self.url = utils.join_url(MODULE.BASE_URL, 'search')
         self.params = dict(params)
         self.page = 1
         self.last_page = 1
@@ -635,12 +632,12 @@ class Search:
 
     def get(self):
         data = []
-        response = request.urlopen(self.url, self.params)
+        response = utils.open_url(self.url, self.params)
         if response.status_code == 200:
             data, self.meta = response.json().values()
             self.set()
         else:
-            log(response.reason)
+            utils.log(response.reason)
         return data
 
     def set(self):
@@ -654,39 +651,48 @@ class Search:
 
 # 0.0.2
 
-def log(msg: typing.Any) -> None:
-    print(f"[!] {msg}")
-
-
-def copy_file(src_path: typing.Text, dest_path: typing.Text) -> bool:
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    if not os.path.exists(dest_path):
-        try:
-            shutil.copyfile(src_path, dest_path)
-        except FileNotFoundError as err:
-            log(err)
-        except PermissionError as err:
-            log(err)
-    else:
-        log(f"FileExistsError: '{dest_path}'")
-    try:
-        if filecmp.cmp(src_path, dest_path):
-            return True
-        else:
-            log(f"MismatchError: '{src_path}' '{dest_path}'")
-    except FileNotFoundError as err:
-        log(err)
-    return False
-
-
-def remove_temp_files() -> bool:
-    shutil.rmtree(TEMP_DIR, onerror=lambda *args: log(args[2][1]))
+def delete_temp() -> bool:
+    shutil.rmtree(TEMP_DIR, onerror=lambda *args: utils.log(args[2][1]))
     return not os.path.exists(TEMP_DIR)
 
 
+def load_config() -> bool:
+    loaded_all = True
+    config = configparser.ConfigParser()
+    config.read(CONFIG_PATH)
+    if config.has_section(NAME):
+        for key, value in DEFAULT_CONFIG.items():
+            CONFIG[key] = config.get(NAME, key, fallback=value)
+    else:
+        loaded_all = False
+        CONFIG.update(DEFAULT_CONFIG)
+    for module in MODULES:
+        if config.has_section(module.NAME):
+            for key, value in module.DEFAULT_CONFIG.items():
+                MODULE.CONFIG[key] = config.get(MODULE.NAME, key, fallback=value)
+        else:
+            loaded_all = False
+            MODULE.CONFIG.update(MODULE.DEFAULT_CONFIG)
+    return loaded_all
+
+
+def save_config() -> bool:
+    config = configparser.ConfigParser()
+    config[NAME] = CONFIG
+    for module in MODULES:
+        config[module.NAME] = module.CONFIG
+    with open(CONFIG_PATH, 'w') as file:
+        config.write(file)
+    return utils.exists_file(CONFIG_PATH)
+
+
+def display_size() -> tuple[int, int]:
+    return wx.DisplaySize()
+
+
 if __name__ == '__main__':
-    singleton.init(f'{NAME}_{singleton.uid()}.lock', log, log, ('Crash',), ('Exit',))
-    config.load()
+    libs.singleton.init(NAME, utils.log, utils.log, ('Crash',), ('Exit',))
+    load_config()
 
     app = wx.App()
     TaskBarIcon()

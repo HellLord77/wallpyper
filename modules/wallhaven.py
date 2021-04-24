@@ -1,10 +1,9 @@
-import os
+import utils
 
-import request
+__version__ = '0.0.1'
 
 NAME = 'WALLHAVEN'
-VERSION = '0.0.1'
-BASE_URL = 'https://wallhaven.cc/api/v1/'
+BASE_URL = 'https://wallhaven.cc/api/v1'
 DEFAULT_CONFIG = {
     'apikey': '',
     'q': '',
@@ -30,4 +29,4 @@ def sanitize_config():
 
 
 def authenticate(api_key: str) -> bool:
-    return request.urlopen(os.path.join(BASE_URL, 'settings'), {'apikey': api_key}, True).status_code == 200
+    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}, True).status_code == 200
