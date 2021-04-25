@@ -8,6 +8,7 @@ import wx
 import wx.adv
 import wx.lib.embeddedimage
 
+import libs.debug
 import libs.singleton
 import modules.wallhaven
 import platforms.win32
@@ -636,8 +637,6 @@ class Search:
         if response.status_code == 200:
             data, self.meta = response.json().values()
             self.set()
-        else:
-            utils.log(response.reason)
         return data
 
     def set(self):
@@ -652,7 +651,7 @@ class Search:
 # 0.0.2
 
 def delete_temp() -> bool:
-    shutil.rmtree(TEMP_DIR, onerror=lambda *args: utils.log(args[2][1]))
+    shutil.rmtree(TEMP_DIR, True)
     return not os.path.exists(TEMP_DIR)
 
 
@@ -691,7 +690,9 @@ def display_size() -> tuple[int, int]:
 
 
 if __name__ == '__main__':
-    libs.singleton.init(NAME, utils.log, utils.log, ('Crash',), ('Exit',))
+    if 'debug' in sys.argv:
+        libs.debug.init('libs', 'modules', 'platforms')
+    libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
     load_config()
 
     app = wx.App()

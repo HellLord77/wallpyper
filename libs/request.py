@@ -8,6 +8,7 @@ import urllib.parse
 import urllib.request
 
 _CONTENT_LENGTH = 'content-length'
+_USER_AGENT = 'user-agent'
 _MAX_SIZE = sys.maxsize
 
 CHUNK_SIZE = 1024
@@ -39,6 +40,9 @@ class Response:
             except ConnectionError:
                 pass
 
+    def __str__(self) -> str:
+        return str(self.reason)
+
     @property
     def content(self) -> bytes:
         if not self.raw.isclosed():
@@ -69,10 +73,10 @@ def urlopen(url: str,
     query = {}
     if params:
         for key, value in params.items():
-            if value:
+            if isinstance(value, str):  # TODO: Mapping[str, str] not working correctly
                 query[key] = value
     try:
-        request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', headers={'User-Agent': USER_AGENT})
+        request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', headers={_USER_AGENT: USER_AGENT})
     except ValueError as err:
         return Response(urllib.error.URLError(err), True)
     else:
