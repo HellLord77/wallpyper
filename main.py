@@ -20,11 +20,11 @@ MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
 PLATFORM = platforms.win32
 DEFAULT_CONFIG = {
-    'auto_change': 'false',
+    'auto_change': utils.false,
     'change_interval': '3600000',
-    'auto_save': 'false',
+    'auto_save': utils.false,
     'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
-    'auto_startup': 'false'
+    'auto_startup': utils.false
 }
 
 CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')  # os.path.join(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
@@ -229,12 +229,6 @@ def update_params_3(item_submenu):
     paramsEX[id] = param
 
 
-def modify_search_query(textctrl, loop):
-    search_query = textctrl.GetLineText(0)
-    paramsEX['q'] = search_query or None
-    loop.Exit()
-
-
 def get_optimal_ratio():
     display_resolution = wx.DisplaySize()
     display_ratio = display_resolution[0] / display_resolution[1]
@@ -249,6 +243,12 @@ def get_optimal_ratio():
                 d0 = d1
                 optimal_ratio = ratio
     return optimal_ratio
+
+
+def modify_search_query(textctrl, loop):
+    search_query = textctrl.GetLineText(0)
+    paramsEX['q'] = search_query or None
+    loop.Exit()
 
 
 def on_modify_search_query(_):
@@ -380,8 +380,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             nsfw.Check(False)
         submenu_sorting = self.item_submenu_sorting.GetSubMenu()
         state_1 = submenu_sorting.FindItemById(submenu_sorting.FindItem('Toplist')).IsChecked()
-        state_2 = submenu_sorting.FindItemById(submenu_sorting.FindItem('Hot')).IsChecked()
-        self.item_submenu_topRange.Enable(state_1 or state_2)
+        self.item_submenu_topRange.Enable(state_1)
         atleast = paramsEX['atleast']
         if self.bk_atleast_1 != atleast:
             if atleast:
@@ -573,7 +572,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         if not self.search_data:
             self.search_data = self.search.get()
         if self.search_data:
-            wallpaper_data = self.search_data.pop()
+            wallpaper_data = self.search_data.pop(0)
             path = wallpaper_data['path']
             name = os.path.basename(path)
             temp_path = os.path.join(TEMP_DIR, name)
@@ -690,12 +689,28 @@ def display_size() -> tuple[int, int]:
     return wx.DisplaySize()
 
 
-if __name__ == '__main__':
+def next_wallpaper() -> bool:
+    url = MODULE.next_wallpaper()
+    name = os.path.basename(url)
+    temp_path = os.path.join(TEMP_DIR, name)
+    save_path = os.path.join(CONFIG['save_dir'], name)
+    utils.download_url(url, temp_path, chunk_count=100, callback=print)
+    if PLATFORM.set_wallpaper(temp_path, save_path):
+        if CONFIG['auto_save'] == utils.true:
+            utils.copy_file(temp_path, save_path)
+        return True
+    return False
+
+
+def init() -> bool:
     if 'debug' in sys.argv:
         libs.debug.init('libs', 'modules', 'platforms')
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
-    load_config()
+    return load_config()
 
+
+if __name__ == '__main__':
+    init()
     app = wx.App()
     TaskBarIcon()
     app.MainLoop()

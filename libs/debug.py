@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+import threading
 import typing
 
 _PREFIX = {
@@ -12,6 +13,7 @@ _PREFIX = {
     'return': '\x1b[94m[<] ',
     'return_details': '\x1b[34m    '
 }
+_SUFFIX = '\x1b[0m\n'
 _PATHS = set()
 
 
@@ -34,7 +36,7 @@ def _hook(frame,
 
 def log(event: str,
         string: str) -> None:
-    print(f'{_PREFIX[event]}{string}\x1b[0m')
+    sys.stderr.write(f'{_PREFIX[event]}{string}{_SUFFIX}')
 
 
 def init(*paths: str,
@@ -45,3 +47,4 @@ def init(*paths: str,
             if name.endswith('.py') and os.path.isfile(path__ := os.path.join(path_, name)):
                 _PATHS.add(path__)
     sys.settrace(_hook)
+    threading.settrace(_hook)

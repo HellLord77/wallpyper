@@ -2,6 +2,12 @@ import libs.color
 import libs.file
 import libs.request
 
+true = 'true'
+false = 'false'
+ok = 200
+
+dummy_generator = (_ for _ in ())
+
 font_style = libs.color.FontStyle
 fore_color = libs.color.ForeColor
 back_color = libs.color.BackColor

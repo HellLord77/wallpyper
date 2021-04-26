@@ -1,11 +1,9 @@
-from utils import *
+from main import init, next_wallpaper
 
 
 def main():
-    print_color(font_style.ITALIC, fore_color.BLACK, back_color.GREEN, 'se', fore_color.RED, 69, font_style.RESET,
-                'white')
-    print_color('sed')
-    print_color(font_style.BOLD, fore_color.BLUE)
+    init()
+    next_wallpaper()
 
 
 if __name__ == '__main__':

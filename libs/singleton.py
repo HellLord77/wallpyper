@@ -7,8 +7,8 @@ import typing
 
 
 # noinspection PyUnusedLocal
-def _hook(*args: typing.Any,
-          **kwargs: typing.Any) -> None:
+def _dummy_function(*args: typing.Any,
+                    **kwargs: typing.Any) -> None:
     pass
 
 
@@ -19,8 +19,8 @@ def uid(path: str = os.path.normpath(sys.argv[0])) -> str:
 
 # noinspection PyDefaultArgument
 def init(name_hint: str = os.path.basename(sys.argv[0]),
-         crash_hook: typing.Callable = _hook,
-         exit_hook: typing.Callable = _hook,
+         crash_hook: typing.Callable = _dummy_function,
+         exit_hook: typing.Callable = _dummy_function,
          crash_hook_args: typing.Iterable = (),
          exit_hook_args: typing.Iterable = (),
          crash_hook_kwargs: typing.Mapping[str, typing.Any] = {},
