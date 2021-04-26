@@ -12,7 +12,7 @@ def _hook(*args: typing.Any,
     pass
 
 
-def uid(path: str = sys.argv[0]) -> str:
+def uid(path: str = os.path.normpath(sys.argv[0])) -> str:
     with open(path, 'rb') as file:
         return hashlib.md5(file.read()).hexdigest()
 

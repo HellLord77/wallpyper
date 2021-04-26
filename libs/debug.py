@@ -12,11 +12,9 @@ _PREFIX = {
     'return': '\x1b[94m[<] ',
     'return_details': '\x1b[34m    '
 }
-_RESET = '\x1b[0m'
 _PATHS = set()
 
 
-# TODO: add timestamp
 def _hook(frame,
           event: str,
           arg: typing.Any) -> typing.Callable:
@@ -36,7 +34,7 @@ def _hook(frame,
 
 def log(event: str,
         string: str) -> None:
-    print(f'{_PREFIX[event]}{string}{_RESET}')
+    print(f'{_PREFIX[event]}{string}\x1b[0m')
 
 
 def init(*paths: str,
