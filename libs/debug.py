@@ -1,44 +1,42 @@
+import datetime
 import os
 import sys
 import typing
 
 _PREFIX = {
-    'call': f'\x1b[92m[>] ',
-    'exception': f'\x1b[91m[!] ',
-    'return': f'\x1b[94m[<] '
+    '': '',
+    'call': '\x1b[92m[>] ',
+    'call_details': '\x1b[32m    ',
+    'exception': '\x1b[91m[!] ',
+    'exception_details': '\x1b[31m    ',
+    'return': '\x1b[94m[<] ',
+    'return_details': '\x1b[34m    '
 }
-_TAB = '    '
+_RESET = '\x1b[0m'
 _PATHS = set()
 
-RESET = '\x1b[0m'
-COLORS = {
-    'red': '\x1b[31m',
-    'green': '\x1b[32m',
-    'blue': '\x1b[34m'
-}
 
-
+# TODO: add timestamp
 def _hook(frame,
           event: str,
           arg: typing.Any) -> typing.Callable:
     if (event != 'exception' or arg[0] != StopIteration) and frame.f_code.co_filename in _PATHS:
-        log(_PREFIX[event], f'{frame.f_code.co_name}: {os.path.relpath(frame.f_code.co_filename)}')
+        log(event, f'{datetime.datetime.now().replace(microsecond=0)}: '
+                   f'[{os.path.relpath(frame.f_code.co_filename)} {frame.f_lineno}] {frame.f_code.co_name}')
         if event == 'call':
             for key, value in frame.f_locals.items():
-                log(COLORS['green'], f'{_TAB}{key}: {value}')
+                log(f'{event}_details', f'{key}: {value}')
         elif event == 'exception' and arg[0] != StopIteration:
-            log(COLORS['red'], f'{_TAB}{arg[0].__name__}: {arg[1]}')
+            log(f'{event}_details', f'{arg[0].__name__}: {arg[1]}')
         elif event == 'return':
-            log(COLORS['blue'], f'{_TAB}return: {arg}')
-        log()
+            log(f'{event}_details', f'return: {arg}')
     frame.f_trace_lines = False
     return _hook
 
 
-# TODO: combine color and string
-def log(color: str = RESET,
-        *strings: str) -> None:
-    print(f'{color}{" ".join(strings)}{RESET}')
+def log(event: str,
+        string: str) -> None:
+    print(f'{_PREFIX[event]}{string}{_RESET}')
 
 
 def init(*paths: str,

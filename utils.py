@@ -1,12 +1,11 @@
-import libs.debug
+import libs.color
 import libs.file
 import libs.request
 
-blue_color = libs.debug.COLORS['blue']
-green_color = libs.debug.COLORS['green']
-red_color = libs.debug.COLORS['red']
-reset_color = libs.debug.RESET
-print_color = libs.debug.log
+style = libs.color.Style
+fore_color = libs.color.ForeColor
+back_color = libs.color.BackColor
+print_color = libs.color.cprint
 
 exists_file = libs.file.exists
 copy_file = libs.file.copy
