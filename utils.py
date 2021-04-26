@@ -2,7 +2,7 @@ import libs.color
 import libs.file
 import libs.request
 
-style = libs.color.Style
+font_style = libs.color.FontStyle
 fore_color = libs.color.ForeColor
 back_color = libs.color.BackColor
 print_color = libs.color.cprint

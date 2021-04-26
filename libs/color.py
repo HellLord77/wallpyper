@@ -14,7 +14,7 @@ class _CODE:
                 _CODES.add(value)
 
 
-class Style(_CODE):
+class FontStyle(_CODE):
     RESET = 0
     BOLD = 1
     FAINT = 2
@@ -69,4 +69,4 @@ def cprint(*strings: typing.Any) -> None:
         index += 1
     for string in strings[index + 1:]:
         print(f'{" " * (string not in _CODES)}{string}', end='')
-    print(Style.RESET)
+    print(FontStyle.RESET)

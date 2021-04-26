@@ -61,9 +61,11 @@ class Response:
 
 def urljoin(base: str,
             *urls: str) -> str:
+    if not base.endswith('/'):
+        base = f'{base}/'
     for url in urls:
         base = f'{urllib.parse.urljoin(base, url)}/'
-    return base if base.endswith('/') else f'{base}/'
+    return base[:-1]
 
 
 # noinspection PyDefaultArgument
