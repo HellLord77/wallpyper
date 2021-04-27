@@ -20,37 +20,36 @@ class Response:
                  response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]) -> None:
         self._content = bytes()
         self.chunk_size = CHUNK_SIZE
+        self.response = response
         self.reason = response.reason
-        self.raw = response
         self.status_code = 418 if isinstance(response, urllib.error.URLError) else response.status
 
     def __iter__(self) -> bytes:
-        if self.raw.isclosed():
+        if self.response.isclosed():
             for i in range(0, len(self._content), self.chunk_size):
                 yield self._content[i:i + self.chunk_size]
         else:
             try:
-                chunk = self.raw.read(self.chunk_size)
+                chunk = self.response.read(self.chunk_size)
                 while chunk:
                     yield chunk
-                    chunk = self.raw.read(self.chunk_size)
+                    chunk = self.response.read(self.chunk_size)
             except ConnectionError:
                 pass
 
-    @property
-    def content(self) -> bytes:
-        if not self.raw.isclosed():
-            self._content = self.raw.read()
+    def get_content(self) -> bytes:
+        if not self.response.isclosed():
+            self._content = self.response.read()
         return self._content
 
-    def json(self) -> typing.Union[dict, list, str, int, float, bool, None]:
+    def get_json(self) -> typing.Union[dict, list, str, int, float, bool, None]:
         try:
-            return json.loads(self.text())
+            return json.loads(self.get_text())
         except json.decoder.JSONDecodeError:
             return {}
 
-    def text(self) -> str:
-        return self.content.decode()
+    def get_text(self) -> str:
+        return self.get_content().decode()
 
 
 def urljoin(base: str,
@@ -64,7 +63,7 @@ def urljoin(base: str,
 
 # noinspection PyDefaultArgument
 def urlopen(url: str,
-            params: typing.Mapping[str, str] = {},
+            params: dict[str, str] = {},
             stream: bool = True) -> Response:
     query = {}
     if params:
@@ -94,12 +93,12 @@ def urlretrieve(url: str,
                 chunk_size: int = CHUNK_SIZE,
                 chunk_count: int = 0,
                 callback: typing.Callable[[int, ...], typing.Any] = lambda arg: None,
-                callback_args: typing.Iterable = (),
-                callback_kwargs: typing.Mapping[str, typing.Any] = {}) -> bool:
+                callback_args: tuple = (),
+                callback_kwargs: dict[str, typing.Any] = {}) -> bool:
     response = urlopen(url)
     if response.status_code == 200:
         if not size:
-            content_length = response.raw.getheader(_CONTENT_LENGTH)
+            content_length = response.response.getheader(_CONTENT_LENGTH)
             size = int(content_length) if content_length else _MAX_SIZE
         response.chunk_size = max(size // chunk_count if size != _MAX_SIZE and chunk_count else chunk_size, CHUNK_SIZE)
         ratio = 0

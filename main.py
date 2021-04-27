@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import threading
+import typing
 
 import wx
 import wx.adv
@@ -291,7 +292,6 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
         app.Bind(wx.EVT_END_SESSION, self.on_exit)
-        load_config()
         self.save_path = configs['save_dir']
         self.change_interval = configs['change_interval']
         self.bk_categories = paramsEX['categories']
@@ -299,9 +299,6 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.bk_atleast_1 = self.bk_atleast_2 = paramsEX['atleast']
         self.bk_resolutions_1 = self.bk_resolutions_2 = paramsEX['resolutions']
         self.bk_ratios = paramsEX['ratios']
-        self.bk_search_params = {}
-        self.search_data = []
-        self.search = None
         self.func = lambda progress: self.change_wallpaper.SetItemLabel(f'Change Wallpaper ({progress:03}%)')
         self.thread = threading.Thread(target=self.change)
         self.display_ratio = get_optimal_ratio()
@@ -564,23 +561,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.change_wallpaper.Enable(False)
         self.change_wallpaper.SetItemLabel('Change Wallpaper (000%)')
         self.fix_categories_purity()
-        search_params = dict(paramsEX)
-        search_params['apikey'] = search_params['apikey'] if self.use_api_key.IsChecked() else None
-        if self.bk_search_params != search_params:
-            self.search = Search(search_params)
-            self.search_data = []
-        if not self.search_data:
-            self.search_data = self.search.get()
-        if self.search_data:
-            wallpaper_data = self.search_data.pop(0)
-            path = wallpaper_data['path']
-            name = os.path.basename(path)
-            temp_path = os.path.join(TEMP_DIR, name)
-            save_path = os.path.join(self.save_path, name)
-            utils.download_url(path, temp_path, chunk_count=100, callback=self.func)
-            PLATFORM.set_wallpaper(temp_path, save_path)
-            utils.copy_file(temp_path, save_path) if self.auto_save.IsChecked() else None
-        self.bk_search_params = dict(search_params)
+        MODULE.CONFIG.update(paramsEX)
+        next_wallpaper(self.func)
         self.change_wallpaper.SetItemLabel('Change Wallpaper')
         self.change_wallpaper.Enable(True)
 
@@ -616,36 +598,9 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
                         'change_interval': self.change_interval,
                         'auto_save': self.auto_save.IsChecked(),
                         'save_dir': self.save_path,
-                        'use_api_key': self.use_api_key.IsChecked(),
                         'auto_ratio': self.auto_ratio.IsChecked(),
                         'auto_startup': self.autorun.IsChecked()})
         save_config()
-
-
-class Search:
-    def __init__(self, params):
-        self.url = utils.join_url(MODULE.BASE_URL, 'search')
-        self.params = dict(params)
-        self.page = 1
-        self.last_page = 1
-        self.seed = None
-        self.meta = None
-
-    def get(self):
-        data = []
-        response = utils.open_url(self.url, self.params)
-        if response.status_code == 200:
-            data, self.meta = response.json().values()
-            self.set()
-        return data
-
-    def set(self):
-        if self.page == 1:
-            self.last_page = self.meta['last_page']
-            self.seed = self.meta['seed']
-        self.page = self.page % self.last_page + 1
-        self.params['page'] = self.page
-        self.params['seed'] = self.seed
 
 
 # 0.0.2
@@ -679,27 +634,48 @@ def save_config() -> bool:
     config = configparser.ConfigParser()
     config[NAME] = CONFIG
     for module in MODULES:
-        config[module.NAME] = module.CONFIG
+        try:
+            config[module.NAME] = module.CONFIG
+        except TypeError:
+            pass
     with open(CONFIG_PATH, 'w') as file:
         config.write(file)
     return utils.exists_file(CONFIG_PATH)
 
 
-def display_size() -> tuple[int, int]:
-    return wx.DisplaySize()
+def get_display_size() -> tuple[int, int]:
+    return wx.GetDisplaySize()
 
 
-def next_wallpaper() -> bool:
-    url = MODULE.next_wallpaper()
-    name = os.path.basename(url)
-    temp_path = os.path.join(TEMP_DIR, name)
-    save_path = os.path.join(CONFIG['save_dir'], name)
-    utils.download_url(url, temp_path, chunk_count=100, callback=print)
-    if PLATFORM.set_wallpaper(temp_path, save_path):
-        if CONFIG['auto_save'] == utils.true:
-            utils.copy_file(temp_path, save_path)
-        return True
+def next_wallpaper(callback: typing.Callable[[int, ...], typing.Any] = utils.dummy_function) -> bool:
+    url = MODULE.get_next_url()
+    if url:
+        name = os.path.basename(url)
+        temp_path = os.path.join(TEMP_DIR, name)
+        save_path = os.path.join(CONFIG['save_dir'], name)
+        utils.download_url(url, temp_path, chunk_count=100, callback=callback)
+        set_ = PLATFORM.set_wallpaper(temp_path, save_path)
+        if CONFIG['auto_save'] == utils.true and not utils.copy_file(temp_path, save_path) and set_:
+            save_wallpaper()
+        return set_
     return False
+
+
+def save_wallpaper() -> bool:
+    path = PLATFORM.get_wallpaper_path()
+    name = os.path.basename(path)
+    save_path = os.path.join(CONFIG['save_dir'], name)
+    saved = utils.copy_file(path, save_path)
+    if not saved:
+        cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
+        save_path_2 = os.path.join(CONFIG['save_dir'], cache_name)
+        saved = utils.copy_file(path, save_path_2)
+        if not saved:
+            cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
+            saved = utils.copy_file(cache_path, save_path)
+            if not saved:
+                saved = utils.copy_file(cache_path, save_path_2)
+    return saved
 
 
 def init() -> bool:
@@ -709,8 +685,14 @@ def init() -> bool:
     return load_config()
 
 
+def delete() -> None:
+    save_config()
+    delete_temp()
+
+
 if __name__ == '__main__':
     init()
+    # 0.0.1
     app = wx.App()
     TaskBarIcon()
     app.MainLoop()

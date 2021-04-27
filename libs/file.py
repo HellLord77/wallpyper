@@ -10,14 +10,13 @@ def exists(path: str) -> bool:
 def copy(src_path: str,
          dest_path: str) -> bool:
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    try:
-        shutil.copyfile(src_path, dest_path)
-    except (FileNotFoundError, PermissionError):
-        pass
-    try:
+    if os.path.isfile(src_path) and not os.path.exists(dest_path):
+        try:
+            shutil.copyfile(src_path, dest_path)
+        except PermissionError:
+            pass
+    if os.path.isfile(src_path) and os.path.isfile(dest_path):
         return filecmp.cmp(src_path, dest_path)
-    except FileNotFoundError:
-        pass
     return False
 
 

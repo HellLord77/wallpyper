@@ -27,7 +27,7 @@ def register_autorun(name: str,
     return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
-def unregister_autorun(name: str) -> bool:
+def unregister_autorun(name: str) -> bool:  # TODO: remove verify through exception
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, AUTORUN_DIR, access=winreg.KEY_SET_VALUE)
     for _ in range(2):
         try:

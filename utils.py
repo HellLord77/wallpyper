@@ -6,6 +6,7 @@ true = 'true'
 false = 'false'
 ok = 200
 
+dummy_function = lambda *arg, **kwargs: None
 dummy_generator = (_ for _ in ())
 
 font_style = libs.color.FontStyle
