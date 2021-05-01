@@ -1,10 +1,10 @@
+import collections
 import configparser
 import os
 import shutil
 import sys
 import threading
 import typing
-import uuid
 
 import wx
 import wx.adv
@@ -17,18 +17,17 @@ import libs.gui
 import libs.singleton
 import modules.wallhaven
 # sys.platform
-import platforms.linux
 import platforms.win32
 import utils
 
 NAME = 'WALLPYPER'
-THREAD = uuid.uuid4().hex
+THREADS = collections.deque(maxlen=2)
 MODULES = (modules.wallhaven,)
-PLATFORMS = (platforms.linux, platforms.win32)
+PLATFORMS = (platforms.win32,)
 LANGUAGES = (languages.en,)
 
 MODULE = MODULES[0]
-PLATFORM = PLATFORMS[1]
+PLATFORM = PLATFORMS[0]
 LANGUAGE = LANGUAGES[0]
 DEFAULT_CONFIG = {
     'auto_change': utils.false,
@@ -285,7 +284,7 @@ def show_frame(frame):
 class TaskBarIcon(wx.adv.TaskBarIcon):
     def __init__(self):
         super().__init__()
-        self.icon = libs.gui.TASK_BAR_ICON.GetIcon()
+        self.icon = libs.gui._ICON.GetIcon()
         self.SetIcon(self.icon, NAME)
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
@@ -672,30 +671,34 @@ def save_wallpaper() -> bool:
     return saved
 
 
-def on_change_wallpaper(item: wx.MenuItem) -> bool:
-    def start_thread():
+def create_threads(item: wx.MenuItem):
+    def change_thread():
         item.Enable(False)
-        next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change_wallpaper} ({progress:03}%)'))
-        item.SetItemLabel(LANGUAGE.change_wallpaper)
-        item.Enable(True)
+        next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change} ({progress:03}%)'))
+        item.SetItemLabel(LANGUAGE.change)
+        item.Enable()
 
-    global_vars = globals()
-    if THREAD not in global_vars:
-        global_vars[THREAD] = threading.Thread(target=start_thread)
-    if item.IsEnabled():
-        global_vars[THREAD].start()
-        global_vars[THREAD] = threading.Thread(target=start_thread)
-        return True
-    else:
-        utils.notify('Change wallpaper', 'Already trying to changing wallpaper')  # TODO: retry count (?)
+    THREADS.append(threading.Thread(target=change_thread))
+    THREADS.append(THREADS[0])
+
+
+def on_change_wallpaper() -> bool:
+    if THREADS[0].is_alive():
+        utils.notify(LANGUAGE.change, LANGUAGE.changing)  # TODO: retry count (?)
         return False
+    else:
+        # noinspection PyProtectedMember
+        THREADS.append(threading.Thread(target=THREADS[1]._target))
+        THREADS[0].start()
+        return True
 
 
 def create_menu():
-    utils.add_item(LANGUAGE.change_wallpaper, on_change_wallpaper)  # TODO: auto switch state with libs.gui.sync
+    create_threads(utils.add_menu_item(LANGUAGE.change, callback=on_change_wallpaper))
+    utils.add_menu_item(LANGUAGE.auto_change, utils.item_kind.CHECK)
+
     MODULE.create_menu()
     items = {
-        'change_wallpaper': (utils.item_kind.NORMAL, 'Change Wallpaper'),
         'auto_change': (utils.item_kind.CHECK, 'Auto Change Wallpaper'),
         'change_interval': (utils.item_kind.SUBMENU, 'Auto Change Interval'),
         '_': (utils.item_kind.SEPARATOR, ''),

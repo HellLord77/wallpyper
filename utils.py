@@ -19,11 +19,11 @@ exists_file = libs.file.exists
 copy_file = libs.file.copy
 delete_file = libs.file.remove
 
-add_item = libs.gui.add_item
+add_menu_item = libs.gui.add_item
+sync = libs.gui.sync
 notify = libs.gui.show_balloon
 main_loop = libs.gui.main_loop
 item_kind = libs.gui.ITEM
-window_kind = libs.gui.WINDOW
 icon_kind = libs.gui.ICON
 
 join_url = libs.request.urljoin

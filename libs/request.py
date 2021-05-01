@@ -61,9 +61,8 @@ def urljoin(base: str,
     return base[:-1]
 
 
-# noinspection PyDefaultArgument
 def urlopen(url: str,
-            params: dict[str, str] = {},
+            params: typing.Optional[dict[str, str]] = None,
             stream: bool = True) -> Response:
     query = {}
     if params:
@@ -86,15 +85,14 @@ def urlopen(url: str,
             return response_
 
 
-# noinspection PyDefaultArgument
 def urlretrieve(url: str,
                 path: str,
-                size: int = 0,
+                size: typing.Optional[int] = None,
                 chunk_size: int = CHUNK_SIZE,
-                chunk_count: int = 0,
-                callback: typing.Callable[[int, ...], typing.Any] = lambda arg: None,
-                callback_args: tuple = (),
-                callback_kwargs: dict[str, typing.Any] = {}) -> bool:
+                chunk_count: typing.Optional[int] = None,
+                callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
+                callback_args: typing.Optional[tuple] = None,
+                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
     response = urlopen(url)
     if response.status == 200:
         if not size:
@@ -108,6 +106,7 @@ def urlretrieve(url: str,
                 for chunk in response:
                     file.write(chunk)
                     ratio += len(chunk) / size
-                    callback(round(ratio * 100), *callback_args, **callback_kwargs)
+                    if callback:
+                        callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
         return size == os.stat(path).st_size
     return False
