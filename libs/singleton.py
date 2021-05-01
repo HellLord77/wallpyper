@@ -19,12 +19,12 @@ def get_uid(path: str = os.path.normpath(sys.argv[0])) -> str:
 
 # noinspection PyDefaultArgument
 def init(name_hint: str = os.path.basename(sys.argv[0]),
-         crash_hook: typing.Callable = _dummy_function,
-         exit_hook: typing.Callable = _dummy_function,
-         crash_hook_args: tuple = (),
-         exit_hook_args: tuple = (),
-         crash_hook_kwargs: dict[str, typing.Any] = {},
-         exit_hook_kwargs: dict[str, typing.Any] = {}) -> typing.Union[bool, typing.NoReturn]:
+         crash_callback: typing.Callable = _dummy_function,
+         exit_callback: typing.Callable = _dummy_function,
+         crash_callback_args: tuple = (),
+         exit_callback_args: tuple = (),
+         crash_callback_kwargs: dict[str, typing.Any] = {},
+         exit_callback_kwargs: dict[str, typing.Any] = {}) -> typing.Union[bool, typing.NoReturn]:
     crashed = False
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
@@ -35,10 +35,10 @@ def init(name_hint: str = os.path.basename(sys.argv[0]),
         try:
             os.remove(path)
         except PermissionError:
-            exit_hook(*exit_hook_args, **exit_hook_kwargs)
+            exit_callback(*exit_callback_args, **exit_callback_kwargs)
             raise SystemExit
         else:
-            crash_hook(*crash_hook_args, **crash_hook_kwargs)
+            crash_callback(*crash_callback_args, **crash_callback_kwargs)
             file = os.open(path, os.O_CREAT | os.O_EXCL)
             crashed = True
     atexit.register(os.remove, path)

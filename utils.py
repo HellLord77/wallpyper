@@ -1,5 +1,6 @@
 import libs.color
 import libs.file
+import libs.gui
 import libs.request
 
 true = 'true'
@@ -17,6 +18,13 @@ print_color = libs.color.cprint
 exists_file = libs.file.exists
 copy_file = libs.file.copy
 delete_file = libs.file.remove
+
+add_item = libs.gui.add_item
+notify = libs.gui.show_balloon
+main_loop = libs.gui.main_loop
+item_kind = libs.gui.ITEM
+window_kind = libs.gui.WINDOW
+icon_kind = libs.gui.ICON
 
 join_url = libs.request.urljoin
 open_url = libs.request.urlopen

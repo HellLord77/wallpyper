@@ -34,7 +34,7 @@ def sanitize_config():
 
 
 def authenticate(api_key: str) -> bool:
-    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}, True).status_code == utils.ok
+    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}, True).status == utils.ok
 
 
 def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, None]:
@@ -50,7 +50,7 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
             params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
             params['seed'] = meta['seed'] if meta['seed'] else ''
             response = utils.open_url(SEARCH_URl, params)
-            if response.status_code == utils.ok:
+            if response.status == utils.ok:
                 search_data, meta = response.get_json().values()
             else:
                 search_data = [{'path': ''}]
@@ -63,3 +63,7 @@ def get_next_url() -> str:
         SEARCH_DATA = _update_search_data(CONFIG)
         BACKUP_CONFIG.update(CONFIG)
     return next(SEARCH_DATA)
+
+
+def create_menu():
+    pass

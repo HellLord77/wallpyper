@@ -4,22 +4,32 @@ import shutil
 import sys
 import threading
 import typing
+import uuid
 
 import wx
 import wx.adv
 import wx.lib.embeddedimage
 
+# 639-1
+import languages.en
 import libs.debug
+import libs.gui
 import libs.singleton
 import modules.wallhaven
+# sys.platform
+import platforms.linux
 import platforms.win32
 import utils
 
 NAME = 'WALLPYPER'
-CONFIGPARSER = configparser.ConfigParser()
+THREAD = uuid.uuid4().hex
 MODULES = (modules.wallhaven,)
+PLATFORMS = (platforms.linux, platforms.win32)
+LANGUAGES = (languages.en,)
+
 MODULE = MODULES[0]
-PLATFORM = platforms.win32
+PLATFORM = PLATFORMS[1]
+LANGUAGE = LANGUAGES[0]
 DEFAULT_CONFIG = {
     'auto_change': utils.false,
     'change_interval': '3600000',
@@ -36,18 +46,6 @@ CONFIG = {}
 # 0.0.1
 
 DEFAULT_FRAME_STYLE = wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP | wx.FRAME_TOOL_WINDOW
-# noinspection SpellCheckingInspection
-ICON = wx.lib.embeddedimage.PyEmbeddedImage(
-    b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c+/evenEQhA0gooYOxvRx'
-    b'QfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z+c4Mu729fROCe2eMWyKimHPOAIAxhn8HEeFpzTImbu'
-    b'JYfmTfbm7aURTNJ/X6iyRJOOcCAFWAYiYQoQgEaKVpNBzm2pjvcqTUUlKvR0IIHkIAUSEuo6xKREVOBM45k1GU9vv9V9w5F0spORGhBPwvjDF4v7+'
-    b'PnZ0dSCm58z6WgQIjCvD+z105FygtKE9BIBwcHOD15iamp6bgvQcRMe6dh3MeIQSEEGCMQav1GScnJ2g0Guh2uwCAr1++YjAY4OX0dLXX+wBeJL46'
-    b'/uHhIWZmZrC6uoqFhQVMTEyAMYbT01Osra2hvGqhc+DOuQoQQkCr1cLc3Bza7TaWl5chhADnHJeXl1hZWakApUaWAM45GGNYX19HCAHn5+eYnJxEs'
-    b'9lEnudIkgTj4+Ow1lYA5xxkmZRt293dhXMO9/f3aDabqNVqODs7Q5Zl8N5XwrKwdNbBWvvkf2F9u91Go9EAgaC1xtXVFRYXF2GtrcTOFTqujYYxBs'
-    b'YYWGuQ5zmur6+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhF'
-    b'FEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f'
-    b'7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
-)
 configs = {
     'auto_change': False,
     'change_interval': 3600000,
@@ -287,7 +285,7 @@ def show_frame(frame):
 class TaskBarIcon(wx.adv.TaskBarIcon):
     def __init__(self):
         super().__init__()
-        self.icon = ICON.GetIcon()
+        self.icon = libs.gui.TASK_BAR_ICON.GetIcon()
         self.SetIcon(self.icon, NAME)
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
@@ -308,7 +306,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.change_wallpaper = create_item(self.menu, 'Change Wallpaper', self.on_change)
         self.auto_change = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Change Wallpaper')
         self.auto_change.Check(configs['auto_change'])
-        self.menu.Bind(wx.EVT_MENU, self.on_auto_change, id=(self.auto_change.GetId()))
+        self.menu.Bind(wx.EVT_MENU, self.on_auto_change, id=self.auto_change.GetId())
         self.item_submenu_interval = self.menu.AppendSubMenu(wx.Menu(), 'Auto Change Interval')
         create_submenu_items(self.item_submenu_interval, interval, wx.ITEM_RADIO)
         self.menu.AppendSeparator()
@@ -636,15 +634,11 @@ def save_config() -> bool:
     for module in MODULES:
         try:
             config[module.NAME] = module.CONFIG
-        except TypeError:
+        except TypeError:  # TODO: do not pass whole section upon error
             pass
     with open(CONFIG_PATH, 'w') as file:
         config.write(file)
     return utils.exists_file(CONFIG_PATH)
-
-
-def get_display_size() -> tuple[int, int]:
-    return wx.GetDisplaySize()
 
 
 def next_wallpaper(callback: typing.Callable[[int, ...], typing.Any] = utils.dummy_function) -> bool:
@@ -678,11 +672,47 @@ def save_wallpaper() -> bool:
     return saved
 
 
-def init() -> bool:
+def on_change_wallpaper(item: wx.MenuItem) -> bool:
+    def start_thread():
+        item.Enable(False)
+        next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change_wallpaper} ({progress:03}%)'))
+        item.SetItemLabel(LANGUAGE.change_wallpaper)
+        item.Enable(True)
+
+    global_vars = globals()
+    if THREAD not in global_vars:
+        global_vars[THREAD] = threading.Thread(target=start_thread)
+    if item.IsEnabled():
+        global_vars[THREAD].start()
+        global_vars[THREAD] = threading.Thread(target=start_thread)
+        return True
+    else:
+        utils.notify('Change wallpaper', 'Already trying to changing wallpaper')  # TODO: retry count (?)
+        return False
+
+
+def create_menu():
+    utils.add_item(LANGUAGE.change_wallpaper, on_change_wallpaper)  # TODO: auto switch state with libs.gui.sync
+    MODULE.create_menu()
+    items = {
+        'change_wallpaper': (utils.item_kind.NORMAL, 'Change Wallpaper'),
+        'auto_change': (utils.item_kind.CHECK, 'Auto Change Wallpaper'),
+        'change_interval': (utils.item_kind.SUBMENU, 'Auto Change Interval'),
+        '_': (utils.item_kind.SEPARATOR, ''),
+        'save_wallpaper': (utils.item_kind.NORMAL, 'Save Wallpaper'),
+        'auto_save': (utils.item_kind.CHECK, 'Auto Save Wallpaper'),
+        'save_dir': (utils.item_kind.NORMAL, 'Modify Save Location'),
+        '__': (utils.item_kind.SEPARATOR, '')
+    }
+
+
+def init() -> None:
     if 'debug' in sys.argv:
         libs.debug.init('libs', 'modules', 'platforms')
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
-    return load_config()
+    load_config()
+    create_menu()
+    utils.main_loop()
 
 
 def delete() -> None:

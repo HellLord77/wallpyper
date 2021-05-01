@@ -22,7 +22,7 @@ class Response:
         self.chunk_size = CHUNK_SIZE
         self.response = response
         self.reason = response.reason
-        self.status_code = 418 if isinstance(response, urllib.error.URLError) else response.status
+        self.status = 418 if isinstance(response, urllib.error.URLError) else response.status
 
     def __iter__(self) -> bytes:
         if self.response.isclosed():
@@ -96,7 +96,7 @@ def urlretrieve(url: str,
                 callback_args: tuple = (),
                 callback_kwargs: dict[str, typing.Any] = {}) -> bool:
     response = urlopen(url)
-    if response.status_code == 200:
+    if response.status == 200:
         if not size:
             content_length = response.response.getheader(_CONTENT_LENGTH)
             size = int(content_length) if content_length else _MAX_SIZE

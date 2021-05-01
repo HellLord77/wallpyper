@@ -1,31 +1,15 @@
 import libs.debug
+import libs.gui
 
 
-def func(self):
-    return self
-
-
-def func2():
-    pass
-
-
-class B(object):
-    pass
-
-
-class A(B):
-    def __init__(self):
-        self.var = 69
-
-    def __new__(cls, *args, **kwargs):
-        return super().__new__(cls)
+def func(*arg):
+    print(arg)
 
 
 def main():
     libs.debug.init('libs', 'modules', 'platforms')
-    a = A()
-    func(a.var)
-    func2()
+    libs.gui.add_item('test item', func)
+    libs.gui.main_loop()
 
 
 if __name__ == '__main__':
