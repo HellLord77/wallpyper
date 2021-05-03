@@ -29,16 +29,24 @@ LANGUAGES = (languages.en,)
 MODULE = MODULES[0]
 PLATFORM = PLATFORMS[0]
 LANGUAGE = LANGUAGES[0]
-DEFAULT_CONFIG = {
-    'auto_change': utils.false,
-    'change_interval': '3600000',
-    'auto_save': utils.false,
+DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
+    'auto_change': False,
+    'change_interval': 3600000,
+    'auto_save': False,
     'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
-    'auto_startup': utils.false
+    'auto_startup': False
 }
 
 CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')  # os.path.join(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 TEMP_DIR = os.path.join(PLATFORM.TEMP_DIR, NAME)
+INTERVALS = {
+    '300000': '5 Minute',
+    '900000': '15 Minute',
+    '1800000': '30 Minute',
+    '3600000': '1 Hour',
+    '10800000': '3 Hour',
+    '21600000': '6 Hour'
+}
 
 CONFIG = {}
 
@@ -610,20 +618,28 @@ def delete_temp() -> bool:
 def load_config() -> bool:
     loaded_all = True
     config = configparser.ConfigParser()
+    get = {
+        str: config.get,
+        int: config.getint,
+        float: config.getfloat,
+        bool: config.getboolean
+    }
     config.read(CONFIG_PATH)
     if config.has_section(NAME):
         for key, value in DEFAULT_CONFIG.items():
-            CONFIG[key] = config.get(NAME, key, fallback=value)
+            # noinspection PyArgumentList
+            CONFIG[key] = get[type(value)](NAME, key, fallback=value)
     else:
         loaded_all = False
         CONFIG.update(DEFAULT_CONFIG)
     for module in MODULES:
         if config.has_section(module.NAME):
             for key, value in module.DEFAULT_CONFIG.items():
-                MODULE.CONFIG[key] = config.get(MODULE.NAME, key, fallback=value)
+                # noinspection PyArgumentList
+                module.CONFIG[key] = get[type(value)](module.NAME, key, fallback=value)
         else:
             loaded_all = False
-            MODULE.CONFIG.update(MODULE.DEFAULT_CONFIG)
+            module.CONFIG.update(module.DEFAULT_CONFIG)
     return loaded_all
 
 
@@ -640,7 +656,7 @@ def save_config() -> bool:
     return utils.exists_file(CONFIG_PATH)
 
 
-def next_wallpaper(callback: typing.Callable[[int, ...], typing.Any] = utils.dummy_function) -> bool:
+def next_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None) -> bool:
     url = MODULE.get_next_url()
     if url:
         name = os.path.basename(url)
@@ -648,7 +664,7 @@ def next_wallpaper(callback: typing.Callable[[int, ...], typing.Any] = utils.dum
         save_path = os.path.join(CONFIG['save_dir'], name)
         utils.download_url(url, temp_path, chunk_count=100, callback=callback)
         set_ = PLATFORM.set_wallpaper(temp_path, save_path)
-        if CONFIG['auto_save'] == utils.true and not utils.copy_file(temp_path, save_path) and set_:
+        if CONFIG['auto_save'] and not utils.copy_file(temp_path, save_path) and set_:
             save_wallpaper()
         return set_
     return False
@@ -671,20 +687,21 @@ def save_wallpaper() -> bool:
     return saved
 
 
-def create_threads(item: wx.MenuItem):
-    def change_thread():
+def populate_threads(item: wx.MenuItem):
+    def change_wallpaper_thread():
         item.Enable(False)
-        next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change} ({progress:03}%)'))
-        item.SetItemLabel(LANGUAGE.change)
+        next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change_wallpaper} ({progress:03}%)'))
+        item.SetItemLabel(LANGUAGE.change_wallpaper)
         item.Enable()
 
-    THREADS.append(threading.Thread(target=change_thread))
+    THREADS.append(threading.Thread(target=change_wallpaper_thread))
     THREADS.append(THREADS[0])
 
 
-def on_change_wallpaper() -> bool:
+def on_change_wallpaper(event: typing.Optional[wx.TimerEvent] = None) -> bool:
     if THREADS[0].is_alive():
-        utils.notify(LANGUAGE.change, LANGUAGE.changing)  # TODO: retry count (?)
+        if not event:
+            utils.notify(LANGUAGE.change_wallpaper, LANGUAGE.changing_wallpaper)  # TODO: retry count (?)
         return False
     else:
         # noinspection PyProtectedMember
@@ -693,29 +710,48 @@ def on_change_wallpaper() -> bool:
         return True
 
 
-def create_menu():
-    create_threads(utils.add_menu_item(LANGUAGE.change, callback=on_change_wallpaper))
-    utils.add_menu_item(LANGUAGE.auto_change, utils.item_kind.CHECK)
+def on_save_wallpaper() -> bool:
+    if not save_wallpaper():
+        utils.notify(LANGUAGE.save_wallpaper, LANGUAGE.failed_saving)
+        return False
+    return True
 
+
+def on_auto_change(state: bool) -> bool:
+    CONFIG['auto_change'] = state
+    # noinspection PyProtectedMember
+    return utils._start(CONFIG['change_interval'] if state else None)
+
+
+def create_menu():
+    populate_threads(utils.add_item(LANGUAGE.change_wallpaper, callback=on_change_wallpaper))
+    auto_change = utils.add_item(LANGUAGE.auto_change, utils.item.CHECK, CONFIG['auto_change'])
+    utils.sync(auto_change.IsChecked, on_auto_change)
+    utils.sync(auto_change.IsChecked, utils.add_items(LANGUAGE.change_interval, utils.item.RADIO, INTERVALS,
+                                                      str(CONFIG['change_interval'])).Enable)
+    utils.add_separator()
+    utils.add_item(LANGUAGE.save_wallpaper, callback=on_save_wallpaper)
+    utils.add_separator()
     MODULE.create_menu()
+
     items = {
-        'auto_change': (utils.item_kind.CHECK, 'Auto Change Wallpaper'),
-        'change_interval': (utils.item_kind.SUBMENU, 'Auto Change Interval'),
-        '_': (utils.item_kind.SEPARATOR, ''),
-        'save_wallpaper': (utils.item_kind.NORMAL, 'Save Wallpaper'),
-        'auto_save': (utils.item_kind.CHECK, 'Auto Save Wallpaper'),
-        'save_dir': (utils.item_kind.NORMAL, 'Modify Save Location'),
-        '__': (utils.item_kind.SEPARATOR, '')
+        'save_wallpaper': (utils.item.NORMAL, 'Save Wallpaper'),
+        'auto_save': (utils.item.CHECK, 'Auto Save Wallpaper'),
+        'save_dir': (utils.item.NORMAL, 'Modify Save Location'),
+        '__': (utils.item.SEPARATOR, '')
     }
 
 
 def init() -> None:
     if 'debug' in sys.argv:
-        libs.debug.init('libs', 'modules', 'platforms')
+        libs.debug.init('languages', 'libs', 'modules', 'platforms')
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
     load_config()
     create_menu()
-    utils.main_loop()
+    # TODO: call on_auto_change(CONFIG['auto_change'])
+    if 'change' in sys.argv:
+        on_change_wallpaper()
+    utils.main_loop(timer_hook=on_change_wallpaper)
 
 
 def delete() -> None:

@@ -66,4 +66,4 @@ def get_next_url() -> str:
 
 
 def create_menu():
-    pass
+    utils.add_item(NAME)

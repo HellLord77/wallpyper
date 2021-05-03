@@ -9,6 +9,7 @@ import wx.lib.embeddedimage
 _APP = wx.App()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
+_TIMER = wx.Timer(_TASK_BAR_ICON)
 # noinspection SpellCheckingInspection
 _ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c+/evenEQhA0gooYOxvRx'
@@ -21,6 +22,7 @@ _ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'FEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f'
     b'7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
 )
+_CALLBACKS = set()
 
 SLEEP = 0.1
 
@@ -49,30 +51,67 @@ class ICON:
 
 def _on_right_click(_: wx.Event) -> None:
     _TASK_BAR_ICON.PopupMenu(_MENU)
+    for callback in _CALLBACKS:
+        callback()
+
+
+def start_timer(milliseconds: typing.Optional[int] = None) -> bool:
+    if milliseconds:
+        _TIMER.Start(milliseconds)
+    else:
+        _TIMER.Stop()
+    return _TIMER.IsRunning()
 
 
 def add_item(label: str,
-             kind: int = ITEM.NORMAL,
+             kind: typing.Optional[int] = None,
+             check: typing.Optional[bool] = None,
              callback: typing.Optional[typing.Callable] = None,
              callback_args: typing.Optional[tuple] = None,
              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+             uid: typing.Optional[str] = None,
              menu: wx.Menu = _MENU) -> wx.MenuItem:
-    item = menu.Append(wx.ID_ANY, label, kind=kind)
+    item = menu.Append(wx.ID_ANY, label, uid or '', kind or ITEM.NORMAL)
+    if check is not None:
+        item.Check(check)
     if callback:
-        menu.Bind(wx.EVT_MENU, lambda _: callback(*callback_args or (), **callback_kwargs or {}), id=item.GetId())
+        menu.Bind(wx.EVT_MENU, lambda _: callback(*callback_args or (), **callback_kwargs or {}), item)
     return item
 
 
-def sync(src_callback: typing.Callable[[...], bool],
-         dest_callback: typing.Callable[[bool, ...], typing.Any],
-         src_callback_args: typing.Optional[tuple] = None,
-         dest_callback_args: typing.Optional[tuple] = None,
-         src_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-         dest_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-         reverse: bool = False) -> None:
-    _MENU.Bind(wx.EVT_UPDATE_UI,
-               lambda _: dest_callback(reverse ^ src_callback(*src_callback_args or (), **src_callback_kwargs or {}),
-                                       *dest_callback_args or (), **dest_callback_kwargs or {}))
+def add_separator() -> wx.MenuItem:
+    return add_item('', kind=ITEM.SEPARATOR)
+
+
+def add_submenu(text: typing.Optional[str] = None,
+                kind: typing.Optional[int] = None,
+                items: typing.Optional[dict[str, str]] = None,
+                *check: str,
+                menu: wx.Menu = _MENU) -> wx.MenuItem:
+    submenu = wx.Menu()
+    for uid, label in items.items():
+        item = add_item(label, kind, uid=uid, menu=submenu)
+        if label[0] == '_':
+            item.SetItemLabel(label[1:])
+            item.Enable(False)
+        elif uid in check:
+            item.Check()
+    return menu.AppendSubMenu(submenu, text or '')
+
+
+def bind_after_close(src_callback: typing.Callable[[...], bool],
+                     dest_callback: typing.Callable[[bool, ...], typing.Any],
+                     src_callback_args: typing.Optional[tuple] = None,
+                     dest_callback_args: typing.Optional[tuple] = None,
+                     src_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+                     dest_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+                     reverse: bool = False) -> typing.Callable:
+    def callback():
+        state = reverse ^ src_callback(*src_callback_args or (), **src_callback_kwargs or {})
+        dest_callback(state, *dest_callback_args or (), **dest_callback_kwargs or {})
+
+    _CALLBACKS.add(callback)
+    return callback
 
 
 def show_balloon(title: str,
@@ -82,9 +121,11 @@ def show_balloon(title: str,
 
 
 def main_loop(tooltip: str = os.path.basename(sys.argv[0]),
-              exit_hook: typing.Optional[typing.Callable] = None):
-    _APP.Bind(wx.EVT_END_SESSION, exit_hook)
+              exit_hook: typing.Optional[typing.Callable] = None,
+              timer_hook: typing.Optional[typing.Callable] = None):
+    _APP.Bind(wx.EVT_END_SESSION, exit_hook)  # TODO: catch shutdown event correctly
     _TASK_BAR_ICON.SetIcon(_ICON.GetIcon(), tooltip)
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, _on_right_click)
+    _TASK_BAR_ICON.Bind(wx.EVT_TIMER, timer_hook, _TIMER)
     # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
     _APP.MainLoop()
