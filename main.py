@@ -62,14 +62,6 @@ configs = {
     'auto_ratio': True,
     'auto_startup': False
 }
-interval = {
-    '300000': '5 Minute',
-    '900000': '15 Minute',
-    '1800000': '30 Minute',
-    '3600000': '1 Hour',
-    '10800000': '3 Hour',
-    '21600000': '6 Hour'
-}
 paramsEX = {
     'apikey': None,
     'q': None,
@@ -315,7 +307,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.auto_change.Check(configs['auto_change'])
         self.menu.Bind(wx.EVT_MENU, self.on_auto_change, id=self.auto_change.GetId())
         self.item_submenu_interval = self.menu.AppendSubMenu(wx.Menu(), 'Auto Change Interval')
-        create_submenu_items(self.item_submenu_interval, interval, wx.ITEM_RADIO)
+        create_submenu_items(self.item_submenu_interval, INTERVALS, wx.ITEM_RADIO)
         self.menu.AppendSeparator()
         self.save_wallpaper = create_item(self.menu, 'Save Wallpaper', self.on_save)
         self.auto_save = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Save Wallpaper')
@@ -687,7 +679,7 @@ def save_wallpaper() -> bool:
     return saved
 
 
-def populate_threads(item: wx.MenuItem):
+def populate_threads(item: wx.MenuItem) -> None:
     def change_wallpaper_thread():
         item.Enable(False)
         next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change_wallpaper} ({progress:03}%)'))
@@ -723,12 +715,19 @@ def on_auto_change(state: bool) -> bool:
     return utils._start(CONFIG['change_interval'] if state else None)
 
 
+def on_change_interval(interval: str) -> bool:
+    CONFIG['change_interval'] = int(interval)
+    return on_auto_change(CONFIG['auto_change'])
+
+
 def create_menu():
-    populate_threads(utils.add_item(LANGUAGE.change_wallpaper, callback=on_change_wallpaper))
-    auto_change = utils.add_item(LANGUAGE.auto_change, utils.item.CHECK, CONFIG['auto_change'])
-    utils.sync(auto_change.IsChecked, on_auto_change)
-    utils.sync(auto_change.IsChecked, utils.add_items(LANGUAGE.change_interval, utils.item.RADIO, INTERVALS,
-                                                      str(CONFIG['change_interval'])).Enable)
+    change_wallpaper = utils.add_item(LANGUAGE.change_wallpaper, callback=on_change_wallpaper)
+    populate_threads(change_wallpaper)
+    auto_change = utils.add_item(LANGUAGE.auto_change, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
+                                 arg=utils.arg.CHECKED)
+    change_interval = utils.add_items(LANGUAGE.change_interval, utils.item.RADIO, (str(CONFIG['change_interval']),),
+                                      CONFIG['auto_change'], INTERVALS, on_change_interval, arg=utils.arg.UID)
+    utils.sync(auto_change.IsChecked, change_interval.Enable)
     utils.add_separator()
     utils.add_item(LANGUAGE.save_wallpaper, callback=on_save_wallpaper)
     utils.add_separator()
@@ -740,6 +739,7 @@ def create_menu():
         'save_dir': (utils.item.NORMAL, 'Modify Save Location'),
         '__': (utils.item.SEPARATOR, '')
     }
+    return items
 
 
 def init() -> None:
@@ -748,7 +748,7 @@ def init() -> None:
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
     load_config()
     create_menu()
-    # TODO: call on_auto_change(CONFIG['auto_change'])
+    on_auto_change(CONFIG['auto_change'])
     if 'change' in sys.argv:
         on_change_wallpaper()
     utils.main_loop(timer_hook=on_change_wallpaper)

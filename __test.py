@@ -8,7 +8,7 @@ def func(*arg):
 
 def main():
     libs.debug.init('libs', 'modules', 'platforms')
-    libs.gui.add_item('test item', func)
+    libs.gui.add_menu_item('test item', func)
     libs.gui.main_loop()
 
 

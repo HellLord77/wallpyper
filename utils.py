@@ -15,14 +15,15 @@ exists_file = libs.file.exists
 copy_file = libs.file.copy
 delete_file = libs.file.remove
 
-add_item = libs.gui.add_item
+item = libs.gui.ITEM
+icon = libs.gui.ICON
+arg = libs.gui.METHOD
+add_item = libs.gui.add_menu_item
 add_separator = libs.gui.add_separator
 add_items = libs.gui.add_submenu
 sync = libs.gui.bind_after_close
 notify = libs.gui.show_balloon
 main_loop = libs.gui.main_loop
-item = libs.gui.ITEM
-icon = libs.gui.ICON
 
 join_url = libs.request.urljoin
 open_url = libs.request.urlopen

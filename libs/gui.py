@@ -35,11 +35,6 @@ class ITEM:
     SUBMENU = 3
 
 
-class WINDOW:
-    BUTTON = 0
-    DIR = 1
-
-
 class ICON:
     ERROR = 512
     EXCLAMATION = 256
@@ -49,54 +44,66 @@ class ICON:
     QUESTION = 1024
 
 
+class METHOD:
+    CHECKED = 'IsChecked'
+    ENABLED = 'IsEnabled'
+    UID = 'GetHelpString'
+
+
 def _on_right_click(_: wx.Event) -> None:
     _TASK_BAR_ICON.PopupMenu(_MENU)
     for callback in _CALLBACKS:
         callback()
 
 
-def start_timer(milliseconds: typing.Optional[int] = None) -> bool:
-    if milliseconds:
-        _TIMER.Start(milliseconds)
-    else:
-        _TIMER.Stop()
-    return _TIMER.IsRunning()
-
-
-def add_item(label: str,
-             kind: typing.Optional[int] = None,
-             check: typing.Optional[bool] = None,
-             callback: typing.Optional[typing.Callable] = None,
-             callback_args: typing.Optional[tuple] = None,
-             callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-             uid: typing.Optional[str] = None,
-             menu: wx.Menu = _MENU) -> wx.MenuItem:
+def add_menu_item(label: str,
+                  kind: typing.Optional[int] = None,
+                  check: typing.Optional[bool] = None,
+                  enable: typing.Optional[bool] = None,
+                  uid: typing.Optional[str] = None,
+                  callback: typing.Optional[typing.Callable] = None,
+                  callback_args: typing.Optional[tuple] = None,
+                  callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+                  arg: typing.Optional[str] = None,
+                  menu: wx.Menu = _MENU) -> wx.MenuItem:
     item = menu.Append(wx.ID_ANY, label, uid or '', kind or ITEM.NORMAL)
     if check is not None:
         item.Check(check)
+    if enable is not None:
+        item.Enable(enable)
     if callback:
-        menu.Bind(wx.EVT_MENU, lambda _: callback(*callback_args or (), **callback_kwargs or {}), item)
+        menu.Bind(wx.EVT_MENU, lambda event: callback(
+            *(getattr(event.GetEventObject(), arg)(event.GetId()),) + callback_args if arg and callback_args else (
+                getattr(event.GetEventObject(), arg)(event.GetId()),) if arg else callback_args or (),
+            **callback_kwargs or {}), item)
     return item
 
 
 def add_separator() -> wx.MenuItem:
-    return add_item('', kind=ITEM.SEPARATOR)
+    return add_menu_item('', kind=ITEM.SEPARATOR)
 
 
-def add_submenu(text: typing.Optional[str] = None,
+def add_submenu(label: str,
                 kind: typing.Optional[int] = None,
+                checks: typing.Optional[tuple[str]] = None,
+                enable: typing.Optional[bool] = None,
                 items: typing.Optional[dict[str, str]] = None,
-                *check: str,
+                callback: typing.Optional[typing.Callable] = None,
+                callback_args: typing.Optional[tuple] = None,
+                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+                arg: typing.Optional[str] = None,
                 menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
-    for uid, label in items.items():
-        item = add_item(label, kind, uid=uid, menu=submenu)
-        if label[0] == '_':
-            item.SetItemLabel(label[1:])
-            item.Enable(False)
-        elif uid in check:
-            item.Check()
-    return menu.AppendSubMenu(submenu, text or '')
+    checks = checks or ()
+    for uid, label_ in items.items():
+        item = add_menu_item(label_, kind, uid in checks, label_[0] != '_', uid,
+                             callback, callback_args, callback_kwargs, arg, submenu)
+        if label_[0] == '_':
+            item.SetItemLabel(label_[1:])
+    submenu_item = menu.AppendSubMenu(submenu, label)
+    if enable is not None:
+        submenu_item.Enable(enable)
+    return submenu_item
 
 
 def bind_after_close(src_callback: typing.Callable[[...], bool],
@@ -112,6 +119,11 @@ def bind_after_close(src_callback: typing.Callable[[...], bool],
 
     _CALLBACKS.add(callback)
     return callback
+
+
+def start_timer(milliseconds: typing.Optional[int] = None) -> bool:
+    _TIMER.Start(milliseconds) if milliseconds else _TIMER.Stop()
+    return _TIMER.IsRunning()
 
 
 def show_balloon(title: str,
