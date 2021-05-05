@@ -17,7 +17,8 @@ delete_file = libs.file.remove
 
 item = libs.gui.ITEM
 icon = libs.gui.ICON
-arg = libs.gui.METHOD
+get_property = libs.gui.PROPERTY
+get_method = libs.gui.METHOD
 add_item = libs.gui.add_menu_item
 add_separator = libs.gui.add_separator
 add_items = libs.gui.add_submenu

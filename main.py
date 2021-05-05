@@ -22,6 +22,7 @@ import utils
 
 NAME = 'WALLPYPER'
 THREADS = collections.deque(maxlen=2)
+THREADS_ex = collections.deque(maxlen=2)
 MODULES = (modules.wallhaven,)
 PLATFORMS = (platforms.win32,)
 LANGUAGES = (languages.en,)
@@ -49,6 +50,8 @@ INTERVALS = {
 }
 
 CONFIG = {}
+CHANGING = False
+SAVING = False
 
 # 0.0.1
 
@@ -559,7 +562,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.change_wallpaper.SetItemLabel('Change Wallpaper (000%)')
         self.fix_categories_purity()
         MODULE.CONFIG.update(paramsEX)
-        next_wallpaper(self.func)
+        change_wallpaper(self.func)
         self.change_wallpaper.SetItemLabel('Change Wallpaper')
         self.change_wallpaper.Enable(True)
 
@@ -648,98 +651,119 @@ def save_config() -> bool:
     return utils.exists_file(CONFIG_PATH)
 
 
-def next_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None) -> bool:
-    url = MODULE.get_next_url()
-    if url:
-        name = os.path.basename(url)
+def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None) -> bool:
+    global CHANGING
+    if not CHANGING:
+        CHANGING = True
+        next_url = MODULE.get_next_url()
+        name = os.path.basename(next_url)
         temp_path = os.path.join(TEMP_DIR, name)
         save_path = os.path.join(CONFIG['save_dir'], name)
-        utils.download_url(url, temp_path, chunk_count=100, callback=callback)
-        set_ = PLATFORM.set_wallpaper(temp_path, save_path)
-        if CONFIG['auto_save'] and not utils.copy_file(temp_path, save_path) and set_:
+        utils.download_url(next_url, temp_path, chunk_count=100, callback=callback)
+        changed = PLATFORM.set_wallpaper(temp_path, save_path)
+        if CONFIG['auto_save'] and not utils.copy_file(temp_path, save_path) and changed:
             save_wallpaper()
-        return set_
+        CHANGING = False
+        return changed
     return False
 
 
 def save_wallpaper() -> bool:
-    path = PLATFORM.get_wallpaper_path()
-    name = os.path.basename(path)
-    save_path = os.path.join(CONFIG['save_dir'], name)
-    saved = utils.copy_file(path, save_path)
-    if not saved:
-        cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
-        save_path_2 = os.path.join(CONFIG['save_dir'], cache_name)
-        saved = utils.copy_file(path, save_path_2)
+    global SAVING
+    if not SAVING:
+        SAVING = True
+        path = PLATFORM.get_wallpaper_path()
+        save_path = os.path.join(CONFIG['save_dir'], os.path.basename(path))
+        saved = utils.copy_file(path, save_path)
         if not saved:
-            cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
-            saved = utils.copy_file(cache_path, save_path)
+            cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
+            save_path_2 = os.path.join(CONFIG['save_dir'], cache_name)
+            saved = utils.copy_file(path, save_path_2)
             if not saved:
-                saved = utils.copy_file(cache_path, save_path_2)
-    return saved
+                cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
+                saved = utils.copy_file(cache_path, save_path)
+                if not saved:
+                    saved = utils.copy_file(cache_path, save_path_2)
+        SAVING = False
+        return saved
+    return False
 
 
 def populate_threads(item: wx.MenuItem) -> None:
     def change_wallpaper_thread():
-        item.Enable(False)
-        next_wallpaper(lambda progress, item_=item: item_.SetItemLabel(f'{LANGUAGE.change_wallpaper} ({progress:03}%)'))
-        item.SetItemLabel(LANGUAGE.change_wallpaper)
-        item.Enable()
+        global CHANGING
+        if not CHANGING:
+            CHANGING = True
+            item.Enable(False)
+            changed = change_wallpaper(lambda progress: item.SetItemLabel(f'{LANGUAGE.change} ({progress:03}%)'))
+            item.SetItemLabel(LANGUAGE.change)
+            item.Enable()
+            CHANGING = False
+            return changed
+        return False
 
-    THREADS.append(threading.Thread(target=change_wallpaper_thread))
+    THREADS.append(threading.Timer(CONFIG['change_interval'], change_wallpaper_thread))
     THREADS.append(THREADS[0])
+    THREADS_ex.append(threading.Thread(target=change_wallpaper_thread))
+    THREADS_ex.append(THREADS_ex[0])
 
 
-def on_change_wallpaper(event: typing.Optional[wx.TimerEvent] = None) -> bool:
-    if THREADS[0].is_alive():
-        if not event:
-            utils.notify(LANGUAGE.change_wallpaper, LANGUAGE.changing_wallpaper)  # TODO: retry count (?)
-        return False
-    else:
-        # noinspection PyProtectedMember
-        THREADS.append(threading.Thread(target=THREADS[1]._target))
-        THREADS[0].start()
+def on_change(callback: typing.Callable) -> bool:
+    changed = change_wallpaper(lambda progress: callback(f'{LANGUAGE.change} ({progress:03}%)'))
+    if changed:
+        callback(LANGUAGE.change)
         return True
-
-
-def on_save_wallpaper() -> bool:
-    if not save_wallpaper():
-        utils.notify(LANGUAGE.save_wallpaper, LANGUAGE.failed_saving)
+    else:
+        utils.notify(LANGUAGE.change, LANGUAGE.failed_changing)  # TODO: retry count (?)
         return False
-    return True
 
 
-def on_auto_change(state: bool) -> bool:
-    CONFIG['auto_change'] = state
+def on_auto_change(is_checked: bool) -> bool:
+    CONFIG['auto_change'] = is_checked
+    # start / stop thread
     # noinspection PyProtectedMember
-    return utils._start(CONFIG['change_interval'] if state else None)
+    return utils._start(CONFIG['change_interval'] if is_checked else None)
 
 
 def on_change_interval(interval: str) -> bool:
     CONFIG['change_interval'] = int(interval)
+    # restart thread
     return on_auto_change(CONFIG['auto_change'])
 
 
-def create_menu():
-    change_wallpaper = utils.add_item(LANGUAGE.change_wallpaper, callback=on_change_wallpaper)
-    populate_threads(change_wallpaper)
+def on_save() -> bool:
+    if not save_wallpaper():
+        utils.notify(LANGUAGE.save, LANGUAGE.failed_saving)
+        return False
+    return True
+
+
+def on_modify_save():
+    print(69)
+
+
+def create_menu() -> wx.MenuItem:
+    change = utils.add_item(LANGUAGE.change,
+                            callback=lambda set_label: threading.Thread(target=on_change, args=(set_label,)).start(),
+                            args=(utils.get_method.SET_LABEL,))
+    populate_threads(change)
     auto_change = utils.add_item(LANGUAGE.auto_change, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
-                                 arg=utils.arg.CHECKED)
+                                 args=(utils.get_property.IS_CHECKED,))
     change_interval = utils.add_items(LANGUAGE.change_interval, utils.item.RADIO, (str(CONFIG['change_interval']),),
-                                      CONFIG['auto_change'], INTERVALS, on_change_interval, arg=utils.arg.UID)
+                                      CONFIG['auto_change'], INTERVALS, on_change_interval,
+                                      args=(utils.get_property.GET_UID,))
     utils.sync(auto_change.IsChecked, change_interval.Enable)
     utils.add_separator()
-    utils.add_item(LANGUAGE.save_wallpaper, callback=on_save_wallpaper)
+    utils.add_item(LANGUAGE.save, callback=lambda: threading.Thread(target=on_save).start())
+    utils.add_item(LANGUAGE.auto_save, utils.item.CHECK,
+                   callback=lambda is_checked: CONFIG.__setitem__('auto_save', is_checked),
+                   args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.modify_save, callback=on_modify_save)
     utils.add_separator()
     MODULE.create_menu()
 
-    items = {
-        'save_wallpaper': (utils.item.NORMAL, 'Save Wallpaper'),
-        'auto_save': (utils.item.CHECK, 'Auto Save Wallpaper'),
-        'save_dir': (utils.item.NORMAL, 'Modify Save Location'),
-        '__': (utils.item.SEPARATOR, '')
-    }
-    return items
+    _ = ['auto start', 'save config', 'restart', 'exit']
+    return change
 
 
 def init() -> None:
@@ -747,11 +771,11 @@ def init() -> None:
         libs.debug.init('languages', 'libs', 'modules', 'platforms')
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
     load_config()
-    create_menu()
+    change = create_menu()
     on_auto_change(CONFIG['auto_change'])
     if 'change' in sys.argv:
-        on_change_wallpaper()
-    utils.main_loop(timer_hook=on_change_wallpaper)
+        threading.Thread(target=on_change).start()  # TODO: remove notify on silent change, pass change.SET_LABEL
+    utils.main_loop()
 
 
 def delete() -> None:

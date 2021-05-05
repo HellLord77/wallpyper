@@ -3,38 +3,50 @@ import os
 import shlex
 import winreg
 
-_MAX_PATH = 0x104
-_SPI_GETDESKWALLPAPER = 0x73
-_SPI_SETDESKWALLPAPER = 0x14
-_SPIF_SENDWININICHANGE = 0x2
+_MAX_PATH = 160
+_SPI_GETDESKWALLPAPER = 115
+_SPI_SETDESKWALLPAPER = 20
+_SPIF_SENDWININICHANGE = 2
+_CSIDL_APPDATA = 26
+_CSIDL_LOCAL_APPDATA = 28
+_CSIDL_MYPICTURES = 39
+_SHGFP_TYPE_CURRENT = 0
+_RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
-AUTORUN_DIR = os.path.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-APPDATA_DIR = os.environ['APPDATA']
-PICTURES_DIR = os.path.join(os.environ['USERPROFILE'], 'Pictures')
-TEMP_DIR = os.environ['TEMP']
+
+def _get_dir(csidl: int) -> str:
+    dir_ = ctypes.create_unicode_buffer(_MAX_PATH)
+    ctypes.windll.shell32.SHGetFolderPathW(None, csidl, None, _SHGFP_TYPE_CURRENT, ctypes.byref(dir_))
+    return dir_.value
+
+
+APPDATA_DIR = _get_dir(_CSIDL_APPDATA)
+PICTURES_DIR = _get_dir(_CSIDL_MYPICTURES)
+TEMP_DIR = os.path.join(_get_dir(_CSIDL_LOCAL_APPDATA), 'Temp')
 WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
 
 
 def register_autorun(name: str,
                      path: str,
                      *args: str) -> bool:
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, AUTORUN_DIR, access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE)
-    value = shlex.join((path,) + args)
-    try:
-        winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
-    except PermissionError:
-        return False
-    return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
+                        access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
+        value = shlex.join((path,) + args)
+        try:
+            winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
+        except PermissionError:
+            return False
+        return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
 def unregister_autorun(name: str) -> bool:  # TODO: remove verify through exception
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, AUTORUN_DIR, access=winreg.KEY_SET_VALUE)
-    for _ in range(2):
-        try:
-            winreg.DeleteValue(key, name)
-        except FileNotFoundError:
-            return True
-    return False
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE) as key:
+        for _ in range(2):
+            try:
+                winreg.DeleteValue(key, name)
+            except FileNotFoundError:
+                return True
+        return False
 
 
 def get_wallpaper_path() -> str:
