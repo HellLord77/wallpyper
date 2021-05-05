@@ -21,7 +21,6 @@ import platforms.win32
 import utils
 
 NAME = 'WALLPYPER'
-THREADS = collections.deque(maxlen=2)
 THREADS_ex = collections.deque(maxlen=2)
 MODULES = (modules.wallhaven,)
 PLATFORMS = (platforms.win32,)
@@ -49,9 +48,11 @@ INTERVALS = {
     '21600000': '6 Hour'
 }
 
-CONFIG = {}
 CHANGING = False
 SAVING = False
+CHANGE_CALLBACK: typing.Callable = lambda _: None
+THREADS = collections.deque(maxlen=2)
+CONFIG = {}
 
 # 0.0.1
 
@@ -689,7 +690,7 @@ def save_wallpaper() -> bool:
     return False
 
 
-def populate_threads(item: wx.MenuItem) -> None:
+def _populate_threads(item: wx.MenuItem) -> None:
     def change_wallpaper_thread():
         global CHANGING
         if not CHANGING:
@@ -708,10 +709,10 @@ def populate_threads(item: wx.MenuItem) -> None:
     THREADS_ex.append(THREADS_ex[0])
 
 
-def on_change(callback: typing.Callable) -> bool:
-    changed = change_wallpaper(lambda progress: callback(f'{LANGUAGE.change} ({progress:03}%)'))
+def on_change() -> bool:
+    changed = change_wallpaper(lambda progress: CHANGE_CALLBACK(f'{LANGUAGE.change} ({progress:03}%)'))
     if changed:
-        callback(LANGUAGE.change)
+        CHANGE_CALLBACK(LANGUAGE.change)
         return True
     else:
         utils.notify(LANGUAGE.change, LANGUAGE.failed_changing)  # TODO: retry count (?)
@@ -738,15 +739,15 @@ def on_save() -> bool:
     return True
 
 
-def on_modify_save():
+def _on_modify_save():
     print(69)
 
 
-def create_menu() -> wx.MenuItem:
-    change = utils.add_item(LANGUAGE.change,
-                            callback=lambda set_label: threading.Thread(target=on_change, args=(set_label,)).start(),
-                            args=(utils.get_method.SET_LABEL,))
-    populate_threads(change)
+def create_menu():
+    global CHANGE_CALLBACK
+    change = utils.add_item(LANGUAGE.change, callback=lambda: threading.Thread(target=on_change).start())
+    CHANGE_CALLBACK = change.SetItemLabel
+    _populate_threads(change)
     auto_change = utils.add_item(LANGUAGE.auto_change, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
                                  args=(utils.get_property.IS_CHECKED,))
     change_interval = utils.add_items(LANGUAGE.change_interval, utils.item.RADIO, (str(CONFIG['change_interval']),),
@@ -758,12 +759,11 @@ def create_menu() -> wx.MenuItem:
     utils.add_item(LANGUAGE.auto_save, utils.item.CHECK,
                    callback=lambda is_checked: CONFIG.__setitem__('auto_save', is_checked),
                    args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANGUAGE.modify_save, callback=on_modify_save)
+    utils.add_item(LANGUAGE.modify_save, callback=_on_modify_save)
     utils.add_separator()
     MODULE.create_menu()
 
-    _ = ['auto start', 'save config', 'restart', 'exit']
-    return change
+    _ = ['notify', 'auto start', 'save config', 'restart', 'exit']
 
 
 def init() -> None:
@@ -771,10 +771,10 @@ def init() -> None:
         libs.debug.init('languages', 'libs', 'modules', 'platforms')
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
     load_config()
-    change = create_menu()
+    create_menu()
     on_auto_change(CONFIG['auto_change'])
     if 'change' in sys.argv:
-        threading.Thread(target=on_change).start()  # TODO: remove notify on silent change, pass change.SET_LABEL
+        threading.Thread(target=on_change).start()
     utils.main_loop()
 
 
