@@ -24,3 +24,8 @@ def remove(path: str) -> bool:
     if os.path.isfile(path):
         os.remove(path)
     return os.path.isfile(path)
+
+
+def remove_tree(path: str) -> bool:
+    shutil.rmtree(path, True)
+    return not os.path.exists(path)

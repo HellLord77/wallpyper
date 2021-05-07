@@ -37,7 +37,6 @@ class METHOD:
 _APP = wx.App()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
-_TIMER = wx.Timer(_TASK_BAR_ICON)
 # noinspection SpellCheckingInspection
 _ICON = wx.lib.embeddedimage.PyEmbeddedImage(
     b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c+/evenEQhA0gooYOxvRx'
@@ -136,11 +135,6 @@ def bind_after_close(src_callback: typing.Callable[[...], bool],
     return callback
 
 
-def start_timer(milliseconds: typing.Optional[int] = None) -> bool:
-    _TIMER.Start(milliseconds) if milliseconds else _TIMER.Stop()
-    return _TIMER.IsRunning()
-
-
 def show_balloon(title: str,
                  text: str,
                  icon: int = ICON.NONE) -> bool:
@@ -148,9 +142,14 @@ def show_balloon(title: str,
 
 
 def main_loop(tooltip: str = os.path.basename(sys.argv[0]),
-              exit_hook: typing.Optional[typing.Callable] = None):
+              exit_hook: typing.Optional[typing.Callable] = None) -> None:
     _APP.Bind(wx.EVT_END_SESSION, exit_hook)  # TODO: catch shutdown event correctly
     _TASK_BAR_ICON.SetIcon(_ICON.GetIcon(), tooltip)
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, _on_right_click)
     # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
     _APP.MainLoop()
+
+
+def destroy() -> None:
+    wx.CallAfter(_MENU.Destroy)
+    wx.CallAfter(_TASK_BAR_ICON.Destroy)

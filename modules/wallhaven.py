@@ -25,7 +25,7 @@ DEFAULT_CONFIG = {
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
 CONFIG = {}
 BACKUP_CONFIG = {}
-SEARCH_DATA = utils.dummy_generator
+SEARCH_DATA = None
 
 
 def sanitize_config():

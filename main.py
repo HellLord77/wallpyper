@@ -1,7 +1,5 @@
-import collections
 import configparser
 import os
-import shutil
 import sys
 import threading
 import typing
@@ -15,13 +13,13 @@ import languages.en
 import libs.debug
 import libs.gui
 import libs.singleton
+import libs.thread
 import modules.wallhaven
 # sys.platform
 import platforms.win32
 import utils
 
 NAME = 'WALLPYPER'
-THREADS_ex = collections.deque(maxlen=2)
 MODULES = (modules.wallhaven,)
 PLATFORMS = (platforms.win32,)
 LANGUAGES = (languages.en,)
@@ -31,28 +29,34 @@ PLATFORM = PLATFORMS[0]
 LANGUAGE = LANGUAGES[0]
 DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
     'auto_change': False,
-    'change_interval': 3600000,
+    'change_interval': 3600,
     'auto_save': False,
     'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
-    'auto_startup': False
+    'notify': False,
+    'auto_start': False,
+    'save_config': False
 }
 
 CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')  # os.path.join(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 TEMP_DIR = os.path.join(PLATFORM.TEMP_DIR, NAME)
 INTERVALS = {
-    '300000': '5 Minute',
-    '900000': '15 Minute',
-    '1800000': '30 Minute',
-    '3600000': '1 Hour',
-    '10800000': '3 Hour',
-    '21600000': '6 Hour'
+    '300': '5 Minute',
+    '900': '15 Minute',
+    '1800': '30 Minute',
+    '3600': '1 Hour',
+    '10800': '3 Hour',
+    '21600': '6 Hour'
 }
 
 CHANGING = False
 SAVING = False
-CHANGE_CALLBACK: typing.Callable = lambda _: None
-THREADS = collections.deque(maxlen=2)
 CONFIG = {}
+
+
+class CHANGE:
+    CALLBACK = lambda _: None
+    TIMER = libs.thread.Timer()
+
 
 # 0.0.1
 
@@ -64,7 +68,7 @@ configs = {
     'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
     'use_api_key': True,
     'auto_ratio': True,
-    'auto_startup': False
+    'auto_start': False
 }
 paramsEX = {
     'apikey': None,
@@ -350,7 +354,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         create_submenu_items(self.item_submenu_resolutions, resolutions, wx.ITEM_CHECK)
         self.menu.AppendSeparator()
         self.autorun = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Startup')
-        self.autorun.Check(configs['auto_startup'])
+        self.autorun.Check(configs['auto_start'])
         self.save_configuration = self.menu.AppendCheckItem(wx.ID_ANY, 'Save Configuration')
         self.save_configuration.Check(utils.exists_file(CONFIG_PATH))
         self.menu.Bind(wx.EVT_MENU, self.on_auto_startup, id=self.autorun.GetId())
@@ -555,7 +559,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             self.save_config()
         else:
             utils.delete_file(CONFIG_PATH)
-        delete_temp()
+        utils.delete_dir(TEMP_DIR)
         wx.CallAfter(self.Destroy)
 
     def change(self):
@@ -600,16 +604,11 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
                         'auto_save': self.auto_save.IsChecked(),
                         'save_dir': self.save_path,
                         'auto_ratio': self.auto_ratio.IsChecked(),
-                        'auto_startup': self.autorun.IsChecked()})
+                        'auto_start': self.autorun.IsChecked()})
         save_config()
 
 
 # 0.0.2
-
-def delete_temp() -> bool:
-    shutil.rmtree(TEMP_DIR, True)
-    return not os.path.exists(TEMP_DIR)
-
 
 def load_config() -> bool:
     loaded_all = True
@@ -652,6 +651,11 @@ def save_config() -> bool:
     return utils.exists_file(CONFIG_PATH)
 
 
+def update_config(value: typing.Any,
+                  key: str, ) -> None:
+    CONFIG.__setitem__(key, value)
+
+
 def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None) -> bool:
     global CHANGING
     if not CHANGING:
@@ -690,51 +694,32 @@ def save_wallpaper() -> bool:
     return False
 
 
-def _populate_threads(item: wx.MenuItem) -> None:
-    def change_wallpaper_thread():
-        global CHANGING
-        if not CHANGING:
-            CHANGING = True
-            item.Enable(False)
-            changed = change_wallpaper(lambda progress: item.SetItemLabel(f'{LANGUAGE.change} ({progress:03}%)'))
-            item.SetItemLabel(LANGUAGE.change)
-            item.Enable()
-            CHANGING = False
-            return changed
-        return False
-
-    THREADS.append(threading.Timer(CONFIG['change_interval'], change_wallpaper_thread))
-    THREADS.append(THREADS[0])
-    THREADS_ex.append(threading.Thread(target=change_wallpaper_thread))
-    THREADS_ex.append(THREADS_ex[0])
-
-
 def on_change() -> bool:
-    changed = change_wallpaper(lambda progress: CHANGE_CALLBACK(f'{LANGUAGE.change} ({progress:03}%)'))
+    changed = change_wallpaper(lambda progress: CHANGE.CALLBACK(f'{LANGUAGE.CHANGE} ({progress:03}%)'))
     if changed:
-        CHANGE_CALLBACK(LANGUAGE.change)
+        CHANGE.CALLBACK(LANGUAGE.CHANGE)
         return True
     else:
-        utils.notify(LANGUAGE.change, LANGUAGE.failed_changing)  # TODO: retry count (?)
+        if CONFIG['notify']:
+            utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)  # TODO: retry count (?)
         return False
 
 
-def on_auto_change(is_checked: bool) -> bool:
+def on_auto_change(is_checked: bool) -> None:
     CONFIG['auto_change'] = is_checked
-    # start / stop thread
-    # noinspection PyProtectedMember
-    return utils._start(CONFIG['change_interval'] if is_checked else None)
+    CHANGE.TIMER.interval = CONFIG['change_interval']
+    CHANGE.TIMER.start() if is_checked else CHANGE.TIMER.stop()
 
 
-def on_change_interval(interval: str) -> bool:
+def on_change_interval(interval: str) -> None:
     CONFIG['change_interval'] = int(interval)
-    # restart thread
-    return on_auto_change(CONFIG['auto_change'])
+    on_auto_change(CONFIG['auto_change'])
 
 
 def on_save() -> bool:
     if not save_wallpaper():
-        utils.notify(LANGUAGE.save, LANGUAGE.failed_saving)
+        if CONFIG['notify']:
+            utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
         return False
     return True
 
@@ -743,30 +728,54 @@ def _on_modify_save():
     print(69)
 
 
+def on_auto_start(is_checked: bool) -> bool:
+    CONFIG['auto_save'] = is_checked
+    if is_checked:
+        return PLATFORM.register_autorun(NAME, os.path.realpath(sys.argv[0]), 'change' if CONFIG['auto_change'] else '')
+    else:
+        return PLATFORM.unregister_autorun(NAME)
+
+
+def on_save_config(is_checked: bool) -> None:
+    CONFIG['save_config'] = is_checked
+    save_config() if is_checked else utils.delete_file(CONFIG_PATH)
+
+
+def on_exit() -> None:
+    CHANGE.TIMER.stop()
+    on_save_config(CONFIG['save_config'])
+    utils.delete_dir(TEMP_DIR)
+    utils.stop()
+
+
 def create_menu():
-    global CHANGE_CALLBACK
-    change = utils.add_item(LANGUAGE.change, callback=lambda: threading.Thread(target=on_change).start())
-    CHANGE_CALLBACK = change.SetItemLabel
-    _populate_threads(change)
-    auto_change = utils.add_item(LANGUAGE.auto_change, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
+    change = utils.add_item(LANGUAGE.CHANGE, callback=libs.thread.start, callback_args=(on_change,))
+    CHANGE.CALLBACK = change.SetItemLabel
+    CHANGE.TIMER = libs.thread.Timer(CONFIG['change_interval'], on_change)
+    auto_change = utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
                                  args=(utils.get_property.IS_CHECKED,))
-    change_interval = utils.add_items(LANGUAGE.change_interval, utils.item.RADIO, (str(CONFIG['change_interval']),),
+    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
                                       CONFIG['auto_change'], INTERVALS, on_change_interval,
                                       args=(utils.get_property.GET_UID,))
-    utils.sync(auto_change.IsChecked, change_interval.Enable)
+    utils.call_after(auto_change.IsChecked, change_interval.Enable)
     utils.add_separator()
-    utils.add_item(LANGUAGE.save, callback=lambda: threading.Thread(target=on_save).start())
-    utils.add_item(LANGUAGE.auto_save, utils.item.CHECK,
-                   callback=lambda is_checked: CONFIG.__setitem__('auto_save', is_checked),
-                   args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANGUAGE.modify_save, callback=_on_modify_save)
+    utils.add_item(LANGUAGE.SAVE, callback=libs.thread.start, callback_args=(on_save,))
+    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
+                   callback_args=('auto_save',), args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
     MODULE.create_menu()
+    utils.add_separator()
+    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
+                   callback_args=('notify',), args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG['auto_start'], callback=on_auto_start,
+                   args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG['save_config'], callback=on_save_config,
+                   args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.EXIT, callback=on_exit)
 
-    _ = ['notify', 'auto start', 'save config', 'restart', 'exit']
 
-
-def init() -> None:
+def start() -> None:
     if 'debug' in sys.argv:
         libs.debug.init('languages', 'libs', 'modules', 'platforms')
     libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
@@ -774,17 +783,15 @@ def init() -> None:
     create_menu()
     on_auto_change(CONFIG['auto_change'])
     if 'change' in sys.argv:
-        threading.Thread(target=on_change).start()
-    utils.main_loop()
-
-
-def delete() -> None:
-    save_config()
-    delete_temp()
+        libs.thread.start(on_change)
+    on_auto_start(CONFIG['auto_start'])
+    on_save_config(CONFIG['save_config'])
+    utils.start()
 
 
 if __name__ == '__main__':
-    init()
+    start()
+    sys.exit()
     # 0.0.1
     app = wx.App()
     TaskBarIcon()
