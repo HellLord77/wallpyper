@@ -142,12 +142,23 @@ def show_balloon(title: str,
 
 
 def main_loop(tooltip: str = os.path.basename(sys.argv[0]),
-              exit_hook: typing.Optional[typing.Callable] = None) -> None:
-    _APP.Bind(wx.EVT_END_SESSION, exit_hook)  # TODO: catch shutdown event correctly
+              default_callback: typing.Optional[typing.Callable] = None,
+              default_callback_args: typing.Optional[tuple] = None,
+              default_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+              exit_callback: typing.Optional[typing.Callable] = None,
+              exit_callback_args: typing.Optional[tuple] = None,
+              exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
     _TASK_BAR_ICON.SetIcon(_ICON.GetIcon(), tooltip)
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, _on_right_click)
-    # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
-    _APP.MainLoop()
+    if default_callback:
+        _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK,
+                            lambda _: default_callback(*default_callback_args or (), **default_callback_kwargs or {}))
+        # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
+        # TODO: catch shutdown event correctly
+        if exit_callback:
+            _APP.Bind(wx.EVT_END_SESSION,
+                      lambda _: exit_callback(*exit_callback_args or (), **exit_callback_kwargs or {}))
+        _APP.MainLoop()
 
 
 def destroy() -> None:

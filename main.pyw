@@ -54,8 +54,8 @@ CONFIG = {}
 
 
 class CHANGE:
-    CALLBACK = lambda _: None
-    TIMER = libs.thread.Timer()
+    CALLBACK = None
+    TIMER = None
 
 
 # 0.0.1
@@ -707,8 +707,7 @@ def on_change() -> bool:
 
 def on_auto_change(is_checked: bool) -> None:
     CONFIG['auto_change'] = is_checked
-    CHANGE.TIMER.interval = CONFIG['change_interval']
-    CHANGE.TIMER.start() if is_checked else CHANGE.TIMER.stop()
+    CHANGE.TIMER.start(CONFIG['change_interval']) if is_checked else CHANGE.TIMER.stop()
 
 
 def on_change_interval(interval: str) -> None:
@@ -742,6 +741,7 @@ def on_save_config(is_checked: bool) -> None:
 
 
 def on_exit() -> None:
+    print(69)
     CHANGE.TIMER.stop()
     on_save_config(CONFIG['save_config'])
     utils.delete_dir(TEMP_DIR)
@@ -764,7 +764,7 @@ def create_menu():
                    callback_args=('auto_save',), args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
-    MODULE.create_menu()
+    MODULE.create_menu()  # TODO: separate left click menu
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
                    callback_args=('notify',), args=(utils.get_property.IS_CHECKED,))
@@ -786,7 +786,7 @@ def start() -> None:
         libs.thread.start(on_change)
     on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
-    utils.start()
+    utils.start(NAME, libs.thread.start, (on_change,), exit_callback=on_exit)
 
 
 if __name__ == '__main__':
