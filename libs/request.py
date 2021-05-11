@@ -9,9 +9,9 @@ import urllib.request
 
 _CONTENT_LENGTH = 'content-length'
 _USER_AGENT = 'user-agent'
+_CHUNK_SIZE = 1024
 _MAX_SIZE = sys.maxsize
 
-CHUNK_SIZE = 1024
 USER_AGENT = 'request/0.0.1'
 
 
@@ -19,7 +19,7 @@ class Response:
     def __init__(self,
                  response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]) -> None:
         self._content = bytes()
-        self.chunk_size = CHUNK_SIZE
+        self.chunk_size = _CHUNK_SIZE
         self.response = response
         self.reason = response.reason
         self.status = 418 if isinstance(response, urllib.error.URLError) else response.status
@@ -88,7 +88,7 @@ def urlopen(url: str,
 def urlretrieve(url: str,
                 path: str,
                 size: typing.Optional[int] = None,
-                chunk_size: int = CHUNK_SIZE,
+                chunk_size: typing.Optional[int] = None,
                 chunk_count: typing.Optional[int] = None,
                 callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
                 callback_args: typing.Optional[tuple] = None,
@@ -98,7 +98,7 @@ def urlretrieve(url: str,
         if not size:
             content_length = response.response.getheader(_CONTENT_LENGTH)
             size = int(content_length) if content_length else _MAX_SIZE
-        response.chunk_size = max(size // chunk_count if size != _MAX_SIZE and chunk_count else chunk_size, CHUNK_SIZE)
+        response.chunk_size = size // chunk_count if size != _MAX_SIZE and chunk_count else chunk_size or _CHUNK_SIZE
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
         if not os.path.isfile(path) or size != os.stat(path).st_size:

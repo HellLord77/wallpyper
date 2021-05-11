@@ -695,9 +695,11 @@ def save_wallpaper() -> bool:
 
 
 def on_change() -> bool:
-    changed = change_wallpaper(lambda progress: CHANGE.CALLBACK(f'{LANGUAGE.CHANGE} ({progress:03}%)'))
+    CHANGE.CALLBACK(f'{LANGUAGE.CHANGE} (00%)')
+    changed = change_wallpaper(
+        lambda progress: CHANGE.CALLBACK(f'{LANGUAGE.CHANGE} ({progress if progress < 100 else 99:02}%)'))
+    CHANGE.CALLBACK(LANGUAGE.CHANGE)
     if changed:
-        CHANGE.CALLBACK(LANGUAGE.CHANGE)
         return True
     else:
         if CONFIG['notify']:
@@ -741,14 +743,13 @@ def on_save_config(is_checked: bool) -> None:
 
 
 def on_exit() -> None:
-    print(69)
     CHANGE.TIMER.stop()
     on_save_config(CONFIG['save_config'])
     utils.delete_dir(TEMP_DIR)
     utils.stop()
 
 
-def create_menu():
+def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libs.thread.start, callback_args=(on_change,))
     CHANGE.CALLBACK = change.SetItemLabel
     CHANGE.TIMER = libs.thread.Timer(CONFIG['change_interval'], on_change)

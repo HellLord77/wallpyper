@@ -24,14 +24,14 @@ class ICON:
     QUESTION = 1024
 
 
+class METHOD:
+    SET_LABEL = 'SetItemLabel'
+
+
 class PROPERTY:
     IS_CHECKED = 'IsChecked'
     IS_ENABLED = 'IsEnabled'
     GET_UID = 'GetHelpString'
-
-
-class METHOD:
-    SET_LABEL = 'SetItemLabel'
 
 
 _APP = wx.App()
@@ -77,16 +77,13 @@ def add_menu_item(label: str,
         item.Enable(enable)
     if callback:
         def wrapped_callback(event):
-            wrapped_callback_args = []
-            if args:
-                for arg in args:
-                    if arg in _PROPERTIES:
-                        wrapped_callback_args.append(getattr(event.GetEventObject(), arg)(event.GetId()))
-                    elif arg in _METHODS:
-                        wrapped_callback_args.append(getattr(event.GetEventObject().FindItemById(event.GetId()), arg))
-            if callback_args:
-                wrapped_callback_args.extend(callback_args)
-            callback(*wrapped_callback_args, **callback_kwargs or {})
+            extra_args = []
+            for arg in args or ():
+                if arg in _METHODS:
+                    extra_args.append(getattr(event.GetEventObject().FindItemById(event.GetId()), arg))
+                elif arg in _PROPERTIES:
+                    extra_args.append(getattr(event.GetEventObject(), arg)(event.GetId()))
+            callback(*extra_args, *callback_args or (), **callback_kwargs or {})
 
         callback_args = callback_args or ()
         menu.Bind(wx.EVT_MENU, wrapped_callback, item)
@@ -148,17 +145,15 @@ def main_loop(tooltip: str = os.path.basename(sys.argv[0]),
               exit_callback: typing.Optional[typing.Callable] = None,
               exit_callback_args: typing.Optional[tuple] = None,
               exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
-    _TASK_BAR_ICON.SetIcon(_ICON.GetIcon(), tooltip)
-    _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, _on_right_click)
     if default_callback:
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK,
                             lambda _: default_callback(*default_callback_args or (), **default_callback_kwargs or {}))
-        # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
-        # TODO: catch shutdown event correctly
-        if exit_callback:
-            _APP.Bind(wx.EVT_END_SESSION,
-                      lambda _: exit_callback(*exit_callback_args or (), **exit_callback_kwargs or {}))
-        _APP.MainLoop()
+    # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
+    _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, _on_right_click)
+    if exit_callback:
+        _APP.Bind(wx.EVT_END_SESSION, lambda _: exit_callback(*exit_callback_args or (), **exit_callback_kwargs or {}))
+    _TASK_BAR_ICON.SetIcon(_ICON.GetIcon(), tooltip)
+    _APP.MainLoop()
 
 
 def destroy() -> None:
