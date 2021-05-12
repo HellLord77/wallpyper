@@ -2,9 +2,7 @@ import typing
 
 import utils
 
-__version__ = '0.0.1'
-
-NAME = 'WALLHAVEN'
+NAME = 'wallhaven'
 BASE_URL = 'https://wallhaven.cc/api/v1'
 DEFAULT_CONFIG = {
     'apikey': '',

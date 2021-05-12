@@ -24,8 +24,8 @@ add_separator = libs.gui.add_separator
 add_items = libs.gui.add_submenu
 call_after = libs.gui.bind_after_close
 notify = libs.gui.show_balloon
-start = libs.gui.main_loop
-stop = libs.gui.destroy
+start = libs.gui.start_loop
+on_exit = libs.gui.stop_loop
 
 join_url = libs.request.urljoin
 open_url = libs.request.urlopen

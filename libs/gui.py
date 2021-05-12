@@ -1,5 +1,4 @@
-import os
-import sys
+import atexit
 import typing
 
 import wx
@@ -37,21 +36,16 @@ class PROPERTY:
 _APP = wx.App()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
-# noinspection SpellCheckingInspection
-_ICON = wx.lib.embeddedimage.PyEmbeddedImage(
-    b'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAnhJREFUOI11k79KXEEUxr/5c+/evenEQhA0gooYOxvRx'
-    b'QfwFSLBQrAJeQFBYmNrSLBb8SmyInYWCcg2uqYJiZXg3SYr7t7d+X9SXO+NCWTgMAdmvt+Z+c4Mu729fROCe2eMWyKimHPOAIAxhn8HEeFpzTImbu'
-    b'JYfmTfbm7aURTNJ/X6iyRJOOcCAFWAYiYQoQgEaKVpNBzm2pjvcqTUUlKvR0IIHkIAUSEuo6xKREVOBM45k1GU9vv9V9w5F0spORGhBPwvjDF4v7+'
-    b'PnZ0dSCm58z6WgQIjCvD+z105FygtKE9BIBwcHOD15iamp6bgvQcRMe6dh3MeIQSEEGCMQav1GScnJ2g0Guh2uwCAr1++YjAY4OX0dLXX+wBeJL46'
-    b'/uHhIWZmZrC6uoqFhQVMTEyAMYbT01Osra2hvGqhc+DOuQoQQkCr1cLc3Bza7TaWl5chhADnHJeXl1hZWakApUaWAM45GGNYX19HCAHn5+eYnJxEs'
-    b'9lEnudIkgTj4+Ow1lYA5xxkmZRt293dhXMO9/f3aDabqNVqODs7Q5Zl8N5XwrKwdNbBWvvkf2F9u91Go9EAgaC1xtXVFRYXF2GtrcTOFTqujYYxBs'
-    b'YYWGuQ5zmur6+xvb0NrTS01uh0Opidna32PQ9ujIFSCt1uF1tbW9jb28PGxgY451BKYTQa4e7uDkdHR7i4uIDWBVQpBWst2PHxsRkbG5NpmrI4jhF'
-    b'FEaSUEEJUvgCojLPWwliDfJBTr/fgZK/3q0PAvPc+TdOUO+cghPgLUD7lEjAcDunx8XH48PDwQ2ZZ95NS+u1oOFqq1aJYyohJKau2Pv/KZResta7f'
-    b'7//MsuzDb1Mp5IMPSMlnAAAAAElFTkSuQmCC'
-)
 _CALLBACKS = set()
-_PROPERTIES = PROPERTY.__dict__.values()
-_METHODS = METHOD.__dict__.values()
+_METHOD = set(getattr(METHOD, var) for var in dir(METHOD) if not var.startswith('__') and not var.endswith('__'))
+_PROPERTY = set(getattr(PROPERTY, var) for var in dir(PROPERTY) if not var.startswith('__') and not var.endswith('__'))
+
+
+def _destroy() -> None:
+    _MENU.Destroy()
+    _TASK_BAR_ICON.RemoveIcon()
+    _TASK_BAR_ICON.Destroy()
+    _APP.Destroy()
 
 
 def _on_right_click(_: wx.Event) -> None:
@@ -79,9 +73,9 @@ def add_menu_item(label: str,
         def wrapped_callback(event):
             extra_args = []
             for arg in args or ():
-                if arg in _METHODS:
+                if arg in _METHOD:
                     extra_args.append(getattr(event.GetEventObject().FindItemById(event.GetId()), arg))
-                elif arg in _PROPERTIES:
+                elif arg in _PROPERTY:
                     extra_args.append(getattr(event.GetEventObject(), arg)(event.GetId()))
             callback(*extra_args, *callback_args or (), **callback_kwargs or {})
 
@@ -117,6 +111,7 @@ def add_submenu(label: str,
     return submenu_item
 
 
+# TODO: dump this
 def bind_after_close(src_callback: typing.Callable[[...], bool],
                      dest_callback: typing.Callable[[bool, ...], typing.Any],
                      src_callback_args: typing.Optional[tuple] = None,
@@ -138,24 +133,19 @@ def show_balloon(title: str,
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=icon)
 
 
-def main_loop(tooltip: str = os.path.basename(sys.argv[0]),
-              default_callback: typing.Optional[typing.Callable] = None,
-              default_callback_args: typing.Optional[tuple] = None,
-              default_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-              exit_callback: typing.Optional[typing.Callable] = None,
-              exit_callback_args: typing.Optional[tuple] = None,
-              exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
+def start_loop(icon_path: str,
+               tooltip: typing.Optional[str] = None,
+               default_callback: typing.Optional[typing.Callable] = None,
+               default_callback_args: typing.Optional[tuple] = None,
+               default_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
+    atexit.register(_destroy)
     if default_callback:
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK,
                             lambda _: default_callback(*default_callback_args or (), **default_callback_kwargs or {}))
     # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
-    _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, _on_right_click)
-    if exit_callback:
-        _APP.Bind(wx.EVT_END_SESSION, lambda _: exit_callback(*exit_callback_args or (), **exit_callback_kwargs or {}))
-    _TASK_BAR_ICON.SetIcon(_ICON.GetIcon(), tooltip)
+    _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)
+    _TASK_BAR_ICON.SetIcon(wx.Icon(icon_path, wx.BITMAP_TYPE_ICO), tooltip)
     _APP.MainLoop()
 
 
-def destroy() -> None:
-    wx.CallAfter(_MENU.Destroy)
-    wx.CallAfter(_TASK_BAR_ICON.Destroy)
+stop_loop = _APP.ExitMainLoop

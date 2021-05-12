@@ -33,4 +33,5 @@ class MyFrame(wx.Frame):
 if __name__ == "__main__":
     app = wx.App(False)
     frame = MyFrame()
+    wx.Icon("dist/wallpyper/wallpyper.exe", wx.BITMAP_TYPE_ICO)
     app.MainLoop()
