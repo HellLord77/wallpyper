@@ -8,15 +8,19 @@ def exists(path: str) -> bool:
 
 
 def copy(src_path: str,
-         dest_path: str) -> bool:
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    if os.path.isfile(src_path) and not os.path.exists(dest_path):
-        try:
-            shutil.copyfile(src_path, dest_path)
-        except PermissionError:
-            pass
-    if os.path.isfile(src_path) and os.path.isfile(dest_path):
-        return filecmp.cmp(src_path, dest_path)
+         dest_dir: str,
+         *file_names: str) -> bool:
+    os.makedirs(dest_dir, exist_ok=True)
+    if os.path.isfile(src_path):
+        for file_name in file_names:
+            dest_path = os.path.join(dest_dir, file_name)
+            if not os.path.exists(dest_path):
+                try:
+                    shutil.copyfile(src_path, dest_path)
+                except PermissionError:
+                    pass
+            if os.path.isfile(dest_path) and filecmp.cmp(src_path, dest_path):
+                return True
     return False
 
 

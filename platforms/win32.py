@@ -39,14 +39,12 @@ def register_autorun(name: str,
         return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
-def unregister_autorun(name: str) -> bool:  # TODO: remove verify through exception
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE) as key:
-        for _ in range(2):
-            try:
-                winreg.DeleteValue(key, name)
-            except FileNotFoundError:
-                return True
-        return False
+def unregister_autorun(name: str) -> bool:
+    if register_autorun(name, ''):
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE) as key:
+            winreg.DeleteValue(key, name)
+            return True
+    return False
 
 
 def get_wallpaper_path() -> str:

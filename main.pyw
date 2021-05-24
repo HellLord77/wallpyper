@@ -677,17 +677,12 @@ def save_wallpaper() -> bool:
     if not SAVING:
         SAVING = True
         path = PLATFORM.get_wallpaper_path()
-        save_path = os.path.join(CONFIG['save_dir'], os.path.basename(path))
-        saved = utils.copy_file(path, save_path)
+        name = os.path.basename(path)
+        cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
+        saved = utils.copy_file(path, CONFIG['save_dir'], name, cache_name)
         if not saved:
-            cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
-            save_path_2 = os.path.join(CONFIG['save_dir'], cache_name)
-            saved = utils.copy_file(path, save_path_2)
-            if not saved:
-                cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
-                saved = utils.copy_file(cache_path, save_path)
-                if not saved:
-                    saved = utils.copy_file(cache_path, save_path_2)
+            saved = utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, cache_name),
+                                    CONFIG['save_dir'], name, cache_name)
         SAVING = False
         return saved
     return False
@@ -724,7 +719,8 @@ def on_save() -> bool:
 
 
 def _on_modify_save():
-    print(69)
+    # TODO: show folder picker
+    ...
 
 
 def on_auto_start(is_checked: bool) -> bool:

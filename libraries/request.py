@@ -14,7 +14,7 @@ _CHUNK_SIZE = 1024
 USER_AGENT = 'request/0.0.1'
 
 
-class Response:
+class LazyResponse:
     def __init__(self,
                  response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]) -> None:
         self._content = bytes()
@@ -62,7 +62,7 @@ def urljoin(base: str,
 
 def urlopen(url: str,
             params: typing.Optional[dict[str, str]] = None,
-            stream: bool = True) -> Response:
+            stream: typing.Optional[bool] = None) -> LazyResponse:
     query = {}
     if params:
         for key, value in params.items():
@@ -71,17 +71,17 @@ def urlopen(url: str,
     try:
         request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', headers={_USER_AGENT: USER_AGENT})
     except ValueError as err:
-        return Response(urllib.error.URLError(err))
+        return LazyResponse(urllib.error.URLError(err))
     else:
         try:
             response = urllib.request.urlopen(request)
         except urllib.error.URLError as response:
-            return Response(response)
+            return LazyResponse(response)
         else:
-            response_ = Response(response)
-            if not stream:
-                response_._content = response.read()  # TODO: handle exception
-            return response_
+            lazy_response = LazyResponse(response)
+            if stream is False:
+                lazy_response._content = response.read()  # TODO: handle exception
+            return lazy_response
 
 
 def urlretrieve(url: str,
