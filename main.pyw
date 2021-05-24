@@ -1,4 +1,5 @@
 import configparser
+import functools
 import os
 import sys
 import threading
@@ -8,10 +9,10 @@ import wx
 import wx.adv
 
 # 639-1
-import langs.en
-import libs.debug
-import libs.singleton
-import libs.thread
+import languages.en
+import libraries.debug
+import libraries.singleton
+import libraries.thread
 import modules.wallhaven
 # sys.platform
 import platforms.win32
@@ -20,7 +21,9 @@ import utils
 NAME = 'wallpyper'
 PLATFORM = platforms.win32
 
-LANG = langs.en
+FROZEN = hasattr(sys, 'frozen')
+LANGUAGES = (languages.en,)
+LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
 DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
@@ -640,7 +643,7 @@ def save_config() -> bool:
     for module in MODULES:
         try:
             config[module.NAME] = module.CONFIG
-        except TypeError:  # TODO: do not pass whole section upon error
+        except TypeError:
             pass
     with open(CONFIG_PATH, 'w') as file:
         config.write(file)
@@ -691,15 +694,14 @@ def save_wallpaper() -> bool:
 
 
 def on_change() -> bool:
-    CHANGE.CALLBACK(f'{LANG.CHANGE} (00%)')
-    changed = change_wallpaper(
-        lambda progress: CHANGE.CALLBACK(f'{LANG.CHANGE} ({progress if progress < 100 else 99:02}%)'))
-    CHANGE.CALLBACK(LANG.CHANGE)
+    CHANGE.CALLBACK(0)
+    changed = change_wallpaper(CHANGE.CALLBACK)
+    CHANGE.CALLBACK(100)
     if changed:
         return True
     else:
         if CONFIG['notify']:
-            utils.notify(LANG.CHANGE, LANG.FAILED_CHANGING)  # TODO: retry count (?)
+            utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)  # TODO: retry count (?)
         return False
 
 
@@ -716,7 +718,7 @@ def on_change_interval(interval: str) -> None:
 def on_save() -> bool:
     if not save_wallpaper():
         if CONFIG['notify']:
-            utils.notify(LANG.SAVE, LANG.FAILED_SAVING)
+            utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
         return False
     return True
 
@@ -739,44 +741,52 @@ def on_save_config(is_checked: bool) -> None:
 
 
 def create_menu() -> None:
-    change = utils.add_item(LANG.CHANGE, callback=libs.thread.start, callback_args=(on_change,))
-    CHANGE.CALLBACK = change.SetItemLabel
-    CHANGE.TIMER = libs.thread.Timer(CONFIG['change_interval'], on_change)
-    auto_change = utils.add_item(LANG.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
+    change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
+
+    @functools.wraps(change.SetItemLabel)
+    def wrapped_callback(progress: int) -> None:
+        if progress == 100:
+            change.SetItemLabel(f'{LANGUAGE.CHANGE}')
+        else:
+            change.SetItemLabel(f'{LANGUAGE.CHANGE} ({progress:02}%)')
+
+    CHANGE.CALLBACK = wrapped_callback
+    CHANGE.TIMER = libraries.thread.Timer(CONFIG['change_interval'], on_change)
+    auto_change = utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
                                  args=(utils.get_property.IS_CHECKED,))
-    change_interval = utils.add_items(LANG.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
+    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
                                       CONFIG['auto_change'], INTERVALS, on_change_interval,
                                       args=(utils.get_property.GET_UID,))
-    utils.call_after(auto_change.IsChecked, change_interval.Enable)  # TODO: dump
+    utils.call_after(auto_change.IsChecked, change_interval.Enable)
     utils.add_separator()
-    utils.add_item(LANG.SAVE, callback=libs.thread.start, callback_args=(on_save,))
-    utils.add_item(LANG.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
+    utils.add_item(LANGUAGE.SAVE, callback=libraries.thread.start, callback_args=(on_save,))
+    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
                    callback_args=('auto_save',), args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANG.MODIFY_SAVE, callback=_on_modify_save)
+    utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
-    utils.add_item(LANG.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
+    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
                    callback_args=('notify',), args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANG.AUTO_START, utils.item.CHECK, CONFIG['auto_start'], callback=on_auto_start,
+    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG['auto_start'], callback=on_auto_start,
                    args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANG.SAVE_CONFIG, utils.item.CHECK, CONFIG['save_config'], callback=on_save_config,
+    utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG['save_config'], callback=on_save_config,
                    args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANG.EXIT, callback=utils.on_exit)
+    utils.add_item(LANGUAGE.EXIT, callback=utils.on_exit)
 
 
 def start() -> None:
     if 'debug' in sys.argv:
-        libs.debug.init('langs', 'libs', 'modules', 'platforms')
-    libs.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
+        libraries.debug.init('languages', 'libraries', 'modules', 'platforms')
+    libraries.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
     load_config()
     create_menu()
     on_auto_change(CONFIG['auto_change'])
     if 'change' in sys.argv:
-        libs.thread.start(on_change)
+        libraries.thread.start(on_change)
     on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
-    utils.start(sys.argv[0] if getattr(sys, 'frozen', False) else 'icon.ico', NAME, libs.thread.start, (on_change,))
+    utils.start(sys.argv[0] if FROZEN else 'icon.ico', NAME, libraries.thread.start, (on_change,))
 
 
 def stop() -> None:

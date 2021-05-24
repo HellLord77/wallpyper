@@ -1,32 +1,32 @@
-import libs.color
-import libs.file
-import libs.gui
-import libs.request
+import libraries.color
+import libraries.file
+import libraries.gui
+import libraries.request
 
 ok = 200
 
-font_style = libs.color.FontStyle
-fore_color = libs.color.ForeColor
-back_color = libs.color.BackColor
-print_color = libs.color.cprint
+font_style = libraries.color.FontStyle
+fore_color = libraries.color.ForeColor
+back_color = libraries.color.BackColor
+print_color = libraries.color.cprint
 
-exists_file = libs.file.exists
-copy_file = libs.file.copy
-delete_file = libs.file.remove
-delete_dir = libs.file.remove_tree
+exists_file = libraries.file.exists
+copy_file = libraries.file.copy
+delete_file = libraries.file.remove
+delete_dir = libraries.file.remove_tree
 
-item = libs.gui.ITEM
-icon = libs.gui.ICON
-get_property = libs.gui.PROPERTY
-get_method = libs.gui.METHOD
-add_item = libs.gui.add_menu_item
-add_separator = libs.gui.add_separator
-add_items = libs.gui.add_submenu
-call_after = libs.gui.bind_after_close
-notify = libs.gui.show_balloon
-start = libs.gui.start_loop
-on_exit = libs.gui.stop_loop
+item = libraries.gui.ITEM
+icon = libraries.gui.ICON
+get_property = libraries.gui.PROPERTY
+get_method = libraries.gui.METHOD
+add_item = libraries.gui.add_menu_item
+add_separator = libraries.gui.add_separator
+add_items = libraries.gui.add_submenu
+call_after = libraries.gui.bind_call_after
+notify = libraries.gui.show_balloon
+start = libraries.gui.start_loop
+on_exit = libraries.gui.stop_loop
 
-join_url = libs.request.urljoin
-open_url = libs.request.urlopen
-download_url = libs.request.urlretrieve
+join_url = libraries.request.urljoin
+open_url = libraries.request.urlopen
+download_url = libraries.request.urlretrieve

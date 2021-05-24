@@ -12,15 +12,17 @@ class Timer:
             if interval:
                 self.start()
             self.running = True
-            callback(*callback_args or (), **callback_kwargs or {})
-            self.running = False
+            try:
+                callback(*callback_args or (), **callback_kwargs or {})
+            finally:
+                self.running = False
 
         self.running = False
-        self.__timer = threading.Timer(interval, wrapped_callback)
+        self._timer = threading.Timer(interval, wrapped_callback)
 
     @property
     def initialized(self) -> bool:
-        return self.__timer.is_alive()
+        return self._timer.is_alive()
 
     @property
     def waiting(self) -> bool:
@@ -30,14 +32,14 @@ class Timer:
               interval: typing.Optional[float] = None) -> bool:
         self.stop()
         if interval is not None:
-            self.__timer.interval = interval
+            self._timer.interval = interval
         # noinspection PyUnresolvedReferences
-        self.__timer = threading.Timer(self.__timer.interval, self.__timer.function)
-        self.__timer.start()
+        self._timer = threading.Timer(self._timer.interval, self._timer.function)
+        self._timer.start()
         return self.initialized
 
     def stop(self) -> bool:
-        self.__timer.cancel()
+        self._timer.cancel()
         return self.initialized
 
 

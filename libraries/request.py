@@ -1,7 +1,7 @@
 import http.client
 import json
+import math
 import os
-import sys
 import typing
 import urllib.error
 import urllib.parse
@@ -10,7 +10,6 @@ import urllib.request
 _CONTENT_LENGTH = 'content-length'
 _USER_AGENT = 'user-agent'
 _CHUNK_SIZE = 1024
-_MAX_SIZE = sys.maxsize
 
 USER_AGENT = 'request/0.0.1'
 
@@ -22,7 +21,7 @@ class Response:
         self.chunk_size = _CHUNK_SIZE
         self.response = response
         self.reason = response.reason
-        self.status = 418 if isinstance(response, urllib.error.URLError) else response.status
+        self.status = response.status if hasattr(response, 'status') else 418
 
     def __iter__(self) -> bytes:
         if self.response.isclosed():
@@ -97,8 +96,8 @@ def urlretrieve(url: str,
     if response.status == 200:
         if not size:
             content_length = response.response.getheader(_CONTENT_LENGTH)
-            size = int(content_length) if content_length else _MAX_SIZE
-        response.chunk_size = size // chunk_count if size != _MAX_SIZE and chunk_count else chunk_size or _CHUNK_SIZE
+            size = int(content_length) if content_length else math.inf
+        response.chunk_size = size // chunk_count if size != math.inf and chunk_count else chunk_size or _CHUNK_SIZE
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
         if not os.path.isfile(path) or size != os.stat(path).st_size:
@@ -107,6 +106,6 @@ def urlretrieve(url: str,
                     file.write(chunk)
                     ratio += len(chunk) / size
                     if callback:
-                        callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
+                        callback(min(round(ratio * 100), 99), *callback_args or (), **callback_kwargs or {})
         return size == os.stat(path).st_size
     return False
