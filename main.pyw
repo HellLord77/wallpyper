@@ -1,5 +1,4 @@
 import configparser
-import functools
 import os
 import sys
 import threading
@@ -651,7 +650,7 @@ def save_config() -> bool:
 
 
 def update_config(value: typing.Any,
-                  key: str, ) -> None:
+                  key: str) -> None:
     CONFIG.__setitem__(key, value)
 
 
@@ -700,8 +699,10 @@ def on_change() -> bool:
         return False
 
 
-def on_auto_change(is_checked: bool) -> None:
+def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuItem] = None) -> None:
     CONFIG['auto_change'] = is_checked
+    if change_interval:
+        change_interval.Enable(is_checked)
     CHANGE.TIMER.start(CONFIG['change_interval']) if is_checked else CHANGE.TIMER.stop()
 
 
@@ -739,7 +740,6 @@ def on_save_config(is_checked: bool) -> None:
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
 
-    @functools.wraps(change.SetItemLabel)
     def wrapped_callback(progress: int) -> None:
         if progress == 100:
             change.SetItemLabel(f'{LANGUAGE.CHANGE}')
@@ -748,26 +748,25 @@ def create_menu() -> None:
 
     CHANGE.CALLBACK = wrapped_callback
     CHANGE.TIMER = libraries.thread.Timer(CONFIG['change_interval'], on_change)
-    auto_change = utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
-                                 args=(utils.get_property.IS_CHECKED,))
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
                                       CONFIG['auto_change'], INTERVALS, on_change_interval,
-                                      args=(utils.get_property.GET_UID,))
-    utils.call_after(auto_change.IsChecked, change_interval.Enable)
+                                      default_args=(utils.get_property.GET_UID,))
+    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
+                   callback_args=(change_interval,), default_args=(utils.get_property.IS_CHECKED,), position=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=libraries.thread.start, callback_args=(on_save,))
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
-                   callback_args=('auto_save',), args=(utils.get_property.IS_CHECKED,))
+                   callback_args=('auto_save',), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
-                   callback_args=('notify',), args=(utils.get_property.IS_CHECKED,))
+                   callback_args=('notify',), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG['auto_start'], callback=on_auto_start,
-                   args=(utils.get_property.IS_CHECKED,))
+                   default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG['save_config'], callback=on_save_config,
-                   args=(utils.get_property.IS_CHECKED,))
+                   default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.EXIT, callback=utils.on_exit)
 
 

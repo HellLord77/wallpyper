@@ -1,5 +1,4 @@
 import atexit
-import functools
 import typing
 
 import wx
@@ -37,7 +36,6 @@ class PROPERTY:
 _APP = wx.App()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
-_CALLBACKS = set()
 _METHOD = set(getattr(METHOD, var) for var in dir(METHOD) if not var.startswith('__') and not var.endswith('__'))
 _PROPERTY = set(getattr(PROPERTY, var) for var in dir(PROPERTY) if not var.startswith('__') and not var.endswith('__'))
 
@@ -51,8 +49,6 @@ def _destroy() -> None:
 
 def _on_right_click(_: wx.Event) -> None:
     _TASK_BAR_ICON.PopupMenu(_MENU)
-    for callback in _CALLBACKS:
-        callback()
 
 
 def add_menu_item(label: str,
@@ -63,22 +59,23 @@ def add_menu_item(label: str,
                   callback: typing.Optional[typing.Callable] = None,
                   callback_args: typing.Optional[tuple] = None,
                   callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                  args: typing.Optional[tuple[str]] = None,
+                  default_args: typing.Optional[tuple[str]] = None,
+                  position: typing.Optional[int] = None,
                   menu: wx.Menu = _MENU) -> wx.MenuItem:
-    item = menu.Append(wx.ID_ANY, label, uid or '', kind or ITEM.NORMAL)
+    item = menu.Insert(menu.GetMenuItemCount() if position is None else position,
+                       wx.ID_ANY, label, uid or '', kind or ITEM.NORMAL)
     if check is not None:
         item.Check(check)
     if enable is not None:
         item.Enable(enable)
     if callback:
-        @functools.wraps(callback)
         def wrapped_callback(event: wx.Event) -> None:
             extra_args = []
-            for arg in args or ():
-                if arg in _METHOD:
-                    extra_args.append(getattr(event.GetEventObject().FindItemById(event.GetId()), arg))
-                elif arg in _PROPERTY:
-                    extra_args.append(getattr(event.GetEventObject(), arg)(event.GetId()))
+            for default_arg in default_args or ():
+                if default_arg in _METHOD:
+                    extra_args.append(getattr(event.GetEventObject().FindItemById(event.GetId()), default_arg))
+                elif default_arg in _PROPERTY:
+                    extra_args.append(getattr(event.GetEventObject(), default_arg)(event.GetId()))
             callback(*extra_args, *callback_args or (), **callback_kwargs or {})
 
         menu.Bind(wx.EVT_MENU, wrapped_callback, item)
@@ -97,41 +94,20 @@ def add_submenu(label: str,
                 callback: typing.Optional[typing.Callable] = None,
                 callback_args: typing.Optional[tuple] = None,
                 callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                args: typing.Optional[tuple[str]] = None,
+                default_args: typing.Optional[tuple[str]] = None,
+                position: typing.Optional[int] = None,
                 menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
     checks = checks or ()
     for uid, label_ in items.items():
-        item = add_menu_item(label_, kind, uid in checks, label_[0] != '_', uid,
-                             callback, callback_args, callback_kwargs, args, submenu)
+        item = add_menu_item(label_, kind, uid in checks, label_[0] != '_', uid, callback,
+                             callback_args, callback_kwargs, default_args, position, submenu)
         if label_[0] == '_':
             item.SetItemLabel(label_[1:])
     submenu_item = menu.AppendSubMenu(submenu, label)
     if enable is not None:
         submenu_item.Enable(enable)
     return submenu_item
-
-
-def bind_call_after(src_callback: typing.Callable[[typing.Any], bool],
-                    dest_callback: typing.Callable[[bool, ...], typing.Any],
-                    src_callback_args: typing.Optional[tuple] = None,
-                    dest_callback_args: typing.Optional[tuple] = None,
-                    src_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                    dest_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                    reverse: bool = False) -> typing.Callable:
-    def callback():
-        state = reverse ^ src_callback(*src_callback_args or (), **src_callback_kwargs or {})
-        dest_callback(state, *dest_callback_args or (), **dest_callback_kwargs or {})
-
-    _CALLBACKS.add(callback)
-    return callback
-
-
-def unbind_call_after(callback: typing.Callable) -> bool:
-    if callback in _CALLBACKS:
-        _CALLBACKS.remove(callback)
-        return True
-    return False
 
 
 def show_balloon(title: str,
@@ -147,7 +123,6 @@ def start_loop(icon_path: str,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
     atexit.register(_destroy)
     if callback:
-        @functools.wraps(callback)
         def wrapped_callback(_: wx.Event) -> None:
             callback(*callback_args or (), **callback_kwargs or {})
 
@@ -159,3 +134,5 @@ def start_loop(icon_path: str,
 
 
 stop_loop = _APP.ExitMainLoop
+
+# TODO: animate icon

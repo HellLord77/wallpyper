@@ -1,3 +1,4 @@
+import contextlib
 import http.client
 import json
 import math
@@ -28,13 +29,11 @@ class LazyResponse:
             for i in range(0, len(self._content), self.chunk_size):
                 yield self._content[i:i + self.chunk_size]
         else:
-            try:
+            with contextlib.suppress(ConnectionError):
                 chunk = self.response.read(self.chunk_size)
                 while chunk:
                     yield chunk
                     chunk = self.response.read(self.chunk_size)
-            except ConnectionError:
-                pass
 
     def get_content(self) -> bytes:
         if not self.response.isclosed():

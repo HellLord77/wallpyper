@@ -22,7 +22,6 @@ get_method = libraries.gui.METHOD
 add_item = libraries.gui.add_menu_item
 add_separator = libraries.gui.add_separator
 add_items = libraries.gui.add_submenu
-call_after = libraries.gui.bind_call_after
 notify = libraries.gui.show_balloon
 start = libraries.gui.start_loop
 on_exit = libraries.gui.stop_loop
