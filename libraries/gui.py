@@ -1,4 +1,5 @@
 import atexit
+import itertools
 import typing
 
 import wx
@@ -33,10 +34,13 @@ class PROPERTY:
 
 
 _APP = wx.App()
+_ICON = wx.Icon()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 _METHOD = set(getattr(METHOD, var) for var in dir(METHOD) if not var.startswith('__'))
 _PROPERTY = set(getattr(PROPERTY, var) for var in dir(PROPERTY) if not var.startswith('__'))
+_ANIMATED = False
+_TOOLTIP = ''
 
 
 def _destroy() -> None:
@@ -120,7 +124,9 @@ def start_loop(icon_path: str,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
-    atexit.register(_destroy)
+    global _TOOLTIP
+    _ICON.LoadFile(icon_path, wx.BITMAP_TYPE_ICO)
+    _TOOLTIP = tooltip
     if callback:
         def wrapped_callback(_: wx.Event) -> None:
             callback(*callback_args or (), **callback_kwargs or {})
@@ -128,10 +134,34 @@ def start_loop(icon_path: str,
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapped_callback)
     # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)
-    _TASK_BAR_ICON.SetIcon(wx.Icon(icon_path, wx.BITMAP_TYPE_ICO), tooltip)
+    _TASK_BAR_ICON.SetIcon(_ICON, tooltip)
+    atexit.register(_destroy)
     _APP.MainLoop()
 
 
 stop_loop = _APP.ExitMainLoop
 
-# TODO: animate icon
+
+def _animate(icons: itertools.cycle,
+             delay: int):
+    if _ANIMATED:
+        _TASK_BAR_ICON.SetIcon(next(icons), _TOOLTIP)
+        wx.CallLater(delay, _animate, icons, delay)
+    else:
+        _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
+
+
+def animate(path: str):
+    global _ANIMATED
+    if not _ANIMATED:
+        _ANIMATED = True
+        animation = wx.adv.Animation(path)
+        icons = itertools.cycle(wx.Icon(wx.Bitmap(animation.GetFrame(i))) for i in range(animation.GetFrameCount()))
+        wx.CallAfter(_animate, icons, animation.GetDelay(0))
+
+
+def inanimate() -> bool:
+    global _ANIMATED
+    animated = _ANIMATED
+    _ANIMATED = False
+    return animated

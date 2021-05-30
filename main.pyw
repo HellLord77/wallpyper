@@ -658,15 +658,17 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     global CHANGING
     if not CHANGING:
         CHANGING = True
-        next_url = MODULE.get_next_url()
-        name = os.path.basename(next_url)
+        utils.start_animation('icons/load.gif')
+        url = MODULE.get_next_url()
+        name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
         save_path = os.path.join(CONFIG['save_dir'], name)
-        utils.download_url(next_url, temp_path, chunk_count=100, callback=callback)
+        utils.download_url(url, temp_path, chunk_count=100, callback=callback)
         changed = PLATFORM.set_wallpaper(temp_path, save_path)
         if CONFIG['auto_save'] and not utils.copy_file(temp_path, save_path) and changed:
             save_wallpaper()
         CHANGING = False
+        utils.stop_animation()
         return changed
     return False
 
@@ -759,6 +761,7 @@ def create_menu() -> None:
                    callback_args=('auto_save',), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
+    utils.add_item('change', callback=utils.start_animation, callback_args=('icons/load.gif',))
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
@@ -781,7 +784,7 @@ def start() -> None:
         libraries.thread.start(on_change)
     on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
-    utils.start(sys.argv[0] if FROZEN else 'icon.ico', NAME, libraries.thread.start, (on_change,))
+    utils.start(sys.argv[0] if FROZEN else 'icons/icon.ico', NAME, libraries.thread.start, (on_change,))
 
 
 def stop() -> None:

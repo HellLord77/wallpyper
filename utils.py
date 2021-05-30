@@ -25,6 +25,8 @@ add_items = libraries.gui.add_submenu
 notify = libraries.gui.show_balloon
 start = libraries.gui.start_loop
 on_exit = libraries.gui.stop_loop
+start_animation = libraries.gui.animate
+stop_animation = libraries.gui.inanimate
 
 join_url = libraries.request.urljoin
 open_url = libraries.request.urlopen
