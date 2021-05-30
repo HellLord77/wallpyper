@@ -125,7 +125,7 @@ def start_loop(icon_path: str,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
     global _TOOLTIP
-    _ICON.LoadFile(icon_path, wx.BITMAP_TYPE_ICO)
+    _ICON.LoadFile(icon_path)
     _TOOLTIP = tooltip
     if callback:
         def wrapped_callback(_: wx.Event) -> None:

@@ -20,7 +20,6 @@ import utils
 NAME = 'wallpyper'
 PLATFORM = platforms.win32
 
-FROZEN = hasattr(sys, 'frozen')
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
@@ -658,7 +657,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     global CHANGING
     if not CHANGING:
         CHANGING = True
-        utils.start_animation('icons/load.gif')
+        utils.start_animation('resources/load.gif')
         url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
@@ -677,6 +676,7 @@ def save_wallpaper() -> bool:
     global SAVING
     if not SAVING:
         SAVING = True
+        utils.start_animation('resources/load.gif')
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
@@ -685,6 +685,7 @@ def save_wallpaper() -> bool:
             saved = utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, cache_name),
                                     CONFIG['save_dir'], name, cache_name)
         SAVING = False
+        utils.stop_animation()
         return saved
     return False
 
@@ -761,7 +762,6 @@ def create_menu() -> None:
                    callback_args=('auto_save',), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
-    utils.add_item('change', callback=utils.start_animation, callback_args=('icons/load.gif',))
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
@@ -784,7 +784,7 @@ def start() -> None:
         libraries.thread.start(on_change)
     on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
-    utils.start(sys.argv[0] if FROZEN else 'icons/icon.ico', NAME, libraries.thread.start, (on_change,))
+    utils.start('resources/icon.ico', NAME, libraries.thread.start, (on_change,))
 
 
 def stop() -> None:
