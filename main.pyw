@@ -752,7 +752,7 @@ def create_menu() -> None:
                                       CONFIG['auto_change'], INTERVALS, on_change_interval,
                                       default_args=(utils.get_property.GET_UID,))
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
-                   callback_args=(change_interval,), default_args=(utils.get_property.IS_CHECKED,), position=1)
+                   callback_args=(change_interval,), default_args=(utils.get_property.IS_CHECKED,), pos=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=libraries.thread.start, callback_args=(on_save,))
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
@@ -773,7 +773,7 @@ def create_menu() -> None:
 def start() -> None:
     if 'debug' in sys.argv:
         libraries.debug.init('languages', 'libraries', 'modules', 'platforms')
-    libraries.singleton.init(NAME, print, print, ('Crash',), ('Exit',))
+    libraries.singleton.init(NAME, 'wait' in sys.argv, print, print, print, ('Crash',), ('Wait',), ('Exit',))
     load_config()
     create_menu()
     on_auto_change(CONFIG['auto_change'])
@@ -795,6 +795,7 @@ if __name__ == '__main__':
     stop()
     sys.exit()
     # 0.0.1
+    # noinspection PyUnreachableCode
     app = wx.App()
     TaskBarIcon()
     app.MainLoop()
