@@ -72,7 +72,7 @@ def add_menu_item(label: str,
     if enable is not None:
         item.Enable(enable)
     if callback:
-        def wrapped_callback(event: wx.Event) -> None:
+        def wrapper(event: wx.Event) -> None:
             default_args_ = []
             for default_arg in default_args or ():
                 if default_arg in _METHOD:
@@ -81,7 +81,7 @@ def add_menu_item(label: str,
                     default_args_.append(getattr(event.GetEventObject(), default_arg)(event.GetId()))
             callback(*default_args_, *callback_args or (), **callback_kwargs or {})
 
-        menu.Bind(wx.EVT_MENU, wrapped_callback, item)
+        menu.Bind(wx.EVT_MENU, wrapper, item)
     return item
 
 
@@ -128,10 +128,10 @@ def start_loop(icon_path: str,
     _ICON.LoadFile(icon_path)
     _TOOLTIP = tooltip
     if callback:
-        def wrapped_callback(_: wx.Event) -> None:
+        def wrapper(_: wx.Event) -> None:
             callback(*callback_args or (), **callback_kwargs or {})
 
-        _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapped_callback)
+        _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
     # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)
     _TASK_BAR_ICON.SetIcon(_ICON, tooltip)
@@ -143,21 +143,25 @@ stop_loop = _APP.ExitMainLoop
 
 
 def _animate(icons: itertools.cycle,
-             delay: int):
+             tooltip: str,
+             delay: int) -> None:
     if _ANIMATED:
-        _TASK_BAR_ICON.SetIcon(next(icons), _TOOLTIP)
-        wx.CallLater(delay, _animate, icons, delay)
+        _TASK_BAR_ICON.SetIcon(next(icons), tooltip)
+        wx.CallLater(delay, _animate, icons, tooltip, delay)
     else:
         _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
 
 
-def animate(path: str):
+def animate(gif_path: str,
+            tooltip: typing.Optional[str] = None) -> bool:
     global _ANIMATED
     if not _ANIMATED:
         _ANIMATED = True
-        animation = wx.adv.Animation(path)
+        animation = wx.adv.Animation(gif_path)
         icons = itertools.cycle(wx.Icon(wx.Bitmap(animation.GetFrame(i))) for i in range(animation.GetFrameCount()))
-        wx.CallAfter(_animate, icons, animation.GetDelay(0))
+        wx.CallAfter(_animate, icons, tooltip or _TOOLTIP, animation.GetDelay(0))
+        return True
+    return False
 
 
 def inanimate() -> bool:

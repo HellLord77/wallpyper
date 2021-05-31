@@ -16,7 +16,7 @@ _SUFFIX = '\x1b[0m\n'
 _PATHS = set()
 
 
-def _get_cls_name(frame):
+def _get_prefix(frame):
     if 'self' in frame.f_locals:
         return f'{frame.f_locals["self"].__class__.__name__}.'
     elif 'cls' in frame.f_locals:
@@ -25,12 +25,12 @@ def _get_cls_name(frame):
         return ''
 
 
-def _hook_function(frame,
+def _hook_callback(frame,
                    event: str,
                    arg: typing.Any) -> typing.Callable:
     if (event != 'exception' or arg[0] not in (GeneratorExit, StopIteration)) and frame.f_code.co_filename in _PATHS:
         log(event, f'{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} '
-                   f'{frame.f_lineno}] {_get_cls_name(frame)}{frame.f_code.co_name}')
+                   f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}')
         if event == 'call':
             for key, value in frame.f_locals.items():
                 log(f'{event}_details', f'{key}: {value}')
@@ -39,7 +39,7 @@ def _hook_function(frame,
         elif event == 'return':
             log(f'{event}_details', f'return: {arg}')
     frame.f_trace_lines = False
-    return _hook_function
+    return _hook_callback
 
 
 def log(event: str,
@@ -54,5 +54,5 @@ def init(*dirs: str,
         for name in os.listdir(dir__):
             if name.endswith('.py') and os.path.isfile(path__ := os.path.join(dir__, name)):
                 _PATHS.add(path__)
-    sys.settrace(_hook_function)
-    threading.settrace(_hook_function)
+    sys.settrace(_hook_callback)
+    threading.settrace(_hook_callback)

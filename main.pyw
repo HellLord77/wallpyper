@@ -657,7 +657,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     global CHANGING
     if not CHANGING:
         CHANGING = True
-        utils.start_animation('resources/load.gif')
+        utils.start_animation('resources/load.gif', LANGUAGE.CHANGING)
         url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
@@ -676,7 +676,7 @@ def save_wallpaper() -> bool:
     global SAVING
     if not SAVING:
         SAVING = True
-        utils.start_animation('resources/load.gif')
+        utils.start_animation('resources/load.gif', LANGUAGE.SAVING)
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
@@ -743,13 +743,13 @@ def on_save_config(is_checked: bool) -> None:
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
 
-    def wrapped_callback(progress: int) -> None:
+    def wrapper(progress: int) -> None:
         if progress == 100:
-            change.SetItemLabel(f'{LANGUAGE.CHANGE}')
+            change.SetItemLabel(f'{LANGUAGE.CHANGING}')
         else:
-            change.SetItemLabel(f'{LANGUAGE.CHANGE} ({progress:02}%)')
+            change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)')
 
-    CHANGE.CALLBACK = wrapped_callback
+    CHANGE.CALLBACK = wrapper
     CHANGE.TIMER = libraries.thread.Timer(CONFIG['change_interval'], on_change)
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
                                       CONFIG['auto_change'], INTERVALS, on_change_interval,

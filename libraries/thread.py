@@ -8,7 +8,7 @@ class Timer:
                  callback: typing.Callable,
                  callback_args: typing.Optional[tuple] = None,
                  callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
-        def wrapped_callback():
+        def wrapper() -> None:
             if interval:
                 self.start()
             self.running = True
@@ -18,7 +18,7 @@ class Timer:
                 self.running = False
 
         self.running = False
-        self._timer = threading.Timer(interval, wrapped_callback)
+        self._timer = threading.Timer(interval, wrapper)
 
     @property
     def initialized(self) -> bool:
