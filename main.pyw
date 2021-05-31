@@ -1,4 +1,5 @@
 import configparser
+import contextlib
 import os
 import sys
 import threading
@@ -607,44 +608,51 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
 # 0.0.2
 
-def load_config() -> bool:
-    loaded_all = True
-    config = configparser.ConfigParser()
-    get = {
-        str: config.get,
-        int: config.getint,
-        float: config.getfloat,
-        bool: config.getboolean
-    }
-    config.read(CONFIG_PATH)
-    if config.has_section(NAME):
-        for key, value in DEFAULT_CONFIG.items():
-            # noinspection PyArgumentList
-            CONFIG[key] = get[type(value)](NAME, key, fallback=value)
+def _load_config(config_parser: configparser.ConfigParser,
+                 section: str,
+                 config: dict[str, typing.Union[str, int, float, bool]],
+                 default_config: dict[str, typing.Union[str, int, float, bool]],
+                 get_converted: dict[typing.Any, typing.Callable[[str, str], typing.Any]]) -> bool:
+    loaded = True
+    config.update(default_config)
+    if config_parser.has_section(section):
+        for option, value in default_config.items():
+            if config_parser.has_option(section, option):
+                try:
+                    config[option] = get_converted[type(value)](section, option)
+                except TypeError:
+                    loaded = False
+            else:
+                loaded = False
     else:
-        loaded_all = False
-        CONFIG.update(DEFAULT_CONFIG)
+        loaded = False
+    return loaded
+
+
+def load_config() -> bool:
+    config_parser = configparser.ConfigParser()
+    config_parser.read(CONFIG_PATH)
+    get_converted = {
+        str: config_parser.get,
+        int: config_parser.getint,
+        float: config_parser.getfloat,
+        bool: config_parser.getboolean
+    }
+    loaded = _load_config(config_parser, NAME, CONFIG, DEFAULT_CONFIG, get_converted)
     for module in MODULES:
-        if config.has_section(module.NAME):
-            for key, value in module.DEFAULT_CONFIG.items():
-                # noinspection PyArgumentList
-                module.CONFIG[key] = get[type(value)](module.NAME, key, fallback=value)
-        else:
-            loaded_all = False
-            module.CONFIG.update(module.DEFAULT_CONFIG)
-    return loaded_all
+        loaded = _load_config(config_parser, module.NAME, module.CONFIG,
+                              module.DEFAULT_CONFIG, get_converted) and loaded
+    return loaded
 
 
 def save_config() -> bool:
-    config = configparser.ConfigParser()
-    config[NAME] = CONFIG
+    config_parser = configparser.ConfigParser()
+    config_parser[NAME] = CONFIG
     for module in MODULES:
-        try:
-            config[module.NAME] = module.CONFIG
-        except TypeError:
-            pass
+        with contextlib.suppress(TypeError):
+            config_parser[module.NAME] = module.CONFIG
     with open(CONFIG_PATH, 'w') as file:
-        config.write(file)
+        config_parser.write(file)
     return utils.exists_file(CONFIG_PATH)
 
 

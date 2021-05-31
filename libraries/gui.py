@@ -1,4 +1,5 @@
 import atexit
+import functools
 import itertools
 import typing
 
@@ -31,6 +32,11 @@ class PROPERTY:
     IS_CHECKED = wx.Menu.IsChecked.__name__
     IS_ENABLED = wx.Menu.IsEnabled.__name__
     GET_UID = wx.Menu.GetHelpString.__name__
+
+
+class SysTray(wx.adv.TaskBarIcon):
+    def __init__(self):
+        super().__init__()
 
 
 _APP = wx.App()
@@ -142,6 +148,13 @@ def start_loop(icon_path: str,
 stop_loop = _APP.ExitMainLoop
 
 
+@functools.lru_cache(1)
+def _extract_gif(gif_path: str) -> tuple[int, itertools.cycle]:
+    animation = wx.adv.Animation(gif_path)
+    return animation.GetDelay(0), itertools.cycle(
+        wx.Icon(wx.Bitmap(animation.GetFrame(i))) for i in range(animation.GetFrameCount()))
+
+
 def _animate(icons: itertools.cycle,
              tooltip: str,
              delay: int) -> None:
@@ -157,9 +170,8 @@ def animate(gif_path: str,
     global _ANIMATED
     if not _ANIMATED:
         _ANIMATED = True
-        animation = wx.adv.Animation(gif_path)
-        icons = itertools.cycle(wx.Icon(wx.Bitmap(animation.GetFrame(i))) for i in range(animation.GetFrameCount()))
-        wx.CallAfter(_animate, icons, tooltip or _TOOLTIP, animation.GetDelay(0))
+        delay, icons = _extract_gif(gif_path)
+        wx.CallAfter(_animate, icons, tooltip or _TOOLTIP, delay)
         return True
     return False
 
