@@ -15,10 +15,10 @@ copy_file = libraries.file.copy
 delete_file = libraries.file.remove
 delete_dir = libraries.file.remove_tree
 
-item = libraries.gui.ITEM
-icon = libraries.gui.ICON
-get_property = libraries.gui.PROPERTY
-get_method = libraries.gui.METHOD
+item = libraries.gui.Item
+icon = libraries.gui.Icon
+get_property = libraries.gui.Property
+get_method = libraries.gui.Method
 add_item = libraries.gui.add_menu_item
 add_separator = libraries.gui.add_separator
 add_items = libraries.gui.add_submenu

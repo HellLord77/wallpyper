@@ -1,7 +1,11 @@
+import libraries.color as color
 import utils
 
 
 def main():
+    color.cprint(f'{color.BackColor.WHITE}Hello{color.FontStyle.RESET}{color.ForeColor.GREEN}69')
+    return
+
     url_ = "https://www.cloudflare.com/rate-limit-test/"
     url = "https://wallhaven.cc/api/v1/search"
     for _ in range(50):

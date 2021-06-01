@@ -5,9 +5,21 @@ import typing
 
 import wx
 import wx.adv
+import wx.svg
 
 
-class ITEM:
+class _Constant(type):
+    def __new__(mcs, *args, **kwargs):
+        instance = super(_Constant, mcs).__new__(mcs, *args, **kwargs)
+        instance._values = set(value for var, value in instance.__dict__.items() if not var.startswith('_'))
+        return instance
+
+    def __contains__(cls,
+                     item: typing.Any) -> bool:
+        return item in cls._values
+
+
+class Item(metaclass=_Constant):
     SEPARATOR = wx.ITEM_SEPARATOR
     NORMAL = wx.ITEM_NORMAL
     CHECK = wx.ITEM_CHECK
@@ -15,7 +27,7 @@ class ITEM:
     SUBMENU = wx.ITEM_DROPDOWN
 
 
-class ICON:
+class Icon(metaclass=_Constant):
     ERROR = wx.ICON_ERROR
     EXCLAMATION = wx.ICON_EXCLAMATION
     INFORMATION = wx.ICON_INFORMATION
@@ -24,29 +36,23 @@ class ICON:
     QUESTION = wx.ICON_QUESTION
 
 
-class METHOD:
+class Method(metaclass=_Constant):
     SET_LABEL = wx.MenuItem.SetItemLabel.__name__
 
 
-class PROPERTY:
+class Property(metaclass=_Constant):
     IS_CHECKED = wx.Menu.IsChecked.__name__
     IS_ENABLED = wx.Menu.IsEnabled.__name__
     GET_UID = wx.Menu.GetHelpString.__name__
-
-
-class SysTray(wx.adv.TaskBarIcon):
-    def __init__(self):
-        super().__init__()
 
 
 _APP = wx.App()
 _ICON = wx.Icon()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
-_METHOD = set(getattr(METHOD, var) for var in dir(METHOD) if not var.startswith('__'))
-_PROPERTY = set(getattr(PROPERTY, var) for var in dir(PROPERTY) if not var.startswith('__'))
-_ANIMATED = False
 _TOOLTIP = ''
+
+IS_ANIMATED = False
 
 
 def _destroy() -> None:
@@ -81,9 +87,9 @@ def add_menu_item(label: str,
         def wrapper(event: wx.Event) -> None:
             default_args_ = []
             for default_arg in default_args or ():
-                if default_arg in _METHOD:
+                if default_arg in Method:
                     default_args_.append(getattr(event.GetEventObject().FindItemById(event.GetId()), default_arg))
-                elif default_arg in _PROPERTY:
+                elif default_arg in Property:
                     default_args_.append(getattr(event.GetEventObject(), default_arg)(event.GetId()))
             callback(*default_args_, *callback_args or (), **callback_kwargs or {})
 
@@ -125,13 +131,14 @@ def show_balloon(title: str,
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=icon or wx.ICON_NONE)
 
 
-def start_loop(icon_path: str,
+def start_loop(svg_path: str,
                tooltip: typing.Optional[str] = None,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
     global _TOOLTIP
-    _ICON.LoadFile(icon_path)
+    # noinspection PyArgumentList
+    _ICON.CopyFromBitmap(wx.svg.SVGimage.CreateFromFile(svg_path).ConvertToScaledBitmap((512, 512)))
     _TOOLTIP = tooltip
     if callback:
         def wrapper(_: wx.Event) -> None:
@@ -149,35 +156,34 @@ stop_loop = _APP.ExitMainLoop
 
 
 @functools.lru_cache(1)
-def _extract_gif(gif_path: str) -> tuple[int, itertools.cycle]:
+def _extract_gif(gif_path: str) -> itertools.cycle:
     animation = wx.adv.Animation(gif_path)
-    return animation.GetDelay(0), itertools.cycle(
-        wx.Icon(wx.Bitmap(animation.GetFrame(i))) for i in range(animation.GetFrameCount()))
+    return itertools.cycle((animation.GetDelay(i), wx.Icon(animation.GetFrame(i).ConvertToBitmap()))
+                           for i in range(animation.GetFrameCount()))
 
 
-def _animate(icons: itertools.cycle,
-             tooltip: str,
-             delay: int) -> None:
-    if _ANIMATED:
-        _TASK_BAR_ICON.SetIcon(next(icons), tooltip)
-        wx.CallLater(delay, _animate, icons, tooltip, delay)
+def _animate(frames: itertools.cycle,  # TODO: wait for end, force stop
+             tooltip: str) -> None:
+    if IS_ANIMATED:
+        delay, icon = next(frames)
+        _TASK_BAR_ICON.SetIcon(icon, tooltip)
+        wx.CallLater(delay, _animate, frames, tooltip)
     else:
         _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
 
 
 def animate(gif_path: str,
             tooltip: typing.Optional[str] = None) -> bool:
-    global _ANIMATED
-    if not _ANIMATED:
-        _ANIMATED = True
-        delay, icons = _extract_gif(gif_path)
-        wx.CallAfter(_animate, icons, tooltip or _TOOLTIP, delay)
+    global IS_ANIMATED
+    if not IS_ANIMATED:
+        IS_ANIMATED = True
+        wx.CallAfter(_animate, _extract_gif(gif_path), tooltip or _TOOLTIP)
         return True
     return False
 
 
 def inanimate() -> bool:
-    global _ANIMATED
-    animated = _ANIMATED
-    _ANIMATED = False
-    return animated
+    global IS_ANIMATED
+    was_animated = IS_ANIMATED
+    IS_ANIMATED = False
+    return was_animated

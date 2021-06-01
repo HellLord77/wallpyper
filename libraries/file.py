@@ -1,3 +1,4 @@
+import contextlib
 import filecmp
 import os
 import shutil
@@ -15,10 +16,8 @@ def copy(src_path: str,
         for file_name in file_names:
             dest_path = os.path.join(dest_dir, file_name)
             if not os.path.exists(dest_path):
-                try:
+                with contextlib.suppress(PermissionError):
                     shutil.copyfile(src_path, dest_path)
-                except PermissionError:
-                    pass
             if os.path.isfile(dest_path) and filecmp.cmp(src_path, dest_path):
                 return True
     return False

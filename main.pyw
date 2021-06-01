@@ -661,11 +661,11 @@ def update_config(value: typing.Any,
     CONFIG.__setitem__(key, value)
 
 
-def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None) -> bool:
+def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any]] = None) -> bool:
     global CHANGING
     if not CHANGING:
         CHANGING = True
-        utils.start_animation('resources/load.gif', LANGUAGE.CHANGING)
+        animated = utils.start_animation('resources/loading.gif', LANGUAGE.CHANGING)
         url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
@@ -675,7 +675,8 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
         if CONFIG['auto_save'] and not utils.copy_file(temp_path, save_path) and changed:
             save_wallpaper()
         CHANGING = False
-        utils.stop_animation()
+        if animated:
+            utils.stop_animation()
         return changed
     return False
 
@@ -684,7 +685,7 @@ def save_wallpaper() -> bool:
     global SAVING
     if not SAVING:
         SAVING = True
-        utils.start_animation('resources/load.gif', LANGUAGE.SAVING)
+        animated = utils.start_animation('resources/loading.gif', LANGUAGE.SAVING)
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
@@ -693,7 +694,8 @@ def save_wallpaper() -> bool:
             saved = utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, cache_name),
                                     CONFIG['save_dir'], name, cache_name)
         SAVING = False
-        utils.stop_animation()
+        if animated:
+            utils.stop_animation()
         return saved
     return False
 
@@ -702,12 +704,9 @@ def on_change() -> bool:
     CHANGE.CALLBACK(0)
     changed = change_wallpaper(CHANGE.CALLBACK)
     CHANGE.CALLBACK(100)
-    if changed:
-        return True
-    else:
-        if CONFIG['notify']:
-            utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)  # TODO: retry count (?)
-        return False
+    if not changed and CONFIG['notify']:
+        utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)  # TODO: retry count (?)
+    return changed
 
 
 def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuItem] = None) -> None:
@@ -792,7 +791,7 @@ def start() -> None:
         libraries.thread.start(on_change)
     on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
-    utils.start('resources/icon.ico', NAME, libraries.thread.start, (on_change,))
+    utils.start('resources/logo.svg', NAME, libraries.thread.start, (on_change,))
 
 
 def stop() -> None:
