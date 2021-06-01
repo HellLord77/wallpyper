@@ -14,8 +14,7 @@ class _Constant(type):
         instance._values = set(value for var, value in instance.__dict__.items() if not var.startswith('_'))
         return instance
 
-    def __contains__(cls,
-                     item: typing.Any) -> bool:
+    def __contains__(cls, item):
         return item in cls._values
 
 
@@ -131,14 +130,14 @@ def show_balloon(title: str,
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=icon or wx.ICON_NONE)
 
 
-def start_loop(svg_path: str,
+def start_loop(png_path: str,
                tooltip: typing.Optional[str] = None,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
     global _TOOLTIP
     # noinspection PyArgumentList
-    _ICON.CopyFromBitmap(wx.svg.SVGimage.CreateFromFile(svg_path).ConvertToScaledBitmap((512, 512)))
+    _ICON.LoadFile(png_path)
     _TOOLTIP = tooltip
     if callback:
         def wrapper(_: wx.Event) -> None:

@@ -7,7 +7,7 @@ _CODES = set()
 
 class _Constant(type):
     def __new__(mcs, *args, **kwargs):
-        instance = type.__new__(mcs, *args, **kwargs)
+        instance = super(_Constant, mcs).__new__(mcs, *args, **kwargs)
         for var, value in instance.__dict__.items():
             if not var.startswith('_'):
                 value_ = f'{_CSI}{value}m'

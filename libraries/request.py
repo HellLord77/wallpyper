@@ -24,7 +24,7 @@ class LazyResponse:
         self.reason = response.reason
         self.status = response.status if hasattr(response, 'status') else 418
 
-    def __iter__(self) -> bytes:
+    def __iter__(self):
         if self.response.isclosed():
             for i in range(0, len(self._content), self.chunk_size):
                 yield self._content[i:i + self.chunk_size]

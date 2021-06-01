@@ -612,7 +612,7 @@ def _load_config(config_parser: configparser.ConfigParser,
                  section: str,
                  config: dict[str, typing.Union[str, int, float, bool]],
                  default_config: dict[str, typing.Union[str, int, float, bool]],
-                 get_converted: dict[typing.Any, typing.Callable[[str, str], typing.Any]]) -> bool:
+                 get_converted: dict[type, typing.Callable[[str, str], typing.Any]]) -> bool:
     loaded = True
     config.update(default_config)
     if config_parser.has_section(section):
@@ -665,7 +665,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     global CHANGING
     if not CHANGING:
         CHANGING = True
-        animated = utils.start_animation('resources/loading.gif', LANGUAGE.CHANGING)
+        animated = utils.start_animation('resources/wedges.gif', LANGUAGE.CHANGING)
         url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
@@ -685,7 +685,7 @@ def save_wallpaper() -> bool:
     global SAVING
     if not SAVING:
         SAVING = True
-        animated = utils.start_animation('resources/loading.gif', LANGUAGE.SAVING)
+        animated = utils.start_animation('resources/wedges.gif', LANGUAGE.SAVING)
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
@@ -791,7 +791,7 @@ def start() -> None:
         libraries.thread.start(on_change)
     on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
-    utils.start('resources/logo.svg', NAME, libraries.thread.start, (on_change,))
+    utils.start('resources/pinwheel.png', NAME, libraries.thread.start, (on_change,))
 
 
 def stop() -> None:
