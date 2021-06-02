@@ -92,6 +92,7 @@ def add_menu_item(label: str,
     if enable is not None:
         item.Enable(enable)
     if callback:
+        @functools.wraps(callback)
         def wrapper(event: wx.Event) -> None:
             default_args_ = []
             for default_arg in default_args or ():
@@ -147,6 +148,7 @@ def start_loop(png_path: str,
     _ICON.LoadFile(png_path)
     _Animate.default_tooltip = tooltip
     if callback:
+        @functools.wraps(callback)
         def wrapper(_: wx.Event) -> None:
             callback(*callback_args or (), **callback_kwargs or {})
 

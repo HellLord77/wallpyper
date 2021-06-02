@@ -1,9 +1,12 @@
+import libraries.cache
 import libraries.color
 import libraries.file
 import libraries.gui
 import libraries.request
 
 ok = 200
+
+cache = libraries.cache.one_cache
 
 font_style = libraries.color.FontStyle
 fore_color = libraries.color.ForeColor

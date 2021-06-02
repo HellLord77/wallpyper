@@ -1,3 +1,4 @@
+import functools
 import threading
 import typing
 
@@ -8,6 +9,7 @@ class Timer:
                  callback: typing.Callable,
                  callback_args: typing.Optional[tuple] = None,
                  callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
+        @functools.wraps(callback)
         def wrapper() -> None:
             if interval:
                 self.start()

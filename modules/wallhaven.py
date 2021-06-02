@@ -4,25 +4,22 @@ import utils
 
 NAME = 'wallhaven'
 BASE_URL = 'https://wallhaven.cc/api/v1'
-DEFAULT_CONFIG = {
-    'apikey': '',
-    'q': '',
-    'categories': '111',
-    'purity': '100',
-    'sorting': 'date_added',
-    'order': 'desc',
-    'topRange': '1M',
-    'atleast': '',
-    'resolutions': '',
-    'ratios': '',
-    'colors': '',
-    'page': '',
-    'seed': ''
-}
+DEFAULT_CONFIG = {'apikey': '',
+                  'q': 'language-md5',
+                  'categories': '111',
+                  'purity': '100',
+                  'sorting': 'date_added',
+                  'order': 'desc',
+                  'topRange': '1M',
+                  'atleast': '',
+                  'resolutions': '',
+                  'ratios': '',
+                  'colors': '',
+                  'page': '',
+                  'seed': ''}
 
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
 CONFIG = {}
-BACKUP_CONFIG = {}
 SEARCH_DATA = None
 
 
@@ -35,13 +32,12 @@ def authenticate(api_key: str) -> bool:
     return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}, True).status == utils.ok
 
 
+@utils.cache
 def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, None]:
     search_data = []
-    meta = {
-        'current_page': 1,
-        'last_page': 1,
-        'seed': None
-    }
+    meta = {'current_page': 1,
+            'last_page': 1,
+            'seed': None}
     params = config.copy()
     while True:
         if not search_data:
@@ -56,11 +52,7 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
 
 
 def get_next_url() -> str:
-    global SEARCH_DATA
-    if BACKUP_CONFIG != CONFIG:
-        SEARCH_DATA = _update_search_data(CONFIG)
-        BACKUP_CONFIG.update(CONFIG)
-    return next(SEARCH_DATA)
+    return next(_update_search_data(CONFIG))
 
 
 def create_menu():

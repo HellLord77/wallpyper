@@ -1,5 +1,6 @@
 import configparser
 import contextlib
+import functools
 import os
 import sys
 import threading
@@ -25,26 +26,22 @@ LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
-DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
-    'auto_change': False,
-    'change_interval': 3600,
-    'auto_save': False,
-    'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
-    'notify': False,
-    'auto_start': False,
-    'save_config': False
-}
+DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {'auto_change': False,
+                                                                  'change_interval': 3600,
+                                                                  'auto_save': False,
+                                                                  'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
+                                                                  'notify': False,
+                                                                  'auto_start': False,
+                                                                  'save_config': False}
 
 CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')  # os.path.join(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 TEMP_DIR = os.path.join(PLATFORM.TEMP_DIR, NAME)
-INTERVALS = {
-    '300': '5 Minute',
-    '900': '15 Minute',
-    '1800': '30 Minute',
-    '3600': '1 Hour',
-    '10800': '3 Hour',
-    '21600': '6 Hour'
-}
+INTERVALS = {'300': '5 Minute',
+             '900': '15 Minute',
+             '1800': '30 Minute',
+             '3600': '1 Hour',
+             '10800': '3 Hour',
+             '21600': '6 Hour'}
 
 CHANGING = False
 SAVING = False
@@ -666,7 +663,11 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     if not CHANGING:
         CHANGING = True
         animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
-        url = MODULE.get_next_url()
+        # noinspection PyBroadException
+        try:
+            url = MODULE.get_next_url()
+        except Exception:
+            url = ''
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
         save_path = os.path.join(CONFIG['save_dir'], name)
@@ -750,6 +751,7 @@ def on_save_config(is_checked: bool) -> None:
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
 
+    @functools.wraps(change.SetItemLabel)
     def wrapper(progress: int) -> None:
         if progress == 100:
             change.SetItemLabel(f'{LANGUAGE.CHANGING}')
