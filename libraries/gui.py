@@ -85,8 +85,8 @@ def add_menu_item(label: str,
                   default_args: typing.Optional[tuple[str]] = None,
                   pos: typing.Optional[int] = None,
                   menu: wx.Menu = _MENU) -> wx.MenuItem:
-    item = menu.Insert(menu.GetMenuItemCount() if pos is None else pos,
-                       wx.ID_ANY, label, uid or '', kind or wx.ITEM_NORMAL)
+    item = menu.Insert(menu.GetMenuItemCount() if pos is None else pos, wx.ID_ANY,
+                       label, uid or '', Item.NORMAL if kind is None else kind)
     if check is not None:
         item.Check(check)
     if enable is not None:
@@ -107,7 +107,7 @@ def add_menu_item(label: str,
 
 
 def add_separator() -> wx.MenuItem:
-    return add_menu_item('', kind=wx.ITEM_SEPARATOR)
+    return add_menu_item('', kind=Item.SEPARATOR)
 
 
 def add_submenu(label: str,
@@ -137,7 +137,7 @@ def add_submenu(label: str,
 def show_balloon(title: str,
                  text: str,
                  icon: typing.Optional[int] = None) -> bool:
-    return _TASK_BAR_ICON.ShowBalloon(title, text, flags=icon or wx.ICON_NONE)
+    return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
 
 def start_loop(png_path: str,

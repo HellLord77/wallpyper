@@ -609,12 +609,13 @@ def _load_config(config_parser: configparser.ConfigParser,
                  section: str,
                  config: dict[str, typing.Union[str, int, float, bool]],
                  default_config: dict[str, typing.Union[str, int, float, bool]],
-                 get_converted: dict[type, typing.Callable[[str, str], typing.Any]]) -> bool:
+                 get_converted: dict[type, typing.Callable[[str, str, ...], typing.Any]]) -> bool:
     loaded = True
     config.update(default_config)
     if config_parser.has_section(section):
         for option, value in default_config.items():
             if config_parser.has_option(section, option):
+                # noinspection PyArgumentList
                 try:
                     config[option] = get_converted[type(value)](section, option)
                 except TypeError:
