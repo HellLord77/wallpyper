@@ -36,6 +36,7 @@ def register_autorun(name: str,
             winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
         except PermissionError:
             return False
+        winreg.FlushKey(key)
         return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 

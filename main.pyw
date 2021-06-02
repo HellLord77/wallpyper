@@ -615,8 +615,8 @@ def _load_config(config_parser: configparser.ConfigParser,
     if config_parser.has_section(section):
         for option, value in default_config.items():
             if config_parser.has_option(section, option):
-                # noinspection PyArgumentList
                 try:
+                    # noinspection PyArgumentList
                     config[option] = get_converted[type(value)](section, option)
                 except TypeError:
                     loaded = False
@@ -737,9 +737,10 @@ def _on_modify_save():
 
 
 def on_auto_start(is_checked: bool) -> bool:
-    CONFIG['auto_save'] = is_checked
+    CONFIG['auto_start'] = is_checked
     if is_checked:
-        return PLATFORM.register_autorun(NAME, os.path.realpath(sys.argv[0]), 'change' if CONFIG['auto_change'] else '')
+        args = set(('change',) if CONFIG['auto_change'] else ())
+        return PLATFORM.register_autorun(NAME, os.path.realpath(sys.argv[0]), *args)
     else:
         return PLATFORM.unregister_autorun(NAME)
 
@@ -799,6 +800,7 @@ def start() -> None:
 
 def stop() -> None:
     Change.TIMER.stop()
+    on_auto_start(CONFIG['auto_start'])
     on_save_config(CONFIG['save_config'])
     utils.delete_dir(TEMP_DIR)
 
@@ -808,7 +810,6 @@ if __name__ == '__main__':
     stop()
     sys.exit()
     # 0.0.1
-    # noinspection PyUnreachableCode
     app = wx.App()
     TaskBarIcon()
     app.MainLoop()

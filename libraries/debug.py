@@ -21,7 +21,7 @@ _CALLBACK = print
 
 class Level:
     ERROR = logging.ERROR
-    WARNING = logging.WARNING  # TODO
+    WARNING = logging.WARNING
     INFO = logging.INFO
     DEBUG = logging.DEBUG
     NOTSET = logging.NOTSET
@@ -74,7 +74,7 @@ def _hook_callback(frame,
 
 def init(*dirs: str,
          base: str = os.getcwd(),
-         level: int = Level.ERROR,
+         level: int = Level.DEBUG,
          callback: typing.Callable[[str, ...], typing.Any] = sys.stderr.write) -> None:
     global _LEVEL, _CALLBACK
     for dir_ in (base,) + dirs:

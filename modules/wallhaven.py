@@ -5,7 +5,7 @@ import utils
 NAME = 'wallhaven'
 BASE_URL = 'https://wallhaven.cc/api/v1'
 DEFAULT_CONFIG = {'apikey': '',
-                  'q': 'language-md5',
+                  'q': '',
                   'categories': '111',
                   'purity': '100',
                   'sorting': 'date_added',
@@ -25,7 +25,7 @@ SEARCH_DATA = None
 
 def sanitize_config():
     # TODO: validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
-    ...
+    pass
 
 
 def authenticate(api_key: str) -> bool:
@@ -42,7 +42,7 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
     while True:
         if not search_data:
             params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
-            params['seed'] = meta['seed'] if meta['seed'] else ''
+            params['seed'] = meta['seed'] or ''
             response = utils.open_url(SEARCH_URl, params)
             if response.status == utils.ok:
                 search_data, meta = response.get_json().values()
@@ -52,7 +52,7 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
 
 
 def get_next_url() -> str:
-    return next(_update_search_data(CONFIG))
+    return next(_update_search_data(CONFIG))  # TODO: handle no result
 
 
 def create_menu():
