@@ -49,9 +49,18 @@ _APP = wx.App()
 _ICON = wx.Icon()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
-_TOOLTIP = ''
 
-IS_ANIMATED = False
+
+class _Animate:
+    animated = False
+    default_tooltip = ''
+
+    @staticmethod
+    def animate(_: itertools.cycle,
+                __: str) -> None:
+        pass
+
+    default_animate = animate
 
 
 def _destroy() -> None:
@@ -135,10 +144,8 @@ def start_loop(png_path: str,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
-    global _TOOLTIP
-    # noinspection PyArgumentList
     _ICON.LoadFile(png_path)
-    _TOOLTIP = tooltip
+    _Animate.default_tooltip = tooltip
     if callback:
         def wrapper(_: wx.Event) -> None:
             callback(*callback_args or (), **callback_kwargs or {})
@@ -151,7 +158,8 @@ def start_loop(png_path: str,
     _APP.MainLoop()
 
 
-stop_loop = _APP.ExitMainLoop
+def stop_loop() -> None:
+    _APP.ExitMainLoop()
 
 
 @functools.lru_cache(1)
@@ -161,28 +169,29 @@ def _extract_gif(gif_path: str) -> itertools.cycle:
                            for i in range(animation.GetFrameCount()))
 
 
-def _animate(frames: itertools.cycle,  # TODO: wait for end, force stop
-             tooltip: str) -> None:
-    if IS_ANIMATED:
-        delay, icon = next(frames)
-        _TASK_BAR_ICON.SetIcon(icon, tooltip)
-        wx.CallLater(delay, _animate, frames, tooltip)
+def start_animation(gif_path: str,
+                    tooltip: typing.Optional[str] = None) -> bool:
+    if _Animate.animated:
+        return False
     else:
-        _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
+        _Animate.animated = True
 
+        def animate(frames: itertools.cycle,
+                    tooltip_: str) -> None:
+            delay, icon = next(frames)
+            _TASK_BAR_ICON.SetIcon(icon, tooltip_)
+            wx.CallLater(delay, _Animate.animate, frames, tooltip_)
 
-def animate(gif_path: str,
-            tooltip: typing.Optional[str] = None) -> bool:
-    global IS_ANIMATED
-    if not IS_ANIMATED:
-        IS_ANIMATED = True
-        wx.CallAfter(_animate, _extract_gif(gif_path), tooltip or _TOOLTIP)
+        _Animate.animate = animate
+        wx.CallAfter(animate, _extract_gif(gif_path), _Animate.default_tooltip if tooltip is None else tooltip)
         return True
-    return False
 
 
-def inanimate() -> bool:
-    global IS_ANIMATED
-    was_animated = IS_ANIMATED
-    IS_ANIMATED = False
-    return was_animated
+def stop_animation() -> bool:
+    if _Animate.animated:
+        _Animate.animated = False
+        _Animate.animate.__code__ = _Animate.default_animate.__code__
+        _TASK_BAR_ICON.SetIcon(_ICON, _Animate.default_tooltip)
+        return True
+    else:
+        return False

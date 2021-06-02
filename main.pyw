@@ -51,7 +51,7 @@ SAVING = False
 CONFIG = {}
 
 
-class CHANGE:
+class Change:
     CALLBACK = None
     TIMER = None
 
@@ -665,7 +665,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     global CHANGING
     if not CHANGING:
         CHANGING = True
-        animated = utils.start_animation('resources/wedges.gif', LANGUAGE.CHANGING)
+        animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
         url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
@@ -676,7 +676,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
             save_wallpaper()
         CHANGING = False
         if animated:
-            utils.stop_animation()
+            utils.inanimate()
         return changed
     return False
 
@@ -685,7 +685,7 @@ def save_wallpaper() -> bool:
     global SAVING
     if not SAVING:
         SAVING = True
-        animated = utils.start_animation('resources/wedges.gif', LANGUAGE.SAVING)
+        animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
         cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
@@ -695,15 +695,15 @@ def save_wallpaper() -> bool:
                                     CONFIG['save_dir'], name, cache_name)
         SAVING = False
         if animated:
-            utils.stop_animation()
+            utils.inanimate()
         return saved
     return False
 
 
 def on_change() -> bool:
-    CHANGE.CALLBACK(0)
-    changed = change_wallpaper(CHANGE.CALLBACK)
-    CHANGE.CALLBACK(100)
+    Change.CALLBACK(0)
+    changed = change_wallpaper(Change.CALLBACK)
+    Change.CALLBACK(100)
     if not changed and CONFIG['notify']:
         utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)  # TODO: retry count (?)
     return changed
@@ -713,7 +713,7 @@ def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuIte
     CONFIG['auto_change'] = is_checked
     if change_interval:
         change_interval.Enable(is_checked)
-    CHANGE.TIMER.start(CONFIG['change_interval']) if is_checked else CHANGE.TIMER.stop()
+    Change.TIMER.start(CONFIG['change_interval']) if is_checked else Change.TIMER.stop()
 
 
 def on_change_interval(interval: str) -> None:
@@ -756,8 +756,8 @@ def create_menu() -> None:
         else:
             change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)')
 
-    CHANGE.CALLBACK = wrapper
-    CHANGE.TIMER = libraries.thread.Timer(CONFIG['change_interval'], on_change)
+    Change.CALLBACK = wrapper
+    Change.TIMER = libraries.thread.Timer(CONFIG['change_interval'], on_change)
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
                                       CONFIG['auto_change'], INTERVALS, on_change_interval,
                                       default_args=(utils.get_property.GET_UID,))
@@ -795,7 +795,7 @@ def start() -> None:
 
 
 def stop() -> None:
-    CHANGE.TIMER.stop()
+    Change.TIMER.stop()
     on_save_config(CONFIG['save_config'])
     utils.delete_dir(TEMP_DIR)
 
