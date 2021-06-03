@@ -8,18 +8,7 @@ import wx.adv
 import wx.svg
 
 
-class _Constant(type):
-    def __new__(mcs, *args, **kwargs):
-        instance = super(_Constant, mcs).__new__(mcs, *args, **kwargs)
-        instance._values = set(value for var, value in instance.__dict__.items()
-                               if not var.startswith('__') and not var.endswith('__'))
-        return instance
-
-    def __contains__(cls, item):
-        return item in cls._values
-
-
-class Item(metaclass=_Constant):
+class Item:
     SEPARATOR = wx.ITEM_SEPARATOR
     NORMAL = wx.ITEM_NORMAL
     CHECK = wx.ITEM_CHECK
@@ -27,7 +16,7 @@ class Item(metaclass=_Constant):
     SUBMENU = wx.ITEM_DROPDOWN
 
 
-class Icon(metaclass=_Constant):
+class Icon:
     ERROR = wx.ICON_ERROR
     EXCLAMATION = wx.ICON_EXCLAMATION
     INFORMATION = wx.ICON_INFORMATION
@@ -36,11 +25,22 @@ class Icon(metaclass=_Constant):
     QUESTION = wx.ICON_QUESTION
 
 
-class Method(metaclass=_Constant):
+class _Arg(type):
+    def __new__(mcs, *args, **kwargs):
+        instance = super(_Arg, mcs).__new__(mcs, *args, **kwargs)
+        instance._values = set(value for var, value in instance.__dict__.items()
+                               if not var.startswith('__') and not var.endswith('__'))
+        return instance
+
+    def __contains__(cls, item):
+        return item in cls._values
+
+
+class Method(metaclass=_Arg):
     SET_LABEL = wx.MenuItem.SetItemLabel.__name__
 
 
-class Property(metaclass=_Constant):
+class Property(metaclass=_Arg):
     IS_CHECKED = wx.Menu.IsChecked.__name__
     IS_ENABLED = wx.Menu.IsEnabled.__name__
     GET_UID = wx.Menu.GetHelpString.__name__

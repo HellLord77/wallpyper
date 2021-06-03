@@ -5,18 +5,16 @@ _CSI = f'{_ESC}['
 _CODES = set()
 
 
-class _Constant(type):
-    def __new__(mcs, *args, **kwargs):
-        instance = super(_Constant, mcs).__new__(mcs, *args, **kwargs)
-        for var, value in instance.__dict__.items():
+class _Code:
+    def __init_subclass__(cls):
+        for var in cls.__dict__:
             if not var.startswith('__') and not var.endswith('__'):
-                value_ = f'{_CSI}{value}m'
-                setattr(instance, var, value_)
-                _CODES.add(value_)
-        return instance
+                value = f'{_CSI}{cls.__dict__[var]}m'
+                setattr(cls, var, value)
+                _CODES.add(value)
 
 
-class FontStyle(metaclass=_Constant):
+class FontStyle(_Code):
     RESET = 0
     BOLD = 1
     FAINT = 2
@@ -24,7 +22,7 @@ class FontStyle(metaclass=_Constant):
     UNDERLINE = 4
 
 
-class ForeColor(metaclass=_Constant):
+class ForeColor(_Code):
     BLACK = 30
     RED = 31
     GREEN = 32
@@ -43,7 +41,7 @@ class ForeColor(metaclass=_Constant):
     BRIGHT_WHITE = 97
 
 
-class BackColor(metaclass=_Constant):
+class BackColor(_Code):
     BLACK = 40
     RED = 41
     GREEN = 42

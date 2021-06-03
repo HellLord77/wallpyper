@@ -690,7 +690,7 @@ def save_wallpaper() -> bool:
         animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
         path = PLATFORM.get_wallpaper_path()
         name = os.path.basename(path)
-        cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
+        cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]  # TODO: StopIteration
         saved = utils.copy_file(path, CONFIG['save_dir'], name, cache_name)
         if not saved:
             saved = utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, cache_name),

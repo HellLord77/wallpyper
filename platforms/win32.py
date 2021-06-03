@@ -19,16 +19,14 @@ _SPIF_SENDWININICHANGE = ctypes.wintypes.UINT(2)
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
-class _CtypesTypedFunction(type):
-    def __new__(mcs, *args, **kwargs):
-        instance = super(_CtypesTypedFunction, mcs).__new__(mcs, *args, **kwargs)
-        for var, value in instance.__dict__.items():
+class _CtypesTypedFunction:
+    def __init_subclass__(cls):
+        for var, value in cls.__dict__.items():
             if not var.startswith('__') and not var.endswith('__'):
-                *value.argtypes, value.restype = instance.__annotations__[var].__args__
-        return instance
+                *value.argtypes, value.restype = cls.__annotations__[var].__args__
 
 
-class _Function(metaclass=_CtypesTypedFunction):
+class _Function(_CtypesTypedFunction):
     memmove: typing.Callable[[ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_size_t],
                              ctypes.c_void_p] = ctypes.cdll.msvcrt.memmove
     wcslen: typing.Callable[[ctypes.c_wchar_p],
