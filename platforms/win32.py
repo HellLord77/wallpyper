@@ -1,5 +1,6 @@
 import ctypes
 import ctypes.wintypes
+import functools
 import os
 import shlex
 import typing
@@ -54,8 +55,13 @@ class _Function(metaclass=_CtypesTypedFunction):
                                             ctypes.wintypes.BOOL] = ctypes.windll.user32.SystemParametersInfoW
 
 
+@functools.lru_cache(1)
+def _get_buffer(size: int) -> ctypes.wintypes.LPWSTR:
+    return ctypes.wintypes.LPWSTR(' ' * size)
+
+
 def _get_dir(csidl: ctypes.wintypes.INT) -> str:
-    buffer = ctypes.wintypes.LPWSTR(' ' * _MAX_PATH.value)
+    buffer = _get_buffer(_MAX_PATH.value)
     _Function.sh_get_folder_path(ctypes.c_void_p(), csidl, ctypes.c_void_p(), _SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
 
@@ -85,7 +91,7 @@ def copy_text(text: typing.Optional[str] = None) -> bool:
 
 
 def get_wallpaper_path() -> str:  # TODO: if not exist, check cache/save also
-    buffer = ctypes.wintypes.LPWSTR(' ' * _MAX_PATH.value)
+    buffer = _get_buffer(_MAX_PATH.value)
     _Function.system_parameters_info(_SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, ctypes.wintypes.UINT())
     return buffer.value
 
