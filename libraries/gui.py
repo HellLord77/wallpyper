@@ -11,7 +11,8 @@ import wx.svg
 class _Constant(type):
     def __new__(mcs, *args, **kwargs):
         instance = super(_Constant, mcs).__new__(mcs, *args, **kwargs)
-        instance._values = set(value for var, value in instance.__dict__.items() if not var.startswith('_'))
+        instance._values = set(value for var, value in instance.__dict__.items()
+                               if not var.startswith('__') and not var.endswith('__'))
         return instance
 
     def __contains__(cls, item):

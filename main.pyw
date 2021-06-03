@@ -736,6 +736,14 @@ def _on_modify_save():
     ...
 
 
+def on_copy():
+    pass
+
+
+def on_copy_path():
+    PLATFORM.copy_text(PLATFORM.get_wallpaper_path())
+
+
 def on_auto_start(is_checked: bool) -> bool:
     CONFIG['auto_start'] = is_checked
     if is_checked:
@@ -750,6 +758,7 @@ def on_save_config(is_checked: bool) -> None:
     save_config() if is_checked else utils.delete_file(CONFIG_PATH)
 
 
+# TODO: copy current wallpaper (|data) to clipboard, search with google
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
 
@@ -772,6 +781,9 @@ def create_menu() -> None:
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
                    callback_args=('auto_save',), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
+    utils.add_separator()
+    utils.add_item(LANGUAGE.COPY, callback=on_copy)
+    utils.add_item(LANGUAGE.COPY_PATH, callback=on_copy_path)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()

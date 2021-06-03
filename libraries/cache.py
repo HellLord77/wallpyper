@@ -1,7 +1,7 @@
 import functools
 
 
-def one_cache(callback):  # TODO: pass last return somehow
+def one_cache(callback):  # TODO: pass last return
     cached = [False, (), {}, None]
 
     @functools.wraps(callback)
