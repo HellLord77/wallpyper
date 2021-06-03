@@ -141,12 +141,12 @@ def show_balloon(title: str,
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
 
-def start_loop(png_path: str,
+def start_loop(path: str,
                tooltip: typing.Optional[str] = None,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
-    _ICON.LoadFile(png_path)
+    _ICON.LoadFile(path)
     _Animate.default_tooltip = tooltip
     if callback:
         @functools.wraps(callback)
@@ -166,13 +166,13 @@ def stop_loop() -> None:
 
 
 @functools.lru_cache(1)
-def _extract_gif(gif_path: str) -> itertools.cycle:
-    animation = wx.adv.Animation(gif_path)
+def _extract_gif(path: str) -> itertools.cycle:
+    animation = wx.adv.Animation(path)
     return itertools.cycle((animation.GetDelay(i), wx.Icon(animation.GetFrame(i).ConvertToBitmap()))
                            for i in range(animation.GetFrameCount()))
 
 
-def start_animation(gif_path: str,
+def start_animation(path: str,
                     tooltip: typing.Optional[str] = None) -> bool:
     if _Animate.animated:
         return False
@@ -186,7 +186,7 @@ def start_animation(gif_path: str,
             wx.CallLater(delay, _Animate.animate, frames, tooltip_)
 
         _Animate.animate = animate
-        wx.CallAfter(animate, _extract_gif(gif_path), _Animate.default_tooltip if tooltip is None else tooltip)
+        wx.CallAfter(animate, _extract_gif(path), _Animate.default_tooltip if tooltip is None else tooltip)
         return True
 
 

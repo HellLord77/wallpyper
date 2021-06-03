@@ -758,7 +758,7 @@ def on_save_config(is_checked: bool) -> None:
     save_config() if is_checked else utils.delete_file(CONFIG_PATH)
 
 
-# TODO: copy current wallpaper (|data) to clipboard, search with google
+# TODO: search with google, set wallpaper from clipboard (?)
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
 
