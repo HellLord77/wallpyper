@@ -33,33 +33,36 @@ class _GdiplusStartupInput(ctypes.Structure):
 class _CtypesTypedFunction:
     def __init_subclass__(cls):
         for var, value in cls.__dict__.items():
-            if not var.startswith('__') and not var.endswith('__'):
-                if var in cls.__annotations__:
-                    *value.argtypes, value.restype = cls.__annotations__[var].__args__
-                else:
-                    raise SystemError(f'name \'{var}\' annotation is not defined')
+            if var in cls.__annotations__:
+                *value.argtypes, value.restype = (cls._fix_union(arg) for arg in cls.__annotations__[var].__args__)
+
+    @staticmethod
+    def _fix_union(argtype):
+        # noinspection PyProtectedMember,PyUnresolvedReferences
+        return argtype.__args__[0] if isinstance(argtype, typing._UnionGenericAlias) else argtype
 
 
 class _Function(_CtypesTypedFunction):
-    __HRESULT__ = ctypes.wintypes.LONG
-    __PVOID__ = ctypes.c_void_p
-    __SIZE_T__ = ctypes.c_ulong
+    HRESULT = ctypes.wintypes.LONG
+    PVOID = ctypes.c_void_p
+    SIZE_T = ctypes.c_ulong
 
-    memmove: typing.Callable[[ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t],
+    memmove: typing.Callable[[ctypes.c_void_p, typing.Union[ctypes.c_void_p, ctypes.c_wchar_p],
+                              typing.Union[ctypes.c_size_t, int]],
                              ctypes.c_void_p] = ctypes.cdll.msvcrt.memmove
     wcslen: typing.Callable[[ctypes.c_wchar_p],
-                            ctypes.c_size_t] = ctypes.cdll.msvcrt.wcslen
+                            typing.Union[ctypes.c_size_t, int]] = ctypes.cdll.msvcrt.wcslen
     sh_get_folder_path: typing.Callable[[ctypes.wintypes.HWND, ctypes.c_int, ctypes.wintypes.HANDLE,
                                          ctypes.wintypes.DWORD, ctypes.wintypes.LPWSTR],  # TODO: SHGetKnownFolderPath
-                                        __HRESULT__] = ctypes.windll.shell32.SHGetFolderPathW
-    global_alloc: typing.Callable[[ctypes.wintypes.UINT, __SIZE_T__],
+                                        HRESULT] = ctypes.windll.shell32.SHGetFolderPathW
+    global_alloc: typing.Callable[[ctypes.wintypes.UINT, SIZE_T],
                                   ctypes.wintypes.HGLOBAL] = ctypes.windll.kernel32.GlobalAlloc
     global_lock: typing.Callable[[ctypes.wintypes.HGLOBAL],
                                  ctypes.wintypes.LPVOID] = ctypes.windll.kernel32.GlobalLock
     global_unlock: typing.Callable[[ctypes.wintypes.HGLOBAL],
                                    ctypes.wintypes.BOOL] = ctypes.windll.kernel32.GlobalUnlock
     system_parameters_info: typing.Callable[[ctypes.wintypes.UINT, ctypes.wintypes.UINT,
-                                             __PVOID__, ctypes.wintypes.UINT],
+                                             PVOID, ctypes.wintypes.UINT],
                                             ctypes.wintypes.BOOL] = ctypes.windll.user32.SystemParametersInfoW
     open_clipboard: typing.Callable[[ctypes.wintypes.HWND],
                                     ctypes.wintypes.BOOL] = ctypes.windll.user32.OpenClipboard
@@ -113,7 +116,7 @@ def copy_text(text: str) -> bool:
     _Function.open_clipboard(ctypes.wintypes.HWND())
     _Function.empty_clipboard()
     string = ctypes.c_wchar_p(text)
-    size = _Function.__SIZE_T__((_Function.wcslen(string) + 1) * ctypes.sizeof(ctypes.c_wchar))
+    size = _Function.SIZE_T((_Function.wcslen(string) + 1) * ctypes.sizeof(ctypes.c_wchar))
     handle = _Function.global_alloc(_GMEM_MOVEABLE, size)
     if handle:
         handle_locked = _Function.global_lock(handle)
