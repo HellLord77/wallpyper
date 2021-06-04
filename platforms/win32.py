@@ -20,89 +20,123 @@ _SPIF_SENDWININICHANGE = 2
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
+def _is_union(arg):
+    # noinspection PyProtectedMember,PyUnresolvedReferences
+    return isinstance(arg, typing._UnionGenericAlias)
+
+
+class _CtypesType:
+    def __init_subclass__(cls):
+        for var, value in cls.__dict__.items():
+            if not var.startswith('__') and not var.endswith('__'):
+                if _is_union(value):
+                    setattr(cls, var, value.__args__[0])
+
+    @staticmethod
+    def byref(arg: ctypes) -> ctypes.pointer:
+        # noinspection PyTypeChecker
+        return ctypes.byref(arg)
+
+
+class _Type(_CtypesType):
+    pointer = ctypes.POINTER
+
+    c_void_p = typing.Union[ctypes.c_void_p, ctypes.c_wchar_p, int, str]
+    c_wchar_p = typing.Union[ctypes.c_wchar_p, str]
+    c_int = typing.Union[ctypes.c_int, int]
+    c_uint = typing.Union[ctypes.c_uint, int]
+    c_uint32 = typing.Union[ctypes.c_uint32, int]
+    c_long = typing.Union[ctypes.c_long, int]
+    c_ulong = typing.Union[ctypes.c_ulong, int]
+    size_t = typing.Union[ctypes.c_size_t, int]
+    HRESULT = typing.Union[ctypes.HRESULT, int]
+    c_wchar = typing.Union[ctypes.c_wchar, str]
+
+    Bitmap = c_void_p
+    HANDLE = c_void_p
+    LPVOID = c_void_p
+    PVOID = c_void_p
+    LPWSTR = c_wchar_p
+    INT = c_int
+    UINT = c_uint
+    BOOL = c_long
+    DWORD = c_ulong
+    ULONG = c_ulong
+    ULONG_PTR = c_ulong
+    GpStatus = HRESULT
+    WCHAR = c_wchar
+    HGDIOBJ = HANDLE
+    HGLOBAL = HANDLE
+    HINSTANCE = HANDLE
+    HWND = HANDLE
+    SIZE_T = ULONG_PTR
+
+
 class _GdiplusStartupInput(ctypes.Structure):
-    _fields_ = (('GdiplusVersion', ctypes.c_uint32),
-                ('DebugEventCallback', ctypes.c_void_p),
-                ('SuppressBackgroundThread', ctypes.wintypes.BOOL),
-                ('SuppressExternalCodecs', ctypes.wintypes.BOOL))
+    _fields_ = (('GdiplusVersion', _Type.c_uint32),
+                ('DebugEventCallback', _Type.c_void_p),
+                ('SuppressBackgroundThread', _Type.BOOL),
+                ('SuppressExternalCodecs', _Type.BOOL))
 
     def __init__(self):
-        super().__init__(ctypes.c_uint32(1), ctypes.c_void_p(),
-                         ctypes.wintypes.BOOL(False), ctypes.wintypes.BOOL(False))
+        super().__init__(1, None, False, False)
 
 
 class _CtypesTypedFunction:
     def __init_subclass__(cls):
         for var, value in cls.__dict__.items():
-            if not var.startswith('_'):
+            if var in cls.__annotations__:
                 *value.argtypes, value.restype = (cls._resolve_union(arg) for arg in cls.__annotations__[var].__args__)
 
     @staticmethod
     def _resolve_union(argtype):
-        # noinspection PyProtectedMember,PyUnresolvedReferences
-        return argtype.__args__[0] if isinstance(argtype, typing._UnionGenericAlias) else argtype
+        return argtype.__args__[0] if _is_union(argtype) else argtype
 
 
 class _Function(_CtypesTypedFunction):
-    _c_int = typing.Union[ctypes.c_int, int]
-    _c_uint = typing.Union[ctypes.c_uint, int]
-    _c_long = typing.Union[ctypes.c_long, int]
-    _c_ulong = typing.Union[ctypes.c_ulong, int]
-    _size_t = typing.Union[ctypes.c_size_t, int]
+    memmove: typing.Callable[[_Type.c_void_p, _Type.c_void_p,
+                              _Type.size_t],
+                             _Type.c_void_p] = ctypes.cdll.msvcrt.memmove
+    wcslen: typing.Callable[[_Type.c_wchar_p],
+                            _Type.size_t] = ctypes.cdll.msvcrt.wcslen
 
-    _HANDLE = typing.Union[ctypes.c_void_p, int]
-    _LPVOID = ctypes.c_void_p
-    _LPWSTR = ctypes.c_wchar_p
-    _PVOID = typing.Union[ctypes.c_void_p, ctypes.c_wchar_p]
-    _INT = _c_int
-    _BOOL = _c_long
-    _HRESULT = _c_long
-    _DWORD = _c_ulong
-    _UINT = _c_uint
-    _ULONG_PTR = _c_ulong
-    _HGLOBAL = _HANDLE
-    _HINSTANCE = _HANDLE
-    _HWND = _HANDLE
-    _SIZE_T = _ULONG_PTR
+    global_alloc: typing.Callable[[_Type.UINT, _Type.SIZE_T],
+                                  _Type.HGLOBAL] = ctypes.windll.kernel32.GlobalAlloc
+    global_lock: typing.Callable[[_Type.HGLOBAL],
+                                 _Type.LPVOID] = ctypes.windll.kernel32.GlobalLock
+    global_unlock: typing.Callable[[_Type.HGLOBAL],
+                                   _Type.BOOL] = ctypes.windll.kernel32.GlobalUnlock
 
-    memmove: typing.Callable[[ctypes.c_void_p, typing.Union[ctypes.c_void_p, ctypes.c_wchar_p],
-                              _size_t],
-                             ctypes.c_void_p] = ctypes.cdll.msvcrt.memmove
-    wcslen: typing.Callable[[ctypes.c_wchar_p],
-                            _size_t] = ctypes.cdll.msvcrt.wcslen
-
-    global_alloc: typing.Callable[[_UINT, _SIZE_T],
-                                  _HGLOBAL] = ctypes.windll.kernel32.GlobalAlloc
-    global_lock: typing.Callable[[_HGLOBAL],
-                                 _LPVOID] = ctypes.windll.kernel32.GlobalLock
-    global_unlock: typing.Callable[[_HGLOBAL],
-                                   _BOOL] = ctypes.windll.kernel32.GlobalUnlock
-
-    system_parameters_info: typing.Callable[[_UINT, _UINT, _PVOID, _UINT],
-                                            _BOOL] = ctypes.windll.user32.SystemParametersInfoW
-    open_clipboard: typing.Callable[[typing.Optional[_HWND]],
-                                    _BOOL] = ctypes.windll.user32.OpenClipboard
+    system_parameters_info: typing.Callable[[_Type.UINT, _Type.UINT, _Type.PVOID, _Type.UINT],
+                                            _Type.BOOL] = ctypes.windll.user32.SystemParametersInfoW
+    open_clipboard: typing.Callable[[typing.Optional[_Type.HWND]],
+                                    _Type.BOOL] = ctypes.windll.user32.OpenClipboard
     close_clipboard: typing.Callable[[],
-                                     _BOOL] = ctypes.windll.user32.CloseClipboard
+                                     _Type.BOOL] = ctypes.windll.user32.CloseClipboard
     empty_clipboard: typing.Callable[[],
-                                     _BOOL] = ctypes.windll.user32.EmptyClipboard
-    get_clipboard_data: typing.Callable[[_UINT],
-                                        _HANDLE] = ctypes.windll.user32.GetClipboardData
-    set_clipboard_data: typing.Callable[[_UINT, _HANDLE],
-                                        _HANDLE] = ctypes.windll.user32.SetClipboardData
+                                     _Type.BOOL] = ctypes.windll.user32.EmptyClipboard
+    get_clipboard_data: typing.Callable[[_Type.UINT],
+                                        _Type.HANDLE] = ctypes.windll.user32.GetClipboardData
+    set_clipboard_data: typing.Callable[[_Type.UINT, _Type.HANDLE],
+                                        _Type.HANDLE] = ctypes.windll.user32.SetClipboardData
 
-    sh_get_folder_path: typing.Callable[[typing.Optional[_HWND], _c_int, typing.Optional[_HANDLE], _DWORD, _LPWSTR],
-                                        _HRESULT] = ctypes.windll.shell32.SHGetFolderPathW  # TODO: SHGetKnownFolderPath
+    sh_get_folder_path: typing.Callable[[typing.Optional[_Type.HWND], _Type.c_int,  # TODO: SHGetKnownFolderPath
+                                         typing.Optional[_Type.HANDLE], _Type.DWORD, _Type.LPWSTR],
+                                        _Type.HRESULT] = ctypes.windll.shell32.SHGetFolderPathW
 
-    load_image: typing.Callable[[_HINSTANCE, _LPWSTR, _UINT, _INT, _INT, _UINT],
-                                _HANDLE] = ctypes.windll.user32.LoadImageW
-    gdiplus_startup: typing.Callable[[ctypes.POINTER(ctypes.wintypes.ULONG),
-                                      ctypes.POINTER(_GdiplusStartupInput), ctypes.c_void_p],
-                                     ctypes.c_int] = ctypes.windll.gdiplus.GdiplusStartup
-    gdiplus_shutdown: typing.Callable[[ctypes.POINTER(ctypes.wintypes.ULONG)],
-                                      ctypes.c_void_p] = ctypes.windll.gdiplus.GdiplusShutdown
-    gdip_create_bitmap_from_file: typing.Callable[[ctypes.POINTER(ctypes.wintypes.WCHAR), _BOOL],
-                                                  ctypes.c_void_p] = ctypes.windll.gdiplus.GdipCreateBitmapFromFile
+    load_image: typing.Callable[[_Type.HINSTANCE, _Type.LPWSTR, _Type.UINT, _Type.INT, _Type.INT, _Type.UINT],
+                                _Type.HANDLE] = ctypes.windll.user32.LoadImageW
+    gdiplus_startup: typing.Callable[[_Type.pointer(_Type.c_ulong), _Type.pointer(_GdiplusStartupInput),
+                                      typing.Optional[_Type.pointer(_GdiplusStartupInput)]],
+                                     _Type.c_int] = ctypes.windll.gdiplus.GdiplusStartup
+    gdiplus_shutdown: typing.Callable[[_Type.pointer(_Type.c_ulong)],
+                                      _Type.c_void_p] = ctypes.windll.gdiplus.GdiplusShutdown
+    gdip_create_bitmap_from_file: typing.Callable[[_Type.c_wchar_p, _Type.pointer(_Type.Bitmap)],
+                                                  _Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateBitmapFromFile
+    delete_object: typing.Callable[[_Type.HGDIOBJ],
+                                   _Type.BOOL] = ctypes.windll.gdi32.DeleteObject
+    close_handle: typing.Callable[[_Type.HANDLE],
+                                  _Type.BOOL] = ctypes.windll.kernel32.CloseHandle
 
 
 @functools.lru_cache(1)
@@ -130,27 +164,28 @@ def paste_text() -> str:
 
 
 def copy_text(text: str) -> bool:
-    _Function.open_clipboard(ctypes.wintypes.HWND())
+    _Function.open_clipboard(None)
     _Function.empty_clipboard()
-    string = ctypes.c_wchar_p(text)
-    size = (_Function.wcslen(string) + 1) * ctypes.sizeof(ctypes.c_wchar)
+    size = (_Function.wcslen(text) + 1) * ctypes.sizeof(ctypes.c_wchar)
     handle = _Function.global_alloc(_GMEM_MOVEABLE, size)
     if handle:
         handle_locked = _Function.global_lock(handle)
         if handle_locked:
-            _Function.memmove(handle_locked, string, size)
+            _Function.memmove(handle_locked, text, size)
             _Function.global_unlock(handle)
             _Function.set_clipboard_data(_CF_UNICODETEXT, handle)
     _Function.close_clipboard()
-    return string.value == paste_text()
+    return text == paste_text()
 
 
 def copy_image(path: str) -> bool:
-    token = ctypes.c_ulong()
-    ret = _Function.gdiplus_startup(token, _GdiplusStartupInput(), ctypes.c_void_p())  # ok = 0
-    print(ret)
-    ret = _Function.gdiplus_shutdown(token)
-    print(ret)
+    token = _Type.c_ulong()
+    print(_Function.gdiplus_startup(_Type.byref(token), _Type.byref(_GdiplusStartupInput()), None))  # ok == 0
+    bitmap = _Type.Bitmap()
+    print(_Function.gdip_create_bitmap_from_file(path, _Type.byref(bitmap)))  # ok == 0
+    # working upto here
+    print(_Function.close_handle(bitmap))  # ok != 0
+    print(_Function.gdiplus_shutdown(_Type.byref(token)))
     return False
 
 
@@ -164,7 +199,7 @@ def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
             _Function.system_parameters_info(_SPI_SETDESKWALLPAPER, ctypes.wintypes.UINT(),
-                                             ctypes.c_wchar_p(path), _SPIF_SENDWININICHANGE)
+                                             path, _SPIF_SENDWININICHANGE)
             return True
     return False
 
