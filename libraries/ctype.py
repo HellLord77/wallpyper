@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ctypes
 import ctypes.wintypes
 import dataclasses
@@ -14,6 +16,40 @@ def _is_union(obj: typing.Any) -> bool:
     return isinstance(obj, typing._UnionGenericAlias)
 
 
+def _init(cls: type) -> None:
+    if cls is Type:
+        for var, type_ in cls.__dict__.items():
+            if not _is_dunder(var) and _is_union(type_):
+                setattr(cls, var, type_.__args__[0])
+    elif cls is Structure:
+        for var, struct in cls.__dict__.items():
+            if not _is_dunder(var):
+                struct.__annotations__ = typing.get_type_hints(struct)
+
+                class Wrapper(ctypes.Structure):
+                    _fields_ = tuple((field, struct.__annotations__[field])
+                                     for field in struct.__dict__ if not _is_dunder(field))
+                    _defaults_ = {field: type_() if getattr(struct, field) is None else getattr(struct, field)
+                                  for field, type_ in _fields_}
+
+                    def __init__(self, *args, **kwargs):
+                        iter_ = iter(self._defaults_)
+                        for arg in args:
+                            kwargs[next(iter_)] = arg
+                        super().__init__(**dict(self._defaults_, **kwargs))
+
+                    __repr__ = struct.__repr__
+
+                functools.update_wrapper(Wrapper, struct, updated=())
+                setattr(cls, var, Wrapper)
+    elif cls is Function:
+        cls.__annotations__ = typing.get_type_hints(cls)
+        for var, func in cls.__dict__.items():
+            if not _is_dunder(var):
+                *func.argtypes, func.restype = (arg.__args__[0] if _is_union(arg) else arg
+                                                for arg in cls.__annotations__[var].__args__)
+
+
 def byref(var) -> ctypes.pointer:
     # noinspection PyTypeChecker
     return ctypes.byref(var)
@@ -23,17 +59,11 @@ def pointer(type_):
     return ctypes.POINTER(type_)
 
 
-sizeof = ctypes.sizeof
+def sizeof(type_):
+    return ctypes.sizeof(type_)
 
 
-class _Type:
-    def __init_subclass__(cls):
-        for var, type_ in cls.__dict__.items():
-            if not _is_dunder(var) and _is_union(type_):
-                setattr(cls, var, type_.__args__[0])
-
-
-class Type(_Type):
+class Type:
     c_void_p = typing.Union[ctypes.c_void_p, ctypes.c_wchar_p, int, str]
     c_wchar_p = typing.Union[ctypes.c_wchar_p, str]
     c_int = typing.Union[ctypes.c_int, int]
@@ -59,9 +89,11 @@ class Type(_Type):
     ULONG = typing.Union[ctypes.wintypes.ULONG, int]
     WCHAR = typing.Union[ctypes.wintypes.WCHAR, str]
 
+    DebugEventProc = c_void_p
     GpBitmap = c_void_p
     GpImage = c_void_p
     PVOID = c_void_p
+    UINT32 = c_uint32
     HBITMAP = HANDLE
     HGDIOBJ = HANDLE
     HGLOBAL = HANDLE
@@ -73,34 +105,15 @@ class Type(_Type):
     GpStatus = HRESULT
 
 
-class _Structure:
-    def __init_subclass__(cls):
-        for var, struct in cls.__dict__.items():
-            if not _is_dunder(var):
-                class Wrapper(ctypes.Structure):
-                    _fields_ = tuple((field, struct.__annotations__[field])
-                                     for field, value in struct.__dict__.items() if not _is_dunder(field))
-                    _defaults_ = {field: type_() if getattr(struct, field) is None else getattr(struct, field)
-                                  for field, type_ in _fields_}
-
-                    def __init__(self, *args, **kwargs):
-                        iter_ = iter(self._defaults_)
-                        for i in range(len(args)):
-                            kwargs[next(iter_)] = args[i]
-                        super().__init__(**dict(self._defaults_, **kwargs))
-
-                    __repr__ = struct.__repr__
-
-                functools.update_wrapper(Wrapper, struct, updated=())
-                setattr(cls, var, Wrapper)
+_init(Type)
 
 
-class Structure(_Structure):
+class Structure:
     @dataclasses.dataclass
     class GdiplusStartupInput:
-        GdiplusVersion: Type.c_uint32 = 1
-        DebugEventCallback: Type.c_void_p = None
-        SuppressBackgroundThread: Type.c_void_p = False
+        GdiplusVersion: Type.UINT32 = 1
+        DebugEventCallback: Type.DebugEventProc = None
+        SuppressBackgroundThread: Type.BOOL = False
         SuppressExternalCodecs: Type.BOOL = False
 
     @dataclasses.dataclass
@@ -127,16 +140,19 @@ class Structure(_Structure):
         bmBitsPixel: Type.WORD = None
         bmBits: Type.LPVOID = None
 
+    @dataclasses.dataclass
+    class DIBSECTION:
+        dsBm: Structure.BITMAP = None
+        dsBmih: Structure.BITMAPINFOHEADER = None
+        dsBitfields: Type.DWORD * 3 = None
+        dshSection: Type.HANDLE = None
+        dsOffset: Type.DWORD = None
 
-class _Function:
-    def __init_subclass__(cls):
-        for var, fun in cls.__dict__.items():
-            if not _is_dunder(var):
-                *fun.argtypes, fun.restype = (arg.__args__[0] if _is_union(arg) else arg
-                                              for arg in cls.__annotations__[var].__args__)
+
+_init(Structure)
 
 
-class Function(_Function):
+class Function:
     memmove: typing.Callable[[Type.c_void_p, Type.c_void_p, Type.size_t],
                              Type.c_void_p] = ctypes.cdll.msvcrt.memmove
     wcslen: typing.Callable[[Type.c_wchar_p],
@@ -183,3 +199,8 @@ class Function(_Function):
                                         Type.GpStatus] = ctypes.windll.gdiplus.GdipDisposeImage
     gdip_create_HBITMAP_from_bitmap: typing.Callable[[Type.GpBitmap, pointer(Type.HBITMAP), Type.ARGB],
                                                      Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateHBITMAPFromBitmap
+    get_object: typing.Callable[[Type.HANDLE, Type.c_int, Type.LPVOID],
+                                Type.c_int] = ctypes.windll.gdi32.GetObjectW
+
+
+_init(Function)

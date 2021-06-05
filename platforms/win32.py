@@ -1,8 +1,8 @@
-import functools
 import os
 import shlex
 import winreg
 
+from libraries import cache
 from libraries import ctype
 
 _MAX_PATH = 160
@@ -20,7 +20,7 @@ _SPIF_SENDWININICHANGE = 2
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
-@functools.lru_cache(1)
+@cache.one_cache
 def _get_buffer(size: int) -> ctype.Type.LPWSTR:
     return ctype.Type.LPWSTR(' ' * size)
 
@@ -69,6 +69,10 @@ def copy_image(path: str) -> bool:
     print(ctype.Function.gdip_create_HBITMAP_from_bitmap(bitmap, ctype.byref(hbitmap), 0))
     print(ctype.Function.gdip_dispose_image(bitmap))
     print(ctype.Function.gdiplus_shutdown(ctype.byref(token)))
+    bitmap = ctype.Structure.BITMAP()
+    print(ctype.Function.get_object(hbitmap, ctype.sizeof(ctype.Structure.BITMAP), ctype.byref(bitmap)))  # ok != 0
+
+    print(bitmap.bmHeight)
 
     return False
 

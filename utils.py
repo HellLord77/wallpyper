@@ -1,36 +1,36 @@
-import libraries.cache
-import libraries.color
-import libraries.file
-import libraries.gui
-import libraries.request
+from libraries import cache
+from libraries import color
+from libraries import file
+from libraries import gui
+from libraries import request
 
 ok = 200
 
-cache = libraries.cache.one_cache
+cache = cache.one_cache
 
-font_style = libraries.color.FontStyle
-fore_color = libraries.color.ForeColor
-back_color = libraries.color.BackColor
-print_color = libraries.color.cprint
+font_style = color.FontStyle
+fore_color = color.ForeColor
+back_color = color.BackColor
+print_color = color.cprint
 
-exists_file = libraries.file.exists
-copy_file = libraries.file.copy
-delete_file = libraries.file.remove
-delete_dir = libraries.file.remove_tree
+exists_file = file.exists
+copy_file = file.copy
+delete_file = file.remove
+delete_dir = file.remove_tree
 
-item = libraries.gui.Item
-icon = libraries.gui.Icon
-get_property = libraries.gui.Property
-get_method = libraries.gui.Method
-add_item = libraries.gui.add_menu_item
-add_separator = libraries.gui.add_separator
-add_items = libraries.gui.add_submenu
-notify = libraries.gui.show_balloon
-start = libraries.gui.start_loop
-on_exit = libraries.gui.stop_loop
-animate = libraries.gui.start_animation
-inanimate = libraries.gui.stop_animation
+item = gui.Item
+icon = gui.Icon
+get_property = gui.Property
+get_method = gui.Method
+add_item = gui.add_menu_item
+add_separator = gui.add_separator
+add_items = gui.add_submenu
+notify = gui.show_balloon
+start = gui.start_loop
+on_exit = gui.stop_loop
+animate = gui.start_animation
+inanimate = gui.stop_animation
 
-join_url = libraries.request.urljoin
-open_url = libraries.request.urlopen
-download_url = libraries.request.urlretrieve
+join_url = request.urljoin
+open_url = request.urlopen
+download_url = request.urlretrieve
