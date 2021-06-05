@@ -1,6 +1,7 @@
 import ctypes
 import ctypes.wintypes
 import dataclasses
+import functools
 import typing
 
 
@@ -18,15 +19,18 @@ def byref(var) -> ctypes.pointer:
     return ctypes.byref(var)
 
 
-def pointer(type_: ctypes):
+def pointer(type_):
     return ctypes.POINTER(type_)
+
+
+sizeof = ctypes.sizeof
 
 
 class _Type:
     def __init_subclass__(cls):
-        for var, value in cls.__dict__.items():
-            if not _is_dunder(var) and _is_union(value):
-                setattr(cls, var, value.__args__[0])
+        for var, type_ in cls.__dict__.items():
+            if not _is_dunder(var) and _is_union(type_):
+                setattr(cls, var, type_.__args__[0])
 
 
 class Type(_Type):
@@ -71,11 +75,13 @@ class Type(_Type):
 
 class _Structure:
     def __init_subclass__(cls):
-        for var, value in cls.__dict__.items():
+        for var, struct in cls.__dict__.items():
             if not _is_dunder(var):
-                class Class(ctypes.Structure):
-                    _fields_ = tuple(value.__annotations__.items())
-                    _defaults_ = {var_: getattr(value, var_) for var_ in value.__annotations__}
+                class Wrapper(ctypes.Structure):
+                    _fields_ = tuple((field, struct.__annotations__[field])
+                                     for field, value in struct.__dict__.items() if not _is_dunder(field))
+                    _defaults_ = {field: type_() if getattr(struct, field) is None else getattr(struct, field)
+                                  for field, type_ in _fields_}
 
                     def __init__(self, *args, **kwargs):
                         iter_ = iter(self._defaults_)
@@ -83,10 +89,10 @@ class _Structure:
                             kwargs[next(iter_)] = args[i]
                         super().__init__(**dict(self._defaults_, **kwargs))
 
-                    def __str__(self):
-                        return str({var_: getattr(self, var_) for var_, _ in self._fields_})
+                    __repr__ = struct.__repr__
 
-                setattr(cls, var, Class)
+                functools.update_wrapper(Wrapper, struct, updated=())
+                setattr(cls, var, Wrapper)
 
 
 class Structure(_Structure):
@@ -98,19 +104,36 @@ class Structure(_Structure):
         SuppressExternalCodecs: Type.BOOL = False
 
     @dataclasses.dataclass
-    class BITMAPINFOHEADER(ctypes.Structure):
+    class BITMAPINFOHEADER:
         biSize: Type.DWORD = None
         biWidth: Type.LONG = None
         biHeight: Type.LONG = None
         biPlanes: Type.WORD = None
+        biBitCount: Type.WORD = None
+        biCompression: Type.DWORD = None
+        biSizeImage: Type.DWORD = None
+        biXPelsPerMeter: Type.LONG = None
+        biYPelsPerMeter: Type.LONG = None
+        biClrUsed: Type.DWORD = None
+        biClrImportant: Type.DWORD = None
+
+    @dataclasses.dataclass
+    class BITMAP:
+        bmType: Type.LONG = None
+        bmWidth: Type.LONG = None
+        bmHeight: Type.LONG = None
+        bmWidthBytes: Type.LONG = None
+        bmPlanes: Type.WORD = None
+        bmBitsPixel: Type.WORD = None
+        bmBits: Type.LPVOID = None
 
 
 class _Function:
     def __init_subclass__(cls):
-        for var, value in cls.__dict__.items():
+        for var, fun in cls.__dict__.items():
             if not _is_dunder(var):
-                *value.argtypes, value.restype = (arg.__args__[0] if _is_union(arg) else arg
-                                                  for arg in cls.__annotations__[var].__args__)
+                *fun.argtypes, fun.restype = (arg.__args__[0] if _is_union(arg) else arg
+                                              for arg in cls.__annotations__[var].__args__)
 
 
 class Function(_Function):

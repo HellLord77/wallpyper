@@ -1,11 +1,9 @@
-import ctypes
-import ctypes.wintypes
 import functools
 import os
 import shlex
 import winreg
 
-from . import ctype
+from libraries import ctype
 
 _MAX_PATH = 160
 _CSIDL_APPDATA = 26
@@ -43,11 +41,11 @@ def paste_text() -> str:
     ctype.Function.open_clipboard(None)
     handle = ctype.Function.get_clipboard_data(_CF_UNICODETEXT)
     ctype.Function.close_clipboard()
-    return ctypes.c_wchar_p(handle).value or ''
+    return ctype.Type.c_wchar_p(handle).value or ''
 
 
 def copy_text(text: str) -> bool:
-    size = (len(text) + 1) * ctypes.sizeof(ctypes.c_wchar)
+    size = (len(text) + 1) * ctype.sizeof(ctype.Type.c_wchar)
     handle = ctype.Function.global_alloc(_GMEM_MOVEABLE, size)
     if handle:
         buffer = ctype.Function.global_lock(handle)
@@ -84,7 +82,7 @@ def get_wallpaper_path() -> str:  # TODO: if not exist, check cache/save also
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            ctype.Function.system_parameters_info(_SPI_SETDESKWALLPAPER, ctypes.wintypes.UINT(),
+            ctype.Function.system_parameters_info(_SPI_SETDESKWALLPAPER, ctype.Type.UINT(),
                                                   path, _SPIF_SENDWININICHANGE)
             return True
     return False
