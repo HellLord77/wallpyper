@@ -741,6 +741,7 @@ def on_copy():
 
 
 def on_copy_path():
+    # TODO: if not valid, return cached_path, directly from get_wallpaper_path (?)
     PLATFORM.copy_text(PLATFORM.get_wallpaper_path())
 
 
