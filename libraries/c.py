@@ -6,9 +6,11 @@ import dataclasses
 import functools
 import typing
 
+_T = typing.TypeVar('_T')
 
-def _is_dunder(name: str) -> bool:
-    return name.startswith('__') and name.endswith('__')
+
+def _or(val: _T, default: _T) -> _T:
+    return default if val is None else val
 
 
 def _is_union(obj: typing.Any) -> bool:
@@ -16,38 +18,10 @@ def _is_union(obj: typing.Any) -> bool:
     return isinstance(obj, typing._UnionGenericAlias)
 
 
-def _init(cls: type) -> None:
-    if cls is Type:
-        for var, type_ in cls.__dict__.items():
-            if not _is_dunder(var) and _is_union(type_):
-                setattr(cls, var, type_.__args__[0])
-    elif cls is Structure:
-        for var, struct in cls.__dict__.items():
-            if not _is_dunder(var):
-                struct.__annotations__ = typing.get_type_hints(struct)
-
-                class Wrapper(ctypes.Structure):
-                    _fields_ = tuple((field, struct.__annotations__[field])
-                                     for field in struct.__dict__ if not _is_dunder(field))
-                    _defaults_ = {field: type_() if getattr(struct, field) is None else getattr(struct, field)
-                                  for field, type_ in _fields_}
-
-                    def __init__(self, *args, **kwargs):
-                        iter_ = iter(self._defaults_)
-                        for arg in args:
-                            kwargs[next(iter_)] = arg
-                        super().__init__(**dict(self._defaults_, **kwargs))
-
-                    __repr__ = struct.__repr__
-
-                functools.update_wrapper(Wrapper, struct, updated=())
-                setattr(cls, var, Wrapper)
-    elif cls is Function:
-        cls.__annotations__ = typing.get_type_hints(cls)
-        for var, func in cls.__dict__.items():
-            if not _is_dunder(var):
-                *func.argtypes, func.restype = (arg.__args__[0] if _is_union(arg) else arg
-                                                for arg in cls.__annotations__[var].__args__)
+def _items(cls: type) -> dict[str, typing.Any]:
+    for var, val in cls.__dict__.items():
+        if not var.startswith('__') and not var.endswith('__'):
+            yield var, val
 
 
 def byref(var) -> ctypes.pointer:
@@ -105,9 +79,6 @@ class Type:
     GpStatus = HRESULT
 
 
-_init(Type)
-
-
 class Structure:
     @dataclasses.dataclass
     class GdiplusStartupInput:
@@ -147,9 +118,6 @@ class Structure:
         dsBitfields: Type.DWORD * 3 = None
         dshSection: Type.HANDLE = None
         dsOffset: Type.DWORD = None
-
-
-_init(Structure)
 
 
 class Function:
@@ -203,4 +171,30 @@ class Function:
                                 Type.c_int] = ctypes.windll.gdi32.GetObjectW
 
 
-_init(Function)
+def _init():
+    for var, type_ in _items(Type):
+        if _is_union(type_):
+            setattr(Type, var, type_.__args__[0])
+
+    for var, struct in _items(Structure):
+        class Wrapper(ctypes.Structure):
+            _fields_ = tuple(typing.get_type_hints(struct).items())
+            _defaults_ = {field: _or(getattr(struct, field), type_()) for field, type_ in _fields_}
+
+            def __init__(self, *args, **kwargs):
+                for i, var_ in enumerate(self._defaults_):
+                    if i >= len(args) and var_ not in kwargs:
+                        kwargs[var_] = self._defaults_[var_]
+                super().__init__(*args, **kwargs)
+
+            __repr__ = struct.__repr__
+
+        functools.update_wrapper(Wrapper, struct, updated=())
+        setattr(Structure, var, Wrapper)
+
+    types = typing.get_type_hints(Function)
+    for var, func in _items(Function):
+        *func.argtypes, func.restype = (arg.__args__[0] if _is_union(arg) else arg for arg in types[var].__args__)
+
+
+_init()
