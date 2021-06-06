@@ -9,32 +9,60 @@ import typing
 _T = typing.TypeVar('_T')
 
 
-def _or(val: _T, default: _T) -> _T:
-    return default if val is None else val
-
-
-def _is_union(obj: typing.Any) -> bool:
-    # noinspection PyProtectedMember,PyUnresolvedReferences
-    return isinstance(obj, typing._UnionGenericAlias)
-
-
 def _items(cls: type) -> dict[str, typing.Any]:
     for var, val in cls.__dict__.items():
         if not var.startswith('__') and not var.endswith('__'):
             yield var, val
 
 
-def byref(var) -> ctypes.pointer:
+def _resolve_type(obj):
+    # noinspection PyProtectedMember,PyUnresolvedReferences
+    if isinstance(obj, typing._UnionGenericAlias):
+        obj = obj.__args__[0]
+    # noinspection PyProtectedMember,PyUnresolvedReferences
+    return ctypes.POINTER(obj.__args__[0]) if isinstance(obj, typing._GenericAlias) else obj
+
+
+def _init():
+    for var, type_ in _items(Type):
+        setattr(Type, var, _resolve_type(type_))
+
+    for var, struct in _items(Structure):
+        class Wrapper(ctypes.Structure):
+            _fields_ = tuple(typing.get_type_hints(struct).items())
+            _defaults_ = {field: getattr(struct, field) or type_() for field, type_ in _fields_}
+
+            def __init__(self, *args, **kwargs):
+                for i, var_ in enumerate(self._defaults_):
+                    if i >= len(args) and var_ not in kwargs:
+                        kwargs[var_] = self._defaults_[var_]
+                super().__init__(*args, **kwargs)
+
+            __repr__ = struct.__repr__
+
+        functools.update_wrapper(Wrapper, struct, updated=())
+        setattr(Structure, var, Wrapper)
+
+    types = typing.get_type_hints(Function)
+    for var, func in _items(Function):
+        *func.argtypes, func.restype = (_resolve_type(type_) for type_ in types[var].__args__)
+
+    globals()[Pointer.__name__] = ctypes.POINTER
+
+
+def byref(obj: _T) -> Pointer[_T]:
     # noinspection PyTypeChecker
-    return ctypes.byref(var)
-
-
-def pointer(type_):
-    return ctypes.POINTER(type_)
+    return ctypes.byref(obj)
 
 
 def sizeof(type_):
     return ctypes.sizeof(type_)
+
+
+class Pointer(typing.Generic[_T]):
+    # noinspection PyTypeChecker,PyUnusedLocal
+    def __init__(self, type_: typing.Type[_T]) -> typing.Type[Pointer[_T]]:
+        pass
 
 
 class Type:
@@ -84,8 +112,8 @@ class Structure:
     class GdiplusStartupInput:
         GdiplusVersion: Type.UINT32 = 1
         DebugEventCallback: Type.DebugEventProc = None
-        SuppressBackgroundThread: Type.BOOL = False
-        SuppressExternalCodecs: Type.BOOL = False
+        SuppressBackgroundThread: Type.BOOL = None
+        SuppressExternalCodecs: Type.BOOL = None
 
     @dataclasses.dataclass
     class BITMAPINFOHEADER:
@@ -152,12 +180,12 @@ class Function:
 
     load_image: typing.Callable[[Type.HINSTANCE, Type.LPWSTR, Type.UINT, Type.INT, Type.INT, Type.UINT],
                                 Type.HANDLE] = ctypes.windll.user32.LoadImageW
-    gdiplus_startup: typing.Callable[[pointer(Type.ULONG_PTR), pointer(Structure.GdiplusStartupInput),
-                                      typing.Optional[pointer(Structure.GdiplusStartupInput)]],
+    gdiplus_startup: typing.Callable[[Pointer[Type.ULONG_PTR], Pointer[Structure.GdiplusStartupInput],
+                                      typing.Optional[Pointer[Structure.GdiplusStartupInput]]],
                                      Type.c_int] = ctypes.windll.gdiplus.GdiplusStartup
-    gdiplus_shutdown: typing.Callable[[pointer(Type.ULONG_PTR)],
+    gdiplus_shutdown: typing.Callable[[Pointer[Type.ULONG_PTR]],
                                       Type.c_void_p] = ctypes.windll.gdiplus.GdiplusShutdown
-    gdip_create_bitmap_from_file: typing.Callable[[Type.c_wchar_p, pointer(Type.GpBitmap)],
+    gdip_create_bitmap_from_file: typing.Callable[[Type.c_wchar_p, Pointer[Type.GpBitmap]],
                                                   Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateBitmapFromFile
     delete_object: typing.Callable[[Type.HGDIOBJ],
                                    Type.BOOL] = ctypes.windll.gdi32.DeleteObject
@@ -165,36 +193,11 @@ class Function:
                                   Type.BOOL] = ctypes.windll.kernel32.CloseHandle
     gdip_dispose_image: typing.Callable[[Type.GpImage],
                                         Type.GpStatus] = ctypes.windll.gdiplus.GdipDisposeImage
-    gdip_create_HBITMAP_from_bitmap: typing.Callable[[Type.GpBitmap, pointer(Type.HBITMAP), Type.ARGB],
+    gdip_create_HBITMAP_from_bitmap: typing.Callable[[Type.GpBitmap, Pointer[Type.HBITMAP], Type.ARGB],
                                                      Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateHBITMAPFromBitmap
     get_object: typing.Callable[[Type.HANDLE, Type.c_int, Type.LPVOID],
                                 Type.c_int] = ctypes.windll.gdi32.GetObjectW
 
 
-def _init():
-    for var, type_ in _items(Type):
-        if _is_union(type_):
-            setattr(Type, var, type_.__args__[0])
-
-    for var, struct in _items(Structure):
-        class Wrapper(ctypes.Structure):
-            _fields_ = tuple(typing.get_type_hints(struct).items())
-            _defaults_ = {field: _or(getattr(struct, field), type_()) for field, type_ in _fields_}
-
-            def __init__(self, *args, **kwargs):
-                for i, var_ in enumerate(self._defaults_):
-                    if i >= len(args) and var_ not in kwargs:
-                        kwargs[var_] = self._defaults_[var_]
-                super().__init__(*args, **kwargs)
-
-            __repr__ = struct.__repr__
-
-        functools.update_wrapper(Wrapper, struct, updated=())
-        setattr(Structure, var, Wrapper)
-
-    types = typing.get_type_hints(Function)
-    for var, func in _items(Function):
-        *func.argtypes, func.restype = (arg.__args__[0] if _is_union(arg) else arg for arg in types[var].__args__)
-
-
-_init()
+if __name__ != '__main__':
+    _init()
