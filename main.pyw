@@ -683,8 +683,10 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     return False
 
 
-def _get_wallpaper_paths() -> tuple[str]:
-    yield PLATFORM.get_wallpaper_path()
+def _get_wallpaper_paths() -> str:  # TODO: more paths (?)
+    path = PLATFORM.get_wallpaper_path()
+    if utils.exists_file(path):
+        yield path
     if os.path.isdir(PLATFORM.WALLPAPER_DIR):
         for cache_name in os.listdir(PLATFORM.WALLPAPER_DIR):
             path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)

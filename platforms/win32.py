@@ -92,7 +92,7 @@ def copy_image(path: str) -> bool:
     return buffer
 
 
-def get_wallpaper_path() -> str:  # TODO: if not exist, check cache/save also
+def get_wallpaper_path() -> str:
     buffer = _get_buffer(_MAX_PATH)
     c.Function.system_parameters_info(c.Constant.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, c.Constant.SPIF_NONE)
     return buffer.value

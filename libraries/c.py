@@ -261,7 +261,7 @@ class Function:
     gdip_create_HBITMAP_from_bitmap: typing.Callable[[Type.GpBitmap, Pointer[Type.HBITMAP], Type.ARGB],
                                                      Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateHBITMAPFromBitmap
 
-    sh_get_folder_path: typing.Callable[[typing.Optional[Type.HWND], Type.INT,  # TODO: SHGetKnownFolderPath
+    sh_get_folder_path: typing.Callable[[typing.Optional[Type.HWND], Type.INT,  # TODO: SHGetKnownFolderPath (?)
                                          typing.Optional[Type.HANDLE], Type.DWORD, Type.LPWSTR],
                                         Type.HRESULT] = ctypes.windll.shell32.SHGetFolderPathW
 
