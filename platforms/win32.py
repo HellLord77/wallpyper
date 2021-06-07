@@ -46,6 +46,7 @@ def paste_text() -> str:
 
 
 def copy_text(text: str) -> bool:
+    buffer = 0
     size = (c.Function.wcslen(text) + 1) * c.sizeof(c.Type.c_wchar)
     handle = c.Function.global_alloc(c.Constant.GMEM_MOVEABLE, size)
     if handle:
@@ -53,7 +54,7 @@ def copy_text(text: str) -> bool:
         if buffer:
             c.Function.memmove(buffer, text, size)
             _set_clipboard(c.Constant.CF_UNICODETEXT, handle)
-    return text == paste_text()
+    return buffer
 
 
 def copy_image(path: str) -> bool:
