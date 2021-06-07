@@ -683,18 +683,23 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     return False
 
 
+def _get_wallpaper_paths() -> tuple[str]:
+    yield PLATFORM.get_wallpaper_path()
+    if os.path.isdir(PLATFORM.WALLPAPER_DIR):
+        for cache_name in os.listdir(PLATFORM.WALLPAPER_DIR):
+            path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
+            if utils.exists_file(path):
+                yield path
+
+
 def save_wallpaper() -> bool:
     global SAVING
     if not SAVING:
         SAVING = True
         animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
-        path = PLATFORM.get_wallpaper_path()
-        name = os.path.basename(path)
-        cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]  # TODO: StopIteration
-        saved = utils.copy_file(path, CONFIG['save_dir'], name, cache_name)
-        if not saved:
-            saved = utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, cache_name),
-                                    CONFIG['save_dir'], name, cache_name)
+        paths = tuple(_get_wallpaper_paths())
+        names = tuple(os.path.basename(path) for path in paths)
+        saved = any(utils.copy_file(path, CONFIG['save_dir'], *names) for path in paths)
         SAVING = False
         if animated:
             utils.inanimate()
@@ -736,13 +741,18 @@ def _on_modify_save():
     ...
 
 
-def on_copy():
-    pass
+def on_copy() -> bool:
+    copied = any(PLATFORM.copy_image(path) for path in _get_wallpaper_paths())
+    if not copied and CONFIG['notify']:
+        utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
+    return copied
 
 
-def on_copy_path():
-    # TODO: if not valid, return cached_path, directly from get_wallpaper_path (?)
-    PLATFORM.copy_text(PLATFORM.get_wallpaper_path())
+def on_copy_path() -> bool:
+    copied = any(PLATFORM.copy_text(path) for path in _get_wallpaper_paths())
+    if not copied and CONFIG['notify']:
+        utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
+    return copied
 
 
 def on_auto_start(is_checked: bool) -> bool:
@@ -766,7 +776,7 @@ def create_menu() -> None:
     @functools.wraps(change.SetItemLabel)
     def wrapper(progress: int) -> None:
         if progress == 100:
-            change.SetItemLabel(f'{LANGUAGE.CHANGING}')
+            change.SetItemLabel(f'{LANGUAGE.CHANGE}')
         else:
             change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)')
 

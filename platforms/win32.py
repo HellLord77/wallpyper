@@ -5,18 +5,7 @@ import winreg
 from libraries import c
 from libraries import cache
 
-_MAX_PATH = 160
-_CSIDL_APPDATA = 26
-_CSIDL_LOCAL_APPDATA = 28
-_CSIDL_MYPICTURES = 39
-_SHGFP_TYPE_CURRENT = 0
-_GMEM_MOVEABLE = 2
-_CF_BITMAP = 2
-_CF_UNICODETEXT = 13
-_SPI_GETDESKWALLPAPER = 115
-_SPI_SETDESKWALLPAPER = 20
-_SPIF_NONE = 0
-_SPIF_SENDWININICHANGE = 2
+_MAX_PATH = 260
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
@@ -27,67 +16,93 @@ def _get_buffer(size: int) -> c.Type.LPWSTR:
 
 def _get_dir(csidl: int) -> str:
     buffer = _get_buffer(_MAX_PATH)
-    c.Function.sh_get_folder_path(None, csidl, None, _SHGFP_TYPE_CURRENT, buffer)
+    c.Function.sh_get_folder_path(None, csidl, None, c.Constant.SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
 
 
-APPDATA_DIR = _get_dir(_CSIDL_APPDATA)
-PICTURES_DIR = _get_dir(_CSIDL_MYPICTURES)
-TEMP_DIR = os.path.join(_get_dir(_CSIDL_LOCAL_APPDATA), 'Temp')
+def _get_clipboard(format_: int) -> c.Type.HANDLE:
+    c.Function.open_clipboard(None)
+    handle = c.Function.get_clipboard_data(format_)
+    c.Function.close_clipboard()
+    return handle
+
+
+def _set_clipboard(format_: int,
+                   hglobal: int) -> None:
+    c.Function.open_clipboard(None)
+    c.Function.empty_clipboard()
+    c.Function.set_clipboard_data(format_, hglobal)
+    c.Function.close_clipboard()
+
+
+APPDATA_DIR = _get_dir(c.Constant.CSIDL_APPDATA)
+PICTURES_DIR = _get_dir(c.Constant.CSIDL_MYPICTURES)
+TEMP_DIR = os.path.join(_get_dir(c.Constant.CSIDL_LOCAL_APPDATA), 'Temp')
 WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
 
 
 def paste_text() -> str:
-    c.Function.open_clipboard(None)
-    handle = c.Function.get_clipboard_data(_CF_UNICODETEXT)
-    c.Function.close_clipboard()
-    return c.Type.c_wchar_p(handle).value or ''
+    return c.cast(_get_clipboard(c.Constant.CF_UNICODETEXT), c.Type.c_wchar_p).value or ''
 
 
 def copy_text(text: str) -> bool:
-    size = (len(text) + 1) * c.sizeof(c.Type.c_wchar)
-    handle = c.Function.global_alloc(_GMEM_MOVEABLE, size)
+    size = (c.Function.wcslen(text) + 1) * c.sizeof(c.Type.c_wchar)
+    handle = c.Function.global_alloc(c.Constant.GMEM_MOVEABLE, size)
     if handle:
         buffer = c.Function.global_lock(handle)
         if buffer:
             c.Function.memmove(buffer, text, size)
-            c.Function.open_clipboard(None)
-            c.Function.empty_clipboard()
-            c.Function.set_clipboard_data(_CF_UNICODETEXT, handle)
-            c.Function.close_clipboard()
-        c.Function.global_unlock(handle)
+            _set_clipboard(c.Constant.CF_UNICODETEXT, handle)
     return text == paste_text()
 
 
 def copy_image(path: str) -> bool:
+    buffer = 0
     token = c.Type.ULONG_PTR()
-    print(c.Function.gdiplus_startup(c.byref(token), c.byref(c.Structure.GdiplusStartupInput()), None))
-    # ok == 0
-    bitmap = c.Type.GpBitmap()
-    print(c.Function.gdip_create_bitmap_from_file(path, c.byref(bitmap)))  # ok == 0
-    hbitmap = c.Type.HBITMAP()
-    print(c.Function.gdip_create_HBITMAP_from_bitmap(bitmap, c.byref(hbitmap), 0))
-    print(c.Function.gdip_dispose_image(bitmap))
-    print(c.Function.gdiplus_shutdown(c.byref(token)))
-    bitmap = c.Structure.BITMAP()
-    print(c.Function.get_object(hbitmap, c.sizeof(c.Structure.BITMAP), c.byref(bitmap)))  # ok != 0
-
-    print(bitmap.bmHeight)
-
-    return False
+    if not c.Function.gdiplus_startup(c.byref(token), c.byref(c.Structure.GdiplusStartupInput()), None):
+        bitmap = c.Type.GpBitmap()
+        if not c.Function.gdip_create_bitmap_from_file(c.array(c.Type.WCHAR, *path, '\0'), c.byref(bitmap)):
+            hbitmap = c.Type.HBITMAP()
+            c.Function.gdip_create_HBITMAP_from_bitmap(bitmap, c.byref(hbitmap), 0)
+            c.Function.gdip_dispose_image(bitmap)
+            if hbitmap:
+                bm = c.Structure.BITMAP()
+                if c.sizeof(c.Structure.BITMAP) == c.Function.get_object(hbitmap, c.sizeof(c.Structure.BITMAP),
+                                                                         c.byref(bm)):
+                    size_bi = c.sizeof(c.Structure.BITMAPINFOHEADER)
+                    bi = c.Structure.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1,
+                                                      bm.bmBitsPixel, c.Constant.BI_RGB)
+                    size = bm.bmWidthBytes * bm.bmHeight
+                    data = c.array(c.Type.BYTE, size=size)
+                    hdc = c.Function.get_DC(None)
+                    if c.Function.get_DI_bits(hdc, hbitmap, 0, bi.biHeight, data,
+                                              c.cast(c.byref(bi), c.Pointer(c.Structure.BITMAPINFO)),
+                                              c.Constant.DIB_RGB_COLORS):
+                        handle = c.Function.global_alloc(c.Constant.GMEM_MOVEABLE, size_bi + size)
+                        if handle:
+                            buffer = c.Function.global_lock(handle)
+                            if buffer:
+                                c.Function.memmove(buffer, c.byref(bi), size_bi)
+                                c.Function.memmove(buffer + size_bi, data, size)
+                                _set_clipboard(c.Constant.CF_DIB, handle)
+                            c.Function.global_unlock(handle)
+                    c.Function.release_DC(None, hdc)
+                c.Function.delete_object(hbitmap)
+        c.Function.gdiplus_shutdown(token)
+    return buffer
 
 
 def get_wallpaper_path() -> str:  # TODO: if not exist, check cache/save also
     buffer = _get_buffer(_MAX_PATH)
-    c.Function.system_parameters_info(_SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, _SPIF_NONE)
+    c.Function.system_parameters_info(c.Constant.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, c.Constant.SPIF_NONE)
     return buffer.value
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            c.Function.system_parameters_info(_SPI_SETDESKWALLPAPER, c.Type.UINT(),
-                                              path, _SPIF_SENDWININICHANGE)
+            c.Function.system_parameters_info(c.Constant.SPI_SETDESKWALLPAPER, 0,
+                                              path, c.Constant.SPIF_SENDWININICHANGE)
             return True
     return False
 
