@@ -458,21 +458,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
     def on_save(self, _):
         self.save_wallpaper.Enable(False)
-        path = PLATFORM.get_wallpaper_path()
-        name = os.path.basename(path)
-        save_path = os.path.join(self.save_path, name)
-        saved = utils.copy_file(path, save_path)
-        if not saved:
-            cache_name = next(os.walk(PLATFORM.WALLPAPER_DIR))[2][0]
-            save_path_2 = os.path.join(self.save_path, cache_name)
-            saved = utils.copy_file(path, save_path_2)
-            if not saved:
-                cache_path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
-                saved = utils.copy_file(cache_path, save_path)
-                if not saved:
-                    saved = utils.copy_file(cache_path, save_path_2)
+        save_wallpaper()
         self.save_wallpaper.Enable(True)
-        return saved
 
     def on_modify_save_folder(self, _=None):
         save_path = self.save_path
@@ -664,17 +651,13 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     if not CHANGING:
         CHANGING = True
         animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
-        # noinspection PyBroadException
-        try:
-            url = MODULE.get_next_url()
-        except Exception:
-            url = ''
+        url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = os.path.join(TEMP_DIR, name)
         save_path = os.path.join(CONFIG['save_dir'], name)
         utils.download_url(url, temp_path, chunk_count=100, callback=callback)
         changed = PLATFORM.set_wallpaper(temp_path, save_path)
-        if CONFIG['auto_save'] and not utils.copy_file(temp_path, save_path) and changed:
+        if CONFIG['auto_save'] and changed:
             save_wallpaper()
         CHANGING = False
         if animated:
@@ -687,11 +670,13 @@ def _get_wallpaper_paths() -> str:  # TODO: more paths (?)
     path = PLATFORM.get_wallpaper_path()
     if utils.exists_file(path):
         yield path
+    temp_path = os.path.join(TEMP_DIR, os.path.basename(path))
+    if utils.exists_file(temp_path):
+        yield temp_path
     if os.path.isdir(PLATFORM.WALLPAPER_DIR):
-        for cache_name in os.listdir(PLATFORM.WALLPAPER_DIR):
-            path = os.path.join(PLATFORM.WALLPAPER_DIR, cache_name)
-            if utils.exists_file(path):
-                yield path
+        for name in os.listdir(PLATFORM.WALLPAPER_DIR):
+            if utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, name), temp_path):
+                yield temp_path
 
 
 def save_wallpaper() -> bool:
@@ -699,9 +684,8 @@ def save_wallpaper() -> bool:
     if not SAVING:
         SAVING = True
         animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
-        paths = tuple(_get_wallpaper_paths())
-        names = tuple(os.path.basename(path) for path in paths)
-        saved = any(utils.copy_file(path, CONFIG['save_dir'], *names) for path in paths)
+        saved = any(utils.copy_file(path, os.path.join(CONFIG['save_dir'], os.path.basename(path)))
+                    for path in _get_wallpaper_paths())
         SAVING = False
         if animated:
             utils.inanimate()
@@ -731,11 +715,10 @@ def on_change_interval(interval: str) -> None:
 
 
 def on_save() -> bool:
-    if not save_wallpaper():
-        if CONFIG['notify']:
-            utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
-        return False
-    return True
+    saved = save_wallpaper()
+    if not saved and CONFIG['notify']:
+        utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
+    return saved
 
 
 def _on_modify_save():

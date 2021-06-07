@@ -9,26 +9,23 @@ def exists(path: str) -> bool:
 
 
 def copy(src_path: str,
-         dest_dir: str,
-         *file_names: str) -> bool:
-    os.makedirs(dest_dir, exist_ok=True)
-    if os.path.isfile(src_path):
-        for file_name in file_names:
-            dest_path = os.path.join(dest_dir, file_name)
-            if not os.path.exists(dest_path):
-                with contextlib.suppress(PermissionError):
-                    shutil.copyfile(src_path, dest_path)
-            if os.path.isfile(dest_path) and filecmp.cmp(src_path, dest_path):
-                return True
+         dest_path: str) -> bool:
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    if exists(src_path):
+        if not exists(dest_path):
+            with contextlib.suppress(PermissionError):
+                shutil.copyfile(src_path, dest_path)
+        if exists(dest_path) and filecmp.cmp(src_path, dest_path):
+            return True
     return False
 
 
 def remove(path: str) -> bool:
-    if os.path.isfile(path):
+    if exists(path):
         os.remove(path)
-    return os.path.isfile(path)
+    return exists(path)
 
 
 def remove_tree(path: str) -> bool:
     shutil.rmtree(path, True)
-    return not os.path.exists(path)
+    return not exists(path)

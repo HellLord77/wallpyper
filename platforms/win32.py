@@ -3,19 +3,13 @@ import shlex
 import winreg
 
 from libraries import c
-from libraries import cache
 
 _MAX_PATH = 260
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
-@cache.one_cache
-def _get_buffer(size: int) -> c.Type.LPWSTR:
-    return c.Type.LPWSTR(' ' * size)
-
-
 def _get_dir(csidl: int) -> str:
-    buffer = _get_buffer(_MAX_PATH)
+    buffer = c.Type.LPWSTR(' ' * _MAX_PATH)
     c.Function.sh_get_folder_path(None, csidl, None, c.Constant.SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
 
@@ -93,7 +87,7 @@ def copy_image(path: str) -> bool:
 
 
 def get_wallpaper_path() -> str:
-    buffer = _get_buffer(_MAX_PATH)
+    buffer = c.Type.LPWSTR(' ' * _MAX_PATH)
     c.Function.system_parameters_info(c.Constant.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, c.Constant.SPIF_NONE)
     return buffer.value
 
