@@ -37,11 +37,12 @@ def _get_prefix(frame):
 
 
 def _filter(event: str,
-            arg: typing.Any) -> bool:
+            arg: typing.Any,
+            callback: str) -> bool:
     if _LEVEL == Level.DEBUG:
         return True
     elif _LEVEL == Level.INFO:
-        return event != 'exception' or arg[0] not in (GeneratorExit, StopIteration)
+        return callback != '<genexpr>' and (event != 'exception' or arg[0] not in (GeneratorExit, StopIteration))
     elif _LEVEL == Level.ERROR:
         return event == 'exception'
     elif _LEVEL == Level.WARNING:
@@ -58,7 +59,7 @@ def _log(event: str,
 def _hook_callback(frame,
                    event: str,
                    arg: typing.Any) -> typing.Callable:
-    if _filter(event, arg) and frame.f_code.co_filename in _PATHS:
+    if _filter(event, arg, frame.f_code.co_name) and frame.f_code.co_filename in _PATHS:
         _log(event, f'{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} '
                     f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}')
         if event == 'call':
@@ -72,16 +73,20 @@ def _hook_callback(frame,
     return _hook_callback
 
 
-def init(*dirs: str,
+def init(*dirs_or_paths: str,
          base: str = os.getcwd(),
          level: int = Level.DEBUG,
          callback: typing.Callable[[str, ...], typing.Any] = sys.stderr.write) -> None:
     global _LEVEL, _CALLBACK
-    for dir_ in (base,) + dirs:
-        dir__ = os.path.join(base, dir_)
-        for name in os.listdir(dir__):
-            if name.endswith('.py') and os.path.isfile(path__ := os.path.join(dir__, name)):
-                _PATHS.add(path__)
+    for dir_ in (base,) + dirs_or_paths:
+        dir__ = os.path.realpath(os.path.join(base, dir_))
+        if os.path.isdir(dir__):
+            for name in os.listdir(dir__):
+                path = os.path.join(dir__, name)
+                if name.endswith('.py') and os.path.isfile(path):
+                    _PATHS.add(path)
+        elif os.path.isfile(dir__):
+            _PATHS.add(dir__)
     _LEVEL = level
     _CALLBACK = callback
     sys.settrace(_hook_callback)

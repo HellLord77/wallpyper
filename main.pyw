@@ -4,6 +4,7 @@ import functools
 import os
 import sys
 import threading
+import time
 import typing
 
 import wx
@@ -55,6 +56,7 @@ INTERVALS = {'300': '5 Minute',
 
 CHANGING = False
 SAVING = False
+EXITING = False
 CONFIG = {}
 
 
@@ -626,7 +628,8 @@ def _load_config(config_parser: configparser.ConfigParser,
 
 def load_config() -> bool:
     config_parser = configparser.ConfigParser()
-    config_parser.read(CONFIG_PATH)
+    with contextlib.suppress(configparser.MissingSectionHeaderError):
+        config_parser.read(CONFIG_PATH)
     get_converted = {
         str: config_parser.get,
         int: config_parser.getint,
@@ -703,6 +706,7 @@ def save_wallpaper() -> bool:
     return False
 
 
+@libraries.thread.on_thread
 def on_change() -> bool:
     Change.CALLBACK(0)
     changed = change_wallpaper(Change.CALLBACK)
@@ -724,6 +728,7 @@ def on_change_interval(interval: str) -> None:
     on_auto_change(CONFIG[CHANGE])
 
 
+@libraries.thread.on_thread
 def on_save() -> bool:
     saved = save_wallpaper()
     if not saved and CONFIG[NOTIFY]:
@@ -769,8 +774,23 @@ def on_save_config(is_checked: bool) -> None:
     save_config() if is_checked else utils.delete_file(CONFIG_PATH)
 
 
+@libraries.thread.on_thread
+def on_exit():
+    global EXITING
+    if not EXITING:
+        EXITING = True
+        Change.TIMER.stop()
+        if (CHANGING or SAVING) and CONFIG[NOTIFY]:
+            utils.notify(LANGUAGE.EXIT, LANGUAGE.FAILED_EXIT)
+        while CHANGING or SAVING:
+            time.sleep(1)
+        utils.on_exit()
+    elif CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.EXIT, LANGUAGE.EXITING)
+
+
 def create_menu() -> None:
-    change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
+    change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
 
     @functools.wraps(change.SetItemLabel)
     def wrapper(progress: int) -> None:
@@ -787,7 +807,7 @@ def create_menu() -> None:
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], callback=on_auto_change,
                    callback_args=(change_interval,), default_args=(utils.get_property.IS_CHECKED,), pos=1)
     utils.add_separator()
-    utils.add_item(LANGUAGE.SAVE, callback=libraries.thread.start, callback_args=(on_save,))
+    utils.add_item(LANGUAGE.SAVE, callback=on_save)
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], callback=update_config,
                    callback_args=(SAVE,), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
@@ -804,12 +824,12 @@ def create_menu() -> None:
                    default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA], callback=on_save_config,
                    default_args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANGUAGE.EXIT, callback=utils.on_exit)
+    utils.add_item(LANGUAGE.EXIT, callback=on_exit)
 
 
 def start() -> None:
     if 'debug' in sys.argv:
-        libraries.debug.init('languages', 'libraries', 'modules', 'platforms')
+        libraries.debug.init('languages', 'libraries', 'modules', 'platforms', level=libraries.debug.Level.INFO)
     libraries.singleton.init(NAME, 'wait' in sys.argv, print, print, print, ('Crash',), ('Wait',), ('Exit',))
     load_config()
     create_menu()
@@ -817,18 +837,19 @@ def start() -> None:
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     if 'change' in sys.argv:
-        libraries.thread.start(on_change)
-    utils.start('resources/pinwheel.png', NAME, libraries.thread.start, (on_change,))
+        on_change()
+    utils.start('resources/pinwheel.png', NAME, on_change)
 
 
 def stop() -> None:
-    Change.TIMER.stop()
+    while CHANGING or SAVING:
+        time.sleep(0.1)
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     utils.delete_dir(TEMP_DIR)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # TODO: not cleaning up if exit while changing
     start()
     stop()
     sys.exit()

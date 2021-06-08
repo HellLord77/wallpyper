@@ -8,26 +8,31 @@ class Timer:
                  interval: float,
                  callback: typing.Callable,
                  callback_args: typing.Optional[tuple] = None,
-                 callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
+                 callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+                 repeat: bool = True) -> None:
         @functools.wraps(callback)
         def wrapper() -> None:
-            if interval:
+            if repeat:
                 self.start()
-            self.running = True
+            self._running = True
             try:
                 callback(*callback_args or (), **callback_kwargs or {})
             finally:
-                self.running = False
+                self._running = False
 
-        self.running = False
+        self._running = False
         self._timer = threading.Timer(interval, wrapper)
 
     @property
     def initialized(self) -> bool:
         return self._timer.is_alive()
 
+    @property
+    def running(self):
+        return self._running
+
     def is_waiting(self) -> bool:
-        return self.initialized and not self.running
+        return self.initialized and not self._running
 
     def start(self,
               interval: typing.Optional[float] = None) -> bool:
@@ -41,12 +46,27 @@ class Timer:
 
     def stop(self) -> bool:
         self._timer.cancel()
-        return self.initialized
+        return self._running
 
 
-def start(callback: typing.Callable,
-          callback_args: typing.Optional[tuple] = None,
-          callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> Timer:
-    timer = Timer(0, callback, callback_args, callback_kwargs)
+def start_once(interval: float,
+               callback: typing.Callable,
+               callback_args: typing.Optional[tuple] = None,
+               callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> Timer:
+    timer = Timer(interval, callback, callback_args, callback_kwargs, False)
     timer.start()
     return timer
+
+
+def start_now(callback: typing.Callable,
+              callback_args: typing.Optional[tuple] = None,
+              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> Timer:
+    return start_once(0, callback, callback_args, callback_kwargs)
+
+
+def on_thread(callback):
+    @functools.wraps(callback)
+    def wrapper(*args, **kwargs) -> None:
+        start_now(callback, args, kwargs)
+
+    return wrapper

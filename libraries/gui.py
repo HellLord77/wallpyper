@@ -162,6 +162,7 @@ def start_loop(path: str,
 
 
 def stop_loop() -> None:
+    stop_animation()
     _APP.ExitMainLoop()
 
 
