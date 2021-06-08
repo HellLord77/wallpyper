@@ -780,10 +780,11 @@ def on_exit():
     if not EXITING:
         EXITING = True
         Change.TIMER.stop()
+        utils.disable()
         if (CHANGING or SAVING) and CONFIG[NOTIFY]:
             utils.notify(LANGUAGE.EXIT, LANGUAGE.FAILED_EXIT)
         while CHANGING or SAVING:
-            time.sleep(1)
+            time.sleep(0.1)
         utils.on_exit()
     elif CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.EXIT, LANGUAGE.EXITING)

@@ -28,6 +28,7 @@ add_separator = gui.add_separator
 add_items = gui.add_submenu
 notify = gui.show_balloon
 start = gui.start_loop
+disable = gui.disable_menu
 on_exit = gui.stop_loop
 animate = gui.start_animation
 inanimate = gui.stop_animation
