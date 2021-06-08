@@ -56,7 +56,6 @@ INTERVALS = {'300': '5 Minute',
 
 CHANGING = False
 SAVING = False
-EXITING = False
 CONFIG = {}
 
 
@@ -776,18 +775,13 @@ def on_save_config(is_checked: bool) -> None:
 
 @libraries.thread.on_thread
 def on_exit():
-    global EXITING
-    if not EXITING:
-        EXITING = True
-        Change.TIMER.stop()
-        utils.disable()
-        if (CHANGING or SAVING) and CONFIG[NOTIFY]:
-            utils.notify(LANGUAGE.EXIT, LANGUAGE.FAILED_EXIT)
-        while CHANGING or SAVING:
-            time.sleep(0.1)
-        utils.on_exit()
-    elif CONFIG[NOTIFY]:
-        utils.notify(LANGUAGE.EXIT, LANGUAGE.EXITING)
+    Change.TIMER.stop()
+    utils.disable()
+    if (CHANGING or SAVING) and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
+    while CHANGING or SAVING:
+        time.sleep(0.1)
+    utils.on_exit()
 
 
 def create_menu() -> None:
@@ -825,7 +819,7 @@ def create_menu() -> None:
                    default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA], callback=on_save_config,
                    default_args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANGUAGE.EXIT, callback=on_exit)
+    utils.add_item(LANGUAGE.QUIT, callback=on_exit)
 
 
 def start() -> None:

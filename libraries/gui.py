@@ -162,11 +162,11 @@ def start_loop(path: str,
 
 
 def disable_menu() -> None:
+    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
 def stop_loop() -> None:
-    stop_animation()
     _APP.ExitMainLoop()
 
 
