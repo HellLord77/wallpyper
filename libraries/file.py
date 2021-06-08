@@ -4,6 +4,10 @@ import os
 import shutil
 
 
+def join(*paths: str) -> str:
+    return os.path.join(*paths)
+
+
 def exists(path: str) -> bool:
     return os.path.isfile(path)
 

@@ -13,6 +13,7 @@ fore_color = color.ForeColor
 back_color = color.BackColor
 print_color = color.cprint
 
+join_path = file.join
 exists_file = file.exists
 copy_file = file.copy
 delete_file = file.remove

@@ -26,8 +26,7 @@ class Timer:
     def initialized(self) -> bool:
         return self._timer.is_alive()
 
-    @property
-    def waiting(self) -> bool:
+    def is_waiting(self) -> bool:
         return self.initialized and not self.running
 
     def start(self,

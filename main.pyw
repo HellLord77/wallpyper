@@ -22,20 +22,30 @@ import utils
 NAME = 'wallpyper'
 PLATFORM = platforms.win32
 
+CHANGE = 'auto_change_wallpaper'
+INTERVAL = 'auto_change_interval'
+SAVE = 'auto_save_wallpaper'
+SAVE_DIR = 'save_dir'
+NOTIFY = 'notify_on_fail'
+START = 'auto_start'
+SAVE_DATA = 'auto_save_config'
+
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
-DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {'auto_change': False,
-                                                                  'change_interval': 3600,
-                                                                  'auto_save': False,
-                                                                  'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
-                                                                  'notify': False,
-                                                                  'auto_start': False,
-                                                                  'save_config': False}
+DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {CHANGE: False,
+                                                                  INTERVAL: 3600,
+                                                                  SAVE: False,
+                                                                  SAVE_DIR: utils.join_path(PLATFORM.PICTURES_DIR,
+                                                                                            NAME),
+                                                                  NOTIFY: False,
+                                                                  START: False,
+                                                                  SAVE_DATA: False}
 
-CONFIG_PATH = os.path.join('E:\\Projects\\wxWallhaven\\config.ini')  # os.path.join(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
-TEMP_DIR = os.path.join(PLATFORM.TEMP_DIR, NAME)
+# utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
+CONFIG_PATH = utils.join_path('E:\\Projects\\wxWallhaven\\config.ini')
+TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)
 INTERVALS = {'300': '5 Minute',
              '900': '15 Minute',
              '1800': '30 Minute',
@@ -57,13 +67,13 @@ class Change:
 
 DEFAULT_FRAME_STYLE = wx.CAPTION | wx.CLOSE_BOX | wx.STAY_ON_TOP | wx.FRAME_TOOL_WINDOW
 configs = {
-    'auto_change': False,
-    'change_interval': 3600000,
-    'auto_save': False,
-    'save_dir': os.path.join(PLATFORM.PICTURES_DIR, NAME),
+    CHANGE: False,
+    INTERVAL: 3600000,
+    SAVE: False,
+    SAVE_DIR: utils.join_path(PLATFORM.PICTURES_DIR, NAME),
     'use_api_key': True,
     'auto_ratio': True,
-    'auto_start': False
+    START: False
 }
 paramsEX = {
     'apikey': None,
@@ -292,8 +302,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_change)
         self.Bind(wx.adv.EVT_TASKBAR_RIGHT_DOWN, self.on_right_down)
         app.Bind(wx.EVT_END_SESSION, self.on_exit)
-        self.save_path = configs['save_dir']
-        self.change_interval = configs['change_interval']
+        self.save_path = configs[SAVE_DIR]
+        self.change_interval = configs[INTERVAL]
         self.bk_categories = paramsEX['categories']
         self.bk_purity = paramsEX['purity']
         self.bk_atleast_1 = self.bk_atleast_2 = paramsEX['atleast']
@@ -307,14 +317,14 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.menu = wx.Menu()
         self.change_wallpaper = create_item(self.menu, 'Change Wallpaper', self.on_change)
         self.auto_change = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Change Wallpaper')
-        self.auto_change.Check(configs['auto_change'])
+        self.auto_change.Check(configs[CHANGE])
         self.menu.Bind(wx.EVT_MENU, self.on_auto_change, id=self.auto_change.GetId())
         self.item_submenu_interval = self.menu.AppendSubMenu(wx.Menu(), 'Auto Change Interval')
         create_submenu_items(self.item_submenu_interval, INTERVALS, wx.ITEM_RADIO)
         self.menu.AppendSeparator()
         self.save_wallpaper = create_item(self.menu, 'Save Wallpaper', self.on_save)
         self.auto_save = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Save Wallpaper')
-        self.auto_save.Check(configs['auto_save'])
+        self.auto_save.Check(configs[SAVE])
         create_item(self.menu, 'Modify Save Folder', self.on_modify_save_folder)
         self.menu.AppendSeparator()
         self.use_api_key = self.menu.AppendCheckItem(wx.ID_ANY, 'Use API Key')
@@ -349,7 +359,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         create_submenu_items(self.item_submenu_resolutions, resolutions, wx.ITEM_CHECK)
         self.menu.AppendSeparator()
         self.autorun = self.menu.AppendCheckItem(wx.ID_ANY, 'Auto Startup')
-        self.autorun.Check(configs['auto_start'])
+        self.autorun.Check(configs[START])
         self.save_configuration = self.menu.AppendCheckItem(wx.ID_ANY, 'Save Configuration')
         self.save_configuration.Check(utils.exists_file(CONFIG_PATH))
         self.menu.Bind(wx.EVT_MENU, self.on_auto_startup, id=self.autorun.GetId())
@@ -581,12 +591,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             button.SetFocus()
 
     def save_config(self):
-        configs.update({'auto_change': self.auto_change.IsChecked(),
-                        'change_interval': self.change_interval,
-                        'auto_save': self.auto_save.IsChecked(),
-                        'save_dir': self.save_path,
+        configs.update({CHANGE: self.auto_change.IsChecked(),
+                        INTERVAL: self.change_interval,
+                        SAVE: self.auto_save.IsChecked(),
+                        SAVE_DIR: self.save_path,
                         'auto_ratio': self.auto_ratio.IsChecked(),
-                        'auto_start': self.autorun.IsChecked()})
+                        START: self.autorun.IsChecked()})
         save_config()
 
 
@@ -653,11 +663,11 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
         animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
         url = MODULE.get_next_url()
         name = os.path.basename(url)
-        temp_path = os.path.join(TEMP_DIR, name)
-        save_path = os.path.join(CONFIG['save_dir'], name)
+        temp_path = utils.join_path(TEMP_DIR, name)
+        save_path = utils.join_path(CONFIG[SAVE_DIR], name)
         utils.download_url(url, temp_path, chunk_count=100, callback=callback)
         changed = PLATFORM.set_wallpaper(temp_path, save_path)
-        if CONFIG['auto_save'] and changed:
+        if CONFIG[SAVE] and changed:
             save_wallpaper()
         CHANGING = False
         if animated:
@@ -670,12 +680,12 @@ def _get_wallpaper_paths() -> str:  # TODO: more paths (?)
     path = PLATFORM.get_wallpaper_path()
     if utils.exists_file(path):
         yield path
-    temp_path = os.path.join(TEMP_DIR, os.path.basename(path))
+    temp_path = utils.join_path(TEMP_DIR, os.path.basename(path))
     if utils.exists_file(temp_path):
         yield temp_path
     if os.path.isdir(PLATFORM.WALLPAPER_DIR):
         for name in os.listdir(PLATFORM.WALLPAPER_DIR):
-            if utils.copy_file(os.path.join(PLATFORM.WALLPAPER_DIR, name), temp_path):
+            if utils.copy_file(utils.join_path(PLATFORM.WALLPAPER_DIR, name), temp_path):
                 yield temp_path
 
 
@@ -684,7 +694,7 @@ def save_wallpaper() -> bool:
     if not SAVING:
         SAVING = True
         animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
-        saved = any(utils.copy_file(path, os.path.join(CONFIG['save_dir'], os.path.basename(path)))
+        saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
                     for path in _get_wallpaper_paths())
         SAVING = False
         if animated:
@@ -697,26 +707,26 @@ def on_change() -> bool:
     Change.CALLBACK(0)
     changed = change_wallpaper(Change.CALLBACK)
     Change.CALLBACK(100)
-    if not changed and CONFIG['notify']:
-        utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)  # TODO: retry count (?)
+    if not changed and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)
     return changed
 
 
 def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuItem] = None) -> None:
-    CONFIG['auto_change'] = is_checked
+    CONFIG[CHANGE] = is_checked
     if change_interval:
         change_interval.Enable(is_checked)
-    Change.TIMER.start(CONFIG['change_interval']) if is_checked else Change.TIMER.stop()
+    Change.TIMER.start(CONFIG[INTERVAL]) if is_checked else Change.TIMER.stop()
 
 
 def on_change_interval(interval: str) -> None:
-    CONFIG['change_interval'] = int(interval)
-    on_auto_change(CONFIG['auto_change'])
+    CONFIG[INTERVAL] = int(interval)
+    on_auto_change(CONFIG[CHANGE])
 
 
 def on_save() -> bool:
     saved = save_wallpaper()
-    if not saved and CONFIG['notify']:
+    if not saved and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
     return saved
 
@@ -728,66 +738,71 @@ def _on_modify_save():
 
 def on_copy() -> bool:
     copied = any(PLATFORM.copy_image(path) for path in _get_wallpaper_paths())
-    if not copied and CONFIG['notify']:
+    if not copied and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
     return copied
 
 
 def on_copy_path() -> bool:
     copied = any(PLATFORM.copy_text(path) for path in _get_wallpaper_paths())
-    if not copied and CONFIG['notify']:
+    if not copied and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
     return copied
 
 
+def on_google() -> bool:
+    utils.open_url()
+    return False
+
+
 def on_auto_start(is_checked: bool) -> bool:
-    CONFIG['auto_start'] = is_checked
+    CONFIG[START] = is_checked
     if is_checked:
-        args = set(('change',) if CONFIG['auto_change'] else ())
+        args = set(('change',) if CONFIG[CHANGE] else ())
         return PLATFORM.register_autorun(NAME, os.path.realpath(sys.argv[0]), *args)
     else:
         return PLATFORM.unregister_autorun(NAME)
 
 
 def on_save_config(is_checked: bool) -> None:
-    CONFIG['save_config'] = is_checked
+    CONFIG[SAVE_DATA] = is_checked
     save_config() if is_checked else utils.delete_file(CONFIG_PATH)
 
 
-# TODO: search with google, set wallpaper from clipboard (?)
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=libraries.thread.start, callback_args=(on_change,))
 
     @functools.wraps(change.SetItemLabel)
     def wrapper(progress: int) -> None:
-        if progress == 100:
-            change.SetItemLabel(f'{LANGUAGE.CHANGE}')
-        else:
+        if progress < 100:
             change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)')
+        else:
+            change.SetItemLabel(f'{LANGUAGE.CHANGE}')
 
     Change.CALLBACK = wrapper
-    Change.TIMER = libraries.thread.Timer(CONFIG['change_interval'], on_change)
-    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG['change_interval']),),
-                                      CONFIG['auto_change'], INTERVALS, on_change_interval,
+    Change.TIMER = libraries.thread.Timer(CONFIG[INTERVAL], on_change)
+    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
+                                      CONFIG[CHANGE], INTERVALS, on_change_interval,
                                       default_args=(utils.get_property.GET_UID,))
-    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG['auto_change'], callback=on_auto_change,
+    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], callback=on_auto_change,
                    callback_args=(change_interval,), default_args=(utils.get_property.IS_CHECKED,), pos=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=libraries.thread.start, callback_args=(on_save,))
-    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG['auto_save'], callback=update_config,
-                   callback_args=('auto_save',), default_args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], callback=update_config,
+                   callback_args=(SAVE,), default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
     utils.add_item(LANGUAGE.COPY, callback=on_copy)
     utils.add_item(LANGUAGE.COPY_PATH, callback=on_copy_path)
+    utils.add_item(LANGUAGE.GOOGLE, callback=on_google)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
-    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG['notify'], callback=update_config,
-                   callback_args=('notify',), default_args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG['auto_start'], callback=on_auto_start,
+    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY], callback=update_config,
+                   callback_args=(NOTIFY,), default_args=(utils.get_property.IS_CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START], callback=on_auto_start,
                    default_args=(utils.get_property.IS_CHECKED,))
-    utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG['save_config'], callback=on_save_config,
+    utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA], callback=on_save_config,
                    default_args=(utils.get_property.IS_CHECKED,))
     utils.add_item(LANGUAGE.EXIT, callback=utils.on_exit)
 
@@ -798,18 +813,18 @@ def start() -> None:
     libraries.singleton.init(NAME, 'wait' in sys.argv, print, print, print, ('Crash',), ('Wait',), ('Exit',))
     load_config()
     create_menu()
-    on_auto_change(CONFIG['auto_change'])
+    on_auto_change(CONFIG[CHANGE])
+    on_auto_start(CONFIG[START])
+    on_save_config(CONFIG[SAVE_DATA])
     if 'change' in sys.argv:
         libraries.thread.start(on_change)
-    on_auto_start(CONFIG['auto_start'])
-    on_save_config(CONFIG['save_config'])
     utils.start('resources/pinwheel.png', NAME, libraries.thread.start, (on_change,))
 
 
 def stop() -> None:
     Change.TIMER.stop()
-    on_auto_start(CONFIG['auto_start'])
-    on_save_config(CONFIG['save_config'])
+    on_auto_start(CONFIG[START])
+    on_save_config(CONFIG[SAVE_DATA])
     utils.delete_dir(TEMP_DIR)
 
 

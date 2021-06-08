@@ -105,6 +105,6 @@ def urlretrieve(url: str,
                     file.write(chunk)
                     ratio += len(chunk) / size
                     if callback:
-                        callback(min(round(ratio * 100), 99), *callback_args or (), **callback_kwargs or {})
+                        callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
         return size == os.stat(path).st_size
     return False
