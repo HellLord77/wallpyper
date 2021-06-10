@@ -52,16 +52,14 @@ _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 
 
-class _Animate:
-    animated = False
-    default_tooltip = ''
+def _animate(_: itertools.cycle,
+             __: str) -> None:
+    pass
 
-    @staticmethod
-    def animate(_: itertools.cycle,
-                __: str) -> None:
-        pass
 
-    default_animate = animate
+_animated = False
+_tooltip = ''
+_inanimate_code = _animate.__code__
 
 
 def _destroy() -> None:
@@ -137,13 +135,8 @@ def add_submenu(label: str,
 def show_balloon(title: str,
                  text: str,
                  icon: typing.Optional[int] = None) -> bool:
-    _TASK_BAR_ICON.SetIcon(_ICON, _Animate.default_tooltip)
+    _TASK_BAR_ICON.SetIcon(_ICON, _tooltip)
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
-
-
-def disable_menu() -> None:
-    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
-    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
 def start_loop(path: str,
@@ -151,19 +144,25 @@ def start_loop(path: str,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
+    global _tooltip
+    _tooltip = tooltip
     _ICON.LoadFile(path)
-    _Animate.default_tooltip = tooltip
     if callback:
         @functools.wraps(callback)
         def wrapper(_: wx.Event) -> None:
             callback(*callback_args or (), **callback_kwargs or {})
 
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
-    # _TASK_BAR_ICON.GetPopupMenu = lambda: _MENU
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)
     _TASK_BAR_ICON.SetIcon(_ICON, tooltip)
     atexit.register(_destroy)
     _APP.MainLoop()
+
+
+def disable() -> None:
+    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
+    for menu_item in _MENU.GetMenuItems():
+        menu_item.Enable(False)
 
 
 def stop_loop() -> None:
@@ -171,7 +170,7 @@ def stop_loop() -> None:
 
 
 @functools.lru_cache(1)
-def _extract_gif(path: str) -> itertools.cycle:
+def _get_gif_frames(path: str) -> itertools.cycle:
     animation = wx.adv.Animation(path)
     return itertools.cycle((animation.GetDelay(i), wx.Icon(animation.GetFrame(i).ConvertToBitmap()))
                            for i in range(animation.GetFrameCount()))
@@ -179,27 +178,29 @@ def _extract_gif(path: str) -> itertools.cycle:
 
 def start_animation(path: str,
                     tooltip: typing.Optional[str] = None) -> bool:
-    if _Animate.animated:
+    global _animated
+    if _animated:
         return False
     else:
-        _Animate.animated = True
+        _animated = True
 
         def animate(frames: itertools.cycle,
                     tooltip_: str) -> None:
             delay, icon = next(frames)
             _TASK_BAR_ICON.SetIcon(icon, tooltip_)
-            wx.CallLater(delay, _Animate.animate, frames, tooltip_)
+            wx.CallLater(delay, _animate, frames, tooltip_)
 
-        _Animate.animate = animate
-        wx.CallAfter(animate, _extract_gif(path), _Animate.default_tooltip if tooltip is None else tooltip)
+        _animate.__code__ = animate.__code__
+        wx.CallAfter(_animate, _get_gif_frames(path), _tooltip if tooltip is None else tooltip)
         return True
 
 
 def stop_animation() -> bool:
-    if _Animate.animated:
-        _Animate.animated = False
-        _Animate.animate.__code__ = _Animate.default_animate.__code__
-        _TASK_BAR_ICON.SetIcon(_ICON, _Animate.default_tooltip)
+    global _animated
+    if _animated:
+        _animated = False
+        _animate.__code__ = _inanimate_code
+        _TASK_BAR_ICON.SetIcon(_ICON, _tooltip)
         return True
     else:
         return False
