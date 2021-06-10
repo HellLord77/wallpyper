@@ -1,5 +1,4 @@
 from libraries import cache
-from libraries import color
 from libraries import file
 from libraries import gui
 from libraries import request
@@ -7,11 +6,6 @@ from libraries import request
 ok = 200
 
 cache = cache.one_cache
-
-font_style = color.FontStyle
-fore_color = color.ForeColor
-back_color = color.BackColor
-print_color = color.cprint
 
 join_path = file.join
 exists_file = file.exists

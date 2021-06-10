@@ -3,7 +3,7 @@ import threading
 import typing
 
 
-class Timer:
+class RepeatableTimer:
     def __init__(self,
                  interval: float,
                  callback: typing.Callable,
@@ -52,15 +52,15 @@ class Timer:
 def start_once(interval: float,
                callback: typing.Callable,
                callback_args: typing.Optional[tuple] = None,
-               callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> Timer:
-    timer = Timer(interval, callback, callback_args, callback_kwargs, False)
+               callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> RepeatableTimer:
+    timer = RepeatableTimer(interval, callback, callback_args, callback_kwargs, False)
     timer.start()
     return timer
 
 
 def start_now(callback: typing.Callable,
               callback_args: typing.Optional[tuple] = None,
-              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> Timer:
+              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> RepeatableTimer:
     return start_once(0, callback, callback_args, callback_kwargs)
 
 

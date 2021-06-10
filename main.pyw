@@ -61,7 +61,7 @@ CONFIG = {}
 
 class Change:
     CALLBACK = None
-    TIMER = None
+    REPEATABLE_TIMER = None
 
 
 # 0.0.1
@@ -719,7 +719,7 @@ def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuIte
     CONFIG[CHANGE] = is_checked
     if change_interval:
         change_interval.Enable(is_checked)
-    Change.TIMER.start(CONFIG[INTERVAL]) if is_checked else Change.TIMER.stop()
+    Change.REPEATABLE_TIMER.start(CONFIG[INTERVAL]) if is_checked else Change.REPEATABLE_TIMER.stop()
 
 
 def on_change_interval(interval: str) -> None:
@@ -755,7 +755,7 @@ def on_copy_path() -> bool:
 
 
 def on_google() -> bool:
-    utils.open_url()
+    utils.open_url('https://google.com')
     return False
 
 
@@ -775,7 +775,7 @@ def on_save_config(is_checked: bool) -> None:
 
 @libraries.thread.on_thread
 def on_exit():
-    Change.TIMER.stop()
+    Change.REPEATABLE_TIMER.stop()
     utils.disable()
     if (CHANGING or SAVING) and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
@@ -795,16 +795,16 @@ def create_menu() -> None:
             change.SetItemLabel(f'{LANGUAGE.CHANGE}')
 
     Change.CALLBACK = wrapper
-    Change.TIMER = libraries.thread.Timer(CONFIG[INTERVAL], on_change)
+    Change.REPEATABLE_TIMER = libraries.thread.RepeatableTimer(CONFIG[INTERVAL], on_change)
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
                                       CONFIG[CHANGE], INTERVALS, on_change_interval,
-                                      default_args=(utils.get_property.GET_UID,))
+                                      builtin_args=(utils.get_property.UID,))
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], callback=on_auto_change,
-                   callback_args=(change_interval,), default_args=(utils.get_property.IS_CHECKED,), pos=1)
+                   callback_args=(change_interval,), builtin_args=(utils.get_property.CHECKED,), position=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=on_save)
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], callback=update_config,
-                   callback_args=(SAVE,), default_args=(utils.get_property.IS_CHECKED,))
+                   callback_args=(SAVE,), builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=_on_modify_save)
     utils.add_separator()
     utils.add_item(LANGUAGE.COPY, callback=on_copy)
@@ -814,11 +814,11 @@ def create_menu() -> None:
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY], callback=update_config,
-                   callback_args=(NOTIFY,), default_args=(utils.get_property.IS_CHECKED,))
+                   callback_args=(NOTIFY,), builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START], callback=on_auto_start,
-                   default_args=(utils.get_property.IS_CHECKED,))
+                   builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA], callback=on_save_config,
-                   default_args=(utils.get_property.IS_CHECKED,))
+                   builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.QUIT, callback=on_exit)
 
 

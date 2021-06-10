@@ -56,4 +56,4 @@ def get_next_url() -> str:
 
 
 def create_menu():
-    utils.add_item(NAME)
+    utils.add_item(NAME, callback=utils.notify, callback_args=(NAME, 'Not Implemented Yet'))
