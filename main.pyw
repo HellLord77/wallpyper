@@ -825,7 +825,10 @@ def create_menu() -> None:
 def start() -> None:
     if 'debug' in sys.argv:
         libraries.debug.init('languages', 'libraries', 'modules', 'platforms', level=libraries.debug.Level.INFO)
-    libraries.singleton.init(NAME, 'wait' in sys.argv, print, print, print, ('Crash',), ('Wait',), ('Exit',))
+    libraries.singleton.init(NAME, 'wait' in sys.argv,
+                             crash_callback=print, crash_callback_args=('Crash',),
+                             wait_callback=print, wait_callback_args=('Wait',),
+                             exit_callback=print, exit_callback_args=('Exit',))
     load_config()
     create_menu()
     on_auto_change(CONFIG[CHANGE])
@@ -844,7 +847,7 @@ def stop() -> None:
     utils.delete_dir(TEMP_DIR)
 
 
-if __name__ == '__main__':  # TODO: not cleaning up if exit while changing
+if __name__ == '__main__':
     start()
     stop()
     sys.exit()

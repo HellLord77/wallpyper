@@ -29,7 +29,7 @@ def sanitize_config():
 
 
 def authenticate(api_key: str) -> bool:
-    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}, True).status == utils.ok
+    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}).status == utils.ok
 
 
 @utils.cache

@@ -29,4 +29,4 @@ inanimate = gui.stop_animation
 
 join_url = request.urljoin
 open_url = request.urlopen
-download_url = request.urlretrieve
+download_url = request.download

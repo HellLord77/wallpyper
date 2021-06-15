@@ -7,9 +7,15 @@ import typing
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 
-_CONTENT_LENGTH = 'content-length'
-_USER_AGENT = 'user-agent'
+
+class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(*args):
+        pass
+
+
+_OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
 _CHUNK_SIZE = 1024
 
 USER_AGENT = 'request/0.0.1'
@@ -21,6 +27,7 @@ class LazyResponse:
         self._content = bytes()
         self.chunk_size = _CHUNK_SIZE
         self.response = response
+        self.headers = response.headers if hasattr(response, 'getheaders') else http.client.HTTPMessage()
         self.reason = response.reason
         self.status = response.status if hasattr(response, 'status') else 418
 
@@ -37,7 +44,7 @@ class LazyResponse:
 
     def get_content(self) -> bytes:
         if not self.response.isclosed():
-            self._content = self.response.read()
+            self._content = self.response.read()  # TODO: handle exception
         return self._content
 
     def get_json(self) -> typing.Union[dict, list, str, int, float, bool, None]:
@@ -61,40 +68,45 @@ def urljoin(base: str,
 
 def urlopen(url: str,
             params: typing.Optional[dict[str, str]] = None,
+            data: typing.Optional[bytes] = None,
+            headers: typing.Optional[dict[str, str]] = None,
+            redirection: typing.Optional[bool] = None,
             stream: typing.Optional[bool] = None) -> LazyResponse:
     query = {}
-    if params:
-        for key, value in params.items():
-            if isinstance(value, str):
-                query[key] = value
+    for key, value in (params or {}).items():
+        query[key] = value
     try:
-        request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', headers={_USER_AGENT: USER_AGENT})
-    except ValueError as err:
-        return LazyResponse(urllib.error.URLError(err))
+        request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', data)
+    except ValueError as request:
+        return LazyResponse(urllib.error.URLError(request))
     else:
+        request.add_header('User-Agent', USER_AGENT)
+        for head, val in (headers or {}).items():
+            request.add_header(head, val)
         try:
+            urllib.request.install_opener(_OPENERS[1 if redirection else 0])
             response = urllib.request.urlopen(request)
         except urllib.error.URLError as response:
             return LazyResponse(response)
         else:
             lazy_response = LazyResponse(response)
             if stream is False:
-                lazy_response._content = response.read()  # TODO: handle exception
+                lazy_response.get_content()
             return lazy_response
 
 
-def urlretrieve(url: str,
-                path: str,
-                size: typing.Optional[int] = None,
-                chunk_size: typing.Optional[int] = None,
-                chunk_count: typing.Optional[int] = None,
-                callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
-                callback_args: typing.Optional[tuple] = None,
-                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
+def download(url: str,
+             path: str,
+             size: typing.Optional[int] = None,
+             chunk_size: typing.Optional[int] = None,
+             chunk_count: typing.Optional[int] = None,
+             callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
+             callback_args: typing.Optional[tuple] = None,
+             callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
     response = urlopen(url)
     if response.status == 200:
         if not size:
-            content_length = response.response.getheader(_CONTENT_LENGTH)
+            content_length = response.response.getheader('Content-Length')
             size = int(content_length) if content_length else math.inf
         response.chunk_size = size // chunk_count if size != math.inf and chunk_count else chunk_size or _CHUNK_SIZE
         ratio = 0
@@ -108,3 +120,26 @@ def urlretrieve(url: str,
                         callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
         return size == os.stat(path).st_size
     return False
+
+
+def upload(url: str,
+           params: typing.Optional[dict[str, str]] = None,
+           fields: typing.Optional[dict[str, str]] = None,
+           files: typing.Optional[dict[str, tuple[typing.Optional[str], str]]] = None,
+           headers: typing.Optional[dict[str, str]] = None,
+           redirection: typing.Optional[bool] = None) -> LazyResponse:
+    boundary = uuid.uuid4().hex
+    data = b''
+    for name, val in (fields or {}).items():
+        data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{val}\r\n'.encode('UTF-8')
+    for name, name_path in (files or {}).items():
+        data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"; ' \
+                f'filename="{name_path[0] or os.path.basename(name_path[1])}"\r\n\r\n'.encode('UTF-8')
+        if os.path.isfile(name_path[1]):
+            with open(name_path[1], 'rb') as file:
+                data += file.read()
+        data += '\r\n'.encode('UTF-8')
+    data += f'--{boundary}--\r\n'.encode('UTF-8')
+    headers_ = {'Content-Type': f'multipart/form-data; boundary={boundary}'}
+    headers_.update(headers or {})
+    return urlopen(url, params, data, headers_, redirection)
