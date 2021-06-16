@@ -628,7 +628,7 @@ def _load_config(config_parser: configparser.ConfigParser,
 def load_config() -> bool:
     config_parser = configparser.ConfigParser()
     with contextlib.suppress(configparser.MissingSectionHeaderError):
-        config_parser.read(CONFIG_PATH)
+        config_parser.read(CONFIG_PATH)  # TODO: verify config
     get_converted = {
         str: config_parser.get,
         int: config_parser.getint,

@@ -55,4 +55,4 @@ def init(name_prefix: str = os.path.basename(sys.argv[0]),
         atexit.register(os.remove, file_path)
         atexit.register(os.close, file)
 
-# TODO: add port, com, mutex method
+# TODO: add port, mutex method
