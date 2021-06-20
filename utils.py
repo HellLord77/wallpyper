@@ -3,8 +3,6 @@ from libraries import file
 from libraries import gui
 from libraries import request
 
-ok = 200
-
 cache = cache.one_cache
 
 join_path = file.join
@@ -27,6 +25,8 @@ on_exit = gui.stop_loop
 animate = gui.start_animation
 inanimate = gui.stop_animation
 
+status = request.Status
 join_url = request.urljoin
 open_url = request.urlopen
 download_url = request.download
+upload_url = request.upload

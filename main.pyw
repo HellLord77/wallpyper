@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 import typing
+import webbrowser
 
 import wx
 import wx.adv
@@ -47,6 +48,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {CHANGE: False,
 # utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wxWallhaven\\config.ini')
 TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)
+SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = {'300': '5 Minute',
              '900': '15 Minute',
              '1800': '30 Minute',
@@ -56,6 +58,7 @@ INTERVALS = {'300': '5 Minute',
 
 CHANGING = False
 SAVING = False
+SEARCHING = False
 CONFIG = {}
 
 
@@ -663,17 +666,17 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any
     if not CHANGING:
         CHANGING = True
         animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
+        callback(0)
         url = MODULE.get_next_url()
         name = os.path.basename(url)
         temp_path = utils.join_path(TEMP_DIR, name)
         save_path = utils.join_path(CONFIG[SAVE_DIR], name)
         utils.download_url(url, temp_path, chunk_count=100, callback=callback)
         changed = PLATFORM.set_wallpaper(temp_path, save_path)
-        if CONFIG[SAVE] and changed:
-            save_wallpaper()
-        CHANGING = False
+        callback(100)
         if animated:
             utils.inanimate()
+        CHANGING = False
         return changed
     return False
 
@@ -698,19 +701,40 @@ def save_wallpaper() -> bool:
         animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
         saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
                     for path in _get_wallpaper_paths())
-        SAVING = False
         if animated:
             utils.inanimate()
+        SAVING = False
         return saved
+    return False
+
+
+def search_wallpaper() -> bool:
+    global SEARCHING
+    if not SEARCHING:
+        SEARCHING = True
+        searched = False
+        animated = utils.animate('resources/wedges.gif', LANGUAGE.SEARCH)
+        for path in _get_wallpaper_paths():
+            response = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)})
+            location = response.headers['location']
+            if location:
+                webbrowser.open(location)
+                searched = True
+                break
+        if animated:
+            utils.inanimate()
+        SEARCHING = False
+        return searched
     return False
 
 
 @libraries.thread.on_thread
 def on_change() -> bool:
-    Change.CALLBACK(0)
     changed = change_wallpaper(Change.CALLBACK)
-    Change.CALLBACK(100)
-    if not changed and CONFIG[NOTIFY]:
+    if changed:
+        if CONFIG[SAVE]:
+            save_wallpaper()
+    elif CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.CHANGE, LANGUAGE.FAILED_CHANGING)
     return changed
 
@@ -718,7 +742,7 @@ def on_change() -> bool:
 def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuItem] = None) -> None:
     CONFIG[CHANGE] = is_checked
     if change_interval:
-        change_interval.Enable(is_checked)
+        change_interval.Enable(True)
     Change.REPEATABLE_TIMER.start(CONFIG[INTERVAL]) if is_checked else Change.REPEATABLE_TIMER.stop()
 
 
@@ -754,9 +778,12 @@ def on_copy_path() -> bool:
     return copied
 
 
-def on_google() -> bool:
-    utils.open_url('https://google.com')
-    return False
+@libraries.thread.on_thread
+def on_search() -> bool:
+    searched = search_wallpaper()
+    if not searched and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.SEARCH, LANGUAGE.FAILED_SEARCHING)
+    return searched
 
 
 def on_auto_start(is_checked: bool) -> bool:
@@ -809,7 +836,7 @@ def create_menu() -> None:
     utils.add_separator()
     utils.add_item(LANGUAGE.COPY, callback=on_copy)
     utils.add_item(LANGUAGE.COPY_PATH, callback=on_copy_path)
-    utils.add_item(LANGUAGE.GOOGLE, callback=on_google)
+    utils.add_item(LANGUAGE.SEARCH, callback=on_search)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()

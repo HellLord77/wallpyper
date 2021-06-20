@@ -10,6 +10,12 @@ import urllib.request
 import uuid
 
 
+class Status:
+    OK = 200
+    FOUND = 302
+    IM_A_TEAPOT = 418
+
+
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
     def redirect_request(*args):
         pass
@@ -29,7 +35,8 @@ class LazyResponse:
         self.response = response
         self.headers = response.headers if hasattr(response, 'getheaders') else http.client.HTTPMessage()
         self.reason = response.reason
-        self.status = response.status if hasattr(response, 'status') else 418
+        self.status = response.status if hasattr(response, 'status') else Status.IM_A_TEAPOT
+        self.ok = self.status == Status.OK
 
     def __iter__(self):
         if self.response.isclosed():
@@ -104,7 +111,7 @@ def download(url: str,
              callback_args: typing.Optional[tuple] = None,
              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
     response = urlopen(url)
-    if response.status == 200:
+    if response.ok:
         if not size:
             content_length = response.response.getheader('Content-Length')
             size = int(content_length) if content_length else math.inf

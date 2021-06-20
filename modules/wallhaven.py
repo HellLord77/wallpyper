@@ -29,7 +29,7 @@ def sanitize_config():
 
 
 def authenticate(api_key: str) -> bool:
-    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}).status == utils.ok
+    return utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}).ok
 
 
 @utils.cache
@@ -44,7 +44,7 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
             params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
             params['seed'] = meta['seed'] or ''
             response = utils.open_url(SEARCH_URl, params)
-            if response.status == utils.ok:
+            if response.ok:
                 search_data, meta = response.get_json().values()
             else:
                 search_data = [{'path': ''}]
