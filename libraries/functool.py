@@ -18,11 +18,12 @@ def one_cache(callback: typing.Callable) -> typing.Callable:
 def one_run(callback: typing.Callable) -> typing.Callable:
     @functools.wraps(callback)
     def wrapper(*args, **kwargs):
-        try:
-            return callback(*args, **kwargs)
-        finally:
-            callback.__code__ = (lambda *args_, **kwargs_: None).__code__
+        if not wrapper.ran:
+            return_ = callback(*args, **kwargs)
+            wrapper.ran = True
+            return return_
 
+    wrapper.ran = False
     return wrapper
 
 
