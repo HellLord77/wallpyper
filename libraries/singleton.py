@@ -25,20 +25,20 @@ def _wait_or_exit(end_time: float,
         raise SystemExit
 
 
-def _file(name_prefix: str,
-          wait: bool,
-          crash_callback: typing.Callable,
-          crash_callback_args: tuple,
-          crash_callback_kwargs: dict[str, typing.Any],
-          wait_callback: typing.Callable,
-          wait_callback_args: tuple,
-          wait_callback_kwargs: dict[str, typing.Any],
-          exit_callback: typing.Callable,
-          exit_callback_args: tuple,
-          exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+def method_file(name_prefix: str,
+                wait: bool,
+                crash_callback: typing.Callable,
+                crash_callback_args: tuple,
+                crash_callback_kwargs: dict[str, typing.Any],
+                wait_callback: typing.Callable,
+                wait_callback_args: tuple,
+                wait_callback_kwargs: dict[str, typing.Any],
+                exit_callback: typing.Callable,
+                exit_callback_args: tuple,
+                exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
-    path = os.path.join(temp_dir, f'{name_prefix}_{get_uid()}.lock')
+    path = os.path.join(temp_dir, get_uid(prefix=name_prefix))
     flags = os.O_CREAT | os.O_EXCL
     end_time = time.time() + (wait or False) * MAX_WAIT - DELAY
     while True:
@@ -60,18 +60,18 @@ def _file(name_prefix: str,
         break
 
 
-def _memory(name_prefix: str,
-            wait: bool,
-            _: typing.Callable,
-            __: tuple,
-            ___: dict[str, typing.Any],
-            wait_callback: typing.Callable,
-            wait_callback_args: tuple,
-            wait_callback_kwargs: dict[str, typing.Any],
-            exit_callback: typing.Callable,
-            exit_callback_args: tuple,
-            exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-    name = f'{name_prefix}_{get_uid()}.lock'
+def method_memory(name_prefix: str,
+                  wait: bool,
+                  _: typing.Callable,
+                  __: tuple,
+                  ___: dict[str, typing.Any],
+                  wait_callback: typing.Callable,
+                  wait_callback_args: tuple,
+                  wait_callback_kwargs: dict[str, typing.Any],
+                  exit_callback: typing.Callable,
+                  exit_callback_args: tuple,
+                  exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+    name = get_uid(prefix=name_prefix)
     end_time = time.time() + (wait or False) * MAX_WAIT - DELAY
     while True:
         try:
@@ -86,18 +86,18 @@ def _memory(name_prefix: str,
         break
 
 
-def _socket(name_prefix: str,
-            wait: bool,
-            _: typing.Callable,
-            __: tuple,
-            ___: dict[str, typing.Any],
-            wait_callback: typing.Callable,
-            wait_callback_args: tuple,
-            wait_callback_kwargs: dict[str, typing.Any],
-            exit_callback: typing.Callable,
-            exit_callback_args: tuple,
-            exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-    random.seed(f'{name_prefix}_{get_uid()}.lock')
+def method_port(name_prefix: str,
+                wait: bool,
+                _: typing.Callable,
+                __: tuple,
+                ___: dict[str, typing.Any],
+                wait_callback: typing.Callable,
+                wait_callback_args: tuple,
+                wait_callback_kwargs: dict[str, typing.Any],
+                exit_callback: typing.Callable,
+                exit_callback_args: tuple,
+                exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+    random.seed(get_uid(prefix=name_prefix))
     address = socket.gethostname(), random.randint(1024, 49152)
     socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.time() + (wait or False) * MAX_WAIT - DELAY
@@ -113,21 +113,15 @@ def _socket(name_prefix: str,
         break
 
 
-class Methods:
-    FILE = _file
-    MEMORY = _memory
-    SOCKET = _socket
-
-
-# TODO: add mutex method
 DELAY = 1
 MAX_WAIT = 5
-METHOD = Methods.FILE
+METHOD = method_file
 
 
-def get_uid(path: str = os.path.normpath(sys.argv[0])) -> str:
+def get_uid(path: str = os.path.normpath(sys.argv[0]),
+            prefix: typing.Optional[str] = None) -> str:
     with open(path, 'rb') as file:
-        return hashlib.md5(file.read()).hexdigest()
+        return f'{prefix or ""}_{hashlib.md5(file.read()).hexdigest()}.lock'
 
 
 def init(name_prefix: str = os.path.basename(sys.argv[0]),
