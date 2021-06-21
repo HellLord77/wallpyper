@@ -25,6 +25,16 @@ def _wait_or_exit(end_time: float,
         raise SystemExit
 
 
+DELAY = 1
+MAX_WAIT = 5
+
+
+def get_uid(path: str = os.path.normpath(sys.argv[0]),
+            prefix: typing.Optional[str] = None) -> str:
+    with open(path, 'rb') as file:
+        return f'{prefix or ""}_{hashlib.md5(file.read()).hexdigest()}.lock'
+
+
 def method_file(name_prefix: str,
                 wait: bool,
                 crash_callback: typing.Callable,
@@ -113,17 +123,6 @@ def method_port(name_prefix: str,
         break
 
 
-DELAY = 1
-MAX_WAIT = 5
-METHOD = method_file
-
-
-def get_uid(path: str = os.path.normpath(sys.argv[0]),
-            prefix: typing.Optional[str] = None) -> str:
-    with open(path, 'rb') as file:
-        return f'{prefix or ""}_{hashlib.md5(file.read()).hexdigest()}.lock'
-
-
 def init(name_prefix: str = os.path.basename(sys.argv[0]),
          wait: typing.Optional[bool] = None,
          crash_callback: typing.Optional[typing.Callable] = None,
@@ -134,8 +133,9 @@ def init(name_prefix: str = os.path.basename(sys.argv[0]),
          wait_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
          exit_callback: typing.Optional[typing.Callable] = None,
          exit_callback_args: typing.Optional[tuple] = None,
-         exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> typing.Optional[typing.NoReturn]:
-    METHOD(name_prefix, bool(wait),
-           crash_callback or (lambda: None), crash_callback_args or (), crash_callback_kwargs or {},
-           wait_callback or (lambda: None), wait_callback_args or (), wait_callback_kwargs or {},
-           exit_callback or (lambda: None), exit_callback_args or (), exit_callback_kwargs or {})
+         exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
+         method: typing.Optional[typing.Callable] = None) -> typing.Optional[typing.NoReturn]:
+    (method or method_file)(name_prefix, bool(wait),
+                            crash_callback or (lambda: None), crash_callback_args or (), crash_callback_kwargs or {},
+                            wait_callback or (lambda: None), wait_callback_args or (), wait_callback_kwargs or {},
+                            exit_callback or (lambda: None), exit_callback_args or (), exit_callback_kwargs or {})

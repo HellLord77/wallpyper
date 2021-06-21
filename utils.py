@@ -1,15 +1,18 @@
-from libraries import cache
 from libraries import file
+from libraries import functool
 from libraries import gui
 from libraries import request
-
-cache = cache.one_cache
 
 join_path = file.join
 exists_file = file.exists
 copy_file = file.copy
 delete_file = file.remove
 delete_dir = file.remove_tree
+
+cache = functool.one_cache
+once = functool.one_run
+single = functool.singleton
+is_running = functool.running
 
 item = gui.Item
 icon = gui.Icon

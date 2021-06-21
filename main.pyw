@@ -56,9 +56,6 @@ INTERVALS = {'300': '5 Minute',
              '10800': '3 Hour',
              '21600': '6 Hour'}
 
-CHANGING = False
-SAVING = False
-SEARCHING = False
 CONFIG = {}
 
 
@@ -661,24 +658,20 @@ def update_config(value: typing.Any,
     CONFIG.__setitem__(key, value)
 
 
+@utils.single
 def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any]] = None) -> bool:
-    global CHANGING
-    if not CHANGING:
-        CHANGING = True
-        animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
-        callback(0)
-        url = MODULE.get_next_url()
-        name = os.path.basename(url)
-        temp_path = utils.join_path(TEMP_DIR, name)
-        save_path = utils.join_path(CONFIG[SAVE_DIR], name)
-        utils.download_url(url, temp_path, chunk_count=100, callback=callback)
-        changed = PLATFORM.set_wallpaper(temp_path, save_path)
-        callback(100)
-        if animated:
-            utils.inanimate()
-        CHANGING = False
-        return changed
-    return False
+    animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
+    callback(0)
+    url = MODULE.get_next_url()
+    name = os.path.basename(url)
+    temp_path = utils.join_path(TEMP_DIR, name)
+    save_path = utils.join_path(CONFIG[SAVE_DIR], name)
+    utils.download_url(url, temp_path, chunk_count=100, callback=callback)
+    changed = PLATFORM.set_wallpaper(temp_path, save_path)
+    callback(100)
+    if animated:
+        utils.inanimate()
+    return changed
 
 
 def _get_wallpaper_paths() -> str:  # TODO: more paths (?)
@@ -694,38 +687,34 @@ def _get_wallpaper_paths() -> str:  # TODO: more paths (?)
                 yield temp_path
 
 
+@utils.single
 def save_wallpaper() -> bool:
-    global SAVING
-    if not SAVING:
-        SAVING = True
-        animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
-        saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
-                    for path in _get_wallpaper_paths())
-        if animated:
-            utils.inanimate()
-        SAVING = False
-        return saved
-    return False
+    animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
+    saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
+                for path in _get_wallpaper_paths())
+    if animated:
+        utils.inanimate()
+    return saved
 
 
-def search_wallpaper() -> bool:
-    global SEARCHING
-    if not SEARCHING:
-        SEARCHING = True
-        searched = False
-        animated = utils.animate('resources/wedges.gif', LANGUAGE.SEARCH)
-        for path in _get_wallpaper_paths():
-            response = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)})
-            location = response.headers['location']
-            if location:
-                webbrowser.open(location)
-                searched = True
-                break
-        if animated:
-            utils.inanimate()
-        SEARCHING = False
-        return searched
-    return False
+@utils.single
+def search_wallpaper() -> bool:  # TODO: fix change + search break
+    searched = False
+    animated = utils.animate('resources/wedges.gif', LANGUAGE.SEARCH)
+    for path in _get_wallpaper_paths():
+        response = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)})
+        location = response.headers['location']
+        if location:
+            webbrowser.open(location)
+            searched = True
+            break
+    if animated:
+        utils.inanimate()
+    return searched
+
+
+def is_running() -> bool:
+    return utils.is_running(change_wallpaper) or utils.is_running(save_wallpaper) or utils.is_running(search_wallpaper)
 
 
 @libraries.thread.on_thread
@@ -804,9 +793,9 @@ def on_save_config(is_checked: bool) -> None:
 def on_exit():
     Change.REPEATABLE_TIMER.stop()
     utils.disable()
-    if (CHANGING or SAVING) and CONFIG[NOTIFY]:
+    if is_running() and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
-    while CHANGING or SAVING:
+    while is_running():
         time.sleep(0.1)
     utils.on_exit()
 
@@ -815,7 +804,7 @@ def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
 
     @functools.wraps(change.SetItemLabel)
-    def wrapper(progress: int) -> None:
+    def wrapper(progress: int):
         if progress < 100:
             change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)')
         else:
@@ -867,7 +856,7 @@ def start() -> None:
 
 
 def stop() -> None:
-    while CHANGING or SAVING:
+    while is_running():
         time.sleep(0.1)
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
@@ -879,6 +868,7 @@ if __name__ == '__main__':
     stop()
     sys.exit()
     # 0.0.1
+    # noinspection PyUnreachableCode
     app = wx.App()
     TaskBarIcon()
     app.MainLoop()

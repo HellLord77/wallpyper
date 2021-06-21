@@ -64,12 +64,9 @@ def start_now(callback: typing.Callable,
     return start_once(0, callback, callback_args, callback_kwargs)
 
 
-def on_thread(callback):
+def on_thread(callback: typing.Callable) -> typing.Callable:
     @functools.wraps(callback)
-    def wrapper(*args, **kwargs) -> None:
+    def wrapper(*args, **kwargs):
         start_now(callback, args, kwargs)
 
     return wrapper
-
-# TODO: on_singleton
-
