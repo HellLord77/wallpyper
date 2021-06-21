@@ -70,3 +70,6 @@ def on_thread(callback):
         start_now(callback, args, kwargs)
 
     return wrapper
+
+# TODO: on_singleton
+
