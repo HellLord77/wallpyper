@@ -1,13 +1,12 @@
 import atexit
-import hashlib
 import multiprocessing.shared_memory
 import os
-import random
 import socket
 import sys
 import tempfile
 import time
 import typing
+import zlib
 
 
 def _wait_or_exit(end_time: float,
@@ -32,10 +31,10 @@ MAX_WAIT = 5
 def get_uid(path: str = os.path.normpath(sys.argv[0]),
             prefix: typing.Optional[str] = None) -> str:
     with open(path, 'rb') as file:
-        return f'{prefix or ""}_{hashlib.md5(file.read()).hexdigest()}.lock'
+        return f'{prefix or __name__}_{zlib.adler32(file.read())}.lock'
 
 
-def method_file(name_prefix: str,
+def method_file(uid: str,
                 wait: bool,
                 crash_callback: typing.Callable,
                 crash_callback_args: tuple,
@@ -48,7 +47,7 @@ def method_file(name_prefix: str,
                 exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
-    path = os.path.join(temp_dir, get_uid(prefix=name_prefix))
+    path = os.path.join(temp_dir, uid)
     flags = os.O_CREAT | os.O_EXCL
     end_time = time.time() + (wait or False) * MAX_WAIT - DELAY
     while True:
@@ -70,7 +69,7 @@ def method_file(name_prefix: str,
         break
 
 
-def method_memory(name_prefix: str,
+def method_memory(uid: str,
                   wait: bool,
                   _: typing.Callable,
                   __: tuple,
@@ -81,11 +80,10 @@ def method_memory(name_prefix: str,
                   exit_callback: typing.Callable,
                   exit_callback_args: tuple,
                   exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-    name = get_uid(prefix=name_prefix)
     end_time = time.time() + (wait or False) * MAX_WAIT - DELAY
     while True:
         try:
-            memory = multiprocessing.shared_memory.SharedMemory(name, True, 1)
+            memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
         except FileExistsError:
             _wait_or_exit(end_time,
                           wait_callback, wait_callback_args, wait_callback_kwargs,
@@ -96,7 +94,7 @@ def method_memory(name_prefix: str,
         break
 
 
-def method_port(name_prefix: str,
+def method_port(uid: str,
                 wait: bool,
                 _: typing.Callable,
                 __: tuple,
@@ -107,8 +105,7 @@ def method_port(name_prefix: str,
                 exit_callback: typing.Callable,
                 exit_callback_args: tuple,
                 exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-    random.seed(get_uid(prefix=name_prefix))
-    address = socket.gethostname(), random.randint(1024, 49152)
+    address = socket.gethostname(), int.from_bytes(uid.encode(), 'big') % 48128 + 1024
     socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.time() + (wait or False) * MAX_WAIT - DELAY
     while True:
@@ -135,7 +132,7 @@ def init(name_prefix: str = os.path.basename(sys.argv[0]),
          exit_callback_args: typing.Optional[tuple] = None,
          exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
          method: typing.Optional[typing.Callable] = None) -> typing.Optional[typing.NoReturn]:
-    (method or method_file)(name_prefix, bool(wait),
+    (method or method_file)(get_uid(prefix=name_prefix), bool(wait),
                             crash_callback or (lambda: None), crash_callback_args or (), crash_callback_kwargs or {},
                             wait_callback or (lambda: None), wait_callback_args or (), wait_callback_kwargs or {},
                             exit_callback or (lambda: None), exit_callback_args or (), exit_callback_kwargs or {})

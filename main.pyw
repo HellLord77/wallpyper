@@ -607,7 +607,7 @@ def _load_config(config_parser: configparser.ConfigParser,
                  section: str,
                  config: dict[str, typing.Union[str, int, float, bool]],
                  default_config: dict[str, typing.Union[str, int, float, bool]],
-                 get_converted: dict[type, typing.Callable[[str, str, ...], typing.Any]]) -> bool:
+                 get_converted: dict[type, typing.Callable[[str, str], typing.Any]]) -> bool:
     loaded = True
     config.update(default_config)
     if config_parser.has_section(section):
@@ -659,16 +659,21 @@ def update_config(value: typing.Any,
 
 
 @utils.single
-def change_wallpaper(callback: typing.Optional[typing.Callable[[int], typing.Any]] = None) -> bool:
+def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
+                     callback_args: typing.Optional[tuple] = None,
+                     callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
     animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
-    callback(0)
+    if callback:
+        callback(0, *callback_args or (), **callback_kwargs or {})
     url = MODULE.get_next_url()
     name = os.path.basename(url)
     temp_path = utils.join_path(TEMP_DIR, name)
     save_path = utils.join_path(CONFIG[SAVE_DIR], name)
-    utils.download_url(url, temp_path, chunk_count=100, callback=callback)
+    utils.download_url(url, temp_path, chunk_count=100, callback=callback,
+                       callback_args=callback_args, callback_kwargs=callback_kwargs)
     changed = PLATFORM.set_wallpaper(temp_path, save_path)
-    callback(100)
+    if callback:
+        callback(100, *callback_args or (), **callback_kwargs or {})
     if animated:
         utils.inanimate()
     return changed
