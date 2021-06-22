@@ -19,15 +19,7 @@ _LEVEL = 0
 _CALLBACK = print
 
 
-class Level:
-    ERROR = logging.ERROR
-    WARNING = logging.WARNING
-    INFO = logging.INFO
-    DEBUG = logging.DEBUG
-    NOTSET = logging.NOTSET
-
-
-def _get_prefix(frame):
+def _get_prefix(frame) -> str:
     if 'self' in frame.f_locals:
         return f'{frame.f_locals["self"].__class__.__name__}.'
     elif 'cls' in frame.f_locals:
@@ -71,6 +63,14 @@ def _hook_callback(frame,
             _log(f'{event}_details', f'return: {arg}')
     frame.f_trace_lines = False
     return _hook_callback
+
+
+class Level:
+    ERROR = logging.ERROR
+    WARNING = logging.WARNING
+    INFO = logging.INFO
+    DEBUG = logging.DEBUG
+    NOTSET = logging.NOTSET
 
 
 def init(*dirs_or_paths: str,
