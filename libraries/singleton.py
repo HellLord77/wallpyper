@@ -12,24 +12,24 @@ DELAY = 1
 MAX_WAIT = 5
 
 
-class Method:
-    @staticmethod
-    def _wait_or_exit(end_time: float,
-                      wait_callback: typing.Optional[typing.Callable],
-                      wait_callback_args: tuple,
-                      wait_callback_kwargs: dict[str, typing.Any],
-                      exit_callback: typing.Optional[typing.Callable],
-                      exit_callback_args: tuple,
-                      exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-        if end_time > time.time():
-            if wait_callback:
-                wait_callback(*wait_callback_args, **wait_callback_kwargs)
-            time.sleep(DELAY)
-        else:
-            if exit_callback:
-                exit_callback(*exit_callback_args, **exit_callback_kwargs)
-            raise SystemExit
+def _wait_or_exit(end_time: float,
+                  wait_callback: typing.Optional[typing.Callable],
+                  wait_callback_args: tuple,
+                  wait_callback_kwargs: dict[str, typing.Any],
+                  exit_callback: typing.Optional[typing.Callable],
+                  exit_callback_args: tuple,
+                  exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+    if end_time > time.time():
+        if wait_callback:
+            wait_callback(*wait_callback_args, **wait_callback_kwargs)
+        time.sleep(DELAY)
+    else:
+        if exit_callback:
+            exit_callback(*exit_callback_args, **exit_callback_kwargs)
+        raise SystemExit
 
+
+class Method:
     @staticmethod
     def file(uid: str,
              wait: bool,
@@ -54,22 +54,21 @@ class Method:
                 try:
                     os.remove(path)
                 except PermissionError:
-                    Method._wait_or_exit(end_time,
-                                         wait_callback, wait_callback_args, wait_callback_kwargs,
-                                         exit_callback, exit_callback_args, exit_callback_kwargs)
-                    continue
+                    _wait_or_exit(end_time,
+                                  wait_callback, wait_callback_args, wait_callback_kwargs,
+                                  exit_callback, exit_callback_args, exit_callback_kwargs)
                 else:
                     if crash_callback:
                         crash_callback(*crash_callback_args, **crash_callback_kwargs)
-                    continue
-            atexit.register(os.remove, path)
-            atexit.register(os.close, file)
-            break
+            else:
+                atexit.register(os.remove, path)
+                atexit.register(os.close, file)
+                break
 
     @staticmethod
     def memory(uid: str,
                wait: bool,
-               _: typing.Callable,
+               _: typing.Optional[typing.Callable],
                __: tuple,
                ___: dict[str, typing.Any],
                wait_callback: typing.Optional[typing.Callable],
@@ -83,18 +82,18 @@ class Method:
             try:
                 memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
             except FileExistsError:
-                Method._wait_or_exit(end_time,
-                                     wait_callback, wait_callback_args, wait_callback_kwargs,
-                                     exit_callback, exit_callback_args, exit_callback_kwargs)
-                continue
-            atexit.register(memory.unlink)
-            atexit.register(memory.close)
-            break
+                _wait_or_exit(end_time,
+                              wait_callback, wait_callback_args, wait_callback_kwargs,
+                              exit_callback, exit_callback_args, exit_callback_kwargs)
+            else:
+                atexit.register(memory.unlink)
+                atexit.register(memory.close)
+                break
 
     @staticmethod
     def port(uid: str,
              wait: bool,
-             _: typing.Callable,
+             _: typing.Optional[typing.Callable],
              __: tuple,
              ___: dict[str, typing.Any],
              wait_callback: typing.Optional[typing.Callable],
@@ -110,12 +109,12 @@ class Method:
             try:
                 socket_.bind(address)
             except OSError:
-                Method._wait_or_exit(end_time,
-                                     wait_callback, wait_callback_args, wait_callback_kwargs,
-                                     exit_callback, exit_callback_args, exit_callback_kwargs)
-                continue
-            atexit.register(socket_.close)
-            break
+                _wait_or_exit(end_time,
+                              wait_callback, wait_callback_args, wait_callback_kwargs,
+                              exit_callback, exit_callback_args, exit_callback_kwargs)
+            else:
+                atexit.register(socket_.close)
+                break
 
 
 def get_uid(path: str = sys.argv[0],
