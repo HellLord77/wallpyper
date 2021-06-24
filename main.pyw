@@ -46,7 +46,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {CHANGE: False,
                                                                   SAVE_DATA: False}
 
 TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)  # utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
-CONFIG_PATH = utils.join_path('E:\\Projects\\wxWallhaven\\config.ini')
+CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = {'300': '5 Minute',
              '900': '15 Minute',
