@@ -1,6 +1,7 @@
 import configparser
 import contextlib
 import functools
+import glob
 import os
 import sys
 import threading
@@ -45,6 +46,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {CHANGE: False,
                                                                   START: False,
                                                                   SAVE_DATA: False}
 
+RES_PATHS = glob.glob(f'{utils.join_path(getattr(sys, "_MEIPASS", ""), "resources")}\\*')
 TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)  # utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
@@ -661,7 +663,7 @@ def update_config(value: typing.Any,
 def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
                      callback_args: typing.Optional[tuple] = None,
                      callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
-    animated = utils.animate('resources/wedges.gif', LANGUAGE.CHANGING)
+    animated = utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
     if callback:
         callback(0, *callback_args or (), **callback_kwargs or {})
     url = MODULE.get_next_url()
@@ -693,7 +695,7 @@ def _get_wallpaper_paths() -> str:  # TODO: more paths (?)
 
 @utils.single
 def save_wallpaper() -> bool:
-    animated = utils.animate('resources/wedges.gif', LANGUAGE.SAVING)
+    animated = utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
     saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
                 for path in _get_wallpaper_paths())
     if animated:
@@ -704,7 +706,7 @@ def save_wallpaper() -> bool:
 @utils.single
 def search_wallpaper() -> bool:  # TODO: fix change + search break
     searched = False
-    animated = utils.animate('resources/wedges.gif', LANGUAGE.SEARCH)
+    animated = utils.animate(RES_PATHS[1], LANGUAGE.SEARCH)
     for path in _get_wallpaper_paths():
         response = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)})
         location = response.headers['location']
@@ -856,7 +858,7 @@ def start() -> None:
     on_save_config(CONFIG[SAVE_DATA])
     if 'change' in sys.argv:
         on_change()
-    utils.start('resources/pinwheel.png', NAME, on_change)
+    utils.start(RES_PATHS[0], NAME, on_change)
 
 
 def stop() -> None:
