@@ -4,19 +4,21 @@ import utils
 
 NAME = 'wallhaven'
 BASE_URL = 'https://wallhaven.cc/api/v1'
-DEFAULT_CONFIG = {'apikey': '',
-                  'q': '',
-                  'categories': '111',
-                  'purity': '100',
-                  'sorting': 'date_added',
-                  'order': 'desc',
-                  'topRange': '1M',
-                  'atleast': '',
-                  'resolutions': '',
-                  'ratios': '',
-                  'colors': '',
-                  'page': '',
-                  'seed': ''}
+DEFAULT_CONFIG = {
+    'apikey': '',
+    'q': '',
+    'categories': '111',
+    'purity': '100',
+    'sorting': 'date_added',
+    'order': 'desc',
+    'topRange': '1M',
+    'atleast': '',
+    'resolutions': '',
+    'ratios': '',
+    'colors': '',
+    'page': '',
+    'seed': ''
+}
 
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
 CONFIG = {}
@@ -56,4 +58,4 @@ def get_next_url() -> str:
 
 
 def create_menu():
-    utils.add_item(NAME, callback=utils.notify, callback_args=(NAME, 'Not Implemented Yet'))
+    utils.add_item(NAME, callback=utils.notify, callback_args=(NAME, 'Unimplemented'))

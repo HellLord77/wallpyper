@@ -4,6 +4,19 @@ import typing
 _DEFAULT = object()
 
 
+class WrappedCallback:
+    def __init__(self,
+                 callback: typing.Optional[typing.Callable] = None,
+                 args: typing.Optional[tuple] = None,
+                 kwargs: typing.Optional[dict[str, typing.Any]] = None):
+        self.callback = callback or (lambda *_, **__: None)
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+
+    def __call__(self):
+        return self.callback(*self.args, *self.kwargs)
+
+
 def one_cache(callback: typing.Callable) -> typing.Callable:
     @functools.wraps(callback)
     def wrapper(*args, **kwargs):
@@ -27,8 +40,8 @@ def one_run(callback: typing.Callable) -> typing.Callable:
     return wrapper
 
 
-def running(callback) -> bool:
-    return callback.running
+def is_running(callback: typing.Callable) -> bool:
+    return getattr(callback, 'running', False)
 
 
 def singleton(callback: typing.Callable) -> typing.Callable:

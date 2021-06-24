@@ -17,7 +17,7 @@ class Status:
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(*args):
+    def redirect_request(*_):
         pass
 
 
@@ -29,13 +29,13 @@ USER_AGENT = 'request/0.0.1'
 
 class LazyResponse:
     def __init__(self,
-                 response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]) -> None:
+                 response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]):
         self._content = bytes()
         self.chunk_size = _CHUNK_SIZE
         self.response = response
-        self.headers = response.headers if hasattr(response, 'getheaders') else http.client.HTTPMessage()
+        self.headers = getattr(response, 'getheaders', http.client.HTTPMessage)()
         self.reason = response.reason
-        self.status = response.status if hasattr(response, 'status') else Status.IM_A_TEAPOT
+        self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
         self.ok = self.status == Status.OK
 
     def __iter__(self):

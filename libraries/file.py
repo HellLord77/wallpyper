@@ -19,8 +19,7 @@ def copy(src_path: str,
         if not exists(dest_path):
             with contextlib.suppress(PermissionError):
                 shutil.copyfile(src_path, dest_path)
-        if exists(dest_path) and filecmp.cmp(src_path, dest_path):
-            return True
+        return exists(dest_path) and filecmp.cmp(src_path, dest_path)
     return False
 
 

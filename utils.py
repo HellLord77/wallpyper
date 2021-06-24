@@ -1,35 +1,39 @@
-from libraries import file
-from libraries import functool
-from libraries import gui
-from libraries import request
+import libraries.file
+import libraries.functool
+import libraries.gui
+import libraries.request
+import libraries.thread
 
-join_path = file.join
-exists_file = file.exists
-copy_file = file.copy
-delete_file = file.remove
-delete_dir = file.remove_tree
+join_path = libraries.file.join
+exists_file = libraries.file.exists
+copy_file = libraries.file.copy
+delete_file = libraries.file.remove
+delete_dir = libraries.file.remove_tree
 
-cache = functool.one_cache
-once = functool.one_run
-single = functool.singleton
-is_running = functool.running
+cache = libraries.functool.one_cache
+once = libraries.functool.one_run
+single = libraries.functool.singleton
+running = libraries.functool.is_running
 
-item = gui.Item
-icon = gui.Icon
-get_property = gui.Property
-get_method = gui.Method
-add_item = gui.add_menu_item
-add_separator = gui.add_separator
-add_items = gui.add_submenu
-notify = gui.show_balloon
-start = gui.start_loop
-disable = gui.disable
-on_exit = gui.stop_loop
-animate = gui.start_animation
-inanimate = gui.stop_animation
+item = libraries.gui.Item
+icon = libraries.gui.Icon
+get_property = libraries.gui.Property
+get_method = libraries.gui.Method
+add_item = libraries.gui.add_menu_item
+add_separator = libraries.gui.add_separator
+add_items = libraries.gui.add_submenu
+notify = libraries.gui.show_balloon
+start = libraries.gui.start_loop
+disable = libraries.gui.disable
+on_exit = libraries.gui.stop_loop
+animate = libraries.gui.start_animation
+inanimate = libraries.gui.stop_animation
 
-status = request.Status
-join_url = request.urljoin
-open_url = request.urlopen
-download_url = request.download
-upload_url = request.upload
+status = libraries.request.Status
+join_url = libraries.request.urljoin
+open_url = libraries.request.urlopen
+download_url = libraries.request.download
+upload_url = libraries.request.upload
+
+timer = libraries.thread.RepeatableTimer
+thread = libraries.thread.on_thread
