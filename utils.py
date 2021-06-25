@@ -13,7 +13,6 @@ delete_dir = libraries.file.remove_tree
 cache = libraries.functool.one_cache
 once = libraries.functool.one_run
 single = libraries.functool.singleton
-running = libraries.functool.is_running
 
 item = libraries.gui.Item
 icon = libraries.gui.Icon

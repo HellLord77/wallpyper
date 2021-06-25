@@ -42,7 +42,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
     SAVE_DATA: False
 }
 
-RES_PATHS = tuple(utils.join_path(getattr(sys, '_MEIPASS', os.path.dirname(sys.argv[0])), 'resources', name)
+RES_PATHS = tuple(os.path.join(os.path.dirname(__file__), 'resources', name)
                   for name in ('pinwheel.png', 'wedges.gif'))
 TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)  # utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')
@@ -188,7 +188,7 @@ def search_wallpaper() -> bool:  # TODO: fix change + search break (urgent)
 
 
 def is_running() -> bool:
-    return utils.running(change_wallpaper) or utils.running(save_wallpaper) or utils.running(search_wallpaper)
+    return change_wallpaper.running or save_wallpaper.running or search_wallpaper.running
 
 
 @utils.thread

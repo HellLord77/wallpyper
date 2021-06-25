@@ -14,13 +14,10 @@ _PREFIX = {
     'return_details': '\x1b[34m    '
 }
 _SUFFIX = '\x1b[0m\n'
+_GENERATOR = (_ for _ in ()).__name__
+_EXCEPTION = Exception.__name__.lower()
 _PATHS = set()
 _LEVEL = 0
-
-####################################
-logging.root.setLevel(logging.DEBUG)
-handler = logging.StreamHandler()
-logging.root.addHandler(handler)
 
 
 def _get_prefix(frame) -> str:
@@ -38,13 +35,18 @@ def _filter(event: str,
     if _LEVEL == Level.DEBUG:
         return True
     elif _LEVEL == Level.INFO:
-        return callback != '<genexpr>' and (event != 'exception' or arg[0] not in (GeneratorExit, StopIteration))
+        return callback != _GENERATOR and (event != _EXCEPTION or arg[0] not in (GeneratorExit, StopIteration))
     elif _LEVEL == Level.ERROR:
-        return event == 'exception'
+        return event == _EXCEPTION
     elif _LEVEL == Level.WARNING:
-        return event == 'exception' and issubclass(arg[0], Warning)
+        return event == _EXCEPTION and issubclass(arg[0], Warning)
     elif _LEVEL == Level.NOTSET:
         return False
+
+
+def _format(event: str,
+            string: str) -> str:
+    return f'{_PREFIX[event]}{string}{_SUFFIX}'
 
 
 def _hook_callback(frame,
@@ -52,15 +54,15 @@ def _hook_callback(frame,
                    arg: typing.Any) -> typing.Callable:
     frame.f_trace_lines = False
     if _filter(event, arg, frame.f_code.co_name) and frame.f_code.co_filename in _PATHS:
-        log = f'{_PREFIX[event]}{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} ' \
-              f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}{_SUFFIX}'
+        log = _format(event, f'{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} '
+                             f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}')
         if event == 'call':
             for key, value in frame.f_locals.items():
-                log = f'{log}{_PREFIX[f"{event}_details"]}{key}: {value}{_SUFFIX}'
+                log += _format(f'{event}_details', f'{key}: {value}')
         elif event == 'exception' and arg[0] != StopIteration:
-            log = f'{log}{_PREFIX[f"{event}_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
+            log += _format(f'{event}_details', f'{arg[0].__name__}: {arg[1]}')
         elif event == 'return':
-            log = f'{log}{_PREFIX[f"{event}_details"]}return: {arg}{_SUFFIX}'
+            log += _format(f'{event}_details', f'return: {arg}')
         logging.debug(log[:-1])
     return _hook_callback
 
@@ -74,18 +76,20 @@ class Level:
 
 
 def init(*dirs_or_paths: str,
-         base: str = os.path.dirname(sys.argv[0]),
+         base: str = os.path.dirname(__file__),
          level: int = Level.DEBUG) -> None:
     global _LEVEL
     for dir_ in (base,) + dirs_or_paths:
-        dir__ = os.path.realpath(os.path.join(base, dir_))
-        if os.path.isdir(dir__):
-            for name in os.listdir(dir__):
-                path = os.path.join(dir__, name)
-                if name.endswith('.py') and os.path.isfile(path):
+        dir_or_path = os.path.realpath(os.path.join(base, dir_))
+        if os.path.isdir(dir_or_path):
+            for name in os.listdir(dir_or_path):
+                path = os.path.join(dir_or_path, name)
+                if os.path.isfile(path):
                     _PATHS.add(path)
-        elif os.path.isfile(dir__):
-            _PATHS.add(dir__)
+        elif os.path.isfile(dir_or_path):
+            _PATHS.add(dir_or_path)
     _LEVEL = level
+    logging.root.setLevel(logging.DEBUG)
+    logging.root.addHandler(logging.StreamHandler())
     sys.settrace(_hook_callback)
     threading.settrace(_hook_callback)

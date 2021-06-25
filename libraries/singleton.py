@@ -10,6 +10,7 @@ import zlib
 
 DELAY = 1
 MAX_WAIT = 5
+SUFFIX = '.lock'
 
 
 def _wait_or_exit(end_time: float,
@@ -89,7 +90,7 @@ def _memory(uid: str,
             break
 
 
-def _server(uid: str,
+def _socket(uid: str,
             wait: bool,
             _: typing.Any,
             __: typing.Any,
@@ -100,7 +101,7 @@ def _server(uid: str,
             exit_callback: typing.Optional[typing.Callable],
             exit_callback_args: tuple,
             exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-    address = socket.gethostname(), int.from_bytes(uid.encode(), 'big') % 48128 + 1024
+    address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.time() + wait * MAX_WAIT - DELAY
     while True:
@@ -118,16 +119,16 @@ def _server(uid: str,
 class Method:
     FILE = _file
     MEMORY = _memory
-    SERVER = _server
+    SOCKET = _socket
 
 
-def get_uid(path: str = sys.argv[0],
+def get_uid(path: typing.Optional[str] = None,
             prefix: typing.Optional[str] = None) -> str:
-    with open(path, 'rb') as file:
-        return f'{prefix or __name__}_{zlib.adler32(file.read())}.lock'
+    with open(path or sys.argv[0], 'rb') as file:
+        return f'{prefix or __name__}_{zlib.adler32(file.read())}{SUFFIX}'
 
 
-def init(name_prefix: str = os.path.basename(sys.argv[0]),
+def init(name_prefix: typing.Optional[str] = None,
          wait: typing.Optional[bool] = None,
          crash_callback: typing.Optional[typing.Callable] = None,
          crash_callback_args: typing.Optional[tuple] = None,
