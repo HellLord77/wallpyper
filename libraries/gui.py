@@ -51,15 +51,8 @@ _ICON = wx.Icon()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 
-
-def _animate(_: itertools.cycle,
-             __: str) -> None:
-    pass
-
-
-_ANIMATED = False
 _TOOLTIP = ''
-_INANIMATE = _animate.__code__
+_ANIMATIONS = []
 
 
 def _destroy() -> None:
@@ -149,7 +142,7 @@ def start_loop(path: str,
     _ICON.LoadFile(path)
     if callback:
         @functools.wraps(callback)
-        def wrapper(_: wx.Event):
+        def wrapper(_):
             callback(*callback_args or (), **callback_kwargs or {})
 
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
@@ -176,31 +169,32 @@ def _get_gif_frames(path: str) -> itertools.cycle:
                            for i in range(animation.GetFrameCount()))
 
 
-def start_animation(path: str,
-                    tooltip: typing.Optional[str] = None) -> bool:
-    global _ANIMATED
-    if _ANIMATED:
-        return False
+def _animate() -> None:
+    if _ANIMATIONS:
+        delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
+        _TASK_BAR_ICON.SetIcon(icon, tooltip)
+        wx.CallLater(delay, _animate)
     else:
-        _ANIMATED = True
-
-        def animate(frames: itertools.cycle,
-                    tooltip_: str) -> None:
-            delay, icon = next(frames)
-            _TASK_BAR_ICON.SetIcon(icon, tooltip_)
-            wx.CallLater(delay, _animate, frames, tooltip_)
-
-        _animate.__code__ = animate.__code__
-        wx.CallAfter(_animate, _get_gif_frames(path), _TOOLTIP if tooltip is None else tooltip)
-        return True
-
-
-def stop_animation() -> bool:
-    global _ANIMATED
-    if _ANIMATED:
-        _ANIMATED = False
-        _animate.__code__ = _INANIMATE
         _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
-        return True
-    else:
-        return False
+
+
+def start_animation(path: str,
+                    tooltip: typing.Optional[str] = None) -> None:
+    _ANIMATIONS.append((_get_gif_frames(path), _TOOLTIP if tooltip is None else tooltip))
+    if len(_ANIMATIONS) == 1:
+        wx.CallAfter(_animate)
+
+
+def stop_animation(tooltip: typing.Optional[str] = None) -> bool:
+    stopped = False
+    if _ANIMATIONS:
+        if tooltip is None:
+            _ANIMATIONS.pop()
+            stopped = True
+        else:
+            for animation in _ANIMATIONS:
+                if tooltip == animation[1]:
+                    _ANIMATIONS.remove(animation)
+                    stopped = True
+                    break
+    return stopped

@@ -132,7 +132,7 @@ def update_config(value: typing.Any,
 def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
                      callback_args: typing.Optional[tuple] = None,
                      callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
-    animated = utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
+    utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
     if callback:
         callback(0, *callback_args or (), **callback_kwargs or {})
     url = MODULE.get_next_url()
@@ -144,8 +144,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     changed = PLATFORM.set_wallpaper(temp_path, save_path)
     if callback:
         callback(100, *callback_args or (), **callback_kwargs or {})
-    if animated:
-        utils.inanimate()
+    utils.inanimate(LANGUAGE.CHANGING)
     return changed
 
 
@@ -164,26 +163,24 @@ def _get_wallpaper_paths() -> str:
 
 @utils.single
 def save_wallpaper() -> bool:
-    animated = utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
+    utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
     saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
                 for path in _get_wallpaper_paths())
-    if animated:
-        utils.inanimate()
+    utils.inanimate(LANGUAGE.SAVING)
     return saved
 
 
 @utils.single
-def search_wallpaper() -> bool:  # TODO: fix change + search break (urgent)
+def search_wallpaper() -> bool:  # TODO: fix change + search break
     searched = False
-    animated = utils.animate(RES_PATHS[1], LANGUAGE.SEARCH)
+    utils.animate(RES_PATHS[1], LANGUAGE.SEARCHING)
     for path in _get_wallpaper_paths():
         location = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)}).headers['location']
         if location:
             webbrowser.open(location)
             searched = True
             break
-    if animated:
-        utils.inanimate()
+    utils.inanimate(LANGUAGE.SEARCHING)
     return searched
 
 
@@ -313,7 +310,7 @@ def create_menu() -> None:
 
 def start() -> None:
     if 'debug' in sys.argv:  # TODO: gui debug
-        libraries.log.init('languages', 'libraries', 'modules', 'platforms', level=libraries.log.Level.INFO)
+        libraries.log.init('languages', 'libraries', 'modules', 'platforms')
     libraries.singleton.init(NAME, 'wait' in sys.argv,
                              crash_callback=print, crash_callback_args=('Crash',),
                              wait_callback=print, wait_callback_args=('Wait',),

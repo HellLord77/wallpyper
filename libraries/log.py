@@ -44,25 +44,20 @@ def _filter(event: str,
         return False
 
 
-def _format(event: str,
-            string: str) -> str:
-    return f'{_PREFIX[event]}{string}{_SUFFIX}'
-
-
 def _hook_callback(frame,
                    event: str,
                    arg: typing.Any) -> typing.Callable:
     frame.f_trace_lines = False
     if _filter(event, arg, frame.f_code.co_name) and frame.f_code.co_filename in _PATHS:
-        log = _format(event, f'{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} '
-                             f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}')
+        log = f'{_PREFIX[event]}{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} ' \
+              f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}{_SUFFIX}'
         if event == 'call':
             for key, value in frame.f_locals.items():
-                log += _format(f'{event}_details', f'{key}: {value}')
-        elif event == 'exception' and arg[0] != StopIteration:
-            log += _format(f'{event}_details', f'{arg[0].__name__}: {arg[1]}')
+                log += f'{_PREFIX[f"call_details"]}{key}: {value}{_SUFFIX}'
+        elif event == _EXCEPTION:
+            log += f'{_PREFIX[f"exception_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
         elif event == 'return':
-            log += _format(f'{event}_details', f'return: {arg}')
+            log += f'{_PREFIX[f"return_details"]}return: {arg}{_SUFFIX}'
         logging.debug(log[:-1])
     return _hook_callback
 

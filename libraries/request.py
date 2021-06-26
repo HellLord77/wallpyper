@@ -33,7 +33,7 @@ class LazyResponse:
         self._content = bytes()
         self.chunk_size = _CHUNK_SIZE
         self.response = response
-        self.headers = getattr(response, 'getheaders', http.client.HTTPMessage)()
+        self.headers = getattr(response, 'headers', http.client.HTTPMessage())
         self.reason = response.reason
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
         self.ok = self.status == Status.OK
@@ -138,15 +138,15 @@ def upload(url: str,
     boundary = uuid.uuid4().hex
     data = b''
     for name, val in (fields or {}).items():
-        data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{val}\r\n'.encode('UTF-8')
+        data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{val}\r\n'.encode()
     for name, name_path in (files or {}).items():
         data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"; ' \
-                f'filename="{name_path[0] or os.path.basename(name_path[1])}"\r\n\r\n'.encode('UTF-8')
+                f'filename="{name_path[0] or os.path.basename(name_path[1])}"\r\n\r\n'.encode()
         if os.path.isfile(name_path[1]):
             with open(name_path[1], 'rb') as file:
                 data += file.read()
-        data += '\r\n'.encode('UTF-8')
-    data += f'--{boundary}--\r\n'.encode('UTF-8')
+        data += '\r\n'.encode()
+    data += f'--{boundary}--\r\n'.encode()
     headers_ = {'Content-Type': f'multipart/form-data; boundary={boundary}'}
     headers_.update(headers or {})
     return urlopen(url, params, data, headers_, redirection)
