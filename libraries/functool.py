@@ -2,7 +2,7 @@ import functools
 import typing
 
 
-class WrappedCallback:
+class WrappedCallback:  # TODO: wraps
     def __init__(self,
                  callback: typing.Optional[typing.Callable] = None,
                  args: typing.Optional[tuple] = None,
@@ -11,7 +11,7 @@ class WrappedCallback:
         self.args = args or ()
         self.kwargs = kwargs or {}
 
-    def __call__(self):
+    def __call__(self) -> typing.Any:
         return self.callback(*self.args, *self.kwargs)
 
 

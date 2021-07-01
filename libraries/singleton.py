@@ -13,6 +13,12 @@ MAX_WAIT = 5
 SUFFIX = '.lock'
 
 
+def _get_uid(path: typing.Optional[str] = None,
+             prefix: typing.Optional[str] = None) -> str:
+    with open(path or sys.argv[0], 'rb') as file:
+        return f'{prefix or __name__}_{zlib.adler32(file.read())}{SUFFIX}'
+
+
 def _wait_or_exit(end_time: float,
                   wait_callback: typing.Optional[typing.Callable],
                   wait_callback_args: tuple,
@@ -122,12 +128,6 @@ class Method:
     SOCKET = _socket
 
 
-def get_uid(path: typing.Optional[str] = None,
-            prefix: typing.Optional[str] = None) -> str:
-    with open(path or sys.argv[0], 'rb') as file:
-        return f'{prefix or __name__}_{zlib.adler32(file.read())}{SUFFIX}'
-
-
 def init(name_prefix: typing.Optional[str] = None,
          wait: typing.Optional[bool] = None,
          crash_callback: typing.Optional[typing.Callable] = None,
@@ -140,7 +140,7 @@ def init(name_prefix: typing.Optional[str] = None,
          exit_callback_args: typing.Optional[tuple] = None,
          exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
          method: typing.Optional[typing.Callable] = None) -> typing.Optional[typing.NoReturn]:
-    (method or Method.FILE)(get_uid(prefix=name_prefix), bool(wait),
+    (method or Method.FILE)(_get_uid(prefix=name_prefix), bool(wait),
                             crash_callback, crash_callback_args or (), crash_callback_kwargs or {},
                             wait_callback, wait_callback_args or (), wait_callback_kwargs or {},
                             exit_callback, exit_callback_args or (), exit_callback_kwargs or {})

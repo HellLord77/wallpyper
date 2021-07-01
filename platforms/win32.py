@@ -1,3 +1,4 @@
+import contextlib
 import os
 import shlex
 import winreg
@@ -12,6 +13,25 @@ def _get_dir(csidl: int) -> str:
     buffer = libraries.ctype.Type.LPWSTR(' ' * _MAX_PATH)
     libraries.ctype.Function.sh_get_folder_path(None, csidl, None, libraries.ctype.Constant.SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
+
+
+@contextlib.contextmanager
+def _get_hbitmap(path: str) -> libraries.ctype.Type.HBITMAP:
+    hbitmap = libraries.ctype.Type.HBITMAP()
+    token = libraries.ctype.Type.ULONG_PTR()
+    if not libraries.ctype.Function.gdiplus_startup(
+            libraries.ctype.byref(token), libraries.ctype.byref(libraries.ctype.Structure.GdiplusStartupInput()), None):
+        bitmap = libraries.ctype.Type.GpBitmap()
+        if not libraries.ctype.Function.gdip_create_bitmap_from_file(
+                libraries.ctype.array(libraries.ctype.Type.WCHAR, *path, '\0'), libraries.ctype.byref(bitmap)):
+            libraries.ctype.Function.gdip_create_HBITMAP_from_bitmap(bitmap, libraries.ctype.byref(hbitmap), 0)
+            libraries.ctype.Function.gdip_dispose_image(bitmap)
+    libraries.ctype.Function.gdiplus_shutdown(token)
+    try:
+        yield hbitmap
+    finally:
+        if hbitmap:
+            libraries.ctype.Function.delete_object(hbitmap)
 
 
 def _get_clipboard(format_: int) -> libraries.ctype.Type.HANDLE:
@@ -53,40 +73,28 @@ def copy_text(text: str) -> bool:
 
 def copy_image(path: str) -> bool:
     buffer = 0
-    token = libraries.ctype.Type.ULONG_PTR()
-    if not libraries.ctype.Function.gdiplus_startup(
-            libraries.ctype.byref(token), libraries.ctype.byref(libraries.ctype.Structure.GdiplusStartupInput()), None):
-        bitmap = libraries.ctype.Type.GpBitmap()
-        if not libraries.ctype.Function.gdip_create_bitmap_from_file(
-                libraries.ctype.array(libraries.ctype.Type.WCHAR, *path, '\0'), libraries.ctype.byref(bitmap)):
-            hbitmap = libraries.ctype.Type.HBITMAP()
-            libraries.ctype.Function.gdip_create_HBITMAP_from_bitmap(bitmap, libraries.ctype.byref(hbitmap), 0)
-            libraries.ctype.Function.gdip_dispose_image(bitmap)
-            if hbitmap:
-                bm = libraries.ctype.Structure.BITMAP()
-                if libraries.ctype.sizeof(libraries.ctype.Structure.BITMAP) == libraries.ctype.Function.get_object(
-                        hbitmap, libraries.ctype.sizeof(libraries.ctype.Structure.BITMAP), libraries.ctype.byref(bm)):
-                    size_bi = libraries.ctype.sizeof(libraries.ctype.Structure.BITMAPINFOHEADER)
-                    bi = libraries.ctype.Structure.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1,
-                                                                    bm.bmBitsPixel, libraries.ctype.Constant.BI_RGB)
-                    size = bm.bmWidthBytes * bm.bmHeight
-                    data = libraries.ctype.array(libraries.ctype.Type.BYTE, size=size)
-                    hdc = libraries.ctype.Function.get_DC(None)
-                    if libraries.ctype.Function.get_DI_bits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctype.cast(
-                            libraries.ctype.byref(bi), libraries.ctype.Pointer(libraries.ctype.Structure.BITMAPINFO)),
-                                                            libraries.ctype.Constant.DIB_RGB_COLORS):
-                        handle = libraries.ctype.Function.global_alloc(libraries.ctype.Constant.GMEM_MOVEABLE,
-                                                                       size_bi + size)
-                        if handle:
-                            buffer = libraries.ctype.Function.global_lock(handle)
-                            if buffer:
-                                libraries.ctype.Function.memmove(buffer, libraries.ctype.byref(bi), size_bi)
-                                libraries.ctype.Function.memmove(buffer + size_bi, data, size)
-                                _set_clipboard(libraries.ctype.Constant.CF_DIB, handle)
-                            libraries.ctype.Function.global_unlock(handle)
-                    libraries.ctype.Function.release_DC(None, hdc)
-                libraries.ctype.Function.delete_object(hbitmap)
-        libraries.ctype.Function.gdiplus_shutdown(token)
+    with _get_hbitmap(path) as hbitmap:
+        bm = libraries.ctype.Structure.BITMAP()
+        if libraries.ctype.sizeof(libraries.ctype.Structure.BITMAP) == libraries.ctype.Function.get_object(
+                hbitmap, libraries.ctype.sizeof(libraries.ctype.Structure.BITMAP), libraries.ctype.byref(bm)):
+            size_bi = libraries.ctype.sizeof(libraries.ctype.Structure.BITMAPINFOHEADER)
+            bi = libraries.ctype.Structure.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1,
+                                                            bm.bmBitsPixel, libraries.ctype.Constant.BI_RGB)
+            size = bm.bmWidthBytes * bm.bmHeight
+            data = libraries.ctype.array(libraries.ctype.Type.BYTE, size=size)
+            hdc = libraries.ctype.Function.get_DC(None)
+            if libraries.ctype.Function.get_DI_bits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctype.cast(
+                    libraries.ctype.byref(bi), libraries.ctype.Pointer(libraries.ctype.Structure.BITMAPINFO)),
+                                                    libraries.ctype.Constant.DIB_RGB_COLORS):
+                handle = libraries.ctype.Function.global_alloc(libraries.ctype.Constant.GMEM_MOVEABLE, size_bi + size)
+                if handle:
+                    buffer = libraries.ctype.Function.global_lock(handle)
+                    if buffer:
+                        libraries.ctype.Function.memmove(buffer, libraries.ctype.byref(bi), size_bi)
+                        libraries.ctype.Function.memmove(buffer + size_bi, data, size)
+                        _set_clipboard(libraries.ctype.Constant.CF_DIB, handle)
+                    libraries.ctype.Function.global_unlock(handle)
+            libraries.ctype.Function.release_DC(None, hdc)
     return bool(buffer)
 
 

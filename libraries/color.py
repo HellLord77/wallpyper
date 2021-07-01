@@ -1,5 +1,3 @@
-import typing
-
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
 _CODES = set()
@@ -60,7 +58,7 @@ class BackColor(_Code):
     BRIGHT_WHITE = 107
 
 
-def cprint(*strings: typing.Any) -> None:
+def cprint(*strings) -> None:
     index = 0
     for string in strings:
         print(string, end='')

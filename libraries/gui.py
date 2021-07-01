@@ -55,6 +55,24 @@ _TOOLTIP = ''
 _ANIMATIONS = []
 
 
+def _get_wrapper(menu_item: wx.MenuItem,
+                 callback: typing.Callable,
+                 callback_args: tuple,
+                 callback_kwargs: dict[str, typing.Any],
+                 builtin_args: tuple[str]) -> typing.Callable:
+    @functools.wraps(callback)
+    def wrapper(_: wx.Event):
+        builtin_args_ = []
+        for builtin_arg in builtin_args:
+            if builtin_arg in Method:
+                builtin_args_.append(getattr(menu_item, builtin_arg))
+            elif builtin_arg in Property:
+                builtin_args_.append(getattr(menu_item, builtin_arg)())
+        callback(*builtin_args_, *callback_args, **callback_kwargs)
+
+    return wrapper
+
+
 def _destroy() -> None:
     _MENU.Destroy()
     _TASK_BAR_ICON.RemoveIcon()
@@ -84,17 +102,8 @@ def add_menu_item(label: str,
     if enable is not None:
         menu_item.Enable(enable)
     if callback:
-        @functools.wraps(callback)
-        def wrapper(_: wx.Event):
-            builtin_args_ = []
-            for builtin_arg in builtin_args or ():
-                if builtin_arg in Method:
-                    builtin_args_.append(getattr(menu_item, builtin_arg))
-                elif builtin_arg in Property:
-                    builtin_args_.append(getattr(menu_item, builtin_arg)())
-            callback(*builtin_args_, *callback_args or (), **callback_kwargs or {})
-
-        menu.Bind(wx.EVT_MENU, wrapper, menu_item)
+        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, callback, callback_args or (),
+                                            callback_kwargs or {}, builtin_args or ()), menu_item)
     return menu_item
 
 

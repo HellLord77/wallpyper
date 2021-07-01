@@ -1,8 +1,8 @@
 import contextlib
 import http.client
 import json
-import math
 import os
+import sys
 import typing
 import urllib.error
 import urllib.parse
@@ -17,12 +17,12 @@ class Status:
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(*_):
-        pass
+    def redirect_request(*_) -> None:
+        return
 
 
 _OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
-_CHUNK_SIZE = 1024
+_CHUNK_SIZE = 32768
 
 USER_AGENT = 'request/0.0.1'
 
@@ -33,12 +33,14 @@ class LazyResponse:
         self._content = bytes()
         self.chunk_size = _CHUNK_SIZE
         self.response = response
-        self.headers = getattr(response, 'headers', http.client.HTTPMessage())
         self.reason = response.reason
+        self.get_header = getattr(response, 'getheader', lambda _, default=None: default)
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
-        self.ok = self.status == Status.OK
 
-    def __iter__(self):
+    def __bool__(self) -> bool:
+        return self.status == Status.OK
+
+    def __iter__(self) -> typing.Generator[bytes, None, None]:
         if self.response.isclosed():
             for i in range(0, len(self._content), self.chunk_size):
                 yield self._content[i:i + self.chunk_size]
@@ -111,20 +113,17 @@ def download(url: str,
              callback_args: typing.Optional[tuple] = None,
              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
     response = urlopen(url)
-    if response.ok:
-        if not size:
-            content_length = response.response.getheader('Content-Length')
-            size = int(content_length) if content_length else math.inf
-        response.chunk_size = size // chunk_count if size != math.inf and chunk_count else chunk_size or _CHUNK_SIZE
+    if response:
+        size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
+        response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _CHUNK_SIZE)
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        if not os.path.isfile(path) or size != os.stat(path).st_size:
-            with open(path, 'wb') as file:
-                for chunk in response:
-                    file.write(chunk)
-                    ratio += len(chunk) / size
-                    if callback:
-                        callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
+        with open(path, 'wb') as file:
+            for chunk in response:
+                file.write(chunk)
+                ratio += len(chunk) / size
+                if callback:
+                    callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
         return size == os.stat(path).st_size
     return False
 

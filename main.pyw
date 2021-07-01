@@ -148,7 +148,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     return changed
 
 
-def _get_wallpaper_paths() -> str:
+def _get_wallpaper_paths() -> typing.Generator[str, None, None]:
     path = PLATFORM.get_wallpaper_path()
     if utils.exists_file(path):
         yield path
@@ -175,7 +175,7 @@ def search_wallpaper() -> bool:  # TODO: fix change + search break
     searched = False
     utils.animate(RES_PATHS[1], LANGUAGE.SEARCHING)
     for path in _get_wallpaper_paths():
-        location = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)}).headers['location']
+        location = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)}).get_header('location')
         if location:
             webbrowser.open(location)
             searched = True

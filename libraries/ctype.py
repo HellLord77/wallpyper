@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations  # 3.10
 
 import ctypes
 import ctypes.wintypes
@@ -9,7 +9,7 @@ import typing
 _CT = typing.TypeVar('_CT')
 
 
-def _items(cls: type) -> dict[str, typing.Any]:
+def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
     for var, val in cls.__dict__.items():
         if not var.startswith('__') and not var.endswith('__'):
             yield var, val
@@ -299,5 +299,4 @@ def char_array(obj: str,
     return (type_ * (len(obj) + 1))(*obj)
 
 
-if __name__ != '__main__':
-    _init()
+_init()
