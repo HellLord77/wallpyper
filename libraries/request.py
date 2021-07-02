@@ -30,15 +30,16 @@ USER_AGENT = 'request/0.0.1'
 class LazyResponse:
     def __init__(self,
                  response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]):
-        self._content = bytes()
         self.chunk_size = _CHUNK_SIZE
         self.response = response
         self.reason = response.reason
         self.get_header = getattr(response, 'getheader', lambda _, default=None: default)
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
+        self._content = bytes()
+        self._ok = self.status == Status.OK
 
     def __bool__(self) -> bool:
-        return self.status == Status.OK
+        return self._ok
 
     def __iter__(self) -> typing.Generator[bytes, None, None]:
         if self.response.isclosed():
