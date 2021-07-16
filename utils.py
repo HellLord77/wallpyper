@@ -1,18 +1,21 @@
+import os
+
 import libraries.file
 import libraries.functool
 import libraries.gui
 import libraries.request
 import libraries.thread
 
-join_path = libraries.file.join
-exists_file = libraries.file.exists
+join_path = os.path.join
+exists_file = os.path.isfile
+
 copy_file = libraries.file.copy
 delete_file = libraries.file.remove
 delete_dir = libraries.file.remove_tree
 
 cache = libraries.functool.one_cache
-once = libraries.functool.one_run
-single = libraries.functool.singleton
+once = libraries.functool.once_run
+single = libraries.functool.one_run
 
 item = libraries.gui.Item
 icon = libraries.gui.Icon

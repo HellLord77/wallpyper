@@ -1,4 +1,4 @@
-from __future__ import annotations  # 3.10
+from __future__ import annotations  # TODO: remove if >= 3.10
 
 import ctypes
 import ctypes.wintypes

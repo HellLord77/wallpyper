@@ -51,8 +51,8 @@ _ICON = wx.Icon()
 _MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 
-_TOOLTIP = ''
-_ANIMATIONS = []
+_TOOLTIP: str = ''
+_ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 
 
 def _get_wrapper(menu_item: wx.MenuItem,

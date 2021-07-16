@@ -184,8 +184,12 @@ def search_wallpaper() -> bool:  # TODO: fix change + search break
     return searched
 
 
-def is_running() -> bool:
-    return change_wallpaper.running or save_wallpaper.running or search_wallpaper.running
+def wait_before_exit() -> bool:
+    wait = False
+    while change_wallpaper.running or save_wallpaper.running or search_wallpaper.running:
+        time.sleep(0.1)
+        wait = True
+    return wait
 
 
 @utils.thread
@@ -214,7 +218,7 @@ def on_change_interval(interval: str) -> None:
 @utils.thread
 def on_save() -> bool:
     saved = save_wallpaper()
-    if not saved and CONFIG[NOTIFY]:
+    if CONFIG[NOTIFY] and not saved:
         utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
     return saved
 
@@ -225,14 +229,14 @@ def on_modify_save():
 
 def on_copy() -> bool:
     copied = any(PLATFORM.copy_image(path) for path in _get_wallpaper_paths())
-    if not copied and CONFIG[NOTIFY]:
+    if CONFIG[NOTIFY] and not copied:
         utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
     return copied
 
 
 def on_copy_path() -> bool:
     copied = any(PLATFORM.copy_text(path) for path in _get_wallpaper_paths())
-    if not copied and CONFIG[NOTIFY]:
+    if CONFIG[NOTIFY] and not copied:
         utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
     return copied
 
@@ -240,7 +244,7 @@ def on_copy_path() -> bool:
 @utils.thread
 def on_search() -> bool:
     searched = search_wallpaper()
-    if not searched and CONFIG[NOTIFY]:
+    if CONFIG[NOTIFY] and not searched:
         utils.notify(LANGUAGE.SEARCH, LANGUAGE.FAILED_SEARCHING)
     return searched
 
@@ -261,12 +265,11 @@ def on_save_config(is_checked: bool) -> None:
 
 @utils.thread
 def on_exit():
-    Change.REPEATABLE_TIMER.stop()
     utils.disable()
-    if is_running() and CONFIG[NOTIFY]:
+    Change.REPEATABLE_TIMER.stop()
+    if CONFIG[NOTIFY] and (change_wallpaper.running or save_wallpaper.running or search_wallpaper.running):
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
-    while is_running():
-        time.sleep(0.1)
+    wait_before_exit()
     utils.on_exit()
 
 
@@ -326,14 +329,13 @@ def start() -> None:
 
 
 def stop() -> None:
-    while is_running():
-        time.sleep(0.1)
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    utils.delete_dir(TEMP_DIR)
+    wait_before_exit()  # TODO: close long running tasks
+    utils.delete_dir(TEMP_DIR, 1)
+    sys.exit()
 
 
 if __name__ == '__main__':
     start()
     stop()
-    sys.exit()
