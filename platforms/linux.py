@@ -1,3 +1,5 @@
+__version__ = '0.0.1'
+
 import os
 
 APPDATA_DIR = os.environ['HOME']

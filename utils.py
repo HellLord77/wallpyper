@@ -1,10 +1,12 @@
+__version__ = '0.0.2'
+
 import os
 
 import libraries.file
 import libraries.functool
 import libraries.gui
 import libraries.request
-import libraries.thread
+import libraries.timer
 
 join_path = os.path.join
 exists_file = os.path.isfile
@@ -37,5 +39,6 @@ open_url = libraries.request.urlopen
 download_url = libraries.request.download
 upload_url = libraries.request.upload
 
-timer = libraries.thread.RepeatableTimer
-thread = libraries.thread.on_thread
+timer = libraries.timer.Timer
+thread = libraries.timer.on_thread
+kill = libraries.timer.kill_all

@@ -1,3 +1,5 @@
+__version__ = '0.0.3'
+
 import atexit
 import multiprocessing.shared_memory
 import os

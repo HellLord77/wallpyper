@@ -1,11 +1,15 @@
+__version__ = '0.0.5'
+
 import atexit
 import functools
 import itertools
+import os.path
+import threading
+import time
 import typing
 
 import wx
 import wx.adv
-import wx.svg
 
 
 class Item:
@@ -163,8 +167,7 @@ def start_loop(path: str,
 
 def disable() -> None:
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
-    for menu_item in _MENU.GetMenuItems():
-        menu_item.Enable(False)
+    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
 def stop_loop() -> None:
@@ -178,11 +181,13 @@ def _get_gif_frames(path: str) -> itertools.cycle:
                            for i in range(animation.GetFrameCount()))
 
 
-def _animate() -> None:
-    if _ANIMATIONS:
+def _animate() -> None:  # TODO: queue
+    while _ANIMATIONS:
         delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
         _TASK_BAR_ICON.SetIcon(icon, tooltip)
-        wx.CallLater(delay, _animate)
+        time.sleep(delay / 1000)
+        if not _APP.IsMainLoopRunning():
+            break
     else:
         _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
 
@@ -191,7 +196,8 @@ def start_animation(path: str,
                     tooltip: typing.Optional[str] = None) -> None:
     _ANIMATIONS.append((_get_gif_frames(path), _TOOLTIP if tooltip is None else tooltip))
     if len(_ANIMATIONS) == 1:
-        wx.CallAfter(_animate)
+        threading.Thread(target=_animate, name=f'{wx.adv.TaskBarIcon.__name__}-{os.path.basename(path)}',
+                         daemon=True).start()
 
 
 def stop_animation(tooltip: typing.Optional[str] = None) -> bool:
@@ -202,7 +208,7 @@ def stop_animation(tooltip: typing.Optional[str] = None) -> bool:
             stopped = True
         else:
             for animation in _ANIMATIONS:
-                if tooltip == animation[1]:
+                if animation[1] == tooltip:
                     _ANIMATIONS.remove(animation)
                     stopped = True
                     break

@@ -1,3 +1,5 @@
+__version__ = '0.0.2'
+
 import contextlib
 import http.client
 import json
@@ -24,10 +26,10 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 _OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
 _CHUNK_SIZE = 32768
 
-USER_AGENT = 'request/0.0.1'
+USER_AGENT = f'request/{__version__}'
 
 
-class LazyResponse:
+class Response:
     def __init__(self,
                  response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]):
         self.chunk_size = _CHUNK_SIZE
@@ -81,14 +83,14 @@ def urlopen(url: str,
             data: typing.Optional[bytes] = None,
             headers: typing.Optional[dict[str, str]] = None,
             redirection: typing.Optional[bool] = None,
-            stream: typing.Optional[bool] = None) -> LazyResponse:
+            stream: typing.Optional[bool] = None) -> Response:
     query = {}
     for key, value in (params or {}).items():
         query[key] = value
     try:
         request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', data)
-    except ValueError as request:
-        return LazyResponse(urllib.error.URLError(request))
+    except ValueError as error:
+        return Response(urllib.error.URLError(error))
     else:
         request.add_header('User-Agent', USER_AGENT)
         for head, val in (headers or {}).items():
@@ -97,9 +99,9 @@ def urlopen(url: str,
             urllib.request.install_opener(_OPENERS[1 if redirection else 0])
             response = urllib.request.urlopen(request)
         except urllib.error.URLError as response:
-            return LazyResponse(response)
+            return Response(response)
         else:
-            lazy_response = LazyResponse(response)
+            lazy_response = Response(response)
             if stream is False:
                 lazy_response.get_content()
             return lazy_response
@@ -134,7 +136,7 @@ def upload(url: str,
            fields: typing.Optional[dict[str, str]] = None,
            files: typing.Optional[dict[str, tuple[typing.Optional[str], str]]] = None,
            headers: typing.Optional[dict[str, str]] = None,
-           redirection: typing.Optional[bool] = None) -> LazyResponse:
+           redirection: typing.Optional[bool] = None) -> Response:
     boundary = uuid.uuid4().hex
     data = b''
     for name, val in (fields or {}).items():

@@ -1,3 +1,5 @@
+__version__ = '0.1.1'
+
 import configparser
 import functools
 import os
@@ -184,14 +186,6 @@ def search_wallpaper() -> bool:  # TODO: fix change + search break
     return searched
 
 
-def wait_before_exit() -> bool:
-    wait = False
-    while change_wallpaper.running or save_wallpaper.running or search_wallpaper.running:
-        time.sleep(0.1)
-        wait = True
-    return wait
-
-
 @utils.thread
 def on_change() -> bool:
     changed = change_wallpaper(Change.CALLBACK)
@@ -265,11 +259,12 @@ def on_save_config(is_checked: bool) -> None:
 
 @utils.thread
 def on_exit():
-    utils.disable()
     Change.REPEATABLE_TIMER.stop()
+    utils.disable()
     if CONFIG[NOTIFY] and (change_wallpaper.running or save_wallpaper.running or search_wallpaper.running):
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
-    wait_before_exit()
+    while change_wallpaper.running or save_wallpaper.running or search_wallpaper.running:
+        time.sleep(0.1)
     utils.on_exit()
 
 
@@ -284,7 +279,7 @@ def create_menu() -> None:
             change.SetItemLabel(f'{LANGUAGE.CHANGE}')
 
     Change.CALLBACK = wrapper
-    Change.REPEATABLE_TIMER = utils.timer(CONFIG[INTERVAL], on_change)
+    Change.REPEATABLE_TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
                                       CONFIG[CHANGE], INTERVALS, on_change_interval,
                                       builtin_args=(utils.get_property.UID,))
@@ -313,7 +308,8 @@ def create_menu() -> None:
 
 def start() -> None:
     if 'debug' in sys.argv:  # TODO: gui debug
-        libraries.log.init('languages', 'libraries', 'modules', 'platforms')
+        # libraries.log.init('languages', 'libraries', 'modules', 'platforms')
+        libraries.log.init('libraries/gui.py')
     libraries.singleton.init(NAME, 'wait' in sys.argv,
                              crash_callback=print, crash_callback_args=('Crash',),
                              wait_callback=print, wait_callback_args=('Wait',),
@@ -328,10 +324,10 @@ def start() -> None:
     utils.start(RES_PATHS[0], NAME, on_change)
 
 
-def stop() -> None:
+def stop() -> None:  # TODO: not stopping on log out
+    utils.kill()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    wait_before_exit()  # TODO: close long running tasks
     utils.delete_dir(TEMP_DIR, 1)
     sys.exit()
 

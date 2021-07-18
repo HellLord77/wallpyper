@@ -1,4 +1,7 @@
+__version__ = '0.0.1'
+
 import datetime
+import inspect
 import logging
 import os
 import sys
@@ -71,7 +74,7 @@ class Level:
 
 
 def init(*dirs_or_paths: str,
-         base: str = os.path.dirname(__file__),
+         base: str = os.path.dirname(inspect.stack()[-1].filename),  # TODO: verify frozen
          level: int = Level.DEBUG) -> None:
     global _LEVEL
     for dir_ in (base,) + dirs_or_paths:

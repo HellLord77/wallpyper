@@ -1,3 +1,5 @@
+__version__ = '0.0.1'
+
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
 _CODES = set()

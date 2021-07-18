@@ -1,9 +1,13 @@
+__version__ = '0.0.2'
+
 import contextlib
 import filecmp
 import os
 import shutil
 import time
 import typing
+
+WAIT = 0.01
 
 
 def copy(src_path: str,
@@ -26,11 +30,11 @@ def remove(path: str) -> bool:
 def remove_tree(path: str,
                 timeout: typing.Optional[float] = None) -> bool:
     removed = not os.path.exists(path)
-    end_time = time.time() + (timeout or 0.0)
+    end_time = time.time() + (timeout or WAIT)
     while end_time > time.time():
         shutil.rmtree(path, True)
         removed = not os.path.exists(path)
         if removed:
             break
-        time.sleep(0.1)
+        time.sleep(WAIT)
     return removed
