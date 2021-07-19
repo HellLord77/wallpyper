@@ -7,7 +7,7 @@ import winreg
 
 import libraries.ctype
 
-_MAX_PATH = 260
+_MAX_PATH = 32 * 1024
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 

@@ -1,4 +1,7 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
+
+import enum
+import sys
 
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
@@ -7,10 +10,13 @@ _CODES = set()
 
 class _Code:
     def __init_subclass__(cls):
-        for var in cls.__dict__:
-            if not var.startswith('__') and not var.endswith('__'):
-                value = f'{_CSI}{cls.__dict__[var]}m'
-                setattr(cls, var, value)
+        supports_ansi = getattr(sys.stdout, 'isatty', lambda: False)()
+        for name in dir(cls):
+            # noinspection PyProtectedMember
+            if not (enum._is_descriptor(getattr(cls, name)) or enum._is_dunder(name) or
+                    enum._is_sunder(name) or enum._is_private(cls.__name__, name)):
+                value = f'{_CSI}{cls.__dict__[name]}m' if supports_ansi else ''
+                setattr(cls, name, value)
                 _CODES.add(value)
 
 

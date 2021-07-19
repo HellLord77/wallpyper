@@ -41,4 +41,3 @@ upload_url = libraries.request.upload
 
 timer = libraries.timer.Timer
 thread = libraries.timer.on_thread
-kill = libraries.timer.kill_all

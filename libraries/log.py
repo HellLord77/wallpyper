@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import datetime
 import inspect
@@ -8,7 +8,7 @@ import sys
 import threading
 import typing
 
-_PREFIX = {
+_PREFIXES = {
     'call': '\x1b[92m[>] ',
     'call_details': '\x1b[32m    ',
     'exception': '\x1b[91m[!] ',
@@ -23,7 +23,17 @@ _PATHS = set()
 _LEVEL = 0
 
 
-def _get_prefix(frame) -> str:
+def _supports_ansi() -> bool:
+    global _SUFFIX
+    supports = getattr(sys.stdout, 'isatty', lambda: False)()
+    if not supports:
+        for event, prefix in _PREFIXES.items():
+            _PREFIXES[event] = prefix[prefix.find('m') + 1:]
+        _SUFFIX = _SUFFIX[_SUFFIX.find('m') + 1:]
+    return supports
+
+
+def _get_class_name(frame) -> str:
     if 'self' in frame.f_locals:
         return f'{frame.f_locals["self"].__class__.__name__}.'
     elif 'cls' in frame.f_locals:
@@ -52,15 +62,15 @@ def _hook_callback(frame,
                    arg: typing.Any) -> typing.Callable:
     frame.f_trace_lines = False
     if _filter(event, arg, frame.f_code.co_name) and frame.f_code.co_filename in _PATHS:
-        log = f'{_PREFIX[event]}{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} ' \
-              f'{frame.f_lineno}] {_get_prefix(frame)}{frame.f_code.co_name}{_SUFFIX}'
+        log = f'{_PREFIXES[event]}{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} ' \
+              f'{frame.f_lineno}] {_get_class_name(frame)}{frame.f_code.co_name}{_SUFFIX}'
         if event == 'call':
             for key, value in frame.f_locals.items():
-                log += f'{_PREFIX[f"call_details"]}{key}: {value}{_SUFFIX}'
+                log += f'{_PREFIXES[f"call_details"]}{key}: {value}{_SUFFIX}'
         elif event == _EXCEPTION:
-            log += f'{_PREFIX[f"exception_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
+            log += f'{_PREFIXES[f"exception_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
         elif event == 'return':
-            log += f'{_PREFIX[f"return_details"]}return: {arg}{_SUFFIX}'
+            log += f'{_PREFIXES[f"return_details"]}return: {arg}{_SUFFIX}'
         logging.debug(log[:-1])
     return _hook_callback
 
@@ -74,20 +84,26 @@ class Level:
 
 
 def init(*dirs_or_paths: str,
-         base: str = os.path.dirname(inspect.stack()[-1].filename),  # TODO: verify frozen
-         level: int = Level.DEBUG) -> None:
+         base: str = os.path.dirname(inspect.stack()[-1].filename),
+         level: int = Level.DEBUG,
+         redirect_wx: bool = False,
+         skip_ansi_check: bool = False) -> None:  # TODO: debug frozen
     global _LEVEL
-    for dir_ in (base,) + dirs_or_paths:
+    logging.root.setLevel(logging.DEBUG)
+    for dir_ in dirs_or_paths:
         dir_or_path = os.path.realpath(os.path.join(base, dir_))
         if os.path.isdir(dir_or_path):
-            for name in os.listdir(dir_or_path):
-                path = os.path.join(dir_or_path, name)
-                if os.path.isfile(path):
-                    _PATHS.add(path)
+            for root, _, names in os.walk(dir_or_path):
+                for name in names:
+                    _PATHS.add(os.path.join(root, name))
         elif os.path.isfile(dir_or_path):
             _PATHS.add(dir_or_path)
     _LEVEL = level
-    logging.root.setLevel(logging.DEBUG)
+    if redirect_wx:
+        import wx
+        wx.GetApp().RedirectStdio()
+    if not skip_ansi_check:
+        _supports_ansi()
     logging.root.addHandler(logging.StreamHandler())
     sys.settrace(_hook_callback)
     threading.settrace(_hook_callback)

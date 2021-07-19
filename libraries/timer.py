@@ -1,4 +1,4 @@
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import collections
 import contextlib
@@ -7,9 +7,7 @@ import functools
 import threading
 import typing
 
-MAX_LEN = 5
-
-_TIMERS = []
+MAX_LEN = 32
 
 
 class _ThreadExit(SystemExit):
@@ -17,6 +15,15 @@ class _ThreadExit(SystemExit):
 
 
 class Timer:
+    _instances = []
+
+    @classmethod
+    def kill_all(cls) -> bool:
+        killed = True
+        for timer in cls._instances:
+            killed = timer.kill() and killed
+        return killed
+
     def __init__(self,
                  callback: typing.Callable,
                  callback_args: typing.Optional[tuple] = None,
@@ -37,7 +44,7 @@ class Timer:
         self._running = False
         self._timer = threading.Timer(interval or 0.0, wrapper)
         self._timers = collections.deque((), MAX_LEN)
-        _TIMERS.append(self)
+        self._instances.append(self)
 
     @property
     def initialized(self) -> bool:
@@ -82,22 +89,9 @@ def start_once(callback: typing.Callable,
     return timer
 
 
-def start_now(callback: typing.Callable,
-              callback_args: typing.Optional[tuple] = None,
-              callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> Timer:
-    return start_once(callback, callback_args, callback_kwargs)
-
-
 def on_thread(callback: typing.Callable) -> typing.Callable:
     @functools.wraps(callback)
     def wrapper(*args, **kwargs):
-        start_now(callback, args, kwargs)
+        start_once(callback, args, kwargs)
 
     return wrapper
-
-
-def kill_all() -> bool:
-    killed = True
-    for timer in _TIMERS:
-        killed = timer.kill() and killed
-    return killed

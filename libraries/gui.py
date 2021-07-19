@@ -1,6 +1,7 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import atexit
+import enum
 import functools
 import itertools
 import os.path
@@ -29,22 +30,11 @@ class Icon:
     QUESTION = wx.ICON_QUESTION
 
 
-class _Arg(type):
-    def __new__(mcs, *args, **kwargs):
-        instance = super(_Arg, mcs).__new__(mcs, *args, **kwargs)
-        instance._values = set(value for var, value in instance.__dict__.items()
-                               if not var.startswith('__') and not var.endswith('__'))
-        return instance
-
-    def __contains__(cls, item):
-        return item in cls._values
-
-
-class Method(metaclass=_Arg):
+class Method:
     SET_LABEL = wx.MenuItem.SetItemLabel.__name__
 
 
-class Property(metaclass=_Arg):
+class Property:
     CHECKED = wx.MenuItem.IsChecked.__name__
     ENABLED = wx.MenuItem.IsEnabled.__name__
     UID = wx.MenuItem.GetHelp.__name__
@@ -59,6 +49,17 @@ _TOOLTIP: str = ''
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 
 
+@functools.cache
+def _get_values(cls: type) -> set[str]:
+    values = set()
+    for name in dir(cls):
+        # noinspection PyProtectedMember
+        if not (enum._is_descriptor(getattr(cls, name)) or enum._is_dunder(name) or
+                enum._is_sunder(name) or enum._is_private(cls.__name__, name)):
+            values.add(getattr(cls, name))
+    return values
+
+
 def _get_wrapper(menu_item: wx.MenuItem,
                  callback: typing.Callable,
                  callback_args: tuple,
@@ -68,9 +69,9 @@ def _get_wrapper(menu_item: wx.MenuItem,
     def wrapper(_: wx.Event):
         builtin_args_ = []
         for builtin_arg in builtin_args:
-            if builtin_arg in Method:
+            if builtin_arg in _get_values(Method):
                 builtin_args_.append(getattr(menu_item, builtin_arg))
-            elif builtin_arg in Property:
+            elif builtin_arg in _get_values(Property):
                 builtin_args_.append(getattr(menu_item, builtin_arg)())
         callback(*builtin_args_, *callback_args, **callback_kwargs)
 
@@ -181,12 +182,12 @@ def _get_gif_frames(path: str) -> itertools.cycle:
                            for i in range(animation.GetFrameCount()))
 
 
-def _animate() -> None:  # TODO: queue
+def _animate() -> None:
     while _ANIMATIONS:
         delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
         _TASK_BAR_ICON.SetIcon(icon, tooltip)
         time.sleep(delay / 1000)
-        if not _APP.IsMainLoopRunning():
+        if not wx.GetApp().IsMainLoopRunning():
             break
     else:
         _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
@@ -195,9 +196,9 @@ def _animate() -> None:  # TODO: queue
 def start_animation(path: str,
                     tooltip: typing.Optional[str] = None) -> None:
     _ANIMATIONS.append((_get_gif_frames(path), _TOOLTIP if tooltip is None else tooltip))
-    if len(_ANIMATIONS) == 1:
-        threading.Thread(target=_animate, name=f'{wx.adv.TaskBarIcon.__name__}-{os.path.basename(path)}',
-                         daemon=True).start()
+    if not any(thread.name.startswith(f'{wx.adv.TaskBarIcon.__name__}Animation-') for thread in threading.enumerate()):
+        threading.Thread(target=_animate,
+                         name=f'{wx.adv.TaskBarIcon.__name__}Animation-{os.path.basename(path)}', daemon=True).start()
 
 
 def stop_animation(tooltip: typing.Optional[str] = None) -> bool:

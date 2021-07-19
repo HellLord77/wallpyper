@@ -23,8 +23,8 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
         return
 
 
+_MIN_CHUNK = 32 * 1024
 _OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
-_CHUNK_SIZE = 32768
 
 USER_AGENT = f'request/{__version__}'
 
@@ -32,7 +32,7 @@ USER_AGENT = f'request/{__version__}'
 class Response:
     def __init__(self,
                  response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]):
-        self.chunk_size = _CHUNK_SIZE
+        self.chunk_size = _MIN_CHUNK
         self.response = response
         self.reason = response.reason
         self.get_header = getattr(response, 'getheader', lambda _, default=None: default)
@@ -118,7 +118,7 @@ def download(url: str,
     response = urlopen(url)
     if response:
         size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
-        response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _CHUNK_SIZE)
+        response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as file:

@@ -307,9 +307,8 @@ def create_menu() -> None:
 
 
 def start() -> None:
-    if 'debug' in sys.argv:  # TODO: gui debug
-        # libraries.log.init('languages', 'libraries', 'modules', 'platforms')
-        libraries.log.init('libraries/gui.py')
+    if 'debug' in sys.argv:  # __file__ is most prob removed if frozen
+        libraries.log.init(__file__, utils.__file__, 'languages', 'libraries', 'modules', 'platforms')
     libraries.singleton.init(NAME, 'wait' in sys.argv,
                              crash_callback=print, crash_callback_args=('Crash',),
                              wait_callback=print, wait_callback_args=('Wait',),
@@ -325,7 +324,7 @@ def start() -> None:
 
 
 def stop() -> None:  # TODO: not stopping on log out
-    utils.kill()
+    utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     utils.delete_dir(TEMP_DIR, 1)

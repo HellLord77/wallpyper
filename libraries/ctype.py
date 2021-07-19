@@ -111,6 +111,7 @@ class Pointer(typing.Generic[_CT]):
 
 class Type:
     c_byte = typing.Union[ctypes.c_byte, int]
+    c_ubyte = typing.Union[ctypes.c_ubyte, int]
     c_void_p = typing.Union[ctypes.c_void_p, ctypes.c_wchar_p, int, str]
     c_wchar_p = typing.Union[ctypes.c_wchar_p, str]
     c_int = typing.Union[ctypes.c_int, int]
@@ -217,6 +218,9 @@ class Function:
                              Type.c_void_p] = ctypes.cdll.msvcrt.memmove
     wcslen: typing.Callable[[Type.c_wchar_p],
                             Type.size_t] = ctypes.cdll.msvcrt.wcslen
+
+    rtl_are_long_paths_enabled: typing.Callable[[],
+                                                Type.c_ubyte] = ctypes.windll.ntdll.RtlAreLongPathsEnabled
 
     global_alloc: typing.Callable[[Type.UINT, Type.SIZE_T],
                                   Type.HGLOBAL] = ctypes.windll.kernel32.GlobalAlloc
