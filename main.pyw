@@ -63,17 +63,7 @@ CONFIG = {}
 
 class Change:
     CALLBACK = None
-    REPEATABLE_TIMER = None
-
-
-@utils.cache
-def _get_getters(config_parser: configparser.ConfigParser) -> dict[type, typing.Callable[[str, str], typing.Any]]:
-    return {
-        str: config_parser.get,
-        int: config_parser.getint,
-        float: config_parser.getfloat,
-        bool: config_parser.getboolean
-    }
+    TIMER = None
 
 
 def _load_config(config_parser: configparser.ConfigParser,
@@ -81,7 +71,12 @@ def _load_config(config_parser: configparser.ConfigParser,
                  config: dict[str, typing.Union[str, int, float, bool]],
                  default_config: dict[str, typing.Union[str, int, float, bool]]) -> bool:
     loaded = True
-    getters = _get_getters(config_parser)
+    getters = {
+        str: config_parser.get,
+        int: config_parser.getint,
+        float: config_parser.getfloat,
+        bool: config_parser.getboolean
+    }
     config.update(default_config)
     if config_parser.has_section(section):
         for option, value in default_config.items():
@@ -173,7 +168,7 @@ def save_wallpaper() -> bool:
 
 
 @utils.single
-def search_wallpaper() -> bool:  # TODO: fix change + search break
+def search_wallpaper() -> bool:  # TODO: fix change + search
     searched = False
     utils.animate(RES_PATHS[1], LANGUAGE.SEARCHING)
     for path in _get_wallpaper_paths():
@@ -201,7 +196,7 @@ def on_auto_change(is_checked: bool, change_interval: typing.Optional[wx.MenuIte
     CONFIG[CHANGE] = is_checked
     if change_interval:
         change_interval.Enable(True)
-    Change.REPEATABLE_TIMER.start(CONFIG[INTERVAL]) if is_checked else Change.REPEATABLE_TIMER.stop()
+    Change.TIMER.start(CONFIG[INTERVAL]) if is_checked else Change.TIMER.stop()
 
 
 def on_change_interval(interval: str) -> None:
@@ -259,7 +254,7 @@ def on_save_config(is_checked: bool) -> None:
 
 @utils.thread
 def on_exit():
-    Change.REPEATABLE_TIMER.stop()
+    Change.TIMER.stop()
     utils.disable()
     if CONFIG[NOTIFY] and (change_wallpaper.running or save_wallpaper.running or search_wallpaper.running):
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
@@ -279,7 +274,7 @@ def create_menu() -> None:
             change.SetItemLabel(f'{LANGUAGE.CHANGE}')
 
     Change.CALLBACK = wrapper
-    Change.REPEATABLE_TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
+    Change.TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
                                       CONFIG[CHANGE], INTERVALS, on_change_interval,
                                       builtin_args=(utils.get_property.UID,))
@@ -323,14 +318,18 @@ def start() -> None:
     utils.start(RES_PATHS[0], NAME, on_change)
 
 
-def stop() -> None:  # TODO: not stopping on log out
+def stop() -> None:  # TODO: not stopping on log out, save on every menu close
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    utils.delete_dir(TEMP_DIR, 1)
+    utils.delete_dir(TEMP_DIR)
+
+
+def main() -> typing.NoReturn:
+    start()
+    stop()
     sys.exit()
 
 
 if __name__ == '__main__':
-    start()
-    stop()
+    main()

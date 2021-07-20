@@ -59,11 +59,11 @@ class Response:
             self._content = self.response.read()  # TODO: handle exception
         return self._content
 
-    def get_json(self) -> typing.Union[dict, list, str, int, float, bool, None]:
+    def get_json(self) -> typing.Optional[typing.Union[dict, list, str, int, float, bool]]:
         try:
             return json.loads(self.get_text())
         except json.decoder.JSONDecodeError:
-            return {}
+            return None
 
     def get_text(self) -> str:
         return self.get_content().decode()

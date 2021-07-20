@@ -78,17 +78,6 @@ def _get_wrapper(menu_item: wx.MenuItem,
     return wrapper
 
 
-def _destroy() -> None:
-    _MENU.Destroy()
-    _TASK_BAR_ICON.RemoveIcon()
-    _TASK_BAR_ICON.Destroy()
-    _APP.Destroy()
-
-
-def _on_right_click(_: wx.Event) -> None:
-    _TASK_BAR_ICON.PopupMenu(_MENU)
-
-
 def add_menu_item(label: str,
                   kind: typing.Optional[int] = None,
                   check: typing.Optional[bool] = None,
@@ -144,6 +133,17 @@ def show_balloon(title: str,
                  icon: typing.Optional[int] = None) -> bool:
     _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
+
+
+def _on_right_click(_: wx.Event) -> None:
+    _TASK_BAR_ICON.PopupMenu(_MENU)
+
+
+def _destroy() -> None:
+    _MENU.Destroy()
+    _TASK_BAR_ICON.RemoveIcon()
+    _TASK_BAR_ICON.Destroy()
+    _APP.Destroy()
 
 
 def start_loop(path: str,

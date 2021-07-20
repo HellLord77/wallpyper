@@ -15,12 +15,6 @@ MAX_WAIT = 5
 SUFFIX = '.lock'
 
 
-def _get_uid(path: typing.Optional[str] = None,
-             prefix: typing.Optional[str] = None) -> str:
-    with open(path or sys.argv[0], 'rb') as file:
-        return f'{prefix or __name__}_{zlib.adler32(file.read())}{SUFFIX}'
-
-
 def _wait_or_exit(end_time: float,
                   wait_callback: typing.Optional[typing.Callable],
                   wait_callback_args: tuple,
@@ -128,6 +122,12 @@ class Method:
     FILE = _file
     MEMORY = _memory
     SOCKET = _socket
+
+
+def _get_uid(path: typing.Optional[str] = None,
+             prefix: typing.Optional[str] = None) -> str:
+    with open(path or sys.argv[0], 'rb') as file:
+        return f'{prefix or __name__}_{zlib.adler32(file.read())}{SUFFIX}'
 
 
 def init(name_prefix: typing.Optional[str] = None,

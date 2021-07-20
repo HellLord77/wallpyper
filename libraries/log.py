@@ -23,6 +23,14 @@ _PATHS = set()
 _LEVEL = 0
 
 
+class Level:
+    ERROR = logging.ERROR
+    WARNING = logging.WARNING
+    INFO = logging.INFO
+    DEBUG = logging.DEBUG
+    NOTSET = logging.NOTSET
+
+
 def _supports_ansi() -> bool:
     global _SUFFIX
     supports = getattr(sys.stdout, 'isatty', lambda: False)()
@@ -31,15 +39,6 @@ def _supports_ansi() -> bool:
             _PREFIXES[event] = prefix[prefix.find('m') + 1:]
         _SUFFIX = _SUFFIX[_SUFFIX.find('m') + 1:]
     return supports
-
-
-def _get_class_name(frame) -> str:
-    if 'self' in frame.f_locals:
-        return f'{frame.f_locals["self"].__class__.__name__}.'
-    elif 'cls' in frame.f_locals:
-        return f'{frame.f_locals["cls"].__name__}.'
-    else:
-        return ''
 
 
 def _filter(event: str,
@@ -55,6 +54,15 @@ def _filter(event: str,
         return event == _EXCEPTION and issubclass(arg[0], Warning)
     elif _LEVEL == Level.NOTSET:
         return False
+
+
+def _get_class_name(frame) -> str:
+    if 'self' in frame.f_locals:
+        return f'{frame.f_locals["self"].__class__.__name__}.'
+    elif 'cls' in frame.f_locals:
+        return f'{frame.f_locals["cls"].__name__}.'
+    else:
+        return ''
 
 
 def _hook_callback(frame,
@@ -73,14 +81,6 @@ def _hook_callback(frame,
             log += f'{_PREFIXES[f"return_details"]}return: {arg}{_SUFFIX}'
         logging.debug(log[:-1])
     return _hook_callback
-
-
-class Level:
-    ERROR = logging.ERROR
-    WARNING = logging.WARNING
-    INFO = logging.INFO
-    DEBUG = logging.DEBUG
-    NOTSET = logging.NOTSET
 
 
 def init(*dirs_or_paths: str,

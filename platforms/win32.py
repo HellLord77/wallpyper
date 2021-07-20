@@ -17,6 +17,43 @@ def _get_dir(csidl: int) -> str:
     return buffer.value
 
 
+APPDATA_DIR = _get_dir(libraries.ctype.Constant.CSIDL_APPDATA)
+PICTURES_DIR = _get_dir(libraries.ctype.Constant.CSIDL_MYPICTURES)
+TEMP_DIR = os.path.join(_get_dir(libraries.ctype.Constant.CSIDL_LOCAL_APPDATA), 'Temp')
+WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
+
+
+def _get_clipboard(format_: int) -> libraries.ctype.Type.HANDLE:
+    libraries.ctype.Function.open_clipboard(None)
+    handle = libraries.ctype.Function.get_clipboard_data(format_)
+    libraries.ctype.Function.close_clipboard()
+    return handle
+
+
+def paste_text() -> str:
+    return libraries.ctype.cast(_get_clipboard(libraries.ctype.Constant.CF_UNICODETEXT),
+                                libraries.ctype.Type.c_wchar_p).value or ''
+
+
+def _set_clipboard(format_: int,
+                   hglobal: int) -> None:
+    libraries.ctype.Function.open_clipboard(None)
+    libraries.ctype.Function.empty_clipboard()
+    libraries.ctype.Function.set_clipboard_data(format_, hglobal)
+    libraries.ctype.Function.close_clipboard()
+
+
+def copy_text(text: str) -> bool:
+    size = (libraries.ctype.Function.wcslen(text) + 1) * libraries.ctype.sizeof(libraries.ctype.Type.c_wchar)
+    handle = libraries.ctype.Function.global_alloc(libraries.ctype.Constant.GMEM_MOVEABLE, size)
+    if handle:
+        buffer = libraries.ctype.Function.global_lock(handle)
+        if buffer:
+            libraries.ctype.Function.memmove(buffer, text, size)
+            _set_clipboard(libraries.ctype.Constant.CF_UNICODETEXT, handle)
+    return text == paste_text()
+
+
 @contextlib.contextmanager
 def _get_hbitmap(path: str) -> libraries.ctype.Type.HBITMAP:
     hbitmap = libraries.ctype.Type.HBITMAP()
@@ -34,43 +71,6 @@ def _get_hbitmap(path: str) -> libraries.ctype.Type.HBITMAP:
     finally:
         if hbitmap:
             libraries.ctype.Function.delete_object(hbitmap)
-
-
-def _get_clipboard(format_: int) -> libraries.ctype.Type.HANDLE:
-    libraries.ctype.Function.open_clipboard(None)
-    handle = libraries.ctype.Function.get_clipboard_data(format_)
-    libraries.ctype.Function.close_clipboard()
-    return handle
-
-
-def _set_clipboard(format_: int,
-                   hglobal: int) -> None:
-    libraries.ctype.Function.open_clipboard(None)
-    libraries.ctype.Function.empty_clipboard()
-    libraries.ctype.Function.set_clipboard_data(format_, hglobal)
-    libraries.ctype.Function.close_clipboard()
-
-
-APPDATA_DIR = _get_dir(libraries.ctype.Constant.CSIDL_APPDATA)
-PICTURES_DIR = _get_dir(libraries.ctype.Constant.CSIDL_MYPICTURES)
-TEMP_DIR = os.path.join(_get_dir(libraries.ctype.Constant.CSIDL_LOCAL_APPDATA), 'Temp')
-WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
-
-
-def paste_text() -> str:
-    return libraries.ctype.cast(_get_clipboard(libraries.ctype.Constant.CF_UNICODETEXT),
-                                libraries.ctype.Type.c_wchar_p).value or ''
-
-
-def copy_text(text: str) -> bool:
-    size = (libraries.ctype.Function.wcslen(text) + 1) * libraries.ctype.sizeof(libraries.ctype.Type.c_wchar)
-    handle = libraries.ctype.Function.global_alloc(libraries.ctype.Constant.GMEM_MOVEABLE, size)
-    if handle:
-        buffer = libraries.ctype.Function.global_lock(handle)
-        if buffer:
-            libraries.ctype.Function.memmove(buffer, text, size)
-            _set_clipboard(libraries.ctype.Constant.CF_UNICODETEXT, handle)
-    return text == paste_text()
 
 
 def copy_image(path: str) -> bool:
@@ -116,12 +116,18 @@ def set_wallpaper(*paths: str) -> bool:
     return False
 
 
+def _swap_char(string: str,
+               a: str,
+               b: str) -> str:
+    return ''.join(a if char == b else b if char == a else char for char in string)
+
+
 def register_autorun(name: str,
                      path: str,
                      *args: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
                         access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
-        value = shlex.join((path,) + args)
+        value = _swap_char(shlex.join((path,) + args), '"', "'")
         try:
             winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
         except PermissionError:
