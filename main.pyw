@@ -44,7 +44,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
     SAVE_DATA: False
 }
 
-RES_PATHS = tuple(os.path.join(os.path.dirname(__file__), 'resources', name)
+RES_PATHS = tuple(utils.join_path(os.path.dirname(__file__), 'resources', name)
                   for name in ('pinwheel.png', 'wedges.gif'))
 TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)  # utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')

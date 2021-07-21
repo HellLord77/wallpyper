@@ -41,11 +41,9 @@ class Property:
 
 
 _APP = wx.App()
-_ICON = wx.Icon()
-_MENU = wx.Menu()
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
-
-_TOOLTIP: str = ''
+_MENU = wx.Menu()
+_ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 
 
@@ -131,7 +129,7 @@ def add_submenu(label: str,
 def show_balloon(title: str,
                  text: str,
                  icon: typing.Optional[int] = None) -> bool:
-    _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
+    _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
 
@@ -140,6 +138,7 @@ def _on_right_click(_: wx.Event) -> None:
 
 
 def _destroy() -> None:
+    _ANIMATIONS.clear()
     _MENU.Destroy()
     _TASK_BAR_ICON.RemoveIcon()
     _TASK_BAR_ICON.Destroy()
@@ -151,9 +150,8 @@ def start_loop(path: str,
                callback: typing.Optional[typing.Callable] = None,
                callback_args: typing.Optional[tuple] = None,
                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
-    global _TOOLTIP
-    _TOOLTIP = tooltip
     _ICON.LoadFile(path)
+    _APP.SetAppName(tooltip)
     if callback:
         @functools.wraps(callback)
         def wrapper(_):
@@ -187,15 +185,13 @@ def _animate() -> None:
         delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
         _TASK_BAR_ICON.SetIcon(icon, tooltip)
         time.sleep(delay / 1000)
-        if not wx.GetApp().IsMainLoopRunning():
-            break
     else:
-        _TASK_BAR_ICON.SetIcon(_ICON, _TOOLTIP)
+        _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
 
 
 def start_animation(path: str,
                     tooltip: typing.Optional[str] = None) -> None:
-    _ANIMATIONS.append((_get_gif_frames(path), _TOOLTIP if tooltip is None else tooltip))
+    _ANIMATIONS.append((_get_gif_frames(path), _APP.GetAppName() if tooltip is None else tooltip))
     if not any(thread.name.startswith(f'{wx.adv.TaskBarIcon.__name__}Animation-') for thread in threading.enumerate()):
         threading.Thread(target=_animate,
                          name=f'{wx.adv.TaskBarIcon.__name__}Animation-{os.path.basename(path)}', daemon=True).start()

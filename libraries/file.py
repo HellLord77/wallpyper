@@ -1,4 +1,4 @@
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import contextlib
 import filecmp
@@ -8,6 +8,11 @@ import time
 import typing
 
 DELAY = 0.01
+
+
+def join(base: str,
+         *children: str) -> str:
+    return os.path.realpath(os.path.join(base, *children))
 
 
 def copy(src_path: str,
@@ -29,12 +34,8 @@ def remove(path: str) -> bool:
 
 def remove_tree(path: str,
                 timeout: typing.Optional[float] = None) -> bool:
-    removed = not os.path.exists(path)
     end_time = time.time() + (timeout or DELAY)
-    while end_time > time.time():
+    while exists := os.path.exists(path) and end_time > time.time():
         shutil.rmtree(path, True)
-        removed = not os.path.exists(path)
-        if removed:
-            break
         time.sleep(DELAY)
-    return removed
+    return not exists

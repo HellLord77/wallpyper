@@ -8,9 +8,9 @@ import libraries.gui
 import libraries.request
 import libraries.timer
 
-join_path = os.path.join
 exists_file = os.path.isfile
 
+join_path = libraries.file.join
 copy_file = libraries.file.copy
 delete_file = libraries.file.remove
 delete_dir = libraries.file.remove_tree
