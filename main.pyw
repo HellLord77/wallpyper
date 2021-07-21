@@ -318,7 +318,7 @@ def start() -> None:
     utils.start(RES_PATHS[0], NAME, on_change)
 
 
-def stop() -> None:  # TODO: not stopping on log out, save on every menu close
+def stop() -> None:  # TODO: not stopping on log out (frozen)
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])

@@ -11,7 +11,7 @@ import typing
 import zlib
 
 DELAY = 1
-MAX_WAIT = 5
+TIMEOUT = 5
 SUFFIX = '.lock'
 
 
@@ -47,7 +47,7 @@ def _file(uid: str,
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
     flags = os.O_CREAT | os.O_EXCL
-    end_time = time.time() + wait * MAX_WAIT - DELAY
+    end_time = time.time() + wait * TIMEOUT - DELAY
     while True:
         try:
             file = os.open(path, flags)
@@ -78,7 +78,7 @@ def _memory(uid: str,
             exit_callback: typing.Optional[typing.Callable],
             exit_callback_args: tuple,
             exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
-    end_time = time.time() + wait * MAX_WAIT - DELAY
+    end_time = time.time() + wait * TIMEOUT - DELAY
     while True:
         try:
             memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
@@ -105,7 +105,7 @@ def _socket(uid: str,
             exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    end_time = time.time() + wait * MAX_WAIT - DELAY
+    end_time = time.time() + wait * TIMEOUT - DELAY
     while True:
         try:
             server.bind(address)

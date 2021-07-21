@@ -22,7 +22,7 @@ def one_cache(callback: typing.Callable) -> typing.Callable:
     @functools.wraps(callback)
     def wrapper(*args, **kwargs):
         if not wrapper.cache or wrapper.cache[0] != args or wrapper.cache[1] != kwargs:
-            wrapper.cache[:] = args, kwargs.copy(), callback(*args, **kwargs)
+            wrapper.cache[:] = args, kwargs, callback(*args, **kwargs)
         return wrapper.cache[2]
 
     wrapper.cache = []
