@@ -260,7 +260,7 @@ def on_exit():
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
     while change_wallpaper.running or save_wallpaper.running or search_wallpaper.running:
         time.sleep(0.1)
-    utils.on_exit()
+    utils.stop()
 
 
 def create_menu() -> None:
@@ -318,7 +318,7 @@ def start() -> None:
     utils.start(RES_PATHS[0], NAME, on_change)
 
 
-def stop() -> None:  # TODO: not stopping on log out (frozen)
+def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])

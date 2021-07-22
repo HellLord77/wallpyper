@@ -29,7 +29,7 @@ add_items = libraries.gui.add_submenu
 notify = libraries.gui.show_balloon
 start = libraries.gui.start_loop
 disable = libraries.gui.disable
-on_exit = libraries.gui.stop_loop
+stop = libraries.gui.stop_loop
 animate = libraries.gui.start_animation
 inanimate = libraries.gui.stop_animation
 

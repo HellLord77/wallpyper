@@ -31,7 +31,7 @@ class Level:
     NOTSET = logging.NOTSET
 
 
-def _supports_ansi() -> bool:
+def _supported() -> bool:
     global _SUFFIX
     supports = getattr(sys.stdout, 'isatty', lambda: False)()
     if not supports:
@@ -87,7 +87,7 @@ def init(*dirs_or_paths: str,
          base: str = os.path.dirname(inspect.stack()[-1].filename),
          level: int = Level.DEBUG,
          redirect_wx: bool = False,
-         skip_ansi_check: bool = False) -> None:  # TODO: debug frozen
+         skip_compatibility: bool = False) -> None:  # TODO: debug frozen
     global _LEVEL
     logging.root.setLevel(logging.DEBUG)
     for dir_ in dirs_or_paths:
@@ -102,8 +102,8 @@ def init(*dirs_or_paths: str,
     if redirect_wx:
         import wx
         wx.GetApp().RedirectStdio()
-    if not skip_ansi_check:
-        _supports_ansi()
+    if not skip_compatibility:
+        _supported()
     logging.root.addHandler(logging.StreamHandler())
     sys.settrace(_hook_callback)
     threading.settrace(_hook_callback)

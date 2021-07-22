@@ -1,4 +1,4 @@
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import atexit
 import enum
@@ -41,6 +41,7 @@ class Property:
 
 
 _APP = wx.App()
+_FRAME = wx.Frame.__new__(wx.Frame)
 _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 _MENU = wx.Menu()
 _ICON = wx.Icon()
@@ -142,6 +143,7 @@ def _destroy() -> None:
     _MENU.Destroy()
     _TASK_BAR_ICON.RemoveIcon()
     _TASK_BAR_ICON.Destroy()
+    _FRAME.Destroy()
     _APP.Destroy()
 
 
@@ -160,6 +162,9 @@ def start_loop(path: str,
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)
     _TASK_BAR_ICON.SetIcon(_ICON, tooltip)
+    _FRAME.__init__(None)
+    _FRAME.Bind(wx.EVT_CLOSE, stop_loop)
+    _APP.Bind(wx.EVT_END_SESSION, stop_loop)
     atexit.register(_destroy)
     _APP.MainLoop()
 
@@ -169,7 +174,7 @@ def disable() -> None:
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
-def stop_loop() -> None:
+def stop_loop(*_) -> None:
     _APP.ExitMainLoop()
 
 

@@ -6,18 +6,17 @@ import sys
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
 _CODES = set()
+_SUPPORTED = getattr(sys.stdout, 'isatty', lambda: False)()
 
 
 class _Code:
     def __init_subclass__(cls):
-        supports_ansi = getattr(sys.stdout, 'isatty', lambda: False)()
         for name in dir(cls):
             # noinspection PyProtectedMember
             if not (enum._is_descriptor(getattr(cls, name)) or enum._is_dunder(name) or
                     enum._is_sunder(name) or enum._is_private(cls.__name__, name)):
-                value = f'{_CSI}{cls.__dict__[name]}m' if supports_ansi else ''
-                setattr(cls, name, value)
-                _CODES.add(value)
+                setattr(cls, name, f'{_CSI}{getattr(cls, name)}m' if _SUPPORTED else '')
+                _CODES.add(getattr(cls, name))
 
 
 class FontStyle(_Code):
