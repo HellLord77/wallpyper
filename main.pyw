@@ -15,7 +15,7 @@ import languages.en
 import libraries.log
 import libraries.singleton
 import modules.wallhaven
-# sys.platform
+# sys.platform [os.name (ctypes)]
 import platforms.win32
 import utils
 
@@ -256,9 +256,10 @@ def on_save_config(is_checked: bool) -> None:
 def on_exit():
     Change.TIMER.stop()
     utils.disable()
-    if CONFIG[NOTIFY] and (change_wallpaper.running or save_wallpaper.running or search_wallpaper.running):
+    if CONFIG[NOTIFY] and (change_wallpaper.is_running() or
+                           save_wallpaper.is_running() or search_wallpaper.is_running()):
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
-    while change_wallpaper.running or save_wallpaper.running or search_wallpaper.running:
+    while change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
         time.sleep(0.1)
     utils.stop()
 
@@ -328,7 +329,7 @@ def stop() -> None:
 def main() -> typing.NoReturn:
     start()
     stop()
-    sys.exit()
+    sys.exit()  # TODO: mei-pass not being cleaned (one-file)
 
 
 if __name__ == '__main__':

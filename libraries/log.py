@@ -87,7 +87,7 @@ def init(*dirs_or_paths: str,
          base: str = os.path.dirname(inspect.stack()[-1].filename),
          level: int = Level.DEBUG,
          redirect_wx: bool = False,
-         skip_compatibility: bool = False) -> None:  # TODO: debug frozen
+         skip_comp: bool = False) -> None:  # TODO: debug frozen
     global _LEVEL
     logging.root.setLevel(logging.DEBUG)
     for dir_ in dirs_or_paths:
@@ -102,7 +102,7 @@ def init(*dirs_or_paths: str,
     if redirect_wx:
         import wx
         wx.GetApp().RedirectStdio()
-    if not skip_compatibility:
+    if not skip_comp:
         _supported()
     logging.root.addHandler(logging.StreamHandler())
     sys.settrace(_hook_callback)

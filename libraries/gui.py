@@ -1,7 +1,6 @@
 __version__ = '0.0.7'
 
 import atexit
-import enum
 import functools
 import itertools
 import os.path
@@ -52,9 +51,7 @@ _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 def _get_values(cls: type) -> set[str]:
     values = set()
     for name in dir(cls):
-        # noinspection PyProtectedMember
-        if not (enum._is_descriptor(getattr(cls, name)) or enum._is_dunder(name) or
-                enum._is_sunder(name) or enum._is_private(cls.__name__, name)):
+        if not name.startswith('_'):
             values.add(getattr(cls, name))
     return values
 

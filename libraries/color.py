@@ -1,6 +1,5 @@
 __version__ = '0.0.2'
 
-import enum
 import sys
 
 _ESC = '\x1b'
@@ -12,9 +11,7 @@ _SUPPORTED = getattr(sys.stdout, 'isatty', lambda: False)()
 class _Code:
     def __init_subclass__(cls):
         for name in dir(cls):
-            # noinspection PyProtectedMember
-            if not (enum._is_descriptor(getattr(cls, name)) or enum._is_dunder(name) or
-                    enum._is_sunder(name) or enum._is_private(cls.__name__, name)):
+            if not name.startswith('_'):
                 setattr(cls, name, f'{_CSI}{getattr(cls, name)}m' if _SUPPORTED else '')
                 _CODES.add(getattr(cls, name))
 
