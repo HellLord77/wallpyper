@@ -53,8 +53,6 @@ def _init():
         func.argtypes = (_resolve_type(type_) for type_ in types_[0])
         func.restype = _resolve_type(types_[1])
 
-    globals()[Pointer.__name__] = ctypes.POINTER
-
 
 class Const:
     BI_BITFIELDS = 3
@@ -109,7 +107,6 @@ class Const:
 
 
 class Pointer(typing.Generic[_CT]):
-    contents = None
     value = None
 
     # noinspection PyTypeChecker,PyUnusedLocal
@@ -152,8 +149,6 @@ class Type:
     WCHAR = c_wchar
     WORD = c_ushort
 
-    COMDLG_FILTERSPEC = c_void_p  # Pointer[_COMDLG_FILTERSPEC]
-    IFileDialog = c_void_p  # Pointer[IFileDialog]
     LPUNKNOWN = c_void_p  # Pointer[IUnknown]
     REFCLSID = c_void_p  # Pointer[CLSID]
     REFGUID = c_void_p  # Pointer[GUID]
@@ -162,6 +157,8 @@ class Type:
     DebugEventProc = c_void_p  # DebugEventProc
     GpBitmap = c_void_p  # GpBitmap
     GpImage = c_void_p  # GpImage
+    IFileDialog = c_void_p  # IFileDialog
+    IUnknown = c_void_p  # IUnknown
 
     VOID = c_void_p
     PVOID = c_void_p
@@ -247,11 +244,11 @@ class Struct:
 
 class Vtbl:
     class IFileDialogVtbl:
-        QueryInterface: typing.Callable[[Type.IFileDialog, Type.REFIID, Type.c_void_p], Type.HRESULT]
+        QueryInterface: typing.Callable[[Type.IFileDialog, Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
         AddRef: typing.Callable[[Type.IFileDialog], Type.ULONG]
         Release: typing.Callable[[Type.IFileDialog], Type.ULONG]
         Show: typing.Callable[[Type.IFileDialog, Type.HWND], Type.HRESULT]
-        SetFileTypes: typing.Callable[[Type.IFileDialog, Type.UINT, Type.COMDLG_FILTERSPEC], Type.HRESULT]
+        SetFileTypes: typing.Callable[[], None]
         SetFileTypeIndex: typing.Callable[[Type.IFileDialog, Type.UINT], Type.HRESULT]
         GetFileTypeIndex: typing.Callable[[Type.IFileDialog, Type.UINT], Type.HRESULT]
         Advise: typing.Callable[[], None]
@@ -271,7 +268,7 @@ class Vtbl:
         AddPlace: typing.Callable[[], None]
         SetDefaultExtension: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
         Close: typing.Callable[[Type.IFileDialog, Type.HRESULT], Type.HRESULT]
-        SetClientGuid: typing.Callable[[Type.IFileDialog, Type.REFGUID], Type.HRESULT]
+        SetClientGuid: typing.Callable[[Type.IFileDialog, Pointer[Struct.GUID]], Type.HRESULT]
         ClearClientData: typing.Callable[[Type.IFileDialog], Type.HRESULT]
         SetFilter: typing.Callable[[], None]
 
@@ -348,15 +345,14 @@ class Func:
                                    Type.HRESULT] = ctypes.windll.ole32.CoInitialize
     co_uninitialize: typing.Callable[[],
                                      Type.VOID] = ctypes.windll.ole32.CoUninitialize
-    co_create_instance: typing.Callable[[Pointer[Struct.CLSID], Type.LPUNKNOWN,
+    co_create_instance: typing.Callable[[Pointer[Struct.CLSID], typing.Optional[Pointer[Type.IUnknown]],
                                          Type.DWORD, Pointer[Struct.IID], Type.LPVOID],
                                         Type.HRESULT] = ctypes.windll.ole32.CoCreateInstance
 
 
-def array(type_: _CT = Type.c_void_p,
-          *elements: typing.Any,
-          size: typing.Optional[int] = None) -> Pointer[_CT]:
-    return (type_ * (size or len(elements)))(*elements)
+def pointer(type_: _CT) -> Pointer[_CT]:
+    # noinspection PyTypeChecker
+    return ctypes.POINTER(type_)
 
 
 def byref(obj: _CT) -> Pointer[_CT]:
@@ -365,13 +361,20 @@ def byref(obj: _CT) -> Pointer[_CT]:
 
 
 def cast(obj: Pointer,
-         type_: Pointer[_CT]) -> Pointer[_CT]:
+         type_: typing.Union[Pointer[_CT], type]) -> Pointer[_CT]:
     # noinspection PyTypeChecker
-    return ctypes.cast(obj, type_)
+    return ctypes.cast(obj, type_ if not issubclass(
+        type_, ctypes.Structure) and hasattr(type_, 'from_param') else ctypes.POINTER(type_))
 
 
 def sizeof(obj: _CT) -> int:
     return ctypes.sizeof(obj)
+
+
+def array(type_: _CT = Type.c_void_p,
+          *elements: typing.Any,
+          size: typing.Optional[int] = None) -> Pointer[_CT]:
+    return (type_ * (size or len(elements)))(*elements)
 
 
 def char_array(obj: str,

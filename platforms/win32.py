@@ -86,7 +86,7 @@ def copy_image(path: str) -> bool:
             data = libraries.ctype.array(libraries.ctype.Type.BYTE, size=size)
             hdc = libraries.ctype.Func.get_DC(None)
             if libraries.ctype.Func.get_DI_bits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctype.cast(
-                    libraries.ctype.byref(bi), libraries.ctype.Pointer(libraries.ctype.Struct.BITMAPINFO)),
+                    libraries.ctype.byref(bi), libraries.ctype.Struct.BITMAPINFO),
                                                 libraries.ctype.Const.DIB_RGB_COLORS):
                 handle = libraries.ctype.Func.global_alloc(libraries.ctype.Const.GMEM_MOVEABLE, size_bi + size)
                 if handle:
