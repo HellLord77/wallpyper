@@ -3,14 +3,11 @@ from __future__ import annotations  # TODO: remove if >= 3.10
 __version__ = '0.0.1'
 
 import ctypes
-import ctypes.wintypes
 import dataclasses
 import functools
 import typing
 
 _CT = typing.TypeVar('_CT')
-_LP_c_void_p = ctypes.POINTER(ctypes.c_void_p)
-_SZ_c_void_p = ctypes.sizeof(ctypes.c_void_p)
 
 
 def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
@@ -19,12 +16,18 @@ def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
             yield name, val
 
 
-def _resolve_type(obj):
+def _resolve_pointer(type_):
     # noinspection PyProtectedMember,PyUnresolvedReferences
-    if isinstance(obj, typing._UnionGenericAlias):
-        obj = typing.get_args(obj)[0]
+    if isinstance(type_, typing._GenericAlias):
+        return ctypes.POINTER(_resolve_type(typing.get_args(type_)[0]))
+    return type_
+
+
+def _resolve_type(type_):
     # noinspection PyProtectedMember,PyUnresolvedReferences
-    return ctypes.POINTER(typing.get_args(obj)[0]) if isinstance(obj, typing._GenericAlias) else obj
+    if isinstance(type_, typing._UnionGenericAlias):
+        type_ = typing.get_args(type_)[0]
+    return _resolve_pointer(type_)
 
 
 def _init():
@@ -33,7 +36,7 @@ def _init():
 
     for var, struct in _items(Struct):
         class Wrapper(ctypes.Structure):
-            _fields_ = tuple(typing.get_type_hints(struct).items())
+            _fields_ = tuple((field, _resolve_type(type_)) for field, type_ in typing.get_type_hints(struct).items())
             _defaults = {field: getattr(struct, field) or type_() for field, type_ in _fields_}
 
             def __init__(self, *args, **kwargs):
@@ -49,22 +52,21 @@ def _init():
 
     for var, vtbl in _items(Vtbl):
         class Wrapper(ctypes.c_void_p):
-            _init = False
-            _funcs = {}
-            for func, types in typing.get_type_hints(vtbl).items():
-                types_ = typing.get_args(types)
-                _funcs[func] = ctypes.CFUNCTYPE(types_[1], *(_resolve_type(type_) for type_ in types_[0]))
+            _funcs = None
+            _fields_ = {func: typing.get_args(types) for func, types in typing.get_type_hints(vtbl).items()}
+            _fields_ = {func: ctypes.CFUNCTYPE(_resolve_type(types[1]), *(_resolve_type(
+                type) for type in types[0])) if types else ctypes.CFUNCTYPE(None) for func, types in _fields_.items()}
 
             def __getattr__(self, item):
-                if item in self._funcs:
-                    if not self._init:
-                        address = ctypes.cast(self, _LP_c_void_p).contents.value
-                        for func_, proto in self._funcs.items():
-                            # noinspection PyTypeChecker
-                            self._funcs[func_] = proto(ctypes.cast(address, _LP_c_void_p).contents.value)
-                            address += _SZ_c_void_p
-                        self._init = True
-                    return self._funcs[item]
+                if item in self._fields_:
+                    if not self._funcs:
+                        if not self:
+                            raise MemoryError(f'{type(self).__name__} is not initialized')
+                        # noinspection PyTypeChecker
+                        self._funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(ctypes.c_void_p)).contents.value,
+                                                  ctypes.POINTER(type('', (ctypes.Structure,), {
+                                                      '_fields_': tuple(self._fields_.items())}))).contents
+                    return getattr(self._funcs, item)
                 return super().__getattribute__(item)
 
         functools.update_wrapper(Wrapper, vtbl, updated=())
@@ -78,6 +80,18 @@ def _init():
 
 
 class Const:
+    AD_APPLY_SAVE = 1
+    AD_APPLY_HTMLGEN = 2
+    AD_APPLY_REFRESH = 4
+    AD_APPLY_ALL = 7
+    AD_APPLY_FORCE = 8
+    AD_APPLY_BUFFERED_REFRESH = 16
+    AD_APPLY_DYNAMICREFRESH = 32
+
+    AD_GETWP_BMP = 0
+    AD_GETWP_IMAGE = 1
+    AD_GETWP_LAST_APPLIED = 2
+
     BI_BITFIELDS = 3
     BI_CMYK = 11
     BI_CMYKRLE4 = 13
@@ -117,6 +131,10 @@ class Const:
     GMEM_ZEROINIT = 64
     GPTR = 64
 
+    IS_NORMAL = 1
+    IS_FULLSCREEN = 2
+    IS_SPLIT = 4
+
     SHGFP_TYPE_CURRENT = 0
     SHGFP_TYPE_DEFAULT = 1
 
@@ -127,6 +145,13 @@ class Const:
     SPIF_SENDCHANGE = 2
     SPIF_SENDWININICHANGE = 2
     SPIF_UPDATEINIFILE = 1
+
+    WPSTYLE_CENTER = 0
+    WPSTYLE_TILE = 1
+    WPSTYLE_STRETCH = 2
+    WPSTYLE_KEEPASPECT = 3
+    WPSTYLE_CROPTOFIT = 4
+    WPSTYLE_SPAN = 5
 
 
 class Pointer(typing.Generic[_CT]):
@@ -176,15 +201,18 @@ class Type:
     REFCLSID = c_void_p  # Pointer[CLSID]
     REFGUID = c_void_p  # Pointer[GUID]
     REFIID = c_void_p  # Pointer[IID]
+    LPWALLPAPEROPT = c_void_p  # Pointer[WALLPAPEROPT]
 
     DebugEventProc = c_void_p  # DebugEventProc
     GpBitmap = c_void_p  # GpBitmap
     GpImage = c_void_p  # GpImage
+    IActiveDesktop = c_void_p  # IActiveDesktop
     IFileDialog = c_void_p  # IFileDialog
     IUnknown = c_void_p  # IUnknown
 
     VOID = c_void_p
     PVOID = c_void_p
+    PWSTR = c_wchar_p
     PCWSTR = c_wchar_p
     UINT32 = c_uint32
     HBITMAP = HANDLE
@@ -260,40 +288,73 @@ class Struct:
         Data3: Type.c_ushort = None
         Data4: Type.c_uchar * 8 = None
 
-    UUID = GUID
-    IID = GUID
-    CLSID = GUID
+    @dataclasses.dataclass
+    class WALLPAPEROPT:
+        dwSize: Type.DWORD = None
+        dwStyle: Type.DWORD = None
+
+    class UUID(GUID):
+        pass
+
+    class IID(GUID):
+        pass
+
+    class CLSID(GUID):
+        pass
 
 
 class Vtbl:
-    class IFileDialog:
+    class IUnknown:
         QueryInterface: typing.Callable[[Type.IFileDialog, Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
         AddRef: typing.Callable[[Type.IFileDialog], Type.ULONG]
         Release: typing.Callable[[Type.IFileDialog], Type.ULONG]
+
+    class IActiveDesktop(IUnknown):
+        ApplyChanges: typing.Callable[[Type.IActiveDesktop, Type.DWORD], Type.HRESULT]
+        GetWallpaper: typing.Callable[[Type.IActiveDesktop, Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
+        SetWallpaper: typing.Callable[[Type.IActiveDesktop, Type.PCWSTR, Type.DWORD], Type.HRESULT]
+        GetWallpaperOptions: typing.Callable[[Type.IActiveDesktop, Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        SetWallpaperOptions: typing.Callable[[Type.IActiveDesktop, Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        GetPattern: typing.Callable[[Type.IActiveDesktop, Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
+        SetPattern: typing.Callable[[Type.IActiveDesktop, Type.PCWSTR, Type.DWORD], Type.HRESULT]
+        GetDesktopItemOptions: typing.Callable
+        SetDesktopItemOptions: typing.Callable
+        AddDesktopItem: typing.Callable
+        AddDesktopItemWithUI: typing.Callable
+        ModifyDesktopItem: typing.Callable
+        RemoveDesktopItem: typing.Callable
+        GetDesktopItemCount: typing.Callable[[Type.IActiveDesktop, Pointer[Type.c_int], Type.DWORD], Type.HRESULT]
+        GetDesktopItem: typing.Callable
+        GetDesktopItemByID: typing.Callable
+        GenerateDesktopItemHtml: typing.Callable
+        AddUrl: typing.Callable
+        GetDesktopItemBySource: typing.Callable
+
+    class IFileDialog(IUnknown):
         Show: typing.Callable[[Type.IFileDialog, Type.HWND], Type.HRESULT]
-        SetFileTypes: typing.Callable[[], None]
+        SetFileTypes: typing.Callable
         SetFileTypeIndex: typing.Callable[[Type.IFileDialog, Type.UINT], Type.HRESULT]
         GetFileTypeIndex: typing.Callable[[Type.IFileDialog, Type.UINT], Type.HRESULT]
-        Advise: typing.Callable[[], None]
-        Unadvise: typing.Callable[[], None]
-        SetOptions: typing.Callable[[], None]
-        GetOptions: typing.Callable[[], None]
-        SetDefaultFolder: typing.Callable[[], None]
-        SetFolder: typing.Callable[[], None]
-        GetFolder: typing.Callable[[], None]
-        GetCurrentSelection: typing.Callable[[], None]
+        Advise: typing.Callable
+        Unadvise: typing.Callable
+        SetOptions: typing.Callable
+        GetOptions: typing.Callable
+        SetDefaultFolder: typing.Callable
+        SetFolder: typing.Callable
+        GetFolder: typing.Callable
+        GetCurrentSelection: typing.Callable
         SetFileName: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
         GetFileName: typing.Callable[[Type.IFileDialog, Type.LPWSTR], Type.HRESULT]
         SetTitle: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
         SetOkButtonLabel: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
         SetFileNameLabel: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
-        GetResult: typing.Callable[[], None]
-        AddPlace: typing.Callable[[], None]
+        GetResult: typing.Callable
+        AddPlace: typing.Callable
         SetDefaultExtension: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
         Close: typing.Callable[[Type.IFileDialog, Type.HRESULT], Type.HRESULT]
         SetClientGuid: typing.Callable[[Type.IFileDialog, Pointer[Struct.GUID]], Type.HRESULT]
         ClearClientData: typing.Callable[[Type.IFileDialog], Type.HRESULT]
-        SetFilter: typing.Callable[[], None]
+        SetFilter: typing.Callable
 
 
 class Func:
@@ -310,7 +371,7 @@ class Func:
                                  Type.BOOL] = ctypes.windll.kernel32.CloseHandle
 
     GetObject: typing.Callable[[Type.HANDLE, Type.INT, Type.LPVOID],
-                               Type.INT] = ctypes.windll.gdi32.GetObject
+                               Type.INT] = ctypes.windll.gdi32.GetObjectW
     DeleteObject: typing.Callable[[Type.HGDIOBJ],
                                   Type.BOOL] = ctypes.windll.gdi32.DeleteObject
     CreateDIBitmap: typing.Callable[[Type.HDC, Pointer[Struct.BITMAPINFOHEADER], Type.DWORD,

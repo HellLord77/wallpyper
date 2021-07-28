@@ -58,11 +58,10 @@ def _filter(event: str,
 
 def _get_class_name(frame) -> str:
     if 'self' in frame.f_locals:
-        return f'{frame.f_locals["self"].__class__.__name__}.'
+        return f'{type(frame.f_locals["self"]).__name__}.'
     elif 'cls' in frame.f_locals:
         return f'{frame.f_locals["cls"].__name__}.'
-    else:
-        return ''
+    return ''
 
 
 def _hook_callback(frame,

@@ -29,11 +29,21 @@ class Icon:
     QUESTION = wx.ICON_QUESTION
 
 
-class Method:
+class _Arg(type):
+    def __new__(mcs, *args, **kwargs):
+        instance = super().__new__(mcs, *args, **kwargs)
+        instance._values = set(getattr(instance, name) for name in dir(instance) if not name.startswith('_'))
+        return instance
+
+    def __contains__(cls, item):
+        return item in cls._values
+
+
+class Method(metaclass=_Arg):
     SET_LABEL = wx.MenuItem.SetItemLabel.__name__
 
 
-class Property:
+class Property(metaclass=_Arg):
     CHECKED = wx.MenuItem.IsChecked.__name__
     ENABLED = wx.MenuItem.IsEnabled.__name__
     UID = wx.MenuItem.GetHelp.__name__
@@ -47,15 +57,6 @@ _ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 
 
-@functools.cache
-def _get_values(cls: type) -> set[str]:
-    values = set()
-    for name in dir(cls):
-        if not name.startswith('_'):
-            values.add(getattr(cls, name))
-    return values
-
-
 def _get_wrapper(menu_item: wx.MenuItem,
                  callback: typing.Callable,
                  callback_args: tuple,
@@ -65,9 +66,9 @@ def _get_wrapper(menu_item: wx.MenuItem,
     def wrapper(_: wx.Event):
         builtin_args_ = []
         for builtin_arg in builtin_args:
-            if builtin_arg in _get_values(Method):
+            if builtin_arg in Method:
                 builtin_args_.append(getattr(menu_item, builtin_arg))
-            elif builtin_arg in _get_values(Property):
+            elif builtin_arg in Property:
                 builtin_args_.append(getattr(menu_item, builtin_arg)())
         callback(*builtin_args_, *callback_args, **callback_kwargs)
 

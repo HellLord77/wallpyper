@@ -243,8 +243,7 @@ def on_auto_start(is_checked: bool) -> bool:
     if is_checked:
         args = set(('change',) if CONFIG[CHANGE] else ())
         return PLATFORM.register_autorun(NAME, os.path.realpath(sys.argv[0]), *args)
-    else:
-        return PLATFORM.unregister_autorun(NAME)
+    return PLATFORM.unregister_autorun(NAME)
 
 
 def on_save_config(is_checked: bool) -> None:
