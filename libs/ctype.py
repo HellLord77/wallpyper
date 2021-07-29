@@ -1,6 +1,6 @@
 from __future__ import annotations  # TODO: remove if >= 3.10
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'  # TODO: separate nt
 
 import ctypes
 import dataclasses
@@ -53,9 +53,9 @@ def _init():
     for var, vtbl in _items(Vtbl):
         class Wrapper(ctypes.c_void_p):
             _funcs = None
-            _fields_ = {func: typing.get_args(types) for func, types in typing.get_type_hints(vtbl).items()}
+            _fields_ = ((func, typing.get_args(types)) for func, types in typing.get_type_hints(vtbl).items())
             _fields_ = {func: ctypes.CFUNCTYPE(_resolve_type(types[1]), *(_resolve_type(
-                type) for type in types[0])) if types else ctypes.CFUNCTYPE(None) for func, types in _fields_.items()}
+                type) for type in types[0])) if types else ctypes.CFUNCTYPE(None) for func, types in _fields_}
 
             def __getattr__(self, item):
                 if item in self._fields_:
@@ -117,6 +117,9 @@ class Const:
     CLSCTX_LOCAL_SERVER = 4
     CLSCTX_REMOTE_SERVER = 16
 
+    CLSID_ActiveDesktop = 1963230976, 61215, 4560, (152, 136, 0, 96, 151, 222, 172, 249)
+    CLSID_FileOpenDialog = 3692845724, 59530, 19934, (165, 161, 96, 248, 42, 32, 174, 247)
+
     CSIDL_APPDATA = 26
     CSIDL_LOCAL_APPDATA = 28
     CSIDL_MYPICTURES = 39
@@ -130,6 +133,9 @@ class Const:
     GMEM_MOVEABLE = 2
     GMEM_ZEROINIT = 64
     GPTR = 64
+
+    IID_IActiveDesktop = 4103138048, 4672, 4561, (152, 136, 0, 96, 151, 222, 172, 249)
+    IID_IFileDialog = 1123569974, 56190, 17308, (133, 241, 228, 7, 93, 19, 95, 200)
 
     IS_NORMAL = 1
     IS_FULLSCREEN = 2
@@ -359,58 +365,58 @@ class Vtbl:
 
 class Func:
     RtlAreLongPathsEnabled: typing.Callable[[],
-                                            Type.c_ubyte] = ctypes.windll.ntdll.RtlAreLongPathsEnabled
+                                            Type.c_ubyte] = ctypes.cdll.ntdll.RtlAreLongPathsEnabled
 
     GlobalAlloc: typing.Callable[[Type.UINT, Type.SIZE_T],
-                                 Type.HGLOBAL] = ctypes.windll.kernel32.GlobalAlloc
+                                 Type.HGLOBAL] = ctypes.cdll.kernel32.GlobalAlloc
     GlobalLock: typing.Callable[[Type.HGLOBAL],
-                                Type.LPVOID] = ctypes.windll.kernel32.GlobalLock
+                                Type.LPVOID] = ctypes.cdll.kernel32.GlobalLock
     GlobalUnlock: typing.Callable[[Type.HGLOBAL],
-                                  Type.BOOL] = ctypes.windll.kernel32.GlobalUnlock
+                                  Type.BOOL] = ctypes.cdll.kernel32.GlobalUnlock
     CloseHandle: typing.Callable[[Type.HANDLE],
-                                 Type.BOOL] = ctypes.windll.kernel32.CloseHandle
+                                 Type.BOOL] = ctypes.cdll.kernel32.CloseHandle
 
     GetObject: typing.Callable[[Type.HANDLE, Type.INT, Type.LPVOID],
-                               Type.INT] = ctypes.windll.gdi32.GetObjectW
+                               Type.INT] = ctypes.cdll.gdi32.GetObjectW
     DeleteObject: typing.Callable[[Type.HGDIOBJ],
-                                  Type.BOOL] = ctypes.windll.gdi32.DeleteObject
+                                  Type.BOOL] = ctypes.cdll.gdi32.DeleteObject
     CreateDIBitmap: typing.Callable[[Type.HDC, Pointer[Struct.BITMAPINFOHEADER], Type.DWORD,
                                      Type.VOID, Pointer[Struct.BITMAPINFO], Type.UINT],
-                                    Type.HBITMAP] = ctypes.windll.gdi32.CreateDIBitmap
+                                    Type.HBITMAP] = ctypes.cdll.gdi32.CreateDIBitmap
     GetDIBits: typing.Callable[[Type.HDC, Type.HBITMAP, Type.UINT, Type.UINT,
                                 typing.Optional[Type.LPVOID], Pointer[Struct.BITMAPINFO], Type.UINT],
-                               Type.INT] = ctypes.windll.gdi32.GetDIBits
+                               Type.INT] = ctypes.cdll.gdi32.GetDIBits
 
     SystemParametersInfo: typing.Callable[[Type.UINT, Type.UINT, Type.PVOID, Type.UINT],
-                                          Type.BOOL] = ctypes.windll.user32.SystemParametersInfoW
+                                          Type.BOOL] = ctypes.cdll.user32.SystemParametersInfoW
     OpenClipboard: typing.Callable[[typing.Optional[Type.HWND]],
-                                   Type.BOOL] = ctypes.windll.user32.OpenClipboard
+                                   Type.BOOL] = ctypes.cdll.user32.OpenClipboard
     CloseClipboard: typing.Callable[[],
-                                    Type.BOOL] = ctypes.windll.user32.CloseClipboard
+                                    Type.BOOL] = ctypes.cdll.user32.CloseClipboard
     EmptyClipboard: typing.Callable[[],
-                                    Type.BOOL] = ctypes.windll.user32.EmptyClipboard
+                                    Type.BOOL] = ctypes.cdll.user32.EmptyClipboard
     GetClipboardData: typing.Callable[[Type.UINT],
-                                      Type.HANDLE] = ctypes.windll.user32.GetClipboardData
+                                      Type.HANDLE] = ctypes.cdll.user32.GetClipboardData
     SetClipboardData: typing.Callable[[Type.UINT, Type.HANDLE],
-                                      Type.HANDLE] = ctypes.windll.user32.SetClipboardData
+                                      Type.HANDLE] = ctypes.cdll.user32.SetClipboardData
     LoadImage: typing.Callable[[Type.HINSTANCE, Type.LPCWSTR, Type.UINT, Type.INT, Type.INT, Type.UINT],
-                               Type.HANDLE] = ctypes.windll.user32.LoadImageW
+                               Type.HANDLE] = ctypes.cdll.user32.LoadImageW
     GetDC: typing.Callable[[typing.Optional[Type.HWND]],
-                           Type.HDC] = ctypes.windll.user32.GetDC
+                           Type.HDC] = ctypes.cdll.user32.GetDC
     ReleaseDC: typing.Callable[[typing.Optional[Type.HWND], Type.HDC],
-                               Type.INT] = ctypes.windll.user32.ReleaseDC
+                               Type.INT] = ctypes.cdll.user32.ReleaseDC
 
     IIDFromString: typing.Callable[[Type.LPCOLESTR, Pointer[Struct.IID]],
-                                   Type.HRESULT] = ctypes.windll.ole32.IIDFromString
+                                   Type.HRESULT] = ctypes.cdll.ole32.IIDFromString
     CLSIDFromString: typing.Callable[[Type.LPCOLESTR, Pointer[Struct.CLSID]],
-                                     Type.HRESULT] = ctypes.windll.ole32.CLSIDFromString
+                                     Type.HRESULT] = ctypes.cdll.ole32.CLSIDFromString
     CoInitialize: typing.Callable[[typing.Optional[Type.LPVOID]],
-                                  Type.HRESULT] = ctypes.windll.ole32.CoInitialize
+                                  Type.HRESULT] = ctypes.cdll.ole32.CoInitialize
     CoUninitialize: typing.Callable[[],
-                                    Type.VOID] = ctypes.windll.ole32.CoUninitialize
+                                    Type.VOID] = ctypes.cdll.ole32.CoUninitialize
     CoCreateInstance: typing.Callable[[Pointer[Struct.CLSID], typing.Optional[Pointer[Type.IUnknown]],
                                        Type.DWORD, Pointer[Struct.IID], Type.LPVOID],
-                                      Type.HRESULT] = ctypes.windll.ole32.CoCreateInstance
+                                      Type.HRESULT] = ctypes.cdll.ole32.CoCreateInstance
 
     memmove: typing.Callable[[Type.c_void_p, Type.c_void_p, Type.size_t],
                              Type.c_void_p] = ctypes.cdll.msvcrt.memmove
@@ -419,19 +425,19 @@ class Func:
 
     GdiplusStartup: typing.Callable[[Pointer[Type.ULONG_PTR], Pointer[Struct.GdiplusStartupInput],
                                      typing.Optional[Pointer[Struct.GdiplusStartupInput]]],
-                                    Type.Status] = ctypes.windll.gdiplus.GdiplusStartup
+                                    Type.Status] = ctypes.cdll.gdiplus.GdiplusStartup
     GdiplusShutdown: typing.Callable[[Type.ULONG_PTR],
-                                     Type.VOID] = ctypes.windll.gdiplus.GdiplusShutdown
+                                     Type.VOID] = ctypes.cdll.gdiplus.GdiplusShutdown
     GdipCreateBitmapFromFile: typing.Callable[[Pointer[Type.WCHAR], Pointer[Type.GpBitmap]],
-                                              Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateBitmapFromFile
+                                              Type.GpStatus] = ctypes.cdll.gdiplus.GdipCreateBitmapFromFile
     GdipDisposeImage: typing.Callable[[Type.GpImage],
-                                      Type.GpStatus] = ctypes.windll.gdiplus.GdipDisposeImage
+                                      Type.GpStatus] = ctypes.cdll.gdiplus.GdipDisposeImage
     GdipCreateHBITMAPFromBitmap: typing.Callable[[Type.GpBitmap, Pointer[Type.HBITMAP], Type.ARGB],
-                                                 Type.GpStatus] = ctypes.windll.gdiplus.GdipCreateHBITMAPFromBitmap
+                                                 Type.GpStatus] = ctypes.cdll.gdiplus.GdipCreateHBITMAPFromBitmap
 
     SHGetFolderPath: typing.Callable[[typing.Optional[Type.HWND], Type.INT,
                                       typing.Optional[Type.HANDLE], Type.DWORD, Type.LPWSTR],
-                                     Type.HRESULT] = ctypes.windll.shell32.SHGetFolderPathW
+                                     Type.HRESULT] = ctypes.cdll.shell32.SHGetFolderPathW
 
 
 def pointer(type_: _CT) -> Pointer[_CT]:

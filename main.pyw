@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import configparser
 import functools
@@ -10,18 +10,16 @@ import webbrowser
 
 import wx
 
-# 639-1
+# iso 639-1
 import languages.en
-import libraries.log
-import libraries.singleton
+import libs.log
+import libs.singleton
 import modules.wallhaven
-# sys.platform [os.name (ctypes)]
-import platforms.win32
+# sys.platform
+import platforms.win32 as platform
 import utils
 
 NAME = 'wallpyper'
-PLATFORM = platforms.win32
-
 CHANGE = 'auto_change_wallpaper'
 INTERVAL = 'auto_change_interval'
 SAVE = 'auto_save_wallpaper'
@@ -38,15 +36,14 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
     CHANGE: False,
     INTERVAL: 3600,
     SAVE: False,
-    SAVE_DIR: utils.join_path(PLATFORM.PICTURES_DIR, NAME),
+    SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
     NOTIFY: False,
     START: False,
-    SAVE_DATA: False
-}
+    SAVE_DATA: False}
 
-RES_PATHS = tuple(utils.join_path(os.path.dirname(__file__), 'resources', name)
-                  for name in ('pinwheel.png', 'wedges.gif'))
-TEMP_DIR = utils.join_path(PLATFORM.TEMP_DIR, NAME)  # utils.join_path(PLATFORM.APPDATA_DIR, f'{NAME}.ini')
+RES_PATHS = tuple(
+    utils.join_path(os.path.dirname(__file__), 'resources', name) for name in ('pinwheel.png', 'wedges.gif'))
+TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = {
@@ -136,9 +133,9 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     name = os.path.basename(url)
     temp_path = utils.join_path(TEMP_DIR, name)
     save_path = utils.join_path(CONFIG[SAVE_DIR], name)
-    utils.download_url(url, temp_path, chunk_count=100, callback=callback,
-                       callback_args=callback_args, callback_kwargs=callback_kwargs)
-    changed = PLATFORM.set_wallpaper(temp_path, save_path)
+    utils.download_url(url, temp_path, chunk_count=100,
+                       callback=callback, callback_args=callback_args, callback_kwargs=callback_kwargs)
+    changed = platform.set_wallpaper(temp_path, save_path)
     if callback:
         callback(100, *callback_args or (), **callback_kwargs or {})
     utils.inanimate(LANGUAGE.CHANGING)
@@ -146,23 +143,23 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
 
 
 def _get_wallpaper_paths() -> typing.Generator[str, None, None]:
-    path = PLATFORM.get_wallpaper_path()
+    path = platform.get_wallpaper_path()
     if utils.exists_file(path):
         yield path
     temp_path = utils.join_path(TEMP_DIR, os.path.basename(path))
     if utils.exists_file(temp_path):
         yield temp_path
-    if os.path.isdir(PLATFORM.WALLPAPER_DIR):
-        for name in os.listdir(PLATFORM.WALLPAPER_DIR):
-            if utils.copy_file(utils.join_path(PLATFORM.WALLPAPER_DIR, name), temp_path):
+    if os.path.isdir(platform.WALLPAPER_DIR):
+        for name in os.listdir(platform.WALLPAPER_DIR):
+            if utils.copy_file(utils.join_path(platform.WALLPAPER_DIR, name), temp_path):
                 yield temp_path
 
 
 @utils.single
 def save_wallpaper() -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
-    saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path)))
-                for path in _get_wallpaper_paths())
+    saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], os.path.basename(path))) for path in
+                _get_wallpaper_paths())
     utils.inanimate(LANGUAGE.SAVING)
     return saved
 
@@ -217,14 +214,14 @@ def on_modify_save():
 
 
 def on_copy() -> bool:
-    copied = any(PLATFORM.copy_image(path) for path in _get_wallpaper_paths())
+    copied = any(platform.copy_image(path) for path in _get_wallpaper_paths())
     if CONFIG[NOTIFY] and not copied:
         utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
     return copied
 
 
 def on_copy_path() -> bool:
-    copied = any(PLATFORM.copy_text(path) for path in _get_wallpaper_paths())
+    copied = any(platform.copy_text(path) for path in _get_wallpaper_paths())
     if CONFIG[NOTIFY] and not copied:
         utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
     return copied
@@ -242,8 +239,8 @@ def on_auto_start(is_checked: bool) -> bool:
     CONFIG[START] = is_checked
     if is_checked:
         args = set(('change',) if CONFIG[CHANGE] else ())
-        return PLATFORM.register_autorun(NAME, os.path.realpath(sys.argv[0]), *args)
-    return PLATFORM.unregister_autorun(NAME)
+        return platform.register_autorun(NAME, os.path.realpath(sys.argv[0]), *args)
+    return platform.unregister_autorun(NAME)
 
 
 def on_save_config(is_checked: bool) -> None:
@@ -255,8 +252,8 @@ def on_save_config(is_checked: bool) -> None:
 def on_exit():
     Change.TIMER.stop()
     utils.disable()
-    if CONFIG[NOTIFY] and (change_wallpaper.is_running() or
-                           save_wallpaper.is_running() or search_wallpaper.is_running()):
+    if CONFIG[NOTIFY] and (
+            change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()):
         utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
     while change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
         time.sleep(0.1)
@@ -282,8 +279,8 @@ def create_menu() -> None:
                    callback_args=(change_interval,), builtin_args=(utils.get_property.CHECKED,), position=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=on_save)
-    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], callback=update_config,
-                   callback_args=(SAVE,), builtin_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], callback=update_config, callback_args=(SAVE,),
+                   builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=on_modify_save)
     utils.add_separator()
     utils.add_item(LANGUAGE.COPY, callback=on_copy)
@@ -292,22 +289,22 @@ def create_menu() -> None:
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
-    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY], callback=update_config,
-                   callback_args=(NOTIFY,), builtin_args=(utils.get_property.CHECKED,))
-    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START], callback=on_auto_start,
-                   builtin_args=(utils.get_property.CHECKED,))
-    utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA], callback=on_save_config,
-                   builtin_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY],
+                   callback=update_config, callback_args=(NOTIFY,), builtin_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START],
+                   callback=on_auto_start, builtin_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA],
+                   callback=on_save_config, builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.QUIT, callback=on_exit)
 
 
 def start() -> None:
     if 'debug' in sys.argv:  # __file__ is most prob removed if frozen
-        libraries.log.init(__file__, utils.__file__, 'languages', 'libraries', 'modules', 'platforms')
-    libraries.singleton.init(NAME, 'wait' in sys.argv,
-                             crash_callback=print, crash_callback_args=('Crash',),
-                             wait_callback=print, wait_callback_args=('Wait',),
-                             exit_callback=print, exit_callback_args=('Exit',))
+        libs.log.init(__file__, utils.__file__, 'languages', 'libs', 'modules', 'platforms')
+    libs.singleton.init(NAME, 'wait' in sys.argv,
+                        crash_callback=print, crash_callback_args=('Crash',),
+                        wait_callback=print, wait_callback_args=('Wait',),
+                        exit_callback=print, exit_callback_args=('Exit',))
     load_config()
     create_menu()
     on_auto_change(CONFIG[CHANGE])

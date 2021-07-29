@@ -56,7 +56,7 @@ class Response:
 
     def get_content(self) -> bytes:
         if not self.response.isclosed():
-            self._content = self.response.read()  # TODO: handle exception
+            self._content = self.response.read()
         return self._content
 
     def get_json(self) -> typing.Optional[typing.Union[dict, list, str, int, float, bool]]:

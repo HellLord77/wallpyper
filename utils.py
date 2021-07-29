@@ -1,43 +1,43 @@
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import os
 
-import libraries.file
-import libraries.functool
-import libraries.gui
-import libraries.request
-import libraries.timer
+import libs.file
+import libs.functool
+import libs.gui
+import libs.request
+import libs.timer
 
 exists_file = os.path.isfile
 
-join_path = libraries.file.join
-copy_file = libraries.file.copy
-delete_file = libraries.file.remove
-delete_dir = libraries.file.remove_tree
+join_path = libs.file.join
+copy_file = libs.file.copy
+delete_file = libs.file.remove
+delete_dir = libs.file.remove_tree
 
-cache = libraries.functool.one_cache
-once = libraries.functool.once_run
-single = libraries.functool.one_run
+cache = libs.functool.one_cache
+once = libs.functool.once_run
+single = libs.functool.one_run
 
-item = libraries.gui.Item
-icon = libraries.gui.Icon
-get_property = libraries.gui.Property
-get_method = libraries.gui.Method
-add_item = libraries.gui.add_menu_item
-add_separator = libraries.gui.add_separator
-add_items = libraries.gui.add_submenu
-notify = libraries.gui.show_balloon
-start = libraries.gui.start_loop
-disable = libraries.gui.disable
-stop = libraries.gui.stop_loop
-animate = libraries.gui.start_animation
-inanimate = libraries.gui.stop_animation
+item = libs.gui.Item
+icon = libs.gui.Icon
+get_property = libs.gui.Property
+get_method = libs.gui.Method
+add_item = libs.gui.add_menu_item
+add_separator = libs.gui.add_separator
+add_items = libs.gui.add_submenu
+notify = libs.gui.show_balloon
+start = libs.gui.start_loop
+disable = libs.gui.disable
+stop = libs.gui.stop_loop
+animate = libs.gui.start_animation
+inanimate = libs.gui.stop_animation
 
-status = libraries.request.Status
-join_url = libraries.request.urljoin
-open_url = libraries.request.urlopen
-download_url = libraries.request.download
-upload_url = libraries.request.upload
+status = libs.request.Status
+join_url = libs.request.urljoin
+open_url = libs.request.urlopen
+download_url = libs.request.download
+upload_url = libs.request.upload
 
-timer = libraries.timer.Timer
-thread = libraries.timer.on_thread
+timer = libs.timer.Timer
+thread = libs.timer.on_thread
