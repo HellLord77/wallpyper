@@ -108,7 +108,7 @@ def get_wallpaper_path() -> str:
     return buffer.value
 
 
-def set_wallpaper_legacy(paths: tuple[str]) -> bool:
+def set_wallpaper_(paths: tuple[str]) -> bool:
     for path in paths:
         if os.path.isfile(path):
             libs.ctype.Func.SystemParametersInfo(libs.ctype.Const.SPI_SETDESKWALLPAPER, 0, path,
@@ -118,8 +118,8 @@ def set_wallpaper_legacy(paths: tuple[str]) -> bool:
 
 
 @contextlib.contextmanager
-def _open_active_desktop() -> libs.ctype.Vtbl.IActiveDesktop:
-    active_desktop = libs.ctype.Vtbl.IActiveDesktop()
+def _open_active_desktop() -> libs.ctype.COM.IActiveDesktop:
+    active_desktop = libs.ctype.COM.IActiveDesktop()
     libs.ctype.Func.CoInitialize(None)
     try:
         libs.ctype.Func.CoCreateInstance(_CLSID_ActiveDesktop_ref, None, libs.ctype.Const.CLSCTX_INPROC_SERVER,
@@ -137,7 +137,7 @@ def set_wallpaper(*paths: str) -> bool:
                     active_desktop.SetWallpaper(active_desktop, path, 0)
                     active_desktop.ApplyChanges(active_desktop, libs.ctype.Const.AD_APPLY_ALL)
                     return True
-    return set_wallpaper_legacy(paths)
+    return set_wallpaper_(paths)
 
 
 def _swap_char(string: str,

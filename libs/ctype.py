@@ -16,18 +16,18 @@ def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
             yield name, val
 
 
-def _resolve_pointer(type_):
-    # noinspection PyProtectedMember,PyUnresolvedReferences
-    if isinstance(type_, typing._GenericAlias):
-        return ctypes.POINTER(_resolve_type(typing.get_args(type_)[0]))
-    return type_
-
-
 def _resolve_type(type_):
     # noinspection PyProtectedMember,PyUnresolvedReferences
     if isinstance(type_, typing._UnionGenericAlias):
         type_ = typing.get_args(type_)[0]
-    return _resolve_pointer(type_)
+    i = 0
+    # noinspection PyProtectedMember,PyUnresolvedReferences
+    while isinstance(type_, typing._GenericAlias):
+        type_ = typing.get_args(type_)[0]
+        i += 1
+    for _ in range(i):
+        type_ = ctypes.POINTER(type_)
+    return type_
 
 
 def _init():
@@ -37,40 +37,37 @@ def _init():
     for var, struct in _items(Struct):
         class Wrapper(ctypes.Structure):
             _fields_ = tuple((field, _resolve_type(type_)) for field, type_ in typing.get_type_hints(struct).items())
-            _defaults = {field: getattr(struct, field) or type_() for field, type_ in _fields_}
+            _defaults = tuple((field, getattr(struct, field) or type_) for field, type_ in _fields_)
 
             def __init__(self, *args, **kwargs):
-                for i, var_ in enumerate(self._defaults):
-                    if i >= len(args) and var_ not in kwargs:
-                        kwargs[var_] = self._defaults[var_]
+                for i, field in enumerate(self._defaults):
+                    if i >= len(args) and field[0] not in kwargs:
+                        kwargs[field[0]] = field[1]() if callable(field[1]) else field[1]
                 super().__init__(*args, **kwargs)
 
-            __repr__ = struct.__repr__
-
-        functools.update_wrapper(Wrapper, struct, updated=())
+        # noinspection PyUnresolvedReferences
+        functools.update_wrapper(Wrapper, struct, functools.WRAPPER_ASSIGNMENTS + ('__repr__',), ())
         setattr(Struct, var, Wrapper)
 
-    for var, vtbl in _items(Vtbl):
+    for var, com in _items(COM):
         class Wrapper(ctypes.c_void_p):
-            _funcs = None
-            _fields_ = ((func, typing.get_args(types)) for func, types in typing.get_type_hints(vtbl).items())
-            _fields_ = {func: ctypes.CFUNCTYPE(_resolve_type(types[1]), *(_resolve_type(
-                type) for type in types[0])) if types else ctypes.CFUNCTYPE(None) for func, types in _fields_}
+            _funcs = ((func, typing.get_args(types)) for func, types in typing.get_type_hints(com).items())
+            _funcs = {func: ctypes.CFUNCTYPE(_resolve_type(types[1]), *(_resolve_type(
+                type) for type in types[0])) if types else ctypes.CFUNCTYPE(None) for func, types in _funcs}
 
             def __getattr__(self, item):
-                if item in self._fields_:
-                    if not self._funcs:
-                        if not self:
-                            raise MemoryError(f'{type(self).__name__} is not initialized')
-                        # noinspection PyTypeChecker
-                        self._funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(ctypes.c_void_p)).contents.value,
-                                                  ctypes.POINTER(type('', (ctypes.Structure,), {
-                                                      '_fields_': tuple(self._fields_.items())}))).contents
-                    return getattr(self._funcs, item)
+                if item in self._funcs:
+                    # noinspection PyTypeChecker
+                    funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(ctypes.c_void_p)).contents.value,
+                                        ctypes.POINTER(type('', (ctypes.Structure,),
+                                                            {'_fields_': tuple(self._funcs.items())}))).contents
+                    self._funcs = tuple(self._funcs)
+                    for var_ in self._funcs:
+                        setattr(self, var_, getattr(funcs, var_))
                 return super().__getattribute__(item)
 
-        functools.update_wrapper(Wrapper, vtbl, updated=())
-        setattr(Vtbl, var, Wrapper)
+        functools.update_wrapper(Wrapper, com, updated=())
+        setattr(COM, var, Wrapper)
 
     types = typing.get_type_hints(Func)
     for var, func in _items(Func):
@@ -309,7 +306,7 @@ class Struct:
         pass
 
 
-class Vtbl:
+class COM:
     class IUnknown:
         QueryInterface: typing.Callable[[Type.IFileDialog, Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
         AddRef: typing.Callable[[Type.IFileDialog], Type.ULONG]
