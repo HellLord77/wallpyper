@@ -41,8 +41,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
     START: False,
     SAVE_DATA: False}
 
-RES_PATHS = tuple(
-    utils.join_path(os.path.dirname(__file__), 'resources', name) for name in ('pinwheel.png', 'wedges.gif'))
+RES_PATHS = tuple(utils.join_path(os.path.dirname(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
@@ -135,7 +134,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     save_path = utils.join_path(CONFIG[SAVE_DIR], name)
     utils.download_url(url, temp_path, chunk_count=100,
                        callback=callback, callback_args=callback_args, callback_kwargs=callback_kwargs)
-    changed = platform.set_wallpaper(temp_path, save_path)
+    changed = platform.set_wallpaper_ex(temp_path, save_path)
     if callback:
         callback(100, *callback_args or (), **callback_kwargs or {})
     utils.inanimate(LANGUAGE.CHANGING)

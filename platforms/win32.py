@@ -25,23 +25,26 @@ TEMP_DIR = os.path.join(_get_dir(libs.ctype.Const.CSIDL_LOCAL_APPDATA), 'Temp')
 WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
 
 
-def _get_clipboard(format_: int) -> libs.ctype.Type.HANDLE:
+@contextlib.contextmanager
+def _clipboard() -> None:
     libs.ctype.Func.OpenClipboard(None)
-    handle = libs.ctype.Func.GetClipboardData(format_)
-    libs.ctype.Func.CloseClipboard()
-    return handle
+    try:
+        yield
+    finally:
+        libs.ctype.Func.CloseClipboard()
 
 
-def paste_text() -> str:
-    return libs.ctype.cast(_get_clipboard(libs.ctype.Const.CF_UNICODETEXT), libs.ctype.Type.c_wchar_p).value or ''
+def _paste_text() -> str:
+    with _clipboard():
+        return libs.ctype.cast(libs.ctype.Func.GetClipboardData(libs.ctype.Const.CF_UNICODETEXT),
+                               libs.ctype.Type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int,
                    hglobal: int) -> None:
-    libs.ctype.Func.OpenClipboard(None)
-    libs.ctype.Func.EmptyClipboard()
-    libs.ctype.Func.SetClipboardData(format_, hglobal)
-    libs.ctype.Func.CloseClipboard()
+    with _clipboard():
+        libs.ctype.Func.EmptyClipboard()
+        libs.ctype.Func.SetClipboardData(format_, hglobal)
 
 
 def copy_text(text: str) -> bool:
@@ -52,11 +55,11 @@ def copy_text(text: str) -> bool:
         if buffer:
             libs.ctype.Func.memmove(buffer, text, size)
             _set_clipboard(libs.ctype.Const.CF_UNICODETEXT, handle)
-    return text == paste_text()
+    return text == _paste_text()
 
 
 @contextlib.contextmanager
-def _get_hbitmap(path: str) -> libs.ctype.Type.HBITMAP:
+def _hbitmap(path: str) -> libs.ctype.Type.HBITMAP:
     hbitmap = libs.ctype.Type.HBITMAP()
     token = libs.ctype.Type.ULONG_PTR()
     if not libs.ctype.Func.GdiplusStartup(libs.ctype.byref(token),
@@ -76,7 +79,7 @@ def _get_hbitmap(path: str) -> libs.ctype.Type.HBITMAP:
 
 def copy_image(path: str) -> bool:
     buffer = 0
-    with _get_hbitmap(path) as hbitmap:
+    with _hbitmap(path) as hbitmap:
         bm = libs.ctype.Struct.BITMAP()
         if libs.ctype.sizeof(libs.ctype.Struct.BITMAP) == libs.ctype.Func.GetObject(hbitmap, libs.ctype.sizeof(
                 libs.ctype.Struct.BITMAP), libs.ctype.byref(bm)):
@@ -105,10 +108,10 @@ def get_wallpaper_path() -> str:
     buffer = libs.ctype.Type.LPWSTR(' ' * _MAX_PATH)
     libs.ctype.Func.SystemParametersInfo(libs.ctype.Const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer,
                                          libs.ctype.Const.SPIF_NONE)
-    return buffer.value
+    return buffer.value or get_wallpaper_path_ex()
 
 
-def set_wallpaper_(paths: tuple[str]) -> bool:
+def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
             libs.ctype.Func.SystemParametersInfo(libs.ctype.Const.SPI_SETDESKWALLPAPER, 0, path,
@@ -118,7 +121,7 @@ def set_wallpaper_(paths: tuple[str]) -> bool:
 
 
 @contextlib.contextmanager
-def _open_active_desktop() -> libs.ctype.COM.IActiveDesktop:
+def _active_desktop() -> libs.ctype.COM.IActiveDesktop:
     active_desktop = libs.ctype.COM.IActiveDesktop()
     libs.ctype.Func.CoInitialize(None)
     try:
@@ -126,18 +129,28 @@ def _open_active_desktop() -> libs.ctype.COM.IActiveDesktop:
                                          _IID_IActiveDesktop_ref, libs.ctype.byref(active_desktop))
         yield active_desktop
     finally:
+        if active_desktop:
+            active_desktop.Release(active_desktop)
         libs.ctype.Func.CoUninitialize()
 
 
-def set_wallpaper(*paths: str) -> bool:
-    with _open_active_desktop() as active_desktop:
+def get_wallpaper_path_ex() -> str:
+    with _active_desktop() as active_desktop:
+        buffer = libs.ctype.Type.PWSTR(' ' * _MAX_PATH)
+        if not active_desktop.GetWallpaper(active_desktop, buffer, _MAX_PATH, libs.ctype.Const.AD_GETWP_BMP):
+            return buffer.value
+    return get_wallpaper_path()
+
+
+def set_wallpaper_ex(*paths: str) -> bool:
+    with _active_desktop() as active_desktop:
         if active_desktop:
             for path in paths:
                 if os.path.isfile(path):
                     active_desktop.SetWallpaper(active_desktop, path, 0)
                     active_desktop.ApplyChanges(active_desktop, libs.ctype.Const.AD_APPLY_ALL)
                     return True
-    return set_wallpaper_(paths)
+    return set_wallpaper(*paths)
 
 
 def _swap_char(string: str,
