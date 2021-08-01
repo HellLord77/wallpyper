@@ -483,7 +483,7 @@ def _init():
                                         self._pointer).contents
                     for method in self._methods:
                         setattr(self, method, lambda *args, method_=getattr(funcs, method): method_(self, *args))
-                return getattr(self, name)
+                return super().__getattribute__(name)
 
         functools.update_wrapper(Wrapper, com, updated=())
         setattr(COM, var, Wrapper)
