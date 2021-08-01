@@ -243,25 +243,25 @@ class Struct:
 
 class COM:
     class IUnknown:
-        QueryInterface: typing.Callable[[Type.IUnknown, Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
-        AddRef: typing.Callable[[Type.IUnknown], Type.ULONG]
-        Release: typing.Callable[[Type.IUnknown], Type.ULONG]
+        QueryInterface: typing.Callable[[Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
+        AddRef: typing.Callable[[], Type.ULONG]
+        Release: typing.Callable[[], Type.ULONG]
 
     class IActiveDesktop(IUnknown):
-        ApplyChanges: typing.Callable[[Type.IActiveDesktop, Type.DWORD], Type.HRESULT]
-        GetWallpaper: typing.Callable[[Type.IActiveDesktop, Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
-        SetWallpaper: typing.Callable[[Type.IActiveDesktop, Type.PCWSTR, Type.DWORD], Type.HRESULT]
-        GetWallpaperOptions: typing.Callable[[Type.IActiveDesktop, Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
-        SetWallpaperOptions: typing.Callable[[Type.IActiveDesktop, Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
-        GetPattern: typing.Callable[[Type.IActiveDesktop, Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
-        SetPattern: typing.Callable[[Type.IActiveDesktop, Type.PCWSTR, Type.DWORD], Type.HRESULT]
+        ApplyChanges: typing.Callable[[Type.DWORD], Type.HRESULT]
+        GetWallpaper: typing.Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
+        SetWallpaper: typing.Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
+        GetWallpaperOptions: typing.Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        SetWallpaperOptions: typing.Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        GetPattern: typing.Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
+        SetPattern: typing.Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
         GetDesktopItemOptions: typing.Callable
         SetDesktopItemOptions: typing.Callable
         AddDesktopItem: typing.Callable
         AddDesktopItemWithUI: typing.Callable
         ModifyDesktopItem: typing.Callable
         RemoveDesktopItem: typing.Callable
-        GetDesktopItemCount: typing.Callable[[Type.IActiveDesktop, Pointer[Type.c_int], Type.DWORD], Type.HRESULT]
+        GetDesktopItemCount: typing.Callable[[Pointer[Type.c_int], Type.DWORD], Type.HRESULT]
         GetDesktopItem: typing.Callable
         GetDesktopItemByID: typing.Callable
         GenerateDesktopItemHtml: typing.Callable
@@ -269,10 +269,10 @@ class COM:
         GetDesktopItemBySource: typing.Callable
 
     class IFileDialog(IUnknown):
-        Show: typing.Callable[[Type.IFileDialog, Type.HWND], Type.HRESULT]
+        Show: typing.Callable[[Type.HWND], Type.HRESULT]
         SetFileTypes: typing.Callable
-        SetFileTypeIndex: typing.Callable[[Type.IFileDialog, Type.UINT], Type.HRESULT]
-        GetFileTypeIndex: typing.Callable[[Type.IFileDialog, Type.UINT], Type.HRESULT]
+        SetFileTypeIndex: typing.Callable[[Type.UINT], Type.HRESULT]
+        GetFileTypeIndex: typing.Callable[[Type.UINT], Type.HRESULT]
         Advise: typing.Callable
         Unadvise: typing.Callable
         SetOptions: typing.Callable
@@ -281,17 +281,17 @@ class COM:
         SetFolder: typing.Callable
         GetFolder: typing.Callable
         GetCurrentSelection: typing.Callable
-        SetFileName: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
-        GetFileName: typing.Callable[[Type.IFileDialog, Type.LPWSTR], Type.HRESULT]
-        SetTitle: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
-        SetOkButtonLabel: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
-        SetFileNameLabel: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
+        SetFileName: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
+        GetFileName: typing.Callable[[Type.LPWSTR], Type.HRESULT]
+        SetTitle: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
+        SetOkButtonLabel: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
+        SetFileNameLabel: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
         GetResult: typing.Callable
         AddPlace: typing.Callable
-        SetDefaultExtension: typing.Callable[[Type.IFileDialog, Type.LPCWSTR], Type.HRESULT]
-        Close: typing.Callable[[Type.IFileDialog, Type.HRESULT], Type.HRESULT]
-        SetClientGuid: typing.Callable[[Type.IFileDialog, Pointer[Struct.GUID]], Type.HRESULT]
-        ClearClientData: typing.Callable[[Type.IFileDialog], Type.HRESULT]
+        SetDefaultExtension: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
+        Close: typing.Callable[[Type.HRESULT], Type.HRESULT]
+        SetClientGuid: typing.Callable[[Pointer[Struct.GUID]], Type.HRESULT]
+        ClearClientData: typing.Callable[[], Type.HRESULT]
         SetFilter: typing.Callable
 
 
@@ -427,24 +427,27 @@ def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
             yield name, val
 
 
-def _resolve_type(type_):
+def _resolve_type(type_: typing.Any) -> typing.Any:
     # noinspection PyUnresolvedReferences,PyProtectedMember
     if isinstance(type_, typing._CallableType):
-        return None,
+        type_ = [None]
     elif isinstance(type_, typing._CallableGenericAlias):
         types = typing.get_args(type_)
-        return (_resolve_type(types[1]),) + tuple(_resolve_type(type_) for type_ in types[0])
-    # noinspection PyProtectedMember,PyUnresolvedReferences
-    if isinstance(type_, typing._UnionGenericAlias):
-        type_ = typing.get_args(type_)[0]
-    i = 0
-    # noinspection PyProtectedMember,PyUnresolvedReferences
-    while isinstance(type_, typing._GenericAlias):
-        type_ = typing.get_args(type_)[0]
-        i += 1
-    for _ in range(i):
-        type_ = ctypes.POINTER(type_)
+        type_ = [_resolve_type(types[1])]
+        type_.extend(_resolve_type(type_) for type_ in types[0])
+    else:
+        # noinspection PyProtectedMember,PyUnresolvedReferences
+        if isinstance(type_, typing._UnionGenericAlias):
+            type_ = typing.get_args(type_)[0]
+        # noinspection PyProtectedMember,PyUnresolvedReferences
+        if typing.get_origin(type_) is Pointer:
+            type_ = ctypes.POINTER(_resolve_type(typing.get_args(type_)[0]))
     return type_
+
+
+def _method(types: list) -> list:
+    types.insert(1, ctypes.c_void_p)
+    return types
 
 
 def _init():
@@ -468,18 +471,19 @@ def _init():
 
     for var, com in _items(COM):
         class Wrapper(ctypes.c_void_p):
-            _base = type('', (ctypes.Structure,), {'_fields_': tuple(
-                (func, ctypes.CFUNCTYPE(*_resolve_type(types))) for func, types in typing.get_type_hints(com).items())})
-            _funcs = tuple(func for func, _ in _items(_base))
+            _methods = typing.get_type_hints(com)
+            # noinspection PyTypeChecker
+            _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple(
+                (func, ctypes.CFUNCTYPE(*_method(_resolve_type(types)))) for func, types in _methods.items())}))
+            _methods = tuple(_methods)
 
-            def __getattr__(self, item):
-                if item in self._funcs:
-                    # noinspection PyTypeChecker
+            def __getattr__(self, name):
+                if name in self._methods:
                     funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(ctypes.c_void_p)).contents.value,
-                                        ctypes.POINTER(self._base)).contents
-                    for func_ in self._funcs:
-                        setattr(self, func_, getattr(funcs, func_))
-                return getattr(self, item)
+                                        self._pointer).contents
+                    for method in self._methods:
+                        setattr(self, method, lambda *args, method_=getattr(funcs, method): method_(self, *args))
+                return getattr(self, name)
 
         functools.update_wrapper(Wrapper, com, updated=())
         setattr(COM, var, Wrapper)

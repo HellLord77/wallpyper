@@ -34,7 +34,7 @@ def _clipboard() -> None:
         libs.ctype.Func.CloseClipboard()
 
 
-def _paste_text() -> str:
+def paste_text() -> str:
     with _clipboard():
         return libs.ctype.cast(libs.ctype.Func.GetClipboardData(libs.ctype.Const.CF_UNICODETEXT),
                                libs.ctype.Type.c_wchar_p).value or ''
@@ -55,7 +55,7 @@ def copy_text(text: str) -> bool:
         if buffer:
             libs.ctype.Func.memmove(buffer, text, size)
             _set_clipboard(libs.ctype.Const.CF_UNICODETEXT, handle)
-    return text == _paste_text()
+    return text == paste_text()
 
 
 @contextlib.contextmanager
@@ -130,14 +130,14 @@ def _active_desktop() -> libs.ctype.COM.IActiveDesktop:
         yield active_desktop
     finally:
         if active_desktop:
-            active_desktop.Release(active_desktop)
+            active_desktop.Release()
         libs.ctype.Func.CoUninitialize()
 
 
 def get_wallpaper_path_ex() -> str:
     with _active_desktop() as active_desktop:
         buffer = libs.ctype.Type.PWSTR(' ' * _MAX_PATH)
-        if not active_desktop.GetWallpaper(active_desktop, buffer, _MAX_PATH, libs.ctype.Const.AD_GETWP_BMP):
+        if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libs.ctype.Const.AD_GETWP_BMP):
             return buffer.value
     return get_wallpaper_path()
 
@@ -147,8 +147,8 @@ def set_wallpaper_ex(*paths: str) -> bool:
         if active_desktop:
             for path in paths:
                 if os.path.isfile(path):
-                    active_desktop.SetWallpaper(active_desktop, path, 0)
-                    active_desktop.ApplyChanges(active_desktop, libs.ctype.Const.AD_APPLY_ALL)
+                    active_desktop.SetWallpaper(path, 0)
+                    active_desktop.ApplyChanges(libs.ctype.Const.AD_APPLY_ALL)
                     return True
     return set_wallpaper(*paths)
 
@@ -170,7 +170,7 @@ def register_autorun(name: str,
         except PermissionError:
             return False
         winreg.FlushKey(key)
-        return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
+        return value == winreg.QueryValueEx(key, name)[0]
 
 
 def unregister_autorun(name: str) -> bool:

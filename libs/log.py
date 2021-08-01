@@ -82,11 +82,11 @@ def _hook_callback(frame,
     return _hook_callback
 
 
-def init(*dirs_or_paths: str,
+def init(*dirs_or_paths: str,  # TODO: debug frozen
          base: str = os.path.dirname(inspect.stack()[-1].filename),
          level: int = Level.DEBUG,
          redirect_wx: bool = False,
-         skip_comp: bool = False) -> None:  # TODO: debug frozen
+         skip_comp: bool = False) -> None:
     global _LEVEL
     logging.root.setLevel(logging.DEBUG)
     for dir_ in dirs_or_paths:
