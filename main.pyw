@@ -300,14 +300,15 @@ def create_menu() -> None:
 
 
 def start() -> None:
-    if 'debug' in sys.argv:  # __file__ = %_MEIPASS%/main.py if frozen
-        if libs.pyinstall.FROZEN:
-            libs.log.redirect_stdio(LOG_PATH)
-        libs.log.init(__file__, utils.__file__, 'languages', 'libs', 'modules', 'platforms')
     libs.singleton.init(NAME, 'wait' in sys.argv,
                         crash_callback=print, crash_callback_args=('Crash',),
                         wait_callback=print, wait_callback_args=('Wait',),
                         exit_callback=print, exit_callback_args=('Exit',))
+    if 'debug' in sys.argv:  # __file__ = %TEMP_DIR%/main.py if frozen
+        if libs.pyinstall.FROZEN:
+            libs.log.redirect_stdio(LOG_PATH)
+        libs.log.init(__file__, utils.__file__, 'languages', 'libs', 'modules', 'platforms')
+    libs.pyinstall.clean_mei()
     load_config()
     create_menu()
     on_auto_change(CONFIG[CHANGE])
@@ -323,13 +324,12 @@ def stop() -> None:
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     utils.delete_dir(TEMP_DIR)
-    libs.pyinstall.clean_temp()
 
 
 def main() -> typing.NoReturn:
     start()
     stop()
-    sys.exit()  # TODO: mei-pass not being cleaned (one-file)
+    sys.exit()
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ __version__ = '0.0.7'
 import atexit
 import functools
 import itertools
-import os.path
+import os
 import threading
 import time
 import typing

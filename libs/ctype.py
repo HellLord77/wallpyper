@@ -1,4 +1,4 @@
-from __future__ import annotations  # TODO: remove if >= 3.10
+from __future__ import annotations  # TODO: remove if >= 3.11
 
 __version__ = '0.0.3'  # TODO: separate nt
 

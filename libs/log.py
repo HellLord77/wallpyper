@@ -53,7 +53,7 @@ def redirect_stdio(path: str,
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(string: str,
+    def write(string: str,  # TODO: use queue
               write_: typing.Callable[[str], int]):
         if string:
             if write_once:
