@@ -13,6 +13,7 @@ import wx
 # iso 639-1
 import languages.en
 import libs.log
+import libs.pyinstall
 import libs.singleton
 import modules.wallhaven
 # sys.platform
@@ -44,6 +45,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
 RES_PATHS = tuple(utils.join_path(os.path.dirname(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
 CONFIG_PATH = utils.join_path('E:\\Projects\\wallpyper\\config.ini')
+LOG_PATH = utils.join_path(os.path.dirname(CONFIG_PATH), 'debug.log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = {
     '300': '5 Minute',
@@ -298,7 +300,9 @@ def create_menu() -> None:
 
 
 def start() -> None:
-    if 'debug' in sys.argv:  # __file__ is most prob removed if frozen
+    if 'debug' in sys.argv:  # __file__ = %_MEIPASS%/main.py if frozen
+        if libs.pyinstall.FROZEN:
+            libs.log.redirect_stdio(LOG_PATH)
         libs.log.init(__file__, utils.__file__, 'languages', 'libs', 'modules', 'platforms')
     libs.singleton.init(NAME, 'wait' in sys.argv,
                         crash_callback=print, crash_callback_args=('Crash',),
@@ -319,6 +323,7 @@ def stop() -> None:
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     utils.delete_dir(TEMP_DIR)
+    libs.pyinstall.clean_temp()
 
 
 def main() -> typing.NoReturn:

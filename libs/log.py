@@ -1,7 +1,9 @@
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
+import atexit
 import datetime
 import inspect
+import io
 import logging
 import os
 import sys
@@ -21,6 +23,8 @@ _GENERATOR = (_ for _ in ()).__name__
 _EXCEPTION = Exception.__name__.lower()
 _PATHS = set()
 _LEVEL = 0
+_STREAM = io.StringIO()
+_WRITE = None
 
 
 class Level:
@@ -31,7 +35,39 @@ class Level:
     NOTSET = logging.NOTSET
 
 
-def _supported() -> bool:
+def _flush(path: str) -> None:
+    _STREAM.seek(0)
+    string = _STREAM.read()
+    if string:
+        with open(path, 'w') as file:
+            file.write(string)
+
+
+def redirect_stdio(path: str,
+                   tee: typing.Optional[bool] = None,
+                   write_once: typing.Optional[bool] = None) -> None:
+    global _WRITE
+    path = os.path.realpath(path)
+    if write_once:
+        atexit.register(_flush, path)
+    elif os.path.exists(path):
+        os.remove(path)
+
+    def write(string: str,
+              write_: typing.Callable[[str], int]):
+        if string:
+            if write_once:
+                _STREAM.write(string)
+            else:
+                with open(path, 'a') as file:
+                    file.write(string)
+        if tee:
+            write_(string)
+
+    _WRITE = write
+
+
+def _is_compatible() -> bool:
     global _SUFFIX
     supports = getattr(sys.stdout, 'isatty', lambda: False)()
     if not supports:
@@ -68,7 +104,8 @@ def _hook_callback(frame,
                    event: str,
                    arg: typing.Any) -> typing.Callable:
     frame.f_trace_lines = False
-    if _filter(event, arg, frame.f_code.co_name) and frame.f_code.co_filename in _PATHS:
+    if __file__ != frame.f_code.co_filename and frame.f_code.co_filename in _PATHS and _filter(event, arg,
+                                                                                               frame.f_code.co_name):
         log = f'{_PREFIXES[event]}{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} ' \
               f'{frame.f_lineno}] {_get_class_name(frame)}{frame.f_code.co_name}{_SUFFIX}'
         if event == 'call':
@@ -82,6 +119,7 @@ def _hook_callback(frame,
     return _hook_callback
 
 
+# noinspection PyCallingNonCallable
 def init(*dirs_or_paths: str,  # TODO: debug frozen
          base: str = os.path.dirname(inspect.stack()[-1].filename),
          level: int = Level.DEBUG,
@@ -102,7 +140,11 @@ def init(*dirs_or_paths: str,  # TODO: debug frozen
         import wx
         wx.GetApp().RedirectStdio()
     if not skip_comp:
-        _supported()
+        _is_compatible()
+    if _WRITE:
+        sys.stdout.write = lambda string, write_=sys.stdout.write: _WRITE(string, write_)
+        if sys.stdout is not sys.stderr:
+            sys.stderr.write = lambda string, write_=sys.stderr.write: _WRITE(string, write_)
     logging.root.addHandler(logging.StreamHandler())
     sys.settrace(_hook_callback)
     threading.settrace(_hook_callback)

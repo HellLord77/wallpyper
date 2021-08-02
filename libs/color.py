@@ -5,14 +5,14 @@ import sys
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
 _CODES = set()
-_SUPPORTED = getattr(sys.stdout, 'isatty', lambda: False)()
+_COMPATIBLE = getattr(sys.stdout, 'isatty', lambda: False)()
 
 
 class _Code:
     def __init_subclass__(cls):
         for name in dir(cls):
             if not name.startswith('_'):
-                setattr(cls, name, f'{_CSI}{getattr(cls, name)}m' if _SUPPORTED else '')
+                setattr(cls, name, f'{_CSI}{getattr(cls, name)}m' if _COMPATIBLE else '')
                 _CODES.add(getattr(cls, name))
 
 
