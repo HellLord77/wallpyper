@@ -308,7 +308,7 @@ def start() -> None:
         if libs.pyinstall.FROZEN:
             libs.log.redirect_stdio(LOG_PATH)
         libs.log.init(__file__, utils.__file__, 'languages', 'libs', 'modules', 'platforms')
-    libs.pyinstall.clean_mei()
+    libs.pyinstall.clean_temp()
     load_config()
     create_menu()
     on_auto_change(CONFIG[CHANGE])

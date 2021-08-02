@@ -5,12 +5,14 @@ import os
 import shutil
 import sys
 import tempfile
+import typing
 
 FROZEN = hasattr(sys, 'frozen')
 TEMP_DIR = getattr(sys, '_MEIPASS', '')
 
 
-def clean_mei():
+def clean_temp(remove_base: typing.Optional[bool] = None) -> bool:
+    cleaned = True
     base = os.path.dirname(TEMP_DIR) or tempfile.gettempdir()
     for dir_ in glob.glob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):
         path = os.path.join(base, dir_)
@@ -22,3 +24,8 @@ def clean_mei():
                 except PermissionError:
                     continue
             shutil.rmtree(path, True)
+            cleaned = cleaned and not os.path.exists(path)
+    if remove_base and not os.listdir(base):
+        os.remove(base)
+        cleaned = cleaned and not os.path.exists(base)
+    return cleaned
