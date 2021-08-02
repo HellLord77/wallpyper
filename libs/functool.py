@@ -23,7 +23,7 @@ class _Bool:
         self._state = self._state_
 
 
-class WrappedCallback:
+class Callback:
     def __init__(self,
                  callback: typing.Optional[typing.Callable] = None,
                  args: typing.Optional[tuple] = None,
@@ -80,3 +80,33 @@ def one_run(callback: typing.Callable) -> typing.Callable:
 
     wrapper.is_running = running.__bool__
     return wrapper
+
+
+def call_after(pre_callback: typing.Callable,
+               redirect: typing.Optional[bool] = None) -> typing.Callable:
+    def wrapped(callback: typing.Callable) -> typing.Callable:
+        @functools.wraps(callback)
+        def wrapper(*args, **kwargs):
+            ret = pre_callback(*args, **kwargs)
+            return callback(ret) if redirect else callback(*args, **kwargs)
+
+        return wrapper
+
+    return wrapped
+
+
+def call_before(post_callback,
+                redirect: typing.Optional[bool] = None) -> typing.Callable:
+    redirect = bool(redirect)
+
+    def wrapped(callback: typing.Callable) -> typing.Callable:
+        @functools.wraps(callback)
+        def wrapper(*args, **kwargs):
+            # noinspection PyListCreation
+            ret = [callback(*args, **kwargs)]
+            ret.append(post_callback(ret[0]) if redirect else post_callback(*args, **kwargs))
+            return ret[redirect]
+
+        return wrapper
+
+    return wrapped
