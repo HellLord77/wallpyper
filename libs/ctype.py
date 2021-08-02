@@ -5,6 +5,7 @@ __version__ = '0.0.3'  # TODO: separate nt
 import ctypes
 import dataclasses
 import functools
+import types
 import typing
 
 
@@ -432,9 +433,9 @@ def _resolve_type(type_: typing.Any) -> typing.Any:
     if isinstance(type_, typing._CallableType):
         type_ = [None]
     elif isinstance(type_, typing._CallableGenericAlias):
-        types = typing.get_args(type_)
-        type_ = [_resolve_type(types[1])]
-        type_.extend(_resolve_type(type_) for type_ in types[0])
+        types_ = typing.get_args(type_)
+        type_ = [_resolve_type(types_[1])]
+        type_.extend(_resolve_type(type_) for type_ in types_[0])
     else:
         # noinspection PyProtectedMember,PyUnresolvedReferences
         if isinstance(type_, typing._UnionGenericAlias):
@@ -445,9 +446,9 @@ def _resolve_type(type_: typing.Any) -> typing.Any:
     return type_
 
 
-def _method(types: list) -> list:
-    types.insert(1, ctypes.c_void_p)
-    return types
+def _method(types_: list) -> list:
+    types_.insert(1, ctypes.c_void_p)
+    return types_
 
 
 def _init():
@@ -474,7 +475,7 @@ def _init():
             _methods = typing.get_type_hints(com)
             # noinspection PyTypeChecker
             _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple(
-                (func, ctypes.CFUNCTYPE(*_method(_resolve_type(types)))) for func, types in _methods.items())}))
+                (func, ctypes.CFUNCTYPE(*_method(_resolve_type(types_)))) for func, types_ in _methods.items())}))
             _methods = tuple(_methods)
 
             def __getattr__(self, name):
@@ -482,15 +483,15 @@ def _init():
                     funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(ctypes.c_void_p)).contents.value,
                                         self._pointer).contents
                     for method in self._methods:
-                        setattr(self, method, lambda *args, method_=getattr(funcs, method): method_(self, *args))
-                return super().__getattribute__(name)
+                        setattr(self, method, types.MethodType(getattr(funcs, method), self))
+                return super().__getattribute__(self, name)
 
         functools.update_wrapper(Wrapper, com, updated=())
         setattr(COM, var, Wrapper)
 
-    types = typing.get_type_hints(Func)
+    types_ = typing.get_type_hints(Func)
     for var, func in _items(Func):
-        func.restype, *func.argtypes = _resolve_type(types[var])
+        func.restype, *func.argtypes = _resolve_type(types_[var])
 
 
 _init()

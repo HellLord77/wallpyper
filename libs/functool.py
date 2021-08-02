@@ -1,5 +1,6 @@
 __version__ = '0.0.3'
 
+import ctypes
 import functools
 import typing
 
@@ -35,6 +36,12 @@ class Callback:
 
     def __call__(self) -> typing.Any:
         return self.callback(*self.args, *self.kwargs)
+
+
+def setattr_ex(obj: typing.Any,
+               name: str,
+               value: typing.Any):
+    ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value[name] = value
 
 
 def one_cache(callback: typing.Callable) -> typing.Callable:
@@ -83,7 +90,7 @@ def one_run(callback: typing.Callable) -> typing.Callable:
 
 
 def call_after(pre_callback: typing.Callable,
-               redirect: typing.Optional[bool] = None) -> typing.Callable:
+               redirect: typing.Optional[bool] = None) -> typing.Callable[[typing.Callable], typing.Callable]:
     def wrapped(callback: typing.Callable) -> typing.Callable:
         @functools.wraps(callback)
         def wrapper(*args, **kwargs):
@@ -96,16 +103,14 @@ def call_after(pre_callback: typing.Callable,
 
 
 def call_before(post_callback,
-                redirect: typing.Optional[bool] = None) -> typing.Callable:
-    redirect = bool(redirect)
-
+                redirect: typing.Optional[bool] = None) -> typing.Callable[[typing.Callable], typing.Callable]:
     def wrapped(callback: typing.Callable) -> typing.Callable:
         @functools.wraps(callback)
         def wrapper(*args, **kwargs):
             # noinspection PyListCreation
             ret = [callback(*args, **kwargs)]
             ret.append(post_callback(ret[0]) if redirect else post_callback(*args, **kwargs))
-            return ret[redirect]
+            return ret[bool(redirect)]
 
         return wrapper
 
