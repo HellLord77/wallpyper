@@ -1,0 +1,25 @@
+version: 1.0.{build}
+environment:
+  EntryPoint: main.pyw
+  Data: resources
+  WinPython: https://github.com/winpython/winpython/releases/download/4.3.20210620/Winpython32-3.9.5.0dot.exe
+build_script:
+  - cmd: >-
+      curl -L -o WinPython.exe %WinPython%
+
+      WinPython.exe -y
+
+      for /f %%i in ('dir /s /b python.bat') do set python=%%i
+
+      %python% -m pip install --upgrade pip PyInstaller
+
+      for /f %%i in (requirements.txt) do %python% -m pip install %%i
+
+      %python% -c "__import__('os').system('appveyor UpdateBuild -Version {}-{}'.format(getattr(__import__('main'), '__version__', 'X.Y.Z'), round(__import__('time').time())))"
+
+      for /f "usebackq delims=" %%i in (`%python% -c "if __import__('os').getenv('Data'): print(' '.join(map(lambda data: '--add-data {0};{0}'.format(data), __import__('os').getenv('Data').split(';'))))"`) do set AddData=%%i
+
+      for %%i in (.) do %python% -m PyInstaller -y -F -n %%~nxi %EntryPoint% %AddData%
+artifacts:
+  - path: dist\*
+    name: Release
