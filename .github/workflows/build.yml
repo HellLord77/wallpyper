@@ -1,0 +1,38 @@
+on: [ push ]
+env:
+  ENTRY: src/main.pyw
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [ 3.9 ]
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x86'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade pyinstaller
+          if (Test-Path requirements.txt -PathType Leaf) { pip install -r requirements.txt }
+      - name: Build with pyinstaller
+        run: |
+          $ENTRY = $(if ($Env:ENTRY) { $Env:ENTRY } else { "src/main.py" })
+
+          $ROOT = Split-Path (Split-Path $ENTRY -Parent) -Leaf
+          if ($Env:DATA) { foreach ($DATA in $Env:DATA.Split(";")) {$ADD_DATA += " --add-data (Join-Path $ROOT $DATA);$DATA"} }
+
+          $LINE = Get-Content $ENTRY -TotalCount 1
+          "VERSION=$(if ($LINE.StartsWith("__version__")) { py -c "$LINE; print(__version__)" } else { "X.Y.Z" })" >> $Env:GITHUB_ENV
+
+          pyinstaller -y -F -n (Split-Path $Env:GITHUB_REPOSITORY -Leaf) $ADD_DATA $ENTRY
+      - name: Upload ${{ github.event.repository.name }}-${{ env.VERSION }}.zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-${{ env.VERSION }}
+          path: dist/*

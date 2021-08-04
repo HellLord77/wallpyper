@@ -2,7 +2,7 @@ __version__ = '0.0.1'
 
 import typing
 
-import utils
+from src import utils
 
 NAME = 'wallhaven'
 BASE_URL = 'https://wallhaven.cc/api/v1'
