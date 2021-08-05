@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import contextlib
 import filecmp
@@ -24,6 +24,17 @@ def copy(src_path: str,
                 shutil.copyfile(src_path, dest_path)
         return os.path.exists(dest_path) and filecmp.cmp(src_path, dest_path)
     return False
+
+
+def make_dir(path: str) -> bool:
+    if os.path.exists(path) and not os.path.isdir(path):
+        os.remove(path)
+    os.makedirs(path, exist_ok=True)
+    return os.path.isdir(path)
+
+
+def is_empty(path: str) -> bool:
+    return os.path.isdir(path) and not any(os.scandir(path))
 
 
 def remove(path: str) -> bool:

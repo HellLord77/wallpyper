@@ -12,6 +12,8 @@ exists_file = os.path.isfile
 
 join_path = libraries.file.join
 copy_file = libraries.file.copy
+is_empty_dir = libraries.file.is_empty
+make_dirs = libraries.file.make_dir
 delete_file = libraries.file.remove
 delete_dir = libraries.file.remove_tree
 

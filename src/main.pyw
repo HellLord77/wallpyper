@@ -315,6 +315,7 @@ def start() -> None:
     libraries.pyinstall.clean_temp()
     load_config()
     create_menu()
+    utils.make_dirs(TEMP_DIR)
     on_auto_change(CONFIG[CHANGE])
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
@@ -327,7 +328,7 @@ def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    if not CONFIG[KEEP_CACHE] or (os.path.isdir(TEMP_DIR) and not os.listdir(TEMP_DIR)):
+    if not CONFIG[KEEP_CACHE] or utils.is_empty_dir(TEMP_DIR):
         utils.delete_dir(TEMP_DIR)
 
 
