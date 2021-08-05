@@ -1,8 +1,9 @@
 on: [ push ]
 env:
-  DATA: resources
   ENTRY: src\main.pyw
   ONE_FILE: true
+  DATA: resources
+  ICON: icon.ico
 jobs:
   build:
     runs-on: windows-latest
@@ -34,12 +35,13 @@ jobs:
           $ROOT = Split-Path (Split-Path $ENTRY -Parent) -Leaf
           if ($Env:DATA) { foreach ($DATA in $Env:DATA.Split(";")) { $ARGS += "--add-data=""$(Join-Path $ROOT $DATA);$DATA""" } }
 
+          if ($Env:ICON) { $ARGS += "--icon=$Env:ICON" }
+
           $LINE = Get-Content $ENTRY -TotalCount 1
           $VERSION = $(if ($LINE.StartsWith("__version__")) { python -c "$LINE; print(__version__)" } else { "X.Y.Z" })
           "VERSION=$VERSION" >> $Env:GITHUB_ENV
           $ARGS[1] += "-$VERSION"
 
-          where.exe pyinstaller
           venv\Scripts\Activate.ps1
           pyinstaller $ARGS
       - name: Upload ${{ github.event.repository.name }}-${{ env.VERSION }}.zip
