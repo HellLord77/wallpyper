@@ -35,7 +35,9 @@ def remove(path: str) -> bool:
 def remove_tree(path: str,
                 timeout: typing.Optional[float] = None) -> bool:
     end_time = time.time() + (timeout or DELAY)
-    while exists := os.path.exists(path) and end_time > time.time():
+    exists = os.path.exists(path)
+    while exists and end_time > time.time():
         shutil.rmtree(path, True)
         time.sleep(DELAY)
+        exists = os.path.exists(path)
     return not exists

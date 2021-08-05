@@ -172,7 +172,7 @@ def disable() -> None:
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
-def stop_loop(*_) -> None:
+def stop_loop(_: typing.Optional[wx.CloseEvent] = None) -> None:
     _APP.ExitMainLoop()
 
 

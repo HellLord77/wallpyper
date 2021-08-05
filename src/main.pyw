@@ -1,4 +1,4 @@
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 import configparser
 import functools
@@ -26,6 +26,7 @@ INTERVAL = 'auto_change_interval'
 SAVE = 'auto_save_wallpaper'
 SAVE_DIR = 'save_dir'
 NOTIFY = 'notify_on_fail'
+KEEP_CACHE = 'keep_cache'
 START = 'auto_start'
 SAVE_DATA = 'auto_save_config'
 
@@ -39,6 +40,7 @@ DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
     SAVE: False,
     SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
     NOTIFY: False,
+    KEEP_CACHE: False,
     START: False,
     SAVE_DATA: False}
 
@@ -280,8 +282,8 @@ def create_menu() -> None:
                    callback_args=(change_interval,), builtin_args=(utils.get_property.CHECKED,), position=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=on_save)
-    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], callback=update_config, callback_args=(SAVE,),
-                   builtin_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE],
+                   callback=update_config, callback_args=(SAVE,), builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=on_modify_save)
     utils.add_separator()
     utils.add_item(LANGUAGE.COPY, callback=on_copy)
@@ -292,6 +294,8 @@ def create_menu() -> None:
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY],
                    callback=update_config, callback_args=(NOTIFY,), builtin_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[KEEP_CACHE],
+                   callback=update_config, callback_args=(KEEP_CACHE,), builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START],
                    callback=on_auto_start, builtin_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA],
@@ -304,7 +308,7 @@ def start() -> None:
                              crash_callback=print, crash_callback_args=('Crash',),
                              wait_callback=print, wait_callback_args=('Wait',),
                              exit_callback=print, exit_callback_args=('Exit',))
-    if 'debug' in sys.argv:  # __file__ = %TEMP_DIR%/main.py if frozen
+    if 'debug' in sys.argv:
         if libraries.pyinstall.FROZEN:
             libraries.log.redirect_stdio(LOG_PATH)
         libraries.log.init(__file__, utils.__file__, 'languages', 'libraries', 'modules', 'platforms')
@@ -323,7 +327,8 @@ def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    utils.delete_dir(TEMP_DIR)
+    if not CONFIG[KEEP_CACHE] or (os.path.isdir(TEMP_DIR) and not os.listdir(TEMP_DIR)):
+        utils.delete_dir(TEMP_DIR)
 
 
 def main() -> typing.NoReturn:

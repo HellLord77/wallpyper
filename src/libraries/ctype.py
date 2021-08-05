@@ -1,6 +1,6 @@
 from __future__ import annotations  # TODO: remove if >= 3.11
 
-__version__ = '0.0.3'  # TODO: separate nt
+__version__ = '0.0.3'
 
 import ctypes
 import dataclasses
@@ -303,14 +303,14 @@ class _Lib:
 
 
 class Lib(_Lib):
-    gdi32: ctypes.WinDLL
-    gdiplus: ctypes.WinDLL
-    kernel32: ctypes.WinDLL
-    msvcrt: ctypes.WinDLL
-    ntdll: ctypes.WinDLL
-    ole32: ctypes.WinDLL
-    shell32: ctypes.WinDLL
-    user32: ctypes.WinDLL
+    gdi32: ctypes.CDLL
+    gdiplus: ctypes.CDLL
+    kernel32: ctypes.CDLL
+    msvcrt: ctypes.CDLL
+    ntdll: ctypes.CDLL
+    ole32: ctypes.CDLL
+    shell32: ctypes.CDLL
+    user32: ctypes.CDLL
 
 
 class Func:
@@ -446,7 +446,7 @@ def _resolve_type(type_: typing.Any) -> typing.Any:
     return type_
 
 
-def _method(types_: list) -> list:
+def _method_type(types_: list) -> list:
     types_.insert(1, ctypes.c_void_p)
     return types_
 
@@ -475,7 +475,7 @@ def _init():
             _methods = typing.get_type_hints(com)
             # noinspection PyTypeChecker
             _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple(
-                (func, ctypes.CFUNCTYPE(*_method(_resolve_type(types_)))) for func, types_ in _methods.items())}))
+                (func, ctypes.CFUNCTYPE(*_method_type(_resolve_type(types_)))) for func, types_ in _methods.items())}))
             _methods = tuple(_methods)
 
             def __getattr__(self, name):

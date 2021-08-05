@@ -14,7 +14,7 @@ TEMP_DIR = getattr(sys, '_MEIPASS', '')
 def clean_temp(remove_base: typing.Optional[bool] = None) -> bool:
     cleaned = True
     base = os.path.dirname(TEMP_DIR) or tempfile.gettempdir()
-    for dir_ in glob.glob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):
+    for dir_ in glob.iglob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):
         path = os.path.join(base, dir_)
         if os.path.isdir(path) and path != TEMP_DIR:
             pydll = glob.glob(os.path.join(path, f'python{"[0-9]" * 2}.dll'))
