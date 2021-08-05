@@ -20,8 +20,7 @@ jobs:
           architecture: 'x86'
       - name: Install dependencies
         run: |
-          python -m venv --upgrade-deps venv
-          venv\Scripts\Activate.ps1
+          python -m pip install --upgrade pip
           pip install --upgrade pyinstaller
           if (Test-Path requirements.txt -PathType Leaf) { pip install -r requirements.txt }
       - name: Build with pyinstaller
@@ -42,7 +41,6 @@ jobs:
           "VERSION=$VERSION" >> $Env:GITHUB_ENV
           $ARGS[1] += "-$VERSION"
 
-          venv\Scripts\Activate.ps1
           pyinstaller $ARGS
       - name: Upload ${{ github.event.repository.name }}-${{ env.VERSION }}.zip
         uses: actions/upload-artifact@v2

@@ -12,9 +12,9 @@ import wx
 
 # iso 639-1
 import languages.en
-import libs.log
-import libs.pyinstall
-import libs.singleton
+import libraries.log
+import libraries.pyinstall
+import libraries.singleton
 import modules.wallhaven
 # sys.platform
 import platforms.win32 as platform
@@ -300,15 +300,15 @@ def create_menu() -> None:
 
 
 def start() -> None:
-    libs.singleton.init(NAME, 'wait' in sys.argv,
-                        crash_callback=print, crash_callback_args=('Crash',),
-                        wait_callback=print, wait_callback_args=('Wait',),
-                        exit_callback=print, exit_callback_args=('Exit',))
+    libraries.singleton.init(NAME, 'wait' in sys.argv,
+                             crash_callback=print, crash_callback_args=('Crash',),
+                             wait_callback=print, wait_callback_args=('Wait',),
+                             exit_callback=print, exit_callback_args=('Exit',))
     if 'debug' in sys.argv:  # __file__ = %TEMP_DIR%/main.py if frozen
-        if libs.pyinstall.FROZEN:
-            libs.log.redirect_stdio(LOG_PATH)
-        libs.log.init(__file__, utils.__file__, 'languages', 'libs', 'modules', 'platforms')
-    libs.pyinstall.clean_temp()
+        if libraries.pyinstall.FROZEN:
+            libraries.log.redirect_stdio(LOG_PATH)
+        libraries.log.init(__file__, utils.__file__, 'languages', 'libraries', 'modules', 'platforms')
+    libraries.pyinstall.clean_temp()
     load_config()
     create_menu()
     on_auto_change(CONFIG[CHANGE])
