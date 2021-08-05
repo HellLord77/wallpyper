@@ -1,4 +1,4 @@
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import contextlib
 import http.client
@@ -121,6 +121,10 @@ def download(url: str,
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.isfile(path) and size == os.stat(path).st_size:
+            return True
+        if os.path.isdir(path):
+            os.remove(path)
         with open(path, 'wb') as file:
             for chunk in response:
                 file.write(chunk)
