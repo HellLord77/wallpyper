@@ -1,9 +1,4 @@
 on: [ push ]
-env:
-  ENTRY: src\main.pyw
-  ONE_FILE: true
-  DATA: resources
-  ICON: icon.ico
 jobs:
   build:
     runs-on: windows-latest
@@ -19,31 +14,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: 'x86'
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade pyinstaller
-          if (Test-Path requirements.txt -PathType Leaf) { pip install -r requirements.txt }
+        run: .\build.ps1 Install-Dependecies
       - name: Build with pyinstaller
-        run: |
-          $ARGS = @("--noconfirm", "--name=$(Split-Path $Env:GITHUB_REPOSITORY -Leaf)")
-          if ($Env:ONE_FILE -eq "true") { $ARGS += "--onefile" }
-
-          $ENTRY = $(if ($Env:ENTRY) { $Env:ENTRY } else { "src\main.py" })
-          $ARGS += $ENTRY
-
-          $ROOT = Split-Path (Split-Path $ENTRY -Parent) -Leaf
-          if ($Env:DATA) { foreach ($DATA in $Env:DATA.Split(";")) { $ARGS += "--add-data=""$(Join-Path $ROOT $DATA);$DATA""" } }
-
-          if ($Env:ICON) { $ARGS += "--icon=$Env:ICON" }
-
-          $LINE = Get-Content $ENTRY -TotalCount 1
-          $VERSION = $(if ($LINE.StartsWith("__version__")) { python -c "$LINE; print(__version__)" } else { "X.Y.Z" })
-          "VERSION=$VERSION" >> $Env:GITHUB_ENV
-          $ARGS[1] += "-$VERSION"
-
-          pyinstaller $ARGS
-      - name: Upload ${{ github.event.repository.name }}-${{ env.VERSION }}.zip
+        run: .\build.ps1
+      - name: Upload ${{ env.NAME }}.zip
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ env.VERSION }}
+          name: ${{ env.NAME }}
           path: dist/*
