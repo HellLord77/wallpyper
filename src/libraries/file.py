@@ -1,7 +1,8 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import contextlib
 import filecmp
+import glob
 import os
 import shutil
 import time
@@ -13,6 +14,14 @@ DELAY = 0.01
 def join(base: str,
          *children: str) -> str:
     return os.path.realpath(os.path.join(base, *children))
+
+
+def get_size(path: str) -> int:
+    size = 0
+    for dir_ in os.listdir(path):
+        path_ = os.path.join(path, dir_)
+        size += get_size(path_) if os.path.isdir(path_) else os.path.getsize(path_)
+    return size
 
 
 def copy(src_path: str,
@@ -33,22 +42,46 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_empty(path: str) -> bool:
-    return os.path.isdir(path) and not any(os.scandir(path))
+def is_empty(path: str,
+             recursive: typing.Optional[bool] = None) -> bool:
+    if recursive:
+        for dir_ in os.listdir(path):
+            path_ = os.path.join(path, dir_)
+            if os.path.isfile(path_) or not is_empty(path_, recursive):
+                return False
+        return True
+    return not any(os.scandir(path))
 
 
-def remove(path: str) -> bool:
-    if os.path.exists(path):
-        os.remove(path)
-    return os.path.exists(path)
+def trim(path: str,
+         target: int,
+         sort: typing.Optional[typing.Callable] = None) -> bool:
+    trimmed = False
+    if target:
+        paths = glob.glob(os.path.join(path, '**'), recursive=True)
+        paths.sort(key=sort or os.path.getctime)
+        size = 0
+        for path_ in paths:
+            size_ = os.path.getsize(path_)
+            if os.path.isfile(path_):
+                if size + size_ > target:
+                    os.remove(path_)
+                    trimmed = True
+                else:
+                    size += size_
+    else:
+        shutil.rmtree(path, True)
+        trimmed = True
+    return trimmed
 
 
-def remove_tree(path: str,
-                timeout: typing.Optional[float] = None) -> bool:
+def remove(path: str,
+           recursive: typing.Optional[bool] = None,
+           timeout: typing.Optional[float] = None) -> bool:
     end_time = time.time() + (timeout or DELAY)
     exists = os.path.exists(path)
     while exists and end_time > time.time():
-        shutil.rmtree(path, True)
+        shutil.rmtree(path, True) if recursive else os.remove(path)
         time.sleep(DELAY)
         exists = os.path.exists(path)
     return not exists

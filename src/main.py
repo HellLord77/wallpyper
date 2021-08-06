@@ -12,6 +12,7 @@ import wx
 
 # iso 639-1
 import languages.en
+import libraries.file
 import libraries.log
 import libraries.pyinstall
 import libraries.singleton
@@ -29,6 +30,10 @@ NOTIFY = 'notify_on_fail'
 KEEP_CACHE = 'keep_cache'
 START = 'auto_start'
 SAVE_DATA = 'auto_save_config'
+
+DELETE_MAX = 3
+EXIT_MAX = 7
+CACHE_MAX = 128 * 1024 * 1024
 
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
@@ -248,18 +253,20 @@ def on_auto_start(is_checked: bool) -> bool:
 
 def on_save_config(is_checked: bool) -> None:
     CONFIG[SAVE_DATA] = is_checked
-    save_config() if is_checked else utils.delete_file(CONFIG_PATH)
+    save_config() if is_checked else utils.delete(CONFIG_PATH)
 
 
 @utils.thread
 def on_exit():
     Change.TIMER.stop()
     utils.disable()
-    if CONFIG[NOTIFY] and (
-            change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()):
-        utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
-    while change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
-        time.sleep(0.1)
+    if change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
+        if CONFIG[NOTIFY]:
+            utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
+        end = time.time() + EXIT_MAX
+        while end > time.time() and (
+                change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()):
+            time.sleep(0.01)
     utils.stop()
 
 
@@ -268,10 +275,7 @@ def create_menu() -> None:
 
     @functools.wraps(change.SetItemLabel)
     def wrapper(progress: int):
-        if progress < 100:
-            change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)')
-        else:
-            change.SetItemLabel(f'{LANGUAGE.CHANGE}')
+        change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:02}%)' if progress < 100 else f'{LANGUAGE.CHANGING}')
 
     Change.CALLBACK = wrapper
     Change.TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
@@ -328,8 +332,9 @@ def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    if not CONFIG[KEEP_CACHE] or utils.is_empty_dir(TEMP_DIR):
-        utils.delete_dir(TEMP_DIR)
+    utils.trim_dir(TEMP_DIR, CACHE_MAX) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_MAX)
+    if utils.is_empty_dir(TEMP_DIR, True):
+        utils.delete(TEMP_DIR, True)
 
 
 def main() -> typing.NoReturn:

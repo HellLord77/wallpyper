@@ -14,8 +14,8 @@ join_path = libraries.file.join
 copy_file = libraries.file.copy
 is_empty_dir = libraries.file.is_empty
 make_dirs = libraries.file.make_dir
-delete_file = libraries.file.remove
-delete_dir = libraries.file.remove_tree
+trim_dir = libraries.file.trim
+delete = libraries.file.remove
 
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run

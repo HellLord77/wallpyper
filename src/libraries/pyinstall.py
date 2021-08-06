@@ -25,7 +25,7 @@ def clean_temp(remove_base: typing.Optional[bool] = None) -> bool:
                     continue
             shutil.rmtree(path, True)
             cleaned = cleaned and not os.path.exists(path)
-    if remove_base and not os.listdir(base):
+    if remove_base and not any(os.scandir(base)):
         os.remove(base)
         cleaned = cleaned and not os.path.exists(base)
     return cleaned

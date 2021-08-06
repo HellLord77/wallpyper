@@ -121,7 +121,7 @@ def download(url: str,
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         ratio = 0
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        if os.path.isfile(path) and size == os.stat(path).st_size:
+        if os.path.isfile(path) and size == os.path.getsize(path):
             return True
         if os.path.isdir(path):
             os.remove(path)
@@ -131,7 +131,7 @@ def download(url: str,
                 ratio += len(chunk) / size
                 if callback:
                     callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
-        return size == os.stat(path).st_size
+        return size == os.path.getsize(path)
     return False
 
 
