@@ -22,18 +22,18 @@ import platforms.win32 as platform
 import utils
 
 NAME = 'wallpyper'
-CHANGE = 'auto_change_wallpaper'
-INTERVAL = 'auto_change_interval'
-SAVE = 'auto_save_wallpaper'
+CHANGE = 'auto_change'
+INTERVAL = 'change_interval'
+SAVE = 'save_wallpaper'
 SAVE_DIR = 'save_dir'
-NOTIFY = 'notify_on_fail'
+NOTIFY = 'notify'
 KEEP_CACHE = 'keep_cache'
 START = 'auto_start'
-SAVE_DATA = 'auto_save_config'
+SAVE_DATA = 'save_config'
 
-DELETE_MAX = 3
-EXIT_MAX = 7
-CACHE_MAX = 128 * 1024 * 1024
+DELETE_TIMEOUT = 3
+EXIT_TIMEOUT = 7
+CACHE_MAX_SIZE = 128 * 1024 * 1024
 
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
@@ -60,8 +60,7 @@ INTERVALS = {
     '1800': '30 Minute',
     '3600': '1 Hour',
     '10800': '3 Hour',
-    '21600': '6 Hour'
-}
+    '21600': '6 Hour'}
 
 CONFIG = {}
 
@@ -263,8 +262,8 @@ def on_exit():
     if change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
         if CONFIG[NOTIFY]:
             utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
-        end = time.time() + EXIT_MAX
-        while end > time.time() and (
+        end_time = time.time() + EXIT_TIMEOUT
+        while end_time > time.time() and (
                 change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()):
             time.sleep(0.01)
     utils.stop()
@@ -332,7 +331,7 @@ def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    utils.trim_dir(TEMP_DIR, CACHE_MAX) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_MAX)
+    utils.trim_dir(TEMP_DIR, CACHE_MAX_SIZE) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_TIMEOUT)
     if utils.is_empty_dir(TEMP_DIR, True):
         utils.delete(TEMP_DIR, True)
 

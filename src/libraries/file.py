@@ -54,24 +54,19 @@ def is_empty(path: str,
 
 
 def trim(path: str,
-         target: int,
-         sort: typing.Optional[typing.Callable] = None) -> bool:
+         target: int) -> bool:
     trimmed = False
-    if target:
-        paths = glob.glob(os.path.join(path, '**'), recursive=True)
-        paths.sort(key=sort or os.path.getctime)
-        size = 0
-        for path_ in paths:
-            size_ = os.path.getsize(path_)
-            if os.path.isfile(path_):
-                if size + size_ > target:
-                    os.remove(path_)
-                    trimmed = True
-                else:
-                    size += size_
-    else:
-        shutil.rmtree(path, True)
-        trimmed = True
+    paths = glob.glob(os.path.join(path, '**'), recursive=True)
+    paths.sort(key=os.path.getctime)
+    size = 0
+    for path_ in paths:
+        size_ = os.path.getsize(path_)
+        if os.path.isfile(path_):
+            if size + size_ > target:
+                os.remove(path_)
+                trimmed = True
+            else:
+                size += size_
     return trimmed
 
 

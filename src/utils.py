@@ -19,7 +19,7 @@ delete = libraries.file.remove
 
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run
-single = libraries.functool.one_run
+single = libraries.functool.singleton_run
 
 item = libraries.gui.Item
 icon = libraries.gui.Icon
