@@ -19,8 +19,7 @@ DEFAULT_CONFIG = {
     'ratios': '',
     'colors': '',
     'page': '',
-    'seed': ''
-}
+    'seed': ''}
 
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
 CONFIG = {}
@@ -40,15 +39,15 @@ def authenticate(api_key: str) -> bool:
 @utils.cache
 def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, None]:
     search_data = []
-    meta = {'current_page': 1,
-            'last_page': 1,
-            'seed': None}
-    params = config.copy()
+    meta = {
+        'current_page': 1,
+        'last_page': 1,
+        'seed': None}
     while True:
         if not search_data:
-            params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
-            params['seed'] = meta['seed'] or ''
-            response = utils.open_url(SEARCH_URl, params)
+            config['page'] = str(meta['current_page'] % meta['last_page'] + 1)
+            config['seed'] = meta['seed'] or ''
+            response = utils.open_url(SEARCH_URl, config)
             if response:
                 search_data, meta = response.get_json().values()
             else:
@@ -57,7 +56,7 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
 
 
 def get_next_url() -> str:
-    return next(_update_search_data(CONFIG))  # TODO: handle no result
+    return next(_update_search_data(CONFIG.copy()))  # TODO: handle no result
 
 
 def create_menu():
