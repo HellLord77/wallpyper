@@ -43,11 +43,12 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
         'current_page': 1,
         'last_page': 1,
         'seed': None}
+    params = config.copy()
     while True:
         if not search_data:
-            config['page'] = str(meta['current_page'] % meta['last_page'] + 1)
-            config['seed'] = meta['seed'] or ''
-            response = utils.open_url(SEARCH_URl, config)
+            params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
+            params['seed'] = meta['seed'] or ''
+            response = utils.open_url(SEARCH_URl, params)
             if response:
                 search_data, meta = response.get_json().values()
             else:
