@@ -49,11 +49,14 @@ class Func:
 
 def any_ex(func: typing.Callable,
            args: typing.Optional[tuple] = None,
-           kwargs: typing.Optional[dict[str, typing.Any]] = None):
-    ret = func(*args, **kwargs)
-    while not ret:
+           kwargs: typing.Optional[dict[str, typing.Any]] = None,
+           max_try: typing.Optional[int] = None) -> typing.Any:
+    args = args or ()
+    kwargs = kwargs or {}
+    for _ in (range if max_try else itertools.repeat)(max_try):
         ret = func(*args, **kwargs)
-    return ret
+        if ret:
+            return ret
 
 
 def eq_ex(a: typing.Any,
