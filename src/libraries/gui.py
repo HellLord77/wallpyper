@@ -32,7 +32,7 @@ class Icon:
 class _Arg(type):
     def __new__(mcs, *args, **kwargs):
         instance = super().__new__(mcs, *args, **kwargs)
-        instance._values = set(getattr(instance, name) for name in dir(instance) if not name.startswith('_'))
+        instance._values = set(getattr(instance, var) for var in vars(instance) if not var.startswith('_'))
         return instance
 
     def __contains__(cls, item):

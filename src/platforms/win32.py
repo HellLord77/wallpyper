@@ -167,15 +167,17 @@ def _swap_char(string: str,
 def register_autorun(name: str,
                      path: str,
                      *args: str) -> bool:
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
-                        access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
-        value = _swap_char(shlex.join((path,) + args), '"', "'")
-        try:
-            winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
-        except PermissionError:
-            return False
-        winreg.FlushKey(key)
-        return value == winreg.QueryValueEx(key, name)[0]
+    if os.path.isfile(path):
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
+                            access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
+            value = _swap_char(shlex.join((os.path.realpath(path),) + args), '"', "'")
+            try:
+                winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
+            except PermissionError:
+                return False
+            winreg.FlushKey(key)
+            return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
+    return False
 
 
 def unregister_autorun(name: str) -> bool:

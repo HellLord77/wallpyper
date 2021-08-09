@@ -16,6 +16,12 @@ def join(base: str,
     return os.path.realpath(os.path.join(base, *children))
 
 
+def list_dir(path: str) -> typing.Generator[str, None, None]:
+    for dir_ in os.scandir(path):
+        # noinspection PyUnresolvedReferences
+        yield os.path.realpath(dir_.path)
+
+
 def get_size(path: str) -> int:
     size = 0
     for dir_ in os.listdir(path):

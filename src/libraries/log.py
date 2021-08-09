@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 import threading
+import types
 import typing
 
 _PREFIXES = {
@@ -47,14 +48,13 @@ def redirect_stdio(path: str,
                    tee: typing.Optional[bool] = None,
                    write_once: typing.Optional[bool] = None) -> None:
     global _WRITE
-    path = os.path.realpath(path)
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(string: str,  # TODO: use queue
-              write_: typing.Callable[[str], int]):
+    def write(default: typing.Callable[[str], int],  # TODO: use queue
+              string: str):
         if string:
             if write_once:
                 _STREAM.write(string)
@@ -62,14 +62,14 @@ def redirect_stdio(path: str,
                 with open(path, 'a') as file:
                     file.write(string)
         if tee:
-            write_(string)
+            default(string)
 
     _WRITE = write
 
 
 def _is_compatible() -> bool:
     global _SUFFIX
-    supports = getattr(sys.stdout, 'isatty', lambda: False)()
+    supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
     if not supports:
         for event, prefix in _PREFIXES.items():
             _PREFIXES[event] = prefix[prefix.find('m') + 1:]
@@ -119,7 +119,6 @@ def _hook_callback(frame,
     return _hook_callback
 
 
-# noinspection PyCallingNonCallable
 def init(*dirs_or_paths: str,  # TODO: debug frozen
          base: str = os.path.dirname(inspect.stack()[-1].filename),
          level: int = Level.DEBUG,
@@ -130,9 +129,10 @@ def init(*dirs_or_paths: str,  # TODO: debug frozen
     for dir_ in dirs_or_paths:
         dir_or_path = os.path.realpath(os.path.join(base, dir_))
         if os.path.isdir(dir_or_path):
-            for root, _, names in os.walk(dir_or_path):
-                for name in names:
-                    _PATHS.add(os.path.join(root, name))
+            for dir__ in os.listdir(dir_or_path):
+                path = os.path.join(dir_or_path, dir__)
+                if os.path.isfile(path):
+                    _PATHS.add(path)
         elif os.path.isfile(dir_or_path):
             _PATHS.add(dir_or_path)
     _LEVEL = level
@@ -142,9 +142,11 @@ def init(*dirs_or_paths: str,  # TODO: debug frozen
     if not skip_comp:
         _is_compatible()
     if _WRITE:
-        sys.stdout.write = lambda string, write_=sys.stdout.write: _WRITE(string, write_)
+        # noinspection PyTypeChecker
+        sys.stdout.write = types.MethodType(_WRITE, sys.stdout)
         if sys.stdout is not sys.stderr:
-            sys.stderr.write = lambda string, write_=sys.stderr.write: _WRITE(string, write_)
+            # noinspection PyTypeChecker
+            sys.stderr.write = types.MethodType(_WRITE, sys.stderr)
     logging.root.addHandler(logging.StreamHandler())
     sys.settrace(_hook_callback)
     threading.settrace(_hook_callback)

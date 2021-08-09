@@ -1,19 +1,20 @@
 __version__ = '0.0.2'
 
 import sys
+import typing
 
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
 _CODES = set()
-_COMPATIBLE = getattr(sys.stdout, 'isatty', lambda: False)()
+_COMPATIBLE = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
 
 
 class _Code:
     def __init_subclass__(cls):
-        for name in dir(cls):
-            if not name.startswith('_'):
-                setattr(cls, name, f'{_CSI}{getattr(cls, name)}m' if _COMPATIBLE else '')
-                _CODES.add(getattr(cls, name))
+        for var in vars(cls):
+            if not var.startswith('_'):
+                setattr(cls, var, f'{_CSI}{getattr(cls, var)}m' if _COMPATIBLE else '')
+                _CODES.add(getattr(cls, var))
 
 
 class FontStyle(_Code):
@@ -62,7 +63,8 @@ class BackColor(_Code):
     BRIGHT_WHITE = 107
 
 
-def cprint(*strings) -> None:
+def cprint(*strings,
+           reset: typing.Optional[bool] = None) -> None:
     index = 0
     for string in strings:
         print(string, end='')
@@ -71,4 +73,5 @@ def cprint(*strings) -> None:
         index += 1
     for string in strings[index + 1:]:
         print(f'{" " * (string not in _CODES)}{string}', end='')
-    print(FontStyle.RESET)
+    if reset:
+        print(FontStyle.RESET)

@@ -1,6 +1,7 @@
-__version__ = '0.1.0'
+__version__ = '0.0.6'
 
 import binascii
+import collections
 import ctypes
 import functools
 import hashlib
@@ -12,7 +13,7 @@ import typing
 import uuid
 
 
-class _Bool:
+class Bool:
     def __init__(self,
                  state: bool = False):
         self._state = state
@@ -83,9 +84,15 @@ def randint_ex() -> int:
     return secrets.choice(secrets.token_bytes())
 
 
+def replace_ex(string: str,
+               a: str,
+               b: str) -> str:
+    return ''.join(a if char == b else b if char == a else char for char in string)
+
+
 def setattr_ex(obj: typing.Any,
                name: str,
-               value: typing.Any):
+               value: typing.Any) -> None:
     ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value[name] = value
 
 
@@ -101,35 +108,38 @@ def sleep_ex(secs: typing.Optional[float] = None) -> None:
 
 def encrypt(obj: typing.Any) -> str:
     pickled = pickle.dumps(obj)
-    return binascii.b2a_base64(
-        hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled, newline=False).decode()
+    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(
+        uuid.getnode()).encode()).digest() + pickled, newline=False).decode()
 
 
 def decrypt(data: str,
             default: typing.Any = None) -> typing.Any:
-    decoded = binascii.a2b_base64(data.encode())
+    try:
+        decoded = binascii.a2b_base64(data.encode())
+    except binascii.Error:
+        return default
     size = hashlib.blake2b().digest_size
     return pickle.loads(decoded[size:]) if decoded[:size] == hashlib.blake2b(
         decoded[size:], key=str(uuid.getnode()).encode()).digest() else default
 
 
 def one_cache(func: typing.Callable) -> typing.Callable:
-    cache = []
+    cache = collections.deque(maxlen=3)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if not cache or cache[0] != args or cache[1] != kwargs:
-            cache[:] = args, kwargs, func(*args, **kwargs)
+        if cache.maxlen != len(cache) or cache[0] != args or cache[1] != kwargs:
+            cache.extend((args, kwargs, func(*args, **kwargs)))
         return cache[2]
 
     wrapper.dumps = lambda: encrypt(cache)
-    wrapper.loads = lambda data: (cache.clear(), cache.extend(decrypt(data, cache.copy())))
+    wrapper.loads = lambda data: cache.extend(decrypt(data, cache))
     wrapper.reset = cache.clear
     return wrapper
 
 
 def once_run(func: typing.Callable) -> typing.Callable:
-    ran = _Bool()
+    ran = Bool()
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -143,7 +153,7 @@ def once_run(func: typing.Callable) -> typing.Callable:
 
 
 def singleton_run(func: typing.Callable) -> typing.Callable:
-    running = _Bool()
+    running = Bool()
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):

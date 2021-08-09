@@ -1,6 +1,7 @@
 __version__ = '0.0.3'
 
 import os
+import webbrowser
 
 import libraries.file
 import libraries.functool
@@ -9,8 +10,14 @@ import libraries.request
 import libraries.timer
 
 exists_file = os.path.isfile
+exists_dir = os.path.isdir
+dir_name = os.path.dirname
+file_name = os.path.basename
+
+open_browser = webbrowser.open
 
 join_path = libraries.file.join
+list_dir = libraries.file.list_dir
 copy_file = libraries.file.copy
 is_empty_dir = libraries.file.is_empty
 make_dirs = libraries.file.make_dir

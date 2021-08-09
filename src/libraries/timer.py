@@ -43,7 +43,7 @@ class Timer:
 
         self._running = False
         self._timer = threading.Timer(interval or 0.0, wrapper)
-        self._timers = collections.deque((), MAX_LEN)
+        self._timers = collections.deque(maxlen=MAX_LEN)
         self._instances.append(self)
 
     @property

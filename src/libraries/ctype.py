@@ -423,9 +423,9 @@ def char_array(obj: str,
 
 
 def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
-    for name, val in cls.__dict__.items():
-        if not name.startswith('_'):
-            yield name, val
+    for var, val in vars(cls).items():
+        if not var.startswith('_'):
+            yield var, val
 
 
 def _resolve_type(type_: typing.Any) -> typing.Any:
@@ -480,8 +480,8 @@ def _init():
 
             def __getattr__(self, name):
                 if name in self._methods:
-                    funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(ctypes.c_void_p)).contents.value,
-                                        self._pointer).contents
+                    funcs = ctypes.cast(ctypes.cast(self, ctypes.POINTER(
+                        ctypes.c_void_p)).contents.value, self._pointer).contents
                     for method in self._methods:
                         setattr(self, method, types.MethodType(getattr(funcs, method), self))
                 return super().__getattribute__(name)
