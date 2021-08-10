@@ -1,4 +1,4 @@
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 import configparser
 import sys
@@ -308,7 +308,14 @@ def start() -> None:
     if 'debug' in sys.argv:
         if libraries.pyinstall.FROZEN:
             libraries.log.redirect_stdio(LOG_PATH)
-        libraries.log.init(__file__, utils.__file__, 'languages', 'libraries', 'modules', 'platforms')
+        libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
+                           utils.join_path('libraries', 'ctype.py'), utils.join_path('libraries', 'file.py'),
+                           utils.join_path('libraries', 'functool.py'), utils.join_path('libraries', 'gui.py'),
+                           utils.join_path('libraries', 'log.py'), utils.join_path('libraries', 'pyinstall.py'),
+                           utils.join_path('libraries', 'request.py'), utils.join_path('libraries', 'singleton.py'),
+                           utils.join_path('libraries', 'timer.py'), utils.join_path('libraries', 'ctype.py'),
+                           utils.join_path('modules', 'unsplash.py'), utils.join_path('modules', 'wallpyper.py'),
+                           utils.join_path('platforms', 'linux.py'), utils.join_path('platforms', 'win32.py'))
     libraries.pyinstall.clean_temp()
     load_config()
     create_menu()
@@ -326,7 +333,7 @@ def stop() -> None:
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     utils.trim_dir(TEMP_DIR, CACHE_MAX_SIZE) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_TIMEOUT)
-    if utils.is_empty_dir(TEMP_DIR, True):
+    if utils.exists_dir(TEMP_DIR) and utils.is_empty_dir(TEMP_DIR, True):
         utils.delete(TEMP_DIR, True)
 
 

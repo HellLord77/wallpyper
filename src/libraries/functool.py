@@ -2,6 +2,7 @@ __version__ = '0.0.6'
 
 import binascii
 import collections
+import contextlib
 import ctypes
 import functools
 import hashlib
@@ -60,6 +61,19 @@ def any_ex(func: typing.Callable,
             return ret
 
 
+def cycle_ex(itt: typing.Iterable,
+             func: typing.Optional[typing.Callable] = None,
+             args: typing.Optional[tuple] = None,
+             kwargs: typing.Optional[dict[str, typing.Any]] = None) -> typing.Generator[typing.Any, None, None]:
+    args = args or ()
+    kwargs = kwargs or {}
+    while True:
+        for ele in itt:
+            yield ele
+        if func:
+            func(*args, **kwargs)
+
+
 def eq_ex(a: typing.Any,
           b: typing.Any) -> bool:
     sleep_ex()
@@ -74,10 +88,10 @@ def eq_ex(a: typing.Any,
         return a == b
 
 
-def get_any(iterable: typing.Iterable) -> typing.Any:
-    for item in iterable:
-        if item:
-            return item
+def get_any(itt: typing.Iterable) -> typing.Any:
+    for ele in itt:
+        if ele:
+            return ele
 
 
 def randint_ex() -> int:
@@ -107,7 +121,10 @@ def sleep_ex(secs: typing.Optional[float] = None) -> None:
 
 
 def encrypt(obj: typing.Any) -> str:
-    pickled = pickle.dumps(obj)
+    try:
+        pickled = pickle.dumps(obj)
+    except TypeError:
+        return ''
     return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(
         uuid.getnode()).encode()).digest() + pickled, newline=False).decode()
 
@@ -124,13 +141,17 @@ def decrypt(data: str,
 
 
 def one_cache(func: typing.Callable) -> typing.Callable:
-    cache = collections.deque(maxlen=3)
+    cache = collections.deque(maxlen=2)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if cache.maxlen != len(cache) or cache[0] != args or cache[1] != kwargs:
-            cache.extend((args, kwargs, func(*args, **kwargs)))
-        return cache[2]
+        params = args + tuple(kwargs.items())
+        with contextlib.suppress(TypeError):
+            params = hash(params)
+        if cache.maxlen != len(cache) or cache[0] != params:
+            cache.append(params)
+            cache.append(func(*args, **kwargs))
+        return cache[1]
 
     wrapper.dumps = lambda: encrypt(cache)
     wrapper.loads = lambda data: cache.extend(decrypt(data, cache))

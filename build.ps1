@@ -1,7 +1,6 @@
 $Datas = @("resources")
 $Icon = "icon.ico"
 $NoConsole = $True
-$Obfuscate = $True
 $OneFile = $True
 
 function Install-Dependecies

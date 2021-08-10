@@ -1,6 +1,7 @@
 __version__ = '0.0.3'
 
 import atexit
+import hashlib
 import multiprocessing.shared_memory
 import os
 import socket
@@ -8,10 +9,10 @@ import sys
 import tempfile
 import time
 import typing
-import zlib
 
 DELAY = 1
 TIMEOUT = 5
+MAX_CHUNK = 1024 * 1024
 SUFFIX = '.lock'
 
 
@@ -126,8 +127,13 @@ class Method:
 
 def _get_uid(path: typing.Optional[str] = None,
              prefix: typing.Optional[str] = None) -> str:
+    md5 = hashlib.md5()
     with open(path or sys.argv[0], 'rb') as file:
-        return f'{prefix or __name__}_{zlib.adler32(file.read())}{SUFFIX}'
+        buffer = file.read(MAX_CHUNK)
+        while buffer:
+            md5.update(buffer)
+            buffer = file.read(MAX_CHUNK)
+    return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
 
 
 def init(name_prefix: typing.Optional[str] = None,

@@ -51,13 +51,13 @@ def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, N
             response = utils.open_url(SEARCH_URl, params)
             if response:
                 search_data, meta = response.get_json().values()
-            else:
-                search_data = [{'path': ''}]
+            if not search_data:
+                search_data.append({'path': ''})
         yield search_data.pop(0)['path']
 
 
 def get_next_url() -> str:
-    return next(_update_search_data(CONFIG.copy()))  # TODO: handle no result
+    return next(_update_search_data(CONFIG.copy()))
 
 
 def create_menu():

@@ -7,10 +7,10 @@ import functools
 import threading
 import typing
 
-MAX_LEN = 32
+MAX_LEN = ctypes.sizeof(ctypes.c_void_p)
 
 
-class _ThreadExit(SystemExit):
+class _TimerExit(SystemExit):
     pass
 
 
@@ -36,8 +36,8 @@ class Timer:
             if not once:
                 self.start()
             try:
-                with contextlib.suppress(_ThreadExit):
-                    callback(*callback_args or (), **callback_kwargs or {})
+                with contextlib.suppress(_TimerExit):
+                    callback(*callback_args, **callback_kwargs)
             finally:
                 self._running = False
 
@@ -73,10 +73,10 @@ class Timer:
 
     def kill(self) -> bool:
         killed = False
+        timer_exit = ctypes.py_object(_TimerExit)
         for timer in self._timers:
             if timer.is_alive():
-                killed = ctypes.pythonapi.PyThreadState_SetAsyncExc(timer.ident,
-                                                                    ctypes.py_object(_ThreadExit)) == 1 or killed
+                killed = ctypes.pythonapi.PyThreadState_SetAsyncExc(timer.ident, timer_exit) == 1 or killed
         return killed
 
 
