@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import atexit
 import datetime
@@ -6,6 +6,7 @@ import inspect
 import io
 import logging
 import os
+import shutil
 import sys
 import threading
 import types
@@ -22,10 +23,11 @@ _PREFIXES = {
 _SUFFIX = '\x1b[0m\n'
 _GENERATOR = (_ for _ in ()).__name__
 _EXCEPTION = Exception.__name__.lower()
+_BASE = '' if hasattr(sys, 'frozen') else os.path.dirname(inspect.stack()[-1].filename)
 _PATHS = set()
 _LEVEL = 0
 _STREAM = io.StringIO()
-_WRITE = None
+_WRITE: typing.Optional[typing.Callable] = None
 
 
 class Level:
@@ -37,11 +39,10 @@ class Level:
 
 
 def _flush(path: str) -> None:
-    _STREAM.seek(0)
-    string = _STREAM.read()
-    if string:
+    if _STREAM.tell():
+        _STREAM.seek(0)
         with open(path, 'w') as file:
-            file.write(string)
+            shutil.copyfileobj(_STREAM, file)
 
 
 def redirect_stdio(path: str,
@@ -97,16 +98,20 @@ def _get_class_name(frame) -> str:
         return f'{type(frame.f_locals["self"]).__name__}.'
     elif 'cls' in frame.f_locals:
         return f'{frame.f_locals["cls"].__name__}.'
-    return ''
+    else:
+        return ''
 
 
 def _hook_callback(frame,
                    event: str,
                    arg: typing.Any) -> typing.Callable:
     frame.f_trace_lines = False
-    if __file__ != frame.f_code.co_filename and frame.f_code.co_filename in _PATHS and _filter(event, arg,
-                                                                                               frame.f_code.co_name):
-        log = f'{_PREFIXES[event]}{datetime.datetime.now()}: [{os.path.relpath(frame.f_code.co_filename)} ' \
+    try:
+        rel_path = os.path.relpath(frame.f_code.co_filename, _BASE)
+    except ValueError:
+        return _hook_callback
+    if rel_path in _PATHS and _filter(event, arg, frame.f_code.co_name):
+        log = f'{_PREFIXES[event]}{datetime.datetime.now()}: [{rel_path} ' \
               f'{frame.f_lineno}] {_get_class_name(frame)}{frame.f_code.co_name}{_SUFFIX}'
         if event == 'call':
             for key, value in frame.f_locals.items():
@@ -119,22 +124,13 @@ def _hook_callback(frame,
     return _hook_callback
 
 
-def init(*dirs_or_paths: str,  # TODO: debug frozen
-         base: str = os.path.dirname(inspect.stack()[-1].filename),
+def init(*paths: str,
          level: int = Level.DEBUG,
          redirect_wx: bool = False,
          skip_comp: bool = False) -> None:
     global _LEVEL
-    logging.root.setLevel(logging.DEBUG)
-    for dir_ in dirs_or_paths:
-        dir_or_path = os.path.realpath(os.path.join(base, dir_))
-        if os.path.isdir(dir_or_path):
-            for dir__ in os.listdir(dir_or_path):
-                path = os.path.join(dir_or_path, dir__)
-                if os.path.isfile(path):
-                    _PATHS.add(path)
-        elif os.path.isfile(dir_or_path):
-            _PATHS.add(dir_or_path)
+    for path in paths:
+        _PATHS.add(os.path.relpath(path, _BASE))
     _LEVEL = level
     if redirect_wx:
         import wx
@@ -142,11 +138,15 @@ def init(*dirs_or_paths: str,  # TODO: debug frozen
     if not skip_comp:
         _is_compatible()
     if _WRITE:
-        # noinspection PyTypeChecker
         sys.stdout.write = types.MethodType(_WRITE, sys.stdout)
         if sys.stdout is not sys.stderr:
-            # noinspection PyTypeChecker
             sys.stderr.write = types.MethodType(_WRITE, sys.stderr)
-    logging.root.addHandler(logging.StreamHandler())
-    sys.settrace(_hook_callback)
-    threading.settrace(_hook_callback)
+    if 'pytransform' in sys.modules:
+        # noinspection PyPackageRequirements,PyUnresolvedReferences
+        import pytransform
+        print(f'[!] Can not log {pytransform.get_license_code()}')
+    else:
+        logging.root.setLevel(logging.DEBUG)
+        logging.root.addHandler(logging.StreamHandler())
+        sys.settrace(_hook_callback)
+        threading.settrace(_hook_callback)
