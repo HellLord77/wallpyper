@@ -162,7 +162,6 @@ def one_cache(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         params = args + tuple(kwargs.items())
         params = try_ex((hash, pickle.dumps), ((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
-        print(params)
         if cache.maxlen != len(cache) or cache[1] != params:
             cache.append(func(*args, **kwargs))
             cache.append(params)

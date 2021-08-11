@@ -209,7 +209,7 @@ def on_change_interval(interval: str) -> None:
 @utils.thread
 def on_save() -> bool:
     saved = save_wallpaper()
-    if CONFIG[NOTIFY] and not saved:
+    if not saved and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
     return saved
 
@@ -220,14 +220,14 @@ def on_modify_save():
 
 def on_copy() -> bool:
     copied = any(platform.copy_image(path) for path in _get_wallpaper_paths())
-    if CONFIG[NOTIFY] and not copied:
+    if not copied and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
     return copied
 
 
 def on_copy_path() -> bool:
     copied = any(platform.copy_text(path) for path in _get_wallpaper_paths())
-    if CONFIG[NOTIFY] and not copied:
+    if not copied and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
     return copied
 
@@ -235,7 +235,7 @@ def on_copy_path() -> bool:
 @utils.thread
 def on_search() -> bool:
     searched = search_wallpaper()
-    if CONFIG[NOTIFY] and not searched:
+    if not searched and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.SEARCH, LANGUAGE.FAILED_SEARCHING)
     return searched
 
@@ -270,7 +270,7 @@ def on_exit() -> None:
 def create_menu() -> None:
     change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
     Change.CALLBACK = lambda progress: change.SetItemLabel(
-        f'{LANGUAGE.CHANGING} ({progress:02}%)' if progress < 100 else f'{LANGUAGE.CHANGING}')
+        f'{LANGUAGE.CHANGING} ({progress:02}%)' if progress < 100 else f'{LANGUAGE.CHANGE}')
     Change.TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
                                       CONFIG[CHANGE], INTERVALS, on_change_interval,
