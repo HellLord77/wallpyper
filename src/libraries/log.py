@@ -1,4 +1,4 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import atexit
 import datetime
@@ -10,7 +10,7 @@ import shutil
 import sys
 import threading
 import types
-from typing import Optional, Any, Callable
+from typing import Any, Callable, Mapping, Optional
 
 _PREFIXES = {
     'call': '\x1b[92m[>] ',
@@ -21,11 +21,14 @@ _PREFIXES = {
     'return_details': '\x1b[34m    '
 }
 _SUFFIX = '\x1b[0m\n'
+_CALL = 'call'
+_EXCEPTION = 'exception'
+_RETURN = 'return'
 _GENERATOR = (_ for _ in ()).__name__
-_EXCEPTION = Exception.__name__.lower()
 _BASE = '' if hasattr(sys, 'frozen') else os.path.dirname(inspect.stack()[-1].filename)
 _PATHS = set()
 _LEVEL = 0
+_STACK = 0
 _STREAM = io.StringIO()
 _WRITE: Optional[Callable] = None
 
@@ -80,11 +83,11 @@ def _is_compatible() -> bool:
 
 def _filter(event: str,
             arg: Any,
-            callback: str) -> bool:
+            func: str) -> bool:
     if _LEVEL == Level.DEBUG:
         return True
     elif _LEVEL == Level.INFO:
-        return callback != _GENERATOR and (event != _EXCEPTION or arg[0] not in (GeneratorExit, StopIteration))
+        return func != _GENERATOR and (event != _EXCEPTION or arg[0] not in (GeneratorExit, StopIteration))
     elif _LEVEL == Level.ERROR:
         return event == _EXCEPTION
     elif _LEVEL == Level.WARNING:
@@ -93,33 +96,42 @@ def _filter(event: str,
         return False
 
 
-def _get_class_name(frame) -> str:
-    if 'self' in frame.f_locals:
-        return f'{type(frame.f_locals["self"]).__name__}.'
-    elif 'cls' in frame.f_locals:
-        return f'{frame.f_locals["cls"].__name__}.'
+def _get_class_name(locals_: Mapping[str, Any]) -> str:
+    if 'self' in locals_:
+        return f'{type(locals_["self"]).__name__}.'
+    elif 'cls' in locals_:
+        return f'{locals_["cls"].__name__}.'
     else:
         return ''
+
+
+def _get_stats(key: str,
+               val: Any) -> str:
+    return f'{key}: [{type(val).__name__} {sys.getsizeof(val)}] {val}'
 
 
 def _hook_callback(frame,
                    event: str,
                    arg: Any) -> Callable:
+    global _STACK
     frame.f_trace_lines = False
     try:
-        rel_path = os.path.relpath(frame.f_code.co_filename, _BASE)
+        path = os.path.relpath(frame.f_code.co_filename, _BASE)
     except ValueError:
         return _hook_callback
-    if rel_path in _PATHS and _filter(event, arg, frame.f_code.co_name):
-        log = f'{_PREFIXES[event]}{datetime.datetime.now()}: [{rel_path} ' \
-              f'{frame.f_lineno}] {_get_class_name(frame)}{frame.f_code.co_name}{_SUFFIX}'
-        if event == 'call':
-            for key, value in frame.f_locals.items():
-                log += f'{_PREFIXES[f"call_details"]}{key}: {value}{_SUFFIX}'
+    if path in _PATHS and _filter(event, arg, frame.f_code.co_name):
+        _STACK -= event == _RETURN
+        pad = ' ' * _STACK * 4
+        log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: ' \
+              f'[{path} {frame.f_lineno}] {_get_class_name(frame.f_locals)}{frame.f_code.co_name}{_SUFFIX}'
+        if event == _CALL:
+            _STACK += 1
+            for item in frame.f_locals.items():
+                log += f'{pad}{_PREFIXES[f"{_CALL}_details"]}{_get_stats(*item)}{_SUFFIX}'
         elif event == _EXCEPTION:
-            log += f'{_PREFIXES[f"exception_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
-        elif event == 'return':
-            log += f'{_PREFIXES[f"return_details"]}return: {arg}{_SUFFIX}'
+            log += f'{pad}{_PREFIXES[f"{_EXCEPTION}_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
+        elif event == _RETURN:
+            log += f'{pad}{_PREFIXES[f"{_RETURN}_details"]}{_get_stats("return", arg)}{_SUFFIX}'
         logging.debug(log[:-1])
     return _hook_callback
 
