@@ -8,7 +8,7 @@ import socket
 import sys
 import tempfile
 import time
-import typing
+from typing import Optional, Any, Callable, Mapping, Iterable, NoReturn
 
 DELAY = 1
 TIMEOUT = 5
@@ -17,12 +17,12 @@ SUFFIX = '.lock'
 
 
 def _wait_or_exit(end_time: float,
-                  wait_callback: typing.Optional[typing.Callable],
-                  wait_callback_args: tuple,
-                  wait_callback_kwargs: dict[str, typing.Any],
-                  exit_callback: typing.Optional[typing.Callable],
-                  exit_callback_args: tuple,
-                  exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+                  wait_callback: Optional[Callable],
+                  wait_callback_args: Iterable,
+                  wait_callback_kwargs: Mapping[str, Any],
+                  exit_callback: Optional[Callable],
+                  exit_callback_args: Iterable,
+                  exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     if end_time > time.time():
         if wait_callback:
             wait_callback(*wait_callback_args, **wait_callback_kwargs)
@@ -35,15 +35,15 @@ def _wait_or_exit(end_time: float,
 
 def _file(uid: str,
           wait: bool,
-          crash_callback: typing.Optional[typing.Callable],
-          crash_callback_args: tuple,
-          crash_callback_kwargs: dict[str, typing.Any],
-          wait_callback: typing.Optional[typing.Callable],
-          wait_callback_args: tuple,
-          wait_callback_kwargs: dict[str, typing.Any],
-          exit_callback: typing.Optional[typing.Callable],
-          exit_callback_args: tuple,
-          exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+          crash_callback: Optional[Callable],
+          crash_callback_args: Iterable,
+          crash_callback_kwargs: Mapping[str, Any],
+          wait_callback: Optional[Callable],
+          wait_callback_args: Iterable,
+          wait_callback_kwargs: Mapping[str, Any],
+          exit_callback: Optional[Callable],
+          exit_callback_args: Iterable,
+          exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -70,15 +70,15 @@ def _file(uid: str,
 
 def _memory(uid: str,
             wait: bool,
-            _: typing.Any,
-            __: typing.Any,
-            ___: typing.Any,
-            wait_callback: typing.Optional[typing.Callable],
-            wait_callback_args: tuple,
-            wait_callback_kwargs: dict[str, typing.Any],
-            exit_callback: typing.Optional[typing.Callable],
-            exit_callback_args: tuple,
-            exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+            _: Any,
+            __: Any,
+            ___: Any,
+            wait_callback: Optional[Callable],
+            wait_callback_args: Iterable,
+            wait_callback_kwargs: Mapping[str, Any],
+            exit_callback: Optional[Callable],
+            exit_callback_args: Iterable,
+            exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     end_time = time.time() + wait * TIMEOUT - DELAY
     while True:
         try:
@@ -95,15 +95,15 @@ def _memory(uid: str,
 
 def _socket(uid: str,
             wait: bool,
-            _: typing.Any,
-            __: typing.Any,
-            ___: typing.Any,
-            wait_callback: typing.Optional[typing.Callable],
-            wait_callback_args: tuple,
-            wait_callback_kwargs: dict[str, typing.Any],
-            exit_callback: typing.Optional[typing.Callable],
-            exit_callback_args: tuple,
-            exit_callback_kwargs: dict[str, typing.Any]) -> typing.Optional[typing.NoReturn]:
+            _: Any,
+            __: Any,
+            ___: Any,
+            wait_callback: Optional[Callable],
+            wait_callback_args: Iterable,
+            wait_callback_kwargs: Mapping[str, Any],
+            exit_callback: Optional[Callable],
+            exit_callback_args: Iterable,
+            exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.time() + wait * TIMEOUT - DELAY
@@ -125,8 +125,8 @@ class Method:
     SOCKET = _socket
 
 
-def _get_uid(path: typing.Optional[str] = None,
-             prefix: typing.Optional[str] = None) -> str:
+def _get_uid(path: Optional[str] = None,
+             prefix: Optional[str] = None) -> str:
     md5 = hashlib.md5()
     with open(path or sys.argv[0], 'rb') as file:
         buffer = file.read(MAX_CHUNK)
@@ -136,18 +136,18 @@ def _get_uid(path: typing.Optional[str] = None,
     return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
 
 
-def init(name_prefix: typing.Optional[str] = None,
-         wait: typing.Optional[bool] = None,
-         crash_callback: typing.Optional[typing.Callable] = None,
-         crash_callback_args: typing.Optional[tuple] = None,
-         crash_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-         wait_callback: typing.Optional[typing.Callable] = None,
-         wait_callback_args: typing.Optional[tuple] = None,
-         wait_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-         exit_callback: typing.Optional[typing.Callable] = None,
-         exit_callback_args: typing.Optional[tuple] = None,
-         exit_callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-         method: typing.Optional[typing.Callable] = None) -> typing.Optional[typing.NoReturn]:
+def init(name_prefix: Optional[str] = None,
+         wait: Optional[bool] = None,
+         crash_callback: Optional[Callable] = None,
+         crash_callback_args: Optional[Iterable] = None,
+         crash_callback_kwargs: Optional[Mapping[str, Any]] = None,
+         wait_callback: Optional[Callable] = None,
+         wait_callback_args: Optional[Iterable] = None,
+         wait_callback_kwargs: Optional[Mapping[str, Any]] = None,
+         exit_callback: Optional[Callable] = None,
+         exit_callback_args: Optional[Iterable] = None,
+         exit_callback_kwargs: Optional[Mapping[str, Any]] = None,
+         method: Optional[Callable] = None) -> Optional[NoReturn]:
     (method or Method.FILE)(_get_uid(prefix=name_prefix), bool(wait),
                             crash_callback, crash_callback_args or (), crash_callback_kwargs or {},
                             wait_callback, wait_callback_args or (), wait_callback_kwargs or {},

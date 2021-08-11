@@ -5,11 +5,11 @@ import http.client
 import json
 import os
 import sys
-import typing
 import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+from typing import Optional, Any, Union, Callable, Generator, Mapping, Iterable
 
 
 class Status:
@@ -31,7 +31,7 @@ USER_AGENT = f'request/{__version__}'
 
 class Response:
     def __init__(self,
-                 response: typing.Union[http.client.HTTPResponse, urllib.error.URLError]):
+                 response: Union[http.client.HTTPResponse, urllib.error.URLError]):
         self.chunk_size = _MIN_CHUNK
         self.response = response
         self.reason = response.reason
@@ -43,7 +43,7 @@ class Response:
     def __bool__(self) -> bool:
         return self._ok
 
-    def __iter__(self) -> typing.Generator[bytes, None, None]:
+    def __iter__(self) -> Generator[bytes, None, None]:
         if self.response.isclosed():
             for i in range(0, len(self._content), self.chunk_size):
                 yield self._content[i:i + self.chunk_size]
@@ -59,7 +59,7 @@ class Response:
             self._content = self.response.read()
         return self._content
 
-    def get_json(self) -> typing.Optional[typing.Union[dict, list, str, int, float, bool]]:
+    def get_json(self) -> Optional[Union[dict, list, str, int, float, bool]]:
         try:
             return json.loads(self.get_text())
         except json.decoder.JSONDecodeError:
@@ -79,11 +79,11 @@ def urljoin(base: str,
 
 
 def urlopen(url: str,
-            params: typing.Optional[dict[str, str]] = None,
-            data: typing.Optional[bytes] = None,
-            headers: typing.Optional[dict[str, str]] = None,
-            redirection: typing.Optional[bool] = None,
-            stream: typing.Optional[bool] = None) -> Response:
+            params: Optional[Mapping[str, str]] = None,
+            data: Optional[bytes] = None,
+            headers: Optional[Mapping[str, str]] = None,
+            redirection: Optional[bool] = None,
+            stream: Optional[bool] = None) -> Response:
     query = {}
     for key, value in (params or {}).items():
         query[key] = value
@@ -109,12 +109,12 @@ def urlopen(url: str,
 
 def download(url: str,
              path: str,
-             size: typing.Optional[int] = None,
-             chunk_size: typing.Optional[int] = None,
-             chunk_count: typing.Optional[int] = None,
-             callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
-             callback_args: typing.Optional[tuple] = None,
-             callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
+             size: Optional[int] = None,
+             chunk_size: Optional[int] = None,
+             chunk_count: Optional[int] = None,
+             callback: Optional[Callable[[int, ...], Any]] = None,
+             callback_args: Optional[Iterable] = None,
+             callback_kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     response = urlopen(url)
     if response:
         size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
@@ -136,11 +136,11 @@ def download(url: str,
 
 
 def upload(url: str,
-           params: typing.Optional[dict[str, str]] = None,
-           fields: typing.Optional[dict[str, str]] = None,
-           files: typing.Optional[dict[str, tuple[typing.Optional[str], str]]] = None,
-           headers: typing.Optional[dict[str, str]] = None,
-           redirection: typing.Optional[bool] = None) -> Response:
+           params: Optional[Mapping[str, str]] = None,
+           fields: Optional[Mapping[str, str]] = None,
+           files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,
+           headers: Optional[Mapping[str, str]] = None,
+           redirection: Optional[bool] = None) -> Response:
     boundary = uuid.uuid4().hex
     data = b''
     for name, val in (fields or {}).items():

@@ -6,7 +6,9 @@ import ctypes
 import dataclasses
 import functools
 import types
-import typing
+# noinspection PyUnresolvedReferences,PyProtectedMember
+from typing import Optional, Generic, _CallableType, get_origin, _UnionGenericAlias, Any, Union, Callable, get_args, \
+    _CallableGenericAlias, TypeVar, get_type_hints, Generator
 
 
 class Const:
@@ -90,33 +92,33 @@ class Const:
     WPSTYLE_SPAN = 5
 
 
-_CT = typing.TypeVar('_CT')
+_CT = TypeVar('_CT')
 
 
-class Pointer(typing.Generic[_CT]):
+class Pointer(Generic[_CT]):
     value = None
 
-    # noinspection PyTypeChecker,PyUnusedLocal
-    def __init__(self, type_: typing.Type[_CT]) -> typing.Type[Pointer[_CT]]:
+    # noinspection PyTypeChecker,PyUnusedLocal,PyUnresolvedReferences
+    def __init__(self, type_: type[_CT]) -> type[Pointer[_CT]]:
         pass
 
 
 class Type:
-    c_byte = typing.Union[ctypes.c_byte, int]
-    c_ubyte = typing.Union[ctypes.c_ubyte, int]
-    c_void_p = typing.Union[ctypes.c_void_p, ctypes.c_wchar_p, int, str]
-    c_char_p = typing.Union[ctypes.c_char_p, str]
-    c_wchar_p = typing.Union[ctypes.c_wchar_p, str]
-    c_int = typing.Union[ctypes.c_int, int]
-    c_uint = typing.Union[ctypes.c_uint, int]
-    c_uint32 = typing.Union[ctypes.c_uint32, int]
-    c_short = typing.Union[ctypes.c_short, int]
-    c_ushort = typing.Union[ctypes.c_ushort, int]
-    c_long = typing.Union[ctypes.c_long, int]
-    c_ulong = typing.Union[ctypes.c_ulong, int]
-    size_t = typing.Union[ctypes.c_size_t, int]
-    c_wchar = typing.Union[ctypes.c_wchar, str]
-    HRESULT = typing.Union[ctypes.HRESULT, int]
+    c_byte = Union[ctypes.c_byte, int]
+    c_ubyte = Union[ctypes.c_ubyte, int]
+    c_void_p = Union[ctypes.c_void_p, ctypes.c_wchar_p, int, str]
+    c_char_p = Union[ctypes.c_char_p, str]
+    c_wchar_p = Union[ctypes.c_wchar_p, str]
+    c_int = Union[ctypes.c_int, int]
+    c_uint = Union[ctypes.c_uint, int]
+    c_uint32 = Union[ctypes.c_uint32, int]
+    c_short = Union[ctypes.c_short, int]
+    c_ushort = Union[ctypes.c_ushort, int]
+    c_long = Union[ctypes.c_long, int]
+    c_ulong = Union[ctypes.c_ulong, int]
+    size_t = Union[ctypes.c_size_t, int]
+    c_wchar = Union[ctypes.c_wchar, str]
+    HRESULT = Union[ctypes.HRESULT, int]
 
     c_uchar = c_ubyte
 
@@ -244,61 +246,61 @@ class Struct:
 
 class COM:
     class IUnknown:
-        QueryInterface: typing.Callable[[Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
-        AddRef: typing.Callable[[], Type.ULONG]
-        Release: typing.Callable[[], Type.ULONG]
+        QueryInterface: Callable[[Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
+        AddRef: Callable[[], Type.ULONG]
+        Release: Callable[[], Type.ULONG]
 
     class IActiveDesktop(IUnknown):
-        ApplyChanges: typing.Callable[[Type.DWORD], Type.HRESULT]
-        GetWallpaper: typing.Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
-        SetWallpaper: typing.Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
-        GetWallpaperOptions: typing.Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
-        SetWallpaperOptions: typing.Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
-        GetPattern: typing.Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
-        SetPattern: typing.Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
-        GetDesktopItemOptions: typing.Callable
-        SetDesktopItemOptions: typing.Callable
-        AddDesktopItem: typing.Callable
-        AddDesktopItemWithUI: typing.Callable
-        ModifyDesktopItem: typing.Callable
-        RemoveDesktopItem: typing.Callable
-        GetDesktopItemCount: typing.Callable[[Pointer[Type.c_int], Type.DWORD], Type.HRESULT]
-        GetDesktopItem: typing.Callable
-        GetDesktopItemByID: typing.Callable
-        GenerateDesktopItemHtml: typing.Callable
-        AddUrl: typing.Callable
-        GetDesktopItemBySource: typing.Callable
+        ApplyChanges: Callable[[Type.DWORD], Type.HRESULT]
+        GetWallpaper: Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
+        SetWallpaper: Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
+        GetWallpaperOptions: Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        SetWallpaperOptions: Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        GetPattern: Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
+        SetPattern: Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
+        GetDesktopItemOptions: Callable
+        SetDesktopItemOptions: Callable
+        AddDesktopItem: Callable
+        AddDesktopItemWithUI: Callable
+        ModifyDesktopItem: Callable
+        RemoveDesktopItem: Callable
+        GetDesktopItemCount: Callable[[Pointer[Type.c_int], Type.DWORD], Type.HRESULT]
+        GetDesktopItem: Callable
+        GetDesktopItemByID: Callable
+        GenerateDesktopItemHtml: Callable
+        AddUrl: Callable
+        GetDesktopItemBySource: Callable
 
     class IFileDialog(IUnknown):
-        Show: typing.Callable[[Type.HWND], Type.HRESULT]
-        SetFileTypes: typing.Callable
-        SetFileTypeIndex: typing.Callable[[Type.UINT], Type.HRESULT]
-        GetFileTypeIndex: typing.Callable[[Type.UINT], Type.HRESULT]
-        Advise: typing.Callable
-        Unadvise: typing.Callable
-        SetOptions: typing.Callable
-        GetOptions: typing.Callable
-        SetDefaultFolder: typing.Callable
-        SetFolder: typing.Callable
-        GetFolder: typing.Callable
-        GetCurrentSelection: typing.Callable
-        SetFileName: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
-        GetFileName: typing.Callable[[Type.LPWSTR], Type.HRESULT]
-        SetTitle: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
-        SetOkButtonLabel: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
-        SetFileNameLabel: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
-        GetResult: typing.Callable
-        AddPlace: typing.Callable
-        SetDefaultExtension: typing.Callable[[Type.LPCWSTR], Type.HRESULT]
-        Close: typing.Callable[[Type.HRESULT], Type.HRESULT]
-        SetClientGuid: typing.Callable[[Pointer[Struct.GUID]], Type.HRESULT]
-        ClearClientData: typing.Callable[[], Type.HRESULT]
-        SetFilter: typing.Callable
+        Show: Callable[[Type.HWND], Type.HRESULT]
+        SetFileTypes: Callable
+        SetFileTypeIndex: Callable[[Type.UINT], Type.HRESULT]
+        GetFileTypeIndex: Callable[[Type.UINT], Type.HRESULT]
+        Advise: Callable
+        Unadvise: Callable
+        SetOptions: Callable
+        GetOptions: Callable
+        SetDefaultFolder: Callable
+        SetFolder: Callable
+        GetFolder: Callable
+        GetCurrentSelection: Callable
+        SetFileName: Callable[[Type.LPCWSTR], Type.HRESULT]
+        GetFileName: Callable[[Type.LPWSTR], Type.HRESULT]
+        SetTitle: Callable[[Type.LPCWSTR], Type.HRESULT]
+        SetOkButtonLabel: Callable[[Type.LPCWSTR], Type.HRESULT]
+        SetFileNameLabel: Callable[[Type.LPCWSTR], Type.HRESULT]
+        GetResult: Callable
+        AddPlace: Callable
+        SetDefaultExtension: Callable[[Type.LPCWSTR], Type.HRESULT]
+        Close: Callable[[Type.HRESULT], Type.HRESULT]
+        SetClientGuid: Callable[[Pointer[Struct.GUID]], Type.HRESULT]
+        ClearClientData: Callable[[], Type.HRESULT]
+        SetFilter: Callable
 
 
 class _Lib:
     def __init_subclass__(cls):
-        for var, type_ in typing.get_type_hints(cls).items():
+        for var, type_ in get_type_hints(cls).items():
             setattr(cls, var, type_(var))
 
 
@@ -314,80 +316,80 @@ class Lib(_Lib):
 
 
 class Func:
-    RtlAreLongPathsEnabled: typing.Callable[[],
-                                            Type.c_ubyte] = Lib.ntdll.RtlAreLongPathsEnabled
+    RtlAreLongPathsEnabled: Callable[[],
+                                     Type.c_ubyte] = Lib.ntdll.RtlAreLongPathsEnabled
 
-    GlobalAlloc: typing.Callable[[Type.UINT, Type.SIZE_T],
-                                 Type.HGLOBAL] = Lib.kernel32.GlobalAlloc
-    GlobalLock: typing.Callable[[Type.HGLOBAL],
-                                Type.LPVOID] = Lib.kernel32.GlobalLock
-    GlobalUnlock: typing.Callable[[Type.HGLOBAL],
-                                  Type.BOOL] = Lib.kernel32.GlobalUnlock
-    CloseHandle: typing.Callable[[Type.HANDLE],
-                                 Type.BOOL] = Lib.kernel32.CloseHandle
+    GlobalAlloc: Callable[[Type.UINT, Type.SIZE_T],
+                          Type.HGLOBAL] = Lib.kernel32.GlobalAlloc
+    GlobalLock: Callable[[Type.HGLOBAL],
+                         Type.LPVOID] = Lib.kernel32.GlobalLock
+    GlobalUnlock: Callable[[Type.HGLOBAL],
+                           Type.BOOL] = Lib.kernel32.GlobalUnlock
+    CloseHandle: Callable[[Type.HANDLE],
+                          Type.BOOL] = Lib.kernel32.CloseHandle
 
-    GetObject: typing.Callable[[Type.HANDLE, Type.INT, Type.LPVOID],
-                               Type.INT] = Lib.gdi32.GetObjectW
-    DeleteObject: typing.Callable[[Type.HGDIOBJ],
-                                  Type.BOOL] = Lib.gdi32.DeleteObject
-    CreateDIBitmap: typing.Callable[[Type.HDC, Pointer[Struct.BITMAPINFOHEADER], Type.DWORD,
-                                     Type.VOID, Pointer[Struct.BITMAPINFO], Type.UINT],
-                                    Type.HBITMAP] = Lib.gdi32.CreateDIBitmap
-    GetDIBits: typing.Callable[[Type.HDC, Type.HBITMAP, Type.UINT, Type.UINT,
-                                typing.Optional[Type.LPVOID], Pointer[Struct.BITMAPINFO], Type.UINT],
-                               Type.INT] = Lib.gdi32.GetDIBits
+    GetObject: Callable[[Type.HANDLE, Type.INT, Type.LPVOID],
+                        Type.INT] = Lib.gdi32.GetObjectW
+    DeleteObject: Callable[[Type.HGDIOBJ],
+                           Type.BOOL] = Lib.gdi32.DeleteObject
+    CreateDIBitmap: Callable[[Type.HDC, Pointer[Struct.BITMAPINFOHEADER], Type.DWORD,
+                              Type.VOID, Pointer[Struct.BITMAPINFO], Type.UINT],
+                             Type.HBITMAP] = Lib.gdi32.CreateDIBitmap
+    GetDIBits: Callable[[Type.HDC, Type.HBITMAP, Type.UINT, Type.UINT,
+                         Optional[Type.LPVOID], Pointer[Struct.BITMAPINFO], Type.UINT],
+                        Type.INT] = Lib.gdi32.GetDIBits
 
-    SystemParametersInfo: typing.Callable[[Type.UINT, Type.UINT, Type.PVOID, Type.UINT],
-                                          Type.BOOL] = Lib.user32.SystemParametersInfoW
-    OpenClipboard: typing.Callable[[typing.Optional[Type.HWND]],
-                                   Type.BOOL] = Lib.user32.OpenClipboard
-    CloseClipboard: typing.Callable[[],
-                                    Type.BOOL] = Lib.user32.CloseClipboard
-    EmptyClipboard: typing.Callable[[],
-                                    Type.BOOL] = Lib.user32.EmptyClipboard
-    GetClipboardData: typing.Callable[[Type.UINT],
-                                      Type.HANDLE] = Lib.user32.GetClipboardData
-    SetClipboardData: typing.Callable[[Type.UINT, Type.HANDLE],
-                                      Type.HANDLE] = Lib.user32.SetClipboardData
-    LoadImage: typing.Callable[[Type.HINSTANCE, Type.LPCWSTR, Type.UINT, Type.INT, Type.INT, Type.UINT],
-                               Type.HANDLE] = Lib.user32.LoadImageW
-    GetDC: typing.Callable[[typing.Optional[Type.HWND]],
-                           Type.HDC] = Lib.user32.GetDC
-    ReleaseDC: typing.Callable[[typing.Optional[Type.HWND], Type.HDC],
-                               Type.INT] = Lib.user32.ReleaseDC
+    SystemParametersInfo: Callable[[Type.UINT, Type.UINT, Type.PVOID, Type.UINT],
+                                   Type.BOOL] = Lib.user32.SystemParametersInfoW
+    OpenClipboard: Callable[[Optional[Type.HWND]],
+                            Type.BOOL] = Lib.user32.OpenClipboard
+    CloseClipboard: Callable[[],
+                             Type.BOOL] = Lib.user32.CloseClipboard
+    EmptyClipboard: Callable[[],
+                             Type.BOOL] = Lib.user32.EmptyClipboard
+    GetClipboardData: Callable[[Type.UINT],
+                               Type.HANDLE] = Lib.user32.GetClipboardData
+    SetClipboardData: Callable[[Type.UINT, Type.HANDLE],
+                               Type.HANDLE] = Lib.user32.SetClipboardData
+    LoadImage: Callable[[Type.HINSTANCE, Type.LPCWSTR, Type.UINT, Type.INT, Type.INT, Type.UINT],
+                        Type.HANDLE] = Lib.user32.LoadImageW
+    GetDC: Callable[[Optional[Type.HWND]],
+                    Type.HDC] = Lib.user32.GetDC
+    ReleaseDC: Callable[[Optional[Type.HWND], Type.HDC],
+                        Type.INT] = Lib.user32.ReleaseDC
 
-    IIDFromString: typing.Callable[[Type.LPCOLESTR, Pointer[Struct.IID]],
-                                   Type.HRESULT] = Lib.ole32.IIDFromString
-    CLSIDFromString: typing.Callable[[Type.LPCOLESTR, Pointer[Struct.CLSID]],
-                                     Type.HRESULT] = Lib.ole32.CLSIDFromString
-    CoInitialize: typing.Callable[[typing.Optional[Type.LPVOID]],
-                                  Type.HRESULT] = Lib.ole32.CoInitialize
-    CoUninitialize: typing.Callable[[],
-                                    Type.VOID] = Lib.ole32.CoUninitialize
-    CoCreateInstance: typing.Callable[[Pointer[Struct.CLSID], typing.Optional[Pointer[Type.IUnknown]],
-                                       Type.DWORD, Pointer[Struct.IID], Type.LPVOID],
-                                      Type.HRESULT] = Lib.ole32.CoCreateInstance
+    IIDFromString: Callable[[Type.LPCOLESTR, Pointer[Struct.IID]],
+                            Type.HRESULT] = Lib.ole32.IIDFromString
+    CLSIDFromString: Callable[[Type.LPCOLESTR, Pointer[Struct.CLSID]],
+                              Type.HRESULT] = Lib.ole32.CLSIDFromString
+    CoInitialize: Callable[[Optional[Type.LPVOID]],
+                           Type.HRESULT] = Lib.ole32.CoInitialize
+    CoUninitialize: Callable[[],
+                             Type.VOID] = Lib.ole32.CoUninitialize
+    CoCreateInstance: Callable[[Pointer[Struct.CLSID], Optional[Pointer[Type.IUnknown]],
+                                Type.DWORD, Pointer[Struct.IID], Type.LPVOID],
+                               Type.HRESULT] = Lib.ole32.CoCreateInstance
 
-    memmove: typing.Callable[[Type.c_void_p, Type.c_void_p, Type.size_t],
-                             Type.c_void_p] = Lib.msvcrt.memmove
-    wcslen: typing.Callable[[Type.c_wchar_p],
-                            Type.size_t] = Lib.msvcrt.wcslen
+    memmove: Callable[[Type.c_void_p, Type.c_void_p, Type.size_t],
+                      Type.c_void_p] = Lib.msvcrt.memmove
+    wcslen: Callable[[Type.c_wchar_p],
+                     Type.size_t] = Lib.msvcrt.wcslen
 
-    GdiplusStartup: typing.Callable[[Pointer[Type.ULONG_PTR], Pointer[Struct.GdiplusStartupInput],
-                                     typing.Optional[Pointer[Struct.GdiplusStartupInput]]],
-                                    Type.Status] = Lib.gdiplus.GdiplusStartup
-    GdiplusShutdown: typing.Callable[[Type.ULONG_PTR],
-                                     Type.VOID] = Lib.gdiplus.GdiplusShutdown
-    GdipCreateBitmapFromFile: typing.Callable[[Pointer[Type.WCHAR], Pointer[Type.GpBitmap]],
-                                              Type.GpStatus] = Lib.gdiplus.GdipCreateBitmapFromFile
-    GdipDisposeImage: typing.Callable[[Type.GpImage],
-                                      Type.GpStatus] = Lib.gdiplus.GdipDisposeImage
-    GdipCreateHBITMAPFromBitmap: typing.Callable[[Type.GpBitmap, Pointer[Type.HBITMAP], Type.ARGB],
-                                                 Type.GpStatus] = Lib.gdiplus.GdipCreateHBITMAPFromBitmap
+    GdiplusStartup: Callable[[Pointer[Type.ULONG_PTR], Pointer[Struct.GdiplusStartupInput],
+                              Optional[Pointer[Struct.GdiplusStartupInput]]],
+                             Type.Status] = Lib.gdiplus.GdiplusStartup
+    GdiplusShutdown: Callable[[Type.ULONG_PTR],
+                              Type.VOID] = Lib.gdiplus.GdiplusShutdown
+    GdipCreateBitmapFromFile: Callable[[Pointer[Type.WCHAR], Pointer[Type.GpBitmap]],
+                                       Type.GpStatus] = Lib.gdiplus.GdipCreateBitmapFromFile
+    GdipDisposeImage: Callable[[Type.GpImage],
+                               Type.GpStatus] = Lib.gdiplus.GdipDisposeImage
+    GdipCreateHBITMAPFromBitmap: Callable[[Type.GpBitmap, Pointer[Type.HBITMAP], Type.ARGB],
+                                          Type.GpStatus] = Lib.gdiplus.GdipCreateHBITMAPFromBitmap
 
-    SHGetFolderPath: typing.Callable[[typing.Optional[Type.HWND], Type.INT,
-                                      typing.Optional[Type.HANDLE], Type.DWORD, Type.LPWSTR],
-                                     Type.HRESULT] = Lib.shell32.SHGetFolderPathW
+    SHGetFolderPath: Callable[[Optional[Type.HWND], Type.INT,
+                               Optional[Type.HANDLE], Type.DWORD, Type.LPWSTR],
+                              Type.HRESULT] = Lib.shell32.SHGetFolderPathW
 
 
 def pointer(type_: _CT) -> Pointer[_CT]:
@@ -401,7 +403,7 @@ def byref(obj: _CT) -> Pointer[_CT]:
 
 
 def cast(obj: Pointer,
-         type_: typing.Union[Pointer[_CT], type]) -> Pointer[_CT]:
+         type_: Union[Pointer[_CT], type]) -> Pointer[_CT]:
     # noinspection PyTypeChecker
     return ctypes.cast(obj, type_ if not issubclass(
         type_, ctypes.Structure) and hasattr(type_, 'from_param') else ctypes.POINTER(type_))
@@ -412,8 +414,8 @@ def sizeof(obj: _CT) -> int:
 
 
 def array(type_: _CT = Type.c_void_p,
-          *elements: typing.Any,
-          size: typing.Optional[int] = None) -> Pointer[_CT]:
+          *elements: Any,
+          size: Optional[int] = None) -> Pointer[_CT]:
     return (type_ * (size or len(elements)))(*elements)
 
 
@@ -422,27 +424,24 @@ def char_array(obj: str,
     return (type_ * (len(obj) + 1))(*obj)
 
 
-def _items(cls: type) -> typing.Generator[dict[str, typing.Any], None, None]:
+def _items(cls: type) -> Generator[tuple[str, Any], None, None]:
     for var, val in vars(cls).items():
         if not var.startswith('_'):
             yield var, val
 
 
-def _resolve_type(type_: typing.Any) -> typing.Any:
-    # noinspection PyUnresolvedReferences,PyProtectedMember
-    if isinstance(type_, typing._CallableType):
+def _resolve_type(type_: Any) -> Any:
+    if isinstance(type_, _CallableType):
         type_ = [None]
-    elif isinstance(type_, typing._CallableGenericAlias):
-        types_ = typing.get_args(type_)
+    elif isinstance(type_, _CallableGenericAlias):
+        types_ = get_args(type_)
         type_ = [_resolve_type(types_[1])]
         type_.extend(_resolve_type(type_) for type_ in types_[0])
     else:
-        # noinspection PyProtectedMember,PyUnresolvedReferences
-        if isinstance(type_, typing._UnionGenericAlias):
-            type_ = typing.get_args(type_)[0]
-        # noinspection PyProtectedMember,PyUnresolvedReferences
-        if typing.get_origin(type_) is Pointer:
-            type_ = ctypes.POINTER(_resolve_type(typing.get_args(type_)[0]))
+        if isinstance(type_, _UnionGenericAlias):
+            type_ = get_args(type_)[0]
+        if get_origin(type_) is Pointer:
+            type_ = ctypes.POINTER(_resolve_type(get_args(type_)[0]))
     return type_
 
 
@@ -457,7 +456,7 @@ def _init():
 
     for var, struct in _items(Struct):
         class Wrapper(ctypes.Structure):
-            _fields_ = tuple((field, _resolve_type(type_)) for field, type_ in typing.get_type_hints(struct).items())
+            _fields_ = tuple((field, _resolve_type(type_)) for field, type_ in get_type_hints(struct).items())
             _defaults = tuple((field, getattr(struct, field) or type_) for field, type_ in _fields_)
 
             def __init__(self, *args, **kwargs):
@@ -472,7 +471,7 @@ def _init():
 
     for var, com in _items(COM):
         class Wrapper(ctypes.c_void_p):
-            _methods = typing.get_type_hints(com)
+            _methods = get_type_hints(com)
             # noinspection PyTypeChecker
             _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple(
                 (func, ctypes.CFUNCTYPE(*_method_type(_resolve_type(types_)))) for func, types_ in _methods.items())}))
@@ -489,7 +488,7 @@ def _init():
         functools.update_wrapper(Wrapper, com, updated=())
         setattr(COM, var, Wrapper)
 
-    types_ = typing.get_type_hints(Func)
+    types_ = get_type_hints(Func)
     for var, func in _items(Func):
         func.restype, *func.argtypes = _resolve_type(types_[var])
 

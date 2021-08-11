@@ -5,7 +5,7 @@ import contextlib
 import ctypes
 import functools
 import threading
-import typing
+from typing import Optional, Any, Callable, Mapping, Iterable
 
 MAX_LEN = ctypes.sizeof(ctypes.c_void_p)
 
@@ -25,11 +25,11 @@ class Timer:
         return killed
 
     def __init__(self,
-                 callback: typing.Callable,
-                 callback_args: typing.Optional[tuple] = None,
-                 callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                 interval: typing.Optional[float] = None,
-                 once: typing.Optional[bool] = None) -> None:
+                 callback: Callable,
+                 callback_args: Optional[Iterable] = None,
+                 callback_kwargs: Optional[Mapping[str, Any]] = None,
+                 interval: Optional[float] = None,
+                 once: Optional[bool] = None) -> None:
         @functools.wraps(callback)
         def wrapper() -> None:
             self._running = True
@@ -55,7 +55,7 @@ class Timer:
         return self._running
 
     def start(self,
-              interval: typing.Optional[float] = None) -> bool:
+              interval: Optional[float] = None) -> bool:
         self.stop()
         if interval is not None:
             self._timer.interval = interval
@@ -80,16 +80,16 @@ class Timer:
         return killed
 
 
-def start_once(callback: typing.Callable,
-               callback_args: typing.Optional[tuple] = None,
-               callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-               interval: typing.Optional[float] = None) -> Timer:
+def start_once(callback: Callable,
+               callback_args: Optional[Iterable] = None,
+               callback_kwargs: Optional[Mapping[str, Any]] = None,
+               interval: Optional[float] = None) -> Timer:
     timer = Timer(callback, callback_args, callback_kwargs, interval, True)
     timer.start()
     return timer
 
 
-def on_thread(callback: typing.Callable) -> typing.Callable:
+def on_thread(callback: Callable) -> Callable:
     @functools.wraps(callback)
     def wrapper(*args, **kwargs):
         start_once(callback, args, kwargs)

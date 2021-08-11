@@ -1,9 +1,9 @@
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 import configparser
 import sys
 import time
-import typing
+from typing import Optional, Any, Union, Callable, Generator, Mapping, Iterable, NoReturn
 
 import wx
 
@@ -37,7 +37,7 @@ LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
-DEFAULT_CONFIG: dict[str, typing.Union[str, int, float, bool]] = {
+DEFAULT_CONFIG: dict[str, Union[str, int, float, bool]] = {
     CHANGE: False,
     INTERVAL: 3600,
     SAVE: False,
@@ -70,8 +70,8 @@ class Change:
 
 def _load_config(config_parser: configparser.ConfigParser,
                  section: str,
-                 config: dict[str, typing.Union[str, int, float, bool]],
-                 default_config: dict[str, typing.Union[str, int, float, bool]]) -> bool:
+                 config: dict[str, Union[str, int, float, bool]],
+                 default_config: dict[str, Union[str, int, float, bool]]) -> bool:
     loaded = True
     getters = {
         str: config_parser.get,
@@ -122,15 +122,15 @@ def save_config() -> bool:
     return saved and utils.exists_file(CONFIG_PATH)
 
 
-def update_config(value: typing.Any,
+def update_config(value: Any,
                   key: str) -> None:
     CONFIG.__setitem__(key, value)
 
 
 @utils.single
-def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typing.Any]] = None,
-                     callback_args: typing.Optional[tuple] = None,
-                     callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> bool:
+def change_wallpaper(callback: Optional[Callable[[int, ...], Any]] = None,
+                     callback_args: Optional[Iterable] = None,
+                     callback_kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
     if callback:
         callback(0, *callback_args or (), **callback_kwargs or {})
@@ -147,7 +147,7 @@ def change_wallpaper(callback: typing.Optional[typing.Callable[[int, ...], typin
     return changed
 
 
-def _get_wallpaper_paths() -> typing.Generator[str, None, None]:
+def _get_wallpaper_paths() -> Generator[str, None, None]:
     path = platform.get_wallpaper_path()
     if utils.exists_file(path):
         yield path
@@ -194,7 +194,7 @@ def on_change() -> bool:
     return changed
 
 
-def on_auto_change(checked: bool, change_interval: typing.Optional[wx.MenuItem] = None) -> None:
+def on_auto_change(checked: bool, change_interval: Optional[wx.MenuItem] = None) -> None:
     CONFIG[CHANGE] = checked
     if change_interval:
         change_interval.Enable(True)
@@ -215,7 +215,7 @@ def on_save() -> bool:
 
 
 def on_modify_save():
-    utils.notify(LANGUAGE.MODIFY_SAVE, 'Unimplemented')
+    utils.notify(LANGUAGE.MODIFY_SAVE, str(NotImplemented))
 
 
 def on_copy() -> bool:
@@ -337,7 +337,7 @@ def stop() -> None:
         utils.delete(TEMP_DIR, True)
 
 
-def main() -> typing.NoReturn:
+def main() -> NoReturn:
     start()
     stop()
     sys.exit()

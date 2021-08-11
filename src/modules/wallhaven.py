@@ -1,6 +1,6 @@
 __version__ = '0.0.1'
 
-import typing
+from typing import Generator
 
 import utils
 
@@ -37,7 +37,7 @@ def authenticate(api_key: str) -> bool:
 
 
 @utils.cache
-def _update_search_data(config: dict[str, str]) -> typing.Generator[str, None, None]:
+def _update_search_data(config: dict[str, str]) -> Generator[str, None, None]:
     search_data = []
     meta = {
         'current_page': 1,
@@ -61,4 +61,4 @@ def get_next_url() -> str:
 
 
 def create_menu():
-    utils.add_item(NAME, callback=utils.notify, callback_args=(NAME, 'Unimplemented'))
+    utils.add_item(NAME, callback=utils.notify, callback_args=(NAME, str(NotImplemented)))

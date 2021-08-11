@@ -2,7 +2,6 @@ __version__ = '0.0.6'
 
 import binascii
 import collections
-import contextlib
 import ctypes
 import functools
 import hashlib
@@ -10,8 +9,8 @@ import itertools
 import pickle
 import secrets
 import time
-import typing
 import uuid
+from typing import Optional, Iterable, Mapping, Any, Callable, Generator
 
 
 class Bool:
@@ -35,24 +34,24 @@ class Bool:
 
 class Func:
     def __init__(self,
-                 func: typing.Optional[typing.Callable] = None,
-                 args: typing.Optional[tuple] = None,
-                 kwargs: typing.Optional[dict[str, typing.Any]] = None):
+                 func: Optional[Callable] = None,
+                 args: Optional[Iterable] = None,
+                 kwargs: Optional[Mapping[str, Any]] = None):
         self.func = func
         self.args = args or ()
         self.kwargs = kwargs or {}
         if func:
             functools.update_wrapper(self, self.func)
 
-    def __call__(self) -> typing.Any:
+    def __call__(self) -> Any:
         if self.func:
             return self.func(*self.args, *self.kwargs)
 
 
-def any_ex(func: typing.Callable,
-           args: typing.Optional[tuple] = None,
-           kwargs: typing.Optional[dict[str, typing.Any]] = None,
-           max_try: typing.Optional[int] = None) -> typing.Any:
+def any_ex(func: Callable,
+           args: Optional[Iterable] = None,
+           kwargs: Optional[Mapping[str, Any]] = None,
+           max_try: Optional[int] = None) -> Any:
     args = args or ()
     kwargs = kwargs or {}
     for _ in (range if max_try else itertools.repeat)(max_try):
@@ -61,10 +60,10 @@ def any_ex(func: typing.Callable,
             return ret
 
 
-def cycle_ex(itt: typing.Iterable,
-             func: typing.Optional[typing.Callable] = None,
-             args: typing.Optional[tuple] = None,
-             kwargs: typing.Optional[dict[str, typing.Any]] = None) -> typing.Generator[typing.Any, None, None]:
+def cycle_ex(itt: Iterable,
+             func: Optional[Callable] = None,
+             args: Optional[Iterable] = None,
+             kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
     args = args or ()
     kwargs = kwargs or {}
     while True:
@@ -74,10 +73,10 @@ def cycle_ex(itt: typing.Iterable,
             func(*args, **kwargs)
 
 
-def eq_ex(a: typing.Any,
-          b: typing.Any) -> bool:
+def eq_ex(a: Any,
+          b: Any) -> bool:
     sleep_ex()
-    if isinstance(a, typing.Iterable) and isinstance(b, typing.Iterable):
+    if isinstance(a, Iterable) and isinstance(b, Iterable):
         empty = object()
         for a_, b_ in itertools.zip_longest(a, b, fillvalue=empty):
             sleep_ex()
@@ -86,12 +85,6 @@ def eq_ex(a: typing.Any,
         return True
     else:
         return a == b
-
-
-def get_any(itt: typing.Iterable) -> typing.Any:
-    for ele in itt:
-        if ele:
-            return ele
 
 
 def randint_ex() -> int:
@@ -104,13 +97,13 @@ def replace_ex(string: str,
     return ''.join(a if char == b else b if char == a else char for char in string)
 
 
-def setattr_ex(obj: typing.Any,
+def setattr_ex(obj: Any,
                name: str,
-               value: typing.Any) -> None:
+               value: Any) -> None:
     ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value[name] = value
 
 
-def sleep_ex(secs: typing.Optional[float] = None) -> None:
+def sleep_ex(secs: Optional[float] = None) -> None:
     if secs is None:
         while secrets.randbelow(any_ex(randint_ex)):
             pass
@@ -120,7 +113,29 @@ def sleep_ex(secs: typing.Optional[float] = None) -> None:
             pass
 
 
-def encrypt(obj: typing.Any) -> str:
+# noinspection PyUnresolvedReferences
+def try_ex(funcs: Iterable[Callable],
+           args: Optional[Iterable[Optional[Iterable]]] = None,
+           kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
+           excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
+    for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, args or (), kwargs or (), excs or ()):
+        if not func:
+            break
+        try:
+            ret = func(*args_ or (), **kwargs_ or {})
+        except excs_ or ():
+            pass
+        else:
+            return ret
+
+
+def get_any(itt: Iterable) -> Any:
+    for ele in itt:
+        if ele:
+            return ele
+
+
+def encrypt(obj: Any) -> str:
     try:
         pickled = pickle.dumps(obj)
     except TypeError:
@@ -130,7 +145,7 @@ def encrypt(obj: typing.Any) -> str:
 
 
 def decrypt(data: str,
-            default: typing.Any = None) -> typing.Any:
+            default: Any = None) -> Any:
     try:
         decoded = binascii.a2b_base64(data.encode())
     except binascii.Error:
@@ -140,18 +155,18 @@ def decrypt(data: str,
         decoded[size:], key=str(uuid.getnode()).encode()).digest() else default
 
 
-def one_cache(func: typing.Callable) -> typing.Callable:
+def one_cache(func: Callable) -> Callable:
     cache = collections.deque(maxlen=2)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         params = args + tuple(kwargs.items())
-        with contextlib.suppress(TypeError):
-            params = hash(params)
-        if cache.maxlen != len(cache) or cache[0] != params:
-            cache.append(params)
+        params = try_ex((hash, pickle.dumps), ((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
+        print(params)
+        if cache.maxlen != len(cache) or cache[1] != params:
             cache.append(func(*args, **kwargs))
-        return cache[1]
+            cache.append(params)
+        return cache[0]
 
     wrapper.dumps = lambda: encrypt(cache)
     wrapper.loads = lambda data: cache.extend(decrypt(data, cache))
@@ -159,7 +174,7 @@ def one_cache(func: typing.Callable) -> typing.Callable:
     return wrapper
 
 
-def once_run(func: typing.Callable) -> typing.Callable:
+def once_run(func: Callable) -> Callable:
     ran = Bool()
 
     @functools.wraps(func)
@@ -173,7 +188,7 @@ def once_run(func: typing.Callable) -> typing.Callable:
     return wrapper
 
 
-def singleton_run(func: typing.Callable) -> typing.Callable:
+def singleton_run(func: Callable) -> Callable:
     running = Bool()
 
     @functools.wraps(func)
@@ -191,9 +206,9 @@ def singleton_run(func: typing.Callable) -> typing.Callable:
     return wrapper
 
 
-def call_after(pre_func: typing.Callable,
-               redirect: typing.Optional[bool] = None) -> typing.Callable[[typing.Callable], typing.Callable]:
-    def wrapped(func: typing.Callable) -> typing.Callable:
+def call_after(pre_func: Callable,
+               redirect: Optional[bool] = None) -> Callable[[Callable], Callable]:
+    def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = pre_func(*args, **kwargs)
@@ -205,8 +220,8 @@ def call_after(pre_func: typing.Callable,
 
 
 def call_before(post_func,
-                redirect: typing.Optional[bool] = None) -> typing.Callable[[typing.Callable], typing.Callable]:
-    def wrapped(func: typing.Callable) -> typing.Callable:
+                redirect: Optional[bool] = None) -> Callable[[Callable], Callable]:
+    def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             # noinspection PyListCreation

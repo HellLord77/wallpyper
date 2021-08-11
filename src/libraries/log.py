@@ -10,7 +10,7 @@ import shutil
 import sys
 import threading
 import types
-import typing
+from typing import Optional, Any, Callable
 
 _PREFIXES = {
     'call': '\x1b[92m[>] ',
@@ -27,7 +27,7 @@ _BASE = '' if hasattr(sys, 'frozen') else os.path.dirname(inspect.stack()[-1].fi
 _PATHS = set()
 _LEVEL = 0
 _STREAM = io.StringIO()
-_WRITE: typing.Optional[typing.Callable] = None
+_WRITE: Optional[Callable] = None
 
 
 class Level:
@@ -46,15 +46,15 @@ def _flush(path: str) -> None:
 
 
 def redirect_stdio(path: str,
-                   tee: typing.Optional[bool] = None,
-                   write_once: typing.Optional[bool] = None) -> None:
+                   tee: Optional[bool] = None,
+                   write_once: Optional[bool] = None) -> None:
     global _WRITE
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(default: typing.Callable[[str], int],  # TODO: use queue
+    def write(default: Callable[[str], int],  # TODO: use queue
               string: str):
         if string:
             if write_once:
@@ -79,7 +79,7 @@ def _is_compatible() -> bool:
 
 
 def _filter(event: str,
-            arg: typing.Any,
+            arg: Any,
             callback: str) -> bool:
     if _LEVEL == Level.DEBUG:
         return True
@@ -104,7 +104,7 @@ def _get_class_name(frame) -> str:
 
 def _hook_callback(frame,
                    event: str,
-                   arg: typing.Any) -> typing.Callable:
+                   arg: Any) -> Callable:
     frame.f_trace_lines = False
     try:
         rel_path = os.path.relpath(frame.f_code.co_filename, _BASE)

@@ -6,7 +6,7 @@ import glob
 import os
 import shutil
 import time
-import typing
+from typing import Generator, Optional
 
 DELAY = 0.01
 
@@ -16,7 +16,7 @@ def join(base: str,
     return os.path.realpath(os.path.join(base, *children))
 
 
-def list_dir(path: str) -> typing.Generator[str, None, None]:
+def list_dir(path: str) -> Generator[str, None, None]:
     for dir_ in os.scandir(path):
         # noinspection PyUnresolvedReferences
         yield os.path.realpath(dir_.path)
@@ -49,7 +49,7 @@ def make_dir(path: str) -> bool:
 
 
 def is_empty(path: str,
-             recursive: typing.Optional[bool] = None) -> bool:
+             recursive: Optional[bool] = None) -> bool:
     if recursive:
         for dir_ in os.listdir(path):
             path_ = os.path.join(path, dir_)
@@ -77,8 +77,8 @@ def trim(path: str,
 
 
 def remove(path: str,
-           recursive: typing.Optional[bool] = None,
-           timeout: typing.Optional[float] = None) -> bool:
+           recursive: Optional[bool] = None,
+           timeout: Optional[float] = None) -> bool:
     end_time = time.time() + (timeout or DELAY)
     exists = os.path.exists(path)
     while exists and end_time > time.time():

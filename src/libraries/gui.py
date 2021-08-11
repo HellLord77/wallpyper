@@ -6,7 +6,7 @@ import itertools
 import os
 import threading
 import time
-import typing
+from typing import Callable, Iterable, Mapping, Any, Optional
 
 import wx
 import wx.adv
@@ -58,10 +58,10 @@ _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 
 
 def _get_wrapper(menu_item: wx.MenuItem,
-                 callback: typing.Callable,
-                 callback_args: tuple,
-                 callback_kwargs: dict[str, typing.Any],
-                 builtin_args: tuple[str]) -> typing.Callable:
+                 callback: Callable,
+                 callback_args: Iterable,
+                 callback_kwargs: Mapping[str, Any],
+                 builtin_args: Iterable[str]) -> Callable:
     @functools.wraps(callback)
     def wrapper(_: wx.Event):
         builtin_args_ = []
@@ -76,15 +76,15 @@ def _get_wrapper(menu_item: wx.MenuItem,
 
 
 def add_menu_item(label: str,
-                  kind: typing.Optional[int] = None,
-                  check: typing.Optional[bool] = None,
-                  enable: typing.Optional[bool] = None,
-                  uid: typing.Optional[str] = None,
-                  callback: typing.Optional[typing.Callable] = None,
-                  callback_args: typing.Optional[tuple] = None,
-                  callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                  builtin_args: typing.Optional[tuple[str]] = None,
-                  position: typing.Optional[int] = None,
+                  kind: Optional[int] = None,
+                  check: Optional[bool] = None,
+                  enable: Optional[bool] = None,
+                  uid: Optional[str] = None,
+                  callback: Optional[Callable] = None,
+                  callback_args: Optional[Iterable] = None,
+                  callback_kwargs: Optional[Mapping[str, Any]] = None,
+                  builtin_args: Optional[Iterable[str]] = None,
+                  position: Optional[int] = None,
                   menu: wx.Menu = _MENU) -> wx.MenuItem:
     menu_item = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
                             label, uid or '', Item.NORMAL if kind is None else kind)
@@ -103,15 +103,15 @@ def add_separator() -> wx.MenuItem:
 
 
 def add_submenu(label: str,
-                kind: typing.Optional[int] = None,
-                checks: typing.Optional[tuple[str]] = None,
-                enable: typing.Optional[bool] = None,
-                items: typing.Optional[dict[str, str]] = None,
-                callback: typing.Optional[typing.Callable] = None,
-                callback_args: typing.Optional[tuple] = None,
-                callback_kwargs: typing.Optional[dict[str, typing.Any]] = None,
-                builtin_args: typing.Optional[tuple[str]] = None,
-                position: typing.Optional[int] = None,
+                kind: Optional[int] = None,
+                checks: Optional[Iterable[str]] = None,
+                enable: Optional[bool] = None,
+                items: Optional[Mapping[str, str]] = None,
+                callback: Optional[Callable] = None,
+                callback_args: Optional[Iterable] = None,
+                callback_kwargs: Optional[Mapping[str, Any]] = None,
+                builtin_args: Optional[Iterable[str]] = None,
+                position: Optional[int] = None,
                 menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
     for uid, label_ in items.items():
@@ -127,7 +127,7 @@ def add_submenu(label: str,
 
 def show_balloon(title: str,
                  text: str,
-                 icon: typing.Optional[int] = None) -> bool:
+                 icon: Optional[int] = None) -> bool:
     _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
@@ -146,10 +146,10 @@ def _destroy() -> None:
 
 
 def start_loop(path: str,
-               tooltip: typing.Optional[str] = None,
-               callback: typing.Optional[typing.Callable] = None,
-               callback_args: typing.Optional[tuple] = None,
-               callback_kwargs: typing.Optional[dict[str, typing.Any]] = None) -> None:
+               tooltip: Optional[str] = None,
+               callback: Optional[Callable] = None,
+               callback_args: Optional[Iterable] = None,
+               callback_kwargs: Optional[Mapping[str, Any]] = None) -> None:
     _ICON.LoadFile(path)
     _APP.SetAppName(tooltip)
     if callback:
@@ -172,7 +172,7 @@ def disable() -> None:
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
-def stop_loop(_: typing.Optional[wx.CloseEvent] = None) -> None:
+def stop_loop(_: Optional[wx.CloseEvent] = None) -> None:
     _APP.ExitMainLoop()
 
 
@@ -193,14 +193,14 @@ def _animate() -> None:
 
 
 def start_animation(path: str,
-                    tooltip: typing.Optional[str] = None) -> None:
+                    tooltip: Optional[str] = None) -> None:
     _ANIMATIONS.append((_get_gif_frames(path), _APP.GetAppName() if tooltip is None else tooltip))
     if not any(thread.name.startswith(f'{wx.adv.TaskBarIcon.__name__}Animation-') for thread in threading.enumerate()):
         threading.Thread(target=_animate,
                          name=f'{wx.adv.TaskBarIcon.__name__}Animation-{os.path.basename(path)}', daemon=True).start()
 
 
-def stop_animation(tooltip: typing.Optional[str] = None) -> bool:
+def stop_animation(tooltip: Optional[str] = None) -> bool:
     stopped = False
     if _ANIMATIONS:
         if tooltip is None:

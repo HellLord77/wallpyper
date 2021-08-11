@@ -1,7 +1,7 @@
 __version__ = '0.0.2'
 
 import sys
-import typing
+from typing import Optional
 
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
@@ -64,7 +64,7 @@ class BackColor(_Code):
 
 
 def cprint(*strings,
-           reset: typing.Optional[bool] = None) -> None:
+           reset: Optional[bool] = None) -> None:
     index = 0
     for string in strings:
         print(string, end='')
