@@ -1,4 +1,4 @@
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import binascii
 import collections
@@ -10,7 +10,7 @@ import pickle
 import secrets
 import time
 import uuid
-from typing import Optional, Iterable, Mapping, Any, Callable, Generator
+from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
 
 class Bool:
@@ -91,6 +91,11 @@ def randint_ex() -> int:
     return secrets.choice(secrets.token_bytes())
 
 
+def reversed_ex(*items: Any) -> Any:
+    for ele in reversed(items):
+        yield ele
+
+
 def replace_ex(string: str,
                a: str,
                b: str) -> str:
@@ -114,11 +119,11 @@ def sleep_ex(secs: Optional[float] = None) -> None:
 
 
 # noinspection PyUnresolvedReferences
-def try_ex(funcs: Iterable[Callable],
+def try_ex(*funcs: Callable,
            args: Optional[Iterable[Optional[Iterable]]] = None,
            kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
            excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
-    for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, args or (), kwargs or (), excs or ()):
+    for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, args or (), kwargs or {}, excs or ()):
         if not func:
             break
         try:
@@ -161,7 +166,7 @@ def one_cache(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         params = args + tuple(kwargs.items())
-        params = try_ex((hash, pickle.dumps), ((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
+        params = try_ex(hash, pickle.dumps, args=((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
         if cache.maxlen != len(cache) or cache[1] != params:
             cache.append(func(*args, **kwargs))
             cache.append(params)
@@ -205,28 +210,45 @@ def singleton_run(func: Callable) -> Callable:
     return wrapper
 
 
+def _call(func: Callable,
+          args: Iterable,
+          kwargs: Mapping[str, Any],
+          ret: Any,
+          redirect: Optional[bool],
+          unpack: Optional[bool]):
+    if redirect:
+        if unpack:
+            if isinstance(ret, Iterable):
+                return func(*ret)
+            elif isinstance(ret, Mapping):
+                return func(**ret)
+        return func(ret)
+    return func(*args, **kwargs)
+
+
 def call_after(pre_func: Callable,
-               redirect: Optional[bool] = None) -> Callable[[Callable], Callable]:
+               redirect: Optional[bool] = None,
+               unpack: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = pre_func(*args, **kwargs)
-            return func(ret) if redirect else func(*args, **kwargs)
+            return _call(func, args, kwargs, ret, redirect, unpack)
 
         return wrapper
 
     return wrapped
 
 
-def call_before(post_func,
-                redirect: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_before(post_func: Callable,
+                redirect: Optional[bool] = None,
+                unpack: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            # noinspection PyListCreation
-            ret = [func(*args, **kwargs)]
-            ret.append(post_func(ret[0]) if redirect else post_func(*args, **kwargs))
-            return ret[bool(redirect)]
+            ret = func(*args, **kwargs)
+            _call(post_func, args, kwargs, ret, redirect, unpack)
+            return ret
 
         return wrapper
 

@@ -9,7 +9,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
-from typing import Optional, Any, Union, Callable, Generator, Mapping, Iterable
+from typing import Any, Callable, Generator, Iterable, Mapping, Optional, Union
+
+_CRLF = '\r\n'
+
+MAX_CHUNK = 1024 * 1024
 
 
 class Status:
@@ -113,8 +117,8 @@ def download(url: str,
              chunk_size: Optional[int] = None,
              chunk_count: Optional[int] = None,
              callback: Optional[Callable[[int, ...], Any]] = None,
-             callback_args: Optional[Iterable] = None,
-             callback_kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+             args: Optional[Iterable] = None,
+             kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     response = urlopen(url)
     if response:
         size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
@@ -130,7 +134,7 @@ def download(url: str,
                 file.write(chunk)
                 ratio += len(chunk) / size
                 if callback:
-                    callback(round(ratio * 100), *callback_args or (), **callback_kwargs or {})
+                    callback(round(ratio * 100), *args or (), **kwargs or {})
         return size == os.path.getsize(path)
     return False
 
@@ -144,15 +148,18 @@ def upload(url: str,
     boundary = uuid.uuid4().hex
     data = b''
     for name, val in (fields or {}).items():
-        data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{val}\r\n'.encode()
+        data += f'--{boundary}{_CRLF}Content-Disposition: form-data; name="{name}"{_CRLF * 2}{val}{_CRLF}'.encode()
     for name, name_path in (files or {}).items():
-        data += f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"; ' \
-                f'filename="{name_path[0] or os.path.basename(name_path[1])}"\r\n\r\n'.encode()
+        data += f'--{boundary}{_CRLF}Content-Disposition: form-data; name="{name}"; ' \
+                f'filename="{name_path[0] or os.path.basename(name_path[1])}"{_CRLF * 2}'.encode()
         if os.path.isfile(name_path[1]):
             with open(name_path[1], 'rb') as file:
-                data += file.read()
-        data += '\r\n'.encode()
-    data += f'--{boundary}--\r\n'.encode()
+                buffer = file.read(MAX_CHUNK)
+                while buffer:
+                    data += buffer
+                    buffer = file.read(MAX_CHUNK)
+        data += _CRLF.encode()
+    data += f'--{boundary}--{_CRLF}'.encode()
     headers_ = {'Content-Type': f'multipart/form-data; boundary={boundary}'}
     headers_.update(headers or {})
     return urlopen(url, params, data, headers_, redirection)

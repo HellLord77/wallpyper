@@ -3,7 +3,7 @@ __version__ = '0.1.6'
 import configparser
 import sys
 import time
-from typing import Optional, Any, Union, Callable, Generator, Mapping, Iterable, NoReturn
+from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
 import wx
 
@@ -37,7 +37,7 @@ LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
-DEFAULT_CONFIG: dict[str, Union[str, int, float, bool]] = {
+DEFAULT_CONFIG = {
     CHANGE: False,
     INTERVAL: 3600,
     SAVE: False,
@@ -50,7 +50,7 @@ DEFAULT_CONFIG: dict[str, Union[str, int, float, bool]] = {
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
 CONFIG_PATH = f'E:\\Projects\\wallpyper\\{NAME}.ini'  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
-LOG_PATH = utils.join_path(utils.dir_name(CONFIG_PATH), 'debug.log')
+LOG_PATH = utils.replace_extension(CONFIG_PATH, 'log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = {
     '300': '5 Minute',
@@ -122,27 +122,21 @@ def save_config() -> bool:
     return saved and utils.exists_file(CONFIG_PATH)
 
 
-def update_config(value: Any,
-                  key: str) -> None:
-    CONFIG.__setitem__(key, value)
-
-
 @utils.single
 def change_wallpaper(callback: Optional[Callable[[int, ...], Any]] = None,
-                     callback_args: Optional[Iterable] = None,
-                     callback_kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+                     args: Optional[Iterable] = None,
+                     kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
     if callback:
-        callback(0, *callback_args or (), **callback_kwargs or {})
+        callback(0, *args or (), **kwargs or {})
     url = MODULE.get_next_url()
     name = utils.file_name(url)
     temp_path = utils.join_path(TEMP_DIR, name)
     save_path = utils.join_path(CONFIG[SAVE_DIR], name)
-    utils.download_url(url, temp_path, chunk_count=100,
-                       callback=callback, callback_args=callback_args, callback_kwargs=callback_kwargs)
+    utils.download_url(url, temp_path, chunk_count=100, callback=callback, args=args, kwargs=kwargs)
     changed = platform.set_wallpaper_ex(temp_path, save_path)
     if callback:
-        callback(100, *callback_args or (), **callback_kwargs or {})
+        callback(100, *args or (), **kwargs or {})
     utils.inanimate(LANGUAGE.CHANGING)
     return changed
 
@@ -268,19 +262,19 @@ def on_exit() -> None:
 
 
 def create_menu() -> None:
+    update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
     change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
     Change.CALLBACK = lambda progress: change.SetItemLabel(
         f'{LANGUAGE.CHANGING} ({progress:02}%)' if progress < 100 else f'{LANGUAGE.CHANGE}')
     Change.TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
-    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
-                                      CONFIG[CHANGE], INTERVALS, on_change_interval,
-                                      builtin_args=(utils.get_property.UID,))
+    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(
+        CONFIG[INTERVAL]),), CONFIG[CHANGE], INTERVALS, on_change_interval, extra_args=(utils.get_property.UID,))
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], callback=on_auto_change,
-                   callback_args=(change_interval,), builtin_args=(utils.get_property.CHECKED,), position=1)
+                   args=(change_interval,), extra_args=(utils.get_property.CHECKED,), position=1)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, callback=on_save)
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE],
-                   callback=update_config, callback_args=(SAVE,), builtin_args=(utils.get_property.CHECKED,))
+                   callback=update_config, args=(SAVE,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, callback=on_modify_save)
     utils.add_separator()
     utils.add_item(LANGUAGE.COPY, callback=on_copy)
@@ -290,13 +284,13 @@ def create_menu() -> None:
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY],
-                   callback=update_config, callback_args=(NOTIFY,), builtin_args=(utils.get_property.CHECKED,))
+                   callback=update_config, args=(NOTIFY,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[KEEP_CACHE],
-                   callback=update_config, callback_args=(KEEP_CACHE,), builtin_args=(utils.get_property.CHECKED,))
+                   callback=update_config, args=(KEEP_CACHE,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START],
-                   callback=on_auto_start, builtin_args=(utils.get_property.CHECKED,))
+                   callback=on_auto_start, extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA],
-                   callback=on_save_config, builtin_args=(utils.get_property.CHECKED,))
+                   callback=on_save_config, extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.QUIT, callback=on_exit)
 
 
@@ -315,7 +309,8 @@ def start() -> None:
                            utils.join_path('libraries', 'request.py'), utils.join_path('libraries', 'singleton.py'),
                            utils.join_path('libraries', 'timer.py'), utils.join_path('libraries', 'ctype.py'),
                            utils.join_path('modules', 'unsplash.py'), utils.join_path('modules', 'wallpyper.py'),
-                           utils.join_path('platforms', 'linux.py'), utils.join_path('platforms', 'win32.py'))
+                           utils.join_path('platforms', 'linux.py'), utils.join_path('platforms', 'win32.py'),
+                           level=libraries.log.Level.INFO)
     libraries.pyinstall.clean_temp()
     load_config()
     create_menu()

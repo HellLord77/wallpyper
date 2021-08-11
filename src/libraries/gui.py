@@ -6,7 +6,7 @@ import itertools
 import os
 import threading
 import time
-from typing import Callable, Iterable, Mapping, Any, Optional
+from typing import Any, Callable, Iterable, Mapping, Optional
 
 import wx
 import wx.adv
@@ -59,18 +59,18 @@ _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 
 def _get_wrapper(menu_item: wx.MenuItem,
                  callback: Callable,
-                 callback_args: Iterable,
-                 callback_kwargs: Mapping[str, Any],
-                 builtin_args: Iterable[str]) -> Callable:
+                 args: Iterable,
+                 kwargs: Mapping[str, Any],
+                 extra_args: Iterable[str]) -> Callable:
     @functools.wraps(callback)
     def wrapper(_: wx.Event):
-        builtin_args_ = []
-        for builtin_arg in builtin_args:
-            if builtin_arg in Method:
-                builtin_args_.append(getattr(menu_item, builtin_arg))
-            elif builtin_arg in Property:
-                builtin_args_.append(getattr(menu_item, builtin_arg)())
-        callback(*builtin_args_, *callback_args, **callback_kwargs)
+        extra_args_ = []
+        for extra_arg in extra_args:
+            if extra_arg in Method:
+                extra_args_.append(getattr(menu_item, extra_arg))
+            elif extra_arg in Property:
+                extra_args_.append(getattr(menu_item, extra_arg)())
+        callback(*extra_args_, *args, **kwargs)
 
     return wrapper
 
@@ -81,9 +81,9 @@ def add_menu_item(label: str,
                   enable: Optional[bool] = None,
                   uid: Optional[str] = None,
                   callback: Optional[Callable] = None,
-                  callback_args: Optional[Iterable] = None,
-                  callback_kwargs: Optional[Mapping[str, Any]] = None,
-                  builtin_args: Optional[Iterable[str]] = None,
+                  args: Optional[Iterable] = None,
+                  kwargs: Optional[Mapping[str, Any]] = None,
+                  extra_args: Optional[Iterable[str]] = None,
                   position: Optional[int] = None,
                   menu: wx.Menu = _MENU) -> wx.MenuItem:
     menu_item = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
@@ -93,8 +93,7 @@ def add_menu_item(label: str,
     if enable is not None:
         menu_item.Enable(enable)
     if callback:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, callback, callback_args or (),
-                                            callback_kwargs or {}, builtin_args or ()), menu_item)
+        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, callback, args or (), kwargs or {}, extra_args or ()), menu_item)
     return menu_item
 
 
@@ -108,15 +107,15 @@ def add_submenu(label: str,
                 enable: Optional[bool] = None,
                 items: Optional[Mapping[str, str]] = None,
                 callback: Optional[Callable] = None,
-                callback_args: Optional[Iterable] = None,
-                callback_kwargs: Optional[Mapping[str, Any]] = None,
-                builtin_args: Optional[Iterable[str]] = None,
+                args: Optional[Iterable] = None,
+                kwargs: Optional[Mapping[str, Any]] = None,
+                extra_args: Optional[Iterable[str]] = None,
                 position: Optional[int] = None,
                 menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
     for uid, label_ in items.items():
-        menu_item = add_menu_item(label_, kind, uid in (checks or ()), label_[0] != '_', uid, callback,
-                                  callback_args, callback_kwargs, builtin_args, position, submenu)
+        menu_item = add_menu_item(label_, kind, uid in (checks or ()), label_[0] != '_',
+                                  uid, callback, args, kwargs, extra_args, position, submenu)
         if label_[0] == '_':
             menu_item.SetItemLabel(label_[1:])
     submenu_item = menu.AppendSubMenu(submenu, label)
@@ -148,14 +147,14 @@ def _destroy() -> None:
 def start_loop(path: str,
                tooltip: Optional[str] = None,
                callback: Optional[Callable] = None,
-               callback_args: Optional[Iterable] = None,
-               callback_kwargs: Optional[Mapping[str, Any]] = None) -> None:
+               args: Optional[Iterable] = None,
+               kwargs: Optional[Mapping[str, Any]] = None) -> None:
     _ICON.LoadFile(path)
     _APP.SetAppName(tooltip)
     if callback:
         @functools.wraps(callback)
         def wrapper(_):
-            callback(*callback_args or (), **callback_kwargs or {})
+            callback(*args or (), **kwargs or {})
 
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)

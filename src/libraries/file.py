@@ -16,6 +16,11 @@ def join(base: str,
     return os.path.realpath(os.path.join(base, *children))
 
 
+def replace_ext(path: str,
+                ext: str) -> str:
+    return f'{os.path.splitext(path)[0]}.{ext}'
+
+
 def list_dir(path: str) -> Generator[str, None, None]:
     for dir_ in os.scandir(path):
         # noinspection PyUnresolvedReferences

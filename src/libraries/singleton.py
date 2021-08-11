@@ -8,7 +8,7 @@ import socket
 import sys
 import tempfile
 import time
-from typing import Optional, Any, Callable, Mapping, Iterable, NoReturn
+from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 
 DELAY = 1
 TIMEOUT = 5

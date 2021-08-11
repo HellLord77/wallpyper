@@ -7,8 +7,8 @@ import dataclasses
 import functools
 import types
 # noinspection PyUnresolvedReferences,PyProtectedMember
-from typing import Optional, Generic, _CallableType, get_origin, _UnionGenericAlias, Any, Union, Callable, get_args, \
-    _CallableGenericAlias, TypeVar, get_type_hints, Generator
+from typing import _CallableGenericAlias, _CallableType, _UnionGenericAlias, Any, \
+    Callable, Generator, Generic, get_args, get_origin, get_type_hints, Optional, TypeVar, Union
 
 
 class Const:

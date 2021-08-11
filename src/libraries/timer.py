@@ -5,7 +5,7 @@ import contextlib
 import ctypes
 import functools
 import threading
-from typing import Optional, Any, Callable, Mapping, Iterable
+from typing import Any, Callable, Iterable, Mapping, Optional
 
 MAX_LEN = ctypes.sizeof(ctypes.c_void_p)
 
@@ -26,8 +26,8 @@ class Timer:
 
     def __init__(self,
                  callback: Callable,
-                 callback_args: Optional[Iterable] = None,
-                 callback_kwargs: Optional[Mapping[str, Any]] = None,
+                 args: Optional[Iterable] = None,
+                 kwargs: Optional[Mapping[str, Any]] = None,
                  interval: Optional[float] = None,
                  once: Optional[bool] = None) -> None:
         @functools.wraps(callback)
@@ -37,7 +37,7 @@ class Timer:
                 self.start()
             try:
                 with contextlib.suppress(_TimerExit):
-                    callback(*callback_args, **callback_kwargs)
+                    callback(*args, **kwargs)
             finally:
                 self._running = False
 
@@ -81,10 +81,10 @@ class Timer:
 
 
 def start_once(callback: Callable,
-               callback_args: Optional[Iterable] = None,
-               callback_kwargs: Optional[Mapping[str, Any]] = None,
+               args: Optional[Iterable] = None,
+               kwargs: Optional[Mapping[str, Any]] = None,
                interval: Optional[float] = None) -> Timer:
-    timer = Timer(callback, callback_args, callback_kwargs, interval, True)
+    timer = Timer(callback, args, kwargs, interval, True)
     timer.start()
     return timer
 

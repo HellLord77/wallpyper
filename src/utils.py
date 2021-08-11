@@ -17,6 +17,7 @@ file_name = os.path.basename
 open_browser = webbrowser.open
 
 join_path = libraries.file.join
+replace_extension = libraries.file.replace_ext
 list_dir = libraries.file.list_dir
 copy_file = libraries.file.copy
 is_empty_dir = libraries.file.is_empty
@@ -24,9 +25,11 @@ make_dirs = libraries.file.make_dir
 trim_dir = libraries.file.trim
 delete = libraries.file.remove
 
+reverse = libraries.functool.reversed_ex
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run
 single = libraries.functool.singleton_run
+call_after = libraries.functool.call_after
 
 item = libraries.gui.Item
 icon = libraries.gui.Icon
