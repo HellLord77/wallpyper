@@ -6,9 +6,7 @@ import ctypes
 import dataclasses
 import functools
 import types
-# noinspection PyUnresolvedReferences,PyProtectedMember
-from typing import _CallableGenericAlias, _CallableType, _UnionGenericAlias, Any, \
-    Callable, Generator, Generic, get_args, get_origin, get_type_hints, Optional, TypeVar, Union
+from typing import Any, Callable, Generator, Generic, get_args, get_origin, get_type_hints, Optional, TypeVar, Union
 
 
 class Const:
@@ -431,14 +429,14 @@ def _items(cls: type) -> Generator[tuple[str, Any], None, None]:
 
 
 def _resolve_type(type_: Any) -> Any:
-    if isinstance(type_, _CallableType):
+    if isinstance(type_, type(Callable)):
         type_ = [None]
-    elif isinstance(type_, _CallableGenericAlias):
+    elif isinstance(type_, type(Callable[[], None])):
         types_ = get_args(type_)
         type_ = [_resolve_type(types_[1])]
         type_.extend(_resolve_type(type_) for type_ in types_[0])
     else:
-        if isinstance(type_, _UnionGenericAlias):
+        if isinstance(type_, type(Optional[object])):
             type_ = get_args(type_)[0]
         if get_origin(type_) is Pointer:
             type_ = ctypes.POINTER(_resolve_type(get_args(type_)[0]))
@@ -471,11 +469,11 @@ def _init():
 
     for var, com in _items(COM):
         class Wrapper(ctypes.c_void_p):
-            _methods = get_type_hints(com)
             # noinspection PyTypeChecker
-            _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple(
-                (func, ctypes.CFUNCTYPE(*_method_type(_resolve_type(types_)))) for func, types_ in _methods.items())}))
-            _methods = tuple(_methods)
+            _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple((func, ctypes.CFUNCTYPE(
+                *_method_type(_resolve_type(types)))) for func, types in get_type_hints(com).items())}))
+            # noinspection PyProtectedMember
+            _methods = tuple(method for method, _ in _items(_pointer._type_))
 
             def __getattr__(self, name):
                 if name in self._methods:

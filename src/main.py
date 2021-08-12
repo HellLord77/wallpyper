@@ -45,7 +45,8 @@ DEFAULT_CONFIG = {
     NOTIFY: False,
     KEEP_CACHE: False,
     START: False,
-    SAVE_DATA: False}
+    SAVE_DATA: False
+}
 
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
@@ -58,7 +59,8 @@ INTERVALS = {
     '1800': '30 Minute',
     '3600': '1 Hour',
     '10800': '3 Hour',
-    '21600': '6 Hour'}
+    '21600': '6 Hour'
+}
 
 CONFIG = {}
 
@@ -157,8 +159,8 @@ def _get_wallpaper_paths() -> Generator[str, None, None]:
 @utils.single
 def save_wallpaper() -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
-    saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], utils.file_name(path))) for path in
-                _get_wallpaper_paths())
+    saved = any(utils.copy_file(path, utils.join_path(
+        CONFIG[SAVE_DIR], utils.file_name(path))) for path in _get_wallpaper_paths())
     utils.inanimate(LANGUAGE.SAVING)
     return saved
 

@@ -19,7 +19,8 @@ DEFAULT_CONFIG = {
     'ratios': '',
     'colors': '',
     'page': '',
-    'seed': ''}
+    'seed': ''
+}
 
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
 CONFIG = {}
@@ -42,7 +43,8 @@ def _update_search_data(config: dict[str, str]) -> Generator[str, None, None]:
     meta = {
         'current_page': 1,
         'last_page': 1,
-        'seed': None}
+        'seed': None
+    }
     params = config.copy()
     while True:
         if not search_data:
