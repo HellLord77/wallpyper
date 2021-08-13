@@ -1,4 +1,4 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import binascii
 import collections
@@ -7,7 +7,10 @@ import functools
 import hashlib
 import itertools
 import pickle
+import pprint
+import re
 import secrets
+import sys
 import time
 import uuid
 from typing import Any, Callable, Generator, Iterable, Mapping, Optional
@@ -134,10 +137,27 @@ def try_ex(*funcs: Callable,
             return ret
 
 
+def vars_ex(obj: Any) -> str:
+    fmt = ''
+    if hasattr(obj, '__dict__') and obj.__dict__:
+        types_ = tuple(type(val).__name__ for val in obj.__dict__.values())
+        sizes = tuple(str(sys.getsizeof(val)) for val in obj.__dict__.values())
+        pads = tuple(len(max(itt, key=len)) for itt in (obj.__dict__, types_, sizes))
+        end = f'\n{" " * (sum(pads) + 6)}'
+        for item, type_, size in zip(obj.__dict__.items(), types_, sizes):
+            fmt += f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
+                   f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n'
+    return fmt
+
+
 def get_any(itt: Iterable) -> Any:
     for ele in itt:
         if ele:
             return ele
+
+
+def strip_ansi(string: str) -> str:
+    return re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', string)
 
 
 def encrypt(obj: Any) -> str:
