@@ -182,6 +182,7 @@ def search_wallpaper() -> bool:  # TODO: fix change + search
 @utils.thread
 def on_change() -> bool:
     changed = change_wallpaper(Change.CALLBACK)
+    Change.CALLBACK(-1)
     if changed:
         if CONFIG[SAVE]:
             save_wallpaper()
@@ -267,7 +268,7 @@ def create_menu() -> None:
     update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
     change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
     Change.CALLBACK = lambda progress: change.SetItemLabel(
-        f'{LANGUAGE.CHANGING} ({progress:02}%)' if progress < 100 else f'{LANGUAGE.CHANGE}')
+        f'{LANGUAGE.CHANGING} ({progress:03}%)' if progress >= 0 else f'{LANGUAGE.CHANGE}')
     Change.TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(
         CONFIG[INTERVAL]),), CONFIG[CHANGE], INTERVALS, on_change_interval, extra_args=(utils.get_property.UID,))
@@ -312,7 +313,7 @@ def start() -> None:
                            utils.join_path('libraries', 'timer.py'), utils.join_path('libraries', 'ctype.py'),
                            utils.join_path('modules', 'unsplash.py'), utils.join_path('modules', 'wallpyper.py'),
                            utils.join_path('platforms', 'linux.py'), utils.join_path('platforms', 'win32.py'),
-                           level=libraries.log.Level.INFO)
+                           level=libraries.log.Level.INFO, skip_comp=True)
     libraries.pyinstall.clean_temp()
     load_config()
     create_menu()

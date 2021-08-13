@@ -55,6 +55,7 @@ _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 _MENU = wx.Menu()
 _ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
+_PREFIX = f'{type(_TASK_BAR_ICON).__name__}Animation-'
 
 
 def _get_wrapper(menu_item: wx.MenuItem,
@@ -194,9 +195,8 @@ def _animate() -> None:
 def start_animation(path: str,
                     tooltip: Optional[str] = None) -> None:
     _ANIMATIONS.append((_get_gif_frames(path), _APP.GetAppName() if tooltip is None else tooltip))
-    if not any(thread.name.startswith(f'{wx.adv.TaskBarIcon.__name__}Animation-') for thread in threading.enumerate()):
-        threading.Thread(target=_animate,
-                         name=f'{wx.adv.TaskBarIcon.__name__}Animation-{os.path.basename(path)}', daemon=True).start()
+    if not any(thread.name.startswith(_PREFIX) for thread in threading.enumerate()):
+        threading.Thread(target=_animate, name=f'{_PREFIX}{os.path.basename(path)}', daemon=True).start()
 
 
 def stop_animation(tooltip: Optional[str] = None) -> bool:
