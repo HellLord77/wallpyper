@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import collections
 import contextlib
@@ -42,13 +42,15 @@ class Timer:
                 self._running = False
 
         self._running = False
-        self._timer = threading.Timer(interval or 0.0, wrapper)
+        self._interval = interval or 0.0
+        self._function = wrapper
+        self._name = f'{type(self).__name__}-{callback.__name__}'
         self._timers = collections.deque(maxlen=MAX_LEN)
         self._instances.append(self)
 
     @property
     def initialized(self) -> bool:
-        return self._timer.is_alive()
+        return self._timers and self._timers[-1].is_alive()
 
     @property
     def running(self) -> bool:
@@ -58,18 +60,16 @@ class Timer:
               interval: Optional[float] = None) -> bool:
         self.stop()
         if interval is not None:
-            self._timer.interval = interval
-        # noinspection PyUnresolvedReferences
-        self._timer = threading.Timer(self._timer.interval, self._timer.function)
-        self._timer.daemon = True
-        # noinspection PyUnresolvedReferences
-        self._timer.name = self._timer.function.__name__
-        self._timer.start()
-        self._timers.append(self._timer)
+            self._interval = interval
+        timer = threading.Timer(self._interval, self._function)
+        timer.name = self._name
+        timer.daemon = True
+        timer.start()
+        self._timers.append(timer)
         return self.initialized
 
     def stop(self) -> None:
-        self._timer.cancel()
+        self._timers and self._timers[-1].cancel()
 
     def kill(self) -> bool:
         killed = False
