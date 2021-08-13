@@ -1,4 +1,4 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import atexit
 import datetime
@@ -6,6 +6,8 @@ import inspect
 import io
 import logging
 import os
+import pprint
+import re
 import shutil
 import sys
 import threading
@@ -21,6 +23,7 @@ _PREFIXES = {
     'return_details': '\x1b[34m    '
 }
 _SUFFIX = '\x1b[0m\n'
+_STRIP_ANSI: Callable = lambda string: re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', string)
 _CALL = 'call'
 _EXCEPTION = 'exception'
 _RETURN = 'return'
@@ -46,6 +49,20 @@ def _flush(path: str) -> None:
         _STREAM.seek(0)
         with open(path, 'w') as file:
             shutil.copyfileobj(_STREAM, file)
+
+
+def _format_dict(dict_: Mapping[str, Any],
+                 prefix: str = '',
+                 suffix: str = '\n') -> str:
+    formatted = ''
+    types_ = tuple(type(val).__name__ for val in dict_.values())
+    sizes = tuple(str(sys.getsizeof(val)) for val in dict_.values())
+    pads = tuple(len(max(itt, key=len)) for itt in (dict_, types_, sizes))
+    end = f'\n{" " * (len(_STRIP_ANSI(prefix)) + sum(pads) + 6)}'
+    for item, type_, size in zip(dict_.items(), types_, sizes):
+        formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
+                     f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
+    return formatted
 
 
 def redirect_stdio(path: str,
@@ -105,12 +122,12 @@ def _get_class_name(locals_: Mapping[str, Any]) -> str:
         return ''
 
 
-def _get_stats(key: str,
-               val: Any) -> str:
-    return f'{key}: [{type(val).__name__} {sys.getsizeof(val)}] {val}'
+def _get_thread_name() -> str:
+    thread = threading.current_thread()
+    return '' if thread == threading.main_thread() else f' ({thread.name})'
 
 
-def _hook_callback(frame,
+def _hook_callback(frame: types.FrameType,
                    event: str,
                    arg: Any) -> Callable:
     global _STACK
@@ -122,16 +139,16 @@ def _hook_callback(frame,
     if path in _PATHS and _filter(event, arg, frame.f_code.co_name):
         _STACK -= event == _RETURN
         pad = ' ' * _STACK * 4
-        log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: ' \
-              f'[{path} {frame.f_lineno}] {_get_class_name(frame.f_locals)}{frame.f_code.co_name}{_SUFFIX}'
+        log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] ' \
+              f'{_get_class_name(frame.f_locals)}{frame.f_code.co_name}{_get_thread_name()}{_SUFFIX}'
         if event == _CALL:
             _STACK += 1
-            for item in frame.f_locals.items():
-                log += f'{pad}{_PREFIXES[f"{_CALL}_details"]}{_get_stats(*item)}{_SUFFIX}'
+            if frame.f_locals:
+                log += _format_dict(frame.f_locals, f'{pad}{_PREFIXES[f"{_CALL}_details"]}', _SUFFIX)
         elif event == _EXCEPTION:
             log += f'{pad}{_PREFIXES[f"{_EXCEPTION}_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
         elif event == _RETURN:
-            log += f'{pad}{_PREFIXES[f"{_RETURN}_details"]}{_get_stats("return", arg)}{_SUFFIX}'
+            log += _format_dict({'return': arg}, f'{pad}{_PREFIXES[f"{_RETURN}_details"]}', _SUFFIX)
         logging.debug(log[:-1])
     return _hook_callback
 
@@ -147,12 +164,13 @@ def init(*paths: str,
     if redirect_wx:
         import wx
         wx.GetApp().RedirectStdio()
-    if not skip_comp:
-        _is_compatible()
     if _WRITE:
+        sys.stdout.isatty = types.MethodType(lambda _: False, sys.stdout)
         sys.stdout.write = types.MethodType(_WRITE, sys.stdout)
         if sys.stdout is not sys.stderr:
             sys.stderr.write = types.MethodType(_WRITE, sys.stderr)
+    if _WRITE or not skip_comp:
+        _is_compatible()
     if 'pytransform' in sys.modules:
         # noinspection PyPackageRequirements,PyUnresolvedReferences
         import pytransform
