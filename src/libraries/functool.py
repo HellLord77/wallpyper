@@ -51,16 +51,10 @@ class Func:
             return self.func(*self.args, *self.kwargs)
 
 
-def any_ex(func: Callable,
-           args: Optional[Iterable] = None,
-           kwargs: Optional[Mapping[str, Any]] = None,
-           max_try: Optional[int] = None) -> Any:
-    args = args or ()
-    kwargs = kwargs or {}
-    for _ in (range if max_try else itertools.repeat)(max_try):
-        ret = func(*args, **kwargs)
-        if ret:
-            return ret
+def any_ex(itt: Iterable) -> Any:
+    for ele in itt:
+        if ele:
+            return ele
 
 
 def cycle_ex(itt: Iterable,
@@ -74,6 +68,10 @@ def cycle_ex(itt: Iterable,
             yield ele
         if func:
             func(*args, **kwargs)
+
+
+def dict_ex(obj: Any) -> dict[str, Any]:
+    return getattr(obj, '__dict__', {})
 
 
 def eq_ex(a: Any,
@@ -113,7 +111,7 @@ def setattr_ex(obj: Any,
 
 def sleep_ex(secs: Optional[float] = None) -> None:
     if secs is None:
-        while secrets.randbelow(any_ex(randint_ex)):
+        while secrets.randbelow(return_any(randint_ex)):
             pass
     elif secs != 0:
         end_time = time.time() + secs
@@ -138,26 +136,34 @@ def try_ex(*funcs: Callable,
 
 
 def vars_ex(obj: Any) -> str:
+    dict_ = dict_ex(obj)
+    attrs = [], []
+    for val in dict_.values():
+        attrs[0].append(type(val).__name__)
+        attrs[1].append(str(sys.getsizeof(val)))
+    pads = tuple(len(max(itt, key=len)) for itt in (dict_,) + attrs)
+    end = f'\n{" " * (sum(pads) + 6)}'
     fmt = ''
-    if hasattr(obj, '__dict__') and obj.__dict__:
-        types_ = tuple(type(val).__name__ for val in obj.__dict__.values())
-        sizes = tuple(str(sys.getsizeof(val)) for val in obj.__dict__.values())
-        pads = tuple(len(max(itt, key=len)) for itt in (obj.__dict__, types_, sizes))
-        end = f'\n{" " * (sum(pads) + 6)}'
-        for item, type_, size in zip(obj.__dict__.items(), types_, sizes):
-            fmt += f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
-                   f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n'
+    for item, type_, size in zip(dict_.items(), *attrs):
+        fmt += f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
+               f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n'
     return fmt
 
 
-def get_any(itt: Iterable) -> Any:
-    for ele in itt:
-        if ele:
-            return ele
+def return_any(func: Callable,
+               args: Optional[Iterable] = None,
+               kwargs: Optional[Mapping[str, Any]] = None,
+               max_try: Optional[int] = None) -> Any:
+    args = args or ()
+    kwargs = kwargs or {}
+    for _ in (range if max_try else itertools.repeat)(max_try):
+        ret = func(*args, **kwargs)
+        if ret:
+            return ret
 
 
 def strip_ansi(string: str) -> str:
-    return re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', string)
+    return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', string)
 
 
 def encrypt(obj: Any) -> str:

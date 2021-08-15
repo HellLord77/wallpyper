@@ -23,7 +23,7 @@ _PREFIXES = {
     'return_details': '\x1b[34m    '
 }
 _SUFFIX = '\x1b[0m\n'
-_STRIP_ANSI: Callable = lambda string: re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', string)
+_ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _CALL = 'call'
 _EXCEPTION = 'exception'
 _RETURN = 'return'
@@ -49,20 +49,6 @@ def _flush(path: str) -> None:
         _STREAM.seek(0)
         with open(path, 'w') as file:
             shutil.copyfileobj(_STREAM, file)
-
-
-def _format_dict(dict_: Mapping[str, Any],
-                 prefix: str = '',
-                 suffix: str = '\n') -> str:
-    formatted = ''
-    types_ = tuple(type(val).__name__ for val in dict_.values())
-    sizes = tuple(str(sys.getsizeof(val)) for val in dict_.values())
-    pads = tuple(len(max(itt, key=len)) for itt in (dict_, types_, sizes))
-    end = f'\n{" " * (len(_STRIP_ANSI(prefix)) + sum(pads) + 6)}'
-    for item, type_, size in zip(dict_.items(), types_, sizes):
-        formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
-                     f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
-    return formatted
 
 
 def redirect_stdio(path: str,
@@ -93,9 +79,37 @@ def _is_compatible() -> bool:
     supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
     if not supports:
         for event, prefix in _PREFIXES.items():
-            _PREFIXES[event] = prefix[prefix.find('m') + 1:]
-        _SUFFIX = _SUFFIX[_SUFFIX.find('m') + 1:]
+            _PREFIXES[event] = _ANSI.sub('', prefix)
+        _SUFFIX = _ANSI.sub('', _SUFFIX)
     return supports
+
+
+def _format_dict(dict_: Mapping[str, Any],
+                 prefix: str = '',
+                 suffix: str = '\n') -> str:
+    types_ = tuple(type(val).__name__ for val in dict_.values())
+    sizes = tuple(str(sys.getsizeof(val)) for val in dict_.values())
+    pads = tuple(len(max(itt, key=len)) for itt in (dict_, types_, sizes))
+    end = f'\n{" " * (len(_ANSI.sub("", prefix)) + sum(pads) + 6)}'
+    formatted = ''
+    for item, type_, size in zip(dict_.items(), types_, sizes):
+        formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
+                     f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
+    return formatted
+
+
+def _get_thread_name() -> str:
+    thread = threading.current_thread()
+    return '' if thread == threading.main_thread() else f' ({thread.name})'
+
+
+def _get_class_name(locals_: Mapping[str, Any]) -> str:
+    if 'self' in locals_:
+        return f'{type(locals_["self"]).__name__}.'
+    elif 'cls' in locals_:
+        return f'{locals_["cls"].__name__}.'
+    else:
+        return ''
 
 
 def _filter(event: str,
@@ -111,20 +125,6 @@ def _filter(event: str,
         return event == _EXCEPTION and issubclass(arg[0], Warning)
     elif _LEVEL == Level.NOTSET:
         return False
-
-
-def _get_class_name(locals_: Mapping[str, Any]) -> str:
-    if 'self' in locals_:
-        return f'{type(locals_["self"]).__name__}.'
-    elif 'cls' in locals_:
-        return f'{locals_["cls"].__name__}.'
-    else:
-        return ''
-
-
-def _get_thread_name() -> str:
-    thread = threading.current_thread()
-    return '' if thread == threading.main_thread() else f' ({thread.name})'
 
 
 def _hook_callback(frame: types.FrameType,
