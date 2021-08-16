@@ -28,10 +28,10 @@ KEEP_CACHE = 'keep_cache'
 START = 'auto_start'
 SAVE_DATA = 'save_config'
 
-DELAY = 0.1
+DELAY = 0.01
 DELETE_TIMEOUT = 3
 EXIT_TIMEOUT = 7
-CACHE_MAX_SIZE = 128 * 1024 * 1024
+CACHE_MAX_SIZE = 64 * 1024 * 1024
 
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
@@ -318,6 +318,7 @@ def start() -> None:
     load_config()
     create_menu()
     utils.make_dirs(TEMP_DIR)
+    utils.trim_dir(TEMP_DIR, CACHE_MAX_SIZE)
     on_auto_change(CONFIG[CHANGE])
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])

@@ -44,7 +44,7 @@ class Timer:
         self._running = False
         self._interval = interval or 0.0
         self._function = wrapper
-        self._name = f'{type(self).__name__}-{callback.__name__}'
+        self._name = f'{type(self).__name__}-{__version__}-{callback.__name__}'
         self._timers = collections.deque(maxlen=MAX_LEN)
         self._instances.append(self)
 
