@@ -1,4 +1,4 @@
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import binascii
 import collections
@@ -8,15 +8,17 @@ import hashlib
 import itertools
 import pickle
 import pprint
+import queue
 import re
 import secrets
 import sys
+import threading
 import time
 import uuid
-from typing import Any, Callable, Generator, Iterable, Mapping, Optional
+from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional
 
 
-class Bool:
+class Bool:  # TODO: threading.Event
     def __init__(self,
                  state: bool = False):
         self._state = state
@@ -24,6 +26,9 @@ class Bool:
 
     def __bool__(self):
         return self._state
+
+    def __str__(self):
+        return str(self._state)
 
     def set(self):
         self._state = True
@@ -150,6 +155,14 @@ def vars_ex(obj: Any) -> str:
     return fmt
 
 
+def clear_queue(queue_: queue.Queue) -> int:
+    with queue_.mutex:
+        tasks = queue_.unfinished_tasks
+        queue_.queue.clear()
+        queue_.unfinished_tasks = 0
+    return tasks
+
+
 def return_any(func: Callable,
                args: Optional[Iterable] = None,
                kwargs: Optional[Mapping[str, Any]] = None,
@@ -166,15 +179,6 @@ def strip_ansi(string: str) -> str:
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', string)
 
 
-def encrypt(obj: Any) -> str:
-    try:
-        pickled = pickle.dumps(obj)
-    except TypeError:
-        return ''
-    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(
-        uuid.getnode()).encode()).digest() + pickled, newline=False).decode()
-
-
 def decrypt(data: str,
             default: Any = None) -> Any:
     try:
@@ -184,6 +188,15 @@ def decrypt(data: str,
     size = hashlib.blake2b().digest_size
     return pickle.loads(decoded[size:]) if decoded[:size] == hashlib.blake2b(
         decoded[size:], key=str(uuid.getnode()).encode()).digest() else default
+
+
+def encrypt(obj: Any) -> str:
+    try:
+        pickled = pickle.dumps(obj)
+    except TypeError:
+        return ''
+    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(
+        uuid.getnode()).encode()).digest() + pickled, newline=False).decode()
 
 
 def one_cache(func: Callable) -> Callable:
@@ -218,6 +231,35 @@ def once_run(func: Callable) -> Callable:
     return wrapper
 
 
+def _worker(func: Callable,
+            works: queue.Queue,
+            running: Bool) -> NoReturn:
+    while True:
+        work = works.get()
+        running.set()
+        try:
+            func(*work[0], **work[1])
+        finally:
+            running.unset()
+            if works.unfinished_tasks:
+                works.task_done()
+
+
+def queue_run(func: Callable) -> Callable:
+    running = Bool()
+    works = queue.Queue()
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        works.put((args, kwargs))
+
+    threading.Thread(target=_worker, name=f'{queue_run.__name__}-{__version__}-{func.__name__}',
+                     args=(func, works, running), daemon=True).start()
+    wrapper.is_running = lambda: running or bool(works.unfinished_tasks)
+    wrapper.reset = lambda: clear_queue(works)
+    return wrapper
+
+
 def singleton_run(func: Callable) -> Callable:
     running = Bool()
 
@@ -232,7 +274,16 @@ def singleton_run(func: Callable) -> Callable:
             finally:
                 running.unset()
 
-    wrapper.is_running = running.__bool__
+    wrapper.is_running = lambda: bool(running)
+    return wrapper
+
+
+def threaded_run(func: Callable) -> Callable:
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        threading.Thread(target=func, name=f'{threaded_run.__name__}-{__version__}-{func.__name__}',
+                         args=args, kwargs=kwargs).start()
+
     return wrapper
 
 
