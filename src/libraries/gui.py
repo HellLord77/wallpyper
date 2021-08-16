@@ -188,6 +188,8 @@ def _animate() -> None:
         delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
         _TASK_BAR_ICON.SetIcon(icon, tooltip)
         time.sleep(delay / 1000)
+        if not _TASK_BAR_ICON.IsIconInstalled():
+            break
     else:
         _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
 
