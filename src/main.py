@@ -304,7 +304,7 @@ def start() -> None:
                              exit_callback=print, exit_callback_args=('Exit',))
     if 'debug' in sys.argv:
         if libraries.pyinstall.FROZEN:
-            libraries.log.redirect_stdio(LOG_PATH)
+            libraries.log.redirect_stdio(LOG_PATH, True)
         libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
                            utils.join_path('libraries', 'ctype.py'), utils.join_path('libraries', 'file.py'),
                            utils.join_path('libraries', 'functool.py'), utils.join_path('libraries', 'gui.py'),

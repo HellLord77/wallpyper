@@ -1,4 +1,4 @@
-__version__ = '0.0.7'  # TODO: thread safe
+__version__ = '0.0.7'
 
 import atexit
 import functools
@@ -179,8 +179,8 @@ def stop_loop(_: Optional[wx.CloseEvent] = None) -> None:
 @functools.lru_cache(1)
 def _get_gif_frames(path: str) -> itertools.cycle:
     animation = wx.adv.Animation(path)
-    return itertools.cycle((animation.GetDelay(i), wx.Icon(animation.GetFrame(i).ConvertToBitmap()))
-                           for i in range(animation.GetFrameCount()))
+    return itertools.cycle((animation.GetDelay(i),
+                            wx.Icon(animation.GetFrame(i).ConvertToBitmap())) for i in range(animation.GetFrameCount()))
 
 
 def _animate() -> None:
@@ -188,9 +188,7 @@ def _animate() -> None:
         delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
         _TASK_BAR_ICON.SetIcon(icon, tooltip)
         time.sleep(delay / 1000)
-        if not _TASK_BAR_ICON.IsIconInstalled():
-            break
-    else:
+    if _TASK_BAR_ICON.IsIconInstalled():
         _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
 
 
