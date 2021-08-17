@@ -1,5 +1,6 @@
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
+import _io
 import atexit
 import datetime
 import inspect
@@ -16,11 +17,13 @@ from typing import Any, Callable, Mapping, Optional
 
 _PREFIXES = {
     'call': '\x1b[92m[>] ',
-    'call_details': '\x1b[32m    ',
     'exception': '\x1b[91m[!] ',
-    'exception_details': '\x1b[31m    ',
-    'return': '\x1b[94m[<] ',
-    'return_details': '\x1b[34m    '
+    'return': '\x1b[94m[<] '
+}
+_DETAILS = {
+    'call': '\x1b[32m    ',
+    'exception': '\x1b[31m    ',
+    'return': '\x1b[34m    '
 }
 _SUFFIX = '\x1b[0m\n'
 _ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
@@ -34,6 +37,7 @@ _LEVEL = 0
 _STACK = 0
 _STREAM = io.StringIO()
 _WRITE: Optional[Callable] = None
+_WRITE_ = {}
 
 
 class Level:
@@ -60,7 +64,7 @@ def redirect_stdio(path: str,
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(default: Callable[[str], int],  # TODO: use queue
+    def write(stream: _io.TextIOWrapper,  # TODO: use queue
               string: str):
         if string:
             if write_once:
@@ -69,7 +73,7 @@ def redirect_stdio(path: str,
                 with open(path, 'a') as file:
                     file.write(string)
         if tee:
-            default(string)
+            _WRITE_[stream](string)
 
     _WRITE = write
 
@@ -78,8 +82,9 @@ def _is_compatible() -> bool:
     global _SUFFIX
     supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
     if not supports:
-        for event, prefix in _PREFIXES.items():
-            _PREFIXES[event] = _ANSI.sub('', prefix)
+        for dict_ in (_PREFIXES, _DETAILS):
+            for event, prefix in dict_.items():
+                dict_[event] = _ANSI.sub('', prefix)
         _SUFFIX = _ANSI.sub('', _SUFFIX)
     return supports
 
@@ -144,12 +149,12 @@ def _hook_callback(frame: types.FrameType,
         if event == _CALL:
             _STACK += 1
             if frame.f_locals:
-                log += _format_dict(frame.f_locals, f'{pad}{_PREFIXES[f"{_CALL}_details"]}', _SUFFIX)
+                log += _format_dict(frame.f_locals, f'{pad}{_DETAILS[event]}', _SUFFIX)
         elif event == _EXCEPTION:
-            log += f'{pad}{_PREFIXES[f"{_EXCEPTION}_details"]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
+            log += f'{pad}{_DETAILS[event]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
         elif event == _RETURN:
-            log += _format_dict({'return': arg}, f'{pad}{_PREFIXES[f"{_RETURN}_details"]}', _SUFFIX)
-        logging.debug(log[:-1])
+            log += _format_dict({'return': arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
+        logging.error(log[:-1])
     return _hook_callback
 
 
@@ -162,21 +167,21 @@ def init(*paths: str,
         _PATHS.add(os.path.relpath(path, _BASE))
     _LEVEL = level
     if redirect_wx:
-        import wx
-        wx.GetApp().RedirectStdio()
+        __import__('wx').GetApp().RedirectStdio()
     if _WRITE:
         sys.stdout.isatty = types.MethodType(lambda _: False, sys.stdout)
+        _WRITE_[sys.stdout] = sys.stdout.write
         sys.stdout.write = types.MethodType(_WRITE, sys.stdout)
         if sys.stdout is not sys.stderr:
+            _WRITE_[sys.stderr] = sys.stderr.write
             sys.stderr.write = types.MethodType(_WRITE, sys.stderr)
     if _WRITE or not skip_comp:
         _is_compatible()
+    logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
-        # noinspection PyPackageRequirements,PyUnresolvedReferences
-        import pytransform
-        print(f'[!] Can not log {pytransform.get_license_code()}')
+        # noinspection PyUnresolvedReferences
+        logging.error(
+            f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
     else:
-        logging.root.setLevel(logging.DEBUG)
-        logging.root.addHandler(logging.StreamHandler())
         sys.settrace(_hook_callback)
         threading.settrace(_hook_callback)
