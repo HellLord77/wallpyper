@@ -37,10 +37,11 @@ class Timer:
                 self.start()
             try:
                 with contextlib.suppress(_TimerExit):
-                    callback(*args, **kwargs)
+                    self._result = callback(*args, **kwargs)
             finally:
                 self._running = False
 
+        self._result = None
         self._running = False
         self._interval = interval or 0.0
         self._function = wrapper
@@ -51,6 +52,10 @@ class Timer:
     @property
     def initialized(self) -> bool:
         return self._timers and self._timers[-1].is_alive()
+
+    @property
+    def result(self) -> Any:
+        return self._result
 
     @property
     def running(self) -> bool:

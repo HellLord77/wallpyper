@@ -1,7 +1,8 @@
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import binascii
 import collections
+import contextlib
 import ctypes
 import functools
 import hashlib
@@ -18,42 +19,18 @@ import uuid
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional
 
 
-class Bool:  # TODO: threading.Event
-    def __init__(self,
-                 state: bool = False):
-        self._state = state
-        self._state_ = state
-
-    def __bool__(self):
-        return self._state
-
-    def __str__(self):
-        return str(self._state)
-
-    def set(self):
-        self._state = True
-
-    def unset(self):
-        self._state = False
-
-    def clear(self):
-        self._state = self._state_
-
-
 class Func:
     def __init__(self,
                  func: Optional[Callable] = None,
                  args: Optional[Iterable] = None,
                  kwargs: Optional[Mapping[str, Any]] = None):
-        self.func = func
+        self.func = func or (lambda *_, **__: None)
         self.args = args or ()
         self.kwargs = kwargs or {}
-        if func:
-            functools.update_wrapper(self, self.func)
+        functools.update_wrapper(self, self.func)
 
     def __call__(self) -> Any:
-        if self.func:
-            return self.func(*self.args, *self.kwargs)
+        return self.func(*self.args, *self.kwargs)
 
 
 def any_ex(itt: Iterable) -> Any:
@@ -218,11 +195,11 @@ def one_cache(func: Callable) -> Callable:
 
 
 def once_run(func: Callable) -> Callable:
-    ran = Bool()
+    ran = threading.Event()
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if not ran:
+        if not ran.is_set():
             ret = func(*args, **kwargs)
             ran.set()
             return ret
@@ -232,21 +209,23 @@ def once_run(func: Callable) -> Callable:
 
 
 def _worker(func: Callable,
-            works: queue.Queue,
-            running: Bool) -> NoReturn:
+            works: queue.Queue[tuple[Iterable, Mapping[str, Any]]],
+            running: threading.Event,
+            wrapper: Callable) -> NoReturn:
     while True:
         work = works.get()
         running.set()
-        try:
-            func(*work[0], **work[1])
-        finally:
-            running.unset()
-            if works.unfinished_tasks:
-                works.task_done()
+        with contextlib.suppress(BaseException):
+            try:
+                wrapper.result = func(*work[0], **work[1])
+            finally:
+                running.clear()
+                if works.unfinished_tasks:
+                    works.task_done()
 
 
 def queue_run(func: Callable) -> Callable:
-    running = Bool()
+    running = threading.Event()
     works = queue.Queue()
 
     @functools.wraps(func)
@@ -254,36 +233,45 @@ def queue_run(func: Callable) -> Callable:
         works.put((args, kwargs))
 
     threading.Thread(target=_worker, name=f'{queue_run.__name__}-{__version__}-{func.__name__}',
-                     args=(func, works, running), daemon=True).start()
-    wrapper.is_running = lambda: running or bool(works.unfinished_tasks)
+                     args=(func, works, running, wrapper), daemon=True).start()
+    wrapper.is_running = lambda: running.is_set() or bool(works.unfinished_tasks)
     wrapper.reset = lambda: clear_queue(works)
+    wrapper.result = None
     return wrapper
 
 
 def singleton_run(func: Callable) -> Callable:
-    running = Bool()
+    running = threading.Event()
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if running:
+        if running.is_set():
             return False
         else:
             running.set()
             try:
                 return func(*args, **kwargs)
             finally:
-                running.unset()
+                running.clear()
 
-    wrapper.is_running = lambda: bool(running)
+    wrapper.is_running = lambda: running.is_set()
     return wrapper
+
+
+def _set_result(func: Callable,
+                args: Iterable,
+                kwargs: Mapping[str, Any],
+                wrapper: Callable) -> None:
+    wrapper.result = func(*args, **kwargs)
 
 
 def threaded_run(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        threading.Thread(target=func, name=f'{threaded_run.__name__}-{__version__}-{func.__name__}',
-                         args=args, kwargs=kwargs).start()
+        threading.Thread(target=_set_result, name=f'{threaded_run.__name__}-{__version__}-{func.__name__}',
+                         args=(func, args, kwargs, wrapper)).start()
 
+    wrapper.result = None
     return wrapper
 
 
