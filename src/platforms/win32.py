@@ -1,17 +1,15 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import contextlib
 import os
 import shlex
 import winreg
+from typing import ContextManager
 
 import libraries.ctype
 
 _MAX_PATH = 32 * 1024
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-_CLSID_ActiveDesktop_ref = libraries.ctype.byref(
-    libraries.ctype.Struct.CLSID(*libraries.ctype.Const.CLSID_ActiveDesktop))
-_IID_IActiveDesktop_ref = libraries.ctype.byref(libraries.ctype.Struct.IID(*libraries.ctype.Const.IID_IActiveDesktop))
 
 
 def _get_dir(csidl: int) -> str:
@@ -27,7 +25,7 @@ WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'Cac
 
 
 @contextlib.contextmanager
-def _clipboard() -> None:
+def _clipboard() -> ContextManager[None]:
     libraries.ctype.Func.OpenClipboard(None)
     try:
         yield
@@ -60,7 +58,7 @@ def copy_text(text: str) -> bool:
 
 
 @contextlib.contextmanager
-def _hbitmap(path: str) -> libraries.ctype.Type.HBITMAP:
+def _hbitmap(path: str) -> ContextManager[libraries.ctype.Type.HBITMAP]:
     hbitmap = libraries.ctype.Type.HBITMAP()
     token = libraries.ctype.Type.ULONG_PTR()
     if not libraries.ctype.Func.GdiplusStartup(libraries.ctype.byref(token),
@@ -124,31 +122,16 @@ def set_wallpaper(*paths: str) -> bool:
     return False
 
 
-@contextlib.contextmanager
-def _active_desktop() -> libraries.ctype.COM.IActiveDesktop:
-    active_desktop = libraries.ctype.COM.IActiveDesktop()
-    libraries.ctype.Func.CoInitialize(None)
-    try:
-        libraries.ctype.Func.CoCreateInstance(_CLSID_ActiveDesktop_ref, None,
-                                              libraries.ctype.Const.CLSCTX_INPROC_SERVER,
-                                              _IID_IActiveDesktop_ref, libraries.ctype.byref(active_desktop))
-        yield active_desktop
-    finally:
-        if active_desktop:
-            active_desktop.Release()
-        libraries.ctype.Func.CoUninitialize()
-
-
 def get_wallpaper_path_ex() -> str:
-    with _active_desktop() as active_desktop:
+    with libraries.ctype.com(libraries.ctype.COM.IActiveDesktop) as active_desktop:
         buffer = libraries.ctype.Type.PWSTR(' ' * _MAX_PATH)
         if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctype.Const.AD_GETWP_BMP):
             return buffer.value
     return get_wallpaper_path()
 
 
-def set_wallpaper_ex(*paths: str) -> bool:
-    with _active_desktop() as active_desktop:
+def set_wallpaper_ex(*paths: str) -> bool:  # TODO: enable and disable slideshow to ensure fade
+    with libraries.ctype.com(libraries.ctype.COM.IActiveDesktop) as active_desktop:
         if active_desktop:
             for path in paths:
                 if os.path.isfile(path):

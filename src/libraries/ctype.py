@@ -1,12 +1,16 @@
 from __future__ import annotations  # TODO: remove if >= 3.11
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
+import contextlib
 import ctypes
 import dataclasses
 import functools
 import types
-from typing import Any, Callable, Generator, Generic, get_args, get_origin, get_type_hints, Optional, TypeVar, Union
+import typing
+from typing import Any, Callable, ContextManager, Generator, Generic, Optional, TypeVar, Union
+
+_CT = TypeVar('_CT')
 
 
 class Const:
@@ -47,8 +51,9 @@ class Const:
     CLSCTX_LOCAL_SERVER = 4
     CLSCTX_REMOTE_SERVER = 16
 
-    CLSID_ActiveDesktop = 1963230976, 61215, 4560, (152, 136, 0, 96, 151, 222, 172, 249)
-    CLSID_FileOpenDialog = 3692845724, 59530, 19934, (165, 161, 96, 248, 42, 32, 174, 247)
+    CLSID_ActiveDesktop = '{75048700-EF1F-11D0-9888-006097DEACF9}'
+    CLSID_DesktopWallpaper = '{C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD}'
+    CLSID_FileOpenDialog = '{DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7}'
 
     CSIDL_APPDATA = 26
     CSIDL_LOCAL_APPDATA = 28
@@ -58,14 +63,34 @@ class Const:
     DIB_PAL_INDICES = 2
     DIB_RGB_COLORS = 0
 
+    DSD_FORWARD = 0
+    DSD_BACKWARD = 1
+
+    DSO_SHUFFLEIMAGES = 1
+
+    DSS_ENABLED = 1
+    DSS_SLIDESHOW = 2
+    DSS_DISABLED_BY_REMOTE_SESSION = 4
+
+    DWPOS_CENTER = 0
+    DWPOS_TILE = 1
+    DWPOS_STRETCH = 2
+    DWPOS_FIT = 3
+    DWPOS_FILL = 4
+    DWPOS_SPAN = 5
+
     GHND = 66
     GMEM_FIXED = 0
     GMEM_MOVEABLE = 2
     GMEM_ZEROINIT = 64
     GPTR = 64
 
-    IID_IActiveDesktop = 4103138048, 4672, 4561, (152, 136, 0, 96, 151, 222, 172, 249)
-    IID_IFileDialog = 1123569974, 56190, 17308, (133, 241, 228, 7, 93, 19, 95, 200)
+    IID_IUnknown = '{00000000-0000-0000-C000-000000000046}'
+    IID_IActiveDesktop = '{F490EB00-1240-11D1-9888-006097DEACF9}'
+    IID_IDesktopWallpaper = '{B92B56A9-8B55-4E14-9A89-0199BBB6F93B}'
+    IID_IModalWindow = '{B4DB1657-70D7-485E-8E3E-6FCB5A5C1802}'
+    IID_IFileDialog = '{42F85136-DB7E-439C-85F1-E4075D135FC8}'
+    IID_IFileOpenDialog = '{D57C7288-D4AD-4768-BE02-9D969532D960}'
 
     IS_NORMAL = 1
     IS_FULLSCREEN = 2
@@ -90,9 +115,6 @@ class Const:
     WPSTYLE_SPAN = 5
 
 
-_CT = TypeVar('_CT')
-
-
 class Pointer(Generic[_CT]):
     value = None
 
@@ -104,7 +126,7 @@ class Pointer(Generic[_CT]):
 class Type:
     c_byte = Union[ctypes.c_byte, int]
     c_ubyte = Union[ctypes.c_ubyte, int]
-    c_void_p = Union[ctypes.c_void_p, ctypes.c_wchar_p, int, str]
+    c_void_p = Union[ctypes.c_void_p, Pointer]
     c_char_p = Union[ctypes.c_char_p, str]
     c_wchar_p = Union[ctypes.c_wchar_p, str]
     c_int = Union[ctypes.c_int, int]
@@ -126,10 +148,15 @@ class Type:
     HANDLE = c_void_p
     INT = c_int
     LONG = c_long
+    OLESTR = c_wchar_p
+    LPOLESTR = c_wchar_p
     LPCOLESTR = c_wchar_p
-    LPCWSTR = c_wchar_p
-    LPVOID = c_void_p
     LPWSTR = c_wchar_p
+    LPCWSTR = c_wchar_p
+    LPSTR = c_char_p
+    LPCSTR = c_char_p
+    LPVOID = c_void_p
+    LPCVOID = c_void_p
     UCHAR = c_uchar
     UINT = c_uint
     ULONG = c_ulong
@@ -154,15 +181,21 @@ class Type:
     PWSTR = c_wchar_p
     PCWSTR = c_wchar_p
     UINT32 = c_uint32
+    enum = c_uint  # TODO: Enum type
+    DESKTOP_SLIDESHOW_DIRECTION = enum
+    DESKTOP_SLIDESHOW_OPTIONS = enum
+    DESKTOP_SLIDESHOW_STATE = enum
+    DESKTOP_WALLPAPER_POSITION = enum
     HBITMAP = HANDLE
+    HDC = HANDLE
     HGDIOBJ = HANDLE
     HGLOBAL = HANDLE
     HINSTANCE = HANDLE
-    HDC = HANDLE
     HWND = HANDLE
     ULONG_PTR = c_ulong
     SIZE_T = ULONG_PTR
     ARGB = DWORD
+    COLORREF = DWORD
     Status = HRESULT
     GpStatus = Status
 
@@ -241,14 +274,22 @@ class Struct:
     class CLSID(GUID):
         pass
 
+    class RECT:
+        left: Type.LONG = None
+        top: Type.LONG = None
+        right: Type.LONG = None
+        bottom: Type.LONG = None
+
 
 class COM:
     class IUnknown:
+        _CLSID = ''
         QueryInterface: Callable[[Pointer[Struct.IID], Type.c_void_p], Type.HRESULT]
         AddRef: Callable[[], Type.ULONG]
         Release: Callable[[], Type.ULONG]
 
     class IActiveDesktop(IUnknown):
+        _CLSID = Const.CLSID_ActiveDesktop
         ApplyChanges: Callable[[Type.DWORD], Type.HRESULT]
         GetWallpaper: Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
         SetWallpaper: Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
@@ -269,8 +310,30 @@ class COM:
         AddUrl: Callable
         GetDesktopItemBySource: Callable
 
-    class IFileDialog(IUnknown):
+    class IDesktopWallpaper(IUnknown):  # TODO: fix
+        _CLSID = Const.CLSID_DesktopWallpaper
+        SetWallpaper: Callable[[Type.LPCWSTR, Type.LPCWSTR], Type.HRESULT]
+        GetWallpaper: Callable[[Type.LPCWSTR, Pointer[Type.LPWSTR]], Type.HRESULT]
+        GetMonitorDevicePathAt: Callable[[Type.UINT, Pointer[Type.LPWSTR]], Type.HRESULT]
+        GetMonitorDevicePathCount: Callable[[Pointer[Type.UINT]], Type.HRESULT]
+        GetMonitorRECT: Callable[[Type.LPCWSTR, Pointer[Struct.RECT]], Type.HRESULT]
+        SetBackgroundColor: Callable[[Type.COLORREF], Type.HRESULT]
+        GetBackgroundColor: Callable[[Pointer[Type.COLORREF]], Type.HRESULT]
+        SetPosition: Callable[[Type.DESKTOP_WALLPAPER_POSITION], Type.HRESULT]
+        GetPosition: Callable[[Pointer[Type.DESKTOP_WALLPAPER_POSITION]], Type.HRESULT]
+        SetSlideshow: Callable
+        GetSlideshow: Callable
+        SetSlideshowOptions: Callable[[Type.DESKTOP_SLIDESHOW_OPTIONS, Type.UINT], Type.HRESULT]
+        GetSlideshowOptions: Callable[[Type.DESKTOP_SLIDESHOW_OPTIONS, Pointer[Type.UINT]], Type.HRESULT]
+        AdvanceSlideshow: Callable[[Type.LPCWSTR, Type.DESKTOP_SLIDESHOW_DIRECTION], Type.HRESULT]
+        GetStatus: Callable[[Pointer[Type.DESKTOP_SLIDESHOW_STATE]], Type.HRESULT]
+        Enable: Callable[[Type.BOOL], Type.HRESULT]
+
+    class IModalWindow(IUnknown):
+        _CLSID = Const.CLSID_FileOpenDialog
         Show: Callable[[Type.HWND], Type.HRESULT]
+
+    class IFileDialog(IModalWindow):
         SetFileTypes: Callable
         SetFileTypeIndex: Callable[[Type.UINT], Type.HRESULT]
         GetFileTypeIndex: Callable[[Type.UINT], Type.HRESULT]
@@ -295,10 +358,14 @@ class COM:
         ClearClientData: Callable[[], Type.HRESULT]
         SetFilter: Callable
 
+    class IFileOpenDialog(IFileDialog):
+        GetResults: Callable
+        GetSelectedItems: Callable
+
 
 class _Lib:
     def __init_subclass__(cls):
-        for var, type_ in get_type_hints(cls).items():
+        for var, type_ in typing.get_type_hints(cls).items():
             setattr(cls, var, type_(var))
 
 
@@ -367,6 +434,8 @@ class Func:
     CoCreateInstance: Callable[[Pointer[Struct.CLSID], Optional[Pointer[Type.IUnknown]],
                                 Type.DWORD, Pointer[Struct.IID], Type.LPVOID],
                                Type.HRESULT] = Lib.ole32.CoCreateInstance
+    StringFromCLSID: Callable[[Type.REFCLSID, Pointer[Type.LPOLESTR]],
+                              Type.HRESULT] = Lib.ole32.StringFromCLSID
 
     memmove: Callable[[Type.c_void_p, Type.c_void_p, Type.size_t],
                       Type.c_void_p] = Lib.msvcrt.memmove
@@ -422,6 +491,32 @@ def char_array(obj: str,
     return (type_ * (len(obj) + 1))(*obj)
 
 
+# noinspection PyUnresolvedReferences
+@functools.cache
+def _get_refs(type_: type[COM.IUnknown]) -> tuple[Pointer[Struct.CLSID], Pointer[Struct.IID]]:
+    clsid_ref = byref(Struct.CLSID())
+    # noinspection PyProtectedMember
+    Func.CLSIDFromString(type_._CLSID, clsid_ref)
+    iid_ref = byref(Struct.IID())
+    Func.IIDFromString(getattr(Const, f'IID_{type_.__name__}'), iid_ref)
+    return clsid_ref, iid_ref
+
+
+# noinspection PyUnresolvedReferences
+@contextlib.contextmanager
+def com(type_: type[_CT]) -> ContextManager[_CT]:
+    obj = type_()
+    Func.CoInitialize(None)
+    try:
+        refs = _get_refs(type_)
+        Func.CoCreateInstance(refs[0], None, Const.CLSCTX_INPROC_SERVER, refs[1], byref(obj))
+        yield obj
+    finally:
+        if obj:
+            obj.Release()
+        Func.CoUninitialize()
+
+
 def _items(cls: type) -> Generator[tuple[str, Any], None, None]:
     for var, val in vars(cls).items():
         if not var.startswith('_'):
@@ -432,14 +527,14 @@ def _resolve_type(type_: Any) -> Any:
     if isinstance(type_, type(Callable)):
         type_ = [None]
     elif isinstance(type_, type(Callable[[], None])):
-        types_ = get_args(type_)
+        types_ = typing.get_args(type_)
         type_ = [_resolve_type(types_[1])]
         type_.extend(_resolve_type(type_) for type_ in types_[0])
     else:
         if isinstance(type_, type(Optional[object])):
-            type_ = get_args(type_)[0]
-        if get_origin(type_) is Pointer:
-            type_ = ctypes.POINTER(_resolve_type(get_args(type_)[0]))
+            type_ = typing.get_args(type_)[0]
+        if typing.get_origin(type_) is Pointer:
+            type_ = ctypes.POINTER(_resolve_type(typing.get_args(type_)[0]))
     return type_
 
 
@@ -454,7 +549,7 @@ def _init():
 
     for var, struct in _items(Struct):
         class Wrapper(ctypes.Structure):
-            _fields_ = tuple((field, _resolve_type(type_)) for field, type_ in get_type_hints(struct).items())
+            _fields_ = tuple((field, _resolve_type(type_)) for field, type_ in typing.get_type_hints(struct).items())
             _defaults = tuple((field, getattr(struct, field) or type_) for field, type_ in _fields_)
 
             def __init__(self, *args, **kwargs):
@@ -467,13 +562,15 @@ def _init():
         functools.update_wrapper(Wrapper, struct, functools.WRAPPER_ASSIGNMENTS + ('__repr__',), ())
         setattr(Struct, var, Wrapper)
 
-    for var, com in _items(COM):
+    for var, com_ in _items(COM):
         class Wrapper(ctypes.c_void_p):
+            # noinspection PyProtectedMember
+            _CLSID = com_._CLSID
             # noinspection PyTypeChecker
             _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple((func, ctypes.CFUNCTYPE(
-                *_method_type(_resolve_type(types)))) for func, types in get_type_hints(com).items())}))
+                *_method_type(_resolve_type(types)))) for func, types in typing.get_type_hints(com_).items())}))
             # noinspection PyProtectedMember
-            _methods = tuple(method for method, _ in _items(_pointer._type_))
+            _methods = tuple(types[0] for types in _items(_pointer._type_))
 
             def __getattr__(self, name):
                 if name in self._methods:
@@ -483,10 +580,10 @@ def _init():
                         setattr(self, method, types.MethodType(getattr(funcs, method), self))
                 return super().__getattribute__(name)
 
-        functools.update_wrapper(Wrapper, com, updated=())
+        functools.update_wrapper(Wrapper, com_, updated=())
         setattr(COM, var, Wrapper)
 
-    types_ = get_type_hints(Func)
+    types_ = typing.get_type_hints(Func)
     for var, func in _items(Func):
         func.restype, *func.argtypes = _resolve_type(types_[var])
 

@@ -39,6 +39,11 @@ function Build-Project
         }
     }
 
+    if ($Debug)
+    {
+        $MainArgs += "--debug=all"
+    }
+
     if ($Excludes)
     {
         foreach ($Exclude in $Excludes)
