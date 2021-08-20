@@ -108,8 +108,7 @@ def copy_image(path: str) -> bool:
 
 def get_wallpaper_path() -> str:
     buffer = libraries.ctype.Type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctype.Func.SystemParametersInfoW(libraries.ctype.Const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer,
-                                               libraries.ctype.Const.SPIF_NONE)
+    libraries.ctype.Func.SystemParametersInfoW(libraries.ctype.Const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, 0)
     return buffer.value or get_wallpaper_path_ex()
 
 
