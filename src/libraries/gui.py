@@ -1,9 +1,8 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import atexit
 import functools
 import itertools
-import os
 import threading
 import time
 from typing import Any, Callable, Iterable, Mapping, Optional
@@ -55,7 +54,8 @@ _TASK_BAR_ICON = wx.adv.TaskBarIcon()
 _MENU = wx.Menu()
 _ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
-_PREFIX = f'{type(_TASK_BAR_ICON).__name__}Animation-'
+_ANIMATIONS_ = [_ANIMATIONS, []]
+_THREAD_NAME = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
 def _get_wrapper(menu_item: wx.MenuItem,
@@ -87,8 +87,8 @@ def add_menu_item(label: str,
                   extra_args: Optional[Iterable[str]] = None,
                   position: Optional[int] = None,
                   menu: wx.Menu = _MENU) -> wx.MenuItem:
-    menu_item = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
-                            label, uid or '', Item.NORMAL if kind is None else kind)
+    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
+                                         label, uid or '', Item.NORMAL if kind is None else kind)
     if check is not None:
         menu_item.Check(check)
     if enable is not None:
@@ -98,8 +98,8 @@ def add_menu_item(label: str,
     return menu_item
 
 
-def add_separator() -> wx.MenuItem:
-    return add_menu_item('', kind=Item.SEPARATOR)
+def add_separator(menu: wx.Menu = _MENU) -> wx.MenuItem:
+    return menu.AppendSeparator()
 
 
 def add_submenu(label: str,
@@ -154,7 +154,7 @@ def start_loop(path: str,
     _APP.SetAppName(tooltip)
     if callback:
         @functools.wraps(callback)
-        def wrapper(_):
+        def wrapper(_: wx.Event):
             callback(*args or (), **kwargs or {})
 
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
@@ -167,13 +167,13 @@ def start_loop(path: str,
     _APP.MainLoop()
 
 
-def disable() -> None:
-    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
-    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
-
-
 def stop_loop(_: Optional[wx.CloseEvent] = None) -> None:
     _APP.ExitMainLoop()
+
+
+def disable_events() -> None:
+    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
+    _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 
 
 @functools.lru_cache(1)
@@ -184,19 +184,26 @@ def _get_gif_frames(path: str) -> itertools.cycle:
 
 
 def _animate() -> None:
-    while _ANIMATIONS:
-        delay, icon, tooltip = next(_ANIMATIONS[-1][0]) + (_ANIMATIONS[-1][1],)
+    while _ANIMATIONS_[0]:
+        delay, icon, tooltip = next(_ANIMATIONS_[0][-1][0]) + (_ANIMATIONS_[0][-1][1],)
         _TASK_BAR_ICON.SetIcon(icon, tooltip)
         time.sleep(delay / 1000)
     if _TASK_BAR_ICON.IsIconInstalled():
         _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
 
 
+def _start_animation() -> bool:
+    if _ANIMATIONS and _ANIMATIONS_[0] is _ANIMATIONS:
+        if not any(thread.name == _THREAD_NAME for thread in threading.enumerate()):
+            threading.Thread(target=_animate, name=_THREAD_NAME, daemon=True).start()
+            return True
+    return False
+
+
 def start_animation(path: str,
-                    tooltip: Optional[str] = None) -> None:
+                    tooltip: Optional[str] = None) -> bool:
     _ANIMATIONS.append((_get_gif_frames(path), _APP.GetAppName() if tooltip is None else tooltip))
-    if not any(thread.name.startswith(_PREFIX) for thread in threading.enumerate()):
-        threading.Thread(target=_animate, name=f'{_PREFIX}{os.path.basename(path)}', daemon=True).start()
+    return _start_animation()
 
 
 def stop_animation(tooltip: Optional[str] = None) -> bool:
@@ -212,3 +219,11 @@ def stop_animation(tooltip: Optional[str] = None) -> bool:
                     stopped = True
                     break
     return stopped
+
+
+def disable_animation(disable: bool = True) -> bool:
+    if _ANIMATIONS_[not disable] is _ANIMATIONS:
+        _ANIMATIONS_.reverse()
+    if not disable:
+        _start_animation()
+    return _ANIMATIONS_[1] is _ANIMATIONS

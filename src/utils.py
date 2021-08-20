@@ -25,6 +25,7 @@ make_dirs = libraries.file.make_dir
 trim_dir = libraries.file.trim
 delete = libraries.file.remove
 
+chain = libraries.functool.chain_ex
 reverse = libraries.functool.reversed_ex
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run
@@ -40,10 +41,11 @@ add_separator = libraries.gui.add_separator
 add_items = libraries.gui.add_submenu
 notify = libraries.gui.show_balloon
 start = libraries.gui.start_loop
-disable = libraries.gui.disable
+disable = libraries.gui.disable_events
 stop = libraries.gui.stop_loop
 animate = libraries.gui.start_animation
 inanimate = libraries.gui.stop_animation
+pause_animation = libraries.gui.disable_animation
 
 status = libraries.request.Status
 join_url = libraries.request.urljoin

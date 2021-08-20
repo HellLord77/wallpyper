@@ -39,6 +39,15 @@ def any_ex(itt: Iterable) -> Any:
             return ele
 
 
+def chain_ex(*funcs: Callable,
+             args: Optional[Iterable[Optional[Iterable]]] = None,
+             kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None) -> Generator:
+    for func, args_, kwargs_ in itertools.zip_longest(funcs, args or (), kwargs or {}):
+        if not func:
+            break
+        yield func(*args_ or (), **kwargs_ or {})
+
+
 def cycle_ex(itt: Iterable,
              func: Optional[Callable] = None,
              args: Optional[Iterable] = None,
@@ -109,12 +118,8 @@ def try_ex(*funcs: Callable,
     for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, args or (), kwargs or {}, excs or ()):
         if not func:
             break
-        try:
-            ret = func(*args_ or (), **kwargs_ or {})
-        except excs_ or ():
-            pass
-        else:
-            return ret
+        with contextlib.suppress(*excs_ or ()):
+            return func(*args_ or (), **kwargs_ or {})
 
 
 def vars_ex(obj: Any) -> str:

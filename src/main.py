@@ -1,4 +1,4 @@
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 import configparser
 import sys
@@ -23,6 +23,7 @@ CHANGE = 'auto_change'
 INTERVAL = 'change_interval'
 SAVE = 'save_wallpaper'
 SAVE_DIR = 'save_dir'
+ANIMATE = 'animate'
 NOTIFY = 'notify'
 KEEP_CACHE = 'keep_cache'
 START = 'auto_start'
@@ -42,7 +43,8 @@ DEFAULT_CONFIG = {
     INTERVAL: 3600,
     SAVE: False,
     SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
-    NOTIFY: False,
+    ANIMATE: True,
+    NOTIFY: True,
     KEEP_CACHE: False,
     START: False,
     SAVE_DATA: False
@@ -166,7 +168,7 @@ def save_wallpaper() -> bool:
 
 
 @utils.single
-def search_wallpaper() -> bool:  # TODO: fix change + search
+def search_wallpaper() -> bool:  # fixme: change + search crash
     searched = False
     utils.animate(RES_PATHS[1], LANGUAGE.SEARCHING)
     for path in _get_wallpaper_paths():
@@ -237,6 +239,11 @@ def on_search() -> bool:
     return searched
 
 
+def on_animate(checked: bool) -> None:
+    CONFIG[ANIMATE] = checked
+    utils.pause_animation(not checked)
+
+
 def on_auto_start(checked: bool) -> bool:
     CONFIG[START] = checked
     if checked:
@@ -286,6 +293,8 @@ def create_menu() -> None:
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
+    utils.add_item(LANGUAGE.ANIMATE, utils.item.CHECK, CONFIG[ANIMATE],
+                   callback=on_animate, extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY],
                    callback=update_config, args=(NOTIFY,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[KEEP_CACHE],
@@ -297,7 +306,7 @@ def create_menu() -> None:
     utils.add_item(LANGUAGE.QUIT, callback=on_exit)
 
 
-def start() -> None:
+def start() -> None:  # TODO: dark theme
     libraries.singleton.init(NAME, 'wait' in sys.argv,
                              crash_callback=print, crash_callback_args=('Crash',),
                              wait_callback=print, wait_callback_args=('Wait',),
@@ -320,6 +329,7 @@ def start() -> None:
     utils.make_dirs(TEMP_DIR)
     utils.trim_dir(TEMP_DIR, CACHE_MAX_SIZE)
     on_auto_change(CONFIG[CHANGE])
+    on_animate(CONFIG[ANIMATE])
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
     if 'change' in sys.argv:

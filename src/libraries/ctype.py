@@ -1,6 +1,6 @@
 from __future__ import annotations  # TODO: remove if >= 3.11
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import contextlib
 import ctypes
@@ -8,9 +8,13 @@ import dataclasses
 import functools
 import types
 import typing
-from typing import Any, Callable, ContextManager, Generator, Generic, Optional, TypeVar, Union
+from typing import Any, Callable, ContextManager, Generator, Generic, Optional, Sequence, TypeVar, Union
+
+CATCH_ERROR = True
 
 _CT = TypeVar('_CT')
+_WIN32 = True
+_WIN64 = ctypes.sizeof(ctypes.c_void_p) == 8
 
 
 class Const:
@@ -55,6 +59,47 @@ class Const:
     CLSID_DesktopWallpaper = '{C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD}'
     CLSID_FileOpenDialog = '{DC1C5A9C-E88A-4DDE-A5A1-60F82A20AEF7}'
 
+    COLOR_3DDKSHADOW = 21
+    COLOR_3DFACE = 15
+    COLOR_3DHIGHLIGHT = 20
+    COLOR_3DHILIGHT = 20
+    COLOR_3DLIGHT = 22
+    COLOR_3DSHADOW = 16
+    COLOR_ACTIVEBORDER = 10
+    COLOR_ACTIVECAPTION = 2
+    COLOR_APPWORKSPACE = 12
+    COLOR_BACKGROUND = 1
+    COLOR_BTNFACE = 15
+    COLOR_BTNHIGHLIGHT = 20
+    COLOR_BTNHILIGHT = 20
+    COLOR_BTNSHADOW = 16
+    COLOR_BTNTEXT = 18
+    COLOR_CAPTIONTEXT = 9
+    COLOR_DESKTOP = 1
+    COLOR_FRAMEBK = 15
+    COLOR_GRADIENTACTIVECAPTION = 27
+    COLOR_GRADIENTINACTIVECAPTION = 28
+    COLOR_GRAYTEXT = 17
+    COLOR_HIGHLIGHT = 13
+    COLOR_HIGHLIGHTTEXT = 14
+    COLOR_HOTLIGHT = 26
+    COLOR_INACTIVEBORDER = 11
+    COLOR_INACTIVECAPTION = 3
+    COLOR_INACTIVECAPTIONTEXT = 19
+    COLOR_INFOBK = 24
+    COLOR_INFOTEXT = 23
+    COLOR_LISTBOX = 25
+    COLOR_LISTBOXHIGHLIGHTTEXT = 32
+    COLOR_LISTBOXTEXT = 31
+    COLOR_MENU = 4
+    COLOR_MENUBAR = 30
+    COLOR_MENUHILIGHT = 29
+    COLOR_MENUTEXT = 7
+    COLOR_SCROLLBAR = 0
+    COLOR_WINDOW = 5
+    COLOR_WINDOWFRAME = 6
+    COLOR_WINDOWTEXT = 8
+
     CSIDL_APPDATA = 26
     CSIDL_LOCAL_APPDATA = 28
     CSIDL_MYPICTURES = 39
@@ -96,6 +141,20 @@ class Const:
     IS_FULLSCREEN = 2
     IS_SPLIT = 4
 
+    MIM_APPLYTOSUBMENUS = 0x80000000
+    MIM_BACKGROUND = 0x00000002
+    MIM_HELPID = 0x00000004
+    MIM_MAXHEIGHT = 0x00000001
+    MIM_MENUDATA = 0x00000008
+    MIM_STYLE = 0x00000010
+
+    MNS_AUTODISMISS = 0x10000000
+    MNS_CHECKORBMP = 0x04000000
+    MNS_DRAGDROP = 0x20000000
+    MNS_MODELESS = 0x40000000
+    MNS_NOCHECK = 0x80000000
+    MNS_NOTIFYBYPOS = 0x08000000
+
     SHGFP_TYPE_CURRENT = 0
     SHGFP_TYPE_DEFAULT = 1
 
@@ -123,81 +182,135 @@ class Pointer(Generic[_CT]):
         pass
 
 
+# noinspection PyAbstractClass
+class Array(Pointer, Sequence[_CT]):
+    pass
+
+
 class Type:
-    c_byte = Union[ctypes.c_byte, int]
-    c_ubyte = Union[ctypes.c_ubyte, int]
-    c_void_p = Union[ctypes.c_void_p, Pointer]
-    c_char_p = Union[ctypes.c_char_p, str]
-    c_wchar_p = Union[ctypes.c_wchar_p, str]
-    c_int = Union[ctypes.c_int, int]
-    c_uint = Union[ctypes.c_uint, int]
-    c_uint32 = Union[ctypes.c_uint32, int]
-    c_short = Union[ctypes.c_short, int]
-    c_ushort = Union[ctypes.c_ushort, int]
-    c_long = Union[ctypes.c_long, int]
-    c_ulong = Union[ctypes.c_ulong, int]
-    size_t = Union[ctypes.c_size_t, int]
-    c_wchar = Union[ctypes.c_wchar, str]
     HRESULT = Union[ctypes.HRESULT, int]
+    c_bool = Union[ctypes.c_bool, bool]
+    c_byte = Union[ctypes.c_byte, int]
+    c_char = Union[ctypes.c_char, str]
+    c_char_p = Optional[Union[ctypes.c_char_p, str]]
+    c_double = Union[ctypes.c_double, float]
+    c_float = Union[ctypes.c_float, float]
+    c_int = Union[ctypes.c_int, int]
+    c_int16 = Union[ctypes.c_int16, int]
+    c_int32 = Union[ctypes.c_int32, int]
+    c_int64 = Union[ctypes.c_int64, int]
+    c_int8 = Union[ctypes.c_int8, int]
+    c_long = Union[ctypes.c_long, int]
+    c_longdouble = Union[ctypes.c_longdouble, float]
+    c_short = Union[ctypes.c_short, int]
+    c_size_t = Union[ctypes.c_size_t, int]
+    c_ssize_t = Union[ctypes.c_ssize_t, int]
+    c_ubyte = Union[ctypes.c_ubyte, int]
+    c_uint = Union[ctypes.c_uint, int]
+    c_uint16 = Union[ctypes.c_uint16, int]
+    c_uint32 = Union[ctypes.c_uint32, int]
+    c_uint64 = Union[ctypes.c_uint64, int]
+    c_uint8 = Union[ctypes.c_uint8, int]
+    c_ulong = Union[ctypes.c_ulong, int]
+    c_ushort = Union[ctypes.c_ushort, int]
+    c_void_p = Optional[Union[ctypes.c_void_p, Pointer]]
+    c_wchar = Union[ctypes.c_wchar, str]
+    c_wchar_p = Optional[Union[ctypes.c_wchar_p, str]]
 
     c_uchar = c_ubyte
+    c_wchar_t = c_wchar
+    c_wchar_t_p = c_wchar_p
 
-    BOOL = c_long
-    BYTE = c_byte
+    BOOL = c_int
+    BYTE = c_uchar
+    CHAR = c_char
+    DOUBLE = c_double
     DWORD = c_ulong
-    HANDLE = c_void_p
+    FLOAT = c_float
     INT = c_int
+    INT16 = c_short
+    INT32 = c_int
+    INT64 = c_int32
+    INT8 = c_char
     LONG = c_long
-    OLESTR = c_wchar_p
-    LPOLESTR = c_wchar_p
-    LPCOLESTR = c_wchar_p
-    LPWSTR = c_wchar_p
-    LPCWSTR = c_wchar_p
-    LPSTR = c_char_p
-    LPCSTR = c_char_p
-    LPVOID = c_void_p
-    LPCVOID = c_void_p
     UCHAR = c_uchar
     UINT = c_uint
+    UINT16 = c_ushort
+    UINT32 = c_uint
+    UINT64 = c_uint64
+    UINT8 = c_uchar
     ULONG = c_ulong
-    WCHAR = c_wchar
+    USHORT = c_ushort
+    WCHAR = c_wchar_t
     WORD = c_ushort
 
-    LPUNKNOWN = c_void_p  # Pointer[IUnknown]
-    LPWALLPAPEROPT = c_void_p  # Pointer[WALLPAPEROPT]
-    REFCLSID = c_void_p  # Pointer[CLSID]
-    REFGUID = c_void_p  # Pointer[GUID]
-    REFIID = c_void_p  # Pointer[IID]
+    VOID = PVOID = LPVOID = LPCVOID = c_void_p
+    NPSTR = LPSTR = LPCSTR = PSTR = PCSTR = PZZSTR = PCZZSTR = PNZCH = PCNZCH = c_char_p
+    PWCHAR = LPWCH = LPCWCH = PWCH = PCWCH = NWPSTR = LPWSTR = LPCWSTR = PWSTR = PCWSTR = c_wchar_p
 
     DebugEventProc = c_void_p  # DebugEventProc
     GpBitmap = c_void_p  # GpBitmap
     GpImage = c_void_p  # GpImage
-    IActiveDesktop = c_void_p  # IActiveDesktop
-    IFileDialog = c_void_p  # IFileDialog
     IUnknown = c_void_p  # IUnknown
 
-    VOID = c_void_p
-    PVOID = c_void_p
-    PWSTR = c_wchar_p
-    PCWSTR = c_wchar_p
-    UINT32 = c_uint32
     enum = c_uint  # TODO: Enum type
     DESKTOP_SLIDESHOW_DIRECTION = enum
     DESKTOP_SLIDESHOW_OPTIONS = enum
     DESKTOP_SLIDESHOW_STATE = enum
     DESKTOP_WALLPAPER_POSITION = enum
+
+    HALF_PTR = c_int if _WIN64 else c_short
+    INT_PTR = c_int64 if _WIN64 else c_int
+    LONG_PTR = c_int64 if _WIN64 else c_long
+    UHALF_PTR = c_uint if _WIN64 else c_ushort
+    UINT_PTR = c_uint64 if _WIN64 else c_uint
+    ULONG_PTR = c_uint64 if _WIN64 else c_ulong
+
+    ARGB = DWORD
+    ATOM = WORD
+    BOOLEAN = BYTE
+    COLORREF = DWORD
+    DWORD_PTR = ULONG_PTR
+    HANDLE = PVOID
+    SIZE_T = ULONG_PTR
+    Status = HRESULT
+    WPARAM = UINT_PTR
+
+    OLECHAR = WCHAR if _WIN32 else c_char
+    LPOLESTR = LPCOLESTR = Pointer[OLECHAR] if _WIN32 else LPSTR
+
+    GpStatus = Status
+    HACCEL = HANDLE
     HBITMAP = HANDLE
+    HBRUSH = HANDLE
+    HCOLORSPACE = HANDLE
     HDC = HANDLE
+    HDESK = HANDLE
+    HDWP = HANDLE
+    HENHMETAFILE = HANDLE
+    HFONT = HANDLE
     HGDIOBJ = HANDLE
     HGLOBAL = HANDLE
+    HHOOK = HANDLE
+    HICON = HANDLE
     HINSTANCE = HANDLE
+    HKEY = HANDLE
+    HKL = HANDLE
+    HLOCAL = HANDLE
+    HMENU = HANDLE
+    HMETAFILE = HANDLE
+    HMODULE = HANDLE
+    HMONITOR = HANDLE
+    HPALETTE = HANDLE
+    HPEN = HANDLE
+    HRGN = HANDLE
+    HRSRC = HANDLE
+    HSTR = HANDLE
+    HTASK = HANDLE
+    HWINSTA = HANDLE
     HWND = HANDLE
-    ULONG_PTR = c_ulong
-    SIZE_T = ULONG_PTR
-    ARGB = DWORD
-    COLORREF = DWORD
-    Status = HRESULT
-    GpStatus = Status
+    SC_HANDLE = HANDLE
+    SERVICE_STATUS_HANDLE = HANDLE
 
 
 class Struct:
@@ -205,8 +318,8 @@ class Struct:
     class GdiplusStartupInput:
         GdiplusVersion: Type.UINT32 = 1
         DebugEventCallback: Type.DebugEventProc = None
-        SuppressBackgroundThread: Type.BOOL = None
-        SuppressExternalCodecs: Type.BOOL = None
+        SuppressBackgroundThread: Type.BOOL = False
+        SuppressExternalCodecs: Type.BOOL = False
 
     @dataclasses.dataclass
     class RGBQUAD:
@@ -274,11 +387,22 @@ class Struct:
     class CLSID(GUID):
         pass
 
+    @dataclasses.dataclass
     class RECT:
         left: Type.LONG = None
         top: Type.LONG = None
         right: Type.LONG = None
         bottom: Type.LONG = None
+
+    @dataclasses.dataclass
+    class MENUINFO:
+        cbSize: Type.DWORD = None
+        fMask: Type.DWORD = None
+        dwStyle: Type.DWORD = None
+        cyMax: Type.UINT = 0
+        hbrBack: Type.HBRUSH = None
+        dwContextHelpID: Type.DWORD = None
+        dwMenuData: Type.ULONG_PTR = None
 
 
 class COM:
@@ -293,8 +417,8 @@ class COM:
         ApplyChanges: Callable[[Type.DWORD], Type.HRESULT]
         GetWallpaper: Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
         SetWallpaper: Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
-        GetWallpaperOptions: Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
-        SetWallpaperOptions: Callable[[Type.LPWALLPAPEROPT, Type.DWORD], Type.HRESULT]
+        GetWallpaperOptions: Callable[[Pointer[Struct.WALLPAPEROPT], Type.DWORD], Type.HRESULT]
+        SetWallpaperOptions: Callable[[Pointer[Struct.WALLPAPEROPT], Type.DWORD], Type.HRESULT]
         GetPattern: Callable[[Type.PWSTR, Type.UINT, Type.DWORD], Type.HRESULT]
         SetPattern: Callable[[Type.PCWSTR, Type.DWORD], Type.HRESULT]
         GetDesktopItemOptions: Callable
@@ -310,7 +434,7 @@ class COM:
         AddUrl: Callable
         GetDesktopItemBySource: Callable
 
-    class IDesktopWallpaper(IUnknown):  # TODO: fix
+    class IDesktopWallpaper(IUnknown):  # fixme
         _CLSID = Const.CLSID_DesktopWallpaper
         SetWallpaper: Callable[[Type.LPCWSTR, Type.LPCWSTR], Type.HRESULT]
         GetWallpaper: Callable[[Type.LPCWSTR, Pointer[Type.LPWSTR]], Type.HRESULT]
@@ -366,21 +490,21 @@ class COM:
 class _Lib:
     def __init_subclass__(cls):
         for var, type_ in typing.get_type_hints(cls).items():
-            setattr(cls, var, type_(var))
+            setattr(cls, var, type_(var, use_last_error=CATCH_ERROR))
 
 
 class Lib(_Lib):
-    gdi32: ctypes.CDLL
-    gdiplus: ctypes.CDLL
-    kernel32: ctypes.CDLL
-    msvcrt: ctypes.CDLL
-    ntdll: ctypes.CDLL
-    ole32: ctypes.CDLL
-    shell32: ctypes.CDLL
-    user32: ctypes.CDLL
+    gdi32: ctypes.WinDLL
+    gdiplus: ctypes.WinDLL
+    kernel32: ctypes.WinDLL
+    msvcrt: ctypes.WinDLL
+    ntdll: ctypes.WinDLL
+    ole32: ctypes.WinDLL
+    shell32: ctypes.WinDLL
+    user32: ctypes.WinDLL
 
 
-class Func:
+class Func:  # TODO: help, Const[]
     RtlAreLongPathsEnabled: Callable[[],
                                      Type.c_ubyte] = Lib.ntdll.RtlAreLongPathsEnabled
 
@@ -392,9 +516,13 @@ class Func:
                            Type.BOOL] = Lib.kernel32.GlobalUnlock
     CloseHandle: Callable[[Type.HANDLE],
                           Type.BOOL] = Lib.kernel32.CloseHandle
+    GetLastError: Callable[[],
+                           Type.DWORD] = Lib.kernel32.GetLastError
 
-    GetObject: Callable[[Type.HANDLE, Type.INT, Type.LPVOID],
-                        Type.INT] = Lib.gdi32.GetObjectW
+    GetObjectA: Callable[[Type.HANDLE, Type.c_int, Type.LPVOID],
+                         Type.c_int] = Lib.gdi32.GetObjectA
+    GetObjectW: Callable[[Type.HANDLE, Type.c_int, Type.LPVOID],
+                         Type.c_int] = Lib.gdi32.GetObjectW
     DeleteObject: Callable[[Type.HGDIOBJ],
                            Type.BOOL] = Lib.gdi32.DeleteObject
     CreateDIBitmap: Callable[[Type.HDC, Pointer[Struct.BITMAPINFOHEADER], Type.DWORD,
@@ -402,10 +530,14 @@ class Func:
                              Type.HBITMAP] = Lib.gdi32.CreateDIBitmap
     GetDIBits: Callable[[Type.HDC, Type.HBITMAP, Type.UINT, Type.UINT,
                          Optional[Type.LPVOID], Pointer[Struct.BITMAPINFO], Type.UINT],
-                        Type.INT] = Lib.gdi32.GetDIBits
+                        Type.c_int] = Lib.gdi32.GetDIBits
+    CreateSolidBrush: Callable[[Type.COLORREF],
+                               Type.HBRUSH] = Lib.gdi32.CreateSolidBrush
 
-    SystemParametersInfo: Callable[[Type.UINT, Type.UINT, Type.PVOID, Type.UINT],
-                                   Type.BOOL] = Lib.user32.SystemParametersInfoW
+    SystemParametersInfoA: Callable[[Type.UINT, Type.UINT, Type.PVOID, Type.UINT],
+                                    Type.BOOL] = Lib.user32.SystemParametersInfoA
+    SystemParametersInfoW: Callable[[Type.UINT, Type.UINT, Type.PVOID, Type.UINT],
+                                    Type.BOOL] = Lib.user32.SystemParametersInfoW
     OpenClipboard: Callable[[Optional[Type.HWND]],
                             Type.BOOL] = Lib.user32.OpenClipboard
     CloseClipboard: Callable[[],
@@ -416,12 +548,32 @@ class Func:
                                Type.HANDLE] = Lib.user32.GetClipboardData
     SetClipboardData: Callable[[Type.UINT, Type.HANDLE],
                                Type.HANDLE] = Lib.user32.SetClipboardData
-    LoadImage: Callable[[Type.HINSTANCE, Type.LPCWSTR, Type.UINT, Type.INT, Type.INT, Type.UINT],
-                        Type.HANDLE] = Lib.user32.LoadImageW
+    GetSysColor: Callable[[Type.c_int],
+                          Type.DWORD] = Lib.user32.GetSysColor
+    SetSysColors: Callable[[Type.c_int, Pointer[Type.INT], Pointer[Type.COLORREF]],
+                           Type.BOOL] = Lib.user32.SetSysColors
+    GetMenu: Callable[[Type.HWND],
+                      Type.HMENU] = Lib.user32.GetMenu
+    GetSystemMenu: Callable[[Type.HWND, Type.BOOL],
+                            Type.HMENU] = Lib.user32.GetSystemMenu
+    GetSubMenu: Callable[[Type.HMENU, Type.c_int],
+                         Type.HMENU] = Lib.user32.GetSubMenu
+    GetMenuInfo: Callable[[Type.HMENU, Pointer[Struct.MENUINFO]],
+                          Type.BOOL] = Lib.user32.GetMenuInfo
+    SetMenuInfo: Callable[[Type.HMENU, Pointer[Struct.MENUINFO]],
+                          Type.BOOL] = Lib.user32.SetMenuInfo
+    DrawMenuBar: Callable[[Type.HWND],
+                          Type.BOOL] = Lib.user32.DrawMenuBar
+    LoadImageA: Callable[[Type.HINSTANCE, Type.LPCSTR, Type.UINT, Type.c_int, Type.c_int, Type.UINT],
+                         Type.HANDLE] = Lib.user32.LoadImageA
+    LoadImageW: Callable[[Type.HINSTANCE, Type.LPCWSTR, Type.UINT, Type.c_int, Type.c_int, Type.UINT],
+                         Type.HANDLE] = Lib.user32.LoadImageW
     GetDC: Callable[[Optional[Type.HWND]],
                     Type.HDC] = Lib.user32.GetDC
+    GetWindowDC: Callable[[Optional[Type.HWND]],
+                          Type.HDC] = Lib.user32.GetWindowDC
     ReleaseDC: Callable[[Optional[Type.HWND], Type.HDC],
-                        Type.INT] = Lib.user32.ReleaseDC
+                        Type.c_int] = Lib.user32.ReleaseDC
 
     IIDFromString: Callable[[Type.LPCOLESTR, Pointer[Struct.IID]],
                             Type.HRESULT] = Lib.ole32.IIDFromString
@@ -434,13 +586,13 @@ class Func:
     CoCreateInstance: Callable[[Pointer[Struct.CLSID], Optional[Pointer[Type.IUnknown]],
                                 Type.DWORD, Pointer[Struct.IID], Type.LPVOID],
                                Type.HRESULT] = Lib.ole32.CoCreateInstance
-    StringFromCLSID: Callable[[Type.REFCLSID, Pointer[Type.LPOLESTR]],
+    StringFromCLSID: Callable[[Pointer[Struct.CLSID], Pointer[Type.LPOLESTR]],
                               Type.HRESULT] = Lib.ole32.StringFromCLSID
 
-    memmove: Callable[[Type.c_void_p, Type.c_void_p, Type.size_t],
+    memmove: Callable[[Type.c_void_p, Type.c_void_p, Type.c_size_t],
                       Type.c_void_p] = Lib.msvcrt.memmove
     wcslen: Callable[[Type.c_wchar_p],
-                     Type.size_t] = Lib.msvcrt.wcslen
+                     Type.c_size_t] = Lib.msvcrt.wcslen
 
     GdiplusStartup: Callable[[Pointer[Type.ULONG_PTR], Pointer[Struct.GdiplusStartupInput],
                               Optional[Pointer[Struct.GdiplusStartupInput]]],
@@ -454,14 +606,21 @@ class Func:
     GdipCreateHBITMAPFromBitmap: Callable[[Type.GpBitmap, Pointer[Type.HBITMAP], Type.ARGB],
                                           Type.GpStatus] = Lib.gdiplus.GdipCreateHBITMAPFromBitmap
 
-    SHGetFolderPath: Callable[[Optional[Type.HWND], Type.INT,
-                               Optional[Type.HANDLE], Type.DWORD, Type.LPWSTR],
-                              Type.HRESULT] = Lib.shell32.SHGetFolderPathW
+    SHGetFolderPathA: Callable[[Optional[Type.HWND], Type.c_int,
+                                Optional[Type.HANDLE], Type.DWORD, Type.LPSTR],
+                               Type.HRESULT] = Lib.shell32.SHGetFolderPathA
+    SHGetFolderPathW: Callable[[Optional[Type.HWND], Type.c_int,
+                                Optional[Type.HANDLE], Type.DWORD, Type.LPWSTR],
+                               Type.HRESULT] = Lib.shell32.SHGetFolderPathW
 
 
 def pointer(type_: _CT) -> Pointer[_CT]:
-    # noinspection PyTypeChecker
-    return ctypes.POINTER(type_)
+    try:
+        # noinspection PyTypeChecker
+        return ctypes.POINTER(type_)
+    except TypeError:
+        # noinspection PyTypeChecker
+        return ctypes.POINTER(type(type_))
 
 
 def byref(obj: _CT) -> Pointer[_CT]:
@@ -482,12 +641,12 @@ def sizeof(obj: _CT) -> int:
 
 def array(type_: _CT = Type.c_void_p,
           *elements: Any,
-          size: Optional[int] = None) -> Pointer[_CT]:
+          size: Optional[int] = None) -> Array[_CT]:
     return (type_ * (size or len(elements)))(*elements)
 
 
 def char_array(obj: str,
-               type_: _CT = Type.c_wchar) -> Pointer[_CT]:
+               type_: _CT = Type.c_wchar) -> Array[_CT]:
     return (type_ * (len(obj) + 1))(*obj)
 
 

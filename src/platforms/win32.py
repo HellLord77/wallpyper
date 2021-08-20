@@ -14,7 +14,7 @@ _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'R
 
 def _get_dir(csidl: int) -> str:
     buffer = libraries.ctype.Type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctype.Func.SHGetFolderPath(None, csidl, None, libraries.ctype.Const.SHGFP_TYPE_CURRENT, buffer)
+    libraries.ctype.Func.SHGetFolderPathW(None, csidl, None, libraries.ctype.Const.SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
 
 
@@ -82,7 +82,7 @@ def copy_image(path: str) -> bool:
     buffer = 0
     with _hbitmap(path) as hbitmap:
         bm = libraries.ctype.Struct.BITMAP()
-        if libraries.ctype.sizeof(libraries.ctype.Struct.BITMAP) == libraries.ctype.Func.GetObject(
+        if libraries.ctype.sizeof(libraries.ctype.Struct.BITMAP) == libraries.ctype.Func.GetObjectW(
                 hbitmap, libraries.ctype.sizeof(libraries.ctype.Struct.BITMAP), libraries.ctype.byref(bm)):
             size_bi = libraries.ctype.sizeof(libraries.ctype.Struct.BITMAPINFOHEADER)
             bi = libraries.ctype.Struct.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel,
@@ -108,16 +108,16 @@ def copy_image(path: str) -> bool:
 
 def get_wallpaper_path() -> str:
     buffer = libraries.ctype.Type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctype.Func.SystemParametersInfo(libraries.ctype.Const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer,
-                                              libraries.ctype.Const.SPIF_NONE)
+    libraries.ctype.Func.SystemParametersInfoW(libraries.ctype.Const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer,
+                                               libraries.ctype.Const.SPIF_NONE)
     return buffer.value or get_wallpaper_path_ex()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            libraries.ctype.Func.SystemParametersInfo(libraries.ctype.Const.SPI_SETDESKWALLPAPER, 0, path,
-                                                      libraries.ctype.Const.SPIF_SENDWININICHANGE)
+            libraries.ctype.Func.SystemParametersInfoW(libraries.ctype.Const.SPI_SETDESKWALLPAPER, 0, path,
+                                                       libraries.ctype.Const.SPIF_SENDWININICHANGE)
             return True
     return False
 
