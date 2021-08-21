@@ -149,9 +149,13 @@ def _get_wallpaper_paths() -> Generator[str, None, None]:
     path = platform.get_wallpaper_path()
     if utils.exists_file(path):
         yield path
-    temp_path = utils.join_path(TEMP_DIR, utils.file_name(path))
+    file_name = utils.file_name(path)
+    temp_path = utils.join_path(TEMP_DIR, file_name)
     if utils.exists_file(temp_path):
         yield temp_path
+    save_path = utils.join_path(SAVE_DIR, file_name)
+    if utils.exists_file(save_path):
+        yield save_path
     if utils.exists_dir(platform.WALLPAPER_DIR):
         for path in utils.list_dir(platform.WALLPAPER_DIR):
             if utils.copy_file(path, temp_path):

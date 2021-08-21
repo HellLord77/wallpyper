@@ -1,11 +1,13 @@
 from __future__ import annotations  # TODO: remove if >= 3.11
 
-__version__ = '0.0.6'  # TODO: split const, func, struct into files
+__version__ = '0.0.7'  # TODO: split const, func, struct into files
 
 import contextlib
 import ctypes
 import dataclasses
 import functools
+import numbers
+import operator
 import types
 import typing
 from typing import Any, Callable, ContextManager, Generator, Generic, Optional, Sequence, TypeVar, Union
@@ -15,14 +17,17 @@ _WIN64 = ctypes.sizeof(ctypes.c_void_p) == 8
 _WIN32_WINNT = 0x0A00
 _WIN32_WINDOWS = 0x0410
 _CT = TypeVar('_CT')
-_MAGICS = (('__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__',
-            '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__',
-            '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
-            '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__'),
-           ('__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
-            '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__',),
-           ('__neg__', '__pos__', '__abs__', '__invert__', '__complex__', '__int__',
-            '__float__', '__index__', '__round__', '__trunc__', '__floor__', '__ceil__'))
+_CT_BINARY = '__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__', \
+             '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__', \
+             '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__', \
+             '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__'
+_CT_I_BINARY = '__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__', \
+               '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__',
+_CT_UNARY = '__neg__', '__pos__', '__abs__', '__invert__', \
+            '__round__', '__trunc__', '__floor__', '__ceil__'
+_PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
+_PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
+
 CATCH_ERROR = True
 
 
@@ -894,31 +899,89 @@ class COM:
         GetSelectedItems: Callable
 
 
-class Macro:  # TODO
+class Macro:
     # noinspection PyPep8Naming
     @staticmethod
-    def LOWORD(dwValue: Type.DWORD) -> Type.WORD:
-        return Type.WORD(Type.DWORD_PTR(dwValue).value & 0xffff).value
+    def MAKEWORD(a: Type.BYTE,
+                 b: Type.BYTE) -> Type.WORD:
+        dwa = cast(byref(a), Type.DWORD_PTR).contents
+        dwa &= 0xff
+        dwb = cast(byref(b), Type.DWORD_PTR).contents
+        dwb &= 0xff
+        wb = cast(cast(byref(dwb), Type.BYTE), Type.WORD).contents
+        wb <<= 8
+        return cast(cast(byref(dwa), Type.BYTE), Type.WORD).contents | wb
 
     # noinspection PyPep8Naming
     @staticmethod
-    def HIWORD(dwValue: Type.DWORD) -> Type.WORD:
-        return Type.WORD((Type.DWORD_PTR(dwValue).value >> 16) & 0xffff).value
+    def MAKELONG(a: Type.WORD,
+                 b: Type.WORD) -> Type.DWORD:
+        dwa = cast(byref(a), Type.DWORD_PTR).contents
+        dwa &= 0xffff
+        dwb = cast(byref(b), Type.DWORD_PTR).contents
+        dwb &= 0xffff
+        wb = cast(cast(byref(dwb), Type.WORD), Type.DWORD).contents
+        wb <<= 16
+        return cast(cast(byref(dwa), Type.WORD), Type.LONG).contents | wb
 
     # noinspection PyPep8Naming
     @staticmethod
-    def LOBYTE(wValue: Type.WORD) -> Type.BYTE:
-        dword = cast(byref(wValue), pointer(Type.DWORD_PTR)).contents
-        dword.value &= 0xff
-        return cast(byref(dword), pointer(Type.BYTE)).contents
+    def LOWORD(l_: Type.DWORD) -> Type.WORD:
+        dword = cast(byref(l_), Type.DWORD_PTR).contents
+        dword &= 0xffff
+        return cast(byref(dword), Type.WORD).contents
 
     # noinspection PyPep8Naming
     @staticmethod
-    def HIBYTE(wValue: Type.WORD) -> Type.BYTE:
-        dword = cast(byref(wValue), pointer(Type.DWORD_PTR)).contents
-        dword.value >>= 8
-        dword.value &= 0xff
-        return cast(byref(dword), pointer(Type.BYTE)).contents
+    def HIWORD(l_: Type.DWORD) -> Type.WORD:
+        dword = cast(byref(l_), Type.DWORD_PTR).contents
+        dword >>= 16
+        dword &= 0xffff
+        return cast(byref(dword), Type.WORD).contents
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def LOBYTE(w: Type.WORD) -> Type.BYTE:
+        dword = cast(byref(w), Type.DWORD_PTR).contents
+        dword &= 0xff
+        return cast(byref(dword), Type.BYTE).contents
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def HIBYTE(w: Type.WORD) -> Type.BYTE:
+        dword = cast(byref(w), Type.DWORD_PTR).contents
+        dword >>= 8
+        dword &= 0xff
+        return cast(byref(dword), Type.BYTE).contents
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def RGB(r: Type.BYTE,
+            g: Type.BYTE,
+            b: Type.BYTE) -> Type.COLORREF:
+        return cast(byref(b), Type.DWORD).contents << 16 | cast(byref(g), Type.WORD).contents << 8 | r
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def PALETTERGB(r: Type.BYTE,
+                   g: Type.BYTE,
+                   b: Type.BYTE) -> Type.COLORREF:
+        return 0x02000000 | Macro.RGB(r, g, b)
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def GetRValue(rgb: Type.COLORREF) -> Type.BYTE:
+        return Macro.LOBYTE(rgb)
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def GetGValue(rgb: Type.COLORREF) -> Type.BYTE:
+        return Macro.LOBYTE(cast(byref(rgb), Type.WORD).contents >> 8)
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def GetBValue(rgb: Type.COLORREF) -> Type.BYTE:
+        return Macro.LOBYTE(rgb >> 16)
 
 
 class _Lib:
@@ -1068,9 +1131,9 @@ def byref(obj: _CT) -> Pointer[_CT]:
 
 def cast(obj: Pointer,
          type_: Union[Pointer[_CT], type]) -> Pointer[_CT]:
-    # noinspection PyTypeChecker
-    return ctypes.cast(obj, type_ if not issubclass(
-        type_, ctypes.Structure) and hasattr(type_, 'from_param') else ctypes.POINTER(type_))
+    # noinspection PyUnresolvedReferences,PyProtectedMember,PyTypeChecker
+    return ctypes.cast(obj, type_ if issubclass(type_, ctypes._Pointer) or (
+            hasattr(type_, 'from_param') and not issubclass(type_, ctypes.Structure)) else ctypes.POINTER(type_))
 
 
 def sizeof(obj: _CT) -> int:
@@ -1114,10 +1177,22 @@ def com(type_: type[_CT]) -> ContextManager[_CT]:
         Func.CoUninitialize()
 
 
-def _items(cls: type) -> Generator[tuple[str, Any], None, None]:
-    for var, val in vars(cls).items():
-        if not var.startswith('_'):
-            yield var, val
+def _method_type(types_: list) -> list:
+    types_.insert(1, ctypes.c_void_p)
+    return types_
+
+
+def _set_magic(type_: type,
+               magic: str,
+               func: Callable) -> None:
+    magic_ = getattr(operator, magic, None)
+    if not magic_:
+        magic_ = getattr(operator, magic.replace('r', '', 1), None)
+        if not magic_:
+            magic_ = getattr(int, magic, None)
+        if not magic_:
+            magic_ = getattr(numbers.Complex, magic)
+    setattr(type_, magic, functools.update_wrapper(func, magic_))
 
 
 def _resolve_type(type_: Any) -> Any:
@@ -1135,22 +1210,31 @@ def _resolve_type(type_: Any) -> Any:
     return type_
 
 
-def _method_type(types_: list) -> list:
-    types_.insert(1, ctypes.c_void_p)
-    return types_
+def _items(cls: type) -> Generator[tuple[str, Any], None, None]:
+    for var, val in vars(cls).items():
+        if not var.startswith('_'):
+            yield var, val
 
 
 def _init():
     for var, type_ in _items(Type):
         type__ = _resolve_type(type_)
-        for magic in _MAGICS[0]:
-            setattr(type__, magic, lambda self, other, *args, _magic=magic: type(self)(
-                getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
-        for magic in _MAGICS[1]:
-            setattr(type__, magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
-                self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
-        for magic in _MAGICS[2]:
-            setattr(type__, magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
+        if type__ not in vars(Type).values():
+            for magic in _CT_BINARY:
+                _set_magic(type__, magic, lambda self, other, *args, _magic=magic: type(
+                    self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+            for magic in _CT_I_BINARY:
+                _set_magic(type__, magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
+                    self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+            for magic in _CT_UNARY:
+                _set_magic(type__, magic, lambda self, *args, _magic=magic: type(
+                    self)(getattr(self.value, _magic)(*args)))
+            for magic in _PY_BINARY:
+                _set_magic(type__, magic, lambda self, other, _magic=magic: getattr(
+                    self.value, _magic)(getattr(other, 'value', other)))
+            for magic in _PY_UNARY:
+                _set_magic(type__, magic, lambda self, _magic=magic: complex(
+                    self.value) if _magic == '__complex__' else getattr(self.value, _magic)())
         setattr(Type, var, type__)
 
     for var, struct in _items(Struct):
@@ -1170,10 +1254,8 @@ def _init():
 
     for var, com_ in _items(COM):
         class Wrapper(ctypes.c_void_p):
-            # noinspection PyProtectedMember
-            _CLSID = com_._CLSID
             # noinspection PyTypeChecker
-            _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple((func, ctypes.CFUNCTYPE(
+            _pointer = ctypes.POINTER(type(var, (ctypes.Structure,), {'_fields_': tuple((func, ctypes.WINFUNCTYPE(
                 *_method_type(_resolve_type(types)))) for func, types in typing.get_type_hints(com_).items())}))
             # noinspection PyProtectedMember
             _methods = tuple(types[0] for types in _items(_pointer._type_))
@@ -1186,8 +1268,14 @@ def _init():
                         setattr(self, method, types.MethodType(getattr(funcs, method), self))
                 return super().__getattribute__(name)
 
-        functools.update_wrapper(Wrapper, com_, updated=())
+        # noinspection PyUnresolvedReferences
+        functools.update_wrapper(Wrapper, com_, functools.WRAPPER_ASSIGNMENTS + ('_CLSID',), ())
         setattr(COM, var, Wrapper)
+
+    for var, macro in _items(Macro):
+        setattr(Macro, var, functools.update_wrapper(lambda *args, _func=macro.__func__, _types=typing.get_type_hints(
+            macro.__func__).values(): _func(*(arg if isinstance(arg, type___) else type___(arg) for arg, type___ in
+                                              zip(args, _types))), macro.__func__))
 
     types_ = typing.get_type_hints(Func)
     for var, func in _items(Func):

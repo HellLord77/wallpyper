@@ -1,7 +1,8 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import _io
 import atexit
+import contextlib
 import datetime
 import inspect
 import io
@@ -78,17 +79,6 @@ def redirect_stdio(path: str,
     _WRITE = write
 
 
-def _is_compatible() -> bool:
-    global _SUFFIX
-    supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-    if not supports:
-        for dict_ in (_PREFIXES, _DETAILS):
-            for event, prefix in dict_.items():
-                dict_[event] = _ANSI.sub('', prefix)
-        _SUFFIX = _ANSI.sub('', _SUFFIX)
-    return supports
-
-
 def _format_dict(dict_: Mapping[str, Any],
                  prefix: str = '',
                  suffix: str = '\n') -> str:
@@ -98,8 +88,9 @@ def _format_dict(dict_: Mapping[str, Any],
     end = f'\n{" " * (len(_ANSI.sub("", prefix)) + sum(pads) + 6)}'
     formatted = ''
     for item, type_, size in zip(dict_.items(), types_, sizes):
-        formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
-                     f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
+        with contextlib.suppress(AttributeError):
+            formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
+                         f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
     return formatted
 
 
@@ -158,13 +149,27 @@ def _hook_callback(frame: types.FrameType,
     return _hook_callback
 
 
+def _is_compatible() -> bool:
+    global _SUFFIX
+    supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+    if not supports:
+        for dict_ in (_PREFIXES, _DETAILS):
+            for event, prefix in dict_.items():
+                dict_[event] = _ANSI.sub('', prefix)
+        _SUFFIX = _ANSI.sub('', _SUFFIX)
+    return supports
+
+
 def init(*paths: str,
          level: int = Level.DEBUG,
          redirect_wx: bool = False,
          skip_comp: bool = False) -> None:
-    global _LEVEL
-    for path in paths:
-        _PATHS.add(os.path.relpath(path, _BASE))
+    global _LEVEL, _PATHS
+    if paths:
+        for path in paths:
+            _PATHS.add(os.path.relpath(path, _BASE))
+    else:
+        _PATHS = type('', (), {'__contains__': lambda _, __: True})()
     _LEVEL = level
     if redirect_wx:
         __import__('wx').GetApp().RedirectStdio()
