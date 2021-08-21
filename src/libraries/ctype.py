@@ -1,6 +1,6 @@
 from __future__ import annotations  # TODO: remove if >= 3.11
 
-__version__ = '0.0.6'
+__version__ = '0.0.6'  # TODO: split const, func, struct into files
 
 import contextlib
 import ctypes
@@ -10,12 +10,19 @@ import types
 import typing
 from typing import Any, Callable, ContextManager, Generator, Generic, Optional, Sequence, TypeVar, Union
 
-_CT = TypeVar('_CT')
 _WIN32 = True
 _WIN64 = ctypes.sizeof(ctypes.c_void_p) == 8
 _WIN32_WINNT = 0x0A00
 _WIN32_WINDOWS = 0x0410
-
+_CT = TypeVar('_CT')
+_MAGICS = (('__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__',
+            '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__',
+            '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
+            '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__'),
+           ('__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
+            '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__',),
+           ('__neg__', '__pos__', '__abs__', '__invert__', '__complex__', '__int__',
+            '__float__', '__index__', '__round__', '__trunc__', '__floor__', '__ceil__'))
 CATCH_ERROR = True
 
 
@@ -551,6 +558,7 @@ class Const:
 
 
 class Pointer(Generic[_CT]):
+    contents = None
     value = None
 
     # noinspection PyUnusedLocal,PyUnresolvedReferences,PyTypeChecker
@@ -886,6 +894,33 @@ class COM:
         GetSelectedItems: Callable
 
 
+class Macro:  # TODO
+    # noinspection PyPep8Naming
+    @staticmethod
+    def LOWORD(dwValue: Type.DWORD) -> Type.WORD:
+        return Type.WORD(Type.DWORD_PTR(dwValue).value & 0xffff).value
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def HIWORD(dwValue: Type.DWORD) -> Type.WORD:
+        return Type.WORD((Type.DWORD_PTR(dwValue).value >> 16) & 0xffff).value
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def LOBYTE(wValue: Type.WORD) -> Type.BYTE:
+        dword = cast(byref(wValue), pointer(Type.DWORD_PTR)).contents
+        dword.value &= 0xff
+        return cast(byref(dword), pointer(Type.BYTE)).contents
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def HIBYTE(wValue: Type.WORD) -> Type.BYTE:
+        dword = cast(byref(wValue), pointer(Type.DWORD_PTR)).contents
+        dword.value >>= 8
+        dword.value &= 0xff
+        return cast(byref(dword), pointer(Type.BYTE)).contents
+
+
 class _Lib:
     def __init_subclass__(cls):
         for var, type_ in typing.get_type_hints(cls).items():
@@ -1107,7 +1142,16 @@ def _method_type(types_: list) -> list:
 
 def _init():
     for var, type_ in _items(Type):
-        setattr(Type, var, _resolve_type(type_))
+        type__ = _resolve_type(type_)
+        for magic in _MAGICS[0]:
+            setattr(type__, magic, lambda self, other, *args, _magic=magic: type(self)(
+                getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+        for magic in _MAGICS[1]:
+            setattr(type__, magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
+                self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+        for magic in _MAGICS[2]:
+            setattr(type__, magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
+        setattr(Type, var, type__)
 
     for var, struct in _items(Struct):
         class Wrapper(ctypes.Structure):
