@@ -90,10 +90,8 @@ def copy_image(path: str) -> bool:
             size = bm.bmWidthBytes * bm.bmHeight
             data = libraries.ctype.array(libraries.ctype.Type.BYTE, size=size)
             hdc = libraries.ctype.Func.GetDC(None)
-            if libraries.ctype.Func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data,
-                                              libraries.ctype.cast(libraries.ctype.byref(bi),
-                                                                   libraries.ctype.Struct.BITMAPINFO),
-                                              libraries.ctype.Const.DIB_RGB_COLORS):
+            if libraries.ctype.Func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctype.cast(
+                    bi, libraries.ctype.Struct.BITMAPINFO), libraries.ctype.Const.DIB_RGB_COLORS):
                 handle = libraries.ctype.Func.GlobalAlloc(libraries.ctype.Const.GMEM_MOVEABLE, size_bi + size)
                 if handle:
                     buffer = libraries.ctype.Func.GlobalLock(handle)

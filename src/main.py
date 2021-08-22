@@ -112,7 +112,7 @@ def load_config() -> bool:  # TODO: verify config
     return loaded
 
 
-def save_config() -> bool:
+def save_config() -> bool:  # TODO: save wallpaper progress
     saved = True
     config_parser = configparser.ConfigParser()
     config_parser[NAME] = CONFIG

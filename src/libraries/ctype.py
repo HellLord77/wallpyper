@@ -563,10 +563,10 @@ class Const:
 
 
 class Pointer(Generic[_CT]):
-    contents = None
-    value = None
+    contents: _CT
+    value: _CT
 
-    # noinspection PyUnusedLocal,PyUnresolvedReferences,PyTypeChecker
+    # noinspection PyUnusedLocal,PyTypeChecker
     def __init__(self, type_: type[_CT]) -> type[Pointer[_CT]]:
         pass
 
@@ -904,62 +904,62 @@ class Macro:
     @staticmethod
     def MAKEWORD(a: Type.BYTE,
                  b: Type.BYTE) -> Type.WORD:
-        dwa = cast(byref(a), Type.DWORD_PTR).contents
+        dwa = cast(a, Type.DWORD_PTR).contents
         dwa &= 0xff
-        dwb = cast(byref(b), Type.DWORD_PTR).contents
+        dwb = cast(b, Type.DWORD_PTR).contents
         dwb &= 0xff
-        wb = cast(cast(byref(dwb), Type.BYTE), Type.WORD).contents
+        wb = cast(cast(dwb, Type.BYTE), Type.WORD).contents
         wb <<= 8
-        return cast(cast(byref(dwa), Type.BYTE), Type.WORD).contents | wb
+        return cast(cast(dwa, Type.BYTE), Type.WORD).contents | wb
 
     # noinspection PyPep8Naming
     @staticmethod
     def MAKELONG(a: Type.WORD,
                  b: Type.WORD) -> Type.DWORD:
-        dwa = cast(byref(a), Type.DWORD_PTR).contents
+        dwa = cast(a, Type.DWORD_PTR).contents
         dwa &= 0xffff
-        dwb = cast(byref(b), Type.DWORD_PTR).contents
+        dwb = cast(b, Type.DWORD_PTR).contents
         dwb &= 0xffff
-        wb = cast(cast(byref(dwb), Type.WORD), Type.DWORD).contents
+        wb = cast(cast(dwb, Type.WORD), Type.DWORD).contents
         wb <<= 16
-        return cast(cast(byref(dwa), Type.WORD), Type.LONG).contents | wb
+        return cast(cast(dwa, Type.WORD), Type.LONG).contents | wb
 
     # noinspection PyPep8Naming
     @staticmethod
     def LOWORD(l_: Type.DWORD) -> Type.WORD:
-        dword = cast(byref(l_), Type.DWORD_PTR).contents
+        dword = cast(l_, Type.DWORD_PTR).contents
         dword &= 0xffff
-        return cast(byref(dword), Type.WORD).contents
+        return cast(dword, Type.WORD).contents
 
     # noinspection PyPep8Naming
     @staticmethod
     def HIWORD(l_: Type.DWORD) -> Type.WORD:
-        dword = cast(byref(l_), Type.DWORD_PTR).contents
+        dword = cast(l_, Type.DWORD_PTR).contents
         dword >>= 16
         dword &= 0xffff
-        return cast(byref(dword), Type.WORD).contents
+        return cast(dword, Type.WORD).contents
 
     # noinspection PyPep8Naming
     @staticmethod
     def LOBYTE(w: Type.WORD) -> Type.BYTE:
-        dword = cast(byref(w), Type.DWORD_PTR).contents
+        dword = cast(w, Type.DWORD_PTR).contents
         dword &= 0xff
-        return cast(byref(dword), Type.BYTE).contents
+        return cast(dword, Type.BYTE).contents
 
     # noinspection PyPep8Naming
     @staticmethod
     def HIBYTE(w: Type.WORD) -> Type.BYTE:
-        dword = cast(byref(w), Type.DWORD_PTR).contents
+        dword = cast(w, Type.DWORD_PTR).contents
         dword >>= 8
         dword &= 0xff
-        return cast(byref(dword), Type.BYTE).contents
+        return cast(dword, Type.BYTE).contents
 
     # noinspection PyPep8Naming
     @staticmethod
     def RGB(r: Type.BYTE,
             g: Type.BYTE,
             b: Type.BYTE) -> Type.COLORREF:
-        return cast(byref(b), Type.DWORD).contents << 16 | cast(byref(g), Type.WORD).contents << 8 | r
+        return cast(b, Type.DWORD).contents << 16 | cast(g, Type.WORD).contents << 8 | r
 
     # noinspection PyPep8Naming
     @staticmethod
@@ -976,7 +976,7 @@ class Macro:
     # noinspection PyPep8Naming
     @staticmethod
     def GetGValue(rgb: Type.COLORREF) -> Type.BYTE:
-        return Macro.LOBYTE(cast(byref(rgb), Type.WORD).contents >> 8)
+        return Macro.LOBYTE(cast(rgb, Type.WORD).contents >> 8)
 
     # noinspection PyPep8Naming
     @staticmethod
@@ -1115,7 +1115,8 @@ class Func:  # TODO: help
                                Type.HRESULT] = Lib.shell32.SHGetFolderPathW
 
 
-def pointer(type_: _CT) -> Pointer[_CT]:
+# noinspection PyPep8Naming
+def POINTER(type_: Union[_CT, type[_CT]]) -> Pointer[_CT]:
     try:
         # noinspection PyTypeChecker
         return ctypes.POINTER(type_)
@@ -1124,16 +1125,31 @@ def pointer(type_: _CT) -> Pointer[_CT]:
         return ctypes.POINTER(type(type_))
 
 
+def pointer(type_: _CT) -> Pointer[_CT]:
+    try:
+        # noinspection PyTypeChecker
+        return ctypes.pointer(type_)
+    except TypeError:
+        # noinspection PyTypeChecker
+        return ctypes.POINTER(type_())
+
+
 def byref(obj: _CT) -> Pointer[_CT]:
     # noinspection PyTypeChecker
     return ctypes.byref(obj)
 
 
-def cast(obj: Pointer,
-         type_: Union[Pointer[_CT], type]) -> Pointer[_CT]:
-    # noinspection PyUnresolvedReferences,PyProtectedMember,PyTypeChecker
-    return ctypes.cast(obj, type_ if issubclass(type_, ctypes._Pointer) or (
-            hasattr(type_, 'from_param') and not issubclass(type_, ctypes.Structure)) else ctypes.POINTER(type_))
+def cast(obj: Any,  # typing.cast
+         type_: type[_CT]) -> Pointer[_CT]:
+    try:
+        # noinspection PyTypeChecker
+        return ctypes.cast(obj, type_)
+    except ctypes.ArgumentError:
+        # noinspection PyTypeChecker
+        return cast(ctypes.byref(obj), type_)
+    except TypeError:
+        # noinspection PyTypeChecker
+        return cast(obj, ctypes.POINTER(type_))
 
 
 def sizeof(obj: _CT) -> int:
@@ -1151,7 +1167,6 @@ def char_array(obj: str,
     return (type_ * (len(obj) + 1))(*obj)
 
 
-# noinspection PyUnresolvedReferences
 @functools.cache
 def _get_refs(type_: type[COM.IUnknown]) -> tuple[Pointer[Struct.CLSID], Pointer[Struct.IID]]:
     clsid_ref = byref(Struct.CLSID())
@@ -1162,7 +1177,6 @@ def _get_refs(type_: type[COM.IUnknown]) -> tuple[Pointer[Struct.CLSID], Pointer
     return clsid_ref, iid_ref
 
 
-# noinspection PyUnresolvedReferences
 @contextlib.contextmanager
 def com(type_: type[_CT]) -> ContextManager[_CT]:
     obj = type_()
@@ -1180,19 +1194,6 @@ def com(type_: type[_CT]) -> ContextManager[_CT]:
 def _method_type(types_: list) -> list:
     types_.insert(1, ctypes.c_void_p)
     return types_
-
-
-def _set_magic(type_: type,
-               magic: str,
-               func: Callable) -> None:
-    magic_ = getattr(operator, magic, None)
-    if not magic_:
-        magic_ = getattr(operator, magic.replace('r', '', 1), None)
-        if not magic_:
-            magic_ = getattr(int, magic, None)
-        if not magic_:
-            magic_ = getattr(numbers.Complex, magic)
-    setattr(type_, magic, functools.update_wrapper(func, magic_))
 
 
 def _resolve_type(type_: Any) -> Any:
@@ -1216,25 +1217,35 @@ def _items(cls: type) -> Generator[tuple[str, Any], None, None]:
             yield var, val
 
 
+def _set_magic(magics: dict[str, Callable],
+               magic: str,
+               func: Callable) -> None:
+    magic_ = getattr(operator, magic, None) or getattr(operator, magic.replace(
+        'r', '', 1), None) or getattr(int, magic, None) or getattr(numbers.Complex, magic)
+    magics[magic] = functools.update_wrapper(func, magic_)
+
+
 def _init():
-    for var, type_ in _items(Type):
+    magics = {}
+    for var_ in _CT_BINARY:
+        _set_magic(magics, var_, lambda self, other, *args, _magic=var_: type(
+            self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+    for var_ in _CT_I_BINARY:
+        _set_magic(magics, var_, lambda self, other, *args, _magic=var_.replace('i', '', 1): (setattr(
+            self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+    for var_ in _CT_UNARY:
+        _set_magic(magics, var_, lambda self, *args, _magic=var_: type(self)(getattr(self.value, _magic)(*args)))
+    for var_ in _PY_BINARY:
+        _set_magic(magics, var_, lambda self, other, _magic=var_: getattr(
+            self.value, _magic)(getattr(other, 'value', other)))
+    for var_ in _PY_UNARY:
+        _set_magic(magics, var_, (lambda self: complex(self.value)) if var_ == '__complex__' else (
+            lambda self, _magic=var_: getattr(self.value, _magic)()))
+    for var, type_ in _items(Type):  # TODO: try not to modify actual ctypes, do not use _magic
         type__ = _resolve_type(type_)
         if type__ not in vars(Type).values():
-            for magic in _CT_BINARY:
-                _set_magic(type__, magic, lambda self, other, *args, _magic=magic: type(
-                    self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
-            for magic in _CT_I_BINARY:
-                _set_magic(type__, magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
-                    self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
-            for magic in _CT_UNARY:
-                _set_magic(type__, magic, lambda self, *args, _magic=magic: type(
-                    self)(getattr(self.value, _magic)(*args)))
-            for magic in _PY_BINARY:
-                _set_magic(type__, magic, lambda self, other, _magic=magic: getattr(
-                    self.value, _magic)(getattr(other, 'value', other)))
-            for magic in _PY_UNARY:
-                _set_magic(type__, magic, lambda self, _magic=magic: complex(
-                    self.value) if _magic == '__complex__' else getattr(self.value, _magic)())
+            for var_, magic in magics.items():
+                setattr(type__, var_, magic)
         setattr(Type, var, type__)
 
     for var, struct in _items(Struct):

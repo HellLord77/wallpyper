@@ -184,9 +184,8 @@ def init(*paths: str,
         _is_compatible()
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
-        # noinspection PyUnresolvedReferences
         logging.error(
-            f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
+            f'{_PREFIXES[_EXCEPTION]}Can not log {__import__("pytransform").get_license_code()}{_SUFFIX}'[:-1])
     else:
         sys.settrace(_hook_callback)
         threading.settrace(_hook_callback)

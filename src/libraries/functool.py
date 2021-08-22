@@ -110,7 +110,6 @@ def sleep_ex(secs: Optional[float] = None) -> None:
             pass
 
 
-# noinspection PyUnresolvedReferences
 def try_ex(*funcs: Callable,
            args: Optional[Iterable[Optional[Iterable]]] = None,
            kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,

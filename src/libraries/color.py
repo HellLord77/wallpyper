@@ -1,7 +1,6 @@
 __version__ = '0.0.2'
 
 import sys
-from typing import Optional
 
 _ESC = '\x1b'
 _CSI = f'{_ESC}['
@@ -11,9 +10,9 @@ _COMPATIBLE = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
 
 class _Code:
     def __init_subclass__(cls):
-        for var in vars(cls):
+        for var, code in vars(cls).items():
             if not var.startswith('_'):
-                setattr(cls, var, f'{_CSI}{getattr(cls, var)}m' if _COMPATIBLE else '')
+                setattr(cls, var, f'{_CSI}{code}m' if _COMPATIBLE else '')
                 _CODES.add(getattr(cls, var))
 
 
@@ -64,7 +63,7 @@ class BackColor(_Code):
 
 
 def cprint(*strings,
-           reset: Optional[bool] = None) -> None:
+           reset: bool = True) -> None:
     index = 0
     for string in strings:
         print(string, end='')
