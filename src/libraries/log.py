@@ -1,4 +1,4 @@
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import _io
 import atexit
@@ -32,8 +32,9 @@ _CALL = 'call'
 _EXCEPTION = 'exception'
 _RETURN = 'return'
 _GENERATOR = (_ for _ in ()).__name__
+_SHUTDOWN = logging.shutdown.__code__
 _BASE = '' if hasattr(sys, 'frozen') else os.path.dirname(inspect.stack()[-1].filename)
-_PATHS = set()
+_PATTERN = re.compile('.*')
 _LEVEL = 0
 _STACK = 0
 _STREAM = io.StringIO()
@@ -59,7 +60,6 @@ def _flush(path: str) -> None:
 def redirect_stdio(path: str,
                    tee: Optional[bool] = None,
                    write_once: Optional[bool] = None) -> None:
-    global _WRITE
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
@@ -76,6 +76,7 @@ def redirect_stdio(path: str,
         if tee:
             _WRITE_[stream](string)
 
+    global _WRITE
     _WRITE = write
 
 
@@ -88,7 +89,7 @@ def _format_dict(dict_: Mapping[str, Any],
     end = f'\n{" " * (len(_ANSI.sub("", prefix)) + sum(pads) + 6)}'
     formatted = ''
     for item, type_, size in zip(dict_.items(), types_, sizes):
-        with contextlib.suppress(AttributeError):
+        with contextlib.suppress(AssertionError, AttributeError):
             formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
                          f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
     return formatted
@@ -126,13 +127,14 @@ def _filter(event: str,
 def _hook_callback(frame: types.FrameType,
                    event: str,
                    arg: Any) -> Callable:
-    global _STACK
+    if frame.f_code is _SHUTDOWN:
+        sys.settrace(lambda *_: None)
     frame.f_trace_lines = False
-    try:
-        path = os.path.relpath(frame.f_code.co_filename, _BASE)
-    except ValueError:
-        return _hook_callback
-    if path in _PATHS and _filter(event, arg, frame.f_code.co_name):
+    path = frame.f_code.co_filename
+    with contextlib.suppress(ValueError):
+        path = os.path.relpath(path, _BASE)
+    if _PATTERN.fullmatch(path) and _filter(event, arg, frame.f_code.co_name):
+        global _STACK
         _STACK -= event == _RETURN
         pad = ' ' * _STACK * 4
         log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] ' \
@@ -150,9 +152,9 @@ def _hook_callback(frame: types.FrameType,
 
 
 def _is_compatible() -> bool:
-    global _SUFFIX
     supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
     if not supports:
+        global _SUFFIX
         for dict_ in (_PREFIXES, _DETAILS):
             for event, prefix in dict_.items():
                 dict_[event] = _ANSI.sub('', prefix)
@@ -160,16 +162,13 @@ def _is_compatible() -> bool:
     return supports
 
 
-def init(*paths: str,
+def init(*patterns: str,
          level: int = Level.DEBUG,
          redirect_wx: bool = False,
          skip_comp: bool = False) -> None:
-    global _LEVEL, _PATHS
-    if paths:
-        for path in paths:
-            _PATHS.add(os.path.relpath(path, _BASE))
-    else:
-        _PATHS = type('', (), {'__contains__': lambda _, __: True})()
+    global _PATTERN, _LEVEL
+    if patterns:
+        _PATTERN = re.compile(f'({"|".join(patterns)})')
     _LEVEL = level
     if redirect_wx:
         __import__('wx').GetApp().RedirectStdio()
