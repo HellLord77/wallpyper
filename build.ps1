@@ -72,7 +72,7 @@ function Build-Project
         Split-Path -Path (Get-Location) -Leaf
     } ) -Leaf )-$( if ( $FirstLine.StartsWith("__version__"))
     {
-        $FirstLine.split('''"')[1]
+        ($FirstLine -split { $_ -eq '''' -or $_ -eq '"' })[1]
     }
     else
     {
