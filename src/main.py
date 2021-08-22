@@ -1,4 +1,4 @@
-__version__ = '0.1.7'
+__version__ = '0.1.7'  # TODO: use exceptions
 
 import configparser
 import sys
@@ -319,14 +319,8 @@ def start() -> None:  # TODO: dark theme
         if libraries.pyinstall.FROZEN:
             libraries.log.redirect_stdio(LOG_PATH, True)
         libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
-                           utils.join_path('libraries', 'ctype.py'), utils.join_path('libraries', 'file.py'),
-                           utils.join_path('libraries', 'functool.py'), utils.join_path('libraries', 'gui.py'),
-                           utils.join_path('libraries', 'log.py'), utils.join_path('libraries', 'pyinstall.py'),
-                           utils.join_path('libraries', 'request.py'), utils.join_path('libraries', 'singleton.py'),
-                           utils.join_path('libraries', 'timer.py'), utils.join_path('libraries', 'ctype.py'),
-                           utils.join_path('modules', 'unsplash.py'), utils.join_path('modules', 'wallpyper.py'),
-                           utils.join_path('platforms', 'linux.py'), utils.join_path('platforms', 'win32.py'),
-                           level=libraries.log.Level.INFO, skip_comp=True)
+                           utils.re_join_path('libraries', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
+                           utils.re_join_path('platforms', r'.*\.py'), level=libraries.log.Level.INFO, skip_comp=True)
     libraries.pyinstall.clean_temp()
     load_config()
     create_menu()

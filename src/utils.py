@@ -27,6 +27,7 @@ delete = libraries.file.remove
 
 chain = libraries.functool.chain_ex
 reverse = libraries.functool.reversed_ex
+re_join_path = libraries.functool.re_join
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run
 single = libraries.functool.singleton_run

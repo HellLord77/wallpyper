@@ -7,6 +7,7 @@ import ctypes
 import functools
 import hashlib
 import itertools
+import os
 import pickle
 import pprint
 import queue
@@ -142,6 +143,12 @@ def clear_queue(queue_: queue.Queue) -> int:
         queue_.queue.clear()
         queue_.unfinished_tasks = 0
     return tasks
+
+
+def re_join(base: str,
+            *child: str,
+            sep: Optional[str] = None) -> str:
+    return re.escape(sep or os.sep).join((base,) + child)
 
 
 def return_any(func: Callable,
