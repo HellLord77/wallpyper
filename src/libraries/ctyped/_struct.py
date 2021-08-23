@@ -126,8 +126,7 @@ def _init():
                         kwargs[field[0]] = field[1]() if callable(field[1]) else field[1]
                 super().__init__(*args, **kwargs)
 
-        # noinspection PyUnresolvedReferences
-        _functools.update_wrapper(Wrapper, struct, _functools.WRAPPER_ASSIGNMENTS + ('__repr__',), ())
+        _functools.update_wrapper(Wrapper, struct, ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
         globals_[var] = Wrapper
 
 

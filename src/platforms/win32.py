@@ -13,7 +13,7 @@ _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'R
 
 
 def _get_dir(csidl: int) -> str:
-    buffer = libraries.ctyped.ctype.LPWSTR(' ' * _MAX_PATH)
+    buffer = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
     libraries.ctyped.func.SHGetFolderPathW(None, csidl, None, libraries.ctyped.const.SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
 
@@ -36,18 +36,18 @@ def _clipboard() -> ContextManager[None]:
 def paste_text() -> str:
     with _clipboard():
         return libraries.ctyped.cast(libraries.ctyped.func.GetClipboardData(libraries.ctyped.const.CF_UNICODETEXT),
-                                     libraries.ctyped.ctype.c_wchar_p).value or ''
+                                     libraries.ctyped.type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int,
-                   hglobal: libraries.ctyped.ctype.HGLOBAL) -> None:
+                   hglobal: libraries.ctyped.type.HGLOBAL) -> None:
     with _clipboard():
         libraries.ctyped.func.EmptyClipboard()
         libraries.ctyped.func.SetClipboardData(format_, hglobal)
 
 
 def copy_text(text: str) -> bool:
-    size = (libraries.ctyped.func.wcslen(text) + 1) * libraries.ctyped.sizeof(libraries.ctyped.ctype.c_wchar)
+    size = (libraries.ctyped.func.wcslen(text) + 1) * libraries.ctyped.sizeof(libraries.ctyped.type.c_wchar)
     handle = libraries.ctyped.func.GlobalAlloc(libraries.ctyped.const.GMEM_MOVEABLE, size)
     if handle:
         buffer = libraries.ctyped.func.GlobalLock(handle)
@@ -58,15 +58,14 @@ def copy_text(text: str) -> bool:
 
 
 @contextlib.contextmanager
-def _hbitmap(path: str) -> ContextManager[libraries.ctyped.ctype.HBITMAP]:
-    hbitmap = libraries.ctyped.ctype.HBITMAP()
-    token = libraries.ctyped.ctype.ULONG_PTR()
-    if not libraries.ctyped.func.GdiplusStartup(libraries.ctyped.byref(token), libraries.ctyped.byref(
-            libraries.ctyped.struct.GdiplusStartupInput()), None):
-        bitmap = libraries.ctyped.ctype.GpBitmap()
+def _hbitmap(path: str) -> ContextManager[libraries.ctyped.type.HBITMAP]:
+    hbitmap = libraries.ctyped.type.HBITMAP()
+    token = libraries.ctyped.type.ULONG_PTR()
+    if not libraries.ctyped.func.GdiplusStartup(libraries.ctyped.byref(
+            token), libraries.ctyped.byref(libraries.ctyped.struct.GdiplusStartupInput()), None):
+        bitmap = libraries.ctyped.type.GpBitmap()
         if not libraries.ctyped.func.GdipCreateBitmapFromFile(
-                libraries.ctyped.array(libraries.ctyped.ctype.WCHAR, *path, '\0'),
-                libraries.ctyped.byref(bitmap)):
+                libraries.ctyped.array(libraries.ctyped.type.WCHAR, *path, '\0'), libraries.ctyped.byref(bitmap)):
             libraries.ctyped.func.GdipCreateHBITMAPFromBitmap(bitmap, libraries.ctyped.byref(hbitmap), 0)
             libraries.ctyped.func.GdipDisposeImage(bitmap)
     libraries.ctyped.func.GdiplusShutdown(token)
@@ -87,7 +86,7 @@ def copy_image(path: str) -> bool:
             bi = libraries.ctyped.struct.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel,
                                                           libraries.ctyped.const.BI_RGB)
             size = bm.bmWidthBytes * bm.bmHeight
-            data = libraries.ctyped.array(libraries.ctyped.ctype.BYTE, size=size)
+            data = libraries.ctyped.array(libraries.ctyped.type.BYTE, size=size)
             hdc = libraries.ctyped.func.GetDC(None)
             if libraries.ctyped.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctyped.cast(
                     bi, libraries.ctyped.struct.BITMAPINFO), libraries.ctyped.const.DIB_RGB_COLORS):
@@ -104,7 +103,7 @@ def copy_image(path: str) -> bool:
 
 
 def get_wallpaper_path() -> str:
-    buffer = libraries.ctyped.ctype.LPWSTR(' ' * _MAX_PATH)
+    buffer = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
     libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, 0)
     return buffer.value or get_wallpaper_path_ex()
 
@@ -120,9 +119,10 @@ def set_wallpaper(*paths: str) -> bool:
 
 def get_wallpaper_path_ex() -> str:
     with libraries.ctyped.init_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
-        buffer = libraries.ctyped.ctype.PWSTR(' ' * _MAX_PATH)
-        if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctyped.const.AD_GETWP_BMP):
-            return buffer.value
+        if active_desktop:
+            buffer = libraries.ctyped.type.PWSTR(' ' * _MAX_PATH)
+            if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctyped.const.AD_GETWP_BMP):
+                return buffer.value
     return get_wallpaper_path()
 
 

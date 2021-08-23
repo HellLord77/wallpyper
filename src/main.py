@@ -5,7 +5,7 @@ import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
-import wx
+import wx  # TODO: wx -> tkinter
 
 # iso 639-1
 import languages.en

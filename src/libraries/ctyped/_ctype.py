@@ -2,7 +2,9 @@ import ctypes as _ctypes
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
-import typing as _typing
+from typing import Callable as _Callable
+from typing import Optional as _Optional
+from typing import Union as _Union
 
 from . import _header
 
@@ -19,34 +21,34 @@ _CT_UNARY = ('__neg__', '__pos__', '__abs__', '__invert__',
 _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
 
-HRESULT = _typing.Union[_ctypes.HRESULT, int]
-c_bool = _typing.Union[_ctypes.c_bool, bool]
-c_byte = _typing.Union[_ctypes.c_byte, int]
-c_char = _typing.Union[_ctypes.c_char, str]
-c_char_p = _typing.Optional[_typing.Union[_ctypes.c_char_p, str]]
-c_double = _typing.Union[_ctypes.c_double, float]
-c_float = _typing.Union[_ctypes.c_float, float]
-c_int = _typing.Union[_ctypes.c_int, int]
-c_int16 = _typing.Union[_ctypes.c_int16, int]
-c_int32 = _typing.Union[_ctypes.c_int32, int]
-c_int64 = _typing.Union[_ctypes.c_int64, int]
-c_int8 = _typing.Union[_ctypes.c_int8, int]
-c_long = _typing.Union[_ctypes.c_long, int]
-c_longdouble = _typing.Union[_ctypes.c_longdouble, float]
-c_short = _typing.Union[_ctypes.c_short, int]
-c_size_t = _typing.Union[_ctypes.c_size_t, int]
-c_ssize_t = _typing.Union[_ctypes.c_ssize_t, int]
-c_ubyte = _typing.Union[_ctypes.c_ubyte, int]
-c_uint = _typing.Union[_ctypes.c_uint, int]
-c_uint16 = _typing.Union[_ctypes.c_uint16, int]
-c_uint32 = _typing.Union[_ctypes.c_uint32, int]
-c_uint64 = _typing.Union[_ctypes.c_uint64, int]
-c_uint8 = _typing.Union[_ctypes.c_uint8, int]
-c_ulong = _typing.Union[_ctypes.c_ulong, int]
-c_ushort = _typing.Union[_ctypes.c_ushort, int]
-c_void_p = _typing.Optional[_typing.Union[_ctypes.c_void_p, _ctypes.c_wchar_p, _header.Pointer, int, str]]
-c_wchar = _typing.Union[_ctypes.c_wchar, str]
-c_wchar_p = _typing.Optional[_typing.Union[_ctypes.c_wchar_p, _header.Pointer, str]]
+HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
+c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
+c_byte: type[_ctypes.c_byte, int] = _Union[_ctypes.c_byte, int]
+c_char: type[_ctypes.c_char, str] = _Union[_ctypes.c_char, str]
+c_char_p: type[_ctypes.c_char_p] = _Optional[_Union[_ctypes.c_char_p, str]]
+c_double: type[_ctypes.c_double] = _Union[_ctypes.c_double, float]
+c_float: type[_ctypes.c_float] = _Union[_ctypes.c_float, float]
+c_int: type[_ctypes.c_int] = _Union[_ctypes.c_int, int]
+c_int16: type[_ctypes.c_int16] = _Union[_ctypes.c_int16, int]
+c_int32: type[_ctypes.c_int32] = _Union[_ctypes.c_int32, int]
+c_int64: type[_ctypes.c_int64] = _Union[_ctypes.c_int64, int]
+c_int8: type[_ctypes.c_int8] = _Union[_ctypes.c_int8, int]
+c_long: type[_ctypes.c_long] = _Union[_ctypes.c_long, int]
+c_longdouble: type[_ctypes.c_longdouble] = _Union[_ctypes.c_longdouble, float]
+c_short: type[_ctypes.c_short] = _Union[_ctypes.c_short, int]
+c_size_t: type[_ctypes.c_size_t] = _Union[_ctypes.c_size_t, int]
+c_ssize_t: type[_ctypes.c_ssize_t] = _Union[_ctypes.c_ssize_t, int]
+c_ubyte: type[_ctypes.c_ubyte] = _Union[_ctypes.c_ubyte, int]
+c_uint: type[_ctypes.c_uint] = _Union[_ctypes.c_uint, int]
+c_uint16: type[_ctypes.c_uint16] = _Union[_ctypes.c_uint16, int]
+c_uint32: type[_ctypes.c_uint32] = _Union[_ctypes.c_uint32, int]
+c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
+c_uint8: type[_ctypes.c_uint8] = _Union[_ctypes.c_uint8, int]
+c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
+c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
+c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_wchar_p, _header.Pointer, int, str]]
+c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
+c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, _header.Pointer, str]]
 
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
@@ -167,9 +169,9 @@ SERVICE_STATUS_HANDLE = HANDLE
 HCURSOR = HICON
 
 
-def _set_magic(magics: dict[str, _typing.Callable],
+def _set_magic(magics: dict[str, _Callable],
                magic: str,
-               func: _typing.Callable) -> None:
+               func: _Callable) -> None:
     magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace(
         'r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic)
     magics[magic] = _functools.update_wrapper(func, magic_)
