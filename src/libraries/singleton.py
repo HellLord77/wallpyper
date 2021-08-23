@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.3'  # TODO: send signal and kill if no reply
 
 import atexit
 import hashlib

@@ -6,133 +6,133 @@ import shlex
 import winreg
 from typing import ContextManager
 
-import libraries.ctype
+import libraries.ctyped
 
 _MAX_PATH = 32 * 1024
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
 def _get_dir(csidl: int) -> str:
-    buffer = libraries.ctype.ctype.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctype.func.SHGetFolderPathW(None, csidl, None, libraries.ctype.const.SHGFP_TYPE_CURRENT, buffer)
+    buffer = libraries.ctyped.ctype.LPWSTR(' ' * _MAX_PATH)
+    libraries.ctyped.func.SHGetFolderPathW(None, csidl, None, libraries.ctyped.const.SHGFP_TYPE_CURRENT, buffer)
     return buffer.value
 
 
-APPDATA_DIR = _get_dir(libraries.ctype.const.CSIDL_APPDATA)
-PICTURES_DIR = _get_dir(libraries.ctype.const.CSIDL_MYPICTURES)
-TEMP_DIR = os.path.join(_get_dir(libraries.ctype.const.CSIDL_LOCAL_APPDATA), 'Temp')
+APPDATA_DIR = _get_dir(libraries.ctyped.const.CSIDL_APPDATA)
+PICTURES_DIR = _get_dir(libraries.ctyped.const.CSIDL_MYPICTURES)
+TEMP_DIR = os.path.join(_get_dir(libraries.ctyped.const.CSIDL_LOCAL_APPDATA), 'Temp')
 WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
 
 
 @contextlib.contextmanager
 def _clipboard() -> ContextManager[None]:
-    libraries.ctype.func.OpenClipboard(None)
+    libraries.ctyped.func.OpenClipboard(None)
     try:
         yield
     finally:
-        libraries.ctype.func.CloseClipboard()
+        libraries.ctyped.func.CloseClipboard()
 
 
 def paste_text() -> str:
     with _clipboard():
-        return libraries.ctype.cast(libraries.ctype.func.GetClipboardData(libraries.ctype.const.CF_UNICODETEXT),
-                                    libraries.ctype.ctype.c_wchar_p).value or ''
+        return libraries.ctyped.cast(libraries.ctyped.func.GetClipboardData(libraries.ctyped.const.CF_UNICODETEXT),
+                                     libraries.ctyped.ctype.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int,
-                   hglobal: libraries.ctype.ctype.HGLOBAL) -> None:
+                   hglobal: libraries.ctyped.ctype.HGLOBAL) -> None:
     with _clipboard():
-        libraries.ctype.func.EmptyClipboard()
-        libraries.ctype.func.SetClipboardData(format_, hglobal)
+        libraries.ctyped.func.EmptyClipboard()
+        libraries.ctyped.func.SetClipboardData(format_, hglobal)
 
 
 def copy_text(text: str) -> bool:
-    size = (libraries.ctype.func.wcslen(text) + 1) * libraries.ctype.sizeof(libraries.ctype.ctype.c_wchar)
-    handle = libraries.ctype.func.GlobalAlloc(libraries.ctype.const.GMEM_MOVEABLE, size)
+    size = (libraries.ctyped.func.wcslen(text) + 1) * libraries.ctyped.sizeof(libraries.ctyped.ctype.c_wchar)
+    handle = libraries.ctyped.func.GlobalAlloc(libraries.ctyped.const.GMEM_MOVEABLE, size)
     if handle:
-        buffer = libraries.ctype.func.GlobalLock(handle)
+        buffer = libraries.ctyped.func.GlobalLock(handle)
         if buffer:
-            libraries.ctype.func.memmove(buffer, text, size)
-            _set_clipboard(libraries.ctype.const.CF_UNICODETEXT, handle)
+            libraries.ctyped.func.memmove(buffer, text, size)
+            _set_clipboard(libraries.ctyped.const.CF_UNICODETEXT, handle)
     return text == paste_text()
 
 
 @contextlib.contextmanager
-def _hbitmap(path: str) -> ContextManager[libraries.ctype.ctype.HBITMAP]:
-    hbitmap = libraries.ctype.ctype.HBITMAP()
-    token = libraries.ctype.ctype.ULONG_PTR()
-    if not libraries.ctype.func.GdiplusStartup(libraries.ctype.byref(token), libraries.ctype.byref(
-            libraries.ctype.struct.GdiplusStartupInput()), None):
-        bitmap = libraries.ctype.ctype.GpBitmap()
-        if not libraries.ctype.func.GdipCreateBitmapFromFile(
-                libraries.ctype.array(libraries.ctype.ctype.WCHAR, *path, '\0'),
-                libraries.ctype.byref(bitmap)):
-            libraries.ctype.func.GdipCreateHBITMAPFromBitmap(bitmap, libraries.ctype.byref(hbitmap), 0)
-            libraries.ctype.func.GdipDisposeImage(bitmap)
-    libraries.ctype.func.GdiplusShutdown(token)
+def _hbitmap(path: str) -> ContextManager[libraries.ctyped.ctype.HBITMAP]:
+    hbitmap = libraries.ctyped.ctype.HBITMAP()
+    token = libraries.ctyped.ctype.ULONG_PTR()
+    if not libraries.ctyped.func.GdiplusStartup(libraries.ctyped.byref(token), libraries.ctyped.byref(
+            libraries.ctyped.struct.GdiplusStartupInput()), None):
+        bitmap = libraries.ctyped.ctype.GpBitmap()
+        if not libraries.ctyped.func.GdipCreateBitmapFromFile(
+                libraries.ctyped.array(libraries.ctyped.ctype.WCHAR, *path, '\0'),
+                libraries.ctyped.byref(bitmap)):
+            libraries.ctyped.func.GdipCreateHBITMAPFromBitmap(bitmap, libraries.ctyped.byref(hbitmap), 0)
+            libraries.ctyped.func.GdipDisposeImage(bitmap)
+    libraries.ctyped.func.GdiplusShutdown(token)
     try:
         yield hbitmap
     finally:
         if hbitmap:
-            libraries.ctype.func.DeleteObject(hbitmap)
+            libraries.ctyped.func.DeleteObject(hbitmap)
 
 
 def copy_image(path: str) -> bool:
     buffer = 0
     with _hbitmap(path) as hbitmap:
-        bm = libraries.ctype.struct.BITMAP()
-        if libraries.ctype.sizeof(libraries.ctype.struct.BITMAP) == libraries.ctype.func.GetObjectW(
-                hbitmap, libraries.ctype.sizeof(libraries.ctype.struct.BITMAP), libraries.ctype.byref(bm)):
-            size_bi = libraries.ctype.sizeof(libraries.ctype.struct.BITMAPINFOHEADER)
-            bi = libraries.ctype.struct.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel,
-                                                         libraries.ctype.const.BI_RGB)
+        bm = libraries.ctyped.struct.BITMAP()
+        if libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP) == libraries.ctyped.func.GetObjectW(
+                hbitmap, libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP), libraries.ctyped.byref(bm)):
+            size_bi = libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAPINFOHEADER)
+            bi = libraries.ctyped.struct.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel,
+                                                          libraries.ctyped.const.BI_RGB)
             size = bm.bmWidthBytes * bm.bmHeight
-            data = libraries.ctype.array(libraries.ctype.ctype.BYTE, size=size)
-            hdc = libraries.ctype.func.GetDC(None)
-            if libraries.ctype.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctype.cast(
-                    bi, libraries.ctype.struct.BITMAPINFO), libraries.ctype.const.DIB_RGB_COLORS):
-                handle = libraries.ctype.func.GlobalAlloc(libraries.ctype.const.GMEM_MOVEABLE, size_bi + size)
+            data = libraries.ctyped.array(libraries.ctyped.ctype.BYTE, size=size)
+            hdc = libraries.ctyped.func.GetDC(None)
+            if libraries.ctyped.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctyped.cast(
+                    bi, libraries.ctyped.struct.BITMAPINFO), libraries.ctyped.const.DIB_RGB_COLORS):
+                handle = libraries.ctyped.func.GlobalAlloc(libraries.ctyped.const.GMEM_MOVEABLE, size_bi + size)
                 if handle:
-                    buffer = libraries.ctype.func.GlobalLock(handle)
+                    buffer = libraries.ctyped.func.GlobalLock(handle)
                     if buffer:
-                        libraries.ctype.func.memmove(buffer, libraries.ctype.byref(bi), size_bi)
-                        libraries.ctype.func.memmove(buffer + size_bi, data, size)
-                        _set_clipboard(libraries.ctype.const.CF_DIB, handle)
-                    libraries.ctype.func.GlobalUnlock(handle)
-            libraries.ctype.func.ReleaseDC(None, hdc)
+                        libraries.ctyped.func.memmove(buffer, libraries.ctyped.byref(bi), size_bi)
+                        libraries.ctyped.func.memmove(buffer + size_bi, data, size)
+                        _set_clipboard(libraries.ctyped.const.CF_DIB, handle)
+                    libraries.ctyped.func.GlobalUnlock(handle)
+            libraries.ctyped.func.ReleaseDC(None, hdc)
     return bool(buffer)
 
 
 def get_wallpaper_path() -> str:
-    buffer = libraries.ctype.ctype.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctype.func.SystemParametersInfoW(libraries.ctype.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, 0)
+    buffer = libraries.ctyped.ctype.LPWSTR(' ' * _MAX_PATH)
+    libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, 0)
     return buffer.value or get_wallpaper_path_ex()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            libraries.ctype.func.SystemParametersInfoW(libraries.ctype.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                       libraries.ctype.const.SPIF_SENDWININICHANGE)
+            libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                                        libraries.ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
 
 
 def get_wallpaper_path_ex() -> str:
-    with libraries.ctype.init_com(libraries.ctype.com.IActiveDesktop) as active_desktop:
-        buffer = libraries.ctype.ctype.PWSTR(' ' * _MAX_PATH)
-        if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctype.const.AD_GETWP_BMP):
+    with libraries.ctyped.init_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
+        buffer = libraries.ctyped.ctype.PWSTR(' ' * _MAX_PATH)
+        if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctyped.const.AD_GETWP_BMP):
             return buffer.value
     return get_wallpaper_path()
 
 
 def set_wallpaper_ex(*paths: str) -> bool:  # TODO: enable and disable slideshow to ensure fade
-    with libraries.ctype.init_com(libraries.ctype.com.IActiveDesktop) as active_desktop:
+    with libraries.ctyped.init_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
         if active_desktop:
             for path in paths:
                 if os.path.isfile(path):
                     active_desktop.SetWallpaper(path, 0)
-                    active_desktop.ApplyChanges(libraries.ctype.const.AD_APPLY_ALL)
+                    active_desktop.ApplyChanges(libraries.ctyped.const.AD_APPLY_ALL)
                     return True
     return set_wallpaper(*paths)
 
