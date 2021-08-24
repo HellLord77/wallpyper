@@ -81,18 +81,6 @@ class WALLPAPEROPT:
     dwStyle: _ctype.DWORD = None
 
 
-class UUID(GUID):
-    pass
-
-
-class IID(GUID):
-    pass
-
-
-class CLSID(GUID):
-    pass
-
-
 @_dataclasses.dataclass
 class RECT:
     left: _ctype.LONG = None
@@ -112,22 +100,44 @@ class MENUINFO:
     dwMenuData: _ctype.ULONG_PTR = None
 
 
+class UUID(GUID):
+    pass
+
+
+class IID(GUID):
+    pass
+
+
+class CLSID(GUID):
+    pass
+
+
+def _update_wrapper(wrapper: type[_ctypes.Structure],
+                    wrapped: type) -> type[_ctypes.Structure]:
+    _functools.update_wrapper(wrapper, wrapped, ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
+    return wrapper
+
+
 def _init():
     globals_ = globals()
     for var, struct in _header.items(globals_):
-        class Wrapper(_ctypes.Structure):
-            _fields_ = tuple((field, _header.resolve_type(type_))
-                             for field, type_ in _typing.get_type_hints(struct).items())
-            _defaults = tuple((field, getattr(struct, field) or type_) for field, type_ in _fields_)
+        if not issubclass(struct, _ctypes.Structure):
+            class Wrapper(_ctypes.Structure):
+                _fields_ = tuple((field, _header.resolve_type(type_))
+                                 for field, type_ in _typing.get_type_hints(struct).items())
+                _defaults = tuple((field, getattr(struct, field) or type_) for field, type_ in _fields_)
 
-            def __init__(self, *args, **kwargs):
-                for i, field in enumerate(self._defaults):
-                    if i >= len(args) and field[0] not in kwargs:
-                        kwargs[field[0]] = field[1]() if callable(field[1]) else field[1]
-                super().__init__(*args, **kwargs)
+                def __init__(self, *args, **kwargs):
+                    for i, field in enumerate(self._defaults):
+                        if i >= len(args) and field[0] not in kwargs:
+                            kwargs[field[0]] = field[1]() if callable(field[1]) else field[1]
+                    super().__init__(*args, **kwargs)
 
-        _functools.update_wrapper(Wrapper, struct, ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
-        globals_[var] = Wrapper
+            globals_[var] = _update_wrapper(Wrapper, struct)
+            for var_, struct_ in _header.items(globals_):
+                if issubclass(struct_, struct):
+                    # noinspection PyTypeChecker
+                    globals_[var_] = _update_wrapper(type('', (Wrapper,), {}), struct_)
 
 
 _init()

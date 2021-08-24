@@ -18,7 +18,7 @@ class Pointer(_Generic[T]):
 
 
 # noinspection PyAbstractClass
-class Array(Pointer, _Sequence[T]):  # TODO: TypeVar (?)
+class Array(Pointer, _Sequence[T]):
     pass
 
 

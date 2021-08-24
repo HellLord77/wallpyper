@@ -7,19 +7,12 @@ from . import _header
 from . import _lib
 from . import _struct
 
-RtlAreLongPathsEnabled: _Callable[[],
-                                  _ctype.c_ubyte] = _lib.ntdll.RtlAreLongPathsEnabled
+# TODO: func help
 
-GlobalAlloc: _Callable[[_ctype.UINT, _ctype.SIZE_T],
-                       _ctype.HGLOBAL] = _lib.kernel32.GlobalAlloc
-GlobalLock: _Callable[[_ctype.HGLOBAL],
-                      _ctype.LPVOID] = _lib.kernel32.GlobalLock
-GlobalUnlock: _Callable[[_ctype.HGLOBAL],
-                        _ctype.BOOL] = _lib.kernel32.GlobalUnlock
-CloseHandle: _Callable[[_ctype.HANDLE],
-                       _ctype.BOOL] = _lib.kernel32.CloseHandle
-GetLastError: _Callable[[],
-                        _ctype.DWORD] = _lib.kernel32.GetLastError
+RoInitialize: _Callable[[_ctype.RO_INIT_TYPE],
+                        _ctype.HRESULT] = _lib.combase.RoInitialize
+RoUninitialize: _Callable[[],
+                          _ctype.c_void_p] = _lib.combase.RoUninitialize
 
 GetObjectA: _Callable[[_ctype.HANDLE, _ctype.c_int, _ctype.LPVOID],
                       _ctype.c_int] = _lib.gdi32.GetObjectA
@@ -37,6 +30,60 @@ CreateSolidBrush: _Callable[[_ctype.COLORREF],
                             _ctype.HBRUSH] = _lib.gdi32.CreateSolidBrush
 GetStockObject: _Callable[[_ctype.c_int],
                           _ctype.HGDIOBJ] = _lib.gdi32.GetStockObject
+
+GdiplusStartup: _Callable[[_header.Pointer[_ctype.ULONG_PTR], _header.Pointer[_struct.GdiplusStartupInput],
+                           _Optional[_header.Pointer[_struct.GdiplusStartupInput]]],
+                          _ctype.Status] = _lib.gdiplus.GdiplusStartup
+GdiplusShutdown: _Callable[[_ctype.ULONG_PTR],
+                           _ctype.VOID] = _lib.gdiplus.GdiplusShutdown
+GdipCreateBitmapFromFile: _Callable[[_header.Pointer[_ctype.WCHAR], _header.Pointer[_ctype.GpBitmap]],
+                                    _ctype.GpStatus] = _lib.gdiplus.GdipCreateBitmapFromFile
+GdipDisposeImage: _Callable[[_ctype.GpImage],
+                            _ctype.GpStatus] = _lib.gdiplus.GdipDisposeImage
+GdipCreateHBITMAPFromBitmap: _Callable[[_ctype.GpBitmap, _header.Pointer[_ctype.HBITMAP], _ctype.ARGB],
+                                       _ctype.GpStatus] = _lib.gdiplus.GdipCreateHBITMAPFromBitmap
+
+GlobalAlloc: _Callable[[_ctype.UINT, _ctype.SIZE_T],
+                       _ctype.HGLOBAL] = _lib.kernel32.GlobalAlloc
+GlobalLock: _Callable[[_ctype.HGLOBAL],
+                      _ctype.LPVOID] = _lib.kernel32.GlobalLock
+GlobalUnlock: _Callable[[_ctype.HGLOBAL],
+                        _ctype.BOOL] = _lib.kernel32.GlobalUnlock
+CloseHandle: _Callable[[_ctype.HANDLE],
+                       _ctype.BOOL] = _lib.kernel32.CloseHandle
+GetLastError: _Callable[[],
+                        _ctype.DWORD] = _lib.kernel32.GetLastError
+
+memmove: _Callable[[_ctype.c_void_p, _ctype.c_void_p, _ctype.c_size_t],
+                   _ctype.c_void_p] = _lib.msvcrt.memmove
+wcslen: _Callable[[_ctype.c_wchar_p],
+                  _ctype.c_size_t] = _lib.msvcrt.wcslen
+
+RtlAreLongPathsEnabled: _Callable[[],
+                                  _ctype.c_ubyte] = _lib.ntdll.RtlAreLongPathsEnabled
+
+IIDFromString: _Callable[[_ctype.LPCOLESTR, _header.Pointer[_struct.IID]],
+                         _ctype.HRESULT] = _lib.ole32.IIDFromString
+CLSIDFromString: _Callable[[_ctype.LPCOLESTR, _header.Pointer[_struct.CLSID]],
+                           _ctype.HRESULT] = _lib.ole32.CLSIDFromString
+CoInitialize: _Callable[[_Optional[_ctype.LPVOID]],
+                        _ctype.HRESULT] = _lib.ole32.CoInitialize
+CoUninitialize: _Callable[[],
+                          _ctype.VOID] = _lib.ole32.CoUninitialize
+CoCreateInstance: _Callable[[_header.Pointer[_struct.CLSID], _Optional[_header.Pointer[_ctype.IUnknown]],
+                             _ctype.DWORD, _header.Pointer[_struct.IID], _ctype.LPVOID],
+                            _ctype.HRESULT] = _lib.ole32.CoCreateInstance
+StringFromIID: _Callable[[_header.Pointer[_struct.IID], _header.Pointer[_ctype.LPOLESTR]],
+                         _ctype.HRESULT] = _lib.ole32.StringFromIID
+StringFromCLSID: _Callable[[_header.Pointer[_struct.CLSID], _header.Pointer[_ctype.LPOLESTR]],
+                           _ctype.HRESULT] = _lib.ole32.StringFromCLSID
+
+SHGetFolderPathA: _Callable[[_Optional[_ctype.HWND], _ctype.c_int,
+                             _Optional[_ctype.HANDLE], _ctype.DWORD, _ctype.LPSTR],
+                            _ctype.HRESULT] = _lib.shell32.SHGetFolderPathA
+SHGetFolderPathW: _Callable[[_Optional[_ctype.HWND], _ctype.c_int,
+                             _Optional[_ctype.HANDLE], _ctype.DWORD, _ctype.LPWSTR],
+                            _ctype.HRESULT] = _lib.shell32.SHGetFolderPathW
 
 SystemParametersInfoA: _Callable[[_ctype.UINT, _ctype.UINT, _ctype.PVOID, _ctype.UINT],
                                  _ctype.BOOL] = _lib.user32.SystemParametersInfoA
@@ -78,46 +125,6 @@ GetWindowDC: _Callable[[_Optional[_ctype.HWND]],
                        _ctype.HDC] = _lib.user32.GetWindowDC
 ReleaseDC: _Callable[[_Optional[_ctype.HWND], _ctype.HDC],
                      _ctype.c_int] = _lib.user32.ReleaseDC
-
-IIDFromString: _Callable[[_ctype.LPCOLESTR, _header.Pointer[_struct.IID]],
-                         _ctype.HRESULT] = _lib.ole32.IIDFromString
-CLSIDFromString: _Callable[[_ctype.LPCOLESTR, _header.Pointer[_struct.CLSID]],
-                           _ctype.HRESULT] = _lib.ole32.CLSIDFromString
-CoInitialize: _Callable[[_Optional[_ctype.LPVOID]],
-                        _ctype.HRESULT] = _lib.ole32.CoInitialize
-CoUninitialize: _Callable[[],
-                          _ctype.VOID] = _lib.ole32.CoUninitialize
-CoCreateInstance: _Callable[[_header.Pointer[_struct.CLSID], _Optional[_header.Pointer[_ctype.IUnknown]],
-                             _ctype.DWORD, _header.Pointer[_struct.IID], _ctype.LPVOID],
-                            _ctype.HRESULT] = _lib.ole32.CoCreateInstance
-StringFromIID: _Callable[[_header.Pointer[_struct.IID], _header.Pointer[_ctype.LPOLESTR]],
-                         _ctype.HRESULT] = _lib.ole32.StringFromIID
-StringFromCLSID: _Callable[[_header.Pointer[_struct.CLSID], _header.Pointer[_ctype.LPOLESTR]],
-                           _ctype.HRESULT] = _lib.ole32.StringFromCLSID
-
-memmove: _Callable[[_ctype.c_void_p, _ctype.c_void_p, _ctype.c_size_t],
-                   _ctype.c_void_p] = _lib.msvcrt.memmove
-wcslen: _Callable[[_ctype.c_wchar_p],
-                  _ctype.c_size_t] = _lib.msvcrt.wcslen
-
-GdiplusStartup: _Callable[[_header.Pointer[_ctype.ULONG_PTR], _header.Pointer[_struct.GdiplusStartupInput],
-                           _Optional[_header.Pointer[_struct.GdiplusStartupInput]]],
-                          _ctype.Status] = _lib.gdiplus.GdiplusStartup
-GdiplusShutdown: _Callable[[_ctype.ULONG_PTR],
-                           _ctype.VOID] = _lib.gdiplus.GdiplusShutdown
-GdipCreateBitmapFromFile: _Callable[[_header.Pointer[_ctype.WCHAR], _header.Pointer[_ctype.GpBitmap]],
-                                    _ctype.GpStatus] = _lib.gdiplus.GdipCreateBitmapFromFile
-GdipDisposeImage: _Callable[[_ctype.GpImage],
-                            _ctype.GpStatus] = _lib.gdiplus.GdipDisposeImage
-GdipCreateHBITMAPFromBitmap: _Callable[[_ctype.GpBitmap, _header.Pointer[_ctype.HBITMAP], _ctype.ARGB],
-                                       _ctype.GpStatus] = _lib.gdiplus.GdipCreateHBITMAPFromBitmap
-
-SHGetFolderPathA: _Callable[[_Optional[_ctype.HWND], _ctype.c_int,
-                             _Optional[_ctype.HANDLE], _ctype.DWORD, _ctype.LPSTR],
-                            _ctype.HRESULT] = _lib.shell32.SHGetFolderPathA
-SHGetFolderPathW: _Callable[[_Optional[_ctype.HWND], _ctype.c_int,
-                             _Optional[_ctype.HANDLE], _ctype.DWORD, _ctype.LPWSTR],
-                            _ctype.HRESULT] = _lib.shell32.SHGetFolderPathW
 
 
 def _init():

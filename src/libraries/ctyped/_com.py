@@ -10,6 +10,8 @@ from . import _header
 from . import _struct
 
 
+# TODO: winrt, help
+
 class IUnknown:
     _CLSID = ''
     QueryInterface: _Callable[[_header.Pointer[_struct.IID], _ctype.c_void_p], _ctype.HRESULT]
@@ -54,8 +56,7 @@ class IDesktopWallpaper(IUnknown):
     SetSlideshow: _Callable
     GetSlideshow: _Callable
     SetSlideshowOptions: _Callable[[_ctype.DESKTOP_SLIDESHOW_OPTIONS, _ctype.UINT], _ctype.HRESULT]
-    GetSlideshowOptions: _Callable[
-        [_ctype.DESKTOP_SLIDESHOW_OPTIONS, _header.Pointer[_ctype.UINT]], _ctype.HRESULT]
+    GetSlideshowOptions: _Callable[[_ctype.DESKTOP_SLIDESHOW_OPTIONS, _header.Pointer[_ctype.UINT]], _ctype.HRESULT]
     AdvanceSlideshow: _Callable[[_ctype.LPCWSTR, _ctype.DESKTOP_SLIDESHOW_DIRECTION], _ctype.HRESULT]
     GetStatus: _Callable[[_header.Pointer[_ctype.DESKTOP_SLIDESHOW_STATE]], _ctype.HRESULT]
     Enable: _Callable[[_ctype.BOOL], _ctype.HRESULT]
@@ -102,7 +103,7 @@ def _method_type(types_: list) -> list:
     return types_
 
 
-def _init():  # TODO: cast to IUnknown (?)
+def _init():  # TODO: test casting
     globals_ = globals()
     for var, com_ in _header.items(globals_):
         class Wrapper(_ctypes.c_void_p):

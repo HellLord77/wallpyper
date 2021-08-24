@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'  # TODO: lazy init
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -54,7 +54,7 @@ def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[_header.Pointer[stru
 
 
 @_contextlib.contextmanager
-def init_com(type_: _builtins.type[_header.T]) -> _ContextManager[_header.T]:
+def create_com(type_: _builtins.type[_header.T]) -> _ContextManager[_header.T]:
     obj: com.IUnknown = type_()
     func.CoInitialize(None)
     try:

@@ -3,6 +3,7 @@ import typing as _typing
 
 _DEBUG = True
 
+combase: _ctypes.WinDLL
 gdi32: _ctypes.WinDLL
 gdiplus: _ctypes.WinDLL
 kernel32: _ctypes.WinDLL

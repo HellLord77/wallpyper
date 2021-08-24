@@ -23,8 +23,8 @@ _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
 
 HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
-c_byte: type[_ctypes.c_byte, int] = _Union[_ctypes.c_byte, int]
-c_char: type[_ctypes.c_char, str] = _Union[_ctypes.c_char, str]
+c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
+c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, str]
 c_char_p: type[_ctypes.c_char_p] = _Optional[_Union[_ctypes.c_char_p, str]]
 c_double: type[_ctypes.c_double] = _Union[_ctypes.c_double, float]
 c_float: type[_ctypes.c_float] = _Union[_ctypes.c_float, float]
@@ -100,16 +100,20 @@ PWSTR = c_wchar_p
 PZZSTR = c_char_p
 VOID = c_void_p
 
-DebugEventProc = c_void_p  # DebugEventProc
-GpBitmap = c_void_p  # GpBitmap
-GpImage = c_void_p  # GpImage
-IUnknown = c_void_p  # IUnknown
+_obj_p = c_void_p
+GpBitmap = _obj_p  # GpBitmap
+GpImage = _obj_p  # GpImage
+IUnknown = _obj_p  # IUnknown
 
-enum = c_uint  # TODO: Enum type
-DESKTOP_SLIDESHOW_DIRECTION = enum
-DESKTOP_SLIDESHOW_OPTIONS = enum
-DESKTOP_SLIDESHOW_STATE = enum
-DESKTOP_WALLPAPER_POSITION = enum
+_enum = c_uint  # TODO: enum.IntEnum
+DESKTOP_SLIDESHOW_DIRECTION = _enum
+DESKTOP_SLIDESHOW_OPTIONS = _enum
+DESKTOP_SLIDESHOW_STATE = _enum
+DESKTOP_WALLPAPER_POSITION = _enum
+RO_INIT_TYPE = _enum
+
+_callback = c_void_p  # TODO: CFUNCTYPE
+DebugEventProc = _callback
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int

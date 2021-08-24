@@ -118,7 +118,7 @@ def set_wallpaper(*paths: str) -> bool:
 
 
 def get_wallpaper_path_ex() -> str:
-    with libraries.ctyped.init_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
+    with libraries.ctyped.create_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
         if active_desktop:
             buffer = libraries.ctyped.type.PWSTR(' ' * _MAX_PATH)
             if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctyped.const.AD_GETWP_BMP):
@@ -127,7 +127,7 @@ def get_wallpaper_path_ex() -> str:
 
 
 def set_wallpaper_ex(*paths: str) -> bool:  # TODO: enable and disable slideshow to ensure fade
-    with libraries.ctyped.init_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
+    with libraries.ctyped.create_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
         if active_desktop:
             for path in paths:
                 if os.path.isfile(path):
