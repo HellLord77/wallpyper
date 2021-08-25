@@ -1,4 +1,4 @@
-__version__ = '0.1.2'  # TODO: disable lazy init
+__version__ = '0.1.2'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -10,13 +10,13 @@ from typing import Optional as _Optional
 
 from . import _com as com
 from . import _const as const
-# noinspection PyShadowingBuiltins
-from . import _ctype as type
 from . import _func as func
 from . import _header
 from . import _lib
 from . import _macro as macro
 from . import _struct as struct
+# noinspection PyShadowingBuiltins
+from . import _type as type
 from ._header import byref
 from ._header import cast
 from ._header import pointer

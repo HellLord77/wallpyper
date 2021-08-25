@@ -5,39 +5,39 @@ import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
 
-from . import _ctype
 from . import _header
+from . import _type
 
 
 @_dataclasses.dataclass
 class GdiplusStartupInput:
-    GdiplusVersion: _ctype.UINT32 = 1
-    DebugEventCallback: _ctype.DebugEventProc = None
-    SuppressBackgroundThread: _ctype.BOOL = False
-    SuppressExternalCodecs: _ctype.BOOL = False
+    GdiplusVersion: _type.UINT32 = 1
+    DebugEventCallback: _type.DebugEventProc = None
+    SuppressBackgroundThread: _type.BOOL = False
+    SuppressExternalCodecs: _type.BOOL = False
 
 
 @_dataclasses.dataclass
 class RGBQUAD:
-    rgbBlue: _ctype.BYTE = None
-    rgbGreen: _ctype.BYTE = None
-    rgbRed: _ctype.BYTE = None
-    rgbReserved: _ctype.BYTE = 0
+    rgbBlue: _type.BYTE = None
+    rgbGreen: _type.BYTE = None
+    rgbRed: _type.BYTE = None
+    rgbReserved: _type.BYTE = 0
 
 
 @_dataclasses.dataclass
 class BITMAPINFOHEADER:
-    biSize: _ctype.DWORD = None
-    biWidth: _ctype.LONG = None
-    biHeight: _ctype.LONG = None
-    biPlanes: _ctype.WORD = 1
-    biBitCount: _ctype.WORD = None
-    biCompression: _ctype.DWORD = None
-    biSizeImage: _ctype.DWORD = None
-    biXPelsPerMeter: _ctype.LONG = None
-    biYPelsPerMeter: _ctype.LONG = None
-    biClrUsed: _ctype.DWORD = None
-    biClrImportant: _ctype.DWORD = None
+    biSize: _type.DWORD = None
+    biWidth: _type.LONG = None
+    biHeight: _type.LONG = None
+    biPlanes: _type.WORD = 1
+    biBitCount: _type.WORD = None
+    biCompression: _type.DWORD = None
+    biSizeImage: _type.DWORD = None
+    biXPelsPerMeter: _type.LONG = None
+    biYPelsPerMeter: _type.LONG = None
+    biClrUsed: _type.DWORD = None
+    biClrImportant: _type.DWORD = None
 
 
 @_dataclasses.dataclass
@@ -49,55 +49,55 @@ class BITMAPINFO:
 
 @_dataclasses.dataclass
 class BITMAP:
-    bmType: _ctype.LONG = None
-    bmWidth: _ctype.LONG = None
-    bmHeight: _ctype.LONG = None
-    bmWidthBytes: _ctype.LONG = None
-    bmPlanes: _ctype.WORD = None
-    bmBitsPixel: _ctype.WORD = None
-    bmBits: _ctype.LPVOID = None
+    bmType: _type.LONG = None
+    bmWidth: _type.LONG = None
+    bmHeight: _type.LONG = None
+    bmWidthBytes: _type.LONG = None
+    bmPlanes: _type.WORD = None
+    bmBitsPixel: _type.WORD = None
+    bmBits: _type.LPVOID = None
 
 
 @_dataclasses.dataclass
 class DIBSECTION:
     dsBm: BITMAP = None
     dsBmih: BITMAPINFOHEADER = None
-    dsBitfields: _ctype.DWORD * 3 = None
-    dshSection: _ctype.HANDLE = None
-    dsOffset: _ctype.DWORD = None
+    dsBitfields: _type.DWORD * 3 = None
+    dshSection: _type.HANDLE = None
+    dsOffset: _type.DWORD = None
 
 
 @_dataclasses.dataclass
 class GUID:
-    Data1: _ctype.c_ulong = None
-    Data2: _ctype.c_ushort = None
-    Data3: _ctype.c_ushort = None
-    Data4: _ctype.c_uchar * 8 = None
+    Data1: _type.c_ulong = None
+    Data2: _type.c_ushort = None
+    Data3: _type.c_ushort = None
+    Data4: _type.c_uchar * 8 = None
 
 
 @_dataclasses.dataclass
 class WALLPAPEROPT:
-    dwSize: _ctype.DWORD = None
-    dwStyle: _ctype.DWORD = None
+    dwSize: _type.DWORD = None
+    dwStyle: _type.DWORD = None
 
 
 @_dataclasses.dataclass
 class RECT:
-    left: _ctype.LONG = None
-    top: _ctype.LONG = None
-    right: _ctype.LONG = None
-    bottom: _ctype.LONG = None
+    left: _type.LONG = None
+    top: _type.LONG = None
+    right: _type.LONG = None
+    bottom: _type.LONG = None
 
 
 @_dataclasses.dataclass
 class MENUINFO:
-    cbSize: _ctype.DWORD = None
-    fMask: _ctype.DWORD = None
-    dwStyle: _ctype.DWORD = None
-    cyMax: _ctype.UINT = 0
-    hbrBack: _ctype.HBRUSH = None
-    dwContextHelpID: _ctype.DWORD = None
-    dwMenuData: _ctype.ULONG_PTR = None
+    cbSize: _type.DWORD = None
+    fMask: _type.DWORD = None
+    dwStyle: _type.DWORD = None
+    cyMax: _type.UINT = 0
+    hbrBack: _type.HBRUSH = None
+    dwContextHelpID: _type.DWORD = None
+    dwMenuData: _type.ULONG_PTR = None
 
 
 UUID = GUID
@@ -126,6 +126,7 @@ def __getattr__(name: str) -> type[_ctypes.Structure]:
 
 _struct = _header.init(globals())
 _globals = _header.Dict(globals(), __getattr__)
+__create_fn__ = None
 if _header.INIT:
     for _struct_ in _struct:
         __getattr__(_struct_)
