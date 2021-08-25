@@ -1,5 +1,7 @@
 import functools as _functools
+import types as _types
 import typing as _typing
+from typing import Callable as _Callable
 
 from . import _ctype
 from . import _header
@@ -14,6 +16,7 @@ def MAKEWORD(a: _ctype.BYTE,
     dwb &= 0xff
     wb = _header.cast(_header.cast(dwb, _ctype.BYTE), _ctype.WORD).contents
     wb <<= 8
+    # noinspection PyUnresolvedReferences
     return _header.cast(_header.cast(dwa, _ctype.BYTE), _ctype.WORD).contents | wb
 
 
@@ -26,6 +29,7 @@ def MAKELONG(a: _ctype.WORD,
     dwb &= 0xffff
     wb = _header.cast(_header.cast(dwb, _ctype.WORD), _ctype.DWORD).contents
     wb <<= 16
+    # noinspection PyUnresolvedReferences
     return _header.cast(_header.cast(dwa, _ctype.WORD), _ctype.LONG).contents | wb
 
 
@@ -63,6 +67,7 @@ def HIBYTE(w: _ctype.WORD) -> _ctype.BYTE:
 def RGB(r: _ctype.BYTE,
         g: _ctype.BYTE,
         b: _ctype.BYTE) -> _ctype.COLORREF:
+    # noinspection PyTypeChecker
     return _header.cast(b, _ctype.DWORD).contents << 16 | _header.cast(g, _ctype.WORD).contents << 8 | r
 
 
@@ -80,6 +85,7 @@ def GetRValue(rgb: _ctype.COLORREF) -> _ctype.BYTE:
 
 # noinspection PyPep8Naming
 def GetGValue(rgb: _ctype.COLORREF) -> _ctype.BYTE:
+    # noinspection PyTypeChecker
     return LOBYTE(_header.cast(rgb, _ctype.WORD).contents >> 8)
 
 
@@ -88,12 +94,17 @@ def GetBValue(rgb: _ctype.COLORREF) -> _ctype.BYTE:
     return LOBYTE(rgb >> 16)
 
 
-def _init():
-    globals_ = globals()
-    for var, macro in _header.items(globals_):
-        globals_[var] = _functools.update_wrapper(
-            lambda *args, _func=macro, _types=_typing.get_type_hints(macro).values(): _func(
-                *(arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, _types))), macro)
+def __getattr__(name: str) -> _Callable:
+    types = _typing.get_type_hints(_macro[name]).values()
+    macro = _types.FunctionType(_macro[name].__code__, _globals, name,
+                                _macro[name].__defaults__, _macro[name].__closure__)
+    _globals[name] = _functools.update_wrapper(lambda *args: macro(*(
+        arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _macro[name])
+    return _globals[name]
 
 
-_init()
+_macro = _header.init(globals())
+_globals = _header.Dict(globals(), __getattr__)
+if _header.INIT:
+    for _macro_ in _macro:
+        __getattr__(_macro_)

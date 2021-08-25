@@ -9,6 +9,7 @@ from typing import Generic as _Generic
 from typing import Optional as _Optional
 from typing import Sequence as _Sequence
 
+INIT = False
 T = _typing.TypeVar('T')
 
 
@@ -20,6 +21,29 @@ class Pointer(_Generic[T]):
 # noinspection PyAbstractClass
 class Array(Pointer, _Sequence[T]):
     pass
+
+
+class Dict(dict):
+    def __init__(self, globals_, getattr_):
+        self.globals = globals_
+        self.getattr = getattr_
+        super().__init__(globals_)
+
+    def __getitem__(self, item: str):
+        if item not in self:
+            self.getattr(item)
+        return super().__getitem__(item)
+
+    def __setitem__(self, key: str, value):
+        self.globals[key] = value
+        super().__setitem__(key, value)
+
+
+def init(globals_: dict[str, _Any]) -> dict[str, _Any]:
+    backup = dict(items(globals_))
+    for var in backup:
+        del globals_[var]
+    return backup
 
 
 def items(vars_: dict[str, _Any]) -> _Generator[tuple[str, _Any], None, None]:

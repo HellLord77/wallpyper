@@ -13,14 +13,14 @@ from . import _struct
 # TODO: winrt, help
 
 class IUnknown:
-    _CLSID = ''
+    __CLSID__ = ''
     QueryInterface: _Callable[[_header.Pointer[_struct.IID], _ctype.c_void_p], _ctype.HRESULT]
     AddRef: _Callable[[], _ctype.ULONG]
     Release: _Callable[[], _ctype.ULONG]
 
 
 class IActiveDesktop(IUnknown):
-    _CLSID = _const.CLSID_ActiveDesktop
+    __CLSID__ = _const.CLSID_ActiveDesktop
     ApplyChanges: _Callable[[_ctype.DWORD], _ctype.HRESULT]
     GetWallpaper: _Callable[[_ctype.PWSTR, _ctype.UINT, _ctype.DWORD], _ctype.HRESULT]
     SetWallpaper: _Callable[[_ctype.PCWSTR, _ctype.DWORD], _ctype.HRESULT]
@@ -43,7 +43,7 @@ class IActiveDesktop(IUnknown):
 
 
 class IDesktopWallpaper(IUnknown):
-    _CLSID = _const.CLSID_DesktopWallpaper
+    __CLSID__ = _const.CLSID_DesktopWallpaper
     SetWallpaper: _Callable[[_ctype.LPCWSTR, _ctype.LPCWSTR], _ctype.HRESULT]
     GetWallpaper: _Callable[[_ctype.LPCWSTR, _header.Pointer[_ctype.LPWSTR]], _ctype.HRESULT]
     GetMonitorDevicePathAt: _Callable[[_ctype.UINT, _header.Pointer[_ctype.LPWSTR]], _ctype.HRESULT]
@@ -63,7 +63,7 @@ class IDesktopWallpaper(IUnknown):
 
 
 class IModalWindow(IUnknown):
-    _CLSID = _const.CLSID_FileOpenDialog
+    __CLSID__ = _const.CLSID_FileOpenDialog
     Show: _Callable[[_ctype.HWND], _ctype.HRESULT]
 
 
@@ -98,32 +98,34 @@ class IFileOpenDialog(IFileDialog):
     GetSelectedItems: _Callable
 
 
-def _method_type(types_: list) -> list:
+def _method_type(types: _Callable) -> list:
+    types_ = _header.resolve_type(types)
     types_.insert(1, _ctypes.c_void_p)
     return types_
 
 
-def _init():  # TODO: test casting
-    globals_ = globals()
-    for var, com_ in _header.items(globals_):
-        class Wrapper(_ctypes.c_void_p):
-            # noinspection PyTypeChecker
-            _pointer = _ctypes.POINTER(
-                type(var, (_ctypes.Structure,), {'_fields_': tuple((func, _ctypes.WINFUNCTYPE(*_method_type(
-                    _header.resolve_type(types)))) for func, types in _typing.get_type_hints(com_).items())}))
-            # noinspection PyProtectedMember
-            _methods = tuple(types for types in dir(_pointer._type_) if not types.startswith('_'))
+def __getattr__(name: str) -> type[_ctypes.c_void_p]:
+    class Wrapper(_ctypes.c_void_p):
+        # noinspection PyTypeChecker
+        _pointer = _ctypes.POINTER(type('', (_ctypes.Structure,), {'_fields_': tuple((func, _ctypes.WINFUNCTYPE(
+            *_method_type(types))) for func, types in _typing.get_type_hints(_com[name], _globals).items())}))
+        # noinspection PyProtectedMember
+        _methods = tuple(types for types in dir(_pointer._type_) if not types.startswith('_'))
 
-            def __getattr__(self, name):
-                if name in self._methods:
-                    funcs = _ctypes.cast(_ctypes.cast(self, _ctypes.POINTER(
-                        _ctypes.c_void_p)).contents.value, self._pointer).contents
-                    for method in self._methods:
-                        setattr(self, method, _types.MethodType(getattr(funcs, method), self))
-                return super().__getattribute__(name)
+        def __getattr__(self, name_):
+            if name_ in self._methods:
+                funcs = _ctypes.cast(_ctypes.cast(self, _ctypes.POINTER(
+                    _ctypes.c_void_p)).contents.value, self._pointer).contents
+                for method in self._methods:
+                    setattr(self, method, _types.MethodType(getattr(funcs, method), self))
+            return super().__getattribute__(name_)
 
-        _functools.update_wrapper(Wrapper, com_, ('_CLSID', *_functools.WRAPPER_ASSIGNMENTS), ())
-        globals_[var] = Wrapper
+    _globals[name] = _functools.update_wrapper(Wrapper, _com[name], ('__CLSID__', *_functools.WRAPPER_ASSIGNMENTS), ())
+    return _globals[name]
 
 
-_init()
+_com = _header.init(globals())
+_globals = _header.Dict(globals(), __getattr__)
+if _header.INIT:
+    for _com_ in _com:
+        __getattr__(_com_)

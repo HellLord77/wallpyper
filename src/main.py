@@ -1,4 +1,4 @@
-__version__ = '0.1.7'  # TODO: use exceptions
+__version__ = '0.1.7'
 
 import configparser
 import sys
@@ -275,7 +275,7 @@ def on_exit() -> None:
     utils.stop()
 
 
-def create_menu() -> None:
+def create_menu() -> None:  # TODO: previous wallpaper
     update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
     change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
     Change.CALLBACK = lambda progress: change.SetItemLabel(

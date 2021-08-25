@@ -265,7 +265,7 @@ def singleton_run(func: Callable) -> Callable:
             finally:
                 running.clear()
 
-    wrapper.is_running = lambda: running.is_set()
+    wrapper.is_running = running.is_set
     return wrapper
 
 

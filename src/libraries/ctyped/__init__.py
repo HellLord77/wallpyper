@@ -1,4 +1,4 @@
-__version__ = '0.1.2'  # TODO: lazy init
+__version__ = '0.1.2'  # TODO: disable lazy init
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -46,8 +46,7 @@ def char_array(string):
 @_functools.cache
 def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[_header.Pointer[struct.CLSID], _header.Pointer[struct.IID]]:
     clsid_ref = byref(struct.CLSID())
-    # noinspection PyProtectedMember
-    func.CLSIDFromString(type_._CLSID, clsid_ref)
+    func.CLSIDFromString(type_.__CLSID__, clsid_ref)
     iid_ref = byref(struct.IID())
     func.IIDFromString(getattr(const, f'IID_{type_.__name__}'), iid_ref)
     return clsid_ref, iid_ref

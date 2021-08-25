@@ -11,9 +11,9 @@ from . import _header
 _WIN32 = True
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = ('__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__',
-              '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__',
-              '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
-              '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__')
+              '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
+_CT_R_BINARY = ('__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
+                '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__')
 _CT_I_BINARY = ('__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
                 '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__')
 _CT_UNARY = ('__neg__', '__pos__', '__abs__', '__invert__',
@@ -181,29 +181,37 @@ def _set_magic(magics: dict[str, _Callable],
     magics[magic] = _functools.update_wrapper(func, magic_)
 
 
-def _init():
-    magics = {}
-    for var in _CT_BINARY:
-        _set_magic(magics, var, lambda self, other, *args, _magic=var: type(
-            self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
-    for var in _CT_I_BINARY:
-        _set_magic(magics, var, lambda self, other, *args, _magic=var.replace('i', '', 1): (setattr(
-            self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
-    for var in _CT_UNARY:
-        _set_magic(magics, var, lambda self, *args, _magic=var: type(self)(getattr(self.value, _magic)(*args)))
-    for var in _PY_BINARY:
-        _set_magic(magics, var, lambda self, other, _magic=var: getattr(
-            self.value, _magic)(getattr(other, 'value', other)))
-    for var in _PY_UNARY:
-        _set_magic(magics, var, (lambda self: complex(self.value)) if var == '__complex__' else (
-            lambda self, _magic=var: getattr(self.value, _magic)()))
-    globals_ = globals()
-    for var, type_ in _header.items(globals_):
-        type_ = _header.resolve_type(type_)
-        if type_ not in globals_.values():
-            for item in magics.items():
-                setattr(type_, *item)
-        globals_[var] = type_
+# noinspection PyUnresolvedReferences,PyProtectedMember
+def __getattr__(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
+    type_ = _header.resolve_type(_ctype[name])
+    for item in _magics.items():
+        setattr(type_, *item)
+    for var, ctype in _ctype.items():
+        if ctype is _ctype[name]:
+            _globals[var] = type_
+    return _globals[name]
 
 
-_init()
+_ctype = _header.init(globals())
+_globals = _header.Dict(globals(), __getattr__)
+_magics = {}
+for _magic in _CT_BINARY:
+    _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic: type(
+        self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+for _magic in _CT_R_BINARY:
+    _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic.replace('r', '', 1): type(
+        self)(getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
+for _magic in _CT_I_BINARY:
+    _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic.replace('i', '', 1): (setattr(
+        self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+for _magic in _CT_UNARY:
+    _set_magic(_magics, _magic, lambda self, *args, _magic=_magic: type(self)(getattr(self.value, _magic)(*args)))
+for _magic in _PY_BINARY:
+    _set_magic(_magics, _magic, lambda self, other, _magic=_magic: getattr(
+        self.value, _magic)(getattr(other, 'value', other)))
+for _magic in _PY_UNARY:
+    _set_magic(_magics, _magic, (lambda self: complex(
+        self.value)) if _magic == '__complex__' else (lambda self, _magic=_magic: getattr(self.value, _magic)()))
+if _header.INIT:
+    for _ctype_ in _ctype:
+        __getattr__(_ctype_)

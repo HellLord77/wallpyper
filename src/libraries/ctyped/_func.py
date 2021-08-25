@@ -1,3 +1,4 @@
+import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable
 from typing import Optional as _Optional
@@ -127,11 +128,16 @@ ReleaseDC: _Callable[[_Optional[_ctype.HWND], _ctype.HDC],
                      _ctype.c_int] = _lib.user32.ReleaseDC
 
 
-def _init():
+# noinspection PyUnresolvedReferences,PyProtectedMember
+def __getattr__(name: str) -> _ctypes._CFuncPtr:  # TODO: help
     globals_ = globals()
-    types_ = _typing.get_type_hints(type('', (), globals_)())
-    for var, func in _header.items(globals_):
-        func.restype, *func.argtypes = _header.resolve_type(types_[var])
+    globals_[name] = _func[name]
+    globals_[name].restype, *globals_[name].argtypes = _header.resolve_type(_annots[name])
+    return globals_[name]
 
 
-_init()
+_func = _header.init(globals())
+_annots = _typing.get_type_hints(type('', (), globals()))
+if _header.INIT:
+    for _func_ in _func:
+        __getattr__(_func_)
