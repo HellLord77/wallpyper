@@ -49,6 +49,10 @@ class Globals(dict):
             getattr(_types.ModuleType(_inspect.getmodule(_inspect.currentframe().f_back).__name__), key)
 
 
+def get_doc(name: str, restype, argtypes: tuple) -> str:
+    return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
+
+
 def init(globals_: dict[str, _Any]) -> dict[str, _Any]:
     backup = {var: val for var, val in globals_.items() if not var.startswith('_')}
     for var in backup:

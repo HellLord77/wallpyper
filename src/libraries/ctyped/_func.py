@@ -133,7 +133,7 @@ def __getattr__(name: str) -> _ctypes._CFuncPtr:
     globals_ = globals()
     func = _func[name]
     func.restype, *func.argtypes = _header.resolve_type(_annotations[name])
-    func.__doc__ = f'{name}({", ".join(type_.__name__ for type_ in func.argtypes)}) -> {func.restype.__name__}'
+    func.__doc__ = _header.get_doc(name, func.restype, func.argtypes)
     globals_[name] = func
     return globals_[name]
 

@@ -10,8 +10,6 @@ from . import _struct
 from . import _type
 
 
-# TODO: winrt, help
-
 class IUnknown:
     __CLSID__ = ''
     QueryInterface: _Callable[[_header.Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
@@ -109,20 +107,28 @@ def __getattr__(name: str) -> type[_ctypes.c_void_p]:
 
     class Wrapper(_ctypes.c_void_p):
         # noinspection PyTypeChecker
-        _pointer = _ctypes.POINTER(type('', (_ctypes.Structure,), {'_fields_': tuple((func, _ctypes.WINFUNCTYPE(
-            *_method_type(types))) for func, types in _typing.get_type_hints(_com[name], _globals).items())}))
+        _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
+            *_method_type(types))) for name_, types in _typing.get_type_hints(_com[name], _globals).items())}))
         # noinspection PyProtectedMember
-        _methods = tuple(types for types in dir(_pointer._type_) if not types.startswith('_'))
+        _methods = tuple(name_ for name_ in dir(_pointer._type_) if not name_.startswith('_'))
 
         def __getattr__(self, name_):
             if name_ in self._methods:
                 funcs = _ctypes.cast(_ctypes.cast(self, _ctypes.POINTER(
                     _ctypes.c_void_p)).contents.value, self._pointer).contents
-                for method in self._methods:
-                    setattr(self, method, _types.MethodType(getattr(funcs, method), self))
+                # noinspection PyProtectedMember
+                for name__, types in self._pointer._type_._fields_:
+                    method = getattr(funcs, name__)
+                    method.__name__ = name__
+                    # noinspection PyProtectedMember
+                    method.__doc__ = _header.get_doc(name__, types._restype_, types._argtypes_)
+                    setattr(self, name__, _types.MethodType(method, self))
             return super().__getattribute__(name_)
 
     _globals[name] = _functools.update_wrapper(Wrapper, _com[name], ('__CLSID__', *_functools.WRAPPER_ASSIGNMENTS), ())
+    # noinspection PyProtectedMember
+    Wrapper.__doc__ = '\n'.join(_header.get_doc(
+        name, types._restype_, types._argtypes_) for name, types in Wrapper._pointer._type_._fields_)
     return _globals[name]
 
 
