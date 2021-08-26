@@ -105,6 +105,8 @@ def _method_type(types: _Callable) -> list:
 
 
 def __getattr__(name: str) -> type[_ctypes.c_void_p]:
+    _globals.hasattr(name)
+
     class Wrapper(_ctypes.c_void_p):
         # noinspection PyTypeChecker
         _pointer = _ctypes.POINTER(type('', (_ctypes.Structure,), {'_fields_': tuple((func, _ctypes.WINFUNCTYPE(
@@ -125,7 +127,7 @@ def __getattr__(name: str) -> type[_ctypes.c_void_p]:
 
 
 _com = _header.init(globals())
-_globals = _header.Dict(globals(), __getattr__)
+_globals = _header.Globals(_com, globals(), __getattr__)
 if _header.INIT:
     for _com_ in _com:
         __getattr__(_com_)

@@ -128,16 +128,18 @@ ReleaseDC: _Callable[[_Optional[_type.HWND], _type.HDC],
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def __getattr__(name: str) -> _ctypes._CFuncPtr:
+    # noinspection PyTypeChecker
+    _header.Globals.hasattr(_func, name)
     globals_ = globals()
     func = _func[name]
-    func.restype, *func.argtypes = _header.resolve_type(_annots[name])
+    func.restype, *func.argtypes = _header.resolve_type(_annotations[name])
     func.__doc__ = f'{name}({", ".join(type_.__name__ for type_ in func.argtypes)}) -> {func.restype.__name__}'
     globals_[name] = func
     return globals_[name]
 
 
 _func = _header.init(globals())
-_annots = _typing.get_type_hints(type('', (), globals()))
+_annotations = _typing.get_type_hints(type('', (), globals()))
 if _header.INIT:
     for _func_ in _func:
         __getattr__(_func_)

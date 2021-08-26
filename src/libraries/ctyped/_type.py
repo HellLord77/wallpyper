@@ -111,6 +111,7 @@ DESKTOP_SLIDESHOW_OPTIONS = _enum
 DESKTOP_SLIDESHOW_STATE = _enum
 DESKTOP_WALLPAPER_POSITION = _enum
 RO_INIT_TYPE = _enum
+TrustLevel = _enum
 
 _callback = c_void_p  # TODO: CFUNCTYPE
 DebugEventProc = _callback
@@ -183,17 +184,16 @@ def _set_magic(magics: dict[str, _Callable],
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def __getattr__(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
+    _globals.hasattr(name)
     type_ = _header.resolve_type(_ctype[name])
     for item in _magics.items():
         setattr(type_, *item)
-    for var, ctype in _ctype.items():
-        if ctype is _ctype[name]:
-            _globals[var] = type_
+    _globals[name] = type_
     return _globals[name]
 
 
 _ctype = _header.init(globals())
-_globals = _header.Dict(globals(), __getattr__)
+_globals = _header.Globals(_ctype, globals(), __getattr__)
 _magics = {}
 for _magic in _CT_BINARY:
     _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic: type(

@@ -1,11 +1,13 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
+import inspect as _inspect
+import types as _types
 import typing as _typing
 from typing import Any as _Any
 from typing import Callable as _Callable
-from typing import Generator as _Generator
 from typing import Generic as _Generic
+from typing import NoReturn as _NoReturn
 from typing import Optional as _Optional
 from typing import Sequence as _Sequence
 
@@ -23,33 +25,35 @@ class Array(Pointer, _Sequence[T]):
     pass
 
 
-class Dict(dict):
-    def __init__(self, globals_, getattr_):
+class Globals(dict):
+    def __init__(self, base: dict[str, _Any], globals_, getattr_):
+        self.base = base
         self.globals = globals_
         self.getattr = getattr_
         super().__init__(globals_)
 
     def __getitem__(self, item: str):
         if item not in self:
-            self.getattr(item)
+            return self.getattr(item)
         return super().__getitem__(item)
 
     def __setitem__(self, key: str, value):
-        self.globals[key] = value
-        super().__setitem__(key, value)
+        val = self.base[key]
+        for key_ in tuple(self.base):
+            if self.base[key_] is val:
+                self.globals[key] = value
+                super().__setitem__(key, value)
+
+    def hasattr(self, key: str) -> _NoReturn:
+        if key not in getattr(self, 'base', self):
+            getattr(_types.ModuleType(_inspect.getmodule(_inspect.currentframe().f_back).__name__), key)
 
 
 def init(globals_: dict[str, _Any]) -> dict[str, _Any]:
-    backup = dict(items(globals_))
+    backup = {var: val for var, val in globals_.items() if not var.startswith('_')}
     for var in backup:
         del globals_[var]
     return backup
-
-
-def items(vars_: dict[str, _Any]) -> _Generator[tuple[str, _Any], None, None]:
-    for var, val in vars_.items():
-        if not var.startswith('_'):
-            yield var, val
 
 
 def resolve_type(type_: _Any) -> _Any:
@@ -72,8 +76,7 @@ def byref(obj: T) -> Pointer[T]:
     return _ctypes.byref(obj)
 
 
-def cast(obj: _Any,
-         type_: type[T] | T) -> Pointer[T]:
+def cast(obj: _Any, type_: type[T] | T) -> Pointer[T]:
     try:
         return _ctypes.cast(obj, type_)
     except _ctypes.ArgumentError:

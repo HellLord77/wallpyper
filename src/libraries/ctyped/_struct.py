@@ -100,12 +100,20 @@ class MENUINFO:
     dwMenuData: _type.ULONG_PTR = None
 
 
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class HSTRING__:
+    unused: _type.c_int = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
 
 
 def __getattr__(name: str) -> type[_ctypes.Structure]:
+    _globals.hasattr(name)
+
     class Wrapper(_ctypes.Structure):
         _fields_ = tuple((field, _header.resolve_type(type_))
                          for field, type_ in _typing.get_type_hints(_struct[name], _globals).items())
@@ -118,15 +126,12 @@ def __getattr__(name: str) -> type[_ctypes.Structure]:
             super().__init__(*args, **kwargs)
 
     _functools.update_wrapper(Wrapper, _struct[name], ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
-    for var, struct in _struct.items():
-        if _struct[name] is struct:
-            _globals[var] = Wrapper
+    _globals[name] = Wrapper
     return _globals[name]
 
 
 _struct = _header.init(globals())
-_globals = _header.Dict(globals(), __getattr__)
-__create_fn__ = None
+_globals = _header.Globals(_struct, globals(), __getattr__)
 if _header.INIT:
     for _struct_ in _struct:
         __getattr__(_struct_)

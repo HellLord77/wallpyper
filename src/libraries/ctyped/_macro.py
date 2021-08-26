@@ -91,6 +91,7 @@ def GetBValue(rgb: _type.COLORREF) -> _type.BYTE:
 
 
 def __getattr__(name: str) -> _Callable:
+    _globals.hasattr(name)
     types = _typing.get_type_hints(_macro[name]).values()
     macro = _types.FunctionType(_macro[name].__code__, _globals, name,
                                 _macro[name].__defaults__, _macro[name].__closure__)
@@ -100,7 +101,7 @@ def __getattr__(name: str) -> _Callable:
 
 
 _macro = _header.init(globals())
-_globals = _header.Dict(globals(), __getattr__)
+_globals = _header.Globals(_macro, globals(), __getattr__)
 if _header.INIT:
     for _macro_ in _macro:
         __getattr__(_macro_)

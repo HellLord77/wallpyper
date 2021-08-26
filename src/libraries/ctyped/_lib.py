@@ -17,6 +17,8 @@ user32: _ctypes.WinDLL
 
 
 def __getattr__(name: str) -> _ctypes.CDLL:
+    # noinspection PyTypeChecker
+    _header.Globals.hasattr(_lib, name)
     globals_ = globals()
     globals_[name] = _lib[name](name, use_last_error=_DEBUG)
     return globals_[name]
