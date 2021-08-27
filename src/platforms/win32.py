@@ -1,4 +1,4 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import contextlib
 import os
@@ -8,20 +8,21 @@ from typing import ContextManager
 
 import libraries.ctyped
 
+_DELAY = 1
 _MAX_PATH = 32 * 1024
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
 def _get_dir(csidl: int) -> str:
-    buffer = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctyped.func.SHGetFolderPathW(None, csidl, None, libraries.ctyped.const.SHGFP_TYPE_CURRENT, buffer)
-    return buffer.value
+    buff = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
+    libraries.ctyped.func.SHGetFolderPathW(None, csidl, None, libraries.ctyped.const.SHGFP_TYPE_CURRENT, buff)
+    return buff.value
 
 
 APPDATA_DIR = _get_dir(libraries.ctyped.const.CSIDL_APPDATA)
 PICTURES_DIR = _get_dir(libraries.ctyped.const.CSIDL_MYPICTURES)
 TEMP_DIR = os.path.join(_get_dir(libraries.ctyped.const.CSIDL_LOCAL_APPDATA), 'Temp')
-WALLPAPER_DIR = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'CachedFiles')
+WALLPAPER_PATH = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 
 @contextlib.contextmanager
@@ -35,8 +36,8 @@ def _clipboard() -> ContextManager[None]:
 
 def paste_text() -> str:
     with _clipboard():
-        return libraries.ctyped.cast(libraries.ctyped.func.GetClipboardData(libraries.ctyped.const.CF_UNICODETEXT),
-                                     libraries.ctyped.type.c_wchar_p).value or ''
+        return libraries.ctyped.cast(libraries.ctyped.func.GetClipboardData(
+            libraries.ctyped.const.CF_UNICODETEXT), libraries.ctyped.type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int,
@@ -50,9 +51,9 @@ def copy_text(text: str) -> bool:
     size = (libraries.ctyped.func.wcslen(text) + 1) * libraries.ctyped.sizeof(libraries.ctyped.type.c_wchar)
     handle = libraries.ctyped.func.GlobalAlloc(libraries.ctyped.const.GMEM_MOVEABLE, size)
     if handle:
-        buffer = libraries.ctyped.func.GlobalLock(handle)
-        if buffer:
-            libraries.ctyped.func.memmove(buffer, text, size)
+        buff = libraries.ctyped.func.GlobalLock(handle)
+        if buff:
+            libraries.ctyped.func.memmove(buff, text, size)
             _set_clipboard(libraries.ctyped.const.CF_UNICODETEXT, handle)
     return text == paste_text()
 
@@ -77,62 +78,88 @@ def _hbitmap(path: str) -> ContextManager[libraries.ctyped.type.HBITMAP]:
 
 
 def copy_image(path: str) -> bool:
-    buffer = 0
+    buff = 0
     with _hbitmap(path) as hbitmap:
         bm = libraries.ctyped.struct.BITMAP()
         if libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP) == libraries.ctyped.func.GetObjectW(
                 hbitmap, libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP), libraries.ctyped.byref(bm)):
-            size_bi = libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAPINFOHEADER)
-            bi = libraries.ctyped.struct.BITMAPINFOHEADER(size_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel,
-                                                          libraries.ctyped.const.BI_RGB)
-            size = bm.bmWidthBytes * bm.bmHeight
-            data = libraries.ctyped.array(libraries.ctyped.type.BYTE, size=size)
+            sz_bi = libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAPINFOHEADER)
+            bi = libraries.ctyped.struct.BITMAPINFOHEADER(
+                sz_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, libraries.ctyped.const.BI_RGB)
+            sz = bm.bmWidthBytes * bm.bmHeight
+            data = libraries.ctyped.array(libraries.ctyped.type.BYTE, size=sz)
             hdc = libraries.ctyped.func.GetDC(None)
             if libraries.ctyped.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, libraries.ctyped.cast(
                     bi, libraries.ctyped.struct.BITMAPINFO), libraries.ctyped.const.DIB_RGB_COLORS):
-                handle = libraries.ctyped.func.GlobalAlloc(libraries.ctyped.const.GMEM_MOVEABLE, size_bi + size)
+                handle = libraries.ctyped.func.GlobalAlloc(libraries.ctyped.const.GMEM_MOVEABLE, sz_bi + sz)
                 if handle:
-                    buffer = libraries.ctyped.func.GlobalLock(handle)
-                    if buffer:
-                        libraries.ctyped.func.memmove(buffer, libraries.ctyped.byref(bi), size_bi)
-                        libraries.ctyped.func.memmove(buffer + size_bi, data, size)
+                    buff = libraries.ctyped.func.GlobalLock(handle)
+                    if buff:
+                        libraries.ctyped.func.memmove(buff, libraries.ctyped.byref(bi), sz_bi)
+                        libraries.ctyped.func.memmove(buff + sz_bi, data, sz)
                         _set_clipboard(libraries.ctyped.const.CF_DIB, handle)
                     libraries.ctyped.func.GlobalUnlock(handle)
             libraries.ctyped.func.ReleaseDC(None, hdc)
-    return bool(buffer)
+    return bool(buff)
 
 
 def get_wallpaper_path() -> str:
-    buffer = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buffer, 0)
-    return buffer.value or get_wallpaper_path_ex()
+    buff = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
+    libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buff, 0)
+    return buff.value or get_wallpaper_path_ex()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                        libraries.ctyped.const.SPIF_SENDWININICHANGE)
+            libraries.ctyped.func.SystemParametersInfoW(
+                libraries.ctyped.const.SPI_SETDESKWALLPAPER, 0, path, libraries.ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
 
 
+@contextlib.contextmanager
+def _item_ids(*paths: str) -> ContextManager[tuple[libraries.ctyped.Pointer[libraries.ctyped.struct.ITEMIDLIST]]]:
+    ids = tuple(libraries.ctyped.func.ILCreateFromPath(path) for path in paths)
+    try:
+        yield ids
+    finally:
+        for id_ in ids:
+            libraries.ctyped.func.ILFree(id_)
+
+
+def set_slideshow(*paths: str) -> bool:
+    with _item_ids(*paths) as p_ids:
+        with libraries.ctyped.create_com(libraries.ctyped.com.IShellItemArray) as shl_arr:
+            id_arr = libraries.ctyped.array(libraries.ctyped.pointer(libraries.ctyped.struct.ITEMIDLIST), *p_ids)
+            libraries.ctyped.func.SHCreateShellItemArrayFromIDLists(
+                len(id_arr), libraries.ctyped.byref(id_arr[0]), libraries.ctyped.byref(shl_arr))
+            if shl_arr:
+                with libraries.ctyped.create_com(libraries.ctyped.com.IDesktopWallpaper) as wallpaper:
+                    if wallpaper:
+                        wallpaper.SetSlideshow(shl_arr)
+                        return True
+    return False
+
+
 def get_wallpaper_path_ex() -> str:
-    with libraries.ctyped.create_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
-        if active_desktop:
-            buffer = libraries.ctyped.type.PWSTR(' ' * _MAX_PATH)
-            if not active_desktop.GetWallpaper(buffer, _MAX_PATH, libraries.ctyped.const.AD_GETWP_BMP):
-                return buffer.value
+    with libraries.ctyped.create_com(libraries.ctyped.com.IActiveDesktop) as desktop:
+        if desktop:
+            buff = libraries.ctyped.type.PWSTR(' ' * _MAX_PATH)
+            if not desktop.GetWallpaper(buff, _MAX_PATH, libraries.ctyped.const.AD_GETWP_BMP):
+                return buff.value
     return get_wallpaper_path()
 
 
-def set_wallpaper_ex(*paths: str) -> bool:  # TODO: enable and disable slideshow to ensure fade
-    with libraries.ctyped.create_com(libraries.ctyped.com.IActiveDesktop) as active_desktop:
-        if active_desktop:
+def set_wallpaper_ex(*paths: str) -> bool:
+    with libraries.ctyped.create_com(libraries.ctyped.com.IActiveDesktop) as desktop:
+        if desktop:
             for path in paths:
                 if os.path.isfile(path):
-                    active_desktop.SetWallpaper(path, 0)
-                    active_desktop.ApplyChanges(libraries.ctyped.const.AD_APPLY_ALL)
+                    libraries.ctyped.func.SendMessageTimeoutW(
+                        libraries.ctyped.func.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0, 0, 500, None)
+                    desktop.SetWallpaper(path, 0)
+                    desktop.ApplyChanges(libraries.ctyped.const.AD_APPLY_ALL)
                     return True
     return set_wallpaper(*paths)
 

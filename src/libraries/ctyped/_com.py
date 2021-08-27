@@ -10,11 +10,30 @@ from . import _struct
 from . import _type
 
 
-class IUnknown:
+class IUnknown(_ctypes.c_void_p):
     __CLSID__ = ''
     QueryInterface: _Callable[[_header.Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
     AddRef: _Callable[[], _type.ULONG]
     Release: _Callable[[], _type.ULONG]
+
+
+class IShellItem(IUnknown):
+    BindToHandler: _Callable[[_header.Pointer[_type.IBindCtx], _header.Pointer[_struct.GUID],
+                              _header.Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
+    GetParent: _Callable[[_header.Pointer[_type.IShellItem]], _type.HRESULT]
+    GetDisplayName: _Callable[[_type.SIGDN, _header.Pointer[_type.LPWSTR]], _type.HRESULT]
+    GetAttributes: _Callable[[_type.SFGAOF, _header.Pointer[_type.SFGAOF]], _type.HRESULT]
+    Compare: _Callable[[_header.Pointer[_type.IShellItem], _type.SICHINTF, _header.Pointer[_type.c_int]], _type.HRESULT]
+
+
+class IShellItemArray(IUnknown):
+    BindToHandler: _Callable
+    GetPropertyStore: _Callable
+    GetPropertyDescriptionList: _Callable
+    GetAttributes: _Callable
+    GetCount: _Callable[[_header.Pointer[_type.DWORD]], _type.HRESULT]
+    GetItemAt: _Callable
+    EnumItems: _Callable
 
 
 class IActiveDesktop(IUnknown):
@@ -51,7 +70,7 @@ class IDesktopWallpaper(IUnknown):
     GetBackgroundColor: _Callable[[_header.Pointer[_type.COLORREF]], _type.HRESULT]
     SetPosition: _Callable[[_type.DESKTOP_WALLPAPER_POSITION], _type.HRESULT]
     GetPosition: _Callable[[_header.Pointer[_type.DESKTOP_WALLPAPER_POSITION]], _type.HRESULT]
-    SetSlideshow: _Callable
+    SetSlideshow: _Callable[[_type.IShellItemArray], _type.HRESULT]
     GetSlideshow: _Callable
     SetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, _type.UINT], _type.HRESULT]
     GetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, _header.Pointer[_type.UINT]], _type.HRESULT]

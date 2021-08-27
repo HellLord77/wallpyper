@@ -17,6 +17,7 @@ from . import _macro as macro
 from . import _struct as struct
 # noinspection PyShadowingBuiltins
 from . import _type as type
+from ._header import Pointer
 from ._header import byref
 from ._header import cast
 from ._header import pointer
@@ -57,8 +58,9 @@ def create_com(type_: _builtins.type[_header.T]) -> _ContextManager[_header.T]:
     obj: com.IUnknown = type_()
     func.CoInitialize(None)
     try:
-        refs = _get_refs(type_)
-        func.CoCreateInstance(refs[0], None, const.CLSCTX_ALL, refs[1], byref(obj))
+        if type_.__CLSID__:
+            refs = _get_refs(type_)
+            func.CoCreateInstance(refs[0], None, const.CLSCTX_ALL, refs[1], byref(obj))
         yield obj
     finally:
         if obj:

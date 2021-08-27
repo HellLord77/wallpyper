@@ -70,6 +70,8 @@ def resolve_type(type_: _Any) -> _Any:
     else:
         if isinstance(type_, type(_Optional[object])):
             type_ = _typing.get_args(type_)[0]
+        if _typing.get_origin(type_) is type:
+            type_ = _typing.get_args(type_)[0]
         if _typing.get_origin(type_) is Pointer:
             type_ = _ctypes.POINTER(resolve_type(_typing.get_args(type_)[0]))
     return type_
@@ -89,13 +91,21 @@ def cast(obj: _Any, type_: type[T] | T) -> Pointer[T]:
         return cast(obj, _ctypes.POINTER(type_))
 
 
-def pointer(type_: T | type[T]) -> Pointer[T]:
+@_typing.overload
+def pointer(obj: T) -> Pointer[T]:
+    pass
+
+
+@_typing.overload
+def pointer(type_: type[T]) -> type[Pointer[type[T]]]:
+    pass
+
+
+def pointer(obj):
     try:
-        # noinspection PyTypeChecker
-        return _ctypes.pointer(type_)
+        return _ctypes.pointer(obj)
     except TypeError:
-        # noinspection PyTypeChecker
-        return _ctypes.POINTER(type_)
+        return _ctypes.POINTER(obj)
 
 
 def sizeof(obj: T) -> int:

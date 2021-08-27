@@ -106,6 +106,17 @@ class HSTRING__:
     unused: _type.c_int = None
 
 
+@_dataclasses.dataclass
+class SHITEMID:
+    cb: _type.USHORT = None
+    abID: _type.BYTE * 1 = None
+
+
+@_dataclasses.dataclass
+class ITEMIDLIST:
+    mkid: SHITEMID = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

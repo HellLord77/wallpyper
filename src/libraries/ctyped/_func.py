@@ -3,6 +3,7 @@ import typing as _typing
 from typing import Callable as _Callable
 from typing import Optional as _Optional
 
+from . import _com
 from . import _header
 from . import _lib
 from . import _struct
@@ -83,6 +84,16 @@ SHGetFolderPathA: _Callable[[_Optional[_type.HWND], _type.c_int,
 SHGetFolderPathW: _Callable[[_Optional[_type.HWND], _type.c_int,
                              _Optional[_type.HANDLE], _type.DWORD, _type.LPWSTR],
                             _type.HRESULT] = _lib.shell32.SHGetFolderPathW
+ILCreateFromPath: _Callable[[_type.PCTSTR],
+                            _header.Pointer[_struct.ITEMIDLIST]] = _lib.shell32.ILCreateFromPath
+ILFree: _Callable[[_Optional[_header.Pointer[_struct.ITEMIDLIST]]],
+                  _type.c_void_p] = _lib.shell32.ILFree
+SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT, _header.Pointer[_header.Pointer[_struct.ITEMIDLIST]],
+                                              _header.Pointer[_com.IShellItemArray]],
+                                             _type.SHSTDAPI] = _lib.shell32.SHCreateShellItemArrayFromIDLists
+SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[_header.Pointer[_type.IBindCtx]], _header.Pointer[
+    _header.Pointer[type[_struct.ITEMIDLIST]]], _type.SFGAOF, _header.Pointer[_type.SFGAOF]],
+                              _type.SHSTDAPI] = _lib.shell32.SHParseDisplayName
 
 SystemParametersInfoA: _Callable[[_type.UINT, _type.UINT, _type.PVOID, _type.UINT],
                                  _type.BOOL] = _lib.user32.SystemParametersInfoA
@@ -124,6 +135,24 @@ GetWindowDC: _Callable[[_Optional[_type.HWND]],
                        _type.HDC] = _lib.user32.GetWindowDC
 ReleaseDC: _Callable[[_Optional[_type.HWND], _type.HDC],
                      _type.c_int] = _lib.user32.ReleaseDC
+FindWindowA: _Callable[[_type.LPCSTR, _Optional[_type.LPCSTR]],
+                       _type.HWND] = _lib.user32.FindWindowA
+FindWindowW: _Callable[[_type.LPCWSTR, _Optional[_type.LPCWSTR]],
+                       _type.HWND] = _lib.user32.FindWindowW
+SendMessageTimeoutA: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM,
+                                _type.UINT, _type.UINT, _Optional[_type.PDWORD_PTR]],
+                               _type.LRESULT] = _lib.user32.SendMessageTimeoutA
+SendMessageTimeoutW: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM,
+                                _type.UINT, _type.UINT, _Optional[_type.PDWORD_PTR]],
+                               _type.LRESULT] = _lib.user32.SendMessageTimeoutW
+GetClassNameA: _Callable[[_type.HWND, _type.LPSTR, _type.c_int],
+                         _type.c_int] = _lib.user32.GetClassNameA
+GetClassNameW: _Callable[[_type.HWND, _type.LPWSTR, _type.c_int],
+                         _type.c_int] = _lib.user32.GetClassNameW
+GetWindowTextA: _Callable[[_type.HWND, _type.LPSTR, _type.c_int],
+                          _type.c_int] = _lib.user32.GetWindowTextA
+GetWindowTextW: _Callable[[_type.HWND, _type.LPWSTR, _type.c_int],
+                          _type.c_int] = _lib.user32.GetWindowTextW
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
