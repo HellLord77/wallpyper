@@ -18,8 +18,7 @@ def FAILED(hr: _type.HRESULT) -> _type.c_bool:
 
 
 # noinspection PyPep8Naming
-def MAKEWORD(a: _type.DWORD_PTR,
-             b: _type.DWORD_PTR) -> _type.WORD:
+def MAKEWORD(a: _type.DWORD_PTR, b: _type.DWORD_PTR) -> _type.WORD:
     wb = _header.cast(_header.cast(b & 0xff, _type.BYTE), _type.WORD).contents
     wb <<= 8
     # noinspection PyUnresolvedReferences
@@ -27,8 +26,7 @@ def MAKEWORD(a: _type.DWORD_PTR,
 
 
 # noinspection PyPep8Naming
-def MAKELONG(a: _type.WORD,
-             b: _type.WORD) -> _type.LONG:
+def MAKELONG(a: _type.WORD, b: _type.WORD) -> _type.LONG:
     wb = _header.cast(_header.cast(b & 0xffff, _type.WORD), _type.DWORD).contents
     wb <<= 16
     # noinspection PyUnresolvedReferences
@@ -60,17 +58,13 @@ def HIBYTE(w: _type.WORD) -> _type.BYTE:
 
 
 # noinspection PyPep8Naming
-def RGB(r: _type.BYTE,
-        g: _type.BYTE,
-        b: _type.BYTE) -> _type.COLORREF:
+def RGB(r: _type.BYTE, g: _type.BYTE, b: _type.BYTE) -> _type.COLORREF:
     # noinspection PyTypeChecker
     return _header.cast(b, _type.DWORD).contents << 16 | _header.cast(g, _type.WORD).contents << 8 | r
 
 
 # noinspection PyPep8Naming
-def PALETTERGB(r: _type.BYTE,
-               g: _type.BYTE,
-               b: _type.BYTE) -> _type.COLORREF:
+def PALETTERGB(r: _type.BYTE, g: _type.BYTE, b: _type.BYTE) -> _type.COLORREF:
     return 0x02000000 | RGB(r, g, b)
 
 

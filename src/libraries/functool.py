@@ -21,10 +21,8 @@ from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Option
 
 
 class Func:
-    def __init__(self,
-                 func: Optional[Callable] = None,
-                 args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None):
+    def __init__(self, func: Optional[Callable] = None,
+                 args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
         self.func = func or (lambda *_, **__: None)
         self.args = args or ()
         self.kwargs = kwargs or {}
@@ -40,8 +38,7 @@ def any_ex(itt: Iterable) -> Any:
             return ele
 
 
-def chain_ex(*funcs: Callable,
-             args: Optional[Iterable[Optional[Iterable]]] = None,
+def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
              kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None) -> Generator:
     for func, args_, kwargs_ in itertools.zip_longest(funcs, args or (), kwargs or {}):
         if not func:
@@ -49,10 +46,8 @@ def chain_ex(*funcs: Callable,
         yield func(*args_ or (), **kwargs_ or {})
 
 
-def cycle_ex(itt: Iterable,
-             func: Optional[Callable] = None,
-             args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
+def cycle_ex(itt: Iterable, func: Optional[Callable] = None,
+             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
     args = args or ()
     kwargs = kwargs or {}
     while True:
@@ -66,8 +61,7 @@ def dict_ex(obj: Any) -> dict[str, Any]:
     return getattr(obj, '__dict__', {})
 
 
-def eq_ex(a: Any,
-          b: Any) -> bool:
+def eq_ex(a: Any, b: Any) -> bool:
     sleep_ex()
     if isinstance(a, Iterable) and isinstance(b, Iterable):
         empty = object()
@@ -89,15 +83,11 @@ def reversed_ex(*items: Any) -> Any:
         yield ele
 
 
-def replace_ex(string: str,
-               a: str,
-               b: str) -> str:
+def replace_ex(string: str, a: str, b: str) -> str:
     return ''.join(a if char == b else b if char == a else char for char in string)
 
 
-def setattr_ex(obj: Any,
-               name: str,
-               value: Any) -> None:
+def setattr_ex(obj: Any, name: str, value: Any) -> None:
     ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value[name] = value
 
 
@@ -111,8 +101,7 @@ def sleep_ex(secs: Optional[float] = None) -> None:
             pass
 
 
-def try_ex(*funcs: Callable,
-           args: Optional[Iterable[Optional[Iterable]]] = None,
+def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
            kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
            excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
     for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, args or (), kwargs or {}, excs or ()):
@@ -145,16 +134,12 @@ def clear_queue(queue_: queue.Queue) -> int:
     return tasks
 
 
-def re_join(base: str,
-            *child: str,
-            sep: Optional[str] = None) -> str:
+def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:
     return re.escape(sep or os.sep).join((base,) + child)
 
 
-def return_any(func: Callable,
-               args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None,
-               max_try: Optional[int] = None) -> Any:
+def return_any(func: Callable, args: Optional[Iterable] = None,
+               kwargs: Optional[Mapping[str, Any]] = None, max_try: Optional[int] = None) -> Any:
     args = args or ()
     kwargs = kwargs or {}
     for _ in (range if max_try else itertools.repeat)(max_try):
@@ -167,8 +152,7 @@ def strip_ansi(string: str) -> str:
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', string)
 
 
-def decrypt(data: str,
-            default: Any = None) -> Any:
+def decrypt(data: str, default: Any = None) -> Any:
     try:
         decoded = binascii.a2b_base64(data.encode())
     except binascii.Error:
@@ -219,10 +203,8 @@ def once_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _worker(func: Callable,
-            works: queue.Queue[tuple[Iterable, Mapping[str, Any]]],
-            running: threading.Event,
-            wrapper: Callable) -> NoReturn:
+def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]],
+                  running: threading.Event, wrapper: Callable) -> NoReturn:
     while True:
         work = works.get()
         running.set()
@@ -243,7 +225,7 @@ def queue_run(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         works.put((args, kwargs))
 
-    threading.Thread(target=_worker, name=f'{queue_run.__name__}-{__version__}-{func.__name__}',
+    threading.Thread(target=_queue_worker, name=f'{queue_run.__name__}-{__version__}-{func.__name__}',
                      args=(func, works, running, wrapper), daemon=True).start()
     wrapper.is_running = lambda: running.is_set() or bool(works.unfinished_tasks)
     wrapper.reset = lambda: clear_queue(works)
@@ -269,10 +251,7 @@ def singleton_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _set_result(func: Callable,
-                args: Iterable,
-                kwargs: Mapping[str, Any],
-                wrapper: Callable) -> None:
+def _set_result(func: Callable, args: Iterable, kwargs: Mapping[str, Any], wrapper: Callable) -> None:
     wrapper.result = func(*args, **kwargs)
 
 
@@ -286,12 +265,8 @@ def threaded_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _call(func: Callable,
-          args: Iterable,
-          kwargs: Mapping[str, Any],
-          ret: Any,
-          redirect: Optional[bool],
-          unpack: Optional[bool]):
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any],
+          ret: Any, redirect: Optional[bool], unpack: Optional[bool]):
     if redirect:
         if unpack:
             if isinstance(ret, Iterable):
@@ -302,8 +277,7 @@ def _call(func: Callable,
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable,
-               redirect: Optional[bool] = None,
+def call_after(pre_func: Callable, redirect: Optional[bool] = None,
                unpack: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -316,8 +290,7 @@ def call_after(pre_func: Callable,
     return wrapped
 
 
-def call_before(post_func: Callable,
-                redirect: Optional[bool] = None,
+def call_before(post_func: Callable, redirect: Optional[bool] = None,
                 unpack: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)

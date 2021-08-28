@@ -57,16 +57,13 @@ def _flush(path: str) -> None:
             shutil.copyfileobj(_STREAM, file)
 
 
-def redirect_stdio(path: str,
-                   tee: Optional[bool] = None,
-                   write_once: Optional[bool] = None) -> None:
+def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None) -> None:
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(stream: _io.TextIOWrapper,  # TODO: use queue
-              string: str):
+    def write(stream: _io.TextIOWrapper, string: str):  # TODO: use queue
         if string:
             if write_once:
                 _STREAM.write(string)
@@ -80,9 +77,7 @@ def redirect_stdio(path: str,
     _WRITE = write
 
 
-def _format_dict(dict_: Mapping[str, Any],
-                 prefix: str = '',
-                 suffix: str = '\n') -> str:
+def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n') -> str:
     types_ = tuple(type(val).__name__ for val in dict_.values())
     sizes = tuple(str(sys.getsizeof(val)) for val in dict_.values())
     pads = tuple(len(max(itt, key=len)) for itt in (dict_, types_, sizes))
@@ -109,9 +104,7 @@ def _get_class_name(locals_: Mapping[str, Any]) -> str:
         return ''
 
 
-def _filter(event: str,
-            arg: Any,
-            func: str) -> bool:
+def _filter(event: str, arg: Any, func: str) -> bool:
     if _LEVEL == Level.DEBUG:
         return True
     elif _LEVEL == Level.INFO:
@@ -124,9 +117,7 @@ def _filter(event: str,
         return False
 
 
-def _hook_callback(frame: types.FrameType,
-                   event: str,
-                   arg: Any) -> Callable:
+def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
     if frame.f_code is _SHUTDOWN:
         sys.settrace(lambda *_: None)
     frame.f_trace_lines = False
@@ -162,10 +153,7 @@ def _is_compatible() -> bool:
     return supports
 
 
-def init(*patterns: str,
-         level: int = Level.DEBUG,
-         redirect_wx: bool = False,
-         skip_comp: bool = False) -> None:
+def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False) -> None:
     global _PATTERN, _LEVEL
     if patterns:
         _PATTERN = re.compile(f'({"|".join(patterns)})')

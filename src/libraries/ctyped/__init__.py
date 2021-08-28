@@ -25,8 +25,7 @@ from ._header import sizeof
 
 
 def array(type_: _builtins.type[_header.T] = type.c_void_p,
-          *elements: _Any,
-          size: _Optional[int] = None) -> _header.Array[_header.T]:
+          *elements: _Any, size: _Optional[int] = None) -> _header.Array[_header.T]:
     return (type_ * (size or len(elements)))(*elements)
 
 

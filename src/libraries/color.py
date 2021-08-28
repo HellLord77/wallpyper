@@ -62,8 +62,7 @@ class BackColor(_Code):
     BRIGHT_WHITE = 107
 
 
-def cprint(*strings,
-           reset: bool = True) -> None:
+def cprint(*strings, reset: bool = True) -> None:
     index = 0
     for string in strings:
         print(string, end='')

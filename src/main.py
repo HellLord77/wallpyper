@@ -1,4 +1,4 @@
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 import configparser
 import sys
@@ -72,8 +72,7 @@ class Change:
     TIMER = None
 
 
-def _load_config(config_parser: configparser.ConfigParser,
-                 section: str,
+def _load_config(config_parser: configparser.ConfigParser, section: str,
                  config: dict[str, Union[str, int, float, bool]],
                  default_config: dict[str, Union[str, int, float, bool]]) -> bool:
     loaded = True
@@ -127,8 +126,7 @@ def save_config() -> bool:  # TODO: save wallpaper progress
 
 
 @utils.single
-def change_wallpaper(callback: Optional[Callable[[int, ...], Any]] = None,
-                     args: Optional[Iterable] = None,
+def change_wallpaper(callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
                      kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
     if callback:
@@ -245,8 +243,7 @@ def on_animate(checked: bool) -> None:
 def on_auto_start(checked: bool) -> bool:
     CONFIG[START] = checked
     if checked:
-        args = ('change',) if CONFIG[CHANGE] else ()
-        return platform.register_autorun(NAME, sys.argv[0], *args)
+        return platform.register_autorun(NAME, sys.argv[0], *('change',) if CONFIG[CHANGE] else ())
     return platform.unregister_autorun(NAME)
 
 

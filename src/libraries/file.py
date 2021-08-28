@@ -11,13 +11,11 @@ from typing import Generator, Optional
 DELAY = 0.01
 
 
-def join(base: str,
-         *children: str) -> str:
+def join(base: str, *children: str) -> str:
     return os.path.realpath(os.path.join(base, *children))
 
 
-def replace_ext(path: str,
-                ext: str) -> str:
+def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
 
 
@@ -35,8 +33,7 @@ def get_size(path: str) -> int:
     return size
 
 
-def copy(src_path: str,
-         dest_path: str) -> bool:
+def copy(src_path: str, dest_path: str) -> bool:
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     if os.path.exists(src_path):
         if not os.path.exists(dest_path):
@@ -53,8 +50,7 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_empty(path: str,
-             recursive: Optional[bool] = None) -> bool:
+def is_empty(path: str, recursive: Optional[bool] = None) -> bool:
     if recursive:
         for dir_ in os.listdir(path):
             path_ = os.path.join(path, dir_)
@@ -64,8 +60,7 @@ def is_empty(path: str,
     return not any(os.scandir(path))
 
 
-def trim(path: str,
-         target: int) -> bool:
+def trim(path: str, target: int) -> bool:
     trimmed = False
     paths = glob.glob(os.path.join(path, '**'), recursive=True)
     paths.sort(key=os.path.getctime)
@@ -81,9 +76,7 @@ def trim(path: str,
     return trimmed
 
 
-def remove(path: str,
-           recursive: Optional[bool] = None,
-           timeout: Optional[float] = None) -> bool:
+def remove(path: str, recursive: Optional[bool] = None, timeout: Optional[float] = None) -> bool:
     end_time = time.time() + (timeout or DELAY)
     exists = os.path.exists(path)
     while exists and end_time > time.time():

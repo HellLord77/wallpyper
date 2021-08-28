@@ -139,6 +139,10 @@ FindWindowA: _Callable[[_type.LPCSTR, _Optional[_type.LPCSTR]],
                        _type.HWND] = _lib.user32.FindWindowA
 FindWindowW: _Callable[[_type.LPCWSTR, _Optional[_type.LPCWSTR]],
                        _type.HWND] = _lib.user32.FindWindowW
+SendMessageA: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM],
+                        _type.LRESULT] = _lib.user32.SendMessageA
+SendMessageW: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM],
+                        _type.LRESULT] = _lib.user32.SendMessageW
 SendMessageTimeoutA: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM,
                                 _type.UINT, _type.UINT, _Optional[_type.PDWORD_PTR]],
                                _type.LRESULT] = _lib.user32.SendMessageTimeoutA

@@ -34,8 +34,7 @@ USER_AGENT = f'request/{__version__}'
 
 
 class Response:
-    def __init__(self,
-                 response: Union[http.client.HTTPResponse, urllib.error.URLError]):
+    def __init__(self, response: Union[http.client.HTTPResponse, urllib.error.URLError]):
         self.chunk_size = _MIN_CHUNK
         self.response = response
         self.reason = response.reason
@@ -73,8 +72,7 @@ class Response:
         return self.get_content().decode()
 
 
-def urljoin(base: str,
-            *urls: str) -> str:
+def urljoin(base: str, *urls: str) -> str:
     if not base.endswith('/'):
         base = f'{base}/'
     for url in urls:
@@ -82,11 +80,8 @@ def urljoin(base: str,
     return base[:-1]
 
 
-def urlopen(url: str,
-            params: Optional[Mapping[str, str]] = None,
-            data: Optional[bytes] = None,
-            headers: Optional[Mapping[str, str]] = None,
-            redirection: Optional[bool] = None,
+def urlopen(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None,
+            headers: Optional[Mapping[str, str]] = None, redirection: Optional[bool] = None,
             stream: Optional[bool] = None) -> Response:
     query = {}
     for key, value in (params or {}).items():
@@ -111,14 +106,9 @@ def urlopen(url: str,
             return lazy_response
 
 
-def download(url: str,
-             path: str,
-             size: Optional[int] = None,
-             chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None,
-             callback: Optional[Callable[[int, ...], Any]] = None,
-             args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def download(url: str, path: str, size: Optional[int] = None, chunk_size: Optional[int] = None,
+             chunk_count: Optional[int] = None, callback: Optional[Callable[[int, ...], Any]] = None,
+             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     response = urlopen(url)
     if response:
         size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
@@ -139,12 +129,9 @@ def download(url: str,
     return False
 
 
-def upload(url: str,
-           params: Optional[Mapping[str, str]] = None,
-           fields: Optional[Mapping[str, str]] = None,
+def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None,
            files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,
-           headers: Optional[Mapping[str, str]] = None,
-           redirection: Optional[bool] = None) -> Response:
+           headers: Optional[Mapping[str, str]] = None, redirection: Optional[bool] = None) -> Response:
     boundary = uuid.uuid4().hex
     data = b''
     for name, val in (fields or {}).items():

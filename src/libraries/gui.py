@@ -1,6 +1,7 @@
 __version__ = '0.0.8'
 
 import atexit
+import contextlib
 import functools
 import itertools
 import threading
@@ -58,11 +59,8 @@ _ANIMATIONS_ = [_ANIMATIONS, []]
 _THREAD_NAME = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
-def _get_wrapper(menu_item: wx.MenuItem,
-                 callback: Callable,
-                 args: Iterable,
-                 kwargs: Mapping[str, Any],
-                 extra_args: Iterable[str]) -> Callable:
+def _get_wrapper(menu_item: wx.MenuItem, callback: Callable, args: Iterable,
+                 kwargs: Mapping[str, Any], extra_args: Iterable[str]) -> Callable:
     @functools.wraps(callback)
     def wrapper(_: wx.Event):
         extra_args_ = []
@@ -76,17 +74,10 @@ def _get_wrapper(menu_item: wx.MenuItem,
     return wrapper
 
 
-def add_menu_item(label: str,
-                  kind: Optional[int] = None,
-                  check: Optional[bool] = None,
-                  enable: Optional[bool] = None,
-                  uid: Optional[str] = None,
-                  callback: Optional[Callable] = None,
-                  args: Optional[Iterable] = None,
-                  kwargs: Optional[Mapping[str, Any]] = None,
-                  extra_args: Optional[Iterable[str]] = None,
-                  position: Optional[int] = None,
-                  menu: wx.Menu = _MENU) -> wx.MenuItem:
+def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
+                  uid: Optional[str] = None, callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+                  kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
+                  position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
     menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
                                          label, uid or '', Item.NORMAL if kind is None else kind)
     if check is not None:
@@ -102,17 +93,11 @@ def add_separator(menu: wx.Menu = _MENU) -> wx.MenuItem:
     return menu.AppendSeparator()
 
 
-def add_submenu(label: str,
-                kind: Optional[int] = None,
-                checks: Optional[Iterable[str]] = None,
-                enable: Optional[bool] = None,
-                items: Optional[Mapping[str, str]] = None,
-                callback: Optional[Callable] = None,
-                args: Optional[Iterable] = None,
-                kwargs: Optional[Mapping[str, Any]] = None,
-                extra_args: Optional[Iterable[str]] = None,
-                position: Optional[int] = None,
-                menu: wx.Menu = _MENU) -> wx.MenuItem:
+def add_submenu(label: str, kind: Optional[int] = None, checks: Optional[Iterable[str]] = None,
+                enable: Optional[bool] = None, items: Optional[Mapping[str, str]] = None,
+                callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+                kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
+                position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
     for uid, label_ in items.items():
         menu_item = add_menu_item(label_, kind, uid in (checks or ()), label_[0] != '_',
@@ -125,9 +110,7 @@ def add_submenu(label: str,
     return submenu_item
 
 
-def show_balloon(title: str,
-                 text: str,
-                 icon: Optional[int] = None) -> bool:
+def show_balloon(title: str, text: str, icon: Optional[int] = None) -> bool:
     _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
     return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
@@ -145,11 +128,8 @@ def _destroy() -> None:
     _APP.Destroy()
 
 
-def start_loop(path: str,
-               tooltip: Optional[str] = None,
-               callback: Optional[Callable] = None,
-               args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None) -> None:
+def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Callable] = None,
+               args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> None:
     _ICON.LoadFile(path)
     _APP.SetAppName(tooltip)
     if callback:
@@ -183,41 +163,43 @@ def _get_gif_frames(path: str) -> itertools.cycle:
                             wx.Icon(animation.GetFrame(i).ConvertToBitmap())) for i in range(animation.GetFrameCount()))
 
 
-def _animate() -> None:
-    while _ANIMATIONS_[0]:
-        delay, icon, tooltip = next(_ANIMATIONS_[0][-1][0]) + (_ANIMATIONS_[0][-1][1],)
-        _TASK_BAR_ICON.SetIcon(icon, tooltip)
-        time.sleep(delay / 1000)
-    if _TASK_BAR_ICON.IsIconInstalled():
-        _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
+def _animation_worker() -> bool:
+    while True:
+        try:
+            delay, icon = next(_ANIMATIONS_[0][-1][0])
+            _TASK_BAR_ICON.SetIcon(icon, _ANIMATIONS_[0][-1][1])
+        except IndexError:
+            break
+        else:
+            time.sleep(delay / 1000)
+    return _TASK_BAR_ICON.IsIconInstalled() and not _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
 
 
 def _start_animation() -> bool:
     if _ANIMATIONS and _ANIMATIONS_[0] is _ANIMATIONS:
         if not any(thread.name == _THREAD_NAME for thread in threading.enumerate()):
-            threading.Thread(target=_animate, name=_THREAD_NAME, daemon=True).start()
+            threading.Thread(target=_animation_worker, name=_THREAD_NAME, daemon=True).start()
             return True
     return False
 
 
-def start_animation(path: str,
-                    tooltip: Optional[str] = None) -> bool:
+def start_animation(path: str, tooltip: Optional[str] = None) -> bool:
     _ANIMATIONS.append((_get_gif_frames(path), _APP.GetAppName() if tooltip is None else tooltip))
     return _start_animation()
 
 
 def stop_animation(tooltip: Optional[str] = None) -> bool:
     stopped = False
-    if _ANIMATIONS:
-        if tooltip is None:
+    if tooltip is None:
+        with contextlib.suppress(IndexError):
             _ANIMATIONS.pop()
-            stopped = True
-        else:
-            for animation in _ANIMATIONS:
-                if animation[1] == tooltip:
-                    _ANIMATIONS.remove(animation)
-                    stopped = True
-                    break
+        stopped = True
+    else:
+        for animation in _ANIMATIONS:
+            if animation[1] == tooltip:
+                _ANIMATIONS.remove(animation)
+                stopped = True
+                break
     return stopped
 
 

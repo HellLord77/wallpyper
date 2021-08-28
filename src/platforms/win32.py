@@ -8,7 +8,6 @@ from typing import ContextManager
 
 import libraries.ctyped
 
-_DELAY = 1
 _MAX_PATH = 32 * 1024
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
@@ -40,8 +39,7 @@ def paste_text() -> str:
             libraries.ctyped.const.CF_UNICODETEXT), libraries.ctyped.type.c_wchar_p).value or ''
 
 
-def _set_clipboard(format_: int,
-                   hglobal: libraries.ctyped.type.HGLOBAL) -> None:
+def _set_clipboard(format_: int, hglobal: libraries.ctyped.type.HGLOBAL) -> None:
     with _clipboard():
         libraries.ctyped.func.EmptyClipboard()
         libraries.ctyped.func.SetClipboardData(format_, hglobal)
@@ -130,8 +128,8 @@ def _item_ids(*paths: str) -> ContextManager[tuple[libraries.ctyped.Pointer[libr
 
 def set_slideshow(*paths: str) -> bool:
     with _item_ids(*paths) as p_ids:
+        id_arr = libraries.ctyped.array(libraries.ctyped.pointer(libraries.ctyped.struct.ITEMIDLIST), *p_ids)
         with libraries.ctyped.create_com(libraries.ctyped.com.IShellItemArray) as shl_arr:
-            id_arr = libraries.ctyped.array(libraries.ctyped.pointer(libraries.ctyped.struct.ITEMIDLIST), *p_ids)
             libraries.ctyped.func.SHCreateShellItemArrayFromIDLists(
                 len(id_arr), libraries.ctyped.byref(id_arr[0]), libraries.ctyped.byref(shl_arr))
             if shl_arr:
@@ -156,23 +154,19 @@ def set_wallpaper_ex(*paths: str) -> bool:
         if desktop:
             for path in paths:
                 if os.path.isfile(path):
-                    libraries.ctyped.func.SendMessageTimeoutW(
-                        libraries.ctyped.func.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0, 0, 500, None)
+                    libraries.ctyped.func.SendMessageW(
+                        libraries.ctyped.func.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
                     desktop.SetWallpaper(path, 0)
                     desktop.ApplyChanges(libraries.ctyped.const.AD_APPLY_ALL)
                     return True
     return set_wallpaper(*paths)
 
 
-def _swap_char(string: str,
-               a: str,
-               b: str) -> str:
+def _swap_char(string: str, a: str, b: str) -> str:
     return ''.join(a if char == b else b if char == a else char for char in string)
 
 
-def register_autorun(name: str,
-                     path: str,
-                     *args: str) -> bool:
+def register_autorun(name: str, path: str, *args: str) -> bool:
     if os.path.isfile(path):
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
                             access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:

@@ -24,12 +24,8 @@ class Timer:
             killed = timer.kill() and killed
         return killed
 
-    def __init__(self,
-                 callback: Callable,
-                 args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None,
-                 interval: Optional[float] = None,
-                 once: Optional[bool] = None) -> None:
+    def __init__(self, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
+                 interval: Optional[float] = None, once: Optional[bool] = None) -> None:
         @functools.wraps(callback)
         def wrapper() -> None:
             self._running = True
@@ -61,8 +57,7 @@ class Timer:
     def running(self) -> bool:
         return self._running
 
-    def start(self,
-              interval: Optional[float] = None) -> bool:
+    def start(self, interval: Optional[float] = None) -> bool:
         self.stop()
         if interval is not None:
             self._interval = interval
@@ -85,10 +80,8 @@ class Timer:
         return killed
 
 
-def start_once(callback: Callable,
-               args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None,
-               interval: Optional[float] = None) -> Timer:
+def start_once(callback: Callable, args: Optional[Iterable] = None,
+               kwargs: Optional[Mapping[str, Any]] = None, interval: Optional[float] = None) -> Timer:
     timer = Timer(callback, args, kwargs, interval, True)
     timer.start()
     return timer
