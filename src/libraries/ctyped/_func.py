@@ -9,6 +9,9 @@ from . import _lib
 from . import _struct
 from . import _type
 
+SetWindowTheme: _Callable[[_type.HWND, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR]],
+                          _type.HRESULT] = _lib.UxTheme.SetWindowTheme
+
 RoInitialize: _Callable[[_type.RO_INIT_TYPE],
                         _type.HRESULT] = _lib.combase.RoInitialize
 RoUninitialize: _Callable[[],

@@ -56,7 +56,6 @@ _MENU = wx.Menu()
 _ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 _ANIMATIONS_ = [_ANIMATIONS, []]
-_THREAD_NAME = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
 def _get_wrapper(menu_item: wx.MenuItem, callback: Callable, args: Iterable,
@@ -78,8 +77,8 @@ def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] 
                   uid: Optional[str] = None, callback: Optional[Callable] = None, args: Optional[Iterable] = None,
                   kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
                   position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
-    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
-                                         label, uid or '', Item.NORMAL if kind is None else kind)
+    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position,
+                                         wx.ID_ANY, label, uid or '', Item.NORMAL if kind is None else kind)
     if check is not None:
         menu_item.Check(check)
     if enable is not None:
@@ -111,8 +110,8 @@ def add_submenu(label: str, kind: Optional[int] = None, checks: Optional[Iterabl
 
 
 def show_balloon(title: str, text: str, icon: Optional[int] = None) -> bool:
-    _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
-    return _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
+    return _TASK_BAR_ICON.SetIcon(
+        _ICON, _APP.GetAppName()) and _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
 
 def _on_right_click(_: wx.Event) -> None:
@@ -169,16 +168,16 @@ def _animation_worker() -> bool:
             delay, icon = next(_ANIMATIONS_[0][-1][0])
             _TASK_BAR_ICON.SetIcon(icon, _ANIMATIONS_[0][-1][1])
         except IndexError:
-            break
+            return _TASK_BAR_ICON.IsIconInstalled() and _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
         else:
             time.sleep(delay / 1000)
-    return _TASK_BAR_ICON.IsIconInstalled() and not _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
 
 
 def _start_animation() -> bool:
     if _ANIMATIONS and _ANIMATIONS_[0] is _ANIMATIONS:
-        if not any(thread.name == _THREAD_NAME for thread in threading.enumerate()):
-            threading.Thread(target=_animation_worker, name=_THREAD_NAME, daemon=True).start()
+        name = f'{type(_TASK_BAR_ICON).__name__}Animation'
+        if not any(thread.name == name for thread in threading.enumerate()):
+            threading.Thread(target=_animation_worker, name=name, daemon=True).start()
             return True
     return False
 

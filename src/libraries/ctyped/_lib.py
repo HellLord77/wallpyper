@@ -5,6 +5,7 @@ from . import _header
 
 _DEBUG = True
 
+UxTheme: _ctypes.WinDLL
 combase: _ctypes.WinDLL
 gdi32: _ctypes.WinDLL
 gdiplus: _ctypes.WinDLL

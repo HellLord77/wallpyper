@@ -1,4 +1,4 @@
-__version__ = '0.0.9'
+__version__ = '0.0.9'  # TODO: dump if unhandled exception
 
 import _io
 import atexit
@@ -137,7 +137,7 @@ def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
         elif event == _EXCEPTION:
             log += f'{pad}{_DETAILS[event]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
         elif event == _RETURN:
-            log += _format_dict({'return': arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
+            log += _format_dict({_RETURN: arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
         logging.error(log[:-1])
     return _hook_callback
 

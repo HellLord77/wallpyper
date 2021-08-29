@@ -84,6 +84,21 @@ def GetBValue(rgb: _type.COLORREF) -> _type.BYTE:
     return LOBYTE(rgb >> 16)
 
 
+# noinspection PyPep8Naming
+def IS_INTRESOURCE(_r: _type.ULONG_PTR) -> _type.c_bool:
+    return _type.c_bool(_r >> 16 == 0)
+
+
+# noinspection PyPep8Naming
+def MAKEINTRESOURCEA(i: _type.WORD) -> _type.LPSTR:
+    return _header.cast(_header.cast(i, _type.ULONG_PTR), _type.LPSTR).contents
+
+
+# noinspection PyPep8Naming
+def MAKEINTRESOURCEW(i: _type.WORD) -> _type.LPWSTR:
+    return _header.cast(_header.cast(i, _type.ULONG_PTR), _type.LPWSTR).contents
+
+
 def __getattr__(name: str) -> _Callable:
     _globals.hasattr(name)
     types = _typing.get_type_hints(_macro[name]).values()

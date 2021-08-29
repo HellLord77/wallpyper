@@ -5,6 +5,7 @@ import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
 
+from . import _const
 from . import _header
 from . import _type
 
@@ -115,6 +116,40 @@ class SHITEMID:
 @_dataclasses.dataclass
 class ITEMIDLIST:
     mkid: SHITEMID = None
+
+
+@_dataclasses.dataclass
+class MENUITEMINFOA:
+    cbSize: _type.UINT = None
+    fMask: _type.UINT = None
+    fType: _type.UINT = None
+    fState: _type.UINT = None
+    wID: _type.UINT = None
+    hSubMenu: _type.HMENU = None
+    hbmpChecked: _type.HBITMAP = None
+    hbmpUnchecked: _type.HBITMAP = None
+    dwItemData: _type.ULONG_PTR = None
+    dwTypeData: _type.LPSTR = None
+    cch: _type.UINT = None
+    if _const.WINVER >= 0x0500:
+        hbmpItem: _type.HBITMAP = None
+
+
+@_dataclasses.dataclass
+class MENUITEMINFOW:
+    cbSize: _type.UINT = None
+    fMask: _type.UINT = None
+    fType: _type.UINT = None
+    fState: _type.UINT = None
+    wID: _type.UINT = None
+    hSubMenu: _type.HMENU = None
+    hbmpChecked: _type.HBITMAP = None
+    hbmpUnchecked: _type.HBITMAP = None
+    dwItemData: _type.ULONG_PTR = None
+    dwTypeData: _type.LPWSTR = None
+    cch: _type.UINT = None
+    if _const.WINVER >= 0x0500:
+        hbmpItem: _type.HBITMAP = None
 
 
 UUID = GUID

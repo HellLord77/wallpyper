@@ -105,9 +105,10 @@ def load_config() -> bool:  # TODO: verify config
         config_parser.read(CONFIG_PATH)
     except configparser.MissingSectionHeaderError:
         loaded = False
-    loaded = _load_config(config_parser, NAME, CONFIG, DEFAULT_CONFIG) and loaded
-    for module in MODULES:
-        loaded = _load_config(config_parser, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
+    else:
+        loaded = _load_config(config_parser, NAME, CONFIG, DEFAULT_CONFIG) and loaded
+        for module in MODULES:
+            loaded = _load_config(config_parser, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
     return loaded
 
 
@@ -164,7 +165,7 @@ def save_wallpaper() -> bool:
 
 
 @utils.single
-def search_wallpaper() -> bool:  # fixme: change + search crash
+def search_wallpaper() -> bool:
     searched = False
     utils.animate(RES_PATHS[1], LANGUAGE.SEARCHING)
     for path in _get_wallpaper_paths():
