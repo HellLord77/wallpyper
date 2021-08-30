@@ -32,7 +32,7 @@ SAVE_DATA = 'save_config'
 DELAY = 0.01
 DELETE_TIMEOUT = 3
 EXIT_TIMEOUT = 7
-CACHE_MAX_SIZE = 64 * 1024 * 1024
+MAX_CACHE = 64 * 1024 * 1024
 
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
@@ -65,11 +65,8 @@ INTERVALS = {
 }
 
 CONFIG = {}
-
-
-class Change:
-    CALLBACK = None
-    TIMER = None
+CALLBACK = utils.dummy_func
+TIMER = utils.timer(CALLBACK)
 
 
 def _load_config(config_parser: configparser.ConfigParser, section: str,
@@ -112,7 +109,7 @@ def load_config() -> bool:  # TODO: verify config
     return loaded
 
 
-def save_config() -> bool:  # TODO: save wallpaper progress
+def save_config() -> bool:  # TODO: save recently set wallpaper (?)
     saved = True
     config_parser = configparser.ConfigParser()
     config_parser[NAME] = CONFIG
@@ -180,8 +177,8 @@ def search_wallpaper() -> bool:
 
 @utils.thread
 def on_change() -> bool:
-    changed = change_wallpaper(Change.CALLBACK)
-    Change.CALLBACK(-1)
+    changed = change_wallpaper(CALLBACK)
+    CALLBACK(-1)
     if changed:
         if CONFIG[SAVE]:
             save_wallpaper()
@@ -194,7 +191,7 @@ def on_auto_change(checked: bool, change_interval: Optional[wx.MenuItem] = None)
     CONFIG[CHANGE] = checked
     if change_interval:
         change_interval.Enable(True)
-    Change.TIMER.start(CONFIG[INTERVAL]) if checked else Change.TIMER.stop()
+    TIMER.start(CONFIG[INTERVAL]) if checked else TIMER.stop()
 
 
 def on_change_interval(interval: str) -> None:
@@ -212,6 +209,7 @@ def on_save() -> bool:
 
 def on_modify_save():
     utils.notify(LANGUAGE.MODIFY_SAVE, str(NotImplemented))
+    raise OSError
 
 
 def on_copy() -> bool:
@@ -255,7 +253,7 @@ def on_save_config(checked: bool) -> None:
 
 @utils.thread
 def on_exit() -> None:
-    Change.TIMER.stop()
+    TIMER.stop()
     utils.disable()
     if change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
         if CONFIG[NOTIFY]:
@@ -270,9 +268,13 @@ def on_exit() -> None:
 def create_menu() -> None:  # TODO: previous wallpaper
     update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
     change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
-    Change.CALLBACK = lambda progress: change.SetItemLabel(
-        f'{LANGUAGE.CHANGING} ({progress:03}%)' if progress >= 0 else f'{LANGUAGE.CHANGE}')
-    Change.TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
+
+    def set_item_label(progress: int) -> None:
+        change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:03}%)' if progress >= 0 else f'{LANGUAGE.CHANGE}')
+
+    global CALLBACK, TIMER
+    CALLBACK = set_item_label
+    TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(
         CONFIG[INTERVAL]),), CONFIG[CHANGE], INTERVALS, on_change_interval, extra_args=(utils.get_property.UID,))
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], callback=on_auto_change,
@@ -308,8 +310,8 @@ def start() -> None:  # TODO: dark theme
                              wait_callback=print, wait_callback_args=('Wait',),
                              exit_callback=print, exit_callback_args=('Exit',))
     if 'debug' in sys.argv:
-        if libraries.pyinstall.FROZEN:
-            libraries.log.redirect_stdio(LOG_PATH, True)
+        libraries.log.redirect_stdio(
+            LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_exception(LOG_PATH)
         libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
                            utils.re_join_path('libraries', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
                            utils.re_join_path('platforms', r'.*\.py'), level=libraries.log.Level.INFO, skip_comp=True)
@@ -317,7 +319,7 @@ def start() -> None:  # TODO: dark theme
     load_config()
     create_menu()
     utils.make_dirs(TEMP_DIR)
-    utils.trim_dir(TEMP_DIR, CACHE_MAX_SIZE)
+    utils.trim_dir(TEMP_DIR, MAX_CACHE)
     on_auto_change(CONFIG[CHANGE])
     on_animate(CONFIG[ANIMATE])
     on_auto_start(CONFIG[START])
@@ -331,7 +333,7 @@ def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    utils.trim_dir(TEMP_DIR, CACHE_MAX_SIZE) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_TIMEOUT)
+    utils.trim_dir(TEMP_DIR, MAX_CACHE) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_TIMEOUT)
     if utils.exists_dir(TEMP_DIR) and utils.is_empty_dir(TEMP_DIR, True):
         utils.delete(TEMP_DIR, True)
 

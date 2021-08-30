@@ -23,7 +23,7 @@ from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Option
 class Func:
     def __init__(self, func: Optional[Callable] = None,
                  args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
-        self.func = func or (lambda *_, **__: None)
+        self.func = func or dummy
         self.args = args or ()
         self.kwargs = kwargs or {}
         functools.update_wrapper(self, self.func)
@@ -124,6 +124,10 @@ def vars_ex(obj: Any) -> str:
         fmt += f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
                f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n'
     return fmt
+
+
+def dummy(*_: Any, **__: Any) -> None:
+    pass
 
 
 def clear_queue(queue_: queue.Queue) -> int:

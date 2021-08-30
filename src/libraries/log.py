@@ -1,4 +1,4 @@
-__version__ = '0.0.9'  # TODO: dump if unhandled exception
+__version__ = '0.0.10'
 
 import atexit
 import contextlib
@@ -15,32 +15,32 @@ import threading
 import types
 from typing import Any, Callable, Mapping, Optional
 
-_PREFIXES = {
-    'call': '\x1B[92m[>] ',
-    'exception': '\x1B[91m[!] ',
-    'return': '\x1B[94m[<] '
-}
-_DETAILS = {
-    'call': '\x1B[32m    ',
-    'exception': '\x1B[31m    ',
-    'return': '\x1B[34m    '
-}
-_SUFFIX = '\x1B[0m\n'
-_ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _CALL = 'call'
 _EXCEPTION = 'exception'
 _RETURN = 'return'
+_PREFIXES = {
+    _CALL: '\x1B[92m[>] ',
+    _EXCEPTION: '\x1B[91m[!] ',
+    _RETURN: '\x1B[94m[<] '
+}
+_DETAILS = {
+    _CALL: '\x1B[32m    ',
+    _EXCEPTION: '\x1B[31m    ',
+    _RETURN: '\x1B[34m    '
+}
+_SUFFIX = '\x1B[0m\n'
+_ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _GENERATOR = (_ for _ in ()).__name__
-_SHUTDOWN = logging.shutdown.__code__
-_BASE = '' if hasattr(sys, 'frozen') else os.path.dirname(inspect.stack()[-1].filename)
+_BASE = '' if hasattr(sys, 'frozen') else os.path.dirname(sys.modules['__main__'].__file__)
 _PATTERN = re.compile('.*')
-_LEVEL = 0
-_STACK = 0
+_STACK = {}
 _STREAM = io.StringIO()
 _WRITE: Optional[Callable] = None
+_DUMP = True
 
 
 class Level:
+    CURRENT = logging.root.level
     ERROR = logging.ERROR
     WARNING = logging.WARNING
     INFO = logging.INFO
@@ -49,7 +49,7 @@ class Level:
 
 
 def _flush(path: str) -> None:
-    if _STREAM.tell():
+    if _DUMP and _STREAM.tell():
         _STREAM.seek(0)
         with open(path, 'w') as file:
             shutil.copyfileobj(_STREAM, file)
@@ -61,7 +61,7 @@ def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[b
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(write_: Callable[[str], int], string: str):  # TODO: use queue
+    def write(write_: Callable[[str], int], string: str):
         if string:
             if write_once:
                 _STREAM.write(string)
@@ -73,6 +73,20 @@ def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[b
 
     global _WRITE
     _WRITE = write
+
+
+def _excepthook(excepthook_: Callable, *args, **kwargs) -> None:
+    global _DUMP
+    _DUMP = True
+    excepthook_(*args, **kwargs)
+
+
+def dump_exception(path: str) -> None:
+    global _DUMP
+    _DUMP = False
+    sys.excepthook = types.MethodType(_excepthook, sys.excepthook)
+    threading.excepthook = types.MethodType(_excepthook, threading.excepthook)
+    redirect_stdio(path, True, True)
 
 
 def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n') -> str:
@@ -90,7 +104,7 @@ def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n')
 
 def _get_thread_name() -> str:
     thread = threading.current_thread()
-    return '' if thread == threading.main_thread() else f' ({thread.name})'
+    return '' if thread is threading.main_thread() else f' ({thread.name})'
 
 
 def _get_class_name(locals_: Mapping[str, Any]) -> str:
@@ -102,41 +116,46 @@ def _get_class_name(locals_: Mapping[str, Any]) -> str:
         return ''
 
 
-def _filter(event: str, arg: Any, func: str) -> bool:
-    if _LEVEL == Level.DEBUG:
+def _filter(event: str, arg: Any, name: str) -> bool:
+    if Level.CURRENT == Level.DEBUG:
         return True
-    elif _LEVEL == Level.INFO:
-        return func != _GENERATOR and (event != _EXCEPTION or arg[0] not in (GeneratorExit, StopIteration))
-    elif _LEVEL == Level.ERROR:
+    elif Level.CURRENT == Level.INFO:
+        return name != _GENERATOR and (event != _EXCEPTION or arg[0] not in (GeneratorExit, StopIteration))
+    elif Level.CURRENT == Level.ERROR:
         return event == _EXCEPTION
-    elif _LEVEL == Level.WARNING:
+    elif Level.CURRENT == Level.WARNING:
         return event == _EXCEPTION and issubclass(arg[0], Warning)
-    elif _LEVEL == Level.NOTSET:
+    elif Level.CURRENT == Level.NOTSET:
         return False
 
 
 def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
-    if frame.f_code is _SHUTDOWN:
-        sys.settrace(lambda _, __, ___: None)
-    frame.f_trace_lines = False
-    path = frame.f_code.co_filename
-    with contextlib.suppress(ValueError):
-        path = os.path.relpath(path, _BASE)
-    if _PATTERN.fullmatch(path) and _filter(event, arg, frame.f_code.co_name):
-        global _STACK
-        _STACK -= event == _RETURN
-        pad = ' ' * _STACK * 4
-        log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] ' \
-              f'{_get_class_name(frame.f_locals)}{frame.f_code.co_name}{_get_thread_name()}{_SUFFIX}'
-        if event == _CALL:
-            _STACK += 1
-            if frame.f_locals:
-                log += _format_dict(frame.f_locals, f'{pad}{_DETAILS[event]}', _SUFFIX)
-        elif event == _EXCEPTION:
-            log += f'{pad}{_DETAILS[event]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
-        elif event == _RETURN:
-            log += _format_dict({_RETURN: arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
-        logging.error(log[:-1])
+    if frame.f_code is logging.shutdown.__code__:
+        _hook_callback.__code__ = (lambda _, __, ___: None).__code__
+    else:
+        frame.f_trace_lines = False
+        path = frame.f_code.co_filename
+        with contextlib.suppress(ValueError):
+            path = os.path.relpath(path, _BASE)
+        if _PATTERN.fullmatch(path) and sys.modules[__name__] is not inspect.getmodule(
+                frame) and _filter(event, arg, frame.f_code.co_name):
+            thread = threading.current_thread()
+            if thread not in _STACK:
+                _STACK[thread] = 0
+            _STACK[thread] -= event == _RETURN
+            pad = ' ' * _STACK[thread] * 4
+            log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] ' \
+                  f'{_get_class_name(frame.f_locals)}{frame.f_code.co_name}' \
+                  f'{"" if thread is threading.main_thread() else f" ({thread.name})"}{_SUFFIX}'
+            if event == _CALL:
+                _STACK[thread] += 1
+                if frame.f_locals:
+                    log += _format_dict(frame.f_locals, f'{pad}{_DETAILS[event]}', _SUFFIX)
+            elif event == _EXCEPTION:
+                log += f'{pad}{_DETAILS[event]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
+            elif event == _RETURN:
+                log += _format_dict({_RETURN: arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
+            logging.error(log[:-1])
     return _hook_callback
 
 
@@ -152,10 +171,10 @@ def _is_compatible() -> bool:
 
 
 def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False) -> None:
-    global _PATTERN, _LEVEL
+    global _PATTERN
     if patterns:
         _PATTERN = re.compile(f'({"|".join(patterns)})')
-    _LEVEL = level
+    Level.CURRENT = level
     if redirect_wx:
         __import__('wx').GetApp().RedirectStdio()
     if _WRITE:
