@@ -1,6 +1,5 @@
 __version__ = '0.0.9'  # TODO: dump if unhandled exception
 
-import _io
 import atexit
 import contextlib
 import datetime
@@ -17,16 +16,16 @@ import types
 from typing import Any, Callable, Mapping, Optional
 
 _PREFIXES = {
-    'call': '\x1b[92m[>] ',
-    'exception': '\x1b[91m[!] ',
-    'return': '\x1b[94m[<] '
+    'call': '\x1B[92m[>] ',
+    'exception': '\x1B[91m[!] ',
+    'return': '\x1B[94m[<] '
 }
 _DETAILS = {
-    'call': '\x1b[32m    ',
-    'exception': '\x1b[31m    ',
-    'return': '\x1b[34m    '
+    'call': '\x1B[32m    ',
+    'exception': '\x1B[31m    ',
+    'return': '\x1B[34m    '
 }
-_SUFFIX = '\x1b[0m\n'
+_SUFFIX = '\x1B[0m\n'
 _ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _CALL = 'call'
 _EXCEPTION = 'exception'
@@ -39,7 +38,6 @@ _LEVEL = 0
 _STACK = 0
 _STREAM = io.StringIO()
 _WRITE: Optional[Callable] = None
-_WRITE_ = {}
 
 
 class Level:
@@ -63,7 +61,7 @@ def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[b
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(stream: _io.TextIOWrapper, string: str):  # TODO: use queue
+    def write(write_: Callable[[str], int], string: str):  # TODO: use queue
         if string:
             if write_once:
                 _STREAM.write(string)
@@ -71,7 +69,7 @@ def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[b
                 with open(path, 'a') as file:
                     file.write(string)
         if tee:
-            _WRITE_[stream](string)
+            write_(string)
 
     global _WRITE
     _WRITE = write
@@ -119,7 +117,7 @@ def _filter(event: str, arg: Any, func: str) -> bool:
 
 def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
     if frame.f_code is _SHUTDOWN:
-        sys.settrace(lambda *_: None)
+        sys.settrace(lambda _, __, ___: None)
     frame.f_trace_lines = False
     path = frame.f_code.co_filename
     with contextlib.suppress(ValueError):
@@ -162,11 +160,9 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, sk
         __import__('wx').GetApp().RedirectStdio()
     if _WRITE:
         sys.stdout.isatty = types.MethodType(lambda _: False, sys.stdout)
-        _WRITE_[sys.stdout] = sys.stdout.write
-        sys.stdout.write = types.MethodType(_WRITE, sys.stdout)
+        sys.stdout.write = types.MethodType(_WRITE, sys.stdout.write)
         if sys.stdout is not sys.stderr:
-            _WRITE_[sys.stderr] = sys.stderr.write
-            sys.stderr.write = types.MethodType(_WRITE, sys.stderr)
+            sys.stderr.write = types.MethodType(_WRITE, sys.stderr.write)
     if _WRITE or not skip_comp:
         _is_compatible()
     logging.root.addHandler(logging.StreamHandler())

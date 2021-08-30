@@ -125,18 +125,16 @@ def __getattr__(name: str) -> type[_ctypes.c_void_p]:
     _globals.hasattr(name)
 
     class Wrapper(_ctypes.c_void_p):
+        _fields = {name_: _ctypes.WINFUNCTYPE(*_method_type(
+            types)) for name_, types in _typing.get_type_hints(_com[name], _globals).items()}
         # noinspection PyTypeChecker
-        _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
-            *_method_type(types))) for name_, types in _typing.get_type_hints(_com[name], _globals).items())}))
-        # noinspection PyProtectedMember
-        _methods = tuple(name_ for name_ in dir(_pointer._type_) if not name_.startswith('_'))
+        _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple(_fields.items())}))
 
         def __getattr__(self, name_):
-            if name_ in self._methods:
+            if name_ in self._fields:
                 funcs = _ctypes.cast(_ctypes.cast(self, _ctypes.POINTER(
                     _ctypes.c_void_p)).contents.value, self._pointer).contents
-                # noinspection PyProtectedMember
-                for name__, types in self._pointer._type_._fields_:
+                for name__, types in self._fields.items():
                     method = getattr(funcs, name__)
                     method.__name__ = name__
                     # noinspection PyProtectedMember
@@ -147,7 +145,7 @@ def __getattr__(name: str) -> type[_ctypes.c_void_p]:
     _globals[name] = _functools.update_wrapper(Wrapper, _com[name], ('__CLSID__', *_functools.WRAPPER_ASSIGNMENTS), ())
     # noinspection PyProtectedMember
     Wrapper.__doc__ = '\n'.join(_header.get_doc(
-        name, types._restype_, types._argtypes_) for name, types in Wrapper._pointer._type_._fields_)
+        name_, types._restype_, types._argtypes_) for name_, types in Wrapper._fields.items())
     return _globals[name]
 
 

@@ -2,7 +2,7 @@ __version__ = '0.0.2'
 
 import sys
 
-_ESC = '\x1b'
+_ESC = '\x1B'
 _CSI = f'{_ESC}['
 _CODES = set()
 _SUPPORTED = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
