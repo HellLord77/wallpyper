@@ -1,14 +1,16 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import contextlib
 import filecmp
 import glob
 import os
 import shutil
+import sys
 import time
-from typing import Generator, Optional
+from typing import Any, Callable, Generator, IO, Iterable, Mapping, Optional
 
 DELAY = 0.01
+CHUNK = 1024 * 1024
 
 
 def join(base: str, *children: str) -> str:
@@ -33,12 +35,31 @@ def get_size(path: str) -> int:
     return size
 
 
-def copy(src_path: str, dest_path: str) -> bool:
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
+                callback: Optional[Callable[[int, ...], Any]] = None,
+                args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> None:
+    size = size or sys.maxsize
+    chunk_size = chunk_size or CHUNK
+    chunk = src.read(chunk_size)
+    ratio = 0
+    while chunk:
+        dst.write(chunk)
+        ratio += len(chunk) / size
+        if callback:
+            callback(round(ratio * 100), *args or (), **kwargs or {})
+        chunk = src.read(chunk_size)
+
+
+def copy(src_path: str, dest_path: str, chunk_size: Optional[int] = None,
+         callback: Optional[Callable[[int, ...], Any]] = None,
+         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if os.path.exists(src_path):
         if not os.path.exists(dest_path):
             with contextlib.suppress(PermissionError):
-                shutil.copyfile(src_path, dest_path)
+                with open(src_path, 'rb') as src:
+                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                    with open(dest_path, 'wb') as dst:
+                        copyfileobj(src, dst, os.path.getsize(src_path), chunk_size, callback, args, kwargs)
         return os.path.exists(dest_path) and filecmp.cmp(src_path, dest_path)
     return False
 

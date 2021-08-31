@@ -48,7 +48,7 @@ DEFAULT_CONFIG = {
     KEEP_CACHE: False,
     START: False,
     SAVE_DATA: False
-}
+}  # TODO: change wallpaper and/or lock
 
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)

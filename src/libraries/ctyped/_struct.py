@@ -101,12 +101,6 @@ class MENUINFO:
     dwMenuData: _type.ULONG_PTR = None
 
 
-# noinspection PyPep8Naming
-@_dataclasses.dataclass
-class HSTRING__:
-    unused: _type.c_int = None
-
-
 @_dataclasses.dataclass
 class SHITEMID:
     cb: _type.USHORT = None

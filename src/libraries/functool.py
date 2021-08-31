@@ -17,7 +17,7 @@ import sys
 import threading
 import time
 import uuid
-from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional
+from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
 
 class Func:
@@ -136,6 +136,14 @@ def clear_queue(queue_: queue.Queue) -> int:
         queue_.queue.clear()
         queue_.unfinished_tasks = 0
     return tasks
+
+
+def iter_io(itt: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]:
+    size = size or sys.maxsize
+    chunk = itt.read(size)
+    while chunk:
+        yield chunk
+        chunk = itt.read(size)
 
 
 def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:

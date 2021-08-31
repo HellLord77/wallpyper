@@ -16,6 +16,12 @@ RoInitialize: _Callable[[_type.RO_INIT_TYPE],
                         _type.HRESULT] = _lib.combase.RoInitialize
 RoUninitialize: _Callable[[],
                           _type.c_void_p] = _lib.combase.RoUninitialize
+RoActivateInstance: _Callable[[_type.HSTRING, _type.c_void_p],
+                              _type.HRESULT] = _lib.combase.RoActivateInstance
+WindowsCreateString: _Callable[[_Optional[_type.PCNZWCH], _type.UINT32, _header.Pointer[_type.HSTRING]],
+                               _type.HRESULT] = _lib.combase.WindowsCreateString
+WindowsDeleteString: _Callable[[_type.HSTRING],
+                               _type.HRESULT] = _lib.combase.WindowsDeleteString
 
 GetObjectA: _Callable[[_type.HANDLE, _type.c_int, _type.LPVOID],
                       _type.c_int] = _lib.gdi32.GetObjectA

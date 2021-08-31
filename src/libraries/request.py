@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import contextlib
 import http.client
@@ -71,6 +71,9 @@ class Response:
     def get_text(self) -> str:
         return self.get_content().decode()
 
+    def read(self, n: int) -> bytes:
+        return self.response.read(n)
+
 
 def urljoin(base: str, *urls: str) -> str:
     if not base.endswith('/'):
@@ -112,20 +115,22 @@ def download(url: str, path: str, size: Optional[int] = None, chunk_size: Option
     response = urlopen(url)
     if response:
         size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
+        if os.path.exists(path):
+            if os.path.isfile(path) and size == os.path.getsize(path):
+                return True
+            else:
+                os.remove(path)
+        else:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         ratio = 0
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        if os.path.isfile(path) and size == os.path.getsize(path):
-            return True
-        if os.path.isdir(path):
-            os.remove(path)
         with open(path, 'wb') as file:
             for chunk in response:
                 file.write(chunk)
                 ratio += len(chunk) / size
                 if callback:
                     callback(round(ratio * 100), *args or (), **kwargs or {})
-        return size == os.path.getsize(path)
+        return os.path.isfile(path) and size == os.path.getsize(path)
     return False
 
 
