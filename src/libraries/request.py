@@ -52,10 +52,11 @@ class Response:
                 yield self._content[i:i + self.chunk_size]
         else:
             with contextlib.suppress(ConnectionError):
-                chunk = self.response.read(self.chunk_size)
+                read = self.response.read
+                chunk = read(self.chunk_size)
                 while chunk:
                     yield chunk
-                    chunk = self.response.read(self.chunk_size)
+                    chunk = read(self.chunk_size)
 
     def get_content(self) -> bytes:
         if not self.response.isclosed():
@@ -123,13 +124,16 @@ def download(url: str, path: str, size: Optional[int] = None, chunk_size: Option
         else:
             os.makedirs(os.path.dirname(path), exist_ok=True)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
-        ratio = 0
         with open(path, 'wb') as file:
+            write = file.write
+            args = args or ()
+            kwargs = kwargs or {}
+            ratio = 0
             for chunk in response:
-                file.write(chunk)
+                write(chunk)
                 ratio += len(chunk) / size
                 if callback:
-                    callback(round(ratio * 100), *args or (), **kwargs or {})
+                    callback(round(ratio * 100), *args, **kwargs)
         return os.path.isfile(path) and size == os.path.getsize(path)
     return False
 

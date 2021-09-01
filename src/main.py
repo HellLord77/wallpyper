@@ -1,4 +1,4 @@
-__version__ = '0.1.8'
+__version__ = '0.1.8'  # TODO: error, avoid condition
 
 import configparser
 import sys
@@ -48,7 +48,7 @@ DEFAULT_CONFIG = {
     KEEP_CACHE: False,
     START: False,
     SAVE_DATA: False
-}  # TODO: change wallpaper and/or lock
+}
 
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
@@ -69,43 +69,34 @@ CALLBACK = utils.dummy_func
 TIMER = utils.timer(CALLBACK)
 
 
-def _load_config(config_parser: configparser.ConfigParser, section: str,
+def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool]]], section: str,
                  config: dict[str, Union[str, int, float, bool]],
-                 default_config: dict[str, Union[str, int, float, bool]]) -> bool:
+                 default: dict[str, Union[str, int, float, bool]]) -> bool:
     loaded = True
-    getters = {
-        str: config_parser.get,
-        int: config_parser.getint,
-        float: config_parser.getfloat,
-        bool: config_parser.getboolean
-    }
-    config.update(default_config)
-    if config_parser.has_section(section):
-        for option, value in default_config.items():
-            if config_parser.has_option(section, option):
-                try:
-                    # noinspection PyArgumentList
-                    config[option] = getters[type(value)](section, option)
-                except TypeError:
-                    loaded = False
-            else:
-                loaded = False
-    else:
-        loaded = False
+    for option, value in default.items():
+        try:
+            config[option] = getters[type(value)](section, option)
+        except (ValueError, TypeError, configparser.NoSectionError, configparser.NoOptionError):
+            config[option] = value
+            loaded = False
     return loaded
 
 
 def load_config() -> bool:  # TODO: verify config
-    loaded = True
-    config_parser = configparser.ConfigParser()
+    parser = configparser.ConfigParser()
     try:
-        config_parser.read(CONFIG_PATH)
+        loaded = bool(parser.read(CONFIG_PATH))
     except configparser.MissingSectionHeaderError:
         loaded = False
-    else:
-        loaded = _load_config(config_parser, NAME, CONFIG, DEFAULT_CONFIG) and loaded
-        for module in MODULES:
-            loaded = _load_config(config_parser, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
+    getters = {
+        str: parser.get,
+        int: parser.getint,
+        float: parser.getfloat,
+        bool: parser.getboolean
+    }
+    loaded = _load_config(getters, NAME, CONFIG, DEFAULT_CONFIG) and loaded
+    for module in MODULES:
+        loaded = _load_config(getters, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
     return loaded
 
 

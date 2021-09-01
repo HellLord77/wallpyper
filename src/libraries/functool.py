@@ -19,6 +19,8 @@ import time
 import uuid
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
+DEFAULT = object()
+
 
 class Func:
     def __init__(self, func: Optional[Callable] = None,
@@ -64,10 +66,9 @@ def dict_ex(obj: Any) -> dict[str, Any]:
 def eq_ex(a: Any, b: Any) -> bool:
     sleep_ex()
     if isinstance(a, Iterable) and isinstance(b, Iterable):
-        empty = object()
-        for a_, b_ in itertools.zip_longest(a, b, fillvalue=empty):
+        for a_, b_ in itertools.zip_longest(a, b, fillvalue=DEFAULT):
             sleep_ex()
-            if eq_ex(a_, empty) or eq_ex(b_, empty) or not eq_ex(a_, b_):
+            if eq_ex(a_, DEFAULT) or eq_ex(b_, DEFAULT) or not eq_ex(a_, b_):
                 return False
         return True
     else:
@@ -138,12 +139,13 @@ def clear_queue(queue_: queue.Queue) -> int:
     return tasks
 
 
-def iter_io(itt: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]:
+def iter_io(io: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]:
+    read = io.read
     size = size or sys.maxsize
-    chunk = itt.read(size)
+    chunk = read(size)
     while chunk:
         yield chunk
-        chunk = itt.read(size)
+        chunk = read(size)
 
 
 def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:

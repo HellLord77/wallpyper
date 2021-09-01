@@ -115,6 +115,12 @@ class IFileOpenDialog(IFileDialog):
     GetSelectedItems: _Callable
 
 
+class IInspectable(IUnknown):
+    GetIids: _Callable
+    GetRuntimeClassName: _Callable
+    GetTrustLevel: _Callable
+
+
 def _method_type(types: _Callable) -> list:
     types_ = _header.resolve_type(types)
     types_.insert(1, _ctypes.c_void_p)

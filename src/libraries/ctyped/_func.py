@@ -10,7 +10,7 @@ from . import _struct
 from . import _type
 
 SetWindowTheme: _Callable[[_type.HWND, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR]],
-                          _type.HRESULT] = _lib.UxTheme.SetWindowTheme
+                          _type.HRESULT] = _lib.uxtheme.SetWindowTheme
 
 RoInitialize: _Callable[[_type.RO_INIT_TYPE],
                         _type.HRESULT] = _lib.combase.RoInitialize
@@ -42,15 +42,15 @@ GetStockObject: _Callable[[_type.c_int],
 
 GdiplusStartup: _Callable[[_header.Pointer[_type.ULONG_PTR], _header.Pointer[_struct.GdiplusStartupInput],
                            _Optional[_header.Pointer[_struct.GdiplusStartupInput]]],
-                          _type.Status] = _lib.gdiplus.GdiplusStartup
+                          _type.Status] = _lib.GdiPlus.GdiplusStartup
 GdiplusShutdown: _Callable[[_type.ULONG_PTR],
-                           _type.VOID] = _lib.gdiplus.GdiplusShutdown
+                           _type.VOID] = _lib.GdiPlus.GdiplusShutdown
 GdipCreateBitmapFromFile: _Callable[[_header.Pointer[_type.WCHAR], _header.Pointer[_type.GpBitmap]],
-                                    _type.GpStatus] = _lib.gdiplus.GdipCreateBitmapFromFile
+                                    _type.GpStatus] = _lib.GdiPlus.GdipCreateBitmapFromFile
 GdipDisposeImage: _Callable[[_type.GpImage],
-                            _type.GpStatus] = _lib.gdiplus.GdipDisposeImage
+                            _type.GpStatus] = _lib.GdiPlus.GdipDisposeImage
 GdipCreateHBITMAPFromBitmap: _Callable[[_type.GpBitmap, _header.Pointer[_type.HBITMAP], _type.ARGB],
-                                       _type.GpStatus] = _lib.gdiplus.GdipCreateHBITMAPFromBitmap
+                                       _type.GpStatus] = _lib.GdiPlus.GdipCreateHBITMAPFromBitmap
 
 GlobalAlloc: _Callable[[_type.UINT, _type.SIZE_T],
                        _type.HGLOBAL] = _lib.kernel32.GlobalAlloc
@@ -79,6 +79,8 @@ CoInitialize: _Callable[[_Optional[_type.LPVOID]],
                         _type.HRESULT] = _lib.ole32.CoInitialize
 CoUninitialize: _Callable[[],
                           _type.VOID] = _lib.ole32.CoUninitialize
+CoCreateGuid: _Callable[[_header.Pointer[_struct.GUID]],
+                        _type.HRESULT] = _lib.ole32.CoCreateGuid
 CoCreateInstance: _Callable[[_header.Pointer[_struct.CLSID], _Optional[_header.Pointer[_type.IUnknown]],
                              _type.DWORD, _header.Pointer[_struct.IID], _type.LPVOID],
                             _type.HRESULT] = _lib.ole32.CoCreateInstance
@@ -166,6 +168,8 @@ GetWindowTextA: _Callable[[_type.HWND, _type.LPSTR, _type.c_int],
                           _type.c_int] = _lib.user32.GetWindowTextA
 GetWindowTextW: _Callable[[_type.HWND, _type.LPWSTR, _type.c_int],
                           _type.c_int] = _lib.user32.GetWindowTextW
+LockWorkStation: _Callable[[],
+                           _type.BOOL] = _lib.user32.LockWorkStation
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember

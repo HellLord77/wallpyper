@@ -56,6 +56,7 @@ _MENU = wx.Menu()
 _ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 _ANIMATIONS_ = [_ANIMATIONS, []]
+_ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
 def _get_wrapper(menu_item: wx.MenuItem, callback: Callable, args: Iterable,
@@ -175,9 +176,8 @@ def _animation_worker() -> bool:
 
 def _start_animation() -> bool:
     if _ANIMATIONS and _ANIMATIONS_[0] is _ANIMATIONS:
-        name = f'{type(_TASK_BAR_ICON).__name__}Animation'
-        if not any(thread.name == name for thread in threading.enumerate()):
-            threading.Thread(target=_animation_worker, name=name, daemon=True).start()
+        if not any(thread.name == _ANIMATION_THREAD for thread in threading.enumerate()):
+            threading.Thread(target=_animation_worker, name=_ANIMATION_THREAD, daemon=True).start()
             return True
     return False
 

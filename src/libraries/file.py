@@ -38,16 +38,20 @@ def get_size(path: str) -> int:
 def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
                 callback: Optional[Callable[[int, ...], Any]] = None,
                 args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> None:
+    read = src.read
+    write = dst.write
     size = size or sys.maxsize
     chunk_size = chunk_size or CHUNK
-    chunk = src.read(chunk_size)
+    args = args or ()
+    kwargs = kwargs or {}
     ratio = 0
+    chunk = read(chunk_size)
     while chunk:
-        dst.write(chunk)
+        write(chunk)
         ratio += len(chunk) / size
         if callback:
-            callback(round(ratio * 100), *args or (), **kwargs or {})
-        chunk = src.read(chunk_size)
+            callback(round(ratio * 100), *args, **kwargs)
+        chunk = read(chunk_size)
 
 
 def copy(src_path: str, dest_path: str, chunk_size: Optional[int] = None,
