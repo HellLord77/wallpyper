@@ -14,7 +14,7 @@ _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'R
 
 def _get_dir(csidl: int) -> str:
     buff = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctyped.func.SHGetFolderPathW(None, csidl, None, libraries.ctyped.const.SHGFP_TYPE_CURRENT, buff)
+    libraries.ctyped.func.SHGetFolderPath(None, csidl, None, libraries.ctyped.const.SHGFP_TYPE_CURRENT, buff)
     return buff.value
 
 
@@ -79,7 +79,7 @@ def copy_image(path: str) -> bool:
     buff = 0
     with _hbitmap(path) as hbitmap:
         bm = libraries.ctyped.struct.BITMAP()
-        if libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP) == libraries.ctyped.func.GetObjectW(
+        if libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP) == libraries.ctyped.func.GetObject(
                 hbitmap, libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAP), libraries.ctyped.byref(bm)):
             sz_bi = libraries.ctyped.sizeof(libraries.ctyped.struct.BITMAPINFOHEADER)
             bi = libraries.ctyped.struct.BITMAPINFOHEADER(
@@ -103,14 +103,14 @@ def copy_image(path: str) -> bool:
 
 def get_wallpaper_path() -> str:
     buff = libraries.ctyped.type.LPWSTR(' ' * _MAX_PATH)
-    libraries.ctyped.func.SystemParametersInfoW(libraries.ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buff, 0)
+    libraries.ctyped.func.SystemParametersInfo(libraries.ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buff, 0)
     return buff.value or get_wallpaper_path_ex()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            libraries.ctyped.func.SystemParametersInfoW(
+            libraries.ctyped.func.SystemParametersInfo(
                 libraries.ctyped.const.SPI_SETDESKWALLPAPER, 0, path, libraries.ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
@@ -154,8 +154,8 @@ def set_wallpaper_ex(*paths: str) -> bool:
         if desktop:
             for path in paths:
                 if os.path.isfile(path):
-                    libraries.ctyped.func.SendMessageW(
-                        libraries.ctyped.func.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
+                    libraries.ctyped.func.SendMessage(
+                        libraries.ctyped.func.FindWindow('Progman', 'Program Manager'), 0x52c, 0, 0)
                     desktop.SetWallpaper(path, 0)
                     desktop.ApplyChanges(libraries.ctyped.const.AD_APPLY_ALL)
                     return True

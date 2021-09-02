@@ -1,15 +1,15 @@
-from __future__ import annotations as _
-
 import ctypes as _ctypes
 import inspect as _inspect
 import types as _types
 import typing as _typing
 from typing import Any as _Any
 from typing import Callable as _Callable
+from typing import Generator as _Generator
 from typing import Generic as _Generic
 from typing import NoReturn as _NoReturn
 from typing import Optional as _Optional
 from typing import Sequence as _Sequence
+from typing import Union as _Union
 
 INIT = False
 T = _typing.TypeVar('T')
@@ -26,38 +26,47 @@ class Array(Pointer, _Sequence[T]):
 
 
 class Globals(dict):
-    def __init__(self, base: dict[str, _Any], globals_, getattr_):
-        self.base = base
-        self.globals = globals_
-        self.getattr = getattr_
-        super().__init__(globals_)
+    def __init__(self):
+        self.module = _inspect.getmodule(_inspect.currentframe().f_back)
+        self.annotations = None
+        self.base = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
+        for var in self.base:
+            delattr(self.module, var)
+        super().__init__(vars(self.module))
 
     def __getitem__(self, item: str):
         if item not in self:
-            return self.getattr(item)
+            return getattr(self.module, item)
         return super().__getitem__(item)
 
     def __setitem__(self, key: str, value):
         val = self.base[key]
-        for key_ in tuple(self.base):
+        for key_ in self.iter_base():
             if self.base[key_] is val:
-                self.globals[key] = value
-                super().__setitem__(key, value)
+                setattr(self.module, key_, value)
+                super().__setitem__(key_, value)
+                del self.base[key_]
 
-    def hasattr(self, key: str) -> _NoReturn:
-        if key not in getattr(self, 'base', self):
-            getattr(_types.ModuleType(_inspect.getmodule(_inspect.currentframe().f_back).__name__), key)
+    def iter_base(self) -> _Generator[str, None, None]:
+        for item in tuple(self.base):
+            if item in self.base:
+                yield item
+
+    def has_item(self, item: str) -> _NoReturn:
+        if item not in self.base:
+            getattr(_types.ModuleType(_inspect.getmodule(_inspect.currentframe().f_back).__name__), item)
+
+    def get_annotation(self, item: str) -> _Any:
+        if not self.annotations:
+            self.annotations = _typing.get_type_hints(self.module)
+        val = self.base[item]
+        for key in self.iter_base():
+            if self.base[key] is val and key in self.annotations:
+                return self.annotations[key]
 
 
 def get_doc(name: str, restype, argtypes: tuple) -> str:
     return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
-
-
-def init(globals_: dict[str, _Any]) -> dict[str, _Any]:
-    backup = {var: val for var, val in globals_.items() if not var.startswith('_')}
-    for var in backup:
-        del globals_[var]
-    return backup
 
 
 def resolve_type(type_: _Any) -> _Any:
@@ -82,7 +91,7 @@ def byref(obj: T) -> Pointer[T]:
     return _ctypes.byref(obj)
 
 
-def cast(obj: _Any, type_: type[T] | T) -> Pointer[T]:
+def cast(obj: _Any, type_: _Union[type[T], T]) -> Pointer[T]:
     try:
         return _ctypes.cast(obj, type_)
     except _ctypes.ArgumentError:

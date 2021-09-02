@@ -1,9 +1,9 @@
 import ctypes as _ctypes
-import typing as _typing
 from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _com
+from . import _const
 from . import _header
 from . import _lib
 from . import _struct
@@ -171,21 +171,28 @@ GetWindowTextW: _Callable[[_type.HWND, _type.LPWSTR, _type.c_int],
 LockWorkStation: _Callable[[],
                            _type.BOOL] = _lib.user32.LockWorkStation
 
+GetObject = GetObjectW if _const.UNICODE else GetObjectA
+SHGetFolderPath = SHGetFolderPathW if _const.UNICODE else SHGetFolderPathA
+SystemParametersInfo = SystemParametersInfoW if _const.UNICODE else SystemParametersInfoA
+LoadImage = LoadImageW if _const.UNICODE else LoadImageA
+FindWindow = FindWindowW if _const.UNICODE else FindWindowA
+SendMessage = SendMessageW if _const.UNICODE else SendMessageA
+SendMessageTimeout = SendMessageTimeoutW if _const.UNICODE else SendMessageTimeoutA
+GetClassName = GetClassNameW if _const.UNICODE else GetClassNameA
+GetWindowText = GetWindowTextW if _const.UNICODE else GetWindowTextA
+
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def __getattr__(name: str) -> _ctypes._CFuncPtr:
-    # noinspection PyTypeChecker
-    _header.Globals.hasattr(_func, name)
-    globals_ = globals()
-    func = _func[name]
-    func.restype, *func.argtypes = _header.resolve_type(_annotations[name])
+    _globals.has_item(name)
+    func = _globals.base[name]
+    func.restype, *func.argtypes = _header.resolve_type(_globals.get_annotation(name))
     func.__doc__ = _header.get_doc(name, func.restype, func.argtypes)
-    globals_[name] = func
-    return globals_[name]
+    _globals[name] = func
+    return func
 
 
-_func = _header.init(globals())
-_annotations = _typing.get_type_hints(type('', (), globals()))
+_globals = _header.Globals()
 if _header.INIT:
-    for _func_ in _func:
-        __getattr__(_func_)
+    for _func in _globals.iter_base():
+        __getattr__(_func)

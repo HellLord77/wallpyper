@@ -100,17 +100,17 @@ def MAKEINTRESOURCEW(i: _type.WORD) -> _type.LPWSTR:
 
 
 def __getattr__(name: str) -> _Callable:
-    _globals.hasattr(name)
-    types = _typing.get_type_hints(_macro[name]).values()
-    macro = _types.FunctionType(_macro[name].__code__, _globals, name,
-                                _macro[name].__defaults__, _macro[name].__closure__)
-    _globals[name] = _functools.update_wrapper(lambda *args: macro(*(
-        arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _macro[name])
-    return _globals[name]
+    _globals.has_item(name)
+    types = _typing.get_type_hints(_globals.base[name]).values()
+    macro = _types.FunctionType(
+        _globals.base[name].__code__, _globals, name, _globals.base[name].__defaults__, _globals.base[name].__closure__)
+    macro_ = _functools.update_wrapper(lambda *args: macro(*(
+        arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _globals.base[name])
+    _globals[name] = macro_
+    return macro_
 
 
-_macro = _header.init(globals())
-_globals = _header.Globals(_macro, globals(), __getattr__)
+_globals = _header.Globals()
 if _header.INIT:
-    for _macro_ in _macro:
-        __getattr__(_macro_)
+    for _macro in _globals.iter_base():
+        __getattr__(_macro)

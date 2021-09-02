@@ -149,15 +149,16 @@ class MENUITEMINFOW:
 UUID = GUID
 IID = GUID
 CLSID = GUID
+MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
 
 
 def __getattr__(name: str) -> type[_ctypes.Structure]:
-    _globals.hasattr(name)
+    _globals.has_item(name)
 
     class Wrapper(_ctypes.Structure):
         _fields_ = tuple((field, _header.resolve_type(type_))
-                         for field, type_ in _typing.get_type_hints(_struct[name], _globals).items())
-        __defaults__ = tuple((field, getattr(_struct[name], field) or type_) for field, type_ in _fields_)
+                         for field, type_ in _typing.get_type_hints(_globals.base[name], _globals).items())
+        __defaults__ = tuple((field, getattr(_globals.base[name], field) or type_) for field, type_ in _fields_)
 
         def __init__(self, *args, **kwargs):
             for i, field in enumerate(self.__defaults__):
@@ -165,13 +166,12 @@ def __getattr__(name: str) -> type[_ctypes.Structure]:
                     kwargs[field[0]] = field[1]() if callable(field[1]) else field[1]
             super().__init__(*args, **kwargs)
 
-    _functools.update_wrapper(Wrapper, _struct[name], ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
+    _functools.update_wrapper(Wrapper, _globals.base[name], ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
     _globals[name] = Wrapper
-    return _globals[name]
+    return Wrapper
 
 
-_struct = _header.init(globals())
-_globals = _header.Globals(_struct, globals(), __getattr__)
+_globals = _header.Globals()
 if _header.INIT:
-    for _struct_ in _struct:
-        __getattr__(_struct_)
+    for _struct in _globals.iter_base():
+        __getattr__(_struct)

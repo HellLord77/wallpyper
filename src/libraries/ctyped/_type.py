@@ -207,16 +207,15 @@ def _set_magic(magics: dict[str, _Callable],
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def __getattr__(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
-    _globals.hasattr(name)
-    type_ = _header.resolve_type(_ctype[name])
+    _globals.has_item(name)
+    type_ = _header.resolve_type(_globals.base[name])
     for item in _magics.items():
         setattr(type_, *item)
     _globals[name] = type_
-    return _globals[name]
+    return type_
 
 
-_ctype = _header.init(globals())
-_globals = _header.Globals(_ctype, globals(), __getattr__)
+_globals = _header.Globals()
 _magics = {}
 for _magic in _CT_BINARY:
     _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic: type(
@@ -236,5 +235,5 @@ for _magic in _PY_UNARY:
     _set_magic(_magics, _magic, (lambda self: complex(
         self.value)) if _magic == '__complex__' else (lambda self, _magic=_magic: getattr(self.value, _magic)()))
 if _header.INIT:
-    for _ctype_ in _ctype:
-        __getattr__(_ctype_)
+    for _type in _globals.iter_base():
+        __getattr__(_type)

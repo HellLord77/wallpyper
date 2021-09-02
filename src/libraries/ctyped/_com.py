@@ -128,11 +128,11 @@ def _method_type(types: _Callable) -> list:
 
 
 def __getattr__(name: str) -> type[_ctypes.c_void_p]:
-    _globals.hasattr(name)
+    _globals.has_item(name)
 
     class Wrapper(_ctypes.c_void_p):
         _fields = {name_: _ctypes.WINFUNCTYPE(*_method_type(
-            types)) for name_, types in _typing.get_type_hints(_com[name], _globals).items()}
+            types)) for name_, types in _typing.get_type_hints(_globals.base[name], _globals).items()}
         # noinspection PyTypeChecker
         _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple(_fields.items())}))
 
@@ -148,15 +148,15 @@ def __getattr__(name: str) -> type[_ctypes.c_void_p]:
                     setattr(self, name__, _types.MethodType(method, self))
             return super().__getattribute__(name_)
 
-    _globals[name] = _functools.update_wrapper(Wrapper, _com[name], ('__CLSID__', *_functools.WRAPPER_ASSIGNMENTS), ())
+    _globals[name] = _functools.update_wrapper(
+        Wrapper, _globals.base[name], ('__CLSID__', *_functools.WRAPPER_ASSIGNMENTS), ())
     # noinspection PyProtectedMember
     Wrapper.__doc__ = '\n'.join(_header.get_doc(
         name_, types._restype_, types._argtypes_) for name_, types in Wrapper._fields.items())
-    return _globals[name]
+    return Wrapper
 
 
-_com = _header.init(globals())
-_globals = _header.Globals(_com, globals(), __getattr__)
+_globals = _header.Globals()
 if _header.INIT:
-    for _com_ in _com:
-        __getattr__(_com_)
+    for _com in _globals.iter_base():
+        __getattr__(_com)
