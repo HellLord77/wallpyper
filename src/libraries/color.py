@@ -5,7 +5,7 @@ import sys
 _ESC = '\x1B'
 _CSI = f'{_ESC}['
 _CODES = set()
-_SUPPORTED = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+_SUPPORTED = getattr(sys.stdout, 'isatty', lambda: False)()
 
 
 class _Code:

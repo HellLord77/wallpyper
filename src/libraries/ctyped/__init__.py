@@ -17,25 +17,24 @@ from . import _macro as macro
 from . import _struct as struct
 # noinspection PyShadowingBuiltins
 from . import _type as type
+from ._header import Array
 from ._header import Pointer
 from ._header import byref
 from ._header import cast
-from ._header import pointer
-from ._header import sizeof
 
 
 def array(type_: _builtins.type[_header.T] = type.c_void_p,
-          *elements: _Any, size: _Optional[int] = None) -> _header.Array[_header.T]:
+          *elements: _Any, size: _Optional[int] = None) -> Array[_header.T]:
     return (type_ * (size or len(elements)))(*elements)
 
 
 @_typing.overload
-def char_array(string: bytes) -> _header.Array[type.c_char]:
+def char_array(string: bytes) -> Array[type.c_char]:
     pass
 
 
 @_typing.overload
-def char_array(string: str) -> _header.Array[type.c_wchar]:
+def char_array(string: str) -> Array[type.c_wchar]:
     pass
 
 
@@ -44,7 +43,7 @@ def char_array(string):
 
 
 @_functools.cache
-def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[_header.Pointer[struct.CLSID], _header.Pointer[struct.IID]]:
+def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[Pointer[struct.CLSID], Pointer[struct.IID]]:
     clsid_ref = byref(struct.CLSID())
     func.CLSIDFromString(type_.__CLSID__, clsid_ref)
     iid_ref = byref(struct.IID())

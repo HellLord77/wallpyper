@@ -65,6 +65,41 @@ class Globals(dict):
                 return self.annotations[key]
 
 
+def sizeof(obj: T) -> int:
+    return _ctypes.sizeof(obj)
+
+
+def byref(obj: T) -> Pointer[T]:
+    # noinspection PyTypeChecker
+    return _ctypes.byref(obj)
+
+
+@_typing.overload
+def pointer(obj: T) -> Pointer[T]:
+    pass
+
+
+@_typing.overload
+def pointer(type_: type[T]) -> type[Pointer[type[T]]]:
+    pass
+
+
+def pointer(obj):
+    try:
+        return _ctypes.pointer(obj)
+    except TypeError:
+        return _ctypes.POINTER(obj)
+
+
+def cast(obj: _Any, type_: _Union[type[T], T]) -> Pointer[T]:
+    try:
+        return _ctypes.cast(obj, type_)
+    except _ctypes.ArgumentError:
+        return cast(_ctypes.byref(obj), type_)
+    except TypeError:
+        return cast(obj, _ctypes.POINTER(type_))
+
+
 def get_doc(name: str, restype, argtypes: tuple) -> str:
     return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
 
@@ -86,36 +121,11 @@ def resolve_type(type_: _Any) -> _Any:
     return type_
 
 
-def byref(obj: T) -> Pointer[T]:
-    # noinspection PyTypeChecker
-    return _ctypes.byref(obj)
+'''
+def _import(import_, *args, **kwargs):
+    print(args[3])
+    return import_(*args, **kwargs)
 
 
-def cast(obj: _Any, type_: _Union[type[T], T]) -> Pointer[T]:
-    try:
-        return _ctypes.cast(obj, type_)
-    except _ctypes.ArgumentError:
-        return cast(_ctypes.byref(obj), type_)
-    except TypeError:
-        return cast(obj, _ctypes.POINTER(type_))
-
-
-@_typing.overload
-def pointer(obj: T) -> Pointer[T]:
-    pass
-
-
-@_typing.overload
-def pointer(type_: type[T]) -> type[Pointer[type[T]]]:
-    pass
-
-
-def pointer(obj):
-    try:
-        return _ctypes.pointer(obj)
-    except TypeError:
-        return _ctypes.POINTER(obj)
-
-
-def sizeof(obj: T) -> int:
-    return _ctypes.sizeof(obj)
+_builtins.__import__ = _types.MethodType(_import, __import__)
+'''

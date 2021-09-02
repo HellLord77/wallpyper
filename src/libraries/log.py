@@ -1,8 +1,9 @@
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 import atexit
 import contextlib
 import datetime
+import importlib
 import inspect
 import io
 import logging
@@ -61,15 +62,16 @@ def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[b
     elif os.path.exists(path):
         os.remove(path)
 
-    def write(write_: Callable[[str], int], string: str):
-        if string:
+    def write(write_: Callable[[str], int], s: str):
+        if s:
+            s_ = _ANSI.sub('', s)
             if write_once:
-                _STREAM.write(string)
+                _STREAM.write(s_)
             else:
                 with open(path, 'a') as file:
-                    file.write(string)
+                    file.write(s_)
         if tee:
-            write_(string)
+            write_(s)
 
     global _WRITE
     _WRITE = write
@@ -159,35 +161,34 @@ def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
     return _hook_callback
 
 
-def _is_compatible() -> bool:
-    supports = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-    if not supports:
+def _fix_compatibility() -> None:
+    if not getattr(sys.stderr, 'isatty', lambda: False)():
         global _SUFFIX
         for dict_ in (_PREFIXES, _DETAILS):
             for event, prefix in dict_.items():
                 dict_[event] = _ANSI.sub('', prefix)
         _SUFFIX = _ANSI.sub('', _SUFFIX)
-    return supports
 
 
 def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False) -> None:
-    global _PATTERN
     if patterns:
+        global _PATTERN
         _PATTERN = re.compile(f'({"|".join(patterns)})')
     Level.CURRENT = level
     if redirect_wx:
-        __import__('wx').GetApp().RedirectStdio()
+        # noinspection PyUnresolvedReferences
+        importlib.import_module('wx').GetApp().RedirectStdio()
+    if not skip_comp:
+        _fix_compatibility()
     if _WRITE:
-        sys.stdout.isatty = types.MethodType(lambda _: False, sys.stdout)
         sys.stdout.write = types.MethodType(_WRITE, sys.stdout.write)
         if sys.stdout is not sys.stderr:
             sys.stderr.write = types.MethodType(_WRITE, sys.stderr.write)
-    if _WRITE or not skip_comp:
-        _is_compatible()
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
-        logging.error(
-            f'{_PREFIXES[_EXCEPTION]}Can not log {__import__("pytransform").get_license_code()}{_SUFFIX}'[:-1])
+        # noinspection PyUnresolvedReferences
+        logging.error(f'{_PREFIXES[_EXCEPTION]}Can not log '
+                      f'{importlib.import_module("pytransform").get_license_code()}{_SUFFIX}'[:-1])
     else:
         sys.settrace(_hook_callback)
         threading.settrace(_hook_callback)
