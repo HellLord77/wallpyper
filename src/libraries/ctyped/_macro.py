@@ -99,7 +99,7 @@ def MAKEINTRESOURCEW(i: _type.WORD) -> _type.LPWSTR:
     return __head__.cast(__head__.cast(i, _type.ULONG_PTR), _type.LPWSTR).contents
 
 
-def __getattr__(name: str) -> _Callable:
+def _init(name: str) -> _Callable:
     _globals.has_item(name)
     types = _typing.get_type_hints(_globals.base[name]).values()
     macro = _types.FunctionType(
@@ -111,6 +111,3 @@ def __getattr__(name: str) -> _Callable:
 
 
 _globals = __head__.Globals()
-if __head__.INIT:
-    for _macro in _globals.iter_base():
-        __getattr__(_macro)

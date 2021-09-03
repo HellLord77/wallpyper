@@ -183,7 +183,7 @@ GetWindowText = GetWindowTextW if _const.UNICODE else GetWindowTextA
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
-def __getattr__(name: str) -> _ctypes._CFuncPtr:
+def _init(name: str) -> _ctypes._CFuncPtr:
     _globals.has_item(name)
     func = _globals.base[name]
     func.restype, *func.argtypes = __head__.resolve_type(_globals.get_annotation(name))
@@ -193,6 +193,3 @@ def __getattr__(name: str) -> _ctypes._CFuncPtr:
 
 
 _globals = __head__.Globals()
-if __head__.INIT:
-    for _func in _globals.iter_base():
-        __getattr__(_func)

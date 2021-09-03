@@ -20,6 +20,7 @@ _CT_UNARY = ('__neg__', '__pos__', '__abs__', '__invert__',
              '__round__', '__trunc__', '__floor__', '__ceil__')
 _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
+_MAGICS = {}
 
 HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
@@ -205,35 +206,38 @@ def _set_magic(magics: dict[str, _Callable],
     magics[magic] = _functools.update_wrapper(func, magic_)
 
 
+def _set_magics():
+    if not _MAGICS:
+        for _magic in _CT_BINARY:
+            _set_magic(_MAGICS, _magic, lambda self, other, *args, _magic=_magic: type(
+                self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+        for _magic in _CT_R_BINARY:
+            _set_magic(_MAGICS, _magic, lambda self, other, *args, _magic=_magic.replace('r', '', 1): type(
+                self)(getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
+        for _magic in _CT_I_BINARY:
+            _set_magic(_MAGICS, _magic, lambda self, other, *args, _magic=_magic.replace('i', '', 1): (setattr(
+                self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+        for _magic in _CT_UNARY:
+            _set_magic(_MAGICS, _magic,
+                       lambda self, *args, _magic=_magic: type(self)(getattr(self.value, _magic)(*args)))
+        for _magic in _PY_BINARY:
+            _set_magic(_MAGICS, _magic, lambda self, other, _magic=_magic: getattr(
+                self.value, _magic)(getattr(other, 'value', other)))
+        for _magic in _PY_UNARY:
+            _set_magic(_MAGICS, _magic, (lambda self: complex(
+                self.value)) if _magic == '__complex__' else (
+                lambda self, _magic=_magic: getattr(self.value, _magic)()))
+
+
 # noinspection PyUnresolvedReferences,PyProtectedMember
-def __getattr__(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
+def _init(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
     _globals.has_item(name)
+    _set_magics()
     type_ = __head__.resolve_type(_globals.base[name])
-    for item in _magics.items():
+    for item in _MAGICS.items():
         setattr(type_, *item)
     _globals[name] = type_
     return type_
 
 
 _globals = __head__.Globals()
-_magics = {}
-for _magic in _CT_BINARY:
-    _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic: type(
-        self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
-for _magic in _CT_R_BINARY:
-    _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic.replace('r', '', 1): type(
-        self)(getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
-for _magic in _CT_I_BINARY:
-    _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic.replace('i', '', 1): (setattr(
-        self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
-for _magic in _CT_UNARY:
-    _set_magic(_magics, _magic, lambda self, *args, _magic=_magic: type(self)(getattr(self.value, _magic)(*args)))
-for _magic in _PY_BINARY:
-    _set_magic(_magics, _magic, lambda self, other, _magic=_magic: getattr(
-        self.value, _magic)(getattr(other, 'value', other)))
-for _magic in _PY_UNARY:
-    _set_magic(_magics, _magic, (lambda self: complex(
-        self.value)) if _magic == '__complex__' else (lambda self, _magic=_magic: getattr(self.value, _magic)()))
-if __head__.INIT:
-    for _type in _globals.iter_base():
-        __getattr__(_type)

@@ -3,6 +3,7 @@ __version__ = '0.0.11'
 import atexit
 import contextlib
 import datetime
+import importlib
 import io
 import logging
 import os
@@ -129,7 +130,7 @@ def _filter(event: str, arg: Any, name: str) -> bool:
         return False
 
 
-def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
+def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Optional[Callable]:
     if frame.f_code is logging.shutdown.__code__:
         _hook_callback.__code__ = (lambda *args, **kwargs: None).__code__
     else:
@@ -175,7 +176,7 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, sk
     Level.CURRENT = level
     if redirect_wx:
         # noinspection PyUnresolvedReferences
-        sys.modules['wx'].GetApp().RedirectStdio()
+        importlib.import_module('wx').GetApp().RedirectStdio()
     if not skip_comp:
         _fix_compatibility()
     if _WRITE:

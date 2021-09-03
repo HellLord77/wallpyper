@@ -123,12 +123,12 @@ class IInspectable(IUnknown):
 
 
 def _method_type(types: _Callable) -> list:
-    types_ = __head__.resolve_type(types)
-    types_.insert(1, _ctypes.c_void_p)
-    return types_
+    types = __head__.resolve_type(types)
+    types.insert(1, _ctypes.c_void_p)
+    return types
 
 
-def __getattr__(name: str) -> type[_ctypes.c_void_p]:
+def _init(name: str) -> type[_ctypes.c_void_p]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.c_void_p):
@@ -158,6 +158,3 @@ def __getattr__(name: str) -> type[_ctypes.c_void_p]:
 
 
 _globals = __head__.Globals()
-if __head__.INIT:
-    for _com in _globals.iter_base():
-        __getattr__(_com)

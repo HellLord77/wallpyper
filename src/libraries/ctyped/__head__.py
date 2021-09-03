@@ -1,4 +1,5 @@
 import ctypes as _ctypes
+import gc as _gc
 import importlib as _importlib
 import inspect as _inspect
 import os as _os
@@ -35,17 +36,27 @@ class Module:
     def __getattribute__(self, item: str):
         name = super().__getattribute__('name')
         del _sys.modules[name]
-        return _importlib.import_module(*_os.path.splitext(name)[::-1])
+        module = _importlib.import_module(*_os.path.splitext(name)[::-1])
+        for vars_ in _gc.get_referrers(self):
+            for var, val in vars_.items():
+                if val is self:
+                    vars_[var] = module
 
 
 class Globals(dict):
     def __init__(self):
-        self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         self.annotations = None
+        self.module = _inspect.getmodule(_inspect.currentframe().f_back)
         self.base = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
         for var in self.base:
             delattr(self.module, var)
         super().__init__(vars(self.module))
+        # noinspection PyProtectedMember,PyUnresolvedReferences
+        self.module.__getattr__ = self.module._init
+        if INIT:
+            self.module._global = self
+            for var in self.iter_base():
+                getattr(self.module, var)
 
     def __getitem__(self, item: str):
         if item not in self:

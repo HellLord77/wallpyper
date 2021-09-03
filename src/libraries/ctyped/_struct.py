@@ -152,7 +152,7 @@ CLSID = GUID
 MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
 
 
-def __getattr__(name: str) -> type[_ctypes.Structure]:
+def _init(name: str) -> type[_ctypes.Structure]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.Structure):
@@ -172,6 +172,3 @@ def __getattr__(name: str) -> type[_ctypes.Structure]:
 
 
 _globals = __head__.Globals()
-if __head__.INIT:
-    for _struct in _globals.iter_base():
-        __getattr__(_struct)
