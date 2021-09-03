@@ -1,6 +1,9 @@
 import ctypes as _ctypes
+import importlib as _importlib
 import inspect as _inspect
-import types as _types
+import os as _os
+import pkgutil as _pkgutil
+import sys as _sys
 import typing as _typing
 from typing import Any as _Any
 from typing import Callable as _Callable
@@ -25,9 +28,19 @@ class Array(Pointer, _Sequence[T]):
     pass
 
 
+class Module:
+    def __init__(self, name: str):
+        self.name = name
+
+    def __getattribute__(self, item: str):
+        name = super().__getattribute__('name')
+        del _sys.modules[name]
+        return _importlib.import_module(*_os.path.splitext(name)[::-1])
+
+
 class Globals(dict):
     def __init__(self):
-        self.module = _inspect.getmodule(_inspect.currentframe().f_back)
+        self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         self.annotations = None
         self.base = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
         for var in self.base:
@@ -44,8 +57,8 @@ class Globals(dict):
         for key_ in self.iter_base():
             if self.base[key_] is val:
                 setattr(self.module, key_, value)
-                super().__setitem__(key_, value)
                 del self.base[key_]
+                super().__setitem__(key_, value)
 
     def iter_base(self) -> _Generator[str, None, None]:
         for item in tuple(self.base):
@@ -54,7 +67,7 @@ class Globals(dict):
 
     def has_item(self, item: str) -> _NoReturn:
         if item not in self.base:
-            getattr(_types.ModuleType(_inspect.getmodule(_inspect.currentframe().f_back).__name__), item)
+            raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_annotation(self, item: str) -> _Any:
         if not self.annotations:
@@ -100,7 +113,7 @@ def cast(obj: _Any, type_: _Union[type[T], T]) -> Pointer[T]:
         return cast(obj, _ctypes.POINTER(type_))
 
 
-def get_doc(name: str, restype, argtypes: tuple) -> str:
+def get_doc(name: str, restype: _Any, argtypes: tuple) -> str:
     return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
 
 
@@ -122,5 +135,10 @@ def resolve_type(type_: _Any) -> _Any:
 
 
 def _init():
-    # our __name__ -> other names, populate sys.models
-    pass
+    for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
+        if module.name not in _sys.modules:
+            # noinspection PyTypeChecker
+            _sys.modules[module.name] = Module(module.name)
+
+
+_init()

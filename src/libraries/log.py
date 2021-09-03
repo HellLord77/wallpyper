@@ -3,8 +3,6 @@ __version__ = '0.0.11'
 import atexit
 import contextlib
 import datetime
-import importlib
-import inspect
 import io
 import logging
 import os
@@ -133,14 +131,14 @@ def _filter(event: str, arg: Any, name: str) -> bool:
 
 def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Callable:
     if frame.f_code is logging.shutdown.__code__:
-        _hook_callback.__code__ = (lambda _, __, ___: None).__code__
+        _hook_callback.__code__ = (lambda *args, **kwargs: None).__code__
     else:
         frame.f_trace_lines = False
         path = frame.f_code.co_filename
         with contextlib.suppress(ValueError):
             path = os.path.relpath(path, _BASE)
-        if _PATTERN.fullmatch(path) and sys.modules[__name__] is not inspect.getmodule(
-                frame) and _filter(event, arg, frame.f_code.co_name):
+        if _PATTERN.fullmatch(
+                path) and __name__ is not frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name):
             thread = threading.current_thread()
             if thread not in _STACK:
                 _STACK[thread] = 0
@@ -177,7 +175,7 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, sk
     Level.CURRENT = level
     if redirect_wx:
         # noinspection PyUnresolvedReferences
-        importlib.import_module('wx').GetApp().RedirectStdio()
+        sys.modules['wx'].GetApp().RedirectStdio()
     if not skip_comp:
         _fix_compatibility()
     if _WRITE:
@@ -187,8 +185,8 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, sk
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
         # noinspection PyUnresolvedReferences
-        logging.error(f'{_PREFIXES[_EXCEPTION]}Can not log '
-                      f'{importlib.import_module("pytransform").get_license_code()}{_SUFFIX}'[:-1])
+        logging.error(
+            f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
     else:
         sys.settrace(_hook_callback)
         threading.settrace(_hook_callback)
