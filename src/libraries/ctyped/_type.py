@@ -6,7 +6,7 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 from typing import Union as _Union
 
-from . import _header
+from . import __head__
 
 _WIN32 = True
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
@@ -46,9 +46,9 @@ c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
 c_uint8: type[_ctypes.c_uint8] = _Union[_ctypes.c_uint8, int]
 c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
 c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
-c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_wchar_p, _header.Pointer, int, str]]
+c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_wchar_p, __head__.Pointer, int, str]]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
-c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, _header.Pointer, str]]
+c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, __head__.Pointer, str]]
 
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
@@ -155,7 +155,7 @@ Status = HRESULT
 WPARAM = UINT_PTR
 
 OLECHAR = WCHAR if _WIN32 else c_char
-LPOLESTR = _header.Pointer[OLECHAR] if _WIN32 else LPSTR
+LPOLESTR = __head__.Pointer[OLECHAR] if _WIN32 else LPSTR
 
 GpStatus = Status
 HACCEL = HANDLE
@@ -189,7 +189,7 @@ HUMPD = HANDLE
 HWINSTA = HANDLE
 HWND = HANDLE
 LPCOLESTR = LPOLESTR
-PDWORD_PTR = _header.Pointer[DWORD_PTR]
+PDWORD_PTR = __head__.Pointer[DWORD_PTR]
 SC_HANDLE = HANDLE
 SERVICE_STATUS_HANDLE = HANDLE
 SHSTDAPI = STDAPI
@@ -208,14 +208,14 @@ def _set_magic(magics: dict[str, _Callable],
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def __getattr__(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
     _globals.has_item(name)
-    type_ = _header.resolve_type(_globals.base[name])
+    type_ = __head__.resolve_type(_globals.base[name])
     for item in _magics.items():
         setattr(type_, *item)
     _globals[name] = type_
     return type_
 
 
-_globals = _header.Globals()
+_globals = __head__.Globals()
 _magics = {}
 for _magic in _CT_BINARY:
     _set_magic(_magics, _magic, lambda self, other, *args, _magic=_magic: type(
@@ -234,6 +234,6 @@ for _magic in _PY_BINARY:
 for _magic in _PY_UNARY:
     _set_magic(_magics, _magic, (lambda self: complex(
         self.value)) if _magic == '__complex__' else (lambda self, _magic=_magic: getattr(self.value, _magic)()))
-if _header.INIT:
+if __head__.INIT:
     for _type in _globals.iter_base():
         __getattr__(_type)

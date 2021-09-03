@@ -121,11 +121,6 @@ def resolve_type(type_: _Any) -> _Any:
     return type_
 
 
-'''
-def _import(import_, *args, **kwargs):
-    print(args[3])
-    return import_(*args, **kwargs)
-
-
-_builtins.__import__ = _types.MethodType(_import, __import__)
-'''
+def _init():
+    # our __name__ -> other names, populate sys.models
+    pass

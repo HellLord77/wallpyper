@@ -2,9 +2,9 @@ import ctypes as _ctypes
 from typing import Callable as _Callable
 from typing import Optional as _Optional
 
+from . import __head__
 from . import _com
 from . import _const
-from . import _header
 from . import _lib
 from . import _struct
 from . import _type
@@ -18,7 +18,7 @@ RoUninitialize: _Callable[[],
                           _type.c_void_p] = _lib.combase.RoUninitialize
 RoActivateInstance: _Callable[[_type.HSTRING, _type.c_void_p],
                               _type.HRESULT] = _lib.combase.RoActivateInstance
-WindowsCreateString: _Callable[[_Optional[_type.PCNZWCH], _type.UINT32, _header.Pointer[_type.HSTRING]],
+WindowsCreateString: _Callable[[_Optional[_type.PCNZWCH], _type.UINT32, __head__.Pointer[_type.HSTRING]],
                                _type.HRESULT] = _lib.combase.WindowsCreateString
 WindowsDeleteString: _Callable[[_type.HSTRING],
                                _type.HRESULT] = _lib.combase.WindowsDeleteString
@@ -29,27 +29,27 @@ GetObjectW: _Callable[[_type.HANDLE, _type.c_int, _type.LPVOID],
                       _type.c_int] = _lib.gdi32.GetObjectW
 DeleteObject: _Callable[[_type.HGDIOBJ],
                         _type.BOOL] = _lib.gdi32.DeleteObject
-CreateDIBitmap: _Callable[[_type.HDC, _header.Pointer[_struct.BITMAPINFOHEADER], _type.DWORD,
-                           _type.VOID, _header.Pointer[_struct.BITMAPINFO], _type.UINT],
+CreateDIBitmap: _Callable[[_type.HDC, __head__.Pointer[_struct.BITMAPINFOHEADER], _type.DWORD,
+                           _type.VOID, __head__.Pointer[_struct.BITMAPINFO], _type.UINT],
                           _type.HBITMAP] = _lib.gdi32.CreateDIBitmap
 GetDIBits: _Callable[[_type.HDC, _type.HBITMAP, _type.UINT, _type.UINT,
-                      _Optional[_type.LPVOID], _header.Pointer[_struct.BITMAPINFO], _type.UINT],
+                      _Optional[_type.LPVOID], __head__.Pointer[_struct.BITMAPINFO], _type.UINT],
                      _type.c_int] = _lib.gdi32.GetDIBits
 CreateSolidBrush: _Callable[[_type.COLORREF],
                             _type.HBRUSH] = _lib.gdi32.CreateSolidBrush
 GetStockObject: _Callable[[_type.c_int],
                           _type.HGDIOBJ] = _lib.gdi32.GetStockObject
 
-GdiplusStartup: _Callable[[_header.Pointer[_type.ULONG_PTR], _header.Pointer[_struct.GdiplusStartupInput],
-                           _Optional[_header.Pointer[_struct.GdiplusStartupInput]]],
+GdiplusStartup: _Callable[[__head__.Pointer[_type.ULONG_PTR], __head__.Pointer[_struct.GdiplusStartupInput],
+                           _Optional[__head__.Pointer[_struct.GdiplusStartupInput]]],
                           _type.Status] = _lib.GdiPlus.GdiplusStartup
 GdiplusShutdown: _Callable[[_type.ULONG_PTR],
                            _type.VOID] = _lib.GdiPlus.GdiplusShutdown
-GdipCreateBitmapFromFile: _Callable[[_header.Pointer[_type.WCHAR], _header.Pointer[_type.GpBitmap]],
+GdipCreateBitmapFromFile: _Callable[[__head__.Pointer[_type.WCHAR], __head__.Pointer[_type.GpBitmap]],
                                     _type.GpStatus] = _lib.GdiPlus.GdipCreateBitmapFromFile
 GdipDisposeImage: _Callable[[_type.GpImage],
                             _type.GpStatus] = _lib.GdiPlus.GdipDisposeImage
-GdipCreateHBITMAPFromBitmap: _Callable[[_type.GpBitmap, _header.Pointer[_type.HBITMAP], _type.ARGB],
+GdipCreateHBITMAPFromBitmap: _Callable[[_type.GpBitmap, __head__.Pointer[_type.HBITMAP], _type.ARGB],
                                        _type.GpStatus] = _lib.GdiPlus.GdipCreateHBITMAPFromBitmap
 
 GlobalAlloc: _Callable[[_type.UINT, _type.SIZE_T],
@@ -71,22 +71,22 @@ wcslen: _Callable[[_type.c_wchar_p],
 RtlAreLongPathsEnabled: _Callable[[],
                                   _type.c_ubyte] = _lib.ntdll.RtlAreLongPathsEnabled
 
-IIDFromString: _Callable[[_type.LPCOLESTR, _header.Pointer[_struct.IID]],
+IIDFromString: _Callable[[_type.LPCOLESTR, __head__.Pointer[_struct.IID]],
                          _type.HRESULT] = _lib.ole32.IIDFromString
-CLSIDFromString: _Callable[[_type.LPCOLESTR, _header.Pointer[_struct.CLSID]],
+CLSIDFromString: _Callable[[_type.LPCOLESTR, __head__.Pointer[_struct.CLSID]],
                            _type.HRESULT] = _lib.ole32.CLSIDFromString
 CoInitialize: _Callable[[_Optional[_type.LPVOID]],
                         _type.HRESULT] = _lib.ole32.CoInitialize
 CoUninitialize: _Callable[[],
                           _type.VOID] = _lib.ole32.CoUninitialize
-CoCreateGuid: _Callable[[_header.Pointer[_struct.GUID]],
+CoCreateGuid: _Callable[[__head__.Pointer[_struct.GUID]],
                         _type.HRESULT] = _lib.ole32.CoCreateGuid
-CoCreateInstance: _Callable[[_header.Pointer[_struct.CLSID], _Optional[_header.Pointer[_type.IUnknown]],
-                             _type.DWORD, _header.Pointer[_struct.IID], _type.LPVOID],
+CoCreateInstance: _Callable[[__head__.Pointer[_struct.CLSID], _Optional[__head__.Pointer[_type.IUnknown]],
+                             _type.DWORD, __head__.Pointer[_struct.IID], _type.LPVOID],
                             _type.HRESULT] = _lib.ole32.CoCreateInstance
-StringFromIID: _Callable[[_header.Pointer[_struct.IID], _header.Pointer[_type.LPOLESTR]],
+StringFromIID: _Callable[[__head__.Pointer[_struct.IID], __head__.Pointer[_type.LPOLESTR]],
                          _type.HRESULT] = _lib.ole32.StringFromIID
-StringFromCLSID: _Callable[[_header.Pointer[_struct.CLSID], _header.Pointer[_type.LPOLESTR]],
+StringFromCLSID: _Callable[[__head__.Pointer[_struct.CLSID], __head__.Pointer[_type.LPOLESTR]],
                            _type.HRESULT] = _lib.ole32.StringFromCLSID
 
 SHGetFolderPathA: _Callable[[_Optional[_type.HWND], _type.c_int,
@@ -96,14 +96,14 @@ SHGetFolderPathW: _Callable[[_Optional[_type.HWND], _type.c_int,
                              _Optional[_type.HANDLE], _type.DWORD, _type.LPWSTR],
                             _type.HRESULT] = _lib.shell32.SHGetFolderPathW
 ILCreateFromPath: _Callable[[_type.PCTSTR],
-                            _header.Pointer[_struct.ITEMIDLIST]] = _lib.shell32.ILCreateFromPath
-ILFree: _Callable[[_Optional[_header.Pointer[_struct.ITEMIDLIST]]],
+                            __head__.Pointer[_struct.ITEMIDLIST]] = _lib.shell32.ILCreateFromPath
+ILFree: _Callable[[_Optional[__head__.Pointer[_struct.ITEMIDLIST]]],
                   _type.c_void_p] = _lib.shell32.ILFree
-SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT, _header.Pointer[_header.Pointer[_struct.ITEMIDLIST]],
-                                              _header.Pointer[_com.IShellItemArray]],
+SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT, __head__.Pointer[__head__.Pointer[_struct.ITEMIDLIST]],
+                                              __head__.Pointer[_com.IShellItemArray]],
                                              _type.SHSTDAPI] = _lib.shell32.SHCreateShellItemArrayFromIDLists
-SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[_header.Pointer[_type.IBindCtx]], _header.Pointer[
-    _header.Pointer[type[_struct.ITEMIDLIST]]], _type.SFGAOF, _header.Pointer[_type.SFGAOF]],
+SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[__head__.Pointer[_type.IBindCtx]], __head__.Pointer[
+    __head__.Pointer[type[_struct.ITEMIDLIST]]], _type.SFGAOF, __head__.Pointer[_type.SFGAOF]],
                               _type.SHSTDAPI] = _lib.shell32.SHParseDisplayName
 
 SystemParametersInfoA: _Callable[[_type.UINT, _type.UINT, _type.PVOID, _type.UINT],
@@ -122,7 +122,7 @@ SetClipboardData: _Callable[[_type.UINT, _type.HANDLE],
                             _type.HANDLE] = _lib.user32.SetClipboardData
 GetSysColor: _Callable[[_type.c_int],
                        _type.DWORD] = _lib.user32.GetSysColor
-SetSysColors: _Callable[[_type.c_int, _header.Pointer[_type.INT], _header.Pointer[_type.COLORREF]],
+SetSysColors: _Callable[[_type.c_int, __head__.Pointer[_type.INT], __head__.Pointer[_type.COLORREF]],
                         _type.BOOL] = _lib.user32.SetSysColors
 GetMenu: _Callable[[_type.HWND],
                    _type.HMENU] = _lib.user32.GetMenu
@@ -130,9 +130,9 @@ GetSystemMenu: _Callable[[_type.HWND, _type.BOOL],
                          _type.HMENU] = _lib.user32.GetSystemMenu
 GetSubMenu: _Callable[[_type.HMENU, _type.c_int],
                       _type.HMENU] = _lib.user32.GetSubMenu
-GetMenuInfo: _Callable[[_type.HMENU, _header.Pointer[_struct.MENUINFO]],
+GetMenuInfo: _Callable[[_type.HMENU, __head__.Pointer[_struct.MENUINFO]],
                        _type.BOOL] = _lib.user32.GetMenuInfo
-SetMenuInfo: _Callable[[_type.HMENU, _header.Pointer[_struct.MENUINFO]],
+SetMenuInfo: _Callable[[_type.HMENU, __head__.Pointer[_struct.MENUINFO]],
                        _type.BOOL] = _lib.user32.SetMenuInfo
 DrawMenuBar: _Callable[[_type.HWND],
                        _type.BOOL] = _lib.user32.DrawMenuBar
@@ -186,13 +186,13 @@ GetWindowText = GetWindowTextW if _const.UNICODE else GetWindowTextA
 def __getattr__(name: str) -> _ctypes._CFuncPtr:
     _globals.has_item(name)
     func = _globals.base[name]
-    func.restype, *func.argtypes = _header.resolve_type(_globals.get_annotation(name))
-    func.__doc__ = _header.get_doc(name, func.restype, func.argtypes)
+    func.restype, *func.argtypes = __head__.resolve_type(_globals.get_annotation(name))
+    func.__doc__ = __head__.get_doc(name, func.restype, func.argtypes)
     _globals[name] = func
     return func
 
 
-_globals = _header.Globals()
-if _header.INIT:
+_globals = __head__.Globals()
+if __head__.INIT:
     for _func in _globals.iter_base():
         __getattr__(_func)

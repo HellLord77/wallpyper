@@ -25,6 +25,11 @@ user32: _ctypes.WinDLL
 uxtheme: _ctypes.WinDLL
 vcruntime140: _ctypes.WinDLL
 
-_module = _sys.modules[__name__]
-for _lib, _type in _typing.get_type_hints(_module).items():
-    setattr(_module, _lib, _type(_lib, use_last_error=_DEBUG))
+
+def _init():
+    _module = _sys.modules[__name__]
+    for _lib, _type in _typing.get_type_hints(_module).items():
+        setattr(_module, _lib, _type(_lib, use_last_error=_DEBUG))
+
+
+_init()

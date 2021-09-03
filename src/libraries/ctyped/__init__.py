@@ -8,23 +8,25 @@ from typing import Any as _Any
 from typing import ContextManager as _ContextManager
 from typing import Optional as _Optional
 
+from . import __head__
 from . import _com as com
 from . import _const as const
 from . import _func as func
-from . import _header
 from . import _lib
 from . import _macro as macro
 from . import _struct as struct
 # noinspection PyShadowingBuiltins
 from . import _type as type
-from ._header import Array
-from ._header import Pointer
-from ._header import byref
-from ._header import cast
+from .__head__ import Array
+from .__head__ import Pointer
+from .__head__ import byref
+from .__head__ import cast
+from .__head__ import pointer
+from .__head__ import sizeof
 
 
-def array(type_: _builtins.type[_header.T] = type.c_void_p,
-          *elements: _Any, size: _Optional[int] = None) -> Array[_header.T]:
+def array(type_: _builtins.type[__head__.T] = type.c_void_p,
+          *elements: _Any, size: _Optional[int] = None) -> Array[__head__.T]:
     return (type_ * (size or len(elements)))(*elements)
 
 
@@ -52,7 +54,7 @@ def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[Pointer[struct.CLSID
 
 
 @_contextlib.contextmanager
-def create_com(type_: _builtins.type[_header.T]) -> _ContextManager[_header.T]:
+def create_com(type_: _builtins.type[__head__.T]) -> _ContextManager[__head__.T]:
     obj: com.IUnknown = type_()
     func.CoInitialize(None)
     try:

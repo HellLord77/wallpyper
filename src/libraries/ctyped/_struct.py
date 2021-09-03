@@ -5,8 +5,8 @@ import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
 
+from . import __head__
 from . import _const
-from . import _header
 from . import _type
 
 
@@ -156,7 +156,7 @@ def __getattr__(name: str) -> type[_ctypes.Structure]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.Structure):
-        _fields_ = tuple((field, _header.resolve_type(type_))
+        _fields_ = tuple((field, __head__.resolve_type(type_))
                          for field, type_ in _typing.get_type_hints(_globals.base[name], _globals).items())
         __defaults__ = tuple((field, getattr(_globals.base[name], field) or type_) for field, type_ in _fields_)
 
@@ -171,7 +171,7 @@ def __getattr__(name: str) -> type[_ctypes.Structure]:
     return Wrapper
 
 
-_globals = _header.Globals()
-if _header.INIT:
+_globals = __head__.Globals()
+if __head__.INIT:
     for _struct in _globals.iter_base():
         __getattr__(_struct)
