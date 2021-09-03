@@ -1,4 +1,4 @@
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -17,6 +17,7 @@ from . import _macro as macro
 from . import _struct as struct
 # noinspection PyShadowingBuiltins
 from . import _type as type
+from . import _union as union
 from .__head__ import Array
 from .__head__ import Pointer
 from .__head__ import byref

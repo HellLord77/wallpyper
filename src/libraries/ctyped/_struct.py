@@ -3,11 +3,13 @@ from __future__ import annotations as _
 import ctypes as _ctypes
 import dataclasses as _dataclasses
 import functools as _functools
+import itertools as _itertools
 import typing as _typing
 
 from . import __head__
 from . import _const
 from . import _type
+from . import _union
 
 
 @_dataclasses.dataclass
@@ -146,24 +148,77 @@ class MENUITEMINFOW:
         hbmpItem: _type.HBITMAP = None
 
 
+@_dataclasses.dataclass
+class NOTIFYICONDATAA:
+    cbSize: _type.DWORD = None
+    hWnd: _type.HWND = None
+    uID: _type.UINT = None
+    uFlags: _type.UINT = None
+    uCallbackMessage: _type.UINT = None
+    hIcon: _type.HICON = None
+    if _const.NTDDI_VERSION < _const.NTDDI_WIN2K:
+        szTip: _type.CHAR * 64 = None
+    if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:
+        szTip: _type.CHAR * 128 = None
+        dwState: _type.DWORD = None
+        dwStateMask: _type.DWORD = None
+        szInfo: _type.CHAR * 256 = None
+        # noinspection PyProtectedMember
+        if not _const._SHELL_EXPORTS_INTERNALAPI_H_:
+            DUMMYUNIONNAME: _union.u = None
+        szInfoTitle: _type.CHAR * 64 = None
+        dwInfoFlags: _type.DWORD = None
+    if _const.NTDDI_VERSION < _const.NTDDI_WINXP:
+        guidItem: GUID = None
+    if _const.NTDDI_VERSION < _const.NTDDI_VISTA:
+        hBalloonIcon: _type.HICON = None
+
+
+@_dataclasses.dataclass
+class NOTIFYICONDATAW:
+    cbSize: _type.DWORD = None
+    hWnd: _type.HWND = None
+    uID: _type.UINT = None
+    uFlags: _type.UINT = None
+    uCallbackMessage: _type.UINT = None
+    hIcon: _type.HICON = None
+    if _const.NTDDI_VERSION < _const.NTDDI_WIN2K:
+        szTip: _type.WCHAR * 64 = None
+    if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:
+        szTip: _type.WCHAR * 128 = None
+        dwState: _type.DWORD = None
+        dwStateMask: _type.DWORD = None
+        szInfo: _type.WCHAR * 256 = None
+        # noinspection PyProtectedMember
+        if not _const._SHELL_EXPORTS_INTERNALAPI_H_:
+            DUMMYUNIONNAME: _union.u = None
+        szInfoTitle: _type.WCHAR * 64 = None
+        dwInfoFlags: _type.DWORD = None
+    if _const.NTDDI_VERSION < _const.NTDDI_WINXP:
+        guidItem: GUID = None
+    if _const.NTDDI_VERSION < _const.NTDDI_VISTA:
+        hBalloonIcon: _type.HICON = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
 MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
+NOTIFYICONDATA = NOTIFYICONDATAA if _const.UNICODE else NOTIFYICONDATAW
 
 
 def _init(name: str) -> type[_ctypes.Structure]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.Structure):
-        _fields_ = tuple((field, __head__.resolve_type(type_))
-                         for field, type_ in _typing.get_type_hints(_globals.base[name], _globals).items())
-        __defaults__ = tuple((field, getattr(_globals.base[name], field) or type_) for field, type_ in _fields_)
+        _fields_ = tuple((name_, __head__.resolve_type(type_))
+                         for name_, type_ in _typing.get_type_hints(_globals.base[name], _globals).items())
+        __defaults__ = tuple((field[0], getattr(_globals.base[name], field[0])) for field in _fields_)
 
         def __init__(self, *args, **kwargs):
-            for i, field in enumerate(self.__defaults__):
-                if i >= len(args) and field[0] not in kwargs:
-                    kwargs[field[0]] = field[1]() if callable(field[1]) else field[1]
+            for name_, val in _itertools.islice(self.__defaults__, len(args), None):
+                if val is not None and name_ not in kwargs:
+                    kwargs[name_] = val
             super().__init__(*args, **kwargs)
 
     _functools.update_wrapper(Wrapper, _globals.base[name], ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
