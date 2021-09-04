@@ -9,6 +9,8 @@ from . import _const
 from . import _struct
 from . import _type
 
+_ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
+
 
 class IUnknown(_ctypes.c_void_p):
     __CLSID__ = ''
@@ -133,9 +135,12 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
 
     class Wrapper(_ctypes.c_void_p):
         _fields = {name_: _ctypes.WINFUNCTYPE(*_method_type(
-            types)) for name_, types in _typing.get_type_hints(_globals.base[name], _globals).items()}
+            types)) for name_, types in _typing.get_type_hints(_globals.vars_[name], _globals).items()}
         # noinspection PyTypeChecker
         _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple(_fields.items())}))
+        # noinspection PyProtectedMember
+        __doc__ = '\n'.join(
+            __head__.get_doc(name_, types._restype_, types._argtypes_) for name_, types in _fields.items())
 
         def __getattr__(self, name_):
             if name_ in self._fields:
@@ -149,12 +154,7 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
                     setattr(self, name__, _types.MethodType(method, self))
             return super().__getattribute__(name_)
 
-    _globals[name] = _functools.update_wrapper(
-        Wrapper, _globals.base[name], ('__CLSID__', *_functools.WRAPPER_ASSIGNMENTS), ())
-    # noinspection PyProtectedMember
-    Wrapper.__doc__ = '\n'.join(__head__.get_doc(
-        name_, types._restype_, types._argtypes_) for name_, types in Wrapper._fields.items())
-    return Wrapper
+    return _functools.update_wrapper(Wrapper, _globals.vars_[name], _ASSIGNED, ())
 
 
 _globals = __head__.Globals()

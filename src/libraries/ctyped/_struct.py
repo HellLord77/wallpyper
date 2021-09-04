@@ -11,6 +11,8 @@ from . import _const
 from . import _type
 from . import _union
 
+_ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
+
 
 @_dataclasses.dataclass
 class GdiplusStartupInput:
@@ -204,7 +206,7 @@ UUID = GUID
 IID = GUID
 CLSID = GUID
 MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
-NOTIFYICONDATA = NOTIFYICONDATAA if _const.UNICODE else NOTIFYICONDATAW
+NOTIFYICONDATA = NOTIFYICONDATAW if _const.UNICODE else NOTIFYICONDATAA
 
 
 def _init(name: str) -> type[_ctypes.Structure]:
@@ -212,8 +214,8 @@ def _init(name: str) -> type[_ctypes.Structure]:
 
     class Wrapper(_ctypes.Structure):
         _fields_ = tuple((name_, __head__.resolve_type(type_))
-                         for name_, type_ in _typing.get_type_hints(_globals.base[name], _globals).items())
-        __defaults__ = tuple((field[0], getattr(_globals.base[name], field[0])) for field in _fields_)
+                         for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
+        __defaults__ = tuple((field[0], getattr(_globals.vars_[name], field[0])) for field in _fields_)
 
         def __init__(self, *args, **kwargs):
             for name_, val in _itertools.islice(self.__defaults__, len(args), None):
@@ -221,9 +223,7 @@ def _init(name: str) -> type[_ctypes.Structure]:
                     kwargs[name_] = val
             super().__init__(*args, **kwargs)
 
-    _functools.update_wrapper(Wrapper, _globals.base[name], ('__repr__', *_functools.WRAPPER_ASSIGNMENTS), ())
-    _globals[name] = Wrapper
-    return Wrapper
+    return _functools.update_wrapper(Wrapper, _globals.vars_[name], _ASSIGNED, ())
 
 
 _globals = __head__.Globals()

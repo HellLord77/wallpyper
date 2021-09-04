@@ -4,6 +4,7 @@ import typing as _typing
 from typing import Callable as _Callable
 
 from . import __head__
+from . import _const
 from . import _type
 
 
@@ -99,15 +100,16 @@ def MAKEINTRESOURCEW(i: _type.WORD) -> _type.LPWSTR:
     return __head__.cast(__head__.cast(i, _type.ULONG_PTR), _type.LPWSTR).contents
 
 
+MAKEINTRESOURCE = MAKEINTRESOURCEW if _const.UNICODE else MAKEINTRESOURCEA
+
+
 def _init(name: str) -> _Callable:
     _globals.has_item(name)
-    types = _typing.get_type_hints(_globals.base[name]).values()
-    macro = _types.FunctionType(
-        _globals.base[name].__code__, _globals, name, _globals.base[name].__defaults__, _globals.base[name].__closure__)
-    macro_ = _functools.update_wrapper(lambda *args: macro(*(
-        arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _globals.base[name])
-    _globals[name] = macro_
-    return macro_
+    types = _typing.get_type_hints(_globals.vars_[name]).values()
+    macro = _types.FunctionType(_globals.vars_[name].__code__, _globals, name,
+                                _globals.vars_[name].__defaults__, _globals.vars_[name].__closure__)
+    return _functools.update_wrapper(lambda *args: macro(*(
+        arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _globals.vars_[name])
 
 
 _globals = __head__.Globals()

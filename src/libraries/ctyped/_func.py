@@ -140,6 +140,10 @@ LoadImageA: _Callable[[_type.HINSTANCE, _type.LPCSTR, _type.UINT, _type.c_int, _
                       _type.HANDLE] = _lib.user32.LoadImageA
 LoadImageW: _Callable[[_type.HINSTANCE, _type.LPCWSTR, _type.UINT, _type.c_int, _type.c_int, _type.UINT],
                       _type.HANDLE] = _lib.user32.LoadImageW
+LoadIconA: _Callable[[_Optional[_type.HINSTANCE], _type.LPCSTR],
+                     _type.HICON] = _lib.user32.LoadIconA
+LoadIconW: _Callable[[_Optional[_type.HINSTANCE], _type.LPCWSTR],
+                     _type.HICON] = _lib.user32.LoadIconW
 GetDC: _Callable[[_Optional[_type.HWND]],
                  _type.HDC] = _lib.user32.GetDC
 GetWindowDC: _Callable[[_Optional[_type.HWND]],
@@ -175,6 +179,7 @@ GetObject = GetObjectW if _const.UNICODE else GetObjectA
 SHGetFolderPath = SHGetFolderPathW if _const.UNICODE else SHGetFolderPathA
 SystemParametersInfo = SystemParametersInfoW if _const.UNICODE else SystemParametersInfoA
 LoadImage = LoadImageW if _const.UNICODE else LoadImageA
+LoadIcon = LoadIconW if _const.UNICODE else LoadIconA
 FindWindow = FindWindowW if _const.UNICODE else FindWindowA
 SendMessage = SendMessageW if _const.UNICODE else SendMessageA
 SendMessageTimeout = SendMessageTimeoutW if _const.UNICODE else SendMessageTimeoutA
@@ -185,10 +190,9 @@ GetWindowText = GetWindowTextW if _const.UNICODE else GetWindowTextA
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(name: str) -> _ctypes._CFuncPtr:
     _globals.has_item(name)
-    func = _globals.base[name]
+    func = _globals.vars_[name]
     func.restype, *func.argtypes = __head__.resolve_type(_globals.get_annotation(name))
     func.__doc__ = __head__.get_doc(name, func.restype, func.argtypes)
-    _globals[name] = func
     return func
 
 

@@ -19,15 +19,13 @@ def _init(name: str) -> type[_ctypes.Union]:
 
     class Wrapper(_ctypes.Union):
         _fields_ = tuple((name_, __head__.resolve_type(type_))
-                         for name_, type_ in _typing.get_type_hints(_globals.base[name], _globals).items())
+                         for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
 
         def __repr__(self):
             return f'{type(self).__name__}' \
                    f'({", ".join(f"{item[0]}={getattr(self, item[0])}" for item in self._fields_)})'
 
-    _functools.update_wrapper(Wrapper, _globals.base[name], updated=())
-    _globals[name] = Wrapper
-    return Wrapper
+    return _functools.update_wrapper(Wrapper, _globals.vars_[name], updated=())
 
 
 _globals = __head__.Globals()

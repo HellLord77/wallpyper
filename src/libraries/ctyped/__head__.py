@@ -47,45 +47,46 @@ class Globals(dict):
     def __init__(self):
         self.annotations = None
         self.module = _inspect.getmodule(_inspect.currentframe().f_back)
-        self.base = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
-        for var in self.base:
+        self.vars_ = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
+        for var in self.vars_:
             delattr(self.module, var)
         super().__init__(vars(self.module))
-        # noinspection PyProtectedMember,PyUnresolvedReferences
-        self.module.__getattr__ = self.module._init
+        self.module.__getattr__ = self.__getitem__
         if INIT:
-            self.module._global = self
-            for var in self.iter_base():
+            self.module._globals = self
+            for var in self.iter_vars():
                 getattr(self.module, var)
 
     def __getitem__(self, item: str):
         if item not in self:
-            return getattr(self.module, item)
+            # noinspection PyProtectedMember,PyUnresolvedReferences
+            self[item] = self.module._init(item)
         return super().__getitem__(item)
 
-    def __setitem__(self, key: str, value):
-        val = self.base[key]
-        for key_ in self.iter_base():
-            if self.base[key_] is val:
+    def __setitem__(self, key: str, value: T) -> T:
+        val = self.vars_[key]
+        for key_ in self.iter_vars():
+            if self.vars_[key_] is val:
                 setattr(self.module, key_, value)
-                del self.base[key_]
+                del self.vars_[key_]
                 super().__setitem__(key_, value)
+        return value
 
-    def iter_base(self) -> _Generator[str, None, None]:
-        for item in tuple(self.base):
-            if item in self.base:
+    def iter_vars(self) -> _Generator[str, None, None]:
+        for item in tuple(self.vars_):
+            if item in self.vars_:
                 yield item
 
     def has_item(self, item: str) -> _NoReturn:
-        if item not in self.base:
+        if item not in self.vars_:
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_annotation(self, item: str) -> _Any:
         if not self.annotations:
             self.annotations = _typing.get_type_hints(self.module)
-        val = self.base[item]
-        for key in self.iter_base():
-            if self.base[key] is val and key in self.annotations:
+        val = self.vars_[item]
+        for key in self.iter_vars():
+            if self.vars_[key] is val and key in self.annotations:
                 return self.annotations[key]
 
 
