@@ -51,6 +51,8 @@ GdipDisposeImage: _Callable[[_type.GpImage],
                             _type.GpStatus] = _lib.GdiPlus.GdipDisposeImage
 GdipCreateHBITMAPFromBitmap: _Callable[[_type.GpBitmap, __head__.Pointer[_type.HBITMAP], _type.ARGB],
                                        _type.GpStatus] = _lib.GdiPlus.GdipCreateHBITMAPFromBitmap
+GdipCreateHICONFromBitmap: _Callable[[_type.GpBitmap, __head__.Pointer[_type.HICON]],
+                                     _type.GpStatus] = _lib.GdiPlus.GdipCreateHICONFromBitmap
 
 GlobalAlloc: _Callable[[_type.UINT, _type.SIZE_T],
                        _type.HGLOBAL] = _lib.kernel32.GlobalAlloc
