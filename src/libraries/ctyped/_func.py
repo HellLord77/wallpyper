@@ -62,6 +62,10 @@ CloseHandle: _Callable[[_type.HANDLE],
                        _type.BOOL] = _lib.kernel32.CloseHandle
 GetLastError: _Callable[[],
                         _type.DWORD] = _lib.kernel32.GetLastError
+GetModuleHandleA: _Callable[[_Optional[_type.LPCSTR]],
+                            _type.HMODULE] = _lib.kernel32.GetModuleHandleA
+GetModuleHandleW: _Callable[[_Optional[_type.LPCWSTR]],
+                            _type.HMODULE] = _lib.kernel32.GetModuleHandleW
 
 memmove: _Callable[[_type.c_void_p, _type.c_void_p, _type.c_size_t],
                    _type.c_void_p] = _lib.msvcrt.memmove
@@ -105,6 +109,10 @@ SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT, __head__.Pointer[__hea
 SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[__head__.Pointer[_type.IBindCtx]], __head__.Pointer[
     __head__.Pointer[type[_struct.ITEMIDLIST]]], _type.SFGAOF, __head__.Pointer[_type.SFGAOF]],
                               _type.SHSTDAPI] = _lib.shell32.SHParseDisplayName
+Shell_NotifyIconA: _Callable[[_type.DWORD, __head__.Pointer[_struct.NOTIFYICONDATAA]],
+                             _type.BOOL] = _lib.shell32.Shell_NotifyIconA
+Shell_NotifyIconW: _Callable[[_type.DWORD, __head__.Pointer[_struct.NOTIFYICONDATAW]],
+                             _type.BOOL] = _lib.shell32.Shell_NotifyIconW
 
 SystemParametersInfoA: _Callable[[_type.UINT, _type.UINT, _type.PVOID, _type.UINT],
                                  _type.BOOL] = _lib.user32.SystemParametersInfoA
@@ -140,9 +148,9 @@ LoadImageA: _Callable[[_type.HINSTANCE, _type.LPCSTR, _type.UINT, _type.c_int, _
                       _type.HANDLE] = _lib.user32.LoadImageA
 LoadImageW: _Callable[[_type.HINSTANCE, _type.LPCWSTR, _type.UINT, _type.c_int, _type.c_int, _type.UINT],
                       _type.HANDLE] = _lib.user32.LoadImageW
-LoadIconA: _Callable[[_Optional[_type.HINSTANCE], _type.LPCSTR],
+LoadIconA: _Callable[[_Optional[_type.HINSTANCE], _type.UINT],
                      _type.HICON] = _lib.user32.LoadIconA
-LoadIconW: _Callable[[_Optional[_type.HINSTANCE], _type.LPCWSTR],
+LoadIconW: _Callable[[_Optional[_type.HINSTANCE], _type.UINT],
                      _type.HICON] = _lib.user32.LoadIconW
 GetDC: _Callable[[_Optional[_type.HWND]],
                  _type.HDC] = _lib.user32.GetDC
@@ -174,9 +182,34 @@ GetWindowTextW: _Callable[[_type.HWND, _type.LPWSTR, _type.c_int],
                           _type.c_int] = _lib.user32.GetWindowTextW
 LockWorkStation: _Callable[[],
                            _type.BOOL] = _lib.user32.LockWorkStation
+CreateIconFromResource: _Callable[[_type.PBYTE, _type.DWORD, _type.BOOL, _type.DWORD],
+                                  _type.HICON] = _lib.user32.CreateIconFromResource
+CreateIconFromResourceEx: _Callable[[_type.PBYTE, _type.DWORD, _type.BOOL,
+                                     _type.DWORD, _type.c_int, _type.c_int, _type.UINT],
+                                    _type.HICON] = _lib.user32.CreateIconFromResourceEx
+RegisterClassExA: _Callable[[__head__.Pointer[_struct.WNDCLASSEXA]],
+                            _type.ATOM] = _lib.user32.RegisterClassExA
+RegisterClassExW: _Callable[[__head__.Pointer[_struct.WNDCLASSEXW]],
+                            _type.ATOM] = _lib.user32.RegisterClassExW
+UnregisterClassA: _Callable[[_type.LPCSTR, _type.HINSTANCE],
+                            _type.BOOL] = _lib.user32.UnregisterClassA
+UnregisterClassW: _Callable[[_type.LPCWSTR, _type.HINSTANCE],
+                            _type.BOOL] = _lib.user32.UnregisterClassW
+CreateWindowExA: _Callable[[_type.DWORD, _Optional[_type.LPCSTR], _Optional[_type.LPCSTR], _type.DWORD, _type.c_int,
+                            _type.c_int, _type.c_int, _type.c_int, _Optional[_type.HWND], _Optional[_type.HMENU],
+                            _Optional[_type.HINSTANCE], _Optional[_type.LPVOID]],
+                           _type.HWND] = _lib.user32.CreateWindowExA
+CreateWindowExW: _Callable[[_type.DWORD, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR], _type.DWORD, _type.c_int,
+                            _type.c_int, _type.c_int, _type.c_int, _Optional[_type.HWND], _Optional[_type.HMENU],
+                            _Optional[_type.HINSTANCE], _Optional[_type.LPVOID]],
+                           _type.HWND] = _lib.user32.CreateWindowExW
+DestroyWindow: _Callable[[_type.HWND],
+                         _type.BOOL] = _lib.user32.DestroyWindow
 
 GetObject = GetObjectW if _const.UNICODE else GetObjectA
+GetModuleHandle = GetModuleHandleW if _const.UNICODE else GetModuleHandleA
 SHGetFolderPath = SHGetFolderPathW if _const.UNICODE else SHGetFolderPathA
+Shell_NotifyIcon = Shell_NotifyIconW if _const.UNICODE else Shell_NotifyIconA
 SystemParametersInfo = SystemParametersInfoW if _const.UNICODE else SystemParametersInfoA
 LoadImage = LoadImageW if _const.UNICODE else LoadImageA
 LoadIcon = LoadIconW if _const.UNICODE else LoadIconA
@@ -185,6 +218,9 @@ SendMessage = SendMessageW if _const.UNICODE else SendMessageA
 SendMessageTimeout = SendMessageTimeoutW if _const.UNICODE else SendMessageTimeoutA
 GetClassName = GetClassNameW if _const.UNICODE else GetClassNameA
 GetWindowText = GetWindowTextW if _const.UNICODE else GetWindowTextA
+RegisterClassEx = RegisterClassExW if _const.UNICODE else RegisterClassExA
+UnregisterClass = UnregisterClassW if _const.UNICODE else UnregisterClassA
+CreateWindowEx = CreateWindowExW if _const.UNICODE else CreateWindowExA
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember

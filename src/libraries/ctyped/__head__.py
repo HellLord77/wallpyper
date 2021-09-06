@@ -30,17 +30,22 @@ class Array(Pointer, _Sequence[T]):
 
 
 class Module:
+    __spec__ = None
+
     def __init__(self, name: str):
         self.name = name
 
-    def __getattribute__(self, item: str):
-        name = super().__getattribute__('name')
-        del _sys.modules[name]
-        module = _importlib.import_module(*_os.path.splitext(name)[::-1])
-        for vars_ in _gc.get_referrers(self):
-            for var, val in vars_.items():
-                if val is self:
-                    vars_[var] = module
+    def __getattribute__(self, item):
+        if item in ('__spec__', '__class__', 'name'):
+            return super().__getattribute__(item)
+        if _sys.modules[self.name] is self:
+            del _sys.modules[self.name]
+            module = _importlib.import_module(*_os.path.splitext(self.name)[::-1])
+            for vars_ in _gc.get_referrers(self):
+                for var, val in vars_.items():
+                    if val is self:
+                        vars_[var] = module
+        return getattr(_sys.modules[self.name], item)
 
 
 class Globals(dict):
@@ -64,12 +69,15 @@ class Globals(dict):
         return super().__getitem__(item)
 
     def __setitem__(self, key: str, value: T) -> T:
-        val = self.vars_[key]
-        for key_ in self.iter_vars():
-            if self.vars_[key_] is val:
-                setattr(self.module, key_, value)
-                del self.vars_[key_]
-                super().__setitem__(key_, value)
+        if key in self.vars_:
+            val = self.vars_[key]
+            for key_ in self.iter_vars():
+                if self.vars_[key_] is val:
+                    setattr(self.module, key_, value)
+                    del self.vars_[key_]
+                    super().__setitem__(key_, value)
+        else:
+            setattr(self.module, key, value)
         return value
 
     def iter_vars(self) -> _Generator[str, None, None]:
@@ -151,6 +159,10 @@ def _init():
         if module.name not in _sys.modules:
             # noinspection PyTypeChecker
             _sys.modules[module.name] = Module(module.name)
+    '''
+    for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), '.'):
+        _sys.modules[module.name] = _importlib.import_module(module.name, __package__)
+    '''
 
 
 _init()

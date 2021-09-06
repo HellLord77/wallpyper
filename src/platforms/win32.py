@@ -1,15 +1,20 @@
 __version__ = '0.0.6'
 
+import atexit
 import contextlib
 import os
 import shlex
 import winreg
-from typing import ContextManager
+from typing import ContextManager, Optional
 
 import libraries.ctyped
 
 _MAX_PATH = 32 * 1024
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
+_BALLOON = libraries.ctyped.struct.NOTIFYICONDATA(libraries.ctyped.sizeof(
+    libraries.ctyped.struct.NOTIFYICONDATA), uID=hash(object()), uFlags=libraries.ctyped.const.NIF_INFO)
+atexit.register(
+    libraries.ctyped.func.Shell_NotifyIcon, libraries.ctyped.const.NIM_DELETE, libraries.ctyped.byref(_BALLOON))
 
 
 def _get_dir(csidl: int) -> str:
@@ -188,3 +193,12 @@ def unregister_autorun(name: str) -> bool:
             except FileNotFoundError:
                 return True
     return False
+
+
+def show_balloon(title: str, text: str, icon: Optional[str] = None) -> bool:
+    _BALLOON.szInfo = text
+    _BALLOON.szInfoTitle = title
+    _BALLOON.dwInfoFlags = icon or 0
+    return libraries.ctyped.func.Shell_NotifyIcon(libraries.ctyped.const.NIM_MODIFY, libraries.ctyped.byref(
+        _BALLOON)) or libraries.ctyped.func.Shell_NotifyIcon(
+        libraries.ctyped.const.NIM_ADD, libraries.ctyped.byref(_BALLOON))

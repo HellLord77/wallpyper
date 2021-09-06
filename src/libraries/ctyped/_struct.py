@@ -170,9 +170,9 @@ class NOTIFYICONDATAA:
             DUMMYUNIONNAME: _union.u = None
         szInfoTitle: _type.CHAR * 64 = None
         dwInfoFlags: _type.DWORD = None
-    if _const.NTDDI_VERSION < _const.NTDDI_WINXP:
+    if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
         guidItem: GUID = None
-    if _const.NTDDI_VERSION < _const.NTDDI_VISTA:
+    if _const.NTDDI_VERSION >= _const.NTDDI_VISTA:
         hBalloonIcon: _type.HICON = None
 
 
@@ -196,10 +196,42 @@ class NOTIFYICONDATAW:
             DUMMYUNIONNAME: _union.u = None
         szInfoTitle: _type.WCHAR * 64 = None
         dwInfoFlags: _type.DWORD = None
-    if _const.NTDDI_VERSION < _const.NTDDI_WINXP:
+    if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
         guidItem: GUID = None
-    if _const.NTDDI_VERSION < _const.NTDDI_VISTA:
+    if _const.NTDDI_VERSION >= _const.NTDDI_VISTA:
         hBalloonIcon: _type.HICON = None
+
+
+@_dataclasses.dataclass
+class WNDCLASSEXA:
+    cbSize: _type.UINT = None
+    style: _type.UINT = None
+    lpfnWndProc: _type.WNDPROC = None
+    cbClsExtra: _type.c_int = None
+    cbWndExtra: _type.c_int = None
+    hInstance: _type.HINSTANCE = None
+    hIcon: _type.HINSTANCE = None
+    hCursor: _type.HCURSOR = None
+    hbrBackground: _type.HBRUSH = None
+    lpszMenuName: _type.LPCSTR = None
+    lpszClassName: _type.LPCSTR = None
+    hIconSm: _type.HICON = None
+
+
+@_dataclasses.dataclass
+class WNDCLASSEXW:
+    cbSize: _type.UINT = None
+    style: _type.UINT = None
+    lpfnWndProc: _type.WNDPROC = None
+    cbClsExtra: _type.c_int = None
+    cbWndExtra: _type.c_int = None
+    hInstance: _type.HINSTANCE = None
+    hIcon: _type.HINSTANCE = None
+    hCursor: _type.HCURSOR = None
+    hbrBackground: _type.HBRUSH = None
+    lpszMenuName: _type.LPCWSTR = None
+    lpszClassName: _type.LPCWSTR = None
+    hIconSm: _type.HICON = None
 
 
 UUID = GUID
@@ -207,6 +239,7 @@ IID = GUID
 CLSID = GUID
 MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
 NOTIFYICONDATA = NOTIFYICONDATAW if _const.UNICODE else NOTIFYICONDATAA
+WNDCLASSEX = WNDCLASSEXW if _const.UNICODE else WNDCLASSEXA
 
 
 def _init(name: str) -> type[_ctypes.Structure]:

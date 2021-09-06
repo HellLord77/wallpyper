@@ -25,8 +25,8 @@ _MAGICS = {}
 HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
-c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, str]
-c_char_p: type[_ctypes.c_char_p] = _Optional[_Union[_ctypes.c_char_p, str]]
+c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
+c_char_p: type[_ctypes.c_char_p] = _Optional[_Union[_ctypes.c_char_p, bytes]]
 c_double: type[_ctypes.c_double] = _Union[_ctypes.c_double, float]
 c_float: type[_ctypes.c_float] = _Union[_ctypes.c_float, float]
 c_int: type[_ctypes.c_int] = _Union[_ctypes.c_int, int]
@@ -90,6 +90,7 @@ NWPSTR = c_wchar_p
 PCNZCH = c_char_p
 PCNZWCH = c_wchar_p
 PCSTR = c_char_p
+PBYTE = c_char_p
 PCWCH = c_wchar_p
 PCWSTR = c_wchar_p
 PCZZSTR = c_char_p
@@ -107,7 +108,6 @@ GpBitmap = _obj_p
 GpImage = _obj_p
 HSTRING = _obj_p
 IBindCtx = _obj_p
-IShellFolder = _obj_p
 IShellItem = _obj_p
 IShellItemArray = _obj_p
 IUnknown = _obj_p
@@ -197,6 +197,8 @@ SHSTDAPI = STDAPI
 
 HCURSOR = HICON
 
+WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
+
 
 def _set_magic(magic: str,
                func: _Callable) -> None:
@@ -233,6 +235,8 @@ _set_magics()
 def _init(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
     _globals.has_item(name)
     type_ = __head__.resolve_type(_globals.vars_[name])
+    if isinstance(type_, list):
+        type_ = _ctypes.WINFUNCTYPE(*type_)
     for item in _MAGICS.items():
         setattr(type_, *item)
     return type_

@@ -1,4 +1,4 @@
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import contextlib
 import filecmp
@@ -21,7 +21,13 @@ def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
 
 
-def list_dir(path: str) -> Generator[str, None, None]:
+def iter_files(paths: Iterable[str]) -> Generator[str, None, None]:
+    for path in paths:
+        if os.path.isfile(path):
+            yield path
+
+
+def iter_dir(path: str) -> Generator[str, None, None]:
     for dir_ in os.scandir(path):
         # noinspection PyUnresolvedReferences
         yield os.path.realpath(dir_.path)
@@ -88,16 +94,17 @@ def is_empty(path: str, recursive: Optional[bool] = None) -> bool:
 def trim(path: str, target: int) -> bool:
     trimmed = False
     paths = glob.glob(os.path.join(path, '**'), recursive=True)
-    paths.sort(key=os.path.getctime)
+    paths.sort(key=os.path.getctime, reverse=True)
+    itt = iter_files(paths)
     size = 0
-    for path_ in paths:
-        size_ = os.path.getsize(path_)
-        if os.path.isfile(path_):
-            if size + size_ > target:
-                os.remove(path_)
-                trimmed = True
-            else:
-                size += size_
+    for path in itt:
+        size += os.path.getsize(path)
+        if size > target:
+            os.remove(path)
+            trimmed = True
+            break
+    for path in itt:
+        os.remove(path)
     return trimmed
 
 

@@ -5,7 +5,7 @@ import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
-import wx  # TODO: wx -> tkinter
+import wx  # TODO: remove wx, add updater
 
 # iso 639-1
 import languages.en
@@ -111,7 +111,7 @@ def save_config() -> bool:  # TODO: save recently set wallpaper (?)
             saved = False
     with open(CONFIG_PATH, 'w') as file:
         config_parser.write(file)
-    return saved and utils.exists_file(CONFIG_PATH)
+    return saved and utils.file_exists(CONFIG_PATH)
 
 
 @utils.single
@@ -134,12 +134,12 @@ def change_wallpaper(callback: Optional[Callable[[int, ...], Any]] = None, args:
 
 def _get_wallpaper_paths() -> Generator[str, None, None]:
     path = platform.get_wallpaper_path()
-    if utils.exists_file(path):
+    if utils.file_exists(path):
         yield path
     file_name = utils.file_name(path)
-    if utils.exists_file(platform.WALLPAPER_PATH):
+    if utils.file_exists(platform.WALLPAPER_PATH):
         temp_path = utils.join_path(TEMP_DIR, file_name)
-        if utils.copy_file(path, temp_path):
+        if utils.copy_file(platform.WALLPAPER_PATH, temp_path):
             yield temp_path
 
 
@@ -199,8 +199,7 @@ def on_save() -> bool:
 
 
 def on_modify_save():
-    utils.notify(LANGUAGE.MODIFY_SAVE, str(NotImplemented))
-    raise OSError
+    platform.show_balloon(LANGUAGE.MODIFY_SAVE, str(NotImplemented))
 
 
 def on_copy() -> bool:

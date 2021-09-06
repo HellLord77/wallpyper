@@ -9,7 +9,7 @@ import libraries.gui
 import libraries.request
 import libraries.timer
 
-exists_file = os.path.isfile
+file_exists = os.path.isfile
 exists_dir = os.path.isdir
 dir_name = os.path.dirname
 file_name = os.path.basename
@@ -18,7 +18,7 @@ open_browser = webbrowser.open
 
 join_path = libraries.file.join
 replace_extension = libraries.file.replace_ext
-list_dir = libraries.file.list_dir
+list_dir = libraries.file.iter_dir
 copy_file = libraries.file.copy
 is_empty_dir = libraries.file.is_empty
 make_dirs = libraries.file.make_dir
