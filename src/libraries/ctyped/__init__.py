@@ -1,4 +1,4 @@
-__version__ = '0.1.8'  # TODO: overload func
+__version__ = '0.1.9'  # TODO: overload func, lazier load module & func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -19,6 +19,7 @@ from . import _struct as struct
 from . import _type as type
 from . import _union as union
 from .__head__ import Array
+from .__head__ import CT
 from .__head__ import Pointer
 from .__head__ import byref
 from .__head__ import cast
@@ -26,8 +27,8 @@ from .__head__ import pointer
 from .__head__ import sizeof
 
 
-def array(type_: _builtins.type[__head__.T] = type.c_void_p,
-          *elements: _Any, size: _Optional[int] = None) -> Array[__head__.T]:
+def array(type_: _builtins.type[CT] = type.c_void_p,
+          *elements: _Any, size: _Optional[int] = None) -> Array[CT]:
     return (type_ * (size or len(elements)))(*elements)
 
 
@@ -55,7 +56,7 @@ def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[Pointer[struct.CLSID
 
 
 @_contextlib.contextmanager
-def create_com(type_: _builtins.type[__head__.T]) -> _ContextManager[__head__.T]:
+def create_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
     obj: com.IUnknown = type_()
     func.CoInitialize(None)
     try:

@@ -6,10 +6,11 @@ import functools as _functools
 import itertools as _itertools
 import typing as _typing
 
-from . import __head__
 from . import _const
 from . import _type
 from . import _union
+from .__head__ import Globals as _Globals
+from .__head__ import resolve_type as _resolve_type
 
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
 
@@ -234,6 +235,23 @@ class WNDCLASSEXW:
     hIconSm: _type.HICON = None
 
 
+@_dataclasses.dataclass
+class POINT:
+    x: _type.LONG = None
+    y: _type.LONG = None
+
+
+@_dataclasses.dataclass
+class MSG:
+    hwnd: _type.HWND = None
+    message: _type.UINT = None
+    wParam: _type.WPARAM = None
+    lParam: _type.WPARAM = None
+    time: _type.DWORD = None
+    pt: POINT = None
+    lPrivate: _type.DWORD = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
@@ -246,7 +264,7 @@ def _init(name: str) -> type[_ctypes.Structure]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.Structure):
-        _fields_ = tuple((name_, __head__.resolve_type(type_))
+        _fields_ = tuple((name_, _resolve_type(type_))
                          for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
         __defaults__ = tuple((field[0], getattr(_globals.vars_[name], field[0])) for field in _fields_)
 
@@ -259,4 +277,4 @@ def _init(name: str) -> type[_ctypes.Structure]:
     return _functools.update_wrapper(Wrapper, _globals.vars_[name], _ASSIGNED, ())
 
 
-_globals = __head__.Globals()
+_globals = _Globals()

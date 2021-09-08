@@ -3,9 +3,10 @@ import types as _types
 import typing as _typing
 from typing import Callable as _Callable
 
-from . import __head__
 from . import _const
 from . import _type
+from .__head__ import Globals as _Globals
+from .__head__ import cast as _cast
 
 
 # noinspection PyPep8Naming
@@ -20,48 +21,48 @@ def FAILED(hr: _type.HRESULT) -> _type.c_bool:
 
 # noinspection PyPep8Naming
 def MAKEWORD(a: _type.DWORD_PTR, b: _type.DWORD_PTR) -> _type.WORD:
-    wb = __head__.cast(__head__.cast(b & 0xff, _type.BYTE), _type.WORD).contents
+    wb = _cast(_cast(b & 0xff, _type.BYTE), _type.WORD).contents
     wb <<= 8
     # noinspection PyUnresolvedReferences
-    return __head__.cast(__head__.cast(a & 0xff, _type.BYTE), _type.WORD).contents | wb
+    return _cast(_cast(a & 0xff, _type.BYTE), _type.WORD).contents | wb
 
 
 # noinspection PyPep8Naming
 def MAKELONG(a: _type.WORD, b: _type.WORD) -> _type.LONG:
-    wb = __head__.cast(__head__.cast(b & 0xffff, _type.WORD), _type.DWORD).contents
+    wb = _cast(_cast(b & 0xffff, _type.WORD), _type.DWORD).contents
     wb <<= 16
     # noinspection PyUnresolvedReferences
-    return __head__.cast(__head__.cast(a & 0xffff, _type.WORD), _type.LONG).contents | wb
+    return _cast(_cast(a & 0xffff, _type.WORD), _type.LONG).contents | wb
 
 
 # noinspection PyPep8Naming
 def LOWORD(l_: _type.DWORD_PTR) -> _type.WORD:
-    return __head__.cast(l_ & 0xffff, _type.WORD).contents
+    return _cast(l_ & 0xffff, _type.WORD).contents
 
 
 # noinspection PyPep8Naming
 def HIWORD(l_: _type.DWORD_PTR) -> _type.WORD:
     l_ = l_ >> 16
     l_ &= 0xffff
-    return __head__.cast(l_, _type.WORD).contents
+    return _cast(l_, _type.WORD).contents
 
 
 # noinspection PyPep8Naming
 def LOBYTE(w: _type.DWORD_PTR) -> _type.BYTE:
-    return __head__.cast(w & 0xff, _type.BYTE).contents
+    return _cast(w & 0xff, _type.BYTE).contents
 
 
 # noinspection PyPep8Naming
 def HIBYTE(w: _type.WORD) -> _type.BYTE:
     w = w >> 8
     w &= 0xff
-    return __head__.cast(w, _type.BYTE).contents
+    return _cast(w, _type.BYTE).contents
 
 
 # noinspection PyPep8Naming
 def RGB(r: _type.BYTE, g: _type.BYTE, b: _type.BYTE) -> _type.COLORREF:
     # noinspection PyTypeChecker
-    return __head__.cast(b, _type.DWORD).contents << 16 | __head__.cast(g, _type.WORD).contents << 8 | r
+    return _cast(b, _type.DWORD).contents << 16 | _cast(g, _type.WORD).contents << 8 | r
 
 
 # noinspection PyPep8Naming
@@ -77,7 +78,7 @@ def GetRValue(rgb: _type.COLORREF) -> _type.BYTE:
 # noinspection PyPep8Naming
 def GetGValue(rgb: _type.COLORREF) -> _type.BYTE:
     # noinspection PyTypeChecker
-    return LOBYTE(__head__.cast(rgb, _type.WORD).contents >> 8)
+    return LOBYTE(_cast(rgb, _type.WORD).contents >> 8)
 
 
 # noinspection PyPep8Naming
@@ -93,12 +94,12 @@ def IS_INTRESOURCE(_r: _type.ULONG_PTR) -> _type.c_bool:
 # noinspection PyPep8Naming
 def MAKEINTRESOURCEA(i: _type.WORD) -> _type.LPSTR:
     # noinspection PyTypeChecker
-    return __head__.cast(__head__.cast(i, _type.ULONG_PTR), _type.LPSTR)
+    return _cast(_cast(i, _type.ULONG_PTR), _type.LPSTR)
 
 
 # noinspection PyPep8Naming
 def MAKEINTRESOURCEW(i: _type.WORD) -> _type.LPWSTR:
-    return __head__.cast(__head__.cast(i, _type.ULONG_PTR), _type.LPWSTR)
+    return _cast(_cast(i, _type.ULONG_PTR), _type.LPWSTR)
 
 
 MAKEINTRESOURCE = MAKEINTRESOURCEW if _const.UNICODE else MAKEINTRESOURCEA
@@ -112,4 +113,4 @@ def _init(name: str) -> _Callable:
         arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _globals.vars_[name])
 
 
-_globals = __head__.Globals()
+_globals = _Globals()

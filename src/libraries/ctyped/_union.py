@@ -3,8 +3,9 @@ import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
 
-from . import __head__
 from . import _type
+from .__head__ import Globals as _Globals
+from .__head__ import resolve_type as _resolve_type
 
 
 # noinspection PyPep8Naming
@@ -18,7 +19,7 @@ def _init(name: str) -> type[_ctypes.Union]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.Union):
-        _fields_ = tuple((name_, __head__.resolve_type(type_))
+        _fields_ = tuple((name_, _resolve_type(type_))
                          for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
 
         def __repr__(self):
@@ -28,4 +29,4 @@ def _init(name: str) -> type[_ctypes.Union]:
     return _functools.update_wrapper(Wrapper, _globals.vars_[name], updated=())
 
 
-_globals = __head__.Globals()
+_globals = _Globals()

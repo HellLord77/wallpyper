@@ -30,21 +30,21 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 _MIN_CHUNK = 32 * 1024
 _OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
 
-USER_AGENT = f'request/{__version__}'
+USER_AGENT = f'{__name__}/{__version__}'
 
 
 class Response:
+    chunk_size = _MIN_CHUNK
+
     def __init__(self, response: Union[http.client.HTTPResponse, urllib.error.URLError]):
-        self.chunk_size = _MIN_CHUNK
         self.response = response
         self.reason = response.reason
         self.get_header = getattr(response, 'getheader', lambda _, default=None: default)
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
-        self._content = bytes()
-        self._ok = self.status == Status.OK
+        self._content = b''
 
     def __bool__(self) -> bool:
-        return self._ok
+        return self.status == Status.OK
 
     def __iter__(self) -> Generator[bytes, None, None]:
         if self.response.isclosed():

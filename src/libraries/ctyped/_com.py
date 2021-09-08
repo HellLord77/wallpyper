@@ -4,28 +4,31 @@ import types as _types
 import typing as _typing
 from typing import Callable as _Callable
 
-from . import __head__
 from . import _const
 from . import _struct
 from . import _type
+from .__head__ import Globals as _Globals
+from .__head__ import Pointer as _Pointer
+from .__head__ import get_doc as _get_doc
+from .__head__ import resolve_type as _resolve_type
 
 _ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
 
 
 class IUnknown(_ctypes.c_void_p):
     __CLSID__ = ''
-    QueryInterface: _Callable[[__head__.Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
+    QueryInterface: _Callable[[_Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
     AddRef: _Callable[[], _type.ULONG]
     Release: _Callable[[], _type.ULONG]
 
 
 class IShellItem(IUnknown):
-    BindToHandler: _Callable[[__head__.Pointer[_type.IBindCtx], __head__.Pointer[_struct.GUID],
-                              __head__.Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
-    GetParent: _Callable[[__head__.Pointer[_type.IShellItem]], _type.HRESULT]
-    GetDisplayName: _Callable[[_type.SIGDN, __head__.Pointer[_type.LPWSTR]], _type.HRESULT]
-    GetAttributes: _Callable[[_type.SFGAOF, __head__.Pointer[_type.SFGAOF]], _type.HRESULT]
-    Compare: _Callable[[__head__.Pointer[_type.IShellItem], _type.SICHINTF, __head__.Pointer[_type.c_int]],
+    BindToHandler: _Callable[[_Pointer[_type.IBindCtx], _Pointer[_struct.GUID],
+                              _Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
+    GetParent: _Callable[[_Pointer[_type.IShellItem]], _type.HRESULT]
+    GetDisplayName: _Callable[[_type.SIGDN, _Pointer[_type.LPWSTR]], _type.HRESULT]
+    GetAttributes: _Callable[[_type.SFGAOF, _Pointer[_type.SFGAOF]], _type.HRESULT]
+    Compare: _Callable[[_Pointer[_type.IShellItem], _type.SICHINTF, _Pointer[_type.c_int]],
                        _type.HRESULT]
 
 
@@ -34,7 +37,7 @@ class IShellItemArray(IUnknown):
     GetPropertyStore: _Callable
     GetPropertyDescriptionList: _Callable
     GetAttributes: _Callable
-    GetCount: _Callable[[__head__.Pointer[_type.DWORD]], _type.HRESULT]
+    GetCount: _Callable[[_Pointer[_type.DWORD]], _type.HRESULT]
     GetItemAt: _Callable
     EnumItems: _Callable
 
@@ -44,8 +47,8 @@ class IActiveDesktop(IUnknown):
     ApplyChanges: _Callable[[_type.DWORD], _type.HRESULT]
     GetWallpaper: _Callable[[_type.PWSTR, _type.UINT, _type.DWORD], _type.HRESULT]
     SetWallpaper: _Callable[[_type.PCWSTR, _type.DWORD], _type.HRESULT]
-    GetWallpaperOptions: _Callable[[__head__.Pointer[_struct.WALLPAPEROPT], _type.DWORD], _type.HRESULT]
-    SetWallpaperOptions: _Callable[[__head__.Pointer[_struct.WALLPAPEROPT], _type.DWORD], _type.HRESULT]
+    GetWallpaperOptions: _Callable[[_Pointer[_struct.WALLPAPEROPT], _type.DWORD], _type.HRESULT]
+    SetWallpaperOptions: _Callable[[_Pointer[_struct.WALLPAPEROPT], _type.DWORD], _type.HRESULT]
     GetPattern: _Callable[[_type.PWSTR, _type.UINT, _type.DWORD], _type.HRESULT]
     SetPattern: _Callable[[_type.PCWSTR, _type.DWORD], _type.HRESULT]
     GetDesktopItemOptions: _Callable
@@ -54,7 +57,7 @@ class IActiveDesktop(IUnknown):
     AddDesktopItemWithUI: _Callable
     ModifyDesktopItem: _Callable
     RemoveDesktopItem: _Callable
-    GetDesktopItemCount: _Callable[[__head__.Pointer[_type.c_int], _type.DWORD], _type.HRESULT]
+    GetDesktopItemCount: _Callable[[_Pointer[_type.c_int], _type.DWORD], _type.HRESULT]
     GetDesktopItem: _Callable
     GetDesktopItemByID: _Callable
     GenerateDesktopItemHtml: _Callable
@@ -65,20 +68,20 @@ class IActiveDesktop(IUnknown):
 class IDesktopWallpaper(IUnknown):
     __CLSID__ = _const.CLSID_DesktopWallpaper
     SetWallpaper: _Callable[[_type.LPCWSTR, _type.LPCWSTR], _type.HRESULT]
-    GetWallpaper: _Callable[[_type.LPCWSTR, __head__.Pointer[_type.LPWSTR]], _type.HRESULT]
-    GetMonitorDevicePathAt: _Callable[[_type.UINT, __head__.Pointer[_type.LPWSTR]], _type.HRESULT]
-    GetMonitorDevicePathCount: _Callable[[__head__.Pointer[_type.UINT]], _type.HRESULT]
-    GetMonitorRECT: _Callable[[_type.LPCWSTR, __head__.Pointer[_struct.RECT]], _type.HRESULT]
+    GetWallpaper: _Callable[[_type.LPCWSTR, _Pointer[_type.LPWSTR]], _type.HRESULT]
+    GetMonitorDevicePathAt: _Callable[[_type.UINT, _Pointer[_type.LPWSTR]], _type.HRESULT]
+    GetMonitorDevicePathCount: _Callable[[_Pointer[_type.UINT]], _type.HRESULT]
+    GetMonitorRECT: _Callable[[_type.LPCWSTR, _Pointer[_struct.RECT]], _type.HRESULT]
     SetBackgroundColor: _Callable[[_type.COLORREF], _type.HRESULT]
-    GetBackgroundColor: _Callable[[__head__.Pointer[_type.COLORREF]], _type.HRESULT]
+    GetBackgroundColor: _Callable[[_Pointer[_type.COLORREF]], _type.HRESULT]
     SetPosition: _Callable[[_type.DESKTOP_WALLPAPER_POSITION], _type.HRESULT]
-    GetPosition: _Callable[[__head__.Pointer[_type.DESKTOP_WALLPAPER_POSITION]], _type.HRESULT]
+    GetPosition: _Callable[[_Pointer[_type.DESKTOP_WALLPAPER_POSITION]], _type.HRESULT]
     SetSlideshow: _Callable[[_type.IShellItemArray], _type.HRESULT]
     GetSlideshow: _Callable
     SetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, _type.UINT], _type.HRESULT]
-    GetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, __head__.Pointer[_type.UINT]], _type.HRESULT]
+    GetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, _Pointer[_type.UINT]], _type.HRESULT]
     AdvanceSlideshow: _Callable[[_type.LPCWSTR, _type.DESKTOP_SLIDESHOW_DIRECTION], _type.HRESULT]
-    GetStatus: _Callable[[__head__.Pointer[_type.DESKTOP_SLIDESHOW_STATE]], _type.HRESULT]
+    GetStatus: _Callable[[_Pointer[_type.DESKTOP_SLIDESHOW_STATE]], _type.HRESULT]
     Enable: _Callable[[_type.BOOL], _type.HRESULT]
 
 
@@ -108,7 +111,7 @@ class IFileDialog(IModalWindow):
     AddPlace: _Callable
     SetDefaultExtension: _Callable[[_type.LPCWSTR], _type.HRESULT]
     Close: _Callable[[_type.HRESULT], _type.HRESULT]
-    SetClientGuid: _Callable[[__head__.Pointer[_struct.GUID]], _type.HRESULT]
+    SetClientGuid: _Callable[[_Pointer[_struct.GUID]], _type.HRESULT]
     ClearClientData: _Callable[[], _type.HRESULT]
     SetFilter: _Callable
 
@@ -125,7 +128,7 @@ class IInspectable(IUnknown):
 
 
 def _method_type(types: _Callable) -> list:
-    types = __head__.resolve_type(types)
+    types = _resolve_type(types)
     types.insert(1, _ctypes.c_void_p)
     return types
 
@@ -139,8 +142,7 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
         # noinspection PyTypeChecker
         _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple(_fields.items())}))
         # noinspection PyProtectedMember
-        __doc__ = '\n'.join(
-            __head__.get_doc(name_, types._restype_, types._argtypes_) for name_, types in _fields.items())
+        __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _fields.items())
 
         def __getattr__(self, name_):
             if name_ in self._fields:
@@ -150,11 +152,11 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
                     method = getattr(funcs, name__)
                     method.__name__ = name__
                     # noinspection PyProtectedMember
-                    method.__doc__ = __head__.get_doc(name__, types._restype_, types._argtypes_)
+                    method.__doc__ = _get_doc(name__, types._restype_, types._argtypes_)
                     setattr(self, name__, _types.MethodType(method, self))
             return super().__getattribute__(name_)
 
     return _functools.update_wrapper(Wrapper, _globals.vars_[name], _ASSIGNED, ())
 
 
-_globals = __head__.Globals()
+_globals = _Globals()

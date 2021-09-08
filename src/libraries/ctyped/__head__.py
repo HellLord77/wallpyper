@@ -16,16 +16,16 @@ from typing import Sequence as _Sequence
 from typing import Union as _Union
 
 INIT = False
-T = _typing.TypeVar('T')
+CT = _typing.TypeVar('CT')
 
 
-class Pointer(_Generic[T]):
-    contents: T
-    value: T
+class Pointer(_Generic[CT]):
+    contents: CT
+    value: CT
 
 
 # noinspection PyAbstractClass
-class Array(Pointer, _Sequence[T]):
+class Array(Pointer, _Sequence[CT]):
     pass
 
 
@@ -62,23 +62,23 @@ class Globals(dict):
             for var in self.iter_vars():
                 getattr(self.module, var)
 
-    def __getitem__(self, item: str):
+    def __getitem__(self, item):
         if item not in self:
             # noinspection PyProtectedMember,PyUnresolvedReferences
             self[item] = self.module._init(item)
         return super().__getitem__(item)
 
-    def __setitem__(self, key: str, value: T) -> T:
-        if key in self.vars_:
+    def __setitem__(self, key, value):
+        try:
             val = self.vars_[key]
+        except KeyError:
+            setattr(self.module, key, value)
+        else:
             for key_ in self.iter_vars():
                 if self.vars_[key_] is val:
                     setattr(self.module, key_, value)
                     del self.vars_[key_]
                     super().__setitem__(key_, value)
-        else:
-            setattr(self.module, key, value)
-        return value
 
     def iter_vars(self) -> _Generator[str, None, None]:
         for item in tuple(self.vars_):
@@ -98,22 +98,22 @@ class Globals(dict):
                 return self.annotations[key]
 
 
-def sizeof(obj: T) -> int:
+def sizeof(obj: CT) -> int:
     return _ctypes.sizeof(obj)
 
 
-def byref(obj: T) -> Pointer[T]:
+def byref(obj: CT) -> Pointer[CT]:
     # noinspection PyTypeChecker
     return _ctypes.byref(obj)
 
 
 @_typing.overload
-def pointer(obj: T) -> Pointer[T]:
+def pointer(obj: CT) -> Pointer[CT]:
     pass
 
 
 @_typing.overload
-def pointer(type_: type[T]) -> type[Pointer[type[T]]]:
+def pointer(type_: type[CT]) -> type[Pointer[type[CT]]]:
     pass
 
 
@@ -124,7 +124,7 @@ def pointer(obj):
         return _ctypes.POINTER(obj)
 
 
-def cast(obj: _Any, type_: _Union[type[T], T]) -> Pointer[T]:
+def cast(obj: _Any, type_: _Union[type[CT], CT]) -> Pointer[CT]:
     try:
         return _ctypes.cast(obj, type_)
     except _ctypes.ArgumentError:
@@ -159,10 +159,6 @@ def _init():
         if module.name not in _sys.modules:
             # noinspection PyTypeChecker
             _sys.modules[module.name] = Module(module.name)
-    '''
-    for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), '.'):
-        _sys.modules[module.name] = _importlib.import_module(module.name, __package__)
-    '''
 
 
 _init()

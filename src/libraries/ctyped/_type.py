@@ -6,7 +6,9 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 from typing import Union as _Union
 
-from . import __head__
+from .__head__ import Globals as _Globals
+from .__head__ import Pointer as _Pointer
+from .__head__ import resolve_type as _resolve_type
 
 _WIN32 = True
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
@@ -47,9 +49,9 @@ c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
 c_uint8: type[_ctypes.c_uint8] = _Union[_ctypes.c_uint8, int]
 c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
 c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
-c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_wchar_p, __head__.Pointer, int, str]]
+c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_wchar_p, _Pointer, int, str]]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
-c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, __head__.Pointer, str]]
+c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, _Pointer, str]]
 
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
@@ -156,7 +158,7 @@ Status = HRESULT
 WPARAM = UINT_PTR
 
 OLECHAR = WCHAR if _WIN32 else c_char
-LPOLESTR = __head__.Pointer[OLECHAR] if _WIN32 else LPSTR
+LPOLESTR = _Pointer[OLECHAR] if _WIN32 else LPSTR
 
 GpStatus = Status
 HACCEL = HANDLE
@@ -190,7 +192,7 @@ HUMPD = HANDLE
 HWINSTA = HANDLE
 HWND = HANDLE
 LPCOLESTR = LPOLESTR
-PDWORD_PTR = __head__.Pointer[DWORD_PTR]
+PDWORD_PTR = _Pointer[DWORD_PTR]
 SC_HANDLE = HANDLE
 SERVICE_STATUS_HANDLE = HANDLE
 SHSTDAPI = STDAPI
@@ -234,7 +236,7 @@ _set_magics()
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
     _globals.has_item(name)
-    type_ = __head__.resolve_type(_globals.vars_[name])
+    type_ = _resolve_type(_globals.vars_[name])
     if isinstance(type_, list):
         type_ = _ctypes.WINFUNCTYPE(*type_)
     for item in _MAGICS.items():
@@ -242,4 +244,4 @@ def _init(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer
     return type_
 
 
-_globals = __head__.Globals()
+_globals = _Globals()
