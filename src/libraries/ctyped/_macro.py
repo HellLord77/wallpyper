@@ -10,96 +10,95 @@ from .__head__ import cast as _cast
 
 
 # noinspection PyPep8Naming
-def SUCCEEDED(hr: _type.HRESULT) -> _type.c_bool:
-    return _type.c_bool(hr >= 0)
+def SUCCEEDED(hr: int) -> bool:
+    return hr >= 0
 
 
 # noinspection PyPep8Naming
-def FAILED(hr: _type.HRESULT) -> _type.c_bool:
-    return _type.c_bool(hr < 0)
+def FAILED(hr: int) -> bool:
+    return hr < 0
 
 
 # noinspection PyPep8Naming
-def MAKEWORD(a: _type.DWORD_PTR, b: _type.DWORD_PTR) -> _type.WORD:
-    wb = _cast(_cast(b & 0xff, _type.BYTE), _type.WORD).contents
-    wb <<= 8
-    # noinspection PyUnresolvedReferences
-    return _cast(_cast(a & 0xff, _type.BYTE), _type.WORD).contents | wb
+def MAKEWORD(a: int, b: int) -> int:
+    return a & 0xff | b & 0xff << 8
 
 
 # noinspection PyPep8Naming
-def MAKELONG(a: _type.WORD, b: _type.WORD) -> _type.LONG:
-    wb = _cast(_cast(b & 0xffff, _type.WORD), _type.DWORD).contents
-    wb <<= 16
-    # noinspection PyUnresolvedReferences
-    return _cast(_cast(a & 0xffff, _type.WORD), _type.LONG).contents | wb
+def MAKELONG(a: int, b: int) -> int:
+    return a & 0xffff | b & 0xffff << 16
 
 
 # noinspection PyPep8Naming
-def LOWORD(l_: _type.DWORD_PTR) -> _type.WORD:
-    return _cast(l_ & 0xffff, _type.WORD).contents
+def LOWORD(l_: int) -> int:
+    return l_ & 0xffff
 
 
 # noinspection PyPep8Naming
-def HIWORD(l_: _type.DWORD_PTR) -> _type.WORD:
-    l_ = l_ >> 16
-    l_ &= 0xffff
-    return _cast(l_, _type.WORD).contents
+def HIWORD(l_: int) -> int:
+    return l_ >> 16 & 0xffff
 
 
 # noinspection PyPep8Naming
-def LOBYTE(w: _type.DWORD_PTR) -> _type.BYTE:
-    return _cast(w & 0xff, _type.BYTE).contents
+def LOBYTE(w: int) -> int:
+    return w & 0xff
 
 
 # noinspection PyPep8Naming
-def HIBYTE(w: _type.WORD) -> _type.BYTE:
-    w = w >> 8
-    w &= 0xff
-    return _cast(w, _type.BYTE).contents
+def HIBYTE(w: int) -> int:
+    return w >> 8 & 0xff
 
 
 # noinspection PyPep8Naming
-def RGB(r: _type.BYTE, g: _type.BYTE, b: _type.BYTE) -> _type.COLORREF:
-    # noinspection PyTypeChecker
-    return _cast(b, _type.DWORD).contents << 16 | _cast(g, _type.WORD).contents << 8 | r
+def RGB(r: int, g: int, b: int) -> int:
+    return r | g << 8 | b << 16
 
 
 # noinspection PyPep8Naming
-def PALETTERGB(r: _type.BYTE, g: _type.BYTE, b: _type.BYTE) -> _type.COLORREF:
+def PALETTERGB(r: int, g: int, b: int) -> int:
     return 0x02000000 | RGB(r, g, b)
 
 
 # noinspection PyPep8Naming
-def GetRValue(rgb: _type.COLORREF) -> _type.BYTE:
+def GetRValue(rgb: int) -> int:
     return LOBYTE(rgb)
 
 
 # noinspection PyPep8Naming
-def GetGValue(rgb: _type.COLORREF) -> _type.BYTE:
-    # noinspection PyTypeChecker
-    return LOBYTE(_cast(rgb, _type.WORD).contents >> 8)
+def GetGValue(rgb: int) -> int:
+    return LOBYTE(rgb >> 8)
 
 
 # noinspection PyPep8Naming
-def GetBValue(rgb: _type.COLORREF) -> _type.BYTE:
+def GetBValue(rgb: int) -> int:
     return LOBYTE(rgb >> 16)
 
 
 # noinspection PyPep8Naming
-def IS_INTRESOURCE(_r: _type.ULONG_PTR) -> _type.c_bool:
-    return _type.c_bool(_r >> 16 == 0)
+def IS_INTRESOURCE(_r: int) -> bool:
+    return _r >> 16 == 0
 
 
 # noinspection PyPep8Naming
-def MAKEINTRESOURCEA(i: _type.WORD) -> _type.LPSTR:
+def MAKEINTRESOURCEA(i: _type.WORD) -> bytes:
     # noinspection PyTypeChecker
-    return _cast(_cast(i, _type.ULONG_PTR), _type.LPSTR)
+    return _cast(_cast(i, _type.ULONG_PTR), _type.LPSTR).value
 
 
 # noinspection PyPep8Naming
-def MAKEINTRESOURCEW(i: _type.WORD) -> _type.LPWSTR:
-    return _cast(_cast(i, _type.ULONG_PTR), _type.LPWSTR)
+def MAKEINTRESOURCEW(i: _type.WORD) -> str:
+    # noinspection PyTypeChecker
+    return _cast(_cast(i, _type.ULONG_PTR), _type.LPWSTR).value
+
+
+# noinspection PyPep8Naming
+def GET_X_LPARAM(lp: int) -> int:
+    return LOWORD(lp)
+
+
+# noinspection PyPep8Naming
+def GET_Y_LPARAM(lp: int) -> int:
+    return HIWORD(lp)
 
 
 MAKEINTRESOURCE = MAKEINTRESOURCEW if _const.UNICODE else MAKEINTRESOURCEA

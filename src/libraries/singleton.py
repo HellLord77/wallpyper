@@ -16,23 +16,23 @@ MAX_CHUNK = 1024 * 1024
 SUFFIX = '.lock'
 
 
-def _wait_or_exit(end_time: float, wait_callback: Optional[Callable], wait_callback_args: Iterable,
-                  wait_callback_kwargs: Mapping[str, Any], exit_callback: Optional[Callable],
-                  exit_callback_args: Iterable, exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_wait_args: Iterable,
+                  on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
+                  on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     if end_time > time.time():
-        if wait_callback:
-            wait_callback(*wait_callback_args, **wait_callback_kwargs)
+        if on_wait:
+            on_wait(*on_wait_args, **on_wait_kwargs)
         time.sleep(DELAY)
     else:
-        if exit_callback:
-            exit_callback(*exit_callback_args, **exit_callback_kwargs)
+        if on_exit:
+            on_exit(*on_exit_args, **on_exit_kwargs)
         raise SystemExit
 
 
-def _file(uid: str, wait: bool, crash_callback: Optional[Callable],
-          crash_callback_args: Iterable, crash_callback_kwargs: Mapping[str, Any], wait_callback: Optional[Callable],
-          wait_callback_args: Iterable, wait_callback_kwargs: Mapping[str, Any], exit_callback: Optional[Callable],
-          exit_callback_args: Iterable, exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _file(uid: str, wait: bool, on_crash: Optional[Callable],
+          on_crash_args: Iterable, on_crash_kwargs: Mapping[str, Any], on_wait: Optional[Callable],
+          on_wait_args: Iterable, on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
+          on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -45,38 +45,34 @@ def _file(uid: str, wait: bool, crash_callback: Optional[Callable],
             try:
                 os.remove(path)
             except PermissionError:
-                _wait_or_exit(end_time,
-                              wait_callback, wait_callback_args, wait_callback_kwargs,
-                              exit_callback, exit_callback_args, exit_callback_kwargs)
+                _wait_or_exit(end_time, on_wait, on_wait_args, on_wait_kwargs, on_exit, on_exit_args, on_exit_kwargs)
             else:
-                if crash_callback:
-                    crash_callback(*crash_callback_args, **crash_callback_kwargs)
+                if on_crash:
+                    on_crash(*on_crash_args, **on_crash_kwargs)
         else:
             atexit.register(os.remove, path)
             atexit.register(os.close, file)
             break
 
 
-def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, wait_callback: Optional[Callable],
-            wait_callback_args: Iterable, wait_callback_kwargs: Mapping[str, Any], exit_callback: Optional[Callable],
-            exit_callback_args: Iterable, exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable],
+            on_wait_args: Iterable, on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
+            on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     end_time = time.time() + wait * TIMEOUT - DELAY
     while True:
         try:
             memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
         except FileExistsError:
-            _wait_or_exit(end_time,
-                          wait_callback, wait_callback_args, wait_callback_kwargs,
-                          exit_callback, exit_callback_args, exit_callback_kwargs)
+            _wait_or_exit(end_time, on_wait, on_wait_args, on_wait_kwargs, on_exit, on_exit_args, on_exit_kwargs)
         else:
             atexit.register(memory.unlink)
             atexit.register(memory.close)
             break
 
 
-def _socket(uid: str, wait: bool, _: Any, __: Any, ___: Any, wait_callback: Optional[Callable],
-            wait_callback_args: Iterable, wait_callback_kwargs: Mapping[str, Any], exit_callback: Optional[Callable],
-            exit_callback_args: Iterable, exit_callback_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _socket(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable],
+            on_wait_args: Iterable, on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
+            on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.time() + wait * TIMEOUT - DELAY
@@ -84,9 +80,7 @@ def _socket(uid: str, wait: bool, _: Any, __: Any, ___: Any, wait_callback: Opti
         try:
             server.bind(address)
         except OSError:
-            _wait_or_exit(end_time,
-                          wait_callback, wait_callback_args, wait_callback_kwargs,
-                          exit_callback, exit_callback_args, exit_callback_kwargs)
+            _wait_or_exit(end_time, on_wait, on_wait_args, on_wait_kwargs, on_exit, on_exit_args, on_exit_kwargs)
         else:
             atexit.register(server.close)
             break
@@ -108,13 +102,12 @@ def _get_uid(path: Optional[str] = None, prefix: Optional[str] = None) -> str:
     return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
 
 
-def init(name_prefix: Optional[str] = None, wait: Optional[bool] = None, crash_callback: Optional[Callable] = None,
-         crash_callback_args: Optional[Iterable] = None, crash_callback_kwargs: Optional[Mapping[str, Any]] = None,
-         wait_callback: Optional[Callable] = None, wait_callback_args: Optional[Iterable] = None,
-         wait_callback_kwargs: Optional[Mapping[str, Any]] = None, exit_callback: Optional[Callable] = None,
-         exit_callback_args: Optional[Iterable] = None, exit_callback_kwargs: Optional[Mapping[str, Any]] = None,
+def init(name_prefix: Optional[str] = None, wait: Optional[bool] = None, on_crash: Optional[Callable] = None,
+         on_crash_args: Optional[Iterable] = None, on_crash_kwargs: Optional[Mapping[str, Any]] = None,
+         on_wait: Optional[Callable] = None, on_wait_args: Optional[Iterable] = None,
+         on_wait_kwargs: Optional[Mapping[str, Any]] = None, on_exit: Optional[Callable] = None,
+         on_exit_args: Optional[Iterable] = None, on_exit_kwargs: Optional[Mapping[str, Any]] = None,
          method: Optional[Callable] = None) -> Optional[NoReturn]:
-    (method or Method.FILE)(_get_uid(prefix=name_prefix), bool(wait),
-                            crash_callback, crash_callback_args or (), crash_callback_kwargs or {},
-                            wait_callback, wait_callback_args or (), wait_callback_kwargs or {},
-                            exit_callback, exit_callback_args or (), exit_callback_kwargs or {})
+    (method or Method.FILE)(_get_uid(prefix=name_prefix), bool(wait), on_crash, on_crash_args or (),
+                            on_crash_kwargs or {}, on_wait, on_wait_args or (), on_wait_kwargs or {}, on_exit,
+                            on_exit_args or (), on_exit_kwargs or {})

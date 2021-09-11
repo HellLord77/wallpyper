@@ -63,36 +63,43 @@ class Globals(dict):
                 getattr(self.module, var)
 
     def __getitem__(self, item):
-        if item not in self:
+        try:
+            return super().__getitem__(item)
+        except KeyError:
             # noinspection PyProtectedMember,PyUnresolvedReferences
-            self[item] = self.module._init(item)
-        return super().__getitem__(item)
+            val = self.module._init(item)
+            self[item] = val
+            return val
 
     def __setitem__(self, key, value):
         try:
             val = self.vars_[key]
         except KeyError:
-            setattr(self.module, key, value)
+            return
         else:
-            for key_ in self.iter_vars():
-                if self.vars_[key_] is val:
-                    setattr(self.module, key_, value)
-                    del self.vars_[key_]
-                    super().__setitem__(key_, value)
+            for key in self.iter_vars():
+                if self.vars_[key] is val:
+                    setattr(self.module, key, value)
+                    del self.vars_[key]
+                    super().__setitem__(key, value)
 
     def iter_vars(self) -> _Generator[str, None, None]:
         for item in tuple(self.vars_):
             if item in self.vars_:
                 yield item
 
-    def has_item(self, item: str) -> _NoReturn:
-        if item not in self.vars_:
+    def has_item(self, item: str) -> _Optional[_NoReturn]:
+        try:
+            self.vars_[item]
+        except KeyError:
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_annotation(self, item: str) -> _Any:
-        if not self.annotations:
-            self.annotations = _typing.get_type_hints(self.module)
         val = self.vars_[item]
+        try:
+            self.annotations.__getitem__
+        except AttributeError:
+            self.annotations = _typing.get_type_hints(self.module)
         for key in self.iter_vars():
             if self.vars_[key] is val and key in self.annotations:
                 return self.annotations[key]
@@ -124,7 +131,7 @@ def pointer(obj):
         return _ctypes.POINTER(obj)
 
 
-def cast(obj: _Any, type_: _Union[type[CT], CT]) -> Pointer[CT]:
+def cast(obj: _Any, type_: _Union[type[CT], CT]) -> Array[CT]:
     try:
         return _ctypes.cast(obj, type_)
     except _ctypes.ArgumentError:

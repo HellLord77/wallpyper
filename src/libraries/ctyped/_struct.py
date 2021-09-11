@@ -252,6 +252,14 @@ class MSG:
     lPrivate: _type.DWORD = None
 
 
+@_dataclasses.dataclass
+class PropertyItem:
+    id: _type.PROPID = None
+    length: _type.ULONG = None
+    type: _type.WORD = None
+    value: _type.VOID = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

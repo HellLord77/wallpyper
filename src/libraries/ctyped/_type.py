@@ -122,6 +122,7 @@ DESKTOP_WALLPAPER_POSITION = _enum
 RO_INIT_TYPE = _enum
 SIGDN = _enum
 TrustLevel = _enum
+Status = _enum
 
 _callback = c_void_p  # TODO: CFUNCTYPE
 DebugEventProc = _callback
@@ -148,13 +149,13 @@ LPTSTR = LPWSTR
 LRESULT = LONG_PTR
 PCTCH = LPCWCH
 PCTSTR = LPCWSTR
+PROPID = ULONG
 PTCH = LPWCH
 PTSTR = LPWSTR
 SFGAOF = ULONG
 SICHINTF = DWORD
 SIZE_T = ULONG_PTR
 STDAPI = HRESULT
-Status = HRESULT
 WPARAM = UINT_PTR
 
 OLECHAR = WCHAR if _WIN32 else c_char
@@ -200,6 +201,7 @@ SHSTDAPI = STDAPI
 HCURSOR = HICON
 
 WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
+TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 
 
 def _set_magic(magic: str,

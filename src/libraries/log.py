@@ -130,9 +130,9 @@ def _filter(event: str, arg: Any, name: str) -> bool:
         return False
 
 
-def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Optional[Callable]:
+def _on_trace(frame: types.FrameType, event: str, arg: Any) -> Optional[Callable]:
     if frame.f_code is logging.shutdown.__code__:
-        _hook_callback.__code__ = (lambda *args, **kwargs: None).__code__
+        _on_trace.__code__ = (lambda *args, **kwargs: None).__code__
     else:
         frame.f_trace_lines = False
         path = frame.f_code.co_filename
@@ -157,7 +157,7 @@ def _hook_callback(frame: types.FrameType, event: str, arg: Any) -> Optional[Cal
             elif event == _RETURN:
                 log += _format_dict({_RETURN: arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
             logging.error(log[:-1])
-    return _hook_callback
+    return _on_trace
 
 
 def _fix_compatibility() -> None:
@@ -189,5 +189,5 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, sk
         logging.error(
             f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
     else:
-        sys.settrace(_hook_callback)
-        threading.settrace(_hook_callback)
+        sys.settrace(_on_trace)
+        threading.settrace(_on_trace)

@@ -48,10 +48,24 @@ GdiplusStartup: _Callable[[_Pointer[_type.ULONG_PTR],
                           _type.Status] = _lib.GdiPlus.GdiplusStartup
 GdiplusShutdown: _Callable[[_type.ULONG_PTR],
                            _type.VOID] = _lib.GdiPlus.GdiplusShutdown
-GdipCreateBitmapFromFile: _Callable[[_Pointer[_type.WCHAR], _Pointer[_type.GpBitmap]],
-                                    _type.GpStatus] = _lib.GdiPlus.GdipCreateBitmapFromFile
+GdipLoadImageFromFile: _Callable[[_Pointer[_type.WCHAR], _Pointer[_type.GpImage]],
+                                 _type.GpStatus] = _lib.GdiPlus.GdipLoadImageFromFile
 GdipDisposeImage: _Callable[[_type.GpImage],
                             _type.GpStatus] = _lib.GdiPlus.GdipDisposeImage
+GdipImageGetFrameDimensionsCount: _Callable[[_type.GpImage, _Pointer[_type.UINT]],
+                                            _type.GpStatus] = _lib.GdiPlus.GdipImageGetFrameDimensionsCount
+GdipImageGetFrameDimensionsList: _Callable[[_type.GpImage, _Pointer[_struct.GUID], _type.UINT],
+                                           _type.GpStatus] = _lib.GdiPlus.GdipImageGetFrameDimensionsList
+GdipImageGetFrameCount: _Callable[[_type.GpImage, _Pointer[_struct.GUID], _Pointer[_type.UINT]],
+                                  _type.GpStatus] = _lib.GdiPlus.GdipImageGetFrameCount
+GdipGetPropertyItemSize: _Callable[[_type.GpImage, _type.PROPID, _Pointer[_type.UINT]],
+                                   _type.GpStatus] = _lib.GdiPlus.GdipGetPropertyItemSize
+GdipGetPropertyItem: _Callable[[_type.GpImage, _type.PROPID, _type.UINT, _Pointer[_struct.PropertyItem]],
+                               _type.GpStatus] = _lib.GdiPlus.GdipGetPropertyItem
+GdipImageSelectActiveFrame: _Callable[[_type.GpImage, _Pointer[_struct.GUID], _type.UINT],
+                                      _type.GpStatus] = _lib.GdiPlus.GdipImageSelectActiveFrame
+GdipCreateBitmapFromFile: _Callable[[_Pointer[_type.WCHAR], _Pointer[_type.GpBitmap]],
+                                    _type.GpStatus] = _lib.GdiPlus.GdipCreateBitmapFromFile
 GdipCreateHBITMAPFromBitmap: _Callable[[_type.GpBitmap, _Pointer[_type.HBITMAP], _type.ARGB],
                                        _type.GpStatus] = _lib.GdiPlus.GdipCreateHBITMAPFromBitmap
 GdipCreateHICONFromBitmap: _Callable[[_type.GpBitmap, _Pointer[_type.HICON]],
@@ -72,6 +86,10 @@ GetModuleHandleA: _Callable[[_Optional[_type.LPCSTR]],
 GetModuleHandleW: _Callable[[_Optional[_type.LPCWSTR]],
                             _type.HMODULE] = _lib.kernel32.GetModuleHandleW
 
+malloc: _Callable[[_type.c_void_p],
+                  _type.c_size_t] = _lib.msvcrt.malloc
+free: _Callable[[_type.c_void_p],
+                _type.c_void_p] = _lib.msvcrt.free
 memmove: _Callable[[_type.c_void_p, _type.c_void_p, _type.c_size_t],
                    _type.c_void_p] = _lib.msvcrt.memmove
 wcslen: _Callable[[_type.c_wchar_p],
@@ -84,6 +102,8 @@ IIDFromString: _Callable[[_type.LPCOLESTR, _Pointer[_struct.IID]],
                          _type.HRESULT] = _lib.ole32.IIDFromString
 CLSIDFromString: _Callable[[_type.LPCOLESTR, _Pointer[_struct.CLSID]],
                            _type.HRESULT] = _lib.ole32.CLSIDFromString
+StringFromGUID2: _Callable[[_Pointer[_struct.GUID], _type.LPOLESTR, _type.c_int],
+                           _type.c_int] = _lib.ole32.StringFromGUID2
 CoInitialize: _Callable[[_Optional[_type.LPVOID]],
                         _type.HRESULT] = _lib.ole32.CoInitialize
 CoUninitialize: _Callable[[],
@@ -119,6 +139,8 @@ Shell_NotifyIconA: _Callable[[_type.DWORD, _Pointer[_struct.NOTIFYICONDATAA]],
 Shell_NotifyIconW: _Callable[[_type.DWORD, _Pointer[_struct.NOTIFYICONDATAW]],
                              _type.BOOL] = _lib.shell32.Shell_NotifyIconW
 
+GetCursorPos: _Callable[[_Pointer[_struct.POINT]],
+                        _type.BOOL] = _lib.user32.GetCursorPos
 SystemParametersInfoA: _Callable[[_type.UINT, _type.UINT, _type.PVOID, _type.UINT],
                                  _type.BOOL] = _lib.user32.SystemParametersInfoA
 SystemParametersInfoW: _Callable[[_type.UINT, _type.UINT, _type.PVOID, _type.UINT],
@@ -157,6 +179,8 @@ LoadIconA: _Callable[[_Optional[_type.HINSTANCE], _type.UINT],
                      _type.HICON] = _lib.user32.LoadIconA
 LoadIconW: _Callable[[_Optional[_type.HINSTANCE], _type.UINT],
                      _type.HICON] = _lib.user32.LoadIconW
+DestroyIcon: _Callable[[_type.HICON],
+                       _type.BOOL] = _lib.user32.DestroyIcon
 GetDC: _Callable[[_Optional[_type.HWND]],
                  _type.HDC] = _lib.user32.GetDC
 GetWindowDC: _Callable[[_Optional[_type.HWND]],
@@ -228,6 +252,10 @@ PostQuitMessage: _Callable[[_type.c_int],
                            _type.c_void_p] = _lib.user32.PostQuitMessage
 ShowWindow: _Callable[[_type.HWND, _type.c_int],
                       _type.BOOL] = _lib.user32.ShowWindow
+SetTimer: _Callable[[_Optional[_type.HWND], _type.UINT_PTR, _type.UINT, _Optional[_type.TIMERPROC]],
+                    _type.UINT_PTR] = _lib.user32.SetTimer
+KillTimer: _Callable[[_type.HWND, _type.UINT_PTR],
+                     _type.BOOL] = _lib.user32.KillTimer
 
 GetObject = GetObjectW if _const.UNICODE else GetObjectA
 GetModuleHandle = GetModuleHandleW if _const.UNICODE else GetModuleHandleA

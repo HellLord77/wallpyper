@@ -59,9 +59,9 @@ _ANIMATIONS_ = [_ANIMATIONS, []]
 _ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
-def _get_wrapper(menu_item: wx.MenuItem, callback: Callable, args: Iterable,
+def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, args: Iterable,
                  kwargs: Mapping[str, Any], extra_args: Iterable[str]) -> Callable:
-    @functools.wraps(callback)
+    @functools.wraps(on_click)
     def wrapper(_: wx.Event):
         extra_args_ = []
         for extra_arg in extra_args:
@@ -69,13 +69,13 @@ def _get_wrapper(menu_item: wx.MenuItem, callback: Callable, args: Iterable,
                 extra_args_.append(getattr(menu_item, extra_arg))
             elif extra_arg in Property:
                 extra_args_.append(getattr(menu_item, extra_arg)())
-        callback(*extra_args_, *args, **kwargs)
+        on_click(*extra_args_, *args, **kwargs)
 
     return wrapper
 
 
 def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
-                  uid: Optional[str] = None, callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+                  uid: Optional[str] = None, on_click: Optional[Callable] = None, args: Optional[Iterable] = None,
                   kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
                   position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
     menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position,
@@ -84,8 +84,8 @@ def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] 
         menu_item.Check(check)
     if enable is not None:
         menu_item.Enable(enable)
-    if callback:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, callback, args or (), kwargs or {}, extra_args or ()), menu_item)
+    if on_click:
+        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, on_click, args or (), kwargs or {}, extra_args or ()), menu_item)
     return menu_item
 
 
@@ -95,13 +95,13 @@ def add_separator(menu: wx.Menu = _MENU) -> wx.MenuItem:
 
 def add_submenu(label: str, kind: Optional[int] = None, checks: Optional[Iterable[str]] = None,
                 enable: Optional[bool] = None, items: Optional[Mapping[str, str]] = None,
-                callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+                on_click: Optional[Callable] = None, args: Optional[Iterable] = None,
                 kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
                 position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
     for uid, label_ in items.items():
         menu_item = add_menu_item(label_, kind, uid in (checks or ()), label_[0] != '_',
-                                  uid, callback, args, kwargs, extra_args, position, submenu)
+                                  uid, on_click, args, kwargs, extra_args, position, submenu)
         if label_[0] == '_':
             menu_item.SetItemLabel(label_[1:])
     submenu_item = menu.AppendSubMenu(submenu, label)

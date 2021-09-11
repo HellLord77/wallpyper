@@ -1,4 +1,4 @@
-__version__ = '0.1.9'  # TODO: overload func, lazier load module & func
+__version__ = '0.1.10'  # TODO: overload func, lazier load module & func
 
 import builtins as _builtins
 import contextlib as _contextlib

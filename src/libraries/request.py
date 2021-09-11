@@ -111,7 +111,7 @@ def urlopen(url: str, params: Optional[Mapping[str, str]] = None, data: Optional
 
 
 def download(url: str, path: str, size: Optional[int] = None, chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None, callback: Optional[Callable[[int, ...], Any]] = None,
+             chunk_count: Optional[int] = None, on_write: Optional[Callable[[int, ...], Any]] = None,
              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     response = urlopen(url)
     if response:
@@ -132,8 +132,8 @@ def download(url: str, path: str, size: Optional[int] = None, chunk_size: Option
             for chunk in response:
                 write(chunk)
                 ratio += len(chunk) / size
-                if callback:
-                    callback(round(ratio * 100), *args, **kwargs)
+                if on_write:
+                    on_write(round(ratio * 100), *args, **kwargs)
         return os.path.isfile(path) and size == os.path.getsize(path)
     return False
 

@@ -1,11 +1,11 @@
-__version__ = '0.1.8'  # TODO: error, avoid condition
+__version__ = '0.1.9'  # TODO: error, avoid condition
 
 import configparser
 import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
-import wx  # TODO: remove wx, add updater
+import wx  # TODO: hide wx, add updater
 
 # iso 639-1
 import languages.en
@@ -65,8 +65,8 @@ INTERVALS = {
 }
 
 CONFIG = {}
-CALLBACK = utils.dummy_func
-TIMER = utils.timer(CALLBACK)
+ON_WRITE = utils.dummy_func
+TIMER = utils.timer(ON_WRITE)
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool]]], section: str,
@@ -115,19 +115,19 @@ def save_config() -> bool:  # TODO: save recently set wallpaper (?)
 
 
 @utils.single
-def change_wallpaper(callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
+def change_wallpaper(on_write: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
                      kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
-    if callback:
-        callback(0, *args or (), **kwargs or {})
+    if on_write:
+        on_write(0, *args or (), **kwargs or {})
     url = MODULE.get_next_url()
     name = utils.file_name(url)
     temp_path = utils.join_path(TEMP_DIR, name)
     save_path = utils.join_path(CONFIG[SAVE_DIR], name)
-    utils.download_url(url, temp_path, chunk_count=100, callback=callback, args=args, kwargs=kwargs)
+    utils.download_url(url, temp_path, chunk_count=100, on_write=on_write, args=args, kwargs=kwargs)
     changed = platform.set_wallpaper_ex(temp_path, save_path)
-    if callback:
-        callback(100, *args or (), **kwargs or {})
+    if on_write:
+        on_write(100, *args or (), **kwargs or {})
     utils.inanimate(LANGUAGE.CHANGING)
     return changed
 
@@ -168,8 +168,8 @@ def search_wallpaper() -> bool:
 
 @utils.thread
 def on_change() -> bool:
-    changed = change_wallpaper(CALLBACK)
-    CALLBACK(-1)
+    changed = change_wallpaper(ON_WRITE)
+    ON_WRITE(-1)
     if changed:
         if CONFIG[SAVE]:
             save_wallpaper()
@@ -255,50 +255,48 @@ def on_exit() -> None:
     utils.stop()
 
 
-def create_menu() -> None:  # TODO: previous wallpaper
+def create_menu() -> None:  # TODO: previous wallpaper, slideshow (smaller timer)
     update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
-    change = utils.add_item(LANGUAGE.CHANGE, callback=on_change)
+    change = utils.add_item(LANGUAGE.CHANGE, on_click=on_change)
 
     def set_item_label(progress: int) -> None:
         change.SetItemLabel(f'{LANGUAGE.CHANGING} ({progress:03}%)' if progress >= 0 else f'{LANGUAGE.CHANGE}')
 
-    global CALLBACK, TIMER
-    CALLBACK = set_item_label
+    global ON_WRITE, TIMER
+    ON_WRITE = set_item_label
     TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(
         CONFIG[INTERVAL]),), CONFIG[CHANGE], INTERVALS, on_change_interval, extra_args=(utils.get_property.UID,))
-    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], callback=on_auto_change,
+    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], on_click=on_auto_change,
                    args=(change_interval,), extra_args=(utils.get_property.CHECKED,), position=1)
     utils.add_separator()
-    utils.add_item(LANGUAGE.SAVE, callback=on_save)
+    utils.add_item(LANGUAGE.SAVE, on_click=on_save)
     utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE],
-                   callback=update_config, args=(SAVE,), extra_args=(utils.get_property.CHECKED,))
-    utils.add_item(LANGUAGE.MODIFY_SAVE, callback=on_modify_save)
+                   on_click=update_config, args=(SAVE,), extra_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.MODIFY_SAVE, on_click=on_modify_save)
     utils.add_separator()
-    utils.add_item(LANGUAGE.COPY, callback=on_copy)
-    utils.add_item(LANGUAGE.COPY_PATH, callback=on_copy_path)
-    utils.add_item(LANGUAGE.SEARCH, callback=on_search)
+    utils.add_item(LANGUAGE.COPY, on_click=on_copy)
+    utils.add_item(LANGUAGE.COPY_PATH, on_click=on_copy_path)
+    utils.add_item(LANGUAGE.SEARCH, on_click=on_search)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     utils.add_item(LANGUAGE.ANIMATE, utils.item.CHECK, CONFIG[ANIMATE],
-                   callback=on_animate, extra_args=(utils.get_property.CHECKED,))
+                   on_click=on_animate, extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY],
-                   callback=update_config, args=(NOTIFY,), extra_args=(utils.get_property.CHECKED,))
+                   on_click=update_config, args=(NOTIFY,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[KEEP_CACHE],
-                   callback=update_config, args=(KEEP_CACHE,), extra_args=(utils.get_property.CHECKED,))
+                   on_click=update_config, args=(KEEP_CACHE,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START],
-                   callback=on_auto_start, extra_args=(utils.get_property.CHECKED,))
+                   on_click=on_auto_start, extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.SAVE_CONFIG, utils.item.CHECK, CONFIG[SAVE_DATA],
-                   callback=on_save_config, extra_args=(utils.get_property.CHECKED,))
-    utils.add_item(LANGUAGE.QUIT, callback=on_exit)
+                   on_click=on_save_config, extra_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.QUIT, on_click=on_exit)
 
 
 def start() -> None:  # TODO: dark theme
-    libraries.singleton.init(NAME, 'wait' in sys.argv,
-                             crash_callback=print, crash_callback_args=('Crash',),
-                             wait_callback=print, wait_callback_args=('Wait',),
-                             exit_callback=print, exit_callback_args=('Exit',))
+    libraries.singleton.init(NAME, 'wait' in sys.argv, on_crash=print, on_crash_args=('Crash',),
+                             on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if 'debug' in sys.argv:
         libraries.log.redirect_stdio(
             LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_exception(LOG_PATH)
