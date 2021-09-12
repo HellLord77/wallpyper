@@ -31,21 +31,19 @@ class Array(Pointer, _Sequence[CT]):
 
 class Module:
     __spec__ = None
+    module = None
 
     def __init__(self, name: str):
         self.name = name
 
     def __getattribute__(self, item):
-        if item in ('__spec__', '__class__', 'name'):
+        if item in ('__spec__', '__class__', 'module', 'name'):
             return super().__getattribute__(item)
-        if _sys.modules[self.name] is self:
+        if not self.module:
             del _sys.modules[self.name]
-            module = _importlib.import_module(*_os.path.splitext(self.name)[::-1])
-            for vars_ in _gc.get_referrers(self):
-                for var, val in vars_.items():
-                    if val is self:
-                        vars_[var] = module
-        return getattr(_sys.modules[self.name], item)
+            self.module = _importlib.import_module(*_os.path.splitext(self.name)[::-1])
+            replace_object(self, self.module)
+        return getattr(self.module, item)
 
 
 class Globals(dict):
@@ -156,6 +154,19 @@ def cast(obj: _Any, type_: _Union[type[CT], CT]) -> Array[CT]:
 
 def get_doc(name: str, restype: _Any, argtypes: tuple) -> str:
     return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
+
+
+def replace_object(old, new):
+    _gc.collect()
+    for referrer in _gc.get_referrers(old):
+        try:
+            items = referrer.items()
+        except AttributeError:
+            continue
+        else:
+            for key, val in items:
+                if val is old:
+                    referrer[key] = new
 
 
 def resolve_type(type_: _Any) -> _Any:
