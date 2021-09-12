@@ -49,8 +49,10 @@ class Module:
 
 
 class Globals(dict):
-    def __init__(self):
-        self.annotations = None
+    annotations = None
+
+    def __init__(self, once: _Optional[bool] = None):
+        self.once = once
         self.module = _inspect.getmodule(_inspect.currentframe().f_back)
         self.vars_ = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
         for var in self.vars_:
@@ -58,11 +60,11 @@ class Globals(dict):
         super().__init__(vars(self.module))
         self.module.__getattr__ = self.__getitem__
         if INIT:
-            self.module._globals = self
+            self.module._globals = self  # TODO: execute after __init__
             for var in self.iter_vars():
                 getattr(self.module, var)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str):
         try:
             return super().__getitem__(item)
         except KeyError:
@@ -77,11 +79,17 @@ class Globals(dict):
         except KeyError:
             return
         else:
-            for key in self.iter_vars():
-                if self.vars_[key] is val:
-                    setattr(self.module, key, value)
-                    del self.vars_[key]
-                    super().__setitem__(key, value)
+            if self.once:
+                self.setitem(key, value)
+            else:
+                for key_ in self.iter_vars():
+                    if self.vars_[key_] is val:
+                        self.setitem(key_, value)
+
+    def setitem(self, key: str, value) -> None:
+        setattr(self.module, key, value)
+        del self.vars_[key]
+        super().__setitem__(key, value)
 
     def iter_vars(self) -> _Generator[str, None, None]:
         for item in tuple(self.vars_):
@@ -97,12 +105,18 @@ class Globals(dict):
     def get_annotation(self, item: str) -> _Any:
         val = self.vars_[item]
         try:
-            self.annotations.__getitem__
+            self.annotations.__getattr__
         except AttributeError:
             self.annotations = _typing.get_type_hints(self.module)
         for key in self.iter_vars():
             if self.vars_[key] is val and key in self.annotations:
                 return self.annotations[key]
+
+
+class Globals1(Globals):
+    def __setitem__(self, key, value):
+        setattr(self.module, key, value)
+        del self.vars_[key]
 
 
 def sizeof(obj: CT) -> int:

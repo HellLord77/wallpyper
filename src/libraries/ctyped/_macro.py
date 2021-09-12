@@ -21,12 +21,12 @@ def FAILED(hr: int) -> bool:
 
 # noinspection PyPep8Naming
 def MAKEWORD(a: int, b: int) -> int:
-    return a & 0xff | b & 0xff << 8
+    return a & 0xff | (b & 0xff) << 8
 
 
 # noinspection PyPep8Naming
 def MAKELONG(a: int, b: int) -> int:
-    return a & 0xffff | b & 0xffff << 16
+    return a & 0xffff | (b & 0xffff) << 16
 
 
 # noinspection PyPep8Naming
