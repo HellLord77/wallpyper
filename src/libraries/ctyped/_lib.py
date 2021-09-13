@@ -1,8 +1,7 @@
 import ctypes as _ctypes
 
+from .__head__ import DEBUG as _DEBUG
 from .__head__ import Globals as _Globals
-
-_DEBUG = True
 
 GdiPlus = _ctypes.WinDLL
 KernelBase = _ctypes.WinDLL

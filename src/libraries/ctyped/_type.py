@@ -113,6 +113,8 @@ IBindCtx = _obj_p
 IShellItem = _obj_p
 IShellItemArray = _obj_p
 IUnknown = _obj_p
+IQueryContinue = _obj_p
+IUserNotificationCallback = _obj_p
 
 _enum = c_uint  # TODO: enum.IntEnum
 DESKTOP_SLIDESHOW_DIRECTION = _enum

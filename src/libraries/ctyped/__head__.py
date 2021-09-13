@@ -16,6 +16,7 @@ from typing import Sequence as _Sequence
 from typing import Union as _Union
 
 INIT = False
+DEBUG = True
 CT = _typing.TypeVar('CT')
 
 
@@ -186,11 +187,11 @@ def resolve_type(type_: _Any) -> _Any:
     return type_
 
 
-def _init():
+def init():
     for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
         if module.name not in _sys.modules:
             # noinspection PyTypeChecker
             _sys.modules[module.name] = Module(module.name)
 
 
-_init()
+init()

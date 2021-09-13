@@ -3,6 +3,7 @@ import functools as _functools
 import types as _types
 import typing as _typing
 from typing import Callable as _Callable
+from typing import Optional as _Optional
 
 from . import _const
 from . import _struct
@@ -125,6 +126,36 @@ class IInspectable(IUnknown):
     GetIids: _Callable
     GetRuntimeClassName: _Callable
     GetTrustLevel: _Callable
+
+
+class IQueryContinue(IUnknown):
+    QueryContinue: _Callable[[], _type.HRESULT]
+
+
+class IUserNotification(IUnknown):
+    __CLSID__ = _const.CLSID_UserNotification
+    SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
+    SetBalloonRetry: _Callable[[_type.DWORD, _type.DWORD, _type.UINT], _type.HRESULT]
+    SetIconInfo: _Callable[[_type.HICON, _type.LPCWSTR], _type.HRESULT]
+    Show: _Callable[[_Optional[_type.IQueryContinue], _type.DWORD], _type.HRESULT]
+    PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
+
+
+class IUserNotificationCallback(IUnknown):
+    __CLSID__ = _const.CLSID_UserNotification
+    OnBalloonUserClick: _Callable[[_struct.POINT], _type.HRESULT]
+    OnLeftClick: _Callable[[_struct.POINT], _type.HRESULT]
+    OnContextMenu: _Callable[[_struct.POINT], _type.HRESULT]
+
+
+class IUserNotification2(IUnknown):
+    __CLSID__ = _const.CLSID_UserNotification
+    SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
+    SetBalloonRetry: _Callable[[_type.DWORD, _type.DWORD, _type.UINT], _type.HRESULT]
+    SetIconInfo: _Callable[[_type.HICON, _type.LPCWSTR], _type.HRESULT]
+    Show: _Callable[[_Optional[_type.IQueryContinue], _type.DWORD,
+                     _Optional[_type.IUserNotificationCallback]], _type.HRESULT]
+    PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:
