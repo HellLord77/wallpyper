@@ -1,4 +1,4 @@
-__version__ = '0.1.12'  # TODO: overload func
+__version__ = '0.1.12'  # TODO: overload func, overridable com
 
 import builtins as _builtins
 import contextlib as _contextlib

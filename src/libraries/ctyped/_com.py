@@ -168,18 +168,16 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.c_void_p):
-        _fields = {name_: _ctypes.WINFUNCTYPE(*_method_type(
-            types)) for name_, types in _typing.get_type_hints(_globals.vars_[name], _globals).items()}
-        # noinspection PyTypeChecker
-        _pointer = _ctypes.POINTER(type(name, (_ctypes.Structure,), {'_fields_': tuple(_fields.items())}))
+        _com: _ctypes.Structure = type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
+            *_method_type(types))) for name_, types in _typing.get_type_hints(_globals.vars_[name], _globals).items())})
         # noinspection PyProtectedMember
-        __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _fields.items())
+        __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _com._fields_)
 
-        def __getattr__(self, name_):
-            if name_ in self._fields:
-                funcs = _ctypes.cast(_ctypes.cast(self, _ctypes.POINTER(
-                    _ctypes.c_void_p)).contents.value, self._pointer).contents
-                for name__, types in self._fields.items():
+        def __getattr__(self, name_: str):
+            if not name_.startswith('_') and name_ in dir(self._com):
+                funcs = self._com.from_address(_ctypes.c_void_p.from_address(self.value).value)
+                # noinspection PyProtectedMember
+                for name__, types in self._com._fields_:
                     method = getattr(funcs, name__)
                     method.__name__ = name__
                     # noinspection PyProtectedMember
