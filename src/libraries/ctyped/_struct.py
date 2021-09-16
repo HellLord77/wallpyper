@@ -9,8 +9,8 @@ import typing as _typing
 from . import _const
 from . import _type
 from . import _union
-from .__head__ import Globals as _Globals
-from .__head__ import resolve_type as _resolve_type
+from .__head__ import _Globals
+from .__head__ import _resolve_type
 
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
 

@@ -1,3 +1,5 @@
+from __future__ import annotations as _
+
 import ctypes as _ctypes
 import functools as _functools
 import types as _types
@@ -8,12 +10,67 @@ from typing import Optional as _Optional
 from . import _const
 from . import _struct
 from . import _type
-from .__head__ import Globals as _Globals
-from .__head__ import Pointer as _Pointer
-from .__head__ import get_doc as _get_doc
-from .__head__ import resolve_type as _resolve_type
+from .__head__ import _Globals
+from .__head__ import _Pointer
+from .__head__ import _get_doc
+from .__head__ import _resolve_type
 
 _ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
+
+'''class _ComBase(_ctypes.c_void_p):
+    __IID__: str = _const.IID_IUnknown
+    _funcs = None
+
+    def __init_subclass__(cls):  # disable init_subclass
+        iid = set()
+        fields = []
+        cls._funcs = []
+        for base in cls._get_base(cls):
+            try:
+                iid.add(base.__IID__)
+            except TypeError:
+                iid.union(base.__IID__)
+            for key, value in vars(base).items():
+                if not key.startswith('_'):
+                    types = list(_typing.get_type_hints(value).values())
+                    # noinspection PyTypeHints
+                    type_ = _ctypes.WINFUNCTYPE(*_resolve_type(_Callable[types, types.pop()]))
+                    fields.append((key, type_))
+                    cls._funcs.append(type_(value))
+        # noinspection PyTypeChecker
+        cls.__IID__ = iid
+        cls._struct = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
+        # print(fields)
+
+    def __init__(self):
+        print(self)
+        self.s = self._struct(*self._funcs)
+        super().__init__(_ctypes.addressof(self.s))
+
+    @staticmethod
+    def _get_base(subclass) -> _Generator[type[_ComBase], None, None]:
+        bases = subclass.mro()
+        for i in range(bases.index(_ComBase), -1, -1):
+            yield bases[i]
+
+    # noinspection PyPep8Naming
+    def QueryInterface(self: _ComBase, lpMyObj: _Pointer[_ComBase], riid: _Pointer[_struct.IID],
+                       lppvObj: _Pointer[_type.LPVOID]) -> _type.HRESULT:
+        lppvObj.contents.value = None
+        iid = _type.LPOLESTR()
+        _func.StringFromIID(riid, _byref(iid))
+        if iid.value in self.__IID__:
+            lppvObj.contents.value = lpMyObj
+            return _const.NOERROR
+        return _const.E_NOINTERFACE
+
+    # noinspection PyPep8Naming,PyMethodMayBeStatic
+    def AddRef(self: _ComBase) -> _type.ULONG:
+        return 1
+
+    # noinspection PyPep8Naming,PyMethodMayBeStatic
+    def Release(self: _ComBase) -> _type.ULONG:
+        return 0'''
 
 
 class IUnknown(_ctypes.c_void_p):
@@ -168,16 +225,16 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
     _globals.has_item(name)
 
     class Wrapper(_ctypes.c_void_p):
-        _com: _ctypes.Structure = type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
+        _struct: _ctypes.Structure = type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
             *_method_type(types))) for name_, types in _typing.get_type_hints(_globals.vars_[name], _globals).items())})
         # noinspection PyProtectedMember
-        __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _com._fields_)
+        __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _struct._fields_)
 
         def __getattr__(self, name_: str):
-            if not name_.startswith('_') and name_ in dir(self._com):
-                funcs = self._com.from_address(_ctypes.c_void_p.from_address(self.value).value)
+            if not name_.startswith('_') and name_ in dir(self._struct):
+                funcs = self._struct.from_address(_ctypes.c_void_p.from_address(self.value).value)
                 # noinspection PyProtectedMember
-                for name__, types in self._com._fields_:
+                for name__, types in self._struct._fields_:
                     method = getattr(funcs, name__)
                     method.__name__ = name__
                     # noinspection PyProtectedMember

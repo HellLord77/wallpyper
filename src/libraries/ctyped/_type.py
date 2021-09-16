@@ -6,11 +6,10 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 from typing import Union as _Union
 
-from .__head__ import Globals as _Globals
-from .__head__ import Pointer as _Pointer
-from .__head__ import resolve_type as _resolve_type
+from .__head__ import _Globals
+from .__head__ import _Pointer
+from .__head__ import _resolve_type
 
-_WIN32 = True
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = ('__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__',
               '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
@@ -146,22 +145,22 @@ LP = LPWSTR
 LPARAM = LONG_PTR
 LPCTCH = LPCWCH
 LPCTSTR = LPCWSTR
+LPOLESTR = LPWSTR
 LPTCH = LPWCH
 LPTSTR = LPWSTR
 LRESULT = LONG_PTR
+OLECHAR = WCHAR
 PCTCH = LPCWCH
 PCTSTR = LPCWSTR
 PROPID = ULONG
 PTCH = LPWCH
 PTSTR = LPWSTR
+SCODE = LONG
 SFGAOF = ULONG
 SICHINTF = DWORD
 SIZE_T = ULONG_PTR
 STDAPI = HRESULT
 WPARAM = UINT_PTR
-
-OLECHAR = WCHAR if _WIN32 else c_char
-LPOLESTR = _Pointer[OLECHAR] if _WIN32 else LPSTR
 
 GpStatus = Status
 HACCEL = HANDLE

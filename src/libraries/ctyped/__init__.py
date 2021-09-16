@@ -1,4 +1,4 @@
-__version__ = '0.1.12'  # TODO: overload func, overridable com
+__version__ = '0.1.13'  # TODO: overload func, overridable com
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -18,13 +18,13 @@ from . import _struct as struct
 # noinspection PyShadowingBuiltins
 from . import _type as type
 from . import _union as union
-from .__head__ import Array
-from .__head__ import CT
-from .__head__ import Pointer
-from .__head__ import byref
-from .__head__ import cast
-from .__head__ import pointer
-from .__head__ import sizeof
+from .__head__ import _Array as Array
+from .__head__ import _CT as CT
+from .__head__ import _Pointer as Pointer
+from .__head__ import _byref as byref
+from .__head__ import _cast as cast
+from .__head__ import _pointer as pointer
+from .__head__ import _sizeof as sizeof
 
 
 def array(type_: _builtins.type[CT] = type.c_void_p,

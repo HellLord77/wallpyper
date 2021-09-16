@@ -4,8 +4,8 @@ import functools as _functools
 import typing as _typing
 
 from . import _type
-from .__head__ import Globals as _Globals
-from .__head__ import resolve_type as _resolve_type
+from .__head__ import _Globals
+from .__head__ import _resolve_type
 
 
 # noinspection PyPep8Naming

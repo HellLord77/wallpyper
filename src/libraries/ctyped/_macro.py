@@ -5,8 +5,8 @@ from typing import Callable as _Callable
 
 from . import _const
 from . import _type
-from .__head__ import Globals as _Globals
-from .__head__ import cast as _cast
+from .__head__ import _Globals
+from .__head__ import _cast
 
 
 # noinspection PyPep8Naming
@@ -99,6 +99,16 @@ def GET_X_LPARAM(lp: int) -> int:
 # noinspection PyPep8Naming
 def GET_Y_LPARAM(lp: int) -> int:
     return HIWORD(lp)
+
+
+# noinspection PyPep8Naming
+def GetScode(sc: int) -> _type.SCODE:
+    return _type.SCODE(sc)
+
+
+# noinspection PyPep8Naming
+def ResultFromScode(sc: int) -> _type.HRESULT:
+    return _type.HRESULT(sc)
 
 
 MAKEINTRESOURCE = MAKEINTRESOURCEW if _const.UNICODE else MAKEINTRESOURCEA
