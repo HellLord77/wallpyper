@@ -6,6 +6,7 @@ $OneFile = $True
 function Install-Dependecies
 {
     python -m pip install --upgrade pip
+    pip install --upgrade wheel
 
     $Exists = $True
     while ($Exists)
