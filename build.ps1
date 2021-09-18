@@ -7,29 +7,22 @@ function Install-Dependecies
 {
     python -m pip install --upgrade pip
 
-    if ($BuildBootloader)
+    $Exists = $True
+    while ($Exists)
     {
-        $Exists = $True
-        while ($Exists)
-        {
-            $Temp = Join-Path $Env:TEMP (Get-Random)
-            $Exists = Test-Path $Temp
-        }
-        New-Item $Temp -ItemType Directory
-        Push-Location $Temp
-        pip download pyinstaller --no-deps --no-binary : all:
-        tar -xf (Get-ChildItem -Attributes Archive).FullName
-        Set-Location (Join-Path (Get-ChildItem -Attributes Directory).FullName "bootloader")
-        python waf all
-        Set-Location ..
-        python setup.py install
-        Pop-Location
-        Remove-Item $Temp -Force -Recurse
+        $Temp = ".tmp-$( Get-Random )"
+        $Exists = Test-Path $Temp
     }
-    else
-    {
-        pip install pyinstaller
-    }
+    New-Item $Temp -ItemType Directory
+    Push-Location $Temp
+    pip download pyinstaller --no-deps --no-binary pyinstaller
+    $Source = (Get-ChildItem -Attributes Archive).FullName
+    tar -xf $Source
+    Set-Location $Source.Substring(0,$Source.LastIndexOf(".tar.gz"))
+    Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
+    python setup.py build install
+    Pop-Location
+    Remove-Item $Temp -Force -Recurse
 
     if ($Obfuscate)
     {
