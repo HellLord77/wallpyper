@@ -15,7 +15,7 @@ function Install-Dependecies
     }
     New-Item $Temp -ItemType Directory
     Push-Location $Temp
-    pip download pyinstaller --no-deps --no-binary : all:
+    pip download pyinstaller --no-deps --no-binary :all:
     tar -xvf (Get-ChildItem -Attributes Archive).FullName
     Set-Location (Join-Path (Get-ChildItem -Attributes Directory).FullName "bootloader")
     python waf all
