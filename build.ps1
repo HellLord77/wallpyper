@@ -6,18 +6,18 @@ $OneFile = $True
 function Install-Dependecies
 {
     python -m pip install --upgrade pip
-    pip install --upgrade wheel
 
     $Exists = $True
     while ($Exists)
     {
-        $Temp = ".tmp-$( Get-Random )"
+        # Join-Path $Env:TEMP (Get-Random)
+        $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) "Temp-$( Get-Random )"
         $Exists = Test-Path $Temp
     }
     New-Item $Temp -ItemType Directory
     Push-Location $Temp
     pip download pyinstaller --no-deps --no-binary pyinstaller
-    $Source = (Get-ChildItem -Attributes Archive).FullName
+    $Source = (Get-ChildItem -Attributes Archive -Filter "pyinstaller-*.tar.gz").FullName
     tar -xf $Source
     Set-Location $Source.Substring(0,$Source.LastIndexOf(".tar.gz"))
     Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
