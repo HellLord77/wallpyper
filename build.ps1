@@ -6,7 +6,24 @@ $OneFile = $True
 function Install-Dependecies
 {
     python -m pip install --upgrade pip
-    pip install pyinstaller
+
+    $Exists = $True
+    while ($Exists)
+    {
+        $Temp = Join-Path $Env:TEMP (Get-Random)
+        $Exists = Test-Path $Temp
+    }
+    New-Item $Temp -ItemType Directory
+    Push-Location $Temp
+    pip download pyinstaller --no-deps --no-binary : all:
+    tar -xvf (Get-ChildItem -Attributes Archive).FullName
+    Set-Location (Join-Path (Get-ChildItem -Attributes Directory).FullName "bootloader")
+    python waf all
+    Set-Location ..
+    python setup.py install
+    Pop-Location
+    Remove-Item $Temp -Force -Recurse
+
     if ($Obfuscate)
     {
         pip install pyarmor
