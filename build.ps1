@@ -5,8 +5,8 @@ $OneFile = $True
 
 function Install-Dependecies
 {
-    python -m pip install --upgrade pip
-    pip install --upgrade wheel
+    python -m pip install pip --upgrade
+    pip install wheel --upgrade
 
     $Exists = $True
     while ($Exists)
@@ -19,8 +19,8 @@ function Install-Dependecies
     Push-Location $Temp
     pip download pyinstaller --no-deps --no-binary pyinstaller
     $Source = (Get-ChildItem -Attributes Archive).FullName
-    tar -xf $Source
-    Set-Location $Source.Substring(0,$Source.LastIndexOf(".tar.gz"))
+    tar -xvf $Source
+    Set-Location $Source.Substring(0, $Source.Length - ".tar.gz".Length)
     Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
     python setup.py build install
     Pop-Location

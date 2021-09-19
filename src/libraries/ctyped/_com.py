@@ -8,69 +8,16 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _const
+from . import _func
 from . import _struct
 from . import _type
 from .__head__ import _Globals
 from .__head__ import _Pointer
+from .__head__ import _byref
 from .__head__ import _get_doc
 from .__head__ import _resolve_type
 
 _ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
-
-'''class _ComBase(_ctypes.c_void_p):
-    __IID__: str = _const.IID_IUnknown
-    _funcs = None
-
-    def __init_subclass__(cls):  # disable init_subclass
-        iid = set()
-        fields = []
-        cls._funcs = []
-        for base in cls._get_base(cls):
-            try:
-                iid.add(base.__IID__)
-            except TypeError:
-                iid.union(base.__IID__)
-            for key, value in vars(base).items():
-                if not key.startswith('_'):
-                    types = list(_typing.get_type_hints(value).values())
-                    # noinspection PyTypeHints
-                    type_ = _ctypes.WINFUNCTYPE(*_resolve_type(_Callable[types, types.pop()]))
-                    fields.append((key, type_))
-                    cls._funcs.append(type_(value))
-        # noinspection PyTypeChecker
-        cls.__IID__ = iid
-        cls._struct = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
-        # print(fields)
-
-    def __init__(self):
-        print(self)
-        self.s = self._struct(*self._funcs)
-        super().__init__(_ctypes.addressof(self.s))
-
-    @staticmethod
-    def _get_base(subclass) -> _Generator[type[_ComBase], None, None]:
-        bases = subclass.mro()
-        for i in range(bases.index(_ComBase), -1, -1):
-            yield bases[i]
-
-    # noinspection PyPep8Naming
-    def QueryInterface(self: _ComBase, lpMyObj: _Pointer[_ComBase], riid: _Pointer[_struct.IID],
-                       lppvObj: _Pointer[_type.LPVOID]) -> _type.HRESULT:
-        lppvObj.contents.value = None
-        iid = _type.LPOLESTR()
-        _func.StringFromIID(riid, _byref(iid))
-        if iid.value in self.__IID__:
-            lppvObj.contents.value = lpMyObj
-            return _const.NOERROR
-        return _const.E_NOINTERFACE
-
-    # noinspection PyPep8Naming,PyMethodMayBeStatic
-    def AddRef(self: _ComBase) -> _type.ULONG:
-        return 1
-
-    # noinspection PyPep8Naming,PyMethodMayBeStatic
-    def Release(self: _ComBase) -> _type.ULONG:
-        return 0'''
 
 
 class IUnknown(_ctypes.c_void_p):
@@ -185,10 +132,6 @@ class IInspectable(IUnknown):
     GetTrustLevel: _Callable
 
 
-class IQueryContinue(IUnknown):
-    QueryContinue: _Callable[[], _type.HRESULT]
-
-
 class IUserNotification(IUnknown):
     __CLSID__ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
@@ -196,13 +139,6 @@ class IUserNotification(IUnknown):
     SetIconInfo: _Callable[[_type.HICON, _type.LPCWSTR], _type.HRESULT]
     Show: _Callable[[_Optional[_type.IQueryContinue], _type.DWORD], _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
-
-
-class IUserNotificationCallback(IUnknown):
-    __CLSID__ = _const.CLSID_UserNotification
-    OnBalloonUserClick: _Callable[[_struct.POINT], _type.HRESULT]
-    OnLeftClick: _Callable[[_struct.POINT], _type.HRESULT]
-    OnContextMenu: _Callable[[_struct.POINT], _type.HRESULT]
 
 
 class IUserNotification2(IUnknown):
@@ -246,3 +182,91 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
 
 
 _globals = _Globals()
+
+
+class ComBase(_ctypes.c_void_p):
+    __IID__: str = _const.IID_IUnknown
+    _funcs = None
+    _vtable = None
+
+    def __init__(self):
+        if not self._vtable:
+            cls = type(self)
+            cls.__IID__ = set()
+            funcs = {}
+            bases = cls.mro()
+            for base in bases[bases.index(ComBase)::-1]:
+                base: type[ComBase]
+                try:
+                    cls.__IID__.add(base.__IID__)
+                except TypeError:
+                    cls.__IID__.union(base.__IID__)
+                for key, value in vars(base).items():
+                    if not key.startswith('_'):
+                        funcs[key] = value.__func__
+            fields = []
+            cls._funcs = []
+            for name, func in funcs.items():
+                types = list(_typing.get_type_hints(func).values())
+                # noinspection PyTypeHints
+                type_ = _ctypes.WINFUNCTYPE(*_resolve_type(_Callable[types, types.pop()]))
+                fields.append((name, type_))
+                cls._funcs.append(type_(func))
+            cls._vtable = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
+        self._vtable = self._vtable(*self._funcs)
+        super().__init__(_ctypes.addressof(self._vtable))
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def QueryInterface(This: _Pointer[ComBase], riid: _Pointer[_struct.IID],
+                       ppvObject: _Pointer[_type.LPVOID]) -> _type.HRESULT:
+        if not ppvObject:
+            return _const.E_INVALIDARG
+        ppvObject.contents.value = None
+        iid = _type.LPOLESTR()
+        _func.StringFromIID(riid, _byref(iid))
+        if iid.value in This.contents.__IID__:
+            ppvObject.contents.value = This
+            return _const.NOERROR
+        return _const.E_NOINTERFACE
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def AddRef(This: _Pointer[ComBase]) -> _type.ULONG:
+        return 1
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Release(This: _Pointer[ComBase]) -> _type.ULONG:
+        return 0
+
+
+class IQueryContinue(ComBase):
+    __IID__ = _const.IID_IQueryContinue
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def QueryContinue() -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IUserNotificationCallback(ComBase):
+    __IID__ = _const.IID_IUserNotificationCallback
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def OnBalloonUserClick(This: _Pointer[IUserNotificationCallback],
+                           pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
+        return _const.NOERROR
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def OnLeftClick(This: _Pointer[IUserNotificationCallback],
+                    pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
+        return _const.NOERROR
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def OnContextMenu(This: _Pointer[IUserNotificationCallback],
+                      pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
+        return _const.NOERROR

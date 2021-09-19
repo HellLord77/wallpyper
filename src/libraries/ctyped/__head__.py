@@ -7,7 +7,6 @@ import pkgutil as _pkgutil
 import sys as _sys
 import typing as _typing
 from typing import Any as _Any
-from typing import Callable as _Callable
 from typing import Generator as _Generator
 from typing import Generic as _Generic
 from typing import NoReturn as _NoReturn
@@ -162,14 +161,16 @@ def _replace_object(old, new):
 
 
 def _resolve_type(type_: _Any) -> _Any:
-    if isinstance(type_, type(_Callable)):
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    if isinstance(type_, _typing._CallableType):
         type_ = [None]
-    elif isinstance(type_, type(_Callable[[], None])):
+    elif isinstance(type_, _typing._CallableGenericAlias):
         types_ = _typing.get_args(type_)
         type_ = [_resolve_type(types_[1])]
         type_.extend(_resolve_type(type_) for type_ in types_[0])
     else:
-        if isinstance(type_, type(_Optional[object])):
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        if isinstance(type_, _typing._UnionGenericAlias):
             type_ = _typing.get_args(type_)[0]
         if _typing.get_origin(type_) is type:
             type_ = _typing.get_args(type_)[0]
