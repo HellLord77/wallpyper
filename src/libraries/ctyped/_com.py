@@ -137,7 +137,7 @@ class IUserNotification(IUnknown):
     SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
     SetBalloonRetry: _Callable[[_type.DWORD, _type.DWORD, _type.UINT], _type.HRESULT]
     SetIconInfo: _Callable[[_type.HICON, _type.LPCWSTR], _type.HRESULT]
-    Show: _Callable[[_Optional[_type.IQueryContinue], _type.DWORD], _type.HRESULT]
+    Show: _Callable[[_Optional[IQueryContinue], _type.DWORD], _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
 
 
@@ -146,8 +146,8 @@ class IUserNotification2(IUnknown):
     SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
     SetBalloonRetry: _Callable[[_type.DWORD, _type.DWORD, _type.UINT], _type.HRESULT]
     SetIconInfo: _Callable[[_type.HICON, _type.LPCWSTR], _type.HRESULT]
-    Show: _Callable[[_Optional[_type.IQueryContinue], _type.DWORD,
-                     _Optional[_type.IUserNotificationCallback]], _type.HRESULT]
+    Show: _Callable[[_Optional[_Pointer[IQueryContinue]], _type.DWORD,
+                     _Optional[_Pointer[IUserNotificationCallback]]], _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
 
 
@@ -185,13 +185,12 @@ _globals = _Globals()
 
 
 class ComBase(_ctypes.c_void_p):
-    __IID__: str = _const.IID_IUnknown
+    __IID__ = _const.IID_IUnknown
     _funcs = None
     _vtable = None
 
-    def __init__(self):
-        if not self._vtable:
-            cls = type(self)
+    def __new__(cls, *_, **__):
+        if not cls._vtable:
             cls.__IID__ = set()
             funcs = {}
             bases = cls.mro()
@@ -213,6 +212,9 @@ class ComBase(_ctypes.c_void_p):
                 fields.append((name, type_))
                 cls._funcs.append(type_(func))
             cls._vtable = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
+        return super().__new__(cls)
+
+    def __init__(self):
         self._vtable = self._vtable(*self._funcs)
         super().__init__(_ctypes.addressof(self._vtable))
 

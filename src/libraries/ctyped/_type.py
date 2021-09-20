@@ -78,6 +78,8 @@ USHORT = c_ushort
 WCHAR = c_wchar_t
 WORD = c_ushort
 
+LPCCH = c_char_p
+LPCH = c_char_p
 LPCSTR = c_char_p
 LPCVOID = c_void_p
 LPCWCH = c_wchar_p
@@ -88,10 +90,13 @@ LPWCH = c_wchar_p
 LPWSTR = c_wchar_p
 NPSTR = c_char_p
 NWPSTR = c_wchar_p
+PBYTE = c_char_p
+PCCH = c_char_p
+PCH = c_char_p
+PCHAR = c_char_p
 PCNZCH = c_char_p
 PCNZWCH = c_wchar_p
 PCSTR = c_char_p
-PBYTE = c_char_p
 PCWCH = c_wchar_p
 PCWSTR = c_wchar_p
 PCZZSTR = c_char_p
@@ -112,21 +117,17 @@ IBindCtx = _obj_p
 IShellItem = _obj_p
 IShellItemArray = _obj_p
 IUnknown = _obj_p
-IQueryContinue = _obj_p
-IUserNotificationCallback = _obj_p
 
 _enum = c_uint  # TODO: enum.IntEnum
 DESKTOP_SLIDESHOW_DIRECTION = _enum
 DESKTOP_SLIDESHOW_OPTIONS = _enum
 DESKTOP_SLIDESHOW_STATE = _enum
 DESKTOP_WALLPAPER_POSITION = _enum
+DebugEventLevel = _enum
 RO_INIT_TYPE = _enum
 SIGDN = _enum
-TrustLevel = _enum
 Status = _enum
-
-_callback = c_void_p  # TODO: CFUNCTYPE
-DebugEventProc = _callback
+TrustLevel = _enum
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -203,6 +204,7 @@ HCURSOR = HICON
 
 WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
 TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
+DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 
 
 def _set_magic(magic: str,

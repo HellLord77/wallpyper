@@ -58,7 +58,7 @@ class _Globals(dict):
         super().__init__(vars(self.module))
         self.module.__getattr__ = self.__getitem__
         if _INIT:
-            self.module._globals = self  # TODO: execute after __init__
+            self.module._globals = self
             for var in self.iter_vars():
                 getattr(self.module, var)
 
@@ -66,8 +66,13 @@ class _Globals(dict):
         try:
             return super().__getitem__(item)
         except KeyError:
-            # noinspection PyProtectedMember,PyUnresolvedReferences
-            val = self.module._init(item)
+            try:
+                val = vars(self.module)[item]
+            except KeyError:
+                # noinspection PyProtectedMember,PyUnresolvedReferences
+                val = self.module._init(item)
+            else:
+                self.vars_[item] = val
             self[item] = val
             return val
 
@@ -75,7 +80,7 @@ class _Globals(dict):
         try:
             val = self.vars_[key]
         except KeyError:
-            return
+            pass
         else:
             if self.once:
                 self.setitem(key, value)
@@ -101,9 +106,7 @@ class _Globals(dict):
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_annotation(self, item: str) -> _Any:
-        try:
-            self.annotations.__getattr__
-        except AttributeError:
+        if not self.annotations:
             self.annotations = _typing.get_type_hints(self.module)
         return self.annotations[item]
 
