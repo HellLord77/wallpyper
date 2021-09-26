@@ -6,29 +6,32 @@ $OneFile = $True
 function Install-Dependecies
 {
     python -m pip install pip --upgrade
-    pip install wheel --upgrade
-
-    $Exists = $True
-    while ($Exists)
-    {
-        # Join-Path $Env:TEMP (Get-Random)
-        $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) "Temp-$( Get-Random )"
-        $Exists = Test-Path $Temp
-    }
-    New-Item $Temp -ItemType Directory
-    Push-Location $Temp
-    pip download pyinstaller --no-deps --no-binary pyinstaller
-    $Source = (Get-ChildItem -Attributes Archive).FullName
-    tar -xvf $Source
-    Set-Location $Source.Substring(0, $Source.Length - ".tar.gz".Length)
-    Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
-    python setup.py build install
-    Pop-Location
-    Remove-Item $Temp -Force -Recurse
 
     if ($Obfuscate)
     {
-        pip install pyarmor
+        pip install pyinstaller --upgrade
+        pip install pyarmor --upgrade
+    }
+    else
+    {
+        pip install wheel --upgrade
+        $Exists = $True
+        while ($Exists)
+        {
+            # Join-Path $Env:TEMP (Get-Random)
+            $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) "Temp-$( Get-Random )"
+            $Exists = Test-Path $Temp
+        }
+        New-Item $Temp -ItemType Directory
+        Push-Location $Temp
+        pip download pyinstaller --no-deps --no-binary pyinstaller
+        $Source = (Get-ChildItem -Attributes Archive).FullName
+        tar -xvf $Source
+        Set-Location $Source.Substring(0, $Source.Length - ".tar.gz".Length)
+        Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
+        python setup.py build install
+        Pop-Location
+        Remove-Item $Temp -Force -Recurse
     }
     if (Test-Path requirements.txt -PathType Leaf)
     {

@@ -52,7 +52,7 @@ DEFAULT_CONFIG = {
 
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
-CONFIG_PATH = f'E:\\Projects\\wallpyper\\{NAME}.ini'  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
+CONFIG_PATH = f'D:\\Projects\\wallpyper\\{NAME}.ini'  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
 LOG_PATH = utils.replace_extension(CONFIG_PATH, 'log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = {
