@@ -50,6 +50,7 @@ DEFAULT_CONFIG = {
     SAVE_DATA: False
 }
 
+UUID = 'a0447fd8-0fea-4bdb-895e-fb83ad817cae'
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
 TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
 CONFIG_PATH = f'D:\\Projects\\wallpyper\\{NAME}.ini'  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
@@ -295,11 +296,11 @@ def create_menu() -> None:  # TODO: previous wallpaper, slideshow (smaller timer
 
 
 def start() -> None:  # TODO: dark theme
-    libraries.singleton.init(NAME, 'wait' in sys.argv, on_crash=print, on_crash_args=('Crash',),
+    libraries.singleton.init(NAME, UUID, 'wait' in sys.argv, on_crash=print, on_crash_args=('Crash',),
                              on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if 'debug' in sys.argv:
         libraries.log.redirect_stdio(
-            LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_exception(LOG_PATH)
+            LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_on_exception(LOG_PATH)
         libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
                            utils.re_join_path('libraries', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
                            utils.re_join_path('platforms', r'.*\.py'), level=libraries.log.Level.INFO, skip_comp=True)
@@ -312,7 +313,7 @@ def start() -> None:  # TODO: dark theme
     on_animate(CONFIG[ANIMATE])
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[SAVE_DATA])
-    if 'change' in sys.argv:
+    if 'change' in sys.argv:  # TODO: store last update, change if now >= last + interval
         on_change()
     utils.start(RES_PATHS[0], NAME, on_change)
 

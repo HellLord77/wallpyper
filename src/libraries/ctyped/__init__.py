@@ -46,8 +46,9 @@ def char_array(string):
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
+# noinspection PyProtectedMember
 @_functools.cache
-def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[Pointer[struct.CLSID], Pointer[struct.IID]]:
+def _get_refs(type_: _builtins.type[com._IUnknown]) -> tuple[Pointer[struct.CLSID], Pointer[struct.IID]]:
     clsid_ref = byref(struct.CLSID())
     func.CLSIDFromString(type_.__CLSID__, clsid_ref)
     iid_ref = byref(struct.IID())
@@ -57,7 +58,7 @@ def _get_refs(type_: _builtins.type[com.IUnknown]) -> tuple[Pointer[struct.CLSID
 
 @_contextlib.contextmanager
 def create_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    obj: com.IUnknown = type_()
+    obj = type_()
     func.CoInitialize(None)
     try:
         if type_.__CLSID__:

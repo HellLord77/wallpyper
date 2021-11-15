@@ -18,8 +18,8 @@ function Install-Dependecies
         $Exists = $True
         while ($Exists)
         {
-            # Join-Path $Env:TEMP (Get-Random)
-            $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) "Temp-$( Get-Random )"
+            # $Temp = Join-Path $Env:TEMP (Get-Random)
+            $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
             $Exists = Test-Path $Temp
         }
         New-Item $Temp -ItemType Directory

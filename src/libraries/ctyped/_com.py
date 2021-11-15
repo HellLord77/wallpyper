@@ -20,14 +20,14 @@ from .__head__ import _resolve_type
 _ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
 
 
-class IUnknown(_ctypes.c_void_p):
+class _IUnknown(_ctypes.c_void_p):
     __CLSID__ = ''
     QueryInterface: _Callable[[_Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
     AddRef: _Callable[[], _type.ULONG]
     Release: _Callable[[], _type.ULONG]
 
 
-class IShellItem(IUnknown):
+class IShellItem(_IUnknown):
     BindToHandler: _Callable[[_Pointer[_type.IBindCtx], _Pointer[_struct.GUID],
                               _Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
     GetParent: _Callable[[_Pointer[_type.IShellItem]], _type.HRESULT]
@@ -37,7 +37,7 @@ class IShellItem(IUnknown):
                        _type.HRESULT]
 
 
-class IShellItemArray(IUnknown):
+class IShellItemArray(_IUnknown):
     BindToHandler: _Callable
     GetPropertyStore: _Callable
     GetPropertyDescriptionList: _Callable
@@ -47,7 +47,7 @@ class IShellItemArray(IUnknown):
     EnumItems: _Callable
 
 
-class IActiveDesktop(IUnknown):
+class IActiveDesktop(_IUnknown):
     __CLSID__ = _const.CLSID_ActiveDesktop
     ApplyChanges: _Callable[[_type.DWORD], _type.HRESULT]
     GetWallpaper: _Callable[[_type.PWSTR, _type.UINT, _type.DWORD], _type.HRESULT]
@@ -70,7 +70,7 @@ class IActiveDesktop(IUnknown):
     GetDesktopItemBySource: _Callable
 
 
-class IDesktopWallpaper(IUnknown):
+class IDesktopWallpaper(_IUnknown):
     __CLSID__ = _const.CLSID_DesktopWallpaper
     SetWallpaper: _Callable[[_type.LPCWSTR, _type.LPCWSTR], _type.HRESULT]
     GetWallpaper: _Callable[[_type.LPCWSTR, _Pointer[_type.LPWSTR]], _type.HRESULT]
@@ -90,7 +90,7 @@ class IDesktopWallpaper(IUnknown):
     Enable: _Callable[[_type.BOOL], _type.HRESULT]
 
 
-class IModalWindow(IUnknown):
+class IModalWindow(_IUnknown):
     __CLSID__ = _const.CLSID_FileOpenDialog
     Show: _Callable[[_type.HWND], _type.HRESULT]
 
@@ -126,13 +126,13 @@ class IFileOpenDialog(IFileDialog):
     GetSelectedItems: _Callable
 
 
-class IInspectable(IUnknown):
+class IInspectable(_IUnknown):
     GetIids: _Callable
     GetRuntimeClassName: _Callable
     GetTrustLevel: _Callable
 
 
-class IUserNotification(IUnknown):
+class IUserNotification(_IUnknown):
     __CLSID__ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
     SetBalloonRetry: _Callable[[_type.DWORD, _type.DWORD, _type.UINT], _type.HRESULT]
@@ -141,7 +141,7 @@ class IUserNotification(IUnknown):
     PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
 
 
-class IUserNotification2(IUnknown):
+class IUserNotification2(_IUnknown):
     __CLSID__ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR, _type.LPCWSTR, _type.DWORD], _type.HRESULT]
     SetBalloonRetry: _Callable[[_type.DWORD, _type.DWORD, _type.UINT], _type.HRESULT]
@@ -184,7 +184,7 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
 _globals = _Globals()
 
 
-class ComBase(_ctypes.c_void_p):
+class IUnknown(_ctypes.c_void_p):
     __IID__ = _const.IID_IUnknown
     _funcs = None
     _vtable = None
@@ -194,8 +194,8 @@ class ComBase(_ctypes.c_void_p):
             cls.__IID__ = set()
             funcs = {}
             bases = cls.mro()
-            for base in bases[bases.index(ComBase)::-1]:
-                base: type[ComBase]
+            for base in bases[bases.index(IUnknown)::-1]:
+                base: type[IUnknown]
                 try:
                     cls.__IID__.add(base.__IID__)
                 except TypeError:
@@ -220,7 +220,7 @@ class ComBase(_ctypes.c_void_p):
 
     # noinspection PyPep8Naming
     @staticmethod
-    def QueryInterface(This: _Pointer[ComBase], riid: _Pointer[_struct.IID],
+    def QueryInterface(This: _Pointer[IUnknown], riid: _Pointer[_struct.IID],
                        ppvObject: _Pointer[_type.LPVOID]) -> _type.HRESULT:
         if not ppvObject:
             return _const.E_INVALIDARG
@@ -234,16 +234,16 @@ class ComBase(_ctypes.c_void_p):
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
-    def AddRef(This: _Pointer[ComBase]) -> _type.ULONG:
+    def AddRef(This: _Pointer[IUnknown]) -> _type.ULONG:
         return 1
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
-    def Release(This: _Pointer[ComBase]) -> _type.ULONG:
+    def Release(This: _Pointer[IUnknown]) -> _type.ULONG:
         return 0
 
 
-class IQueryContinue(ComBase):
+class IQueryContinue(IUnknown):
     __IID__ = _const.IID_IQueryContinue
 
     # noinspection PyPep8Naming,PyUnusedLocal
@@ -252,7 +252,7 @@ class IQueryContinue(ComBase):
         return _const.NOERROR
 
 
-class IUserNotificationCallback(ComBase):
+class IUserNotificationCallback(IUnknown):
     __IID__ = _const.IID_IUserNotificationCallback
 
     # noinspection PyPep8Naming,PyUnusedLocal

@@ -1,4 +1,4 @@
-__version__ = '0.0.3'  # TODO: send signal and kill if no reply, check error code & crash (?)
+__version__ = '0.0.4'  # TODO: send signal and kill if no reply, check error code & crash (?)
 
 import atexit
 import hashlib
@@ -92,22 +92,25 @@ class Method:
     SOCKET = _socket
 
 
-def _get_uid(path: Optional[str] = None, prefix: Optional[str] = None) -> str:
+def _get_uid(path: Optional[str] = None, prefix: Optional[str] = None, uid: Optional[str] = None) -> str:
     md5 = hashlib.md5()
-    with open(path or sys.argv[0], 'rb') as file:
-        buffer = file.read(MAX_CHUNK)
-        while buffer:
-            md5.update(buffer)
+    if uid:
+        md5.update(uid.encode())
+    else:
+        with open(path or sys.argv[0], 'rb') as file:
             buffer = file.read(MAX_CHUNK)
+            while buffer:
+                md5.update(buffer)
+                buffer = file.read(MAX_CHUNK)
     return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
 
 
-def init(name_prefix: Optional[str] = None, wait: Optional[bool] = None, on_crash: Optional[Callable] = None,
-         on_crash_args: Optional[Iterable] = None, on_crash_kwargs: Optional[Mapping[str, Any]] = None,
-         on_wait: Optional[Callable] = None, on_wait_args: Optional[Iterable] = None,
-         on_wait_kwargs: Optional[Mapping[str, Any]] = None, on_exit: Optional[Callable] = None,
-         on_exit_args: Optional[Iterable] = None, on_exit_kwargs: Optional[Mapping[str, Any]] = None,
-         method: Optional[Callable] = None) -> Optional[NoReturn]:
-    (method or Method.FILE)(_get_uid(prefix=name_prefix), bool(wait), on_crash, on_crash_args or (),
-                            on_crash_kwargs or {}, on_wait, on_wait_args or (), on_wait_kwargs or {}, on_exit,
-                            on_exit_args or (), on_exit_kwargs or {})
+def init(uid_prefix: Optional[str] = None, uid: Optional[str] = None, wait: Optional[bool] = None,
+         on_crash: Optional[Callable] = None, on_crash_args: Optional[Iterable] = None,
+         on_crash_kwargs: Optional[Mapping[str, Any]] = None, on_wait: Optional[Callable] = None,
+         on_wait_args: Optional[Iterable] = None, on_wait_kwargs: Optional[Mapping[str, Any]] = None,
+         on_exit: Optional[Callable] = None, on_exit_args: Optional[Iterable] = None,
+         on_exit_kwargs: Optional[Mapping[str, Any]] = None, method: Optional[Callable] = None) -> Optional[NoReturn]:
+    (method or Method.FILE)(_get_uid(prefix=uid_prefix, uid=uid), bool(wait), on_crash,
+                            on_crash_args or (), on_crash_kwargs or {}, on_wait, on_wait_args or (),
+                            on_wait_kwargs or {}, on_exit, on_exit_args or (), on_exit_kwargs or {})

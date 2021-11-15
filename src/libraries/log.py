@@ -82,7 +82,7 @@ def _excepthook(excepthook_: Callable, *args, **kwargs) -> None:
     excepthook_(*args, **kwargs)
 
 
-def dump_exception(path: str) -> None:
+def dump_on_exception(path: str) -> None:
     global _DUMP
     _DUMP = False
     sys.excepthook = types.MethodType(_excepthook, sys.excepthook)
