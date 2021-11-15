@@ -140,6 +140,26 @@ def copy_image(path: str) -> bool:
     return False
 
 
+@contextlib.contextmanager
+def _get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
+    ids = tuple(ctyped.func.ILCreateFromPath(path) for path in paths)
+    try:
+        yield ids
+    finally:
+        for id_ in ids:
+            ctyped.func.ILFree(id_)
+
+
+def open_file_path(path: str) -> bool:
+    with _get_itemidlist(path) as pidl:
+        ctyped.func.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0)
+    return True
+
+
+def open_file(path: str) -> bool:
+    return ctyped.func.ShellExecute(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+
+
 def get_wallpaper_path() -> str:
     buff = ctyped.type.LPWSTR(' ' * _MAX_PATH)
     ctyped.func.SystemParametersInfo(ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buff, 0)
@@ -155,19 +175,9 @@ def set_wallpaper(*paths: str) -> bool:
     return False
 
 
-@contextlib.contextmanager
-def _item_ids(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.func.ILCreateFromPath(path) for path in paths)
-    try:
-        yield ids
-    finally:
-        for id_ in ids:
-            ctyped.func.ILFree(id_)
-
-
 def set_slideshow(*paths: str) -> bool:
-    with _item_ids(*paths) as p_ids:
-        id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *p_ids)
+    with _get_itemidlist(*paths) as pidl:
+        id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
         with ctyped.create_com(ctyped.com.IShellItemArray) as shl_arr:
             ctyped.func.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
             if shl_arr:

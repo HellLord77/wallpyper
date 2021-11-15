@@ -1554,6 +1554,10 @@ PropertyTagGpsProcessingMethod = 0x001B
 PropertyTagGpsAreaInformation = 0x001C
 PropertyTagGpsDate = 0x001D
 PropertyTagGpsDifferential = 0x001E
+
+OFASI_EDIT = 0x0001
+OFASI_OPENDESKTOP = 0x0002
+
 # HRESULT
 NOERROR = 0
 E_UNEXPECTED = 0x8000FFFF

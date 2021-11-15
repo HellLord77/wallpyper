@@ -203,17 +203,31 @@ def on_modify_save():
     platform.show_balloon(LANGUAGE.MODIFY_SAVE, str(NotImplemented))
 
 
-def on_copy() -> bool:
-    copied = any(platform.copy_image(path) for path in _get_wallpaper_paths())
-    if not copied and CONFIG[NOTIFY]:
-        utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
-    return copied
+def on_open_explorer() -> bool:
+    opened = any(platform.open_file_path(path) for path in _get_wallpaper_paths())
+    if not opened and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.OPEN_EXPLORER, LANGUAGE.FAILED_OPENING_EXPLORER)
+    return opened
+
+
+def on_open() -> bool:
+    opened = any(platform.open_file(path) for path in _get_wallpaper_paths())
+    if not opened and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.OPEN, LANGUAGE.FAILED_OPENING)
+    return opened
 
 
 def on_copy_path() -> bool:
     copied = any(platform.copy_text(path) for path in _get_wallpaper_paths())
     if not copied and CONFIG[NOTIFY]:
         utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
+    return copied
+
+
+def on_copy() -> bool:
+    copied = any(platform.copy_image(path) for path in _get_wallpaper_paths())
+    if not copied and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
     return copied
 
 
@@ -276,8 +290,12 @@ def create_menu() -> None:  # TODO: previous wallpaper, slideshow (smaller timer
                    on_click=update_config, args=(SAVE,), extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, on_click=on_modify_save)
     utils.add_separator()
-    utils.add_item(LANGUAGE.COPY, on_click=on_copy)
-    utils.add_item(LANGUAGE.COPY_PATH, on_click=on_copy_path)
+    open_submenu = utils.add_submenu(LANGUAGE.OPEN_SUBMENU)
+    utils.add_item(LANGUAGE.OPEN_EXPLORER, on_click=on_open_explorer, menu=open_submenu)
+    utils.add_item(LANGUAGE.OPEN, on_click=on_open, menu=open_submenu)
+    copy_submenu = utils.add_submenu(LANGUAGE.COPY_SUBMENU)
+    utils.add_item(LANGUAGE.COPY_PATH, on_click=on_copy_path, menu=copy_submenu)
+    utils.add_item(LANGUAGE.COPY, on_click=on_copy, menu=copy_submenu)
     utils.add_item(LANGUAGE.SEARCH, on_click=on_search)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)

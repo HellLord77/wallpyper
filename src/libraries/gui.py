@@ -17,7 +17,6 @@ class Item:
     NORMAL = wx.ITEM_NORMAL
     CHECK = wx.ITEM_CHECK
     RADIO = wx.ITEM_RADIO
-    SUBMENU = wx.ITEM_DROPDOWN
 
 
 class Icon:
@@ -93,11 +92,17 @@ def add_separator(menu: wx.Menu = _MENU) -> wx.MenuItem:
     return menu.AppendSeparator()
 
 
-def add_submenu(label: str, kind: Optional[int] = None, checks: Optional[Iterable[str]] = None,
-                enable: Optional[bool] = None, items: Optional[Mapping[str, str]] = None,
-                on_click: Optional[Callable] = None, args: Optional[Iterable] = None,
-                kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
-                position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
+def add_submenu(label: str, menu: wx.Menu = _MENU) -> wx.Menu:
+    submenu = wx.Menu()
+    menu.AppendSubMenu(submenu, label)
+    return submenu
+
+
+def create_submenu(label: str, kind: Optional[int] = None, checks: Optional[Iterable[str]] = None,
+                   enable: Optional[bool] = None, items: Optional[Mapping[str, str]] = None,
+                   on_click: Optional[Callable] = None, args: Optional[Iterable] = None,
+                   kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
+                   position: Optional[int] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
     submenu = wx.Menu()
     for uid, label_ in items.items():
         menu_item = add_menu_item(label_, kind, uid in (checks or ()), label_[0] != '_',

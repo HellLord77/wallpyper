@@ -131,6 +131,9 @@ ILFree: _Callable[[_Optional[_Pointer[_struct.ITEMIDLIST]]],
 SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT,
                                               _Pointer[_Pointer[_struct.ITEMIDLIST]], _Pointer[_com.IShellItemArray]],
                                              _type.SHSTDAPI] = _lib.shell32
+SHOpenFolderAndSelectItems: _Callable[[_Pointer[_struct.ITEMIDLIST], _type.UINT,
+                                       _Optional[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.DWORD],
+                                      _type.SHSTDAPI] = _lib.shell32
 SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[_Pointer[_type.IBindCtx]],
                                _Pointer[_Pointer[type[_struct.ITEMIDLIST]]], _type.SFGAOF, _Pointer[_type.SFGAOF]],
                               _type.SHSTDAPI] = _lib.shell32
@@ -138,6 +141,12 @@ Shell_NotifyIconA: _Callable[[_type.DWORD, _Pointer[_struct.NOTIFYICONDATAA]],
                              _type.BOOL] = _lib.shell32
 Shell_NotifyIconW: _Callable[[_type.DWORD, _Pointer[_struct.NOTIFYICONDATAW]],
                              _type.BOOL] = _lib.shell32
+ShellExecuteA: _Callable[[_Optional[_type.HWND], _Optional[_type.LPCSTR], _type.LPCSTR,
+                          _Optional[_type.LPCSTR], _Optional[_type.LPCSTR], _type.INT],
+                         _type.HINSTANCE] = _lib.shell32
+ShellExecuteW: _Callable[[_Optional[_type.HWND], _Optional[_type.LPCWSTR], _type.LPCWSTR,
+                          _Optional[_type.LPCWSTR], _Optional[_type.LPWSTR], _type.INT],
+                         _type.HINSTANCE] = _lib.shell32
 
 GetCursorPos: _Callable[[_Pointer[_struct.POINT]],
                         _type.BOOL] = _lib.user32
@@ -261,6 +270,7 @@ GetObject = GetObjectW or GetObjectA
 GetModuleHandle = GetModuleHandleW or GetModuleHandleA
 SHGetFolderPath = SHGetFolderPathW or SHGetFolderPathA
 Shell_NotifyIcon = Shell_NotifyIconW or Shell_NotifyIconA
+ShellExecute = ShellExecuteW or ShellExecuteA
 SystemParametersInfo = SystemParametersInfoW or SystemParametersInfoA
 LoadImage = LoadImageW or LoadImageA
 LoadIcon = LoadIconW or LoadIconA
