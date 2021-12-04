@@ -1,7 +1,20 @@
-$Datas = @("resources")
+$Version = "0.0.1"
+
+<#  TODO: UPX
+.INPUTS
+    $Datas = @()
+    $Debug = $False
+    $EntryPoint = "src\main.py"
+    $Excludes = @()
+    $Icon = ""
+    $NoConsole = $False
+    $Obfuscate = $False
+    $OneFile = $False
+#>
+
+$Datas = @("resources")  # remote build succeeds but artifact crashes
 $Icon = "icon.ico"
 $NoConsole = $True
-$OneFile = $True
 
 function Install-Dependecies
 {
@@ -46,6 +59,7 @@ function Build-Project
     {
         $MainArgs += "--onefile"
     }
+
     if (!$EntryPoint)
     {
         $EntryPoint = Join-Path "src" "main.py"
@@ -63,6 +77,7 @@ function Build-Project
 
     if ($Debug)
     {
+        $NoConsole = $False
         $MainArgs += "--debug=all"
     }
 
@@ -85,14 +100,15 @@ function Build-Project
     }
 
     $FirstLine = Get-Content $EntryPoint -TotalCount 1
-    $FullName = "$( Split-Path $( if ($Env:GITHUB_REPOSITORY)
+    $Name = Split-Path $( if ($Env:GITHUB_REPOSITORY)
     {
         $Env:GITHUB_REPOSITORY
     }
     else
     {
         Split-Path -Path (Get-Location) -Leaf
-    } ) -Leaf )-$( if ( $FirstLine.StartsWith("__version__"))
+    } ) -Leaf
+    $FullName = "$Name-$( if ( $FirstLine.StartsWith("__version__"))
     {
         ($FirstLine -split { $_ -eq '''' -or $_ -eq '"' })[1]
     }
@@ -110,6 +126,12 @@ function Build-Project
     else
     {
         pyinstaller $MainArgs $AddArgs
+    }
+
+    if (!$OneFile)
+    {
+        $DistPath = Join-Path "dist" $FullName
+        Rename-Item (Join-Path $DistPath "$FullName.exe") "$Name.exe" -Force
     }
 }
 
