@@ -39,6 +39,7 @@ class _Arg(type):
 
 
 class Method(metaclass=_Arg):
+    ENABLE = wx.MenuItem.Enable.__name__
     SET_LABEL = wx.MenuItem.SetItemLabel.__name__
 
 

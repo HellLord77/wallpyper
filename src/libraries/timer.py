@@ -80,8 +80,8 @@ class Timer:
         return killed
 
 
-def start_once(callback: Callable, args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None, interval: Optional[float] = None) -> Timer:
+def start_once(callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
+               interval: Optional[float] = None) -> Timer:
     timer = Timer(callback, args, kwargs, interval, True)
     timer.start()
     return timer

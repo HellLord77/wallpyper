@@ -58,3 +58,7 @@ upload_url = libraries.request.upload
 
 timer = libraries.timer.Timer
 thread = libraries.timer.on_thread
+
+
+def not_implemented(title: str) -> None:
+    notify(title, str(NotImplemented))

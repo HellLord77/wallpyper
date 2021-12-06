@@ -63,4 +63,4 @@ def get_next_url() -> str:
 
 
 def create_menu():
-    utils.add_item(NAME, on_click=utils.notify, args=(NAME, str(NotImplemented)))
+    utils.add_item(NAME, on_click=utils.not_implemented, args=(NAME,))

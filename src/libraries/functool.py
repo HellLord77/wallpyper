@@ -23,8 +23,8 @@ DEFAULT = object()
 
 
 class Func:
-    def __init__(self, func: Optional[Callable] = None,
-                 args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
+    def __init__(self, func: Optional[Callable] = None, args: Optional[Iterable] = None,
+                 kwargs: Optional[Mapping[str, Any]] = None):
         self.func = func or dummy
         self.args = args or ()
         self.kwargs = kwargs or {}
@@ -48,8 +48,8 @@ def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = No
         yield func(*args_ or (), **kwargs_ or {})
 
 
-def cycle_ex(itt: Iterable, func: Optional[Callable] = None,
-             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
+def cycle_ex(itt: Iterable, func: Optional[Callable] = None, args: Optional[Iterable] = None,
+             kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
     args = args or ()
     kwargs = kwargs or {}
     while True:
@@ -152,8 +152,8 @@ def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:
     return re.escape(sep or os.sep).join((base,) + child)
 
 
-def return_any(func: Callable, args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None, max_try: Optional[int] = None) -> Any:
+def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
+               max_try: Optional[int] = None) -> Any:
     args = args or ()
     kwargs = kwargs or {}
     for _ in (range if max_try else itertools.repeat)(max_try):
@@ -172,8 +172,8 @@ def decrypt(data: str, default: Any = None) -> Any:
     except binascii.Error:
         return default
     size = hashlib.blake2b().digest_size
-    return pickle.loads(decoded[size:]) if decoded[:size] == hashlib.blake2b(
-        decoded[size:], key=str(uuid.getnode()).encode()).digest() else default
+    return pickle.loads(decoded[size:]) if decoded[:size] == hashlib.blake2b(decoded[size:], key=str(
+        uuid.getnode()).encode()).digest() else default
 
 
 def encrypt(obj: Any) -> str:
@@ -181,8 +181,8 @@ def encrypt(obj: Any) -> str:
         pickled = pickle.dumps(obj)
     except TypeError:
         return ''
-    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(
-        uuid.getnode()).encode()).digest() + pickled, newline=False).decode()
+    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled,
+                               newline=False).decode()
 
 
 def one_cache(func: Callable) -> Callable:
@@ -217,8 +217,8 @@ def once_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]],
-                  running: threading.Event, wrapper: Callable) -> NoReturn:
+def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]], running: threading.Event,
+                  wrapper: Callable) -> NoReturn:
     while True:
         work = works.get()
         running.set()
@@ -279,8 +279,8 @@ def threaded_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any],
-          ret: Any, redirect: Optional[bool], unpack: Optional[bool]):
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret: Any, redirect: Optional[bool],
+          unpack: Optional[bool]):
     if redirect:
         if unpack:
             if isinstance(ret, Iterable):
@@ -291,8 +291,8 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any],
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, redirect: Optional[bool] = None,
-               unpack: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_after(pre_func: Callable, redirect: Optional[bool] = None, unpack: Optional[bool] = None) -> Callable[
+    [Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -304,8 +304,8 @@ def call_after(pre_func: Callable, redirect: Optional[bool] = None,
     return wrapped
 
 
-def call_before(post_func: Callable, redirect: Optional[bool] = None,
-                unpack: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_before(post_func: Callable, redirect: Optional[bool] = None, unpack: Optional[bool] = None) -> Callable[
+    [Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
