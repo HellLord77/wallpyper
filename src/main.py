@@ -1,6 +1,8 @@
 __version__ = '0.1.10'  # TODO: error handle rather than condition checking
 
+import atexit
 import configparser
+import subprocess
 import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
@@ -36,17 +38,8 @@ LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
-DEFAULT_CONFIG = {
-    CHANGE: False,
-    INTERVAL: 3600,
-    SAVE: False,
-    SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
-    ANIMATE: True,
-    NOTIFY: True,
-    KEEP_CACHE: False,
-    START: False,
-    KEEP_SETTINGS: False
-}
+DEFAULT_CONFIG = {CHANGE: False, INTERVAL: 3600, SAVE: False, SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
+                  ANIMATE: True, NOTIFY: True, KEEP_CACHE: False, START: False, KEEP_SETTINGS: False}
 
 UUID = 'a0447fd8-0fea-4bdb-895e-fb83ad817cae'
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
@@ -54,14 +47,8 @@ TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
 CONFIG_PATH = f'D:\\Projects\\Wallpyper\\{NAME}.ini'  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
 LOG_PATH = utils.replace_extension(CONFIG_PATH, 'log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
-INTERVALS = {
-    '300': '5 Minute',
-    '900': '15 Minute',
-    '1800': '30 Minute',
-    '3600': '1 Hour',
-    '10800': '3 Hour',
-    '21600': '6 Hour'
-}
+INTERVALS = {'300': '5 Minute', '900': '15 Minute', '1800': '30 Minute', '3600': '1 Hour', '10800': '3 Hour',
+             '21600': '6 Hour'}
 
 CONFIG = {}
 URLS = []
@@ -91,12 +78,7 @@ def load_config() -> bool:  # TODO: verify config
         loaded = bool(parser.read(CONFIG_PATH))
     except configparser.MissingSectionHeaderError:
         loaded = False
-    getters = {
-        str: parser.get,
-        int: parser.getint,
-        float: parser.getfloat,
-        bool: parser.getboolean
-    }
+    getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean}
     loaded = _load_config(getters, NAME, CONFIG, DEFAULT_CONFIG) and loaded
     for module in MODULES:
         loaded = _load_config(getters, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
@@ -155,8 +137,8 @@ def _get_wallpaper_paths() -> Generator[str, None, None]:
 @utils.single
 def save_wallpaper() -> bool:
     utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
-    saved = any(utils.copy_file(path, utils.join_path(
-        CONFIG[SAVE_DIR], utils.file_name(path))) for path in _get_wallpaper_paths())
+    saved = any(utils.copy_file(path, utils.join_path(CONFIG[SAVE_DIR], utils.file_name(path))) for path in
+                _get_wallpaper_paths())
     utils.inanimate(LANGUAGE.SAVING)
     return saved
 
@@ -259,6 +241,19 @@ def on_search() -> bool:
     return searched
 
 
+@utils.thread
+def on_clear() -> bool:
+    cleared = utils.delete(TEMP_DIR, True)
+    if not cleared and CONFIG[NOTIFY]:
+        utils.notify(LANGUAGE.CLEAR, LANGUAGE.FAILED_CLEARING)
+    return cleared
+
+
+def on_restart() -> None:  # fixme: NoConsole = $False doesnt restart
+    atexit.register(subprocess.Popen, libraries.pyinstall.get_argv() + ['wait'], shell=True)
+    on_exit()
+
+
 def on_animate(checked: bool) -> None:
     CONFIG[ANIMATE] = checked
     utils.pause_animation(not checked)
@@ -312,14 +307,15 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     SET_PREVIOUS_LABEL = set_previous_label
     TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     utils.add_separator()
-    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(
-        CONFIG[INTERVAL]),), CONFIG[CHANGE], INTERVALS, on_change_interval, extra_args=(utils.get_property.UID,))
+    change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
+                                      CONFIG[CHANGE], INTERVALS, on_change_interval,
+                                      extra_args=(utils.get_property.UID,))
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], on_click=on_auto_change,
                    args=(change_interval.Enable,), extra_args=(utils.get_property.CHECKED,), position=3)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, on_click=on_save)
-    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE],
-                   on_click=update_config, args=(SAVE,), extra_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[SAVE], on_click=update_config, args=(SAVE,),
+                   extra_args=(utils.get_property.CHECKED,))
     utils.add_item(LANGUAGE.MODIFY_SAVE, on_click=on_modify_save)
     utils.add_separator()
     open_submenu = utils.add_submenu(LANGUAGE.SUBMENU_OPEN)
@@ -332,11 +328,14 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
+    actions_submenu = utils.add_submenu(LANGUAGE.SUBMENU_ACTIONS)
+    utils.add_item(LANGUAGE.CLEAR, on_click=on_clear, menu=actions_submenu)
+    utils.add_item(LANGUAGE.RESTART, on_click=on_restart, menu=actions_submenu)
     settings_submenu = utils.add_submenu(LANGUAGE.SUBMENU_SETTINGS)
     utils.add_item(LANGUAGE.ANIMATE, utils.item.CHECK, CONFIG[ANIMATE], on_click=on_animate,
                    extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
-    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY], on_click=update_config,
-                   args=(NOTIFY,), extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
+    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY], on_click=update_config, args=(NOTIFY,),
+                   extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
     utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[KEEP_CACHE], on_click=update_config,
                    args=(KEEP_CACHE,), extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START], on_click=on_auto_start,
@@ -348,11 +347,11 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
 
 
 def start() -> None:  # TODO: dark theme
-    libraries.singleton.init(NAME, UUID, 'wait' in sys.argv, on_crash=print, on_crash_args=('Crash',),
-                             on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
+    libraries.singleton.init(NAME, UUID, 'wait' in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
+                             on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if 'debug' in sys.argv:
-        libraries.log.redirect_stdio(
-            LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_on_exception(LOG_PATH)
+        libraries.log.redirect_stdio(LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_on_exception(
+            LOG_PATH)
         libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
                            utils.re_join_path('libraries', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
                            utils.re_join_path('platforms', r'.*\.py'), level=libraries.log.Level.INFO, skip_comp=True)

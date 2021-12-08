@@ -12,7 +12,7 @@ $Version = "0.0.1"
     $OneFile = $False
 #>
 
-$Datas = @("resources")  # remote build succeeds but artifact crashes
+$Datas = @("resources")  # fixme: remote build succeeds but artifact crashes
 $Icon = "icon.ico"
 $NoConsole = $True
 
@@ -31,7 +31,7 @@ function Install-Dependecies
         $Exists = $True
         while ($Exists)
         {
-            # $Temp = Join-Path $Env:TEMP (Get-Random)
+            # $Temp = Join-Path $Env:TEMP (Get-Random) fixme: [waf long path issue]
             $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
             $Exists = Test-Path $Temp
         }

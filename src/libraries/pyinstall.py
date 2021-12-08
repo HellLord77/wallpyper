@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import glob
 import os
@@ -29,3 +29,10 @@ def clean_temp(remove_base: Optional[bool] = None) -> bool:
         os.remove(base)
         cleaned = cleaned and not os.path.exists(base)
     return cleaned
+
+
+def get_argv() -> list[str]:
+    argv = sys.argv.copy()
+    if not FROZEN:
+        argv.insert(0, sys.executable)
+    return argv
