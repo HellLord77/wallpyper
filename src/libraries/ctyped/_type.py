@@ -210,10 +210,8 @@ DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 
 
 def _set_magic(magic: str, func: _Callable) -> None:
-    magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace('r', '', 1), None) or getattr(int,
-                                                                                                               magic,
-                                                                                                               None) or getattr(
-        _numbers.Complex, magic)
+    magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace(
+        'r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic)
     _MAGICS[magic] = _functools.update_wrapper(func, magic_)
 
 
@@ -226,8 +224,8 @@ def _set_magics():
             _set_magic(magic, lambda self, other, *args, _magic=magic.replace('r', '', 1): type(self)(
                 getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
         for magic in _CT_I_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1):
-            (setattr(self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
+                self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
         for magic in _CT_UNARY:
             _set_magic(magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
         for magic in _PY_BINARY:

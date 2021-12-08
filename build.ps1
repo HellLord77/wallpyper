@@ -31,7 +31,7 @@ function Install-Dependecies
         $Exists = $True
         while ($Exists)
         {
-            # $Temp = Join-Path $Env:TEMP (Get-Random) fixme: http://github.com/pyinstaller/pyinstaller/issues/4824
+            # $Temp = Join-Path $Env:TEMP (Get-Random) fixme https://github.com/pyinstaller/pyinstaller/issues/4824
             $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
             $Exists = Test-Path $Temp
         }

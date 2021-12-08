@@ -13,6 +13,7 @@ file_exists = os.path.isfile
 exists_dir = os.path.isdir
 dir_name = os.path.dirname
 file_name = os.path.basename
+abs_path = os.path.realpath
 
 open_browser = webbrowser.open
 

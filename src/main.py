@@ -24,7 +24,9 @@ EXIT_TIMEOUT = 7
 MAX_CACHE = 64 * 1024 * 1024
 
 NAME = 'wallpyper'
-CHANGE = 'auto_change'
+CHANGE = 'change'
+WAIT = 'wait'
+AUTO_CHANGE = 'auto_change'
 INTERVAL = 'change_interval'
 SAVE = 'save_wallpaper'
 SAVE_DIR = 'save_dir'
@@ -38,7 +40,8 @@ LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
-DEFAULT_CONFIG = {CHANGE: False, INTERVAL: 3600, SAVE: False, SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
+DEFAULT_CONFIG = {AUTO_CHANGE: False, INTERVAL: 3600, SAVE: False,
+                  SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
                   ANIMATE: True, NOTIFY: True, KEEP_CACHE: False, START: False, KEEP_SETTINGS: False}
 
 UUID = 'a0447fd8-0fea-4bdb-895e-fb83ad817cae'
@@ -182,7 +185,7 @@ def on_change(previous: Optional[bool] = None) -> bool:
 
 
 def on_auto_change(checked: bool, enable_change_interval: Optional[Callable[[bool], None]] = None) -> None:
-    CONFIG[CHANGE] = checked
+    CONFIG[AUTO_CHANGE] = checked
     if enable_change_interval:
         enable_change_interval(True)
     TIMER.start(CONFIG[INTERVAL]) if checked else TIMER.stop()
@@ -190,7 +193,7 @@ def on_auto_change(checked: bool, enable_change_interval: Optional[Callable[[boo
 
 def on_change_interval(interval: str) -> None:
     CONFIG[INTERVAL] = int(interval)
-    on_auto_change(CONFIG[CHANGE])
+    on_auto_change(CONFIG[AUTO_CHANGE])
 
 
 @utils.thread
@@ -249,8 +252,18 @@ def on_clear() -> bool:
     return cleared
 
 
-def on_restart() -> None:  # fixme: NoConsole = $False doesnt restart
-    atexit.register(subprocess.Popen, libraries.pyinstall.get_argv() + ['wait'], shell=True)
+def _get_launch_argv() -> list[str]:
+    argv = [sys.executable]
+    if not libraries.pyinstall.FROZEN:
+        argv.append(utils.abs_path(__file__))
+    return argv
+
+
+def on_restart() -> None:
+    argv = _get_launch_argv() + sys.argv[1:]
+    if WAIT not in argv:
+        argv.append(WAIT)
+    atexit.register(subprocess.Popen, argv, creationflags=subprocess.CREATE_NEW_CONSOLE)
     on_exit()
 
 
@@ -262,7 +275,10 @@ def on_animate(checked: bool) -> None:
 def on_auto_start(checked: bool) -> bool:
     CONFIG[START] = checked
     if checked:
-        return platform.register_autorun(NAME, sys.argv[0], *('change',) if CONFIG[CHANGE] else ())
+        argv = _get_launch_argv()
+        if CONFIG[START]:
+            argv.append(CHANGE)
+        return platform.register_autorun(NAME, *argv)
     return platform.unregister_autorun(NAME)
 
 
@@ -308,9 +324,9 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     TIMER = utils.timer(on_change, interval=CONFIG[INTERVAL])
     utils.add_separator()
     change_interval = utils.add_items(LANGUAGE.CHANGE_INTERVAL, utils.item.RADIO, (str(CONFIG[INTERVAL]),),
-                                      CONFIG[CHANGE], INTERVALS, on_change_interval,
+                                      CONFIG[AUTO_CHANGE], INTERVALS, on_change_interval,
                                       extra_args=(utils.get_property.UID,))
-    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CHANGE], on_click=on_auto_change,
+    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[AUTO_CHANGE], on_click=on_auto_change,
                    args=(change_interval.Enable,), extra_args=(utils.get_property.CHECKED,), position=3)
     utils.add_separator()
     utils.add_item(LANGUAGE.SAVE, on_click=on_save)
@@ -347,7 +363,7 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
 
 
 def start() -> None:  # TODO: dark theme
-    libraries.singleton.init(NAME, UUID, 'wait' in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
+    libraries.singleton.init(NAME, UUID, WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
                              on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if 'debug' in sys.argv:
         libraries.log.redirect_stdio(LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_on_exception(
@@ -360,11 +376,11 @@ def start() -> None:  # TODO: dark theme
     utils.trim_dir(TEMP_DIR, MAX_CACHE)
     load_config()
     create_menu()
-    on_auto_change(CONFIG[CHANGE])
+    on_auto_change(CONFIG[AUTO_CHANGE])
     on_animate(CONFIG[ANIMATE])
     on_auto_start(CONFIG[START])
     on_save_config(CONFIG[KEEP_SETTINGS])
-    if 'change' in sys.argv:  # TODO: store last update, change if now >= last + interval
+    if CHANGE in sys.argv:  # TODO: store last update, change if now >= last + interval
         on_change()
     utils.start(RES_PATHS[0], NAME, on_change)
 
