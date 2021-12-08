@@ -31,8 +31,8 @@ function Install-Dependecies
         $Exists = $True
         while ($Exists)
         {
-            # $Temp = Join-Path $Env:TEMP (Get-Random) fixme: [waf long path issue]
-            $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
+            $Temp = Join-Path $Env:TEMP (Get-Random) # fixme: [waf long path issue]
+            # $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
             $Exists = Test-Path $Temp
         }
         New-Item $Temp -ItemType Directory
