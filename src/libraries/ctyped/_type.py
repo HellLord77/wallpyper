@@ -11,14 +11,16 @@ from .__head__ import _Pointer
 from .__head__ import _resolve_type
 
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
-_CT_BINARY = ('__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__',
-              '__mod__', '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
-_CT_R_BINARY = ('__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
-                '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__')
-_CT_I_BINARY = ('__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
-                '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__')
-_CT_UNARY = ('__neg__', '__pos__', '__abs__', '__invert__',
-             '__round__', '__trunc__', '__floor__', '__ceil__')
+_CT_BINARY = (
+    '__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__', '__mod__',
+    '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
+_CT_R_BINARY = (
+    '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__', '__rmod__',
+    '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__')
+_CT_I_BINARY = (
+    '__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
+    '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__')
+_CT_UNARY = ('__neg__', '__pos__', '__abs__', '__invert__', '__round__', '__trunc__', '__floor__', '__ceil__')
 _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
 _MAGICS = {}
@@ -207,32 +209,33 @@ TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 
 
-def _set_magic(magic: str,
-               func: _Callable) -> None:
-    magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace(
-        'r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic)
+def _set_magic(magic: str, func: _Callable) -> None:
+    magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace('r', '', 1), None) or getattr(int,
+                                                                                                               magic,
+                                                                                                               None) or getattr(
+        _numbers.Complex, magic)
     _MAGICS[magic] = _functools.update_wrapper(func, magic_)
 
 
 def _set_magics():
     if not _MAGICS:
         for magic in _CT_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic: type(
-                self)(getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+            _set_magic(magic, lambda self, other, *args, _magic=magic: type(self)(
+                getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
         for magic in _CT_R_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('r', '', 1): type(
-                self)(getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
+            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('r', '', 1): type(self)(
+                getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
         for magic in _CT_I_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
-                self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1):
+            (setattr(self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
         for magic in _CT_UNARY:
             _set_magic(magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
         for magic in _PY_BINARY:
-            _set_magic(magic, lambda self, other, _magic=magic: getattr(
-                self.value, _magic)(getattr(other, 'value', other)))
+            _set_magic(magic,
+                       lambda self, other, _magic=magic: getattr(self.value, _magic)(getattr(other, 'value', other)))
         for magic in _PY_UNARY:
-            _set_magic(magic, (lambda self: complex(
-                self.value)) if magic == '__complex__' else (lambda self, _magic=magic: getattr(self.value, _magic)()))
+            _set_magic(magic, (lambda self: complex(self.value)) if magic == '__complex__' else (
+                lambda self, _magic=magic: getattr(self.value, _magic)()))
 
 
 _set_magics()

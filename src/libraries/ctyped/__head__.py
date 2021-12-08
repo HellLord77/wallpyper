@@ -51,7 +51,8 @@ class _Globals(dict):
 
     def __init__(self, once: _Optional[bool] = None):
         self.once = once
-        self.module = _inspect.getmodule(_inspect.currentframe().f_back)
+        # self.module = _inspect.getmodule(_inspect.currentframe().f_back) fixme: [pyinstaller debug getmodule -> None]
+        self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         self.vars_ = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
         for var in self.vars_:
             delattr(self.module, var)

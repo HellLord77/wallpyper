@@ -1,4 +1,4 @@
-__version__ = '0.1.15'  # TODO: overload func
+__version__ = '0.1.16'  # TODO: overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -27,8 +27,7 @@ from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
 
 
-def array(type_: _builtins.type[CT] = type.c_void_p,
-          *elements: _Any, size: _Optional[int] = None) -> Array[CT]:
+def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Array[CT]:
     return (type_ * (size or len(elements)))(*elements)
 
 
