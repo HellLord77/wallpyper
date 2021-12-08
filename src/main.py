@@ -34,7 +34,7 @@ ANIMATE = 'animate'
 NOTIFY = 'notify'
 KEEP_CACHE = 'keep_cache'
 START = 'auto_start'
-KEEP_SETTINGS = 'save_settings'
+KEEP_CONFIG = 'save_settings'
 
 LANGUAGES = (languages.en,)
 LANGUAGE = LANGUAGES[0]
@@ -42,7 +42,7 @@ MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
 DEFAULT_CONFIG = {AUTO_CHANGE: False, INTERVAL: 3600, SAVE: False,
                   SAVE_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
-                  ANIMATE: True, NOTIFY: True, KEEP_CACHE: False, START: False, KEEP_SETTINGS: False}
+                  ANIMATE: True, NOTIFY: True, KEEP_CACHE: False, START: False, KEEP_CONFIG: False}
 
 UUID = 'a0447fd8-0fea-4bdb-895e-fb83ad817cae'
 RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
@@ -252,6 +252,11 @@ def on_clear() -> bool:
     return cleared
 
 
+def on_reset() -> None:
+    on_save_config(False)
+    on_restart()
+
+
 def _get_launch_argv() -> list[str]:
     argv = [sys.executable]
     if not libraries.pyinstall.FROZEN:
@@ -283,7 +288,7 @@ def on_auto_start(checked: bool) -> bool:
 
 
 def on_save_config(checked: bool) -> None:
-    CONFIG[KEEP_SETTINGS] = checked
+    CONFIG[KEEP_CONFIG] = checked
     save_config() if checked else utils.delete(CONFIG_PATH)
 
 
@@ -346,18 +351,19 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     utils.add_separator()
     actions_submenu = utils.add_submenu(LANGUAGE.SUBMENU_ACTIONS)
     utils.add_item(LANGUAGE.CLEAR, on_click=on_clear, menu=actions_submenu)
+    utils.add_item(LANGUAGE.RESET, on_click=on_reset, menu=actions_submenu)
     utils.add_item(LANGUAGE.RESTART, on_click=on_restart, menu=actions_submenu)
-    settings_submenu = utils.add_submenu(LANGUAGE.SUBMENU_SETTINGS)
+    config_submenu = utils.add_submenu(LANGUAGE.SUBMENU_CONFIG)
     utils.add_item(LANGUAGE.ANIMATE, utils.item.CHECK, CONFIG[ANIMATE], on_click=on_animate,
-                   extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
+                   extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
     utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[NOTIFY], on_click=update_config, args=(NOTIFY,),
-                   extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
+                   extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
     utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[KEEP_CACHE], on_click=update_config,
-                   args=(KEEP_CACHE,), extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
+                   args=(KEEP_CACHE,), extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
     utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[START], on_click=on_auto_start,
-                   extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
-    utils.add_item(LANGUAGE.KEEP_SETTINGS, utils.item.CHECK, CONFIG[KEEP_SETTINGS], on_click=on_save_config,
-                   extra_args=(utils.get_property.CHECKED,), menu=settings_submenu)
+                   extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
+    utils.add_item(LANGUAGE.KEEP_CONFIG, utils.item.CHECK, CONFIG[KEEP_CONFIG], on_click=on_save_config,
+                   extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
     utils.add_item(LANGUAGE.ABOUT, on_click=on_about)
     utils.add_item(LANGUAGE.QUIT, on_click=on_exit)
 
@@ -379,7 +385,7 @@ def start() -> None:  # TODO: dark theme
     on_auto_change(CONFIG[AUTO_CHANGE])
     on_animate(CONFIG[ANIMATE])
     on_auto_start(CONFIG[START])
-    on_save_config(CONFIG[KEEP_SETTINGS])
+    on_save_config(CONFIG[KEEP_CONFIG])
     if CHANGE in sys.argv:  # TODO: store last update, change if now >= last + interval
         on_change()
     utils.start(RES_PATHS[0], NAME, on_change)
@@ -388,7 +394,7 @@ def start() -> None:  # TODO: dark theme
 def stop() -> None:
     utils.timer.kill_all()
     on_auto_start(CONFIG[START])
-    on_save_config(CONFIG[KEEP_SETTINGS])
+    on_save_config(CONFIG[KEEP_CONFIG])
     utils.trim_dir(TEMP_DIR, MAX_CACHE) if CONFIG[KEEP_CACHE] else utils.delete(TEMP_DIR, True, DELETE_TIMEOUT)
     if utils.exists_dir(TEMP_DIR) and utils.is_empty_dir(TEMP_DIR, True):
         utils.delete(TEMP_DIR, True)
