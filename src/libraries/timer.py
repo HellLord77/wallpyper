@@ -33,7 +33,7 @@ class Timer:
                 self.start()
             try:
                 with contextlib.suppress(_TimerExit):
-                    self._result = callback(*args, **kwargs)
+                    self._result = callback(*args or (), **kwargs or {})
             finally:
                 self._running = False
 
