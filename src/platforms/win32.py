@@ -48,7 +48,9 @@ def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL) -> None:
         ctyped.func.SetClipboardData(format_, hglobal)
 
 
-def copy_text(text: str) -> bool:
+def copy_text(text: str, quote: Optional[str] = None) -> bool:
+    if quote:
+        text = f'{quote}{text}{quote}'
     size = (ctyped.func.wcslen(text) + 1) * ctyped.sizeof(ctyped.type.c_wchar)
     handle = ctyped.func.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
     if handle:

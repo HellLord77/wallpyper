@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import os
 import webbrowser
@@ -26,14 +26,17 @@ make_dirs = libraries.file.make_dir
 trim_dir = libraries.file.trim
 delete = libraries.file.remove
 
-chain = libraries.functool.chain_ex
+try_any = libraries.functool.any_ex
+enquote = libraries.functool.enquote
 reverse = libraries.functool.reversed_ex
 dummy_func = libraries.functool.dummy
 re_join_path = libraries.functool.re_join
+time_to_sec = libraries.functool.delta_to_sec
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run
 single = libraries.functool.singleton_run
 call_after = libraries.functool.call_after
+call_before = libraries.functool.call_before
 
 item = libraries.gui.Item
 icon = libraries.gui.Icon
@@ -41,7 +44,6 @@ get_property = libraries.gui.Property
 get_method = libraries.gui.Method
 add_item = libraries.gui.add_menu_item
 add_separator = libraries.gui.add_separator
-add_items = libraries.gui.create_submenu
 add_submenu = libraries.gui.add_submenu
 notify = libraries.gui.show_balloon
 start = libraries.gui.start_loop
