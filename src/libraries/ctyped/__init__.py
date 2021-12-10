@@ -1,8 +1,7 @@
-__version__ = '0.1.16'  # TODO: overload func
+__version__ = '0.1.17'  # TODO: overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
-import functools as _functools
 import typing as _typing
 from typing import Any as _Any
 from typing import ContextManager as _ContextManager
@@ -45,26 +44,40 @@ def char_array(string):
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
-# noinspection PyProtectedMember
-@_functools.cache
-def _get_refs(type_: _builtins.type[com._IUnknown]) -> tuple[Pointer[struct.CLSID], Pointer[struct.IID]]:
-    clsid_ref = byref(struct.CLSID())
-    func.CLSIDFromString(type_.__CLSID__, clsid_ref)
+def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], Pointer[struct.IID]]:
+    clsid_ref = Pointer()
+    if type_.__CLSID__:
+        clsid_ref = byref(struct.CLSID())
+        func.CLSIDFromString(type_.__CLSID__, clsid_ref)
     iid_ref = byref(struct.IID())
     func.IIDFromString(getattr(const, f'IID_{type_.__name__}'), iid_ref)
-    return clsid_ref, iid_ref
+    func.CoInitialize(None)
+    return type_(), clsid_ref, iid_ref
+
+
+# noinspection PyProtectedMember
+def _del_com(obj: com._IUnknown) -> None:
+    if obj:
+        obj.Release()
+    func.CoInitialize(None)
 
 
 @_contextlib.contextmanager
 def create_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    obj = type_()
-    func.CoInitialize(None)
+    obj, clsid_ref, iid_ref = _init_com(type_)
+    func.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, iid_ref, byref(obj))
     try:
-        if type_.__CLSID__:
-            refs = _get_refs(type_)
-            func.CoCreateInstance(refs[0], None, const.CLSCTX_ALL, refs[1], byref(obj))
         yield obj
     finally:
-        if obj:
-            obj.Release()
-        func.CoUninitialize()
+        _del_com(obj)
+
+
+# noinspection PyProtectedMember
+@_contextlib.contextmanager
+def convert_com(obj: com._IUnknown, to: _builtins.type[CT]) -> _ContextManager[CT]:
+    obj_, _, iid_ref = _init_com(to)
+    obj.QueryInterface(iid_ref, byref(obj_))
+    try:
+        yield obj_
+    finally:
+        _del_com(obj_)

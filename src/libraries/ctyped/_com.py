@@ -151,6 +151,65 @@ class IUserNotification2(_IUnknown):
     PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
 
 
+class IPersist(_IUnknown):
+    GetClassID: _Callable[[_Pointer[_struct.CLSID]], _type.HRESULT]
+
+
+class IPersistFile(IPersist):
+    IsDirty: _Callable[[], _type.HRESULT]
+    Load: _Callable[[_type.LPCOLESTR, _type.DWORD], _type.HRESULT]
+    Save: _Callable[[_type.LPCOLESTR, _type.BOOL], _type.HRESULT]
+    SaveCompleted: _Callable[[_type.LPCOLESTR], _type.HRESULT]
+    GetCurFile: _Callable[[_type.LPOLESTR], _type.HRESULT]
+
+
+class IShellLinkA(_IUnknown):
+    __CLSID__ = _const.CLSID_IShellLink
+    GetPath: _Callable
+    GetIDList: _Callable
+    SetIDList: _Callable
+    GetDescription: _Callable[[_type.LPSTR, _type.c_int], _type.HRESULT]
+    SetDescription: _Callable[[_type.LPCSTR], _type.HRESULT]
+    GetWorkingDirectory: _Callable[[_type.LPSTR, _type.c_int], _type.HRESULT]
+    SetWorkingDirectory: _Callable[[_type.LPCSTR], _type.HRESULT]
+    GetArguments: _Callable[[_type.LPSTR, _type.c_int], _type.HRESULT]
+    SetArguments: _Callable[[_type.LPCSTR], _type.HRESULT]
+    GetHotkey: _Callable[[_Pointer[_type.WORD]], _type.HRESULT]
+    SetHotkey: _Callable[[_type.WORD], _type.HRESULT]
+    GetShowCmd: _Callable[[_Pointer[_type.c_int]], _type.HRESULT]
+    SetShowCmd: _Callable[[_type.c_int], _type.HRESULT]
+    GetIconLocation: _Callable[[_type.LPSTR, _type.c_int, _Pointer[_type.c_int]], _type.HRESULT]
+    SetIconLocation: _Callable[[_type.LPCSTR, _type.c_int], _type.HRESULT]
+    SetRelativePath: _Callable[[_type.LPCSTR, _type.DWORD], _type.HRESULT]
+    Resolve: _Callable[[_type.HWND, _type.DWORD], _type.HRESULT]
+    SetPath: _Callable[[_type.LPCSTR], _type.HRESULT]
+
+
+class IShellLinkW(_IUnknown):
+    __CLSID__ = _const.CLSID_IShellLink
+    GetPath: _Callable
+    GetIDList: _Callable
+    SetIDList: _Callable
+    GetDescription: _Callable[[_type.LPWSTR, _type.c_int], _type.HRESULT]
+    SetDescription: _Callable[[_type.LPCWSTR], _type.HRESULT]
+    GetWorkingDirectory: _Callable[[_type.LPWSTR, _type.c_int], _type.HRESULT]
+    SetWorkingDirectory: _Callable[[_type.LPCWSTR], _type.HRESULT]
+    GetArguments: _Callable[[_type.LPWSTR, _type.c_int], _type.HRESULT]
+    SetArguments: _Callable[[_type.LPCWSTR], _type.HRESULT]
+    GetHotkey: _Callable[[_Pointer[_type.WORD]], _type.HRESULT]
+    SetHotkey: _Callable[[_type.WORD], _type.HRESULT]
+    GetShowCmd: _Callable[[_Pointer[_type.c_int]], _type.HRESULT]
+    SetShowCmd: _Callable[[_type.c_int], _type.HRESULT]
+    GetIconLocation: _Callable[[_type.LPWSTR, _type.c_int, _Pointer[_type.c_int]], _type.HRESULT]
+    SetIconLocation: _Callable[[_type.LPCWSTR, _type.c_int], _type.HRESULT]
+    SetRelativePath: _Callable[[_type.LPCWSTR, _type.DWORD], _type.HRESULT]
+    Resolve: _Callable[[_type.HWND, _type.DWORD], _type.HRESULT]
+    SetPath: _Callable[[_type.LPCWSTR], _type.HRESULT]
+
+
+IShellLink = IShellLinkW if _const.UNICODE else IShellLinkA
+
+
 def _method_type(types: _Callable) -> list:
     types = _resolve_type(types)
     types.insert(1, _ctypes.c_void_p)

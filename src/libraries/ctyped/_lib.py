@@ -1,5 +1,8 @@
 import ctypes as _ctypes
+import sys as _sys
+import typing as _typing
 from typing import Callable as _Callable
+from typing import Union as _Union
 
 from .__head__ import _DEBUG
 from .__head__ import _Globals
@@ -22,26 +25,29 @@ class _Lib:
         return getattr(self.lib, name)
 
 
-GdiPlus: _Callable = _ctypes.WinDLL
-KernelBase: _Callable = _ctypes.WinDLL
-SHCore: _Callable = _ctypes.WinDLL
-advapi32: _Callable = _ctypes.WinDLL
-combase: _Callable = _ctypes.WinDLL
-gdi32: _Callable = _ctypes.WinDLL
-gdi32full: _Callable = _ctypes.WinDLL
-kernel32: _Callable = _ctypes.WinDLL
-msvcp140: _Callable = _ctypes.WinDLL
-msvcrt: _Callable = _ctypes.WinDLL
-ntdll: _Callable = _ctypes.WinDLL
-ole32: _Callable = _ctypes.WinDLL
-oleaut32: _Callable = _ctypes.WinDLL
-rpcrt4: _Callable = _ctypes.WinDLL
-shdocvw: _Callable = _ctypes.WinDLL
-shell32: _Callable = _ctypes.WinDLL
-ucrtbase: _Callable = _ctypes.WinDLL
-user32: _Callable = _ctypes.WinDLL
-uxtheme: _Callable = _ctypes.WinDLL
-vcruntime140: _Callable = _ctypes.WinDLL
+GdiPlus: _Union[_Callable, _ctypes.WinDLL]
+KernelBase: _Union[_Callable, _ctypes.WinDLL]
+SHCore: _Union[_Callable, _ctypes.WinDLL]
+advapi32: _Union[_Callable, _ctypes.WinDLL]
+combase: _Union[_Callable, _ctypes.WinDLL]
+gdi32: _Union[_Callable, _ctypes.WinDLL]
+gdi32full: _Union[_Callable, _ctypes.WinDLL]
+kernel32: _Union[_Callable, _ctypes.WinDLL]
+msvcp140: _Union[_Callable, _ctypes.WinDLL]
+msvcrt: _Union[_Callable, _ctypes.WinDLL]
+ntdll: _Union[_Callable, _ctypes.WinDLL]
+ole32: _Union[_Callable, _ctypes.WinDLL]
+oleaut32: _Union[_Callable, _ctypes.WinDLL]
+rpcrt4: _Union[_Callable, _ctypes.WinDLL]
+shdocvw: _Union[_Callable, _ctypes.WinDLL]
+shell32: _Union[_Callable, _ctypes.WinDLL]
+ucrtbase: _Union[_Callable, _ctypes.WinDLL]
+user32: _Union[_Callable, _ctypes.WinDLL]
+uxtheme: _Union[_Callable, _ctypes.WinDLL]
+vcruntime140: _Union[_Callable, _ctypes.WinDLL]
+
+globals().update({name: _typing.get_args(type_)[1] for name, type_ in
+                  _typing.get_type_hints(_sys.modules[__name__]).items() if not name.startswith('_')})
 
 
 def _init(name: str) -> _ctypes.CDLL:
