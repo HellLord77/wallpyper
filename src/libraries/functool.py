@@ -1,9 +1,10 @@
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 import binascii
 import collections
 import contextlib
 import ctypes
+import datetime
 import functools
 import hashlib
 import itertools
@@ -19,7 +20,13 @@ import time
 import uuid
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
-DEFAULT = object()
+_INT_OR_FLOAT = r'\d+(?:\.\d+)?'
+_TIME_UNITS = 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'
+_ARG_ORDER = 1, 4, 6, 5, 3, 2, 0
+
+DEFAULT_ARG = object()
+ANSI_PAT = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+TIME_PAT = re.compile(f'^(?i) *{" *".join(f"(?:(?P<{unit}>{_INT_OR_FLOAT}) *{unit}s?)?" for unit in _TIME_UNITS)} *$')
 
 
 class Func:
@@ -34,10 +41,13 @@ class Func:
         return self.func(*self.args, *self.kwargs)
 
 
-def any_ex(itt: Iterable) -> Any:
+def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
+           kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
-        if ele:
-            return ele
+        ret = func(ele, *args or (), **kwargs or {})
+        if ret:
+            return True
+    return False
 
 
 def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
@@ -63,12 +73,18 @@ def dict_ex(obj: Any) -> dict[str, Any]:
     return getattr(obj, '__dict__', {})
 
 
+def enquote(string: str, quote: str = '"') -> str:
+    if len(string) < 2 or (string[0] != quote and string[-1] != quote):
+        string = f'{quote}{string}{quote}'
+    return string
+
+
 def eq_ex(a: Any, b: Any) -> bool:
     sleep_ex()
     if isinstance(a, Iterable) and isinstance(b, Iterable):
-        for a_, b_ in itertools.zip_longest(a, b, fillvalue=DEFAULT):
+        for a_, b_ in itertools.zip_longest(a, b, fillvalue=DEFAULT_ARG):
             sleep_ex()
-            if eq_ex(a_, DEFAULT) or eq_ex(b_, DEFAULT) or not eq_ex(a_, b_):
+            if eq_ex(a_, DEFAULT_ARG) or eq_ex(b_, DEFAULT_ARG) or not eq_ex(a_, b_):
                 return False
         return True
     else:
@@ -163,7 +179,13 @@ def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional
 
 
 def strip_ansi(string: str) -> str:
-    return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', string)
+    return ANSI_PAT.sub('', string)
+
+
+def delta_to_sec(timedelta: str) -> float:
+    matched = TIME_PAT.match(timedelta)
+    return datetime.timedelta(
+        *(float(matched.group(_TIME_UNITS[idx]) or 0) for idx in _ARG_ORDER)).total_seconds() if matched else 0
 
 
 def decrypt(data: str, default: Any = None) -> Any:
@@ -280,7 +302,7 @@ def threaded_run(func: Callable) -> Callable:
 
 
 def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret: Any, redirect: Optional[bool],
-          unpack: Optional[bool]):
+          unpack: Optional[bool]) -> Any:
     if redirect:
         if unpack:
             if isinstance(ret, Iterable):
@@ -291,26 +313,26 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret: Any, r
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, redirect: Optional[bool] = None, unpack: Optional[bool] = None) -> Callable[
-    [Callable], Callable]:
+def call_after(pre_func: Callable, redirect_returns: Optional[bool] = None,
+               unpack_redirected_returns: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = pre_func(*args, **kwargs)
-            return _call(func, args, kwargs, ret, redirect, unpack)
+            return _call(func, args, kwargs, ret, redirect_returns, unpack_redirected_returns)
 
         return wrapper
 
     return wrapped
 
 
-def call_before(post_func: Callable, redirect: Optional[bool] = None, unpack: Optional[bool] = None) -> Callable[
-    [Callable], Callable]:
+def call_before(post_func: Callable, redirect_returns: Optional[bool] = None,
+                unpack_redirected_returns: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = func(*args, **kwargs)
-            _call(post_func, args, kwargs, ret, redirect, unpack)
+            _call(post_func, args, kwargs, ret, redirect_returns, unpack_redirected_returns)
             return ret
 
         return wrapper
