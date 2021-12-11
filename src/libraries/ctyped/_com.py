@@ -165,9 +165,10 @@ class IPersistFile(IPersist):
 
 class IShellLinkA(_IUnknown):
     __CLSID__ = _const.CLSID_IShellLink
-    GetPath: _Callable
-    GetIDList: _Callable
-    SetIDList: _Callable
+    GetPath: _Callable[
+        [_type.LPWSTR, _type.c_int, _Optional[_Pointer[_struct.WIN32_FIND_DATAA]], _type.DWORD], _type.HRESULT]
+    GetIDList: _Callable[[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.HRESULT]
+    SetIDList: _Callable[[_Pointer[_struct.ITEMIDLIST]], _type.HRESULT]
     GetDescription: _Callable[[_type.LPSTR, _type.c_int], _type.HRESULT]
     SetDescription: _Callable[[_type.LPCSTR], _type.HRESULT]
     GetWorkingDirectory: _Callable[[_type.LPSTR, _type.c_int], _type.HRESULT]
@@ -187,9 +188,10 @@ class IShellLinkA(_IUnknown):
 
 class IShellLinkW(_IUnknown):
     __CLSID__ = _const.CLSID_IShellLink
-    GetPath: _Callable
-    GetIDList: _Callable
-    SetIDList: _Callable
+    GetPath: _Callable[
+        [_type.LPWSTR, _type.c_int, _Optional[_Pointer[_struct.WIN32_FIND_DATAW]], _type.DWORD], _type.HRESULT]
+    GetIDList: _Callable[[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.HRESULT]
+    SetIDList: _Callable[[_Pointer[_struct.ITEMIDLIST]], _type.HRESULT]
     GetDescription: _Callable[[_type.LPWSTR, _type.c_int], _type.HRESULT]
     SetDescription: _Callable[[_type.LPCWSTR], _type.HRESULT]
     GetWorkingDirectory: _Callable[[_type.LPWSTR, _type.c_int], _type.HRESULT]

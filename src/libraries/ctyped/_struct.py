@@ -260,12 +260,59 @@ class PropertyItem:
     value: _type.VOID = None
 
 
+@_dataclasses.dataclass
+class FILETIME:
+    dwLowDateTime: _type.DWORD = None
+    dwHighDateTime: _type.DWORD = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class WIN32_FIND_DATAA:
+    dwFileAttributes: _type.DWORD = None
+    ftCreationTime: FILETIME = None
+    ftLastAccessTime: FILETIME = None
+    ftLastWriteTime: FILETIME = None
+    nFileSizeHigh: _type.DWORD = None
+    nFileSizeLow: _type.DWORD = None
+    dwReserved0: _type.DWORD = None
+    dwReserved1: _type.DWORD = None
+    cFileName: _type.CHAR * _const.MAX_PATH = None
+    cAlternateFileName: _type.CHAR * 14 = None
+    # noinspection PyProtectedMember
+    if _const._MAC:
+        dwFileType: _type.DWORD = None
+        dwCreatorType: _type.DWORD = None
+        wFinderFlags: _type.WORD = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class WIN32_FIND_DATAW:
+    dwFileAttributes: _type.DWORD = None
+    ftCreationTime: FILETIME = None
+    ftLastAccessTime: FILETIME = None
+    ftLastWriteTime: FILETIME = None
+    nFileSizeHigh: _type.DWORD = None
+    nFileSizeLow: _type.DWORD = None
+    dwReserved0: _type.DWORD = None
+    dwReserved1: _type.DWORD = None
+    cFileName: _type.WCHAR * _const.MAX_PATH = None
+    cAlternateFileName: _type.WCHAR * 14 = None
+    # noinspection PyProtectedMember
+    if _const._MAC:
+        dwFileType: _type.DWORD = None
+        dwCreatorType: _type.DWORD = None
+        wFinderFlags: _type.WORD = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
 MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
 NOTIFYICONDATA = NOTIFYICONDATAW if _const.UNICODE else NOTIFYICONDATAA
 WNDCLASSEX = WNDCLASSEXW if _const.UNICODE else WNDCLASSEXA
+WIN32_FIND_DATA = WIN32_FIND_DATAW if _const.UNICODE else WIN32_FIND_DATAA
 
 
 def _init(name: str) -> type[_ctypes.Structure]:

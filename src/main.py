@@ -251,6 +251,21 @@ def on_search() -> bool:
     return searched
 
 
+def _get_launch_argv() -> list[str]:
+    argv = [sys.executable]
+    if not libraries.pyinstall.FROZEN:
+        argv.append(utils.abs_path(__file__))
+    return argv
+
+
+def on_shortcut() -> bool:
+    created = (platform.create_link(utils.join_path(platform.DESKTOP_DIR, f'{NAME}.lnk'),
+                                    *_get_launch_argv(), comment=LANGUAGE.DESCRIPTION))
+    if not created and CONFIG[CONFIG_NOTIFY]:
+        utils.notify(LANGUAGE.SHORTCUT, LANGUAGE.FAILED_SHORTCUT)
+    return created
+
+
 @utils.thread
 def on_clear() -> bool:
     cleared = utils.delete(TEMP_DIR, True)
@@ -264,18 +279,12 @@ def on_reset() -> None:
     on_restart()
 
 
-def _get_launch_argv() -> list[str]:
-    argv = [sys.executable]
-    if not libraries.pyinstall.FROZEN:
-        argv.append(utils.abs_path(__file__))
-    return argv
-
-
 def on_restart() -> None:
-    argv = _get_launch_argv() + sys.argv[1:]
-    if ARG_WAIT not in argv:
-        argv.append(ARG_WAIT)
-    atexit.register(subprocess.Popen, argv, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    args = _get_launch_argv()
+    args.extend(sys.argv[1:])
+    if ARG_WAIT not in args:
+        args.append(ARG_WAIT)
+    atexit.register(subprocess.Popen, args, creationflags=subprocess.CREATE_NEW_CONSOLE)
     on_exit()
 
 
@@ -287,10 +296,7 @@ def on_animate(checked: bool) -> None:
 def on_auto_start(checked: bool) -> bool:
     CONFIG[CONFIG_START] = checked
     if checked:
-        argv = _get_launch_argv()
-        if CONFIG[CONFIG_START]:
-            argv.append(ARG_CHANGE)
-        return platform.register_autorun(NAME, *argv)
+        return platform.register_autorun(NAME, *_get_launch_argv(), *(ARG_CHANGE,) if CONFIG[CONFIG_CHANGE] else ())
     return platform.unregister_autorun(NAME)
 
 
@@ -359,6 +365,7 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
     actions_submenu = utils.add_submenu(LANGUAGE.SUBMENU_ACTIONS)
+    utils.add_item(LANGUAGE.SHORTCUT, on_click=on_shortcut, menu=actions_submenu)
     utils.add_item(LANGUAGE.CLEAR, on_click=on_clear, menu=actions_submenu)
     utils.add_item(LANGUAGE.RESET, on_click=on_reset, menu=actions_submenu)
     utils.add_item(LANGUAGE.RESTART, on_click=on_restart, menu=actions_submenu)

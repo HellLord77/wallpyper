@@ -1,15 +1,15 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import atexit
 import contextlib
 import os
-import shlex
+import subprocess
 import winreg
-from typing import ContextManager, Optional
+from typing import ContextManager, Optional, Union
 
 import libraries.ctyped as ctyped
 
-_MAX_PATH = 32 * 1024
+_EMPTY = '\0' * ctyped.const.MAX_PATH
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 _BALLOON = ctyped.struct.NOTIFYICONDATA(ctyped.sizeof(
     ctyped.struct.NOTIFYICONDATA), uID=hash(object()), uFlags=ctyped.const.NIF_INFO)
@@ -17,12 +17,13 @@ atexit.register(ctyped.func.Shell_NotifyIcon, ctyped.const.NIM_DELETE, ctyped.by
 
 
 def _get_dir(csidl: int) -> str:
-    buff = ctyped.type.LPWSTR(' ' * _MAX_PATH)
+    buff = ctyped.type.LPWSTR(_EMPTY)
     ctyped.func.SHGetFolderPath(None, csidl, None, ctyped.const.SHGFP_TYPE_CURRENT, buff)
     return buff.value
 
 
 APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
+DESKTOP_DIR = _get_dir(ctyped.const.CSIDL_DESKTOP)
 PICTURES_DIR = _get_dir(ctyped.const.CSIDL_MYPICTURES)
 TEMP_DIR = os.path.join(_get_dir(ctyped.const.CSIDL_LOCAL_APPDATA), 'Temp')
 WALLPAPER_PATH = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
@@ -163,8 +164,8 @@ def open_file(path: str) -> bool:
 
 
 def get_wallpaper_path() -> str:
-    buff = ctyped.type.LPWSTR(' ' * _MAX_PATH)
-    ctyped.func.SystemParametersInfo(ctyped.const.SPI_GETDESKWALLPAPER, _MAX_PATH, buff, 0)
+    buff = ctyped.type.LPWSTR(_EMPTY)
+    ctyped.func.SystemParametersInfo(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.MAX_PATH, buff, 0)
     return buff.value or get_wallpaper_path_ex()
 
 
@@ -193,8 +194,8 @@ def set_slideshow(*paths: str) -> bool:
 def get_wallpaper_path_ex() -> str:
     with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
-            buff = ctyped.type.PWSTR(' ' * _MAX_PATH)
-            if ctyped.macro.SUCCEEDED(desktop.GetWallpaper(buff, _MAX_PATH, ctyped.const.AD_GETWP_BMP)):
+            buff = ctyped.type.PWSTR(_EMPTY)
+            if ctyped.macro.SUCCEEDED(desktop.GetWallpaper(buff, ctyped.const.MAX_PATH, ctyped.const.AD_GETWP_BMP)):
                 return buff.value
     return get_wallpaper_path()
 
@@ -211,22 +212,16 @@ def set_wallpaper_ex(*paths: str) -> bool:
     return set_wallpaper(*paths)
 
 
-def _swap_char(string: str, a: str, b: str) -> str:
-    return ''.join(a if char == b else b if char == a else char for char in string)
-
-
 def register_autorun(name: str, path: str, *args: str) -> bool:
-    if os.path.isfile(path):
-        with winreg.OpenKey(
-                winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
-            value = _swap_char(shlex.join((os.path.realpath(path),) + args), '"', "'")
-            try:
-                winreg.SetValueEx(key, name, None, winreg.REG_SZ, value)
-            except PermissionError:
-                return False
-            winreg.FlushKey(key)
-            return (value, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
-    return False
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
+                        access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
+        cmd = subprocess.list2cmdline((os.path.realpath(path),) + args)
+        try:
+            winreg.SetValueEx(key, name, None, winreg.REG_SZ, cmd)
+        except PermissionError:
+            return False
+        winreg.FlushKey(key)
+        return (cmd, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
 def unregister_autorun(name: str) -> bool:
@@ -237,6 +232,46 @@ def unregister_autorun(name: str) -> bool:
             except FileNotFoundError:
                 return True
     return False
+
+
+def _read_link(path: str) -> tuple[str, str, str, str, tuple[str, int]]:
+    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
+        with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
+            file.Load(path, ctyped.const.STGM_READ)
+        target = ctyped.type.LPWSTR(_EMPTY)
+        args = ctyped.type.LPWSTR(_EMPTY)
+        start_in = ctyped.type.LPWSTR(_EMPTY)
+        comment = ctyped.type.LPWSTR(_EMPTY)
+        icon = ctyped.type.LPWSTR(_EMPTY), ctyped.type.c_int()
+        link.GetPath(target, ctyped.const.MAX_PATH, None, ctyped.const.SLGP_SHORTPATH)
+        link.GetArguments(args, ctyped.const.MAX_PATH)
+        link.GetWorkingDirectory(start_in, ctyped.const.MAX_PATH)
+        link.GetDescription(comment, ctyped.const.MAX_PATH)
+        link.GetIconLocation(icon[0], ctyped.const.MAX_PATH, ctyped.byref(icon[1]))
+        return target.value, args.value, start_in.value, comment.value, (icon[0].value, icon[1].value)
+
+
+def create_link(path: str, target: str, *args: str, start_in: Optional[str] = None,
+                comment: Optional[None] = None, icon: Optional[Union[str, tuple[str, int]]] = None) -> bool:
+    args = subprocess.list2cmdline(args)
+    start_in = start_in or os.path.dirname(target)
+    if isinstance(icon, str):
+        icon = icon, 0
+    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
+        link.SetPath(target)
+        link.SetArguments(args)
+        link.SetWorkingDirectory(start_in)
+        if comment:
+            link.SetDescription(comment)
+        else:
+            comment = ''
+        if icon:
+            link.SetIconLocation(*icon)
+        else:
+            icon = '', 0
+        with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
+            file.Save(path, True)
+        return (target, args, start_in, comment, icon) == _read_link(path)
 
 
 def show_balloon(title: str, text: str, icon: Optional[str] = None) -> bool:
