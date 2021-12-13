@@ -60,7 +60,7 @@ TEMP_DIR = utils.join_path(platform.TEMP_DIR, NAME)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # utils.join_path(platform.APPDATA_DIR, f'{NAME}.ini')
 LOG_PATH = utils.replace_extension(CONFIG_PATH, 'log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
-INTERVALS = '10 Seconds', '5 Minute', '15 Minute', '30 Minute', '1 Hour', '3 Hour', '6 Hour'
+INTERVALS = '5 Minute', '15 Minute', '30 Minute', '1 Hour', '3 Hour', '6 Hour'
 
 CONFIG = {}
 URLS = collections.deque(maxlen=MAX_LENGTH)
@@ -199,7 +199,7 @@ def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None
 
 
 def on_interval(interval: str) -> None:
-    CONFIG[CONFIG_INTERVAL] = int(utils.time_to_sec(interval))
+    CONFIG[CONFIG_INTERVAL] = int(utils.timedelta(interval))
     on_auto_change(CONFIG[CONFIG_CHANGE])
 
 
@@ -343,7 +343,7 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     utils.add_separator()
     interval_submenu = utils.add_submenu(LANGUAGE.SUBMENU_INTERVAL, CONFIG[CONFIG_CHANGE])
     for interval in INTERVALS:
-        utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == utils.time_to_sec(interval),
+        utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.timedelta(interval)),
                        on_click=on_interval, extra_args=(utils.get_property.LABEL,), menu=interval_submenu)
     utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
                    args=(interval_submenu.Enable,), extra_args=(utils.get_property.CHECKED,), position=3)

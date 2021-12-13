@@ -1,4 +1,4 @@
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 import binascii
 import collections
@@ -7,6 +7,7 @@ import ctypes
 import datetime
 import functools
 import hashlib
+import inspect
 import itertools
 import os
 import pickle
@@ -20,13 +21,8 @@ import time
 import uuid
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
-_INT_OR_FLOAT = r'\d+(?:\.\d+)?'
-_TIME_UNITS = 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'
-_ARG_ORDER = 1, 4, 6, 5, 3, 2, 0
-
 DEFAULT_ARG = object()
 ANSI_PAT = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-TIME_PAT = re.compile(f'^(?i) *{" *".join(f"(?:(?P<{unit}>{_INT_OR_FLOAT}) *{unit}s?)?" for unit in _TIME_UNITS)} *$')
 
 
 class Func:
@@ -38,7 +34,25 @@ class Func:
         functools.update_wrapper(self, self.func)
 
     def __call__(self) -> Any:
-        return self.func(*self.args, *self.kwargs)
+        return self.func(*self.args, **self.kwargs)
+
+
+class TimeDelta(datetime.timedelta):
+    _match = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit in
+                       ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
+    _match = re.compile(f'^(?i) *{_match} *$').match
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    _units = tuple(inspect._signature_fromstr(inspect.Signature, None,
+                                              inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
+
+    def __new__(cls, time_string: str):
+        matched = cls._match(time_string)
+        return super().__new__(cls, *(float(matched.group(unit) or 0) for unit in cls._units) if matched else ())
+
+    def __int__(self):
+        return int(float(self))
+
+    __float__ = datetime.timedelta.total_seconds
 
 
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
@@ -180,12 +194,6 @@ def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional
 
 def strip_ansi(string: str) -> str:
     return ANSI_PAT.sub('', string)
-
-
-def delta_to_sec(timedelta: str) -> float:
-    matched = TIME_PAT.match(timedelta)
-    return datetime.timedelta(
-        *(float(matched.group(_TIME_UNITS[idx]) or 0) for idx in _ARG_ORDER)).total_seconds() if matched else 0
 
 
 def decrypt(data: str, default: Any = None) -> Any:

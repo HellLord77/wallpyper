@@ -26,12 +26,12 @@ make_dirs = libraries.file.make_dir
 trim_dir = libraries.file.trim
 delete = libraries.file.remove
 
+timedelta = libraries.functool.TimeDelta
 try_any = libraries.functool.any_ex
 enquote = libraries.functool.enquote
 reverse = libraries.functool.reversed_ex
 dummy_func = libraries.functool.dummy
 re_join_path = libraries.functool.re_join
-time_to_sec = libraries.functool.delta_to_sec
 cache = libraries.functool.one_cache
 once = libraries.functool.once_run
 single = libraries.functool.singleton_run

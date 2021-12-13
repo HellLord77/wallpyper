@@ -1,4 +1,4 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import collections
 import contextlib
@@ -15,35 +15,37 @@ class _TimerExit(SystemExit):
 
 
 class Timer:
-    _instances = []
+    _result = None
+    _running = False
+    _selves = []
 
     @classmethod
     def kill_all(cls) -> bool:
         killed = True
-        for timer in cls._instances:
-            killed = timer.kill() and killed
+        for self in cls._selves:
+            killed = self.kill() and killed
         return killed
 
     def __init__(self, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
-                 interval: Optional[float] = None, once: Optional[bool] = None) -> None:
-        @functools.wraps(callback)
-        def wrapper() -> None:
-            self._running = True
-            if not once:
-                self.start()
-            try:
-                with contextlib.suppress(_TimerExit):
-                    self._result = callback(*args or (), **kwargs or {})
-            finally:
-                self._running = False
-
-        self._result = None
-        self._running = False
+                 interval: Optional[float] = None, once: Optional[bool] = None):
+        self._callback = callback
+        self._args = args or ()
+        self._kwargs = kwargs or {}
         self._interval = interval or 0.0
-        self._function = wrapper
+        self._once = once
         self._name = f'{type(self).__name__}-{__version__}-{callback.__name__}'
         self._timers = collections.deque(maxlen=MAX_LEN)
-        self._instances.append(self)
+        self._selves.append(self)
+
+    def _func(self):
+        self._running = True
+        if not self._once:
+            self.start()
+        try:
+            with contextlib.suppress(_TimerExit):
+                self._result = self._callback(*self._args, **self._kwargs)
+        finally:
+            self._running = False
 
     @property
     def initialized(self) -> bool:
@@ -61,7 +63,7 @@ class Timer:
         self.stop()
         if interval is not None:
             self._interval = interval
-        timer = threading.Timer(self._interval, self._function)
+        timer = threading.Timer(self._interval, self._func)
         timer.name = self._name
         timer.daemon = True
         timer.start()
