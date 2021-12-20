@@ -215,7 +215,7 @@ def set_wallpaper_ex(*paths: str) -> bool:
 def register_autorun(name: str, path: str, *args: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
                         access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
-        cmd = subprocess.list2cmdline((os.path.realpath(path),) + args)
+        cmd = subprocess.list2cmdline((path,) + args)
         try:
             winreg.SetValueEx(key, name, None, winreg.REG_SZ, cmd)
         except PermissionError:
@@ -257,7 +257,7 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
     start_in = start_in or os.path.dirname(target)
     if isinstance(icon, str):
         icon = icon, 0
-    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
+    with ctyped.create_com(ctyped.com.IShellLink) as link:
         link.SetPath(target)
         link.SetArguments(args)
         link.SetWorkingDirectory(start_in)
@@ -271,7 +271,7 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
             icon = '', 0
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Save(path, True)
-        return (target, args, start_in, comment, icon) == _read_link(path)
+        return os.path.isfile(path) and (target, args, start_in, comment, icon) == _read_link(path)
 
 
 def show_balloon(title: str, text: str, icon: Optional[str] = None) -> bool:

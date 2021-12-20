@@ -15,6 +15,11 @@ from .__head__ import _resolve_type
 SetWindowTheme: _Callable[[_type.HWND, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR]],
                           _type.HRESULT] = _lib.uxtheme
 
+# InitPropVariantFromStringAsVector: _Callable[[_type.PCWSTR, _type.REFPROPVARIANT],
+#                                              _type.PSSTDAPI] = _lib.Propsys
+# InitPropVariantFromStringVector: _Callable[[_type.PCWSTR, _type.ULONG, _type.REFPROPVARIANT],
+#                                            _type.PSSTDAPI] = _lib.Propsys
+
 RoInitialize: _Callable[[_type.RO_INIT_TYPE],
                         _type.HRESULT] = _lib.combase
 RoUninitialize: _Callable[[],

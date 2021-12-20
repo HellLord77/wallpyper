@@ -306,6 +306,20 @@ class WIN32_FIND_DATAW:
         wFinderFlags: _type.WORD = None
 
 
+@_dataclasses.dataclass
+class PROPERTYKEY:
+    fmtid: GUID = None
+    pid: _type.DWORD = None
+
+
+@_dataclasses.dataclass
+class CSPLATFORM:
+    dwPlatformId: _type.DWORD = None
+    dwVersionHi: _type.DWORD = None
+    dwVersionLo: _type.DWORD = None
+    dwProcessorArch: _type.DWORD = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

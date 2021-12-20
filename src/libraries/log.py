@@ -1,4 +1,4 @@
-__version__ = '0.0.11'
+__version__ = '0.0.11'  # TODO: default path
 
 import atexit
 import contextlib
@@ -18,16 +18,8 @@ from typing import Any, Callable, Mapping, Optional
 _CALL = 'call'
 _EXCEPTION = 'exception'
 _RETURN = 'return'
-_PREFIXES = {
-    _CALL: '\x1B[92m[>] ',
-    _EXCEPTION: '\x1B[91m[!] ',
-    _RETURN: '\x1B[94m[<] '
-}
-_DETAILS = {
-    _CALL: '\x1B[32m    ',
-    _EXCEPTION: '\x1B[31m    ',
-    _RETURN: '\x1B[34m    '
-}
+_PREFIXES = {_CALL: '\x1B[92m[>] ', _EXCEPTION: '\x1B[91m[!] ', _RETURN: '\x1B[94m[<] '}
+_DETAILS = {_CALL: '\x1B[32m    ', _EXCEPTION: '\x1B[31m    ', _RETURN: '\x1B[34m    '}
 _SUFFIX = '\x1B[0m\n'
 _ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _GENERATOR = (_ for _ in ()).__name__
@@ -55,7 +47,7 @@ def _flush(path: str) -> None:
             shutil.copyfileobj(_STREAM, file)
 
 
-def redirect_stdio(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None) -> None:
+def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None) -> None:
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
@@ -82,12 +74,12 @@ def _excepthook(excepthook_: Callable, *args, **kwargs) -> None:
     excepthook_(*args, **kwargs)
 
 
-def dump_on_exception(path: str) -> None:
+def write_on_error(path: str) -> None:
     global _DUMP
     _DUMP = False
     sys.excepthook = types.MethodType(_excepthook, sys.excepthook)
     threading.excepthook = types.MethodType(_excepthook, threading.excepthook)
-    redirect_stdio(path, True, True)
+    redirect_stdout(path, True, True)
 
 
 def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n') -> str:
@@ -138,8 +130,8 @@ def _on_trace(frame: types.FrameType, event: str, arg: Any) -> Optional[Callable
         path = frame.f_code.co_filename
         with contextlib.suppress(ValueError):
             path = os.path.relpath(path, _BASE)
-        if _PATTERN.fullmatch(
-                path) and __name__ is not frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name):
+        if _PATTERN.fullmatch(path) and __name__ is not frame.f_globals['__name__'] and _filter(event, arg,
+                                                                                                frame.f_code.co_name):
             thread = threading.current_thread()
             if thread not in _STACK:
                 _STACK[thread] = 0

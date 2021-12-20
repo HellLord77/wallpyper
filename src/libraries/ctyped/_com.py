@@ -15,6 +15,7 @@ from .__head__ import _Globals
 from .__head__ import _Pointer
 from .__head__ import _byref
 from .__head__ import _get_doc
+from .__head__ import _not_internal
 from .__head__ import _resolve_type
 
 _ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
@@ -151,6 +152,14 @@ class IUserNotification2(_IUnknown):
     PlaySound: _Callable[[_type.LPCWSTR], _type.HRESULT]
 
 
+class IPropertyStore(_IUnknown):
+    GetCount: _Callable[[_Pointer[_type.DWORD]], _type.HRESULT]
+    GetAt: _Callable[[_type.DWORD, _Pointer[_struct.PROPERTYKEY]], _type.HRESULT]
+    GetValue: _Callable
+    SetValue: _Callable
+    Commit: _Callable[[], _type.HRESULT]
+
+
 class IPersist(_IUnknown):
     GetClassID: _Callable[[_Pointer[_struct.CLSID]], _type.HRESULT]
 
@@ -228,7 +237,7 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
         __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _struct._fields_)
 
         def __getattr__(self, name_: str):
-            if not name_.startswith('_') and name_ in dir(self._struct):
+            if _not_internal(name_) and name_ in dir(self._struct):
                 funcs = self._struct.from_address(_ctypes.c_void_p.from_address(self.value).value)
                 # noinspection PyProtectedMember
                 for name__, types in self._struct._fields_:
@@ -262,7 +271,7 @@ class IUnknown(_ctypes.c_void_p):
                 except TypeError:
                     cls.__IID__.union(base.__IID__)
                 for key, value in vars(base).items():
-                    if not key.startswith('_'):
+                    if _not_internal(key):
                         funcs[key] = value.__func__
             fields = []
             cls._funcs = []

@@ -6,6 +6,7 @@ from typing import Union as _Union
 
 from .__head__ import _DEBUG
 from .__head__ import _Globals
+from .__head__ import _not_internal
 from .__head__ import _replace_object
 
 
@@ -27,6 +28,7 @@ class _Lib:
 
 GdiPlus: _Union[_Callable, _ctypes.WinDLL]
 KernelBase: _Union[_Callable, _ctypes.WinDLL]
+Propsys: _Union[_Callable, _ctypes.WinDLL]
 SHCore: _Union[_Callable, _ctypes.WinDLL]
 advapi32: _Union[_Callable, _ctypes.WinDLL]
 combase: _Union[_Callable, _ctypes.WinDLL]
@@ -47,7 +49,7 @@ uxtheme: _Union[_Callable, _ctypes.WinDLL]
 vcruntime140: _Union[_Callable, _ctypes.WinDLL]
 
 globals().update({name: _typing.get_args(type_)[1] for name, type_ in
-                  _typing.get_type_hints(_sys.modules[__name__]).items() if not name.startswith('_')})
+                  _typing.get_type_hints(_sys.modules[__name__]).items() if _not_internal(name)})
 
 
 def _init(name: str) -> _ctypes.CDLL:

@@ -39,7 +39,3 @@ KEEP_CONFIG = 'Save Settings'
 ABOUT = 'About Wallpyper'
 QUIT = 'Quit Wallpyper'
 FAILED_QUITING = 'Executing remaining tasks'
-
-
-def __getattr__(name: str) -> str:
-    return f'${name}'

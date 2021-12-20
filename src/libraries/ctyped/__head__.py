@@ -53,7 +53,7 @@ class _Globals(dict):
         self.once = once
         # self.module = _inspect.getmodule(_inspect.currentframe().f_back) fixme pyinstaller debug getmodule -> None
         self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
-        self.vars_ = {var: val for var, val in vars(self.module).items() if not var.startswith('_')}
+        self.vars_ = {var: val for var, val in vars(self.module).items() if _not_internal(var)}
         for var in self.vars_:
             delattr(self.module, var)
         super().__init__(vars(self.module))
@@ -145,6 +145,10 @@ def _cast(obj: _Any, type_: _Union[type[_CT], _CT]) -> _Array[_CT]:
         return _cast(_ctypes.byref(obj), type_)
     except TypeError:
         return _cast(obj, _ctypes.POINTER(type_))
+
+
+def _not_internal(name: str) -> bool:
+    return not name.startswith('_')
 
 
 def _get_doc(name: str, restype: _Any, argtypes: tuple) -> str:

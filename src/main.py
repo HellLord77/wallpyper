@@ -9,7 +9,7 @@ import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
 # iso 639-1
-import languages.en
+import languages
 import libraries.file
 import libraries.log
 import libraries.pyinstall
@@ -27,6 +27,7 @@ MAX_LENGTH = 64
 
 NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
+ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
 CONFIG_CHANGE = 'auto_change'
 CONFIG_INTERVAL = 'change_interval'
@@ -38,8 +39,7 @@ CONFIG_CACHE = 'keep_cache'
 CONFIG_START = 'auto_start'
 CONFIG_CONFIG = 'save_settings'
 
-LANGUAGES = (languages.en,)
-LANGUAGE = LANGUAGES[0]
+LANGUAGE = languages.DEFAULT
 MODULES = (modules.wallhaven,)
 MODULE = MODULES[0]
 DEFAULT_CONFIG = {
@@ -386,10 +386,10 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
 
 
 def start() -> None:  # TODO: dark theme
-    libraries.singleton.init(NAME, UUID, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
+    libraries.singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
                              on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
-    if 'debug' in sys.argv:
-        libraries.log.redirect_stdio(LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.dump_on_exception(
+    if ARG_DEBUG in sys.argv:
+        libraries.log.redirect_stdout(LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.write_on_error(
             LOG_PATH)
         libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
                            utils.re_join_path('libraries', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),

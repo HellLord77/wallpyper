@@ -8,7 +8,7 @@ import socket
 import sys
 import tempfile
 import time
-from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
+from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional, Union
 
 DELAY = 1
 TIMEOUT = 5
@@ -17,8 +17,8 @@ SUFFIX = '.lock'
 
 
 def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_wait_args: Iterable,
-                  on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
-                  on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+                  on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
+                  on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     if end_time > time.time():
         if on_wait:
             on_wait(*on_wait_args, **on_wait_kwargs)
@@ -29,10 +29,10 @@ def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_wait_args: It
         raise SystemExit
 
 
-def _file(uid: str, wait: bool, on_crash: Optional[Callable],
-          on_crash_args: Iterable, on_crash_kwargs: Mapping[str, Any], on_wait: Optional[Callable],
-          on_wait_args: Iterable, on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
-          on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Iterable,
+          on_crash_kwargs: Mapping[str, Any], on_wait: Optional[Callable], on_wait_args: Iterable,
+          on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
+          on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -55,9 +55,9 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable],
             break
 
 
-def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable],
-            on_wait_args: Iterable, on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
-            on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable], on_wait_args: Iterable,
+            on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
+            on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     end_time = time.time() + wait * TIMEOUT - DELAY
     while True:
         try:
@@ -70,9 +70,9 @@ def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[C
             break
 
 
-def _socket(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable],
-            on_wait_args: Iterable, on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable],
-            on_exit_args: Iterable, on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
+def _socket(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable], on_wait_args: Iterable,
+            on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
+            on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.time() + wait * TIMEOUT - DELAY
@@ -92,25 +92,23 @@ class Method:
     SOCKET = _socket
 
 
-def _get_uid(path: Optional[str] = None, prefix: Optional[str] = None, uid: Optional[str] = None) -> str:
+def _get_uid(data_or_path: Union[bytes, str], prefix: Optional[str] = None) -> str:
     md5 = hashlib.md5()
-    if uid:
-        md5.update(uid.encode())
-    else:
-        with open(path or sys.argv[0], 'rb') as file:
-            buffer = file.read(MAX_CHUNK)
-            while buffer:
+    if isinstance(data_or_path, bytes):
+        md5.update(data_or_path)
+    elif os.path.isfile(data_or_path):
+        with open(data_or_path or sys.argv[0], 'rb') as file:
+            while buffer := file.read(MAX_CHUNK):
                 md5.update(buffer)
-                buffer = file.read(MAX_CHUNK)
     return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
 
 
-def init(uid_prefix: Optional[str] = None, uid: Optional[str] = None, wait: Optional[bool] = None,
-         on_crash: Optional[Callable] = None, on_crash_args: Optional[Iterable] = None,
-         on_crash_kwargs: Optional[Mapping[str, Any]] = None, on_wait: Optional[Callable] = None,
-         on_wait_args: Optional[Iterable] = None, on_wait_kwargs: Optional[Mapping[str, Any]] = None,
-         on_exit: Optional[Callable] = None, on_exit_args: Optional[Iterable] = None,
-         on_exit_kwargs: Optional[Mapping[str, Any]] = None, method: Optional[Callable] = None) -> Optional[NoReturn]:
-    (method or Method.FILE)(_get_uid(prefix=uid_prefix, uid=uid), bool(wait), on_crash,
-                            on_crash_args or (), on_crash_kwargs or {}, on_wait, on_wait_args or (),
-                            on_wait_kwargs or {}, on_exit, on_exit_args or (), on_exit_kwargs or {})
+def init(uuid: str, uid_prefix: Optional[str] = None, wait: Optional[bool] = None, on_crash: Optional[Callable] = None,
+         on_crash_args: Optional[Iterable] = None, on_crash_kwargs: Optional[Mapping[str, Any]] = None,
+         on_wait: Optional[Callable] = None, on_wait_args: Optional[Iterable] = None,
+         on_wait_kwargs: Optional[Mapping[str, Any]] = None, on_exit: Optional[Callable] = None,
+         on_exit_args: Optional[Iterable] = None, on_exit_kwargs: Optional[Mapping[str, Any]] = None,
+         method: Optional[Callable] = None) -> Optional[NoReturn]:
+    (method or Method.FILE)(_get_uid(uuid.encode(), uid_prefix), bool(wait), on_crash, on_crash_args or (),
+                            on_crash_kwargs or {}, on_wait, on_wait_args or (), on_wait_kwargs or {}, on_exit,
+                            on_exit_args or (), on_exit_kwargs or {})
