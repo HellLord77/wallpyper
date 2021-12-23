@@ -8,12 +8,11 @@ import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
-# iso 639-1
-import languages
-import libraries.file
-import libraries.log
-import libraries.pyinstall
-import libraries.singleton
+import langs
+import libs.file
+import libs.log
+import libs.pyinstall
+import libs.singleton
 import modules.wallhaven
 # sys.platform
 import platforms.win32 as platform
@@ -39,8 +38,8 @@ CONFIG_CACHE = 'keep_cache'
 CONFIG_START = 'auto_start'
 CONFIG_CONFIG = 'save_settings'
 
-LANGUAGE = languages.DEFAULT
-MODULES = (modules.wallhaven,)
+LANG = langs.DEFAULT
+MODULES = modules.wallhaven,
 MODULE = MODULES[0]
 DEFAULT_CONFIG = {
     CONFIG_CHANGE: False,
@@ -114,7 +113,7 @@ def save_config() -> bool:  # TODO: save recently set wallpaper (?)
 @utils.single
 def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Callable[[int, ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    utils.animate(RES_PATHS[1], LANGUAGE.CHANGING)
+    utils.animate(RES_PATHS[1], LANG.CHANGING)
     if progress_callback:
         progress_callback(0, *args or (), **kwargs or {})
     if not url:
@@ -129,7 +128,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
         changed = False
     if progress_callback:
         progress_callback(100, *args or (), **kwargs or {})
-    utils.inanimate(LANGUAGE.CHANGING)
+    utils.inanimate(LANG.CHANGING)
     return changed
 
 
@@ -146,24 +145,24 @@ def _get_wallpaper_paths() -> Generator[str, None, None]:
 
 @utils.single
 def save_wallpaper() -> bool:
-    utils.animate(RES_PATHS[1], LANGUAGE.SAVING)
+    utils.animate(RES_PATHS[1], LANG.SAVING)
     saved = any(utils.copy_file(path, utils.join_path(CONFIG[CONFIG_DIR], utils.file_name(path))) for path in
                 _get_wallpaper_paths())
-    utils.inanimate(LANGUAGE.SAVING)
+    utils.inanimate(LANG.SAVING)
     return saved
 
 
 @utils.single
 def search_wallpaper() -> bool:
     searched = False
-    utils.animate(RES_PATHS[1], LANGUAGE.SEARCHING)
+    utils.animate(RES_PATHS[1], LANG.SEARCHING)
     for path in _get_wallpaper_paths():
         location = utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)}).get_header('location')
         if location:
             utils.open_browser(location)
             searched = True
             break
-    utils.inanimate(LANGUAGE.SEARCHING)
+    utils.inanimate(LANG.SEARCHING)
     return searched
 
 
@@ -173,12 +172,12 @@ def on_change(previous: Optional[bool] = None) -> bool:
         index = URL_INDEX[0] - 1
         url = URLS[URL_INDEX[0] - 1]
         set_label = SET_PREVIOUS_LABEL
-        label = LANGUAGE.PREVIOUS
+        label = LANG.PREVIOUS
     else:
         index = URL_INDEX[0] + 1
         url = None if index == len(URLS) else URLS[index]
         set_label = SET_NEXT_LABEL
-        label = LANGUAGE.NEXT
+        label = LANG.NEXT
     changed = change_wallpaper(url, set_label)
     set_label(-1)
     ENABLE_PREVIOUS(index > 0)
@@ -187,7 +186,7 @@ def on_change(previous: Optional[bool] = None) -> bool:
         if CONFIG[CONFIG_SAVE]:
             save_wallpaper()
     elif CONFIG[CONFIG_NOTIFY]:
-        utils.notify(label, LANGUAGE.FAILED_CHANGING)
+        utils.notify(label, LANG.FAILED_CHANGING)
     return changed
 
 
@@ -207,39 +206,39 @@ def on_interval(interval: str) -> None:
 def on_save() -> bool:
     saved = save_wallpaper()
     if not saved and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.SAVE, LANGUAGE.FAILED_SAVING)
+        utils.notify(LANG.SAVE, LANG.FAILED_SAVING)
     return saved
 
 
 def on_modify_save() -> None:
-    utils.not_implemented(LANGUAGE.MODIFY_SAVE)
+    utils.not_implemented(LANG.MODIFY_SAVE)
 
 
 def on_open_explorer() -> bool:
     opened = utils.try_any(_get_wallpaper_paths(), platform.open_file_path)
     if not opened and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.OPEN_EXPLORER, LANGUAGE.FAILED_OPENING_EXPLORER)
+        utils.notify(LANG.OPEN_EXPLORER, LANG.FAILED_OPENING_EXPLORER)
     return opened
 
 
 def on_open() -> bool:
     opened = utils.try_any(_get_wallpaper_paths(), platform.open_file)
     if not opened and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.OPEN, LANGUAGE.FAILED_OPENING)
+        utils.notify(LANG.OPEN, LANG.FAILED_OPENING)
     return opened
 
 
 def on_copy_path() -> bool:
     copied = utils.try_any(_get_wallpaper_paths(), platform.copy_text, '"')
     if not copied and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.COPY_PATH, LANGUAGE.FAILED_COPYING_PATH)
+        utils.notify(LANG.COPY_PATH, LANG.FAILED_COPYING_PATH)
     return copied
 
 
 def on_copy() -> bool:
     copied = utils.try_any(_get_wallpaper_paths(), platform.copy_image)
     if not copied and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.COPY, LANGUAGE.FAILED_COPYING)
+        utils.notify(LANG.COPY, LANG.FAILED_COPYING)
     return copied
 
 
@@ -247,22 +246,22 @@ def on_copy() -> bool:
 def on_search() -> bool:
     searched = search_wallpaper()
     if not searched and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.SEARCH, LANGUAGE.FAILED_SEARCHING)
+        utils.notify(LANG.SEARCH, LANG.FAILED_SEARCHING)
     return searched
 
 
 def _get_launch_argv() -> list[str]:
     argv = [sys.executable]
-    if not libraries.pyinstall.FROZEN:
+    if not libs.pyinstall.FROZEN:
         argv.append(utils.abs_path(__file__))
     return argv
 
 
 def on_shortcut() -> bool:
     created = (platform.create_link(utils.join_path(platform.DESKTOP_DIR, f'{NAME}.lnk'),
-                                    *_get_launch_argv(), comment=LANGUAGE.DESCRIPTION))
+                                    *_get_launch_argv(), comment=LANG.DESCRIPTION))
     if not created and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.SHORTCUT, LANGUAGE.FAILED_SHORTCUT)
+        utils.notify(LANG.SHORTCUT, LANG.FAILED_SHORTCUT)
     return created
 
 
@@ -270,7 +269,7 @@ def on_shortcut() -> bool:
 def on_clear() -> bool:
     cleared = utils.delete(TEMP_DIR, True)
     if not cleared and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANGUAGE.CLEAR, LANGUAGE.FAILED_CLEARING)
+        utils.notify(LANG.CLEAR, LANG.FAILED_CLEARING)
     return cleared
 
 
@@ -306,7 +305,7 @@ def on_save_config(checked: bool) -> None:
 
 
 def on_about() -> None:
-    utils.not_implemented(LANGUAGE.ABOUT)
+    utils.not_implemented(LANG.ABOUT)
 
 
 @utils.thread
@@ -315,7 +314,7 @@ def on_exit() -> None:
     utils.disable()
     if change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
         if CONFIG[CONFIG_NOTIFY]:
-            utils.notify(LANGUAGE.QUIT, LANGUAGE.FAILED_QUITING)
+            utils.notify(LANG.QUIT, LANG.FAILED_QUITING)
         end_time = time.time() + EXIT_TIMEOUT
         while end_time > time.time() and (
                 change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()):
@@ -325,15 +324,16 @@ def on_exit() -> None:
 
 def create_menu() -> None:  # TODO: slideshow (smaller timer)
     update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
-    next_wallpaper = utils.add_item(LANGUAGE.NEXT, on_click=on_change)
-    previous_wallpaper = utils.add_item(LANGUAGE.PREVIOUS, enable=False, on_click=on_change, args=(True,))
+    next_wallpaper = utils.add_item(LANG.NEXT, on_click=on_change)
+    previous_wallpaper = utils.add_item(LANG.PREVIOUS, enable=False, on_click=on_change, args=(True,))
 
     def set_next_label(progress: int) -> None:
-        next_wallpaper.SetItemLabel(f'{LANGUAGE.NEXT} ({progress:03}%)' if progress >= 0 else f'{LANGUAGE.NEXT}')
+        next_wallpaper.SetItemLabel(
+            f'{LANG.NEXT} ({langs.str_(progress, LANG, 3)}%)' if progress >= 0 else f'{LANG.NEXT}')
 
     def set_previous_label(progress: int) -> None:
         previous_wallpaper.SetItemLabel(
-            f'{LANGUAGE.PREVIOUS} ({progress:03}%)' if progress >= 0 else f'{LANGUAGE.PREVIOUS}')
+            f'{LANG.PREVIOUS} ({langs.str_(progress, LANG, 3)}%)' if progress >= 0 else f'{LANG.PREVIOUS}')
 
     global ENABLE_PREVIOUS, SET_NEXT_LABEL, SET_PREVIOUS_LABEL, TIMER
     ENABLE_PREVIOUS = previous_wallpaper.Enable
@@ -341,60 +341,58 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     SET_PREVIOUS_LABEL = set_previous_label
     TIMER = utils.timer(on_change, interval=CONFIG[CONFIG_INTERVAL])
     utils.add_separator()
-    interval_submenu = utils.add_submenu(LANGUAGE.SUBMENU_INTERVAL, CONFIG[CONFIG_CHANGE])
+    interval_submenu = utils.add_submenu(LANG.SUBMENU_INTERVAL, CONFIG[CONFIG_CHANGE])
     for interval in INTERVALS:
         utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.timedelta(interval)),
                        on_click=on_interval, extra_args=(utils.get_property.LABEL,), menu=interval_submenu)
-    utils.add_item(LANGUAGE.AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
+    utils.add_item(LANG.AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
                    args=(interval_submenu.Enable,), extra_args=(utils.get_property.CHECKED,), position=3)
     utils.add_separator()
-    utils.add_item(LANGUAGE.SAVE, on_click=on_save)
-    utils.add_item(LANGUAGE.AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_SAVE], on_click=update_config,
-                   args=(CONFIG_SAVE,),
-                   extra_args=(utils.get_property.CHECKED,))
-    utils.add_item(LANGUAGE.MODIFY_SAVE, on_click=on_modify_save)
+    utils.add_item(LANG.SAVE, on_click=on_save)
+    utils.add_item(LANG.AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_SAVE], on_click=update_config,
+                   args=(CONFIG_SAVE,), extra_args=(utils.get_property.CHECKED,))
+    utils.add_item(LANG.MODIFY_SAVE, on_click=on_modify_save)
     utils.add_separator()
-    open_submenu = utils.add_submenu(LANGUAGE.SUBMENU_OPEN)
-    utils.add_item(LANGUAGE.OPEN_EXPLORER, on_click=on_open_explorer, menu=open_submenu)
-    utils.add_item(LANGUAGE.OPEN, on_click=on_open, menu=open_submenu)
-    copy_submenu = utils.add_submenu(LANGUAGE.SUBMENU_COPY)
-    utils.add_item(LANGUAGE.COPY_PATH, on_click=on_copy_path, menu=copy_submenu)
-    utils.add_item(LANGUAGE.COPY, on_click=on_copy, menu=copy_submenu)
-    utils.add_item(LANGUAGE.SEARCH, on_click=on_search)
+    open_submenu = utils.add_submenu(LANG.SUBMENU_OPEN)
+    utils.add_item(LANG.OPEN_EXPLORER, on_click=on_open_explorer, menu=open_submenu)
+    utils.add_item(LANG.OPEN, on_click=on_open, menu=open_submenu)
+    copy_submenu = utils.add_submenu(LANG.SUBMENU_COPY)
+    utils.add_item(LANG.COPY_PATH, on_click=on_copy_path, menu=copy_submenu)
+    utils.add_item(LANG.COPY, on_click=on_copy, menu=copy_submenu)
+    utils.add_item(LANG.SEARCH, on_click=on_search)
     utils.add_separator()
     MODULE.create_menu()  # TODO: separate left click menu (?)
     utils.add_separator()
-    actions_submenu = utils.add_submenu(LANGUAGE.SUBMENU_ACTIONS)
-    utils.add_item(LANGUAGE.SHORTCUT, on_click=on_shortcut, menu=actions_submenu)
-    utils.add_item(LANGUAGE.CLEAR, on_click=on_clear, menu=actions_submenu)
-    utils.add_item(LANGUAGE.RESET, on_click=on_reset, menu=actions_submenu)
-    utils.add_item(LANGUAGE.RESTART, on_click=on_restart, menu=actions_submenu)
-    config_submenu = utils.add_submenu(LANGUAGE.SUBMENU_CONFIG)
-    utils.add_item(LANGUAGE.ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE], on_click=on_animate,
+    actions_submenu = utils.add_submenu(LANG.SUBMENU_ACTIONS)
+    utils.add_item(LANG.SHORTCUT, on_click=on_shortcut, menu=actions_submenu)
+    utils.add_item(LANG.CLEAR, on_click=on_clear, menu=actions_submenu)
+    utils.add_item(LANG.RESET, on_click=on_reset, menu=actions_submenu)
+    utils.add_item(LANG.RESTART, on_click=on_restart, menu=actions_submenu)
+    config_submenu = utils.add_submenu(LANG.SUBMENU_CONFIG)
+    utils.add_item(LANG.ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE], on_click=on_animate,
                    extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
-    utils.add_item(LANGUAGE.NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
-                   args=(CONFIG_NOTIFY,),
-                   extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
-    utils.add_item(LANGUAGE.KEEP_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
+    utils.add_item(LANG.NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
+                   args=(CONFIG_NOTIFY,), extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
+    utils.add_item(LANG.KEEP_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
                    args=(CONFIG_CACHE,), extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
-    utils.add_item(LANGUAGE.AUTO_START, utils.item.CHECK, CONFIG[CONFIG_START], on_click=on_auto_start,
+    utils.add_item(LANG.AUTO_START, utils.item.CHECK, CONFIG[CONFIG_START], on_click=on_auto_start,
                    extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
-    utils.add_item(LANGUAGE.KEEP_CONFIG, utils.item.CHECK, CONFIG[CONFIG_CONFIG], on_click=on_save_config,
+    utils.add_item(LANG.KEEP_CONFIG, utils.item.CHECK, CONFIG[CONFIG_CONFIG], on_click=on_save_config,
                    extra_args=(utils.get_property.CHECKED,), menu=config_submenu)
-    utils.add_item(LANGUAGE.ABOUT, on_click=on_about)
-    utils.add_item(LANGUAGE.QUIT, on_click=on_exit)
+    utils.add_item(LANG.ABOUT, on_click=on_about)
+    utils.add_item(LANG.QUIT, on_click=on_exit)
 
 
 def start() -> None:  # TODO: dark theme
-    libraries.singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
-                             on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
+    libs.singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
+                        on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if ARG_DEBUG in sys.argv:
-        libraries.log.redirect_stdout(LOG_PATH, True) if libraries.pyinstall.FROZEN else libraries.log.write_on_error(
+        libs.log.redirect_stdout(LOG_PATH, True) if libs.pyinstall.FROZEN else libs.log.write_on_error(
             LOG_PATH)
-        libraries.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
-                           utils.re_join_path('libraries', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
-                           utils.re_join_path('platforms', r'.*\.py'), level=libraries.log.Level.INFO, skip_comp=True)
-    libraries.pyinstall.clean_temp()
+        libs.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
+                      utils.re_join_path('libs', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
+                      utils.re_join_path('platforms', r'.*\.py'), level=libs.log.Level.INFO, skip_comp=True)
+    libs.pyinstall.clean_temp()
     utils.make_dirs(TEMP_DIR)
     utils.trim_dir(TEMP_DIR, MAX_CACHE)
     load_config()

@@ -21,3 +21,4 @@ jobs:
         with:
           name: ${{ env.NAME }}
           path: dist/*
+          if-no-files-found: error

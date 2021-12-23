@@ -4,15 +4,16 @@ import atexit
 import contextlib
 import os
 import subprocess
+import sys
 import winreg
-from typing import ContextManager, Optional, Union
+from typing import ContextManager, Optional
 
-import libraries.ctyped as ctyped
+import libs.ctyped as ctyped
 
 _EMPTY = '\0' * ctyped.const.MAX_PATH
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-_BALLOON = ctyped.struct.NOTIFYICONDATA(ctyped.sizeof(
-    ctyped.struct.NOTIFYICONDATA), uID=hash(object()), uFlags=ctyped.const.NIF_INFO)
+_BALLOON = ctyped.struct.NOTIFYICONDATA(ctyped.sizeof(ctyped.struct.NOTIFYICONDATA), uID=hash(object()),
+                                        uFlags=ctyped.const.NIF_INFO)
 atexit.register(ctyped.func.Shell_NotifyIcon, ctyped.const.NIM_DELETE, ctyped.byref(_BALLOON))
 
 
@@ -87,8 +88,8 @@ def _get_dc(hwnd: Optional[ctyped.type.HWND] = None) -> ContextManager[Optional[
 def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
     bitmap = ctyped.type.GpBitmap()
     token = ctyped.type.ULONG_PTR()
-    if ctyped.macro.SUCCEEDED(ctyped.func.GdiplusStartup(ctyped.byref(
-            token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
+    if ctyped.macro.SUCCEEDED(
+            ctyped.func.GdiplusStartup(ctyped.byref(token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
         ctyped.func.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
     try:
         yield bitmap
@@ -124,16 +125,16 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
 def copy_image(path: str) -> bool:
     with _get_hbitmap(path) as hbitmap:
         bm = ctyped.struct.BITMAP()
-        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.func.GetObject(
-                hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bm)):
+        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.func.GetObject(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP),
+                                                                        ctyped.byref(bm)):
             sz_bi = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
             bi = ctyped.struct.BITMAPINFOHEADER(sz_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
             sz = bm.bmWidthBytes * bm.bmHeight
             data = ctyped.array(ctyped.type.BYTE, size=sz)
             with _get_dc() as hdc:
                 if hdc:
-                    if ctyped.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, ctyped.cast(
-                            bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
+                    if ctyped.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data,
+                                             ctyped.cast(bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
                         with _global_memory(sz_bi + sz) as handle_buff:
                             if handle_buff[1]:
                                 ctyped.func.memmove(handle_buff[1], ctyped.byref(bi), sz_bi)
@@ -172,8 +173,8 @@ def get_wallpaper_path() -> str:
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            ctyped.func.SystemParametersInfo(
-                ctyped.const.SPI_SETDESKWALLPAPER, 0, path, ctyped.const.SPIF_SENDWININICHANGE)
+            ctyped.func.SystemParametersInfo(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                             ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
 
@@ -215,13 +216,13 @@ def set_wallpaper_ex(*paths: str) -> bool:
 def register_autorun(name: str, path: str, *args: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
                         access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
-        cmd = subprocess.list2cmdline((path,) + args)
+        command = subprocess.list2cmdline((path,) + args)
         try:
-            winreg.SetValueEx(key, name, None, winreg.REG_SZ, cmd)
+            winreg.SetValueEx(key, name, None, winreg.REG_SZ, command)
         except PermissionError:
             return False
         winreg.FlushKey(key)
-        return (cmd, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
+        return (command, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
 def unregister_autorun(name: str) -> bool:
@@ -234,7 +235,7 @@ def unregister_autorun(name: str) -> bool:
     return False
 
 
-def _read_link(path: str) -> tuple[str, str, str, str, tuple[str, int]]:
+def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int]]:
     with ctyped.create_com(ctyped.com.IShellLinkW) as link:
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Load(path, ctyped.const.STGM_READ)
@@ -251,12 +252,10 @@ def _read_link(path: str) -> tuple[str, str, str, str, tuple[str, int]]:
         return target.value, args.value, start_in.value, comment.value, (icon[0].value, icon[1].value)
 
 
-def create_link(path: str, target: str, *args: str, start_in: Optional[str] = None,
-                comment: Optional[None] = None, icon: Optional[Union[str, tuple[str, int]]] = None) -> bool:
+def create_link(path: str, target: str, *args: str, start_in: Optional[str] = None, comment: Optional[str] = None,
+                icon_path: Optional[str] = None, icon_index: Optional[int] = None) -> bool:
     args = subprocess.list2cmdline(args)
     start_in = start_in or os.path.dirname(target)
-    if isinstance(icon, str):
-        icon = icon, 0
     with ctyped.create_com(ctyped.com.IShellLink) as link:
         link.SetPath(target)
         link.SetArguments(args)
@@ -265,18 +264,20 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
             link.SetDescription(comment)
         else:
             comment = ''
-        if icon:
+        if icon_path or icon_index:
+            icon = icon_path or sys.executable, icon_index or 0
             link.SetIconLocation(*icon)
         else:
             icon = '', 0
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Save(path, True)
-        return os.path.isfile(path) and (target, args, start_in, comment, icon) == _read_link(path)
+        return os.path.isfile(path) and (target, args, start_in, comment, icon) == _get_link_data(path)
 
 
 def show_balloon(title: str, text: str, icon: Optional[str] = None) -> bool:
     _BALLOON.szInfo = text
     _BALLOON.szInfoTitle = title
     _BALLOON.dwInfoFlags = icon or 0
-    return ctyped.func.Shell_NotifyIcon(ctyped.const.NIM_MODIFY, ctyped.byref(
-        _BALLOON)) or ctyped.func.Shell_NotifyIcon(ctyped.const.NIM_ADD, ctyped.byref(_BALLOON))
+    return ctyped.func.Shell_NotifyIcon(ctyped.const.NIM_MODIFY,
+                                        ctyped.byref(_BALLOON)) or ctyped.func.Shell_NotifyIcon(ctyped.const.NIM_ADD,
+                                                                                                ctyped.byref(_BALLOON))

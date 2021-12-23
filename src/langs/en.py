@@ -1,3 +1,4 @@
+__DIGIT__ = '0123456789'
 NEXT = 'Next Wallpaper'
 PREVIOUS = 'Previous Wallpaper'
 CHANGING = 'Changing Wallpaper'
