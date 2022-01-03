@@ -31,26 +31,24 @@ class _Array(_Pointer, _Sequence[_CT]):
 
 class _Module:
     __spec__ = None
-    module = None
+    _module = None
 
     def __init__(self, name: str):
-        self.name = name
+        self._name = name
 
-    def __getattribute__(self, name: str):
-        if name in ('__spec__', '__class__', 'module', 'name'):
-            return super().__getattribute__(name)
-        if not self.module:
-            del _sys.modules[self.name]
-            self.module = _importlib.import_module(*_os.path.splitext(self.name)[::-1])
-        _replace_object(self, self.module)
-        return getattr(self.module, name)
+    def __getattr__(self, name: str):
+        if not self._module:
+            del _sys.modules[self._name]
+            self._module = _importlib.import_module(*_os.path.splitext(self._name)[::-1])
+        _replace_object(self, self._module)
+        return getattr(self._module, name)
 
 
 class _Globals(dict):
     annotations = None
 
-    def __init__(self, once: _Optional[bool] = None):
-        self.once = once
+    def __init__(self, replace_once: _Optional[bool] = None):
+        self.replace_once = replace_once
         # self.module = _inspect.getmodule(_inspect.currentframe().f_back) fixme pyinstaller debug getmodule -> None
         self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         self.vars_ = {var: val for var, val in vars(self.module).items() if _not_internal(var)}
@@ -83,7 +81,7 @@ class _Globals(dict):
         except KeyError:
             pass
         else:
-            if self.once:
+            if self.replace_once:
                 self.setitem(key, value)
             else:
                 for key_ in self.iter_vars():
@@ -101,9 +99,7 @@ class _Globals(dict):
                 yield item
 
     def has_item(self, item: str) -> _Optional[_NoReturn]:
-        try:
-            self.vars_[item]
-        except KeyError:
+        if item not in self.vars_:
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_annotation(self, item: str) -> _Any:

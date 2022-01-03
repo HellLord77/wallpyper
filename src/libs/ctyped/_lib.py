@@ -11,19 +11,17 @@ from .__head__ import _replace_object
 
 
 class _Lib:
-    lib = None
+    _lib = None
 
     def __init__(self, base, name):
-        self.base = base
-        self.name = name
+        self._base = base
+        self._name = name
 
-    def __getattribute__(self, name: str):
-        if name in ('lib', 'base', 'name'):
-            return super().__getattribute__(name)
-        if not self.lib:
-            self.lib = self.base(self.name, use_last_error=_DEBUG)
-        _replace_object(self, self.lib)
-        return getattr(self.lib, name)
+    def __getattr__(self, name: str):
+        if not self._lib:
+            self._lib = self._base(self._name, use_last_error=_DEBUG)
+        _replace_object(self, self._lib)
+        return getattr(self._lib, name)
 
 
 GdiPlus: _Union[_Callable, _ctypes.WinDLL]
