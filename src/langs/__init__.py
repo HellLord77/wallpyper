@@ -23,13 +23,14 @@ _languages = (
 DEFAULT = en
 
 
-def str_(num: int, lang: types.ModuleType, pad: Optional[int] = None) -> str:
-    # noinspection PyUnresolvedReferences
-    return ''.join(lang.__DIGIT__[int(char)] for char in str(num)).rjust(pad or None, lang.__DIGIT__[0])
-
-
 def _getattr(name: str) -> str:
-    return f'${name}'
+    return f'{{{name}}}'
+
+
+def str_(num: int, lang: types.ModuleType, pad: Optional[int] = None) -> str:
+    # noinspection PyProtectedMember
+    return (f'{"".join(lang._DIGITS[int(char)] for char in str(num)):{lang._DIGITS[0]}>{pad or 0}}'
+            if hasattr(lang, '_DIGITS') else _getattr(f'{num:0>{pad or 0}}'))  # fixme: remove '>' in 3.10
 
 
 def _init():
