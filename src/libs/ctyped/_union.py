@@ -3,6 +3,7 @@ import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
 
+from . import _struct
 from . import _type
 from .__head__ import _Globals
 from .__head__ import _resolve_type
@@ -10,9 +11,43 @@ from .__head__ import _resolve_type
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class u:
+class NOTIFYICONDATA_u:
     uTimeout: _type.UINT = None
     uVersion: _type.UINT = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class DECIMAL_u:
+    s: _struct.DECIMAL_u_s = None
+    signscale: _type.USHORT = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class DECIMAL_u2:
+    s: _struct.DECIMAL_u2_s = None
+    Lo64: _type.ULONGLONG = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class tag_inner_PROPVARIANT_u:
+    cVal: _type.CHAR = None
+    bVal: _type.UCHAR = None
+    iVal: _type.SHORT = None
+    uiVal: _type.USHORT = None
+    lVal: _type.LONG = None
+    ulVal: _type.ULONG = None
+    intVal: _type.INT = None
+    uintVal: _type.UINT = None
+    ...
+    fltVal: _type.FLOAT = None
+    dblVal: _type.DOUBLE = None
+    ...
+    pszVal: _type.LPSTR = None
+    pwszVal: _type.LPWSTR = None
+    ...
 
 
 def _init(name: str) -> type[_ctypes.Union]:

@@ -1,4 +1,4 @@
-import ctypes as _ctypes  # TODO: _Pointer[_struct.TYPE]
+import ctypes as _ctypes  # TODO: _Pointer[_struct.TYPE], better inspect name (?)
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
@@ -6,6 +6,7 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 from typing import Union as _Union
 
+from . import _const
 from .__head__ import _Globals
 from .__head__ import _Pointer
 from .__head__ import _resolve_type
@@ -28,7 +29,6 @@ _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
 _MAGICS = {}
 
-HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
@@ -56,6 +56,7 @@ c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
 c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_wchar_p, _Pointer, int, str]]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
 c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, _Pointer, str]]
+HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
@@ -72,6 +73,8 @@ INT32 = c_int
 INT64 = c_int32
 INT8 = c_char
 LONG = c_long
+RPC_STATUS = c_long
+SHORT = c_short
 UCHAR = c_uchar
 UINT = c_uint
 UINT16 = c_ushort
@@ -79,6 +82,7 @@ UINT32 = c_uint
 UINT64 = c_uint64
 UINT8 = c_uchar
 ULONG = c_ulong
+ULONGLONG = c_uint64
 USHORT = c_ushort
 WCHAR = c_wchar_t
 WORD = c_ushort
@@ -112,6 +116,7 @@ PWCH = c_wchar_p
 PWCHAR = c_wchar_p
 PWSTR = c_wchar_p
 PZZSTR = c_char_p
+VARTYPE = c_ushort
 VOID = c_void_p
 
 _obj_p = c_void_p
@@ -159,6 +164,7 @@ OLECHAR = WCHAR
 PCTCH = LPCWCH
 PCTSTR = LPCWSTR
 PROPID = ULONG
+PSSTDAPI = HRESULT
 PTCH = LPWCH
 PTSTR = LPWSTR
 SCODE = LONG
@@ -166,8 +172,11 @@ SFGAOF = ULONG
 SICHINTF = DWORD
 SIZE_T = ULONG_PTR
 STDAPI = HRESULT
-PSSTDAPI = HRESULT
 WPARAM = UINT_PTR
+
+PROPVAR_PAD1 = BYTE if _const.MIDL_PASS else WORD
+PROPVAR_PAD2 = BYTE if _const.MIDL_PASS else WORD
+PROPVAR_PAD3 = ULONG if _const.MIDL_PASS else WORD
 
 GpStatus = Status
 HACCEL = HANDLE

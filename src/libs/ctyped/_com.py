@@ -155,8 +155,8 @@ class IUserNotification2(_IUnknown):
 class IPropertyStore(_IUnknown):
     GetCount: _Callable[[_Pointer[_type.DWORD]], _type.HRESULT]
     GetAt: _Callable[[_type.DWORD, _Pointer[_struct.PROPERTYKEY]], _type.HRESULT]
-    GetValue: _Callable
-    SetValue: _Callable
+    GetValue: _Callable[[_Pointer[_struct.PROPERTYKEY], _Pointer[_struct.PROPVARIANT]], _type.HRESULT]
+    SetValue: _Callable[[_Pointer[_struct.PROPERTYKEY], _Pointer[_struct.PROPVARIANT]], _type.HRESULT]
     Commit: _Callable[[], _type.HRESULT]
 
 
@@ -216,9 +216,6 @@ class IShellLinkW(_IUnknown):
     SetRelativePath: _Callable[[_type.LPCWSTR, _type.DWORD], _type.HRESULT]
     Resolve: _Callable[[_type.HWND, _type.DWORD], _type.HRESULT]
     SetPath: _Callable[[_type.LPCWSTR], _type.HRESULT]
-
-
-IShellLink = IShellLinkW if _const.UNICODE else IShellLinkA
 
 
 def _method_type(types: _Callable) -> list:

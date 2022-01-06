@@ -5,6 +5,7 @@ import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
+import types as _types
 import typing as _typing
 from typing import Any as _Any
 from typing import Generator as _Generator
@@ -50,11 +51,19 @@ class _Globals(dict):
     def __init__(self, replace_once: _Optional[bool] = None):
         self.replace_once = replace_once
         # self.module = _inspect.getmodule(_inspect.currentframe().f_back) fixme pyinstaller debug getmodule -> None
-        self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
-        self.vars_ = {var: val for var, val in vars(self.module).items() if _not_internal(var)}
+        name = _inspect.currentframe().f_back.f_globals['__name__']
+        self.module = _sys.modules[name]
+        vars_ = vars(self.module)
+        if name[-1].isdigit():
+            module_ = _sys.modules[name[:-1]]
+            vars_.update(
+                {var: val for var, val in vars(module_).items() if not _not_internal(var) and var not in vars_})
+            # noinspection PyUnresolvedReferences,PyProtectedMember
+            self.module._init = _types.FunctionType(module_._init.__code__, vars_)
+        self.vars_ = {var: val for var, val in vars_.items() if _not_internal(var)}
         for var in self.vars_:
             delattr(self.module, var)
-        super().__init__(vars(self.module))
+        super().__init__(vars_)
         self.module.__getattr__ = self.__getitem__
         if _INIT:
             self.module._globals = self

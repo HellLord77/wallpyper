@@ -3,7 +3,6 @@ import types as _types
 import typing as _typing
 from typing import Callable as _Callable
 
-from . import _const
 from . import _type
 from .__head__ import _Globals
 from .__head__ import _cast
@@ -109,9 +108,6 @@ def GetScode(sc: int) -> _type.SCODE:
 # noinspection PyPep8Naming
 def ResultFromScode(sc: int) -> _type.HRESULT:
     return _type.HRESULT(sc)
-
-
-MAKEINTRESOURCE = MAKEINTRESOURCEW if _const.UNICODE else MAKEINTRESOURCEA
 
 
 def _init(name: str) -> _Callable:

@@ -1,4 +1,4 @@
-__version__ = '0.1.19'  # TODO: overload func
+__version__ = '0.1.20'  # TODO: overload func, ordinal func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -6,6 +6,7 @@ import typing as _typing
 from typing import Any as _Any
 from typing import ContextManager as _ContextManager
 from typing import Optional as _Optional
+from typing import Type as _Type
 
 from . import __head__
 from . import _com as com
@@ -24,6 +25,12 @@ from .__head__ import _byref as byref
 from .__head__ import _cast as cast
 from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
+
+_GUID_INIT = {
+    struct.GUID: func.GUIDFromStringW,
+    struct.IID: func.IIDFromString,
+    struct.CLSID: func.CLSIDFromString
+}
 
 
 def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Array[CT]:
@@ -44,15 +51,20 @@ def char_array(string):
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
+def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
+    guid = type_()
+    try:
+        _GUID_INIT[type_](string, byref(guid))
+    except KeyError:
+        pass
+    else:
+        return guid
+
+
 def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], Pointer[struct.IID]]:
-    clsid_ref = Pointer()
-    if type_.__CLSID__:
-        clsid_ref = byref(struct.CLSID())
-        func.CLSIDFromString(type_.__CLSID__, clsid_ref)
-    iid_ref = byref(struct.IID())
-    func.IIDFromString(getattr(const, f'IID_{type_.__name__}'), iid_ref)
     func.CoInitialize(None)
-    return type_(), clsid_ref, iid_ref
+    return type_(), byref(init_guid(type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else Pointer(), byref(
+        init_guid(getattr(const, f'IID_{type_.__name__}'), struct.IID))
 
 
 # noinspection PyProtectedMember

@@ -3,7 +3,6 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _com
-from . import _const
 from . import _lib
 from . import _struct
 from . import _type
@@ -14,11 +13,6 @@ from .__head__ import _resolve_type
 
 SetWindowTheme: _Callable[[_type.HWND, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR]],
                           _type.HRESULT] = _lib.uxtheme
-
-# InitPropVariantFromStringAsVector: _Callable[[_type.PCWSTR, _type.REFPROPVARIANT],
-#                                              _type.PSSTDAPI] = _lib.Propsys
-# InitPropVariantFromStringVector: _Callable[[_type.PCWSTR, _type.ULONG, _type.REFPROPVARIANT],
-#                                            _type.PSSTDAPI] = _lib.Propsys
 
 RoInitialize: _Callable[[_type.RO_INIT_TYPE],
                         _type.HRESULT] = _lib.combase
@@ -271,36 +265,13 @@ SetTimer: _Callable[[_Optional[_type.HWND], _type.UINT_PTR, _type.UINT, _Optiona
 KillTimer: _Callable[[_type.HWND, _type.UINT_PTR],
                      _type.BOOL] = _lib.user32
 
-GetObject = GetObjectW or GetObjectA
-GetModuleHandle = GetModuleHandleW or GetModuleHandleA
-SHGetFolderPath = SHGetFolderPathW or SHGetFolderPathA
-Shell_NotifyIcon = Shell_NotifyIconW or Shell_NotifyIconA
-ShellExecute = ShellExecuteW or ShellExecuteA
-SystemParametersInfo = SystemParametersInfoW or SystemParametersInfoA
-LoadImage = LoadImageW or LoadImageA
-LoadIcon = LoadIconW or LoadIconA
-FindWindow = FindWindowW or FindWindowA
-SendMessage = SendMessageW or SendMessageA
-SendMessageTimeout = SendMessageTimeoutW or SendMessageTimeoutA
-GetClassName = GetClassNameW or GetClassNameA
-GetWindowText = GetWindowTextW or GetWindowTextA
-RegisterClassEx = RegisterClassExW or RegisterClassExA
-UnregisterClass = UnregisterClassW or UnregisterClassA
-CreateWindowEx = CreateWindowExW or CreateWindowExA
-DefWindowProc = DefWindowProcW or DefWindowProcA
-GetMessage = GetMessageW or GetMessageA
-DispatchMessage = DispatchMessageW or DispatchMessageA
+GUIDFromStringW: _Callable[[_type.LPCTSTR, _Pointer[_struct.GUID]],
+                           _type.BOOL] = _lib.Shlwapi
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(name: str) -> _ctypes._CFuncPtr:
     _globals.has_item(name)
-    try:
-        _globals.vars_.__getitem__(f'{name}W')
-    except KeyError:
-        pass
-    else:
-        name = f'{name}{"W" if _const.UNICODE else "A"}'
     func = getattr(_globals.vars_[name], name)
     func.restype, *func.argtypes = _resolve_type(_globals.get_annotation(name))
     func.__doc__ = _get_doc(name, func.restype, func.argtypes)

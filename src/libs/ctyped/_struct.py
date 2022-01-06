@@ -9,6 +9,7 @@ import typing as _typing
 from . import _const
 from . import _type
 from . import _union
+from . import _union2
 from .__head__ import _Globals
 from .__head__ import _resolve_type
 
@@ -168,7 +169,7 @@ class NOTIFYICONDATAA:
         szInfo: _type.CHAR * 256 = None
         # noinspection PyProtectedMember
         if not _const._SHELL_EXPORTS_INTERNALAPI_H_:
-            DUMMYUNIONNAME: _union.u = None
+            u: _union.NOTIFYICONDATA_u = None
         szInfoTitle: _type.CHAR * 64 = None
         dwInfoFlags: _type.DWORD = None
     if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
@@ -194,7 +195,7 @@ class NOTIFYICONDATAW:
         szInfo: _type.WCHAR * 256 = None
         # noinspection PyProtectedMember
         if not _const._SHELL_EXPORTS_INTERNALAPI_H_:
-            DUMMYUNIONNAME: _union.u = None
+            u: _union.NOTIFYICONDATA_u = None
         szInfoTitle: _type.WCHAR * 64 = None
         dwInfoFlags: _type.DWORD = None
     if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
@@ -320,13 +321,47 @@ class CSPLATFORM:
     dwProcessorArch: _type.DWORD = None
 
 
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class DECIMAL_u_s:
+    scale: _type.BYTE = None
+    sign: _type.BYTE = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class DECIMAL_u2_s:
+    Lo32: _type.ULONG = None
+    Mid32: _type.ULONG = None
+
+
+@_dataclasses.dataclass
+class DECIMAL:
+    wReserved: _type.USHORT = None
+    u: _union.DECIMAL_u = None
+    Hi32: _type.ULONG = None
+    u2: _union.DECIMAL_u2 = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class tag_inner_PROPVARIANT:
+    vt: _type.VARTYPE = None
+    wReserved1: _type.PROPVAR_PAD1 = None
+    wReserved2: _type.PROPVAR_PAD2 = None
+    wReserved3: _type.PROPVAR_PAD3 = None
+    u: _union.tag_inner_PROPVARIANT_u = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class PROPVARIANT:
+    u: _union2.PROPVARIANT_u = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
-MENUITEMINFO = MENUITEMINFOW if _const.UNICODE else MENUITEMINFOA
-NOTIFYICONDATA = NOTIFYICONDATAW if _const.UNICODE else NOTIFYICONDATAA
-WNDCLASSEX = WNDCLASSEXW if _const.UNICODE else WNDCLASSEXA
-WIN32_FIND_DATA = WIN32_FIND_DATAW if _const.UNICODE else WIN32_FIND_DATAA
 
 
 def _init(name: str) -> type[_ctypes.Structure]:
