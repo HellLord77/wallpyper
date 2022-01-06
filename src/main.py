@@ -1,4 +1,4 @@
-__version__ = '0.1.11'  # TODO: error handle rather than condition checking; 0xC0000409 (wx?)
+__version__ = '0.1.11'  # TODO: 0xC0000409 (wx?)
 
 import atexit
 import collections
@@ -258,8 +258,8 @@ def _get_launch_argv() -> list[str]:
 
 
 def on_shortcut() -> bool:
-    created = (platform.create_link(utils.join_path(platform.DESKTOP_DIR, f'{NAME}.lnk'),
-                                    *_get_launch_argv(), comment=LANG.DESCRIPTION))
+    created = platform.create_link(utils.join_path(platform.DESKTOP_DIR, f'{NAME}.lnk'),
+                                   *_get_launch_argv(), comment=LANG.DESCRIPTION, aumi=UUID)
     if not created and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.SHORTCUT, LANG.FAILED_SHORTCUT)
     return created

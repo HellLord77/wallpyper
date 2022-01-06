@@ -12,14 +12,14 @@ import libs.ctyped as ctyped
 
 _EMPTY = '\0' * ctyped.const.MAX_PATH
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-_BALLOON = ctyped.struct.NOTIFYICONDATA(ctyped.sizeof(ctyped.struct.NOTIFYICONDATA), uID=hash(object()),
-                                        uFlags=ctyped.const.NIF_INFO)
-atexit.register(ctyped.func.Shell_NotifyIcon, ctyped.const.NIM_DELETE, ctyped.byref(_BALLOON))
+_BALLOON = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW), uID=hash(object()),
+                                         uFlags=ctyped.const.NIF_INFO)
+atexit.register(ctyped.func.Shell_NotifyIconW, ctyped.const.NIM_DELETE, ctyped.byref(_BALLOON))
 
 
 def _get_dir(csidl: int) -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.SHGetFolderPath(None, csidl, None, ctyped.const.SHGFP_TYPE_CURRENT, buff)
+    ctyped.func.SHGetFolderPathW(None, csidl, None, ctyped.const.SHGFP_TYPE_CURRENT, buff)
     return buff.value
 
 
@@ -125,8 +125,8 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
 def copy_image(path: str) -> bool:
     with _get_hbitmap(path) as hbitmap:
         bm = ctyped.struct.BITMAP()
-        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.func.GetObject(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP),
-                                                                        ctyped.byref(bm)):
+        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.func.GetObjectW(
+                hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bm)):
             sz_bi = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
             bi = ctyped.struct.BITMAPINFOHEADER(sz_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
             sz = bm.bmWidthBytes * bm.bmHeight
@@ -161,20 +161,20 @@ def open_file_path(path: str) -> bool:
 
 
 def open_file(path: str) -> bool:
-    return ctyped.func.ShellExecute(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+    return ctyped.func.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
 
 
 def get_wallpaper_path() -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.SystemParametersInfo(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.MAX_PATH, buff, 0)
+    ctyped.func.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.MAX_PATH, buff, 0)
     return buff.value or get_wallpaper_path_ex()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            ctyped.func.SystemParametersInfo(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                             ctyped.const.SPIF_SENDWININICHANGE)
+            ctyped.func.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                              ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
 
@@ -206,7 +206,7 @@ def set_wallpaper_ex(*paths: str) -> bool:
         if desktop:
             for path in paths:
                 if os.path.isfile(path):
-                    ctyped.func.SendMessage(ctyped.func.FindWindow('Progman', 'Program Manager'), 0x52c, 0, 0)
+                    ctyped.func.SendMessageW(ctyped.func.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
                     desktop.SetWallpaper(path, 0)
                     desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
                     return True
@@ -235,7 +235,7 @@ def unregister_autorun(name: str) -> bool:
     return False
 
 
-def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int]]:
+def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int], str]:
     with ctyped.create_com(ctyped.com.IShellLinkW) as link:
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Load(path, ctyped.const.STGM_READ)
@@ -244,19 +244,25 @@ def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int]]:
         start_in = ctyped.type.LPWSTR(_EMPTY)
         comment = ctyped.type.LPWSTR(_EMPTY)
         icon = ctyped.type.LPWSTR(_EMPTY), ctyped.type.c_int()
-        link.GetPath(target, ctyped.const.MAX_PATH, None, ctyped.const.SLGP_SHORTPATH)
+        link.GetPath(target, ctyped.const.MAX_PATH, None, ctyped.const.SLGP_RAWPATH)
         link.GetArguments(args, ctyped.const.MAX_PATH)
         link.GetWorkingDirectory(start_in, ctyped.const.MAX_PATH)
         link.GetDescription(comment, ctyped.const.MAX_PATH)
         link.GetIconLocation(icon[0], ctyped.const.MAX_PATH, ctyped.byref(icon[1]))
-        return target.value, args.value, start_in.value, comment.value, (icon[0].value, icon[1].value)
+        with ctyped.convert_com(link, ctyped.com.IPropertyStore) as properties:
+            property_ = ctyped.struct.PROPVARIANT()
+            properties.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
+                ctyped.init_guid(ctyped.const.PKEY_AppUserModel_ID[0], ctyped.struct.GUID),
+                ctyped.const.PKEY_AppUserModel_ID[1])), ctyped.byref(property_))
+            aumi = property_.u.s.u.pwszVal
+        return target.value, args.value, start_in.value, comment.value, (icon[0].value, icon[1].value), aumi
 
 
 def create_link(path: str, target: str, *args: str, start_in: Optional[str] = None, comment: Optional[str] = None,
-                icon_path: Optional[str] = None, icon_index: Optional[int] = None) -> bool:
+                icon_path: Optional[str] = None, icon_index: Optional[int] = None, aumi: Optional[str] = None) -> bool:
     args = subprocess.list2cmdline(args)
     start_in = start_in or os.path.dirname(target)
-    with ctyped.create_com(ctyped.com.IShellLink) as link:
+    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
         link.SetPath(target)
         link.SetArguments(args)
         link.SetWorkingDirectory(start_in)
@@ -269,15 +275,22 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
             link.SetIconLocation(*icon)
         else:
             icon = '', 0
+        if aumi is not None:
+            with ctyped.convert_com(link, ctyped.com.IPropertyStore) as properties:
+                property_ = ctyped.struct.PROPVARIANT()
+                property_.u.s.vt = ctyped.const.VT_LPWSTR
+                property_.u.s.u.pwszVal = aumi
+                properties.SetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
+                    ctyped.init_guid(ctyped.const.PKEY_AppUserModel_ID[0], ctyped.struct.GUID),
+                    ctyped.const.PKEY_AppUserModel_ID[1])), ctyped.byref(property_))
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Save(path, True)
-        return os.path.isfile(path) and (target, args, start_in, comment, icon) == _get_link_data(path)
+        return os.path.isfile(path) and (target, args, start_in, comment, icon, aumi) == _get_link_data(path)
 
 
 def show_balloon(title: str, text: str, icon: Optional[str] = None) -> bool:
     _BALLOON.szInfo = text
     _BALLOON.szInfoTitle = title
     _BALLOON.dwInfoFlags = icon or 0
-    return ctyped.func.Shell_NotifyIcon(ctyped.const.NIM_MODIFY,
-                                        ctyped.byref(_BALLOON)) or ctyped.func.Shell_NotifyIcon(ctyped.const.NIM_ADD,
-                                                                                                ctyped.byref(_BALLOON))
+    return ctyped.func.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
+        _BALLOON)) or ctyped.func.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(_BALLOON))

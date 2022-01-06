@@ -1,4 +1,4 @@
-__version__ = '0.0.11'  # TODO: default path
+__version__ = '0.0.11'
 
 import atexit
 import contextlib
