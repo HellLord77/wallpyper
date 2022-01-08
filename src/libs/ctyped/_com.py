@@ -8,7 +8,7 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _const
-from . import _func
+from . import _lib
 from . import _struct
 from . import _type
 from .__head__ import _Globals
@@ -293,7 +293,7 @@ class IUnknown(_ctypes.c_void_p):
             return _const.E_INVALIDARG
         ppvObject.contents.value = None
         iid = _type.LPOLESTR()
-        _func.StringFromIID(riid, _byref(iid))
+        _lib.ole32.StringFromIID(riid, _byref(iid))
         if iid.value in This.contents.__IID__:
             ppvObject.contents.value = This
             return _const.NOERROR

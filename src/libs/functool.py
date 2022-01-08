@@ -105,6 +105,11 @@ def eq_ex(a: Any, b: Any) -> bool:
         return a == b
 
 
+def exhaust(itt: Generator) -> None:
+    for _ in itt:
+        pass
+
+
 def randint_ex() -> int:
     return secrets.choice(secrets.token_bytes())
 

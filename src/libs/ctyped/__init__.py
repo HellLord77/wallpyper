@@ -1,4 +1,4 @@
-__version__ = '0.1.20'  # TODO: overload func, ordinal func
+__version__ = '0.1.21'  # TODO: overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -11,8 +11,7 @@ from typing import Type as _Type
 from . import __head__
 from . import _com as com
 from . import _const as const
-from . import _func as func
-from . import _lib
+from . import _lib as lib
 from . import _macro as macro
 from . import _struct as struct
 # noinspection PyShadowingBuiltins
@@ -25,12 +24,6 @@ from .__head__ import _byref as byref
 from .__head__ import _cast as cast
 from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
-
-_GUID_INIT = {
-    struct.GUID: func.GUIDFromStringW,
-    struct.IID: func.IIDFromString,
-    struct.CLSID: func.CLSIDFromString
-}
 
 
 def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Array[CT]:
@@ -53,16 +46,20 @@ def char_array(string):
 
 def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
     guid = type_()
-    try:
-        _GUID_INIT[type_](string, byref(guid))
-    except KeyError:
-        pass
+    if type_ is struct.GUID:
+        init = lib.shell32.GUIDFromStringW
+    elif type_ is struct.IID:
+        init = lib.ole32.IIDFromString
+    elif type_ is struct.CLSID:
+        init = lib.ole32.CLSIDFromString
     else:
-        return guid
+        return
+    init(string, byref(guid))
+    return guid
 
 
 def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], Pointer[struct.IID]]:
-    func.CoInitialize(None)
+    lib.ole32.CoInitialize(None)
     return type_(), byref(init_guid(type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else Pointer(), byref(
         init_guid(getattr(const, f'IID_{type_.__name__}'), struct.IID))
 
@@ -71,13 +68,13 @@ def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], Poi
 def _del_com(obj: com._IUnknown) -> None:
     if obj:
         obj.Release()
-    func.CoInitialize(None)
+    lib.ole32.CoInitialize(None)
 
 
 @_contextlib.contextmanager
 def create_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
     obj, clsid_ref, iid_ref = _init_com(type_)
-    func.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, iid_ref, byref(obj))
+    lib.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, iid_ref, byref(obj))
     try:
         yield obj
     finally:

@@ -1,6 +1,5 @@
 __version__ = '0.0.8'
 
-import atexit
 import contextlib
 import os
 import subprocess
@@ -12,14 +11,11 @@ import libs.ctyped as ctyped
 
 _EMPTY = '\0' * ctyped.const.MAX_PATH
 _RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-_BALLOON = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW), uID=hash(object()),
-                                         uFlags=ctyped.const.NIF_INFO)
-atexit.register(ctyped.func.Shell_NotifyIconW, ctyped.const.NIM_DELETE, ctyped.byref(_BALLOON))
 
 
 def _get_dir(csidl: int) -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.SHGetFolderPathW(None, csidl, None, ctyped.const.SHGFP_TYPE_CURRENT, buff)
+    ctyped.lib.shell32.SHGetFolderPathW(None, csidl, None, ctyped.const.SHGFP_TYPE_CURRENT, buff)
     return buff.value
 
 
@@ -32,70 +28,71 @@ WALLPAPER_PATH = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'Tr
 
 @contextlib.contextmanager
 def _clipboard() -> ContextManager[None]:
-    ctyped.func.OpenClipboard(None)
+    ctyped.lib.user32.OpenClipboard(None)
     try:
         yield
     finally:
-        ctyped.func.CloseClipboard()
+        ctyped.lib.user32.CloseClipboard()
 
 
 def paste_text() -> str:
     with _clipboard():
-        return ctyped.cast(ctyped.func.GetClipboardData(ctyped.const.CF_UNICODETEXT), ctyped.type.c_wchar_p).value or ''
+        return ctyped.cast(ctyped.lib.user32.GetClipboardData(ctyped.const.CF_UNICODETEXT),
+                           ctyped.type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL) -> None:
     with _clipboard():
-        ctyped.func.EmptyClipboard()
-        ctyped.func.SetClipboardData(format_, hglobal)
+        ctyped.lib.user32.EmptyClipboard()
+        ctyped.lib.user32.SetClipboardData(format_, hglobal)
 
 
 def copy_text(text: str, quote: Optional[str] = None) -> bool:
     if quote:
         text = f'{quote}{text}{quote}'
-    size = (ctyped.func.wcslen(text) + 1) * ctyped.sizeof(ctyped.type.c_wchar)
-    handle = ctyped.func.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
+    size = (ctyped.lib.msvcrt.wcslen(text) + 1) * ctyped.sizeof(ctyped.type.c_wchar)
+    handle = ctyped.lib.kernel32.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
     if handle:
-        buff = ctyped.func.GlobalLock(handle)
+        buff = ctyped.lib.kernel32.GlobalLock(handle)
         if buff:
-            ctyped.func.memmove(buff, text, size)
+            ctyped.lib.msvcrt.memmove(buff, text, size)
             _set_clipboard(ctyped.const.CF_UNICODETEXT, handle)
     return text == paste_text()
 
 
 @contextlib.contextmanager
 def _global_memory(size: ctyped.type.SIZE_T) -> ContextManager[tuple[ctyped.type.HGLOBAL, ctyped.type.LPVOID]]:
-    handle = ctyped.func.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
+    handle = ctyped.lib.kernel32.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
     buff = None
     if handle:
-        buff = ctyped.func.GlobalLock(handle)
+        buff = ctyped.lib.kernel32.GlobalLock(handle)
     try:
         yield handle, buff
     finally:
-        ctyped.func.GlobalUnlock(handle)
+        ctyped.lib.kernel32.GlobalUnlock(handle)
 
 
 @contextlib.contextmanager
 def _get_dc(hwnd: Optional[ctyped.type.HWND] = None) -> ContextManager[Optional[ctyped.type.HDC]]:
-    hdc = ctyped.func.GetDC(hwnd)
+    hdc = ctyped.lib.user32.GetDC(hwnd)
     try:
         yield hdc
     finally:
-        ctyped.func.ReleaseDC(None, hdc)
+        ctyped.lib.user32.ReleaseDC(None, hdc)
 
 
 @contextlib.contextmanager
 def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
     bitmap = ctyped.type.GpBitmap()
     token = ctyped.type.ULONG_PTR()
-    if ctyped.macro.SUCCEEDED(
-            ctyped.func.GdiplusStartup(ctyped.byref(token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
-        ctyped.func.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
+    if ctyped.macro.SUCCEEDED(ctyped.lib.GdiPlus.GdiplusStartup(
+            ctyped.byref(token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
+        ctyped.lib.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
     try:
         yield bitmap
     finally:
-        ctyped.func.GdipDisposeImage(bitmap)
-        ctyped.func.GdiplusShutdown(token)
+        ctyped.lib.GdiPlus.GdipDisposeImage(bitmap)
+        ctyped.lib.GdiPlus.GdiplusShutdown(token)
 
 
 @contextlib.contextmanager
@@ -103,11 +100,11 @@ def _get_hbitmap(path: str) -> ContextManager[ctyped.type.HBITMAP]:
     hbitmap = ctyped.type.HBITMAP()
     with _open_bitmap(path) as bitmap:
         if bitmap:
-            ctyped.func.GdipCreateHBITMAPFromBitmap(bitmap, ctyped.byref(hbitmap), 0)
+            ctyped.lib.GdiPlus.GdipCreateHBITMAPFromBitmap(bitmap, ctyped.byref(hbitmap), 0)
     try:
         yield hbitmap
     finally:
-        ctyped.func.DeleteObject(hbitmap)
+        ctyped.lib.gdi32.DeleteObject(hbitmap)
 
 
 @contextlib.contextmanager
@@ -115,66 +112,66 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
     hicon = ctyped.type.HICON()
     with _open_bitmap(path) as bitmap:
         if bitmap:
-            ctyped.func.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
+            ctyped.lib.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
     try:
         yield hicon
     finally:
-        ctyped.func.DeleteObject(hicon)
+        ctyped.lib.gdi32.DeleteObject(hicon)
 
 
 def copy_image(path: str) -> bool:
     with _get_hbitmap(path) as hbitmap:
         bm = ctyped.struct.BITMAP()
-        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.func.GetObjectW(
+        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.lib.gdi32.GetObjectW(
                 hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bm)):
             sz_bi = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
             bi = ctyped.struct.BITMAPINFOHEADER(sz_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
             sz = bm.bmWidthBytes * bm.bmHeight
             data = ctyped.array(ctyped.type.BYTE, size=sz)
             with _get_dc() as hdc:
-                if hdc:
-                    if ctyped.func.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data,
-                                             ctyped.cast(bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
-                        with _global_memory(sz_bi + sz) as handle_buff:
-                            if handle_buff[1]:
-                                ctyped.func.memmove(handle_buff[1], ctyped.byref(bi), sz_bi)
-                                ctyped.func.memmove(handle_buff[1] + sz_bi, data, sz)
-                                _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
-                                return True
+                if hdc and ctyped.lib.gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data,
+                                                      ctyped.cast(bi, ctyped.struct.BITMAPINFO),
+                                                      ctyped.const.DIB_RGB_COLORS):
+                    with _global_memory(sz_bi + sz) as handle_buff:
+                        if handle_buff[1]:
+                            ctyped.lib.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bi)
+                            ctyped.lib.msvcrt.memmove(handle_buff[1] + sz_bi, data, sz)
+                            _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
+                            return True
     return False
 
 
 @contextlib.contextmanager
 def _get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.func.ILCreateFromPath(path) for path in paths)
+    ids = tuple(ctyped.lib.shell32.ILCreateFromPath(path) for path in paths)
     try:
         yield ids
     finally:
         for id_ in ids:
-            ctyped.func.ILFree(id_)
+            ctyped.lib.shell32.ILFree(id_)
 
 
 def open_file_path(path: str) -> bool:
     with _get_itemidlist(path) as pidl:
-        ctyped.func.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0)
+        ctyped.lib.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0)
     return True
 
 
 def open_file(path: str) -> bool:
-    return ctyped.func.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+    return ctyped.lib.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
 
 
 def get_wallpaper_path() -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.MAX_PATH, buff, 0)
+    ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.MAX_PATH, buff, 0)
     return buff.value or get_wallpaper_path_ex()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            ctyped.func.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                              ctyped.const.SPIF_SENDWININICHANGE)
+            ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                                    ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
 
@@ -183,7 +180,8 @@ def set_slideshow(*paths: str) -> bool:
     with _get_itemidlist(*paths) as pidl:
         id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
         with ctyped.create_com(ctyped.com.IShellItemArray) as shl_arr:
-            ctyped.func.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
+            ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(len(id_arr),
+                                                                 ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
             if shl_arr:
                 with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
                     if wallpaper:
@@ -206,7 +204,8 @@ def set_wallpaper_ex(*paths: str) -> bool:
         if desktop:
             for path in paths:
                 if os.path.isfile(path):
-                    ctyped.func.SendMessageW(ctyped.func.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
+                    ctyped.lib.user32.SendMessageW(
+                        ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
                     desktop.SetWallpaper(path, 0)
                     desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
                     return True
@@ -286,11 +285,3 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Save(path, True)
         return os.path.isfile(path) and (target, args, start_in, comment, icon, aumi) == _get_link_data(path)
-
-
-def show_balloon(title: str, text: str, icon: Optional[str] = None) -> bool:
-    _BALLOON.szInfo = text
-    _BALLOON.szInfoTitle = title
-    _BALLOON.dwInfoFlags = icon or 0
-    return ctyped.func.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
-        _BALLOON)) or ctyped.func.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(_BALLOON))
