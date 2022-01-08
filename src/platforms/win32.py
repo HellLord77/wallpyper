@@ -1,4 +1,4 @@
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import contextlib
 import os
@@ -19,6 +19,7 @@ def _get_dir(csidl: int) -> str:
     return buff.value
 
 
+LINK_EXT = 'lnk'
 APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
 DESKTOP_DIR = _get_dir(ctyped.const.CSIDL_DESKTOP)
 PICTURES_DIR = _get_dir(ctyped.const.CSIDL_MYPICTURES)
@@ -257,6 +258,14 @@ def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int], str]
         return target.value, args.value, start_in.value, comment.value, (icon[0].value, icon[1].value), aumi
 
 
+def get_link_aumi(path: str) -> str:
+    return _get_link_data(path)[-1]
+
+
+def _refresh_dir(path: str):
+    ctyped.lib.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, path, None)
+
+
 def create_link(path: str, target: str, *args: str, start_in: Optional[str] = None, comment: Optional[str] = None,
                 icon_path: Optional[str] = None, icon_index: Optional[int] = None, aumi: Optional[str] = None) -> bool:
     args = subprocess.list2cmdline(args)
@@ -284,4 +293,5 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
                     ctyped.const.PKEY_AppUserModel_ID[1])), ctyped.byref(property_))
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
             file.Save(path, True)
+        _refresh_dir(os.path.dirname(path))
         return os.path.isfile(path) and (target, args, start_in, comment, icon, aumi) == _get_link_data(path)

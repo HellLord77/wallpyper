@@ -156,6 +156,8 @@ class ole32(metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class shell32(metaclass=_WinDLL):
+    SHChangeNotify: _Callable[[_type.LONG, _type.UINT, _Optional[_type.LPCVOID], _Optional[_type.LPCVOID]],
+                              _type.c_void_p]
     SHGetFolderPathA: _Callable[[_Optional[_type.HWND], _type.c_int, _Optional[_type.HANDLE], _type.DWORD, _type.LPSTR],
                                 _type.HRESULT]
     SHGetFolderPathW: _Callable[[_Optional[_type.HWND], _type.c_int,

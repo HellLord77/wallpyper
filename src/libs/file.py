@@ -42,8 +42,8 @@ def get_size(path: str) -> int:
 
 
 def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
-                callback: Optional[Callable[[int, ...], Any]] = None,
-                args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> None:
+                callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
+                kwargs: Optional[Mapping[str, Any]] = None) -> None:
     read = src.read
     write = dst.write
     size = size or sys.maxsize
@@ -61,8 +61,8 @@ def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Option
 
 
 def copy(src_path: str, dest_path: str, chunk_size: Optional[int] = None,
-         callback: Optional[Callable[[int, ...], Any]] = None,
-         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+         callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
+         kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if os.path.exists(src_path):
         if not os.path.exists(dest_path):
             with contextlib.suppress(PermissionError):
@@ -110,9 +110,11 @@ def trim(path: str, target: int) -> bool:
 
 def remove(path: str, recursive: Optional[bool] = None, timeout: Optional[float] = None) -> bool:
     end_time = time.time() + (timeout or DELAY)
-    exists = os.path.exists(path)
-    while exists and end_time > time.time():
-        shutil.rmtree(path, True) if recursive else os.remove(path)
+    while end_time > time.time():
+        with contextlib.suppress(PermissionError):
+            try:
+                shutil.rmtree(path) if recursive else os.remove(path)
+            except (FileNotFoundError, NotADirectoryError):
+                break
         time.sleep(DELAY)
-        exists = os.path.exists(path)
-    return not exists
+    return not os.path.exists(path)

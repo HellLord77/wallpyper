@@ -1,7 +1,6 @@
+import importlib
 import os
 from xml.etree import ElementTree
-
-import win32con
 
 
 def main():
@@ -14,7 +13,7 @@ def main():
         words = ElementTree.Element('words')
         dic.append(words)
         append = words.append
-    for const in dir(win32con):
+    for const in dir(importlib.import_module('win32con')):
         if not const.startswith('__') and not const.endswith('__'):
             word = ElementTree.Element('w')
             word.text = const

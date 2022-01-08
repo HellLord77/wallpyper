@@ -258,11 +258,21 @@ def _get_launch_argv() -> list[str]:
 
 
 def on_shortcut() -> bool:
-    created = platform.create_link(utils.join_path(platform.DESKTOP_DIR, f'{NAME}.lnk'),
+    created = platform.create_link(utils.join_path(platform.DESKTOP_DIR, f'{NAME}.{platform.LINK_EXT}'),
                                    *_get_launch_argv(), comment=LANG.DESCRIPTION, aumi=UUID)
     if not created and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.SHORTCUT, LANG.FAILED_SHORTCUT)
     return created
+
+
+def on_remove_shortcuts() -> bool:
+    removed = True
+    for path in utils.list_dir(platform.DESKTOP_DIR):
+        if path.endswith(f'.{platform.LINK_EXT}') and platform.get_link_aumi(path) == UUID:
+            removed = utils.delete(path) and removed
+    if not removed and CONFIG[CONFIG_NOTIFY]:
+        utils.notify(LANG.REMOVE_SHORTCUTS, LANG.FAILED_REMOVING_SHORTCUTS)
+    return removed
 
 
 @utils.thread
@@ -365,6 +375,7 @@ def create_menu() -> None:  # TODO: slideshow (smaller timer)
     utils.add_separator()
     actions_submenu = utils.add_submenu(LANG.SUBMENU_ACTIONS)
     utils.add_item(LANG.SHORTCUT, on_click=on_shortcut, menu=actions_submenu)
+    utils.add_item(LANG.REMOVE_SHORTCUTS, on_click=on_remove_shortcuts, menu=actions_submenu)
     utils.add_item(LANG.CLEAR, on_click=on_clear, menu=actions_submenu)
     utils.add_item(LANG.RESET, on_click=on_reset, menu=actions_submenu)
     utils.add_item(LANG.RESTART, on_click=on_restart, menu=actions_submenu)
