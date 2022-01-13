@@ -1,4 +1,4 @@
-__version__ = '0.0.4'  # TODO: send signal and kill if no reply, check error code & crash (?)
+__version__ = '0.0.4'  # TODO send signal and kill if no reply, check error code & crash (?)
 
 import atexit
 import hashlib

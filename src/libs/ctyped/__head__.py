@@ -31,14 +31,14 @@ class _Array(_Pointer, _Sequence[_CT]):
 
 
 class _Module:
+    __slots__ = '_name', '_module'
     __spec__ = None
-    _module = None
 
     def __init__(self, name: str):
         self._name = name
 
     def __getattr__(self, name: str):
-        if not self._module:
+        if _sys.modules[self._name] is self:
             del _sys.modules[self._name]
             self._module = _importlib.import_module(*_os.path.splitext(self._name)[::-1])
         _replace_object(self, self._module)
@@ -50,7 +50,7 @@ class _Globals(dict):
 
     def __init__(self, replace_once: _Optional[bool] = None):
         self.replace_once = replace_once
-        # self.module = _inspect.getmodule(_inspect.currentframe().f_back) fixme pyinstaller debug getmodule -> None
+        # self.module = _inspect.getmodule(_inspect.currentframe().f_back) FIXME pyinstaller debug getmodule -> None
         name = _inspect.currentframe().f_back.f_globals['__name__']
         self.module = _sys.modules[name]
         vars_ = vars(self.module)

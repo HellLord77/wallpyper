@@ -1,4 +1,4 @@
-__version__ = '0.1.21'  # TODO: overload func
+__version__ = '0.1.21'  # TODO overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -46,7 +46,7 @@ def char_array(string):
 
 def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
     guid = type_()
-    if type_ is struct.GUID:
+    if type_ is struct.GUID:  # FIXME match
         init = lib.shell32.GUIDFromStringW
     elif type_ is struct.IID:
         init = lib.ole32.IIDFromString

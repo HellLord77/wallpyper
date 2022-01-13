@@ -78,7 +78,7 @@ class Event:
     MIDDLE_DOUBLE = ctyped.const.WM_MBUTTONDBLCLK
     BALLOON_QUEUED = ctyped.const.NIN_BALLOONSHOW
     BALLOON_HIDDEN = ctyped.const.NIN_BALLOONTIMEOUT
-    BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK  # also triggers when click tray icon when balloon shown
+    BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK  # FIXME also triggers when click tray icon while showing balloon
 
 
 class Icon:
@@ -112,8 +112,8 @@ class SysTray:
     @classmethod
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
                   lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
-        # TODO: ctyped.const.WM_QUERYENDSESSION
-        if message == ctyped.const.WM_DESTROY:
+        # TODO ctyped.const.WM_QUERYENDSESSION
+        if message == ctyped.const.WM_DESTROY:  # FIXME match
             ctyped.lib.user32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
             try:

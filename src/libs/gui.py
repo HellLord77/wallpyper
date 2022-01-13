@@ -1,4 +1,4 @@
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import atexit
 import contextlib
@@ -92,11 +92,15 @@ def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] 
     return menu_item
 
 
-def add_separator(menu: wx.Menu = _MENU) -> wx.MenuItem:
+def add_separator(menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+    if isinstance(menu, wx.MenuItem):
+        menu = menu.GetSubMenu()
     return menu.AppendSeparator()
 
 
-def add_submenu(label: str, enable: Optional[bool] = None, menu: wx.Menu = _MENU) -> wx.MenuItem:
+def add_submenu(label: str, enable: Optional[bool] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+    if isinstance(menu, wx.MenuItem):
+        menu = menu.GetSubMenu()
     menu_item = menu.AppendSubMenu(wx.Menu(), label)
     if enable is not None:
         menu_item.Enable(enable)

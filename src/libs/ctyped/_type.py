@@ -1,4 +1,4 @@
-import ctypes as _ctypes  # TODO: _Pointer[_struct.TYPE], better inspect name (?)
+import ctypes as _ctypes  # TODO _Pointer[_struct.TYPE], better inspect name (?)
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
@@ -128,7 +128,7 @@ IShellItem = _obj_p
 IShellItemArray = _obj_p
 IUnknown = _obj_p
 
-_enum = c_uint  # TODO: enum.IntEnum
+_enum = c_uint  # TODO enum.IntEnum
 DESKTOP_SLIDESHOW_DIRECTION = _enum
 DESKTOP_SLIDESHOW_OPTIONS = _enum
 DESKTOP_SLIDESHOW_STATE = _enum

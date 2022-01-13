@@ -111,6 +111,10 @@ class kernel32(metaclass=_WinDLL):
                                 _type.HMODULE]
     GetModuleHandleW: _Callable[[_Optional[_type.LPCWSTR]],
                                 _type.HMODULE]
+    GetTempPathA: _Callable[[_type.DWORD, _type.LPSTR],
+                            _type.DWORD]
+    GetTempPathW: _Callable[[_type.DWORD, _type.LPWSTR],
+                            _type.DWORD]
 
 
 # noinspection PyPep8Naming

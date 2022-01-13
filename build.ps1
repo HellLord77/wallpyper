@@ -1,6 +1,6 @@
 $Version = "0.0.1"
 
-<#  TODO: UPX
+<#  TODO UPX
 .INPUTS
     $Datas = @()
     $Debug = $False
@@ -12,7 +12,7 @@ $Version = "0.0.1"
     $OneFile = $False
 #>
 
-$Datas = @("resources")  # fixme: remote build succeeds but artifact crashes
+$Datas = @("resources")  # FIXME remote build succeeds but artifact crashes
 $Icon = "icon.ico"
 $NoConsole = $True
 
@@ -31,7 +31,7 @@ function Install-Dependecies
         $Exists = $True
         while ($Exists)
         {
-            # $Temp = Join-Path $Env:TEMP (Get-Random) fixme https://github.com/pyinstaller/pyinstaller/issues/4824
+            # $Temp = Join-Path $Env:TEMP (Get-Random) FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
             $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
             $Exists = Test-Path $Temp
         }

@@ -27,7 +27,7 @@ CONFIG = {}
 SEARCH_DATA = None
 
 
-def sanitize_config():  # TODO: validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
+def sanitize_config():  # TODO validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
     # ^[01]{3}$
     # ^(desc|asc)$
     ...

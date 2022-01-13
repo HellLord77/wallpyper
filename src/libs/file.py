@@ -109,12 +109,14 @@ def trim(path: str, target: int) -> bool:
 
 
 def remove(path: str, recursive: Optional[bool] = None, timeout: Optional[float] = None) -> bool:
-    end_time = time.time() + (timeout or DELAY)
-    while end_time > time.time():
+    tried = False
+    end_time = time.time() + (timeout or 0)
+    while not tried or end_time > time.time():
         with contextlib.suppress(PermissionError):
             try:
                 shutil.rmtree(path) if recursive else os.remove(path)
             except (FileNotFoundError, NotADirectoryError):
                 break
+        tried = True
         time.sleep(DELAY)
     return not os.path.exists(path)

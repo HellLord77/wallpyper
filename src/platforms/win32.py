@@ -1,4 +1,4 @@
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import contextlib
 import os
@@ -10,7 +10,7 @@ from typing import ContextManager, Optional
 import libs.ctyped as ctyped
 
 _EMPTY = '\0' * ctyped.const.MAX_PATH
-_RUN_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
+_STARTUP_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 
 
 def _get_dir(csidl: int) -> str:
@@ -23,8 +23,20 @@ LINK_EXT = 'lnk'
 APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
 DESKTOP_DIR = _get_dir(ctyped.const.CSIDL_DESKTOP)
 PICTURES_DIR = _get_dir(ctyped.const.CSIDL_MYPICTURES)
-TEMP_DIR = os.path.join(_get_dir(ctyped.const.CSIDL_LOCAL_APPDATA), 'Temp')
+START_DIR = _get_dir(ctyped.const.CSIDL_PROGRAMS)
 WALLPAPER_PATH = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
+
+
+def get_max_shutdown_time() -> float:
+    buff = ctyped.type.c_int()
+    ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
+    return buff.value / 1000
+
+
+def get_temp_dir() -> str:
+    buff = ctyped.type.LPWSTR(_EMPTY)
+    ctyped.lib.kernel32.GetTempPathW(len(_EMPTY), buff)
+    return buff.value
 
 
 @contextlib.contextmanager
@@ -38,8 +50,8 @@ def _clipboard() -> ContextManager[None]:
 
 def paste_text() -> str:
     with _clipboard():
-        return ctyped.cast(ctyped.lib.user32.GetClipboardData(ctyped.const.CF_UNICODETEXT),
-                           ctyped.type.c_wchar_p).value or ''
+        return ctyped.cast(ctyped.lib.user32.GetClipboardData(
+            ctyped.const.CF_UNICODETEXT), ctyped.type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL) -> None:
@@ -164,17 +176,40 @@ def open_file(path: str) -> bool:
 
 def get_wallpaper_path() -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.MAX_PATH, buff, 0)
-    return buff.value or get_wallpaper_path_ex()
+    ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, len(_EMPTY), buff, 0)
+    return buff.value
+
+
+def get_wallpaper_path_ex() -> str:
+    with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
+        if desktop:
+            buff = ctyped.type.PWSTR(_EMPTY)
+            if ctyped.macro.SUCCEEDED(desktop.GetWallpaper(buff, len(_EMPTY), ctyped.const.AD_GETWP_BMP)):
+                return buff.value
+    return get_wallpaper_path()
 
 
 def set_wallpaper(*paths: str) -> bool:
     for path in paths:
         if os.path.isfile(path):
-            ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                    ctyped.const.SPIF_SENDWININICHANGE)
+            ctyped.lib.user32.SystemParametersInfoW(
+                ctyped.const.SPI_SETDESKWALLPAPER, 0, path, ctyped.const.SPIF_SENDWININICHANGE)
             return True
     return False
+
+
+def set_wallpaper_ex(*paths: str, fade: bool = True) -> bool:
+    if fade:
+        with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
+            if desktop:
+                for path in paths:
+                    if os.path.isfile(path):
+                        ctyped.lib.user32.SendMessageW(
+                            ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
+                        desktop.SetWallpaper(path, 0)
+                        desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
+                        return True
+    return set_wallpaper(*paths)
 
 
 def set_slideshow(*paths: str) -> bool:
@@ -191,42 +226,20 @@ def set_slideshow(*paths: str) -> bool:
     return False
 
 
-def get_wallpaper_path_ex() -> str:
-    with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
-        if desktop:
-            buff = ctyped.type.PWSTR(_EMPTY)
-            if ctyped.macro.SUCCEEDED(desktop.GetWallpaper(buff, ctyped.const.MAX_PATH, ctyped.const.AD_GETWP_BMP)):
-                return buff.value
-    return get_wallpaper_path()
-
-
-def set_wallpaper_ex(*paths: str) -> bool:
-    with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
-        if desktop:
-            for path in paths:
-                if os.path.isfile(path):
-                    ctyped.lib.user32.SendMessageW(
-                        ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
-                    desktop.SetWallpaper(path, 0)
-                    desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
-                    return True
-    return set_wallpaper(*paths)
-
-
 def register_autorun(name: str, path: str, *args: str) -> bool:
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY,
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_KEY,
                         access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
-        command = subprocess.list2cmdline((path,) + args)
+        cmd = subprocess.list2cmdline((path,) + args)
         try:
-            winreg.SetValueEx(key, name, None, winreg.REG_SZ, command)
+            winreg.SetValueEx(key, name, None, winreg.REG_SZ, cmd)
         except PermissionError:
             return False
         winreg.FlushKey(key)
-        return (command, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
+        return (cmd, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
 def unregister_autorun(name: str) -> bool:
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _RUN_KEY, access=winreg.KEY_SET_VALUE) as key:
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_KEY, access=winreg.KEY_SET_VALUE) as key:
         for _ in range(2):
             try:
                 winreg.DeleteValue(key, name)
@@ -292,6 +305,7 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
                     ctyped.init_guid(ctyped.const.PKEY_AppUserModel_ID[0], ctyped.struct.GUID),
                     ctyped.const.PKEY_AppUserModel_ID[1])), ctyped.byref(property_))
         with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
-            file.Save(path, True)
+            with contextlib.suppress(PermissionError):
+                file.Save(path, True)
         _refresh_dir(os.path.dirname(path))
         return os.path.isfile(path) and (target, args, start_in, comment, icon, aumi) == _get_link_data(path)

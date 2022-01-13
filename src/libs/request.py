@@ -139,7 +139,7 @@ def download(url: str, path: str, size: Optional[int] = None, chunk_size: Option
 
 
 def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None,
-           files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO: chunked upload
+           files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO chunked upload
            headers: Optional[Mapping[str, str]] = None, redirection: Optional[bool] = None) -> Response:
     boundary = uuid.uuid4().hex
     data = b''
