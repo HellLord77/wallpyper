@@ -12,7 +12,7 @@ $Version = "0.0.1"
     $OneFile = $False
 #>
 
-$Datas = @("resources")  # FIXME remote build succeeds but artifact crashes
+$Datas = @("resources")
 $Icon = "icon.ico"
 $NoConsole = $True
 

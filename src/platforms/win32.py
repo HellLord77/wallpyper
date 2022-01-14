@@ -1,4 +1,4 @@
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 import contextlib
 import os
@@ -9,9 +9,6 @@ from typing import ContextManager, Optional
 
 import libs.ctyped as ctyped
 
-_EMPTY = '\0' * ctyped.const.MAX_PATH
-_STARTUP_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-
 
 def _get_dir(csidl: int) -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
@@ -19,12 +16,16 @@ def _get_dir(csidl: int) -> str:
     return buff.value
 
 
+_EMPTY = '\0' * ctyped.const.MAX_PATH
+_STARTUP_DIR = _get_dir(ctyped.const.CSIDL_STARTUP)
+_STARTUP_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
+
 LINK_EXT = 'lnk'
-APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
+SAVE_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
 DESKTOP_DIR = _get_dir(ctyped.const.CSIDL_DESKTOP)
 PICTURES_DIR = _get_dir(ctyped.const.CSIDL_MYPICTURES)
 START_DIR = _get_dir(ctyped.const.CSIDL_PROGRAMS)
-WALLPAPER_PATH = os.path.join(APPDATA_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
+WALLPAPER_PATH = os.path.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 
 def get_max_shutdown_time() -> float:
@@ -50,8 +51,8 @@ def _clipboard() -> ContextManager[None]:
 
 def paste_text() -> str:
     with _clipboard():
-        return ctyped.cast(ctyped.lib.user32.GetClipboardData(
-            ctyped.const.CF_UNICODETEXT), ctyped.type.c_wchar_p).value or ''
+        return ctyped.cast(ctyped.lib.user32.GetClipboardData(ctyped.const.CF_UNICODETEXT),
+                           ctyped.type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL) -> None:
@@ -98,8 +99,9 @@ def _get_dc(hwnd: Optional[ctyped.type.HWND] = None) -> ContextManager[Optional[
 def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
     bitmap = ctyped.type.GpBitmap()
     token = ctyped.type.ULONG_PTR()
-    if ctyped.macro.SUCCEEDED(ctyped.lib.GdiPlus.GdiplusStartup(
-            ctyped.byref(token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
+    if ctyped.macro.SUCCEEDED(
+            ctyped.lib.GdiPlus.GdiplusStartup(ctyped.byref(token), ctyped.byref(ctyped.struct.GdiplusStartupInput()),
+                                              None)):
         ctyped.lib.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
     try:
         yield bitmap
@@ -135,8 +137,9 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
 def copy_image(path: str) -> bool:
     with _get_hbitmap(path) as hbitmap:
         bm = ctyped.struct.BITMAP()
-        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.lib.gdi32.GetObjectW(
-                hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bm)):
+        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.lib.gdi32.GetObjectW(hbitmap,
+                                                                              ctyped.sizeof(ctyped.struct.BITMAP),
+                                                                              ctyped.byref(bm)):
             sz_bi = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
             bi = ctyped.struct.BITMAPINFOHEADER(sz_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
             sz = bm.bmWidthBytes * bm.bmHeight
@@ -174,50 +177,60 @@ def open_file(path: str) -> bool:
     return ctyped.lib.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
 
 
-def get_wallpaper_path() -> str:
+def _get_wallpaper_path_param() -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
     ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, len(_EMPTY), buff, 0)
     return buff.value
 
 
-def get_wallpaper_path_ex() -> str:
+def _get_wallpaper_path_com() -> str:
+    buff = ctyped.type.PWSTR(_EMPTY)
     with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
-            buff = ctyped.type.PWSTR(_EMPTY)
-            if ctyped.macro.SUCCEEDED(desktop.GetWallpaper(buff, len(_EMPTY), ctyped.const.AD_GETWP_BMP)):
-                return buff.value
-    return get_wallpaper_path()
+            desktop.GetWallpaper(buff, len(_EMPTY), ctyped.const.AD_GETWP_BMP)
+    return buff.value
 
 
-def set_wallpaper(*paths: str) -> bool:
-    for path in paths:
-        if os.path.isfile(path):
-            ctyped.lib.user32.SystemParametersInfoW(
-                ctyped.const.SPI_SETDESKWALLPAPER, 0, path, ctyped.const.SPIF_SENDWININICHANGE)
-            return True
+def get_wallpaper_path() -> str:
+    return _get_wallpaper_path_param() or _get_wallpaper_path_com()
+
+
+def _set_wallpaper_param(path: str) -> bool:
+    if ctyped.lib.Shlwapi.PathFileExistsW(path):
+        ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                                ctyped.const.SPIF_SENDWININICHANGE)
+        return True
     return False
 
 
-def set_wallpaper_ex(*paths: str, fade: bool = True) -> bool:
+def _set_wallpaper_com(path: str) -> bool:
+    with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
+        if desktop:
+            if ctyped.lib.Shlwapi.PathFileExistsW(path):
+                ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
+                desktop.SetWallpaper(path, 0)
+                desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
+                return True
+    return False
+
+
+def set_wallpaper(*paths: str, fade: bool = True) -> bool:
+    set_ = False
     if fade:
-        with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
-            if desktop:
-                for path in paths:
-                    if os.path.isfile(path):
-                        ctyped.lib.user32.SendMessageW(
-                            ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
-                        desktop.SetWallpaper(path, 0)
-                        desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
-                        return True
-    return set_wallpaper(*paths)
+        for path in paths:
+            set_ = set_ or _set_wallpaper_com(path)
+    if not set_:
+        for path in paths:
+            set_ = set_ or _set_wallpaper_param(path)
+    return set_
 
 
 def set_slideshow(*paths: str) -> bool:
     with _get_itemidlist(*paths) as pidl:
         id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
         with ctyped.create_com(ctyped.com.IShellItemArray) as shl_arr:
-            ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(len(id_arr),
-                                                                 ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
+            ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(id_arr[0]),
+                                                                 ctyped.byref(shl_arr))
             if shl_arr:
                 with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
                     if wallpaper:
@@ -226,7 +239,7 @@ def set_slideshow(*paths: str) -> bool:
     return False
 
 
-def register_autorun(name: str, path: str, *args: str) -> bool:
+def _register_autorun_reg(name: str, path: str, *args: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_KEY,
                         access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
         cmd = subprocess.list2cmdline((path,) + args)
@@ -238,7 +251,15 @@ def register_autorun(name: str, path: str, *args: str) -> bool:
         return (cmd, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
-def unregister_autorun(name: str) -> bool:
+def _register_autorun_link(name: str, path: str, *args: str, aumi: Optional[str] = None) -> bool:
+    return create_shortcut(os.path.join(_STARTUP_DIR, f'{name}.{LINK_EXT}'), path, *args, aumi=aumi)
+
+
+def register_autorun(name: str, path: str, *args: str, uid: Optional[str] = None) -> bool:
+    return _register_autorun_link(name, path, *args, aumi=uid) or _register_autorun_reg(name, path, *args)
+
+
+def _unregister_autorun_reg(name: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_KEY, access=winreg.KEY_SET_VALUE) as key:
         for _ in range(2):
             try:
@@ -246,6 +267,19 @@ def unregister_autorun(name: str) -> bool:
             except FileNotFoundError:
                 return True
     return False
+
+
+def _unregister_autorun_link(aumi: str) -> bool:
+    return remove_shortcuts(_STARTUP_DIR, aumi)
+
+
+def unregister_autorun(name: Optional[str] = None, uid: Optional[str] = None) -> bool:
+    unregistered = False
+    if name:
+        unregistered = _unregister_autorun_reg(name)
+    if uid:
+        unregistered = _unregister_autorun_link(uid) and unregistered
+    return unregistered
 
 
 def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int], str]:
@@ -271,16 +305,13 @@ def _get_link_data(path: str) -> tuple[str, str, str, str, tuple[str, int], str]
         return target.value, args.value, start_in.value, comment.value, (icon[0].value, icon[1].value), aumi
 
 
-def get_link_aumi(path: str) -> str:
-    return _get_link_data(path)[-1]
-
-
 def _refresh_dir(path: str):
     ctyped.lib.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, path, None)
 
 
-def create_link(path: str, target: str, *args: str, start_in: Optional[str] = None, comment: Optional[str] = None,
-                icon_path: Optional[str] = None, icon_index: Optional[int] = None, aumi: Optional[str] = None) -> bool:
+def create_shortcut(path: str, target: str, *args: str, start_in: Optional[str] = None,
+                    comment: Optional[str] = None, icon_path: Optional[str] = None,
+                    icon_index: Optional[int] = None, aumi: Optional[str] = None) -> bool:
     args = subprocess.list2cmdline(args)
     start_in = start_in or os.path.dirname(target)
     with ctyped.create_com(ctyped.com.IShellLinkW) as link:
@@ -308,4 +339,21 @@ def create_link(path: str, target: str, *args: str, start_in: Optional[str] = No
             with contextlib.suppress(PermissionError):
                 file.Save(path, True)
         _refresh_dir(os.path.dirname(path))
-        return os.path.isfile(path) and (target, args, start_in, comment, icon, aumi) == _get_link_data(path)
+        return ctyped.lib.Shlwapi.PathFileExistsW(path) and (
+            target, args, start_in, comment, icon, aumi) == _get_link_data(path)
+
+
+def remove_shortcuts(dir_: str, uid: str) -> bool:
+    removed = True
+    for dir__ in os.scandir(dir_):
+        # noinspection PyUnresolvedReferences
+        path = os.path.realpath(dir__.path)
+        if path.endswith(f'.{LINK_EXT}'):
+            try:
+                aumi = _get_link_data(path)[-1]
+            except OSError:
+                removed = False
+            else:
+                if aumi == uid:
+                    removed = ctyped.lib.kernel32.DeleteFileW(path) and removed
+    return removed

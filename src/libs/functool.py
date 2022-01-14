@@ -25,6 +25,16 @@ DEFAULT_ARG = object()
 ANSI_PAT = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
+class Int:
+    def __init__(self, val: Optional[int] = None):
+        self._val = val or 0
+
+    set = __init__
+
+    def get(self):
+        return self._val
+
+
 class Func:
     def __init__(self, func: Optional[Callable] = None, args: Optional[Iterable] = None,
                  kwargs: Optional[Mapping[str, Any]] = None):

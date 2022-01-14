@@ -1,6 +1,7 @@
 __version__ = '0.0.4'
 
 import os
+import sys
 import webbrowser
 
 import libs.file
@@ -8,6 +9,8 @@ import libs.functool
 import libs.gui
 import libs.request
 import libs.timer
+
+max_int = sys.maxsize
 
 file_exists = os.path.isfile
 exists_dir = os.path.isdir
@@ -26,7 +29,8 @@ make_dirs = libs.file.make_dir
 trim_dir = libs.file.trim
 delete = libs.file.remove
 
-timedelta = libs.functool.TimeDelta
+Int = libs.functool.Int
+TimeDelta = libs.functool.TimeDelta
 try_any = libs.functool.any_ex
 enquote = libs.functool.enquote
 reverse = libs.functool.reversed_ex

@@ -4,7 +4,9 @@ import collections
 import contextlib
 import ctypes
 import functools
+import math
 import threading
+import time
 from typing import Any, Callable, Iterable, Mapping, Optional
 
 MAX_LEN = ctypes.sizeof(ctypes.c_void_p)
@@ -15,8 +17,11 @@ class _TimerExit(SystemExit):
 
 
 class Timer:
-    _result = None
-    _running = False
+    _callback = None
+    _args = []
+    _kwargs = {}
+    result = None
+    running = False
     _selves = []
 
     @classmethod
@@ -28,9 +33,8 @@ class Timer:
 
     def __init__(self, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
                  interval: Optional[float] = None, once: Optional[bool] = None):
-        self._callback = callback
-        self._args = args or ()
-        self._kwargs = kwargs or {}
+        self.last_started = math.inf
+        self.set_callback(callback, args, kwargs)
         self._interval = interval or 0.0
         self._once = once
         self._name = f'{type(self).__name__}-{__version__}-{callback.__name__}'
@@ -38,26 +42,25 @@ class Timer:
         self._selves.append(self)
 
     def _func(self):
-        self._running = True
+        self.last_started = time.time()
+        self.running = True
         if not self._once:
             self.start()
         try:
             with contextlib.suppress(_TimerExit):
-                self._result = self._callback(*self._args, **self._kwargs)
+                self.result = self._callback(*self._args, **self._kwargs)
         finally:
-            self._running = False
+            self.running = False
 
     @property
     def initialized(self) -> bool:
         return self._timers and self._timers[-1].is_alive()
 
-    @property
-    def result(self) -> Any:
-        return self._result
-
-    @property
-    def running(self) -> bool:
-        return self._running
+    def set_callback(self, callback: Callable, args: Optional[Iterable] = None,
+                     kwargs: Optional[Mapping[str, Any]] = None):
+        self._callback = callback
+        self._args = args or ()
+        self._kwargs = kwargs or {}
 
     def start(self, interval: Optional[float] = None) -> bool:
         self.stop()
