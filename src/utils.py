@@ -64,7 +64,7 @@ open_url = libs.request.urlopen
 download_url = libs.request.download
 upload_url = libs.request.upload
 
-timer = libs.timer.Timer
+Timer = libs.timer.Timer
 thread = libs.timer.on_thread
 
 

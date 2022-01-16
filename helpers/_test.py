@@ -99,6 +99,34 @@ class SysTray:
     _shown = False
     _uid = ctyped.type.UINT()
 
+    def __new__(cls, *_, **__):
+        if not cls._hwnd:
+            cls._class = ctyped.struct.WNDCLASSEXW(ctyped.sizeof(ctyped.struct.WNDCLASSEXW),
+                                                   lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
+                                                   hInstance=ctyped.lib.kernel32.GetModuleHandleW(None),
+                                                   lpszClassName=NAME)
+            ctyped.lib.user32.RegisterClassExW(ctyped.byref(cls._class))
+            cls._hwnd = ctyped.lib.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
+                                                          ctyped.const.HWND_MESSAGE, None, None, None)
+        cls._uid += 1
+        return super().__new__(cls)
+
+    def __init__(self, icon: Optional[Union[str, int]] = None, tooltip: Optional[str] = None):
+        self._uid = self._uid.value
+        self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW), self._hwnd, self._uid,
+                                                   self._flags, ctyped.const.WM_APP)
+        self.set_icon(icon or ctyped.const.IDI_APPLICATION)
+        self.set_tooltip(tooltip or '')
+        self._binds[self._uid] = {}
+
+    def __del__(self):
+        self.hide()
+        del self._binds[self._uid]
+        if not self._binds:
+            ctyped.lib.user32.DestroyWindow(self._hwnd)
+            ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, ctyped.lib.kernel32.GetModuleHandleW(None))
+            type(self)._hwnd = 0
+
     @classmethod
     def _call(cls, uid: int, event: int) -> Any:
         try:
@@ -113,7 +141,7 @@ class SysTray:
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
                   lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         # TODO ctyped.const.WM_QUERYENDSESSION
-        if message == ctyped.const.WM_DESTROY:  # FIXME match
+        if message == ctyped.const.WM_DESTROY:  # FIXME match (3.10)
             ctyped.lib.user32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
             try:
@@ -157,34 +185,6 @@ class SysTray:
     @classmethod
     def exit_mainloop(cls) -> bool:
         return not bool(ctyped.lib.user32.SendMessageW(cls._hwnd, ctyped.const.WM_CLOSE, 0, 0))
-
-    def __new__(cls, *_, **__):
-        if not cls._hwnd:
-            cls._class = ctyped.struct.WNDCLASSEXW(ctyped.sizeof(ctyped.struct.WNDCLASSEXW),
-                                                   lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
-                                                   hInstance=ctyped.lib.kernel32.GetModuleHandleW(None),
-                                                   lpszClassName=NAME)
-            ctyped.lib.user32.RegisterClassExW(ctyped.byref(cls._class))
-            cls._hwnd = ctyped.lib.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
-                                                          ctyped.const.HWND_MESSAGE, None, None, None)
-        cls._uid += 1
-        return super().__new__(cls)
-
-    def __init__(self, icon: Optional[Union[str, int]] = None, tooltip: Optional[str] = None):
-        self._uid = self._uid.value
-        self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW), self._hwnd, self._uid,
-                                                   self._flags, ctyped.const.WM_APP)
-        self.set_icon(icon or ctyped.const.IDI_APPLICATION)
-        self.set_tooltip(tooltip or '')
-        self._binds[self._uid] = {}
-
-    def __del__(self):
-        self.hide()
-        del self._binds[self._uid]
-        if not self._binds:
-            ctyped.lib.user32.DestroyWindow(self._hwnd)
-            ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, ctyped.lib.kernel32.GetModuleHandleW(None))
-            type(self)._hwnd = 0
 
     def is_shown(self) -> bool:
         return self._shown

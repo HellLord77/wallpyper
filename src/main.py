@@ -71,10 +71,11 @@ INTERVALS = '5 Minute', '15 Minute', '30 Minute', '1 Hour', '3 Hour', '6 Hour'
 CONFIG = {}
 URLS = collections.deque(maxlen=MAX_LENGTH)
 URL_INDEX = utils.Int(-1)
+ENABLE_NEXT = utils.dummy_func
 ENABLE_PREVIOUS = utils.dummy_func
 SET_NEXT_LABEL = utils.dummy_func
 SET_PREVIOUS_LABEL = utils.dummy_func
-TIMER = utils.timer(utils.dummy_func)
+TIMER = utils.Timer()
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool]]], section: str,
@@ -118,7 +119,7 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
 
 
 @utils.single
-def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Callable[[Optional[int], ...], Any]] = None,
+def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Callable[[int, ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     utils.animate(RES_PATHS[1], LANG.CHANGING)
     if progress_callback:
@@ -135,7 +136,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
     else:
         changed = False
     if progress_callback:
-        progress_callback(None, *args or (), **kwargs or {})
+        progress_callback(100, *args or (), **kwargs or {})
     utils.inanimate(LANG.CHANGING)
     return changed
 
@@ -187,12 +188,17 @@ def on_change(previous: Optional[bool] = None) -> bool:
         set_label = SET_NEXT_LABEL
         label = LANG.NEXT
     if not change_wallpaper.is_running():
+        ENABLE_NEXT(False)
+        ENABLE_PREVIOUS(False)
         if changed := change_wallpaper(url, set_label):
             ENABLE_PREVIOUS(index > 0)
             URL_INDEX.set(index)
-            CONFIG[CONFIG_LAST] = TIMER.last_started
+            CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[
+                CONFIG_LAST] if TIMER.last_start == utils.Timer.last_start else TIMER.last_start
             if CONFIG[CONFIG_AUTOSAVE]:
                 save_wallpaper()
+            set_label(None)
+        ENABLE_NEXT(True)
     if not changed and CONFIG[CONFIG_NOTIFY]:
         utils.notify(label, LANG.FAILED_CHANGING)
     return changed
@@ -361,7 +367,8 @@ def create_menu() -> None:  # TODO slideshow (smaller timer)
         previous_wallpaper.SetItemLabel(
             LANG.PREVIOUS if progress is None else f'{LANG.PREVIOUS} ({langs.to_str(progress, LANG, 3)}%)')
 
-    global ENABLE_PREVIOUS, SET_NEXT_LABEL, SET_PREVIOUS_LABEL
+    global ENABLE_NEXT, ENABLE_PREVIOUS, SET_NEXT_LABEL, SET_PREVIOUS_LABEL
+    ENABLE_NEXT = next_wallpaper.Enable
     ENABLE_PREVIOUS = previous_wallpaper.Enable
     SET_NEXT_LABEL = set_next_label
     SET_PREVIOUS_LABEL = set_previous_label
@@ -415,7 +422,7 @@ def create_menu() -> None:  # TODO slideshow (smaller timer)
 
 
 def start() -> None:  # TODO dark theme
-    TIMER.set_callback(on_change)
+    TIMER.callback = on_change
     libs.singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
                         on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if ARG_DEBUG in sys.argv:
@@ -434,13 +441,13 @@ def start() -> None:  # TODO dark theme
     on_save_config(CONFIG[CONFIG_SAVE])
     if ARG_CHANGE in sys.argv or (
             CONFIG[CONFIG_CHANGE] and time.time() >= CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST]):
-        TIMER.last_started = time.time()
+        TIMER.last_start = time.time()
         on_change()
     utils.start(RES_PATHS[0], NAME, on_change)
 
 
 def stop() -> None:
-    utils.timer.kill_all()
+    utils.Timer.kill_all()
     if not CONFIG[CONFIG_CHANGED]:
         CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[CONFIG_LAST]
     on_auto_start(CONFIG[CONFIG_START])

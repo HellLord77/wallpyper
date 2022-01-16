@@ -25,6 +25,82 @@ DEFAULT_ARG = object()
 ANSI_PAT = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
+class _Mutable:
+    _type = type(None)  # FIXME types.NoneType (3.10)
+
+    def __init__(self, val: Optional = None):
+        self._val = self._type() if val is None else val
+
+    def __int__(self):
+        return int(self._val)
+
+    def __float__(self):
+        return float(self._val)
+
+    def __bool__(self):
+        return bool(self._val)
+
+    def __str__(self):
+        return str(self._val)
+
+    def get(self):
+        return self._val
+
+    def set(self, val):
+        self._val = val
+        return val
+
+    def clear(self):
+        val = self._type()
+        self._val = val
+        return val
+
+
+class MutableInt(_Mutable):
+    _type = int
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class FrozenDict(dict):
+    def __setitem__(self, *_, **__):
+        pass
+
+    def update(self, *_, **__):
+        pass
+
+
+class PackedFunction:
+    def __init__(self, func: Optional[Callable] = None, args: Optional[Iterable] = None,
+                 kwargs: Optional[Mapping[str, Any]] = None):
+        self.func = func or pass_ex
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+        functools.update_wrapper(self, self.func)
+
+    def __call__(self) -> Any:
+        return self.func(*self.args, **self.kwargs)
+
+
+class TimeDelta(datetime.timedelta):
+    _match = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit in
+                       ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
+    _match = re.compile(f'^(?i) *{_match} *$').match
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    _units = tuple(inspect._signature_fromstr(inspect.Signature, None,
+                                              inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
+
+    def __new__(cls, time_string: str):
+        matched = cls._match(time_string)
+        return super().__new__(cls, *(float(matched.group(unit) or 0) for unit in cls._units) if matched else ())
+
+    def __int__(self):
+        return int(float(self))
+
+    __float__ = datetime.timedelta.total_seconds
+
+
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
            kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
@@ -117,6 +193,10 @@ def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None
             return func(*args_ or (), **kwargs_ or {})
 
 
+def pass_ex(*_: Any, **__: Any) -> None:
+    pass
+
+
 def vars_ex(obj: Any) -> str:
     dict_ = dict_ex(obj)
     attrs = [], []
@@ -130,10 +210,6 @@ def vars_ex(obj: Any) -> str:
         fmt += f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
                f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n'
     return fmt
-
-
-def pass_ex(*_: Any, **__: Any) -> None:
-    pass
 
 
 def clear_queue(queue_: queue.Queue) -> int:
@@ -296,99 +372,28 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret: Any, r
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, redirect_returns: Optional[bool] = None,
-               unpack_redirected_return: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_after(pre_func: Callable, redirect_results: Optional[bool] = None,
+               unpack_redirected_result: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = pre_func(*args, **kwargs)
-            return _call(func, args, kwargs, ret, redirect_returns, unpack_redirected_return)
+            return _call(func, args, kwargs, ret, redirect_results, unpack_redirected_result)
 
         return wrapper
 
     return wrapped
 
 
-def call_before(post_func: Callable, redirect_returns: Optional[bool] = None,
-                unpack_redirected_return: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_before(post_func: Callable, redirect_results: Optional[bool] = None,
+                unpack_redirected_result: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = func(*args, **kwargs)
-            _call(post_func, args, kwargs, ret, redirect_returns, unpack_redirected_return)
+            _call(post_func, args, kwargs, ret, redirect_results, unpack_redirected_result)
             return ret
 
         return wrapper
 
     return wrapped
-
-
-class _Mutable:
-    _type = pass_ex
-
-    def __init__(self, val: Optional = None):
-        self._val = self._type() if val is None else val
-
-    def __int__(self):
-        return int(self._val)
-
-    def __float__(self):
-        return float(self._val)
-
-    def __str__(self):
-        return str(self._val)
-
-    def get(self):
-        return self._val
-
-    def set(self, val):
-        self._val = val
-        return val
-
-    def clear(self):
-        # noinspection PyNoneFunctionAssignment
-        val = self._type()
-        self._val = val
-        return val
-
-
-class MutableInt(_Mutable):
-    _type = int
-    get: Callable[[], _type]
-    set: Callable[[_type], _type]
-    clear: Callable[[], _type]
-
-
-class FrozenDict(dict):
-    __setitem__ = pass_ex
-    update = pass_ex
-
-
-class PackedFunction:
-    def __init__(self, func: Optional[Callable] = None, args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None):
-        self.func = func or pass_ex
-        self.args = args or ()
-        self.kwargs = kwargs or {}
-        functools.update_wrapper(self, self.func)
-
-    def __call__(self) -> Any:
-        return self.func(*self.args, **self.kwargs)
-
-
-class TimeDelta(datetime.timedelta):
-    _match = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit in
-                       ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
-    _match = re.compile(f'^(?i) *{_match} *$').match
-    # noinspection PyUnresolvedReferences,PyProtectedMember
-    _units = tuple(inspect._signature_fromstr(inspect.Signature, None,
-                                              inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
-
-    def __new__(cls, time_string: str):
-        matched = cls._match(time_string)
-        return super().__new__(cls, *(float(matched.group(unit) or 0) for unit in cls._units) if matched else ())
-
-    def __int__(self):
-        return int(float(self))
-
-    __float__ = datetime.timedelta.total_seconds
