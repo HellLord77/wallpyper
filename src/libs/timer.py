@@ -38,12 +38,12 @@ class Timer:
         self._interval = interval or 0.0
         self._once = once
         self._name = f'{type(self).__name__}-{__version__}-{callback.__name__}'
-        self._timers = collections.deque(maxlen=MAX_LEN)
+        self._timers: collections.deque[threading.Timer] = collections.deque(maxlen=MAX_LEN)
         self._selves.append(self)
 
     def _func(self):
-        self.last_started = time.time()
         self.running = True
+        self.last_started = time.time()
         if not self._once:
             self.start()
         try:
@@ -54,7 +54,10 @@ class Timer:
 
     @property
     def initialized(self) -> bool:
-        return self._timers and self._timers[-1].is_alive()
+        try:
+            return self._timers[-1].is_alive()
+        except IndexError:
+            return False
 
     def set_callback(self, callback: Callable, args: Optional[Iterable] = None,
                      kwargs: Optional[Mapping[str, Any]] = None):
@@ -74,7 +77,8 @@ class Timer:
         return self.initialized
 
     def stop(self) -> None:
-        self._timers and self._timers[-1].cancel()
+        with contextlib.suppress(IndexError):
+            self._timers[-1].cancel()
 
     def kill(self) -> bool:
         killed = False

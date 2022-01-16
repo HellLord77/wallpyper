@@ -29,12 +29,13 @@ make_dirs = libs.file.make_dir
 trim_dir = libs.file.trim
 delete = libs.file.remove
 
-Int = libs.functool.Int
+Int = libs.functool.MutableInt
+Dict = libs.functool.FrozenDict
 TimeDelta = libs.functool.TimeDelta
 try_any = libs.functool.any_ex
 enquote = libs.functool.enquote
 reverse = libs.functool.reversed_ex
-dummy_func = libs.functool.dummy
+dummy_func = libs.functool.pass_ex
 re_join_path = libs.functool.re_join
 cache = libs.functool.one_cache
 once = libs.functool.once_run

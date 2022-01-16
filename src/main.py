@@ -30,8 +30,8 @@ ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
 CONFIG_CHANGE = 'auto_change'
 CONFIG_INTERVAL = 'auto_change_interval'
-CONFIG_CHANGED = 'keep_last_changed'
-CONFIG_LAST = 'last_changed'
+CONFIG_CHANGED = 'keep_auto_changed'
+CONFIG_LAST = 'auto_changed_at'
 CONFIG_AUTOSAVE = 'auto_save'
 CONFIG_DIR = 'save_directory'
 CONFIG_NOTIFY = 'show_notification'
@@ -44,7 +44,7 @@ CONFIG_SAVE = 'save_config'
 LANG = langs.DEFAULT
 MODULES = modules.wallhaven,
 MODULE = MODULES[0]
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG = utils.Dict({
     CONFIG_CHANGE: False,
     CONFIG_INTERVAL: 3600,
     CONFIG_CHANGED: False,
@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     CONFIG_CACHE: False,
     CONFIG_START: False,
     CONFIG_SAVE: False
-}
+})
 
 EXIT_TIMEOUT = EXIT_TIMEOUT_FACTOR * platform.get_max_shutdown_time()
 UUID = f'{__author__}.{NAME}'
@@ -118,7 +118,7 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
 
 
 @utils.single
-def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Callable[[int, ...], Any]] = None,
+def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Callable[[Optional[int], ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     utils.animate(RES_PATHS[1], LANG.CHANGING)
     if progress_callback:
@@ -135,7 +135,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
     else:
         changed = False
     if progress_callback:
-        progress_callback(100, *args or (), **kwargs or {})
+        progress_callback(None, *args or (), **kwargs or {})
     utils.inanimate(LANG.CHANGING)
     return changed
 
@@ -175,6 +175,7 @@ def search_wallpaper() -> bool:
 
 @utils.thread
 def on_change(previous: Optional[bool] = None) -> bool:
+    changed = False
     if previous:
         index = URL_INDEX.get() - 1
         url = URLS[URL_INDEX.get() - 1]
@@ -185,16 +186,14 @@ def on_change(previous: Optional[bool] = None) -> bool:
         url = None if index == len(URLS) else URLS[index]
         set_label = SET_NEXT_LABEL
         label = LANG.NEXT
-    changed = change_wallpaper(url, set_label)
-    set_label(-1)
-    ENABLE_PREVIOUS(index > 0)
-    if changed:
-        URL_INDEX.set(index)
-        if CONFIG[CONFIG_LAST] > TIMER.last_started:
+    if not change_wallpaper.is_running():
+        if changed := change_wallpaper(url, set_label):
+            ENABLE_PREVIOUS(index > 0)
+            URL_INDEX.set(index)
             CONFIG[CONFIG_LAST] = TIMER.last_started
-        if CONFIG[CONFIG_AUTOSAVE]:
-            save_wallpaper()
-    elif CONFIG[CONFIG_NOTIFY]:
+            if CONFIG[CONFIG_AUTOSAVE]:
+                save_wallpaper()
+    if not changed and CONFIG[CONFIG_NOTIFY]:
         utils.notify(label, LANG.FAILED_CHANGING)
     return changed
 
@@ -291,14 +290,13 @@ def on_remove_start_shortcuts() -> bool:
 
 @utils.thread
 def on_clear() -> bool:
-    cleared = utils.delete(TEMP_DIR, True)
-    if not cleared and CONFIG[CONFIG_NOTIFY]:
+    if not (cleared := utils.delete(TEMP_DIR, True)) and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.CLEAR, LANG.FAILED_CLEARING)
     return cleared
 
 
 def on_reset() -> None:
-    on_save_config(False)
+    on_save_config(DEFAULT_CONFIG[CONFIG_SAVE])
     on_restart()
 
 
@@ -333,16 +331,19 @@ def on_about() -> None:
     utils.not_implemented(LANG.ABOUT)
 
 
+def _is_running() -> bool:
+    return change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()
+
+
 @utils.thread
 def on_exit() -> None:
     TIMER.stop()
     utils.disable()
-    if change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running():
+    if _is_running():
         if CONFIG[CONFIG_NOTIFY]:
             utils.notify(LANG.QUIT, LANG.FAILED_QUITING)
         end_time = time.time() + EXIT_TIMEOUT
-        while end_time > time.time() and (
-                change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()):
+        while end_time > time.time() and _is_running():
             time.sleep(POLL_TIMEOUT)
     utils.stop()
 
@@ -352,13 +353,13 @@ def create_menu() -> None:  # TODO slideshow (smaller timer)
     next_wallpaper = utils.add_item(LANG.NEXT, on_click=on_change)
     previous_wallpaper = utils.add_item(LANG.PREVIOUS, enable=False, on_click=on_change, args=(True,))
 
-    def set_next_label(progress: int) -> None:
+    def set_next_label(progress: Optional[int] = None) -> None:
         next_wallpaper.SetItemLabel(
-            f'{LANG.NEXT} ({langs.str_(progress, LANG, 3)}%)' if progress >= 0 else f'{LANG.NEXT}')
+            LANG.NEXT if progress is None else f'{LANG.NEXT} ({langs.to_str(progress, LANG, 3)}%)')
 
-    def set_previous_label(progress: int) -> None:
+    def set_previous_label(progress: Optional[int] = None) -> None:
         previous_wallpaper.SetItemLabel(
-            f'{LANG.PREVIOUS} ({langs.str_(progress, LANG, 3)}%)' if progress >= 0 else f'{LANG.PREVIOUS}')
+            LANG.PREVIOUS if progress is None else f'{LANG.PREVIOUS} ({langs.to_str(progress, LANG, 3)}%)')
 
     global ENABLE_PREVIOUS, SET_NEXT_LABEL, SET_PREVIOUS_LABEL
     ENABLE_PREVIOUS = previous_wallpaper.Enable
