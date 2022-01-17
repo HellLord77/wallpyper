@@ -126,8 +126,8 @@ def download(url: str, path: str, size: Optional[int] = None, chunk_size: Option
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         with open(path, 'wb') as file:
             write = file.write
-            args = args or ()
-            kwargs = kwargs or {}
+            args = () if args is None else {}
+            kwargs = {} if kwargs is None else kwargs
             ratio = 0
             for chunk in response:
                 write(chunk)

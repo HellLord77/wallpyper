@@ -164,7 +164,7 @@ def _dump_info():
                                    f'Machine: {uname.machine}', f'Processor: {uname.processor}\n')))
 
 
-def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False):
+def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, check_comp: bool = True):
     global _PATTERN
     if patterns:
         _PATTERN = re.compile(f'({"|".join(patterns)})')
@@ -172,7 +172,7 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, sk
     if redirect_wx:
         # noinspection PyUnresolvedReferences
         importlib.import_module('wx').GetApp().RedirectStdio()
-    if not skip_comp:
+    if check_comp:
         _fix_compatibility()
     if _WRITE:
         sys.stdout.write = types.MethodType(_WRITE, sys.stdout.write)

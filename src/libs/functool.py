@@ -63,12 +63,12 @@ class MutableInt(_Mutable):
 
 
 class PointedList:
-    EMPTY = None
+    DEFAULT = None
 
-    def __init__(self, val: Optional[list] = None, empty: Any = EMPTY):
+    def __init__(self, val: Optional[list] = None, default: Any = DEFAULT):
         self._data = [] if val is None else val.copy()
-        if empty is not self.EMPTY:
-            self.EMPTY = empty
+        if default is not self.DEFAULT:
+            self.DEFAULT = default
         self._current = -1
 
     def clear(self):
@@ -86,15 +86,16 @@ class PointedList:
     def has_previous(self) -> bool:
         return self.has(self._current - 1)
 
-    def advance(self, count: int = 1):
+    def advance(self, count: int = 1) -> int:
         new = self._current + count
         if self.has(new):
             self._current = new
+        return new
 
     def peek(self, index: Optional[int] = None):
         if index is None:
             index = self._current
-        return self._data[index] if self.has(index) else self.EMPTY
+        return self._data[index] if self.has(index) else self.DEFAULT
 
     def peek_next(self):
         return self.peek(self._current + 1)
@@ -138,8 +139,8 @@ class PackedFunction:
         self.kwargs = {} if kwargs is None else kwargs
         functools.update_wrapper(self, self.func)
 
-    def __call__(self) -> Any:
-        return self.func(*self.args, **self.kwargs)
+    def __call__(self, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Any:
+        return self.func(*self.args, *() if args is None else args, **{} if kwargs is None else kwargs, **self.kwargs)
 
 
 class TimeDelta(datetime.timedelta):
@@ -163,7 +164,7 @@ class TimeDelta(datetime.timedelta):
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
            kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
-        ret = func(ele, *args or (), **kwargs or {})
+        ret = func(ele, *() if args is None else args, **{} if kwargs is None else kwargs)
         if ret:
             return True
     return False
@@ -171,7 +172,8 @@ def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
 
 def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
              kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None) -> Generator:
-    for func, args_, kwargs_ in itertools.zip_longest(funcs, args or (), kwargs or {}):
+    for func, args_, kwargs_ in itertools.zip_longest(funcs, () if args is None else args,
+                                                      {} if kwargs is None else kwargs):
         if not func:
             break
         yield func(*args_ or (), **kwargs_ or {})
@@ -179,8 +181,8 @@ def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = No
 
 def cycle_ex(itt: Iterable, func: Optional[Callable] = None, args: Optional[Iterable] = None,
              kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
-    args = args or ()
-    kwargs = kwargs or {}
+    args = () if args is None else args
+    kwargs = {} if kwargs is None else kwargs
     while True:
         for ele in itt:
             yield ele
@@ -245,7 +247,8 @@ def sleep_ex(secs: Optional[float] = None):
 def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
            kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
            excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
-    for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, args or (), kwargs or {}, excs or ()):
+    for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, () if args is None else args,
+                                                             {} if kwargs is None else kwargs, excs or ()):
         if not func:
             break
         with contextlib.suppress(*excs_ or ()):
@@ -289,13 +292,13 @@ def iter_io(io: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]
 
 
 def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:
-    return re.escape(sep or os.sep).join((base,) + child)
+    return re.escape(os.sep if sep is None else sep).join((base,) + child)
 
 
 def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
                max_try: Optional[int] = None) -> Any:
-    args = args or ()
-    kwargs = kwargs or {}
+    args = () if args is None else args
+    kwargs = {} if kwargs is None else kwargs
     for _ in (range if max_try else itertools.repeat)(max_try):
         ret = func(*args, **kwargs)
         if ret:

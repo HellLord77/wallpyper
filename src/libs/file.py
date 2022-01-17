@@ -48,8 +48,8 @@ def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Option
     write = dst.write
     size = size or sys.maxsize
     chunk_size = chunk_size or CHUNK
-    args = args or ()
-    kwargs = kwargs or {}
+    args = () if args is None else {}
+    kwargs = {} if kwargs is None else kwargs
     ratio = 0
     chunk = read(chunk_size)
     while chunk:

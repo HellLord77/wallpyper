@@ -61,21 +61,16 @@ _ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
 def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable[str],
-                 args: Iterable, kwargs: Mapping[str, Any], change_state: bool) -> Callable:
+                 args: Iterable, kwargs: Mapping[str, Any]) -> Callable:
     @functools.wraps(on_click)
     def wrapper(_: wx.Event):
-        if change_state:
-            menu_item.Enable(False)
         menu_args_ = []
         for menu_arg in menu_args:
             if menu_arg in Method:
                 menu_args_.append(getattr(menu_item, menu_arg))
             elif menu_arg in Property:
                 menu_args_.append(getattr(menu_item, menu_arg)())
-        try:
-            on_click(*menu_args_, *args, **kwargs)
-        finally:
-            menu_item.Enable()
+        on_click(*menu_args_, *args, **kwargs)
 
     return wrapper
 
@@ -83,8 +78,8 @@ def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable
 def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
                   uid: Optional[str] = None, on_click: Optional[Callable] = None,
                   menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
-                  kwargs: Optional[Mapping[str, Any]] = None, change_state: bool = False,
-                  position: Optional[int] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+                  kwargs: Optional[Mapping[str, Any]] = None, position: Optional[int] = None,
+                  menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
     menu_item: wx.MenuItem = menu.Insert(
@@ -97,7 +92,7 @@ def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] 
     if on_click:
         menu.Bind(wx.EVT_MENU, _get_wrapper(
             menu_item, on_click, () if menu_args is None else menu_args,
-            () if args is None else args, {} if kwargs is None else kwargs, change_state), menu_item)
+            () if args is None else args, {} if kwargs is None else kwargs), menu_item)
     return menu_item
 
 
@@ -141,7 +136,7 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
     if callback:
         @functools.wraps(callback)
         def wrapper(_: wx.Event):
-            callback(*args or (), **kwargs or {})
+            callback(*() if args is None else args, **{} if kwargs is None else kwargs)
 
         _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, wrapper)
     _TASK_BAR_ICON.Bind(wx.adv.EVT_TASKBAR_CLICK, _on_right_click)

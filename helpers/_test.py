@@ -140,7 +140,6 @@ class SysTray:
     @classmethod
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
                   lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
-        # TODO ctyped.const.WM_QUERYENDSESSION
         if message == ctyped.const.WM_DESTROY:  # FIXME match (3.10)
             ctyped.lib.user32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
@@ -163,7 +162,7 @@ class SysTray:
     @classmethod
     def run_at_exit(cls, callback: Callable, args: Optional[Iterable] = None,
                     kwargs: Optional[Mapping[str, Any]] = None):
-        cls._binds[0][ctyped.const.WM_CLOSE] = callback, args or (), kwargs or {}
+        cls._binds[0][ctyped.const.WM_CLOSE] = callback, () if args is None else {}, {} if kwargs is None else kwargs
 
     @classmethod
     def clear_at_exit(cls) -> bool:
@@ -261,7 +260,7 @@ class SysTray:
 def bind(event: int, callback: Callable, args: Optional[Iterable] = None,
          kwargs: Optional[Mapping[str, Any]] = None, _uid: int = 0):
     # noinspection PyProtectedMember
-    SysTray._binds[_uid][event] = callback, args or (), kwargs or {}
+    SysTray._binds[_uid][event] = callback, () if args is None else {}, {} if kwargs is None else kwargs
 
 
 def unbind(event: int, _uid: int = 0) -> bool:
