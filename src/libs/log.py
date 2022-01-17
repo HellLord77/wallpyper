@@ -49,6 +49,7 @@ def _flush(path: str):
 
 
 def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None):
+    global _WRITE
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
@@ -65,7 +66,6 @@ def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[
         if tee:
             write_(s)
 
-    global _WRITE
     _WRITE = write
 
 
@@ -84,8 +84,8 @@ def write_on_error(path: str):
 
 
 def _fix_compatibility():
+    global _SUFFIX
     if not getattr(sys.stderr, 'isatty', lambda: False)():
-        global _SUFFIX
         for dict_ in (_PREFIXES, _DETAILS):
             for event, prefix in dict_.items():
                 dict_[event] = _ANSI.sub('', prefix)
@@ -165,8 +165,8 @@ def _dump_info():
 
 
 def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False):
+    global _PATTERN
     if patterns:
-        global _PATTERN
         _PATTERN = re.compile(f'({"|".join(patterns)})')
     Level.CURRENT = level
     if redirect_wx:
