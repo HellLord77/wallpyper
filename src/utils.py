@@ -30,6 +30,7 @@ trim_dir = libs.file.trim
 delete = libs.file.remove
 
 Int = libs.functool.MutableInt
+List = libs.functool.PointedList
 Dict = libs.functool.FrozenDict
 TimeDelta = libs.functool.TimeDelta
 try_any = libs.functool.any_ex
@@ -46,7 +47,7 @@ call_before = libs.functool.call_before
 item = libs.gui.Item
 icon = libs.gui.Icon
 get_property = libs.gui.Property
-get_method = libs.gui.Method
+set_property = libs.gui.Method
 add_item = libs.gui.add_menu_item
 add_separator = libs.gui.add_separator
 add_submenu = libs.gui.add_submenu
@@ -68,5 +69,5 @@ Timer = libs.timer.Timer
 thread = libs.timer.on_thread
 
 
-def not_implemented(title: str) -> None:
+def not_implemented(title: str):
     notify(title, str(NotImplemented))

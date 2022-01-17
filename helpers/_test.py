@@ -162,7 +162,7 @@ class SysTray:
 
     @classmethod
     def run_at_exit(cls, callback: Callable, args: Optional[Iterable] = None,
-                    kwargs: Optional[Mapping[str, Any]] = None) -> None:
+                    kwargs: Optional[Mapping[str, Any]] = None):
         cls._binds[0][ctyped.const.WM_CLOSE] = callback, args or (), kwargs or {}
 
     @classmethod
@@ -251,7 +251,7 @@ class SysTray:
         return shown
 
     def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping[str, Any]] = None) -> None:
+             kwargs: Optional[Mapping[str, Any]] = None):
         bind(event, callback, args, kwargs, self._uid)
 
     def unbind(self, event: int) -> bool:
@@ -259,7 +259,7 @@ class SysTray:
 
 
 def bind(event: int, callback: Callable, args: Optional[Iterable] = None,
-         kwargs: Optional[Mapping[str, Any]] = None, _uid: int = 0) -> None:
+         kwargs: Optional[Mapping[str, Any]] = None, _uid: int = 0):
     # noinspection PyProtectedMember
     SysTray._binds[_uid][event] = callback, args or (), kwargs or {}
 

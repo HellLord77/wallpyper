@@ -55,7 +55,7 @@ def paste_text() -> str:
                            ctyped.type.c_wchar_p).value or ''
 
 
-def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL) -> None:
+def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
     with _clipboard():
         ctyped.lib.user32.EmptyClipboard()
         ctyped.lib.user32.SetClipboardData(format_, hglobal)

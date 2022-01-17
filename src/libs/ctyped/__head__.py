@@ -97,7 +97,7 @@ class _Globals(dict):
                     if self.vars_[key_] is val:
                         self.setitem(key_, value)
 
-    def setitem(self, key: str, value) -> None:
+    def setitem(self, key: str, value):
         setattr(self.module, key, value)
         del self.vars_[key]
         super().__setitem__(key, value)

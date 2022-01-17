@@ -65,7 +65,7 @@ def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], Poi
 
 
 # noinspection PyProtectedMember
-def _del_com(obj: com._IUnknown) -> None:
+def _del_com(obj: com._IUnknown):
     if obj:
         obj.Release()
     lib.ole32.CoInitialize(None)

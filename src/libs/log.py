@@ -41,14 +41,14 @@ class Level:
     NOTSET = logging.NOTSET
 
 
-def _flush(path: str) -> None:
+def _flush(path: str):
     if _DUMP and _STREAM.tell():
         _STREAM.seek(0)
         with open(path, 'w') as file:
             shutil.copyfileobj(_STREAM, file)
 
 
-def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None) -> None:
+def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None):
     if write_once:
         atexit.register(_flush, path)
     elif os.path.exists(path):
@@ -69,13 +69,13 @@ def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[
     _WRITE = write
 
 
-def _excepthook(excepthook_: Callable, *args, **kwargs) -> None:
+def _excepthook(excepthook: Callable, *args, **kwargs):
     global _DUMP
     _DUMP = True
-    excepthook_(*args, **kwargs)
+    excepthook(*args, **kwargs)
 
 
-def write_on_error(path: str) -> None:
+def write_on_error(path: str):
     global _DUMP
     _DUMP = False
     sys.excepthook = types.MethodType(_excepthook, sys.excepthook)
@@ -83,7 +83,7 @@ def write_on_error(path: str) -> None:
     redirect_stdout(path, True, True)
 
 
-def _fix_compatibility() -> None:
+def _fix_compatibility():
     if not getattr(sys.stderr, 'isatty', lambda: False)():
         global _SUFFIX
         for dict_ in (_PREFIXES, _DETAILS):
@@ -92,7 +92,7 @@ def _fix_compatibility() -> None:
         _SUFFIX = _ANSI.sub('', _SUFFIX)
 
 
-def _filter(event: str, arg: Any, name: str) -> bool:
+def _filter(event: str, arg, name: str) -> bool:
     if Level.CURRENT == Level.DEBUG:  # FIXME match (3.10)
         return True
     elif Level.CURRENT == Level.INFO:
@@ -127,7 +127,7 @@ def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n')
     return formatted
 
 
-def _on_trace(frame: types.FrameType, event: str, arg: Any) -> Optional[Callable]:
+def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
     if frame.f_code is logging.shutdown.__code__:
         _on_trace.__code__ = (lambda *args, **kwargs: None).__code__
     else:
@@ -164,7 +164,7 @@ def _dump_info():
                                    f'Machine: {uname.machine}', f'Processor: {uname.processor}\n')))
 
 
-def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False) -> None:
+def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, skip_comp: bool = False):
     if patterns:
         global _PATTERN
         _PATTERN = re.compile(f'({"|".join(patterns)})')

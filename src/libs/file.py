@@ -43,7 +43,7 @@ def get_size(path: str) -> int:
 
 def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
                 callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
-                kwargs: Optional[Mapping[str, Any]] = None) -> None:
+                kwargs: Optional[Mapping[str, Any]] = None):
     read = src.read
     write = dst.write
     size = size or sys.maxsize

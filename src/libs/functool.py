@@ -1,7 +1,6 @@
-__version__ = '0.0.13'
+__version__ = '0.0.14'
 
 import binascii
-import collections
 import contextlib
 import ctypes
 import datetime
@@ -21,38 +20,38 @@ import time
 import uuid
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
-DEFAULT_ARG = object()
-ANSI_PAT = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+DEFAULT = object()
+ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
 class _Mutable:
     _type = type(None)  # FIXME types.NoneType (3.10)
 
     def __init__(self, val: Optional = None):
-        self._val = self._type() if val is None else val
+        self._data = self._type() if val is None else val
 
     def __int__(self):
-        return int(self._val)
+        return int(self._data)
 
     def __float__(self):
-        return float(self._val)
+        return float(self._data)
 
     def __bool__(self):
-        return bool(self._val)
+        return bool(self._data)
 
     def __str__(self):
-        return str(self._val)
+        return str(self._data)
 
     def get(self):
-        return self._val
+        return self._data
 
     def set(self, val):
-        self._val = val
+        self._data = val
         return val
 
     def clear(self):
         val = self._type()
-        self._val = val
+        self._data = val
         return val
 
 
@@ -61,6 +60,66 @@ class MutableInt(_Mutable):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+
+
+class PointedList:
+    EMPTY = None
+
+    def __init__(self, val: Optional[list] = None, empty: Any = EMPTY):
+        self._data = [] if val is None else val.copy()
+        if empty is not self.EMPTY:
+            self.EMPTY = empty
+        self._current = -1
+
+    def clear(self):
+        self.__init__()
+
+    def current_index(self) -> Optional[int]:
+        return self._current if self.has() else None
+
+    def has(self, index: Optional[Any] = None):
+        return -1 < (self._current if index is None else index) < len(self._data)
+
+    def has_next(self) -> bool:
+        return self.has(self._current + 1)
+
+    def has_previous(self) -> bool:
+        return self.has(self._current - 1)
+
+    def advance(self, count: int = 1):
+        new = self._current + count
+        if self.has(new):
+            self._current = new
+
+    def peek(self, index: Optional[int] = None):
+        if index is None:
+            index = self._current
+        return self._data[index] if self.has(index) else self.EMPTY
+
+    def peek_next(self):
+        return self.peek(self._current + 1)
+
+    def peek_previous(self):
+        return self.peek(self._current - 1)
+
+    def set_previous(self, val):
+        self._data.insert(self._current, val)
+        return val
+
+    def set_next(self, val):
+        self._data.insert(self._current + 1, val)
+        self.advance()
+        return val
+
+    def next(self):
+        val = self.peek_next()
+        self.advance()
+        return val
+
+    def previous(self):
+        val = self.peek_previous()
+        self.advance(-1)
+        return val
 
 
 class FrozenDict(dict):
@@ -74,9 +133,9 @@ class FrozenDict(dict):
 class PackedFunction:
     def __init__(self, func: Optional[Callable] = None, args: Optional[Iterable] = None,
                  kwargs: Optional[Mapping[str, Any]] = None):
-        self.func = func or pass_ex
-        self.args = args or ()
-        self.kwargs = kwargs or {}
+        self.func = pass_ex if func is None else func
+        self.args = () if args is None else args
+        self.kwargs = {} if kwargs is None else kwargs
         functools.update_wrapper(self, self.func)
 
     def __call__(self) -> Any:
@@ -129,7 +188,7 @@ def cycle_ex(itt: Iterable, func: Optional[Callable] = None, args: Optional[Iter
             func(*args, **kwargs)
 
 
-def dict_ex(obj: Any) -> dict[str, Any]:
+def dict_ex(obj) -> dict[str, Any]:
     return getattr(obj, '__dict__', {})
 
 
@@ -139,19 +198,19 @@ def enquote(string: str, quote: str = '"') -> str:
     return string
 
 
-def eq_ex(a: Any, b: Any) -> bool:
+def eq_ex(a, b) -> bool:
     sleep_ex()
     if isinstance(a, Iterable) and isinstance(b, Iterable):
-        for a_, b_ in itertools.zip_longest(a, b, fillvalue=DEFAULT_ARG):
+        for a_, b_ in itertools.zip_longest(a, b, fillvalue=DEFAULT):
             sleep_ex()
-            if eq_ex(a_, DEFAULT_ARG) or eq_ex(b_, DEFAULT_ARG) or not eq_ex(a_, b_):
+            if eq_ex(a_, DEFAULT) or eq_ex(b_, DEFAULT) or not eq_ex(a_, b_):
                 return False
         return True
     else:
         return a == b
 
 
-def exhaust(itt: Generator) -> None:
+def exhaust(itt: Generator):
     for _ in itt:
         pass
 
@@ -160,7 +219,7 @@ def randint_ex() -> int:
     return secrets.choice(secrets.token_bytes())
 
 
-def reversed_ex(*items: Any) -> Any:
+def reversed_ex(*items) -> Any:
     for ele in reversed(items):
         yield ele
 
@@ -169,11 +228,11 @@ def replace_ex(string: str, a: str, b: str) -> str:
     return ''.join(a if char == b else b if char == a else char for char in string)
 
 
-def setattr_ex(obj: Any, name: str, value: Any) -> None:
+def setattr_ex(obj, name: str, value):
     ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value[name] = value
 
 
-def sleep_ex(secs: Optional[float] = None) -> None:
+def sleep_ex(secs: Optional[float] = None):
     if secs is None:
         while secrets.randbelow(return_any(randint_ex)):
             pass
@@ -193,11 +252,11 @@ def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None
             return func(*args_ or (), **kwargs_ or {})
 
 
-def pass_ex(*_: Any, **__: Any) -> None:
+def pass_ex(*_, **__):
     pass
 
 
-def vars_ex(obj: Any) -> str:
+def vars_ex(obj) -> str:
     dict_ = dict_ex(obj)
     attrs = [], []
     for val in dict_.values():
@@ -244,7 +303,7 @@ def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional
 
 
 def strip_ansi(string: str) -> str:
-    return ANSI_PAT.sub('', string)
+    return ANSI.sub('', string)
 
 
 def decrypt(data: str, default: Any = None) -> Any:
@@ -257,7 +316,7 @@ def decrypt(data: str, default: Any = None) -> Any:
         uuid.getnode()).encode()).digest() else default
 
 
-def encrypt(obj: Any) -> str:
+def encrypt(obj) -> str:
     try:
         pickled = pickle.dumps(obj)
     except TypeError:
@@ -267,16 +326,15 @@ def encrypt(obj: Any) -> str:
 
 
 def one_cache(func: Callable) -> Callable:
-    cache = collections.deque(maxlen=2)
+    cache = []
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         params = args + tuple(kwargs.items())
         params = try_ex(hash, pickle.dumps, args=((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
-        if cache.maxlen != len(cache) or cache[1] != params:
-            cache.append(func(*args, **kwargs))
-            cache.append(params)
-        return cache[0]
+        if not len(cache) or cache[0] != params:
+            cache[:] = params, func(*args, **kwargs)
+        return cache[1]
 
     wrapper.dumps = lambda: encrypt(cache)
     wrapper.loads = lambda data: cache.extend(decrypt(data, cache))
@@ -346,7 +404,7 @@ def singleton_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _set_result(func: Callable, args: Iterable, kwargs: Mapping[str, Any], wrapper: Callable) -> None:
+def _set_result(func: Callable, args: Iterable, kwargs: Mapping[str, Any], wrapper: Callable):
     wrapper.result = func(*args, **kwargs)
 
 
@@ -360,10 +418,10 @@ def threaded_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret: Any, redirect: Optional[bool],
-          unpack: Optional[bool]) -> Any:
-    if redirect:
-        if unpack:
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret, ret_as_arg: Optional[bool],
+          unpack_ret: Optional[bool]) -> Any:
+    if ret_as_arg:
+        if unpack_ret:
             if isinstance(ret, Iterable):
                 return func(*ret)
             elif isinstance(ret, Mapping):
@@ -372,26 +430,26 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret: Any, r
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, redirect_results: Optional[bool] = None,
-               unpack_redirected_result: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_after(pre_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret_arg: Optional[bool] = None) -> \
+        Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = pre_func(*args, **kwargs)
-            return _call(func, args, kwargs, ret, redirect_results, unpack_redirected_result)
+            return _call(func, args, kwargs, ret, ret_as_arg, unpack_ret_arg)
 
         return wrapper
 
     return wrapped
 
 
-def call_before(post_func: Callable, redirect_results: Optional[bool] = None,
-                unpack_redirected_result: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_before(post_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret_arg: Optional[bool] = None) -> \
+        Callable[[Callable], Callable]:
     def wrapped(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = func(*args, **kwargs)
-            _call(post_func, args, kwargs, ret, redirect_results, unpack_redirected_result)
+            _call(post_func, args, kwargs, ret, ret_as_arg, unpack_ret_arg)
             return ret
 
         return wrapper

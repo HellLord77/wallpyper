@@ -222,7 +222,7 @@ TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 
 
-def _set_magic(magic: str, func: _Callable) -> None:
+def _set_magic(magic: str, func: _Callable):
     magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace(
         'r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic)
     _MAGICS[magic] = _functools.update_wrapper(func, magic_)

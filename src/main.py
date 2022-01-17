@@ -2,7 +2,6 @@ __version__ = '0.1.11'  # TODO 0xC0000409 (wx?)
 __author__ = 'HellLord'
 
 import atexit
-import collections
 import configparser
 import math
 import subprocess
@@ -21,8 +20,7 @@ import utils
 
 EXIT_TIMEOUT_FACTOR = 0.9
 MAX_CACHE = 64 * 1024 * 1024
-MAX_LENGTH = 32
-POLL_TIMEOUT = 0.01
+POLL_TIMEOUT = 0.1
 
 NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
@@ -69,8 +67,7 @@ SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = '5 Minute', '15 Minute', '30 Minute', '1 Hour', '3 Hour', '6 Hour'
 
 CONFIG = {}
-URLS = collections.deque(maxlen=MAX_LENGTH)
-URL_INDEX = utils.Int(-1)
+HISTORY = utils.List()
 ENABLE_NEXT = utils.dummy_func
 ENABLE_PREVIOUS = utils.dummy_func
 SET_NEXT_LABEL = utils.dummy_func
@@ -127,7 +124,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
     if not url:
         url = MODULE.get_next_url()
         if url:
-            URLS.append(url)
+            HISTORY.set_next(url)
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
         changed = utils.download_url(
@@ -176,42 +173,37 @@ def search_wallpaper() -> bool:
 
 @utils.thread
 def on_change(previous: Optional[bool] = None) -> bool:
+    ENABLE_NEXT(False)
+    ENABLE_PREVIOUS(False)
     changed = False
-    if previous:
-        index = URL_INDEX.get() - 1
-        url = URLS[URL_INDEX.get() - 1]
-        set_label = SET_PREVIOUS_LABEL
-        label = LANG.PREVIOUS
-    else:
-        index = URL_INDEX.get() + 1
-        url = None if index == len(URLS) else URLS[index]
-        set_label = SET_NEXT_LABEL
-        label = LANG.NEXT
     if not change_wallpaper.is_running():
-        ENABLE_NEXT(False)
-        ENABLE_PREVIOUS(False)
+        if previous:
+            url = HISTORY.previous()
+            set_label = SET_PREVIOUS_LABEL
+        else:
+            url = HISTORY.next()
+            set_label = SET_NEXT_LABEL
         if changed := change_wallpaper(url, set_label):
-            ENABLE_PREVIOUS(index > 0)
-            URL_INDEX.set(index)
             CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[
                 CONFIG_LAST] if TIMER.last_start == utils.Timer.last_start else TIMER.last_start
             if CONFIG[CONFIG_AUTOSAVE]:
                 save_wallpaper()
-            set_label(None)
-        ENABLE_NEXT(True)
+            set_label()
     if not changed and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(label, LANG.FAILED_CHANGING)
+        utils.notify(LANG.PREVIOUS if previous else LANG.NEXT, LANG.FAILED_CHANGING)
+    ENABLE_NEXT()
+    ENABLE_PREVIOUS(HISTORY.has_previous())
     return changed
 
 
-def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None]] = None) -> None:
+def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None]] = None):
     CONFIG[CONFIG_CHANGE] = checked
     if enable_submenu:
         enable_submenu(checked)
     TIMER.start(CONFIG[CONFIG_INTERVAL]) if checked else TIMER.stop()
 
 
-def on_interval(interval: str) -> None:
+def on_interval(interval: str):
     CONFIG[CONFIG_INTERVAL] = int(utils.TimeDelta(interval))
     on_auto_change(CONFIG[CONFIG_CHANGE])
 
@@ -223,7 +215,7 @@ def on_save() -> bool:
     return saved
 
 
-def on_modify_save() -> None:
+def on_modify_save():
     utils.not_implemented(LANG.MODIFY_SAVE)
 
 
@@ -252,13 +244,15 @@ def on_copy() -> bool:
 
 
 @utils.thread
-def on_search() -> bool:
+def on_find(enable: Callable) -> bool:
+    enable(False)
     if not (searched := search_wallpaper()) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANG.SEARCH, LANG.FAILED_SEARCHING)
+        utils.notify(LANG.FIND, LANG.FAILED_FINDING)
+    enable()
     return searched
 
 
-def _get_launch_argv() -> list[str]:
+def _get_launch_args() -> list[str]:
     argv = [sys.executable]
     if not libs.pyinstall.FROZEN:
         argv.append(utils.abs_path(__file__))
@@ -267,7 +261,7 @@ def _get_launch_argv() -> list[str]:
 
 def _create_shortcut(dir_: str) -> bool:
     return platform.create_shortcut(utils.join_path(dir_, f'{NAME}.{platform.LINK_EXT}'),
-                                    *_get_launch_argv(), comment=LANG.DESCRIPTION, aumi=UUID)
+                                    *_get_launch_args(), comment=LANG.DESCRIPTION, aumi=UUID)
 
 
 def on_shortcut() -> bool:
@@ -294,28 +288,38 @@ def on_remove_start_shortcuts() -> bool:
     return removed
 
 
+def on_clear():
+    url = HISTORY.peek()
+    HISTORY.clear()
+    if url is not None:
+        HISTORY.set_next(url)
+    ENABLE_PREVIOUS(HISTORY.has_previous())
+
+
 @utils.thread
-def on_clear() -> bool:
+def on_clear_cache(enable: Callable) -> bool:
+    enable(False)
     if not (cleared := utils.delete(TEMP_DIR, True)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(LANG.CLEAR, LANG.FAILED_CLEARING)
+        utils.notify(LANG.CLEAR_CACHE, LANG.FAILED_CLEARING)
+    enable()
     return cleared
 
 
-def on_reset() -> None:
+def on_reset():
     on_save_config(DEFAULT_CONFIG[CONFIG_SAVE])
     on_restart()
 
 
-def on_restart() -> None:
-    args = _get_launch_argv()
+def on_restart():
+    args = _get_launch_args()
     args.extend(sys.argv[1:])
     if ARG_WAIT not in args:
         args.append(ARG_WAIT)
     atexit.register(subprocess.Popen, args, creationflags=subprocess.CREATE_NEW_CONSOLE)
-    on_exit()
+    on_quit()
 
 
-def on_animate(checked: bool) -> None:
+def on_animate(checked: bool):
     CONFIG[CONFIG_ANIMATE] = checked
     utils.pause_animation(not checked)
 
@@ -323,17 +327,17 @@ def on_animate(checked: bool) -> None:
 def on_auto_start(checked: bool) -> bool:
     CONFIG[CONFIG_START] = checked
     if checked:
-        return platform.register_autorun(NAME, *_get_launch_argv(),
+        return platform.register_autorun(NAME, *_get_launch_args(),
                                          *(ARG_CHANGE,) if CONFIG[CONFIG_CHANGE] else (), uid=UUID)
     return platform.unregister_autorun(NAME, UUID)
 
 
-def on_save_config(checked: bool) -> None:
+def on_save_config(checked: bool):
     CONFIG[CONFIG_SAVE] = checked
     save_config() if checked else utils.delete(CONFIG_PATH)
 
 
-def on_about() -> None:
+def on_about():
     utils.not_implemented(LANG.ABOUT)
 
 
@@ -342,7 +346,7 @@ def _is_running() -> bool:
 
 
 @utils.thread
-def on_exit() -> None:
+def on_quit():
     TIMER.stop()
     utils.disable()
     if _is_running():
@@ -354,20 +358,21 @@ def on_exit() -> None:
     utils.stop()
 
 
-def create_menu() -> None:  # TODO slideshow (smaller timer)
+def create_menu():  # TODO slideshow (smaller timer)
+    global ENABLE_NEXT, ENABLE_PREVIOUS, SET_NEXT_LABEL, SET_PREVIOUS_LABEL
     update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
-    next_wallpaper = utils.add_item(LANG.NEXT, on_click=on_change)
-    previous_wallpaper = utils.add_item(LANG.PREVIOUS, enable=False, on_click=on_change, args=(True,))
+    next_wallpaper = utils.add_item(LANG.NEXT, on_click=on_change, change_state=False)
+    previous_wallpaper = utils.add_item(LANG.PREVIOUS, enable=False,
+                                        on_click=on_change, args=(True,), change_state=False)
 
-    def set_next_label(progress: Optional[int] = None) -> None:
+    def set_next_label(progress: Optional[int] = None):
         next_wallpaper.SetItemLabel(
             LANG.NEXT if progress is None else f'{LANG.NEXT} ({langs.to_str(progress, LANG, 3)}%)')
 
-    def set_previous_label(progress: Optional[int] = None) -> None:
+    def set_previous_label(progress: Optional[int] = None):
         previous_wallpaper.SetItemLabel(
             LANG.PREVIOUS if progress is None else f'{LANG.PREVIOUS} ({langs.to_str(progress, LANG, 3)}%)')
 
-    global ENABLE_NEXT, ENABLE_PREVIOUS, SET_NEXT_LABEL, SET_PREVIOUS_LABEL
     ENABLE_NEXT = next_wallpaper.Enable
     ENABLE_PREVIOUS = previous_wallpaper.Enable
     SET_NEXT_LABEL = set_next_label
@@ -376,13 +381,13 @@ def create_menu() -> None:  # TODO slideshow (smaller timer)
     menu_interval = utils.add_submenu(LANG.SUBMENU_INTERVAL, CONFIG[CONFIG_CHANGE])
     for interval in INTERVALS:
         utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
-                       on_click=on_interval, extra_args=(utils.get_property.LABEL,), menu=menu_interval)
+                       on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)
     utils.add_item(LANG.AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
-                   args=(menu_interval.Enable,), extra_args=(utils.get_property.CHECKED,), position=3)
+                   menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=3)
     utils.add_separator()
     utils.add_item(LANG.SAVE, on_click=on_save)
     utils.add_item(LANG.AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
-                   args=(CONFIG_AUTOSAVE,), extra_args=(utils.get_property.CHECKED,))
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,))
     utils.add_item(LANG.MODIFY_SAVE, on_click=on_modify_save)
     utils.add_separator()
     menu_open = utils.add_submenu(LANG.SUBMENU_OPEN)
@@ -391,7 +396,7 @@ def create_menu() -> None:  # TODO slideshow (smaller timer)
     menu_copy = utils.add_submenu(LANG.SUBMENU_COPY)
     utils.add_item(LANG.COPY_PATH, on_click=on_copy_path, menu=menu_copy)
     utils.add_item(LANG.COPY, on_click=on_copy, menu=menu_copy)
-    utils.add_item(LANG.SEARCH, on_click=on_search)
+    utils.add_item(LANG.FIND, on_click=on_find, menu_args=(utils.set_property.ENABLE,))
     utils.add_separator()
     MODULE.create_menu()  # TODO separate left click menu (?)
     utils.add_separator()
@@ -402,27 +407,28 @@ def create_menu() -> None:  # TODO slideshow (smaller timer)
     utils.add_item(LANG.REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_actions)
     utils.add_separator(menu_actions)
     utils.add_item(LANG.CLEAR, on_click=on_clear, menu=menu_actions)
+    utils.add_item(LANG.CLEAR_CACHE, on_click=on_clear_cache, menu_args=(utils.set_property,), menu=menu_actions)
     utils.add_item(LANG.RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.RESTART, on_click=on_restart, menu=menu_actions)
     menu_config = utils.add_submenu(LANG.SUBMENU_CONFIG)
-    utils.add_item(LANG.NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config, args=(CONFIG_NOTIFY,),
-                   extra_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(LANG.FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config, args=(CONFIG_NO_FADE,),
-                   extra_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(LANG.NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
+    utils.add_item(LANG.FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NO_FADE,), menu=menu_config)
     utils.add_item(LANG.ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE], on_click=on_animate,
-                   extra_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(LANG.CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config, args=(CONFIG_CACHE,),
-                   extra_args=(utils.get_property.CHECKED,), menu=menu_config)
+                   menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(LANG.CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_CACHE,), menu=menu_config)
     utils.add_item(LANG.START, utils.item.CHECK, CONFIG[CONFIG_START], on_click=on_auto_start,
-                   extra_args=(utils.get_property.CHECKED,), menu=menu_config)
+                   menu_args=(utils.get_property.CHECKED,), menu=menu_config)
     utils.add_item(LANG.CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE], on_click=on_save_config,
-                   extra_args=(utils.get_property.CHECKED,), menu=menu_config)
+                   menu_args=(utils.get_property.CHECKED,), menu=menu_config)
     utils.add_item(LANG.ABOUT, on_click=on_about)
-    utils.add_item(LANG.QUIT, on_click=on_exit)
+    utils.add_item(LANG.QUIT, on_click=on_quit)
 
 
-def start() -> None:  # TODO dark theme
-    TIMER.callback = on_change
+def start():  # TODO dark theme
+    TIMER.target = on_change
     libs.singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
                         on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if ARG_DEBUG in sys.argv:
@@ -446,7 +452,7 @@ def start() -> None:  # TODO dark theme
     utils.start(RES_PATHS[0], NAME, on_change)
 
 
-def stop() -> None:
+def stop():
     utils.Timer.kill_all()
     if not CONFIG[CONFIG_CHANGED]:
         CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[CONFIG_LAST]

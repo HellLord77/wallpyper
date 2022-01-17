@@ -40,11 +40,11 @@ class Timer:
     _Timers: list[Timer] = []
     last_start = -1
 
-    def __init__(self, interval: Optional[float] = None, callback: Optional[Callable] = None,
+    def __init__(self, interval: Optional[float] = None, target: Optional[Callable] = None,
                  args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
                  once: Optional[bool] = None, start: Optional[bool] = None):
         self._interval = 0 if interval is None else interval
-        self.callback = PASS if callback is None else callback
+        self.target = PASS if target is None else target
         self.args = () if args is None else args
         self.kwargs = {} if kwargs is None else kwargs
         self.once = once
@@ -84,7 +84,7 @@ class Timer:
             self.start()
         try:
             with contextlib.suppress(_TimerExit):
-                self.result = self.callback(*self.args, **self.kwargs)
+                self.result = self.target(*self.args, **self.kwargs)
         finally:
             self._running.clear()
 
@@ -102,7 +102,7 @@ class Timer:
         if interval is not None:
             self.set_next_interval(interval)
         timer = threading.Timer(self._interval, self._function)
-        timer.name = f'{type(self).__name__}-{__version__}-{self.callback.__name__}'
+        timer.name = f'{type(self).__name__}-{__version__}-{self.target.__name__}'
         timer.daemon = True
         timer.start()
         self._timers.append(timer)
@@ -126,14 +126,14 @@ class Timer:
         return killed
 
 
-def start_once(interval: Optional[float] = None, callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+def start_once(interval: Optional[float] = None, target: Optional[Callable] = None, args: Optional[Iterable] = None,
                kwargs: Optional[Mapping[str, Any]] = None) -> Timer:
-    return Timer(interval, callback, args, kwargs, True, True)
+    return Timer(interval, target, args, kwargs, True, True)
 
 
-def on_thread(callback: Callable) -> Callable:
-    @functools.wraps(callback)
+def on_thread(target: Callable) -> Callable:
+    @functools.wraps(target)
     def wrapper(*args, **kwargs):
-        start_once(callback=callback, args=args, kwargs=kwargs)
+        start_once(target=target, args=args, kwargs=kwargs)
 
     return wrapper

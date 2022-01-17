@@ -55,7 +55,7 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Ite
             break
 
 
-def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable], on_wait_args: Iterable,
+def _memory(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable], on_wait_args: Iterable,
             on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
             on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     end_time = time.time() + wait * TIMEOUT - DELAY
@@ -70,7 +70,7 @@ def _memory(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[C
             break
 
 
-def _socket(uid: str, wait: bool, _: Any, __: Any, ___: Any, on_wait: Optional[Callable], on_wait_args: Iterable,
+def _socket(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable], on_wait_args: Iterable,
             on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
             on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024

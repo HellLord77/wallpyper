@@ -1,4 +1,4 @@
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 import atexit
 import contextlib
@@ -60,35 +60,44 @@ _ANIMATIONS_ = [_ANIMATIONS, []]
 _ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
-def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, args: Iterable,
-                 kwargs: Mapping[str, Any], extra_args: Iterable[str]) -> Callable:
+def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable[str],
+                 args: Iterable, kwargs: Mapping[str, Any], change_state: bool) -> Callable:
     @functools.wraps(on_click)
     def wrapper(_: wx.Event):
-        extra_args_ = []
-        for extra_arg in extra_args:
-            if extra_arg in Method:
-                extra_args_.append(getattr(menu_item, extra_arg))
-            elif extra_arg in Property:
-                extra_args_.append(getattr(menu_item, extra_arg)())
-        on_click(*extra_args_, *args, **kwargs)
+        if change_state:
+            menu_item.Enable(False)
+        menu_args_ = []
+        for menu_arg in menu_args:
+            if menu_arg in Method:
+                menu_args_.append(getattr(menu_item, menu_arg))
+            elif menu_arg in Property:
+                menu_args_.append(getattr(menu_item, menu_arg)())
+        try:
+            on_click(*menu_args_, *args, **kwargs)
+        finally:
+            menu_item.Enable()
 
     return wrapper
 
 
 def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
-                  help_text: Optional[str] = None, on_click: Optional[Callable] = None, args: Optional[Iterable] = None,
-                  kwargs: Optional[Mapping[str, Any]] = None, extra_args: Optional[Iterable[str]] = None,
+                  uid: Optional[str] = None, on_click: Optional[Callable] = None,
+                  menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
+                  kwargs: Optional[Mapping[str, Any]] = None, change_state: bool = False,
                   position: Optional[int] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
-    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position,
-                                         wx.ID_ANY, label, help_text or '', Item.NORMAL if kind is None else kind)
+    menu_item: wx.MenuItem = menu.Insert(
+        menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
+        label, '' if uid is None else uid, Item.NORMAL if kind is None else kind)
     if check is not None:
         menu_item.Check(check)
     if enable is not None:
         menu_item.Enable(enable)
     if on_click:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, on_click, args or (), kwargs or {}, extra_args or ()), menu_item)
+        menu.Bind(wx.EVT_MENU, _get_wrapper(
+            menu_item, on_click, () if menu_args is None else menu_args,
+            () if args is None else args, {} if kwargs is None else kwargs, change_state), menu_item)
     return menu_item
 
 
@@ -112,11 +121,11 @@ def show_balloon(title: str, text: str, icon: Optional[int] = None) -> bool:
         _ICON, _APP.GetAppName()) and _TASK_BAR_ICON.ShowBalloon(title, text, flags=Icon.NONE if icon is None else icon)
 
 
-def _on_right_click(_: wx.Event) -> None:
+def _on_right_click(_: wx.Event):
     _TASK_BAR_ICON.PopupMenu(_MENU)
 
 
-def _destroy() -> None:
+def _destroy():
     _ANIMATIONS.clear()
     _MENU.Destroy()
     _TASK_BAR_ICON.RemoveIcon()
@@ -126,9 +135,9 @@ def _destroy() -> None:
 
 
 def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Callable] = None,
-               args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> None:
-    _ICON.LoadFile(path)
+               args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
     _APP.SetAppName(tooltip)
+    _ICON.LoadFile(path)
     if callback:
         @functools.wraps(callback)
         def wrapper(_: wx.Event):
@@ -144,11 +153,11 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
     _APP.MainLoop()
 
 
-def stop_loop(_: Optional[wx.CloseEvent] = None) -> None:
+def stop_loop(_: Optional[wx.CloseEvent] = None):
     _APP.ExitMainLoop()
 
 
-def disable_events() -> None:
+def disable_events():
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_LEFT_DCLICK)
     _TASK_BAR_ICON.Unbind(wx.adv.EVT_TASKBAR_CLICK)
 

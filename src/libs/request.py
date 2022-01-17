@@ -23,7 +23,7 @@ class Status:
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(*_) -> None:
+    def redirect_request(*_):
         return
 
 
