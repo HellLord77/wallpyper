@@ -13,7 +13,7 @@ $Version = "0.0.1"
 #>
 
 $Datas = @("resources")
-$Icon = "icon.ico"
+$Icon = "src\resources\icon.ico"
 $NoConsole = $True
 
 function Install-Dependecies
