@@ -76,7 +76,7 @@ def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable
 
 
 def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
-                  uid: Optional[str] = None, on_click: Optional[Callable] = None,
+                  help_: Optional[str] = None, on_click: Optional[Callable] = None,
                   menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
                   kwargs: Optional[Mapping[str, Any]] = None, position: Optional[int] = None,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
@@ -84,7 +84,7 @@ def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] 
         menu = menu.GetSubMenu()
     menu_item: wx.MenuItem = menu.Insert(
         menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
-        label, '' if uid is None else uid, Item.NORMAL if kind is None else kind)
+        label, '' if help_ is None else help_, Item.NORMAL if kind is None else kind)
     if check is not None:
         menu_item.Check(check)
     if enable is not None:

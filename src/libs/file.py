@@ -29,7 +29,6 @@ def iter_files(paths: Iterable[str]) -> Generator[str, None, None]:
 
 def iter_dir(path: str) -> Generator[str, None, None]:
     for dir_ in os.scandir(path):
-        # noinspection PyUnresolvedReferences
         yield os.path.realpath(dir_.path)
 
 

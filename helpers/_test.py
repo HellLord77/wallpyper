@@ -78,7 +78,7 @@ class Event:
     MIDDLE_DOUBLE = ctyped.const.WM_MBUTTONDBLCLK
     BALLOON_QUEUED = ctyped.const.NIN_BALLOONSHOW
     BALLOON_HIDDEN = ctyped.const.NIN_BALLOONTIMEOUT
-    BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK  # FIXME also triggers when click tray icon while showing balloon
+    BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK  # FIXME triggers when click tray icon while showing balloon
 
 
 class Icon:
@@ -215,6 +215,7 @@ class SysTray:
 
     def set_animation(self, gif_path: str):
         self.stop_animation()
+        # noinspection PyTypeChecker
         self._frames_and_on_timer = iter(_get_gif_frames(gif_path)), ctyped.type.TIMERPROC(self._next_frame)
         self._next_frame()
 
@@ -290,6 +291,7 @@ def _bloop(*evt):
 
 if __name__ == '__main__':
     p = r'D:\Projects\wallpyper\src\resources\icon.png'
+    gif = r'D:\Projects\Wallpyper\src\resources\busy.gif'
     bind(EVENT_CLOSE, lambda: print(6969))
     s = SysTray(p, 'tip')
     s.bind(Event.LEFT_DOUBLE, _foo)

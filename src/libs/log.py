@@ -93,7 +93,7 @@ def _fix_compatibility():
 
 
 def _filter(event: str, arg, name: str) -> bool:
-    if Level.CURRENT == Level.DEBUG:  # FIXME match (3.10)
+    if Level.CURRENT == Level.DEBUG:  # FIXME match (py 3.10)
         return True
     elif Level.CURRENT == Level.INFO:
         return name != _GENERATOR and (event != _EXCEPTION or arg[0] not in (GeneratorExit, StopIteration))
@@ -145,7 +145,7 @@ def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
             log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] ' \
                   f'{_get_class_name(frame.f_locals)}{frame.f_code.co_name}' \
                   f'{"" if thread is threading.main_thread() else f" ({thread.name})"}{_SUFFIX}'
-            if event == _CALL:  # FIXME match (3.10)
+            if event == _CALL:  # FIXME match (py 3.10)
                 _STACK[thread] += 1
                 if frame.f_locals:
                     log += _format_dict(frame.f_locals, f'{pad}{_DETAILS[event]}', _SUFFIX)

@@ -1,4 +1,4 @@
-__version__ = '0.1.11'  # TODO 0xC0000409 (wx?)
+__version__ = '0.1.12'  # TODO 0xC0000409 (wx?)
 __author__ = 'HellLord'
 
 import atexit
@@ -10,22 +10,22 @@ import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
 import langs
-import libs.file
-import libs.log
-import libs.pyinstall
-import libs.singleton
+import libs.log as log
+import libs.pyinstall as pyinstall
+import libs.singleton as singleton
 import modules.wallhaven
 import platforms.win32 as platform  # TODO sys.platform
 import utils
 
 EXIT_TIMEOUT_FACTOR = 0.9
 MAX_CACHE = 64 * 1024 * 1024
-POLL_TIMEOUT = 0.1
+POLL_TIMEOUT = 0.01
 
 NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
 ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
+CONFIG_PIN = 'force_pin'
 CONFIG_CHANGE = 'auto_change'
 CONFIG_INTERVAL = 'auto_change_interval'
 CONFIG_CHANGED = 'keep_auto_changed'
@@ -43,6 +43,7 @@ LANG = langs.DEFAULT
 MODULES = modules.wallhaven,
 MODULE = MODULES[0]
 DEFAULT_CONFIG = utils.Dict({
+    CONFIG_PIN: False,
     CONFIG_CHANGE: False,
     CONFIG_INTERVAL: 3600,
     CONFIG_CHANGED: False,
@@ -59,16 +60,19 @@ DEFAULT_CONFIG = utils.Dict({
 
 EXIT_TIMEOUT = EXIT_TIMEOUT_FACTOR * platform.get_max_shutdown_time()
 UUID = f'{__author__}.{NAME}'
-RES_PATHS = tuple(utils.join_path(utils.dir_name(__file__), 'resources', name) for name in ('icon.png', 'loading.gif'))
+SHORTCUT_NAME = f'{NAME}{platform.LINK_EXT}'
+RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(utils.dir_name(__file__), 'resources', name)
+                                for name in ('icon.ico', 'tray.png', 'busy.gif'))
 TEMP_DIR = utils.join_path(platform.get_temp_dir(), NAME)
-CONFIG_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # utils.join_path(platform.SAVE_DIR, f'{NAME}.ini')
-LOG_PATH = utils.replace_extension(CONFIG_PATH, 'log')
+INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO utils.join_path(platform.SAVE_DIR, f'{NAME}.ini')
+LOG_PATH = utils.replace_extension(INI_PATH, 'log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
 INTERVALS = '5 Minute', '15 Minute', '30 Minute', '1 Hour', '3 Hour', '6 Hour'
 
 
-def _is_running() -> bool:
-    return change_wallpaper.is_running() or save_wallpaper.is_running() or search_wallpaper.is_running()
+def _is_busy() -> bool:
+    return (change_wallpaper.is_running() or save_wallpaper.is_running() or
+            search_wallpaper.is_running() or pin_to_start.is_running())
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool]]], section: str,
@@ -98,7 +102,7 @@ def _get_wallpaper_paths() -> Generator[str, None, None]:
 def load_config() -> bool:  # TODO verify config
     parser = configparser.ConfigParser()
     try:
-        loaded = bool(parser.read(CONFIG_PATH))
+        loaded = bool(parser.read(INI_PATH))
     except configparser.MissingSectionHeaderError:
         loaded = False
     getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean}
@@ -117,15 +121,15 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
             config_parser[module.NAME] = module.CONFIG
         except TypeError:
             saved = False
-    with open(CONFIG_PATH, 'w') as file:
+    with open(INI_PATH, 'w') as file:
         config_parser.write(file)
-    return saved and utils.file_exists(CONFIG_PATH)
+    return saved and utils.file_exists(INI_PATH)
 
 
 @utils.single
 def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Callable[[int, ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    utils.animate(RES_PATHS[1], LANG.STATUS_CHANGE)
+    utils.animate(RES_BUSY, LANG.STATUS_CHANGE)
     if progress_callback:
         progress_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if not url:
@@ -146,7 +150,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
 
 @utils.single
 def save_wallpaper() -> bool:
-    utils.animate(RES_PATHS[1], LANG.STATUS_SAVE)
+    utils.animate(RES_BUSY, LANG.STATUS_SAVE)
     saved = any(utils.copy_file(path, utils.join_path(CONFIG[CONFIG_DIR], utils.file_name(path))) for path in
                 _get_wallpaper_paths())
     utils.inanimate(LANG.STATUS_SAVE)
@@ -156,7 +160,7 @@ def save_wallpaper() -> bool:
 @utils.single
 def search_wallpaper() -> bool:
     searched = False
-    utils.animate(RES_PATHS[1], LANG.STATUS_SEARCH)
+    utils.animate(RES_BUSY, LANG.STATUS_SEARCH)
     for path in _get_wallpaper_paths():
         if location := utils.upload_url(SEARCH_URL, files={'encoded_image': (None, path)}).get_header('location'):
             utils.open_browser(location)
@@ -250,14 +254,15 @@ def on_search(enable: Callable) -> bool:
 
 def _get_launch_args() -> list[str]:
     argv = [sys.executable]
-    if not libs.pyinstall.FROZEN:
+    if not pyinstall.FROZEN:
         argv.append(utils.abs_path(__file__))
     return argv
 
 
 def _create_shortcut(dir_: str) -> bool:
-    return platform.create_shortcut(utils.join_path(dir_, f'{NAME}.{platform.LINK_EXT}'),
-                                    *_get_launch_args(), comment=LANG.DESCRIPTION, aumi=UUID)
+    return utils.make_dirs(dir_) and platform.create_shortcut(
+        utils.join_path(dir_, SHORTCUT_NAME), *_get_launch_args(),
+        icon_path=RES_ICON * (not pyinstall.FROZEN), comment=LANG.DESCRIPTION, uid=UUID)
 
 
 def on_shortcut() -> bool:
@@ -273,7 +278,7 @@ def on_remove_shortcuts() -> bool:
 
 
 def on_start_shortcut() -> bool:
-    if not (created := _create_shortcut(platform.START_DIR)) and CONFIG[CONFIG_NOTIFY]:
+    if not (created := _create_shortcut(utils.join_path(platform.START_DIR, NAME))) and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_START_MENU, LANG.FAIL_START_MENU)
     return created
 
@@ -282,6 +287,45 @@ def on_remove_start_shortcuts() -> bool:
     if not (removed := platform.remove_shortcuts(platform.START_DIR, UUID)) and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_REMOVE_START_MENU, LANG.FAIL_REMOVE_START_MENU)
     return removed
+
+
+def on_pin_taskbar() -> bool:
+    if not (pinned := platform.add_pin(
+            *_get_launch_args(), name=NAME, icon_path='' if pyinstall.FROZEN else RES_ICON)) and CONFIG[CONFIG_NOTIFY]:
+        utils.notify(LANG.LABEL_PIN_TASKBAR, LANG.FAIL_PIN_TASKBAR)
+    return pinned
+
+
+def on_unpin_taskbar() -> bool:
+    if not (unpinned := platform.remove_pins(*_get_launch_args())) and CONFIG[CONFIG_NOTIFY]:
+        utils.notify(LANG.LABEL_UNPIN_TASKBAR, LANG.FAIL_UNPIN_TASKBAR)
+    return unpinned
+
+
+@utils.single
+def pin_to_start() -> bool:
+    return platform.add_pin(
+        *_get_launch_args(), taskbar=False, name=NAME, icon_path='' if pyinstall.FROZEN else RES_ICON)
+
+
+@utils.thread
+def on_pin_start(enable: Callable, enable_: Callable) -> bool:
+    pinned = False
+    if not pin_to_start.is_running():
+        enable(False)
+        enable_(False)
+        pinned = pin_to_start()
+        enable_()
+        enable()
+    if not pinned and CONFIG[CONFIG_NOTIFY]:
+        utils.notify(LANG.LABEL_PIN_START, LANG.FAIL_PIN_START)
+    return pinned
+
+
+def on_unpin_start() -> bool:
+    if not (unpinned := platform.remove_pins(*_get_launch_args(), taskbar=False)) and CONFIG[CONFIG_NOTIFY]:
+        utils.notify(LANG.LABEL_UNPIN_START, LANG.FAIL_UNPIN_START)
+    return unpinned
 
 
 def on_clear():
@@ -327,7 +371,7 @@ def on_auto_start(checked: bool) -> bool:
 
 def on_save_config(checked: bool):
     CONFIG[CONFIG_SAVE] = checked
-    save_config() if checked else utils.delete(CONFIG_PATH)
+    save_config() if checked else utils.delete(INI_PATH)
 
 
 def on_about():
@@ -338,11 +382,11 @@ def on_about():
 def on_quit():
     TIMER.stop()
     utils.disable()
-    if _is_running():
+    if _is_busy():
         if CONFIG[CONFIG_NOTIFY]:
             utils.notify(LANG.LABEL_QUIT, LANG.FAIL_QUIT)
         end_time = time.time() + EXIT_TIMEOUT
-        while end_time > time.time() and _is_running():
+        while end_time > time.time() and _is_busy():
             time.sleep(POLL_TIMEOUT)
     utils.stop()
 
@@ -354,8 +398,8 @@ def create_menu():  # TODO slideshow (smaller timer)
     TIMER.args = False, menu_change.Enable, (lambda progress=None: menu_change.SetItemLabel(
         LANG.MENU_CHANGE if progress is None else f'{LANG.MENU_CHANGE} ({langs.to_str(progress, LANG, 3)}%)'))
     utils.add_item(LANG.LABEL_NEXT, on_click=on_change, args=TIMER.args, menu=menu_change)
-    ENABLE_PREVIOUS = utils.add_item(LANG.LABEL_PREVIOUS, enable=False, on_click=on_change,
-                                     args=(True, *TIMER.args[1:]), menu=menu_change).Enable
+    ENABLE_PREVIOUS = utils.add_item(
+        LANG.LABEL_PREVIOUS, enable=False, on_click=on_change, args=(True, *TIMER.args[1:]), menu=menu_change).Enable
     utils.add_item(LANG.LABEL_SAVE, on_click=on_save, menu_args=(utils.set_property.ENABLE,))
     utils.add_item(LANG.LABEL_SEARCH, on_click=on_search, menu_args=(utils.set_property.ENABLE,))
     utils.add_separator()
@@ -369,53 +413,74 @@ def create_menu():  # TODO slideshow (smaller timer)
     MODULE.create_menu()  # TODO separate left click menu (?)
     utils.add_separator()
     menu_actions = utils.add_submenu(LANG.MENU_ACTIONS)
-    utils.add_item(LANG.LABEL_DESKTOP, on_click=on_shortcut, menu=menu_actions)
-    utils.add_item(LANG.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts, menu=menu_actions)
-    utils.add_item(LANG.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_actions)
-    utils.add_item(LANG.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_actions)
-    utils.add_separator(menu_actions)
+    menu_links = utils.add_submenu(LANG.MENU_LINKS, menu=menu_actions)
+    utils.add_item(LANG.LABEL_DESKTOP, on_click=on_shortcut, menu=menu_links)
+    utils.add_item(LANG.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts, menu=menu_links)
+    utils.add_separator(menu_links)
+    utils.add_item(LANG.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_links)
+    utils.add_item(LANG.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_links)
+    utils.add_separator(menu_links)
+    utils.add_item(
+        LANG.LABEL_PIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_pin_taskbar, menu=menu_links)
+    utils.add_item(
+        LANG.LABEL_UNPIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
+        on_click=on_unpin_taskbar, menu=menu_links)
+    utils.add_separator(menu_links)
+    unpin = utils.add_item(
+        LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_unpin_start, menu=menu_links)
+    utils.add_item(
+        LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_pin_start,
+        menu_args=(utils.set_property.ENABLE,), args=(unpin.Enable,), position=9, menu=menu_links)
     utils.add_item(LANG.LABEL_CLEAR, on_click=on_clear, menu=menu_actions)
     utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
-    utils.add_separator(menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
     menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu_auto)
     for interval in INTERVALS:
-        utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
-                       on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)
-    utils.add_item(LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
-                   menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
+        utils.add_item(
+            interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
+            on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)
+    utils.add_item(
+        LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
+        menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
     utils.add_separator(menu_auto)
-    utils.add_item(LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,), menu=menu_auto)
+    utils.add_item(
+        LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
+        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,), menu=menu_auto)
     utils.add_item(LANG.LABEL_MODIFY_SAVE, on_click=on_modify_save, menu=menu_auto)
     menu_config = utils.add_submenu(LANG.MENU_CONFIG)
-    utils.add_item(LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
-    utils.add_item(LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NO_FADE,), menu=menu_config)
-    utils.add_item(LANG.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE], on_click=on_animate,
-                   menu_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_CACHE,), menu=menu_config)
-    utils.add_item(LANG.LABEL_START, utils.item.CHECK, CONFIG[CONFIG_START], on_click=on_auto_start,
-                   menu_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(LANG.LABEL_CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE], on_click=on_save_config,
-                   menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(
+        LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
+        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
+    utils.add_item(
+        LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config,
+        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NO_FADE,), menu=menu_config)
+    utils.add_item(
+        LANG.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE], on_click=on_animate,
+        menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(
+        LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
+        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_CACHE,), menu=menu_config)
+    utils.add_item(
+        LANG.LABEL_START, utils.item.CHECK, CONFIG[CONFIG_START], on_click=on_auto_start,
+        menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(
+        LANG.LABEL_CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE], on_click=on_save_config,
+        menu_args=(utils.get_property.CHECKED,), menu=menu_config)
     utils.add_item(LANG.LABEL_ABOUT, on_click=on_about)
     utils.add_item(LANG.LABEL_QUIT, on_click=on_quit)
 
 
 def start():  # TODO dark theme
-    libs.singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',), on_wait=print,
-                        on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
+    singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',),
+                   on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if ARG_DEBUG in sys.argv:
-        libs.log.redirect_stdout(LOG_PATH, True) if libs.pyinstall.FROZEN else libs.log.write_on_error(LOG_PATH)
-        libs.log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
-                      utils.re_join_path('libs', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
-                      utils.re_join_path('platforms', r'.*\.py'), level=libs.log.Level.INFO, check_comp=False)
-    libs.pyinstall.clean_temp()
+        log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_error(LOG_PATH)
+        log.init(utils.file_name(__file__), utils.file_name(utils.__file__),
+                 utils.re_join_path('libs', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
+                 utils.re_join_path('platforms', r'.*\.py'), level=log.Level.INFO, check_comp=False)
+    pyinstall.clean_temp()
     utils.make_dirs(TEMP_DIR)
     utils.trim_dir(TEMP_DIR, MAX_CACHE)
     load_config()
@@ -431,7 +496,7 @@ def start():  # TODO dark theme
             CONFIG[CONFIG_CHANGE] and time.time() >= CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST]):
         TIMER.last_start = time.time()
         on_change(*TIMER.args)
-    utils.start(RES_PATHS[0], NAME, on_change, TIMER.args)
+    utils.start(RES_TRAY, NAME, on_change, TIMER.args)
 
 
 def stop():
