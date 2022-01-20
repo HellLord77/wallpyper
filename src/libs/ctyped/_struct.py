@@ -353,15 +353,53 @@ class tag_inner_PROPVARIANT:
     u: _union.tag_inner_PROPVARIANT_u = None
 
 
-# noinspection PyPep8Naming
 @_dataclasses.dataclass
 class PROPVARIANT:
     u: _union2.PROPVARIANT_u = None
 
 
-UUID = GUID
-IID = GUID
-CLSID = GUID
+@_dataclasses.dataclass
+class MOUSEINPUT:
+    dx: _type.LONG = None
+    dy: _type.LONG = None
+    mouseData: _type.DWORD = None
+    dwFlags: _type.DWORD = None
+    time: _type.DWORD = None
+    dwExtraInfo: _type.ULONG_PTR = None
+
+
+@_dataclasses.dataclass
+class KEYBDINPUT:
+    wVk: _type.WORD = None
+    wScan: _type.WORD = None
+    dwFlags: _type.DWORD = None
+    time: _type.DWORD = None
+    dwExtraInfo: _type.ULONG_PTR = None
+
+
+@_dataclasses.dataclass
+class HARDWAREINPUT:
+    uMsg: _type.DWORD = None
+    wParamL: _type.WORD = None
+    wParamH: _type.WORD = None
+
+
+@_dataclasses.dataclass
+class INPUT:
+    type: _type.DWORD = None
+    u: _union.INPUT_u = None
+
+
+class UUID(GUID):
+    pass
+
+
+class IID(GUID):
+    pass
+
+
+class CLSID(GUID):
+    pass
 
 
 def _init(name: str) -> type[_ctypes.Structure]:

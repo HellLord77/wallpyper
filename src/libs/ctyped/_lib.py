@@ -26,12 +26,6 @@ class _WinDLL(_CDLL):
 
 
 # noinspection PyPep8Naming
-class uxtheme(metaclass=_WinDLL):
-    SetWindowTheme: _Callable[[_type.HWND, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR]],
-                              _type.HRESULT]
-
-
-# noinspection PyPep8Naming
 class combase(metaclass=_WinDLL):
     RoActivateInstance: _Callable[[_type.HSTRING, _type.c_void_p],
                                   _type.HRESULT]
@@ -175,6 +169,9 @@ class shell32(metaclass=_WinDLL):
                       _type.c_void_p]
     SHChangeNotify: _Callable[[_type.LONG, _type.UINT, _Optional[_type.LPCVOID], _Optional[_type.LPCVOID]],
                               _type.c_void_p]
+    SHCreateItemFromParsingName: _Callable[[_type.PCWSTR, _Optional[_Pointer[_com.IBindCtx]],
+                                            _Pointer[_struct.IID], _Pointer[_com.IShellItem]],
+                                           _type.SHSTDAPI]
     SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT, _Pointer[_Pointer[_struct.ITEMIDLIST]],
                                                   _Pointer[_com.IShellItemArray]],
                                                  _type.SHSTDAPI]
@@ -183,6 +180,10 @@ class shell32(metaclass=_WinDLL):
     SHGetFolderPathW: _Callable[[_Optional[_type.HWND], _type.c_int,
                                  _Optional[_type.HANDLE], _type.DWORD, _type.LPWSTR],
                                 _type.HRESULT]
+    SHGetPropertyStoreFromParsingName: _Callable[[_type.PCWSTR, _Optional[_Pointer[_com.IBindCtx]],
+                                                  _type.GETPROPERTYSTOREFLAGS, _Pointer[_struct.IID],
+                                                  _Pointer[_com.IPropertyStore]],
+                                                 _type.SHSTDAPI]
     SHOpenFolderAndSelectItems: _Callable[[_Pointer[_struct.ITEMIDLIST], _type.UINT,
                                            _Optional[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.DWORD],
                                           _type.SHSTDAPI]
@@ -199,6 +200,22 @@ class shell32(metaclass=_WinDLL):
                                  _type.BOOL]
     Shell_NotifyIconW: _Callable[[_type.DWORD, _Pointer[_struct.NOTIFYICONDATAW]],
                                  _type.BOOL]
+
+
+# noinspection PyPep8Naming
+class shlwapi(metaclass=_WinDLL):
+    GUIDFromStringA: _Callable[[_type.LPCSTR, _Pointer[_struct.GUID]],
+                               _type.BOOL] = 269
+    GUIDFromStringW: _Callable[[_type.LPCTSTR, _Pointer[_struct.GUID]],
+                               _type.BOOL] = 270
+    PathFileExistsA: _Callable[[_type.LPCSTR],
+                               _type.BOOL]
+    PathFileExistsW: _Callable[[_type.LPCWSTR],
+                               _type.BOOL]
+
+
+class Taskbar(metaclass=_WinDLL):
+    pass
 
 
 # noinspection PyPep8Naming
@@ -290,6 +307,8 @@ class user32(metaclass=_WinDLL):
                                 _type.ATOM]
     ReleaseDC: _Callable[[_Optional[_type.HWND], _type.HDC],
                          _type.c_int]
+    SendInput: _Callable[[_type.UINT, _Pointer[_struct.INPUT], _type.c_int],
+                         _type.UINT]
     SendMessageA: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM],
                             _type.LRESULT]
     SendMessageTimeoutA: _Callable[[_type.HWND, _type.UINT, _type.WPARAM, _type.LPARAM,
@@ -322,15 +341,10 @@ class user32(metaclass=_WinDLL):
                                 _type.BOOL]
 
 
-class Shlwapi(metaclass=_WinDLL):
-    GUIDFromStringA: _Callable[[_type.LPCSTR, _Pointer[_struct.GUID]],
-                               _type.BOOL] = 269
-    GUIDFromStringW: _Callable[[_type.LPCTSTR, _Pointer[_struct.GUID]],
-                               _type.BOOL] = 270
-    PathFileExistsA: _Callable[[_type.LPCSTR],
-                               _type.BOOL]
-    PathFileExistsW: _Callable[[_type.LPCWSTR],
-                               _type.BOOL]
+# noinspection PyPep8Naming
+class uxtheme(metaclass=_WinDLL):
+    SetWindowTheme: _Callable[[_type.HWND, _Optional[_type.LPCWSTR], _Optional[_type.LPCWSTR]],
+                              _type.HRESULT]
 
 
 _ORDINAL = {lib: {var_: (ord_, delattr(lib, var_))[0] for var_, ord_ in tuple(

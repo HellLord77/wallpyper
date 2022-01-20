@@ -1,9 +1,10 @@
-__version__ = '0.1.21'  # TODO overload func
+__version__ = '0.1.22'  # TODO overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
 import typing as _typing
 from typing import Any as _Any
+from typing import Callable as _Callable
 from typing import ContextManager as _ContextManager
 from typing import Optional as _Optional
 from typing import Type as _Type
@@ -46,7 +47,7 @@ def char_array(string):
 
 def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
     guid = type_()
-    if type_ is struct.GUID:  # FIXME match (3.10)
+    if type_ is struct.GUID:  # FIXME match (py 3.10)
         init = lib.shell32.GUIDFromStringW
     elif type_ is struct.IID:
         init = lib.ole32.IIDFromString
@@ -58,10 +59,10 @@ def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
     return guid
 
 
-def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], Pointer[struct.IID]]:
+def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], tuple[Pointer[struct.IID], Pointer[CT]]]:
     lib.ole32.CoInitialize(None)
-    return type_(), byref(init_guid(type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else Pointer(), byref(
-        init_guid(getattr(const, f'IID_{type_.__name__}'), struct.IID))
+    return (obj := type_()), byref(init_guid(
+        type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else Pointer(), macro.IID_PPV_ARGS(obj)
 
 
 # noinspection PyProtectedMember
@@ -72,9 +73,10 @@ def _del_com(obj: com._IUnknown):
 
 
 @_contextlib.contextmanager
-def create_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    obj, clsid_ref, iid_ref = _init_com(type_)
-    lib.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, iid_ref, byref(obj))
+def create_com(type_: _builtins.type[CT], creator: _Callable = lib.ole32.CoCreateInstance,
+               first_arg: _Any = None, flag: _Optional[type.DWORD] = const.CLSCTX_ALL) -> _ContextManager[CT]:
+    obj, clsid_ref, args = _init_com(type_)
+    creator(clsid_ref if first_arg is None else first_arg, None, *() if flag is None else (flag,), *args)
     try:
         yield obj
     finally:
@@ -83,9 +85,9 @@ def create_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
 
 # noinspection PyProtectedMember
 @_contextlib.contextmanager
-def convert_com(obj: com._IUnknown, to: _builtins.type[CT]) -> _ContextManager[CT]:
-    obj_, _, iid_ref = _init_com(to)
-    obj.QueryInterface(iid_ref, byref(obj_))
+def convert_com(obj: com._IUnknown, new_type: _builtins.type[CT]) -> _ContextManager[CT]:
+    obj_, _, args = _init_com(new_type)
+    obj.QueryInterface(*args)
     try:
         yield obj_
     finally:

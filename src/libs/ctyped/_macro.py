@@ -1,10 +1,10 @@
-import functools as _functools
-import types as _types
-import typing as _typing
-from typing import Callable as _Callable
-
+from . import _com
+from . import _const
+from . import _lib
+from . import _struct
 from . import _type
-from .__head__ import _Globals
+from .__head__ import _Pointer
+from .__head__ import _byref
 from .__head__ import _cast
 
 
@@ -110,12 +110,8 @@ def ResultFromScode(sc: int) -> _type.HRESULT:
     return _type.HRESULT(sc)
 
 
-def _init(name: str) -> _Callable:
-    _globals.has_item(name)
-    types = _typing.get_type_hints(_globals.vars_[name]).values()
-    macro = _types.FunctionType(_globals.vars_[name].__code__, _globals)
-    return _functools.update_wrapper(lambda *args: macro(*(
-        arg if isinstance(arg, type_) else type_(arg) for arg, type_ in zip(args, types))), _globals.vars_[name])
-
-
-_globals = _Globals()
+# noinspection PyPep8Naming,PyProtectedMember
+def IID_PPV_ARGS(ppType: _com._IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com._IUnknown]]:
+    iid_ref = _byref(_struct.IID())
+    _lib.ole32.IIDFromString(getattr(_const, f'IID_{type(ppType).__name__}'), iid_ref)
+    return iid_ref, _byref(ppType)

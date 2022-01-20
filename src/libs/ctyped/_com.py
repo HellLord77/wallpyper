@@ -173,7 +173,7 @@ class IPersistFile(IPersist):
 
 
 class IShellLinkA(_IUnknown):
-    __CLSID__ = _const.CLSID_IShellLink
+    __CLSID__ = _const.CLSID_ShellLink
     GetPath: _Callable[
         [_type.LPWSTR, _type.c_int, _Optional[_Pointer[_struct.WIN32_FIND_DATAA]], _type.DWORD], _type.HRESULT]
     GetIDList: _Callable[[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.HRESULT]
@@ -196,7 +196,7 @@ class IShellLinkA(_IUnknown):
 
 
 class IShellLinkW(_IUnknown):
-    __CLSID__ = _const.CLSID_IShellLink
+    __CLSID__ = _const.CLSID_ShellLink
     GetPath: _Callable[
         [_type.LPWSTR, _type.c_int, _Optional[_Pointer[_struct.WIN32_FIND_DATAW]], _type.DWORD], _type.HRESULT]
     GetIDList: _Callable[[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.HRESULT]
@@ -216,6 +216,15 @@ class IShellLinkW(_IUnknown):
     SetRelativePath: _Callable[[_type.LPCWSTR, _type.DWORD], _type.HRESULT]
     Resolve: _Callable[[_type.HWND, _type.DWORD], _type.HRESULT]
     SetPath: _Callable[[_type.LPCWSTR], _type.HRESULT]
+
+
+class IStartMenuPinnedList(_IUnknown):
+    __CLSID__ = _const.CLSID_StartMenuPin
+    RemoveFromList: _Callable[[IShellItem], _type.HRESULT]
+
+
+class IBindCtx(_IUnknown):
+    ...
 
 
 def _method_type(types: _Callable) -> list:

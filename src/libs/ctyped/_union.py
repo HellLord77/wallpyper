@@ -50,6 +50,14 @@ class tag_inner_PROPVARIANT_u:
     ...
 
 
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class INPUT_u:
+    mi: _struct.MOUSEINPUT = None
+    ki: _struct.KEYBDINPUT = None
+    hi: _struct.HARDWAREINPUT = None
+
+
 def _init(name: str) -> type[_ctypes.Union]:
     _globals.has_item(name)
 

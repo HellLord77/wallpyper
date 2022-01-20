@@ -138,6 +138,7 @@ RO_INIT_TYPE = _enum
 SIGDN = _enum
 Status = _enum
 TrustLevel = _enum
+GETPROPERTYSTOREFLAGS = _enum
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
