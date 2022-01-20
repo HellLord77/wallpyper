@@ -12,7 +12,7 @@ $Version = "0.0.1"
     $OneFile = $False
 #>
 
-$Datas = @("resources")
+$Datas = @("resources", "platforms\win32\syspin.exe")
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 
@@ -70,7 +70,16 @@ function Build-Project
     {
         foreach ($Data in $Datas)
         {
-            $MainArgs += "--add-data=""$( Join-Path $SrcDir $Data );$Data"""
+            $DataSrc = Join-Path $SrcDir $Data
+            if (Test-Path $DataSrc -PathType Leaf)
+            {
+                $DataDst = Split-Path $Data -Parent
+            }
+            else
+            {
+                $DataDst = $Data
+            }
+            $MainArgs += "--add-data=""$DataSrc;$DataDst"""
             $MainArgs[-1] = $MainArgs[-1].Replace("\", "\\")
         }
     }
