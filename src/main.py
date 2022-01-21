@@ -262,7 +262,7 @@ def _get_launch_args() -> list[str]:
 def _create_shortcut(dir_: str) -> bool:
     return utils.make_dirs(dir_) and platform.create_shortcut(
         utils.join_path(dir_, SHORTCUT_NAME), *_get_launch_args(),
-        icon_path=RES_ICON * (not pyinstall.FROZEN), comment=LANG.DESCRIPTION, uid=UUID)
+        icon_path=RES_ICON * (not pyinstall.FROZEN), comment=LANG.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
 
 
 def on_shortcut() -> bool:
@@ -290,8 +290,8 @@ def on_remove_start_shortcuts() -> bool:
 
 
 def on_pin_taskbar() -> bool:
-    if not (pinned := platform.add_pin(
-            *_get_launch_args(), name=NAME, icon_path='' if pyinstall.FROZEN else RES_ICON)) and CONFIG[CONFIG_NOTIFY]:
+    if not (pinned := platform.add_pin(*_get_launch_args(), name=NAME, icon_path='' if pyinstall.FROZEN else RES_ICON,
+                                       show=pyinstall.FROZEN)) and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_PIN_TASKBAR, LANG.FAIL_PIN_TASKBAR)
     return pinned
 
@@ -304,8 +304,8 @@ def on_unpin_taskbar() -> bool:
 
 @utils.single
 def pin_to_start() -> bool:
-    return platform.add_pin(
-        *_get_launch_args(), taskbar=False, name=NAME, icon_path='' if pyinstall.FROZEN else RES_ICON)
+    return platform.add_pin(*_get_launch_args(), taskbar=False, name=NAME,
+                            icon_path='' if pyinstall.FROZEN else RES_ICON, show=pyinstall.FROZEN)
 
 
 @utils.thread
@@ -364,8 +364,8 @@ def on_animate(checked: bool):
 def on_auto_start(checked: bool) -> bool:
     CONFIG[CONFIG_START] = checked
     if checked:
-        return platform.register_autorun(NAME, *_get_launch_args(),
-                                         *(ARG_CHANGE,) if CONFIG[CONFIG_CHANGE] else (), uid=UUID)
+        return platform.register_autorun(NAME, *_get_launch_args(), *(ARG_CHANGE,) if CONFIG[CONFIG_CHANGE] else (),
+                                         show=pyinstall.FROZEN, uid=UUID)
     return platform.unregister_autorun(NAME, UUID)
 
 
@@ -398,8 +398,8 @@ def create_menu():  # TODO slideshow (smaller timer)
     TIMER.args = False, menu_change.Enable, (lambda progress=None: menu_change.SetItemLabel(
         LANG.MENU_CHANGE if progress is None else f'{LANG.MENU_CHANGE} ({langs.to_str(progress, LANG, 3)}%)'))
     utils.add_item(LANG.LABEL_NEXT, on_click=on_change, args=TIMER.args, menu=menu_change)
-    ENABLE_PREVIOUS = utils.add_item(
-        LANG.LABEL_PREVIOUS, enable=False, on_click=on_change, args=(True, *TIMER.args[1:]), menu=menu_change).Enable
+    ENABLE_PREVIOUS = utils.add_item(LANG.LABEL_PREVIOUS, enable=False, on_click=on_change,
+                                     args=(True, *TIMER.args[1:]), menu=menu_change).Enable
     utils.add_item(LANG.LABEL_SAVE, on_click=on_save, menu_args=(utils.set_property.ENABLE,))
     utils.add_item(LANG.LABEL_SEARCH, on_click=on_search, menu_args=(utils.set_property.ENABLE,))
     utils.add_separator()
@@ -420,17 +420,16 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_links)
     utils.add_item(LANG.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_links)
     utils.add_separator(menu_links)
-    utils.add_item(
-        LANG.LABEL_PIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_pin_taskbar, menu=menu_links)
+    utils.add_item(LANG.LABEL_PIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
+                   on_click=on_pin_taskbar, menu=menu_links)
     utils.add_item(
         LANG.LABEL_UNPIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
         on_click=on_unpin_taskbar, menu=menu_links)
     utils.add_separator(menu_links)
-    unpin = utils.add_item(
-        LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_unpin_start, menu=menu_links)
-    utils.add_item(
-        LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_pin_start,
-        menu_args=(utils.set_property.ENABLE,), args=(unpin.Enable,), position=9, menu=menu_links)
+    unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
+                           on_click=on_unpin_start, menu=menu_links)
+    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN], on_click=on_pin_start,
+                   menu_args=(utils.set_property.ENABLE,), args=(unpin.Enable,), position=9, menu=menu_links)
     utils.add_item(LANG.LABEL_CLEAR, on_click=on_clear, menu=menu_actions)
     utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
@@ -438,36 +437,27 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
     menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu_auto)
     for interval in INTERVALS:
-        utils.add_item(
-            interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
-            on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)
-    utils.add_item(
-        LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
-        menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
+        utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
+                       on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)
+    utils.add_item(LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
+                   menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
     utils.add_separator(menu_auto)
-    utils.add_item(
-        LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
-        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,), menu=menu_auto)
+    utils.add_item(LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,), menu=menu_auto)
     utils.add_item(LANG.LABEL_MODIFY_SAVE, on_click=on_modify_save, menu=menu_auto)
     menu_config = utils.add_submenu(LANG.MENU_CONFIG)
-    utils.add_item(
-        LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
-        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
-    utils.add_item(
-        LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config,
-        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NO_FADE,), menu=menu_config)
-    utils.add_item(
-        LANG.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE], on_click=on_animate,
-        menu_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(
-        LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
-        menu_args=(utils.get_property.CHECKED,), args=(CONFIG_CACHE,), menu=menu_config)
-    utils.add_item(
-        LANG.LABEL_START, utils.item.CHECK, CONFIG[CONFIG_START], on_click=on_auto_start,
-        menu_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(
-        LANG.LABEL_CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE], on_click=on_save_config,
-        menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
+    utils.add_item(LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NO_FADE,), menu=menu_config)
+    utils.add_item(LANG.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
+                   on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
+                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_CACHE,), menu=menu_config)
+    utils.add_item(LANG.LABEL_START, utils.item.CHECK, CONFIG[CONFIG_START],
+                   on_click=on_auto_start, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+    utils.add_item(LANG.LABEL_CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE],
+                   on_click=on_save_config, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
     utils.add_item(LANG.LABEL_ABOUT, on_click=on_about)
     utils.add_item(LANG.LABEL_QUIT, on_click=on_quit)
 

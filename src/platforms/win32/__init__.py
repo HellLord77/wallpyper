@@ -272,12 +272,13 @@ def _register_autorun_reg(name: str, path: str, *args: str) -> bool:
         return (cmd, winreg.REG_SZ) == winreg.QueryValueEx(key, name)
 
 
-def _register_autorun_link(name: str, path: str, *args: str, aumi: Optional[str] = None) -> bool:
-    return create_shortcut(os.path.join(_STARTUP_DIR, f'{name}.{LINK_EXT}'), path, *args, uid=aumi)
+def _register_autorun_link(name: str, path: str, *args: str, show: bool, aumi: Optional[str] = None) -> bool:
+    return create_shortcut(os.path.join(_STARTUP_DIR, f'{name}.{LINK_EXT}'), path, *args, show=show, uid=aumi)
 
 
-def register_autorun(name: str, path: str, *args: str, uid: Optional[str] = None) -> bool:
-    return _register_autorun_link(name, path, *args, aumi=uid) or _register_autorun_reg(name, path, *args)
+def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: Optional[str] = None) -> bool:
+    return unregister_autorun(name, uid) and (_register_autorun_link(
+        name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path, *args))
 
 
 def _unregister_autorun_reg(name: str) -> bool:
@@ -415,13 +416,13 @@ def _set_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
         return (path, desc, work_dir, args, hotkey, show, icon) == _get_link_data(link)
 
 
-def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0,
-                    comment: str = '', start_in: Optional[str] = None, uid: Optional[str] = None) -> bool:
+def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0, comment: str = '',
+                    start_in: Optional[str] = None, show: bool = True, uid: Optional[str] = None) -> bool:
     with ctyped.create_com(ctyped.com.IShellLinkW) as link:
         if link:
-            set_data = _set_link_data(
-                link, target, comment, os.path.dirname(target) if start_in is None else start_in,
-                subprocess.list2cmdline(args), icon=(icon_path, icon_index))
+            set_data = _set_link_data(link, target, comment, os.path.dirname(target) if start_in is None else start_in,
+                                      subprocess.list2cmdline(args), icon=(icon_path, icon_index),
+                                      show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE)
             set_aumi = set_data and (uid is None or _set_ex_str_props(link, {ctyped.const.PKEY_AppUserModel_ID: uid}))
             saved = set_aumi and _save_link(link, path)
     return saved
@@ -449,7 +450,7 @@ def remove_shortcuts(dir_: str, uid: str, rmdir: bool = True) -> bool:
 
 
 def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] = None,
-            icon_path: str = '', icon_index: int = 0) -> bool:
+            icon_path: str = '', icon_index: int = 0, show: bool = True) -> bool:
     if remove_pins(target, *args, taskbar=taskbar):
         name_ = os.path.splitext(os.path.basename(target))[0]
         if taskbar:
@@ -465,10 +466,11 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
             time.sleep(_PIN_TIMEOUT)
         if path != path_:
             os.rename(path_, path)
-        if args or icon_path or icon_index:
+        if args or icon_path or icon_index or not show:
             with _load_link(path) as link:
                 link.SetArguments(subprocess.list2cmdline(args))  # FIXME taskbar button requires click to fix (no api)
                 link.SetIconLocation(icon_path, icon_index)
+                link.SetShowCmd(ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE)
                 return _save_link(link, path)
         else:
             end = time.time() + _PIN_TIMEOUT
