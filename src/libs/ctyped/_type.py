@@ -7,6 +7,7 @@ from typing import Optional as _Optional
 from typing import Union as _Union
 
 from . import _const
+from . import _struct
 from .__head__ import _Globals
 from .__head__ import _Pointer
 from .__head__ import _resolve_type
@@ -123,10 +124,8 @@ _obj_p = c_void_p
 GpBitmap = _obj_p
 GpImage = _obj_p
 HSTRING = _obj_p
-IBindCtx = _obj_p
 IShellItem = _obj_p
-IShellItemArray = _obj_p
-IUnknown = _obj_p
+LPRECT = _obj_p
 
 _enum = c_uint  # TODO enum.IntEnum
 DESKTOP_SLIDESHOW_DIRECTION = _enum
@@ -221,6 +220,7 @@ HCURSOR = HICON
 WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
 TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
+MONITORENUMPROC = _Callable[[HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]
 
 
 def _set_magic(magic: str, func: _Callable):

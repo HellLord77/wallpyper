@@ -29,7 +29,7 @@ class _IUnknown(_ctypes.c_void_p):
 
 
 class IShellItem(_IUnknown):
-    BindToHandler: _Callable[[_Pointer[_type.IBindCtx], _Pointer[_struct.GUID],
+    BindToHandler: _Callable[[_Pointer[IBindCtx], _Pointer[_struct.GUID],
                               _Pointer[_struct.IID], _type.c_void_p], _type.HRESULT]
     GetParent: _Callable[[_Pointer[_type.IShellItem]], _type.HRESULT]
     GetDisplayName: _Callable[[_type.SIGDN, _Pointer[_type.LPWSTR]], _type.HRESULT]
@@ -82,7 +82,7 @@ class IDesktopWallpaper(_IUnknown):
     GetBackgroundColor: _Callable[[_Pointer[_type.COLORREF]], _type.HRESULT]
     SetPosition: _Callable[[_type.DESKTOP_WALLPAPER_POSITION], _type.HRESULT]
     GetPosition: _Callable[[_Pointer[_type.DESKTOP_WALLPAPER_POSITION]], _type.HRESULT]
-    SetSlideshow: _Callable[[_type.IShellItemArray], _type.HRESULT]
+    SetSlideshow: _Callable[[IShellItemArray], _type.HRESULT]
     GetSlideshow: _Callable
     SetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, _type.UINT], _type.HRESULT]
     GetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS, _Pointer[_type.UINT]], _type.HRESULT]

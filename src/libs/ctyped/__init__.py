@@ -59,36 +59,31 @@ def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
     return guid
 
 
-def _init_com(type_: _builtins.type[CT]) -> tuple[CT, Pointer[struct.CLSID], tuple[Pointer[struct.IID], Pointer[CT]]]:
+@_contextlib.contextmanager
+def _prep_com(type_: _builtins.type[CT]) -> \
+        _ContextManager[tuple[CT, Pointer[struct.CLSID], tuple[Pointer[struct.IID], Pointer[CT]]]]:
     lib.ole32.CoInitialize(None)
-    return (obj := type_()), byref(init_guid(
-        type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else Pointer(), macro.IID_PPV_ARGS(obj)
-
-
-# noinspection PyProtectedMember
-def _del_com(obj: com._IUnknown):
-    if obj:
-        obj.Release()
-    lib.ole32.CoInitialize(None)
+    obj = type_()
+    try:
+        yield obj, byref(init_guid(type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(obj)
+    finally:
+        if obj:
+            obj.Release()
+        lib.ole32.CoInitialize(None)
 
 
 @_contextlib.contextmanager
-def create_com(type_: _builtins.type[CT], creator: _Callable = lib.ole32.CoCreateInstance,
+def create_com(type_: _builtins.type[CT], creator: _Optional[_Callable] = lib.ole32.CoCreateInstance,
                first_arg: _Any = None, flag: _Optional[type.DWORD] = const.CLSCTX_ALL) -> _ContextManager[CT]:
-    obj, clsid_ref, args = _init_com(type_)
-    creator(clsid_ref if first_arg is None else first_arg, None, *() if flag is None else (flag,), *args)
-    try:
+    with _prep_com(type_) as (obj, clsid_ref, args):
+        if creator is not None:
+            creator(clsid_ref if first_arg is None else first_arg, None, *() if flag is None else (flag,), *args)
         yield obj
-    finally:
-        _del_com(obj)
 
 
 # noinspection PyProtectedMember
 @_contextlib.contextmanager
-def convert_com(obj: com._IUnknown, new_type: _builtins.type[CT]) -> _ContextManager[CT]:
-    obj_, _, args = _init_com(new_type)
-    obj.QueryInterface(*args)
-    try:
+def convert_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[CT]:
+    with _prep_com(type_) as (obj_, _, args):
+        obj.QueryInterface(*args)
         yield obj_
-    finally:
-        _del_com(obj_)

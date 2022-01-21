@@ -1,6 +1,7 @@
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 import contextlib
+import operator
 import os
 import subprocess
 import time
@@ -39,6 +40,12 @@ def get_max_shutdown_time() -> float:
     return buff.value / 1000
 
 
+def get_monitor_count() -> int:
+    num = ctyped.type.c_int()
+    ctyped.lib.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
+    return num.value
+
+
 def get_temp_dir() -> str:
     buff = ctyped.type.LPWSTR(_EMPTY)
     ctyped.lib.kernel32.GetTempPathW(len(_EMPTY), buff)
@@ -50,8 +57,7 @@ def refresh_dir(dir_: str):
 
 
 def press_keyboard(key: int) -> bool:
-    input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD,
-                                 ctyped.union.INPUT_u(ki=ctyped.struct.KEYBDINPUT(key)))
+    input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_u(ki=ctyped.struct.KEYBDINPUT(key)))
     ref = ctyped.byref(input_)
     sz = ctyped.sizeof(ctyped.struct.INPUT)
     down = ctyped.lib.user32.SendInput(1, ref, sz) == 1
@@ -72,8 +78,8 @@ def _clipboard() -> ContextManager[None]:
 
 def paste_text() -> str:
     with _clipboard():
-        return ctyped.cast(ctyped.lib.user32.GetClipboardData(ctyped.const.CF_UNICODETEXT),
-                           ctyped.type.c_wchar_p).value or ''
+        return ctyped.cast(ctyped.lib.user32.GetClipboardData(
+            ctyped.const.CF_UNICODETEXT), ctyped.type.c_wchar_p).value or ''
 
 
 def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
@@ -85,19 +91,19 @@ def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
 def copy_text(text: str, quote: Optional[str] = None) -> bool:
     if quote:
         text = f'{quote}{text}{quote}'
-    size = (ctyped.lib.msvcrt.wcslen(text) + 1) * ctyped.sizeof(ctyped.type.c_wchar)
-    handle = ctyped.lib.kernel32.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
+    sz = (ctyped.lib.msvcrt.wcslen(text) + 1) * ctyped.sizeof(ctyped.type.c_wchar)
+    handle = ctyped.lib.kernel32.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, sz)
     if handle:
         buff = ctyped.lib.kernel32.GlobalLock(handle)
         if buff:
-            ctyped.lib.msvcrt.memmove(buff, text, size)
+            ctyped.lib.msvcrt.memmove(buff, text, sz)
             _set_clipboard(ctyped.const.CF_UNICODETEXT, handle)
     return text == paste_text()
 
 
 @contextlib.contextmanager
-def _global_memory(size: ctyped.type.SIZE_T) -> ContextManager[tuple[ctyped.type.HGLOBAL, ctyped.type.LPVOID]]:
-    handle = ctyped.lib.kernel32.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, size)
+def _global_memory(sz: ctyped.type.SIZE_T) -> ContextManager[tuple[ctyped.type.HGLOBAL, ctyped.type.LPVOID]]:
+    handle = ctyped.lib.kernel32.GlobalAlloc(ctyped.const.GMEM_MOVEABLE, sz)
     buff = None
     if handle:
         buff = ctyped.lib.kernel32.GlobalLock(handle)
@@ -158,21 +164,19 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
 def copy_image(path: str) -> bool:
     with _get_hbitmap(path) as hbitmap:
         bm = ctyped.struct.BITMAP()
-        if ctyped.sizeof(ctyped.struct.BITMAP) == ctyped.lib.gdi32.GetObjectW(hbitmap,
-                                                                              ctyped.sizeof(ctyped.struct.BITMAP),
-                                                                              ctyped.byref(bm)):
-            sz_bi = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
-            bi = ctyped.struct.BITMAPINFOHEADER(sz_bi, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
+        if (sz_bi := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.lib.gdi32.GetObjectW(hbitmap, sz_bi,
+                                                                                         ctyped.byref(bm)):
+            sz_bih = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
+            bi = ctyped.struct.BITMAPINFOHEADER(sz_bih, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
             sz = bm.bmWidthBytes * bm.bmHeight
             data = ctyped.array(ctyped.type.BYTE, size=sz)
             with _get_dc() as hdc:
-                if hdc and ctyped.lib.gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data,
-                                                      ctyped.cast(bi, ctyped.struct.BITMAPINFO),
-                                                      ctyped.const.DIB_RGB_COLORS):
-                    with _global_memory(sz_bi + sz) as handle_buff:
+                if hdc and ctyped.lib.gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, ctyped.cast(
+                        bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
+                    with _global_memory(sz_bih + sz) as handle_buff:
                         if handle_buff[1]:
-                            ctyped.lib.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bi)
-                            ctyped.lib.msvcrt.memmove(handle_buff[1] + sz_bi, data, sz)
+                            ctyped.lib.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bih)
+                            ctyped.lib.msvcrt.memmove(handle_buff[1] + sz_bih, data, sz)
                             _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
                             return True
     return False
@@ -218,20 +222,18 @@ def get_wallpaper_path() -> str:
 
 def _set_wallpaper_param(path: str) -> bool:
     if ctyped.lib.shlwapi.PathFileExistsW(path):
-        ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                ctyped.const.SPIF_SENDWININICHANGE)
-        return True
+        return bool(ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                                            ctyped.const.SPIF_SENDWININICHANGE))
     return False
 
 
 def _set_wallpaper_com(path: str) -> bool:
     with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
-        if desktop:
-            if ctyped.lib.shlwapi.PathFileExistsW(path):
-                ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
-                desktop.SetWallpaper(path, 0)
-                desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
-                return True
+        if desktop and ctyped.lib.shlwapi.PathFileExistsW(path):
+            ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
+            desktop.SetWallpaper(path, 0)
+            desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
+            return True
     return False
 
 
@@ -251,10 +253,10 @@ def set_slideshow(*paths: str) -> bool:
         id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
         with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
             if wallpaper:
-                with ctyped.create_com(ctyped.com.IShellItemArray) as shl_arr:
+                with ctyped.create_com(ctyped.com.IShellItemArray, None) as shl_arr:
+                    ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(
+                        len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
                     if shl_arr:
-                        ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(
-                            len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
                         wallpaper.SetSlideshow(shl_arr)
                         return True
     return False
@@ -277,8 +279,9 @@ def _register_autorun_link(name: str, path: str, *args: str, show: bool, aumi: O
 
 
 def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: Optional[str] = None) -> bool:
-    return unregister_autorun(name, uid) and (_register_autorun_link(
-        name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path, *args))
+    return unregister_autorun(name, uid) and (
+            _register_autorun_link(name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path,
+                                                                                                    *args))
 
 
 def _unregister_autorun_reg(name: str) -> bool:
@@ -310,9 +313,9 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
     try:
         with ctyped.create_com(
                 ctyped.com.IPropertyStore, ctyped.lib.shell32.SHGetPropertyStoreFromParsingName, path_or_interface,
-                ctyped.const.GPS_READWRITE if write else ctyped.const.GPS_PREFERQUERYPROPERTIES) \
-                if isinstance(path_or_interface, str) else \
-                ctyped.convert_com(path_or_interface, ctyped.com.IPropertyStore) as prop_store:
+                ctyped.const.GPS_READWRITE if write else ctyped.const.GPS_PREFERQUERYPROPERTIES) if isinstance(
+            path_or_interface, str) else ctyped.convert_com(ctyped.com.IPropertyStore,
+                                                            path_or_interface) as prop_store:
             yield prop_store
     except OSError:
         yield None
@@ -345,8 +348,9 @@ def _set_ex_str_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
             for key, val in props.items():
                 var.u.s.u.pwszVal = val
                 with contextlib.suppress(OSError):
-                    prop.SetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
-                        ctyped.init_guid(key[0], ctyped.struct.GUID), key[1])), ctyped.byref(var))
+                    prop.SetValue(
+                        ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.init_guid(key[0], ctyped.struct.GUID), key[1])),
+                        ctyped.byref(var))
             with contextlib.suppress(OSError):
                 prop.Commit()
         return all(val == val_ for val, val_ in zip(props.values(), _get_ex_str_props(path_or_interface, *props)))
@@ -358,7 +362,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
     if isinstance(path_or_link, str):
         with ctyped.create_com(ctyped.com.IShellLinkW) as link:
             if link:
-                with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
+                with ctyped.convert_com(ctyped.com.IPersistFile, link) as file:
                     if file:
                         file.Load(path_or_link, ctyped.const.STGM_READ)
             yield link
@@ -367,7 +371,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
 
 
 def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
-    with ctyped.convert_com(link, ctyped.com.IPersistFile) as file:
+    with ctyped.convert_com(ctyped.com.IPersistFile, link) as file:
         try:
             file.Save(path, True)
         except (OSError, PermissionError):
@@ -402,30 +406,29 @@ def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     return tuple(data)
 
 
-def _set_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW], path: str,
-                   desc: str, work_dir: str, args: str, hotkey: int = 0,
-                   show: int = ctyped.const.SW_SHOWNORMAL, icon: tuple[str, int] = ('', 0)) -> bool:
+def _set_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+                   path: Optional[str] = None, desc: Optional[str] = None, work_dir: Optional[str] = None,
+                   args: Optional[str] = None, hotkey: Optional[int] = None,
+                   show: Optional[int] = None, icon: Optional[tuple[str, int]] = None) -> bool:
     with _load_link(path_or_link) as link:
-        link.SetPath(path)
-        link.SetDescription(desc)
-        link.SetWorkingDirectory(work_dir)
-        link.SetArguments(args)
-        link.SetHotkey(hotkey)
-        link.SetShowCmd(show)
-        link.SetIconLocation(*icon)
-        return (path, desc, work_dir, args, hotkey, show, icon) == _get_link_data(link)
-
-
-def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0, comment: str = '',
-                    start_in: Optional[str] = None, show: bool = True, uid: Optional[str] = None) -> bool:
-    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
-        if link:
-            set_data = _set_link_data(link, target, comment, os.path.dirname(target) if start_in is None else start_in,
-                                      subprocess.list2cmdline(args), icon=(icon_path, icon_index),
-                                      show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE)
-            set_aumi = set_data and (uid is None or _set_ex_str_props(link, {ctyped.const.PKEY_AppUserModel_ID: uid}))
-            saved = set_aumi and _save_link(link, path)
-    return saved
+        if path is not None:
+            link.SetPath(path)
+        if desc is not None:
+            link.SetDescription(desc)
+        if work_dir is not None:
+            link.SetWorkingDirectory(work_dir)
+        if args is not None:
+            link.SetArguments(args)
+        if hotkey is not None:
+            link.SetHotkey(hotkey)
+        if show is not None:
+            link.SetShowCmd(show)
+        if icon is not None:
+            link.SetIconLocation(*icon)
+        for data, data_ in zip((path, desc, work_dir, args, hotkey, show, icon), _get_link_data(link)):
+            if data is not None and data != data_:
+                return False
+    return True
 
 
 def _get_link_paths(dir_: str, recursive: Optional[bool] = None) -> Generator[str, None, None]:
@@ -435,6 +438,20 @@ def _get_link_paths(dir_: str, recursive: Optional[bool] = None) -> Generator[st
                 yield path
         elif os.path.splitext(path := os.path.realpath(dir_entry.path))[1] == LINK_EXT:
             yield path
+
+
+def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0,
+                    comment: Optional[str] = None, start_in: Optional[str] = None, show: bool = True,
+                    uid: Optional[str] = None) -> bool:
+    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
+        if link:
+            set_ = _set_link_data(link, target, comment, os.path.dirname(
+                target) if start_in is None else start_in, subprocess.list2cmdline(
+                args), show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
+                                  icon=(icon_path, icon_index))
+            return set_ and (uid is None or _set_ex_str_props(link, {
+                ctyped.const.PKEY_AppUserModel_ID: uid})) and _save_link(link, path)
+    return False
 
 
 def remove_shortcuts(dir_: str, uid: str, rmdir: bool = True) -> bool:
@@ -468,10 +485,10 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
             os.rename(path_, path)
         if args or icon_path or icon_index or not show:
             with _load_link(path) as link:
-                link.SetArguments(subprocess.list2cmdline(args))  # FIXME taskbar button requires click to fix (no api)
-                link.SetIconLocation(icon_path, icon_index)
-                link.SetShowCmd(ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE)
-                return _save_link(link, path)
+                return _set_link_data(
+                    link, args=subprocess.list2cmdline(args),  # FIXME taskbar button requires click to fix (no api)
+                    show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
+                    icon=(icon_path, icon_index)) and _save_link(link, path)
         else:
             end = time.time() + _PIN_TIMEOUT
             while (no_pin := not os.path.isfile(path)) and time.time() < end:
@@ -480,7 +497,7 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
     return False
 
 
-def remove_pins(target: str, *args: str, taskbar: bool = True):
+def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
     removed = True
     args = subprocess.list2cmdline(args)
     for path in _get_link_paths(_TASKBAR_DIR if taskbar else START_DIR):
@@ -489,8 +506,8 @@ def remove_pins(target: str, *args: str, taskbar: bool = True):
             if taskbar:
                 with ctyped.create_com(ctyped.com.IStartMenuPinnedList) as pinned:
                     if pinned:
-                        with ctyped.create_com(ctyped.com.IShellItem,
-                                               ctyped.lib.shell32.SHCreateItemFromParsingName, path, None) as item:
+                        with ctyped.create_com(ctyped.com.IShellItem, ctyped.lib.shell32.SHCreateItemFromParsingName,
+                                               path, None) as item:
                             if item:
                                 removed = pinned.RemoveFromList(item) == 0 and removed
             if os.path.isfile(path):

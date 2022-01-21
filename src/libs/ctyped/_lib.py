@@ -140,7 +140,7 @@ class ole32(metaclass=_WinDLL):
                                _type.HRESULT]
     CoCreateGuid: _Callable[[_Pointer[_struct.GUID]],
                             _type.HRESULT]
-    CoCreateInstance: _Callable[[_Pointer[_struct.CLSID], _Optional[_Pointer[_type.IUnknown]],
+    CoCreateInstance: _Callable[[_Pointer[_struct.CLSID], _Optional[_Pointer[_com.IUnknown]],
                                  _type.DWORD, _Pointer[_struct.IID], _type.LPVOID],
                                 _type.HRESULT]
     CoInitialize: _Callable[[_Optional[_type.LPVOID]],
@@ -187,7 +187,7 @@ class shell32(metaclass=_WinDLL):
     SHOpenFolderAndSelectItems: _Callable[[_Pointer[_struct.ITEMIDLIST], _type.UINT,
                                            _Optional[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.DWORD],
                                           _type.SHSTDAPI]
-    SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[_Pointer[_type.IBindCtx]],
+    SHParseDisplayName: _Callable[[_type.PCWSTR, _Optional[_Pointer[_com.IBindCtx]],
                                    _Pointer[_Pointer[type[_struct.ITEMIDLIST]]], _type.SFGAOF, _Pointer[_type.SFGAOF]],
                                   _type.SHSTDAPI]
     ShellExecuteA: _Callable[[_Optional[_type.HWND], _Optional[_type.LPCSTR], _type.LPCSTR,
@@ -251,6 +251,9 @@ class user32(metaclass=_WinDLL):
                            _type.BOOL]
     EmptyClipboard: _Callable[[],
                               _type.BOOL]
+    EnumDisplayMonitors: _Callable[[_Optional[_type.HDC], _Optional[_Pointer[_struct.RECT]],
+                                    _type.MONITORENUMPROC, _type.LPARAM],
+                                   _type.BOOL]
     FindWindowA: _Callable[[_type.LPCSTR, _Optional[_type.LPCSTR]],
                            _type.HWND]
     FindWindowW: _Callable[[_type.LPCWSTR, _Optional[_type.LPCWSTR]],
