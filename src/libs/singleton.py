@@ -10,8 +10,8 @@ import tempfile
 import time
 from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional, Union
 
-DELAY = 1
-TIMEOUT = 5
+WAIT_TIMEOUT = 5
+POLL_TIMEOUT = 1
 MAX_CHUNK = 1024 * 1024
 SUFFIX = '.lock'
 
@@ -22,7 +22,7 @@ def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_wait_args: It
     if end_time > time.time():
         if on_wait:
             on_wait(*on_wait_args, **on_wait_kwargs)
-        time.sleep(DELAY)
+        time.sleep(POLL_TIMEOUT)
     else:
         if on_exit:
             on_exit(*on_exit_args, **on_exit_kwargs)
@@ -37,7 +37,7 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Ite
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
     flags = os.O_CREAT | os.O_EXCL
-    end_time = time.time() + wait * TIMEOUT - DELAY
+    end_time = time.time() + wait * WAIT_TIMEOUT - POLL_TIMEOUT
     while True:
         try:
             file = os.open(path, flags)
@@ -58,7 +58,7 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Ite
 def _memory(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable], on_wait_args: Iterable,
             on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
             on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
-    end_time = time.time() + wait * TIMEOUT - DELAY
+    end_time = time.time() + wait * WAIT_TIMEOUT - POLL_TIMEOUT
     while True:
         try:
             memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
@@ -75,7 +75,7 @@ def _socket(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable], on_wa
             on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    end_time = time.time() + wait * TIMEOUT - DELAY
+    end_time = time.time() + wait * WAIT_TIMEOUT - POLL_TIMEOUT
     while True:
         try:
             server.bind(address)

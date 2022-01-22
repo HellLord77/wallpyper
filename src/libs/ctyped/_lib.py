@@ -114,6 +114,10 @@ class kernel32(metaclass=_WinDLL):
                           _type.LPVOID]
     GlobalUnlock: _Callable[[_type.HGLOBAL],
                             _type.BOOL]
+    MoveFileA: _Callable[[_type.LPCSTR, _type.LPCSTR],
+                         _type.BOOL]
+    MoveFileW: _Callable[[_type.LPCWSTR, _type.LPCWSTR],
+                         _type.BOOL]
 
 
 # noinspection PyPep8Naming

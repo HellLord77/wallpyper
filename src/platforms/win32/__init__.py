@@ -1,6 +1,7 @@
 __version__ = '0.0.12'
 
 import contextlib
+import ntpath
 import operator
 import os
 import subprocess
@@ -22,16 +23,16 @@ _POLL_TIMEOUT = 0.01
 _EMPTY = '\0' * ctyped.const.MAX_PATH
 _APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
 _STARTUP_DIR = _get_dir(ctyped.const.CSIDL_STARTUP)
-_TASKBAR_DIR = os.path.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
-_STARTUP_KEY = os.path.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-_SYSPIN_PATH = os.path.join(os.path.dirname(__file__), 'syspin.exe')
+_TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
+_STARTUP_KEY = ntpath.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
+_SYSPIN_PATH = ntpath.join(ntpath.dirname(__file__), 'syspin.exe')
 
 LINK_EXT = '.lnk'
 SAVE_DIR = _APPDATA_DIR
 DESKTOP_DIR = _get_dir(ctyped.const.CSIDL_DESKTOP)
 PICTURES_DIR = _get_dir(ctyped.const.CSIDL_MYPICTURES)
 START_DIR = _get_dir(ctyped.const.CSIDL_PROGRAMS)
-WALLPAPER_PATH = os.path.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
+WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 
 def get_max_shutdown_time() -> float:
@@ -275,7 +276,7 @@ def _register_autorun_reg(name: str, path: str, *args: str) -> bool:
 
 
 def _register_autorun_link(name: str, path: str, *args: str, show: bool, aumi: Optional[str] = None) -> bool:
-    return create_shortcut(os.path.join(_STARTUP_DIR, f'{name}.{LINK_EXT}'), path, *args, show=show, uid=aumi)
+    return create_shortcut(ntpath.join(_STARTUP_DIR, f'{name}.{LINK_EXT}'), path, *args, show=show, uid=aumi)
 
 
 def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: Optional[str] = None) -> bool:
@@ -376,8 +377,8 @@ def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
             file.Save(path, True)
         except (OSError, PermissionError):
             return False
-    refresh_dir(os.path.dirname(path))
-    return os.path.isfile(path)
+    refresh_dir(ntpath.dirname(path))
+    return ntpath.isfile(path)
 
 
 def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW]) -> \
@@ -436,7 +437,7 @@ def _get_link_paths(dir_: str, recursive: Optional[bool] = None) -> Generator[st
         if recursive and dir_entry.is_dir():
             for path in _get_link_paths(dir_entry.path):
                 yield path
-        elif os.path.splitext(path := os.path.realpath(dir_entry.path))[1] == LINK_EXT:
+        elif ntpath.splitext(path := ntpath.realpath(dir_entry.path))[1] == LINK_EXT:
             yield path
 
 
@@ -445,7 +446,7 @@ def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', ico
                     uid: Optional[str] = None) -> bool:
     with ctyped.create_com(ctyped.com.IShellLinkW) as link:
         if link:
-            set_ = _set_link_data(link, target, comment, os.path.dirname(
+            set_ = _set_link_data(link, target, comment, ntpath.dirname(
                 target) if start_in is None else start_in, subprocess.list2cmdline(
                 args), show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
                                   icon=(icon_path, icon_index))
@@ -460,8 +461,11 @@ def remove_shortcuts(dir_: str, uid: str, rmdir: bool = True) -> bool:
     removed = True
     for path in _get_link_paths(dir_, True):
         if uid == _get_ex_str_props(path, ctyped.const.PKEY_AppUserModel_ID)[0]:
-            removed = ctyped.lib.kernel32.DeleteFileW(path) and removed
-            if rmdir and not any(os.scandir(dir__ := os.path.dirname(path))):
+            try:
+                os.remove(path)
+            except (FileNotFoundError, PermissionError):
+                removed = False
+            if rmdir and not any(os.scandir(dir__ := ntpath.dirname(path))):
                 os.rmdir(dir__)
     return removed
 
@@ -469,31 +473,31 @@ def remove_shortcuts(dir_: str, uid: str, rmdir: bool = True) -> bool:
 def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] = None,
             icon_path: str = '', icon_index: int = 0, show: bool = True) -> bool:
     if remove_pins(target, *args, taskbar=taskbar):
-        name_ = os.path.splitext(os.path.basename(target))[0]
-        if taskbar:
-            path_ = os.path.join(
-                _TASKBAR_DIR, f'{_get_ex_str_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
-            path = os.path.join(_TASKBAR_DIR, f'{name}{LINK_EXT}')
-        else:
-            path_ = os.path.join(START_DIR, f'{name_}{LINK_EXT}')
-            path = os.path.join(START_DIR, f'{name}{LINK_EXT}')
-        subprocess.run((_SYSPIN_PATH, target, '5386' if taskbar else '51201'),
-                       creationflags=subprocess.DETACHED_PROCESS)
-        if args and not taskbar:
-            time.sleep(_PIN_TIMEOUT)
-        if path != path_:
-            os.rename(path_, path)
-        if args or icon_path or icon_index or not show:
-            with _load_link(path) as link:
-                return _set_link_data(
-                    link, args=subprocess.list2cmdline(args),  # FIXME taskbar button requires click to fix (no api)
-                    show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
-                    icon=(icon_path, icon_index)) and _save_link(link, path)
-        else:
-            end = time.time() + _PIN_TIMEOUT
-            while (no_pin := not os.path.isfile(path)) and time.time() < end:
-                time.sleep(_POLL_TIMEOUT)
-            return not no_pin
+        if not subprocess.run((_SYSPIN_PATH, target, '5386' if taskbar else '51201'),
+                              creationflags=subprocess.DETACHED_PROCESS).returncode:
+            if args and not taskbar:
+                time.sleep(_PIN_TIMEOUT)
+            name_ = ntpath.splitext(ntpath.basename(target))[0]
+            if taskbar:
+                path_ = ntpath.join(
+                    _TASKBAR_DIR,
+                    f'{_get_ex_str_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
+                path = ntpath.join(_TASKBAR_DIR, f'{name}{LINK_EXT}')
+            else:
+                path_ = ntpath.join(START_DIR, f'{name_}{LINK_EXT}')
+                path = ntpath.join(START_DIR, f'{name}{LINK_EXT}')
+            os.replace(path_, path)
+            if args or icon_path or icon_index or not show:
+                with _load_link(path) as link:
+                    return _set_link_data(
+                        link, args=subprocess.list2cmdline(args),  # FIXME taskbar button requires click to fix (no api)
+                        show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
+                        icon=(icon_path, icon_index)) and _save_link(link, path)
+            else:
+                end = time.time() + _PIN_TIMEOUT
+                while (no_pin := not ntpath.isfile(path)) and end > time.time():
+                    time.sleep(_POLL_TIMEOUT)
+                return not no_pin
     return False
 
 
@@ -510,6 +514,6 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
                                                path, None) as item:
                             if item:
                                 removed = pinned.RemoveFromList(item) == 0 and removed
-            if os.path.isfile(path):
+            if ntpath.isfile(path):
                 removed = ctyped.lib.kernel32.DeleteFileW(path) and removed
     return removed

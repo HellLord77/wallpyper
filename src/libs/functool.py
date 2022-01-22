@@ -1,4 +1,4 @@
-__version__ = '0.0.14'
+__version__ = '0.0.15'
 
 import binascii
 import contextlib
@@ -8,6 +8,7 @@ import functools
 import hashlib
 import inspect
 import itertools
+import math
 import os
 import pickle
 import pprint
@@ -309,6 +310,15 @@ def strip_ansi(string: str) -> str:
     return ANSI.sub('', string)
 
 
+def encrypt(obj) -> str:
+    try:
+        pickled = pickle.dumps(obj)
+    except TypeError:
+        return ''
+    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled,
+                               newline=False).decode()
+
+
 def decrypt(data: str, default: Any = None) -> Any:
     try:
         decoded = binascii.a2b_base64(data.encode())
@@ -319,13 +329,9 @@ def decrypt(data: str, default: Any = None) -> Any:
         uuid.getnode()).encode()).digest() else default
 
 
-def encrypt(obj) -> str:
-    try:
-        pickled = pickle.dumps(obj)
-    except TypeError:
-        return ''
-    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled,
-                               newline=False).decode()
+def _get_params(args, kwargs):
+    params = args + tuple(kwargs.items())
+    return try_ex(hash, pickle.dumps, args=((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
 
 
 def one_cache(func: Callable) -> Callable:
@@ -333,16 +339,46 @@ def one_cache(func: Callable) -> Callable:
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        params = args + tuple(kwargs.items())
-        params = try_ex(hash, pickle.dumps, args=((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
-        if not len(cache) or cache[0] != params:
+        params = _get_params(args, kwargs)
+        if not cache or cache[0] != params:
             cache[:] = params, func(*args, **kwargs)
         return cache[1]
 
     wrapper.dumps = lambda: encrypt(cache)
-    wrapper.loads = lambda data: cache.extend(decrypt(data, cache))
+    wrapper.loads = lambda data: cache.__setitem__(slice(0, 2), decrypt(data, cache))
     wrapper.reset = cache.clear
     return wrapper
+
+
+def time_cache(secs: float = math.inf, size: int = math.inf) -> Callable[[Callable], Callable]:
+    def time_cache_(func: Callable) -> Callable:
+        cache = []
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            cached = None
+            remove = []
+            current = time.time()
+            params = _get_params(args, kwargs)
+            for arg_ret_time in cache:
+                if current > arg_ret_time[2]:
+                    remove.append(arg_ret_time)
+                elif params == arg_ret_time[0]:
+                    cached = arg_ret_time
+            for arg_ret_time in remove:
+                cache.remove(arg_ret_time)
+            if cached is None:
+                try:
+                    cache.append(cached := (params, func(*args, **kwargs), current + secs))
+                finally:
+                    while len(cache) > size:
+                        del cache[0]
+            return cached[1]
+
+        wrapper.reset = cache.clear()
+        return wrapper
+
+    return time_cache_
 
 
 def once_run(func: Callable) -> Callable:
@@ -351,10 +387,13 @@ def once_run(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if not ran.is_set():
-            ret = func(*args, **kwargs)
-            ran.set()
+            try:
+                ret = func(*args, **kwargs)
+            finally:
+                ran.set()
             return ret
 
+    wrapper.set = ran.set
     wrapper.reset = ran.clear
     return wrapper
 
@@ -366,7 +405,7 @@ def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str
         running.set()
         with contextlib.suppress(BaseException):
             try:
-                wrapper.result = func(*work[0], **work[1])
+                wrapper.ret = func(*work[0], **work[1])
             finally:
                 running.clear()
                 if works.unfinished_tasks:
@@ -385,7 +424,7 @@ def queue_run(func: Callable) -> Callable:
                      args=(func, works, running, wrapper), daemon=True).start()
     wrapper.is_running = lambda: running.is_set() or bool(works.unfinished_tasks)
     wrapper.reset = lambda: clear_queue(works)
-    wrapper.result = None
+    wrapper.ret = None
     return wrapper
 
 
@@ -407,17 +446,13 @@ def singleton_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _set_result(func: Callable, args: Iterable, kwargs: Mapping[str, Any], wrapper: Callable):
-    wrapper.result = func(*args, **kwargs)
-
-
 def threaded_run(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        threading.Thread(target=_set_result, name=f'{threaded_run.__name__}-{__version__}-{func.__name__}',
-                         args=(func, args, kwargs, wrapper)).start()
+        threading.Thread(target=lambda: setattr(wrapper, 'ret', func(*args, **kwargs)),
+                         name=f'{threaded_run.__name__}-{__version__}-{func.__name__}').start()
 
-    wrapper.result = None
+    wrapper.ret = None
     return wrapper
 
 
@@ -435,7 +470,7 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret, ret_as
 
 def call_after(pre_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret_arg: Optional[bool] = None) -> \
         Callable[[Callable], Callable]:
-    def wrapped(func: Callable) -> Callable:
+    def call_after_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = pre_func(*args, **kwargs)
@@ -443,12 +478,12 @@ def call_after(pre_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret
 
         return wrapper
 
-    return wrapped
+    return call_after_
 
 
 def call_before(post_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret_arg: Optional[bool] = None) -> \
         Callable[[Callable], Callable]:
-    def wrapped(func: Callable) -> Callable:
+    def call_before_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             ret = func(*args, **kwargs)
@@ -457,4 +492,4 @@ def call_before(post_func: Callable, ret_as_arg: Optional[bool] = None, unpack_r
 
         return wrapper
 
-    return wrapped
+    return call_before_
