@@ -1,5 +1,7 @@
 _DIGITS = '0123456789'  # TODO class
 DESCRIPTION = 'Python Wallpaper Changer!'
+DISPLAY = 'Display'
+UPDATE_DISPLAY = 'Update Display'
 
 FAIL_CHANGE = 'Failed Changing Wallpaper'
 FAIL_CLEAR = 'Failed Clearing Wallpaper Cache'
@@ -56,6 +58,7 @@ MENU_AUTO = 'Automate Wallpyper'
 MENU_CHANGE = 'Change Wallpaper'
 MENU_CONFIG = 'Wallpyper Settings'
 MENU_COPY = 'Copy Wallpaper as'
+MENU_DISPLAY = 'Selected Displays'
 MENU_INTERVAL = 'Auto Change Interval'
 MENU_LINKS = 'Shortcuts and Pins'
 MENU_OPEN = 'Open Wallpaper with'

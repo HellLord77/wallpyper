@@ -1,4 +1,4 @@
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 import atexit
 import contextlib
@@ -41,12 +41,13 @@ class _Arg(type):
 class Method(metaclass=_Arg):
     ENABLE = wx.MenuItem.Enable.__name__
     SET_LABEL = wx.MenuItem.SetItemLabel.__name__
+    SET_UID = wx.MenuItem.SetMenu.__name__
 
 
 class Property(metaclass=_Arg):
     CHECKED = wx.MenuItem.IsChecked.__name__
     ENABLED = wx.MenuItem.IsEnabled.__name__
-    HELP = wx.MenuItem.GetHelp.__name__
+    UID = wx.MenuItem.GetHelp.__name__
     LABEL = wx.MenuItem.GetItemLabelText.__name__
 
 
@@ -76,24 +77,39 @@ def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable
 
 
 def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
-                  help_: Optional[str] = None, on_click: Optional[Callable] = None,
+                  uid: Optional[str] = None, on_click: Optional[Callable] = None,
                   menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
                   kwargs: Optional[Mapping[str, Any]] = None, position: Optional[int] = None,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
-    menu_item: wx.MenuItem = menu.Insert(
-        menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
-        label, '' if help_ is None else help_, Item.NORMAL if kind is None else kind)
+    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
+                                         label, '' if uid is None else uid, Item.NORMAL if kind is None else kind)
     if check is not None:
         menu_item.Check(check)
     if enable is not None:
         menu_item.Enable(enable)
     if on_click:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(
-            menu_item, on_click, () if menu_args is None else menu_args,
-            () if args is None else args, {} if kwargs is None else kwargs), menu_item)
+        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, on_click, () if menu_args is None else menu_args,
+                                            () if args is None else args, {} if kwargs is None else kwargs), menu_item)
     return menu_item
+
+
+def remove_menu_items(*menus: Union[wx.Menu, wx.MenuItem], menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> int:
+    if isinstance(menu, wx.MenuItem):
+        menu = menu.GetSubMenu()
+    count = 0
+    if menus:
+        for menu_ in menus:
+            if isinstance(menu_, wx.MenuItem):
+                menu_ = menu_.GetSubMenu()
+            menu.Remove(menu_)
+            count += 1
+    else:
+        for menu_ in menu.GetMenuItems():
+            menu.Remove(menu_)
+            count += 1
+    return count
 
 
 def add_separator(menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
@@ -102,13 +118,22 @@ def add_separator(menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     return menu.AppendSeparator()
 
 
-def add_submenu(label: str, enable: Optional[bool] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+def add_submenu(label: str, enable: Optional[bool] = None, uid: Optional[str] = None,
+                menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
     menu_item = menu.AppendSubMenu(wx.Menu(), label)
     if enable is not None:
         menu_item.Enable(enable)
+    if uid is not None:
+        menu_item.SetHelp(uid)
     return menu_item
+
+
+def get_menu_item_by_uid(uid: str, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> Optional[wx.MenuItem]:
+    for menu_ in menu.GetMenuItems():
+        if uid == menu_.GetHelp():
+            return menu_
 
 
 def show_balloon(title: str, text: str, icon: Optional[int] = None) -> bool:

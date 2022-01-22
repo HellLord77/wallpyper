@@ -7,7 +7,7 @@ import os
 import subprocess
 import time
 import winreg
-from typing import ContextManager, Generator, Mapping, Optional, Union
+from typing import ContextManager, Generator, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
 
@@ -57,6 +57,10 @@ def refresh_dir(dir_: str):
     ctyped.lib.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir_, None)
 
 
+def open_file(path: str) -> bool:
+    return ctyped.lib.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+
+
 def press_keyboard(key: int) -> bool:
     input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_u(ki=ctyped.struct.KEYBDINPUT(key)))
     ref = ctyped.byref(input_)
@@ -66,6 +70,12 @@ def press_keyboard(key: int) -> bool:
         input_.u.ki.dwFlags = ctyped.const.KEYEVENTF_KEYUP
         return ctyped.lib.user32.SendInput(1, ref, sz) == 1
     return False
+
+
+def open_file_path(path: str) -> bool:
+    with _get_itemidlist(path) as pidl:
+        ctyped.lib.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0)
+    return True
 
 
 @contextlib.contextmanager
@@ -193,14 +203,32 @@ def _get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.s
             ctyped.lib.shell32.ILFree(id_)
 
 
-def open_file_path(path: str) -> bool:
-    with _get_itemidlist(path) as pidl:
-        ctyped.lib.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0)
-    return True
+def get_monitors() -> dict[str, str]:
+    monitors = {}
+    device = ctyped.struct.DISPLAY_DEVICEW()
+    device.cb = ctyped.sizeof(ctyped.struct.DISPLAY_DEVICEW)
+    device_i = 0
+    while ctyped.lib.user32.EnumDisplayDevicesW(None, device_i, ctyped.byref(device), 0):
+        device_name = device.DeviceName
+        monitor_i = 0
+        while ctyped.lib.user32.EnumDisplayDevicesW(device_name, monitor_i, ctyped.byref(device), 0):
+            monitors[device.DeviceID] = device.DeviceName
+            monitor_i += 1
+        device_i += 1
+    return monitors
 
 
-def open_file(path: str) -> bool:
-    return ctyped.lib.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+def get_monitor_ids() -> tuple[str, ...]:
+    ids = []
+    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            count = ctyped.type.UINT()
+            wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
+            buff = ctyped.type.LPWSTR(_EMPTY)
+            for index in range(count.value):
+                wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
+                ids.append(buff.value)
+    return tuple(ids)
 
 
 def _get_wallpaper_path_param() -> str:
@@ -209,7 +237,7 @@ def _get_wallpaper_path_param() -> str:
     return buff.value
 
 
-def _get_wallpaper_path_com() -> str:
+def _get_wallpaper_path_iactivedesktop() -> str:
     buff = ctyped.type.PWSTR(_EMPTY)
     with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
@@ -217,20 +245,29 @@ def _get_wallpaper_path_com() -> str:
     return buff.value
 
 
+def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
+    paths = []
+    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            buff = ctyped.type.LPWSTR(_EMPTY)
+            for monitor in (monitors or get_monitor_ids()):
+                wallpaper.GetWallpaper(monitor, ctyped.byref(buff))
+                paths.append(buff.value)
+    return tuple(paths)
+
+
 def get_wallpaper_path() -> str:
-    return _get_wallpaper_path_param() or _get_wallpaper_path_com()
+    return _get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop()
 
 
 def _set_wallpaper_param(path: str) -> bool:
-    if ctyped.lib.shlwapi.PathFileExistsW(path):
-        return bool(ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                            ctyped.const.SPIF_SENDWININICHANGE))
-    return False
+    return bool(ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                                        ctyped.const.SPIF_SENDWININICHANGE))
 
 
-def _set_wallpaper_com(path: str) -> bool:
+def _set_wallpaper_iactivedesktop(path: str) -> bool:
     with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
-        if desktop and ctyped.lib.shlwapi.PathFileExistsW(path):
+        if desktop:
             ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
             desktop.SetWallpaper(path, 0)
             desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
@@ -238,15 +275,22 @@ def _set_wallpaper_com(path: str) -> bool:
     return False
 
 
-def set_wallpaper(*paths: str, fade: bool = True) -> bool:
-    set_ = False
-    if fade:
-        for path in paths:
-            set_ = set_ or _set_wallpaper_com(path)
-    if not set_:
-        for path in paths:
-            set_ = set_ or _set_wallpaper_param(path)
-    return set_
+def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str) -> bool:
+    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            for monitor in monitors:
+                wallpaper.SetWallpaper(monitor, path)
+            return True
+    return False
+
+
+def set_wallpaper(*paths: str, fade: bool = True, monitors: Optional[Iterable[str]] = None) -> bool:
+    for path in paths:
+        if ntpath.isfile(path):
+            if _set_wallpaper_idesktopwallpaper(path, *monitors) if monitors else _set_wallpaper_iactivedesktop(
+                    path) if fade else _set_wallpaper_param(path):
+                return True
+    return False
 
 
 def set_slideshow(*paths: str) -> bool:

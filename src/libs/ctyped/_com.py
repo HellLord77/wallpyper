@@ -73,8 +73,8 @@ class IActiveDesktop(_IUnknown):
 
 class IDesktopWallpaper(_IUnknown):
     __CLSID__ = _const.CLSID_DesktopWallpaper
-    SetWallpaper: _Callable[[_type.LPCWSTR, _type.LPCWSTR], _type.HRESULT]
-    GetWallpaper: _Callable[[_type.LPCWSTR, _Pointer[_type.LPWSTR]], _type.HRESULT]
+    SetWallpaper: _Callable[[_Optional[_type.LPCWSTR], _type.LPCWSTR], _type.HRESULT]
+    GetWallpaper: _Callable[[_Optional[_type.LPCWSTR], _Pointer[_type.LPWSTR]], _type.HRESULT]
     GetMonitorDevicePathAt: _Callable[[_type.UINT, _Pointer[_type.LPWSTR]], _type.HRESULT]
     GetMonitorDevicePathCount: _Callable[[_Pointer[_type.UINT]], _type.HRESULT]
     GetMonitorRECT: _Callable[[_type.LPCWSTR, _Pointer[_struct.RECT]], _type.HRESULT]

@@ -390,6 +390,28 @@ class INPUT:
     u: _union.INPUT_u = None
 
 
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class DISPLAY_DEVICEA:
+    cb: _type.DWORD = None
+    DeviceName: _type.CHAR * 32 = None
+    DeviceString: _type.CHAR * 128 = None
+    StateFlags: _type.DWORD = None
+    DeviceID: _type.CHAR * 128 = None
+    DeviceKey: _type.CHAR * 128 = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class DISPLAY_DEVICEW:
+    cb: _type.DWORD = None
+    DeviceName: _type.WCHAR * 32 = None
+    DeviceString: _type.WCHAR * 128 = None
+    StateFlags: _type.DWORD = None
+    DeviceID: _type.WCHAR * 128 = None
+    DeviceKey: _type.WCHAR * 128 = None
+
+
 class UUID(GUID):
     pass
 

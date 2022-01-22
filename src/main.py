@@ -26,6 +26,7 @@ ARG_CHANGE = 'change'
 ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
 CONFIG_PIN = 'force_pinning'
+CONFIG_NO_DISPLAY = 'ignored_display'
 CONFIG_CHANGE = 'auto_change'
 CONFIG_INTERVAL = 'change_interval'
 CONFIG_CHANGED = 'save_changed'
@@ -44,6 +45,7 @@ MODULES = modules.wallhaven,
 MODULE = MODULES[0]
 DEFAULT_CONFIG = utils.Dict({
     CONFIG_PIN: False,
+    CONFIG_NO_DISPLAY: '',
     CONFIG_CHANGE: False,
     CONFIG_INTERVAL: 3600,
     CONFIG_CHANGED: False,
@@ -59,6 +61,7 @@ DEFAULT_CONFIG = utils.Dict({
 })
 
 EXIT_TIMEOUT = EXIT_TIMEOUT_FACTOR * platform.get_max_shutdown_time()
+SEPARATOR = ';'
 UUID = f'{__author__}.{NAME}'
 SHORTCUT_NAME = f'{NAME}{platform.LINK_EXT}'
 RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(utils.dir_name(__file__), 'resources', name)
@@ -137,9 +140,12 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
             HISTORY.set_next(url)
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
+        monitors_ = set(platform.get_monitor_ids())
+        if len(monitors := monitors_.difference(CONFIG[CONFIG_NO_DISPLAY].split(SEPARATOR))) == len(monitors_):
+            monitors = ()
         changed = (url == temp_path or utils.download_url(
             url, temp_path, chunk_count=100, on_write=progress_callback, args=args,
-            kwargs=kwargs)) and platform.set_wallpaper(temp_path, fade=not CONFIG[CONFIG_NO_FADE])
+            kwargs=kwargs)) and platform.set_wallpaper(temp_path, fade=not CONFIG[CONFIG_NO_FADE], monitors=monitors)
     else:
         changed = False
     if progress_callback:
@@ -193,6 +199,27 @@ def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None
     if enable_submenu:
         enable_submenu(checked)
     TIMER.start(CONFIG[CONFIG_INTERVAL]) if checked else TIMER.stop()
+
+
+def on_update_display():
+    menu_display = utils.get_item(LANG.DISPLAY)
+    utils.remove_items(menu=menu_display)
+    for index, id_ in enumerate(platform.get_monitor_ids()):
+        utils.add_item(f'{LANG.DISPLAY} {index}',
+                       utils.item.CHECK, id_ not in CONFIG[CONFIG_NO_DISPLAY], uid=id_, on_click=on_display,
+                       menu_args=(utils.get_property.CHECKED, utils.get_property.UID), menu=menu_display)
+    utils.add_item(LANG.UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
+
+
+def on_display(checked: bool, uid: str) -> int:
+    ignored = set(CONFIG[CONFIG_NO_DISPLAY].split(SEPARATOR))
+    ignored.discard(DEFAULT_CONFIG[CONFIG_NO_DISPLAY])
+    if checked:
+        ignored.discard(uid)
+    else:
+        ignored.add(uid)
+    CONFIG[CONFIG_NO_DISPLAY] = SEPARATOR.join(ignored)
+    return len(ignored)
 
 
 def on_interval(interval: str):
@@ -422,9 +449,8 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_separator(menu_links)
     utils.add_item(LANG.LABEL_PIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
                    on_click=on_pin_taskbar, menu=menu_links)
-    utils.add_item(
-        LANG.LABEL_UNPIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
-        on_click=on_unpin_taskbar, menu=menu_links)
+    utils.add_item(LANG.LABEL_UNPIN_TASKBAR, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
+                   on_click=on_unpin_taskbar, menu=menu_links)
     utils.add_separator(menu_links)
     unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or CONFIG[CONFIG_PIN],
                            on_click=on_unpin_start, menu=menu_links)
@@ -434,8 +460,10 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
+    utils.add_submenu(LANG.MENU_DISPLAY, uid=LANG.DISPLAY)
+    on_update_display()
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
-    menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu_auto)
+    menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu=menu_auto)
     for interval in INTERVALS:
         utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
                        on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)

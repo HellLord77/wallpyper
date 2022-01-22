@@ -290,6 +290,11 @@ def _bloop(*evt):
 
 
 if __name__ == '__main__':
+    import src.platforms.win32 as win32
+
+    print(win32)
+    exit()
+
     p = r'D:\Projects\wallpyper\src\resources\icon.png'
     gif = r'D:\Projects\Wallpyper\src\resources\busy.gif'
     bind(EVENT_CLOSE, lambda: print(6969))

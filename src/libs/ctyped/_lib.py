@@ -255,6 +255,12 @@ class user32(metaclass=_WinDLL):
                            _type.BOOL]
     EmptyClipboard: _Callable[[],
                               _type.BOOL]
+    EnumDisplayDevicesA: _Callable[[_Optional[_type.LPCSTR], _type.DWORD,
+                                    _Pointer[_struct.DISPLAY_DEVICEA], _type.DWORD],
+                                   _type.BOOL]
+    EnumDisplayDevicesW: _Callable[[_Optional[_type.LPCWSTR], _type.DWORD,
+                                    _Pointer[_struct.DISPLAY_DEVICEW], _type.DWORD],
+                                   _type.BOOL]
     EnumDisplayMonitors: _Callable[[_Optional[_type.HDC], _Optional[_Pointer[_struct.RECT]],
                                     _type.MONITORENUMPROC, _type.LPARAM],
                                    _type.BOOL]
