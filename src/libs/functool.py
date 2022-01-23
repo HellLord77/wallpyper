@@ -1,6 +1,8 @@
-__version__ = '0.0.15'
+__version__ = '0.0.16'
 
+import ast
 import binascii
+import configparser
 import contextlib
 import ctypes
 import datetime
@@ -160,6 +162,29 @@ class TimeDelta(datetime.timedelta):
         return int(float(self))
 
     __float__ = datetime.timedelta.total_seconds
+
+
+class ConfigParserEx(configparser.ConfigParser):
+    # noinspection PyShadowingBuiltins
+    def _get_conv_ex(self, section, option, conv, *, raw, vars, fallback, **kwargs):
+        # noinspection PyArgumentList
+        if isinstance(value := self._get_conv(section, option, ast.literal_eval, raw=raw, vars=vars, fallback=fallback,
+                                              **kwargs), conv):
+            return value
+        else:
+            raise TypeError
+
+    # noinspection PyUnresolvedReferences,PyProtectedMember,PyShadowingBuiltins
+    def gettuple(self, section, option, *, raw=False, vars=None, fallback=configparser._UNSET, **kwargs):
+        return self._get_conv_ex(section, option, tuple, raw=raw, vars=vars, fallback=fallback, **kwargs)
+
+    # noinspection PyShadowingBuiltins,PyUnresolvedReferences,PyProtectedMember
+    def getlist(self, section, option, *, raw=False, vars=None, fallback=configparser._UNSET, **kwargs):
+        return self._get_conv_ex(section, option, list, raw=raw, vars=vars, fallback=fallback, **kwargs)
+
+    # noinspection PyUnresolvedReferences,PyProtectedMember,PyShadowingBuiltins
+    def getset(self, section, option, *, raw=False, vars=None, fallback=configparser._UNSET, **kwargs):
+        return self._get_conv_ex(section, option, set, raw=raw, vars=vars, fallback=fallback, **kwargs)
 
 
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,

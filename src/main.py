@@ -10,6 +10,7 @@ import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
 import langs
+import libs.functool as functool
 import libs.log as log
 import libs.pyinstall as pyinstall
 import libs.singleton as singleton
@@ -45,7 +46,7 @@ MODULES = modules.wallhaven,
 MODULE = MODULES[0]
 DEFAULT_CONFIG = utils.Dict({
     CONFIG_PIN: False,
-    CONFIG_NO_DISPLAY: '',
+    CONFIG_NO_DISPLAY: set(),
     CONFIG_CHANGE: False,
     CONFIG_INTERVAL: 3600,
     CONFIG_CHANGED: False,
@@ -61,7 +62,6 @@ DEFAULT_CONFIG = utils.Dict({
 })
 
 EXIT_TIMEOUT = EXIT_TIMEOUT_FACTOR * platform.get_max_shutdown_time()
-SEPARATOR = ';'
 UUID = f'{__author__}.{NAME}'
 SHORTCUT_NAME = f'{NAME}{platform.LINK_EXT}'
 RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(utils.dir_name(__file__), 'resources', name)
@@ -70,12 +70,23 @@ TEMP_DIR = utils.join_path(platform.get_temp_dir(), NAME)
 INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO utils.join_path(platform.SAVE_DIR, f'{NAME}.ini')
 LOG_PATH = utils.replace_extension(INI_PATH, 'log')
 SEARCH_URL = 'https://www.google.com/searchbyimage/upload'
-INTERVALS = '5 Minute', '15 Minute', '30 Minute', '1 Hour', '3 Hour', '6 Hour'
+INTERVALS = 300, 900, 1800, 3600, 10800, 21600
 
 
 def _is_busy() -> bool:
     return (change_wallpaper.is_running() or save_wallpaper.is_running() or
             search_wallpaper.is_running() or pin_to_start.is_running())
+
+
+def _get_wallpaper_paths() -> Generator[str, None, None]:
+    path = platform.get_wallpaper_path()
+    if utils.file_exists(path):
+        yield path
+    file_name = utils.file_name(path)
+    if utils.file_exists(platform.WALLPAPER_PATH):
+        temp_path = utils.join_path(TEMP_DIR, file_name)
+        if utils.copy_file(platform.WALLPAPER_PATH, temp_path):
+            yield temp_path
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool]]], section: str,
@@ -91,24 +102,14 @@ def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float,
     return loaded
 
 
-def _get_wallpaper_paths() -> Generator[str, None, None]:
-    path = platform.get_wallpaper_path()
-    if utils.file_exists(path):
-        yield path
-    file_name = utils.file_name(path)
-    if utils.file_exists(platform.WALLPAPER_PATH):
-        temp_path = utils.join_path(TEMP_DIR, file_name)
-        if utils.copy_file(platform.WALLPAPER_PATH, temp_path):
-            yield temp_path
-
-
 def load_config() -> bool:  # TODO verify config
-    parser = configparser.ConfigParser()
+    parser = functool.ConfigParserEx()
     try:
         loaded = bool(parser.read(INI_PATH))
     except configparser.MissingSectionHeaderError:
         loaded = False
-    getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean}
+    getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
+               tuple: parser.gettuple, list: parser.getlist, set: parser.getset}
     loaded = _load_config(getters, NAME, CONFIG, DEFAULT_CONFIG) and loaded
     for module in MODULES:
         loaded = _load_config(getters, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
@@ -117,15 +118,15 @@ def load_config() -> bool:  # TODO verify config
 
 def save_config() -> bool:  # TODO save recently set wallpaper (?)
     saved = True
-    config_parser = configparser.ConfigParser()
-    config_parser[NAME] = CONFIG
+    parser = functool.ConfigParserEx()
+    parser[NAME] = CONFIG
     for module in MODULES:
         try:
-            config_parser[module.NAME] = module.CONFIG
+            parser[module.NAME] = module.CONFIG
         except TypeError:
             saved = False
     with open(INI_PATH, 'w') as file:
-        config_parser.write(file)
+        parser.write(file)
     return saved and utils.file_exists(INI_PATH)
 
 
@@ -141,7 +142,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
         monitors_ = set(platform.get_monitor_ids())
-        if len(monitors := monitors_.difference(CONFIG[CONFIG_NO_DISPLAY].split(SEPARATOR))) == len(monitors_):
+        if len(monitors := monitors_.difference(CONFIG[CONFIG_NO_DISPLAY])) == len(monitors_):
             monitors = ()
         changed = (url == temp_path or utils.download_url(
             url, temp_path, chunk_count=100, on_write=progress_callback, args=args,
@@ -212,13 +213,11 @@ def on_update_display():
 
 
 def on_display(checked: bool, uid: str) -> int:
-    ignored = set(CONFIG[CONFIG_NO_DISPLAY].split(SEPARATOR))
-    ignored.discard(DEFAULT_CONFIG[CONFIG_NO_DISPLAY])
+    ignored = CONFIG[CONFIG_NO_DISPLAY]
     if checked:
         ignored.discard(uid)
     else:
         ignored.add(uid)
-    CONFIG[CONFIG_NO_DISPLAY] = SEPARATOR.join(ignored)
     return len(ignored)
 
 
@@ -465,7 +464,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
     menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu=menu_auto)
     for interval in INTERVALS:
-        utils.add_item(interval, utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == int(utils.TimeDelta(interval)),
+        utils.add_item(getattr(LANG, f'TIME_{interval}'), utils.item.RADIO, CONFIG[CONFIG_INTERVAL] == interval,
                        on_click=on_interval, menu_args=(utils.get_property.LABEL,), menu=menu_interval)
     utils.add_item(LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
                    menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
