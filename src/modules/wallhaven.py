@@ -5,7 +5,7 @@ from typing import Generator
 import utils
 
 NAME = 'wallhaven'
-BASE_URL = 'https://wallhaven.cc/api/v1'
+BASE_URL = utils.join_url('https://wallhaven.cc', 'api', 'v1')
 DEFAULT_CONFIG = {
     'apikey': '',
     'q': '',

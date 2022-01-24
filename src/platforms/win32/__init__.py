@@ -78,6 +78,30 @@ def open_file_path(path: str) -> bool:
     return True
 
 
+def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:
+    with ctyped.create_com(ctyped.com.IFileDialog) as dialog:
+        dialog.SetOptions(ctyped.const.FOS_PICKFOLDERS)
+        if path is not None:
+            with contextlib.suppress(FileNotFoundError):
+                with ctyped.create_com(ctyped.com.IShellItem, ctyped.lib.shell32.SHCreateItemFromParsingName,
+                                       path, None) as item:
+                    if item:
+                        dialog.SetFolder(item)
+            dialog.SetFileName(path)
+        if title is not None:
+            dialog.SetTitle(title)
+        try:
+            dialog.Show(None)
+        except OSError:
+            return ''
+        else:
+            buff = ctyped.type.LPWSTR(_EMPTY)
+            with ctyped.create_com(ctyped.com.IShellItem, None) as item:
+                dialog.GetResult(ctyped.byref(item))
+                item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
+            return buff.value
+
+
 @contextlib.contextmanager
 def _clipboard() -> ContextManager[None]:
     ctyped.lib.user32.OpenClipboard(None)

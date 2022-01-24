@@ -138,6 +138,7 @@ SIGDN = _enum
 Status = _enum
 TrustLevel = _enum
 GETPROPERTYSTOREFLAGS = _enum
+FILEOPENDIALOGOPTIONS = _enum
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -220,6 +221,7 @@ HCURSOR = HICON
 WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
 TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
+BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
 MONITORENUMPROC = _Callable[[HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]
 
 

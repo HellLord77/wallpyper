@@ -126,20 +126,12 @@ def _byref(obj: _CT) -> _Pointer[_CT]:
     return _ctypes.byref(obj)
 
 
-@_typing.overload
-def _pointer(obj: _CT) -> _Pointer[_CT]:
-    pass
-
-
-@_typing.overload
-def _pointer(type_: type[_CT]) -> type[_Pointer[type[_CT]]]:
-    pass
-
-
-def _pointer(obj):
+def _pointer(obj: type[_CT]) -> type[_Pointer[_CT]]:
     try:
+        # noinspection PyTypeChecker
         return _ctypes.pointer(obj)
     except TypeError:
+        # noinspection PyTypeChecker
         return _ctypes.POINTER(obj)
 
 

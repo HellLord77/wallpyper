@@ -171,6 +171,10 @@ class shell32(metaclass=_WinDLL):
                                 _Pointer[_struct.ITEMIDLIST]]
     ILFree: _Callable[[_Optional[_Pointer[_struct.ITEMIDLIST]]],
                       _type.c_void_p]
+    SHBrowseForFolderA: _Callable[[_Pointer[_struct.BROWSEINFOA]],
+                                  _Pointer[_Pointer[_struct.ITEMIDLIST]]]
+    SHBrowseForFolderW: _Callable[[_Pointer[_struct.BROWSEINFOW]],
+                                  _Pointer[_Pointer[_struct.ITEMIDLIST]]]
     SHChangeNotify: _Callable[[_type.LONG, _type.UINT, _Optional[_type.LPCVOID], _Optional[_type.LPCVOID]],
                               _type.c_void_p]
     SHCreateItemFromParsingName: _Callable[[_type.PCWSTR, _Optional[_Pointer[_com.IBindCtx]],

@@ -32,7 +32,6 @@ delete = libs.file.remove
 Int = libs.functool.MutableInt
 List = libs.functool.PointedList
 Dict = libs.functool.FrozenDict
-TimeDelta = libs.functool.TimeDelta
 try_any = libs.functool.any_ex
 enquote = libs.functool.enquote
 reverse = libs.functool.reversed_ex

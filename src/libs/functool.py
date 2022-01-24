@@ -2,7 +2,6 @@ __version__ = '0.0.16'
 
 import ast
 import binascii
-import configparser
 import contextlib
 import ctypes
 import datetime
@@ -20,11 +19,13 @@ import secrets
 import sys
 import threading
 import time
+import typing
 import uuid
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
 DEFAULT = object()
 ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+TYPE = typing.TypeVar('TYPE')
 
 
 class _Mutable:
@@ -146,7 +147,7 @@ class PackedFunction:
         return self.func(*self.args, *() if args is None else args, **{} if kwargs is None else kwargs, **self.kwargs)
 
 
-class TimeDelta(datetime.timedelta):
+class TimeDeltaEx(datetime.timedelta):
     _match = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit in
                        ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
     _match = re.compile(f'^(?i) *{_match} *$').match
@@ -154,8 +155,8 @@ class TimeDelta(datetime.timedelta):
     _units = tuple(inspect._signature_fromstr(inspect.Signature, None,
                                               inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
 
-    def __new__(cls, time_string: str):
-        matched = cls._match(time_string)
+    def __new__(cls, string: str):
+        matched = cls._match(string)
         return super().__new__(cls, *(float(matched.group(unit) or 0) for unit in cls._units) if matched else ())
 
     def __int__(self):
@@ -164,27 +165,23 @@ class TimeDelta(datetime.timedelta):
     __float__ = datetime.timedelta.total_seconds
 
 
-class ConfigParserEx(configparser.ConfigParser):
-    # noinspection PyShadowingBuiltins
-    def _get_conv_ex(self, section, option, conv, *, raw, vars, fallback, **kwargs):
-        # noinspection PyArgumentList
-        if isinstance(value := self._get_conv(section, option, ast.literal_eval, raw=raw, vars=vars, fallback=fallback,
-                                              **kwargs), conv):
-            return value
-        else:
-            raise TypeError
+def _to_type(str_: str, type_: type[TYPE]) -> TYPE:
+    if isinstance(val := ast.literal_eval(str_), type_):
+        return val
+    else:
+        raise TypeError
 
-    # noinspection PyUnresolvedReferences,PyProtectedMember,PyShadowingBuiltins
-    def gettuple(self, section, option, *, raw=False, vars=None, fallback=configparser._UNSET, **kwargs):
-        return self._get_conv_ex(section, option, tuple, raw=raw, vars=vars, fallback=fallback, **kwargs)
 
-    # noinspection PyShadowingBuiltins,PyUnresolvedReferences,PyProtectedMember
-    def getlist(self, section, option, *, raw=False, vars=None, fallback=configparser._UNSET, **kwargs):
-        return self._get_conv_ex(section, option, list, raw=raw, vars=vars, fallback=fallback, **kwargs)
+def to_tuple(string: str) -> tuple:
+    return _to_type(string, tuple)
 
-    # noinspection PyUnresolvedReferences,PyProtectedMember,PyShadowingBuiltins
-    def getset(self, section, option, *, raw=False, vars=None, fallback=configparser._UNSET, **kwargs):
-        return self._get_conv_ex(section, option, set, raw=raw, vars=vars, fallback=fallback, **kwargs)
+
+def to_list(string: str) -> list:
+    return _to_type(string, list)
+
+
+def to_set(string: str) -> set:
+    return _to_type(string, set)
 
 
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,

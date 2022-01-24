@@ -5,6 +5,7 @@ __version__ = '0.0.6'
 import contextlib
 import ctypes
 import functools
+import math
 import threading
 import time
 from typing import Any, Callable, Iterable, Mapping, Optional
@@ -38,7 +39,7 @@ _CTimerExit = ctypes.py_object(_TimerExit)
 
 class Timer:
     _Timers: list[Timer] = []
-    last_start = -1
+    last_start = math.inf
 
     def __init__(self, interval: Optional[float] = None, target: Optional[Callable] = None,
                  args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
@@ -131,9 +132,9 @@ def start_once(interval: Optional[float] = None, target: Optional[Callable] = No
     return Timer(interval, target, args, kwargs, True, True)
 
 
-def on_thread(target: Callable) -> Callable:
+def on_thread(target: Callable) -> Callable[[...], Timer]:
     @functools.wraps(target)
-    def wrapper(*args, **kwargs):
-        start_once(target=target, args=args, kwargs=kwargs)
+    def wrapper(*args, **kwargs) -> Timer:
+        return start_once(target=target, args=args, kwargs=kwargs)
 
     return wrapper

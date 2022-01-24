@@ -40,11 +40,12 @@ class IShellItem(_IUnknown):
 
 class IShellItemArray(_IUnknown):
     BindToHandler: _Callable
-    GetPropertyStore: _Callable
+    GetPropertyStore: _Callable[
+        [_type.GETPROPERTYSTOREFLAGS, _Pointer[_struct.IID], _Pointer[IPropertyStore]], _type.HRESULT]
     GetPropertyDescriptionList: _Callable
     GetAttributes: _Callable
     GetCount: _Callable[[_Pointer[_type.DWORD]], _type.HRESULT]
-    GetItemAt: _Callable
+    GetItemAt: _Callable[[_type.DWORD, _Pointer[_Pointer[IShellItem]]], _type.HRESULT]
     EnumItems: _Callable
 
 
@@ -102,10 +103,10 @@ class IFileDialog(IModalWindow):
     GetFileTypeIndex: _Callable[[_type.UINT], _type.HRESULT]
     Advise: _Callable
     Unadvise: _Callable
-    SetOptions: _Callable
-    GetOptions: _Callable
-    SetDefaultFolder: _Callable
-    SetFolder: _Callable
+    SetOptions: _Callable[[_type.FILEOPENDIALOGOPTIONS], _type.HRESULT]
+    GetOptions: _Callable[[_Pointer[_type.FILEOPENDIALOGOPTIONS]], _type.HRESULT]
+    SetDefaultFolder: _Callable[[_Pointer[IShellItem]], _type.HRESULT]
+    SetFolder: _Callable[[IShellItem], _type.HRESULT]
     GetFolder: _Callable
     GetCurrentSelection: _Callable
     SetFileName: _Callable[[_type.LPCWSTR], _type.HRESULT]
@@ -113,7 +114,7 @@ class IFileDialog(IModalWindow):
     SetTitle: _Callable[[_type.LPCWSTR], _type.HRESULT]
     SetOkButtonLabel: _Callable[[_type.LPCWSTR], _type.HRESULT]
     SetFileNameLabel: _Callable[[_type.LPCWSTR], _type.HRESULT]
-    GetResult: _Callable
+    GetResult: _Callable[[_Pointer[IShellItem]], _type.HRESULT]
     AddPlace: _Callable
     SetDefaultExtension: _Callable[[_type.LPCWSTR], _type.HRESULT]
     Close: _Callable[[_type.HRESULT], _type.HRESULT]

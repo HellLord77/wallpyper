@@ -11,6 +11,7 @@ from . import _type
 from . import _union
 from . import _union2
 from .__head__ import _Globals
+from .__head__ import _Pointer
 from .__head__ import _resolve_type
 
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
@@ -410,6 +411,30 @@ class DISPLAY_DEVICEW:
     StateFlags: _type.DWORD = None
     DeviceID: _type.WCHAR * 128 = None
     DeviceKey: _type.WCHAR * 128 = None
+
+
+@_dataclasses.dataclass
+class BROWSEINFOA:
+    hwndOwner: _type.HWND = None
+    pidlRoot: _Pointer[_Pointer[ITEMIDLIST]] = None
+    pszDisplayName: _type.LPSTR = None
+    lpszTitle: _type.LPCSTR = None
+    ulFlags: _type.UINT = None
+    lpfn: _type.BFFCALLBACK = None
+    lParam: _type.LPARAM = None
+    iImage: _type.c_int = None
+
+
+@_dataclasses.dataclass
+class BROWSEINFOW:
+    hwndOwner: _type.HWND = None
+    pidlRoot: _Pointer[_Pointer[ITEMIDLIST]] = None
+    pszDisplayName: _type.LPWSTR = None
+    lpszTitle: _type.LPCWSTR = None
+    ulFlags: _type.UINT = None
+    lpfn: _type.BFFCALLBACK = None
+    lParam: _type.LPARAM = None
+    iImage: _type.c_int = None
 
 
 class UUID(GUID):
