@@ -15,7 +15,7 @@ import libs.log as log
 import libs.pyinstall as pyinstall
 import libs.singleton as singleton
 import modules.wallhaven
-import platforms.win32 as platform  # TODO sys.platform
+import platforms.win32 as platform
 import utils
 
 FEATURE_PIN = False

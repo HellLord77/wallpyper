@@ -2,6 +2,7 @@ __version__ = '0.1.22'  # TODO overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
+import ctypes
 import typing as _typing
 from typing import Any as _Any
 from typing import Callable as _Callable
@@ -25,6 +26,10 @@ from .__head__ import _byref as byref
 from .__head__ import _cast as cast
 from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
+
+
+def addressof(obj: CT) -> int:
+    return ctypes.addressof(obj)
 
 
 def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Array[CT]:

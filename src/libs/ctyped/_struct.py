@@ -437,6 +437,16 @@ class BROWSEINFOW:
     iImage: _type.c_int = None
 
 
+@_dataclasses.dataclass
+class PAINTSTRUCT:
+    hdc: _type.HDC = None
+    fErase: _type.BOOL = None
+    rcPaint: RECT = None
+    fRestore: _type.BOOL = None
+    fIncUpdate: _type.BOOL = None
+    rgbReserved: _type.BYTE * 32 = None
+
+
 class UUID(GUID):
     pass
 

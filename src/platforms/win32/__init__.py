@@ -78,7 +78,7 @@ def open_file_path(path: str) -> bool:
     return True
 
 
-def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:
+def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO inspect dark context menu
     with ctyped.create_com(ctyped.com.IFileDialog) as dialog:
         dialog.SetOptions(ctyped.const.FOS_PICKFOLDERS)
         if path is not None:
@@ -154,16 +154,15 @@ def _get_dc(hwnd: Optional[ctyped.type.HWND] = None) -> ContextManager[Optional[
     try:
         yield hdc
     finally:
-        ctyped.lib.user32.ReleaseDC(None, hdc)
+        ctyped.lib.user32.ReleaseDC(hwnd, hdc)
 
 
 @contextlib.contextmanager
-def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
-    bitmap = ctyped.type.GpBitmap()
+def _get_gp_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
     token = ctyped.type.ULONG_PTR()
-    if ctyped.macro.SUCCEEDED(
-            ctyped.lib.GdiPlus.GdiplusStartup(ctyped.byref(token), ctyped.byref(ctyped.struct.GdiplusStartupInput()),
-                                              None)):
+    bitmap = ctyped.type.GpBitmap()
+    if ctyped.macro.SUCCEEDED(ctyped.lib.GdiPlus.GdiplusStartup(ctyped.byref(
+            token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
         ctyped.lib.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
     try:
         yield bitmap
@@ -175,9 +174,9 @@ def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
 @contextlib.contextmanager
 def _get_hbitmap(path: str) -> ContextManager[ctyped.type.HBITMAP]:
     hbitmap = ctyped.type.HBITMAP()
-    with _open_bitmap(path) as bitmap:
-        if bitmap:
-            ctyped.lib.GdiPlus.GdipCreateHBITMAPFromBitmap(bitmap, ctyped.byref(hbitmap), 0)
+    with _get_gp_bitmap(path) as gp_bitmap:
+        if gp_bitmap:
+            ctyped.lib.GdiPlus.GdipCreateHBITMAPFromBitmap(gp_bitmap, ctyped.byref(hbitmap), 0)
     try:
         yield hbitmap
     finally:
@@ -187,9 +186,9 @@ def _get_hbitmap(path: str) -> ContextManager[ctyped.type.HBITMAP]:
 @contextlib.contextmanager
 def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
     hicon = ctyped.type.HICON()
-    with _open_bitmap(path) as bitmap:
-        if bitmap:
-            ctyped.lib.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
+    with _get_gp_bitmap(path) as gp_bitmap:
+        if gp_bitmap:
+            ctyped.lib.GdiPlus.GdipCreateHICONFromBitmap(gp_bitmap, ctyped.byref(hicon))
     try:
         yield hicon
     finally:
@@ -292,7 +291,7 @@ def _set_wallpaper_param(path: str) -> bool:
 def _set_wallpaper_iactivedesktop(path: str) -> bool:
     with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
-            ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52c, 0, 0)
+            ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
             desktop.SetWallpaper(path, 0)
             desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
             return True

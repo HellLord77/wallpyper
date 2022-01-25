@@ -41,11 +41,24 @@ class combase(metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class gdi32(metaclass=_WinDLL):
+    BitBlt: _Callable[[_type.HDC, _type.c_int, _type.c_int, _type.c_int,
+                       _type.c_int, _type.HDC, _type.c_int, _type.c_int, _type.DWORD],
+                      _type.BOOL]
+    CreateCompatibleBitmap: _Callable[[_type.HDC, _type.c_int, _type.c_int],
+                                      _type.HBITMAP]
+    CreateCompatibleDC: _Callable[[_Optional[_type.HDC]],
+                                  _type.HDC]
     CreateDIBitmap: _Callable[[_type.HDC, _Pointer[_struct.BITMAPINFOHEADER], _type.DWORD,
                                _type.VOID, _Pointer[_struct.BITMAPINFO], _type.UINT],
                               _type.HBITMAP]
+    CreateDiscardableBitmap: _Callable[[_type.HDC, _type.c_int, _type.c_int],
+                                       _type.HBITMAP]
     CreateSolidBrush: _Callable[[_type.COLORREF],
                                 _type.HBRUSH]
+    DeleteDC: _Callable[[_type.HDC],
+                        _type.BOOL]
+    DeleteMetaFile: _Callable[[_type.HMETAFILE],
+                              _type.BOOL]
     DeleteObject: _Callable[[_type.HGDIOBJ],
                             _type.BOOL]
     GetDIBits: _Callable[[_type.HDC, _type.HBITMAP, _type.UINT, _type.UINT,
@@ -57,6 +70,8 @@ class gdi32(metaclass=_WinDLL):
                           _type.c_int]
     GetStockObject: _Callable[[_type.c_int],
                               _type.HGDIOBJ]
+    SelectObject: _Callable[[_type.HDC, _type.HGDIOBJ],
+                            _type.HGDIOBJ]
 
 
 class GdiPlus(metaclass=_WinDLL):
@@ -228,6 +243,8 @@ class Taskbar(metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class user32(metaclass=_WinDLL):
+    BeginPaint: _Callable[[_type.HWND, _Pointer[_struct.PAINTSTRUCT]],
+                          _type.HDC]
     CloseClipboard: _Callable[[],
                               _type.BOOL]
     CreateIconFromResource: _Callable[[_type.PBYTE, _type.DWORD, _type.BOOL, _type.DWORD],
@@ -259,6 +276,8 @@ class user32(metaclass=_WinDLL):
                            _type.BOOL]
     EmptyClipboard: _Callable[[],
                               _type.BOOL]
+    EndPaint: _Callable[[_type.HWND, _Pointer[_struct.PAINTSTRUCT]],
+                        _type.BOOL]
     EnumDisplayDevicesA: _Callable[[_Optional[_type.LPCSTR], _type.DWORD,
                                     _Pointer[_struct.DISPLAY_DEVICEA], _type.DWORD],
                                    _type.BOOL]
@@ -268,10 +287,20 @@ class user32(metaclass=_WinDLL):
     EnumDisplayMonitors: _Callable[[_Optional[_type.HDC], _Optional[_Pointer[_struct.RECT]],
                                     _type.MONITORENUMPROC, _type.LPARAM],
                                    _type.BOOL]
+    EnumThreadWindows: _Callable[[_type.DWORD, _type.WNDENUMPROC, _type.LPARAM],
+                                 _type.BOOL]
+    EnumWindows: _Callable[[_type.WNDENUMPROC, _type.LPARAM],
+                           _type.BOOL]
+    FillRect: _Callable[[_type.HDC, _Pointer[_type.HRESULT], _type.HBITMAP],
+                        _type.c_int]
     FindWindowA: _Callable[[_type.LPCSTR, _Optional[_type.LPCSTR]],
                            _type.HWND]
     FindWindowW: _Callable[[_type.LPCWSTR, _Optional[_type.LPCWSTR]],
                            _type.HWND]
+    FindWindowExA: _Callable[[_Optional[_type.HWND], _Optional[_type.HWND], _type.LPCSTR, _Optional[_type.LPCSTR]],
+                             _type.HWND]
+    FindWindowExW: _Callable[[_Optional[_type.HWND], _Optional[_type.HWND], _type.LPCWSTR, _Optional[_type.LPCWSTR]],
+                             _type.HWND]
     GetClassNameA: _Callable[[_type.HWND, _type.LPSTR, _type.c_int],
                              _type.c_int]
     GetClassNameW: _Callable[[_type.HWND, _type.LPWSTR, _type.c_int],
@@ -282,6 +311,8 @@ class user32(metaclass=_WinDLL):
                             _type.BOOL]
     GetDC: _Callable[[_Optional[_type.HWND]],
                      _type.HDC]
+    GetDCEx: _Callable[[_Optional[_type.HWND], _type.HRGN, _type.DWORD],
+                       _type.HDC]
     GetMenu: _Callable[[_type.HWND],
                        _type.HMENU]
     GetMenuInfo: _Callable[[_type.HMENU, _Pointer[_struct.MENUINFO]],

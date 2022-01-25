@@ -218,12 +218,20 @@ SHSTDAPI = STDAPI
 
 HCURSOR = HICON
 
-WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
-TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
-DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
+DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
+EDITWORDBREAKPROCA = _Callable[[LPSTR, c_int, c_int, c_int], c_int]
+EDITWORDBREAKPROCW = _Callable[[LPWSTR, c_int, c_int, c_int], c_int]
+GRAYSTRINGPROC = _Callable[[HDC, LPARAM, c_int], BOOL]
 HOOKPROC = _Callable[[c_int, WPARAM, LPARAM], LRESULT]
 MONITORENUMPROC = _Callable[[HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]
+PROPENUMPROCA = _Callable[[HWND, LPCSTR, HANDLE], BOOL]
+PROPENUMPROCEXA = _Callable[[HWND, LPSTR, HANDLE, ULONG_PTR], BOOL]
+PROPENUMPROCEXW = _Callable[[HWND, LPWSTR, HANDLE, ULONG_PTR], BOOL]
+PROPENUMPROCW = _Callable[[HWND, LPCWSTR, HANDLE], BOOL]
+TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
+WNDENUMPROC = _Callable[[HWND, LPARAM], BOOL]
+WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
 
 
 def _set_magic(magic: str, func: _Callable):

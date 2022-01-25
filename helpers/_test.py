@@ -3,7 +3,8 @@ __version__ = '0.0.1'
 import contextlib
 from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, Optional, Union
 
-import src.libs.ctyped as ctyped
+import libs.ctyped as ctyped
+import platforms.win32 as win32
 
 NAME = f'{__name__}-{__version__}'
 EVENT_CLOSE = ctyped.const.WM_CLOSE
@@ -175,11 +176,12 @@ class SysTray:
 
     @classmethod
     def mainloop(cls) -> int:
-        msg_ref = ctyped.pointer(ctyped.struct.MSG())
+        msg = ctyped.struct.MSG()
+        msg_ref = ctyped.byref(msg)
         while ctyped.lib.user32.GetMessageW(msg_ref, cls._hwnd, 0, 0) > 0:
             ctyped.lib.user32.TranslateMessage(msg_ref)
             ctyped.lib.user32.DispatchMessageW(msg_ref)
-        return msg_ref.contents.wParam
+        return msg.wParam
 
     @classmethod
     def exit_mainloop(cls) -> bool:
@@ -289,13 +291,51 @@ def _bloop(*evt):
         s.bind(e, lambda: None)
 
 
-if __name__ == '__main__':
-    import src.platforms.win32 as win32
+def _get_workerw_hwnd() -> int:
+    def set_hwnd(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
+        if ctyped.lib.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
+            ctyped.type.LPARAM.from_address(lparam).value = ctyped.lib.user32.FindWindowExW(None, hwnd, 'WorkerW', None)
+        return True
 
-    print(win32)
+    workkerw = ctyped.type.LPARAM()
+    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
+    ctyped.lib.user32.EnumWindows(ctyped.type.WNDENUMPROC(set_hwnd), ctyped.addressof(workkerw))
+    return workkerw.value
+
+
+def _get_bitmap(hbitmap: ctyped.type.HBITMAP) -> ctyped.struct.BITMAP:
+    bitmap = ctyped.struct.BITMAP()
+    ctyped.lib.gdi32.GetObjectW(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap))
+    return bitmap
+
+
+@contextlib.contextmanager
+def _get_compatible_dc(hbitmap: ctyped.type.HBITMAP) -> ContextManager[ctyped.type.HDC]:
+    compatible_dc = ctyped.lib.gdi32.CreateCompatibleDC(None)
+    selected_object = ctyped.lib.gdi32.SelectObject(compatible_dc, hbitmap)
+    try:
+        yield compatible_dc
+    finally:
+        ctyped.lib.gdi32.SelectObject(compatible_dc, selected_object)
+        ctyped.lib.gdi32.DeleteDC(compatible_dc)
+
+
+def test():
+    path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-wqwj5r.jpg'
+    with win32._get_hbitmap(path) as hbitmap:
+        if hbitmap:
+            with win32._get_dc(_get_workerw_hwnd()) as hdc:
+                with _get_compatible_dc(hbitmap) as compatible_dc:
+                    bitmap = _get_bitmap(hbitmap)
+                    ctyped.lib.gdi32.BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight,
+                                            compatible_dc, 0, 0, ctyped.const.SRCCOPY)
+
+
+if __name__ == '__main__':
+    test()
     exit()
 
-    p = r'D:\Projects\wallpyper\src\resources\icon.png'
+    p = r'D:\Projects\wallpyper\src\resources\tray.png'
     gif = r'D:\Projects\Wallpyper\src\resources\busy.gif'
     bind(EVENT_CLOSE, lambda: print(6969))
     s = SysTray(p, 'tip')
