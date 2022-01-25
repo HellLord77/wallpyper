@@ -222,6 +222,7 @@ WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
 TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
+HOOKPROC = _Callable[[c_int, WPARAM, LPARAM], LRESULT]
 MONITORENUMPROC = _Callable[[HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]
 
 

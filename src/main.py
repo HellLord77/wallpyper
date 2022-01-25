@@ -141,6 +141,7 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
 
 
 def fix_config():
+    CONFIG[CONFIG_LAST] = TIMER.last_start
     if CONFIG[CONFIG_INTERVAL] not in INTERVALS:
         CONFIG[CONFIG_INTERVAL] = DEFAULT_CONFIG[CONFIG_INTERVAL]
     if not CONFIG[CONFIG_DIR]:
@@ -200,8 +201,6 @@ def on_change(previous: bool, enable: Callable, set_label: Callable) -> bool:
     if not change_wallpaper.is_running():
         enable(False)
         if changed := change_wallpaper(HISTORY.previous() if previous else HISTORY.next(), set_label):
-            if FEATURE_CHANGED:
-                CONFIG[CONFIG_LAST] = TIMER.last_start
             if CONFIG[CONFIG_AUTOSAVE]:
                 save_wallpaper()
             set_label()
@@ -243,26 +242,20 @@ def on_interval(interval: str):
     on_auto_change(CONFIG[CONFIG_CHANGE])
 
 
-@utils.thread
-def on_save(enable: Callable) -> bool:
+def on_save() -> bool:
     saved = False
     if not save_wallpaper.is_running():
-        enable(False)
         saved = save_wallpaper()
-        enable()
     if not saved and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_SAVE, LANG.FAIL_SAVE)
     return saved
 
 
-@utils.thread
-def on_modify_save(enable: Callable) -> bool:
-    enable(False)
+def on_modify_save() -> bool:
     if path := platform.select_folder(LANG.LABEL_SAVE_DIR, CONFIG[CONFIG_DIR]):
         CONFIG[CONFIG_DIR] = path
     elif CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_SAVE_DIR, LANG.FAIL_SAVE_DIR)
-    enable()
     return bool(path)
 
 
@@ -290,13 +283,10 @@ def on_copy() -> bool:
     return copied
 
 
-@utils.thread
-def on_search(enable: Callable) -> bool:
+def on_search() -> bool:
     searched = False
     if not search_wallpaper.is_running():
-        enable(False)
         searched = search_wallpaper()
-        enable()
     if not searched and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_SEARCH, LANG.FAIL_SEARCH)
     return searched
@@ -358,7 +348,6 @@ def pin_to_start() -> bool:
                             icon_path='' if pyinstall.FROZEN else RES_ICON, show=pyinstall.FROZEN)
 
 
-@utils.thread
 def on_pin_start(enable: Callable, enable_: Callable) -> bool:
     pinned = False
     if not pin_to_start.is_running():
@@ -386,11 +375,9 @@ def on_clear():
     ENABLE_PREVIOUS(HISTORY.has_previous())
 
 
-def on_clear_cache(enable: Callable) -> bool:
-    enable(False)
+def on_clear_cache() -> bool:
     if not (cleared := utils.delete(TEMP_DIR, True)) and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_CLEAR_CACHE, LANG.FAIL_CLEAR)
-    enable()
     return cleared
 
 
@@ -449,11 +436,13 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_change = utils.add_submenu(LANG.MENU_CHANGE)
     TIMER.args = False, menu_change.Enable, (lambda progress=None: menu_change.SetItemLabel(
         LANG.MENU_CHANGE if progress is None else f'{LANG.MENU_CHANGE} ({langs.to_str(progress, LANG, 3)}%)'))
-    utils.add_item(LANG.LABEL_NEXT, on_click=on_change, args=TIMER.args, menu=menu_change)
+    utils.add_item(LANG.LABEL_NEXT, on_click=on_change, args=TIMER.args,
+                   on_thread=False, change_state=False, menu=menu_change)
     ENABLE_PREVIOUS = utils.add_item(LANG.LABEL_PREVIOUS, enable=False, on_click=on_change,
-                                     args=(True, *TIMER.args[1:]), menu=menu_change).Enable
-    utils.add_item(LANG.LABEL_SAVE, on_click=on_save, menu_args=(utils.set_property.ENABLE,))
-    utils.add_item(LANG.LABEL_SEARCH, on_click=on_search, menu_args=(utils.set_property.ENABLE,))
+                                     args=(True, *TIMER.args[1:]), on_thread=False,
+                                     change_state=False, menu=menu_change).Enable
+    utils.add_item(LANG.LABEL_SAVE, on_click=on_save)
+    utils.add_item(LANG.LABEL_SEARCH, on_click=on_search)
     utils.add_separator()
     menu_open = utils.add_submenu(LANG.MENU_OPEN)
     utils.add_item(LANG.LABEL_OPEN_EXPLORER, on_click=on_open_explorer, menu=menu_open)
@@ -477,11 +466,11 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_separator(menu_links)
     unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PIN,
                            on_click=on_unpin_start, menu=menu_links)
-    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PIN, on_click=on_pin_start,
-                   menu_args=(utils.set_property.ENABLE,), args=(unpin.Enable,), position=9, menu=menu_links)
+    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PIN,
+                   on_click=on_pin_start, menu_args=(utils.set_property.ENABLE,),
+                   args=(unpin.Enable,), change_state=False, position=9, menu=menu_links)
     utils.add_item(LANG.LABEL_CLEAR, on_click=on_clear, menu=menu_actions)
-    utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache,
-                   menu_args=(utils.set_property.ENABLE,), menu=menu_actions)
+    utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
     utils.add_submenu(LANG.MENU_DISPLAY, FEATURE_DISPLAY, LANG.DISPLAY)
@@ -497,7 +486,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_separator(menu_auto)
     utils.add_item(LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
                    menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,), menu=menu_auto)
-    utils.add_item(LANG.LABEL_SAVE_DIR, on_click=on_modify_save, menu_args=(utils.set_property.ENABLE,), menu=menu_auto)
+    utils.add_item(LANG.LABEL_SAVE_DIR, on_click=on_modify_save, menu=menu_auto)
     menu_config = utils.add_submenu(LANG.MENU_CONFIG)
     utils.add_item(LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
                    menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
@@ -536,7 +525,7 @@ def start():  # TODO dark theme
         HISTORY.set_next(path)
         break
     if ARG_CHANGE in sys.argv or (
-            CONFIG[CONFIG_CHANGE] and time.time() >= CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST]):
+            FEATURE_CHANGED and CONFIG[CONFIG_CHANGE] and time.time() >= CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST]):
         TIMER.last_start = time.time()
         on_change(*TIMER.args)
     utils.start(RES_TRAY, NAME, on_change, TIMER.args)

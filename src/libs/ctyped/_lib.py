@@ -296,6 +296,8 @@ class user32(metaclass=_WinDLL):
                            _type.DWORD]
     GetSystemMenu: _Callable[[_type.HWND, _type.BOOL],
                              _type.HMENU]
+    GetWindow: _Callable[[_type.HWND, _type.UINT],
+                         _type.HWND]
     GetWindowDC: _Callable[[_Optional[_type.HWND]],
                            _type.HDC]
     GetWindowTextA: _Callable[[_type.HWND, _type.LPSTR, _type.c_int],
@@ -344,6 +346,14 @@ class user32(metaclass=_WinDLL):
                             _type.BOOL]
     SetTimer: _Callable[[_Optional[_type.HWND], _type.UINT_PTR, _type.UINT, _Optional[_type.TIMERPROC]],
                         _type.UINT_PTR]
+    SetWindowsHookA: _Callable[[_type.c_int, _type.HOOKPROC],
+                               _type.HHOOK]
+    SetWindowsHookW: _Callable[[_type.c_int, _type.HOOKPROC],
+                               _type.HHOOK]
+    SetWindowsHookExA: _Callable[[_type.c_int, _type.HOOKPROC, _type.HINSTANCE, _type.DWORD],
+                                 _type.HHOOK]
+    SetWindowsHookExW: _Callable[[_type.c_int, _type.HOOKPROC, _type.HINSTANCE, _type.DWORD],
+                                 _type.HHOOK]
     ShowWindow: _Callable[[_type.HWND, _type.c_int],
                           _type.BOOL]
     SystemParametersInfoA: _Callable[[_type.UINT, _type.UINT, _type.PVOID, _type.UINT],
@@ -352,6 +362,10 @@ class user32(metaclass=_WinDLL):
                                      _type.BOOL]
     TranslateMessage: _Callable[[_Pointer[_struct.MSG]],
                                 _type.BOOL]
+    UnhookWindowsHook: _Callable[[_type.c_int, _type.HOOKPROC],
+                                 _type.BOOL]
+    UnhookWindowsHookEx: _Callable[[_type.HHOOK],
+                                   _type.BOOL]
     UnregisterClassA: _Callable[[_type.LPCSTR, _type.HINSTANCE],
                                 _type.BOOL]
     UnregisterClassW: _Callable[[_type.LPCWSTR, _type.HINSTANCE],

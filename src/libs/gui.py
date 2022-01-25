@@ -1,4 +1,4 @@
-__version__ = '0.0.12'
+__version__ = '0.0.13'
 
 import atexit
 import contextlib
@@ -62,36 +62,50 @@ _ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
 def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable[str],
-                 args: Iterable, kwargs: Mapping[str, Any]) -> Callable:
+                 args: Iterable, kwargs: Mapping[str, Any], set_state: bool, on_thread: bool) -> Callable:
     @functools.wraps(on_click)
-    def wrapper(_: wx.Event):
+    def wrapper(_: Optional[wx.Event] = None):
+        if set_state:
+            menu_item.Enable(False)
         menu_args_ = []
         for menu_arg in menu_args:
             if menu_arg in Method:
                 menu_args_.append(getattr(menu_item, menu_arg))
             elif menu_arg in Property:
                 menu_args_.append(getattr(menu_item, menu_arg)())
-        on_click(*menu_args_, *args, **kwargs)
+        try:
+            on_click(*menu_args_, *args, **kwargs)
+        finally:
+            if set_state:
+                menu_item.Enable()
 
-    return wrapper
+    if not on_thread:
+        return wrapper
+
+    @functools.wraps(wrapper)
+    def wrapper_thread(_: wx.Event) -> threading.Thread:
+        thread = threading.Thread(target=wrapper, name=f'{__name__}-{__version__}-{on_click.__name__}')
+        thread.start()
+        return thread
+
+    return wrapper_thread
 
 
-def add_menu_item(label: str, kind: Optional[int] = None, check: Optional[bool] = None, enable: Optional[bool] = None,
-                  uid: Optional[str] = None, on_click: Optional[Callable] = None,
-                  menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
-                  kwargs: Optional[Mapping[str, Any]] = None, position: Optional[int] = None,
+def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = None, enable: bool = True,
+                  uid: str = '', on_click: Optional[Callable] = None, menu_args: Iterable[str] = (),
+                  args: Iterable = (), kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True,
+                  change_state: bool = True, position: Optional[int] = None,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
     menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
-                                         label, '' if uid is None else uid, Item.NORMAL if kind is None else kind)
+                                         label, uid, kind)
     if check is not None:
         menu_item.Check(check)
-    if enable is not None:
-        menu_item.Enable(enable)
-    if on_click:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, on_click, () if menu_args is None else menu_args,
-                                            () if args is None else args, {} if kwargs is None else kwargs), menu_item)
+    menu_item.Enable(enable)
+    if on_click is not None:
+        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, on_click, menu_args, args,
+                                            {} if kwargs is None else kwargs, change_state, on_thread), menu_item)
     return menu_item
 
 
