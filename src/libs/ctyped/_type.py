@@ -88,6 +88,7 @@ USHORT = c_ushort
 WCHAR = c_wchar_t
 WORD = c_ushort
 
+BSTR = c_wchar_p
 LPCCH = c_char_p
 LPCH = c_char_p
 LPCSTR = c_char_p
@@ -173,6 +174,7 @@ SFGAOF = ULONG
 SICHINTF = DWORD
 SIZE_T = ULONG_PTR
 STDAPI = HRESULT
+WINOLECTLAPI = HRESULT
 WPARAM = UINT_PTR
 
 PROPVAR_PAD1 = BYTE if _const.MIDL_PASS else WORD

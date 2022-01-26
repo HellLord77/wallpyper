@@ -12,30 +12,30 @@ EVENT_CLOSE = ctyped.const.WM_CLOSE
 
 class _HICON(ctyped.type.HICON):
     def __del__(self):
-        ctyped.lib.user32.DestroyIcon(self)
+        ctyped.func.user32.DestroyIcon(self)
 
 
 @contextlib.contextmanager
 def _alloc(size: int) -> ContextManager[int]:
-    pointer = ctyped.lib.msvcrt.malloc(size)
+    pointer = ctyped.func.msvcrt.malloc(size)
     try:
         yield pointer
     finally:
-        ctyped.lib.msvcrt.free(pointer)
+        ctyped.func.msvcrt.free(pointer)
 
 
 @contextlib.contextmanager
 def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
     bitmap = ctyped.type.GpBitmap()
     token = ctyped.type.ULONG_PTR()
-    if not ctyped.lib.GdiPlus.GdiplusStartup(ctyped.byref(token),
-                                             ctyped.byref(ctyped.struct.GdiplusStartupInput()), None):
-        ctyped.lib.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
+    if not ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(token),
+                                              ctyped.byref(ctyped.struct.GdiplusStartupInput()), None):
+        ctyped.func.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
     try:
         yield bitmap
     finally:
-        ctyped.lib.GdiPlus.GdipDisposeImage(bitmap)
-        ctyped.lib.GdiPlus.GdiplusShutdown(token)
+        ctyped.func.GdiPlus.GdipDisposeImage(bitmap)
+        ctyped.func.GdiPlus.GdiplusShutdown(token)
 
 
 def _get_gif_frames(path: str) -> Generator[tuple[int, _HICON], None, None]:
@@ -43,21 +43,21 @@ def _get_gif_frames(path: str) -> Generator[tuple[int, _HICON], None, None]:
     with _open_bitmap(path) as bitmap:
         if bitmap:
             size = ctyped.type.UINT()
-            ctyped.lib.GdiPlus.GdipGetPropertyItemSize(bitmap, ctyped.const.PropertyTagFrameDelay, ctyped.byref(size))
+            ctyped.func.GdiPlus.GdipGetPropertyItemSize(bitmap, ctyped.const.PropertyTagFrameDelay, ctyped.byref(size))
             with _alloc(size.value) as buffer:
                 if buffer:
                     properties = ctyped.cast(buffer, ctyped.struct.PropertyItem)
-                    ctyped.lib.GdiPlus.GdipGetPropertyItem(bitmap, ctyped.const.PropertyTagFrameDelay,
-                                                           size, properties)
+                    ctyped.func.GdiPlus.GdipGetPropertyItem(bitmap,
+                                                            ctyped.const.PropertyTagFrameDelay, size, properties)
                     delays = ctyped.cast(properties.contents.value, ctyped.pointer(ctyped.type.UINT))
                     guid = ctyped.struct.GUID()
                     count = ctyped.type.UINT()
-                    ctyped.lib.GdiPlus.GdipImageGetFrameDimensionsList(bitmap, ctyped.byref(guid), 1)
-                    ctyped.lib.GdiPlus.GdipImageGetFrameCount(bitmap, ctyped.byref(guid), ctyped.byref(count))
+                    ctyped.func.GdiPlus.GdipImageGetFrameDimensionsList(bitmap, ctyped.byref(guid), 1)
+                    ctyped.func.GdiPlus.GdipImageGetFrameCount(bitmap, ctyped.byref(guid), ctyped.byref(count))
                     for i in range(count.value):
                         hicon = _HICON()
-                        ctyped.lib.GdiPlus.GdipImageSelectActiveFrame(bitmap, ctyped.byref(guid), i)
-                        ctyped.lib.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
+                        ctyped.func.GdiPlus.GdipImageSelectActiveFrame(bitmap, ctyped.byref(guid), i)
+                        ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
                         if hicon:
                             # noinspection PyTypeChecker
                             frames.append((delays[i] * 10, hicon))
@@ -104,11 +104,11 @@ class SysTray:
         if not cls._hwnd:
             cls._class = ctyped.struct.WNDCLASSEXW(ctyped.sizeof(ctyped.struct.WNDCLASSEXW),
                                                    lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
-                                                   hInstance=ctyped.lib.kernel32.GetModuleHandleW(None),
+                                                   hInstance=ctyped.func.kernel32.GetModuleHandleW(None),
                                                    lpszClassName=NAME)
-            ctyped.lib.user32.RegisterClassExW(ctyped.byref(cls._class))
-            cls._hwnd = ctyped.lib.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
-                                                          ctyped.const.HWND_MESSAGE, None, None, None)
+            ctyped.func.user32.RegisterClassExW(ctyped.byref(cls._class))
+            cls._hwnd = ctyped.func.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
+                                                           ctyped.const.HWND_MESSAGE, None, None, None)
         cls._uid += 1
         return super().__new__(cls)
 
@@ -124,8 +124,8 @@ class SysTray:
         self.hide()
         del self._binds[self._uid]
         if not self._binds:
-            ctyped.lib.user32.DestroyWindow(self._hwnd)
-            ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, ctyped.lib.kernel32.GetModuleHandleW(None))
+            ctyped.func.user32.DestroyWindow(self._hwnd)
+            ctyped.func.user32.UnregisterClassW(self._class.lpszClassName, ctyped.func.kernel32.GetModuleHandleW(None))
             type(self)._hwnd = 0
 
     @classmethod
@@ -142,18 +142,18 @@ class SysTray:
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
                   lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         if message == ctyped.const.WM_DESTROY:  # FIXME match (3.10)
-            ctyped.lib.user32.PostQuitMessage(0)
+            ctyped.func.user32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
             try:
                 cls._call(0, message)
             finally:
-                ctyped.lib.user32.DestroyWindow(hwnd)
+                ctyped.func.user32.DestroyWindow(hwnd)
         elif message == ctyped.const.WM_QUERYENDSESSION:
             ...
         elif message == ctyped.const.WM_APP:
             cls._call(wparam, lparam)
         else:
-            return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+            return ctyped.func.user32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
 
     @classmethod
@@ -178,14 +178,14 @@ class SysTray:
     def mainloop(cls) -> int:
         msg = ctyped.struct.MSG()
         msg_ref = ctyped.byref(msg)
-        while ctyped.lib.user32.GetMessageW(msg_ref, cls._hwnd, 0, 0) > 0:
-            ctyped.lib.user32.TranslateMessage(msg_ref)
-            ctyped.lib.user32.DispatchMessageW(msg_ref)
+        while ctyped.func.user32.GetMessageW(msg_ref, cls._hwnd, 0, 0) > 0:
+            ctyped.func.user32.TranslateMessage(msg_ref)
+            ctyped.func.user32.DispatchMessageW(msg_ref)
         return msg.wParam
 
     @classmethod
     def exit_mainloop(cls) -> bool:
-        return not bool(ctyped.lib.user32.SendMessageW(cls._hwnd, ctyped.const.WM_CLOSE, 0, 0))
+        return not bool(ctyped.func.user32.SendMessageW(cls._hwnd, ctyped.const.WM_CLOSE, 0, 0))
 
     def is_shown(self) -> bool:
         return self._shown
@@ -199,9 +199,9 @@ class SysTray:
         hicon = ctyped.type.HICON()
         if isinstance(path_or_res, str):
             with _open_bitmap(path_or_res) as bitmap:
-                ctyped.lib.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
+                ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
         else:
-            hicon = ctyped.lib.user32.LoadIconW(None, path_or_res)
+            hicon = ctyped.func.user32.LoadIconW(None, path_or_res)
         self._hicon = _HICON(hicon.value)
         self._set_hicon(self._hicon)
         return bool(hicon)
@@ -213,7 +213,7 @@ class SysTray:
     def _next_frame(self, *_):
         frame = next(self._frames_and_on_timer[0])
         self._set_hicon(frame[1])
-        ctyped.lib.user32.SetTimer(self._hwnd, 0, frame[0], self._frames_and_on_timer[1])
+        ctyped.func.user32.SetTimer(self._hwnd, 0, frame[0], self._frames_and_on_timer[1])
 
     def set_animation(self, gif_path: str):
         self.stop_animation()
@@ -222,13 +222,13 @@ class SysTray:
         self._next_frame()
 
     def stop_animation(self):
-        ctyped.lib.user32.KillTimer(self._hwnd, 0)
+        ctyped.func.user32.KillTimer(self._hwnd, 0)
         self._set_hicon(self._hicon)
         self._frames_and_on_timer = None
 
     def _update(self) -> bool:
-        return self._shown and bool(ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
-            self._data)) or ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
+        return self._shown and bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
+            self._data)) or ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
 
     def show(self) -> bool:
         self._shown = True
@@ -236,7 +236,7 @@ class SysTray:
         return self._shown
 
     def hide(self) -> bool:
-        self._shown = not bool(ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
+        self._shown = not bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._shown
 
     def show_balloon(self, title: str, text: Optional[str] = None, icon: Optional[int] = None,
@@ -286,53 +286,36 @@ def _foo2():
     s.exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
 
 
-def _bloop(*evt):
+def _foo3(*evt):
     for e in evt:
         s.bind(e, lambda: None)
 
 
-def _get_workerw_hwnd() -> int:
-    def set_hwnd(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-        if ctyped.lib.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
-            ctyped.type.LPARAM.from_address(lparam).value = ctyped.lib.user32.FindWindowExW(None, hwnd, 'WorkerW', None)
-        return True
-
-    workkerw = ctyped.type.LPARAM()
-    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
-    ctyped.lib.user32.EnumWindows(ctyped.type.WNDENUMPROC(set_hwnd), ctyped.addressof(workkerw))
-    return workkerw.value
-
-
-def _get_bitmap(hbitmap: ctyped.type.HBITMAP) -> ctyped.struct.BITMAP:
-    bitmap = ctyped.struct.BITMAP()
-    ctyped.lib.gdi32.GetObjectW(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap))
-    return bitmap
-
-
 @contextlib.contextmanager
 def _get_compatible_dc(hbitmap: ctyped.type.HBITMAP) -> ContextManager[ctyped.type.HDC]:
-    compatible_dc = ctyped.lib.gdi32.CreateCompatibleDC(None)
-    selected_object = ctyped.lib.gdi32.SelectObject(compatible_dc, hbitmap)
+    compatible_dc = ctyped.func.gdi32.CreateCompatibleDC(None)
+    selected_object = ctyped.func.gdi32.SelectObject(compatible_dc, hbitmap)
     try:
         yield compatible_dc
     finally:
-        ctyped.lib.gdi32.SelectObject(compatible_dc, selected_object)
-        ctyped.lib.gdi32.DeleteDC(compatible_dc)
+        ctyped.func.gdi32.SelectObject(compatible_dc, selected_object)
+        ctyped.func.gdi32.DeleteDC(compatible_dc)
 
 
-def test():
-    path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-wqwj5r.jpg'
+def test(path: str):
+    set_ = False
     with win32._get_hbitmap(path) as hbitmap:
         if hbitmap:
-            with win32._get_dc(_get_workerw_hwnd()) as hdc:
+            with win32._get_dc(win32._get_workerw_hwnd()) as hdc:
                 with _get_compatible_dc(hbitmap) as compatible_dc:
-                    bitmap = _get_bitmap(hbitmap)
-                    ctyped.lib.gdi32.BitBlt(hdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight,
-                                            compatible_dc, 0, 0, ctyped.const.SRCCOPY)
+                    if set_:
+                        ctyped.func.gdi32.BitBlt(hdc, 0, 0, *win32.get_dimensions(hbitmap),
+                                                 compatible_dc, 0, 0, ctyped.const.SRCCOPY)
 
 
 if __name__ == '__main__':
-    test()
+    p = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-wqwj5r.jpg'
+    test(p)
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
@@ -341,7 +324,7 @@ if __name__ == '__main__':
     s = SysTray(p, 'tip')
     s.bind(Event.LEFT_DOUBLE, _foo)
     s.bind(Event.RIGHT_UP, _foo2)
-    _bloop(Event.MOVE, Event.LEFT_DOWN, Event.LEFT_UP, Event.RIGHT_DOWN, Event.BALLOON_HIDDEN)
+    _foo3(Event.MOVE, Event.LEFT_DOWN, Event.LEFT_UP, Event.RIGHT_DOWN, Event.BALLOON_HIDDEN)
     s.bind(Event.BALLOON_QUEUED, lambda: print('shown'))
     s.bind(Event.BALLOON_HIDDEN - 1, lambda: print('show_balloon hide'))
     s.bind(Event.BALLOON_CLICK, lambda: print('show_balloon click'))

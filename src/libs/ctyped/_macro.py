@@ -1,6 +1,6 @@
 from . import _com
 from . import _const
-from . import _lib
+from . import _func
 from . import _struct
 from . import _type
 from .__head__ import _Pointer
@@ -113,5 +113,5 @@ def ResultFromScode(sc: int) -> _type.HRESULT:
 # noinspection PyPep8Naming,PyProtectedMember
 def IID_PPV_ARGS(ppType: _com._IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com._IUnknown]]:
     iid_ref = _byref(_struct.IID())
-    _lib.ole32.IIDFromString(getattr(_const, f'IID_{type(ppType).__name__}'), iid_ref)
+    _func.ole32.IIDFromString(getattr(_const, f'IID_{type(ppType).__name__}'), iid_ref)
     return iid_ref, _byref(ppType)

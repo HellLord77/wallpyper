@@ -6,8 +6,8 @@ from .__head__ import _Globals
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class PROPVARIANT_u:
-    s: _struct.tag_inner_PROPVARIANT = None
+class PROPVARIANT_U:
+    S: _struct.PROPVARIANT_U_S = None
     decVal: _struct.DECIMAL = None
 
 

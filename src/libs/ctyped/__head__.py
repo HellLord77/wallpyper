@@ -117,6 +117,10 @@ class _Globals(dict):
         return self.annotations[item]
 
 
+def _addressof(obj: _CT) -> int:
+    return _ctypes.addressof(obj)
+
+
 def _sizeof(obj: _CT) -> int:
     return _ctypes.sizeof(obj)
 

@@ -98,6 +98,18 @@ class RECT:
 
 
 @_dataclasses.dataclass
+class POINT:
+    x: _type.LONG = None
+    y: _type.LONG = None
+
+
+@_dataclasses.dataclass
+class SIZE:
+    cx: _type.LONG = None
+    cy: _type.LONG = None
+
+
+@_dataclasses.dataclass
 class MENUINFO:
     cbSize: _type.DWORD = None
     fMask: _type.DWORD = None
@@ -170,7 +182,7 @@ class NOTIFYICONDATAA:
         szInfo: _type.CHAR * 256 = None
         # noinspection PyProtectedMember
         if not _const._SHELL_EXPORTS_INTERNALAPI_H_:
-            u: _union.NOTIFYICONDATA_u = None
+            U: _union.NOTIFYICONDATA_U = None
         szInfoTitle: _type.CHAR * 64 = None
         dwInfoFlags: _type.DWORD = None
     if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
@@ -196,7 +208,7 @@ class NOTIFYICONDATAW:
         szInfo: _type.WCHAR * 256 = None
         # noinspection PyProtectedMember
         if not _const._SHELL_EXPORTS_INTERNALAPI_H_:
-            u: _union.NOTIFYICONDATA_u = None
+            U: _union.NOTIFYICONDATA_U = None
         szInfoTitle: _type.WCHAR * 64 = None
         dwInfoFlags: _type.DWORD = None
     if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
@@ -324,14 +336,14 @@ class CSPLATFORM:
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class DECIMAL_u_s:
+class DECIMAL_U_S:
     scale: _type.BYTE = None
     sign: _type.BYTE = None
 
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class DECIMAL_u2_s:
+class DECIMAL_U2_S:
     Lo32: _type.ULONG = None
     Mid32: _type.ULONG = None
 
@@ -339,24 +351,24 @@ class DECIMAL_u2_s:
 @_dataclasses.dataclass
 class DECIMAL:
     wReserved: _type.USHORT = None
-    u: _union.DECIMAL_u = None
+    U: _union.DECIMAL_U = None
     Hi32: _type.ULONG = None
-    u2: _union.DECIMAL_u2 = None
+    U2: _union.DECIMAL_U2 = None
 
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class tag_inner_PROPVARIANT:
+class PROPVARIANT_U_S:
     vt: _type.VARTYPE = None
     wReserved1: _type.PROPVAR_PAD1 = None
     wReserved2: _type.PROPVAR_PAD2 = None
     wReserved3: _type.PROPVAR_PAD3 = None
-    u: _union.tag_inner_PROPVARIANT_u = None
+    U: _union.PROPVARIANT_U_S_U = None
 
 
 @_dataclasses.dataclass
 class PROPVARIANT:
-    u: _union2.PROPVARIANT_u = None
+    U: _union2.PROPVARIANT_U = None
 
 
 @_dataclasses.dataclass
@@ -388,7 +400,7 @@ class HARDWAREINPUT:
 @_dataclasses.dataclass
 class INPUT:
     type: _type.DWORD = None
-    u: _union.INPUT_u = None
+    U: _union.INPUT_U = None
 
 
 # noinspection PyPep8Naming
@@ -445,6 +457,42 @@ class PAINTSTRUCT:
     fRestore: _type.BOOL = None
     fIncUpdate: _type.BOOL = None
     rgbReserved: _type.BYTE * 32 = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class PICTDESC_U_S:
+    hbitmap: _type.HBITMAP = None
+    hpal: _type.HPALETTE = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class PICTDESC_U_S2:
+    hmeta: _type.HMETAFILE = None
+    xExt: _type.c_int = None
+    yExt: _type.c_int = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class PICTDESC_U_S3:
+    hicon: _type.HICON = None
+
+
+# noinspection PyProtectedMember
+if _const._WIN32:
+    # noinspection PyPep8Naming
+    @_dataclasses.dataclass
+    class PICTDESC_U_S4:
+        hemf: _type.HMETAFILE = None
+
+
+@_dataclasses.dataclass
+class PICTDESC:
+    cbSizeofstruct: _type.UINT = None
+    picType: _type.UINT = None
+    U: _union.PICTDESC_U = None
 
 
 class UUID(GUID):

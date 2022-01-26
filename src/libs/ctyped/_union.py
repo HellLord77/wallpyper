@@ -3,6 +3,7 @@ import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
 
+from . import _const
 from . import _struct
 from . import _type
 from .__head__ import _Globals
@@ -11,28 +12,28 @@ from .__head__ import _resolve_type
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class NOTIFYICONDATA_u:
+class NOTIFYICONDATA_U:
     uTimeout: _type.UINT = None
     uVersion: _type.UINT = None
 
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class DECIMAL_u:
-    s: _struct.DECIMAL_u_s = None
+class DECIMAL_U:
+    S: _struct.DECIMAL_U_S = None
     signscale: _type.USHORT = None
 
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class DECIMAL_u2:
-    s: _struct.DECIMAL_u2_s = None
+class DECIMAL_U2:
+    s: _struct.DECIMAL_U2_S = None
     Lo64: _type.ULONGLONG = None
 
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class tag_inner_PROPVARIANT_u:
+class PROPVARIANT_U_S_U:
     cVal: _type.CHAR = None
     bVal: _type.UCHAR = None
     iVal: _type.SHORT = None
@@ -52,10 +53,21 @@ class tag_inner_PROPVARIANT_u:
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
-class INPUT_u:
+class INPUT_U:
     mi: _struct.MOUSEINPUT = None
     ki: _struct.KEYBDINPUT = None
     hi: _struct.HARDWAREINPUT = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class PICTDESC_U:
+    bmp: _struct.PICTDESC_U_S = None
+    wmf: _struct.PICTDESC_U_S2 = None
+    icon: _struct.PICTDESC_U_S3 = None
+    # noinspection PyProtectedMember
+    if _const._WIN32:
+        emf: _struct.PICTDESC_U_S4 = None
 
 
 def _init(name: str) -> type[_ctypes.Union]:

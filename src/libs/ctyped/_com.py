@@ -8,7 +8,7 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _const
-from . import _lib
+from . import _func
 from . import _struct
 from . import _type
 from .__head__ import _Globals
@@ -225,7 +225,44 @@ class IStartMenuPinnedList(_IUnknown):
 
 
 class IBindCtx(_IUnknown):
-    ...
+    RegisterObjectBound: _Callable
+    RevokeObjectBound: _Callable
+    ReleaseBoundObjects: _Callable
+    SetBindOptions: _Callable
+    GetBindOptions: _Callable
+    GetRunningObjectTable: _Callable
+    RegisterObjectParam: _Callable
+    GetObjectParam: _Callable
+    EnumObjectParam: _Callable
+    RevokeObjectParam: _Callable
+
+
+class IPicture(_IUnknown):
+    get_Handle: _Callable
+    get_hPal: _Callable
+    get_Type: _Callable
+    get_Width: _Callable
+    get_Height: _Callable
+    Render: _Callable
+    set_hPal: _Callable
+    get_CurDC: _Callable
+    SelectPicture: _Callable
+    get_KeepOriginalFormat: _Callable
+    put_KeepOriginalFormat: _Callable
+    PictureChanged: _Callable
+    SaveAsFile: _Callable
+    get_Attributes: _Callable
+
+
+class IDispatch(_IUnknown):
+    GetTypeInfoCount: _Callable[[_Pointer[_type.UINT]], _type.HRESULT]
+    GetTypeInfo: _Callable
+    GetIDsOfNames: _Callable
+    Invoke: _Callable
+
+
+class IPictureDisp(IDispatch):
+    pass
 
 
 def _method_type(types: _Callable) -> list:
@@ -303,7 +340,7 @@ class IUnknown(_ctypes.c_void_p):
             return _const.E_INVALIDARG
         ppvObject.contents.value = None
         iid = _type.LPOLESTR()
-        _lib.ole32.StringFromIID(riid, _byref(iid))
+        _func.ole32.StringFromIID(riid, _byref(iid))
         if iid.value in This.contents.__IID__:
             ppvObject.contents.value = This
             return _const.NOERROR

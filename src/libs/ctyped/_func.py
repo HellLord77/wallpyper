@@ -61,6 +61,8 @@ class gdi32(metaclass=_WinDLL):
                               _type.BOOL]
     DeleteObject: _Callable[[_type.HGDIOBJ],
                             _type.BOOL]
+    GetBitmapDimensionEx: _Callable[[_type.HBITMAP, _Pointer[_struct.SIZE]],
+                                    _type.BOOL]
     GetDIBits: _Callable[[_type.HDC, _type.HBITMAP, _type.UINT, _type.UINT,
                           _Optional[_type.LPVOID], _Pointer[_struct.BITMAPINFO], _type.UINT],
                          _type.c_int]
@@ -83,6 +85,8 @@ class GdiPlus(metaclass=_WinDLL):
                                          _type.GpStatus]
     GdipDisposeImage: _Callable[[_type.GpImage],
                                 _type.GpStatus]
+    GdipGetImageEncodersSize: _Callable[[_Pointer[_type.UINT], _Pointer[_type.UINT]],
+                                        _type.GpStatus]
     GdipGetPropertyItem: _Callable[[_type.GpImage, _type.PROPID,
                                     _type.UINT, _Pointer[_struct.PropertyItem]],
                                    _type.GpStatus]
@@ -174,6 +178,14 @@ class ole32(metaclass=_WinDLL):
                                _type.c_int]
     StringFromIID: _Callable[[_Pointer[_struct.IID], _Pointer[_type.LPOLESTR]],
                              _type.HRESULT]
+
+
+# noinspection PyPep8Naming
+class oleaut32(metaclass=_WinDLL):
+    OleCreatePictureIndirect: _Callable[[_Pointer[_struct.PICTDESC], _Pointer[_struct.IID], _type.BOOL, _type.LPVOID],
+                                        _type.WINOLECTLAPI]
+    OleSavePictureFile: _Callable[[_com.IPictureDisp, _type.BSTR],
+                                  _type.WINOLECTLAPI]
 
 
 # noinspection PyPep8Naming
