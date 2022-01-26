@@ -39,16 +39,17 @@ def _spawn_workerw():
     ctyped.func.user32.SendMessageW(ctyped.func.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
 
 
-def _get_workerw_hwnd() -> int:
-    def set_hwnd(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-        if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
-            ctyped.type.LPARAM.from_address(lparam).value = ctyped.func.user32.FindWindowExW(None, hwnd,
-                                                                                             'WorkerW', None)
-        return True
+def _wnd_enum_proc(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
+    if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
+        ctyped.type.LPARAM.from_address(lparam).value = ctyped.func.user32.FindWindowExW(None, hwnd,
+                                                                                         'WorkerW', None)
+    return True
 
+
+def _get_workerw_hwnd() -> int:
     workkerw = ctyped.type.LPARAM()
     _spawn_workerw()
-    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(set_hwnd), ctyped.addressof(workkerw))
+    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(_wnd_enum_proc), ctyped.addressof(workkerw))
     return workkerw.value
 
 
@@ -137,8 +138,8 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
 
 
 @contextlib.contextmanager
-def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW], write: bool = False) -> \
-        ContextManager[Optional[ctyped.com.IPropertyStore]]:
+def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+               write: bool = False) -> ContextManager[Optional[ctyped.com.IPropertyStore]]:
     try:
         if isinstance(path_or_interface, str):
             with ctyped.create_com(ctyped.com.IPropertyStore, False) as prop_store:
@@ -156,19 +157,16 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
 
 def _get_ex_str_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
                       *keys: tuple[str, int]) -> tuple[Optional[str], ...]:
-    vals = []
+    vals = [None] * len(keys)
     with _load_prop(path_or_interface) as prop:
         if prop:
             var = ctyped.struct.PROPVARIANT()
-            for key in keys:
-                try:
+            for index, key in enumerate(keys):
+                var.U.S.U.pwszVal = None
+                with contextlib.suppress(OSError):
                     prop.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.init_guid(
                         key[0], ctyped.struct.GUID), key[1])), ctyped.byref(var))
-                except OSError:
-                    var.U.S.U.pwszVal = None
-                vals.append(var.U.S.U.pwszVal)
-        else:
-            vals = [None] * len(keys)
+                vals[index] = var.U.S.U.pwszVal
     return tuple(vals)
 
 
@@ -323,8 +321,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
             with contextlib.suppress(FileNotFoundError):
                 with ctyped.create_com(ctyped.com.IShellItem, False) as item:
                     ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
-                    if item:
-                        dialog.SetFolder(item)
+                    dialog.SetFolder(item)
             dialog.SetFileName(path)
         if title is not None:
             dialog.SetTitle(title)
@@ -389,6 +386,7 @@ def get_monitors() -> dict[str, str]:
         device_name = device.DeviceName
         monitor_i = 0
         while ctyped.func.user32.EnumDisplayDevicesW(device_name, monitor_i, ctyped.byref(device), 0):
+            print(device)
             monitors[device.DeviceID] = device.DeviceName
             monitor_i += 1
         device_i += 1
@@ -405,6 +403,12 @@ def get_monitor_ids() -> tuple[str, ...]:
             for index in range(count.value):
                 wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
                 ids.append(buff.value)
+
+                rect = ctyped.struct.RECT()
+                wallpaper.GetMonitorRECT(buff.value, ctyped.byref(rect))
+                hmonitor = ctyped.func.user32.MonitorFromRect(ctyped.byref(rect), ctyped.const.MONITOR_DEFAULTTONULL)
+                print(hmonitor)
+
     return tuple(ids)
 
 
@@ -478,9 +482,8 @@ def set_slideshow(*paths: str) -> bool:
                 with ctyped.create_com(ctyped.com.IShellItemArray, False) as shl_arr:
                     ctyped.func.shell32.SHCreateShellItemArrayFromIDLists(
                         len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
-                    if shl_arr:
-                        wallpaper.SetSlideshow(shl_arr)
-                        return True
+                    wallpaper.SetSlideshow(shl_arr)
+                    return True
     return False
 
 
@@ -621,12 +624,11 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str):
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
             ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-            if picture:
-                with ctyped.convert_com(ctyped.com.IPictureDisp, picture) as picture_disp:
-                    try:
-                        ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
-                    except OSError:
-                        pass
-                    else:
-                        return True
+            with ctyped.convert_com(ctyped.com.IPictureDisp, picture) as picture_disp:
+                try:
+                    ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
+                except OSError:
+                    pass
+                else:
+                    return True
     return False

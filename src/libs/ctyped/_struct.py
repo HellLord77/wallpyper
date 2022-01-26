@@ -9,7 +9,6 @@ import typing as _typing
 from . import _const
 from . import _type
 from . import _union
-from . import _union2
 from .__head__ import _Globals
 from .__head__ import _Pointer
 from .__head__ import _resolve_type
@@ -368,7 +367,7 @@ class PROPVARIANT_U_S:
 
 @_dataclasses.dataclass
 class PROPVARIANT:
-    U: _union2.PROPVARIANT_U = None
+    U: _union.PROPVARIANT_U = None
 
 
 @_dataclasses.dataclass
@@ -495,6 +494,39 @@ class PICTDESC:
     U: _union.PICTDESC_U = None
 
 
+@_dataclasses.dataclass
+class MONITORINFO:
+    cbSize: _type.DWORD = None
+    rcMonitor: RECT = None
+    rcWork: RECT = None
+    dwFlags: _type.DWORD = None
+
+
+@_dataclasses.dataclass
+class MONITORINFOEXA:
+    szDevice: _type.CHAR * _const.CCHDEVICENAME = None
+
+
+@_dataclasses.dataclass
+class MONITORINFOEXW:
+    szDevice: _type.WCHAR * _const.CCHDEVICENAME = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class VARIANT_U_S:
+    vt: _type.VARTYPE = None
+    wReserved1: _type.WORD = None
+    wReserved2: _type.WORD = None
+    wReserved3: _type.WORD = None
+    U: _union.VARIANT_U_S_U = None
+
+
+@_dataclasses.dataclass
+class VARIANT:
+    U: _union.VARIANT_U = None
+
+
 class UUID(GUID):
     pass
 
@@ -504,6 +536,10 @@ class IID(GUID):
 
 
 class CLSID(GUID):
+    pass
+
+
+class VARIANTARG(VARIANT):
     pass
 
 

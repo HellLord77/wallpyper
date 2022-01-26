@@ -315,7 +315,24 @@ def test(path: str):
 
 if __name__ == '__main__':
     p = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-wqwj5r.jpg'
-    test(p)
+    cat = ctyped.init_guid(ctyped.const.CLSID_AudioInputDeviceCategory, ctyped.struct.CLSID)
+    with ctyped.create_com(ctyped.com.ICreateDevEnum) as dev_enum:
+        if dev_enum:
+            with ctyped.create_com(ctyped.com.IEnumMoniker, False) as enum_moniker:
+                dev_enum.CreateClassEnumerator(ctyped.byref(cat), ctyped.byref(enum_moniker), 0)
+                with ctyped.create_com(ctyped.com.IMoniker, False) as moniker:
+                    with ctyped.create_com(ctyped.com.IPropertyBag, False) as prop_bag:
+                        while enum_moniker.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
+                            moniker.BindToStorage(None, None, *ctyped.macro.IID_PPV_ARGS(prop_bag))
+                            var = ctyped.struct.VARIANT()
+                            ctyped.func.oleaut32.VariantInit(ctyped.cast(var, ctyped.struct.VARIANTARG))
+                            prop_bag.Read('FriendlyName', ctyped.byref(var), None)
+                            print(var.U.S.U.bstrVal)
+
+    exit()
+    # test(p)
+    win32.get_monitors()
+    print(win32.get_monitor_ids())
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

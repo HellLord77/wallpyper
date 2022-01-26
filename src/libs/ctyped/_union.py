@@ -1,3 +1,5 @@
+from __future__ import annotations as _
+
 import ctypes as _ctypes
 import dataclasses as _dataclasses
 import functools as _functools
@@ -7,6 +9,7 @@ from . import _const
 from . import _struct
 from . import _type
 from .__head__ import _Globals
+from .__head__ import _Pointer
 from .__head__ import _resolve_type
 
 
@@ -53,6 +56,13 @@ class PROPVARIANT_U_S_U:
 
 # noinspection PyPep8Naming
 @_dataclasses.dataclass
+class PROPVARIANT_U:
+    S: _struct.PROPVARIANT_U_S = None
+    decVal: _struct.DECIMAL = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
 class INPUT_U:
     mi: _struct.MOUSEINPUT = None
     ki: _struct.KEYBDINPUT = None
@@ -68,6 +78,49 @@ class PICTDESC_U:
     # noinspection PyProtectedMember
     if _const._WIN32:
         emf: _struct.PICTDESC_U_S4 = None
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class VARIANT_U_S_U:
+    llVal: _type.LONGLONG
+    lVal: _type.LONG
+    bVal: _type.BYTE
+    iVal: _type.SHORT
+    fltVal: _type.FLOAT
+    dblVal: _type.DOUBLE
+    ...
+    bstrVal: _type.BSTR
+    ...
+    pbVal: _Pointer[_type.BYTE]
+    piVal: _Pointer[_type.SHORT]
+    plVal: _Pointer[_type.LONG]
+    pllVal: _Pointer[_type.LONGLONG]
+    pfltVal: _Pointer[_type.FLOAT]
+    pdblVal: _Pointer[_type.DOUBLE]
+    ...
+    byref: _type.PVOID
+    cVal: _type.CHAR
+    uiVal: _type.USHORT
+    ulVal: _type.ULONG
+    ullVal: _type.ULONGLONG
+    intVal: _type.INT
+    uintVal: _type.UINT
+    pdecVal: _Pointer[_struct.DECIMAL]
+    pcVal: _Pointer[_type.CHAR]
+    puiVal: _Pointer[_type.USHORT]
+    pulVal: _Pointer[_type.ULONG]
+    pullVal: _Pointer[_type.ULONGLONG]
+    pintVal: _Pointer[_type.INT]
+    puintVal: _Pointer[_type.UINT]
+    ...
+
+
+# noinspection PyPep8Naming
+@_dataclasses.dataclass
+class VARIANT_U:
+    S: _struct.VARIANT_U_S = None
+    decVal: _struct.DECIMAL = None
 
 
 def _init(name: str) -> type[_ctypes.Union]:

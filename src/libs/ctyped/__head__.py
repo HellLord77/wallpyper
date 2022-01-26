@@ -5,7 +5,6 @@ import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
-import types as _types
 import typing as _typing
 from typing import Any as _Any
 from typing import Generator as _Generator
@@ -13,21 +12,15 @@ from typing import Generic as _Generic
 from typing import NoReturn as _NoReturn
 from typing import Optional as _Optional
 from typing import Sequence as _Sequence
-from typing import Union as _Union
 
 _INIT = False
 _DEBUG = True
 _CT = _typing.TypeVar('_CT')
 
 
-class _Pointer(_Generic[_CT]):
+class _Pointer(_Generic[_CT], _Sequence[_CT]):
     contents: _CT
     value: _CT
-
-
-# noinspection PyAbstractClass
-class _Array(_Pointer, _Sequence[_CT]):
-    pass
 
 
 class _Module:
@@ -54,12 +47,6 @@ class _Globals(dict):
         name = _inspect.currentframe().f_back.f_globals['__name__']
         self.module = _sys.modules[name]
         vars_ = vars(self.module)
-        if name[-1].isdigit():
-            module_ = _sys.modules[name[:-1]]
-            vars_.update(
-                {var: val for var, val in vars(module_).items() if not _not_internal(var) and var not in vars_})
-            # noinspection PyUnresolvedReferences,PyProtectedMember
-            self.module._init = _types.FunctionType(module_._init.__code__, vars_)
         self.vars_ = {var: val for var, val in vars_.items() if _not_internal(var)}
         for var in self.vars_:
             delattr(self.module, var)
@@ -139,7 +126,7 @@ def _pointer(obj: type[_CT]) -> type[_Pointer[_CT]]:
         return _ctypes.pointer(obj)
 
 
-def _cast(obj: _Any, type_: _Union[type[_CT], _CT]) -> _Array[_CT]:
+def _cast(obj: _Any, type_: type[_CT]) -> _Pointer[_CT]:
     try:
         return _ctypes.cast(obj, type_)
     except _ctypes.ArgumentError:

@@ -40,8 +40,8 @@ class IShellItem(_IUnknown):
 
 class IShellItemArray(_IUnknown):
     BindToHandler: _Callable
-    GetPropertyStore: _Callable[
-        [_type.GETPROPERTYSTOREFLAGS, _Pointer[_struct.IID], _Pointer[IPropertyStore]], _type.HRESULT]
+    GetPropertyStore: _Callable[[_type.GETPROPERTYSTOREFLAGS, _Pointer[_struct.IID],
+                                 _Pointer[IPropertyStore]], _type.HRESULT]
     GetPropertyDescriptionList: _Callable
     GetAttributes: _Callable
     GetCount: _Callable[[_Pointer[_type.DWORD]], _type.HRESULT]
@@ -161,6 +161,23 @@ class IPropertyStore(_IUnknown):
     Commit: _Callable[[], _type.HRESULT]
 
 
+class ISequentialStream(_IUnknown):
+    Read: _Callable
+    Write: _Callable
+
+
+class IStream(ISequentialStream):
+    Seek: _Callable
+    SetSize: _Callable
+    CopyTo: _Callable
+    Commit: _Callable
+    Revert: _Callable
+    LockRegion: _Callable
+    UnlockRegion: _Callable
+    Stat: _Callable
+    Clone: _Callable
+
+
 class IPersist(_IUnknown):
     GetClassID: _Callable[[_Pointer[_struct.CLSID]], _type.HRESULT]
 
@@ -173,10 +190,36 @@ class IPersistFile(IPersist):
     GetCurFile: _Callable[[_type.LPOLESTR], _type.HRESULT]
 
 
+class IPersistStream(IPersist):
+    IsDirty: _Callable
+    Load: _Callable
+    Save: _Callable
+    GetSizeMax: _Callable
+
+
+class IMoniker(IPersistStream):
+    BindToObject: _Callable
+    BindToStorage: _Callable[[_Optional[_Pointer[IBindCtx]], _Optional[_Pointer[_type.IMoniker]],
+                              _Pointer[_struct.IID], _Pointer[_type.IMoniker]], _type.HRESULT]
+    Reduce: _Callable
+    ComposeWith: _Callable
+    Enum: _Callable
+    IsEqual: _Callable
+    Hash: _Callable
+    IsRunning: _Callable
+    GetTimeOfLastChange: _Callable
+    Inverse: _Callable
+    CommonPrefixWith: _Callable
+    RelativePathTo: _Callable
+    GetDisplayName: _Callable
+    ParseDisplayName: _Callable
+    IsSystemMoniker: _Callable
+
+
 class IShellLinkA(_IUnknown):
     __CLSID__ = _const.CLSID_ShellLink
-    GetPath: _Callable[
-        [_type.LPWSTR, _type.c_int, _Optional[_Pointer[_struct.WIN32_FIND_DATAA]], _type.DWORD], _type.HRESULT]
+    GetPath: _Callable[[_type.LPWSTR, _type.c_int,
+                        _Optional[_Pointer[_struct.WIN32_FIND_DATAA]], _type.DWORD], _type.HRESULT]
     GetIDList: _Callable[[_Pointer[_Pointer[_struct.ITEMIDLIST]]], _type.HRESULT]
     SetIDList: _Callable[[_Pointer[_struct.ITEMIDLIST]], _type.HRESULT]
     GetDescription: _Callable[[_type.LPSTR, _type.c_int], _type.HRESULT]
@@ -263,6 +306,27 @@ class IDispatch(_IUnknown):
 
 class IPictureDisp(IDispatch):
     pass
+
+
+class ICreateDevEnum(_IUnknown):
+    __CLSID__ = _const.CLSID_SystemDeviceEnum
+    CreateClassEnumerator: _Callable[[_Pointer[_struct.CLSID], _Pointer[IEnumMoniker], _type.DWORD], _type.DWORD]
+
+
+class IEnumMoniker(_IUnknown):
+    Next: _Callable[[_type.ULONG, _Pointer[IMoniker], _type.ULONG], _type.HRESULT]
+    Skip: _Callable[[_type.ULONG], _type.HRESULT]
+    Reset: _Callable[[], _type.HRESULT]
+    Clone: _Callable
+
+
+class IErrorLog(_IUnknown):
+    AddError: _Callable
+
+
+class IPropertyBag(_IUnknown):
+    Read: _Callable[[_type.LPCOLESTR, _Pointer[_struct.VARIANT], _Optional[_Pointer[IErrorLog]]], _type.HRESULT]
+    Write: _Callable[[_type.LPCOLESTR, _Pointer[_struct.VARIANT]], _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:

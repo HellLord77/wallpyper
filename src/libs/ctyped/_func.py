@@ -186,6 +186,7 @@ class oleaut32(metaclass=_WinDLL):
                                         _type.WINOLECTLAPI]
     OleSavePictureFile: _Callable[[_com.IPictureDisp, _type.BSTR],
                                   _type.WINOLECTLAPI]
+    VariantInit: _Callable[[_Pointer[_struct.VARIANTARG]], _type.c_void_p]
 
 
 # noinspection PyPep8Naming
@@ -333,6 +334,10 @@ class user32(metaclass=_WinDLL):
                            _type.BOOL]
     GetMessageW: _Callable[[_Pointer[_struct.MSG], _Optional[_type.HWND], _type.UINT, _type.UINT],
                            _type.BOOL]
+    GetMonitorInfoA: _Callable[[_type.HMONITOR, _Pointer[_struct.MONITORINFO]],
+                               _type.BOOL]
+    GetMonitorInfoW: _Callable[[_type.HMONITOR, _Pointer[_struct.MONITORINFO]],
+                               _type.BOOL]
     GetSubMenu: _Callable[[_type.HMENU, _type.c_int],
                           _type.HMENU]
     GetSysColor: _Callable[[_type.c_int],
@@ -359,6 +364,8 @@ class user32(metaclass=_WinDLL):
                           _type.HANDLE]
     LockWorkStation: _Callable[[],
                                _type.BOOL]
+    MonitorFromRect: _Callable[[_Pointer[_struct.RECT], _type.DWORD],
+                               _type.HMONITOR]
     OpenClipboard: _Callable[[_Optional[_type.HWND]],
                              _type.BOOL]
     PostQuitMessage: _Callable[[_type.c_int],

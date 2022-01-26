@@ -1,4 +1,4 @@
-__version__ = '0.1.23'  # TODO overload func
+__version__ = '0.1.24'  # TODO overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -17,7 +17,6 @@ from . import _struct as struct
 # noinspection PyShadowingBuiltins
 from . import _type as type
 from . import _union as union
-from .__head__ import _Array as Array
 from .__head__ import _CT as CT
 from .__head__ import _Pointer as Pointer
 from .__head__ import _addressof as addressof
@@ -27,17 +26,17 @@ from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
 
 
-def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Array[CT]:
+def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Pointer[CT]:
     return (type_ * (size or len(elements)))(*elements)
 
 
 @_typing.overload
-def char_array(string: bytes) -> Array[type.c_char]:
+def char_array(string: bytes) -> Pointer[type.c_char]:
     pass
 
 
 @_typing.overload
-def char_array(string: str) -> Array[type.c_wchar]:
+def char_array(string: str) -> Pointer[type.c_wchar]:
     pass
 
 
@@ -45,7 +44,7 @@ def char_array(string):
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
-def init_guid(string: str, type_: _Type[CT]) -> _Optional[CT]:
+def init_guid(string: str, type_: _Type[CT] = struct.GUID) -> _Optional[CT]:
     guid = type_()
     if type_ is struct.GUID:  # FIXME match (py 3.10)
         init = func.shell32.GUIDFromStringW

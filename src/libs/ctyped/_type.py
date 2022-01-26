@@ -74,6 +74,7 @@ INT32 = c_int
 INT64 = c_int32
 INT8 = c_char
 LONG = c_long
+LONGLONG = c_int64
 RPC_STATUS = c_long
 SHORT = c_short
 UCHAR = c_uchar
@@ -126,6 +127,7 @@ GpBitmap = _obj_p
 GpImage = _obj_p
 HSTRING = _obj_p
 IShellItem = _obj_p
+IMoniker = _obj_p
 LPRECT = _obj_p
 
 _enum = c_uint  # TODO enum.IntEnum
