@@ -61,10 +61,11 @@ _ANIMATIONS_ = [_ANIMATIONS, []]
 _ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
 
 
-def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable[str],
-                 args: Iterable, kwargs: Mapping[str, Any], set_state: bool, on_thread: bool) -> Callable:
+def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
+                 kwargs: Mapping[str, Any], set_state: bool, on_thread: bool) -> Callable:
     @functools.wraps(on_click)
-    def wrapper(_: Optional[wx.Event] = None):
+    def wrapper(event: Optional[wx.Event] = None):
+        menu_item = event.GetEventObject().FindItemById(event.GetId())
         if set_state:
             menu_item.Enable(False)
         menu_args_ = []
@@ -83,8 +84,8 @@ def _get_wrapper(menu_item: wx.MenuItem, on_click: Callable, menu_args: Iterable
         return wrapper
 
     @functools.wraps(wrapper)
-    def wrapper_thread(_: wx.Event) -> threading.Thread:
-        thread = threading.Thread(target=wrapper, name=f'{__name__}-{__version__}-{on_click.__name__}')
+    def wrapper_thread(event: wx.Event) -> threading.Thread:
+        thread = threading.Thread(target=wrapper, name=f'{__name__}-{__version__}-{on_click.__name__}', args=(event,))
         thread.start()
         return thread
 
@@ -104,7 +105,7 @@ def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = N
         menu_item.Check(check)
     menu_item.Enable(enable)
     if on_click is not None:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(menu_item, on_click, menu_args, args,
+        menu.Bind(wx.EVT_MENU, _get_wrapper(on_click, menu_args, args,
                                             {} if kwargs is None else kwargs, change_state, on_thread), menu_item)
     return menu_item
 
@@ -199,8 +200,8 @@ def disable_events():
 @functools.lru_cache(1)
 def _get_gif_frames(path: str) -> itertools.cycle:
     animation = wx.adv.Animation(path)
-    return itertools.cycle((animation.GetDelay(i),
-                            wx.Icon(animation.GetFrame(i).ConvertToBitmap())) for i in range(animation.GetFrameCount()))
+    return itertools.cycle((animation.GetDelay(index), wx.Icon(animation.GetFrame(
+        index).ConvertToBitmap())) for index in range(animation.GetFrameCount()))
 
 
 def _animation_worker() -> bool:

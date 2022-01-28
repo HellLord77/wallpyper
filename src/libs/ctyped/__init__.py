@@ -1,4 +1,4 @@
-__version__ = '0.1.24'  # TODO overload func
+__version__ = '0.1.25'  # TODO overload func
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -6,7 +6,6 @@ import typing as _typing
 from typing import Any as _Any
 from typing import ContextManager as _ContextManager
 from typing import Optional as _Optional
-from typing import Type as _Type
 
 from . import __head__
 from . import _com as com
@@ -44,17 +43,9 @@ def char_array(string):
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
-def init_guid(string: str, type_: _Type[CT] = struct.GUID) -> _Optional[CT]:
-    guid = type_()
-    if type_ is struct.GUID:  # FIXME match (py 3.10)
-        init = func.shell32.GUIDFromStringW
-    elif type_ is struct.IID:
-        init = func.ole32.IIDFromString
-    elif type_ is struct.CLSID:
-        init = func.ole32.CLSIDFromString
-    else:
-        return
-    init(string, byref(guid))
+def get_guid(string: str) -> _Optional[CT]:
+    guid = struct.GUID()
+    func.shell32.GUIDFromStringW(string, byref(guid))
     return guid
 
 
@@ -64,7 +55,7 @@ def _prep_com(type_: _builtins.type[CT]) -> \
     func.ole32.CoInitialize(None)
     obj = type_()
     try:
-        yield obj, byref(init_guid(type_.__CLSID__, struct.CLSID)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(obj)
+        yield obj, byref(get_guid(type_.__CLSID__)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(obj)
     finally:
         if obj:
             obj.Release()
@@ -72,16 +63,19 @@ def _prep_com(type_: _builtins.type[CT]) -> \
 
 
 @_contextlib.contextmanager
-def create_com(type_: _builtins.type[CT], init: _Optional[bool] = True) -> _ContextManager[CT]:
+def create_com(type_: _builtins.type[CT], init: _Optional[bool] = True) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj, clsid_ref, args):
-        if init:
-            func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)
-        yield obj
+        if not init or macro.SUCCEEDED(func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)):
+            yield obj
+        else:
+            yield None
 
 
 # noinspection PyProtectedMember
 @_contextlib.contextmanager
-def convert_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[CT]:
+def convert_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj_, _, args):
-        obj.QueryInterface(*args)
-        yield obj_
+        if macro.SUCCEEDED(obj.QueryInterface(*args)):
+            yield obj_
+        else:
+            yield None

@@ -20,12 +20,12 @@ def FAILED(hr: int) -> bool:
 
 # noinspection PyPep8Naming
 def MAKEWORD(a: int, b: int) -> int:
-    return a & 0xff | (b & 0xff) << 8
+    return (a & 0xff) | (b & 0xff) << 8
 
 
 # noinspection PyPep8Naming
 def MAKELONG(a: int, b: int) -> int:
-    return a & 0xffff | (b & 0xffff) << 16
+    return (a & 0xffff) | (b & 0xffff) << 16
 
 
 # noinspection PyPep8Naming
@@ -46,6 +46,21 @@ def LOBYTE(w: int) -> int:
 # noinspection PyPep8Naming
 def HIBYTE(w: int) -> int:
     return w >> 8 & 0xff
+
+
+# noinspection PyPep8Naming
+def MAKELANGID(p: int, s: int) -> int:
+    return s << 10 | p
+
+
+# noinspection PyPep8Naming
+def PRIMARYLANGID(lgid: int) -> int:
+    return lgid & 0x3ff
+
+
+# noinspection PyPep8Naming
+def SUBLANGID(lgid: int) -> int:
+    return lgid >> 10
 
 
 # noinspection PyPep8Naming

@@ -1,7 +1,5 @@
 _DIGITS = '0123456789'  # TODO class
 DESCRIPTION = 'Python Wallpaper Changer!'
-DISPLAY = 'Display'
-UPDATE_DISPLAY = 'Update Display'
 
 FAIL_CHANGE = 'Failed Changing Wallpaper'
 FAIL_CLEAR = 'Failed Clearing Wallpaper Cache'
@@ -53,6 +51,7 @@ LABEL_START = 'Start at User Sign-in'
 LABEL_START_MENU = 'Add Start Menu Shortcut'
 LABEL_UNPIN = 'Unpin from Taskbar'
 LABEL_UNPIN_START = 'Unpin from Start'
+LABEL_UPDATE_DISPLAY = 'Update Display'
 
 MENU_ACTIONS = 'Wallpyper Actions'
 MENU_AUTO = 'Automate Wallpyper'

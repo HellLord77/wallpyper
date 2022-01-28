@@ -48,8 +48,8 @@ class Response:
 
     def __iter__(self) -> Generator[bytes, None, None]:
         if self.response.isclosed():
-            for i in range(0, len(self._content), self.chunk_size):
-                yield self._content[i:i + self.chunk_size]
+            for index in range(0, len(self._content), self.chunk_size):
+                yield self._content[index:index + self.chunk_size]
         else:
             with contextlib.suppress(ConnectionError):
                 read = self.response.read

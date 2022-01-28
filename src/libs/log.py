@@ -153,7 +153,7 @@ def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
                 log += f'{pad}{_DETAILS[event]}{arg[0].__name__}: {arg[1]}{_SUFFIX}'
             elif event == _RETURN:
                 log += _format_dict({_RETURN: arg}, f'{pad}{_DETAILS[event]}', _SUFFIX)
-            logging.error(log[:-1])
+            logging.error(log.strip())
     return _on_trace
 
 

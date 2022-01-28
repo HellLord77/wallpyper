@@ -1,9 +1,9 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
-import dataclasses as _dataclasses
 import functools as _functools
 import typing as _typing
+from dataclasses import dataclass as _union
 
 from . import _const
 from . import _struct
@@ -14,28 +14,28 @@ from .__head__ import _resolve_type
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class NOTIFYICONDATA_U:
     uTimeout: _type.UINT = None
     uVersion: _type.UINT = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class DECIMAL_U:
     S: _struct.DECIMAL_U_S = None
     signscale: _type.USHORT = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class DECIMAL_U2:
     s: _struct.DECIMAL_U2_S = None
     Lo64: _type.ULONGLONG = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class PROPVARIANT_U_S_U:
     cVal: _type.CHAR = None
     bVal: _type.UCHAR = None
@@ -55,14 +55,14 @@ class PROPVARIANT_U_S_U:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class PROPVARIANT_U:
     S: _struct.PROPVARIANT_U_S = None
     decVal: _struct.DECIMAL = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class INPUT_U:
     mi: _struct.MOUSEINPUT = None
     ki: _struct.KEYBDINPUT = None
@@ -70,7 +70,7 @@ class INPUT_U:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class PICTDESC_U:
     bmp: _struct.PICTDESC_U_S = None
     wmf: _struct.PICTDESC_U_S2 = None
@@ -81,7 +81,7 @@ class PICTDESC_U:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class VARIANT_U_S_U:
     llVal: _type.LONGLONG
     lVal: _type.LONG
@@ -117,7 +117,7 @@ class VARIANT_U_S_U:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_union
 class VARIANT_U:
     S: _struct.VARIANT_U_S = None
     decVal: _struct.DECIMAL = None

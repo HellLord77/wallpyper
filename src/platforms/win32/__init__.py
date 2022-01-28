@@ -1,4 +1,4 @@
-__version__ = '0.0.13'
+__version__ = '0.0.14'
 
 import contextlib
 import ntpath
@@ -20,6 +20,7 @@ def _get_dir(csidl: int) -> str:
 
 _PIN_TIMEOUT = 3
 _POLL_TIMEOUT = 0.01
+_BACKSLASH = '\\'
 _EMPTY = '\0' * ctyped.const.MAX_PATH
 _APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
 _STARTUP_DIR = _get_dir(ctyped.const.CSIDL_STARTUP)
@@ -54,7 +55,7 @@ def _get_workerw_hwnd() -> int:
 
 
 @contextlib.contextmanager
-def _access_clipboard() -> ContextManager[None]:
+def _open_clipboard() -> ContextManager[None]:
     ctyped.func.user32.OpenClipboard(None)
     try:
         yield
@@ -63,7 +64,7 @@ def _access_clipboard() -> ContextManager[None]:
 
 
 def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
-    with _access_clipboard():
+    with _open_clipboard():
         ctyped.func.user32.EmptyClipboard()
         ctyped.func.user32.SetClipboardData(format_, hglobal)
 
@@ -140,37 +141,37 @@ def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
 @contextlib.contextmanager
 def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
                write: bool = False) -> ContextManager[Optional[ctyped.com.IPropertyStore]]:
-    try:
-        if isinstance(path_or_interface, str):
-            with ctyped.create_com(ctyped.com.IPropertyStore, False) as prop_store:
-                ctyped.func.shell32.SHGetPropertyStoreFromParsingName(
+    if isinstance(path_or_interface, str):
+        with ctyped.create_com(ctyped.com.IPropertyStore, False) as prop_store:
+            if ctyped.macro.SUCCEEDED(ctyped.func.shell32.SHGetPropertyStoreFromParsingName(
                     path_or_interface, None,
                     ctyped.const.GPS_READWRITE if write else ctyped.const.GPS_PREFERQUERYPROPERTIES,
-                    *ctyped.macro.IID_PPV_ARGS(prop_store))
+                    *ctyped.macro.IID_PPV_ARGS(prop_store))):
                 yield prop_store
-        else:
-            with ctyped.convert_com(ctyped.com.IPropertyStore, path_or_interface) as prop_store:
-                yield prop_store
-    except OSError:
-        yield None
+                return
+    else:
+        with ctyped.convert_com(ctyped.com.IPropertyStore, path_or_interface) as prop_store:
+            yield prop_store
+            return
+    yield None
 
 
-def _get_ex_str_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+def _get_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
                       *keys: tuple[str, int]) -> tuple[Optional[str], ...]:
-    vals = [None] * len(keys)
+    vals = []
     with _load_prop(path_or_interface) as prop:
         if prop:
             var = ctyped.struct.PROPVARIANT()
-            for index, key in enumerate(keys):
-                var.U.S.U.pwszVal = None
+            var_ref = ctyped.byref(var)
+            for key in keys:
                 with contextlib.suppress(OSError):
-                    prop.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.init_guid(
-                        key[0], ctyped.struct.GUID), key[1])), ctyped.byref(var))
-                vals[index] = var.U.S.U.pwszVal
+                    prop.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]), key[1])), var_ref)
+                vals.append(var.U.S.U.pwszVal)
+                ctyped.func.ole32.PropVariantClear(var_ref)
     return tuple(vals)
 
 
-def _set_ex_str_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+def _set_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
                       props: Mapping[tuple[str, int], str]) -> bool:
     with _load_prop(path_or_interface, True) as prop:
         if prop:
@@ -179,12 +180,11 @@ def _set_ex_str_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
             for key, val in props.items():
                 var.U.S.U.pwszVal = val
                 with contextlib.suppress(OSError):
-                    prop.SetValue(
-                        ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.init_guid(key[0], ctyped.struct.GUID), key[1])),
-                        ctyped.byref(var))
+                    prop.SetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]),
+                                                                         key[1])), ctyped.byref(var))
             with contextlib.suppress(OSError):
                 prop.Commit()
-        return all(val == val_ for val, val_ in zip(props.values(), _get_ex_str_props(path_or_interface, *props)))
+        return all(val == val_ for val, val_ in zip(props.values(), _get_str_ex_props(path_or_interface, *props)))
 
 
 @contextlib.contextmanager
@@ -194,9 +194,10 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
         with ctyped.create_com(ctyped.com.IShellLinkW) as link:
             if link:
                 with ctyped.convert_com(ctyped.com.IPersistFile, link) as file:
-                    if file:
-                        file.Load(path_or_link, ctyped.const.STGM_READ)
-            yield link
+                    if file and ctyped.macro.SUCCEEDED(file.Load(path_or_link, ctyped.const.STGM_READ)):
+                        yield link
+                        return
+        yield None
     else:
         yield path_or_link
 
@@ -271,6 +272,65 @@ def _get_link_paths(dir_: str, recursive: Optional[bool] = None) -> Generator[st
             yield path
 
 
+@contextlib.contextmanager
+def _get_hdevinfo(guid_ref: Optional[ctyped.Pointer[ctyped.struct.GUID]],
+                  flags: ctyped.type.DWORD) -> ContextManager[Optional[ctyped.type.HDEVINFO]]:
+    if (hdevinfo := ctyped.func.setupapi.SetupDiGetClassDevsW(guid_ref, None, None,
+                                                              flags)) == ctyped.const.INVALID_HANDLE_VALUE:
+        yield None
+    else:
+        try:
+            yield hdevinfo
+        finally:
+            ctyped.func.setupapi.SetupDiDestroyDeviceInfoList(hdevinfo)
+
+
+def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Pointer[ctyped.struct.SP_DEVINFO_DATA],
+                      prop: Union[int, tuple[str, int]]) -> str:
+    if isinstance(prop, int):
+        getter = ctyped.func.setupapi.SetupDiGetDeviceRegistryPropertyW
+        key_ref = prop
+        type_ref = None
+        flags = ()
+    else:
+        getter = ctyped.func.setupapi.SetupDiGetDevicePropertyW
+        key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(prop[0]), prop[1]))
+        type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
+        flags = 0,
+    sz = ctyped.type.DWORD()
+    getter(hdevinfo, dev_info_ref, key_ref, type_ref, None, 0, ctyped.byref(sz), *flags)
+    buff = ctyped.type.PWCHAR('\0' * sz.value)
+    getter(hdevinfo, dev_info_ref, key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), sz, None, *flags)
+    return buff.value
+
+
+def _get_str_devs_props(guid: Optional[str] = None, *props: Union[int, tuple[str, int]]) -> tuple[tuple[str, ...]]:
+    vals = []
+    guid_ref = None
+    flags = ctyped.const.DIGCF_ALLCLASSES | ctyped.const.DIGCF_PRESENT
+    if guid:
+        guid_ref = ctyped.byref(ctyped.get_guid(ctyped.const.GUID_DEVCLASS_MONITOR))
+        flags = ctyped.const.DIGCF_PRESENT
+    with _get_hdevinfo(guid_ref, flags) as hdevinfo:
+        if hdevinfo:
+            dev_info = ctyped.struct.SP_DEVINFO_DATA(ctyped.sizeof(ctyped.struct.SP_DEVINFO_DATA))
+            dev_info_ref = ctyped.byref(dev_info)
+            index = 0
+            while ctyped.func.setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
+                vals.append(tuple(_get_str_dev_prop(hdevinfo, dev_info_ref, prop) for prop in props))
+                index += 1
+    return tuple(vals)
+
+
+def get_last_error():
+    buff = ctyped.type.LPWSTR(_EMPTY)
+    ctyped.func.kernel32.FormatMessageW(
+        ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS, None,
+        ctyped.func.kernel32.GetLastError(),
+        ctyped.macro.MAKELANGID(ctyped.const.LANG_NEUTRAL, ctyped.const.SUBLANG_DEFAULT), buff, len(_EMPTY), None)
+    return buff.value.strip()
+
+
 def get_max_shutdown_time() -> float:
     buff = ctyped.type.c_int()
     ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
@@ -316,29 +376,28 @@ def open_file_path(path: str) -> bool:
 
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
     with ctyped.create_com(ctyped.com.IFileDialog) as dialog:
-        dialog.SetOptions(ctyped.const.FOS_PICKFOLDERS)
-        if path is not None:
-            with contextlib.suppress(FileNotFoundError):
+        if dialog:
+            dialog.SetOptions(ctyped.const.FOS_PICKFOLDERS)
+            if path is not None:
+                with contextlib.suppress(FileNotFoundError):
+                    with ctyped.create_com(ctyped.com.IShellItem, False) as item:
+                        ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
+                        dialog.SetFolder(item)
+                dialog.SetFileName(path)
+            if title is not None:
+                dialog.SetTitle(title)
+            with contextlib.suppress(OSError):
+                dialog.Show(None)
+                buff = ctyped.type.LPWSTR(_EMPTY)
                 with ctyped.create_com(ctyped.com.IShellItem, False) as item:
-                    ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
-                    dialog.SetFolder(item)
-            dialog.SetFileName(path)
-        if title is not None:
-            dialog.SetTitle(title)
-        try:
-            dialog.Show(None)
-        except OSError:
-            return ''
-        else:
-            buff = ctyped.type.LPWSTR(_EMPTY)
-            with ctyped.create_com(ctyped.com.IShellItem, False) as item:
-                dialog.GetResult(ctyped.byref(item))
-                item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
-            return buff.value
+                    dialog.GetResult(ctyped.byref(item))
+                    item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
+                return buff.value
+    return ''
 
 
 def paste_text() -> str:
-    with _access_clipboard():
+    with _open_clipboard():
         return ctyped.cast(ctyped.func.user32.GetClipboardData(
             ctyped.const.CF_UNICODETEXT), ctyped.type.c_wchar_p).value or ''
 
@@ -377,24 +436,11 @@ def copy_image(path: str) -> bool:
     return False
 
 
-def get_monitors() -> dict[str, str]:
-    monitors = {}
-    device = ctyped.struct.DISPLAY_DEVICEW()
-    device.cb = ctyped.sizeof(ctyped.struct.DISPLAY_DEVICEW)
-    device_i = 0
-    while ctyped.func.user32.EnumDisplayDevicesW(None, device_i, ctyped.byref(device), 0):
-        device_name = device.DeviceName
-        monitor_i = 0
-        while ctyped.func.user32.EnumDisplayDevicesW(device_name, monitor_i, ctyped.byref(device), 0):
-            print(device)
-            monitors[device.DeviceID] = device.DeviceName
-            monitor_i += 1
-        device_i += 1
-    return monitors
-
-
-def get_monitor_ids() -> tuple[str, ...]:
-    ids = []
+def get_monitors() -> tuple[tuple[str, str], ...]:
+    devs_int_id_name = (('\\\\?\\{}'.format(int_id.replace('\\', '#')), name) for int_id, name in
+                        _get_str_devs_props(ctyped.const.GUID_DEVCLASS_MONITOR,
+                                            ctyped.const.DEVPKEY_Device_InstanceId, ctyped.const.DEVPKEY_NAME))
+    monitors = []
     with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             count = ctyped.type.UINT()
@@ -402,14 +448,37 @@ def get_monitor_ids() -> tuple[str, ...]:
             buff = ctyped.type.LPWSTR(_EMPTY)
             for index in range(count.value):
                 wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
-                ids.append(buff.value)
+                for int_id, name in devs_int_id_name:
+                    if buff.value.upper().startswith(int_id):
+                        monitors.append((buff.value, name))
+                        break
+    return tuple(monitors)
 
-                rect = ctyped.struct.RECT()
-                wallpaper.GetMonitorRECT(buff.value, ctyped.byref(rect))
-                hmonitor = ctyped.func.user32.MonitorFromRect(ctyped.byref(rect), ctyped.const.MONITOR_DEFAULTTONULL)
-                print(hmonitor)
 
-    return tuple(ids)
+def get_direct_show_devices_properties(cat: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
+        tuple[tuple[Optional[str], ...], ...]:
+    devices = []
+    with ctyped.create_com(ctyped.com.ICreateDevEnum) as dev_enum:
+        if dev_enum:
+            with ctyped.create_com(ctyped.com.IEnumMoniker, False) as enum_moniker:
+                dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(cat)), ctyped.byref(enum_moniker), 0)
+                with ctyped.create_com(ctyped.com.IMoniker, False) as moniker:
+                    with ctyped.create_com(ctyped.com.IPropertyBag, False) as prop_bag:
+                        props = []
+                        while enum_moniker.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
+                            if ctyped.macro.SUCCEEDED(moniker.BindToStorage(None, None,
+                                                                            *ctyped.macro.IID_PPV_ARGS(prop_bag))):
+                                var = ctyped.struct.VARIANT()
+                                var_ref = ctyped.byref(var)
+                                props.clear()
+                                for prop_name in prop_names:
+                                    ctyped.func.oleaut32.VariantInit(var_ref)
+                                    with contextlib.suppress(FileNotFoundError):
+                                        prop_bag.Read(prop_name, var_ref, None)
+                                    props.append(var.U.S.U.bstrVal)
+                                    ctyped.func.oleaut32.VariantClear(var_ref)
+                                devices.append(tuple(props))
+    return tuple(devices)
 
 
 def _get_wallpaper_path_param() -> str:
@@ -431,7 +500,7 @@ def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
     with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             buff = ctyped.type.LPWSTR(_EMPTY)
-            for monitor in (monitors or get_monitor_ids()):
+            for monitor in (monitors or get_monitors()):
                 wallpaper.GetWallpaper(monitor, ctyped.byref(buff))
                 paths.append(buff.value)
     return tuple(paths)
@@ -541,7 +610,7 @@ def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', ico
                 target) if start_in is None else start_in, subprocess.list2cmdline(
                 args), show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
                                   icon=(icon_path, icon_index))
-            return set_ and (uid is None or _set_ex_str_props(link, {
+            return set_ and (uid is None or _set_str_ex_props(link, {
                 ctyped.const.PKEY_AppUserModel_ID: uid})) and _save_link(link, path)
     return False
 
@@ -551,7 +620,7 @@ def remove_shortcuts(dir_: str, uid: str, rmdir: bool = True) -> bool:
         return False
     removed = True
     for path in _get_link_paths(dir_, True):
-        if uid == _get_ex_str_props(path, ctyped.const.PKEY_AppUserModel_ID)[0]:
+        if uid == _get_str_ex_props(path, ctyped.const.PKEY_AppUserModel_ID)[0]:
             try:
                 os.remove(path)
             except (FileNotFoundError, PermissionError):
@@ -572,7 +641,7 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
             if taskbar:
                 path_ = ntpath.join(
                     _TASKBAR_DIR,
-                    f'{_get_ex_str_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
+                    f'{_get_str_ex_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
                 path = ntpath.join(_TASKBAR_DIR, f'{name}{LINK_EXT}')
             else:
                 path_ = ntpath.join(START_DIR, f'{name_}{LINK_EXT}')

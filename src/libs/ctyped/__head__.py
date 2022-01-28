@@ -14,7 +14,7 @@ from typing import Optional as _Optional
 from typing import Sequence as _Sequence
 
 _INIT = False
-_DEBUG = True
+_DEBUG = False
 _CT = _typing.TypeVar('_CT')
 
 

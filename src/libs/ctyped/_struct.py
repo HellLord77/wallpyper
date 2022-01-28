@@ -1,10 +1,10 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
-import dataclasses as _dataclasses
 import functools as _functools
 import itertools as _itertools
 import typing as _typing
+from dataclasses import dataclass as _struct
 
 from . import _const
 from . import _type
@@ -16,7 +16,7 @@ from .__head__ import _resolve_type
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
 
 
-@_dataclasses.dataclass
+@_struct
 class GdiplusStartupInput:
     GdiplusVersion: _type.UINT32 = 1
     DebugEventCallback: _type.DebugEventProc = None
@@ -24,7 +24,7 @@ class GdiplusStartupInput:
     SuppressExternalCodecs: _type.BOOL = False
 
 
-@_dataclasses.dataclass
+@_struct
 class RGBQUAD:
     rgbBlue: _type.BYTE = None
     rgbGreen: _type.BYTE = None
@@ -32,7 +32,7 @@ class RGBQUAD:
     rgbReserved: _type.BYTE = 0
 
 
-@_dataclasses.dataclass
+@_struct
 class BITMAPINFOHEADER:
     biSize: _type.DWORD = None
     biWidth: _type.LONG = None
@@ -47,14 +47,14 @@ class BITMAPINFOHEADER:
     biClrImportant: _type.DWORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class BITMAPINFO:
     bmiHeader: BITMAPINFOHEADER = None
     # noinspection PyTypeChecker
     bmiColors: RGBQUAD * 1 = None
 
 
-@_dataclasses.dataclass
+@_struct
 class BITMAP:
     bmType: _type.LONG = None
     bmWidth: _type.LONG = None
@@ -65,7 +65,7 @@ class BITMAP:
     bmBits: _type.LPVOID = None
 
 
-@_dataclasses.dataclass
+@_struct
 class DIBSECTION:
     dsBm: BITMAP = None
     dsBmih: BITMAPINFOHEADER = None
@@ -74,7 +74,7 @@ class DIBSECTION:
     dsOffset: _type.DWORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class GUID:
     Data1: _type.c_ulong = None
     Data2: _type.c_ushort = None
@@ -82,13 +82,13 @@ class GUID:
     Data4: _type.c_uchar * 8 = None
 
 
-@_dataclasses.dataclass
+@_struct
 class WALLPAPEROPT:
     dwSize: _type.DWORD = None
     dwStyle: _type.DWORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class RECT:
     left: _type.LONG = None
     top: _type.LONG = None
@@ -96,19 +96,19 @@ class RECT:
     bottom: _type.LONG = None
 
 
-@_dataclasses.dataclass
+@_struct
 class POINT:
     x: _type.LONG = None
     y: _type.LONG = None
 
 
-@_dataclasses.dataclass
+@_struct
 class SIZE:
     cx: _type.LONG = None
     cy: _type.LONG = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MENUINFO:
     cbSize: _type.DWORD = None
     fMask: _type.DWORD = None
@@ -119,18 +119,18 @@ class MENUINFO:
     dwMenuData: _type.ULONG_PTR = None
 
 
-@_dataclasses.dataclass
+@_struct
 class SHITEMID:
     cb: _type.USHORT = None
     abID: _type.BYTE * 1 = None
 
 
-@_dataclasses.dataclass
+@_struct
 class ITEMIDLIST:
     mkid: SHITEMID = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MENUITEMINFOA:
     cbSize: _type.UINT = None
     fMask: _type.UINT = None
@@ -147,7 +147,7 @@ class MENUITEMINFOA:
         hbmpItem: _type.HBITMAP = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MENUITEMINFOW:
     cbSize: _type.UINT = None
     fMask: _type.UINT = None
@@ -164,7 +164,7 @@ class MENUITEMINFOW:
         hbmpItem: _type.HBITMAP = None
 
 
-@_dataclasses.dataclass
+@_struct
 class NOTIFYICONDATAA:
     cbSize: _type.DWORD = None
     hWnd: _type.HWND = None
@@ -190,7 +190,7 @@ class NOTIFYICONDATAA:
         hBalloonIcon: _type.HICON = None
 
 
-@_dataclasses.dataclass
+@_struct
 class NOTIFYICONDATAW:
     cbSize: _type.DWORD = None
     hWnd: _type.HWND = None
@@ -216,7 +216,7 @@ class NOTIFYICONDATAW:
         hBalloonIcon: _type.HICON = None
 
 
-@_dataclasses.dataclass
+@_struct
 class WNDCLASSEXA:
     cbSize: _type.UINT = None
     style: _type.UINT = None
@@ -232,7 +232,7 @@ class WNDCLASSEXA:
     hIconSm: _type.HICON = None
 
 
-@_dataclasses.dataclass
+@_struct
 class WNDCLASSEXW:
     cbSize: _type.UINT = None
     style: _type.UINT = None
@@ -248,13 +248,13 @@ class WNDCLASSEXW:
     hIconSm: _type.HICON = None
 
 
-@_dataclasses.dataclass
+@_struct
 class POINT:
     x: _type.LONG = None
     y: _type.LONG = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MSG:
     hwnd: _type.HWND = None
     message: _type.UINT = None
@@ -265,7 +265,7 @@ class MSG:
     lPrivate: _type.DWORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class PropertyItem:
     id: _type.PROPID = None
     length: _type.ULONG = None
@@ -273,14 +273,14 @@ class PropertyItem:
     value: _type.VOID = None
 
 
-@_dataclasses.dataclass
+@_struct
 class FILETIME:
     dwLowDateTime: _type.DWORD = None
     dwHighDateTime: _type.DWORD = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class WIN32_FIND_DATAA:
     dwFileAttributes: _type.DWORD = None
     ftCreationTime: FILETIME = None
@@ -300,7 +300,7 @@ class WIN32_FIND_DATAA:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class WIN32_FIND_DATAW:
     dwFileAttributes: _type.DWORD = None
     ftCreationTime: FILETIME = None
@@ -319,13 +319,13 @@ class WIN32_FIND_DATAW:
         wFinderFlags: _type.WORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class PROPERTYKEY:
     fmtid: GUID = None
     pid: _type.DWORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class CSPLATFORM:
     dwPlatformId: _type.DWORD = None
     dwVersionHi: _type.DWORD = None
@@ -334,20 +334,20 @@ class CSPLATFORM:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class DECIMAL_U_S:
     scale: _type.BYTE = None
     sign: _type.BYTE = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class DECIMAL_U2_S:
     Lo32: _type.ULONG = None
     Mid32: _type.ULONG = None
 
 
-@_dataclasses.dataclass
+@_struct
 class DECIMAL:
     wReserved: _type.USHORT = None
     U: _union.DECIMAL_U = None
@@ -356,7 +356,7 @@ class DECIMAL:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class PROPVARIANT_U_S:
     vt: _type.VARTYPE = None
     wReserved1: _type.PROPVAR_PAD1 = None
@@ -365,12 +365,12 @@ class PROPVARIANT_U_S:
     U: _union.PROPVARIANT_U_S_U = None
 
 
-@_dataclasses.dataclass
+@_struct
 class PROPVARIANT:
     U: _union.PROPVARIANT_U = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MOUSEINPUT:
     dx: _type.LONG = None
     dy: _type.LONG = None
@@ -380,7 +380,7 @@ class MOUSEINPUT:
     dwExtraInfo: _type.ULONG_PTR = None
 
 
-@_dataclasses.dataclass
+@_struct
 class KEYBDINPUT:
     wVk: _type.WORD = None
     wScan: _type.WORD = None
@@ -389,21 +389,21 @@ class KEYBDINPUT:
     dwExtraInfo: _type.ULONG_PTR = None
 
 
-@_dataclasses.dataclass
+@_struct
 class HARDWAREINPUT:
     uMsg: _type.DWORD = None
     wParamL: _type.WORD = None
     wParamH: _type.WORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class INPUT:
     type: _type.DWORD = None
     U: _union.INPUT_U = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class DISPLAY_DEVICEA:
     cb: _type.DWORD = None
     DeviceName: _type.CHAR * 32 = None
@@ -414,7 +414,7 @@ class DISPLAY_DEVICEA:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class DISPLAY_DEVICEW:
     cb: _type.DWORD = None
     DeviceName: _type.WCHAR * 32 = None
@@ -424,7 +424,7 @@ class DISPLAY_DEVICEW:
     DeviceKey: _type.WCHAR * 128 = None
 
 
-@_dataclasses.dataclass
+@_struct
 class BROWSEINFOA:
     hwndOwner: _type.HWND = None
     pidlRoot: _Pointer[_Pointer[ITEMIDLIST]] = None
@@ -436,7 +436,7 @@ class BROWSEINFOA:
     iImage: _type.c_int = None
 
 
-@_dataclasses.dataclass
+@_struct
 class BROWSEINFOW:
     hwndOwner: _type.HWND = None
     pidlRoot: _Pointer[_Pointer[ITEMIDLIST]] = None
@@ -448,7 +448,7 @@ class BROWSEINFOW:
     iImage: _type.c_int = None
 
 
-@_dataclasses.dataclass
+@_struct
 class PAINTSTRUCT:
     hdc: _type.HDC = None
     fErase: _type.BOOL = None
@@ -459,14 +459,14 @@ class PAINTSTRUCT:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class PICTDESC_U_S:
     hbitmap: _type.HBITMAP = None
     hpal: _type.HPALETTE = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class PICTDESC_U_S2:
     hmeta: _type.HMETAFILE = None
     xExt: _type.c_int = None
@@ -474,7 +474,7 @@ class PICTDESC_U_S2:
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class PICTDESC_U_S3:
     hicon: _type.HICON = None
 
@@ -482,19 +482,19 @@ class PICTDESC_U_S3:
 # noinspection PyProtectedMember
 if _const._WIN32:
     # noinspection PyPep8Naming
-    @_dataclasses.dataclass
+    @_struct
     class PICTDESC_U_S4:
         hemf: _type.HMETAFILE = None
 
 
-@_dataclasses.dataclass
+@_struct
 class PICTDESC:
     cbSizeofstruct: _type.UINT = None
     picType: _type.UINT = None
     U: _union.PICTDESC_U = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MONITORINFO:
     cbSize: _type.DWORD = None
     rcMonitor: RECT = None
@@ -502,18 +502,20 @@ class MONITORINFO:
     dwFlags: _type.DWORD = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MONITORINFOEXA:
+    S: MONITORINFO = None
     szDevice: _type.CHAR * _const.CCHDEVICENAME = None
 
 
-@_dataclasses.dataclass
+@_struct
 class MONITORINFOEXW:
+    S: MONITORINFO = None
     szDevice: _type.WCHAR * _const.CCHDEVICENAME = None
 
 
 # noinspection PyPep8Naming
-@_dataclasses.dataclass
+@_struct
 class VARIANT_U_S:
     vt: _type.VARTYPE = None
     wReserved1: _type.WORD = None
@@ -522,25 +524,54 @@ class VARIANT_U_S:
     U: _union.VARIANT_U_S_U = None
 
 
-@_dataclasses.dataclass
+@_struct
 class VARIANT:
     U: _union.VARIANT_U = None
 
 
-class UUID(GUID):
-    pass
+# noinspection PyPep8Naming
+@_struct
+class SP_DEVINFO_DATA:
+    cbSize: _type.DWORD = None
+    ClassGuid: GUID = None
+    DevInst: _type.DWORD = None
+    Reserved: _type.ULONG_PTR = None
 
 
-class IID(GUID):
-    pass
+# noinspection PyPep8Naming
+@_struct
+class SP_DEVICE_INTERFACE_DATA:
+    cbSize: _type.DWORD = None
+    InterfaceClassGuid: GUID = None
+    Flags: _type.DWORD = None
+    Reserved: _type.ULONG_PTR = None
 
 
-class CLSID(GUID):
-    pass
+# noinspection PyPep8Naming
+@_struct
+class SP_DEVICE_INTERFACE_DETAIL_DATA_A:
+    cbSize: _type.DWORD = None
+    DevicePath: _type.CHAR * _const.ANYSIZE_ARRAY = None
 
 
-class VARIANTARG(VARIANT):
-    pass
+# noinspection PyPep8Naming
+@_struct
+class SP_DEVICE_INTERFACE_DETAIL_DATA_W:
+    cbSize: _type.DWORD = None
+    DevicePath: _type.WCHAR * _const.ANYSIZE_ARRAY = None
+
+
+@_struct
+class DEVPROPKEY:
+    fmtid: DEVPROPGUID = None
+    pid: _type.DEVPROPID = None
+
+
+UUID = GUID
+IID = GUID
+CLSID = GUID
+DEVPROPGUID = GUID
+VARIANTARG = VARIANT
 
 
 def _init(name: str) -> type[_ctypes.Structure]:

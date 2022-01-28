@@ -18,9 +18,9 @@ import modules.wallhaven
 import platforms.win32 as platform
 import utils
 
-FEATURE_PIN = False
-FEATURE_CHANGED = False
+FEATURE_FORCE_PIN = False
 FEATURE_DISPLAY = False
+FEATURE_CHANGED = False
 
 EXIT_TIMEOUT_FACTOR = 0.9
 MAX_CACHE = 64 * 1024 * 1024
@@ -141,7 +141,9 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
 
 
 def fix_config():
-    CONFIG[CONFIG_LAST] = TIMER.last_start
+    if not FEATURE_DISPLAY:
+        CONFIG[CONFIG_NO_DISPLAY] = DEFAULT_CONFIG[CONFIG_NO_DISPLAY]
+    CONFIG[CONFIG_LAST] = TIMER.last_start if FEATURE_CHANGED else DEFAULT_CONFIG[CONFIG_LAST]
     if CONFIG[CONFIG_INTERVAL] not in INTERVALS:
         CONFIG[CONFIG_INTERVAL] = DEFAULT_CONFIG[CONFIG_INTERVAL]
     if not CONFIG[CONFIG_DIR]:
@@ -159,7 +161,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
             HISTORY.set_next(url)
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
-        monitors_ = set(platform.get_monitor_ids())
+        monitors_ = set(id_name[0] for id_name in platform.get_monitors())
         if len(monitors := monitors_.difference(CONFIG[CONFIG_NO_DISPLAY])) == len(monitors_):
             monitors = ()
         changed = (url == temp_path or utils.download_url(
@@ -219,13 +221,13 @@ def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None
 
 
 def on_update_display():
-    menu_display = utils.get_item(LANG.DISPLAY)
+    menu_display = utils.get_item(CONFIG_NO_DISPLAY)
     utils.remove_items(menu=menu_display)
-    for index, id_ in enumerate(platform.get_monitor_ids()):
-        utils.add_item(f'{LANG.DISPLAY} {index}',
-                       utils.item.CHECK, id_ not in CONFIG[CONFIG_NO_DISPLAY], uid=id_, on_click=on_display,
+    for index, id_name in enumerate(platform.get_monitors()):
+        utils.add_item(f'[{index}] {id_name[1]}', utils.item.CHECK,
+                       id_name[0] not in CONFIG[CONFIG_NO_DISPLAY], uid=id_name[0], on_click=on_display,
                        menu_args=(utils.get_property.CHECKED, utils.get_property.UID), menu=menu_display)
-    utils.add_item(LANG.UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
+    utils.add_item(LANG.LABEL_UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
 
 
 def on_display(checked: bool, uid: str) -> int:
@@ -461,19 +463,19 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_links)
     utils.add_item(LANG.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_links)
     utils.add_separator(menu_links)
-    utils.add_item(LANG.LABEL_PIN, enable=pyinstall.FROZEN or FEATURE_PIN, on_click=on_pin, menu=menu_links)
-    utils.add_item(LANG.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_PIN, on_click=on_unpin, menu=menu_links)
+    utils.add_item(LANG.LABEL_PIN, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN, on_click=on_pin, menu=menu_links)
+    utils.add_item(LANG.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN, on_click=on_unpin, menu=menu_links)
     utils.add_separator(menu_links)
-    unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PIN,
+    unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN,
                            on_click=on_unpin_start, menu=menu_links)
-    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PIN,
+    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN,
                    on_click=on_pin_start, menu_args=(utils.set_property.ENABLE,),
                    args=(unpin.Enable,), change_state=False, position=9, menu=menu_links)
     utils.add_item(LANG.LABEL_CLEAR, on_click=on_clear, menu=menu_actions)
     utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
-    utils.add_submenu(LANG.MENU_DISPLAY, FEATURE_DISPLAY, LANG.DISPLAY)
+    utils.add_submenu(LANG.MENU_DISPLAY, FEATURE_DISPLAY, CONFIG_NO_DISPLAY)
     on_update_display()
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
     menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu=menu_auto)
