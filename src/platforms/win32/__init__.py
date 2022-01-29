@@ -12,28 +12,40 @@ from typing import ContextManager, Generator, Iterable, Mapping, Optional, Union
 import libs.ctyped as ctyped
 
 
-def _get_dir(csidl: int) -> str:
-    buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.shell32.SHGetFolderPathW(None, csidl, None, ctyped.const.SHGFP_TYPE_CURRENT, buff)
-    return buff.value
+def _get_dir(folderid: str) -> str:
+    buff = ctyped.type.PWSTR()
+    ctyped.func.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(folderid)),
+                                             ctyped.const.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
+    path = buff.value
+    ctyped.func.ole32.CoTaskMemFree(buff)
+    return path
 
 
 _PIN_TIMEOUT = 3
 _POLL_TIMEOUT = 0.01
-_BACKSLASH = '\\'
 _EMPTY = '\0' * ctyped.const.MAX_PATH
-_APPDATA_DIR = _get_dir(ctyped.const.CSIDL_APPDATA)
-_STARTUP_DIR = _get_dir(ctyped.const.CSIDL_STARTUP)
+_APPDATA_DIR = _get_dir(ctyped.const.FOLDERID_RoamingAppData)
+_STARTUP_DIR = _get_dir(ctyped.const.FOLDERID_Startup)
 _TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
 _STARTUP_KEY = ntpath.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 _SYSPIN_PATH = ntpath.join(ntpath.dirname(__file__), 'syspin.exe')
 
 LINK_EXT = '.lnk'
 SAVE_DIR = _APPDATA_DIR
-DESKTOP_DIR = _get_dir(ctyped.const.CSIDL_DESKTOP)
-PICTURES_DIR = _get_dir(ctyped.const.CSIDL_MYPICTURES)
-START_DIR = _get_dir(ctyped.const.CSIDL_PROGRAMS)
+DESKTOP_DIR = _get_dir(ctyped.const.FOLDERID_Desktop)
+PICTURES_DIR = _get_dir(ctyped.const.FOLDERID_Pictures)
+START_DIR = _get_dir(ctyped.const.FOLDERID_Programs)
 WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
+
+
+@contextlib.contextmanager
+def _get_buff() -> ContextManager[ctyped.type.LPWSTR]:
+    buff = ctyped.type.LPWSTR()
+    try:
+        yield buff
+    finally:
+        if buff:
+            ctyped.func.kernel32.LocalFree(buff)
 
 
 def _spawn_workerw():
@@ -322,31 +334,22 @@ def _get_str_devs_props(guid: Optional[str] = None, *props: Union[int, tuple[str
     return tuple(vals)
 
 
-def get_last_error():
-    buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.kernel32.FormatMessageW(
-        ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS, None,
-        ctyped.func.kernel32.GetLastError(),
-        ctyped.macro.MAKELANGID(ctyped.const.LANG_NEUTRAL, ctyped.const.SUBLANG_DEFAULT), buff, len(_EMPTY), None)
-    return buff.value.strip()
+def get_last_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
+    with _get_buff() as buff:
+        ctyped.func.kernel32.FormatMessageW((
+                ctyped.const.FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS),
+            None, ctyped.func.kernel32.GetLastError() if hresult is None else hresult,
+            ctyped.macro.MAKELANGID(ctyped.const.LANG_NEUTRAL, ctyped.const.SUBLANG_DEFAULT),
+            ctyped.cast(ctyped.byref(buff), ctyped.type.LPWSTR), 0, None)
+        error = buff.value.strip()
+    return error
 
 
 def get_max_shutdown_time() -> float:
     buff = ctyped.type.c_int()
     ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
     return buff.value / 1000
-
-
-def get_monitor_count() -> int:
-    num = ctyped.type.c_int()
-    ctyped.func.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
-    return num.value
-
-
-def get_temp_dir() -> str:
-    buff = ctyped.type.LPWSTR(_EMPTY)
-    ctyped.func.kernel32.GetTempPathW(len(_EMPTY), buff)
-    return buff.value
 
 
 def refresh_dir(dir_: str):
@@ -388,11 +391,12 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 dialog.SetTitle(title)
             with contextlib.suppress(OSError):
                 dialog.Show(None)
-                buff = ctyped.type.LPWSTR(_EMPTY)
                 with ctyped.create_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
-                    item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
-                return buff.value
+                    with _get_buff() as buff:
+                        item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
+                        dir_ = buff.value
+                    return dir_
     return ''
 
 
@@ -436,6 +440,12 @@ def copy_image(path: str) -> bool:
     return False
 
 
+def get_monitor_count() -> int:
+    num = ctyped.type.c_int()
+    ctyped.func.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
+    return num.value
+
+
 def get_monitors() -> tuple[tuple[str, str], ...]:
     devs_int_id_name = (('\\\\?\\{}'.format(int_id.replace('\\', '#')), name) for int_id, name in
                         _get_str_devs_props(ctyped.const.GUID_DEVCLASS_MONITOR,
@@ -445,12 +455,13 @@ def get_monitors() -> tuple[tuple[str, str], ...]:
         if wallpaper:
             count = ctyped.type.UINT()
             wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
-            buff = ctyped.type.LPWSTR(_EMPTY)
             for index in range(count.value):
-                wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
+                with _get_buff() as buff:
+                    wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
+                    dev_path = buff.value
                 for int_id, name in devs_int_id_name:
-                    if buff.value.upper().startswith(int_id):
-                        monitors.append((buff.value, name))
+                    if dev_path.upper().startswith(int_id):
+                        monitors.append((dev_path, name))
                         break
     return tuple(monitors)
 
@@ -499,10 +510,10 @@ def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
     paths = []
     with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
-            buff = ctyped.type.LPWSTR(_EMPTY)
             for monitor in (monitors or get_monitors()):
-                wallpaper.GetWallpaper(monitor, ctyped.byref(buff))
-                paths.append(buff.value)
+                with _get_buff() as buff:
+                    wallpaper.GetWallpaper(monitor, ctyped.byref(buff))
+                    paths.append(buff.value)
     return tuple(paths)
 
 

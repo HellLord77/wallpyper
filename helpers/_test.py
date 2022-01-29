@@ -5,8 +5,6 @@ from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, 
 
 import libs.ctyped as ctyped
 import platforms.win32 as win32
-# noinspection PyUnresolvedReferences,PyProtectedMember
-from platforms.win32 import _EMPTY
 
 NAME = f'{__name__}-{__version__}'
 EVENT_CLOSE = ctyped.const.WM_CLOSE
@@ -304,13 +302,15 @@ def _get_compatible_dc(hbitmap: ctyped.type.HBITMAP) -> ContextManager[ctyped.ty
         ctyped.func.gdi32.DeleteDC(compatible_dc)
 
 
+SET = False
+
+
 def draw_on_wallpaper(path: str):
-    set_ = False
     with win32._get_hbitmap(path) as hbitmap:
         if hbitmap:
             with win32._get_dc(win32._get_workerw_hwnd()) as hdc:
                 with _get_compatible_dc(hbitmap) as compatible_dc:
-                    if set_:
+                    if SET:
                         ctyped.func.gdi32.BitBlt(hdc, 0, 0, *win32.get_dimensions(hbitmap),
                                                  compatible_dc, 0, 0, ctyped.const.SRCCOPY)
 

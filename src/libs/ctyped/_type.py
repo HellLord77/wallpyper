@@ -137,12 +137,13 @@ DESKTOP_SLIDESHOW_OPTIONS = _enum
 DESKTOP_SLIDESHOW_STATE = _enum
 DESKTOP_WALLPAPER_POSITION = _enum
 DebugEventLevel = _enum
+FILEOPENDIALOGOPTIONS = _enum
+GETPROPERTYSTOREFLAGS = _enum
+KNOWN_FOLDER_FLAG = _enum
 RO_INIT_TYPE = _enum
 SIGDN = _enum
 Status = _enum
 TrustLevel = _enum
-GETPROPERTYSTOREFLAGS = _enum
-FILEOPENDIALOGOPTIONS = _enum
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int

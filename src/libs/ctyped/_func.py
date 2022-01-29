@@ -9,12 +9,23 @@ from . import _type
 from .__head__ import _DEBUG
 from .__head__ import _Pointer
 from .__head__ import _get_doc
-from .__head__ import _not_internal
 from .__head__ import _resolve_type
+
+_FUNCS = '_funcs'
 
 
 class _CDLL(type):
-    pass
+    def __new__(mcs, *args, **kwargs):
+        self = super().__new__(mcs, *args, **kwargs)
+        funcs = {}
+        setattr(self, _FUNCS, funcs)
+        for var in _typing.get_type_hints(self):
+            if hasattr(self, var):
+                funcs[var] = getattr(self, var)
+                delattr(self, var)
+            else:
+                funcs[var] = var
+        return self
 
 
 class _OleDLL(_CDLL):
@@ -203,12 +214,16 @@ class kernel32(metaclass=_WinDLL):
                           _type.LPVOID]
     GlobalUnlock: _Callable[[_type.HGLOBAL],
                             _type.BOOL]
+    LocalFree: _Callable[[_type.HLOCAL],
+                         _type.HLOCAL]
     MoveFileA: _Callable[[_type.LPCSTR,
                           _type.LPCSTR],
                          _type.BOOL]
     MoveFileW: _Callable[[_type.LPCWSTR,
                           _type.LPCWSTR],
                          _type.BOOL]
+    SetLastError: _Callable[[_type.DWORD],
+                            _type.c_void_p]
 
 
 # noinspection PyPep8Naming
@@ -246,6 +261,8 @@ class ole32(metaclass=_WinDLL):
                                 _type.HRESULT]
     CoInitialize: _Callable[[_Optional[_type.LPVOID]],
                             _type.HRESULT]
+    CoTaskMemFree: _Callable[[_type.LPVOID],
+                             _type.c_void_p]
     CoUninitialize: _Callable[[],
                               _type.VOID]
     IIDFromString: _Callable[[_type.LPCOLESTR,
@@ -323,6 +340,11 @@ class shell32(metaclass=_WinDLL):
                                  _type.DWORD,
                                  _type.LPWSTR],
                                 _type.HRESULT]
+    SHGetKnownFolderPath: _Callable[[_Pointer[_struct.KNOWNFOLDERID],
+                                     _type.KNOWN_FOLDER_FLAG,
+                                     _Optional[_type.HANDLE],
+                                     _Pointer[_type.PWSTR]],
+                                    _type.HRESULT]
     SHGetPropertyStoreFromParsingName: _Callable[[_type.PCWSTR,
                                                   _Optional[_Pointer[_com.IBindCtx]],
                                                   _type.GETPROPERTYSTOREFLAGS,
@@ -762,18 +784,14 @@ class uxtheme(metaclass=_WinDLL):
                               _type.HRESULT]
 
 
-_ORDINAL = {lib: {var_: (ord_, delattr(lib, var_))[0] for var_, ord_ in tuple(
-    vars(lib).items()) if _not_internal(var_)} for var, lib in globals().items() if _not_internal(var)}
-
-
 def _init(lib: type[_CDLL], name: str):
     if name == 'lib':
         lib.lib = getattr(_ctypes, lib.__class__.__name__[1:])(lib.__name__, use_last_error=_DEBUG)
         return lib.lib
     try:
-        func = lib.lib[_ORDINAL[lib][name]]
+        func = lib.lib[getattr(lib, _FUNCS)[name]]
     except KeyError:
-        func = getattr(lib.lib, name)
+        raise AttributeError(f"lib '{lib.__name__}' has no function '{name}'")
     setattr(lib, name, func)
     func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(lib)[name])
     func.__doc__ = _get_doc(name, func.restype, func.argtypes)

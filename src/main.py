@@ -6,6 +6,7 @@ import configparser
 import copy
 import subprocess
 import sys
+import tempfile
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, NoReturn, Optional, Union
 
@@ -19,7 +20,7 @@ import platforms.win32 as platform
 import utils
 
 FEATURE_FORCE_PIN = False
-FEATURE_DISPLAY = False
+FEATURE_DISPLAY = True
 FEATURE_CHANGED = False
 
 EXIT_TIMEOUT_FACTOR = 0.9
@@ -48,14 +49,14 @@ UUID = f'{__author__}.{NAME}'
 SHORTCUT_NAME = f'{NAME}{platform.LINK_EXT}'
 RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(utils.dir_name(__file__), 'resources', name)
                                 for name in ('icon.ico', 'tray.png', 'busy.gif'))
-TEMP_DIR = utils.join_path(platform.get_temp_dir(), NAME)
+TEMP_DIR = utils.join_path(tempfile.gettempdir(), NAME)
 INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO utils.join_path(platform.SAVE_DIR, NAME, f'{NAME}.ini')
 LOG_PATH = utils.replace_extension(INI_PATH, 'log')
 SEARCH_URL = utils.join_url('https://www.google.com', 'searchbyimage', 'upload')
 INTERVALS = 300, 900, 1800, 3600, 10800, 21600
+MODULES = modules.wallhaven,
 
 LANG = langs.DEFAULT
-MODULES = modules.wallhaven,
 MODULE = MODULES[0]
 DEFAULT_CONFIG = utils.Dict({
     CONFIG_NO_DISPLAY: set(),
@@ -161,8 +162,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
             HISTORY.set_next(url)
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
-        monitors_ = set(id_name[0] for id_name in platform.get_monitors())
-        if len(monitors := monitors_.difference(CONFIG[CONFIG_NO_DISPLAY])) == len(monitors_):
+        if len(monitors := DISPLAYS.difference(CONFIG[CONFIG_NO_DISPLAY])) == len(DISPLAYS):
             monitors = ()
         changed = (url == temp_path or utils.download_url(
             url, temp_path, chunk_count=100, on_write=progress_callback, args=args,
@@ -221,9 +221,11 @@ def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None
 
 
 def on_update_display():
+    DISPLAYS.clear()
     menu_display = utils.get_item(CONFIG_NO_DISPLAY)
     utils.remove_items(menu=menu_display)
     for index, id_name in enumerate(platform.get_monitors()):
+        DISPLAYS.add(id_name[0])
         utils.add_item(f'[{index}] {id_name[1]}', utils.item.CHECK,
                        id_name[0] not in CONFIG[CONFIG_NO_DISPLAY], uid=id_name[0], on_click=on_display,
                        menu_args=(utils.get_property.CHECKED, utils.get_property.UID), menu=menu_display)
@@ -549,6 +551,7 @@ def main() -> NoReturn:
 
 
 CONFIG = {}
+DISPLAYS = set()
 HISTORY = utils.List()
 ENABLE_PREVIOUS = utils.dummy_func
 TIMER = utils.Timer(target=on_change)
