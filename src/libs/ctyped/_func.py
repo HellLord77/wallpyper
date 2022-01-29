@@ -38,7 +38,28 @@ class _WinDLL(_CDLL):
 
 # noinspection PyPep8Naming
 class cfgmgr32(metaclass=_WinDLL):
-    pass
+    CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
+                                         _Pointer[_struct.DEVPROPKEY],
+                                         _Pointer[_type.DEVPROPTYPE],
+                                         _Optional[_type.PBYTE],
+                                         _Pointer[_type.ULONG],
+                                         _type.ULONG],
+                                        _type.CONFIGRET]
+    CM_Get_Device_Interface_PropertyW: _Callable[[_type.LPCWSTR,
+                                                  _Pointer[_struct.DEVPROPKEY],
+                                                  _Pointer[_type.DEVPROPTYPE],
+                                                  _Optional[_type.PBYTE],
+                                                  _Pointer[_type.ULONG],
+                                                  _type.ULONG],
+                                                 _type.CONFIGRET]
+    CM_Locate_DevNodeA: _Callable[[_Pointer[_type.DEVINST],
+                                   _type.PBYTE,
+                                   _type.ULONG],
+                                  _type.CONFIGRET]
+    CM_Locate_DevNodeW: _Callable[[_Pointer[_type.DEVINST],
+                                   _type.PWSTR,
+                                   _type.ULONG],
+                                  _type.CONFIGRET]
 
 
 # noinspection PyPep8Naming

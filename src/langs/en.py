@@ -1,5 +1,6 @@
 _DIGITS = '0123456789'  # TODO class
 DESCRIPTION = 'Python Wallpaper Changer!'
+DISPLAY = 'Unknown Display'
 
 FAIL_CHANGE = 'Failed Changing Wallpaper'
 FAIL_CLEAR = 'Failed Clearing Wallpaper Cache'

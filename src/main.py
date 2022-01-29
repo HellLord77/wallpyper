@@ -224,10 +224,12 @@ def on_update_display():
     DISPLAYS.clear()
     menu_display = utils.get_item(CONFIG_NO_DISPLAY)
     utils.remove_items(menu=menu_display)
-    for index, id_name in enumerate(platform.get_monitors()):
-        DISPLAYS.add(id_name[0])
-        utils.add_item(f'[{index}] {id_name[1]}', utils.item.CHECK,
-                       id_name[0] not in CONFIG[CONFIG_NO_DISPLAY], uid=id_name[0], on_click=on_display,
+    ids = platform.get_monitor_ids()
+    pad = len(str(len(ids)))
+    for index, id_ in enumerate(ids):
+        DISPLAYS.add(id_)
+        utils.add_item(f'[{langs.to_str(index, LANG, pad)}] {platform.get_monitor_name(id_) or LANG.DISPLAY}',
+                       utils.item.CHECK, id_ not in CONFIG[CONFIG_NO_DISPLAY], uid=id_, on_click=on_display,
                        menu_args=(utils.get_property.CHECKED, utils.get_property.UID), menu=menu_display)
     utils.add_item(LANG.LABEL_UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
 
