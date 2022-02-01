@@ -527,9 +527,6 @@ def start():  # TODO dark theme
     on_auto_change(CONFIG[CONFIG_CHANGE])
     on_auto_start(CONFIG[CONFIG_START])
     on_save_config(CONFIG[CONFIG_SAVE])
-    for path in _get_wallpaper_paths():
-        HISTORY.set_next(path)
-        break
     if ARG_CHANGE in sys.argv or (
             FEATURE_CHANGED and CONFIG[CONFIG_CHANGE] and time.time() >= CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST]):
         TIMER.last_start = time.time()

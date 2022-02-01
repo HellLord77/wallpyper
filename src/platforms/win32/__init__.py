@@ -80,6 +80,39 @@ def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
         ctyped.func.user32.SetClipboardData(format_, hglobal)
 
 
+def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
+    rect = ctyped.struct.RECT()
+    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))
+    return rect.left - ctyped.func.user32.GetSystemMetrics(
+        ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.func.user32.GetSystemMetrics(
+        ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
+
+
+def _get_hbitmap_w_h(hbitmap: ctyped.type.HBITMAP) -> tuple[int, int]:
+    bitmap = ctyped.struct.BITMAP()
+    ctyped.func.gdi32.GetObjectW(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap))
+    return bitmap.bmWidth, bitmap.bmHeight
+
+
+def _save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str):
+    if hbitmap:
+        with ctyped.create_com(ctyped.com.IPicture, False) as picture:
+            pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
+            pict_desc.U.bmp.hbitmap = hbitmap
+            args = ctyped.macro.IID_PPV_ARGS(picture)
+            ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
+            with ctyped.convert_com(ctyped.com.IPictureDisp, picture) as picture_disp:
+                try:
+                    ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
+                except OSError:
+                    pass
+                else:
+                    return True
+    return False
+
+
 @contextlib.contextmanager
 def _get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
     ids = tuple(ctyped.func.shell32.ILCreateFromPath(path) for path in paths)
@@ -112,17 +145,35 @@ def _get_dc(hwnd: Optional[ctyped.type.HWND] = None) -> ContextManager[Optional[
 
 
 @contextlib.contextmanager
-def _get_gp_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
+def _init_gdiplus() -> ContextManager[bool]:
     token = ctyped.type.ULONG_PTR()
-    bitmap = ctyped.type.GpBitmap()
-    if ctyped.macro.SUCCEEDED(ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(
-            token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)):
-        ctyped.func.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
     try:
-        yield bitmap
+        yield ctyped.macro.SUCCEEDED(ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(
+            token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None))
     finally:
-        ctyped.func.GdiPlus.GdipDisposeImage(bitmap)
         ctyped.func.GdiPlus.GdiplusShutdown(token)
+
+
+@contextlib.contextmanager
+def _get_gp_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
+    gp_bitmap = ctyped.type.GpBitmap()
+    with _init_gdiplus():
+        ctyped.func.GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(gp_bitmap))
+        try:
+            yield gp_bitmap
+        finally:
+            ctyped.func.GdiPlus.GdipDisposeImage(gp_bitmap)
+
+
+@contextlib.contextmanager
+def _get_gp_graphics(hdc: int) -> ContextManager[ctyped.type.GpGraphics]:
+    gp_graphics = ctyped.type.GpGraphics()
+    with _init_gdiplus():
+        ctyped.func.GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(gp_graphics))
+        try:
+            yield gp_graphics
+        finally:
+            ctyped.func.GdiPlus.GdipDeleteGraphics(gp_graphics)
 
 
 @contextlib.contextmanager
@@ -361,7 +412,7 @@ def _get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[st
     return tuple(props)
 
 
-def get_last_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
+def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     with _get_buffer() as buff:
         ctyped.func.kernel32.FormatMessageW((
                 ctyped.const.FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -561,10 +612,15 @@ def _set_wallpaper_iactivedesktop(path: str) -> bool:
     return False
 
 
-def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str) -> bool:
+def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[ctyped.type.COLORREF] = None,
+                                     position: Optional[int] = None) -> bool:
     with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             for monitor in monitors:
+                if color is not None:
+                    wallpaper.SetBackgroundColor(color)
+                if position is not None:
+                    wallpaper.SetPosition(position)
                 wallpaper.SetWallpaper(monitor, path)
             return True
     return False
@@ -714,26 +770,3 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
             if ntpath.isfile(path):
                 removed = ctyped.func.kernel32.DeleteFileW(path) and removed
     return removed
-
-
-def get_dimensions(hbitmap: ctyped.type.HBITMAP) -> tuple[int, int]:
-    bitmap = ctyped.struct.BITMAP()
-    ctyped.func.gdi32.GetObjectW(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap))
-    return bitmap.bmWidth, bitmap.bmHeight
-
-
-def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str):
-    if hbitmap:
-        with ctyped.create_com(ctyped.com.IPicture, False) as picture:
-            pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
-            pict_desc.U.bmp.hbitmap = hbitmap
-            args = ctyped.macro.IID_PPV_ARGS(picture)
-            ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-            with ctyped.convert_com(ctyped.com.IPictureDisp, picture) as picture_disp:
-                try:
-                    ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
-                except OSError:
-                    pass
-                else:
-                    return True
-    return False

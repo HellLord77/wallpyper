@@ -119,16 +119,23 @@ PWCH = c_wchar_p
 PWCHAR = c_wchar_p
 PWSTR = c_wchar_p
 PZZSTR = c_char_p
+REAL = c_float
 VARTYPE = c_ushort
 VOID = c_void_p
 va_list = c_char_p
 
 _obj_p = c_void_p
+Color = _obj_p
 GpBitmap = _obj_p
+GpBrush = _obj_p
+GpCachedBitmap = _obj_p
+GpGraphics = _obj_p
 GpImage = _obj_p
+GpImageAttributes = _obj_p
+GpSolidFill = _obj_p
 HSTRING = _obj_p
-IShellItem = _obj_p
 IMoniker = _obj_p
+IShellItem = _obj_p
 LPRECT = _obj_p
 
 _enum = c_uint  # TODO enum.IntEnum
@@ -144,6 +151,11 @@ RO_INIT_TYPE = _enum
 SIGDN = _enum
 Status = _enum
 TrustLevel = _enum
+ColorAdjustType = _enum
+MatrixOrder = _enum
+GenericFontFamily = _enum
+ColorMatrixFlags = _enum
+Unit = _enum
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -160,7 +172,10 @@ DEVINST = DWORD
 DEVNODE = DWORD
 DEVPROPID = ULONG
 DEVPROPTYPE = ULONG
+DWORDLONG = ULONGLONG
 DWORD_PTR = ULONG_PTR
+GpMatrixOrder = MatrixOrder
+GpUnit = Unit
 HANDLE = PVOID
 HDEVINFO = PVOID
 HDSKSPC = PVOID
@@ -179,6 +194,7 @@ PROPID = ULONG
 PSSTDAPI = HRESULT
 PTCH = LPWCH
 PTSTR = LPWSTR
+PixelFormat = INT
 RETURN_TYPE = DWORD
 SCODE = LONG
 SFGAOF = ULONG
@@ -192,6 +208,7 @@ PROPVAR_PAD1 = BYTE if _const.MIDL_PASS else WORD
 PROPVAR_PAD2 = BYTE if _const.MIDL_PASS else WORD
 PROPVAR_PAD3 = ULONG if _const.MIDL_PASS else WORD
 
+ARGB64 = DWORDLONG
 CONFIGRET = RETURN_TYPE
 GpStatus = Status
 HACCEL = HANDLE
@@ -246,6 +263,10 @@ PROPENUMPROCW = _Callable[[HWND, LPCWSTR, HANDLE], BOOL]
 TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
 WNDENUMPROC = _Callable[[HWND, LPARAM], BOOL]
 WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
+ImageAbort = _Callable[[PVOID], BOOL]
+
+DrawImageAbort = ImageAbort
+GetThumbnailImageAbort = ImageAbort
 
 
 def _set_magic(magic: str, func: _Callable):

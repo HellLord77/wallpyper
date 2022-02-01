@@ -25,6 +25,13 @@ class GdiplusStartupInput:
 
 
 @_struct
+class RGBTRIPLE:
+    rgbBlue: _type.BYTE = None
+    rgbGreen: _type.BYTE = None
+    rgbRed: _type.BYTE = None
+
+
+@_struct
 class RGBQUAD:
     rgbBlue: _type.BYTE = None
     rgbGreen: _type.BYTE = None
@@ -565,6 +572,25 @@ class SP_DEVICE_INTERFACE_DETAIL_DATA_W:
 class DEVPROPKEY:
     fmtid: DEVPROPGUID = None
     pid: _type.DEVPROPID = None
+
+
+@_struct
+class BLENDFUNCTION:
+    BlendOp: _type.BYTE = None
+    BlendFlags: _type.BYTE = None
+    SourceConstantAlpha: _type.BYTE = None
+    AlphaFormat: _type.BYTE = None
+
+
+@_struct
+class ColorMap:
+    oldColor: _type.Color = None
+    newColor: _type.Color = None
+
+
+@_struct
+class ColorMatrix:
+    m: _type.REAL * 5 * 5 = None
 
 
 UUID = GUID
