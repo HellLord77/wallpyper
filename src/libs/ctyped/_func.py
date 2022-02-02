@@ -80,6 +80,12 @@ class combase(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
+class comdlg32(metaclass=_WinDLL):
+    ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]], _type.BOOL]
+    ChooseColorW: _Callable[[_Pointer[_struct.CHOOSECOLORW]], _type.BOOL]
+
+
+# noinspection PyPep8Naming
 class gdi32(metaclass=_WinDLL):
     BitBlt: _Callable[[_type.HDC,
                        _type.c_int,
@@ -341,6 +347,9 @@ class GdiPlus(metaclass=_WinDLL):
                                         _type.PROPID,
                                         _Pointer[_type.UINT]],
                                        _type.GpStatus]
+    GdipGetSolidFillColor: _Callable[[_type.GpSolidFill,
+                                      _Pointer[_type.ARGB]],
+                                     _type.GpStatus]
     GdipImageGetFrameCount: _Callable[[_type.GpImage,
                                        _Pointer[_struct.GUID],
                                        _Pointer[_type.UINT]],
@@ -377,6 +386,9 @@ class GdiPlus(metaclass=_WinDLL):
                                                  _type.UINT,
                                                  _Pointer[_struct.ColorMap]],
                                                 _type.GpStatus]
+    GdipSetSolidFillColor: _Callable[[_type.GpSolidFill,
+                                      _type.ARGB],
+                                     _type.GpStatus]
     GdipReleaseDC: _Callable[[_type.GpGraphics,
                               _type.HDC],
                              _type.GpStatus]
@@ -916,6 +928,13 @@ class user32(metaclass=_WinDLL):
     MonitorFromRect: _Callable[[_Pointer[_struct.RECT],
                                 _type.DWORD],
                                _type.HMONITOR]
+    MoveWindow: _Callable[[_type.HWND,
+                           _type.c_int,
+                           _type.c_int,
+                           _type.c_int,
+                           _type.c_int,
+                           _type.BOOL],
+                          _type.BOOL]
     OpenClipboard: _Callable[[_Optional[_type.HWND]],
                              _type.BOOL]
     PostQuitMessage: _Callable[[_type.c_int],
@@ -972,6 +991,13 @@ class user32(metaclass=_WinDLL):
                          _type.UINT,
                          _Optional[_type.TIMERPROC]],
                         _type.UINT_PTR]
+    SetWindowPos: _Callable[[_type.HWND,
+                             _Optional[_type.HWND],
+                             _type.c_int,
+                             _type.c_int,
+                             _type.c_int,
+                             _type.c_int, _type.UINT],
+                            _type.BOOL]
     SetWindowsHookA: _Callable[[_type.c_int,
                                 _type.HOOKPROC],
                                _type.HHOOK]
@@ -988,6 +1014,12 @@ class user32(metaclass=_WinDLL):
                                   _type.HINSTANCE,
                                   _type.DWORD],
                                  _type.HHOOK]
+    SetWindowTextA: _Callable[[_type.HWND,
+                               _type.LPCSTR],
+                              _type.BOOL]
+    SetWindowTextW: _Callable[[_type.HWND,
+                               _type.LPCWSTR],
+                              _type.BOOL]
     ShowWindow: _Callable[[_type.HWND,
                            _type.c_int],
                           _type.BOOL]

@@ -1,4 +1,4 @@
-__version__ = '0.0.15'
+__version__ = '0.0.16'
 
 import contextlib
 import ntpath
@@ -10,6 +10,7 @@ import winreg
 from typing import ContextManager, Generator, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
+from . import gdi
 
 
 def _get_dir(folderid: str) -> str:
@@ -51,7 +52,7 @@ def _spawn_workerw():
     ctyped.func.user32.SendMessageW(ctyped.func.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
 
 
-def _wnd_enum_proc(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
+def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
     if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
         ctyped.type.LPARAM.from_address(lparam).value = ctyped.func.user32.FindWindowExW(None, hwnd,
                                                                                          'WorkerW', None)
@@ -61,7 +62,7 @@ def _wnd_enum_proc(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
 def _get_workerw_hwnd() -> int:
     workkerw = ctyped.type.LPARAM()
     _spawn_workerw()
-    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(_wnd_enum_proc), ctyped.addressof(workkerw))
+    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(_get_workerw_hwnd_callback), ctyped.addressof(workkerw))
     return workkerw.value
 
 
@@ -90,29 +91,6 @@ def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
         ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
 
 
-def _get_hbitmap_w_h(hbitmap: ctyped.type.HBITMAP) -> tuple[int, int]:
-    bitmap = ctyped.struct.BITMAP()
-    ctyped.func.gdi32.GetObjectW(hbitmap, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap))
-    return bitmap.bmWidth, bitmap.bmHeight
-
-
-def _save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str):
-    if hbitmap:
-        with ctyped.create_com(ctyped.com.IPicture, False) as picture:
-            pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
-            pict_desc.U.bmp.hbitmap = hbitmap
-            args = ctyped.macro.IID_PPV_ARGS(picture)
-            ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-            with ctyped.convert_com(ctyped.com.IPictureDisp, picture) as picture_disp:
-                try:
-                    ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
-                except OSError:
-                    pass
-                else:
-                    return True
-    return False
-
-
 @contextlib.contextmanager
 def _get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
     ids = tuple(ctyped.func.shell32.ILCreateFromPath(path) for path in paths)
@@ -136,15 +114,6 @@ def _global_memory(sz: ctyped.type.SIZE_T) -> ContextManager[tuple[ctyped.type.H
 
 
 @contextlib.contextmanager
-def _get_dc(hwnd: Optional[ctyped.type.HWND] = None) -> ContextManager[Optional[ctyped.type.HDC]]:
-    hdc = ctyped.func.user32.GetDC(hwnd)
-    try:
-        yield hdc
-    finally:
-        ctyped.func.user32.ReleaseDC(hwnd, hdc)
-
-
-@contextlib.contextmanager
 def _init_gdiplus() -> ContextManager[bool]:
     token = ctyped.type.ULONG_PTR()
     try:
@@ -152,52 +121,6 @@ def _init_gdiplus() -> ContextManager[bool]:
             token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None))
     finally:
         ctyped.func.GdiPlus.GdiplusShutdown(token)
-
-
-@contextlib.contextmanager
-def _get_gp_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
-    gp_bitmap = ctyped.type.GpBitmap()
-    with _init_gdiplus():
-        ctyped.func.GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(gp_bitmap))
-        try:
-            yield gp_bitmap
-        finally:
-            ctyped.func.GdiPlus.GdipDisposeImage(gp_bitmap)
-
-
-@contextlib.contextmanager
-def _get_gp_graphics(hdc: int) -> ContextManager[ctyped.type.GpGraphics]:
-    gp_graphics = ctyped.type.GpGraphics()
-    with _init_gdiplus():
-        ctyped.func.GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(gp_graphics))
-        try:
-            yield gp_graphics
-        finally:
-            ctyped.func.GdiPlus.GdipDeleteGraphics(gp_graphics)
-
-
-@contextlib.contextmanager
-def _get_hbitmap(path: str) -> ContextManager[ctyped.type.HBITMAP]:
-    hbitmap = ctyped.type.HBITMAP()
-    with _get_gp_bitmap(path) as gp_bitmap:
-        if gp_bitmap:
-            ctyped.func.GdiPlus.GdipCreateHBITMAPFromBitmap(gp_bitmap, ctyped.byref(hbitmap), 0)
-    try:
-        yield hbitmap
-    finally:
-        ctyped.func.gdi32.DeleteObject(hbitmap)
-
-
-@contextlib.contextmanager
-def _get_hicon(path: str) -> ContextManager[ctyped.type.HICON]:
-    hicon = ctyped.type.HICON()
-    with _get_gp_bitmap(path) as gp_bitmap:
-        if gp_bitmap:
-            ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(gp_bitmap, ctyped.byref(hicon))
-    try:
-        yield hicon
-    finally:
-        ctyped.func.gdi32.DeleteObject(hicon)
 
 
 @contextlib.contextmanager
@@ -467,8 +390,11 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 dialog.SetFileName(path)
             if title is not None:
                 dialog.SetTitle(title)
-            with contextlib.suppress(OSError):
+            try:
                 dialog.Show(None)
+            except OSError:
+                return path
+            else:
                 with ctyped.create_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
                     with _get_buffer() as buff:
@@ -476,6 +402,32 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                         dir_ = buff.value
                     return dir_
     return ''
+
+
+def _choose_color_hook(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
+                       _: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.UINT_PTR:
+    if message == ctyped.const.WM_INITDIALOG:
+        ctyped.func.user32.SetWindowPos(hwnd, ctyped.const.HWND_TOPMOST, 0, 0, 0, 0,
+                                        ctyped.const.SWP_NOSIZE | ctyped.const.SWP_NOMOVE)
+        title_address = ctyped.struct.CHOOSECOLORW.from_address(lparam).lCustData
+        if title_address:
+            ctyped.func.user32.SetWindowTextW(hwnd, ctyped.type.LPWSTR.from_address(title_address).value)
+    return 0
+
+
+def choose_color(title: Optional[str] = None, color: Optional[int] = None,
+                 custom_colors: Optional[list[int]] = None) -> Optional[int]:
+    data = ctyped.type.LPWSTR(title)
+    color_chooser = ctyped.struct.CHOOSECOLORW(ctyped.sizeof(
+        ctyped.struct.CHOOSECOLORW), rgbResult=0 if color is None else color,
+        lpCustColors=ctyped.array(ctyped.type.COLORREF, *(() if custom_colors is None else custom_colors), size=16),
+        Flags=ctyped.const.CC_RGBINIT | ctyped.const.CC_FULLOPEN | ctyped.const.CC_ENABLEHOOK,
+        lCustData=0 if title is None else ctyped.addressof(data), lpfnHook=ctyped.type.LPCCHOOKPROC(_choose_color_hook))
+    if ctyped.func.comdlg32.ChooseColorW(ctyped.byref(color_chooser)):
+        color = color_chooser.rgbResult
+    if custom_colors is not None:
+        custom_colors[:] = color_chooser.lpCustColors[:16]
+    return color
 
 
 def paste_text() -> str:
@@ -498,23 +450,23 @@ def copy_text(text: str, quote: Optional[str] = None) -> bool:
 
 
 def copy_image(path: str) -> bool:
-    with _get_hbitmap(path) as hbitmap:
-        bm = ctyped.struct.BITMAP()
-        if (sz_bi := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.func.gdi32.GetObjectW(
-                hbitmap, sz_bi, ctyped.byref(bm)):
-            sz_bih = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
-            bi = ctyped.struct.BITMAPINFOHEADER(sz_bih, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
-            sz = bm.bmWidthBytes * bm.bmHeight
-            data = ctyped.array(ctyped.type.BYTE, size=sz)
-            with _get_dc() as hdc:
-                if hdc and ctyped.func.gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, ctyped.cast(
-                        bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
-                    with _global_memory(sz_bih + sz) as handle_buff:
-                        if handle_buff[1]:
-                            ctyped.func.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bih)
-                            ctyped.func.msvcrt.memmove(handle_buff[1] + sz_bih, data, sz)
-                            _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
-                            return True
+    hbitmap = gdi.HBITMAP.from_file(path)
+    bm = ctyped.struct.BITMAP()
+    if (sz_bi := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.func.gdi32.GetObjectW(
+            hbitmap, sz_bi, ctyped.byref(bm)):
+        sz_bih = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
+        bi = ctyped.struct.BITMAPINFOHEADER(sz_bih, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
+        sz = bm.bmWidthBytes * bm.bmHeight
+        data = ctyped.array(ctyped.type.BYTE, size=sz)
+        hdc = gdi.HDC.from_hwnd()
+        if hdc and ctyped.func.gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, ctyped.cast(
+                bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
+            with _global_memory(sz_bih + sz) as handle_buff:
+                if handle_buff[1]:
+                    ctyped.func.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bih)
+                    ctyped.func.msvcrt.memmove(handle_buff[1] + sz_bih, data, sz)
+                    _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
+                    return True
     return False
 
 
@@ -616,12 +568,15 @@ def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[
                                      position: Optional[int] = None) -> bool:
     with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
-            for monitor in monitors:
-                if color is not None:
-                    wallpaper.SetBackgroundColor(color)
-                if position is not None:
-                    wallpaper.SetPosition(position)
-                wallpaper.SetWallpaper(monitor, path)
+            if color is not None:
+                wallpaper.SetBackgroundColor(color)
+            if position is not None:
+                wallpaper.SetPosition(position)
+            if position == ctyped.const.DWPOS_SPAN or position == ctyped.const.DWPOS_TILE:
+                _set_wallpaper_param(path)
+            else:
+                for monitor in monitors:
+                    wallpaper.SetWallpaper(monitor, path)
             return True
     return False
 

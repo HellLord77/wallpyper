@@ -1,19 +1,18 @@
+from __future__ import annotations as _
+
 __version__ = '0.0.1'
 
 import contextlib
 import time
-from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, Optional, Union
+from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, Union
+from typing import Optional
 
 import libs.ctyped as ctyped
 import platforms.win32 as win32
+import platforms.win32.gdi as gdi
 
 NAME = f'{__name__}-{__version__}'
 EVENT_CLOSE = ctyped.const.WM_CLOSE
-
-
-class _HICON(ctyped.type.HICON):
-    def __del__(self):
-        ctyped.func.user32.DestroyIcon(self)
 
 
 @contextlib.contextmanager
@@ -39,7 +38,7 @@ def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
         ctyped.func.GdiPlus.GdiplusShutdown(token)
 
 
-def _get_gif_frames(path: str) -> Generator[tuple[int, _HICON], None, None]:
+def _get_gif_frames(path: str) -> Generator[tuple[int, gdi.HICON], None, None]:
     frames = []
     with _open_bitmap(path) as bitmap:
         if bitmap:
@@ -56,7 +55,7 @@ def _get_gif_frames(path: str) -> Generator[tuple[int, _HICON], None, None]:
                     ctyped.func.GdiPlus.GdipImageGetFrameDimensionsList(bitmap, ctyped.byref(guid), 1)
                     ctyped.func.GdiPlus.GdipImageGetFrameCount(bitmap, ctyped.byref(guid), ctyped.byref(count))
                     for index in range(count.value):
-                        hicon = _HICON()
+                        hicon = gdi.HICON()
                         ctyped.func.GdiPlus.GdipImageSelectActiveFrame(bitmap, ctyped.byref(guid), index)
                         ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
                         if hicon:
@@ -203,7 +202,7 @@ class SysTray:
                 ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
         else:
             hicon = ctyped.func.user32.LoadIconW(None, path_or_res)
-        self._hicon = _HICON(hicon.value)
+        self._hicon = gdi.HICON(hicon.value)
         self._set_hicon(self._hicon)
         return bool(hicon)
 
@@ -292,17 +291,6 @@ def _foo3(*evt):
         s.bind(e, lambda: None)
 
 
-@contextlib.contextmanager
-def _get_hbitmap_dc(hbitmap: ctyped.type.HBITMAP) -> ContextManager[ctyped.type.HDC]:
-    hdc = ctyped.func.gdi32.CreateCompatibleDC(None)
-    selected = ctyped.func.gdi32.SelectObject(hdc, hbitmap)
-    try:
-        yield hdc
-    finally:
-        ctyped.func.gdi32.SelectObject(hdc, selected)
-        ctyped.func.gdi32.DeleteDC(hdc)
-
-
 class Position:
     CENTER = ctyped.const.DWPOS_CENTER
     TILE = ctyped.const.DWPOS_TILE
@@ -312,135 +300,216 @@ class Position:
     SPAN = ctyped.const.DWPOS_SPAN
 
 
+def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
+            by_h: bool = True, div: int = 2) -> tuple[int, int, int, int]:
+    ratio = to_w / to_h
+    if by_h:
+        w = from_h * ratio
+        return int((from_w - w) / div), 0, int(w), from_h
+    else:
+        h = from_w / ratio
+        return 0, int((from_h - h) / div), from_w, int(h)
+
+
+def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int,
+                  position: int = Position.FILL) -> tuple[int, int, int, int]:
+    if position == Position.CENTER:  # FIXME match (py 3.10)
+        dw = hbitmap_w - monitor_w
+        dh = hbitmap_h - monitor_h
+        return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
+    elif position == Position.TILE or position == Position.STRETCH:
+        return 0, 0, hbitmap_w, hbitmap_h
+    elif position == Position.FIT:
+        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w > monitor_h / hbitmap_h)
+    elif position == Position.FILL:
+        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h, 3)
+    elif position == Position.SPAN:
+        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h)
+    return 0, 0, 0, 0
+
+
 class Transition:
+    NONE = -1
     FADE = 0
-    LEFT = 1
-    TOP = 2
-    RIGHT = 3
-    BOTTOM = 4
-    TOP_LEFT = 5
-    TOP_RIGHT = 6
-    BOTTOM_LEFT = 7
-    BOTTOM_RIGHT = 8
-    VERTICAL = 9
-    HORIZONTAL = 10
-    EXPLODE = 11
-    IMPLODE = 12
-    SLIDE_LEFT = 13
-    SLIDE_TOP = 14
-    SLIDE_RIGHT = 15
-    SLIDE_BOTTOM = 16
-    SLIDE_TOP_LEFT = 17
-    SLIDE_TOP_RIGHT = 18
-    SLIDE_BOTTOM_LEFT = 19
-    SLIDE_BOTTOM_RIGHT = 20
+    EXPLODE = 1
+    IMPLODE = 2
+    LEFT = 3
+    TOP = 4
+    RIGHT = 5
+    BOTTOM = 6
+    TOP_LEFT = 7
+    TOP_RIGHT = 8
+    BOTTOM_LEFT = 9
+    BOTTOM_RIGHT = 10
+    VERTICAL = 11
+    HORIZONTAL = 12
+    REVERSE_VERTICAL = 13
+    REVERSE_HORIZONTAL = 14
+    SLIDE_LEFT = 15
+    SLIDE_TOP = 16
+    SLIDE_RIGHT = 17
+    SLIDE_BOTTOM = 18
+    SLIDE_TOP_LEFT = 19
+    SLIDE_TOP_RIGHT = 20
+    SLIDE_BOTTOM_LEFT = 21
+    SLIDE_BOTTOM_RIGHT = 22
+    SLIDE_VERTICAL = 23
+    SLIDE_HORIZONTAL = 24
+    SLIDE_REVERSE_VERTICAL = 25
+    SLIDE_REVERSE_HORIZONTAL = 26
 
     @staticmethod
-    def _fade(factor, dst_w, dst_h, dst, dst_x, dst_y, src, blend):
+    def _fade(factor: float, dst_w: int, dst_h: int,
+              dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC,
+              blend: ctyped.struct.BLENDFUNCTION, dst_bk: ctyped.type.HDC, tmp_dst: ctyped.type.HDC):
         blend.SourceConstantAlpha = int(255 * factor)
-        ctyped.func.msimg32.AlphaBlend(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
-        return ()
+        ctyped.func.gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.func.msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
+        ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
+        return
+        # noinspection PyUnreachableCode
+        yield
 
     @staticmethod
-    def _left(factor, dst_w, dst_h):
+    def _left(factor: float, dst_w: int, dst_h: int):
         yield 0, 0, int(dst_w * factor), dst_h, 0, 0
 
     @staticmethod
-    def _slide_left(factor, dst_w, dst_h):
+    def _slide_left(factor: float, dst_w: int, dst_h: int):
         dst_w_ = int(dst_w * factor)
         yield 0, 0, dst_w_, dst_h, dst_w - dst_w_, 0
 
     @staticmethod
-    def _top(factor, dst_w, dst_h):
+    def _top(factor: float, dst_w: int, dst_h: int):
         yield 0, 0, dst_w, int(dst_h * factor), 0, 0
 
     @staticmethod
-    def _slide_top(factor, dst_w, dst_h):
+    def _slide_top(factor: float, dst_w: int, dst_h: int):
         dst_h_ = int(dst_h * factor)
         yield 0, 0, dst_w, dst_h_, 0, dst_h - dst_h_
 
     @staticmethod
-    def _right(factor, dst_w, dst_h):
+    def _right(factor: float, dst_w: int, dst_h: int):
         dst_w_ = dst_w - int(dst_w * factor)
         yield dst_w_, 0, dst_w - dst_w_, dst_h, dst_w_, 0
 
     @staticmethod
-    def _slide_right(factor, dst_w, dst_h):
+    def _slide_right(factor: float, dst_w: int, dst_h: int):
         dst_w_ = dst_w - int(dst_w * factor)
         yield dst_w_, 0, dst_w - dst_w_, dst_h, 0, 0
 
     @staticmethod
-    def _bottom(factor, dst_w, dst_h):
+    def _bottom(factor: float, dst_w: int, dst_h: int):
         dst_h_ = dst_h - int(dst_h * factor)
         yield 0, dst_h_, dst_w, dst_h - dst_h_, 0, dst_h_
 
     @staticmethod
-    def _slide_bottom(factor, dst_w, dst_h):
+    def _slide_bottom(factor: float, dst_w: int, dst_h: int):
         dst_h_ = dst_h - int(dst_h * factor)
         yield 0, dst_h_, dst_w, dst_h - dst_h_, 0, 0
 
     @staticmethod
-    def _top_left(factor, dst_w, dst_h):
+    def _top_left(factor: float, dst_w: int, dst_h: int):
         yield 0, 0, int(dst_w * factor), int(dst_h * factor), 0, 0
 
     @staticmethod
-    def _slide_top_left(factor, dst_w, dst_h):
+    def _slide_top_left(factor: float, dst_w: int, dst_h: int):
         dst_w_ = int(dst_w * factor)
         dst_h_ = int(dst_h * factor)
         yield 0, 0, dst_w_, dst_h_, dst_w - dst_w_, dst_h - dst_h_
 
     @staticmethod
-    def _top_right(factor, dst_w, dst_h):
+    def _top_right(factor: float, dst_w: int, dst_h: int):
         dst_w_ = dst_w - int(dst_w * factor)
         yield dst_w_, 0, dst_w - dst_w_, int(dst_h * factor), dst_w_, 0
 
     @staticmethod
-    def _slide_top_right(factor, dst_w, dst_h):
+    def _slide_top_right(factor: float, dst_w: int, dst_h: int):
         dst_w_ = dst_w - int(dst_w * factor)
         dst_h_ = int(dst_h * factor)
         yield dst_w_, 0, dst_w - dst_w_, dst_h_, 0, dst_h - dst_h_
 
     @staticmethod
-    def _bottom_left(factor, dst_w, dst_h):
+    def _bottom_left(factor: float, dst_w: int, dst_h: int):
         dst_h_ = dst_h - int(dst_h * factor)
         yield 0, dst_h_, int(dst_w * factor), dst_h - dst_h_, 0, dst_h_
 
     @staticmethod
-    def _slide_bottom_left(factor, dst_w, dst_h):
+    def _slide_bottom_left(factor: float, dst_w: int, dst_h: int):
         dst_w_ = int(dst_w * factor)
         dst_h_ = dst_h - int(dst_h * factor)
         yield 0, dst_h_, dst_w_, dst_h - dst_h_, dst_w - dst_w_, 0
 
     @staticmethod
-    def _bottom_right(factor, dst_w, dst_h):
+    def _bottom_right(factor: float, dst_w: int, dst_h: int):
         dst_w_ = dst_w - int(dst_w * factor)
         dst_h_ = dst_h - int(dst_h * factor)
         yield dst_w_, dst_h_, dst_w - dst_w_, dst_h - dst_h_, dst_w_, dst_h_
 
     @staticmethod
-    def _slide_bottom_right(factor, dst_w, dst_h):
+    def _slide_bottom_right(factor: float, dst_w: int, dst_h: int):
         dst_w_ = dst_w - int(dst_w * factor)
         dst_h_ = dst_h - int(dst_h * factor)
         yield dst_w_, dst_h_, dst_w - dst_w_, dst_h - dst_h_, 0, 0
 
     @staticmethod
-    def _vertical(factor, dst_w, dst_h, half_dst_w):
+    def _vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
         dst_w_ = int(half_dst_w * (1 - factor))
         yield dst_w_, 0, dst_w - dst_w_ * 2, dst_h, dst_w_, 0
 
     @staticmethod
-    def _horizontal(factor, dst_w, dst_h, half_dst_h):
+    def _slide_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
+        dst_w_ = int(half_dst_w * factor)
+        half_dst_w_ = int(half_dst_w)
+        yield half_dst_w_ - dst_w_, 0, dst_w_, dst_h, 0, 0
+        yield half_dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
+
+    @staticmethod
+    def _horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
         dst_h_ = int(half_dst_h * (1 - factor))
         yield 0, dst_h_, dst_w, dst_h - dst_h_ * 2, 0, dst_h_
 
     @staticmethod
-    def _explode(factor, dst_w, dst_h, half_dst_w, half_dst_h):
+    def _slide_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+        dst_h_ = int(half_dst_h * factor)
+        half_dst_h_ = int(half_dst_h)
+        yield 0, half_dst_h_ - dst_h_, dst_w, dst_h_, 0, 0
+        yield 0, half_dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
+
+    @staticmethod
+    def _reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
+        dst_w_ = int(half_dst_w * factor)
+        yield 0, 0, dst_w_, dst_h, 0, 0
+        yield dst_w - dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
+
+    @staticmethod
+    def _slide_reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
+        dst_w_ = int(half_dst_w * factor)
+        half_dst_w_ = int(half_dst_w)
+        yield 0, 0, dst_w_, dst_h, half_dst_w_ - dst_w_, 0
+        yield dst_w - dst_w_, 0, dst_w_, dst_h, half_dst_w_, 0
+
+    @staticmethod
+    def _reverse_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+        dst_h_ = int(half_dst_h * factor)
+        yield 0, 0, dst_w, dst_h_, 0, 0
+        yield 0, dst_h - dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
+
+    @staticmethod
+    def _slide_reverse_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+        dst_h_ = int(half_dst_h * factor)
+        half_dst_h_ = int(half_dst_h)
+        yield 0, 0, dst_w, dst_h_, 0, half_dst_h_ - dst_h_
+        yield 0, dst_h - dst_h_, dst_w, dst_h_, 0, half_dst_h_
+
+    @staticmethod
+    def _explode(factor: float, dst_w: int, dst_h: int, half_dst_w: float, half_dst_h: float):
         dst_w_ = int(half_dst_w * (1 - factor))
         dst_h_ = int(half_dst_h * (1 - factor))
         yield dst_w_, dst_h_, dst_w - dst_w_ * 2, dst_h - dst_h_ * 2, dst_w_, dst_h_
 
     @staticmethod
-    def _implode(factor, dst_w, dst_h):
+    def _implode(factor: float, dst_w: int, dst_h: int):
         half_factor = factor / 2
         dst_w_ = int(dst_w * half_factor)
         dst_h_ = int(dst_h * half_factor)
@@ -451,85 +520,54 @@ class Transition:
         yield dst_dw, dst_h_, dst_w - dst_dw, dst_h, dst_dw, dst_h_
         yield dst_w_, dst_dh, dst_w - dst_h_, dst_h - dst_dh, dst_w_, dst_dh
 
-    _TRANSITIONS = (_fade, _left, _top, _right, _bottom,
+    _TRANSITIONS = (_fade, _explode, _implode,
+                    _left, _top, _right, _bottom,
                     _top_left, _top_right, _bottom_left, _bottom_right,
-                    _vertical, _horizontal, _explode, _implode,
+                    _vertical, _horizontal, _reverse_vertical, _reverse_horizontal,
                     _slide_left, _slide_top, _slide_right, _slide_bottom,
-                    _slide_top_left, _slide_top_right, _slide_bottom_left, _slide_bottom_right)
+                    _slide_top_left, _slide_top_right, _slide_bottom_left, _slide_bottom_right,
+                    _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal)
 
 
-def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
-            by_h: bool = True, d: int = 2) -> tuple[int, int, int, int]:
-    ratio = to_w / to_h
-    if by_h:
-        w = from_h * ratio
-        return int((from_w - w) / d), 0, int(w), from_h
-    else:
-        h = from_w / ratio
-        return 0, int((from_h - h) / d), from_w, int(h)
+def _draw_gp_image(gp_image: gdi.GpImage, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
+                   src_x: int, src_y: int, src_w: int, src_h: int,
+                   color: ctyped.type.ARGB = 0, transition: int = Transition.NONE, duration: float = 0,
+                   w: Optional[int] = None, h: Optional[int] = None):
+    src = gdi.GpBitmap.from_dimension(dst_w, dst_h)
+    src.gp_graphics.fill_rect_wth_color(color, 0, 0, dst_w, dst_h)
+    src.gp_graphics.set_scale(dst_w / src_w, dst_h / src_h)
+    src.gp_graphics.draw_image(gp_image, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y), w, h)
+    dst = gdi.HDC.from_hwnd(win32._get_workerw_hwnd())
+    if transition != Transition.NONE:
+        extra = []
+        if transition == Transition.FADE:
+            dst_bk = gdi.HBITMAP.from_dimension(dst_w, dst_h).hdc
+            ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
+            extra.extend((dst, dst_x, dst_y, src.hbitmap.hdc,
+                          ctyped.struct.BLENDFUNCTION(), dst_bk, gdi.HBITMAP.from_dimension(dst_w, dst_h).hdc))
+        if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
+                          Transition.EXPLODE, Transition.SLIDE_VERTICAL, Transition.SLIDE_REVERSE_VERTICAL):
+            extra.append(dst_w / 2)
+        if transition in (Transition.HORIZONTAL, Transition.REVERSE_HORIZONTAL,
+                          Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
+            extra.append(dst_h / 2)
+        t = time.time()
+        while (dt := time.time() - t) < duration:
+            # noinspection PyProtectedMember
+            for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition].__func__(
+                    dt / duration, dst_w, dst_h, *extra):
+                ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
+                                         src.hbitmap.hdc, src_ox, src_oy, ctyped.const.SRCCOPY)
+    ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src.hbitmap.hdc, 0, 0, ctyped.const.SRCCOPY)
 
 
-def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int,
-                  position: int = Position.FILL) -> tuple[int, int, int, int]:
-    if position == Position.CENTER:  # FIXME match (py 3.10)
-        dw = hbitmap_w - monitor_w
-        dh = hbitmap_h - monitor_h
-        return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
-    elif position == Position.TILE:
-        pass
-    elif position == Position.STRETCH:
-        return 0, 0, hbitmap_w, hbitmap_h
-    elif position == Position.FIT:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w > monitor_h / hbitmap_h)
-    elif position == Position.FILL:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h, 3)
-    return 0, 0, 0, 0
-
-
-def _draw_gp_image(gp_image: ctyped.type.GpImage, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
-                   src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0, steps: int = 1,
-                   duration: float = 1, w: Optional[int] = None, h: Optional[int] = None):
-    with _create_gp_bitmap(dst_w, dst_h) as tmp_gp_bitmap:
-        with _get_gp_graphics(tmp_gp_bitmap) as tmp_gp_graphics:
-            with _create_gp_solid_fill(color) as solid_fill:
-                ctyped.func.GdiPlus.GdipFillRectangle(tmp_gp_graphics, solid_fill, 0, 0, dst_w, dst_h)
-            ctyped.func.GdiPlus.GdipScaleWorldTransform(tmp_gp_graphics, dst_w / src_w, dst_h / src_h,
-                                                        ctyped.const.MatrixOrderPrepend)
-            ctyped.func.GdiPlus.GdipDrawImagePointRect(
-                tmp_gp_graphics, gp_image, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y),
-                _get_gp_image_w(gp_image) if w is None else w, _get_gp_image_h(gp_image) if h is None else h,
-                ctyped.const.UnitPixel)
-        hbitmap = ctyped.type.HBITMAP()
-        ctyped.func.GdiPlus.GdipCreateHBITMAPFromBitmap(tmp_gp_bitmap, ctyped.byref(hbitmap), 0)
-    with _get_hbitmap_dc(hbitmap) as src:
-        with win32._get_dc(win32._get_workerw_hwnd()) as dst:
-            transition = Transition.FADE  # TODO parameterize
-            extra = []
-            if transition == Transition.FADE:
-                extra.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION()))
-            elif transition == Transition.VERTICAL:
-                extra.append(dst_w / 2)
-            elif transition == Transition.HORIZONTAL:
-                extra.append(dst_h / 2)
-            elif transition == Transition.EXPLODE:
-                extra.extend((dst_w / 2, dst_h / 2))
-            for step in range(steps):
-                # noinspection PyProtectedMember
-                for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition].__func__(
-                        step / steps, dst_w, dst_h, *extra):
-                    ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
-                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
-                time.sleep(duration / steps)
-            ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
-    ctyped.func.gdi32.DeleteObject(hbitmap)
-
-
-def _make_argb(a: ctyped.type.BYTE, r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE) -> ctyped.type.ARGB:
+def _make_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
+               a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
     return (b << ctyped.const.BlueShift | g << ctyped.const.GreenShift |
             r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
 
 
-def _get_color_matrix(alpha: float = 1) -> ctyped.struct.ColorMatrix:
+def _make_color_matrix(alpha: float = 1) -> ctyped.struct.ColorMatrix:
     color_matrix = ctyped.struct.ColorMatrix()
     for index in range(5):
         color_matrix.m[index][index] = 1
@@ -537,130 +575,57 @@ def _get_color_matrix(alpha: float = 1) -> ctyped.struct.ColorMatrix:
     return color_matrix
 
 
-@contextlib.contextmanager
-def _create_gp_image_attributes(color_matrix: Optional[ctyped.struct.ColorMatrix] = None) -> \
-        ContextManager[ctyped.type.GpImageAttributes]:
-    gp_image_attributes = ctyped.type.GpImageAttributes()
-    with win32._init_gdiplus():
-        ctyped.func.GdiPlus.GdipCreateImageAttributes(ctyped.byref(gp_image_attributes))
-        if color_matrix is not None:
-            ctyped.func.GdiPlus.GdipSetImageAttributesColorMatrix(
-                gp_image_attributes, ctyped.const.ColorAdjustTypeDefault, True,
-                ctyped.byref(color_matrix), None, ctyped.const.ColorMatrixFlagsDefault)
-    try:
-        yield gp_image_attributes
-    finally:
-        ctyped.func.GdiPlus.GdipDisposeImageAttributes(gp_image_attributes)
-
-
-@contextlib.contextmanager
-def _create_gp_image(path: str) -> ContextManager[ctyped.type.GpImage]:
-    gp_image = ctyped.type.GpImage()
-    with win32._init_gdiplus():
-        ctyped.func.GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(gp_image))
-        try:
-            yield gp_image
-        finally:
-            ctyped.func.GdiPlus.GdipDisposeImage(gp_image)
-
-
-@contextlib.contextmanager
-def _create_gp_bitmap(w: int, h: int, pixel_format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> \
-        ContextManager[ctyped.type.GpBitmap]:
-    gp_bitmap = ctyped.type.GpBitmap()
-    with win32._init_gdiplus():
-        ctyped.func.GdiPlus.GdipCreateBitmapFromScan0(w, h, 0, pixel_format, None, ctyped.byref(gp_bitmap))
-        try:
-            yield gp_bitmap
-        finally:
-            ctyped.func.GdiPlus.GdipDisposeImage(gp_bitmap)
-
-
-def _get_gp_image_w(gp_image: ctyped.type.GpImage) -> int:
-    w = ctyped.type.UINT()
-    ctyped.func.GdiPlus.GdipGetImageWidth(gp_image, ctyped.byref(w))
-    return w.value
-
-
-def _get_gp_image_h(gp_image: ctyped.type.GpImage) -> int:
-    h = ctyped.type.UINT()
-    ctyped.func.GdiPlus.GdipGetImageHeight(gp_image, ctyped.byref(h))
-    return h.value
-
-
-@contextlib.contextmanager
-def _get_gp_graphics(gp_image: ctyped.type.GpImage) -> ContextManager[ctyped.type.GpGraphics]:
-    gp_graphics = ctyped.type.GpGraphics()
-    ctyped.func.GdiPlus.GdipGetImageGraphicsContext(gp_image, ctyped.byref(gp_graphics))
-    try:
-        yield gp_graphics
-    finally:
-        ctyped.func.GdiPlus.GdipDeleteGraphics(gp_graphics)
-
-
-@contextlib.contextmanager
-def _create_gp_solid_fill(argb: ctyped.type.ARGB) -> ContextManager[ctyped.type.GpSolidFill]:
-    solid_fill = ctyped.type.GpSolidFill()
-    with win32._init_gdiplus():
-        ctyped.func.GdiPlus.GdipCreateSolidFill(argb, ctyped.byref(solid_fill))
-        try:
-            yield solid_fill
-        finally:
-            ctyped.func.GdiPlus.GdipDeleteBrush(solid_fill)
-
-
 def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
-    with win32._get_gp_graphics(hdc) as gp_graphics:
-        with _create_gp_solid_fill(argb) as brush:
-            if out_x < in_x:
-                ctyped.func.GdiPlus.GdipFillRectangleI(gp_graphics, brush, out_x, out_y, in_x - out_x, out_h)
-            if out_y < in_y:
-                ctyped.func.GdiPlus.GdipFillRectangleI(gp_graphics, brush, out_x, out_y, out_w, in_y - out_y)
-            if in_x + in_w < out_x + out_w:
-                ctyped.func.GdiPlus.GdipFillRectangleI(gp_graphics, brush, in_x + in_w, out_y,
-                                                       out_x + out_w - (in_x + in_w), out_h)
-            if in_y + in_h < out_y + out_h:
-                ctyped.func.GdiPlus.GdipFillRectangleI(gp_graphics, brush, out_x, in_y + in_h,
-                                                       out_w, out_y + out_h - (in_y + in_h))
+    gp_graphics = gdi.GpGraphics.from_hdc(hdc)
+    brush = gdi.GpSolidFill.from_color(argb)
+    if out_x < in_x:
+        gp_graphics.fill_rect(brush, out_x, out_y, in_x - out_x, out_h)
+    if out_y < in_y:
+        gp_graphics.fill_rect(brush, out_x, out_y, out_w, in_y - out_y)
+    if in_x + in_w < out_x + out_w:
+        gp_graphics.fill_rect(brush, in_x + in_w, out_y, out_x + out_w - (in_x + in_w), out_h)
+    if in_y + in_h < out_y + out_h:
+        gp_graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
 
 
-def _draw_on_graphics(gp_graphics: ctyped.type.GpGraphics, gp_image: ctyped.type.GpImage,
+def _draw_on_graphics(gp_graphics: ctyped.type.GpGraphics, gp_image: gdi.GpImage,
                       dst_w: float, dst_h: float, dst_x: float = 0, dst_y: float = 0, src_w: Optional[float] = None,
                       src_h: Optional[float] = None, src_x: float = 0, src_y: float = 0, alpha: float = 1):
-    with _create_gp_image_attributes(_get_color_matrix(alpha)) as gp_attrs:
-        draw_image_abort = ctyped.type.DrawImageAbort()
-        ctyped.func.GdiPlus.GdipDrawImageRectRect(gp_graphics, gp_image, dst_x, dst_y, dst_w, dst_h, src_x, src_y,
-                                                  _get_gp_image_w(gp_image) if src_w is None else src_w,
-                                                  _get_gp_image_h(gp_image) if src_h is None else src_h,
-                                                  ctyped.const.UnitPixel, gp_attrs, draw_image_abort, None)
+    gp_attrs = gdi.GpImageAttributes.from_color_matrix(_make_color_matrix(alpha))
+    draw_image_abort = ctyped.type.DrawImageAbort()
+    ctyped.func.GdiPlus.GdipDrawImageRectRect(gp_graphics, gp_image, dst_x, dst_y, dst_w, dst_h, src_x, src_y,
+                                              gp_image.width if src_w is None else src_w,
+                                              gp_image.height if src_h is None else src_h,
+                                              ctyped.const.UnitPixel, gp_attrs, draw_image_abort, None)
 
 
 def test():
     path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
-    monitor = win32.get_monitor_ids()[1]
-    method = Position.FIT
-    r = 0x00
-    g = 0x00
-    b = 0x00
-    steps = 100
+    monitor = win32.get_monitor_ids()[0]
+    position = Position.FILL
+    r = 0
+    g = 0
+    b = 0
+    transition = Transition.FADE
     duration = 1
 
-    with _create_gp_image(path) as gp_image:
-        if gp_image:
-            monitor_x_y_w_h = win32._get_monitor_x_y_w_h(monitor)
-            if method == Position.TILE or method == Position.SPAN:
-                monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_CYVIRTUALSCREEN)
-                if method == Position.TILE:
-                    pass  # FIXME monitor_x_y_w_h = SystemMetrics + (0000/0000)
-                else:
-                    method = Position.FILL
-            w = _get_gp_image_w(gp_image)
-            h = _get_gp_image_h(gp_image)
-            _draw_gp_image(gp_image, *monitor_x_y_w_h, *_get_position(
-                w, h, *monitor_x_y_w_h[2:], method), _make_argb(255, r, g, b), steps, duration, w, h)
-    # win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=method)
+    gp_image = gdi.GpImage.from_file(path)
+    if gp_image:
+        monitor_x_y_w_h = win32._get_monitor_x_y_w_h(monitor)
+        if position == Position.TILE or position == Position.SPAN:
+            monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
+                ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
+                ctyped.const.SM_CYVIRTUALSCREEN)
+            if position == Position.TILE:
+                gp_bitmap = gdi.GpBitmap.from_dimension(monitor_x_y_w_h[2], monitor_x_y_w_h[3])
+                for x in range(0, gp_bitmap.width, gp_image.width):
+                    for y in range(0, gp_bitmap.height, gp_image.height):
+                        gp_bitmap.gp_graphics.draw_image(gp_image, x, y)
+                gp_image = gp_bitmap
+        _draw_gp_image(gp_image, *monitor_x_y_w_h, *_get_position(
+            gp_image.width, gp_image.height, *monitor_x_y_w_h[2:], position), _make_argb(r, g, b), transition, duration)
+    # TODO set without system transition
+    win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
 
 if __name__ == '__main__':

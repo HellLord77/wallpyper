@@ -82,6 +82,32 @@ class DIBSECTION:
 
 
 @_struct
+class CHOOSECOLORA:
+    lStructSize: _type.DWORD = None
+    hwndOwner: _type.HWND = None
+    hInstance: _type.HWND = None
+    rgbResult: _type.COLORREF = None
+    lpCustColors: _Pointer[_type.COLORREF] = None
+    Flags: _type.DWORD = None
+    lCustData: _type.LPARAM = None
+    lpfnHook: _type.LPCCHOOKPROC = None
+    lpTemplateName: _type.LPCSTR = None
+
+
+@_struct
+class CHOOSECOLORW:
+    lStructSize: _type.DWORD = None
+    hwndOwner: _type.HWND = None
+    hInstance: _type.HWND = None
+    rgbResult: _type.COLORREF = None
+    lpCustColors: _Pointer[_type.COLORREF] = None
+    Flags: _type.DWORD = None
+    lCustData: _type.LPARAM = None
+    lpfnHook: _type.LPCCHOOKPROC = None
+    lpTemplateName: _type.LPCWSTR = None
+
+
+@_struct
 class GUID:
     Data1: _type.c_ulong = None
     Data2: _type.c_ushort = None
