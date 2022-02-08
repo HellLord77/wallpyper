@@ -59,7 +59,7 @@ def _prep_com(type_: _builtins.type[CT]) -> \
     finally:
         if obj:
             obj.Release()
-        func.ole32.CoInitialize(None)
+        func.ole32.CoUninitialize()
 
 
 @_contextlib.contextmanager
