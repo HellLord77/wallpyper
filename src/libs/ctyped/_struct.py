@@ -619,6 +619,11 @@ class ColorMatrix:
     m: _type.REAL * 5 * 5 = None
 
 
+@_struct
+class EventRegistrationToken:
+    value: _type.c_int64 = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

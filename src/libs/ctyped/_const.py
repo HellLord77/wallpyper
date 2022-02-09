@@ -2801,6 +2801,10 @@ ColorAdjustTypePen = 3
 ColorAdjustTypeText = 4
 ColorAdjustTypeCount = 5
 ColorAdjustTypeAny = 6
+# TrustLevel
+BaseTrust = 0
+PartialTrust = BaseTrust + 1
+FullTrust = PartialTrust + 1
 # SLR_FLAGS
 SLR_NONE = 0
 SLR_NO_UI = 0x1
@@ -2838,6 +2842,11 @@ DWPOS_STRETCH = 2
 DWPOS_FIT = 3
 DWPOS_FILL = 4
 DWPOS_SPAN = 5
+# AsyncStatus
+Started = 0
+Completed = 1
+Canceled = 2
+Error = 3
 # GETPROPERTYSTOREFLAGS
 GPS_DEFAULT = 0
 GPS_HANDLERPROPERTIESONLY = 0x1
@@ -3160,6 +3169,10 @@ White = 0xFFFFFFFF
 WhiteSmoke = 0xFFF5F5F5
 Yellow = 0xFFFFFF00
 YellowGreen = 0xFF9ACD32
+# RuntimeClass
+RuntimeClass_Windows_UI_ViewManagement_UISettings = 'Windows.UI.ViewManagement.UISettings'
+RuntimeClass_Windows_System_UserProfile_LockScreen = 'Windows.System.UserProfile.LockScreen'
+RuntimeClass_Windows_Storage_StorageFile = 'Windows.Storage.StorageFile'
 # GUID
 GUID_DEVCLASS_1394 = '{6BDD1FC1-810F-11D0-BEC7-08002BE2092F}'
 GUID_DEVCLASS_1394DEBUG = '{66F250D6-7801-4A64-B139-EEA80A450B24}'
@@ -3460,6 +3473,12 @@ IID_IPropertyStoreCache = '{3017056D-9A91-4E90-937D-746C72ABBF4F}'
 IID_IPropertyStoreCapabilities = '{C8E2D566-186E-4D49-BF41-6909EAD56ACC}'
 IID_IPropertySystem = '{CA724E8A-C3E6-442B-88A4-6FB0DB8035A3}'
 IID_IStartMenuPinnedList = '{4CD19ADA-25A5-4A32-B3B7-347BEE5BE36B}'
+IID_IActivationFactory = '{00000035-0000-0000-C000-000000000046}'
+IID_IAsyncInfo = '{00000036-0000-0000-C000-000000000046}'
+IID_ILockScreenStatics = '{3EE9D3AD-B607-40AE-B426-7631D9821269}'
+IID_IStorageFileStatics = '{5984C710-DAF2-43C8-8BB4-A4D3EACFD03F}'
+IID_IAsyncActionCompletedHandler = '{A4ED5C81-76C9-40BD-8BE6-B1D90FB20AE7}'
+IID_IAsyncOperationCompletedHandler_IStorageFile = '{E521C894-2C26-5946-9E61-2B5E188D01ED}'
 # DEVPKEY
 DEVPKEY_NAME = '{B725F130-47EF-101A-A5F1-02608C9EEBAC}', 10
 DEVPKEY_Device_DeviceDesc = '{A45C254E-DF1C-4EFD-8020-67D146A850E0}', 2

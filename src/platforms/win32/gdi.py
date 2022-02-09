@@ -5,92 +5,6 @@ from typing import Optional
 import libs.ctyped as ctyped
 
 
-class HDC(ctyped.type.HDC):
-    _hwnd = None
-    _selected = None
-
-    def __del__(self):
-        ctyped.func.user32.ReleaseDC(self._hwnd, self)
-        if self._selected:
-            ctyped.func.gdi32.SelectObject(self, self._selected)
-            ctyped.func.gdi32.DeleteDC(self)
-
-    @staticmethod
-    def from_hwnd(hwnd: Optional[ctyped.type.HWND] = None) -> HDC:
-        return HDC(ctyped.func.user32.GetDC(hwnd))
-
-    @staticmethod
-    def from_hbitmap(hbitmap: ctyped.type.HBITMAP) -> HDC:
-        self = HDC()
-        self.value = ctyped.func.gdi32.CreateCompatibleDC(None)
-        self._selected = ctyped.func.gdi32.SelectObject(self, hbitmap)
-        return self
-
-
-class HICON(ctyped.type.HICON):
-    def __del__(self):
-        ctyped.func.user32.DestroyIcon(self)
-
-
-class HBITMAP(ctyped.type.HBITMAP):
-    _width = None
-    _height = None
-    _hdc = None
-
-    def __del__(self):
-        ctyped.func.gdi32.DeleteObject(self)
-
-    @property
-    def width(self) -> int:
-        if self._width is None:
-            self._fill_dimensions()
-        return self._width
-
-    @property
-    def height(self) -> int:
-        if self._height is None:
-            self._fill_dimensions()
-        return self._height
-
-    @property
-    def hdc(self) -> HDC:
-        if self._hdc is None:
-            self._hdc = HDC.from_hbitmap(self)
-        return self._hdc
-
-    @staticmethod
-    def from_dimension(width: int = 0, height: int = 0, byte: int = 4) -> HBITMAP:
-        self = HBITMAP()
-        self.value = ctyped.func.gdi32.CreateBitmap(width, height, 1, byte * 8, None)
-        return self
-
-    @staticmethod
-    def from_file(path: str) -> HBITMAP:
-        return GpBitmap.from_file(path).hbitmap
-
-    def _fill_dimensions(self):
-        bitmap = ctyped.struct.BITMAP()
-        ctyped.func.gdi32.GetObjectW(self, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap))
-        self._width = bitmap.bmWidth
-        self._width = bitmap.bmHeight
-
-    def save(self, path: str) -> bool:
-        if self:
-            with ctyped.create_com(ctyped.com.IPicture, False) as picture:
-                pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
-                pict_desc.U.bmp.hbitmap = self
-                args = ctyped.macro.IID_PPV_ARGS(picture)
-                ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-                with ctyped.convert_com(ctyped.com.IPictureDisp, picture) as picture_disp:
-                    try:
-                        ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
-                    except OSError:
-                        pass
-                    else:
-                        return True
-        return False
-
-
 class _GdiPlus(ctyped.type.ULONG_PTR):
     def __init__(self):
         ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)
@@ -133,7 +47,7 @@ class GpGraphics(_GdiPlusBase):
     def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float):
         ctyped.func.GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
 
-    def fill_rect_wth_color(self, color: ctyped.type.ARGB, x: float, y: float, width: float, height: float):
+    def fill_rect_with_color(self, color: ctyped.type.ARGB, x: float, y: float, width: float, height: float):
         self.fill_rect(GpSolidFill.from_color(color), x, y, width, height)
 
 
@@ -188,6 +102,10 @@ class GpImage(_GdiPlusBase):
             self._gp_graphics = GpGraphics.from_gp_image(self)
         return self._gp_graphics
 
+    @gp_graphics.deleter
+    def gp_graphics(self):
+        self._gp_graphics = None
+
     @staticmethod
     def from_file(path: str) -> GpImage:
         self = GpImage()
@@ -196,15 +114,32 @@ class GpImage(_GdiPlusBase):
 
 
 class GpBitmap(GpImage):
+    _hicon = None
     _hbitmap = None
 
     @property
-    def hbitmap(self) -> HBITMAP:
+    def hicon(self) -> ctyped.handle.HICON:
+        if self._hicon is None:
+            hicon = ctyped.handle.HICON()
+            ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(self, ctyped.byref(hicon))
+            self._hicon = hicon
+        return self._hicon
+
+    @hicon.deleter
+    def hicon(self):
+        self._hicon = None
+
+    @property
+    def hbitmap(self) -> ctyped.handle.HBITMAP:
         if self._hbitmap is None:
-            hbitmap = HBITMAP()
+            hbitmap = ctyped.handle.HBITMAP()
             ctyped.func.GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0)
             self._hbitmap = hbitmap
         return self._hbitmap
+
+    @hbitmap.deleter
+    def hbitmap(self):
+        self._hbitmap = None
 
     @staticmethod
     def from_dimension(width: int, height: int,

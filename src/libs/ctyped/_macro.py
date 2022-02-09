@@ -5,7 +5,12 @@ from . import _struct
 from . import _type
 from .__head__ import _Pointer
 from .__head__ import _byref
-from .__head__ import _cast
+
+
+def __uuidof(_: str) -> _Pointer[_struct.IID]:
+    iid_ref = _byref(_struct.IID())
+    _func.ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
+    return iid_ref
 
 
 # noinspection PyPep8Naming
@@ -90,19 +95,17 @@ def GetBValue(rgb: int) -> int:
 
 # noinspection PyPep8Naming
 def IS_INTRESOURCE(_r: int) -> bool:
-    return _r >> 16 == 0
+    return _type.ULONG_PTR(_r) >> 16 == 0
 
 
 # noinspection PyPep8Naming
-def MAKEINTRESOURCEA(i: _type.WORD) -> bytes:
-    # noinspection PyTypeChecker
-    return _cast(_cast(i, _type.ULONG_PTR), _type.LPSTR).value
+def MAKEINTRESOURCEA(i: int) -> int:
+    return _type.c_void_p.from_buffer(_type.LPSTR(_type.ULONG_PTR(_type.WORD(i)).value)).value
 
 
 # noinspection PyPep8Naming
-def MAKEINTRESOURCEW(i: _type.WORD) -> str:
-    # noinspection PyTypeChecker
-    return _cast(_cast(i, _type.ULONG_PTR), _type.LPWSTR).value
+def MAKEINTRESOURCEW(i: int) -> int:
+    return _type.c_void_p.from_buffer(_type.LPWSTR(_type.ULONG_PTR(_type.WORD(i)).value)).value
 
 
 # noinspection PyPep8Naming
@@ -127,6 +130,4 @@ def ResultFromScode(sc: int) -> _type.HRESULT:
 
 # noinspection PyPep8Naming,PyProtectedMember
 def IID_PPV_ARGS(ppType: _com._IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com._IUnknown]]:
-    iid_ref = _byref(_struct.IID())
-    _func.ole32.IIDFromString(getattr(_const, f'IID_{type(ppType).__name__}'), iid_ref)
-    return iid_ref, _byref(ppType)
+    return __uuidof(type(ppType).__name__), _byref(ppType)

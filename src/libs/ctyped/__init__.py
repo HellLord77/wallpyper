@@ -1,16 +1,19 @@
-__version__ = '0.1.26'
+__version__ = '0.2.0'
 
 import builtins as _builtins
 import contextlib as _contextlib
+import time
 import typing as _typing
 from typing import Any as _Any
 from typing import ContextManager as _ContextManager
 from typing import Optional as _Optional
+from typing import Union as _Union
 
 from . import __head__
 from . import _com as com
 from . import _const as const
 from . import _func as func
+from . import _handle as handle
 from . import _macro as macro
 from . import _struct as struct
 # noinspection PyShadowingBuiltins
@@ -43,7 +46,7 @@ def char_array(string):
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
-def get_guid(string: str) -> _Optional[CT]:
+def get_guid(string: str) -> struct.GUID:
     guid = struct.GUID()
     func.shell32.GUIDFromStringW(string, byref(guid))
     return guid
@@ -63,19 +66,54 @@ def _prep_com(type_: _builtins.type[CT]) -> \
 
 
 @_contextlib.contextmanager
-def create_com(type_: _builtins.type[CT], init: _Optional[bool] = True) -> _ContextManager[_Optional[CT]]:
+def init_com(type_: _builtins.type[CT], init: _Optional[bool] = True) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj, clsid_ref, args):
-        if not init or macro.SUCCEEDED(func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)):
-            yield obj
-        else:
-            yield None
+        yield obj if not init or macro.SUCCEEDED(
+            func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
 
 
 # noinspection PyProtectedMember
 @_contextlib.contextmanager
-def convert_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[_Optional[CT]]:
+def conv_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj_, _, args):
         if macro.SUCCEEDED(obj.QueryInterface(*args)):
             yield obj_
         else:
             yield None
+
+
+@_contextlib.contextmanager
+def _prep_winrt(type_: _builtins.type[CT]) -> \
+        _ContextManager[tuple[type.HSTRING, Pointer[struct.IID], Pointer[com.IActivationFactory]]]:
+    func.combase.RoInitialize(const.RO_INIT_SINGLETHREADED)
+    factory = com.IActivationFactory()
+    try:
+        yield handle.HSTRING.from_string(type_.__RuntimeClass__), macro.__uuidof(type_.__name__), factory
+    finally:
+        if factory:
+            factory.Release()
+        func.combase.RoUninitialize()
+
+
+@_contextlib.contextmanager
+def get_winrt(type_: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.type[CT]]]:
+    with _prep_winrt(type_) as (*args, factory):
+        if macro.SUCCEEDED(func.combase.RoGetActivationFactory(*args, byref(factory))):
+            with conv_com(type_, factory) as obj:
+                yield obj
+        else:
+            yield None
+
+
+def wait_for(async_: _Union[com.IAsyncAction, com.IAsyncOperation],
+             obj_ref: _Optional[Pointer[CT]] = None, timeout: float = 5) -> bool:
+    args = () if obj_ref is None else (obj_ref,)
+    end = time.time() + timeout
+    while end > time.time():
+        try:
+            async_.GetResults(*args)
+        except OSError:
+            pass
+        else:
+            return True
+    return False

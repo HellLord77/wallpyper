@@ -83,7 +83,7 @@ def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
 
 def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
     rect = ctyped.struct.RECT()
-    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))
     return rect.left - ctyped.func.user32.GetSystemMetrics(
@@ -127,7 +127,7 @@ def _init_gdiplus() -> ContextManager[bool]:
 def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
                write: bool = False) -> ContextManager[Optional[ctyped.com.IPropertyStore]]:
     if isinstance(path_or_interface, str):
-        with ctyped.create_com(ctyped.com.IPropertyStore, False) as prop_store:
+        with ctyped.init_com(ctyped.com.IPropertyStore, False) as prop_store:
             if ctyped.macro.SUCCEEDED(ctyped.func.shell32.SHGetPropertyStoreFromParsingName(
                     path_or_interface, None,
                     ctyped.const.GPS_READWRITE if write else ctyped.const.GPS_PREFERQUERYPROPERTIES,
@@ -135,7 +135,7 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
                 yield prop_store
                 return
     else:
-        with ctyped.convert_com(ctyped.com.IPropertyStore, path_or_interface) as prop_store:
+        with ctyped.conv_com(ctyped.com.IPropertyStore, path_or_interface) as prop_store:
             yield prop_store
             return
     yield None
@@ -177,9 +177,9 @@ def _set_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
 def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW]) -> \
         ContextManager[ctyped.com.IShellLinkW]:
     if isinstance(path_or_link, str):
-        with ctyped.create_com(ctyped.com.IShellLinkW) as link:
+        with ctyped.init_com(ctyped.com.IShellLinkW) as link:
             if link:
-                with ctyped.convert_com(ctyped.com.IPersistFile, link) as file:
+                with ctyped.conv_com(ctyped.com.IPersistFile, link) as file:
                     if file and ctyped.macro.SUCCEEDED(file.Load(path_or_link, ctyped.const.STGM_READ)):
                         yield link
                         return
@@ -189,7 +189,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
 
 
 def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
-    with ctyped.convert_com(ctyped.com.IPersistFile, link) as file:
+    with ctyped.conv_com(ctyped.com.IPersistFile, link) as file:
         try:
             file.Save(path, True)
         except (OSError, PermissionError):
@@ -379,12 +379,12 @@ def open_file_path(path: str) -> bool:
 
 
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
-    with ctyped.create_com(ctyped.com.IFileDialog) as dialog:
+    with ctyped.init_com(ctyped.com.IFileDialog) as dialog:
         if dialog:
             dialog.SetOptions(ctyped.const.FOS_PICKFOLDERS)
             if path is not None:
                 with contextlib.suppress(FileNotFoundError):
-                    with ctyped.create_com(ctyped.com.IShellItem, False) as item:
+                    with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                         ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
                         dialog.SetFolder(item)
                 dialog.SetFileName(path)
@@ -395,7 +395,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
             except OSError:
                 return path
             else:
-                with ctyped.create_com(ctyped.com.IShellItem, False) as item:
+                with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
                     with _get_buffer() as buff:
                         item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
@@ -450,7 +450,7 @@ def copy_text(text: str, quote: Optional[str] = None) -> bool:
 
 
 def copy_image(path: str) -> bool:
-    hbitmap = gdi.HBITMAP.from_file(path)
+    hbitmap = gdi.GpBitmap.from_file(path).hbitmap
     bm = ctyped.struct.BITMAP()
     if (sz_bi := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.func.gdi32.GetObjectW(
             hbitmap, sz_bi, ctyped.byref(bm)):
@@ -458,7 +458,7 @@ def copy_image(path: str) -> bool:
         bi = ctyped.struct.BITMAPINFOHEADER(sz_bih, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
         sz = bm.bmWidthBytes * bm.bmHeight
         data = ctyped.array(ctyped.type.BYTE, size=sz)
-        hdc = gdi.HDC.from_hwnd()
+        hdc = ctyped.handle.HDC.from_hwnd()
         if hdc and ctyped.func.gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, ctyped.cast(
                 bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
             with _global_memory(sz_bih + sz) as handle_buff:
@@ -466,6 +466,23 @@ def copy_image(path: str) -> bool:
                     ctyped.func.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bih)
                     ctyped.func.msvcrt.memmove(handle_buff[1] + sz_bih, data, sz)
                     _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
+                    return True
+    return False
+
+
+def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
+    if hbitmap:
+        with ctyped.init_com(ctyped.com.IPicture, False) as picture:
+            pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
+            pict_desc.U.bmp.hbitmap = hbitmap
+            args = ctyped.macro.IID_PPV_ARGS(picture)
+            ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
+            with ctyped.conv_com(ctyped.com.IPictureDisp, picture) as picture_disp:
+                try:
+                    ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
+                except OSError:
+                    pass
+                else:
                     return True
     return False
 
@@ -478,7 +495,7 @@ def get_monitor_count() -> int:
 
 def get_monitor_ids() -> tuple[str, ...]:
     monitors = []
-    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             count = ctyped.type.UINT()
             wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
@@ -497,12 +514,12 @@ def get_monitor_name(id_: str) -> str:
 def get_direct_show_devices_properties(cat: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
         tuple[tuple[Optional[str], ...], ...]:
     devices = []
-    with ctyped.create_com(ctyped.com.ICreateDevEnum) as dev_enum:
+    with ctyped.init_com(ctyped.com.ICreateDevEnum) as dev_enum:
         if dev_enum:
-            with ctyped.create_com(ctyped.com.IEnumMoniker, False) as enum_moniker:
+            with ctyped.init_com(ctyped.com.IEnumMoniker, False) as enum_moniker:
                 dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(cat)), ctyped.byref(enum_moniker), 0)
-                with ctyped.create_com(ctyped.com.IMoniker, False) as moniker:
-                    with ctyped.create_com(ctyped.com.IPropertyBag, False) as prop_bag:
+                with ctyped.init_com(ctyped.com.IMoniker, False) as moniker:
+                    with ctyped.init_com(ctyped.com.IPropertyBag, False) as prop_bag:
                         props = []
                         while enum_moniker.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
                             if ctyped.macro.SUCCEEDED(moniker.BindToStorage(None, None,
@@ -528,7 +545,7 @@ def _get_wallpaper_path_param() -> str:
 
 def _get_wallpaper_path_iactivedesktop() -> str:
     with _get_buffer(ctyped.const.SHRT_MAX) as buff:
-        with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
+        with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
             if desktop:
                 desktop.GetWallpaper(buff, ctyped.const.SHRT_MAX, ctyped.const.AD_GETWP_BMP)
         return buff.value
@@ -536,7 +553,7 @@ def _get_wallpaper_path_iactivedesktop() -> str:
 
 def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
     paths = []
-    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             for monitor in (monitors or get_monitor_ids()):
                 with _get_buffer() as buff:
@@ -555,7 +572,7 @@ def _set_wallpaper_param(path: str) -> bool:
 
 
 def _set_wallpaper_iactivedesktop(path: str) -> bool:
-    with ctyped.create_com(ctyped.com.IActiveDesktop) as desktop:
+    with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
             _spawn_workerw()
             desktop.SetWallpaper(path, 0)
@@ -566,7 +583,7 @@ def _set_wallpaper_iactivedesktop(path: str) -> bool:
 
 def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[ctyped.type.COLORREF] = None,
                                      position: Optional[int] = None) -> bool:
-    with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if color is not None:
                 wallpaper.SetBackgroundColor(color)
@@ -593,9 +610,9 @@ def set_wallpaper(*paths: str, fade: bool = True, monitors: Optional[Iterable[st
 def set_slideshow(*paths: str) -> bool:
     with _get_itemidlist(*paths) as pidl:
         id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
-        with ctyped.create_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
             if wallpaper:
-                with ctyped.create_com(ctyped.com.IShellItemArray, False) as shl_arr:
+                with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
                     ctyped.func.shell32.SHCreateShellItemArrayFromIDLists(
                         len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
                     wallpaper.SetSlideshow(shl_arr)
@@ -651,7 +668,7 @@ def unregister_autorun(name: Optional[str] = None, uid: Optional[str] = None) ->
 def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0,
                     comment: Optional[str] = None, start_in: Optional[str] = None, show: bool = True,
                     uid: Optional[str] = None) -> bool:
-    with ctyped.create_com(ctyped.com.IShellLinkW) as link:
+    with ctyped.init_com(ctyped.com.IShellLinkW) as link:
         if link:
             set_ = _set_link_data(link, target, comment, ntpath.dirname(
                 target) if start_in is None else start_in, subprocess.list2cmdline(
@@ -715,9 +732,9 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
         data = _get_link_data(path)
         if target == data[0] and args == data[3]:
             if taskbar:
-                with ctyped.create_com(ctyped.com.IStartMenuPinnedList) as pinned:
+                with ctyped.init_com(ctyped.com.IStartMenuPinnedList) as pinned:
                     if pinned:
-                        with ctyped.create_com(ctyped.com.IShellItem, False) as item:
+                        with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                             ctyped.func.shell32.SHCreateItemFromParsingName(path, None,
                                                                             *ctyped.macro.IID_PPV_ARGS(item))
                             if item:

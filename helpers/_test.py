@@ -3,6 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.0.1'
 
 import contextlib
+import sys
 import time
 from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, Union
 from typing import Optional
@@ -24,43 +25,29 @@ def _alloc(size: int) -> ContextManager[int]:
         ctyped.func.msvcrt.free(pointer)
 
 
-@contextlib.contextmanager
-def _open_bitmap(path: str) -> ContextManager[ctyped.type.GpBitmap]:
-    bitmap = ctyped.type.GpBitmap()
-    token = ctyped.type.ULONG_PTR()
-    if not ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(token),
-                                              ctyped.byref(ctyped.struct.GdiplusStartupInput()), None):
-        ctyped.func.GdiPlus.GdipCreateBitmapFromFile(ctyped.char_array(path), ctyped.byref(bitmap))
-    try:
-        yield bitmap
-    finally:
-        ctyped.func.GdiPlus.GdipDisposeImage(bitmap)
-        ctyped.func.GdiPlus.GdiplusShutdown(token)
-
-
-def _get_gif_frames(path: str) -> Generator[tuple[int, gdi.HICON], None, None]:
+def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
     frames = []
-    with _open_bitmap(path) as bitmap:
-        if bitmap:
-            size = ctyped.type.UINT()
-            ctyped.func.GdiPlus.GdipGetPropertyItemSize(bitmap, ctyped.const.PropertyTagFrameDelay, ctyped.byref(size))
-            with _alloc(size.value) as buffer:
-                if buffer:
-                    properties = ctyped.cast(buffer, ctyped.struct.PropertyItem)
-                    ctyped.func.GdiPlus.GdipGetPropertyItem(bitmap,
-                                                            ctyped.const.PropertyTagFrameDelay, size, properties)
-                    delays = ctyped.cast(properties.contents.value, ctyped.pointer(ctyped.type.UINT))
-                    guid = ctyped.struct.GUID()
-                    count = ctyped.type.UINT()
-                    ctyped.func.GdiPlus.GdipImageGetFrameDimensionsList(bitmap, ctyped.byref(guid), 1)
-                    ctyped.func.GdiPlus.GdipImageGetFrameCount(bitmap, ctyped.byref(guid), ctyped.byref(count))
-                    for index in range(count.value):
-                        hicon = gdi.HICON()
-                        ctyped.func.GdiPlus.GdipImageSelectActiveFrame(bitmap, ctyped.byref(guid), index)
-                        ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
-                        if hicon:
-                            # noinspection PyTypeChecker
-                            frames.append((delays[index] * 10, hicon))
+    bitmap = win32.gdi.GpBitmap.from_file(path)
+    if bitmap:
+        size = ctyped.type.UINT()
+        ctyped.func.GdiPlus.GdipGetPropertyItemSize(bitmap, ctyped.const.PropertyTagFrameDelay, ctyped.byref(size))
+        with _alloc(size.value) as buffer:
+            if buffer:
+                properties = ctyped.cast(buffer, ctyped.struct.PropertyItem)
+                ctyped.func.GdiPlus.GdipGetPropertyItem(bitmap,
+                                                        ctyped.const.PropertyTagFrameDelay, size, properties)
+                delays = ctyped.cast(properties.contents.value, ctyped.pointer(ctyped.type.UINT))
+                guid = ctyped.struct.GUID()
+                count = ctyped.type.UINT()
+                ctyped.func.GdiPlus.GdipImageGetFrameDimensionsList(bitmap, ctyped.byref(guid), 1)
+                ctyped.func.GdiPlus.GdipImageGetFrameCount(bitmap, ctyped.byref(guid), ctyped.byref(count))
+                for index in range(count.value):
+                    hicon = ctyped.handle.HICON()
+                    ctyped.func.GdiPlus.GdipImageSelectActiveFrame(bitmap, ctyped.byref(guid), index)
+                    ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
+                    if hicon:
+                        # noinspection PyTypeChecker
+                        frames.append((delays[index] * 10, hicon))
     while True:
         for frame in frames:
             yield frame
@@ -196,15 +183,12 @@ class SysTray:
 
     def set_icon(self, path_or_res: Union[str, int]) -> bool:
         self.stop_animation()
-        hicon = ctyped.type.HICON()
         if isinstance(path_or_res, str):
-            with _open_bitmap(path_or_res) as bitmap:
-                ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(bitmap, ctyped.byref(hicon))
+            self._hicon = win32.gdi.GpBitmap.from_file(path_or_res).hicon
         else:
-            hicon = ctyped.func.user32.LoadIconW(None, path_or_res)
-        self._hicon = gdi.HICON(hicon.value)
+            self._hicon = ctyped.handle.HICON.from_idi(path_or_res)
         self._set_hicon(self._hicon)
-        return bool(hicon)
+        return bool(self._hicon)
 
     def set_tooltip(self, text: str) -> bool:
         self._data.szTip = text
@@ -530,34 +514,34 @@ class Transition:
 
 
 def _draw_gp_image(gp_image: gdi.GpImage, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
-                   src_x: int, src_y: int, src_w: int, src_h: int,
-                   color: ctyped.type.ARGB = 0, transition: int = Transition.NONE, duration: float = 0,
-                   w: Optional[int] = None, h: Optional[int] = None):
+                   src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
+                   transition: int = Transition.NONE, duration: float = 0, max_steps: int = sys.maxsize):
     src = gdi.GpBitmap.from_dimension(dst_w, dst_h)
-    src.gp_graphics.fill_rect_wth_color(color, 0, 0, dst_w, dst_h)
+    src.gp_graphics.fill_rect_with_color(color, 0, 0, dst_w, dst_h)
     src.gp_graphics.set_scale(dst_w / src_w, dst_h / src_h)
-    src.gp_graphics.draw_image(gp_image, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y), w, h)
-    dst = gdi.HDC.from_hwnd(win32._get_workerw_hwnd())
+    src.gp_graphics.draw_image(gp_image, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
+    dst = ctyped.handle.HDC.from_hwnd(win32._get_workerw_hwnd())
     if transition != Transition.NONE:
         extra = []
         if transition == Transition.FADE:
-            dst_bk = gdi.HBITMAP.from_dimension(dst_w, dst_h).hdc
+            dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).hdc
             ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
-            extra.extend((dst, dst_x, dst_y, src.hbitmap.hdc,
-                          ctyped.struct.BLENDFUNCTION(), dst_bk, gdi.HBITMAP.from_dimension(dst_w, dst_h).hdc))
+            extra.extend((dst, dst_x, dst_y, src.hbitmap.hdc, ctyped.struct.BLENDFUNCTION(),
+                          dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).hdc))
         if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
                           Transition.EXPLODE, Transition.SLIDE_VERTICAL, Transition.SLIDE_REVERSE_VERTICAL):
             extra.append(dst_w / 2)
         if transition in (Transition.HORIZONTAL, Transition.REVERSE_HORIZONTAL,
                           Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
             extra.append(dst_h / 2)
-        t = time.time()
-        while (dt := time.time() - t) < duration:
+        start = time.time()
+        while (passed := time.time() - start) < duration:
             # noinspection PyProtectedMember
             for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition].__func__(
-                    dt / duration, dst_w, dst_h, *extra):
+                    passed / duration, dst_w, dst_h, *extra):
                 ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
                                          src.hbitmap.hdc, src_ox, src_oy, ctyped.const.SRCCOPY)
+            time.sleep(duration / max_steps)
     ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src.hbitmap.hdc, 0, 0, ctyped.const.SRCCOPY)
 
 
@@ -628,8 +612,39 @@ def test():
     win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
 
+class TestAction(ctyped.com.IAsyncActionCompletedHandler):
+    # noinspection PyPep8Naming
+    @staticmethod
+    def Invoke(This: ctyped.com.IAsyncActionCompletedHandler, asyncInfo: ctyped.com.IAsyncAction,
+               asyncStatus: ctyped.type.AsyncStatus) -> ctyped.type.HRESULT:
+        print(This, asyncInfo, asyncStatus)
+        return ctyped.const.NOERROR
+
+
+class TestCb(ctyped.com.IAsyncOperationCompletedHandler):
+    # noinspection PyPep8Naming
+    @staticmethod
+    def Invoke(This: ctyped.com.IAsyncOperationCompletedHandler, asyncInfo: ctyped.com.IAsyncOperation,
+               asyncStatus: ctyped.type.AsyncStatus) -> ctyped.type.HRESULT:
+        if asyncStatus == ctyped.const.Error:
+            print('error')
+        return ctyped.const.NOERROR
+
+
 if __name__ == '__main__':
-    test()
+    lock_path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
+    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_stats:
+        operation = ctyped.com.IAsyncOperation()
+        file_stats.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(lock_path), ctyped.byref(operation))
+        file = ctyped.com.IStorageFile()
+        ctyped.wait_for(operation, ctyped.byref(file))
+        with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
+            action = ctyped.com.IAsyncAction()
+            lock.SetImageFileAsync(file, ctyped.byref(action))
+            ctyped.wait_for(action)
+        # hand = TestCb()
+        # print(op.put_Completed(ctyped.byref(hand)))
+    # test()
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
@@ -652,4 +667,5 @@ if __name__ == '__main__':
     # _foo()
     # s2.mainloop()
     s.mainloop()
+    del s
     exit()

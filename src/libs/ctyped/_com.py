@@ -13,16 +13,19 @@ from . import _struct
 from . import _type
 from .__head__ import _Globals
 from .__head__ import _Pointer
+from .__head__ import _addressof
 from .__head__ import _byref
 from .__head__ import _get_doc
 from .__head__ import _not_internal
 from .__head__ import _resolve_type
 
-_ASSIGNED = ('__CLSID__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
+_ASSIGNED = ('__CLSID__', '__RuntimeClass__',
+             *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
 
 
-class _IUnknown(_ctypes.c_void_p):
+class _IUnknown(_type.c_void_p):
     __CLSID__ = ''
+    __RuntimeClass__ = ''
     QueryInterface: _Callable[[_Pointer[_struct.IID],
                                _type.c_void_p],
                               _type.HRESULT]
@@ -205,8 +208,8 @@ class IFileOpenDialog(IFileDialog):
 
 class IInspectable(_IUnknown):
     GetIids: _Callable
-    GetRuntimeClassName: _Callable
-    GetTrustLevel: _Callable
+    GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
+    GetTrustLevel: _Callable[[_Pointer[_type.TrustLevel]], _type.HRESULT]
 
 
 class IUserNotification(_IUnknown):
@@ -516,16 +519,73 @@ class IPropertyBag(_IUnknown):
                      _type.HRESULT]
 
 
+class IAsyncInfo(IInspectable):
+    get_Id: _Callable[[_Pointer[_type.c_uint32]], _type.HRESULT]
+    get_Status: _Callable[[_Pointer[_type.AsyncStatus]], _type.HRESULT]
+    get_ErrorCode: _Callable[[_Pointer[_type.HRESULT]], _type.HRESULT]
+    Cancel: _Callable[[], _type.HRESULT]
+    Close: _Callable[[], _type.HRESULT]
+
+
+class IAsyncAction(IInspectable):
+    put_Completed: _Callable[[_Pointer[IAsyncActionCompletedHandler]], _type.HRESULT]
+    get_Completed: _Callable
+    GetResults: _Callable[[], _type.HRESULT]
+
+
+class IAsyncOperation(IInspectable):
+    put_Completed: _Callable[[_Pointer[IAsyncOperationCompletedHandler]], _type.HRESULT]
+    get_Completed: _Callable
+    GetResults: _Callable[[_Pointer[_type.c_void_p]], _type.HRESULT]
+
+
+class IActivationFactory(IInspectable):
+    ActivateInstance: _Callable[[_Pointer[IInspectable]], _type.HRESULT]
+
+
+class IStorageFileStatics(IInspectable):
+    __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_StorageFile
+    GetFileFromPathAsync: _Callable[[_type.HSTRING, _Pointer[IAsyncOperation]], _type.HRESULT]
+    GetFileFromApplicationUriAsync: _Callable
+    CreateStreamedFileAsync: _Callable
+    ReplaceWithStreamedFileAsync: _Callable
+    CreateStreamedFileFromUriAsync: _Callable
+    ReplaceWithStreamedFileFromUriAsync: _Callable
+
+
+class IStorageFile(IInspectable):
+    get_FileType: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
+    get_ContentType: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
+    OpenAsync: _Callable
+    OpenTransactedWriteAsync: _Callable
+    CopyOverloadDefaultNameAndOptions: _Callable
+    CopyOverloadDefaultOptions: _Callable
+    CopyOverload: _Callable
+    CopyAndReplaceAsync: _Callable
+    MoveOverloadDefaultNameAndOptions: _Callable
+    MoveOverloadDefaultOptions: _Callable
+    MoveOverload: _Callable
+    MoveAndReplaceAsync: _Callable
+
+
+class ILockScreenStatics(IInspectable):
+    __RuntimeClass__ = _const.RuntimeClass_Windows_System_UserProfile_LockScreen
+    get_OriginalImageFile: _Callable
+    GetImageStream: _Callable
+    SetImageFileAsync: _Callable[[IStorageFile, _Pointer[IAsyncAction]], _type.HRESULT]
+    SetImageStreamAsync: _Callable
+
+
 def _method_type(types: _Callable) -> list:
     types = _resolve_type(types)
-    types.insert(1, _ctypes.c_void_p)
+    types.insert(1, _type.c_void_p)
     return types
 
 
-def _init(name: str) -> type[_ctypes.c_void_p]:
+def _init(name: str) -> type[_type.c_void_p]:
     _globals.has_item(name)
 
-    class Wrapper(_ctypes.c_void_p):
+    class Wrapper(_type.c_void_p):
         _struct: _ctypes.Structure = type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
             *_method_type(types))) for name_, types in _typing.get_type_hints(_globals.vars_[name], _globals).items())})
         # noinspection PyProtectedMember
@@ -533,7 +593,7 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
 
         def __getattr__(self, name_: str):
             if _not_internal(name_) and name_ in dir(self._struct):
-                funcs = self._struct.from_address(_ctypes.c_void_p.from_address(self.value).value)
+                funcs = self._struct.from_address(_type.c_void_p.from_address(self.value).value)
                 # noinspection PyProtectedMember
                 for name__, types in self._struct._fields_:
                     method = getattr(funcs, name__)
@@ -549,51 +609,55 @@ def _init(name: str) -> type[_ctypes.c_void_p]:
 _globals = _Globals()
 
 
-class IUnknown(_ctypes.c_void_p):
+class IUnknown(_type.c_void_p):  # TODO _func.ole32.IsEqualGUID
     __IID__ = _const.IID_IUnknown
     _funcs = None
-    _vtable = None
+    _vtbl = None
 
     def __new__(cls, *_, **__):
-        if not cls._vtable:
+        if cls._vtbl is None:
             cls.__IID__ = set()
             funcs = {}
             bases = cls.mro()
             for base in bases[bases.index(IUnknown)::-1]:
-                base: type[IUnknown]
                 try:
+                    # noinspection PyUnresolvedReferences
                     cls.__IID__.add(base.__IID__)
                 except TypeError:
+                    # noinspection PyUnresolvedReferences
                     cls.__IID__.union(base.__IID__)
                 for key, value in vars(base).items():
                     if _not_internal(key):
-                        funcs[key] = value.__func__
+                        funcs[key] = value
             fields = []
             cls._funcs = []
             for name, func in funcs.items():
+                if static := hasattr(func, '__func__'):
+                    func = func.__func__
                 types = list(_typing.get_type_hints(func).values())
                 # noinspection PyTypeHints
                 type_ = _ctypes.WINFUNCTYPE(*_resolve_type(_Callable[types, types.pop()]))
                 fields.append((name, type_))
-                cls._funcs.append(type_(func))
-            cls._vtable = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
+                cls._funcs.append((None, type_(func)) if static else (type_, func))
+            cls._vtbl = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
         return super().__new__(cls)
 
     def __init__(self):
-        self._vtable = self._vtable(*self._funcs)
-        super().__init__(_ctypes.addressof(self._vtable))
+        self._vtbl = self._vtbl(*(func if type_ is None else type_(_types.MethodType(func, self))
+                                  for type_, func in self._funcs))
+        super().__init__(_addressof(self._vtbl))
 
     # noinspection PyPep8Naming
-    @staticmethod
-    def QueryInterface(This: _Pointer[IUnknown], riid: _Pointer[_struct.IID],
+    def QueryInterface(self, This: _Pointer[IUnknown], riid: _Pointer[_struct.IID],
                        ppvObject: _Pointer[_type.LPVOID]) -> _type.HRESULT:
         if not ppvObject:
             return _const.E_INVALIDARG
         ppvObject.contents.value = None
         iid = _type.LPOLESTR()
         _func.ole32.StringFromIID(riid, _byref(iid))
-        if iid.value in This.contents.__IID__:
-            ppvObject.contents.value = This
+        if iid.value in self.__IID__:
+            ppvObject.contents.value = _addressof(self)
+            This.contents.AddRef(This)
             return _const.NOERROR
         return _const.E_NOINTERFACE
 
@@ -636,4 +700,24 @@ class IUserNotificationCallback(IUnknown):
     @staticmethod
     def OnContextMenu(This: _Pointer[IUserNotificationCallback],
                       pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IAsyncActionCompletedHandler(IUnknown):
+    __IID__ = _const.IID_IAsyncActionCompletedHandler
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: IAsyncActionCompletedHandler, asyncInfo: IAsyncAction,
+               asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IAsyncOperationCompletedHandler(IUnknown):
+    __IID__ = _const.IID_IAsyncOperationCompletedHandler_IStorageFile
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: IAsyncOperationCompletedHandler, asyncInfo: IAsyncOperation,
+               asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR

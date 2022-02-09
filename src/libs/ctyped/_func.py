@@ -1,3 +1,4 @@
+import contextlib as _contextlib
 import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable
@@ -11,20 +12,15 @@ from .__head__ import _Pointer
 from .__head__ import _get_doc
 from .__head__ import _resolve_type
 
-_FUNCS = '_funcs'
-
 
 class _CDLL(type):
     def __new__(mcs, *args, **kwargs):
         self = super().__new__(mcs, *args, **kwargs)
-        funcs = {}
-        setattr(self, _FUNCS, funcs)
+        self._funcs = {}
         for var in _typing.get_type_hints(self):
-            if hasattr(self, var):
-                funcs[var] = getattr(self, var)
+            self._funcs[var] = getattr(self, var, var)
+            with _contextlib.suppress(AttributeError):
                 delattr(self, var)
-            else:
-                funcs[var] = var
         return self
 
 
@@ -65,18 +61,46 @@ class cfgmgr32(metaclass=_WinDLL):
 # noinspection PyPep8Naming
 class combase(metaclass=_WinDLL):
     RoActivateInstance: _Callable[[_type.HSTRING,
-                                   _type.c_void_p],
+                                   _Pointer[_com.IInspectable]],
                                   _type.HRESULT]
+    RoGetActivationFactory: _Callable[[_type.HSTRING,
+                                       _Pointer[_struct.IID],
+                                       _Pointer[_com.IActivationFactory]],
+                                      _type.HRESULT]
     RoInitialize: _Callable[[_type.RO_INIT_TYPE],
                             _type.HRESULT]
     RoUninitialize: _Callable[[],
                               _type.c_void_p]
+    WindowsConcatString: _Callable[[_Optional[_type.HSTRING],
+                                    _Optional[_type.HSTRING],
+                                    _Pointer[_type.HSTRING]],
+                                   _type.HRESULT]
     WindowsCreateString: _Callable[[_Optional[_type.PCNZWCH],
                                     _type.UINT32,
                                     _Pointer[_type.HSTRING]],
                                    _type.HRESULT]
     WindowsDeleteString: _Callable[[_type.HSTRING],
                                    _type.HRESULT]
+    WindowsGetStringLen: _Callable[[_type.HSTRING],
+                                   _type.UINT32]
+    WindowsGetStringRawBuffer: _Callable[[_Optional[_type.HSTRING],
+                                          _Optional[_Pointer[_type.UINT32]]],
+                                         _type.PCWSTR]
+    WindowsIsStringEmpty: _Callable[[_type.HSTRING],
+                                    _type.BOOL]
+    WindowsReplaceString: _Callable[[_Optional[_type.HSTRING],
+                                     _Optional[_type.HSTRING],
+                                     _Optional[_type.HSTRING],
+                                     _Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+    WindowsTrimStringEnd: _Callable[[_Optional[_type.HSTRING],
+                                     _Optional[_type.HSTRING],
+                                     _Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+    WindowsTrimStringStart: _Callable[[_Optional[_type.HSTRING],
+                                       _Optional[_type.HSTRING],
+                                       _Pointer[_type.HSTRING]],
+                                      _type.HRESULT]
 
 
 # noinspection PyPep8Naming
@@ -515,6 +539,9 @@ class ole32(metaclass=_WinDLL):
     IIDFromString: _Callable[[_type.LPCOLESTR,
                               _Pointer[_struct.IID]],
                              _type.HRESULT]
+    IsEqualGUID: _Callable[[_Pointer[_struct.GUID],
+                            _Pointer[_struct.GUID]],
+                           _type.c_int]
     PropVariantClear: _Callable[[_Pointer[_struct.PROPVARIANT]],
                                 _type.HRESULT]
     StringFromCLSID: _Callable[[_Pointer[_struct.CLSID],
@@ -1061,7 +1088,8 @@ def _init(lib: type[_CDLL], name: str):
         lib.lib = getattr(_ctypes, lib.__class__.__name__[1:])(lib.__name__, use_last_error=_DEBUG)
         return lib.lib
     try:
-        func = lib.lib[getattr(lib, _FUNCS)[name]]
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        func = lib.lib[lib._funcs[name]]
     except KeyError:
         raise AttributeError(f"lib '{lib.__name__}' has no function '{name}'")
     setattr(lib, name, func)

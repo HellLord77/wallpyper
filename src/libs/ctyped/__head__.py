@@ -7,6 +7,7 @@ import pkgutil as _pkgutil
 import sys as _sys
 import typing as _typing
 from typing import Any as _Any
+from typing import Callable as _Callable
 from typing import Generator as _Generator
 from typing import Generic as _Generic
 from typing import NoReturn as _NoReturn
@@ -104,12 +105,8 @@ class _Globals(dict):
         return self.annotations[item]
 
 
-def _addressof(obj: _CT) -> int:
-    return _ctypes.addressof(obj)
-
-
-def _sizeof(obj: _CT) -> int:
-    return _ctypes.sizeof(obj)
+_addressof: _Callable[[_CT], int] = _ctypes.addressof
+_sizeof: _Callable[[_CT], int] = _ctypes.sizeof
 
 
 def _byref(obj: _CT) -> _Pointer[_CT]:

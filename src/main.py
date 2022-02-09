@@ -23,7 +23,6 @@ FEATURE_FORCE_PIN = False
 FEATURE_DISPLAY = True
 FEATURE_CHANGED = False
 
-EXIT_TIMEOUT_FACTOR = 0.9
 MAX_CACHE = 64 * 1024 * 1024
 POLL_TIMEOUT = 0.01
 
@@ -44,7 +43,7 @@ CONFIG_CACHE = 'keep_cache'
 CONFIG_START = 'auto_start'
 CONFIG_SAVE = 'save_config'
 
-EXIT_TIMEOUT = EXIT_TIMEOUT_FACTOR * platform.get_max_shutdown_time()
+EXIT_TIMEOUT = platform.get_max_shutdown_time()
 UUID = f'{__author__}.{NAME}'
 SHORTCUT_NAME = f'{NAME}{platform.LINK_EXT}'
 RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(utils.dir_name(__file__), 'resources', name)
