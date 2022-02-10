@@ -152,6 +152,7 @@ GenericFontFamily = _enum
 KNOWN_FOLDER_FLAG = _enum
 MatrixOrder = _enum
 RO_INIT_TYPE = _enum
+RotateFlipType = _enum
 SIGDN = _enum
 Status = _enum
 TrustLevel = _enum

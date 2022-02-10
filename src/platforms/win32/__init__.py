@@ -10,7 +10,7 @@ import winreg
 from typing import ContextManager, Generator, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
-from . import gdi
+from . import gdiplus
 
 
 def _get_dir(folderid: str) -> str:
@@ -39,13 +39,13 @@ WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'Transc
 
 
 @contextlib.contextmanager
-def _get_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWSTR]:
-    buff = ctyped.type.LPWSTR(*() if size is None else ('\0' * size,))
+def _string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWSTR]:
+    ptr = ctyped.type.LPWSTR(*() if size is None else ('\0' * size,))
     try:
-        yield buff
+        yield ptr
     finally:
-        if size is None and buff:
-            ctyped.func.kernel32.LocalFree(buff)
+        if size is None and ptr:
+            ctyped.func.kernel32.LocalFree(ptr)
 
 
 def _spawn_workerw():
@@ -203,7 +203,7 @@ def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     data = []
     word = ctyped.type.WORD()
     c_int = ctyped.type.c_int()
-    with _get_buffer(ctyped.const.SHRT_MAX) as buff:
+    with _string_buffer(ctyped.const.SHRT_MAX) as buff:
         with _load_link(path_or_link) as link:
             link.GetPath(buff, ctyped.const.SHRT_MAX, None, ctyped.const.SLGP_RAWPATH)
             data.append(buff.value)
@@ -284,7 +284,7 @@ def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Point
         flags = 0,
     sz = ctyped.type.DWORD()
     getter(hdevinfo, dev_info_ref, key_ref, type_ref, None, 0, ctyped.byref(sz), *flags)
-    with _get_buffer(sz.value) as buff:
+    with _string_buffer(sz.value) as buff:
         getter(hdevinfo, dev_info_ref, key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), sz, None, *flags)
         return buff.value
 
@@ -312,7 +312,7 @@ def _get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
     type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
     prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
     ctyped.func.cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
-    with _get_buffer(sz.value) as buff:
+    with _string_buffer(sz.value) as buff:
         ctyped.func.cfgmgr32.CM_Get_Device_Interface_PropertyW(
             dev_path, prop_key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
         return buff.value
@@ -328,7 +328,7 @@ def _get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[st
         ctyped.func.cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
         ctyped.func.cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(type_),
                                                       None, ctyped.byref(sz), 0)
-        with _get_buffer(sz.value) as buff:
+        with _string_buffer(sz.value) as buff:
             ctyped.func.cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(type_),
                                                           ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
             props.append(buff.value)
@@ -336,7 +336,7 @@ def _get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[st
 
 
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
-    with _get_buffer() as buff:
+    with _string_buffer() as buff:
         ctyped.func.kernel32.FormatMessageW((
                 ctyped.const.FORMAT_MESSAGE_ALLOCATE_BUFFER |
                 ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS),
@@ -397,7 +397,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
             else:
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
-                    with _get_buffer() as buff:
+                    with _string_buffer() as buff:
                         item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
                         dir_ = buff.value
                     return dir_
@@ -450,7 +450,7 @@ def copy_text(text: str, quote: Optional[str] = None) -> bool:
 
 
 def copy_image(path: str) -> bool:
-    hbitmap = gdi.GpBitmap.from_file(path).hbitmap
+    hbitmap = gdiplus.Bitmap.from_file(path).get_hbitmap()
     bm = ctyped.struct.BITMAP()
     if (sz_bi := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.func.gdi32.GetObjectW(
             hbitmap, sz_bi, ctyped.byref(bm)):
@@ -500,7 +500,7 @@ def get_monitor_ids() -> tuple[str, ...]:
             count = ctyped.type.UINT()
             wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
             for index in range(count.value):
-                with _get_buffer() as buff:
+                with _string_buffer() as buff:
                     wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
                     monitors.append(buff.value)
     return tuple(monitors)
@@ -538,13 +538,13 @@ def get_direct_show_devices_properties(cat: str, prop_names: tuple[str] = ('Devi
 
 
 def _get_wallpaper_path_param() -> str:
-    with _get_buffer(ctyped.const.SHRT_MAX) as buff:
+    with _string_buffer(ctyped.const.SHRT_MAX) as buff:
         ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
         return buff.value
 
 
 def _get_wallpaper_path_iactivedesktop() -> str:
-    with _get_buffer(ctyped.const.SHRT_MAX) as buff:
+    with _string_buffer(ctyped.const.SHRT_MAX) as buff:
         with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
             if desktop:
                 desktop.GetWallpaper(buff, ctyped.const.SHRT_MAX, ctyped.const.AD_GETWP_BMP)
@@ -556,7 +556,7 @@ def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             for monitor in (monitors or get_monitor_ids()):
-                with _get_buffer() as buff:
+                with _string_buffer() as buff:
                     wallpaper.GetWallpaper(monitor, ctyped.byref(buff))
                     paths.append(buff.value)
     return tuple(paths)

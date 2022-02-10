@@ -1,8 +1,8 @@
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 import builtins as _builtins
 import contextlib as _contextlib
-import time
+import threading as _threading
 import typing as _typing
 from typing import Any as _Any
 from typing import ContextManager as _ContextManager
@@ -26,6 +26,15 @@ from .__head__ import _byref as byref
 from .__head__ import _cast as cast
 from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
+
+
+@_contextlib.contextmanager
+def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
+    ptr = func.msvcrt.malloc(size)
+    try:
+        yield None if ptr == 0 else ptr
+    finally:
+        func.msvcrt.free(ptr)
 
 
 def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Pointer[CT]:
@@ -105,15 +114,56 @@ def get_winrt(type_: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.
             yield None
 
 
-def wait_for(async_: _Union[com.IAsyncAction, com.IAsyncOperation],
-             obj_ref: _Optional[Pointer[CT]] = None, timeout: float = 5) -> bool:
-    args = () if obj_ref is None else (obj_ref,)
-    end = time.time() + timeout
-    while end > time.time():
+class Async:
+    class _AsyncCompletedHandler(com.IAsyncActionCompletedHandler, com.IAsyncOperationCompletedHandler):
+        status = None
+
+        def __init__(self):
+            com.IUnknown.__init__(self)
+            self.event = _threading.Event()
+
+        def Invoke(self, _: com.IUnknown, info: com.IInspectable, status: type.AsyncStatus) -> type.HRESULT:
+            self.event.set()
+            self.status = status
+            return const.NOERROR
+
+    def __init__(self, type_: _Union[_builtins.type[com.IAsyncAction],
+                                     _builtins.type[com.IAsyncOperation]] = com.IAsyncAction):
+        self._async = type_()
+        self._handler = self._AsyncCompletedHandler()
+
+    def __del__(self):
+        if self._async:
+            self._async.Release()
+
+    @property
+    def completed(self) -> bool:
+        return self._handler.status == const.Completed
+
+    def _start(self):
+        self._async.put_Completed(byref(self._handler))
+
+    def get_ref(self):
+        return byref(self._async)
+
+    def wait_for(self, timeout: float = 1) -> bool:
+        _threading.Thread(
+            target=self._start,
+            name=f'{self.__class__.__name__}-{__version__}-{_builtins.type(self._async).__name__}').start()
+        self._handler.event.wait(timeout)
+        self.cancel()
+        return self.completed
+
+    def cancel(self) -> bool:
+        with conv_com(com.IAsyncInfo, self._async) as info:
+            return macro.SUCCEEDED(info.Cancel())
+
+    def close(self) -> bool:
+        with conv_com(com.IAsyncInfo, self._async) as info:
+            return macro.SUCCEEDED(info.Close())
+
+    def get_results(self, obj_ref: Pointer[CT]) -> bool:
         try:
-            async_.GetResults(*args)
+            return macro.SUCCEEDED(self._async.GetResults(obj_ref))
         except OSError:
-            pass
-        else:
-            return True
-    return False
+            return False

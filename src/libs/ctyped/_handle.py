@@ -51,14 +51,13 @@ class HICON(_type.HICON):
         _func.user32.DestroyIcon(self)
 
     @staticmethod
-    def from_idi(idi: int):
+    def from_system(idi: int):
         return HICON(_func.user32.LoadIconW(None, _macro.MAKEINTRESOURCEW(idi)))
 
 
 class HBITMAP(_type.HBITMAP):
     _width = None
     _height = None
-    _hdc = None
 
     def __del__(self):
         _func.gdi32.DeleteObject(self)
@@ -75,16 +74,6 @@ class HBITMAP(_type.HBITMAP):
             self._fill_dimensions()
         return self._height
 
-    @property
-    def hdc(self) -> HDC:
-        if self._hdc is None:
-            self._hdc = HDC.from_hbitmap(self)
-        return self._hdc
-
-    @hdc.deleter
-    def hdc(self):
-        self._hdc = None
-
     @staticmethod
     def from_dimension(width: int = 0, height: int = 0, byte: int = 4) -> HBITMAP:
         self = HBITMAP()
@@ -96,3 +85,6 @@ class HBITMAP(_type.HBITMAP):
         _func.gdi32.GetObjectW(self, _sizeof(_struct.BITMAP), _byref(bitmap))
         self._width = bitmap.bmWidth
         self._height = bitmap.bmHeight
+
+    def get_hdc(self) -> HDC:
+        return HDC.from_hbitmap(self)

@@ -385,6 +385,9 @@ class GdiPlus(metaclass=_WinDLL):
                                                 _Pointer[_struct.GUID],
                                                 _type.UINT],
                                                _type.GpStatus]
+    GdipImageRotateFlip: _Callable[[_type.GpImage,
+                                    _type.RotateFlipType],
+                                   _type.GpStatus]
     GdipImageSelectActiveFrame: _Callable[[_type.GpImage,
                                            _Pointer[_struct.GUID],
                                            _type.UINT],

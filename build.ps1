@@ -15,6 +15,7 @@ $Version = "0.0.1"
 $Datas = @("resources", "platforms\win32\syspin.exe")
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
+$OneFile = $True
 
 function Install-Dependecies
 {

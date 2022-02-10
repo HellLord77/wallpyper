@@ -615,19 +615,18 @@ class IUnknown(_type.c_void_p):  # TODO _func.ole32.IsEqualGUID
     _vtbl = None
 
     def __new__(cls, *_, **__):
+        base: type[IUnknown]
         if cls._vtbl is None:
             cls.__IID__ = set()
             funcs = {}
             bases = cls.mro()
             for base in bases[bases.index(IUnknown)::-1]:
                 try:
-                    # noinspection PyUnresolvedReferences
                     cls.__IID__.add(base.__IID__)
                 except TypeError:
-                    # noinspection PyUnresolvedReferences
                     cls.__IID__.union(base.__IID__)
                 for key, value in vars(base).items():
-                    if _not_internal(key):
+                    if _not_internal(key) and (key in funcs or __name__ == base.__module__):
                         funcs[key] = value
             fields = []
             cls._funcs = []

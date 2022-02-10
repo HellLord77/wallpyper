@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-import ctypes as _ctypes
+import ctypes as _types
 import functools as _functools
 import itertools as _itertools
 import typing as _typing
@@ -303,7 +303,7 @@ class PropertyItem:
     id: _type.PROPID = None
     length: _type.ULONG = None
     type: _type.WORD = None
-    value: _type.VOID = None
+    value: _Pointer[_type.VOID] = None
 
 
 @_struct
@@ -624,6 +624,12 @@ class EventRegistrationToken:
     value: _type.c_int64 = None
 
 
+@_struct
+class Rational:
+    Numerator: _type.UINT32 = None
+    Denominator: _type.UINT32 = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
@@ -632,10 +638,10 @@ DEVPROPGUID = GUID
 VARIANTARG = VARIANT
 
 
-def _init(name: str) -> type[_ctypes.Structure]:
+def _init(name: str) -> type[_types.Structure]:
     _globals.has_item(name)
 
-    class Wrapper(_ctypes.Structure):
+    class Wrapper(_types.Structure):
         _fields_ = tuple((name_, _resolve_type(type_))
                          for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
         __defaults__ = tuple((field[0], getattr(_globals.vars_[name], field[0])) for field in _fields_)
