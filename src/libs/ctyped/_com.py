@@ -520,32 +520,94 @@ class IPropertyBag(_IUnknown):
 
 
 class IAsyncInfo(IInspectable):
-    get_Id: _Callable[[_Pointer[_type.c_uint32]], _type.HRESULT]
-    get_Status: _Callable[[_Pointer[_type.AsyncStatus]], _type.HRESULT]
-    get_ErrorCode: _Callable[[_Pointer[_type.HRESULT]], _type.HRESULT]
-    Cancel: _Callable[[], _type.HRESULT]
-    Close: _Callable[[], _type.HRESULT]
+    get_Id: _Callable[[_Pointer[_type.c_uint32]],
+                      _type.HRESULT]
+    get_Status: _Callable[[_Pointer[_type.AsyncStatus]],
+                          _type.HRESULT]
+    get_ErrorCode: _Callable[[_Pointer[_type.HRESULT]],
+                             _type.HRESULT]
+    Cancel: _Callable[[],
+                      _type.HRESULT]
+    Close: _Callable[[],
+                     _type.HRESULT]
 
 
 class IAsyncAction(IInspectable):
-    put_Completed: _Callable[[_Pointer[IAsyncActionCompletedHandler]], _type.HRESULT]
+    put_Completed: _Callable[[_Pointer[IAsyncActionCompletedHandler]],
+                             _type.HRESULT]
     get_Completed: _Callable
-    GetResults: _Callable[[], _type.HRESULT]
+    GetResults: _Callable[[],
+                          _type.HRESULT]
 
 
 class IAsyncOperation(IInspectable):
-    put_Completed: _Callable[[_Pointer[IAsyncOperationCompletedHandler]], _type.HRESULT]
+    put_Completed: _Callable[[_Pointer[IAsyncOperationCompletedHandler]],
+                             _type.HRESULT]
     get_Completed: _Callable
-    GetResults: _Callable[[_Pointer[_type.c_void_p]], _type.HRESULT]
+    GetResults: _Callable[[_Pointer[_type.c_void_p]],
+                          _type.HRESULT]
+
+
+class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child (?)
+    put_Progress: _Callable
+    get_Progress: _Callable[[_Pointer[_type.c_void_p]],
+                            _type.HRESULT]
+    put_Completed: _Callable[[_Pointer[IAsyncOperationWithProgressCompletedHandler]],
+                             _type.HRESULT]
+    get_Completed: _Callable
+    GetResults: _Callable[[_Pointer[_type.c_void_p]],
+                          _type.HRESULT]
 
 
 class IActivationFactory(IInspectable):
-    ActivateInstance: _Callable[[_Pointer[IInspectable]], _type.HRESULT]
+    ActivateInstance: _Callable[[_Pointer[IInspectable]],
+                                _type.HRESULT]
+
+
+class IStorageFolderStatics(IInspectable):
+    __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_StorageFolder
+    GetFolderFromPathAsync: _Callable[[_type.HSTRING,
+                                       _Pointer[IAsyncOperation]],
+                                      _type.HRESULT]
+
+
+class IStorageFolder(IInspectable):
+    CreateFileAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
+                                                      _Pointer[IAsyncOperation]],
+                                                     _type.HSTRING]
+    CreateFileAsync: _Callable[[_type.HSTRING,
+                                _type.CreationCollisionOption,
+                                _Pointer[IAsyncOperation]],
+                               _type.HRESULT]
+    CreateFolderAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
+                                                        _Pointer[IAsyncOperation]],
+                                                       _type.HSTRING]
+    CreateFolderAsync: _Callable[[_type.HSTRING,
+                                  _type.CreationCollisionOption,
+                                  _Pointer[IAsyncOperation]],
+                                 _type.HRESULT]
+    GetFileAsync: _Callable[[_type.HSTRING,
+                             _Pointer[IAsyncOperation]],
+                            _type.HSTRING]
+    GetFolderAsync: _Callable[[_type.HSTRING,
+                               _Pointer[IAsyncOperation]],
+                              _type.HSTRING]
+    GetItemAsync: _Callable[[_type.HSTRING,
+                             _Pointer[IAsyncOperation]],
+                            _type.HSTRING]
+    GetFilesAsyncOverloadDefaultOptionsStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
+                                                                _type.HSTRING]
+    GetFoldersAsyncOverloadDefaultOptionsStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
+                                                                  _type.HSTRING]
+    GetItemsAsyncOverloadDefaultStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
+                                                         _type.HSTRING]
 
 
 class IStorageFileStatics(IInspectable):
     __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_StorageFile
-    GetFileFromPathAsync: _Callable[[_type.HSTRING, _Pointer[IAsyncOperation]], _type.HRESULT]
+    GetFileFromPathAsync: _Callable[[_type.HSTRING,
+                                     _Pointer[IAsyncOperation]],
+                                    _type.HRESULT]
     GetFileFromApplicationUriAsync: _Callable
     CreateStreamedFileAsync: _Callable
     ReplaceWithStreamedFileAsync: _Callable
@@ -554,26 +616,155 @@ class IStorageFileStatics(IInspectable):
 
 
 class IStorageFile(IInspectable):
-    get_FileType: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
-    get_ContentType: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
-    OpenAsync: _Callable
-    OpenTransactedWriteAsync: _Callable
-    CopyOverloadDefaultNameAndOptions: _Callable
-    CopyOverloadDefaultOptions: _Callable
-    CopyOverload: _Callable
-    CopyAndReplaceAsync: _Callable
-    MoveOverloadDefaultNameAndOptions: _Callable
-    MoveOverloadDefaultOptions: _Callable
-    MoveOverload: _Callable
-    MoveAndReplaceAsync: _Callable
+    get_FileType: _Callable[[_Pointer[_type.HSTRING]],
+                            _type.HRESULT]
+    get_ContentType: _Callable[[_Pointer[_type.HSTRING]],
+                               _type.HRESULT]
+    OpenAsync: _Callable[[_type.FileAccessMode,
+                          _Pointer[IAsyncOperation]],
+                         _type.HRESULT]
+    OpenTransactedWriteAsync: _Callable[[_Pointer[IAsyncOperation]],
+                                        _type.HRESULT]
+    CopyOverloadDefaultNameAndOptions: _Callable[[IStorageFolder,
+                                                  _Pointer[IAsyncOperation]],
+                                                 _type.HRESULT]
+    CopyOverloadDefaultOptions: _Callable[[IStorageFolder,
+                                           _type.HSTRING,
+                                           _Pointer[IAsyncOperation]],
+                                          _type.HRESULT]
+    CopyOverload: _Callable[[IStorageFolder,
+                             _type.HSTRING,
+                             _type.NameCollisionOption,
+                             _Pointer[IAsyncOperation]],
+                            _type.HRESULT]
+    CopyAndReplaceAsync: _Callable[[_type.IStorageFile,
+                                    _Pointer[IAsyncAction]],
+                                   _type.HRESULT]
+    MoveOverloadDefaultNameAndOptions: _Callable[[IStorageFolder,
+                                                  _Pointer[IAsyncAction]],
+                                                 _type.HRESULT]
+    MoveOverloadDefaultOptions: _Callable[[IStorageFolder,
+                                           _type.HSTRING,
+                                           _Pointer[IAsyncAction]],
+                                          _type.HRESULT]
+    MoveOverload: _Callable[[IStorageFolder,
+                             _type.HSTRING,
+                             _type.NameCollisionOption,
+                             _Pointer[IAsyncAction]],
+                            _type.HRESULT]
+    MoveAndReplaceAsync: _Callable[[_type.IStorageFile,
+                                    _Pointer[IAsyncAction]],
+                                   _type.HRESULT]
+
+
+class IUriRuntimeClass(IInspectable):
+    get_AbsoluteUri: _Callable[[_Pointer[_type.HSTRING]],
+                               _type.HRESULT]
+    get_DisplayUri: _Callable[[_Pointer[_type.HSTRING]],
+                              _type.HRESULT]
+    get_Domain: _Callable[[_Pointer[_type.HSTRING]],
+                          _type.HRESULT]
+    get_Extension: _Callable[[_Pointer[_type.HSTRING]],
+                             _type.HRESULT]
+    get_Fragment: _Callable[[_Pointer[_type.HSTRING]],
+                            _type.HRESULT]
+    get_Host: _Callable[[_Pointer[_type.HSTRING]],
+                        _type.HRESULT]
+    get_Password: _Callable[[_Pointer[_type.HSTRING]],
+                            _type.HRESULT]
+    get_Path: _Callable[[_Pointer[_type.HSTRING]],
+                        _type.HRESULT]
+    get_Query: _Callable[[_Pointer[_type.HSTRING]],
+                         _type.HRESULT]
+    get_QueryParsed: _Callable
+    get_RawUri: _Callable[[_Pointer[_type.HSTRING]],
+                          _type.HRESULT]
+    get_SchemeName: _Callable[[_Pointer[_type.HSTRING]],
+                              _type.HRESULT]
+    get_UserName: _Callable[[_Pointer[_type.HSTRING]],
+                            _type.HRESULT]
+    get_Port: _Callable[[_Pointer[_type.INT32]],
+                        _type.HRESULT]
+    get_Suspicious: _Callable[[_Pointer[_type.boolean]],
+                              _type.HRESULT]
+    Equals: _Callable
+    CombineUri: _Callable
+
+
+class IBuffer(IInspectable):
+    get_Capacity: _Callable[[_Pointer[_type.UINT32]],
+                            _type.HRESULT]
+    get_Length: _Callable[[_Pointer[_type.UINT32]],
+                          _type.HRESULT]
+    put_Length: _Callable[[_type.UINT32],
+                          _type.HRESULT]
+
+
+class IInputStream(IInspectable):
+    ReadAsync: _Callable[[IBuffer,
+                          _type.UINT32,
+                          _type.InputStreamOptions,
+                          _Pointer[IAsyncOperationWithProgress]],
+                         _type.HRESULT]
+
+
+class IOutputStream(IInspectable):
+    WriteAsync: _Callable
+    FlushAsync: _Callable
+
+
+class IRandomAccessStreamStatics(IInspectable):
+    __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_Streams_RandomAccessStream
+    CopyAsync: _Callable[[IInputStream,
+                          IOutputStream,
+                          _Pointer[IAsyncOperationWithProgress]],
+                         _type.HRESULT]
+    CopySizeAsync: _Callable[[IInputStream,
+                              IOutputStream,
+                              _type.UINT64,
+                              _Pointer[IAsyncOperationWithProgress]],
+                             _type.HRESULT]
+    CopyAndCloseAsync: _Callable[[IInputStream,
+                                  IOutputStream,
+                                  _Pointer[IAsyncOperationWithProgress]],
+                                 _type.HRESULT]
+
+
+class IRandomAccessStream(IInspectable):
+    get_Size: _Callable[[_Pointer[_type.UINT64]],
+                        _type.HRESULT]
+    put_Size: _Callable[[_type.UINT64],
+                        _type.HRESULT]
+    GetInputStreamAt: _Callable[[_type.UINT64,
+                                 _Pointer[IInputStream]],
+                                _type.HRESULT]
+    GetOutputStreamAt: _Callable[[_type.UINT64,
+                                  _Pointer[IOutputStream]],
+                                 _type.HRESULT]
+    get_Position: _Callable[[_Pointer[_type.UINT64]],
+                            _type.HRESULT]
+    Seek: _Callable[[_type.UINT64],
+                    _type.HRESULT]
+    CloneStream: _Callable[[_Pointer[_type.IRandomAccessStream]],
+                           _type.HRESULT]
+    get_CanRead: _Callable[[_Pointer[_type.boolean]],
+                           _type.HRESULT]
+    get_CanWrite: _Callable[[_Pointer[_type.boolean]],
+                            _type.HRESULT]
 
 
 class ILockScreenStatics(IInspectable):
     __RuntimeClass__ = _const.RuntimeClass_Windows_System_UserProfile_LockScreen
-    get_OriginalImageFile: _Callable
-    GetImageStream: _Callable
-    SetImageFileAsync: _Callable[[IStorageFile, _Pointer[IAsyncAction]], _type.HRESULT]
-    SetImageStreamAsync: _Callable
+    get_OriginalImageFile: _Callable[[_Pointer[IUriRuntimeClass]],
+                                     _type.HRESULT]
+    GetImageStream: _Callable[[_Pointer[IRandomAccessStream]],
+                              _type.HRESULT]
+    SetImageFileAsync: _Callable[[IStorageFile,
+                                  _Pointer[IAsyncAction]],
+                                 _type.HRESULT]
+    SetImageStreamAsync: _Callable[[IRandomAccessStream,
+                                    _Pointer[IAsyncAction]],
+                                   _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:
@@ -593,6 +784,8 @@ def _init(name: str) -> type[_type.c_void_p]:
 
         def __getattr__(self, name_: str):
             if _not_internal(name_) and name_ in dir(self._struct):
+                if self.value is None:
+                    raise MemoryError(f"com '{type(self).__name__}' has not been initialized yet")
                 funcs = self._struct.from_address(_type.c_void_p.from_address(self.value).value)
                 # noinspection PyProtectedMember
                 for name__, types in self._struct._fields_:
@@ -609,22 +802,18 @@ def _init(name: str) -> type[_type.c_void_p]:
 _globals = _Globals()
 
 
-class IUnknown(_type.c_void_p):  # TODO _func.ole32.IsEqualGUID
-    __IID__ = _const.IID_IUnknown
+class IUnknown(_type.c_void_p):
+    __IID__ = {_const.IID_IUnknown}
     _funcs = None
     _vtbl = None
 
     def __new__(cls, *_, **__):
         base: type[IUnknown]
         if cls._vtbl is None:
-            cls.__IID__ = set()
             funcs = {}
             bases = cls.mro()
             for base in bases[bases.index(IUnknown)::-1]:
-                try:
-                    cls.__IID__.add(base.__IID__)
-                except TypeError:
-                    cls.__IID__.union(base.__IID__)
+                cls.__IID__.update(base.__IID__)
                 for key, value in vars(base).items():
                     if _not_internal(key) and (key in funcs or __name__ == base.__module__):
                         funcs[key] = value
@@ -672,7 +861,7 @@ class IUnknown(_type.c_void_p):  # TODO _func.ole32.IsEqualGUID
 
 
 class IQueryContinue(IUnknown):
-    __IID__ = _const.IID_IQueryContinue
+    __IID__ = {_const.IID_IQueryContinue}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
@@ -681,7 +870,7 @@ class IQueryContinue(IUnknown):
 
 
 class IUserNotificationCallback(IUnknown):
-    __IID__ = _const.IID_IUserNotificationCallback
+    __IID__ = {_const.IID_IUserNotificationCallback}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
@@ -703,7 +892,7 @@ class IUserNotificationCallback(IUnknown):
 
 
 class IAsyncActionCompletedHandler(IUnknown):
-    __IID__ = _const.IID_IAsyncActionCompletedHandler
+    __IID__ = {_const.IID_IAsyncActionCompletedHandler}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
@@ -713,10 +902,22 @@ class IAsyncActionCompletedHandler(IUnknown):
 
 
 class IAsyncOperationCompletedHandler(IUnknown):
-    __IID__ = _const.IID_IAsyncOperationCompletedHandler_IStorageFile
+    __IID__ = {_const.IID_IAsyncOperationCompletedHandler_IRandomAccessStream,
+               _const.IID_IAsyncOperationCompletedHandler_IStorageFile,
+               _const.IID_IAsyncOperationCompletedHandler_IStorageFolder}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
     def Invoke(This: IAsyncOperationCompletedHandler, asyncInfo: IAsyncOperation,
+               asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IAsyncOperationWithProgressCompletedHandler(IUnknown):
+    __IID__ = {_const.IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64}
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: IAsyncOperationWithProgress,
                asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR

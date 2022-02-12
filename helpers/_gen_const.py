@@ -55,9 +55,21 @@ def knownfolders():
             print(f"{folderid[0]} = '{_str(folderid[1:12])}'")
 
 
-def main():
-    knownfolders()
+def _runtime_class(file: str):
+    path = os.path.join(SDK_PATH, 'winrt', file)
+    with open(path, 'r') as file:
+        for match in re.finditer(r'(RuntimeClass_.*)\[]\s=\sL"(.*)";', file.read()):
+            groups = match.groups()
+            print(f"{groups[0]} = '{groups[1]}'")
+
+
+def windows_storage_streams():
+    _runtime_class('windows.storage.streams.h')
+
+
+def windows_storage():
+    _runtime_class('windows.storage.h')
 
 
 if __name__ == '__main__':
-    main()
+    windows_storage()

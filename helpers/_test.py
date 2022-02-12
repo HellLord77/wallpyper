@@ -592,26 +592,52 @@ def background():
     win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
 
-def set_lock_wallpaper(path: str) -> bool:
+def set_wallpaper_lock(path: str) -> bool:
     with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
         operation = ctyped.Async(ctyped.com.IAsyncOperation)
         file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(path), operation.get_ref())
-        if operation.wait_for():
-            file = ctyped.com.IStorageFile()
-            operation.get_results(ctyped.byref(file))
+        if file := operation.get(ctyped.com.IStorageFile):
             with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
                 action = ctyped.Async()
                 lock.SetImageFileAsync(file, action.get_ref())
-                return action.wait_for()
+                return ctyped.const.Completed == action.wait_for()
     return False
 
 
-if __name__ == '__main__':
-    background()
-    exit()
+def get_wallpaper_lock_path():
+    dir_ = 'D:\\'
+    name = f'{time.time()}.jpg'
+    with ctyped.get_winrt(ctyped.com.IStorageFolderStatics) as folder_statics:
+        operation = ctyped.Async(ctyped.com.IAsyncOperation)
+        folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(dir_), operation.get_ref())
+        if folder := operation.get(ctyped.com.IStorageFolder):
+            operation = ctyped.Async(ctyped.com.IAsyncOperation)
+            folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(name),
+                                   ctyped.const.CreationCollisionOption_ReplaceExisting, operation.get_ref())
+            if file := operation.get(ctyped.com.IStorageFile):
+                operation = ctyped.Async(ctyped.com.IAsyncOperation)
+                file.OpenAsync(ctyped.const.FileAccessMode_ReadWrite, operation.get_ref())
+                if file_stream := operation.get(ctyped.com.IRandomAccessStream):
+                    print(file_stream)  # created file
+                    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
+                        with ctyped.init_com(ctyped.com.IRandomAccessStream, False) as stream:
+                            lock.GetImageStream(ctyped.byref(stream))
+                            print(stream)
+                            with ctyped.init_com(ctyped.com.IInputStream, False) as inp:
+                                stream.GetInputStreamAt(0, ctyped.byref(inp))
+                                with ctyped.init_com(ctyped.com.IOutputStream, False) as out:
+                                    file_stream.GetOutputStreamAt(0, ctyped.byref(out))
+                                    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
+                                        op_prog = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
+                                        stream_statics.CopyAndCloseAsync(inp, out, op_prog.get_ref())
+                                        print(op_prog.wait_for())
 
-    # set_lock_wallpaper(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg')
-    # exit()
+
+if __name__ == '__main__':
+    # background()
+    # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
+    print(get_wallpaper_lock_path())
+    exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
     gif = r'D:\Projects\Wallpyper\src\resources\busy.gif'

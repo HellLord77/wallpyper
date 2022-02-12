@@ -19,6 +19,8 @@ import modules.wallhaven
 import platforms.win32 as platform
 import utils
 
+platform.ctyped.MULTITHREADED = False  # FIXME wx use single thread com
+
 FEATURE_FORCE_PIN = False
 FEATURE_DISPLAY = True
 FEATURE_CHANGED = False

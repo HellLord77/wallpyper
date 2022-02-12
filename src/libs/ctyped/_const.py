@@ -3026,6 +3026,11 @@ GenericFontFamilyMonospace = 2
 ColorMatrixFlagsDefault = 0
 ColorMatrixFlagsSkipGrays = 1
 ColorMatrixFlagsAltGray = 2
+# COINIT
+COINIT_APARTMENTTHREADED = 0x2
+COINIT_MULTITHREADED = COINITBASE_MULTITHREADED = 0
+COINIT_DISABLE_OLE1DDE = 0x4
+COINIT_SPEED_OVER_MEMORY = 0x8
 # Unit
 UnitWorld = 0
 UnitDisplay = 1
@@ -3186,10 +3191,73 @@ White = 0xFFFFFFFF
 WhiteSmoke = 0xFFF5F5F5
 Yellow = 0xFFFFFF00
 YellowGreen = 0xFF9ACD32
+# InputStreamOptions
+InputStreamOptions_None = 0
+InputStreamOptions_Partial = 0x1
+InputStreamOptions_ReadAhead = 0x2
+# CreationCollisionOption
+CreationCollisionOption_GenerateUniqueName = 0
+CreationCollisionOption_ReplaceExisting = 1
+CreationCollisionOption_FailIfExists = 2
+CreationCollisionOption_OpenIfExists = 3
+# NameCollisionOption
+NameCollisionOption_GenerateUniqueName = 0
+NameCollisionOption_ReplaceExisting = 1
+NameCollisionOption_FailIfExists = 2
+# FileAccessMode
+FileAccessMode_Read = 0
+FileAccessMode_ReadWrite = 1
 # RuntimeClass
 RuntimeClass_Windows_UI_ViewManagement_UISettings = 'Windows.UI.ViewManagement.UISettings'
 RuntimeClass_Windows_System_UserProfile_LockScreen = 'Windows.System.UserProfile.LockScreen'
+RuntimeClass_Windows_Storage_AppDataPaths = 'Windows.Storage.AppDataPaths'
+RuntimeClass_Windows_Storage_ApplicationData = 'Windows.Storage.ApplicationData'
+RuntimeClass_Windows_Storage_ApplicationDataCompositeValue = 'Windows.Storage.ApplicationDataCompositeValue'
+RuntimeClass_Windows_Storage_ApplicationDataContainer = 'Windows.Storage.ApplicationDataContainer'
+RuntimeClass_Windows_Storage_ApplicationDataContainerSettings = 'Windows.Storage.ApplicationDataContainerSettings'
+RuntimeClass_Windows_Storage_CachedFileManager = 'Windows.Storage.CachedFileManager'
+RuntimeClass_Windows_Storage_DownloadsFolder = 'Windows.Storage.DownloadsFolder'
+RuntimeClass_Windows_Storage_FileIO = 'Windows.Storage.FileIO'
+RuntimeClass_Windows_Storage_KnownFolders = 'Windows.Storage.KnownFolders'
+RuntimeClass_Windows_Storage_PathIO = 'Windows.Storage.PathIO'
+RuntimeClass_Windows_Storage_SetVersionDeferral = 'Windows.Storage.SetVersionDeferral'
+RuntimeClass_Windows_Storage_SetVersionRequest = 'Windows.Storage.SetVersionRequest'
 RuntimeClass_Windows_Storage_StorageFile = 'Windows.Storage.StorageFile'
+RuntimeClass_Windows_Storage_StorageFolder = 'Windows.Storage.StorageFolder'
+RuntimeClass_Windows_Storage_StorageLibrary = 'Windows.Storage.StorageLibrary'
+RuntimeClass_Windows_Storage_StorageLibraryChange = 'Windows.Storage.StorageLibraryChange'
+RuntimeClass_Windows_Storage_StorageLibraryChangeReader = 'Windows.Storage.StorageLibraryChangeReader'
+RuntimeClass_Windows_Storage_StorageLibraryChangeTracker = 'Windows.Storage.StorageLibraryChangeTracker'
+RuntimeClass_Windows_Storage_StorageLibraryChangeTrackerOptions = 'Windows.Storage.StorageLibraryChangeTrackerOptions'
+RuntimeClass_Windows_Storage_StorageLibraryLastChangeId = 'Windows.Storage.StorageLibraryLastChangeId'
+RuntimeClass_Windows_Storage_StorageProvider = 'Windows.Storage.StorageProvider'
+RuntimeClass_Windows_Storage_StorageStreamTransaction = 'Windows.Storage.StorageStreamTransaction'
+RuntimeClass_Windows_Storage_StreamedFileDataRequest = 'Windows.Storage.StreamedFileDataRequest'
+RuntimeClass_Windows_Storage_SystemAudioProperties = 'Windows.Storage.SystemAudioProperties'
+RuntimeClass_Windows_Storage_SystemDataPaths = 'Windows.Storage.SystemDataPaths'
+RuntimeClass_Windows_Storage_SystemGPSProperties = 'Windows.Storage.SystemGPSProperties'
+RuntimeClass_Windows_Storage_SystemImageProperties = 'Windows.Storage.SystemImageProperties'
+RuntimeClass_Windows_Storage_SystemMediaProperties = 'Windows.Storage.SystemMediaProperties'
+RuntimeClass_Windows_Storage_SystemMusicProperties = 'Windows.Storage.SystemMusicProperties'
+RuntimeClass_Windows_Storage_SystemPhotoProperties = 'Windows.Storage.SystemPhotoProperties'
+RuntimeClass_Windows_Storage_SystemProperties = 'Windows.Storage.SystemProperties'
+RuntimeClass_Windows_Storage_SystemVideoProperties = 'Windows.Storage.SystemVideoProperties'
+RuntimeClass_Windows_Storage_UserDataPaths = 'Windows.Storage.UserDataPaths'
+RuntimeClass_Windows_Storage_Streams_Buffer = 'Windows.Storage.Streams.Buffer'
+RuntimeClass_Windows_Storage_Streams_DataReader = 'Windows.Storage.Streams.DataReader'
+RuntimeClass_Windows_Storage_Streams_DataReaderLoadOperation = 'Windows.Storage.Streams.DataReaderLoadOperation'
+RuntimeClass_Windows_Storage_Streams_DataWriter = 'Windows.Storage.Streams.DataWriter'
+RuntimeClass_Windows_Storage_Streams_DataWriterStoreOperation = 'Windows.Storage.Streams.DataWriterStoreOperation'
+RuntimeClass_Windows_Storage_Streams_FileInputStream = 'Windows.Storage.Streams.FileInputStream'
+RuntimeClass_Windows_Storage_Streams_FileOutputStream = 'Windows.Storage.Streams.FileOutputStream'
+RuntimeClass_Windows_Storage_Streams_FileRandomAccessStream = 'Windows.Storage.Streams.FileRandomAccessStream'
+RuntimeClass_Windows_Storage_Streams_InMemoryRandomAccessStream = 'Windows.Storage.Streams.InMemoryRandomAccessStream'
+RuntimeClass_Windows_Storage_Streams_InputStreamOverStream = 'Windows.Storage.Streams.InputStreamOverStream'
+RuntimeClass_Windows_Storage_Streams_OutputStreamOverStream = 'Windows.Storage.Streams.OutputStreamOverStream'
+RuntimeClass_Windows_Storage_Streams_RandomAccessStream = 'Windows.Storage.Streams.RandomAccessStream'
+RuntimeClass_Windows_Storage_Streams_RandomAccessStreamOverStream = (
+    'Windows.Storage.Streams.RandomAccessStreamOverStream')
+RuntimeClass_Windows_Storage_Streams_RandomAccessStreamReference = 'Windows.Storage.Streams.RandomAccessStreamReference'
 # GUID
 GUID_DEVCLASS_1394 = '{6BDD1FC1-810F-11D0-BEC7-08002BE2092F}'
 GUID_DEVCLASS_1394DEBUG = '{66F250D6-7801-4A64-B139-EEA80A450B24}'
@@ -3493,9 +3561,21 @@ IID_IStartMenuPinnedList = '{4CD19ADA-25A5-4A32-B3B7-347BEE5BE36B}'
 IID_IActivationFactory = '{00000035-0000-0000-C000-000000000046}'
 IID_IAsyncInfo = '{00000036-0000-0000-C000-000000000046}'
 IID_ILockScreenStatics = '{3EE9D3AD-B607-40AE-B426-7631D9821269}'
+IID_IStorageFolderStatics = '{08F327FF-85D5-48B9-AEE9-28511E339F9F}'
 IID_IStorageFileStatics = '{5984C710-DAF2-43C8-8BB4-A4D3EACFD03F}'
 IID_IAsyncActionCompletedHandler = '{A4ED5C81-76C9-40BD-8BE6-B1D90FB20AE7}'
+IID_IUriRuntimeClass = '{9E365E57-48B2-4160-956F-C7385120BBFC}'
+IID_IRandomAccessStreamStatics = '{524CEDCF-6E29-4CE5-9573-6B753DB66C3A}'
+IID_IRandomAccessStream = '{905A0FE1-BC53-11DF-8C49-001E4FC686DA}'
+IID_IStorageFolder = '{72D1CB78-B3EF-4F75-A80B-6FD9DAE2944B}'
+IID_IStorageFile = '{FA3F6186-4214-428C-A64C-14C9AC7315EA}'
+IID_IInputStream = '{905A0FE2-BC53-11DF-8C49-001E4FC686DA}'
+IID_IBuffer = '{905A0FE0-BC53-11DF-8C49-001E4FC686DA}'
+IID_IOutputStream = '{905A0FE6-BC53-11DF-8C49-001E4FC686DA}'
+IID_IAsyncOperationCompletedHandler_IRandomAccessStream = '{398C4183-793D-5B00-819B-4AEF92485E94}'
 IID_IAsyncOperationCompletedHandler_IStorageFile = '{E521C894-2C26-5946-9E61-2B5E188D01ED}'
+IID_IAsyncOperationCompletedHandler_IStorageFolder = '{C211026E-9E63-5452-BA54-3A07D6A96874}'
+IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64 = '{D2024E41-5500-5B5A-BA46-CB7009596A2F}'
 # DEVPKEY
 DEVPKEY_NAME = '{B725F130-47EF-101A-A5F1-02608C9EEBAC}', 10
 DEVPKEY_Device_DeviceDesc = '{A45C254E-DF1C-4EFD-8020-67D146A850E0}', 2

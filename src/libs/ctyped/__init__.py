@@ -1,4 +1,4 @@
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -26,6 +26,8 @@ from .__head__ import _byref as byref
 from .__head__ import _cast as cast
 from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
+
+MULTITHREADED = True
 
 
 @_contextlib.contextmanager
@@ -64,7 +66,7 @@ def get_guid(string: str) -> struct.GUID:
 @_contextlib.contextmanager
 def _prep_com(type_: _builtins.type[CT]) -> \
         _ContextManager[tuple[CT, Pointer[struct.CLSID], tuple[Pointer[struct.IID], Pointer[CT]]]]:
-    func.ole32.CoInitialize(None)
+    func.ole32.CoInitializeEx(None, const.COINIT_MULTITHREADED) if MULTITHREADED else func.ole32.CoInitialize(None)
     obj = type_()
     try:
         yield obj, byref(get_guid(type_.__CLSID__)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(obj)
@@ -75,7 +77,7 @@ def _prep_com(type_: _builtins.type[CT]) -> \
 
 
 @_contextlib.contextmanager
-def init_com(type_: _builtins.type[CT], init: _Optional[bool] = True) -> _ContextManager[_Optional[CT]]:
+def init_com(type_: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj, clsid_ref, args):
         yield obj if not init or macro.SUCCEEDED(
             func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
@@ -92,9 +94,9 @@ def conv_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[_
 
 
 @_contextlib.contextmanager
-def _prep_winrt(type_: _builtins.type[CT]) -> \
-        _ContextManager[tuple[type.HSTRING, Pointer[struct.IID], Pointer[com.IActivationFactory]]]:
-    func.combase.RoInitialize(const.RO_INIT_SINGLETHREADED)
+def _prep_winrt(type_: _builtins.type[CT]) -> _ContextManager[tuple[type.HSTRING, Pointer[struct.IID],
+                                                                    Pointer[com.IActivationFactory]]]:
+    func.combase.RoInitialize(const.RO_INIT_MULTITHREADED if MULTITHREADED else const.RO_INIT_SINGLETHREADED)
     factory = com.IActivationFactory()
     try:
         yield handle.HSTRING.from_string(type_.__RuntimeClass__), macro.__uuidof(type_.__name__), factory
@@ -115,55 +117,73 @@ def get_winrt(type_: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.
 
 
 class Async:
-    class _AsyncCompletedHandler(com.IAsyncActionCompletedHandler, com.IAsyncOperationCompletedHandler):
-        status = None
+    _info = None
 
+    class _AsyncCompletedHandler(com.IAsyncActionCompletedHandler, com.IAsyncOperationCompletedHandler,
+                                 com.IAsyncOperationWithProgressCompletedHandler):
         def __init__(self):
             com.IUnknown.__init__(self)
             self.event = _threading.Event()
 
-        def Invoke(self, _: com.IUnknown, info: com.IInspectable, status: type.AsyncStatus) -> type.HRESULT:
+        def Invoke(self, _: com.IUnknown, __: com.IInspectable, ___: type.AsyncStatus) -> type.HRESULT:
             self.event.set()
-            self.status = status
             return const.NOERROR
 
     def __init__(self, type_: _Union[_builtins.type[com.IAsyncAction],
-                                     _builtins.type[com.IAsyncOperation]] = com.IAsyncAction):
-        self._async = type_()
-        self._handler = self._AsyncCompletedHandler()
+                                     _builtins.type[com.IAsyncOperation],
+                                     _builtins.type[com.IAsyncOperationWithProgress]] = com.IAsyncAction):
+        self._async = type_()  # TODO hook  and fill info when set
 
     def __del__(self):
         if self._async:
+            if self._info:
+                self._info.Release()
             self._async.Release()
 
-    @property
-    def completed(self) -> bool:
-        return self._handler.status == const.Completed
+    def _fill_info(self):
+        if not self._info:
+            self._info = com.IAsyncInfo()
+            self._async.QueryInterface(*macro.IID_PPV_ARGS(self._info))
 
-    def _start(self):
-        self._async.put_Completed(byref(self._handler))
-
-    def get_ref(self):
+    def get_ref(self) -> _Union[Pointer[com.IAsyncAction], Pointer[com.IAsyncOperation],
+                                Pointer[com.IAsyncOperationWithProgress]]:
         return byref(self._async)
 
-    def wait_for(self, timeout: float = 1) -> bool:
-        _threading.Thread(
-            target=self._start,
-            name=f'{self.__class__.__name__}-{__version__}-{_builtins.type(self._async).__name__}').start()
-        self._handler.event.wait(timeout)
-        self.cancel()
-        return self.completed
+    def get_status(self) -> _Optional[int]:
+        self._fill_info()
+        status = type.AsyncStatus()
+        self._info.get_Status(byref(status))
+        return status.value
+
+    def get_error_code(self) -> _Optional[int]:
+        self._fill_info()
+        hresult = type.HRESULT()
+        self._info.get_ErrorCode(byref(hresult))
+        return hresult.value
 
     def cancel(self) -> bool:
-        with conv_com(com.IAsyncInfo, self._async) as info:
-            return macro.SUCCEEDED(info.Cancel())
+        self._fill_info()
+        return macro.SUCCEEDED(self._info.Cancel())
 
     def close(self) -> bool:
-        with conv_com(com.IAsyncInfo, self._async) as info:
-            return macro.SUCCEEDED(info.Close())
+        self._fill_info()
+        return macro.SUCCEEDED(self._info.Close())
 
-    def get_results(self, obj_ref: Pointer[CT]) -> bool:
+    def get_results(self, obj_ref: _Optional[Pointer[CT]] = None) -> bool:
         try:
-            return macro.SUCCEEDED(self._async.GetResults(obj_ref))
+            return macro.SUCCEEDED(self._async.GetResults(*() if obj_ref is None else (obj_ref,)))
         except OSError:
             return False
+
+    def get(self, type_: _Optional[_builtins.type[CT]] = None) -> _Optional[CT]:
+        obj = None if type_ is None else type_()
+        if const.Completed == self.wait_for():
+            self.get_results(None if obj is None else byref(obj))
+        return obj
+
+    def wait_for(self, timeout: _Optional[float] = None) -> int:
+        handler = self._AsyncCompletedHandler()
+        self._async.put_Completed(byref(handler))
+        handler.event.wait(timeout)
+        self.cancel()
+        return self.get_status()

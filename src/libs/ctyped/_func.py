@@ -535,6 +535,9 @@ class ole32(metaclass=_WinDLL):
                                 _type.HRESULT]
     CoInitialize: _Callable[[_Optional[_type.LPVOID]],
                             _type.HRESULT]
+    CoInitializeEx: _Callable[[_Optional[_type.LPVOID],
+                               _type.DWORD],
+                              _type.HRESULT]
     CoTaskMemFree: _Callable[[_type.LPVOID],
                              _type.c_void_p]
     CoUninitialize: _Callable[[],
