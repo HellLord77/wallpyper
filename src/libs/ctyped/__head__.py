@@ -6,15 +6,15 @@ import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
 import typing as _typing
-from typing import Any as _Any
+from typing import Any as _Any, Any
 from typing import Callable as _Callable
 from typing import Generator as _Generator
 from typing import Generic as _Generic
+from typing import ItemsView as _ItemsView
 from typing import NoReturn as _NoReturn
 from typing import Optional as _Optional
 from typing import Sequence as _Sequence
 
-_INIT = False
 _DEBUG = False
 _CT = _typing.TypeVar('_CT')
 
@@ -40,8 +40,6 @@ class _Module:
 
 
 class _Globals(dict):
-    annotations = None
-
     def __init__(self, replace_once: _Optional[bool] = None):
         self.replace_once = replace_once
         # self.module = _inspect.getmodule(_inspect.currentframe().f_back) FIXME pyinstaller debug getmodule -> None
@@ -53,10 +51,6 @@ class _Globals(dict):
             delattr(self.module, var)
         super().__init__(vars_)
         self.module.__getattr__ = self.__getitem__
-        if _INIT:
-            self.module._globals = self
-            for var in self.iter_vars():
-                getattr(self.module, var)
 
     def __getitem__(self, item: str):
         try:
@@ -95,14 +89,12 @@ class _Globals(dict):
             if item in self.vars_:
                 yield item
 
-    def has_item(self, item: str) -> _Optional[_NoReturn]:
+    def check_item(self, item: str) -> _Optional[_NoReturn]:
         if item not in self.vars_:
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
-    def get_annotation(self, item: str) -> _Any:
-        if not self.annotations:
-            self.annotations = _typing.get_type_hints(self.module)
-        return self.annotations[item]
+    def get_type_hints(self, item: str) -> _ItemsView[str, Any]:  # FIXME https://github.com/python/cpython/pull/24201
+        return _typing.get_type_hints(self.vars_[item], self, *() if _sys.version_info < (3, 10) else (self,)).items()
 
 
 _addressof: _Callable[[_CT], int] = _ctypes.addressof

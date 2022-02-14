@@ -19,7 +19,7 @@ import modules.wallhaven
 import platforms.win32 as platform
 import utils
 
-platform.ctyped.MULTITHREADED = False  # FIXME wx use single thread com
+platform.ctyped.THREADED_COM = False  # FIXME wx already init single threaded com
 
 FEATURE_FORCE_PIN = False
 FEATURE_DISPLAY = True

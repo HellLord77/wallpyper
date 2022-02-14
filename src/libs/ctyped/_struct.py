@@ -3,7 +3,6 @@ from __future__ import annotations as _
 import ctypes as _types
 import functools as _functools
 import itertools as _itertools
-import typing as _typing
 from dataclasses import dataclass as _struct
 
 from . import _const
@@ -639,11 +638,10 @@ VARIANTARG = VARIANT
 
 
 def _init(name: str) -> type[_types.Structure]:
-    _globals.has_item(name)
+    _globals.check_item(name)
 
     class Wrapper(_types.Structure):
-        _fields_ = tuple((name_, _resolve_type(type_))
-                         for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
+        _fields_ = tuple((name_, _resolve_type(type_)) for name_, type_ in _globals.get_type_hints(name))
         __defaults__ = tuple((field[0], getattr(_globals.vars_[name], field[0])) for field in _fields_)
 
         def __init__(self, *args, **kwargs):

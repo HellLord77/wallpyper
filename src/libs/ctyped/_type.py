@@ -314,7 +314,7 @@ _set_magics()
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
-    _globals.has_item(name)
+    _globals.check_item(name)
     type_ = _resolve_type(_globals.vars_[name])
     if isinstance(type_, list):
         type_ = _ctypes.WINFUNCTYPE(*type_)

@@ -1,5 +1,3 @@
-from __future__ import annotations as _
-
 __version__ = '0.0.6'
 
 import contextlib
@@ -38,7 +36,7 @@ _CTimerExit = ctypes.py_object(_TimerExit)
 
 
 class Timer:
-    _Timers: list[Timer] = []
+    _Timers = []
     last_start = math.inf
 
     def __init__(self, interval: Optional[float] = None, target: Optional[Callable] = None,

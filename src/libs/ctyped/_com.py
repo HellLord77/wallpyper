@@ -774,11 +774,11 @@ def _method_type(types: _Callable) -> list:
 
 
 def _init(name: str) -> type[_type.c_void_p]:
-    _globals.has_item(name)
+    _globals.check_item(name)
 
     class Wrapper(_type.c_void_p):
         _struct: _ctypes.Structure = type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
-            *_method_type(types))) for name_, types in _typing.get_type_hints(_globals.vars_[name], _globals).items())})
+            *_method_type(types))) for name_, types in _globals.get_type_hints(name))})
         # noinspection PyProtectedMember
         __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _struct._fields_)
 

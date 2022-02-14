@@ -3,6 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.0.1'
 
 import itertools
+import os.path
 import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, Union
@@ -36,7 +37,7 @@ class Event:
     MIDDLE_DOUBLE = ctyped.const.WM_MBUTTONDBLCLK
     BALLOON_QUEUED = ctyped.const.NIN_BALLOONSHOW
     BALLOON_HIDDEN = ctyped.const.NIN_BALLOONTIMEOUT
-    BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK  # FIXME triggers when click tray icon while showing balloon
+    BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK
 
 
 class Icon:
@@ -98,7 +99,7 @@ class SysTray:
     @classmethod
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
                   lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
-        if message == ctyped.const.WM_DESTROY:  # FIXME match (3.10)
+        if message == ctyped.const.WM_DESTROY:
             ctyped.func.user32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
             try:
@@ -268,7 +269,7 @@ def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
 
 def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int,
                   position: int = Position.FILL) -> tuple[int, int, int, int]:
-    if position == Position.CENTER:  # FIXME match (py 3.10)
+    if position == Position.CENTER:
         dw = hbitmap_w - monitor_w
         dh = hbitmap_h - monitor_h
         return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
@@ -503,7 +504,7 @@ def _draw_image(image: gdiplus.Image, dst_x: int, dst_y: int, dst_w: int, dst_h:
     src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h)
     if transition != Transition.NONE:
         extra = []
-        if transition == Transition.FADE:  # FIXME match (py 3.10)
+        if transition == Transition.FADE:
             dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
             ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
             extra.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
@@ -604,15 +605,16 @@ def set_wallpaper_lock(path: str) -> bool:
     return False
 
 
-def get_wallpaper_lock_path():
+def save_wallpaper_lock(path: str):
     dir_ = 'D:\\'
     name = f'{time.time()}.jpg'
     with ctyped.get_winrt(ctyped.com.IStorageFolderStatics) as folder_statics:
         operation = ctyped.Async(ctyped.com.IAsyncOperation)
-        folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(dir_), operation.get_ref())
+        folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(os.path.dirname(path)),
+                                              operation.get_ref())
         if folder := operation.get(ctyped.com.IStorageFolder):
             operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(name),
+            folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(os.path.basename(path)),
                                    ctyped.const.CreationCollisionOption_ReplaceExisting, operation.get_ref())
             if file := operation.get(ctyped.com.IStorageFile):
                 operation = ctyped.Async(ctyped.com.IAsyncOperation)
@@ -636,7 +638,7 @@ def get_wallpaper_lock_path():
 if __name__ == '__main__':
     # background()
     # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    print(get_wallpaper_lock_path())
+    print(save_wallpaper_lock(f"D:\\'{time.time()}.jpg"))
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

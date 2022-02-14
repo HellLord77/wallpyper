@@ -2,7 +2,6 @@ from __future__ import annotations as _
 
 import ctypes as _ctypes
 import functools as _functools
-import typing as _typing
 from dataclasses import dataclass as _union
 
 from . import _const
@@ -124,11 +123,10 @@ class VARIANT_U:
 
 
 def _init(name: str) -> type[_ctypes.Union]:
-    _globals.has_item(name)
+    _globals.check_item(name)
 
     class Wrapper(_ctypes.Union):
-        _fields_ = tuple((name_, _resolve_type(type_))
-                         for name_, type_ in _typing.get_type_hints(_globals.vars_[name], _globals).items())
+        _fields_ = tuple((name_, _resolve_type(type_)) for name_, type_ in _globals.get_type_hints(name))
 
         def __repr__(self):
             return f'{type(self).__name__}' \

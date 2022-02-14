@@ -134,7 +134,7 @@ class Image(_GdiplusBase):
             if buff:
                 property_item = ctyped.cast(buff, ctyped.struct.PropertyItem)
                 ctyped.func.GdiPlus.GdipGetPropertyItem(self, tag, size, property_item)
-                if property_item.contents.type == ctyped.const.PropertyTagTypeByte:  # FIXME match (py 3.10)
+                if property_item.contents.type == ctyped.const.PropertyTagTypeByte:
                     type_ = ctyped.type.c_byte
                 elif property_item.contents.type == ctyped.const.PropertyTagTypeShort:
                     type_ = ctyped.type.c_ushort
