@@ -198,8 +198,9 @@ def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
     return ntpath.isfile(path)
 
 
-def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW]) -> \
-        tuple[str, str, str, str, int, int, tuple[str, int]]:
+def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW]) -> tuple[str, str, str,
+                                                                                                      str, int, int,
+                                                                                                      tuple[str, int]]:
     data = []
     word = ctyped.type.WORD()
     c_int = ctyped.type.c_int()
@@ -249,6 +250,7 @@ def _set_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
 
 
 def _get_link_paths(dir_: str, recursive: Optional[bool] = None) -> Generator[str, None, None]:
+    dir_entry: os.DirEntry
     for dir_entry in os.scandir(dir_):
         if recursive and dir_entry.is_dir():
             for path in _get_link_paths(dir_entry.path):
@@ -511,13 +513,13 @@ def get_monitor_name(id_: str) -> str:
     return _get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else ''
 
 
-def get_direct_show_devices_properties(cat: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
+def get_direct_show_devices_properties(clsid: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
         tuple[tuple[Optional[str], ...], ...]:
     devices = []
     with ctyped.init_com(ctyped.com.ICreateDevEnum) as dev_enum:
         if dev_enum:
             with ctyped.init_com(ctyped.com.IEnumMoniker, False) as enum_moniker:
-                dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(cat)), ctyped.byref(enum_moniker), 0)
+                dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(clsid)), ctyped.byref(enum_moniker), 0)
                 with ctyped.init_com(ctyped.com.IMoniker, False) as moniker:
                     with ctyped.init_com(ctyped.com.IPropertyBag, False) as prop_bag:
                         props = []
@@ -555,15 +557,15 @@ def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
     paths = []
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
-            for monitor in (monitors or get_monitor_ids()):
-                with _string_buffer() as buff:
-                    wallpaper.GetWallpaper(monitor, ctyped.byref(buff))
-                    paths.append(buff.value)
+            with _string_buffer() as buff:
+                paths = [buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
+                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitor_ids())]
     return tuple(paths)
 
 
-def get_wallpaper_path() -> str:
-    return _get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop()
+def get_wallpaper_path(monitor: str = None) -> str:
+    return (_get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop()) if monitor is None else \
+        _get_wallpaper_path_idesktopwallpaper(monitor)[0]
 
 
 def _set_wallpaper_param(path: str) -> bool:
@@ -601,8 +603,8 @@ def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[
 def set_wallpaper(*paths: str, fade: bool = True, monitors: Optional[Iterable[str]] = None) -> bool:
     for path in paths:
         if ntpath.isfile(path):
-            if _set_wallpaper_idesktopwallpaper(path, *monitors) if monitors else _set_wallpaper_iactivedesktop(
-                    path) if fade else _set_wallpaper_param(path):
+            if (_set_wallpaper_iactivedesktop(path) if fade else _set_wallpaper_param(
+                    path)) if monitors is None else _set_wallpaper_idesktopwallpaper(path, *monitors):
                 return True
     return False
 

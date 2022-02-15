@@ -12,6 +12,7 @@ from typing import Union as _Union
 from . import __head__
 from . import _com as com
 from . import _const as const
+from . import _enum as enum
 from . import _func as func
 from . import _handle as handle
 from . import _macro as macro
@@ -64,8 +65,8 @@ def get_guid(string: str) -> struct.GUID:
 
 
 @_contextlib.contextmanager
-def _prep_com(type_: _builtins.type[CT]) -> \
-        _ContextManager[tuple[CT, Pointer[struct.CLSID], tuple[Pointer[struct.IID], Pointer[CT]]]]:
+def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, Pointer[struct.CLSID],
+                                                                  tuple[Pointer[struct.IID], Pointer[CT]]]]:
     func.ole32.CoInitializeEx(None, const.COINIT_MULTITHREADED) if THREADED_COM else func.ole32.CoInitialize(None)
     obj = type_()
     try:

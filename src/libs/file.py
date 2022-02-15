@@ -28,6 +28,7 @@ def iter_files(paths: Iterable[str]) -> Generator[str, None, None]:
 
 
 def iter_dir(path: str) -> Generator[str, None, None]:
+    dir_: os.DirEntry
     for dir_ in os.scandir(path):
         yield os.path.realpath(dir_.path)
 

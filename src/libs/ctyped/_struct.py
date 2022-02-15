@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-import ctypes as _types
+import ctypes as _ctypes
 import functools as _functools
 import itertools as _itertools
 from dataclasses import dataclass as _struct
@@ -637,10 +637,10 @@ DEVPROPGUID = GUID
 VARIANTARG = VARIANT
 
 
-def _init(name: str) -> type[_types.Structure]:
+def _init(name: str) -> type[_ctypes.Structure]:
     _globals.check_item(name)
 
-    class Wrapper(_types.Structure):
+    class Wrapper(_ctypes.Structure):
         _fields_ = tuple((name_, _resolve_type(type_)) for name_, type_ in _globals.get_type_hints(name))
         __defaults__ = tuple((field[0], getattr(_globals.vars_[name], field[0])) for field in _fields_)
 

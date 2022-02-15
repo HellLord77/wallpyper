@@ -141,7 +141,7 @@ class IDesktopWallpaper(_IUnknown):
     SetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS,
                                     _type.UINT],
                                    _type.HRESULT]
-    GetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS,
+    GetSlideshowOptions: _Callable[[_Pointer[_type.DESKTOP_SLIDESHOW_OPTIONS],
                                     _Pointer[_type.UINT]],
                                    _type.HRESULT]
     AdvanceSlideshow: _Callable[[_type.LPCWSTR,

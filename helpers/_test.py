@@ -273,7 +273,7 @@ def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int
         dw = hbitmap_w - monitor_w
         dh = hbitmap_h - monitor_h
         return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
-    elif position == Position.TILE or position == Position.STRETCH:
+    elif position in (Position.TILE, Position.STRETCH):
         return 0, 0, hbitmap_w, hbitmap_h
     elif position == Position.FIT:
         return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w > monitor_h / hbitmap_h)
@@ -516,7 +516,7 @@ def _draw_image(image: gdiplus.Image, dst_x: int, dst_y: int, dst_w: int, dst_h:
                           Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
             extra.append(dst_h / 2)
         start = time.time()
-        while (passed := time.time() - start) < duration:
+        while duration > (passed := time.time() - start):
             # noinspection PyProtectedMember
             for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
                     passed / duration, dst_w, dst_h, *extra):
@@ -526,13 +526,13 @@ def _draw_image(image: gdiplus.Image, dst_x: int, dst_y: int, dst_w: int, dst_h:
     ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 
-def _make_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
-               a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
+def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
+              a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
     return (b << ctyped.const.BlueShift | g << ctyped.const.GreenShift |
             r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
 
 
-def _make_color_matrix(alpha: float = 1) -> ctyped.struct.ColorMatrix:
+def _get_color_matrix(alpha: float = 1) -> ctyped.struct.ColorMatrix:
     matrix = ctyped.struct.ColorMatrix()
     for index in range(5):
         matrix.m[index][index] = 1
@@ -556,7 +556,7 @@ def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, ar
 def _draw_on_graphics(graphics: ctyped.type.GpGraphics, image: gdiplus.Image,
                       dst_w: float, dst_h: float, dst_x: float = 0, dst_y: float = 0, src_w: Optional[float] = None,
                       src_h: Optional[float] = None, src_x: float = 0, src_y: float = 0, alpha: float = 1):
-    attrs = gdiplus.ImageAttributes.from_color_matrix(_make_color_matrix(alpha))
+    attrs = gdiplus.ImageAttributes.from_color_matrix(_get_color_matrix(alpha))
     draw_image_abort = ctyped.type.DrawImageAbort()
     ctyped.func.GdiPlus.GdipDrawImageRectRect(graphics, image, dst_x, dst_y, dst_w, dst_h, src_x, src_y,
                                               image.width if src_w is None else src_w,
@@ -577,7 +577,7 @@ def background():
     image = gdiplus.Image.from_file(path)
     if image:
         monitor_x_y_w_h = win32._get_monitor_x_y_w_h(monitor)
-        if position == Position.TILE or position == Position.SPAN:
+        if position in (Position.TILE, Position.SPAN):
             monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CYVIRTUALSCREEN)
@@ -588,7 +588,7 @@ def background():
                         bitmap.get_graphics().draw_image(image, x, y)
                 image = bitmap
         _draw_image(image, *monitor_x_y_w_h, *_get_position(
-            image.width, image.height, *monitor_x_y_w_h[2:], position), _make_argb(r, g, b), transition, duration)
+            image.width, image.height, *monitor_x_y_w_h[2:], position), _get_argb(r, g, b), transition, duration)
     # TODO set without system transition
     win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
@@ -606,8 +606,6 @@ def set_wallpaper_lock(path: str) -> bool:
 
 
 def save_wallpaper_lock(path: str):
-    dir_ = 'D:\\'
-    name = f'{time.time()}.jpg'
     with ctyped.get_winrt(ctyped.com.IStorageFolderStatics) as folder_statics:
         operation = ctyped.Async(ctyped.com.IAsyncOperation)
         folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(os.path.dirname(path)),
@@ -635,10 +633,20 @@ def save_wallpaper_lock(path: str):
                                         print(op_prog.wait_for())
 
 
+def enum():
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        shuffle = ctyped.enum.DESKTOP_SLIDESHOW_OPTIONS()
+        print(shuffle, shuffle.value)
+        tick = ctyped.type.UINT()
+        wallpaper.GetSlideshowOptions(ctyped.byref(shuffle), ctyped.byref(tick))
+        print(shuffle, shuffle.value, repr(shuffle))
+
+
 if __name__ == '__main__':
+    enum()
     # background()
     # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    print(save_wallpaper_lock(f"D:\\'{time.time()}.jpg"))
+    # print(save_wallpaper_lock(f"D:\\'{time.time()}.jpg"))
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

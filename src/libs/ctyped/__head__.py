@@ -98,7 +98,10 @@ class _Globals(dict):
 
 
 _addressof: _Callable[[_CT], int] = _ctypes.addressof
-_sizeof: _Callable[[_CT], int] = _ctypes.sizeof
+
+
+def _sizeof(type_: _CT) -> int:
+    return _ctypes.sizeof(type_)
 
 
 def _byref(obj: _CT) -> _Pointer[_CT]:
@@ -126,6 +129,10 @@ def _cast(obj: _Any, type_: type[_CT]) -> _Pointer[_CT]:
 
 def _not_internal(name: str) -> bool:
     return not name.startswith('_')
+
+
+def _get_annotations(obj: _Any) -> dict[str, _Any]:
+    return obj.__annotations__ if _sys.version_info < (3, 10) else _inspect.get_annotations(obj)
 
 
 def _get_doc(name: str, restype: _Any, argtypes: tuple) -> str:
