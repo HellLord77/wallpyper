@@ -1,21 +1,6 @@
-name: Produce nightly build
-on:
-  schedule:
-    - cron: "0 0 * * *"
+on: push
 jobs:
-  check:
-    name: Check latest commit
-    runs-on: windows-latest
-    outputs:
-      committed: ${{ steps.committed.outputs.committed }}
-    steps:
-      - name: Check if committed last day
-        id: 'committed'
-        run: echo "::set-output name=committed::$( (Invoke-WebRequest https://api.github.com/repos/$Env:GITHUB_REPOSITORY/commits -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" } -Body @{ since = Get-Date (Get-Date).AddDays(-1) -Format "yyyy/MM/ddTHH:mm:ssZ" }).RawContentLength -ne 2 )"
   build:
-    name: Continue with build
-    needs: check
-    if: needs.check.outputs.committed == 'True'
     runs-on: windows-latest
     strategy:
       matrix:
@@ -28,12 +13,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: .\build.ps1 Install-Dependecies
+        run: .\build.ps1 Install-Dependencies
       - name: Build repository
         run: .\build.ps1
-      - name: Upload ${{ env.NAME }}.zip
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.NAME }}
-          path: dist/*
-          if-no-files-found: error
+      - name: Upload build
+        env:
+          MEGA_USERNAME: ${{ secrets.USERNAME }}
+          MEGA_PASSWORD: ${{ secrets.PASSWORD }}
+        run: .\build.ps1 Upload-Build

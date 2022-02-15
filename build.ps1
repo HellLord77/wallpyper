@@ -1,4 +1,4 @@
-$Version = "0.0.1"
+$Version = "0.0.2"
 
 <#  TODO UPX
 .INPUTS
@@ -17,7 +17,19 @@ $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True
 
-function Install-Dependecies
+function Get-Name
+{
+    return Split-Path $( if ($Env:GITHUB_REPOSITORY)
+    {
+        $Env:GITHUB_REPOSITORY
+    }
+    else
+    {
+        Split-Path -Path (Get-Location) -Leaf
+    } ) -Leaf
+}
+
+function Install-Dependencies
 {
     python -m pip install pip --upgrade
 
@@ -110,14 +122,7 @@ function Build-Project
     }
 
     $FirstLine = Get-Content $EntryPoint -TotalCount 1
-    $Name = Split-Path $( if ($Env:GITHUB_REPOSITORY)
-    {
-        $Env:GITHUB_REPOSITORY
-    }
-    else
-    {
-        Split-Path -Path (Get-Location) -Leaf
-    } ) -Leaf
+    $Name = Get-Name
     $FullName = "$Name-$( if ( $FirstLine.StartsWith("__version__"))
     {
         ($FirstLine -split { $_ -eq '''' -or $_ -eq '"' })[1]
@@ -142,6 +147,26 @@ function Build-Project
     {
         $DistPath = Join-Path "dist" $FullName
         Rename-Item (Join-Path $DistPath "$FullName.exe") "$Name.exe" -Force
+    }
+}
+
+function Upload-Build
+{
+    if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
+    {
+        # choco install megacmd --verbose --yes FIXME Error retrieving packages from source
+        $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
+        $Temp = Join-Path $Env:TEMP (Split-Path $MegaURL -Leaf)
+        Invoke-WebRequest $MegaURL -OutFile $Temp
+        Start-Process $Temp "/S" -Wait
+        Remove-Item $Temp -Force
+        $env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
+        mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
+        mega-put dist (Join-Path (Get-Name) ((Get-Date -Format o -AsUTC) -replace ":", "."))
+    }
+    else
+    {
+        throw
     }
 }
 
