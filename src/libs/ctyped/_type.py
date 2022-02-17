@@ -141,30 +141,8 @@ IRandomAccessStream = _obj_p
 IShellItem = _obj_p
 IStorageFile = _obj_p
 
-_enum = c_uint  # TODO enum.IntEnum
-AsyncStatus = _enum
-ColorAdjustType = _enum
-ColorMatrixFlags = _enum
-CreationCollisionOption = _enum
-DESKTOP_SLIDESHOW_DIRECTION = _enum
-DESKTOP_SLIDESHOW_OPTIONS = _enum
-DESKTOP_SLIDESHOW_STATE = _enum
-DESKTOP_WALLPAPER_POSITION = _enum
+_enum = c_uint
 DebugEventLevel = _enum
-FILEOPENDIALOGOPTIONS = _enum
-FileAccessMode = _enum
-GETPROPERTYSTOREFLAGS = _enum
-GenericFontFamily = _enum
-InputStreamOptions = _enum
-KNOWN_FOLDER_FLAG = _enum
-MatrixOrder = _enum
-NameCollisionOption = _enum
-RO_INIT_TYPE = _enum
-RotateFlipType = _enum
-SIGDN = _enum
-Status = _enum
-TrustLevel = _enum
-Unit = _enum
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -183,9 +161,6 @@ DEVPROPID = ULONG
 DEVPROPTYPE = ULONG
 DWORDLONG = ULONGLONG
 DWORD_PTR = ULONG_PTR
-GpMatrixOrder = MatrixOrder
-GpStatus = Status
-GpUnit = Unit
 HANDLE = PVOID
 HDEVINFO = PVOID
 HDSKSPC = PVOID
@@ -313,9 +288,9 @@ _set_magics()
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
-def _init(name: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
-    _globals.check_item(name)
-    type_ = _resolve_type(_globals.vars_[name])
+def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
+    _globals.check_item(item)
+    type_ = _resolve_type(_globals.vars_[item])
     if isinstance(type_, list):
         type_ = _ctypes.WINFUNCTYPE(*type_)
     for item in _MAGICS.items():

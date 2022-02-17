@@ -248,12 +248,12 @@ def _foo3(*evt):
 
 
 class Position:
-    CENTER = ctyped.const.DWPOS_CENTER
-    TILE = ctyped.const.DWPOS_TILE
-    STRETCH = ctyped.const.DWPOS_STRETCH
-    FIT = ctyped.const.DWPOS_FIT
-    FILL = ctyped.const.DWPOS_FILL
-    SPAN = ctyped.const.DWPOS_SPAN
+    CENTER = 0
+    TILE = 1
+    STRETCH = 2
+    FIT = 3
+    FILL = 4
+    SPAN = 5
 
 
 def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
@@ -561,12 +561,12 @@ def _draw_on_graphics(graphics: ctyped.type.GpGraphics, image: gdiplus.Image,
     ctyped.func.GdiPlus.GdipDrawImageRectRect(graphics, image, dst_x, dst_y, dst_w, dst_h, src_x, src_y,
                                               image.width if src_w is None else src_w,
                                               image.height if src_h is None else src_h,
-                                              ctyped.const.UnitPixel, attrs, draw_image_abort, None)
+                                              ctyped.enum.GpUnit.UnitPixel, attrs, draw_image_abort, None)
 
 
 def background():
     path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
-    monitor = win32.get_monitor_ids()[0]
+    monitor = win32.get_monitor_ids()[1]
     position = Position.FILL
     r = 0
     g = 0
@@ -590,7 +590,8 @@ def background():
         _draw_image(image, *monitor_x_y_w_h, *_get_position(
             image.width, image.height, *monitor_x_y_w_h[2:], position), _get_argb(r, g, b), transition, duration)
     # TODO set without system transition
-    win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
+    win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b),
+                                           position=ctyped.enum.DESKTOP_WALLPAPER_POSITION(position))
 
 
 def set_wallpaper_lock(path: str) -> bool:
@@ -601,7 +602,7 @@ def set_wallpaper_lock(path: str) -> bool:
             with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
                 action = ctyped.Async()
                 lock.SetImageFileAsync(file, action.get_ref())
-                return ctyped.const.Completed == action.wait_for()
+                return ctyped.enum.AsyncStatus.Completed == action.wait_for()
     return False
 
 
@@ -613,10 +614,10 @@ def save_wallpaper_lock(path: str):
         if folder := operation.get(ctyped.com.IStorageFolder):
             operation = ctyped.Async(ctyped.com.IAsyncOperation)
             folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(os.path.basename(path)),
-                                   ctyped.const.CreationCollisionOption_ReplaceExisting, operation.get_ref())
+                                   ctyped.enum.CreationCollisionOption.ReplaceExisting, operation.get_ref())
             if file := operation.get(ctyped.com.IStorageFile):
                 operation = ctyped.Async(ctyped.com.IAsyncOperation)
-                file.OpenAsync(ctyped.const.FileAccessMode_ReadWrite, operation.get_ref())
+                file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())
                 if file_stream := operation.get(ctyped.com.IRandomAccessStream):
                     print(file_stream)  # created file
                     with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
@@ -633,20 +634,10 @@ def save_wallpaper_lock(path: str):
                                         print(op_prog.wait_for())
 
 
-def enum():
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-        shuffle = ctyped.enum.DESKTOP_SLIDESHOW_OPTIONS()
-        print(shuffle, shuffle.value)
-        tick = ctyped.type.UINT()
-        wallpaper.GetSlideshowOptions(ctyped.byref(shuffle), ctyped.byref(tick))
-        print(shuffle, shuffle.value, repr(shuffle))
-
-
 if __name__ == '__main__':
-    enum()
     # background()
     # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    # print(save_wallpaper_lock(f"D:\\'{time.time()}.jpg"))
+    print(save_wallpaper_lock(f"D:\\'{time.time()}.jpg"))
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

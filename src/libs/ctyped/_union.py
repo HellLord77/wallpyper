@@ -122,17 +122,17 @@ class VARIANT_U:
     decVal: _struct.DECIMAL = None
 
 
-def _init(name: str) -> type[_ctypes.Union]:
-    _globals.check_item(name)
+def _init(item: str) -> type[_ctypes.Union]:
+    _globals.check_item(item)
 
     class Wrapper(_ctypes.Union):
-        _fields_ = tuple((name_, _resolve_type(type_)) for name_, type_ in _globals.get_type_hints(name))
+        _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
 
         def __repr__(self):
             return f'{type(self).__name__}' \
-                   f'({", ".join(f"{item[0]}={getattr(self, item[0])}" for item in self._fields_)})'
+                   f'({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
 
-    return _functools.update_wrapper(Wrapper, _globals.vars_[name], updated=())
+    return _functools.update_wrapper(Wrapper, _globals.vars_[item], updated=())
 
 
 _globals = _Globals()

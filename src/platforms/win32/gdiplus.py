@@ -36,13 +36,13 @@ class Graphics(_GdiplusBase):
         return self
 
     def set_scale(self, scale_x: float = 1, scale_y: float = 1):
-        ctyped.func.GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.const.MatrixOrderPrepend)
+        ctyped.func.GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.MatrixOrderPrepend)
 
     def draw_image(self, image: Image, x: float = 0, y: float = 0, image_x: float = 0, image_y: float = 0,
                    image_width: Optional[float] = None, image_height: Optional[float] = None):
         ctyped.func.GdiPlus.GdipDrawImagePointRect(
             self, image, x, y, image_x, image_y, image.width if image_width is None else image_width,
-            image.height if image_height is None else image_height, ctyped.const.UnitPixel)
+            image.height if image_height is None else image_height, ctyped.enum.GpUnit.UnitPixel)
 
     def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float):
         ctyped.func.GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
@@ -118,7 +118,7 @@ class Image(_GdiplusBase):
         return count.value
 
     def select_frame(self, index: int = 0, _id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> bool:
-        return ctyped.const.Ok == ctyped.func.GdiPlus.GdipImageSelectActiveFrame(
+        return ctyped.enum.GpStatus.Ok == ctyped.func.GdiPlus.GdipImageSelectActiveFrame(
             self, self._get_dimension_id() if _id is None else _id, index)
 
     def iter_frames(self) -> Generator[str, None, None]:
@@ -184,7 +184,7 @@ class ImageAttributes(_GdiplusBase):
     def from_color_matrix(color_matrix: ctyped.struct.ColorMatrix) -> ImageAttributes:
         self = ImageAttributes()
         ctyped.func.GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
-        ctyped.func.GdiPlus.GdipSetImageAttributesColorMatrix(self, ctyped.const.ColorAdjustTypeDefault, True,
-                                                              ctyped.byref(color_matrix), None,
-                                                              ctyped.const.ColorMatrixFlagsDefault)
+        ctyped.func.GdiPlus.GdipSetImageAttributesColorMatrix(self, ctyped.enum.ColorAdjustType.ColorAdjustTypeDefault,
+                                                              True, ctyped.byref(color_matrix), None,
+                                                              ctyped.enum.ColorMatrixFlags.ColorMatrixFlagsDefault)
         return self

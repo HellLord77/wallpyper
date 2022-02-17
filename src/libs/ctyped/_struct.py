@@ -637,20 +637,20 @@ DEVPROPGUID = GUID
 VARIANTARG = VARIANT
 
 
-def _init(name: str) -> type[_ctypes.Structure]:
-    _globals.check_item(name)
+def _init(item: str) -> type[_ctypes.Structure]:
+    _globals.check_item(item)
 
     class Wrapper(_ctypes.Structure):
-        _fields_ = tuple((name_, _resolve_type(type_)) for name_, type_ in _globals.get_type_hints(name))
-        __defaults__ = tuple((field[0], getattr(_globals.vars_[name], field[0])) for field in _fields_)
+        _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
+        _defaults = tuple((field[0], getattr(_globals.vars_[item], field[0])) for field in _fields_)
 
         def __init__(self, *args, **kwargs):
-            for name_, val in _itertools.islice(self.__defaults__, len(args), None):
-                if val is not None and name_ not in kwargs:
-                    kwargs[name_] = val
+            for name, val in _itertools.islice(self._defaults, len(args), None):
+                if val is not None and name not in kwargs:
+                    kwargs[name] = val
             super().__init__(*args, **kwargs)
 
-    return _functools.update_wrapper(Wrapper, _globals.vars_[name], _ASSIGNED, ())
+    return _functools.update_wrapper(Wrapper, _globals.vars_[item], _ASSIGNED, ())
 
 
 _globals = _Globals()

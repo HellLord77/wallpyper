@@ -1,4 +1,4 @@
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -97,7 +97,8 @@ def conv_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[_
 @_contextlib.contextmanager
 def _prep_winrt(type_: _builtins.type[CT]) -> _ContextManager[tuple[type.HSTRING, Pointer[struct.IID],
                                                                     Pointer[com.IActivationFactory]]]:
-    func.combase.RoInitialize(const.RO_INIT_MULTITHREADED if THREADED_COM else const.RO_INIT_SINGLETHREADED)
+    func.combase.RoInitialize(
+        enum.RO_INIT_TYPE.RO_INIT_MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
     factory = com.IActivationFactory()
     try:
         yield handle.HSTRING.from_string(type_.__RuntimeClass__), macro.__uuidof(type_.__name__), factory
@@ -124,7 +125,7 @@ class Async:
             com.IUnknown.__init__(self)
             self.event = _threading.Event()
 
-        def Invoke(self, _: com.IUnknown, __: com.IInspectable, ___: type.AsyncStatus) -> type.HRESULT:
+        def Invoke(self, _: com.IUnknown, __: com.IInspectable, ___: enum.AsyncStatus) -> type.HRESULT:
             self.event.set()
             return const.NOERROR
 
@@ -151,7 +152,7 @@ class Async:
         return byref(self._async)
 
     def get_status(self) -> _Optional[int]:
-        status = type.AsyncStatus()
+        status = enum.AsyncStatus()
         self._info.get_Status(byref(status))
         return status.value
 
@@ -174,7 +175,7 @@ class Async:
 
     def get(self, type_: _Optional[_builtins.type[CT]] = None) -> _Optional[CT]:
         obj = None if type_ is None else type_()
-        if const.Completed == self.wait_for():
+        if enum.AsyncStatus.Completed == self.wait_for():
             self.get_results(None if obj is None else byref(obj))
         return obj
 

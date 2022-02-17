@@ -5,6 +5,7 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _com
+from . import _enum
 from . import _struct
 from . import _type
 from .__head__ import _DEBUG
@@ -16,12 +17,25 @@ from .__head__ import _resolve_type
 class _CDLL(type):
     def __new__(mcs, *args, **kwargs):
         self = super().__new__(mcs, *args, **kwargs)
+        self._lib = None
         self._funcs = {}
         for var in _typing.get_type_hints(self):
             self._funcs[var] = getattr(self, var, var)
             with _contextlib.suppress(AttributeError):
                 delattr(self, var)
         return self
+
+    def __getattr__(self, name: str):
+        if self._lib is None:
+            self._lib = getattr(_ctypes, self.__class__.__name__[1:])(self.__name__, use_last_error=_DEBUG)
+        try:
+            func = self._lib[self._funcs[name]]
+        except KeyError:
+            raise AttributeError(f"lib '{self.__name__}' has no function '{name}'")
+        setattr(self, name, func)
+        func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self)[name])
+        func.__doc__ = _get_doc(name, func.restype, func.argtypes)
+        return func
 
 
 class _OleDLL(_CDLL):
@@ -67,7 +81,7 @@ class combase(metaclass=_WinDLL):
                                        _Pointer[_struct.IID],
                                        _Pointer[_com.IActivationFactory]],
                                       _type.HRESULT]
-    RoInitialize: _Callable[[_type.RO_INIT_TYPE],
+    RoInitialize: _Callable[[_enum.RO_INIT_TYPE],
                             _type.HRESULT]
     RoUninitialize: _Callable[[],
                               _type.c_void_p]
@@ -224,61 +238,61 @@ class gdi32(metaclass=_WinDLL):
 class GdiPlus(metaclass=_WinDLL):
     GdipCreateBitmapFromFile: _Callable[[_type.LPWSTR,
                                          _Pointer[_type.GpBitmap]],
-                                        _type.GpStatus]
+                                        _enum.GpStatus]
     GdipCreateCachedBitmap: _Callable[[_type.GpBitmap,
                                        _type.GpGraphics,
                                        _Pointer[_type.GpCachedBitmap]],
-                                      _type.GpStatus]
+                                      _enum.GpStatus]
     GdipCreateFromHDC: _Callable[[_type.HDC,
                                   _Pointer[_type.GpGraphics]],
-                                 _type.GpStatus]
+                                 _enum.GpStatus]
     GdipCreateFromHWND: _Callable[[_type.HWND,
                                    _Pointer[_type.GpGraphics]],
-                                  _type.GpStatus]
+                                  _enum.GpStatus]
     GdipCreateHBITMAPFromBitmap: _Callable[[_type.GpBitmap,
                                             _Pointer[_type.HBITMAP],
                                             _type.ARGB],
-                                           _type.GpStatus]
+                                           _enum.GpStatus]
     GdipCreateBitmapFromScan0: _Callable[[_type.INT,
                                           _type.INT,
                                           _type.INT,
                                           _type.PixelFormat,
                                           _Optional[_Pointer[_type.BYTE]],
                                           _Pointer[_type.GpBitmap]],
-                                         _type.GpStatus]
+                                         _enum.GpStatus]
     GdipCreateHICONFromBitmap: _Callable[[_type.GpBitmap,
                                           _Pointer[_type.HICON]],
-                                         _type.GpStatus]
+                                         _enum.GpStatus]
     GdipCreateImageAttributes: _Callable[[_Pointer[_type.GpImageAttributes]],
-                                         _type.GpStatus]
+                                         _enum.GpStatus]
     GdipCreateSolidFill: _Callable[[_type.ARGB,
                                     _Pointer[_type.GpSolidFill]],
-                                   _type.GpStatus]
+                                   _enum.GpStatus]
     GdipDeleteBrush: _Callable[[_type.GpBrush],
-                               _type.GpStatus]
+                               _enum.GpStatus]
     GdipDeleteCachedBitmap: _Callable[[_type.GpCachedBitmap],
-                                      _type.GpStatus]
+                                      _enum.GpStatus]
     GdipDeleteGraphics: _Callable[[_type.GpGraphics],
-                                  _type.GpStatus]
+                                  _enum.GpStatus]
     GdipDisposeImage: _Callable[[_type.GpImage],
-                                _type.GpStatus]
+                                _enum.GpStatus]
     GdipDisposeImageAttributes: _Callable[[_type.GpImageAttributes],
-                                          _type.GpStatus]
+                                          _enum.GpStatus]
     GdipDrawCachedBitmap: _Callable[[_type.GpGraphics,
                                      _type.GpCachedBitmap,
                                      _type.INT,
                                      _type.INT],
-                                    _type.GpStatus]
+                                    _enum.GpStatus]
     GdipDrawImage: _Callable[[_type.GpGraphics,
                               _type.GpImage,
                               _type.REAL,
                               _type.REAL],
-                             _type.GpStatus]
+                             _enum.GpStatus]
     GdipDrawImageI: _Callable[[_type.GpGraphics,
                                _type.GpImage,
                                _type.INT,
                                _type.INT],
-                              _type.GpStatus]
+                              _enum.GpStatus]
     GdipDrawImagePointRect: _Callable[[_type.GpGraphics,
                                        _type.GpImage,
                                        _type.REAL,
@@ -287,8 +301,8 @@ class GdiPlus(metaclass=_WinDLL):
                                        _type.REAL,
                                        _type.REAL,
                                        _type.REAL,
-                                       _type.GpUnit],
-                                      _type.GpStatus]
+                                       _enum.GpUnit],
+                                      _enum.GpStatus]
     GdipDrawImagePointRectI: _Callable[[_type.GpGraphics,
                                         _type.GpImage,
                                         _type.INT,
@@ -297,8 +311,8 @@ class GdiPlus(metaclass=_WinDLL):
                                         _type.INT,
                                         _type.INT,
                                         _type.INT,
-                                        _type.GpUnit],
-                                       _type.GpStatus]
+                                        _enum.GpUnit],
+                                       _enum.GpStatus]
     GdipDrawImageRectRect: _Callable[[_type.GpGraphics,
                                       _type.GpImage,
                                       _type.REAL,
@@ -309,11 +323,11 @@ class GdiPlus(metaclass=_WinDLL):
                                       _type.REAL,
                                       _type.REAL,
                                       _type.REAL,
-                                      _type.GpUnit,
+                                      _enum.GpUnit,
                                       _Optional[_type.GpImageAttributes],
                                       _type.DrawImageAbort,
                                       _Optional[_type.PVOID]],
-                                     _type.GpStatus]
+                                     _enum.GpStatus]
     GdipDrawImageRectRectI: _Callable[[_type.GpGraphics,
                                        _Optional[_type.GpImage],
                                        _type.INT,
@@ -324,107 +338,107 @@ class GdiPlus(metaclass=_WinDLL):
                                        _type.INT,
                                        _type.INT,
                                        _type.INT,
-                                       _type.GpUnit,
+                                       _enum.GpUnit,
                                        _Optional[_type.GpImageAttributes],
                                        _type.DrawImageAbort,
                                        _Optional[_type.PVOID]],
-                                      _type.GpStatus]
+                                      _enum.GpStatus]
     GdipFillRectangle: _Callable[[_type.GpGraphics,
                                   _type.GpBrush,
                                   _type.REAL,
                                   _type.REAL,
                                   _type.REAL,
                                   _type.REAL],
-                                 _type.GpStatus]
+                                 _enum.GpStatus]
     GdipFillRectangleI: _Callable[[_type.GpGraphics,
                                    _type.GpBrush,
                                    _type.INT,
                                    _type.INT,
                                    _type.INT,
                                    _type.INT],
-                                  _type.GpStatus]
+                                  _enum.GpStatus]
     GdipGetDC: _Callable[[_type.GpGraphics,
                           _Pointer[_type.HDC]],
-                         _type.GpStatus]
+                         _enum.GpStatus]
     GdipGetImageEncodersSize: _Callable[[_Pointer[_type.UINT],
                                          _Pointer[_type.UINT]],
-                                        _type.GpStatus]
+                                        _enum.GpStatus]
     GdipGetImageDimension: _Callable[[_type.GpImage,
                                       _Pointer[_type.REAL],
                                       _Pointer[_type.REAL]],
-                                     _type.GpStatus]
+                                     _enum.GpStatus]
     GdipGetImageHeight: _Callable[[_type.GpImage,
                                    _Pointer[_type.UINT]],
-                                  _type.GpStatus]
+                                  _enum.GpStatus]
     GdipGetImageWidth: _Callable[[_type.GpImage,
                                   _Pointer[_type.UINT]],
-                                 _type.GpStatus]
+                                 _enum.GpStatus]
     GdipGetImageGraphicsContext: _Callable[[_type.GpImage,
                                             _Pointer[_type.GpGraphics]],
-                                           _type.GpStatus]
+                                           _enum.GpStatus]
     GdipGetPropertyItem: _Callable[[_type.GpImage,
                                     _type.PROPID,
                                     _type.UINT,
                                     _Pointer[_struct.PropertyItem]],
-                                   _type.GpStatus]
+                                   _enum.GpStatus]
     GdipGetPropertyItemSize: _Callable[[_type.GpImage,
                                         _type.PROPID,
                                         _Pointer[_type.UINT]],
-                                       _type.GpStatus]
+                                       _enum.GpStatus]
     GdipGetSolidFillColor: _Callable[[_type.GpSolidFill,
                                       _Pointer[_type.ARGB]],
-                                     _type.GpStatus]
+                                     _enum.GpStatus]
     GdipImageGetFrameCount: _Callable[[_type.GpImage,
                                        _Pointer[_struct.GUID],
                                        _Pointer[_type.UINT]],
-                                      _type.GpStatus]
+                                      _enum.GpStatus]
     GdipImageGetFrameDimensionsCount: _Callable[[_type.GpImage,
                                                  _Pointer[_type.UINT]],
-                                                _type.GpStatus]
+                                                _enum.GpStatus]
     GdipImageGetFrameDimensionsList: _Callable[[_type.GpImage,
                                                 _Pointer[_struct.GUID],
                                                 _type.UINT],
-                                               _type.GpStatus]
+                                               _enum.GpStatus]
     GdipImageRotateFlip: _Callable[[_type.GpImage,
-                                    _type.RotateFlipType],
-                                   _type.GpStatus]
+                                    _enum.RotateFlipType],
+                                   _enum.GpStatus]
     GdipImageSelectActiveFrame: _Callable[[_type.GpImage,
                                            _Pointer[_struct.GUID],
                                            _type.UINT],
-                                          _type.GpStatus]
+                                          _enum.GpStatus]
     GdipLoadImageFromFile: _Callable[[_type.LPWSTR,
                                       _Pointer[_type.GpImage]],
-                                     _type.GpStatus]
+                                     _enum.GpStatus]
     GdipScaleWorldTransform: _Callable[[_type.GpGraphics,
                                         _type.REAL,
                                         _type.REAL,
-                                        _type.GpMatrixOrder],
-                                       _type.GpStatus]
+                                        _enum.GpMatrixOrder],
+                                       _enum.GpStatus]
     GdipSetImageAttributesColorMatrix: _Callable[[_type.GpImageAttributes,
-                                                  _type.ColorAdjustType,
+                                                  _enum.ColorAdjustType,
                                                   _type.BOOL,
                                                   _Pointer[_struct.ColorMatrix],
                                                   _Optional[_Pointer[_struct.ColorMatrix]],
-                                                  _type.ColorMatrixFlags],
-                                                 _type.GpStatus]
+                                                  _enum.ColorMatrixFlags],
+                                                 _enum.GpStatus]
     GdipSetImageAttributesRemapTable: _Callable[[_type.GpImageAttributes,
-                                                 _type.ColorAdjustType,
+                                                 _enum.ColorAdjustType,
                                                  _type.BOOL,
                                                  _type.UINT,
                                                  _Pointer[_struct.ColorMap]],
-                                                _type.GpStatus]
+                                                _enum.GpStatus]
     GdipSetSolidFillColor: _Callable[[_type.GpSolidFill,
                                       _type.ARGB],
-                                     _type.GpStatus]
+                                     _enum.GpStatus]
     GdipReleaseDC: _Callable[[_type.GpGraphics,
                               _type.HDC],
-                             _type.GpStatus]
+                             _enum.GpStatus]
     GdiplusShutdown: _Callable[[_type.ULONG_PTR],
                                _type.VOID]
     GdiplusStartup: _Callable[[_Pointer[_type.ULONG_PTR],
                                _Pointer[_struct.GdiplusStartupInput],
                                _Optional[_Pointer[_struct.GdiplusStartupInput]]],
-                              _type.Status]
+                              _enum.Status]
 
 
 # noinspection PyPep8Naming
@@ -621,13 +635,13 @@ class shell32(metaclass=_WinDLL):
                                  _type.LPWSTR],
                                 _type.HRESULT]
     SHGetKnownFolderPath: _Callable[[_Pointer[_struct.KNOWNFOLDERID],
-                                     _type.KNOWN_FOLDER_FLAG,
+                                     _enum.KNOWN_FOLDER_FLAG,
                                      _Optional[_type.HANDLE],
                                      _Pointer[_type.PWSTR]],
                                     _type.HRESULT]
     SHGetPropertyStoreFromParsingName: _Callable[[_type.PCWSTR,
                                                   _Optional[_Pointer[_com.IBindCtx]],
-                                                  _type.GETPROPERTYSTOREFLAGS,
+                                                  _enum.GETPROPERTYSTOREFLAGS,
                                                   _Pointer[_struct.IID],
                                                   _Pointer[_com.IPropertyStore]],
                                                  _type.SHSTDAPI]
@@ -1087,21 +1101,3 @@ class uxtheme(metaclass=_WinDLL):
                                _Optional[_type.LPCWSTR],
                                _Optional[_type.LPCWSTR]],
                               _type.HRESULT]
-
-
-def _init(lib: type[_CDLL], name: str):
-    if name == 'lib':
-        lib.lib = getattr(_ctypes, lib.__class__.__name__[1:])(lib.__name__, use_last_error=_DEBUG)
-        return lib.lib
-    try:
-        # noinspection PyUnresolvedReferences,PyProtectedMember
-        func = lib.lib[lib._funcs[name]]
-    except KeyError:
-        raise AttributeError(f"lib '{lib.__name__}' has no function '{name}'")
-    setattr(lib, name, func)
-    func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(lib)[name])
-    func.__doc__ = _get_doc(name, func.restype, func.argtypes)
-    return func
-
-
-_CDLL.__getattr__ = _init

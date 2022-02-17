@@ -29,7 +29,7 @@ TYPE = typing.TypeVar('TYPE')
 
 
 class _Mutable:
-    _type = type(None)  # FIXME types.NoneType (py 3.10)
+    _type = type(None)
 
     def __init__(self, val: Optional = None):
         self._data = self._type() if val is None else val

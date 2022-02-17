@@ -94,7 +94,7 @@ class _Globals(dict):
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_type_hints(self, item: str) -> _ItemsView[str, Any]:  # FIXME https://github.com/python/cpython/pull/24201
-        return _typing.get_type_hints(self.vars_[item], self, *() if _sys.version_info < (3, 10) else (self,)).items()
+        return _typing.get_type_hints(self.vars_[item], self, self).items()
 
 
 _addressof: _Callable[[_CT], int] = _ctypes.addressof
@@ -129,10 +129,6 @@ def _cast(obj: _Any, type_: type[_CT]) -> _Pointer[_CT]:
 
 def _not_internal(name: str) -> bool:
     return not name.startswith('_')
-
-
-def _get_annotations(obj: _Any) -> dict[str, _Any]:
-    return obj.__annotations__ if _sys.version_info < (3, 10) else _inspect.get_annotations(obj)
 
 
 def _get_doc(name: str, restype: _Any, argtypes: tuple) -> str:

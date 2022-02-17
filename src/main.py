@@ -164,7 +164,7 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
         if len(monitors := DISPLAYS.difference(CONFIG[CONFIG_NO_DISPLAY])) == len(DISPLAYS):
-            monitors = ()
+            monitors = None
         changed = (url == temp_path or utils.download_url(
             url, temp_path, chunk_count=100, on_write=progress_callback, args=args,
             kwargs=kwargs)) and platform.set_wallpaper(temp_path, fade=not CONFIG[CONFIG_NO_FADE], monitors=monitors)

@@ -8,6 +8,7 @@ from typing import Callable as _Callable
 from typing import Optional as _Optional
 
 from . import _const
+from . import _enum
 from . import _func
 from . import _struct
 from . import _type
@@ -43,7 +44,7 @@ class IShellItem(_IUnknown):
                              _type.HRESULT]
     GetParent: _Callable[[_Pointer[_type.IShellItem]],
                          _type.HRESULT]
-    GetDisplayName: _Callable[[_type.SIGDN,
+    GetDisplayName: _Callable[[_enum.SIGDN,
                                _Pointer[_type.LPWSTR]],
                               _type.HRESULT]
     GetAttributes: _Callable[[_type.SFGAOF,
@@ -57,7 +58,7 @@ class IShellItem(_IUnknown):
 
 class IShellItemArray(_IUnknown):
     BindToHandler: _Callable
-    GetPropertyStore: _Callable[[_type.GETPROPERTYSTOREFLAGS,
+    GetPropertyStore: _Callable[[_enum.GETPROPERTYSTOREFLAGS,
                                  _Pointer[_struct.IID],
                                  _Pointer[IPropertyStore]],
                                 _type.HRESULT]
@@ -131,23 +132,23 @@ class IDesktopWallpaper(_IUnknown):
                                   _type.HRESULT]
     GetBackgroundColor: _Callable[[_Pointer[_type.COLORREF]],
                                   _type.HRESULT]
-    SetPosition: _Callable[[_type.DESKTOP_WALLPAPER_POSITION],
+    SetPosition: _Callable[[_enum.DESKTOP_WALLPAPER_POSITION],
                            _type.HRESULT]
-    GetPosition: _Callable[[_Pointer[_type.DESKTOP_WALLPAPER_POSITION]],
+    GetPosition: _Callable[[_Pointer[_enum.DESKTOP_WALLPAPER_POSITION]],
                            _type.HRESULT]
     SetSlideshow: _Callable[[IShellItemArray],
                             _type.HRESULT]
     GetSlideshow: _Callable
-    SetSlideshowOptions: _Callable[[_type.DESKTOP_SLIDESHOW_OPTIONS,
+    SetSlideshowOptions: _Callable[[_enum.DESKTOP_SLIDESHOW_OPTIONS,
                                     _type.UINT],
                                    _type.HRESULT]
-    GetSlideshowOptions: _Callable[[_Pointer[_type.DESKTOP_SLIDESHOW_OPTIONS],
+    GetSlideshowOptions: _Callable[[_Pointer[_enum.DESKTOP_SLIDESHOW_OPTIONS],
                                     _Pointer[_type.UINT]],
                                    _type.HRESULT]
     AdvanceSlideshow: _Callable[[_type.LPCWSTR,
-                                 _type.DESKTOP_SLIDESHOW_DIRECTION],
+                                 _enum.DESKTOP_SLIDESHOW_DIRECTION],
                                 _type.HRESULT]
-    GetStatus: _Callable[[_Pointer[_type.DESKTOP_SLIDESHOW_STATE]],
+    GetStatus: _Callable[[_Pointer[_enum.DESKTOP_SLIDESHOW_STATE]],
                          _type.HRESULT]
     Enable: _Callable[[_type.BOOL],
                       _type.HRESULT]
@@ -167,9 +168,9 @@ class IFileDialog(IModalWindow):
                                 _type.HRESULT]
     Advise: _Callable
     Unadvise: _Callable
-    SetOptions: _Callable[[_type.FILEOPENDIALOGOPTIONS],
+    SetOptions: _Callable[[_enum.FILEOPENDIALOGOPTIONS],
                           _type.HRESULT]
-    GetOptions: _Callable[[_Pointer[_type.FILEOPENDIALOGOPTIONS]],
+    GetOptions: _Callable[[_Pointer[_enum.FILEOPENDIALOGOPTIONS]],
                           _type.HRESULT]
     SetDefaultFolder: _Callable[[_Pointer[IShellItem]],
                                 _type.HRESULT]
@@ -209,7 +210,7 @@ class IFileOpenDialog(IFileDialog):
 class IInspectable(_IUnknown):
     GetIids: _Callable
     GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
-    GetTrustLevel: _Callable[[_Pointer[_type.TrustLevel]], _type.HRESULT]
+    GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]], _type.HRESULT]
 
 
 class IUserNotification(_IUnknown):
@@ -522,7 +523,7 @@ class IPropertyBag(_IUnknown):
 class IAsyncInfo(IInspectable):
     get_Id: _Callable[[_Pointer[_type.c_uint32]],
                       _type.HRESULT]
-    get_Status: _Callable[[_Pointer[_type.AsyncStatus]],
+    get_Status: _Callable[[_Pointer[_enum.AsyncStatus]],
                           _type.HRESULT]
     get_ErrorCode: _Callable[[_Pointer[_type.HRESULT]],
                              _type.HRESULT]
@@ -549,9 +550,9 @@ class IAsyncOperation(IInspectable):
 
 
 class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child (?)
-    put_Progress: _Callable
-    get_Progress: _Callable[[_Pointer[_type.c_void_p]],
+    put_Progress: _Callable[[_Pointer[IAsyncOperationProgressHandler]],
                             _type.HRESULT]
+    get_Progress: _Callable
     put_Completed: _Callable[[_Pointer[IAsyncOperationWithProgressCompletedHandler]],
                              _type.HRESULT]
     get_Completed: _Callable
@@ -576,14 +577,14 @@ class IStorageFolder(IInspectable):
                                                       _Pointer[IAsyncOperation]],
                                                      _type.HSTRING]
     CreateFileAsync: _Callable[[_type.HSTRING,
-                                _type.CreationCollisionOption,
+                                _enum.CreationCollisionOption,
                                 _Pointer[IAsyncOperation]],
                                _type.HRESULT]
     CreateFolderAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
                                                         _Pointer[IAsyncOperation]],
                                                        _type.HSTRING]
     CreateFolderAsync: _Callable[[_type.HSTRING,
-                                  _type.CreationCollisionOption,
+                                  _enum.CreationCollisionOption,
                                   _Pointer[IAsyncOperation]],
                                  _type.HRESULT]
     GetFileAsync: _Callable[[_type.HSTRING,
@@ -620,7 +621,7 @@ class IStorageFile(IInspectable):
                             _type.HRESULT]
     get_ContentType: _Callable[[_Pointer[_type.HSTRING]],
                                _type.HRESULT]
-    OpenAsync: _Callable[[_type.FileAccessMode,
+    OpenAsync: _Callable[[_enum.FileAccessMode,
                           _Pointer[IAsyncOperation]],
                          _type.HRESULT]
     OpenTransactedWriteAsync: _Callable[[_Pointer[IAsyncOperation]],
@@ -634,7 +635,7 @@ class IStorageFile(IInspectable):
                                           _type.HRESULT]
     CopyOverload: _Callable[[IStorageFolder,
                              _type.HSTRING,
-                             _type.NameCollisionOption,
+                             _enum.NameCollisionOption,
                              _Pointer[IAsyncOperation]],
                             _type.HRESULT]
     CopyAndReplaceAsync: _Callable[[_type.IStorageFile,
@@ -649,7 +650,7 @@ class IStorageFile(IInspectable):
                                           _type.HRESULT]
     MoveOverload: _Callable[[IStorageFolder,
                              _type.HSTRING,
-                             _type.NameCollisionOption,
+                             _enum.NameCollisionOption,
                              _Pointer[IAsyncAction]],
                             _type.HRESULT]
     MoveAndReplaceAsync: _Callable[[_type.IStorageFile,
@@ -703,7 +704,7 @@ class IBuffer(IInspectable):
 class IInputStream(IInspectable):
     ReadAsync: _Callable[[IBuffer,
                           _type.UINT32,
-                          _type.InputStreamOptions,
+                          _enum.InputStreamOptions,
                           _Pointer[IAsyncOperationWithProgress]],
                          _type.HRESULT]
 
@@ -773,30 +774,30 @@ def _method_type(types: _Callable) -> list:
     return types
 
 
-def _init(name: str) -> type[_type.c_void_p]:
-    _globals.check_item(name)
+def _init(item: str) -> type[_type.c_void_p]:
+    _globals.check_item(item)
 
     class Wrapper(_type.c_void_p):
-        _struct: _ctypes.Structure = type(name, (_ctypes.Structure,), {'_fields_': tuple((name_, _ctypes.WINFUNCTYPE(
-            *_method_type(types))) for name_, types in _globals.get_type_hints(name))})
+        _struct: _ctypes.Structure = type(item, (_ctypes.Structure,), {'_fields_': tuple((name, _ctypes.WINFUNCTYPE(
+            *_method_type(types))) for name, types in _globals.get_type_hints(item))})
         # noinspection PyProtectedMember
-        __doc__ = '\n'.join(_get_doc(name_, types._restype_, types._argtypes_) for name_, types in _struct._fields_)
+        __doc__ = '\n'.join(_get_doc(name, types._restype_, types._argtypes_) for name, types in _struct._fields_)
 
-        def __getattr__(self, name_: str):
-            if _not_internal(name_) and name_ in dir(self._struct):
+        def __getattr__(self, name: str):
+            if _not_internal(name) and name in dir(self._struct):
                 if self.value is None:
                     raise MemoryError(f"com '{type(self).__name__}' has not been initialized yet")
                 funcs = self._struct.from_address(_type.c_void_p.from_address(self.value).value)
                 # noinspection PyProtectedMember
-                for name__, types in self._struct._fields_:
-                    method = getattr(funcs, name__)
-                    method.__name__ = name__
+                for name_, types in self._struct._fields_:
+                    method = getattr(funcs, name_)
+                    method.__name__ = name_
                     # noinspection PyProtectedMember
-                    method.__doc__ = _get_doc(name__, types._restype_, types._argtypes_)
-                    setattr(self, name__, _types.MethodType(method, self))
-            return super().__getattribute__(name_)
+                    method.__doc__ = _get_doc(name_, types._restype_, types._argtypes_)
+                    setattr(self, name_, _types.MethodType(method, self))
+            return super().__getattribute__(name)
 
-    return _functools.update_wrapper(Wrapper, _globals.vars_[name], _ASSIGNED, ())
+    return _functools.update_wrapper(Wrapper, _globals.vars_[item], _ASSIGNED, ())
 
 
 _globals = _Globals()
@@ -897,7 +898,7 @@ class IAsyncActionCompletedHandler(IUnknown):
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
     def Invoke(This: IAsyncActionCompletedHandler, asyncInfo: IAsyncAction,
-               asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
+               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR
 
 
@@ -909,7 +910,17 @@ class IAsyncOperationCompletedHandler(IUnknown):
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
     def Invoke(This: IAsyncOperationCompletedHandler, asyncInfo: IAsyncOperation,
-               asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
+               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IAsyncOperationProgressHandler(IUnknown):
+    __IID__ = {_const.IID_IAsyncOperationWithProgressHandler_UINT64_UINT64}
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: IAsyncOperationProgressHandler, asyncInfo: IAsyncOperationWithProgress,
+               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR
 
 
@@ -919,5 +930,5 @@ class IAsyncOperationWithProgressCompletedHandler(IUnknown):
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
     def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: IAsyncOperationWithProgress,
-               asyncStatus: _type.AsyncStatus) -> _type.HRESULT:
+               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR

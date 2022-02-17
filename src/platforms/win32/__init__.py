@@ -16,7 +16,7 @@ from . import gdiplus
 def _get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
     ctyped.func.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(folderid)),
-                                             ctyped.const.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
+                                             ctyped.enum.KNOWN_FOLDER_FLAG.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
     path = buff.value
     ctyped.func.ole32.CoTaskMemFree(buff)
     return path
@@ -114,24 +114,14 @@ def _global_memory(sz: ctyped.type.SIZE_T) -> ContextManager[tuple[ctyped.type.H
 
 
 @contextlib.contextmanager
-def _init_gdiplus() -> ContextManager[bool]:
-    token = ctyped.type.ULONG_PTR()
-    try:
-        yield ctyped.macro.SUCCEEDED(ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(
-            token), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None))
-    finally:
-        ctyped.func.GdiPlus.GdiplusShutdown(token)
-
-
-@contextlib.contextmanager
 def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
                write: bool = False) -> ContextManager[Optional[ctyped.com.IPropertyStore]]:
     if isinstance(path_or_interface, str):
         with ctyped.init_com(ctyped.com.IPropertyStore, False) as prop_store:
+            flag = (ctyped.enum.GETPROPERTYSTOREFLAGS.GPS_READWRITE
+                    if write else ctyped.enum.GETPROPERTYSTOREFLAGS.GPS_PREFERQUERYPROPERTIES)
             if ctyped.macro.SUCCEEDED(ctyped.func.shell32.SHGetPropertyStoreFromParsingName(
-                    path_or_interface, None,
-                    ctyped.const.GPS_READWRITE if write else ctyped.const.GPS_PREFERQUERYPROPERTIES,
-                    *ctyped.macro.IID_PPV_ARGS(prop_store))):
+                    path_or_interface, None, flag, *ctyped.macro.IID_PPV_ARGS(prop_store))):
                 yield prop_store
                 return
     else:
@@ -162,7 +152,7 @@ def _set_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
     with _load_prop(path_or_interface, True) as prop_store:
         if prop_store:
             var = ctyped.struct.PROPVARIANT()
-            var.U.S.vt = ctyped.const.VT_LPWSTR
+            var.U.S.vt = ctyped.enum.VARENUM.VT_LPWSTR.value
             for key, val in pkeys.items():
                 var.U.S.U.pwszVal = val
                 with contextlib.suppress(OSError):
@@ -206,7 +196,7 @@ def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     c_int = ctyped.type.c_int()
     with _string_buffer(ctyped.const.SHRT_MAX) as buff:
         with _load_link(path_or_link) as link:
-            link.GetPath(buff, ctyped.const.SHRT_MAX, None, ctyped.const.SLGP_RAWPATH)
+            link.GetPath(buff, ctyped.const.SHRT_MAX, None, ctyped.enum.SLGP_FLAGS.SLGP_RAWPATH.value)
             data.append(buff.value)
             link.GetDescription(buff, ctyped.const.SHRT_MAX)
             data.append(buff.value)
@@ -383,7 +373,7 @@ def open_file_path(path: str) -> bool:
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
     with ctyped.init_com(ctyped.com.IFileDialog) as dialog:
         if dialog:
-            dialog.SetOptions(ctyped.const.FOS_PICKFOLDERS)
+            dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS)
             if path is not None:
                 with contextlib.suppress(FileNotFoundError):
                     with ctyped.init_com(ctyped.com.IShellItem, False) as item:
@@ -400,7 +390,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
                     with _string_buffer() as buff:
-                        item.GetDisplayName(ctyped.const.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
+                        item.GetDisplayName(ctyped.enum.SIGDN.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
                         dir_ = buff.value
                     return dir_
     return ''
@@ -584,14 +574,15 @@ def _set_wallpaper_iactivedesktop(path: str) -> bool:
 
 
 def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[ctyped.type.COLORREF] = None,
-                                     position: Optional[int] = None) -> bool:
+                                     position: Optional[ctyped.enum.DESKTOP_WALLPAPER_POSITION] = None) -> bool:
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if color is not None:
                 wallpaper.SetBackgroundColor(color)
             if position is not None:
                 wallpaper.SetPosition(position)
-            if position == ctyped.const.DWPOS_SPAN or position == ctyped.const.DWPOS_TILE:
+            if position in (ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_SPAN,
+                            ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_TILE):
                 _set_wallpaper_param(path)
             else:
                 for monitor in monitors:
