@@ -2,11 +2,12 @@ from __future__ import annotations as _
 
 __version__ = '0.0.1'
 
+import contextlib
 import itertools
 import os.path
 import sys
 import time
-from typing import Any, Callable, Generator, Iterable, Mapping, Union
+from typing import Any, Callable, Generator, Iterable, Mapping, Union, ContextManager
 from typing import Optional
 
 import libs.ctyped as ctyped
@@ -58,7 +59,7 @@ class SysTray:
     _shown = False
     _uid = ctyped.type.UINT()
 
-    def __new__(cls, *_, **__):
+    def __new__(cls):
         if not cls._hwnd:
             cls._class = ctyped.struct.WNDCLASSEXW(ctyped.sizeof(ctyped.struct.WNDCLASSEXW),
                                                    lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
@@ -606,38 +607,94 @@ def set_wallpaper_lock(path: str) -> bool:
     return False
 
 
-def save_wallpaper_lock(path: str):
+def create_file(path: str) -> bool:
     with ctyped.get_winrt(ctyped.com.IStorageFolderStatics) as folder_statics:
         operation = ctyped.Async(ctyped.com.IAsyncOperation)
-        folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(os.path.dirname(path)),
-                                              operation.get_ref())
-        if folder := operation.get(ctyped.com.IStorageFolder):
+        if ctyped.macro.SUCCEEDED(folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(
+                os.path.dirname(path)), operation.get_ref())) and (folder := operation.get(ctyped.com.IStorageFolder)):
             operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(os.path.basename(path)),
-                                   ctyped.enum.CreationCollisionOption.ReplaceExisting, operation.get_ref())
-            if file := operation.get(ctyped.com.IStorageFile):
-                operation = ctyped.Async(ctyped.com.IAsyncOperation)
-                file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())
-                if file_stream := operation.get(ctyped.com.IRandomAccessStream):
-                    print(file_stream)  # created file
-                    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
-                        with ctyped.init_com(ctyped.com.IRandomAccessStream, False) as stream:
-                            lock.GetImageStream(ctyped.byref(stream))
-                            print(stream)
-                            with ctyped.init_com(ctyped.com.IInputStream, False) as inp:
-                                stream.GetInputStreamAt(0, ctyped.byref(inp))
-                                with ctyped.init_com(ctyped.com.IOutputStream, False) as out:
-                                    file_stream.GetOutputStreamAt(0, ctyped.byref(out))
-                                    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
-                                        op_prog = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
-                                        stream_statics.CopyAndCloseAsync(inp, out, op_prog.get_ref())
-                                        print(op_prog.wait_for())
+            if ctyped.macro.SUCCEEDED(folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(
+                    os.path.basename(path)), ctyped.enum.CreationCollisionOption.ReplaceExisting,
+                    operation.get_ref())) and operation.get(ctyped.com.IStorageFile):
+                return True
+    return False
+
+
+@contextlib.contextmanager
+def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
+    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (
+            stream := operation.get(ctyped.com.IRandomAccessStream)):
+        with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
+            if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
+                yield input_stream
+                return
+    yield None
+
+
+@contextlib.contextmanager
+def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IOutputStream]]:
+    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (
+            stream := operation.get(ctyped.com.IRandomAccessStream)):
+        with ctyped.init_com(ctyped.com.IOutputStream, False) as output_stream:
+            if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
+                yield output_stream
+                return
+    yield None
+
+
+@contextlib.contextmanager
+def _open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
+    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
+        operation = ctyped.Async(ctyped.com.IAsyncOperation)
+        file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(path), operation.get_ref())
+        if file := operation.get(ctyped.com.IStorageFile):
+            yield file
+            return
+    yield None
+
+
+@contextlib.contextmanager
+def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IInputStream]]:
+    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock_statics, ctyped.init_com(
+            ctyped.com.IRandomAccessStream, False) as stream:
+        if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
+            with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
+                if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
+                    yield input_stream
+                    return
+    yield None
+
+
+def save_wallpaper_lock(path: str):
+    # with _get_wallpaper_lock_input_stream() as input_stream:
+    with _open_file(r'D:\MMDs\麗塔.mp4') as in_file, _get_input_stream(in_file) as input_stream:
+        if input_stream and create_file(path):
+            with _open_file(path) as file, _get_output_stream(file) as output_stream:
+                if output_stream:
+                    print(output_stream, input_stream)
+                    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
+                        operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
+                        stream_statics.CopyAndCloseAsync(input_stream, output_stream, operation.get_ref())
+                        hand = CB()
+                        operation._async.put_Progress(ctyped.byref(hand))
+                        print(operation.wait_for())
+
+
+class CB(ctyped.com.IAsyncOperationProgressHandler):
+    # noinspection PyPep8Naming
+    @staticmethod
+    def Invoke(This: ctyped.com.IUnknown, asyncInfo: ctyped.com.IInspectable,
+               progressInfo: ctyped.type.UINT64) -> ctyped.type.HRESULT:
+        print(progressInfo)
+        return ctyped.const.NOERROR
 
 
 if __name__ == '__main__':
     # background()
     # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    print(save_wallpaper_lock(f"D:\\'{time.time()}.jpg"))
+    print(save_wallpaper_lock(f"D:\\{time.time()}.jpg"))
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

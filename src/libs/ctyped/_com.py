@@ -16,7 +16,7 @@ from .__head__ import _Globals
 from .__head__ import _Pointer
 from .__head__ import _addressof
 from .__head__ import _byref
-from .__head__ import _get_doc
+from .__head__ import _get_func_doc
 from .__head__ import _not_internal
 from .__head__ import _resolve_type
 
@@ -781,7 +781,7 @@ def _init(item: str) -> type[_type.c_void_p]:
         _struct: _ctypes.Structure = type(item, (_ctypes.Structure,), {'_fields_': tuple((name, _ctypes.WINFUNCTYPE(
             *_method_type(types))) for name, types in _globals.get_type_hints(item))})
         # noinspection PyProtectedMember
-        __doc__ = '\n'.join(_get_doc(name, types._restype_, types._argtypes_) for name, types in _struct._fields_)
+        __doc__ = '\n'.join(_get_func_doc(name, types._restype_, types._argtypes_) for name, types in _struct._fields_)
 
         def __getattr__(self, name: str):
             if _not_internal(name) and name in dir(self._struct):
@@ -793,7 +793,7 @@ def _init(item: str) -> type[_type.c_void_p]:
                     method = getattr(funcs, name_)
                     method.__name__ = name_
                     # noinspection PyProtectedMember
-                    method.__doc__ = _get_doc(name_, types._restype_, types._argtypes_)
+                    method.__doc__ = _get_func_doc(name_, types._restype_, types._argtypes_)
                     setattr(self, name_, _types.MethodType(method, self))
             return super().__getattribute__(name)
 
@@ -808,7 +808,11 @@ class IUnknown(_type.c_void_p):
     _funcs = None
     _vtbl = None
 
-    def __new__(cls, *_, **__):
+    def __init_subclass__(cls):
+        cls._vtbl = None
+        return super().__init_subclass__()
+
+    def __new__(cls):
         base: type[IUnknown]
         if cls._vtbl is None:
             funcs = {}
@@ -914,21 +918,21 @@ class IAsyncOperationCompletedHandler(IUnknown):
         return _const.NOERROR
 
 
-class IAsyncOperationProgressHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncOperationWithProgressHandler_UINT64_UINT64}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Invoke(This: IAsyncOperationProgressHandler, asyncInfo: IAsyncOperationWithProgress,
-               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
-        return _const.NOERROR
-
-
 class IAsyncOperationWithProgressCompletedHandler(IUnknown):
     __IID__ = {_const.IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
     def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: IAsyncOperationWithProgress,
-               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
+               asyncStatus: _type.c_void_p) -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IAsyncOperationProgressHandler(IUnknown):
+    __IID__ = {_const.IID_IAsyncOperationWithProgressHandler_UINT64_UINT64}
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: IAsyncOperationProgressHandler, asyncInfo: IAsyncOperationWithProgress,
+               progressInfo: _enum.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR

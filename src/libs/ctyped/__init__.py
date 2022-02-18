@@ -5,6 +5,7 @@ import contextlib as _contextlib
 import threading as _threading
 import typing as _typing
 from typing import Any as _Any
+from typing import Callable as _Callable
 from typing import ContextManager as _ContextManager
 from typing import Optional as _Optional
 from typing import Union as _Union
@@ -67,7 +68,8 @@ def get_guid(string: str) -> struct.GUID:
 @_contextlib.contextmanager
 def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, Pointer[struct.CLSID],
                                                                   tuple[Pointer[struct.IID], Pointer[CT]]]]:
-    func.ole32.CoInitializeEx(None, const.COINIT_MULTITHREADED) if THREADED_COM else func.ole32.CoInitialize(None)
+    func.ole32.CoInitializeEx(None,
+                              enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else func.ole32.CoInitialize(None)
     obj = type_()
     try:
         yield obj, byref(get_guid(type_.__CLSID__)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(obj)
@@ -125,7 +127,7 @@ class Async:
             com.IUnknown.__init__(self)
             self.event = _threading.Event()
 
-        def Invoke(self, _: com.IUnknown, __: com.IInspectable, ___: enum.AsyncStatus) -> type.HRESULT:
+        def Invoke(self, _: type.c_void_p, __: type.c_void_p, ___: type.c_void_p) -> type.HRESULT:
             self.event.set()
             return const.NOERROR
 
@@ -179,12 +181,13 @@ class Async:
             self.get_results(None if obj is None else byref(obj))
         return obj
 
-    def wait_for(self, timeout: _Optional[float] = None) -> int:
+    def wait_for(self, timeout: _Optional[float] = None,
+                 progress_callback: _Optional[_Callable[[int, ...], _Any]] = None) -> int:
         handler = self._AsyncCompletedHandler()
         target = self._async.put_Completed
         args = byref(handler),
         target(*args) if THREADED_COM else _threading.Thread(
-            target=target, name=f'{self.__class__.__name__}-{__version__}-{_builtins.type(self._async).__name__}',
+            target=target, name=f'{_builtins.type(self).__name__}-{__version__}-{_builtins.type(self._async).__name__}',
             args=args).start()
         handler.event.wait(timeout)
         self.cancel()

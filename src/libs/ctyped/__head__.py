@@ -7,7 +7,6 @@ import pkgutil as _pkgutil
 import sys as _sys
 import typing as _typing
 from typing import Any as _Any, Any
-from typing import Callable as _Callable
 from typing import Generator as _Generator
 from typing import Generic as _Generic
 from typing import ItemsView as _ItemsView
@@ -97,7 +96,8 @@ class _Globals(dict):
         return _typing.get_type_hints(self.vars_[item], self, self).items()
 
 
-_addressof: _Callable[[_CT], int] = _ctypes.addressof
+def _addressof(obj: _CT) -> int:
+    return _ctypes.addressof(obj)
 
 
 def _sizeof(type_: _CT) -> int:
@@ -131,7 +131,7 @@ def _not_internal(name: str) -> bool:
     return not name.startswith('_')
 
 
-def _get_doc(name: str, restype: _Any, argtypes: tuple) -> str:
+def _get_func_doc(name: str, restype: _Any, argtypes: tuple) -> str:
     return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
 
 

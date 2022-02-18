@@ -1,4 +1,3 @@
-import contextlib as _contextlib
 import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable
@@ -10,7 +9,7 @@ from . import _struct
 from . import _type
 from .__head__ import _DEBUG
 from .__head__ import _Pointer
-from .__head__ import _get_doc
+from .__head__ import _get_func_doc
 from .__head__ import _resolve_type
 
 
@@ -21,21 +20,32 @@ class _CDLL(type):
         self._funcs = {}
         for var in _typing.get_type_hints(self):
             self._funcs[var] = getattr(self, var, var)
-            with _contextlib.suppress(AttributeError):
+            try:
+                self._funcs[var] = getattr(self, var)
+            except AttributeError:
+                self._funcs[var] = var
+            else:
                 delattr(self, var)
         return self
 
     def __getattr__(self, name: str):
-        if self._lib is None:
-            self._lib = getattr(_ctypes, self.__class__.__name__[1:])(self.__name__, use_last_error=_DEBUG)
         try:
-            func = self._lib[self._funcs[name]]
+            func_index = self._funcs[name]
         except KeyError:
-            raise AttributeError(f"lib '{self.__name__}' has no function '{name}'")
-        setattr(self, name, func)
-        func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self)[name])
-        func.__doc__ = _get_doc(name, func.restype, func.argtypes)
-        return func
+            return super().__getattribute__(name)
+        else:
+            if self._lib is None:
+                self._lib = getattr(_ctypes, type(self).__name__[1:])(self.__name__, use_last_error=_DEBUG)
+            try:
+                func = self._lib[func_index]
+            except KeyError:
+                raise AttributeError(f"lib '{self.__name__}' has no function '{name}'")
+            except TypeError:
+                return func_index
+            setattr(self, name, func)
+            func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self)[name])
+            func.__doc__ = _get_func_doc(name, func.restype, func.argtypes)
+            return func
 
 
 class _OleDLL(_CDLL):
@@ -119,8 +129,10 @@ class combase(metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class comdlg32(metaclass=_WinDLL):
-    ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]], _type.BOOL]
-    ChooseColorW: _Callable[[_Pointer[_struct.CHOOSECOLORW]], _type.BOOL]
+    ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
+                            _type.BOOL]
+    ChooseColorW: _Callable[[_Pointer[_struct.CHOOSECOLORW]],
+                            _type.BOOL]
 
 
 # noinspection PyPep8Naming
@@ -1043,7 +1055,8 @@ class user32(metaclass=_WinDLL):
                              _type.c_int,
                              _type.c_int,
                              _type.c_int,
-                             _type.c_int, _type.UINT],
+                             _type.c_int,
+                             _type.UINT],
                             _type.BOOL]
     SetWindowsHookA: _Callable[[_type.c_int,
                                 _type.HOOKPROC],

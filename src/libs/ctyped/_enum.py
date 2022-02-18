@@ -8,6 +8,7 @@ from typing import Union as _Union
 from . import _type
 from .__head__ import _Globals
 
+_AUTO = -1
 _ASSIGNED = ('__str__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS))
 
 
@@ -23,51 +24,51 @@ class _Enum(_enum.Enum, metaclass=_EnumMeta):
 
 
 class AsyncStatus(_Enum):
-    Started = None
-    Completed = None
-    Canceled = None
-    Error = None
+    Started = _AUTO
+    Completed = _AUTO
+    Canceled = _AUTO
+    Error = _AUTO
 
 
 class ColorAdjustType(_Enum):
-    ColorAdjustTypeDefault = None
-    ColorAdjustTypeBitmap = None
-    ColorAdjustTypeBrush = None
-    ColorAdjustTypePen = None
-    ColorAdjustTypeText = None
-    ColorAdjustTypeCount = None
-    ColorAdjustTypeAny = None
+    ColorAdjustTypeDefault = _AUTO
+    ColorAdjustTypeBitmap = _AUTO
+    ColorAdjustTypeBrush = _AUTO
+    ColorAdjustTypePen = _AUTO
+    ColorAdjustTypeText = _AUTO
+    ColorAdjustTypeCount = _AUTO
+    ColorAdjustTypeAny = _AUTO
 
 
 class ColorMatrixFlags(_Enum):
-    ColorMatrixFlagsDefault = None
-    ColorMatrixFlagsSkipGrays = None
-    ColorMatrixFlagsAltGray = None
+    ColorMatrixFlagsDefault = _AUTO
+    ColorMatrixFlagsSkipGrays = _AUTO
+    ColorMatrixFlagsAltGray = _AUTO
 
 
 class CreationCollisionOption(_Enum):
-    GenerateUniqueName = None
-    ReplaceExisting = None
-    FailIfExists = None
-    OpenIfExists = None
+    GenerateUniqueName = _AUTO
+    ReplaceExisting = _AUTO
+    FailIfExists = _AUTO
+    OpenIfExists = _AUTO
 
 
 class ApplicationDataCreateDisposition(_Enum):
-    Always = None
-    Existing = None
+    Always = _AUTO
+    Existing = _AUTO
 
 
 class ApplicationDataLocality(_Enum):
-    Local = None
-    Roaming = None
-    Temporary = None
-    LocalCache = None
-    SharedLocal = None
+    Local = _AUTO
+    Roaming = _AUTO
+    Temporary = _AUTO
+    LocalCache = _AUTO
+    SharedLocal = _AUTO
 
 
 class FileAccessMode(_Enum):
-    Read = None
-    ReadWrite = None
+    Read = _AUTO
+    ReadWrite = _AUTO
 
 
 class FileAttributes(_Enum):
@@ -80,75 +81,75 @@ class FileAttributes(_Enum):
 
 
 class KnownFolderId(_Enum):
-    AppCaptures = None
-    CameraRoll = None
-    DocumentsLibrary = None
-    HomeGroup = None
-    MediaServerDevices = None
-    MusicLibrary = None
-    Objects3D = None
-    PicturesLibrary = None
-    Playlists = None
-    RecordedCalls = None
-    RemovableDevices = None
-    SavedPictures = None
-    Screenshots = None
-    VideosLibrary = None
-    AllAppMods = None
-    CurrentAppMods = None
-    DownloadsFolder = None
+    AppCaptures = _AUTO
+    CameraRoll = _AUTO
+    DocumentsLibrary = _AUTO
+    HomeGroup = _AUTO
+    MediaServerDevices = _AUTO
+    MusicLibrary = _AUTO
+    Objects3D = _AUTO
+    PicturesLibrary = _AUTO
+    Playlists = _AUTO
+    RecordedCalls = _AUTO
+    RemovableDevices = _AUTO
+    SavedPictures = _AUTO
+    Screenshots = _AUTO
+    VideosLibrary = _AUTO
+    AllAppMods = _AUTO
+    CurrentAppMods = _AUTO
+    DownloadsFolder = _AUTO
 
 
 class KnownFoldersAccessStatus(_Enum):
-    DeniedBySystem = None
-    NotDeclaredByApp = None
-    DeniedByUser = None
-    UserPromptRequired = None
-    Allowed = None
-    AllowedPerAppFolder = None
+    DeniedBySystem = _AUTO
+    NotDeclaredByApp = _AUTO
+    DeniedByUser = _AUTO
+    UserPromptRequired = _AUTO
+    Allowed = _AUTO
+    AllowedPerAppFolder = _AUTO
 
 
 class KnownLibraryId(_Enum):
-    Music = None
-    Pictures = None
-    Videos = None
-    Documents = None
+    Music = _AUTO
+    Pictures = _AUTO
+    Videos = _AUTO
+    Documents = _AUTO
 
 
 class NameCollisionOption(_Enum):
-    GenerateUniqueName = None
-    ReplaceExisting = None
-    FailIfExists = None
+    GenerateUniqueName = _AUTO
+    ReplaceExisting = _AUTO
+    FailIfExists = _AUTO
 
 
 class StorageDeleteOption(_Enum):
-    Default = None
-    PermanentDelete = None
+    Default = _AUTO
+    PermanentDelete = _AUTO
 
 
 class StorageLibraryChangeType(_Enum):
-    Created = None
-    Deleted = None
-    MovedOrRenamed = None
-    ContentsChanged = None
-    MovedOutOfLibrary = None
-    MovedIntoLibrary = None
-    ContentsReplaced = None
-    IndexingStatusChanged = None
-    EncryptionChanged = None
-    ChangeTrackingLost = None
+    Created = _AUTO
+    Deleted = _AUTO
+    MovedOrRenamed = _AUTO
+    ContentsChanged = _AUTO
+    MovedOutOfLibrary = _AUTO
+    MovedIntoLibrary = _AUTO
+    ContentsReplaced = _AUTO
+    IndexingStatusChanged = _AUTO
+    EncryptionChanged = _AUTO
+    ChangeTrackingLost = _AUTO
 
 
 class StreamedFileFailureMode(_Enum):
-    Failed = None
-    CurrentlyUnavailable = None
-    Incomplete = None
+    Failed = _AUTO
+    CurrentlyUnavailable = _AUTO
+    Incomplete = _AUTO
 
 
 # noinspection PyPep8Naming
 class DESKTOP_SLIDESHOW_DIRECTION(_Enum):
-    DSD_FORWARD = None
-    DSD_BACKWARD = None
+    DSD_FORWARD = _AUTO
+    DSD_BACKWARD = _AUTO
 
 
 # noinspection PyPep8Naming
@@ -165,17 +166,17 @@ class DESKTOP_SLIDESHOW_STATE(_Enum):
 
 # noinspection PyPep8Naming
 class DESKTOP_WALLPAPER_POSITION(_Enum):
-    DWPOS_CENTER = None
-    DWPOS_TILE = None
-    DWPOS_STRETCH = None
-    DWPOS_FIT = None
-    DWPOS_FILL = None
-    DWPOS_SPAN = None
+    DWPOS_CENTER = _AUTO
+    DWPOS_TILE = _AUTO
+    DWPOS_STRETCH = _AUTO
+    DWPOS_FIT = _AUTO
+    DWPOS_FILL = _AUTO
+    DWPOS_SPAN = _AUTO
 
 
 class DebugEventLevel(_Enum):
-    DebugEventLevelFatal = None
-    DebugEventLevelWarning = None
+    DebugEventLevelFatal = _AUTO
+    DebugEventLevelWarning = _AUTO
 
 
 class FILEOPENDIALOGOPTIONS(_Enum):
@@ -223,35 +224,35 @@ class GETPROPERTYSTOREFLAGS(_Enum):
 
 
 class GenericFontFamily(_Enum):
-    GenericFontFamilySerif = None
-    GenericFontFamilySansSerif = None
-    GenericFontFamilyMonospace = None
+    GenericFontFamilySerif = _AUTO
+    GenericFontFamilySansSerif = _AUTO
+    GenericFontFamilyMonospace = _AUTO
 
 
 class MatrixOrder(_Enum):
-    MatrixOrderPrepend = None
-    MatrixOrderAppend = None
+    MatrixOrderPrepend = _AUTO
+    MatrixOrderAppend = _AUTO
 
 
 class WarpMode(_Enum):
-    WarpModePerspective = None
-    WarpModeBilinear = None
+    WarpModePerspective = _AUTO
+    WarpModeBilinear = _AUTO
 
 
 class LinearGradientMode(_Enum):
-    LinearGradientModeHorizontal = None
-    LinearGradientModeVertical = None
-    LinearGradientModeForwardDiagonal = None
-    LinearGradientModeBackwardDiagonal = None
+    LinearGradientModeHorizontal = _AUTO
+    LinearGradientModeVertical = _AUTO
+    LinearGradientModeForwardDiagonal = _AUTO
+    LinearGradientModeBackwardDiagonal = _AUTO
 
 
 class CombineMode(_Enum):
-    CombineModeReplace = None
-    CombineModeIntersect = None
-    CombineModeUnion = None
-    CombineModeXor = None
-    CombineModeExclude = None
-    CombineModeComplement = None
+    CombineModeReplace = _AUTO
+    CombineModeIntersect = _AUTO
+    CombineModeUnion = _AUTO
+    CombineModeXor = _AUTO
+    CombineModeExclude = _AUTO
+    CombineModeComplement = _AUTO
 
 
 class QualityMode(_Enum):
@@ -262,8 +263,8 @@ class QualityMode(_Enum):
 
 
 class FillMode(_Enum):
-    FillModeAlternate = None
-    FillModeWinding = None
+    FillModeAlternate = _AUTO
+    FillModeWinding = _AUTO
 
 
 class InputStreamOptions(_Enum):
@@ -294,8 +295,8 @@ class KNOWN_FOLDER_FLAG(_Enum):
 
 # noinspection PyPep8Naming
 class RO_INIT_TYPE(_Enum):
-    RO_INIT_SINGLETHREADED = None
-    RO_INIT_MULTITHREADED = None
+    RO_INIT_SINGLETHREADED = _AUTO
+    RO_INIT_MULTITHREADED = _AUTO
 
 
 class SIGDN(_Enum):
@@ -312,50 +313,50 @@ class SIGDN(_Enum):
 
 
 class TrustLevel(_Enum):
-    BaseTrust = None
-    PartialTrust = None
-    FullTrust = None
+    BaseTrust = _AUTO
+    PartialTrust = _AUTO
+    FullTrust = _AUTO
 
 
 class Unit(_Enum):
-    UnitWorld = None
-    UnitDisplay = None
-    UnitPixel = None
-    UnitPoint = None
-    UnitInch = None
-    UnitDocument = None
-    UnitMillimeter = None
+    UnitWorld = _AUTO
+    UnitDisplay = _AUTO
+    UnitPixel = _AUTO
+    UnitPoint = _AUTO
+    UnitInch = _AUTO
+    UnitDocument = _AUTO
+    UnitMillimeter = _AUTO
 
 
 class Status(_Enum):
-    Ok = None
-    GenericError = None
-    InvalidParameter = None
-    OutOfMemory = None
-    ObjectBusy = None
-    InsufficientBuffer = None
-    NotImplemented = None
-    Win32Error = None
-    WrongState = None
-    Aborted = None
-    FileNotFound = None
-    ValueOverflow = None
-    AccessDenied = None
-    UnknownImageFormat = None
-    FontFamilyNotFound = None
-    FontStyleNotFound = None
-    NotTrueTypeFont = None
-    UnsupportedGdiplusVersion = None
-    GdiplusNotInitialized = None
-    PropertyNotFound = None
-    PropertyNotSupported = None
-    ProfileNotFound = None
+    Ok = _AUTO
+    GenericError = _AUTO
+    InvalidParameter = _AUTO
+    OutOfMemory = _AUTO
+    ObjectBusy = _AUTO
+    InsufficientBuffer = _AUTO
+    NotImplemented = _AUTO
+    Win32Error = _AUTO
+    WrongState = _AUTO
+    Aborted = _AUTO
+    FileNotFound = _AUTO
+    ValueOverflow = _AUTO
+    AccessDenied = _AUTO
+    UnknownImageFormat = _AUTO
+    FontFamilyNotFound = _AUTO
+    FontStyleNotFound = _AUTO
+    NotTrueTypeFont = _AUTO
+    UnsupportedGdiplusVersion = _AUTO
+    GdiplusNotInitialized = _AUTO
+    PropertyNotFound = _AUTO
+    PropertyNotSupported = _AUTO
+    ProfileNotFound = _AUTO
 
 
 # noinspection PyPep8Naming
 class SHGFP_TYPE(_Enum):
-    SHGFP_TYPE_CURRENT = None
-    SHGFP_TYPE_DEFAULT = None
+    SHGFP_TYPE_CURRENT = _AUTO
+    SHGFP_TYPE_DEFAULT = _AUTO
 
 
 class VARENUM(_Enum):
@@ -459,6 +460,13 @@ class RotateFlipType(_Enum):
     Rotate270FlipXY = Rotate90FlipNone
 
 
+class COINIT(_Enum):
+    COINIT_APARTMENTTHREADED = 0x2
+    COINIT_MULTITHREADED = COINITBASE_MULTITHREADED = 0
+    COINIT_DISABLE_OLE1DDE = 0x4
+    COINIT_SPEED_OVER_MEMORY = 0x8
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status
@@ -470,20 +478,27 @@ class _WrapperMeta(type(_type.c_uint)):
     def __getattr__(self, name: str):
         if name in self.__members__:
             # noinspection PyCallingNonCallable
-            setattr(self, name, self(self.__members__[name]))
+            val = self(self.__members__[name])
+            val._name = name
+            setattr(self, name, val)
         return super().__getattribute__(name)
+
+    def __iter__(self):
+        for name in self.__members__:
+            yield getattr(self, name)
 
 
 def _get_members(enum: _Enum) -> dict[int, str]:
     last = -1
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    return {name: (last := (last + 1) if val.value is None else val.value) for name, val in enum._member_map_.items()}
+    return {name: (last := (last + 1) if val.value == _AUTO else val.value) for name, val in enum._member_map_.items()}
 
 
 def _init(item: str) -> type:
     _globals.check_item(item)
 
     class Wrapper(_type.c_uint, metaclass=_WrapperMeta):
+        _name = None
         __members__ = _get_members(_globals.vars_[item])
 
         def __init__(self, value: _Optional[int] = None):
@@ -495,14 +510,16 @@ def _init(item: str) -> type:
 
         @property
         def _name_(self) -> _Union[int, str]:
-            for name, val in self.__members__.items():
-                if self.value == val:
-                    return name
-            return self.value
+            if self._name is None:
+                for name, val in self.__members__.items():
+                    if self.value == val:
+                        return name
+                return self.value
+            else:
+                return self._name
 
         name = _name_
 
-    # TODO docs
     return _functools.update_wrapper(Wrapper, _globals.vars_[item], _ASSIGNED, ())
 
 
