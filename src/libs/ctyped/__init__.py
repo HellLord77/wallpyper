@@ -7,6 +7,8 @@ import typing as _typing
 from typing import Any as _Any
 from typing import Callable as _Callable
 from typing import ContextManager as _ContextManager
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
 from typing import Optional as _Optional
 from typing import Union as _Union
 
@@ -88,7 +90,7 @@ def init_com(type_: _builtins.type[CT], init: bool = True) -> _ContextManager[_O
 
 # noinspection PyProtectedMember
 @_contextlib.contextmanager
-def conv_com(type_: _builtins.type[CT], obj: com._IUnknown) -> _ContextManager[_Optional[CT]]:
+def conv_com(obj: com._IUnknown, type_: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj_, _, args):
         if macro.SUCCEEDED(obj.QueryInterface(*args)):
             yield obj_
@@ -114,7 +116,7 @@ def _prep_winrt(type_: _builtins.type[CT]) -> _ContextManager[tuple[type.HSTRING
 def get_winrt(type_: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.type[CT]]]:  # TODO init: bool = False
     with _prep_winrt(type_) as (*args, factory):
         if macro.SUCCEEDED(func.combase.RoGetActivationFactory(*args, byref(factory))):
-            with conv_com(type_, factory) as obj:
+            with conv_com(factory, type_) as obj:
                 yield obj
         else:
             yield None
@@ -129,6 +131,26 @@ class Async:
 
         def Invoke(self, _: type.c_void_p, __: type.c_void_p, ___: type.c_void_p) -> type.HRESULT:
             self.event.set()
+            return const.NOERROR
+
+    class _AsyncProgressHandler(com.IAsyncOperationProgressHandler):
+        callback = None
+        args = None
+        kwargs = None
+
+        @classmethod
+        def init(cls, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],
+                 args: _Iterable, kwargs: _Mapping[str, _Any]):
+            cls.Invoke.__annotations__['progressInfo'] = type_
+            handler = cls()
+            handler.callback = callback
+            handler.args = args
+            handler.kwargs = kwargs
+            return handler
+
+        # noinspection PyPep8Naming
+        def Invoke(self, _: type.c_void_p, __: type.c_void_p, progressInfo: type.c_void_p) -> type.HRESULT:
+            self.callback(progressInfo, *self.args, **self.kwargs)
             return const.NOERROR
 
     def __init__(self, type_: _Union[_builtins.type[com.IAsyncAction],
@@ -169,6 +191,12 @@ class Async:
     def close(self) -> bool:
         return macro.SUCCEEDED(self._info.Close())
 
+    def put_progress(self, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],  # TODO C0000005
+                     args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> bool:
+        handler = self._AsyncProgressHandler.init(type_, callback, () if args is None else args,
+                                                  {} if kwargs is None else kwargs)
+        return macro.SUCCEEDED(self._async.put_Progress(byref(handler)))
+
     def get_results(self, obj_ref: _Optional[Pointer[CT]] = None) -> bool:
         try:
             return macro.SUCCEEDED(self._async.GetResults(*() if obj_ref is None else (obj_ref,)))
@@ -181,8 +209,7 @@ class Async:
             self.get_results(None if obj is None else byref(obj))
         return obj
 
-    def wait_for(self, timeout: _Optional[float] = None,
-                 progress_callback: _Optional[_Callable[[int, ...], _Any]] = None) -> int:
+    def wait_for(self, timeout: _Optional[float] = None) -> int:
         handler = self._AsyncCompletedHandler()
         target = self._async.put_Completed
         args = byref(handler),

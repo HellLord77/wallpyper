@@ -4,13 +4,14 @@ __version__ = '0.0.1'
 
 import contextlib
 import itertools
-import os.path
+import pathlib
 import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, Union, ContextManager
 from typing import Optional
 
 import libs.ctyped as ctyped
+import libs.file
 import platforms.win32 as win32
 import platforms.win32.gdiplus as gdiplus
 
@@ -607,19 +608,6 @@ def set_wallpaper_lock(path: str) -> bool:
     return False
 
 
-def create_file(path: str) -> bool:
-    with ctyped.get_winrt(ctyped.com.IStorageFolderStatics) as folder_statics:
-        operation = ctyped.Async(ctyped.com.IAsyncOperation)
-        if ctyped.macro.SUCCEEDED(folder_statics.GetFolderFromPathAsync(ctyped.handle.HSTRING.from_string(
-                os.path.dirname(path)), operation.get_ref())) and (folder := operation.get(ctyped.com.IStorageFolder)):
-            operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(folder.CreateFileAsync(ctyped.handle.HSTRING.from_string(
-                    os.path.basename(path)), ctyped.enum.CreationCollisionOption.ReplaceExisting,
-                    operation.get_ref())) and operation.get(ctyped.com.IStorageFile):
-                return True
-    return False
-
-
 @contextlib.contextmanager
 def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
     operation = ctyped.Async(ctyped.com.IAsyncOperation)
@@ -670,31 +658,37 @@ def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IIn
 def save_wallpaper_lock(path: str):
     # with _get_wallpaper_lock_input_stream() as input_stream:
     with _open_file(r'D:\MMDs\麗塔.mp4') as in_file, _get_input_stream(in_file) as input_stream:
-        if input_stream and create_file(path):
+        if input_stream:
+            path_ = pathlib.Path(path)
+            path_.parent.mkdir(exist_ok=True)
+            path_.touch(exist_ok=True)
             with _open_file(path) as file, _get_output_stream(file) as output_stream:
                 if output_stream:
                     print(output_stream, input_stream)
                     with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
                         operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
                         stream_statics.CopyAndCloseAsync(input_stream, output_stream, operation.get_ref())
-                        hand = CB()
-                        operation._async.put_Progress(ctyped.byref(hand))
-                        print(operation.wait_for())
+                        operation.put_progress(ctyped.type.UINT64, func)
+                        operation.wait_for()
 
 
-class CB(ctyped.com.IAsyncOperationProgressHandler):
-    # noinspection PyPep8Naming
-    @staticmethod
-    def Invoke(This: ctyped.com.IUnknown, asyncInfo: ctyped.com.IInspectable,
-               progressInfo: ctyped.type.UINT64) -> ctyped.type.HRESULT:
-        print(progressInfo)
-        return ctyped.const.NOERROR
+def func(*args):
+    print(args)
+
+
+# @memory_profiler.profile
+def mem():
+    libs.file.remove(f"D:\\test", True)
+    for i in range(10):
+        save_wallpaper_lock(f"D:\\test\\{time.time()}.jpg")
+    libs.file.remove(f"D:\\test", True)
 
 
 if __name__ == '__main__':
     # background()
     # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    print(save_wallpaper_lock(f"D:\\{time.time()}.jpg"))
+    while True:
+        mem()
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

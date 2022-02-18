@@ -554,7 +554,7 @@ CONFIG = {}
 DISPLAYS = set()
 HISTORY = utils.List()
 ENABLE_PREVIOUS = utils.dummy_func
-TIMER = utils.Timer(target=on_change)
+TIMER = utils.Timer(0, on_change)
 
 if __name__ == '__main__':
     main()

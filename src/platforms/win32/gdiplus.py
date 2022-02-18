@@ -23,15 +23,15 @@ class Graphics(_GdiplusBase):
     def __del__(self):
         ctyped.func.GdiPlus.GdipDeleteGraphics(self)
 
-    @staticmethod
-    def from_hdc(hdc: ctyped.type.HDC) -> Graphics:
-        self = Graphics()
+    @classmethod
+    def from_hdc(cls, hdc: ctyped.type.HDC) -> Graphics:
+        self = cls()
         ctyped.func.GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(self))
         return self
 
-    @staticmethod
-    def from_image(image: ctyped.type.GpImage) -> Graphics:
-        self = Graphics()
+    @classmethod
+    def from_image(cls, image: ctyped.type.GpImage) -> Graphics:
+        self = cls()
         ctyped.func.GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
         return self
 
@@ -57,9 +57,9 @@ class Brush(_GdiplusBase):
 
 
 class SolidFill(Brush):
-    @staticmethod
-    def from_color(color: ctyped.type.ARGB) -> SolidFill:
-        self = SolidFill()
+    @classmethod
+    def from_color(cls, color: ctyped.type.ARGB) -> SolidFill:
+        self = cls()
         ctyped.func.GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
         return self
 
@@ -95,9 +95,9 @@ class Image(_GdiplusBase):
             self._height = height.value
         return self._height
 
-    @staticmethod
-    def from_file(path: str) -> Image:
-        self = Image()
+    @classmethod
+    def from_file(cls, path: str) -> Image:
+        self = cls()
         ctyped.func.GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(self))
         return self
 
@@ -152,16 +152,16 @@ class Image(_GdiplusBase):
 
 
 class Bitmap(Image):
-    @staticmethod
-    def from_dimension(width: int, height: int,
+    @classmethod
+    def from_dimension(cls, width: int, height: int,
                        pixel_format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
-        self = Bitmap()
+        self = cls()
         ctyped.func.GdiPlus.GdipCreateBitmapFromScan0(width, height, 0, pixel_format, None, ctyped.byref(self))
         return self
 
-    @staticmethod
-    def from_file(path: str) -> Bitmap:
-        self = Bitmap()
+    @classmethod
+    def from_file(cls, path: str) -> Bitmap:
+        self = cls()
         ctyped.func.GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(self))
         return self
 
@@ -180,9 +180,9 @@ class ImageAttributes(_GdiplusBase):
     def __del__(self):
         ctyped.func.GdiPlus.GdipDisposeImageAttributes(self)
 
-    @staticmethod
-    def from_color_matrix(color_matrix: ctyped.struct.ColorMatrix) -> ImageAttributes:
-        self = ImageAttributes()
+    @classmethod
+    def from_color_matrix(cls, color_matrix: ctyped.struct.ColorMatrix) -> ImageAttributes:
+        self = cls()
         ctyped.func.GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
         ctyped.func.GdiPlus.GdipSetImageAttributesColorMatrix(self, ctyped.enum.ColorAdjustType.ColorAdjustTypeDefault,
                                                               True, ctyped.byref(color_matrix), None,

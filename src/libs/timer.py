@@ -8,25 +8,6 @@ import threading
 import time
 from typing import Any, Callable, Iterable, Mapping, Optional
 
-PASS: Callable = lambda *_, **__: None
-
-
-class _Bool:
-    def __init__(self, state: Optional[bool] = None):
-        self._count = 1 if state else 0
-
-    def __bool__(self):
-        return bool(self._count)
-
-    def set(self):
-        self._count += 1
-
-    def clear(self):
-        self._count -= 1
-
-    def reset(self):
-        self._count = 0
-
 
 class _TimerExit(SystemExit):
     pass
@@ -39,15 +20,14 @@ class Timer:
     _Timers = []
     last_start = math.inf
 
-    def __init__(self, interval: Optional[float] = None, target: Optional[Callable] = None,
-                 args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
-                 once: Optional[bool] = None, start: Optional[bool] = None):
-        self._interval = 0 if interval is None else interval
-        self.target = PASS if target is None else target
+    def __init__(self, interval: float, target: Callable, args: Optional[Iterable] = None,
+                 kwargs: Optional[Mapping[str, Any]] = None, once: Optional[bool] = None, start: Optional[bool] = None):
+        self._interval = interval
+        self.target = target
         self.args = () if args is None else args
         self.kwargs = {} if kwargs is None else kwargs
         self.once = once
-        self._running = _Bool()
+        self._running = 0
         self._timers: list[threading.Timer] = []
         self._Timers.append(self)
         if start:
@@ -77,15 +57,16 @@ class Timer:
         return removed
 
     def _function(self):
-        self._running.set()
+        self._running += 1
         self.last_start = time.time()
         if not self.once:
+            assert self._interval
             self.start()
         try:
             with contextlib.suppress(_TimerExit):
                 self.result = self.target(*self.args, **self.kwargs)
         finally:
-            self._running.clear()
+            self._running -= 1
 
     def set_next_interval(self, interval: float):
         self._interval = interval
@@ -127,7 +108,8 @@ class Timer:
 
 def start_once(interval: Optional[float] = None, target: Optional[Callable] = None, args: Optional[Iterable] = None,
                kwargs: Optional[Mapping[str, Any]] = None) -> Timer:
-    return Timer(interval, target, args, kwargs, True, True)
+    return Timer(0 if interval is None else interval, (lambda *_, **__: None) if target is None else target, args,
+                 kwargs, True, True)
 
 
 def on_thread(target: Callable) -> Callable[[...], Timer]:

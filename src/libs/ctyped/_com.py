@@ -918,21 +918,21 @@ class IAsyncOperationCompletedHandler(IUnknown):
         return _const.NOERROR
 
 
-class IAsyncOperationWithProgressCompletedHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: IAsyncOperationWithProgress,
-               asyncStatus: _type.c_void_p) -> _type.HRESULT:
-        return _const.NOERROR
-
-
 class IAsyncOperationProgressHandler(IUnknown):
     __IID__ = {_const.IID_IAsyncOperationWithProgressHandler_UINT64_UINT64}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod
     def Invoke(This: IAsyncOperationProgressHandler, asyncInfo: IAsyncOperationWithProgress,
-               progressInfo: _enum.AsyncStatus) -> _type.HRESULT:
+               progressInfo: _type.c_void_p) -> _type.HRESULT:
+        return _const.NOERROR
+
+
+class IAsyncOperationWithProgressCompletedHandler(IUnknown):
+    __IID__ = {_const.IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64}
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: IAsyncOperationWithProgress,
+               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR

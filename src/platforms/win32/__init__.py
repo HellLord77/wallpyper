@@ -125,7 +125,7 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
                 yield prop_store
                 return
     else:
-        with ctyped.conv_com(ctyped.com.IPropertyStore, path_or_interface) as prop_store:
+        with ctyped.conv_com(path_or_interface, ctyped.com.IPropertyStore) as prop_store:
             yield prop_store
             return
     yield None
@@ -169,7 +169,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
     if isinstance(path_or_link, str):
         with ctyped.init_com(ctyped.com.IShellLinkW) as link:
             if link:
-                with ctyped.conv_com(ctyped.com.IPersistFile, link) as file:
+                with ctyped.conv_com(link, ctyped.com.IPersistFile) as file:
                     if file and ctyped.macro.SUCCEEDED(file.Load(path_or_link, ctyped.const.STGM_READ)):
                         yield link
                         return
@@ -179,7 +179,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
 
 
 def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
-    with ctyped.conv_com(ctyped.com.IPersistFile, link) as file:
+    with ctyped.conv_com(link, ctyped.com.IPersistFile) as file:
         try:
             file.Save(path, True)
         except (OSError, PermissionError):
@@ -469,7 +469,7 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
             ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-            with ctyped.conv_com(ctyped.com.IPictureDisp, picture) as picture_disp:
+            with ctyped.conv_com(picture, ctyped.com.IPictureDisp) as picture_disp:
                 try:
                     ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
                 except OSError:

@@ -93,8 +93,8 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
 
 
 def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = None, enable: bool = True,
-                  uid: str = '', on_click: Optional[Callable] = None, menu_args: Iterable[str] = (),
-                  args: Iterable = (), kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True,
+                  uid: str = '', on_click: Optional[Callable] = None, menu_args: Optional[Iterable[str]] = None,
+                  args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True,
                   change_state: bool = True, position: Optional[int] = None,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
@@ -105,8 +105,9 @@ def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = N
         menu_item.Check(check)
     menu_item.Enable(enable)
     if on_click is not None:
-        menu.Bind(wx.EVT_MENU, _get_wrapper(on_click, menu_args, args,
-                                            {} if kwargs is None else kwargs, change_state, on_thread), menu_item)
+        menu.Bind(wx.EVT_MENU,
+                  _get_wrapper(on_click, () if menu_args is None else menu_args, () if args is None else args,
+                               {} if kwargs is None else kwargs, change_state, on_thread), menu_item)
     return menu_item
 
 

@@ -92,7 +92,7 @@ class _Globals(dict):
         if item not in self.vars_:
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
-    def get_type_hints(self, item: str) -> _ItemsView[str, Any]:  # FIXME https://github.com/python/cpython/pull/24201
+    def get_type_hints(self, item: str) -> _ItemsView[str, Any]:
         return _typing.get_type_hints(self.vars_[item], self, self).items()
 
 
