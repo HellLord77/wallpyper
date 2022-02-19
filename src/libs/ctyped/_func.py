@@ -17,12 +17,12 @@ class _CDLL(type):
     def __new__(mcs, *args, **kwargs):
         self = super().__new__(mcs, *args, **kwargs)
         self._lib = None
+        self._errcheck = None
         self._funcs = {}
         for var in _typing.get_type_hints(self):
-            self._funcs[var] = getattr(self, var, var)
             try:
-                self._funcs[var] = getattr(self, var)
-            except AttributeError:
+                self._funcs[var] = vars(self)[var]
+            except KeyError:
                 self._funcs[var] = var
             else:
                 delattr(self, var)
@@ -40,11 +40,11 @@ class _CDLL(type):
                 func = self._lib[func_index]
             except KeyError:
                 raise AttributeError(f"lib '{self.__name__}' has no function '{name}'")
-            except TypeError:
-                return func_index
-            setattr(self, name, func)
             func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self)[name])
+            if self._errcheck is not None:
+                func.errcheck = self._errcheck
             func.__doc__ = _get_func_doc(name, func.restype, func.argtypes)
+            setattr(self, name, func)
             return func
 
 

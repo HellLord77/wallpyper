@@ -17,7 +17,7 @@ _CTimerExit = ctypes.py_object(_TimerExit)
 
 
 class Timer:
-    _Timers = []
+    _refs = []
     last_start = math.inf
 
     def __init__(self, interval: float, target: Callable, args: Optional[Iterable] = None,
@@ -29,14 +29,14 @@ class Timer:
         self.once = once
         self._running = 0
         self._timers: list[threading.Timer] = []
-        self._Timers.append(self)
+        self._refs.append(self)
         if start:
             self.start()
 
     @classmethod
     def kill_all(cls) -> bool:
         killed = True
-        for timer in cls._Timers:
+        for timer in cls._refs:
             killed = timer.kill() and killed
         return killed
 
@@ -59,8 +59,7 @@ class Timer:
     def _function(self):
         self._running += 1
         self.last_start = time.time()
-        if not self.once:
-            assert self._interval
+        if not (self._interval == 0 or self.once):
             self.start()
         try:
             with contextlib.suppress(_TimerExit):
@@ -82,7 +81,7 @@ class Timer:
         if interval is not None:
             self.set_next_interval(interval)
         timer = threading.Timer(self._interval, self._function)
-        timer.name = f'{type(self).__name__}-{__version__}-{self.target.__name__}'
+        timer.name = f'{__name__}-{__version__}-{type(self).__name__}({self.target.__name__})'
         timer.daemon = True
         timer.start()
         self._timers.append(timer)

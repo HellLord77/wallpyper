@@ -58,7 +58,7 @@ _MENU = wx.Menu()
 _ICON = wx.Icon()
 _ANIMATIONS: list[tuple[itertools.cycle, str]] = []
 _ANIMATIONS_ = [_ANIMATIONS, []]
-_ANIMATION_THREAD = f'{type(_TASK_BAR_ICON).__name__}Animation'
+_ANIMATION_THREAD = f'{__name__}-{__version__}-{type(_TASK_BAR_ICON).__name__}Animation'
 
 
 def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
@@ -201,8 +201,8 @@ def disable_events():
 @functools.lru_cache(1)
 def _get_gif_frames(path: str) -> itertools.cycle:
     animation = wx.adv.Animation(path)
-    return itertools.cycle((animation.GetDelay(index), wx.Icon(animation.GetFrame(
-        index).ConvertToBitmap())) for index in range(animation.GetFrameCount()))
+    return itertools.cycle((animation.GetDelay(index), wx.Icon(animation.GetFrame(index).ConvertToBitmap()))
+                           for index in range(animation.GetFrameCount()))
 
 
 def _animation_worker() -> bool:

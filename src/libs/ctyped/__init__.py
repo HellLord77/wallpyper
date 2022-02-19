@@ -1,4 +1,4 @@
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -32,6 +32,14 @@ from .__head__ import _pointer as pointer
 from .__head__ import _sizeof as sizeof
 
 THREADED_COM = True
+
+
+# noinspection PyProtectedMember
+def set_error_checker(lib: func._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None):
+    lib._errcheck = callback
+    for func_ in lib._funcs:
+        if func_ in dir(lib):
+            getattr(lib, func_).errcheck = callback
 
 
 @_contextlib.contextmanager
@@ -123,6 +131,10 @@ def get_winrt(type_: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.
 
 
 class Async:
+    _completed = None
+    _progress = None
+    _info_ = None
+
     class _AsyncCompletedHandler(com.IAsyncActionCompletedHandler, com.IAsyncOperationCompletedHandler,
                                  com.IAsyncOperationWithProgressCompletedHandler):
         def __init__(self):
@@ -141,16 +153,15 @@ class Async:
         @classmethod
         def init(cls, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],
                  args: _Iterable, kwargs: _Mapping[str, _Any]):
-            cls.Invoke.__annotations__['progressInfo'] = type_
+            cls.Invoke.__annotations__['progress'] = type_
             handler = cls()
             handler.callback = callback
             handler.args = args
             handler.kwargs = kwargs
             return handler
 
-        # noinspection PyPep8Naming
-        def Invoke(self, _: type.c_void_p, __: type.c_void_p, progressInfo: type.c_void_p) -> type.HRESULT:
-            self.callback(progressInfo, *self.args, **self.kwargs)
+        def Invoke(self, _: type.c_void_p, __: type.c_void_p, progress: type.c_void_p) -> type.HRESULT:
+            self.callback(progress, *self.args, **self.kwargs)
             return const.NOERROR
 
     def __init__(self, type_: _Union[_builtins.type[com.IAsyncAction],
@@ -158,18 +169,28 @@ class Async:
                                      _builtins.type[com.IAsyncOperationWithProgress]] = com.IAsyncAction):
         self._async = type_()
 
-    def __getattr__(self, name: str):
-        if name == '_info' and self._async:
-            info = com.IAsyncInfo()
-            if macro.SUCCEEDED(self._async.QueryInterface(*macro.IID_PPV_ARGS(info))):
-                self._info = info
-        return super().__getattribute__(name)
-
     def __del__(self):
         if self._async:
-            if '_info' in vars(self):
-                self._info.Release()
+            if self._completed:
+                self._completed.Release()
+            if self._progress:
+                self._progress.Release()
+            if self._info_:
+                self._info_.Release()
             self._async.Release()
+
+    @property
+    def _info(self):
+        if self._info_ is None:
+            info = com.IAsyncInfo()
+            if macro.SUCCEEDED(self._async.QueryInterface(*macro.IID_PPV_ARGS(info))):
+                self._info_ = info
+        return self._info_
+
+    def _put(self, putter: _Callable, handler: _Union[_AsyncCompletedHandler, _AsyncProgressHandler]):
+        putter(handler) if THREADED_COM else _threading.Thread(
+            target=putter, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
+                                f'({_builtins.type(self._async).__name__}.{putter.__name__})', args=(handler,)).start()
 
     def get_ref(self) -> _Union[Pointer[com.IAsyncAction], Pointer[com.IAsyncOperation],
                                 Pointer[com.IAsyncOperationWithProgress]]:
@@ -191,11 +212,12 @@ class Async:
     def close(self) -> bool:
         return macro.SUCCEEDED(self._info.Close())
 
-    def put_progress(self, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],  # TODO C0000005
-                     args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> bool:
-        handler = self._AsyncProgressHandler.init(type_, callback, () if args is None else args,
-                                                  {} if kwargs is None else kwargs)
-        return macro.SUCCEEDED(self._async.put_Progress(byref(handler)))
+    def put_progress(self, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],
+                     args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> int:
+        self._progress = self._AsyncProgressHandler.init(type_, callback, () if args is None else args,
+                                                         {} if kwargs is None else kwargs)
+        self._put(self._async.put_Progress, self._progress)
+        return self.get_status()
 
     def get_results(self, obj_ref: _Optional[Pointer[CT]] = None) -> bool:
         try:
@@ -210,12 +232,8 @@ class Async:
         return obj
 
     def wait_for(self, timeout: _Optional[float] = None) -> int:
-        handler = self._AsyncCompletedHandler()
-        target = self._async.put_Completed
-        args = byref(handler),
-        target(*args) if THREADED_COM else _threading.Thread(
-            target=target, name=f'{_builtins.type(self).__name__}-{__version__}-{_builtins.type(self._async).__name__}',
-            args=args).start()
-        handler.event.wait(timeout)
+        self._completed = self._AsyncCompletedHandler()
+        self._put(self._async.put_Completed, self._completed)
+        self._completed.event.wait(timeout)
         self.cancel()
         return self.get_status()

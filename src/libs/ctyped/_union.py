@@ -15,68 +15,68 @@ from .__head__ import _resolve_type
 # noinspection PyPep8Naming
 @_union
 class NOTIFYICONDATA_U:
-    uTimeout: _type.UINT = None
-    uVersion: _type.UINT = None
+    uTimeout: _type.UINT
+    uVersion: _type.UINT
 
 
 # noinspection PyPep8Naming
 @_union
 class DECIMAL_U:
-    S: _struct.DECIMAL_U_S = None
-    signscale: _type.USHORT = None
+    S: _struct.DECIMAL_U_S
+    signscale: _type.USHORT
 
 
 # noinspection PyPep8Naming
 @_union
 class DECIMAL_U2:
-    s: _struct.DECIMAL_U2_S = None
-    Lo64: _type.ULONGLONG = None
+    s: _struct.DECIMAL_U2_S
+    Lo64: _type.ULONGLONG
 
 
 # noinspection PyPep8Naming
 @_union
 class PROPVARIANT_U_S_U:
-    cVal: _type.CHAR = None
-    bVal: _type.UCHAR = None
-    iVal: _type.SHORT = None
-    uiVal: _type.USHORT = None
-    lVal: _type.LONG = None
-    ulVal: _type.ULONG = None
-    intVal: _type.INT = None
-    uintVal: _type.UINT = None
+    cVal: _type.CHAR
+    bVal: _type.UCHAR
+    iVal: _type.SHORT
+    uiVal: _type.USHORT
+    lVal: _type.LONG
+    ulVal: _type.ULONG
+    intVal: _type.INT
+    uintVal: _type.UINT
     ...
-    fltVal: _type.FLOAT = None
-    dblVal: _type.DOUBLE = None
+    fltVal: _type.FLOAT
+    dblVal: _type.DOUBLE
     ...
-    pszVal: _type.LPSTR = None
-    pwszVal: _type.LPWSTR = None
+    pszVal: _type.LPSTR
+    pwszVal: _type.LPWSTR
     ...
 
 
 # noinspection PyPep8Naming
 @_union
 class PROPVARIANT_U:
-    S: _struct.PROPVARIANT_U_S = None
-    decVal: _struct.DECIMAL = None
+    S: _struct.PROPVARIANT_U_S
+    decVal: _struct.DECIMAL
 
 
 # noinspection PyPep8Naming
 @_union
 class INPUT_U:
-    mi: _struct.MOUSEINPUT = None
-    ki: _struct.KEYBDINPUT = None
-    hi: _struct.HARDWAREINPUT = None
+    mi: _struct.MOUSEINPUT
+    ki: _struct.KEYBDINPUT
+    hi: _struct.HARDWAREINPUT
 
 
 # noinspection PyPep8Naming
 @_union
 class PICTDESC_U:
-    bmp: _struct.PICTDESC_U_S = None
-    wmf: _struct.PICTDESC_U_S2 = None
-    icon: _struct.PICTDESC_U_S3 = None
+    bmp: _struct.PICTDESC_U_S
+    wmf: _struct.PICTDESC_U_S2
+    icon: _struct.PICTDESC_U_S3
     # noinspection PyProtectedMember
     if _const._WIN32:
-        emf: _struct.PICTDESC_U_S4 = None
+        emf: _struct.PICTDESC_U_S4
 
 
 # noinspection PyPep8Naming
@@ -118,8 +118,8 @@ class VARIANT_U_S_U:
 # noinspection PyPep8Naming
 @_union
 class VARIANT_U:
-    S: _struct.VARIANT_U_S = None
-    decVal: _struct.DECIMAL = None
+    S: _struct.VARIANT_U_S
+    decVal: _struct.DECIMAL
 
 
 def _init(item: str) -> type[_ctypes.Union]:

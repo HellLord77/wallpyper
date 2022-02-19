@@ -187,8 +187,8 @@ def to_set(string: str) -> set:
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
            kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
-        ret = func(ele, *() if args is None else args, **{} if kwargs is None else kwargs)
-        if ret:
+        res = func(ele, *() if args is None else args, **{} if kwargs is None else kwargs)
+        if res:
             return True
     return False
 
@@ -323,9 +323,9 @@ def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional
     args = () if args is None else args
     kwargs = {} if kwargs is None else kwargs
     for _ in (range if max_try else itertools.repeat)(max_try):
-        ret = func(*args, **kwargs)
-        if ret:
-            return ret
+        res = func(*args, **kwargs)
+        if res:
+            return res
 
 
 def strip_ansi(string: str) -> str:
@@ -382,13 +382,13 @@ def time_cache(secs: float = math.inf, size: int = math.inf) -> Callable[[Callab
             remove = []
             current = time.time()
             params = _get_params(args, kwargs)
-            for arg_ret_time in cache:
-                if current > arg_ret_time[2]:
-                    remove.append(arg_ret_time)
-                elif params == arg_ret_time[0]:
-                    cached = arg_ret_time
-            for arg_ret_time in remove:
-                cache.remove(arg_ret_time)
+            for arg_res_time in cache:
+                if current > arg_res_time[2]:
+                    remove.append(arg_res_time)
+                elif params == arg_res_time[0]:
+                    cached = arg_res_time
+            for arg_res_time in remove:
+                cache.remove(arg_res_time)
             if cached is None:
                 try:
                     cache.append(cached := (params, func(*args, **kwargs), current + secs))
@@ -410,10 +410,10 @@ def once_run(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         if not ran.is_set():
             try:
-                ret = func(*args, **kwargs)
+                res = func(*args, **kwargs)
             finally:
                 ran.set()
-            return ret
+            return res
 
     wrapper.set = ran.set
     wrapper.reset = ran.clear
@@ -427,7 +427,7 @@ def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str
         running.set()
         with contextlib.suppress(BaseException):
             try:
-                wrapper.ret = func(*work[0], **work[1])
+                wrapper.res = func(*work[0], **work[1])
             finally:
                 running.clear()
                 if works.unfinished_tasks:
@@ -442,11 +442,11 @@ def queue_run(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         works.put((args, kwargs))
 
-    threading.Thread(target=_queue_worker, name=f'{queue_run.__name__}-{__version__}-{func.__name__}',
+    threading.Thread(target=_queue_worker, name=f'{__name__}-{__version__}-{queue_run.__name__}({func.__name__})',
                      args=(func, works, running, wrapper), daemon=True).start()
     wrapper.is_running = lambda: running.is_set() or bool(works.unfinished_tasks)
     wrapper.reset = lambda: clear_queue(works)
-    wrapper.ret = None
+    wrapper.res = None
     return wrapper
 
 
@@ -471,46 +471,46 @@ def singleton_run(func: Callable) -> Callable:
 def threaded_run(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        threading.Thread(target=lambda: setattr(wrapper, 'ret', func(*args, **kwargs)),
-                         name=f'{threaded_run.__name__}-{__version__}-{func.__name__}').start()
+        threading.Thread(target=lambda: setattr(wrapper, 'res', func(*args, **kwargs)),
+                         name=f'{__name__}-{__version__}-{threaded_run.__name__}({func.__name__})').start()
 
-    wrapper.ret = None
+    wrapper.res = None
     return wrapper
 
 
-def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], ret, ret_as_arg: Optional[bool],
-          unpack_ret: Optional[bool]) -> Any:
-    if ret_as_arg:
-        if unpack_ret:
-            if isinstance(ret, Iterable):
-                return func(*ret)
-            elif isinstance(ret, Mapping):
-                return func(**ret)
-        return func(ret)
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res: Any, res_as_arg: Optional[bool],
+          unpack_res: Optional[bool]) -> Any:
+    if res_as_arg:
+        if unpack_res:
+            if isinstance(res, Iterable):
+                return func(*res)
+            elif isinstance(res, Mapping):
+                return func(**res)
+        return func(res)
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret_arg: Optional[bool] = None) -> \
-        Callable[[Callable], Callable]:
+def call_after(pre_func: Callable, res_as_arg: Optional[bool] = None,
+               unpack_res: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def call_after_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            ret = pre_func(*args, **kwargs)
-            return _call(func, args, kwargs, ret, ret_as_arg, unpack_ret_arg)
+            res = pre_func(*args, **kwargs)
+            return _call(func, args, kwargs, res, res_as_arg, unpack_res)
 
         return wrapper
 
     return call_after_
 
 
-def call_before(post_func: Callable, ret_as_arg: Optional[bool] = None, unpack_ret_arg: Optional[bool] = None) -> \
-        Callable[[Callable], Callable]:
+def call_before(post_func: Callable, res_as_arg: Optional[bool] = None,
+                unpack_res: Optional[bool] = None) -> Callable[[Callable], Callable]:
     def call_before_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            ret = func(*args, **kwargs)
-            _call(post_func, args, kwargs, ret, ret_as_arg, unpack_ret_arg)
-            return ret
+            res = func(*args, **kwargs)
+            _call(post_func, args, kwargs, res, res_as_arg, unpack_res)
+            return res
 
         return wrapper
 

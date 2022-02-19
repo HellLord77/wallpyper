@@ -10,6 +10,8 @@ import time
 from typing import Any, Callable, Generator, Iterable, Mapping, Union, ContextManager
 from typing import Optional
 
+import memory_profiler
+
 import libs.ctyped as ctyped
 import libs.file
 import platforms.win32 as win32
@@ -655,7 +657,19 @@ def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IIn
     yield None
 
 
-def save_wallpaper_lock(path: str):
+def _copy_stream(input_stream: ctyped.com.IInputStream, output_stream: ctyped.com.IOutputStream,
+                 callback: Optional[Callable[[int, ...], Any]],
+                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
+    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
+        operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
+        if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(input_stream, output_stream, operation.get_ref())):
+            if callback is not None:
+                operation.put_progress(ctyped.type.UINT64, callback, args, kwargs)
+            return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+
+
+def save_wallpaper_lock(path: str, callback: Optional[Callable[[int, ...], Any]] = None,
+                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     # with _get_wallpaper_lock_input_stream() as input_stream:
     with _open_file(r'D:\MMDs\麗塔.mp4') as in_file, _get_input_stream(in_file) as input_stream:
         if input_stream:
@@ -663,32 +677,27 @@ def save_wallpaper_lock(path: str):
             path_.parent.mkdir(exist_ok=True)
             path_.touch(exist_ok=True)
             with _open_file(path) as file, _get_output_stream(file) as output_stream:
-                if output_stream:
-                    print(output_stream, input_stream)
-                    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
-                        operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
-                        stream_statics.CopyAndCloseAsync(input_stream, output_stream, operation.get_ref())
-                        operation.put_progress(ctyped.type.UINT64, func)
-                        operation.wait_for()
+                return output_stream and _copy_stream(input_stream, output_stream, callback, args, kwargs)
+    return False
 
 
 def func(*args):
     print(args)
 
 
-# @memory_profiler.profile
+@memory_profiler.profile
 def mem():
     libs.file.remove(f"D:\\test", True)
-    for i in range(10):
-        save_wallpaper_lock(f"D:\\test\\{time.time()}.jpg")
-    libs.file.remove(f"D:\\test", True)
+    for i in range(1):
+        print(save_wallpaper_lock(f"D:\\test\\{time.time()}.jpg", func))
+    # libs.file.remove(f"D:\\test", True)
 
 
 if __name__ == '__main__':
+    ctyped.THREADED_COM = False
     # background()
     # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    while True:
-        mem()
+    mem()
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

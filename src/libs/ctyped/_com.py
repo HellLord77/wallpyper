@@ -18,6 +18,7 @@ from .__head__ import _addressof
 from .__head__ import _byref
 from .__head__ import _get_func_doc
 from .__head__ import _not_internal
+from .__head__ import _pointer
 from .__head__ import _resolve_type
 
 _ASSIGNED = ('__CLSID__', '__RuntimeClass__',
@@ -534,7 +535,7 @@ class IAsyncInfo(IInspectable):
 
 
 class IAsyncAction(IInspectable):
-    put_Completed: _Callable[[_Pointer[IAsyncActionCompletedHandler]],
+    put_Completed: _Callable[[IAsyncActionCompletedHandler],
                              _type.HRESULT]
     get_Completed: _Callable
     GetResults: _Callable[[],
@@ -542,7 +543,7 @@ class IAsyncAction(IInspectable):
 
 
 class IAsyncOperation(IInspectable):
-    put_Completed: _Callable[[_Pointer[IAsyncOperationCompletedHandler]],
+    put_Completed: _Callable[[IAsyncOperationCompletedHandler],
                              _type.HRESULT]
     get_Completed: _Callable
     GetResults: _Callable[[_Pointer[_type.c_void_p]],
@@ -550,10 +551,10 @@ class IAsyncOperation(IInspectable):
 
 
 class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child (?)
-    put_Progress: _Callable[[_Pointer[IAsyncOperationProgressHandler]],
+    put_Progress: _Callable[[IAsyncOperationProgressHandler],
                             _type.HRESULT]
     get_Progress: _Callable
-    put_Completed: _Callable[[_Pointer[IAsyncOperationWithProgressCompletedHandler]],
+    put_Completed: _Callable[[IAsyncOperationWithProgressCompletedHandler],
                              _type.HRESULT]
     get_Completed: _Callable
     GetResults: _Callable[[_Pointer[_type.c_void_p]],
@@ -784,17 +785,20 @@ def _init(item: str) -> type[_type.c_void_p]:
         __doc__ = '\n'.join(_get_func_doc(name, types._restype_, types._argtypes_) for name, types in _struct._fields_)
 
         def __getattr__(self, name: str):
-            if _not_internal(name) and name in dir(self._struct):
-                if self.value is None:
-                    raise MemoryError(f"com '{type(self).__name__}' has not been initialized yet")
-                funcs = self._struct.from_address(_type.c_void_p.from_address(self.value).value)
-                # noinspection PyProtectedMember
-                for name_, types in self._struct._fields_:
-                    method = getattr(funcs, name_)
-                    method.__name__ = name_
+            # noinspection PyProtectedMember
+            for name_, _ in self._struct._fields_:
+                if name == name_:
+                    if self.value is None:
+                        raise MemoryError(f"com '{type(self).__name__}' has not been initialized yet")
+                    funcs = self._struct.from_address(_type.c_void_p.from_address(self.value).value)
                     # noinspection PyProtectedMember
-                    method.__doc__ = _get_func_doc(name_, types._restype_, types._argtypes_)
-                    setattr(self, name_, _types.MethodType(method, self))
+                    for name__, types in self._struct._fields_:
+                        method = getattr(funcs, name__)
+                        method.__name__ = name__
+                        # noinspection PyProtectedMember
+                        method.__doc__ = _get_func_doc(name__, types._restype_, types._argtypes_)
+                        setattr(self, name__, _types.MethodType(method, self))
+                    break
             return super().__getattribute__(name)
 
     return _functools.update_wrapper(Wrapper, _globals.vars_[item], _ASSIGNED, ())
@@ -807,6 +811,7 @@ class IUnknown(_type.c_void_p):
     __IID__ = {_const.IID_IUnknown}
     _funcs = None
     _vtbl = None
+    _refs = {}
 
     def __init_subclass__(cls):
         cls._vtbl = None
@@ -825,22 +830,32 @@ class IUnknown(_type.c_void_p):
             fields = []
             cls._funcs = []
             for name, func in funcs.items():
-                if static := hasattr(func, '__func__'):
+                class_ = isinstance(func, classmethod)
+                static = isinstance(func, staticmethod)
+                if class_ or static:
                     func = func.__func__
                 types = list(_typing.get_type_hints(func).values())
                 # noinspection PyTypeHints
                 type_ = _ctypes.WINFUNCTYPE(*_resolve_type(_Callable[types, types.pop()]))
                 fields.append((name, type_))
-                cls._funcs.append((None, type_(func)) if static else (type_, func))
-            cls._vtbl = type(cls.__name__, (_ctypes.Structure,), {'_fields_': fields})
+                cls._funcs.append(type_(_types.MethodType(func, cls)) if class_ else type_(func) if static else None)
+            cls._funcs = tuple(cls._funcs)
+            cls._vtbl = type(cls.__name__, (_ctypes.Structure,), {'_fields_': tuple(fields)})
         return super().__new__(cls)
 
-    def __init__(self):
-        self._vtbl = self._vtbl(*(func if type_ is None else type_(_types.MethodType(func, self))
-                                  for type_, func in self._funcs))
-        super().__init__(_addressof(self._vtbl))
+    def __init__(self):  # TODO lazy init from value
+        # self._vtbl = self._vtbl(*(type_(getattr(self, name)) if func is None else func for (name, type_), func in
+        #                           zip(self._vtbl._fields_, self._funcs)))
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        self._ptr = _pointer(self._vtbl(*(type_(getattr(self, name)) if func is None else func
+                                          for (name, type_), func in zip(self._vtbl._fields_, self._funcs))))
+        super().__init__(_addressof(self._ptr))
+        self._refs[self] = 1
 
-    # noinspection PyPep8Naming
+    def __hash__(self):
+        return self.value
+
+    # noinspection PyPep8Naming,PyUnusedLocal
     def QueryInterface(self, This: _Pointer[IUnknown], riid: _Pointer[_struct.IID],
                        ppvObject: _Pointer[_type.LPVOID]) -> _type.HRESULT:
         if not ppvObject:
@@ -849,20 +864,22 @@ class IUnknown(_type.c_void_p):
         iid = _type.LPOLESTR()
         _func.ole32.StringFromIID(riid, _byref(iid))
         if iid.value in self.__IID__:
-            ppvObject.contents.value = _addressof(self)
-            This.contents.AddRef(This)
+            ppvObject.contents.value = _type.LPVOID.from_buffer(self).value
+            self.AddRef()
             return _const.NOERROR
         return _const.E_NOINTERFACE
 
     # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def AddRef(This: _Pointer[IUnknown]) -> _type.ULONG:
-        return 1
+    def AddRef(self, This: _Optional[_Pointer[IUnknown]] = None) -> _type.ULONG:
+        self._refs[self] += 1
+        return self._refs[self]
 
     # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Release(This: _Pointer[IUnknown]) -> _type.ULONG:
-        return 0
+    def Release(self, This: _Optional[_Pointer[IUnknown]] = None) -> _type.ULONG:
+        self._refs[self] -= 1
+        if self._refs[self] == 0:
+            return self._refs.pop(self)
+        return self._refs[self]
 
 
 class IQueryContinue(IUnknown):
