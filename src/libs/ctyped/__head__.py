@@ -29,9 +29,10 @@ class _Module:
 
     def __init__(self, name: str):
         self._name = name
+        self._module = None
 
     def __getattr__(self, name: str):
-        if _sys.modules[self._name] is self:
+        if self._module is None:
             del _sys.modules[self._name]
             self._module = _importlib.import_module(*_os.path.splitext(self._name)[::-1])
         _replace_object(self, self._module)

@@ -92,8 +92,7 @@ function Build-Project
             {
                 $DataDst = $Data
             }
-            $MainArgs += "--add-data=""$DataSrc;$DataDst"""
-            $MainArgs[-1] = $MainArgs[-1].Replace("\", "\\")
+            $MainArgs += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
         }
     }
 
@@ -162,7 +161,7 @@ function Upload-Build
         Remove-Item $Temp -Force
         $env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
         mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
-        mega-put dist (Join-Path (Get-Name) ((Get-Date -Format o -AsUTC) -replace ":", "."))
+        mega-put dist (Join-Path "$( Get-Name )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
     }
     else
     {

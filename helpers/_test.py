@@ -4,7 +4,8 @@ __version__ = '0.0.1'
 
 import contextlib
 import itertools
-import pathlib
+import ntpath
+import os
 import sys
 import time
 from typing import Any, Callable, Generator, Iterable, Mapping, Union, ContextManager
@@ -673,9 +674,8 @@ def save_wallpaper_lock(path: str, callback: Optional[Callable[[int, ...], Any]]
     # with _get_wallpaper_lock_input_stream() as input_stream:
     with _open_file(r'D:\MMDs\麗塔.mp4') as in_file, _get_input_stream(in_file) as input_stream:
         if input_stream:
-            path_ = pathlib.Path(path)
-            path_.parent.mkdir(exist_ok=True)
-            path_.touch(exist_ok=True)
+            os.makedirs(ntpath.dirname(path), exist_ok=True)
+            open(path, 'w').close()
             with _open_file(path) as file, _get_output_stream(file) as output_stream:
                 return output_stream and _copy_stream(input_stream, output_stream, callback, args, kwargs)
     return False
@@ -690,7 +690,7 @@ def mem():
     libs.file.remove(f"D:\\test", True)
     for i in range(1):
         print(save_wallpaper_lock(f"D:\\test\\{time.time()}.jpg", func))
-    # libs.file.remove(f"D:\\test", True)
+    libs.file.remove(f"D:\\test", True)
 
 
 if __name__ == '__main__':

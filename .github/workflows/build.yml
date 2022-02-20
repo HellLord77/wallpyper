@@ -4,7 +4,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [ 3.9 ]
+        python-version: [ 3.8, 3.9 ]
     steps:
       - name: Fetch repository
         uses: actions/checkout@v2
@@ -20,4 +20,5 @@ jobs:
         env:
           MEGA_USERNAME: ${{ secrets.USERNAME }}
           MEGA_PASSWORD: ${{ secrets.PASSWORD }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
         run: .\build.ps1 Upload-Build
