@@ -1,19 +1,15 @@
-__version__ = '0.2.5'
+__version__ = '0.2.6'
 
 import builtins as _builtins
 import contextlib as _contextlib
 import threading as _threading
 import typing as _typing
-from typing import Any as _Any
-from typing import Callable as _Callable
-from typing import ContextManager as _ContextManager
-from typing import Iterable as _Iterable
-from typing import Mapping as _Mapping
-from typing import Optional as _Optional
-from typing import Union as _Union
+from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
+                    Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
 from . import __head__
 from . import _com as com
+from . import _com_impl as com_impl
 from . import _const as const
 from . import _enum as enum
 from . import _func as func
@@ -98,7 +94,7 @@ def init_com(type_: _builtins.type[CT], init: bool = True) -> _ContextManager[_O
 
 # noinspection PyProtectedMember
 @_contextlib.contextmanager
-def conv_com(obj: com._IUnknown, type_: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
+def conv_com(obj: com.IUnknown, type_: _builtins.type[CT] = com_impl.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj_, _, args):
         if macro.SUCCEEDED(obj.QueryInterface(*args)):
             yield obj_
@@ -135,17 +131,19 @@ class Async:
     _progress = None
     _info_ = None
 
-    class _AsyncCompletedHandler(com.IAsyncActionCompletedHandler, com.IAsyncOperationCompletedHandler,
-                                 com.IAsyncOperationWithProgressCompletedHandler):
+    class _AsyncCompletedHandler(com_impl.IAsyncActionCompletedHandler,
+                                 com_impl.IAsyncActionWithProgressCompletedHandler,
+                                 com_impl.IAsyncOperationCompletedHandler,
+                                 com_impl.IAsyncOperationWithProgressCompletedHandler):
         def __init__(self):
-            com.IUnknown.__init__(self)
+            super().__init__()
             self.event = _threading.Event()
 
         def Invoke(self, _: type.c_void_p, __: type.c_void_p, ___: type.c_void_p) -> type.HRESULT:
             self.event.set()
             return const.NOERROR
 
-    class _AsyncProgressHandler(com.IAsyncOperationProgressHandler):
+    class _AsyncProgressHandler(com_impl.IAsyncActionProgressHandler, com_impl.IAsyncOperationProgressHandler):
         callback = None
         args = None
         kwargs = None
@@ -165,6 +163,7 @@ class Async:
             return const.NOERROR
 
     def __init__(self, type_: _Union[_builtins.type[com.IAsyncAction],
+                                     _builtins.type[com.IAsyncActionWithProgress],
                                      _builtins.type[com.IAsyncOperation],
                                      _builtins.type[com.IAsyncOperationWithProgress]] = com.IAsyncAction):
         self._async = type_()
@@ -192,8 +191,8 @@ class Async:
             target=putter, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
                                 f'({_builtins.type(self._async).__name__}.{putter.__name__})', args=(handler,)).start()
 
-    def get_ref(self) -> _Union[Pointer[com.IAsyncAction], Pointer[com.IAsyncOperation],
-                                Pointer[com.IAsyncOperationWithProgress]]:
+    def get_ref(self) -> _Union[Pointer[com.IAsyncAction], Pointer[com.IAsyncActionWithProgress],
+                                Pointer[com.IAsyncOperation], Pointer[com.IAsyncOperationWithProgress]]:
         return byref(self._async)
 
     def get_status(self) -> _Optional[int]:

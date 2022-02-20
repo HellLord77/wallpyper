@@ -1,16 +1,9 @@
 import ctypes as _ctypes
 import typing as _typing
-from typing import Callable as _Callable
-from typing import Optional as _Optional
+from typing import Callable as _Callable, Optional as _Optional
 
-from . import _com
-from . import _enum
-from . import _struct
-from . import _type
-from .__head__ import _DEBUG
-from .__head__ import _Pointer
-from .__head__ import _get_func_doc
-from .__head__ import _resolve_type
+from . import _com, _enum, _struct, _type
+from .__head__ import _DEBUG, _Pointer, _get_func_doc, _resolve_type
 
 
 class _CDLL(type):

@@ -2,15 +2,10 @@ import ctypes as _ctypes  # TODO _Pointer[_struct.TYPE], better inspect name (?)
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
-from typing import Callable as _Callable
-from typing import Optional as _Optional
-from typing import Union as _Union
+from typing import Callable as _Callable, Optional as _Optional, Union as _Union
 
-from . import _const
-from . import _struct
-from .__head__ import _Globals
-from .__head__ import _Pointer
-from .__head__ import _resolve_type
+from . import _const, _struct
+from .__head__ import _Globals, _Pointer, _resolve_type
 
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = (

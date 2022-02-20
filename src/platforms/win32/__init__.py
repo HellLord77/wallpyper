@@ -1,4 +1,4 @@
-__version__ = '0.0.16'
+__version__ = '0.0.17'
 
 import contextlib
 import ntpath
@@ -7,7 +7,7 @@ import os
 import subprocess
 import time
 import winreg
-from typing import ContextManager, Generator, Iterable, Mapping, Optional, Union
+from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
 from . import gdiplus
@@ -327,6 +327,70 @@ def _get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[st
     return tuple(props)
 
 
+@contextlib.contextmanager
+def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
+    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (
+            stream := operation.get(ctyped.com.IRandomAccessStream)):
+        with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
+            if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
+                yield input_stream
+                return
+    yield None
+
+
+@contextlib.contextmanager
+def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IOutputStream]]:
+    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (
+            stream := operation.get(ctyped.com.IRandomAccessStream)):
+        with ctyped.init_com(ctyped.com.IOutputStream, False) as output_stream:
+            if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
+                yield output_stream
+                return
+    yield None
+
+
+@contextlib.contextmanager
+def _open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
+    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
+        if file_statics:
+            operation = ctyped.Async(ctyped.com.IAsyncOperation)
+            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
+                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
+                    file := operation.get(ctyped.com.IStorageFile)):
+                yield file
+                return
+    yield None
+
+
+@contextlib.contextmanager
+def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IInputStream]]:
+    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock_statics:
+        if lock_statics:
+            with ctyped.init_com(ctyped.com.IRandomAccessStream, False) as stream:
+                if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
+                    with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
+                        if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
+                            yield input_stream
+                            return
+    yield None
+
+
+def _copy_stream(input_stream: ctyped.com.IInputStream, output_stream: ctyped.com.IOutputStream,
+                 progress_callback: Optional[Callable[[int, ...], Any]],
+                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
+    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
+        if stream_statics:
+            operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
+            if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(input_stream, output_stream,
+                                                                       operation.get_ref())):
+                if progress_callback is not None:
+                    operation.put_progress(ctyped.type.UINT64, progress_callback, args, kwargs)
+                return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+    return False
+
+
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     with _string_buffer() as buff:
         ctyped.func.kernel32.FormatMessageW((
@@ -554,8 +618,8 @@ def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
 
 
 def get_wallpaper_path(monitor: str = None) -> str:
-    return (_get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop()) if monitor is None else \
-        _get_wallpaper_path_idesktopwallpaper(monitor)[0]
+    return ((_get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop())
+            if monitor is None else _get_wallpaper_path_idesktopwallpaper(monitor)[0])
 
 
 def _set_wallpaper_param(path: str) -> bool:
@@ -597,6 +661,32 @@ def set_wallpaper(*paths: str, fade: bool = True, monitors: Optional[Iterable[st
             if (_set_wallpaper_iactivedesktop(path) if fade else _set_wallpaper_param(
                     path)) if monitors is None else _set_wallpaper_idesktopwallpaper(path, *monitors):
                 return True
+    return False
+
+
+def set_wallpaper_lock(path: str) -> bool:
+    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
+        if file_statics:
+            operation = ctyped.Async(ctyped.com.IAsyncOperation)
+            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
+                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
+                    file := operation.get(ctyped.com.IStorageFile)):
+                with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
+                    if lock:
+                        action = ctyped.Async()
+                        if ctyped.macro.SUCCEEDED(lock.SetImageFileAsync(file, action.get_ref())):
+                            return ctyped.enum.AsyncStatus.Completed == action.wait_for()
+    return False
+
+
+def save_wallpaper_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] = None,
+                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+    with _get_wallpaper_lock_input_stream() as input_stream:
+        if input_stream:
+            os.makedirs(ntpath.dirname(path), exist_ok=True)
+            open(path, 'w').close()
+            with _open_file(path) as file, _get_output_stream(file) as output_stream:
+                return output_stream and _copy_stream(input_stream, output_stream, progress_callback, args, kwargs)
     return False
 
 

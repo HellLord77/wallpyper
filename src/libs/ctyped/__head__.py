@@ -6,13 +6,8 @@ import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
 import typing as _typing
-from typing import Any as _Any, Any
-from typing import Generator as _Generator
-from typing import Generic as _Generic
-from typing import ItemsView as _ItemsView
-from typing import NoReturn as _NoReturn
-from typing import Optional as _Optional
-from typing import Sequence as _Sequence
+from typing import (Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView,
+                    NoReturn as _NoReturn, Optional as _Optional, Sequence as _Sequence)
 
 _DEBUG = False
 _CT = _typing.TypeVar('_CT')
@@ -42,9 +37,7 @@ class _Module:
 class _Globals(dict):
     def __init__(self, replace_once: _Optional[bool] = None):
         self.replace_once = replace_once
-        # self.module = _inspect.getmodule(_inspect.currentframe().f_back) FIXME pyinstaller debug getmodule -> None
-        name = _inspect.currentframe().f_back.f_globals['__name__']
-        self.module = _sys.modules[name]
+        self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         vars_ = vars(self.module)
         self.vars_ = {var: val for var, val in vars_.items() if _not_internal(var)}
         for var in self.vars_:
@@ -93,7 +86,7 @@ class _Globals(dict):
         if item not in self.vars_:
             raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
 
-    def get_type_hints(self, item: str) -> _ItemsView[str, Any]:
+    def get_type_hints(self, item: str) -> _ItemsView[str, _Any]:
         return _typing.get_type_hints(self.vars_[item], self, self).items()
 
 

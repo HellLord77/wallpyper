@@ -2,19 +2,13 @@ from __future__ import annotations as _
 
 __version__ = '0.0.1'
 
-import contextlib
 import itertools
-import ntpath
-import os
 import sys
 import time
-from typing import Any, Callable, Generator, Iterable, Mapping, Union, ContextManager
+from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
-import memory_profiler
-
 import libs.ctyped as ctyped
-import libs.file
 import platforms.win32 as win32
 import platforms.win32.gdiplus as gdiplus
 
@@ -65,10 +59,9 @@ class SysTray:
 
     def __new__(cls):
         if not cls._hwnd:
-            cls._class = ctyped.struct.WNDCLASSEXW(ctyped.sizeof(ctyped.struct.WNDCLASSEXW),
-                                                   lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
-                                                   hInstance=ctyped.func.kernel32.GetModuleHandleW(None),
-                                                   lpszClassName=NAME)
+            cls._class = ctyped.struct.WNDCLASSEXW(
+                ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
+                hInstance=ctyped.func.kernel32.GetModuleHandleW(None), lpszClassName=NAME)
             ctyped.func.user32.RegisterClassExW(ctyped.byref(cls._class))
             cls._hwnd = ctyped.func.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
                                                            ctyped.const.HWND_MESSAGE, None, None, None)
@@ -124,18 +117,17 @@ class SysTray:
         return cls._hwnd
 
     @classmethod
-    def run_at_exit(cls, callback: Callable, args: Optional[Iterable] = None,
-                    kwargs: Optional[Mapping[str, Any]] = None):
-        cls._binds[0][ctyped.const.WM_CLOSE] = callback, () if args is None else {}, {} if kwargs is None else kwargs
-
-    @classmethod
-    def clear_at_exit(cls) -> bool:
-        try:
-            del cls._binds[0][ctyped.const.WM_CLOSE]
-        except KeyError:
-            return False
+    def run_at_exit(cls, callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+                    kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+        if callback is None:
+            try:
+                del cls._binds[0][ctyped.const.WM_CLOSE]
+            except KeyError:
+                return False
         else:
-            return True
+            cls._binds[0][ctyped.const.WM_CLOSE] = (callback, () if args is None else {},
+                                                    {} if kwargs is None else kwargs)
+        return True
 
     @classmethod
     def mainloop(cls) -> int:
@@ -253,40 +245,12 @@ def _foo3(*evt):
 
 
 class Position:
-    CENTER = 0
-    TILE = 1
-    STRETCH = 2
-    FIT = 3
-    FILL = 4
-    SPAN = 5
-
-
-def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
-            by_h: bool = True, div: int = 2) -> tuple[int, int, int, int]:
-    ratio = to_w / to_h
-    if by_h:
-        w = from_h * ratio
-        return int((from_w - w) / div), 0, int(w), from_h
-    else:
-        h = from_w / ratio
-        return 0, int((from_h - h) / div), from_w, int(h)
-
-
-def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int,
-                  position: int = Position.FILL) -> tuple[int, int, int, int]:
-    if position == Position.CENTER:
-        dw = hbitmap_w - monitor_w
-        dh = hbitmap_h - monitor_h
-        return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
-    elif position in (Position.TILE, Position.STRETCH):
-        return 0, 0, hbitmap_w, hbitmap_h
-    elif position == Position.FIT:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w > monitor_h / hbitmap_h)
-    elif position == Position.FILL:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h, 3)
-    elif position == Position.SPAN:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h)
-    return 0, 0, 0, 0
+    CENTER = ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_CENTER.value
+    TILE = ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_TILE.value
+    STRETCH = ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_STRETCH.value
+    FIT = ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_FIT.value
+    FILL = ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_FILL.value
+    SPAN = ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_SPAN.value
 
 
 class Transition:
@@ -481,15 +445,43 @@ class Transition:
         yield dst_dw, dst_h_, dst_w - dst_dw, dst_h, dst_dw, dst_h_
         yield dst_w_, dst_dh, dst_w - dst_h_, dst_h - dst_dh, dst_w_, dst_dh
 
-    _TRANSITIONS = (_fade, _explode, _implode,
-                    _left, _top, _right, _bottom,
-                    _top_left, _top_right, _bottom_left, _bottom_right,
-                    _vertical, _horizontal, _reverse_vertical, _reverse_horizontal,
-                    _slide_left, _slide_top, _slide_right, _slide_bottom,
-                    _slide_top_left, _slide_top_right, _slide_bottom_left, _slide_bottom_right,
-                    _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal)
     # noinspection PyUnresolvedReferences
-    _TRANSITIONS = tuple(static.__func__ for static in _TRANSITIONS)
+    _TRANSITIONS = tuple(static.__func__ for static in (
+        _fade, _explode, _implode,
+        _left, _top, _right, _bottom, _top_left, _top_right, _bottom_left, _bottom_right,
+        _vertical, _horizontal, _reverse_vertical, _reverse_horizontal,
+        _slide_left, _slide_top, _slide_right, _slide_bottom,
+        _slide_top_left, _slide_top_right, _slide_bottom_left, _slide_bottom_right,
+        _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal
+    ))
+
+
+def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
+            by_h: bool = True, div: int = 2) -> tuple[int, int, int, int]:
+    ratio = to_w / to_h
+    if by_h:
+        w = from_h * ratio
+        return int((from_w - w) / div), 0, int(w), from_h
+    else:
+        h = from_w / ratio
+        return 0, int((from_h - h) / div), from_w, int(h)
+
+
+def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int,
+                  position: int = Position.FILL) -> tuple[int, int, int, int]:
+    if position == Position.CENTER:
+        dw = hbitmap_w - monitor_w
+        dh = hbitmap_h - monitor_h
+        return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
+    elif position in (Position.TILE, Position.STRETCH):
+        return 0, 0, hbitmap_w, hbitmap_h
+    elif position == Position.FIT:
+        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w > monitor_h / hbitmap_h)
+    elif position == Position.FILL:
+        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h, 3)
+    elif position == Position.SPAN:
+        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h)
+    return 0, 0, 0, 0
 
 
 def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus.Image,
@@ -498,7 +490,7 @@ def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus
     graphics = bitmap.get_graphics()
     graphics.fill_rect_with_color(color, 0, 0, width, height)
     graphics.set_scale(width / src_w, height / src_h)
-    graphics.draw_image(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
+    graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
     return bitmap.get_hbitmap().get_hdc()
 
 
@@ -537,14 +529,6 @@ def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
             r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
 
 
-def _get_color_matrix(alpha: float = 1) -> ctyped.struct.ColorMatrix:
-    matrix = ctyped.struct.ColorMatrix()
-    for index in range(5):
-        matrix.m[index][index] = 1
-    matrix.m[3][3] = alpha
-    return matrix
-
-
 def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
     graphics = gdiplus.Graphics.from_hdc(hdc)
     brush = gdiplus.SolidFill.from_color(argb)
@@ -558,21 +542,10 @@ def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, ar
         graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
 
 
-def _draw_on_graphics(graphics: ctyped.type.GpGraphics, image: gdiplus.Image,
-                      dst_w: float, dst_h: float, dst_x: float = 0, dst_y: float = 0, src_w: Optional[float] = None,
-                      src_h: Optional[float] = None, src_x: float = 0, src_y: float = 0, alpha: float = 1):
-    attrs = gdiplus.ImageAttributes.from_color_matrix(_get_color_matrix(alpha))
-    draw_image_abort = ctyped.type.DrawImageAbort()
-    ctyped.func.GdiPlus.GdipDrawImageRectRect(graphics, image, dst_x, dst_y, dst_w, dst_h, src_x, src_y,
-                                              image.width if src_w is None else src_w,
-                                              image.height if src_h is None else src_h,
-                                              ctyped.enum.GpUnit.UnitPixel, attrs, draw_image_abort, None)
-
-
 def background():
     path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
     monitor = win32.get_monitor_ids()[1]
-    position = Position.FILL
+    position = Position.FIT
     r = 0
     g = 0
     b = 0
@@ -581,7 +554,6 @@ def background():
 
     image = gdiplus.Image.from_file(path)
     if image:
-        monitor_x_y_w_h = win32._get_monitor_x_y_w_h(monitor)
         if position in (Position.TILE, Position.SPAN):
             monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
@@ -590,114 +562,29 @@ def background():
                 bitmap = gdiplus.Bitmap.from_dimension(monitor_x_y_w_h[2], monitor_x_y_w_h[3])
                 for x in range(0, bitmap.width, image.width):
                     for y in range(0, bitmap.height, image.height):
-                        bitmap.get_graphics().draw_image(image, x, y)
+                        bitmap.get_graphics().draw_image_from_rect(image, x, y)
                 image = bitmap
+        else:
+            monitor_x_y_w_h = win32._get_monitor_x_y_w_h(monitor)
         _draw_image(image, *monitor_x_y_w_h, *_get_position(
             image.width, image.height, *monitor_x_y_w_h[2:], position), _get_argb(r, g, b), transition, duration)
     # TODO set without system transition
-    win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b),
-                                           position=ctyped.enum.DESKTOP_WALLPAPER_POSITION(position))
-
-
-def set_wallpaper_lock(path: str) -> bool:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
-        operation = ctyped.Async(ctyped.com.IAsyncOperation)
-        file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(path), operation.get_ref())
-        if file := operation.get(ctyped.com.IStorageFile):
-            with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
-                action = ctyped.Async()
-                lock.SetImageFileAsync(file, action.get_ref())
-                return ctyped.enum.AsyncStatus.Completed == action.wait_for()
-    return False
-
-
-@contextlib.contextmanager
-def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
-    operation = ctyped.Async(ctyped.com.IAsyncOperation)
-    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (
-            stream := operation.get(ctyped.com.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
-            if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                yield input_stream
-                return
-    yield None
-
-
-@contextlib.contextmanager
-def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IOutputStream]]:
-    operation = ctyped.Async(ctyped.com.IAsyncOperation)
-    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (
-            stream := operation.get(ctyped.com.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.com.IOutputStream, False) as output_stream:
-            if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
-                yield output_stream
-                return
-    yield None
-
-
-@contextlib.contextmanager
-def _open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
-        operation = ctyped.Async(ctyped.com.IAsyncOperation)
-        file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(path), operation.get_ref())
-        if file := operation.get(ctyped.com.IStorageFile):
-            yield file
-            return
-    yield None
-
-
-@contextlib.contextmanager
-def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IInputStream]]:
-    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock_statics, ctyped.init_com(
-            ctyped.com.IRandomAccessStream, False) as stream:
-        if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
-            with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
-                if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                    yield input_stream
-                    return
-    yield None
-
-
-def _copy_stream(input_stream: ctyped.com.IInputStream, output_stream: ctyped.com.IOutputStream,
-                 callback: Optional[Callable[[int, ...], Any]],
-                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
-    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
-        operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
-        if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(input_stream, output_stream, operation.get_ref())):
-            if callback is not None:
-                operation.put_progress(ctyped.type.UINT64, callback, args, kwargs)
-            return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
-
-
-def save_wallpaper_lock(path: str, callback: Optional[Callable[[int, ...], Any]] = None,
-                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    # with _get_wallpaper_lock_input_stream() as input_stream:
-    with _open_file(r'D:\MMDs\麗塔.mp4') as in_file, _get_input_stream(in_file) as input_stream:
-        if input_stream:
-            os.makedirs(ntpath.dirname(path), exist_ok=True)
-            open(path, 'w').close()
-            with _open_file(path) as file, _get_output_stream(file) as output_stream:
-                return output_stream and _copy_stream(input_stream, output_stream, callback, args, kwargs)
-    return False
+    win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
 
 def func(*args):
     print(args)
 
 
-@memory_profiler.profile
-def mem():
-    libs.file.remove(f"D:\\test", True)
-    for i in range(1):
-        print(save_wallpaper_lock(f"D:\\test\\{time.time()}.jpg", func))
-    libs.file.remove(f"D:\\test", True)
-
-
 if __name__ == '__main__':
     ctyped.THREADED_COM = False
+    p2 = r'D:\Downloads\pexels-artem-beliaikin-853199.jpg'
+    p3 = r'D:\Downloads\pexels-artem-beliaikin-853199 (1)'
+    p = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
+    # print(gdiplus.Image.validate_file(p))
     # background()
-    # print(set_wallpaper_lock(r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'))
-    mem()
+    print(win32.save_wallpaper_lock(r'D:\image.jpg'))
+    # mem()
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

@@ -1,10 +1,5 @@
-from . import _com
-from . import _const
-from . import _func
-from . import _struct
-from . import _type
-from .__head__ import _Pointer
-from .__head__ import _byref
+from . import _com, _const, _func, _struct, _type
+from .__head__ import _Pointer, _byref
 
 
 def __uuidof(_: str) -> _Pointer[_struct.IID]:
@@ -128,6 +123,6 @@ def ResultFromScode(sc: int) -> _type.HRESULT:
     return _type.HRESULT(sc)
 
 
-# noinspection PyPep8Naming,PyProtectedMember
-def IID_PPV_ARGS(ppType: _com._IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com._IUnknown]]:
+# noinspection PyPep8Naming
+def IID_PPV_ARGS(ppType: _com.IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com.IUnknown]]:
     return __uuidof(type(ppType).__name__), _byref(ppType)

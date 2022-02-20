@@ -292,8 +292,8 @@ def vars_ex(obj) -> str:
     end = f'\n{" " * (sum(pads) + 6)}'
     fmt = ''
     for item, type_, size in zip(dict_.items(), *attrs):
-        fmt += f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
-               f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n'
+        fmt += (f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] '
+                f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n')
     return fmt
 
 
@@ -490,8 +490,8 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res: Any, r
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, res_as_arg: Optional[bool] = None,
-               unpack_res: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_after(pre_func: Callable, res_as_arg: Optional[bool] = None, unpack_res: Optional[bool] = None) -> Callable[
+    [Callable], Callable]:
     def call_after_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -503,8 +503,8 @@ def call_after(pre_func: Callable, res_as_arg: Optional[bool] = None,
     return call_after_
 
 
-def call_before(post_func: Callable, res_as_arg: Optional[bool] = None,
-                unpack_res: Optional[bool] = None) -> Callable[[Callable], Callable]:
+def call_before(post_func: Callable, res_as_arg: Optional[bool] = None, unpack_res: Optional[bool] = None) -> Callable[
+    [Callable], Callable]:
     def call_before_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

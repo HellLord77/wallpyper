@@ -146,8 +146,8 @@ def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optiona
     for name, val in (fields or {}).items():
         data += f'--{boundary}{_CRLF}Content-Disposition: form-data; name="{name}"{_CRLF * 2}{val}{_CRLF}'.encode()
     for name, name_path in (files or {}).items():
-        data += f'--{boundary}{_CRLF}Content-Disposition: form-data; name="{name}"; ' \
-                f'filename="{name_path[0] or os.path.basename(name_path[1])}"{_CRLF * 2}'.encode()
+        data += (f'--{boundary}{_CRLF}Content-Disposition: form-data; name="{name}"; '
+                 f'filename="{name_path[0] or os.path.basename(name_path[1])}"{_CRLF * 2}'.encode())
         if os.path.isfile(name_path[1]):
             with open(name_path[1], 'rb') as file:
                 buffer = file.read(MAX_CHUNK)

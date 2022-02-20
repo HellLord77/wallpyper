@@ -3,29 +3,16 @@ from __future__ import annotations as _
 import ctypes as _ctypes
 import functools as _functools
 import types as _types
-import typing as _typing
-from typing import Callable as _Callable
-from typing import Optional as _Optional
+from typing import Callable as _Callable, Optional as _Optional
 
-from . import _const
-from . import _enum
-from . import _func
-from . import _struct
-from . import _type
-from .__head__ import _Globals
-from .__head__ import _Pointer
-from .__head__ import _addressof
-from .__head__ import _byref
-from .__head__ import _get_func_doc
-from .__head__ import _not_internal
-from .__head__ import _pointer
-from .__head__ import _resolve_type
+from . import _com_impl, _const, _enum, _struct, _type
+from .__head__ import _Globals, _Pointer, _get_func_doc, _resolve_type
 
 _ASSIGNED = ('__CLSID__', '__RuntimeClass__',
              *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
 
 
-class _IUnknown(_type.c_void_p):
+class IUnknown(_type.c_void_p):
     __CLSID__ = ''
     __RuntimeClass__ = ''
     QueryInterface: _Callable[[_Pointer[_struct.IID],
@@ -37,7 +24,7 @@ class _IUnknown(_type.c_void_p):
                        _type.ULONG]
 
 
-class IShellItem(_IUnknown):
+class IShellItem(IUnknown):
     BindToHandler: _Callable[[_Pointer[IBindCtx],
                               _Pointer[_struct.GUID],
                               _Pointer[_struct.IID],
@@ -57,7 +44,7 @@ class IShellItem(_IUnknown):
                        _type.HRESULT]
 
 
-class IShellItemArray(_IUnknown):
+class IShellItemArray(IUnknown):
     BindToHandler: _Callable
     GetPropertyStore: _Callable[[_enum.GETPROPERTYSTOREFLAGS,
                                  _Pointer[_struct.IID],
@@ -73,7 +60,7 @@ class IShellItemArray(_IUnknown):
     EnumItems: _Callable
 
 
-class IActiveDesktop(_IUnknown):
+class IActiveDesktop(IUnknown):
     __CLSID__ = _const.CLSID_ActiveDesktop
     ApplyChanges: _Callable[[_type.DWORD],
                             _type.HRESULT]
@@ -113,7 +100,7 @@ class IActiveDesktop(_IUnknown):
     GetDesktopItemBySource: _Callable
 
 
-class IDesktopWallpaper(_IUnknown):
+class IDesktopWallpaper(IUnknown):
     __CLSID__ = _const.CLSID_DesktopWallpaper
     SetWallpaper: _Callable[[_Optional[_type.LPCWSTR],
                              _type.LPCWSTR],
@@ -155,7 +142,7 @@ class IDesktopWallpaper(_IUnknown):
                       _type.HRESULT]
 
 
-class IModalWindow(_IUnknown):
+class IModalWindow(IUnknown):
     __CLSID__ = _const.CLSID_FileOpenDialog
     Show: _Callable[[_type.HWND],
                     _type.HRESULT]
@@ -208,13 +195,13 @@ class IFileOpenDialog(IFileDialog):
     GetSelectedItems: _Callable
 
 
-class IInspectable(_IUnknown):
+class IInspectable(IUnknown):
     GetIids: _Callable
     GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
     GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]], _type.HRESULT]
 
 
-class IUserNotification(_IUnknown):
+class IUserNotification(IUnknown):
     __CLSID__ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR,
                                _type.LPCWSTR,
@@ -227,14 +214,14 @@ class IUserNotification(_IUnknown):
     SetIconInfo: _Callable[[_type.HICON,
                             _type.LPCWSTR],
                            _type.HRESULT]
-    Show: _Callable[[_Optional[IQueryContinue],
+    Show: _Callable[[_Optional[_com_impl.IQueryContinue],
                      _type.DWORD],
                     _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR],
                          _type.HRESULT]
 
 
-class IUserNotification2(_IUnknown):
+class IUserNotification2(IUnknown):
     __CLSID__ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR,
                                _type.LPCWSTR,
@@ -247,15 +234,15 @@ class IUserNotification2(_IUnknown):
     SetIconInfo: _Callable[[_type.HICON,
                             _type.LPCWSTR],
                            _type.HRESULT]
-    Show: _Callable[[_Optional[_Pointer[IQueryContinue]],
+    Show: _Callable[[_Optional[_Pointer[_com_impl.IQueryContinue]],
                      _type.DWORD,
-                     _Optional[_Pointer[IUserNotificationCallback]]],
+                     _Optional[_Pointer[_com_impl.IUserNotificationCallback]]],
                     _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR],
                          _type.HRESULT]
 
 
-class IPropertyStore(_IUnknown):
+class IPropertyStore(IUnknown):
     GetCount: _Callable[[_Pointer[_type.DWORD]],
                         _type.HRESULT]
     GetAt: _Callable[[_type.DWORD,
@@ -271,7 +258,7 @@ class IPropertyStore(_IUnknown):
                       _type.HRESULT]
 
 
-class ISequentialStream(_IUnknown):
+class ISequentialStream(IUnknown):
     Read: _Callable
     Write: _Callable
 
@@ -288,7 +275,7 @@ class IStream(ISequentialStream):
     Clone: _Callable
 
 
-class IPersist(_IUnknown):
+class IPersist(IUnknown):
     GetClassID: _Callable[[_Pointer[_struct.CLSID]],
                           _type.HRESULT]
 
@@ -337,7 +324,7 @@ class IMoniker(IPersistStream):
     IsSystemMoniker: _Callable
 
 
-class IShellLinkA(_IUnknown):
+class IShellLinkA(IUnknown):
     __CLSID__ = _const.CLSID_ShellLink
     GetPath: _Callable[[_type.LPWSTR,
                         _type.c_int,
@@ -388,7 +375,7 @@ class IShellLinkA(_IUnknown):
                        _type.HRESULT]
 
 
-class IShellLinkW(_IUnknown):
+class IShellLinkW(IUnknown):
     __CLSID__ = _const.CLSID_ShellLink
     GetPath: _Callable[[_type.LPWSTR,
                         _type.c_int,
@@ -439,13 +426,13 @@ class IShellLinkW(_IUnknown):
                        _type.HRESULT]
 
 
-class IStartMenuPinnedList(_IUnknown):
+class IStartMenuPinnedList(IUnknown):
     __CLSID__ = _const.CLSID_StartMenuPin
     RemoveFromList: _Callable[[IShellItem],
                               _type.HRESULT]
 
 
-class IBindCtx(_IUnknown):
+class IBindCtx(IUnknown):
     RegisterObjectBound: _Callable
     RevokeObjectBound: _Callable
     ReleaseBoundObjects: _Callable
@@ -458,7 +445,7 @@ class IBindCtx(_IUnknown):
     RevokeObjectParam: _Callable
 
 
-class IPicture(_IUnknown):
+class IPicture(IUnknown):
     get_Handle: _Callable
     get_hPal: _Callable
     get_Type: _Callable
@@ -475,7 +462,7 @@ class IPicture(_IUnknown):
     get_Attributes: _Callable
 
 
-class IDispatch(_IUnknown):
+class IDispatch(IUnknown):
     GetTypeInfoCount: _Callable[[_Pointer[_type.UINT]],
                                 _type.HRESULT]
     GetTypeInfo: _Callable
@@ -487,7 +474,7 @@ class IPictureDisp(IDispatch):
     pass
 
 
-class ICreateDevEnum(_IUnknown):
+class ICreateDevEnum(IUnknown):
     __CLSID__ = _const.CLSID_SystemDeviceEnum
     CreateClassEnumerator: _Callable[[_Pointer[_struct.CLSID],
                                       _Pointer[IEnumMoniker],
@@ -495,7 +482,7 @@ class ICreateDevEnum(_IUnknown):
                                      _type.DWORD]
 
 
-class IEnumMoniker(_IUnknown):
+class IEnumMoniker(IUnknown):
     Next: _Callable[[_type.ULONG,
                      _Pointer[IMoniker],
                      _type.ULONG],
@@ -507,11 +494,11 @@ class IEnumMoniker(_IUnknown):
     Clone: _Callable
 
 
-class IErrorLog(_IUnknown):
+class IErrorLog(IUnknown):
     AddError: _Callable
 
 
-class IPropertyBag(_IUnknown):
+class IPropertyBag(IUnknown):
     Read: _Callable[[_type.LPCOLESTR,
                      _Pointer[_struct.VARIANT],
                      _Optional[_Pointer[IErrorLog]]],
@@ -535,7 +522,18 @@ class IAsyncInfo(IInspectable):
 
 
 class IAsyncAction(IInspectable):
-    put_Completed: _Callable[[IAsyncActionCompletedHandler],
+    put_Completed: _Callable[[_com_impl.IAsyncActionCompletedHandler],
+                             _type.HRESULT]
+    get_Completed: _Callable
+    GetResults: _Callable[[],
+                          _type.HRESULT]
+
+
+class IAsyncActionWithProgress(IInspectable):
+    put_Progress: _Callable[[_com_impl.IAsyncActionProgressHandler],
+                            _type.HRESULT]
+    get_Progress: _Callable
+    put_Completed: _Callable[[_com_impl.IAsyncActionWithProgressCompletedHandler],
                              _type.HRESULT]
     get_Completed: _Callable
     GetResults: _Callable[[],
@@ -543,7 +541,7 @@ class IAsyncAction(IInspectable):
 
 
 class IAsyncOperation(IInspectable):
-    put_Completed: _Callable[[IAsyncOperationCompletedHandler],
+    put_Completed: _Callable[[_com_impl.IAsyncOperationCompletedHandler],
                              _type.HRESULT]
     get_Completed: _Callable
     GetResults: _Callable[[_Pointer[_type.c_void_p]],
@@ -551,10 +549,10 @@ class IAsyncOperation(IInspectable):
 
 
 class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child (?)
-    put_Progress: _Callable[[IAsyncOperationProgressHandler],
+    put_Progress: _Callable[[_com_impl.IAsyncOperationProgressHandler],
                             _type.HRESULT]
     get_Progress: _Callable
-    put_Completed: _Callable[[IAsyncOperationWithProgressCompletedHandler],
+    put_Completed: _Callable[[_com_impl.IAsyncOperationWithProgressCompletedHandler],
                              _type.HRESULT]
     get_Completed: _Callable
     GetResults: _Callable[[_Pointer[_type.c_void_p]],
@@ -775,7 +773,7 @@ def _method_type(types: _Callable) -> list:
     return types
 
 
-def _init(item: str) -> type[_type.c_void_p]:
+def _init(item: str) -> type[_type.c_void_p]:  # TODO lazy set _fields_ & docs (_type.IRandomAccessStream)
     _globals.check_item(item)
 
     class Wrapper(_type.c_void_p):
@@ -805,151 +803,3 @@ def _init(item: str) -> type[_type.c_void_p]:
 
 
 _globals = _Globals()
-
-
-class IUnknown(_type.c_void_p):
-    __IID__ = {_const.IID_IUnknown}
-    _funcs = None
-    _vtbl = None
-    _refs = {}
-
-    def __init_subclass__(cls):
-        cls._vtbl = None
-        return super().__init_subclass__()
-
-    def __new__(cls):
-        base: type[IUnknown]
-        if cls._vtbl is None:
-            funcs = {}
-            bases = cls.mro()
-            for base in bases[bases.index(IUnknown)::-1]:
-                cls.__IID__.update(base.__IID__)
-                for key, value in vars(base).items():
-                    if _not_internal(key) and (key in funcs or __name__ == base.__module__):
-                        funcs[key] = value
-            fields = []
-            cls._funcs = []
-            for name, func in funcs.items():
-                class_ = isinstance(func, classmethod)
-                static = isinstance(func, staticmethod)
-                if class_ or static:
-                    func = func.__func__
-                types = list(_typing.get_type_hints(func).values())
-                # noinspection PyTypeHints
-                type_ = _ctypes.WINFUNCTYPE(*_resolve_type(_Callable[types, types.pop()]))
-                fields.append((name, type_))
-                cls._funcs.append(type_(_types.MethodType(func, cls)) if class_ else type_(func) if static else None)
-            cls._funcs = tuple(cls._funcs)
-            cls._vtbl = type(cls.__name__, (_ctypes.Structure,), {'_fields_': tuple(fields)})
-        return super().__new__(cls)
-
-    def __init__(self):  # TODO lazy init from value
-        # self._vtbl = self._vtbl(*(type_(getattr(self, name)) if func is None else func for (name, type_), func in
-        #                           zip(self._vtbl._fields_, self._funcs)))
-        # noinspection PyUnresolvedReferences,PyProtectedMember
-        self._ptr = _pointer(self._vtbl(*(type_(getattr(self, name)) if func is None else func
-                                          for (name, type_), func in zip(self._vtbl._fields_, self._funcs))))
-        super().__init__(_addressof(self._ptr))
-        self._refs[self] = 1
-
-    def __hash__(self):
-        return self.value
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    def QueryInterface(self, This: _Pointer[IUnknown], riid: _Pointer[_struct.IID],
-                       ppvObject: _Pointer[_type.LPVOID]) -> _type.HRESULT:
-        if not ppvObject:
-            return _const.E_INVALIDARG
-        ppvObject.contents.value = None
-        iid = _type.LPOLESTR()
-        _func.ole32.StringFromIID(riid, _byref(iid))
-        if iid.value in self.__IID__:
-            ppvObject.contents.value = _type.LPVOID.from_buffer(self).value
-            self.AddRef()
-            return _const.NOERROR
-        return _const.E_NOINTERFACE
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    def AddRef(self, This: _Optional[_Pointer[IUnknown]] = None) -> _type.ULONG:
-        self._refs[self] += 1
-        return self._refs[self]
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    def Release(self, This: _Optional[_Pointer[IUnknown]] = None) -> _type.ULONG:
-        self._refs[self] -= 1
-        if self._refs[self] == 0:
-            return self._refs.pop(self)
-        return self._refs[self]
-
-
-class IQueryContinue(IUnknown):
-    __IID__ = {_const.IID_IQueryContinue}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def QueryContinue() -> _type.HRESULT:
-        return _const.NOERROR
-
-
-class IUserNotificationCallback(IUnknown):
-    __IID__ = {_const.IID_IUserNotificationCallback}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def OnBalloonUserClick(This: _Pointer[IUserNotificationCallback],
-                           pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
-        return _const.NOERROR
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def OnLeftClick(This: _Pointer[IUserNotificationCallback],
-                    pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
-        return _const.NOERROR
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def OnContextMenu(This: _Pointer[IUserNotificationCallback],
-                      pt: _Pointer[_struct.POINT]) -> _type.HRESULT:
-        return _const.NOERROR
-
-
-class IAsyncActionCompletedHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncActionCompletedHandler}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Invoke(This: IAsyncActionCompletedHandler, asyncInfo: IAsyncAction,
-               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
-        return _const.NOERROR
-
-
-class IAsyncOperationCompletedHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncOperationCompletedHandler_IRandomAccessStream,
-               _const.IID_IAsyncOperationCompletedHandler_IStorageFile,
-               _const.IID_IAsyncOperationCompletedHandler_IStorageFolder}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Invoke(This: IAsyncOperationCompletedHandler, asyncInfo: IAsyncOperation,
-               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
-        return _const.NOERROR
-
-
-class IAsyncOperationProgressHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncOperationWithProgressHandler_UINT64_UINT64}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Invoke(This: IAsyncOperationProgressHandler, asyncInfo: IAsyncOperationWithProgress,
-               progressInfo: _type.c_void_p) -> _type.HRESULT:
-        return _const.NOERROR
-
-
-class IAsyncOperationWithProgressCompletedHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64}
-
-    # noinspection PyPep8Naming,PyUnusedLocal
-    @staticmethod
-    def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: IAsyncOperationWithProgress,
-               asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
-        return _const.NOERROR

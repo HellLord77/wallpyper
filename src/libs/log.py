@@ -122,8 +122,8 @@ def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n')
     formatted = ''
     for item, type_, size in zip(dict_.items(), types_, sizes):
         with contextlib.suppress(AssertionError, AttributeError):
-            formatted += f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] ' \
-                         f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}'
+            formatted += (f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] '
+                          f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}')
     return formatted
 
 
@@ -142,9 +142,9 @@ def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
                 _STACK[thread] = 0
             _STACK[thread] -= event == _RETURN
             pad = ' ' * _STACK[thread] * 4
-            log = f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] ' \
-                  f'{_get_class_name(frame.f_locals)}{frame.f_code.co_name}' \
-                  f'{"" if thread is threading.main_thread() else f" ({thread.name})"}{_SUFFIX}'
+            log = (f'{pad}{_PREFIXES[event]}{datetime.datetime.now()}: [{path} {frame.f_lineno}] '
+                   f'{_get_class_name(frame.f_locals)}{frame.f_code.co_name}'
+                   f'{"" if thread is threading.main_thread() else f" ({thread.name})"}{_SUFFIX}')
             if event == _CALL:
                 _STACK[thread] += 1
                 if frame.f_locals:

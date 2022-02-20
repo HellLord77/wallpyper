@@ -2,8 +2,7 @@ from __future__ import annotations as _
 
 import enum as _enum
 import functools as _functools
-from typing import Optional as _Optional
-from typing import Union as _Union
+from typing import Optional as _Optional, Union as _Union
 
 from . import _type
 from .__head__ import _Globals

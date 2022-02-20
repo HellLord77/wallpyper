@@ -4,12 +4,8 @@ import ctypes as _ctypes
 import functools as _functools
 from dataclasses import dataclass as _union
 
-from . import _const
-from . import _struct
-from . import _type
-from .__head__ import _Globals
-from .__head__ import _Pointer
-from .__head__ import _resolve_type
+from . import _const, _struct, _type
+from .__head__ import _Globals, _Pointer, _resolve_type
 
 
 # noinspection PyPep8Naming
@@ -129,8 +125,8 @@ def _init(item: str) -> type[_ctypes.Union]:
         _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
 
         def __repr__(self):
-            return f'{type(self).__name__}' \
-                   f'({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
+            return (f'{type(self).__name__}'
+                    f'({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})')
 
     return _functools.update_wrapper(Wrapper, _globals.vars_[item], updated=())
 
