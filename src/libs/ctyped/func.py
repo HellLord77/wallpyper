@@ -32,7 +32,7 @@ class _CDLL(type):
                     except FileNotFoundError as error:
                         raise error from None
             annot = _format_annotations(self.__annotations__[name])
-            func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self)[name])
+            func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self, globals())[name])
             if self._errcheck is not None:
                 func.errcheck = self._errcheck
             func.__name__ = name
@@ -372,6 +372,10 @@ class GdiPlus(_WinFunc):
     GdipGetDC: _Callable[[_type.GpGraphics,
                           _Pointer[_type.HDC]],
                          _enum.GpStatus]
+    GdipGetImageEncoders: _Callable[[_type.UINT,
+                                     _type.UINT,
+                                     _Pointer[_struct.ImageCodecInfo]],
+                                    _enum.GpStatus]
     GdipGetImageEncodersSize: _Callable[[_Pointer[_type.UINT],
                                          _Pointer[_type.UINT]],
                                         _enum.GpStatus]
@@ -421,6 +425,11 @@ class GdiPlus(_WinFunc):
     GdipLoadImageFromFile: _Callable[[_type.LPWSTR,
                                       _Pointer[_type.GpImage]],
                                      _enum.GpStatus]
+    GdipSaveImageToFile: _Callable[[_type.GpImage,
+                                    _type.LPWSTR,
+                                    _Pointer[_struct.CLSID],
+                                    _Optional[_Pointer[_struct.EncoderParameters]]],
+                                   _enum.GpStatus]
     GdipScaleWorldTransform: _Callable[[_type.GpGraphics,
                                         _type.REAL,
                                         _type.REAL,
