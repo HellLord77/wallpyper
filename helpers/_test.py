@@ -577,6 +577,9 @@ def func(*args):
 
 
 if __name__ == '__main__':
+    help(ctyped.func.user32.DestroyWindow)
+    help(ctyped.com.IShellItem)
+    exit()
     ctyped.THREADED_COM = False
     p2 = r'D:\Downloads\pexels-artem-beliaikin-853199.jpg'
     p3 = r'D:\Downloads\pexels-artem-beliaikin-853199 (1)'

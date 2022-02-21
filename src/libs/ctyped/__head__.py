@@ -52,7 +52,7 @@ class _Globals(dict):
             try:
                 val = vars(self.module)[item]
             except KeyError:
-                # noinspection PyProtectedMember,PyUnresolvedReferences
+                # noinspection PyProtectedMember
                 val = self.module._init(item)
             else:
                 self.vars_[item] = val

@@ -121,14 +121,14 @@ class VARIANT_U:
 def _init(item: str) -> type[_ctypes.Union]:
     _globals.check_item(item)
 
-    class Wrapper(_ctypes.Union):
+    class Union(_ctypes.Union):
         _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
 
         def __repr__(self):
             return (f'{type(self).__name__}'
                     f'({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})')
 
-    return _functools.update_wrapper(Wrapper, _globals.vars_[item], updated=())
+    return _functools.update_wrapper(Union, _globals.vars_[item], updated=())
 
 
 _globals = _Globals()

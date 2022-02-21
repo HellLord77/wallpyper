@@ -637,7 +637,7 @@ VARIANTARG = VARIANT
 def _init(item: str) -> type[_ctypes.Structure]:
     _globals.check_item(item)
 
-    class Wrapper(_ctypes.Structure):
+    class Struct(_ctypes.Structure):
         _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
         _defaults = tuple((field[0], getattr(_globals.vars_[item], field[0])) for field in _fields_)
 
@@ -647,7 +647,7 @@ def _init(item: str) -> type[_ctypes.Structure]:
                     kwargs[name] = val
             super().__init__(*args, **kwargs)
 
-    return _functools.update_wrapper(Wrapper, _globals.vars_[item], _ASSIGNED, ())
+    return _functools.update_wrapper(Struct, _globals.vars_[item], _ASSIGNED, ())
 
 
 _globals = _Globals()

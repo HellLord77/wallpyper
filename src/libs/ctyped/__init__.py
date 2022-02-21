@@ -7,25 +7,11 @@ import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
                     Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
-from . import __head__
-from . import _com as com
-from . import _com_impl as com_impl
-from . import _const as const
-from . import _enum as enum
-from . import _func as func
-from . import _handle as handle
-from . import _macro as macro
-from . import _struct as struct
 # noinspection PyShadowingBuiltins
-from . import _type as type
-from . import _union as union
-from .__head__ import _CT as CT
-from .__head__ import _Pointer as Pointer
-from .__head__ import _addressof as addressof
-from .__head__ import _byref as byref
-from .__head__ import _cast as cast
-from .__head__ import _pointer as pointer
-from .__head__ import _sizeof as sizeof
+from . import (__head__, _com as com, _com_impl as com_impl, _const as const, _enum as enum, _func as func,
+               _handle as handle, _macro as macro, _struct as struct, _type as type, _union as union)
+from .__head__ import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
+                       _byref as byref, _cast as cast, _pointer as pointer, _sizeof as sizeof)
 
 THREADED_COM = True
 

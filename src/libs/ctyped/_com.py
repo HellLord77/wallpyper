@@ -30,7 +30,7 @@ class IShellItem(IUnknown):
                               _Pointer[_struct.IID],
                               _type.c_void_p],
                              _type.HRESULT]
-    GetParent: _Callable[[_Pointer[_type.IShellItem]],
+    GetParent: _Callable[[_Pointer[IShellItem]],
                          _type.HRESULT]
     GetDisplayName: _Callable[[_enum.SIGDN,
                                _Pointer[_type.LPWSTR]],
@@ -38,7 +38,7 @@ class IShellItem(IUnknown):
     GetAttributes: _Callable[[_type.SFGAOF,
                               _Pointer[_type.SFGAOF]],
                              _type.HRESULT]
-    Compare: _Callable[[_Pointer[_type.IShellItem],
+    Compare: _Callable[[_Pointer[IShellItem],
                         _type.SICHINTF,
                         _Pointer[_type.c_int]],
                        _type.HRESULT]
@@ -305,9 +305,9 @@ class IPersistStream(IPersist):
 class IMoniker(IPersistStream):
     BindToObject: _Callable
     BindToStorage: _Callable[[_Optional[_Pointer[IBindCtx]],
-                              _Optional[_Pointer[_type.IMoniker]],
+                              _Optional[_Pointer[IMoniker]],
                               _Pointer[_struct.IID],
-                              _Pointer[_type.IMoniker]],
+                              _Pointer[IMoniker]],
                              _type.HRESULT]
     Reduce: _Callable
     ComposeWith: _Callable
@@ -637,7 +637,7 @@ class IStorageFile(IInspectable):
                              _enum.NameCollisionOption,
                              _Pointer[IAsyncOperation]],
                             _type.HRESULT]
-    CopyAndReplaceAsync: _Callable[[_type.IStorageFile,
+    CopyAndReplaceAsync: _Callable[[IStorageFile,
                                     _Pointer[IAsyncAction]],
                                    _type.HRESULT]
     MoveOverloadDefaultNameAndOptions: _Callable[[IStorageFolder,
@@ -652,7 +652,7 @@ class IStorageFile(IInspectable):
                              _enum.NameCollisionOption,
                              _Pointer[IAsyncAction]],
                             _type.HRESULT]
-    MoveAndReplaceAsync: _Callable[[_type.IStorageFile,
+    MoveAndReplaceAsync: _Callable[[IStorageFile,
                                     _Pointer[IAsyncAction]],
                                    _type.HRESULT]
 
@@ -745,7 +745,7 @@ class IRandomAccessStream(IInspectable):
                             _type.HRESULT]
     Seek: _Callable[[_type.UINT64],
                     _type.HRESULT]
-    CloneStream: _Callable[[_Pointer[_type.IRandomAccessStream]],
+    CloneStream: _Callable[[_Pointer[IRandomAccessStream]],
                            _type.HRESULT]
     get_CanRead: _Callable[[_Pointer[_type.boolean]],
                            _type.HRESULT]
@@ -776,12 +776,7 @@ def _method_type(types: _Callable) -> list:
 def _init(item: str) -> type[_type.c_void_p]:  # TODO lazy set _fields_ & docs (_type.IRandomAccessStream)
     _globals.check_item(item)
 
-    class Wrapper(_type.c_void_p):
-        _struct: _ctypes.Structure = type(item, (_ctypes.Structure,), {'_fields_': tuple((name, _ctypes.WINFUNCTYPE(
-            *_method_type(types))) for name, types in _globals.get_type_hints(item))})
-        # noinspection PyProtectedMember
-        __doc__ = '\n'.join(_get_func_doc(name, types._restype_, types._argtypes_) for name, types in _struct._fields_)
-
+    class Com(_type.c_void_p):
         def __getattr__(self, name: str):
             # noinspection PyProtectedMember
             for name_, _ in self._struct._fields_:
@@ -799,7 +794,14 @@ def _init(item: str) -> type[_type.c_void_p]:  # TODO lazy set _fields_ & docs (
                     break
             return super().__getattribute__(name)
 
-    return _functools.update_wrapper(Wrapper, _globals.vars_[item], _ASSIGNED, ())
+    globals()[item] = _functools.update_wrapper(Com, _globals.vars_[item], _ASSIGNED, ())
+    # noinspection PyTypeChecker,PyTypeHints
+    Com._struct: _ctypes.Structure = type(item, (_ctypes.Structure,), {'_fields_': tuple(
+        (name, _ctypes.WINFUNCTYPE(*_method_type(types))) for name, types in _globals.get_type_hints(item))})
+    # noinspection PyProtectedMember
+    Com.__doc__ = '\n'.join(_get_func_doc(name, types._restype_, types._argtypes_)
+                            for name, types in Com._struct._fields_)
+    return globals().pop(item)
 
 
 _globals = _Globals()

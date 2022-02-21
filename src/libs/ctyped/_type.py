@@ -131,10 +131,6 @@ GpGraphics = _obj_p
 GpImage = _obj_p
 GpImageAttributes = _obj_p
 GpSolidFill = _obj_p
-IMoniker = _obj_p
-IRandomAccessStream = _obj_p
-IShellItem = _obj_p
-IStorageFile = _obj_p
 
 _enum = c_uint
 DebugEventLevel = _enum
