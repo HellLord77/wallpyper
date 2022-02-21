@@ -626,6 +626,38 @@ class Rational:
     Denominator: _type.UINT32 = _DEFAULT
 
 
+@_struct
+class EncoderParameter:
+    Guid: GUID = _DEFAULT
+    NumberOfValues: _type.ULONG = _DEFAULT
+    Type: _type.ULONG = _DEFAULT
+    Value: _Pointer[_type.VOID] = _DEFAULT
+
+
+@_struct
+class EncoderParameters:
+    Count: _type.UINT = _DEFAULT
+    # noinspection PyTypeChecker
+    Parameter: EncoderParameter * 1 = _DEFAULT
+
+
+@_struct
+class ImageCodecInfo:
+    Clsid: CLSID = _DEFAULT
+    FormatID: GUID = _DEFAULT
+    CodecName: _type.LPWSTR = _DEFAULT
+    DllName: _type.LPWSTR = _DEFAULT
+    FormatDescription: _type.LPWSTR = _DEFAULT
+    FilenameExtension: _type.LPWSTR = _DEFAULT
+    MimeType: _type.LPWSTR = _DEFAULT
+    Flags: _type.DWORD = _DEFAULT
+    Version: _type.DWORD = _DEFAULT
+    SigCount: _type.DWORD = _DEFAULT
+    SigSize: _type.DWORD = _DEFAULT
+    SigPattern: _Pointer[_type.BYTE] = _DEFAULT
+    SigMask: _Pointer[_type.BYTE] = _DEFAULT
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

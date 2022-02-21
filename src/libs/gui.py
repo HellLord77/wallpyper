@@ -62,20 +62,22 @@ _ANIMATION_THREAD = f'{__name__}-{__version__}-{type(_TASK_BAR_ICON).__name__}An
 
 
 def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
-                 kwargs: Mapping[str, Any], set_state: bool, on_thread: bool) -> Callable:
+                 kwargs: Mapping[str, Any], set_state: bool, on_thread: bool, pre_menu_args: bool) -> Callable:
     @functools.wraps(on_click)
     def wrapper(event: Optional[wx.Event] = None):
         menu_item = event.GetEventObject().FindItemById(event.GetId())
         if set_state:
             menu_item.Enable(False)
-        menu_args_ = []
+        args_ = [] if pre_menu_args else list(args)
         for menu_arg in menu_args:
             if menu_arg in Method:
-                menu_args_.append(getattr(menu_item, menu_arg))
+                args_.append(getattr(menu_item, menu_arg))
             elif menu_arg in Property:
-                menu_args_.append(getattr(menu_item, menu_arg)())
+                args_.append(getattr(menu_item, menu_arg)())
+        if pre_menu_args:
+            args_.extend(args)
         try:
-            on_click(*menu_args_, *args, **kwargs)
+            on_click(*args_, **kwargs)
         finally:
             if set_state:
                 menu_item.Enable()
@@ -95,7 +97,7 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
 def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = None, enable: bool = True,
                   uid: str = '', on_click: Optional[Callable] = None, menu_args: Optional[Iterable[str]] = None,
                   args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True,
-                  change_state: bool = True, position: Optional[int] = None,
+                  change_state: bool = True, position: Optional[int] = None, pre_menu_args: bool = True,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
@@ -107,7 +109,7 @@ def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = N
     if on_click is not None:
         menu.Bind(wx.EVT_MENU,
                   _get_wrapper(on_click, () if menu_args is None else menu_args, () if args is None else args,
-                               {} if kwargs is None else kwargs, change_state, on_thread), menu_item)
+                               {} if kwargs is None else kwargs, change_state, on_thread, pre_menu_args), menu_item)
     return menu_item
 
 

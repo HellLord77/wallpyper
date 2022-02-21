@@ -30,13 +30,21 @@ def functiondiscoverykeys_devpkey():
             print(f"{pkey[0]} = '{_str(pkey[1:12])}', {pkey[12]}")
 
 
-def devguid():
-    path = os.path.join(SDK_PATH, 'shared', 'devguid.h')
+def _guid(path: str, prefix: str = 'GUID'):
     with open(path, 'r') as file:
-        for match in re.finditer(r'DEFINE_GUID\(\s(GUID_.*)\);', file.read()):
+        for match in re.finditer(rf'DEFINE_GUID.*({prefix}_.*)\);', file.read()):
             guid = match.groups()[0].replace(',', ' ').split()
-            guid[1] = guid[1][:-1]
+            guid[1] = guid[1].replace('L', '')
             print(f"{guid[0]} = '{_str(guid[1:12])}'")
+
+
+def devguid():
+    _guid(os.path.join(SDK_PATH, 'shared', 'devguid.h'))
+
+
+def wincodec():
+    _guid(os.path.join(SDK_PATH, 'um', 'wincodec.h'), 'CLSID')
+    _guid(os.path.join(SDK_PATH, 'um', 'wincodec.h'))
 
 
 def devpkey():
@@ -72,4 +80,4 @@ def windows_storage():
 
 
 if __name__ == '__main__':
-    windows_storage()
+    wincodec()

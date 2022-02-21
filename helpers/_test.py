@@ -16,6 +16,19 @@ NAME = f'{__name__}-{__version__}'
 EVENT_CLOSE = ctyped.const.WM_CLOSE
 
 
+def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
+    graphics = gdiplus.Graphics.from_hdc(hdc)
+    brush = gdiplus.SolidFill.from_color(argb)
+    if out_x < in_x:
+        graphics.fill_rect(brush, out_x, out_y, in_x - out_x, out_h)
+    if out_y < in_y:
+        graphics.fill_rect(brush, out_x, out_y, out_w, in_y - out_y)
+    if in_x + in_w < out_x + out_w:
+        graphics.fill_rect(brush, in_x + in_w, out_y, out_x + out_w - (in_x + in_w), out_h)
+    if in_y + in_h < out_y + out_h:
+        graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
+
+
 def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
     bitmap = gdiplus.Bitmap.from_file(path)
     delays: ctyped.Pointer[ctyped.type.c_long] = bitmap.get_property(ctyped.const.PropertyTagFrameDelay)
@@ -61,7 +74,7 @@ class SysTray:
         if not cls._hwnd:
             cls._class = ctyped.struct.WNDCLASSEXW(
                 ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
-                hInstance=ctyped.func.kernel32.GetModuleHandleW(None), lpszClassName=NAME)
+                hInstance=ctyped.func.kernel32.GetModuleHandleW(None), lpszClassName=f'{NAME}-{cls.__name__}')
             ctyped.func.user32.RegisterClassExW(ctyped.byref(cls._class))
             cls._hwnd = ctyped.func.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
                                                            ctyped.const.HWND_MESSAGE, None, None, None)
@@ -461,42 +474,43 @@ def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
     ratio = to_w / to_h
     if by_h:
         w = from_h * ratio
-        return int((from_w - w) / div), 0, int(w), from_h
+        return round((from_w - w) / div), 0, int(w), from_h
     else:
         h = from_w / ratio
-        return 0, int((from_h - h) / div), from_w, int(h)
+        return 0, round((from_h - h) / div), from_w, int(h)
 
 
-def _get_position(hbitmap_w: int, hbitmap_h: int, monitor_w: int, monitor_h: int,
-                  position: int = Position.FILL) -> tuple[int, int, int, int]:
-    if position == Position.CENTER:
-        dw = hbitmap_w - monitor_w
-        dh = hbitmap_h - monitor_h
-        return int(dw / 2), int(dh / 2), hbitmap_w - dw, hbitmap_h - dh
-    elif position in (Position.TILE, Position.STRETCH):
-        return 0, 0, hbitmap_w, hbitmap_h
-    elif position == Position.FIT:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w > monitor_h / hbitmap_h)
-    elif position == Position.FILL:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h, 3)
-    elif position == Position.SPAN:
-        return _fit_by(hbitmap_w, hbitmap_h, monitor_w, monitor_h, monitor_w / hbitmap_w < monitor_h / hbitmap_h)
+def _get_position(w: int, h: int, src_w: int, src_h: int,
+                  pos: int = Position.FILL) -> tuple[int, int, int, int]:
+    if pos == Position.CENTER:
+        dw = src_w - w
+        dh = src_h - h
+        return int(dw / 2), int(dh / 2), src_w - dw, src_h - dh
+    elif pos in (Position.TILE, Position.STRETCH):
+        return 0, 0, src_w, src_h
+    elif pos == Position.FIT:
+        return _fit_by(src_w, src_h, w, h, w / src_w > h / src_h)
+    elif pos == Position.FILL:
+        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h, 3)
+    elif pos == Position.SPAN:
+        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h)
     return 0, 0, 0, 0
 
 
-def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus.Image,
+def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus.Bitmap,
                   src_x: int, src_y: int, src_w: int, src_h: int) -> ctyped.handle.HDC:
     bitmap = gdiplus.Bitmap.from_dimension(width, height)
     graphics = bitmap.get_graphics()
     graphics.fill_rect_with_color(color, 0, 0, width, height)
     graphics.set_scale(width / src_w, height / src_h)
+    src.set_resolution(graphics.dpi_x, graphics.dpi_y)
     graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
     return bitmap.get_hbitmap().get_hdc()
 
 
-def _draw_image(image: gdiplus.Image, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
-                src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
-                transition: int = Transition.NONE, duration: float = 0, max_steps: int = sys.maxsize):
+def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
+                     src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
+                     transition: int = Transition.NONE, duration: float = 0, max_steps: int = sys.maxsize):
     dst = ctyped.handle.HDC.from_hwnd(win32._get_workerw_hwnd())
     src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h)
     if transition != Transition.NONE:
@@ -529,57 +543,43 @@ def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
             r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
 
 
-def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
-    graphics = gdiplus.Graphics.from_hdc(hdc)
-    brush = gdiplus.SolidFill.from_color(argb)
-    if out_x < in_x:
-        graphics.fill_rect(brush, out_x, out_y, in_x - out_x, out_h)
-    if out_y < in_y:
-        graphics.fill_rect(brush, out_x, out_y, out_w, in_y - out_y)
-    if in_x + in_w < out_x + out_w:
-        graphics.fill_rect(brush, in_x + in_w, out_y, out_x + out_w - (in_x + in_w), out_h)
-    if in_y + in_h < out_y + out_h:
-        graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
-
-
 def background():
-    path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
+    path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-3zyjy9.jpg'
     monitor = win32.get_monitor_ids()[1]
-    position = Position.FIT
+    position = Position.FILL
     r = 0
     g = 0
     b = 0
-    transition = Transition.FADE
+    transition = Transition.LEFT
     duration = 1
 
-    image = gdiplus.Image.from_file(path)
-    if image:
+    try:
+        image = gdiplus.Bitmap.from_file(path)
+    except win32.gdiplus.GdiplusError:
+        return False
+    else:
         if position in (Position.TILE, Position.SPAN):
             monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CYVIRTUALSCREEN)
             if position == Position.TILE:
                 bitmap = gdiplus.Bitmap.from_dimension(monitor_x_y_w_h[2], monitor_x_y_w_h[3])
+                graphics = bitmap.get_graphics()
                 for x in range(0, bitmap.width, image.width):
                     for y in range(0, bitmap.height, image.height):
-                        bitmap.get_graphics().draw_image_from_rect(image, x, y)
+                        graphics.draw_image(image, x, y)
                 image = bitmap
         else:
             monitor_x_y_w_h = win32._get_monitor_x_y_w_h(monitor)
-        _draw_image(image, *monitor_x_y_w_h, *_get_position(
-            image.width, image.height, *monitor_x_y_w_h[2:], position), _get_argb(r, g, b), transition, duration)
-    # TODO set without system transition
+        _draw_on_workerw(image, *monitor_x_y_w_h, *_get_position(
+            *monitor_x_y_w_h[2:], image.width, image.height, position), _get_argb(r, g, b), transition, duration)
     win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
 
 if __name__ == '__main__':
-    p2 = r'D:\Downloads\pexels-artem-beliaikin-853199.jpg'
-    p3 = r'D:\Downloads\pexels-artem-beliaikin-853199 (1)'
-    p = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
-    # print(gdiplus.Image.validate_file(p))
+    p3 = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
     background()
     # print(win32.save_wallpaper_lock(r'D:\image.jpg'))
-    # mem()
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'

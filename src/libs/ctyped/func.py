@@ -248,9 +248,18 @@ class gdi32(_WinFunc):
 
 
 class GdiPlus(_WinFunc):
+    GdipBitmapSetResolution: _Callable[[_type.GpBitmap,
+                                        _type.REAL,
+                                        _type.REAL],
+                                       _enum.GpStatus]
     GdipCreateBitmapFromFile: _Callable[[_type.LPWSTR,
                                          _Pointer[_type.GpBitmap]],
                                         _enum.GpStatus]
+    GdipCreateBitmapFromGraphics: _Callable[[_type.INT,
+                                             _type.INT,
+                                             _type.GpGraphics,
+                                             _Pointer[_type.GpBitmap]],
+                                            _enum.GpStatus]
     GdipCreateCachedBitmap: _Callable[[_type.GpBitmap,
                                        _type.GpGraphics,
                                        _Pointer[_type.GpCachedBitmap]],
@@ -372,6 +381,12 @@ class GdiPlus(_WinFunc):
     GdipGetDC: _Callable[[_type.GpGraphics,
                           _Pointer[_type.HDC]],
                          _enum.GpStatus]
+    GdipGetDpiX: _Callable[[_type.GpGraphics,
+                            _Pointer[_type.REAL]],
+                           _enum.GpStatus]
+    GdipGetDpiY: _Callable[[_type.GpGraphics,
+                            _Pointer[_type.REAL]],
+                           _enum.GpStatus]
     GdipGetImageEncoders: _Callable[[_type.UINT,
                                      _type.UINT,
                                      _Pointer[_struct.ImageCodecInfo]],
@@ -470,6 +485,8 @@ class kernel32(_WinFunc):
                            _type.BOOL]
     DeleteFileW: _Callable[[_type.LPCWSTR],
                            _type.BOOL]
+    ExitProcess: _Callable[[_type.UINT],
+                           _type.VOID]
     FormatMessageA: _Callable[[_type.DWORD,
                                _Optional[_type.LPCVOID],
                                _type.DWORD,
@@ -486,6 +503,13 @@ class kernel32(_WinFunc):
                                _type.DWORD,
                                _Optional[_Pointer[_type.va_list]]],
                               _type.DWORD]
+    GetCurrentProcess: _Callable[[],
+                                 _type.HANDLE]
+    GetCurrentProcessId: _Callable[[],
+                                   _type.DWORD]
+    GetExitCodeProcess: _Callable[[_type.HANDLE,
+                                   _Pointer[_type.DWORD]],
+                                  _type.BOOL]
     GetLastError: _Callable[[],
                             _type.DWORD]
     GetModuleHandleA: _Callable[[_Optional[_type.LPCSTR]],
@@ -517,6 +541,11 @@ class kernel32(_WinFunc):
                             _type.c_void_p]
     Sleep: _Callable[[_type.DWORD],
                      _type.VOID]
+    SwitchToThread: _Callable[[],
+                              _type.BOOL]
+    TerminateProcess: _Callable[[_type.HANDLE,
+                                 _type.UINT],
+                                _type.BOOL]
 
 
 # noinspection PyPep8Naming
@@ -595,6 +624,12 @@ class ole32(_WinFunc):
     StringFromIID: _Callable[[_Pointer[_struct.IID],
                               _Pointer[_type.LPOLESTR]],
                              _type.HRESULT]
+
+
+# noinspection PyPep8Naming
+class oleacc(_WinFunc):
+    GetProcessHandleFromHwnd: _Callable[[_type.HWND],
+                                        _type.HANDLE]
 
 
 # noinspection PyPep8Naming
@@ -1003,6 +1038,11 @@ class user32(_WinFunc):
                            _type.c_int,
                            _type.BOOL],
                           _type.BOOL]
+    NotifyWinEvent: _Callable[[_type.DWORD,
+                               _type.HWND,
+                               _type.LONG,
+                               _type.LONG],
+                              _type.VOID]
     OpenClipboard: _Callable[[_Optional[_type.HWND]],
                              _type.BOOL]
     PostQuitMessage: _Callable[[_type.c_int],
@@ -1059,6 +1099,14 @@ class user32(_WinFunc):
                          _type.UINT,
                          _Optional[_type.TIMERPROC]],
                         _type.UINT_PTR]
+    SetWinEventHook: _Callable[[_type.DWORD,
+                                _type.DWORD,
+                                _Optional[_type.HMODULE],
+                                _type.WINEVENTPROC,
+                                _type.DWORD,
+                                _type.DWORD,
+                                _type.DWORD],
+                               _type.HWINEVENTHOOK]
     SetWindowPos: _Callable[[_type.HWND,
                              _Optional[_type.HWND],
                              _type.c_int,
@@ -1104,6 +1152,8 @@ class user32(_WinFunc):
                                      _type.BOOL]
     TranslateMessage: _Callable[[_Pointer[_struct.MSG]],
                                 _type.BOOL]
+    UnhookWinEvent: _Callable[[_type.HWINEVENTHOOK],
+                              _type.BOOL]
     UnhookWindowsHook: _Callable[[_type.c_int,
                                   _type.HOOKPROC],
                                  _type.BOOL]

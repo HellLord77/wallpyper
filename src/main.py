@@ -20,7 +20,6 @@ import platforms.win32 as platform
 import utils
 
 FEATURE_FORCE_PIN = False
-FEATURE_DISPLAY = True
 FEATURE_CHANGED = False
 
 MAX_CACHE = 64 * 1024 * 1024
@@ -30,7 +29,7 @@ NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
 ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
-CONFIG_NO_DISPLAY = 'ignored_display'
+CONFIG_DISPLAY = 'display'
 CONFIG_CHANGE = 'auto_change'
 CONFIG_INTERVAL = 'change_interval'
 CONFIG_LAST = 'changed_at'
@@ -58,7 +57,7 @@ MODULES = modules.wallhaven,
 LANG = langs.DEFAULT
 MODULE = MODULES[0]
 DEFAULT_CONFIG = utils.Dict({
-    CONFIG_NO_DISPLAY: set(),
+    CONFIG_DISPLAY: '',
     CONFIG_CHANGE: False,
     CONFIG_INTERVAL: INTERVALS[3],
     CONFIG_LAST: utils.Timer.last_start,
@@ -141,8 +140,8 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
 
 
 def fix_config():
-    if not FEATURE_DISPLAY:
-        CONFIG[CONFIG_NO_DISPLAY] = DEFAULT_CONFIG[CONFIG_NO_DISPLAY]
+    if DISPLAYS and CONFIG[CONFIG_DISPLAY] not in DISPLAYS:
+        CONFIG[CONFIG_DISPLAY] = DEFAULT_CONFIG[CONFIG_DISPLAY]
     CONFIG[CONFIG_LAST] = TIMER.last_start if FEATURE_CHANGED else DEFAULT_CONFIG[CONFIG_LAST]
     if CONFIG[CONFIG_INTERVAL] not in INTERVALS:
         CONFIG[CONFIG_INTERVAL] = DEFAULT_CONFIG[CONFIG_INTERVAL]
@@ -161,11 +160,10 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
             HISTORY.set_next(url)
     if url:
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
-        if len(monitors := DISPLAYS.difference(CONFIG[CONFIG_NO_DISPLAY])) == len(DISPLAYS):
-            monitors = None
         changed = (url == temp_path or utils.download_url(
             url, temp_path, chunk_count=100, on_write=progress_callback, args=args,
-            kwargs=kwargs)) and platform.set_wallpaper(temp_path, fade=not CONFIG[CONFIG_NO_FADE], monitors=monitors)
+            kwargs=kwargs)) and platform.set_wallpaper(temp_path, not CONFIG[CONFIG_NO_FADE],
+                                                       *(CONFIG[CONFIG_DISPLAY],) if CONFIG[CONFIG_DISPLAY] else ())
     else:
         changed = False
     if progress_callback:
@@ -221,25 +219,21 @@ def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None
 
 def on_update_display():
     DISPLAYS.clear()
-    menu_display = utils.get_item(CONFIG_NO_DISPLAY)
+    menu_display = utils.get_item(CONFIG_DISPLAY)
     utils.remove_items(menu=menu_display)
     ids = platform.get_monitor_ids()
     pad = len(str(len(ids)))
+    id_ = DEFAULT_CONFIG[CONFIG_DISPLAY]
+    utils.add_item(f'[*] {LANG.DISPLAY_ALL}', utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == id_,
+                   uid=id_, on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
+                   args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu_display)
     for index, id_ in enumerate(ids):
         DISPLAYS.add(id_)
         utils.add_item(f'[{langs.to_str(index, LANG, pad)}] {platform.get_monitor_name(id_) or LANG.DISPLAY}',
-                       utils.item.CHECK, id_ not in CONFIG[CONFIG_NO_DISPLAY], uid=id_, on_click=on_display,
-                       menu_args=(utils.get_property.CHECKED, utils.get_property.UID), menu=menu_display)
+                       utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == id_, uid=id_,
+                       on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
+                       args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu_display)
     utils.add_item(LANG.LABEL_UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
-
-
-def on_display(checked: bool, uid: str) -> int:
-    ignored = CONFIG[CONFIG_NO_DISPLAY]
-    if checked:
-        ignored.discard(uid)
-    else:
-        ignored.add(uid)
-    return len(ignored)
 
 
 def on_interval(interval: str):
@@ -437,7 +431,6 @@ def on_quit():
 
 def create_menu():  # TODO slideshow (smaller timer)
     global ENABLE_PREVIOUS
-    update_config = utils.call_after(utils.reverse, True, True)(CONFIG.__setitem__)
     menu_change = utils.add_submenu(LANG.MENU_CHANGE)
     TIMER.args = False, menu_change.Enable, (lambda progress=None: menu_change.SetItemLabel(
         LANG.MENU_CHANGE if progress is None else f'{LANG.MENU_CHANGE} ({langs.to_str(progress, LANG, 3)}%)'))
@@ -478,7 +471,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
-    utils.add_submenu(LANG.MENU_DISPLAY, FEATURE_DISPLAY, CONFIG_NO_DISPLAY)
+    utils.add_submenu(LANG.MENU_DISPLAY, uid=CONFIG_DISPLAY)
     on_update_display()
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
     menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu=menu_auto)
@@ -489,18 +482,22 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
                    menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
     utils.add_separator(menu_auto)
-    utils.add_item(LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_AUTOSAVE,), menu=menu_auto)
+    utils.add_item(LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE],
+                   on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
+                   args=(CONFIG_AUTOSAVE,), pre_menu_args=False, menu=menu_auto)
     utils.add_item(LANG.LABEL_SAVE_DIR, on_click=on_modify_save, menu=menu_auto)
     menu_config = utils.add_submenu(LANG.MENU_CONFIG)
-    utils.add_item(LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NOTIFY,), menu=menu_config)
-    utils.add_item(LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_NO_FADE,), menu=menu_config)
+    utils.add_item(LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY],
+                   on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
+                   args=(CONFIG_NOTIFY,), pre_menu_args=False, menu=menu_config)
+    utils.add_item(LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE],
+                   on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
+                   args=(CONFIG_NO_FADE,), pre_menu_args=False, menu=menu_config)
     utils.add_item(LANG.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
                    on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE], on_click=update_config,
-                   menu_args=(utils.get_property.CHECKED,), args=(CONFIG_CACHE,), menu=menu_config)
+    utils.add_item(LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE],
+                   on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
+                   args=(CONFIG_CACHE,), pre_menu_args=False, menu=menu_config)
     utils.add_item(LANG.LABEL_START, utils.item.CHECK, CONFIG[CONFIG_START],
                    on_click=on_auto_start, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
     utils.add_item(LANG.LABEL_CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE],

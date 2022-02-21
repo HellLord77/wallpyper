@@ -60,10 +60,10 @@ def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARA
 
 
 def _get_workerw_hwnd() -> int:
-    workkerw = ctyped.type.LPARAM()
+    workerw = ctyped.type.LPARAM()
     _spawn_workerw()
-    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(_get_workerw_hwnd_callback), ctyped.addressof(workkerw))
-    return workkerw.value
+    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(_get_workerw_hwnd_callback), ctyped.addressof(workerw))
+    return workerw.value
 
 
 @contextlib.contextmanager
@@ -562,9 +562,9 @@ def get_monitor_ids() -> tuple[str, ...]:
     return tuple(monitors)
 
 
-def get_monitor_name(id_: str) -> str:
+def get_monitor_name(id_: str) -> Optional[str]:
     dev_id = _get_str_dev_id_prop(id_, ctyped.const.DEVPKEY_Device_InstanceId)
-    return _get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else ''
+    return _get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else None
 
 
 def get_direct_show_devices_properties(clsid: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
@@ -631,9 +631,8 @@ def _set_wallpaper_iactivedesktop(path: str) -> bool:
     with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
             _spawn_workerw()
-            desktop.SetWallpaper(path, 0)
-            desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL)
-            return True
+            return ctyped.macro.SUCCEEDED(desktop.SetWallpaper(
+                path, 0)) and ctyped.macro.SUCCEEDED(desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL))
     return False
 
 
@@ -655,12 +654,11 @@ def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[
     return False
 
 
-def set_wallpaper(*paths: str, fade: bool = True, monitors: Optional[Iterable[str]] = None) -> bool:
-    for path in paths:
-        if ntpath.isfile(path):
-            if (_set_wallpaper_iactivedesktop(path) if fade else _set_wallpaper_param(
-                    path)) if monitors is None else _set_wallpaper_idesktopwallpaper(path, *monitors):
-                return True
+def set_wallpaper(path: str, fade: bool = True, *monitors: str) -> bool:
+    if ntpath.isfile(path):
+        if _set_wallpaper_idesktopwallpaper(path, *monitors) if monitors else (
+                _set_wallpaper_iactivedesktop(path) if fade else _set_wallpaper_param(path)):
+            return True
     return False
 
 

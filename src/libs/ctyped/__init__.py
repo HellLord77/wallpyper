@@ -15,12 +15,17 @@ THREADED_COM = False
 
 
 # noinspection PyProtectedMember
-def set_error_checker(lib: func._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None):
-    lib._errcheck = callback
+def set_error_handler(lib: func._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
+                      args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None):
+    if args is None:
+        args = ()
+    if kwargs is None:
+        kwargs = {}
+    lib._errcheck = lambda res, *args_: (callback(res, *args_, *args, **kwargs), res)[1]
     if lib._funcs:
         for func_ in lib._funcs:
             if func_ in dir(lib):
-                getattr(lib, func_).errcheck = callback
+                getattr(lib, func_).errcheck = lib._errcheck
 
 
 @_contextlib.contextmanager
