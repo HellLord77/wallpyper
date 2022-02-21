@@ -4,8 +4,8 @@ import ctypes as _ctypes
 import functools as _functools
 from dataclasses import dataclass as _union
 
-from . import _const, _struct, _type
-from .__head__ import _Globals, _Pointer, _resolve_type
+from . import const as _const, struct as _struct, type as _type
+from ._head import _Globals, _Pointer, _resolve_type
 
 
 # noinspection PyPep8Naming

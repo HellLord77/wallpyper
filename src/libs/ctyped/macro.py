@@ -1,5 +1,5 @@
-from . import _com, _const, _func, _struct, _type
-from .__head__ import _Pointer, _byref
+from . import com as _com, const as _const, func as _func, struct as _struct, type as _type
+from ._head import _Pointer, _byref
 
 
 def __uuidof(_: str) -> _Pointer[_struct.IID]:

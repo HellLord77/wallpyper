@@ -1,44 +1,45 @@
+from __future__ import annotations as _
+
 import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import _com, _enum, _struct, _type
-from .__head__ import _DEBUG, _Pointer, _get_func_doc, _resolve_type
+from . import com as _com, enum as _enum, struct as _struct, type as _type
+from ._head import _DEBUG, _get_func_doc, _format_annotations, _not_internal, _Pointer, _resolve_type
 
 
 class _CDLL(type):
-    def __new__(mcs, *args, **kwargs):
-        self = super().__new__(mcs, *args, **kwargs)
-        self._lib = None
-        self._errcheck = None
-        self._funcs = {}
-        for var in _typing.get_type_hints(self):
-            try:
-                self._funcs[var] = vars(self)[var]
-            except KeyError:
-                self._funcs[var] = var
-            else:
-                delattr(self, var)
-        return self
-
     def __getattr__(self, name: str):
-        try:
-            func_index = self._funcs[name]
-        except KeyError:
-            return super().__getattribute__(name)
-        else:
-            if self._lib is None:
-                self._lib = getattr(_ctypes, type(self).__name__[1:])(self.__name__, use_last_error=_DEBUG)
-            try:
-                func = self._lib[func_index]
-            except KeyError:
-                raise AttributeError(f"lib '{self.__name__}' has no function '{name}'")
+        if _not_internal(name):
+            if self._funcs is None:
+                self._funcs = {}
+                for var in _typing.get_type_hints(self):
+                    try:
+                        self._funcs[var] = vars(self)[var]
+                    except KeyError:
+                        self._funcs[var] = var
+                    else:
+                        delattr(self, var)
+            func = None
+            while func is None:
+                try:
+                    func = self._lib[self._funcs[name]]
+                except KeyError:
+                    raise AttributeError(f"lib '{self.__name__}' has no function '{name}'") from None
+                except TypeError:
+                    try:
+                        self._lib = getattr(_ctypes, type(self).__name__[1:])(self.__name__, use_last_error=_DEBUG)
+                    except FileNotFoundError as error:
+                        raise error from None
+            annot = _format_annotations(self.__annotations__[name])
             func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self)[name])
             if self._errcheck is not None:
                 func.errcheck = self._errcheck
-            func.__doc__ = _get_func_doc(name, func.restype, func.argtypes)
+            func.__name__ = name
+            func.__doc__ = _get_func_doc(name, func.restype, func.argtypes, annot)
             setattr(self, name, func)
             return func
+        return super().__getattribute__(name)
 
 
 class _OleDLL(_CDLL):
@@ -49,8 +50,14 @@ class _WinDLL(_CDLL):
     pass
 
 
+class _WinFunc(metaclass=_WinDLL):
+    _lib = None
+    _errcheck = None
+    _funcs = None
+
+
 # noinspection PyPep8Naming
-class cfgmgr32(metaclass=_WinDLL):
+class cfgmgr32(_WinFunc):
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
                                          _Pointer[_struct.DEVPROPKEY],
                                          _Pointer[_type.DEVPROPTYPE],
@@ -76,7 +83,7 @@ class cfgmgr32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class combase(metaclass=_WinDLL):
+class combase(_WinFunc):
     RoActivateInstance: _Callable[[_type.HSTRING,
                                    _Pointer[_com.IInspectable]],
                                   _type.HRESULT]
@@ -121,7 +128,7 @@ class combase(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class comdlg32(metaclass=_WinDLL):
+class comdlg32(_WinFunc):
     ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
                             _type.BOOL]
     ChooseColorW: _Callable[[_Pointer[_struct.CHOOSECOLORW]],
@@ -129,7 +136,7 @@ class comdlg32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class gdi32(metaclass=_WinDLL):
+class gdi32(_WinFunc):
     BitBlt: _Callable[[_type.HDC,
                        _type.c_int,
                        _type.c_int,
@@ -240,7 +247,7 @@ class gdi32(metaclass=_WinDLL):
                               _type.BOOL]
 
 
-class GdiPlus(metaclass=_WinDLL):
+class GdiPlus(_WinFunc):
     GdipCreateBitmapFromFile: _Callable[[_type.LPWSTR,
                                          _Pointer[_type.GpBitmap]],
                                         _enum.GpStatus]
@@ -447,7 +454,7 @@ class GdiPlus(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class kernel32(metaclass=_WinDLL):
+class kernel32(_WinFunc):
     CloseHandle: _Callable[[_type.HANDLE],
                            _type.BOOL]
     DeleteFileA: _Callable[[_type.LPCSTR],
@@ -504,7 +511,7 @@ class kernel32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class msimg32(metaclass=_WinDLL):
+class msimg32(_WinFunc):
     AlphaBlend: _Callable[[_type.HDC,
                            _type.c_int,
                            _type.c_int,
@@ -520,7 +527,7 @@ class msimg32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class msvcrt(metaclass=_WinDLL):
+class msvcrt(_WinFunc):
     free: _Callable[[_type.c_void_p],
                     _type.c_void_p]
     malloc: _Callable[[_type.c_void_p],
@@ -534,13 +541,13 @@ class msvcrt(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class ntdll(metaclass=_WinDLL):
+class ntdll(_WinFunc):
     RtlAreLongPathsEnabled: _Callable[[],
                                       _type.c_ubyte]
 
 
 # noinspection PyPep8Naming
-class ole32(metaclass=_WinDLL):
+class ole32(_WinFunc):
     CLSIDFromString: _Callable[[_type.LPCOLESTR,
                                 _Pointer[_struct.CLSID]],
                                _type.HRESULT]
@@ -582,7 +589,7 @@ class ole32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class oleaut32(metaclass=_WinDLL):
+class oleaut32(_WinFunc):
     OleCreatePictureIndirect: _Callable[[_Pointer[_struct.PICTDESC],
                                          _Pointer[_struct.IID],
                                          _type.BOOL,
@@ -598,7 +605,7 @@ class oleaut32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class shell32(metaclass=_WinDLL):
+class shell32(_WinFunc):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 703
@@ -678,7 +685,7 @@ class shell32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class setupapi(metaclass=_WinDLL):
+class setupapi(_WinFunc):
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
                                               _Pointer[_struct.SP_DEVINFO_DATA],
                                               _Pointer[_struct.GUID],
@@ -757,7 +764,7 @@ class setupapi(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class shlwapi(metaclass=_WinDLL):
+class shlwapi(_WinFunc):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 269
@@ -770,12 +777,12 @@ class shlwapi(metaclass=_WinDLL):
                                _type.BOOL]
 
 
-class Taskbar(metaclass=_WinDLL):
+class Taskbar(_WinFunc):
     pass
 
 
 # noinspection PyPep8Naming
-class user32(metaclass=_WinDLL):
+class user32(_WinFunc):
     BeginPaint: _Callable[[_type.HWND,
                            _Pointer[_struct.PAINTSTRUCT]],
                           _type.HDC]
@@ -1102,7 +1109,7 @@ class user32(metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class uxtheme(metaclass=_WinDLL):
+class uxtheme(_WinFunc):
     SetWindowTheme: _Callable[[_type.HWND,
                                _Optional[_type.LPCWSTR],
                                _Optional[_type.LPCWSTR]],

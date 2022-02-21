@@ -19,8 +19,6 @@ import modules.wallhaven
 import platforms.win32 as platform
 import utils
 
-platform.ctyped.THREADED_COM = False  # FIXME wx already init single threaded com
-
 FEATURE_FORCE_PIN = False
 FEATURE_DISPLAY = True
 FEATURE_CHANGED = False

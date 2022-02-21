@@ -1,11 +1,11 @@
-import ctypes as _ctypes  # TODO _Pointer[_struct.TYPE], better inspect name (?)
+import ctypes as _ctypes
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
 from typing import Callable as _Callable, Optional as _Optional, Union as _Union
 
-from . import _const, _struct
-from .__head__ import _Globals, _Pointer, _resolve_type
+from . import const as _const, struct as _struct
+from ._head import _Globals, _Pointer, _resolve_type
 
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = (
@@ -279,7 +279,7 @@ _set_magics()
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
-def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._Pointer]]:
+def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPtr]]:
     _globals.check_item(item)
     type_ = _resolve_type(_globals.vars_[item])
     if isinstance(type_, list):

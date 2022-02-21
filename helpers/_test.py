@@ -572,21 +572,13 @@ def background():
     win32._set_wallpaper_idesktopwallpaper(path, monitor, color=ctyped.macro.RGB(r, g, b), position=position)
 
 
-def func(*args):
-    print(args)
-
-
 if __name__ == '__main__':
-    help(ctyped.func.user32.DestroyWindow)
-    help(ctyped.com.IShellItem)
-    exit()
-    ctyped.THREADED_COM = False
     p2 = r'D:\Downloads\pexels-artem-beliaikin-853199.jpg'
     p3 = r'D:\Downloads\pexels-artem-beliaikin-853199 (1)'
     p = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-m9r7r1.jpg'
     # print(gdiplus.Image.validate_file(p))
-    # background()
-    print(win32.save_wallpaper_lock(r'D:\image.jpg'))
+    background()
+    # print(win32.save_wallpaper_lock(r'D:\image.jpg'))
     # mem()
     exit()
 

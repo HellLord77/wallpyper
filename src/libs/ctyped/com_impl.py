@@ -5,8 +5,8 @@ import types as _types
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import _com, _const, _enum, _func, _struct, _type
-from .__head__ import _Pointer, _addressof, _byref, _not_internal, _pointer, _resolve_type
+from . import com as _com, const as _const, enum as _enum, func as _func, struct as _struct, type as _type
+from ._head import _addressof, _byref, _not_internal, _Pointer, _pointer, _resolve_type
 
 
 class IUnknown(_type.c_void_p):

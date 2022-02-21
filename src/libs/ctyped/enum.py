@@ -4,8 +4,8 @@ import enum as _enum
 import functools as _functools
 from typing import Optional as _Optional, Union as _Union
 
-from . import _type
-from .__head__ import _Globals
+from . import type as _type
+from ._head import _Globals
 
 _AUTO = -1
 _ASSIGNED = ('__str__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS))

@@ -5,8 +5,8 @@ import functools as _functools
 import types as _types
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import _com_impl, _const, _enum, _struct, _type
-from .__head__ import _Globals, _Pointer, _get_func_doc, _resolve_type
+from . import com_impl as _com_impl, const as _const, enum as _enum, struct as _struct, type as _type
+from ._head import _format_annotations, _get_func_doc, _Globals, _Pointer, _resolve_type
 
 _ASSIGNED = ('__CLSID__', '__RuntimeClass__',
              *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
@@ -773,7 +773,7 @@ def _method_type(types: _Callable) -> list:
     return types
 
 
-def _init(item: str) -> type[_type.c_void_p]:  # TODO lazy set _fields_ & docs (_type.IRandomAccessStream)
+def _init(item: str) -> type[_type.c_void_p]:
     _globals.check_item(item)
 
     class Com(_type.c_void_p):
@@ -788,20 +788,26 @@ def _init(item: str) -> type[_type.c_void_p]:  # TODO lazy set _fields_ & docs (
                     for name__, types in self._struct._fields_:
                         method = getattr(funcs, name__)
                         method.__name__ = name__
-                        # noinspection PyProtectedMember
-                        method.__doc__ = _get_func_doc(name__, types._restype_, types._argtypes_)
+                        method.__doc__ = '\n'.join(doc for doc in self.__doc__.split('\n')
+                                                   if doc.startswith(f'{name__}('))
                         setattr(self, name__, _types.MethodType(method, self))
                     break
             return super().__getattribute__(name)
 
-    globals()[item] = _functools.update_wrapper(Com, _globals.vars_[item], _ASSIGNED, ())
+    dict.__setitem__(_globals, item, _functools.update_wrapper(Com, _globals.vars_[item], _ASSIGNED, ()))
     # noinspection PyTypeChecker,PyTypeHints
     Com._struct: _ctypes.Structure = type(item, (_ctypes.Structure,), {'_fields_': tuple(
         (name, _ctypes.WINFUNCTYPE(*_method_type(types))) for name, types in _globals.get_type_hints(item))})
+    annots = {}
+    for base in _globals.vars_[item].mro():
+        try:
+            annots.update(base.__annotations__)
+        except AttributeError:
+            break
     # noinspection PyProtectedMember
-    Com.__doc__ = '\n'.join(_get_func_doc(name, types._restype_, types._argtypes_)
-                            for name, types in Com._struct._fields_)
-    return globals().pop(item)
+    Com.__doc__ = '\n\n'.join(_get_func_doc(name, types._restype_, types._argtypes_[1:],
+                                            _format_annotations(annots[name])) for name, types in Com._struct._fields_)
+    return _globals.pop(item)
 
 
 _globals = _Globals()

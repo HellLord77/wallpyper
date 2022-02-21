@@ -2,8 +2,8 @@ from __future__ import annotations as _
 
 from typing import Optional as _Optional
 
-from . import _func, _macro, _struct, _type
-from .__head__ import _byref, _sizeof
+from . import func as _func, macro as _macro, struct as _struct, type as _type
+from ._head import _byref, _sizeof
 
 
 class HSTRING(_type.HSTRING):

@@ -5,8 +5,8 @@ import functools as _functools
 import itertools as _itertools
 from dataclasses import dataclass as _struct
 
-from . import _const, _type, _union
-from .__head__ import _Globals, _Pointer, _resolve_type
+from . import const as _const, type as _type, union as _union
+from ._head import _Globals, _Pointer, _resolve_type
 
 _DEFAULT = None
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)

@@ -7,21 +7,20 @@ import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
                     Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
-# noinspection PyShadowingBuiltins
-from . import (__head__, _com as com, _com_impl as com_impl, _const as const, _enum as enum, _func as func,
-               _handle as handle, _macro as macro, _struct as struct, _type as type, _union as union)
-from .__head__ import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
-                       _byref as byref, _cast as cast, _pointer as pointer, _sizeof as sizeof)
+from . import com, com_impl, const, type, enum, func, handle, macro, struct, union
+from ._head import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
+                    _byref as byref, _cast as cast, _pointer as pointer, _sizeof as sizeof)
 
-THREADED_COM = True
+THREADED_COM = False
 
 
 # noinspection PyProtectedMember
 def set_error_checker(lib: func._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None):
     lib._errcheck = callback
-    for func_ in lib._funcs:
-        if func_ in dir(lib):
-            getattr(lib, func_).errcheck = callback
+    if lib._funcs:
+        for func_ in lib._funcs:
+            if func_ in dir(lib):
+                getattr(lib, func_).errcheck = callback
 
 
 @_contextlib.contextmanager
@@ -58,7 +57,7 @@ def get_guid(string: str) -> struct.GUID:
 
 
 @_contextlib.contextmanager
-def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, Pointer[struct.CLSID],
+def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
                                                                   tuple[Pointer[struct.IID], Pointer[CT]]]]:
     func.ole32.CoInitializeEx(None,
                               enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else func.ole32.CoInitialize(None)
@@ -74,8 +73,11 @@ def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, Pointer[st
 @_contextlib.contextmanager
 def init_com(type_: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type_) as (obj, clsid_ref, args):
-        yield obj if not init or macro.SUCCEEDED(
-            func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
+        try:
+            yield obj if not init or macro.SUCCEEDED(
+                func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
+        except OSError:
+            yield None
 
 
 # noinspection PyProtectedMember

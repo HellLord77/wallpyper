@@ -125,8 +125,31 @@ def _not_internal(name: str) -> bool:
     return not name.startswith('_')
 
 
-def _get_func_doc(name: str, restype: _Any, argtypes: tuple) -> str:
-    return f'{name}({", ".join(type_.__name__ for type_ in argtypes)}) -> {getattr(restype, "__name__", restype)}'
+def _format_annotations(annotations: str) -> tuple[str]:
+    index = annotations.rfind(']', 0, -1)
+    annotations = f'{annotations[annotations.find("[[") + 2:index]}{annotations[index + 1: - 1]}'.split(', ')
+    return tuple(annotations[annotations[0] == '':])
+
+
+def _pretty_tuple(*itt: tuple[str, ...], name: str = '') -> str:
+    if lines := [[] for _ in range(len(itt))]:
+        for index in range(len(itt[0]) - 1):
+            sz = 0
+            for tup in itt:
+                sz = max(sz, len(tup[index]))
+            for index_ in range(len(itt)):
+                lines[index_].append(itt[index_][index].center(sz))
+        sz = 0
+        for tup in itt:
+            sz = max(sz, len(tup[-1]))
+        for index in range(len(itt)):
+            lines[index].append(itt[index][-1].center(sz))
+    return f'\n'.join(f'{name}({", ".join(line[:-1])}) -> {line[-1]}' for line in lines)
+
+
+def _get_func_doc(name: str, restype: _Any, argtypes: tuple, annotations: tuple[str]) -> str:
+    return _pretty_tuple(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, "__name__", restype)),
+                         name=name)
 
 
 def _replace_object(old, new):
@@ -145,7 +168,7 @@ def _replace_object(old, new):
 def _resolve_type(type_: _Any) -> _Any:
     # noinspection PyUnresolvedReferences,PyProtectedMember
     if isinstance(type_, _typing._CallableType):
-        type_ = [None]
+        type_ = [_ctypes.c_void_p]
     elif isinstance(type_, _typing._CallableGenericAlias):
         types_ = _typing.get_args(type_)
         type_ = [_resolve_type(types_[1])]
