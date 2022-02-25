@@ -29,18 +29,19 @@ NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
 ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
+CONFIG_TRANSITION = 'transition'
 CONFIG_DISPLAY = 'display'
-CONFIG_CHANGE = 'auto_change'
-CONFIG_INTERVAL = 'change_interval'
+CONFIG_AUTO_CHANGE = 'auto_change'
 CONFIG_LAST = 'changed_at'
 CONFIG_AUTOSAVE = 'auto_save'
 CONFIG_DIR = 'save_dir'
 CONFIG_NOTIFY = 'notify'
-CONFIG_NO_FADE = 'no_fade'
 CONFIG_ANIMATE = 'animate_icon'
 CONFIG_CACHE = 'keep_cache'
 CONFIG_START = 'auto_start'
-CONFIG_SAVE = 'save_config'
+CONFIG_SAVE = 'save_settings'
+UID_DISPLAY = 'display'
+UID_PREVIOUS = 'previous'
 
 EXIT_TIMEOUT = platform.get_max_shutdown_time()
 UUID = f'{__author__}.{NAME}'
@@ -51,20 +52,19 @@ TEMP_DIR = utils.join_path(tempfile.gettempdir(), NAME)
 INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO utils.join_path(platform.SAVE_DIR, NAME, f'{NAME}.ini')
 LOG_PATH = utils.replace_extension(INI_PATH, 'log')
 SEARCH_URL = utils.join_url('https://www.google.com', 'searchbyimage', 'upload')
-INTERVALS = 300, 900, 1800, 3600, 10800, 21600
+INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 MODULES = modules.wallhaven,
 
 LANG = langs.DEFAULT
 MODULE = MODULES[0]
 DEFAULT_CONFIG = utils.Dict({
+    CONFIG_TRANSITION: platform.wallpaper.Transition[platform.wallpaper.Transition.FADE],
     CONFIG_DISPLAY: '',
-    CONFIG_CHANGE: False,
-    CONFIG_INTERVAL: INTERVALS[3],
+    CONFIG_AUTO_CHANGE: INTERVALS[0],
     CONFIG_LAST: utils.Timer.last_start,
     CONFIG_AUTOSAVE: False,
     CONFIG_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
     CONFIG_NOTIFY: True,
-    CONFIG_NO_FADE: False,
     CONFIG_ANIMATE: True,
     CONFIG_CACHE: False,
     CONFIG_START: False,
@@ -140,11 +140,13 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
 
 
 def fix_config():
+    if CONFIG[CONFIG_TRANSITION] not in platform.wallpaper.Transition:
+        CONFIG[CONFIG_TRANSITION] = DEFAULT_CONFIG[CONFIG_TRANSITION]
     if DISPLAYS and CONFIG[CONFIG_DISPLAY] not in DISPLAYS:
         CONFIG[CONFIG_DISPLAY] = DEFAULT_CONFIG[CONFIG_DISPLAY]
     CONFIG[CONFIG_LAST] = TIMER.last_start if FEATURE_CHANGED else DEFAULT_CONFIG[CONFIG_LAST]
-    if CONFIG[CONFIG_INTERVAL] not in INTERVALS:
-        CONFIG[CONFIG_INTERVAL] = DEFAULT_CONFIG[CONFIG_INTERVAL]
+    if CONFIG[CONFIG_AUTO_CHANGE] not in INTERVALS:
+        CONFIG[CONFIG_AUTO_CHANGE] = DEFAULT_CONFIG[CONFIG_AUTO_CHANGE]
     if not CONFIG[CONFIG_DIR]:
         CONFIG[CONFIG_DIR] = DEFAULT_CONFIG[CONFIG_DIR]
 
@@ -162,8 +164,9 @@ def change_wallpaper(url: Optional[str] = None, progress_callback: Optional[Call
         temp_path = utils.join_path(TEMP_DIR, utils.file_name(url))
         changed = (url == temp_path or utils.download_url(
             url, temp_path, chunk_count=100, on_write=progress_callback, args=args,
-            kwargs=kwargs)) and platform.set_wallpaper(temp_path, not CONFIG[CONFIG_NO_FADE],
-                                                       *(CONFIG[CONFIG_DISPLAY],) if CONFIG[CONFIG_DISPLAY] else ())
+            kwargs=kwargs)) and platform.wallpaper.set(
+            temp_path, *(CONFIG[CONFIG_DISPLAY],) if CONFIG[CONFIG_DISPLAY] else DISPLAYS,
+            transition=getattr(platform.wallpaper.Transition, CONFIG[CONFIG_TRANSITION]))
     else:
         changed = False
     if progress_callback:
@@ -203,30 +206,23 @@ def on_change(previous: bool, enable: Callable, set_label: Callable) -> bool:
             if CONFIG[CONFIG_AUTOSAVE]:
                 save_wallpaper()
             set_label()
-        ENABLE_PREVIOUS(HISTORY.has_previous())
+        utils.get_item(UID_PREVIOUS).Enable(HISTORY.has_previous())
         enable()
     if not changed and CONFIG[CONFIG_NOTIFY]:
         utils.notify(LANG.LABEL_PREVIOUS if previous else LANG.LABEL_NEXT, LANG.FAIL_CHANGE)
     return changed
 
 
-def on_auto_change(checked: bool, enable_submenu: Optional[Callable[[bool], None]] = None):
-    CONFIG[CONFIG_CHANGE] = checked
-    if enable_submenu:
-        enable_submenu(checked)
-    TIMER.start(CONFIG[CONFIG_INTERVAL]) if checked else TIMER.stop()
-
-
 def on_update_display():
-    DISPLAYS.clear()
-    menu_display = utils.get_item(CONFIG_DISPLAY)
+    menu_display = utils.get_item(UID_DISPLAY)
     utils.remove_items(menu=menu_display)
     ids = platform.get_monitor_ids()
     pad = len(str(len(ids)))
-    id_ = DEFAULT_CONFIG[CONFIG_DISPLAY]
-    utils.add_item(f'[*] {LANG.DISPLAY_ALL}', utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == id_,
-                   uid=id_, on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
-                   args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu_display)
+    utils.add_item(
+        f'[*] {LANG.DISPLAY_ALL}', utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == DEFAULT_CONFIG[CONFIG_DISPLAY],
+        uid=DEFAULT_CONFIG[CONFIG_DISPLAY], on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
+        args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu_display)
+    DISPLAYS.clear()
     for index, id_ in enumerate(ids):
         DISPLAYS.add(id_)
         utils.add_item(f'[{langs.to_str(index, LANG, pad)}] {platform.get_monitor_name(id_) or LANG.DISPLAY}',
@@ -236,9 +232,9 @@ def on_update_display():
     utils.add_item(LANG.LABEL_UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
 
 
-def on_interval(interval: str):
-    CONFIG[CONFIG_INTERVAL] = int(interval)
-    on_auto_change(CONFIG[CONFIG_CHANGE])
+def on_auto_change(interval: Union[int, str]):
+    CONFIG[CONFIG_AUTO_CHANGE] = int(interval)
+    TIMER.start(CONFIG[CONFIG_AUTO_CHANGE]) if CONFIG[CONFIG_AUTO_CHANGE] else TIMER.stop()
 
 
 def on_save() -> bool:
@@ -371,7 +367,7 @@ def on_clear():
     HISTORY.clear()
     if url is not None:
         HISTORY.set_next(url)
-    ENABLE_PREVIOUS(HISTORY.has_previous())
+    utils.get_item(UID_PREVIOUS).Enable(HISTORY.has_previous())
 
 
 def on_clear_cache() -> bool:
@@ -402,8 +398,8 @@ def on_animate(checked: bool):
 def on_auto_start(checked: bool) -> bool:
     CONFIG[CONFIG_START] = checked
     if checked:
-        return platform.register_autorun(NAME, *_get_launch_args(), *(ARG_CHANGE,) if CONFIG[CONFIG_CHANGE] else (),
-                                         show=pyinstall.FROZEN, uid=UUID)
+        return platform.register_autorun(NAME, *_get_launch_args(), *((ARG_CHANGE,) if CONFIG[CONFIG_AUTO_CHANGE]
+                                                                      else ()), show=pyinstall.FROZEN, uid=UUID)
     return platform.unregister_autorun(NAME, UUID)
 
 
@@ -430,15 +426,13 @@ def on_quit():
 
 
 def create_menu():  # TODO slideshow (smaller timer)
-    global ENABLE_PREVIOUS
     menu_change = utils.add_submenu(LANG.MENU_CHANGE)
     TIMER.args = False, menu_change.Enable, (lambda progress=None: menu_change.SetItemLabel(
         LANG.MENU_CHANGE if progress is None else f'{LANG.MENU_CHANGE} ({langs.to_str(progress, LANG, 3)}%)'))
     utils.add_item(LANG.LABEL_NEXT, on_click=on_change, args=TIMER.args,
                    on_thread=False, change_state=False, menu=menu_change)
-    ENABLE_PREVIOUS = utils.add_item(LANG.LABEL_PREVIOUS, enable=False, on_click=on_change,
-                                     args=(True, *TIMER.args[1:]), on_thread=False,
-                                     change_state=False, menu=menu_change).Enable
+    utils.add_item(LANG.LABEL_PREVIOUS, enable=False, uid=UID_PREVIOUS, on_click=on_change,
+                   args=(True, *TIMER.args[1:]), on_thread=False, change_state=False, menu=menu_change)
     utils.add_item(LANG.LABEL_SAVE, on_click=on_save)
     utils.add_item(LANG.LABEL_SEARCH, on_click=on_search)
     utils.add_separator()
@@ -471,38 +465,39 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(LANG.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
-    utils.add_submenu(LANG.MENU_DISPLAY, uid=CONFIG_DISPLAY)
-    on_update_display()
+    utils.add_item(LANG.LABEL_ABOUT, on_click=on_about, menu=menu_actions)
     menu_auto = utils.add_submenu(LANG.MENU_AUTO)
-    menu_interval = utils.add_submenu(LANG.MENU_INTERVAL, CONFIG[CONFIG_CHANGE], menu=menu_auto)
+    menu_auto_change = utils.add_submenu(LANG.MENU_AUTO_CHANGE, menu=menu_auto)
     for interval in INTERVALS:
         utils.add_item(getattr(LANG, f'TIME_{interval}'), utils.item.RADIO,
-                       CONFIG[CONFIG_INTERVAL] == interval, uid=str(interval),
-                       on_click=on_interval, menu_args=(utils.get_property.UID,), menu=menu_interval)
-    utils.add_item(LANG.LABEL_AUTO_CHANGE, utils.item.CHECK, CONFIG[CONFIG_CHANGE], on_click=on_auto_change,
-                   menu_args=(utils.get_property.CHECKED,), args=(menu_interval.Enable,), position=0, menu=menu_auto)
+                       CONFIG[CONFIG_AUTO_CHANGE] == interval, uid=str(interval),
+                       on_click=on_auto_change, menu_args=(utils.get_property.UID,), menu=menu_auto_change)
     utils.add_separator(menu_auto)
     utils.add_item(LANG.LABEL_AUTO_SAVE, utils.item.CHECK, CONFIG[CONFIG_AUTOSAVE],
                    on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
                    args=(CONFIG_AUTOSAVE,), pre_menu_args=False, menu=menu_auto)
     utils.add_item(LANG.LABEL_SAVE_DIR, on_click=on_modify_save, menu=menu_auto)
-    menu_config = utils.add_submenu(LANG.MENU_CONFIG)
+    menu_settings = utils.add_submenu(LANG.MENU_SETTINGS)
+    menu_transition = utils.add_submenu(LANG.MENU_TRANSITION, menu=menu_settings)
+    for transition in platform.wallpaper.Transition:
+        utils.add_item(getattr(LANG, f'TRANSITION_{transition}'), utils.item.RADIO,
+                       CONFIG[CONFIG_TRANSITION] == transition, uid=transition,
+                       on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
+                       args=(CONFIG_TRANSITION,), pre_menu_args=False, menu=menu_transition)
+    utils.add_submenu(LANG.MENU_DISPLAY, uid=UID_DISPLAY, menu=menu_settings)
+    on_update_display()
     utils.add_item(LANG.LABEL_NOTIFY, utils.item.CHECK, CONFIG[CONFIG_NOTIFY],
                    on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
-                   args=(CONFIG_NOTIFY,), pre_menu_args=False, menu=menu_config)
-    utils.add_item(LANG.LABEL_NO_FADE, utils.item.CHECK, CONFIG[CONFIG_NO_FADE],
-                   on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
-                   args=(CONFIG_NO_FADE,), pre_menu_args=False, menu=menu_config)
+                   args=(CONFIG_NOTIFY,), pre_menu_args=False, menu=menu_settings)
     utils.add_item(LANG.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
-                   on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+                   on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_settings)
     utils.add_item(LANG.LABEL_CACHE, utils.item.CHECK, CONFIG[CONFIG_CACHE],
                    on_click=CONFIG.__setitem__, menu_args=(utils.get_property.CHECKED,),
-                   args=(CONFIG_CACHE,), pre_menu_args=False, menu=menu_config)
+                   args=(CONFIG_CACHE,), pre_menu_args=False, menu=menu_settings)
     utils.add_item(LANG.LABEL_START, utils.item.CHECK, CONFIG[CONFIG_START],
-                   on_click=on_auto_start, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
+                   on_click=on_auto_start, menu_args=(utils.get_property.CHECKED,), menu=menu_settings)
     utils.add_item(LANG.LABEL_CONFIG, utils.item.CHECK, CONFIG[CONFIG_SAVE],
-                   on_click=on_save_config, menu_args=(utils.get_property.CHECKED,), menu=menu_config)
-    utils.add_item(LANG.LABEL_ABOUT, on_click=on_about)
+                   on_click=on_save_config, menu_args=(utils.get_property.CHECKED,), menu=menu_settings)
     utils.add_item(LANG.LABEL_QUIT, on_click=on_quit)
 
 
@@ -520,11 +515,11 @@ def start():  # TODO dark theme
     load_config()
     create_menu()
     on_animate(CONFIG[CONFIG_ANIMATE])
-    on_auto_change(CONFIG[CONFIG_CHANGE])
+    on_auto_change(CONFIG[CONFIG_AUTO_CHANGE])
     on_auto_start(CONFIG[CONFIG_START])
     on_save_config(CONFIG[CONFIG_SAVE])
-    if ARG_CHANGE in sys.argv or (
-            FEATURE_CHANGED and CONFIG[CONFIG_CHANGE] and time.time() >= CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST]):
+    if ARG_CHANGE in sys.argv or (FEATURE_CHANGED and CONFIG[CONFIG_AUTO_CHANGE] and
+                                  time.time() >= CONFIG[CONFIG_AUTO_CHANGE] + CONFIG[CONFIG_LAST]):
         TIMER.last_start = time.time()
         on_change(*TIMER.args)
     utils.start(RES_TRAY, NAME, on_change, TIMER.args)
@@ -547,8 +542,7 @@ def main() -> NoReturn:
 
 CONFIG = {}
 DISPLAYS = set()
-HISTORY = utils.List()
-ENABLE_PREVIOUS = utils.dummy_func
+HISTORY = utils.List(default=None)
 TIMER = utils.Timer(0, on_change)
 
 if __name__ == '__main__':

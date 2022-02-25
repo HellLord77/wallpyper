@@ -148,10 +148,17 @@ def add_submenu(label: str, enable: Optional[bool] = None, uid: Optional[str] = 
     return menu_item
 
 
-def get_menu_item_by_uid(uid: str, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> Optional[wx.MenuItem]:
+def get_menu_item_by_uid(uid: str, recursive: bool = True,
+                         menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> Optional[wx.MenuItem]:
+    if isinstance(menu, wx.MenuItem):
+        menu = menu.GetSubMenu()
+    menu_: wx.MenuItem
     for menu_ in menu.GetMenuItems():
         if uid == menu_.GetHelp():
             return menu_
+        elif recursive and menu_.IsSubMenu():
+            if menu_item := get_menu_item_by_uid(uid, recursive, menu_):
+                return menu_item
 
 
 def show_balloon(title: str, text: str, icon: Optional[int] = None) -> bool:

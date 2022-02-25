@@ -37,8 +37,9 @@ def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
         func.msvcrt.free(ptr)
 
 
-def array(type_: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Pointer[CT]:
-    return (type_ * (size or len(elements)))(*elements)
+# noinspection PyShadowingBuiltins,PyShadowingNames
+def array(type: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Pointer[CT]:
+    return (type * (size or len(elements)))(*elements)
 
 
 @_typing.overload
@@ -75,9 +76,10 @@ def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, _Optional[
         func.ole32.CoUninitialize()
 
 
+# noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def init_com(type_: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
-    with _prep_com(type_) as (obj, clsid_ref, args):
+def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
+    with _prep_com(type) as (obj, clsid_ref, args):
         try:
             yield obj if not init or macro.SUCCEEDED(
                 func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
@@ -85,10 +87,10 @@ def init_com(type_: _builtins.type[CT], init: bool = True) -> _ContextManager[_O
             yield None
 
 
-# noinspection PyProtectedMember
+# noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def conv_com(obj: com.IUnknown, type_: _builtins.type[CT] = com_impl.IUnknown) -> _ContextManager[_Optional[CT]]:
-    with _prep_com(type_) as (obj_, _, args):
+def conv_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
+    with _prep_com(type) as (obj_, _, args):
         if macro.SUCCEEDED(obj.QueryInterface(*args)):
             yield obj_
         else:
@@ -109,11 +111,12 @@ def _prep_winrt(type_: _builtins.type[CT]) -> _ContextManager[tuple[type.HSTRING
         func.combase.RoUninitialize()
 
 
+# noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def get_winrt(type_: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.type[CT]]]:  # TODO init: bool = False
-    with _prep_winrt(type_) as (*args, factory):
+def get_winrt(type: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.type[CT]]]:  # TODO init: bool = False
+    with _prep_winrt(type) as (*args, factory):
         if macro.SUCCEEDED(func.combase.RoGetActivationFactory(*args, byref(factory))):
-            with conv_com(factory, type_) as obj:
+            with conv_com(factory, type) as obj:
                 yield obj
         else:
             yield None

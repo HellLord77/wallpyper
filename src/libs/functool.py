@@ -67,12 +67,9 @@ class MutableInt(_Mutable):
 
 
 class PointedList:
-    DEFAULT = None
-
     def __init__(self, val: Optional[list] = None, default: Any = DEFAULT):
         self._data = [] if val is None else val.copy()
-        if default is not self.DEFAULT:
-            self.DEFAULT = default
+        self.default = default
         self._current = -1
 
     def clear(self):
@@ -99,7 +96,7 @@ class PointedList:
     def peek(self, index: Optional[int] = None):
         if index is None:
             index = self._current
-        return self._data[index] if self.has(index) else self.DEFAULT
+        return self._data[index] if self.has(index) else self.default
 
     def peek_next(self):
         return self.peek(self._current + 1)

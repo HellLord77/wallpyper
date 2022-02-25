@@ -466,6 +466,21 @@ class COINIT(_IntEnum):
     COINIT_SPEED_OVER_MEMORY = 0x8
 
 
+# noinspection PyPep8Naming
+class PROCESS_DPI_AWARENESS(_IntEnum):
+    PROCESS_DPI_UNAWARE = _AUTO
+    PROCESS_SYSTEM_DPI_AWARE = _AUTO
+    PROCESS_PER_MONITOR_DPI_AWARE = _AUTO
+
+
+# noinspection PyPep8Naming
+class MONITOR_DPI_TYPE(_IntEnum):
+    MDT_EFFECTIVE_DPI = 0
+    MDT_ANGULAR_DPI = 1
+    MDT_RAW_DPI = 2
+    MDT_DEFAULT = MDT_EFFECTIVE_DPI
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status

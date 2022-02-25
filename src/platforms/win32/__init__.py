@@ -7,10 +7,10 @@ import os
 import subprocess
 import time
 import winreg
-from typing import Any, Callable, ContextManager, Generator, Iterable, Mapping, Optional, Union
+from typing import ContextManager, Generator, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
-from . import gdiplus
+from . import gdiplus, wallpaper
 
 
 def _get_dir(folderid: str) -> str:
@@ -48,24 +48,6 @@ def _string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPW
             ctyped.func.kernel32.LocalFree(ptr)
 
 
-def _spawn_workerw():
-    ctyped.func.user32.SendMessageW(ctyped.func.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
-
-
-def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-    if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
-        ctyped.type.LPARAM.from_address(lparam).value = ctyped.func.user32.FindWindowExW(None, hwnd,
-                                                                                         'WorkerW', None)
-    return True
-
-
-def _get_workerw_hwnd() -> int:
-    workerw = ctyped.type.LPARAM()
-    _spawn_workerw()
-    ctyped.func.user32.EnumWindows(ctyped.type.WNDENUMPROC(_get_workerw_hwnd_callback), ctyped.addressof(workerw))
-    return workerw.value
-
-
 @contextlib.contextmanager
 def _open_clipboard() -> ContextManager[None]:
     ctyped.func.user32.OpenClipboard(None)
@@ -79,16 +61,6 @@ def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
     with _open_clipboard():
         ctyped.func.user32.EmptyClipboard()
         ctyped.func.user32.SetClipboardData(format_, hglobal)
-
-
-def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
-    rect = ctyped.struct.RECT()
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-        if wallpaper:
-            wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))
-    return rect.left - ctyped.func.user32.GetSystemMetrics(
-        ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.func.user32.GetSystemMetrics(
-        ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
 
 
 @contextlib.contextmanager
@@ -327,70 +299,6 @@ def _get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[st
     return tuple(props)
 
 
-@contextlib.contextmanager
-def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
-    operation = ctyped.Async(ctyped.com.IAsyncOperation)
-    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (
-            stream := operation.get(ctyped.com.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
-            if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                yield input_stream
-                return
-    yield None
-
-
-@contextlib.contextmanager
-def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IOutputStream]]:
-    operation = ctyped.Async(ctyped.com.IAsyncOperation)
-    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (
-            stream := operation.get(ctyped.com.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.com.IOutputStream, False) as output_stream:
-            if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
-                yield output_stream
-                return
-    yield None
-
-
-@contextlib.contextmanager
-def _open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
-        if file_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
-                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
-                    file := operation.get(ctyped.com.IStorageFile)):
-                yield file
-                return
-    yield None
-
-
-@contextlib.contextmanager
-def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IInputStream]]:
-    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock_statics:
-        if lock_statics:
-            with ctyped.init_com(ctyped.com.IRandomAccessStream, False) as stream:
-                if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
-                    with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
-                        if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                            yield input_stream
-                            return
-    yield None
-
-
-def _copy_stream(input_stream: ctyped.com.IInputStream, output_stream: ctyped.com.IOutputStream,
-                 progress_callback: Optional[Callable[[int, ...], Any]],
-                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
-    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
-        if stream_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
-            if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(input_stream, output_stream,
-                                                                       operation.get_ref())):
-                if progress_callback is not None:
-                    operation.put_progress(ctyped.type.UINT64, progress_callback, args, kwargs)
-                return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
-    return False
-
-
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     with _string_buffer() as buff:
         ctyped.func.kernel32.FormatMessageW((
@@ -608,84 +516,18 @@ def _get_wallpaper_path_iactivedesktop() -> str:
 
 
 def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
-    paths = []
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             with _string_buffer() as buff:
-                paths = [buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
-                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitor_ids())]
-    return tuple(paths)
+                return tuple(buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
+                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitor_ids()))
+        else:
+            return ()
 
 
 def get_wallpaper_path(monitor: str = None) -> str:
     return ((_get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop())
             if monitor is None else _get_wallpaper_path_idesktopwallpaper(monitor)[0])
-
-
-def _set_wallpaper_param(path: str) -> bool:
-    return bool(ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                         ctyped.const.SPIF_SENDWININICHANGE))
-
-
-def _set_wallpaper_iactivedesktop(path: str) -> bool:
-    with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
-        if desktop:
-            _spawn_workerw()
-            return ctyped.macro.SUCCEEDED(desktop.SetWallpaper(
-                path, 0)) and ctyped.macro.SUCCEEDED(desktop.ApplyChanges(ctyped.const.AD_APPLY_ALL))
-    return False
-
-
-def _set_wallpaper_idesktopwallpaper(path: str, *monitors: str, color: Optional[ctyped.type.COLORREF] = None,
-                                     position: Optional[ctyped.enum.DESKTOP_WALLPAPER_POSITION] = None) -> bool:
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-        if wallpaper:
-            if color is not None:
-                wallpaper.SetBackgroundColor(color)
-            if position is not None:
-                wallpaper.SetPosition(position)
-            if position in (ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_SPAN,
-                            ctyped.enum.DESKTOP_WALLPAPER_POSITION.DWPOS_TILE):
-                _set_wallpaper_param(path)
-            else:
-                for monitor in monitors:
-                    wallpaper.SetWallpaper(monitor, path)
-            return True
-    return False
-
-
-def set_wallpaper(path: str, fade: bool = True, *monitors: str) -> bool:
-    if ntpath.isfile(path):
-        if _set_wallpaper_idesktopwallpaper(path, *monitors) if monitors else (
-                _set_wallpaper_iactivedesktop(path) if fade else _set_wallpaper_param(path)):
-            return True
-    return False
-
-
-def set_wallpaper_lock(path: str) -> bool:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
-        if file_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
-                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
-                    file := operation.get(ctyped.com.IStorageFile)):
-                with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
-                    if lock:
-                        action = ctyped.Async()
-                        if ctyped.macro.SUCCEEDED(lock.SetImageFileAsync(file, action.get_ref())):
-                            return ctyped.enum.AsyncStatus.Completed == action.wait_for()
-    return False
-
-
-def save_wallpaper_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] = None,
-                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    with _get_wallpaper_lock_input_stream() as input_stream:
-        if input_stream:
-            os.makedirs(ntpath.dirname(path), exist_ok=True)
-            open(path, 'w').close()
-            with _open_file(path) as file, _get_output_stream(file) as output_stream:
-                return output_stream and _copy_stream(input_stream, output_stream, progress_callback, args, kwargs)
-    return False
 
 
 def set_slideshow(*paths: str) -> bool:

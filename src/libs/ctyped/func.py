@@ -808,6 +808,20 @@ class setupapi(_WinFunc):
 
 
 # noinspection PyPep8Naming
+class shcore(_WinFunc):
+    GetDpiForMonitor: _Callable[[_type.HMONITOR,
+                                 _enum.MONITOR_DPI_TYPE,
+                                 _Pointer[_type.UINT],
+                                 _Pointer[_type.UINT]],
+                                _type.HRESULT]
+    GetProcessDpiAwareness: _Callable[[_type.HANDLE,
+                                       _Pointer[_enum.PROCESS_DPI_AWARENESS]],
+                                      _type.HRESULT]
+    SetProcessDpiAwareness: _Callable[[_enum.PROCESS_DPI_AWARENESS],
+                                      _type.HRESULT]
+
+
+# noinspection PyPep8Naming
 class shlwapi(_WinFunc):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
@@ -956,6 +970,8 @@ class user32(_WinFunc):
                         _type.HRGN,
                         _type.DWORD],
                        _type.HDC]
+    GetDpiForSystem: _Callable[[],
+                               _type.UINT]
     GetMenu: _Callable[[_type.HWND],
                        _type.HMENU]
     GetMenuInfo: _Callable[[_type.HMENU,

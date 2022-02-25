@@ -94,8 +94,9 @@ def _addressof(obj: _CT) -> int:
     return _ctypes.addressof(obj)
 
 
-def _sizeof(type_: _CT) -> int:
-    return _ctypes.sizeof(type_)
+# noinspection PyShadowingBuiltins
+def _sizeof(type: _CT) -> int:
+    return _ctypes.sizeof(type)
 
 
 def _byref(obj: _CT) -> _Pointer[_CT]:
@@ -112,13 +113,14 @@ def _pointer(obj: type[_CT]) -> type[_Pointer[_CT]]:
         return _ctypes.pointer(obj)
 
 
-def _cast(obj: _Any, type_: type[_CT]) -> _Pointer[_CT]:
+# noinspection PyShadowingBuiltins
+def _cast(obj: _Any, type: type[_CT]) -> _Pointer[_CT]:
     try:
-        return _ctypes.cast(obj, type_)
+        return _ctypes.cast(obj, type)
     except _ctypes.ArgumentError:
-        return _cast(_ctypes.byref(obj), type_)
+        return _cast(_ctypes.byref(obj), type)
     except TypeError:
-        return _cast(obj, _ctypes.POINTER(type_))
+        return _cast(obj, _ctypes.POINTER(type))
 
 
 def _not_internal(name: str) -> bool:
