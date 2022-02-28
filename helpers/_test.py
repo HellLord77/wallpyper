@@ -3,6 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.0.1'
 
 import itertools
+import time
 from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
@@ -69,7 +70,7 @@ class SysTray:
     _shown = False
     _uid = ctyped.type.UINT()
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if not cls._hwnd:
             cls._class = ctyped.struct.WNDCLASSEXW(
                 ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
@@ -82,11 +83,11 @@ class SysTray:
 
     def __init__(self, icon: Optional[Union[str, int]] = None, tooltip: Optional[str] = None):
         self._uid = self._uid.value
+        self._binds[self._uid] = {}
         self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW), self._hwnd, self._uid,
                                                    self._flags, ctyped.const.WM_APP)
         self.set_icon(icon or ctyped.const.IDI_APPLICATION)
         self.set_tooltip(tooltip or '')
-        self._binds[self._uid] = {}
 
     def __del__(self):
         self.hide()
@@ -94,7 +95,7 @@ class SysTray:
         if not self._binds:
             ctyped.func.user32.DestroyWindow(self._hwnd)
             ctyped.func.user32.UnregisterClassW(self._class.lpszClassName, ctyped.func.kernel32.GetModuleHandleW(None))
-            type(self)._hwnd = 0
+            type(self)._hwnd = None
 
     @classmethod
     def _call(cls, uid: int, event: int) -> Any:
@@ -265,12 +266,17 @@ def test():
     b = 0
     transition = Transition.LEFT
     duration = 1
-
+    win32.wallpaper.set(path, mon)
     # set(path, mon)
 
 
 if __name__ == '__main__':
     test()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
     exit()
 
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
@@ -285,7 +291,7 @@ if __name__ == '__main__':
     s.bind(Event.BALLOON_CLICK, lambda: print('show_balloon click'))
     s.bind(ctyped.const.NIN_SELECT, lambda: print('sel'))
     s.show()
-    p2 = r'D:\Projects\wallpyper\icon.ico'
+    p2 = r'D:\Projects\wallpyper\src\resources\icon.ico'
     s2 = SysTray(p2, 'no tip')
     s2.bind(Event.LEFT_DOUBLE, lambda: print('2nd'))
     s2.bind(Event.RIGHT_UP, s2.hide)

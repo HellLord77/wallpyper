@@ -1,6 +1,7 @@
 import concurrent.futures
 import contextlib
 import os
+import random
 import sys
 import threading
 import time
@@ -34,46 +35,53 @@ class _Enum(type):
         else:
             return self._vars[var_or_val]
 
+    def _random(self, *ignore: int):
+        vals = tuple(self._vars.values())
+        while (rand := random.choice(vals)) in ignore:
+            pass
+        return rand
+
 
 class Style(metaclass=_Enum):
     DEFAULT = -1
-    CENTER = ctyped.const.WPSTYLE_CENTER
-    TILE = ctyped.const.WPSTYLE_TILE
-    STRETCH = ctyped.const.WPSTYLE_STRETCH
-    FIT = ctyped.const.WPSTYLE_KEEPASPECT
     FILL = ctyped.const.WPSTYLE_CROPTOFIT
+    FIT = ctyped.const.WPSTYLE_KEEPASPECT
+    STRETCH = ctyped.const.WPSTYLE_STRETCH
+    TILE = ctyped.const.WPSTYLE_TILE
+    CENTER = ctyped.const.WPSTYLE_CENTER
     SPAN = ctyped.const.WPSTYLE_SPAN
 
 
 class Transition(metaclass=_Enum):
-    NONE = 0
-    FADE = 1
-    EXPLODE = 2
-    IMPLODE = 3
-    LEFT = 4
-    TOP = 5
-    RIGHT = 6
-    BOTTOM = 7
-    TOP_LEFT = 8
-    TOP_RIGHT = 9
-    BOTTOM_LEFT = 10
-    BOTTOM_RIGHT = 11
-    VERTICAL = 12
-    HORIZONTAL = 13
-    REVERSE_VERTICAL = 14
-    REVERSE_HORIZONTAL = 15
-    SLIDE_LEFT = 16
-    SLIDE_TOP = 17
-    SLIDE_RIGHT = 18
-    SLIDE_BOTTOM = 19
-    SLIDE_TOP_LEFT = 20
-    SLIDE_TOP_RIGHT = 21
-    SLIDE_BOTTOM_LEFT = 22
-    SLIDE_BOTTOM_RIGHT = 23
-    SLIDE_VERTICAL = 24
-    SLIDE_HORIZONTAL = 25
-    SLIDE_REVERSE_VERTICAL = 26
-    SLIDE_REVERSE_HORIZONTAL = 27
+    DISABLED = -2
+    RANDOM = -1
+    FADE = 0
+    EXPLODE = 1
+    IMPLODE = 2
+    LEFT = 3
+    TOP = 4
+    RIGHT = 5
+    BOTTOM = 6
+    TOP_LEFT = 7
+    TOP_RIGHT = 8
+    BOTTOM_LEFT = 9
+    BOTTOM_RIGHT = 10
+    VERTICAL = 11
+    HORIZONTAL = 12
+    REVERSE_VERTICAL = 13
+    REVERSE_HORIZONTAL = 14
+    SLIDE_LEFT = 15
+    SLIDE_TOP = 16
+    SLIDE_RIGHT = 17
+    SLIDE_BOTTOM = 18
+    SLIDE_TOP_LEFT = 19
+    SLIDE_TOP_RIGHT = 20
+    SLIDE_BOTTOM_LEFT = 21
+    SLIDE_BOTTOM_RIGHT = 22
+    SLIDE_VERTICAL = 23
+    SLIDE_HORIZONTAL = 24
+    SLIDE_REVERSE_VERTICAL = 25
+    SLIDE_REVERSE_HORIZONTAL = 26
 
     @staticmethod
     def _fade(factor: float, dst_w: int, dst_h: int, dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC,
@@ -237,12 +245,12 @@ class Transition(metaclass=_Enum):
         yield dst_w_, dst_dh, dst_w - dst_h_, dst_h - dst_dh, dst_w_, dst_dh
 
     # noinspection PyUnresolvedReferences
-    _TRANSITIONS = (None, *(static.__func__ for static in (
+    _TRANSITIONS = tuple(static.__func__ for static in (
         _fade, _explode, _implode, _left, _top, _right, _bottom, _top_left, _top_right, _bottom_left, _bottom_right,
         _vertical, _horizontal, _reverse_vertical, _reverse_horizontal,
         _slide_left, _slide_top, _slide_right, _slide_bottom,
         _slide_top_left, _slide_top_right, _slide_bottom_left, _slide_bottom_right,
-        _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal)))
+        _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal))
 
 
 def get_style() -> Optional[int]:
@@ -277,11 +285,16 @@ def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARA
     return True
 
 
-def _get_workerw_hwnd() -> int:
-    workerw = ctyped.type.LPARAM()
-    _spawn_workerw()
-    ctyped.func.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(workerw))
-    return workerw.value
+def _get_workerw_hwnd() -> Optional[int]:
+    hwnd = ctyped.type.LPARAM()
+    for _ in range(_RETRY):
+        _spawn_workerw()
+        ctyped.func.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd))
+        if hwnd.value:
+            break
+    else:
+        return None
+    return hwnd.value
 
 
 def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
@@ -326,32 +339,31 @@ def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus
 
 def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
-                     transition: int = Transition.NONE, duration: float = 0, max_steps: int = sys.maxsize) -> bool:
-    hwnd = 0
-    for _ in range(_RETRY):
-        if hwnd := _get_workerw_hwnd():
-            break
-    if hwnd:
+                     transition: int = Transition.DISABLED, duration: float = 0, max_steps: int = sys.maxsize) -> bool:
+    if hwnd := _get_workerw_hwnd():
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
         src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h)
-        if transition != Transition.NONE:
-            extra = []
+        if transition != Transition.DISABLED:
+            if transition == Transition.RANDOM:
+                # noinspection PyProtectedMember
+                transition = Transition._random(Transition.DISABLED, Transition.RANDOM)
+            args = []
             if transition == Transition.FADE:
                 dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
                 ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
-                extra.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
-                              dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
+                args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
+                             dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
             if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
                               Transition.EXPLODE, Transition.SLIDE_VERTICAL, Transition.SLIDE_REVERSE_VERTICAL):
-                extra.append(dst_w / 2)
+                args.append(dst_w / 2)
             if transition in (Transition.HORIZONTAL, Transition.REVERSE_HORIZONTAL,
                               Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
-                extra.append(dst_h / 2)
+                args.append(dst_h / 2)
             start = time.time()
             while duration > (passed := time.time() - start):
                 # noinspection PyProtectedMember
                 for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
-                        passed / duration, dst_w, dst_h, *extra):
+                        passed / duration, dst_w, dst_h, *args):
                     ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
                                              src, src_ox, src_oy, ctyped.const.SRCCOPY)
                 time.sleep(duration / max_steps)
@@ -389,7 +401,7 @@ def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
     return False
 
 
-def _set_idesktopwallpaper(path: str, *monitors: str, color: Optional[ctyped.type.COLORREF] = None,
+def _set_idesktopwallpaper(path: str, monitor: str, color: Optional[ctyped.type.COLORREF] = None,
                            style: Optional[ctyped.enum.DESKTOP_WALLPAPER_POSITION] = None) -> bool:
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
@@ -400,10 +412,7 @@ def _set_idesktopwallpaper(path: str, *monitors: str, color: Optional[ctyped.typ
             if style in (ctyped.const.WPSTYLE_SPAN, ctyped.const.WPSTYLE_TILE):
                 return _set_param(path)
             else:
-                success = True
-                for monitor in monitors:
-                    success = ctyped.macro.SUCCEEDED(wallpaper.SetWallpaper(monitor, path)) and success
-                return success
+                return ctyped.macro.SUCCEEDED(wallpaper.SetWallpaper(monitor, path))
     return False
 
 
@@ -437,8 +446,10 @@ def set(path: str, *monitors: str, style: int = Style.DEFAULT, r: int = 0,
                     executor.submit(_draw_on_workerw, image, *monitor_x_y_w_h,
                                     *_get_position(*monitor_x_y_w_h[2:], image.width, image.height, style),
                                     _get_argb(r, g, b), transition, duration)
-        # TODO: drawn hdc is being refreshed
-        return _set_idesktopwallpaper(path, *monitors, color=ctyped.macro.RGB(r, g, b), style=style)
+        set_ = True
+        for monitor in monitors:
+            set_ = _set_idesktopwallpaper(path, monitor, ctyped.macro.RGB(r, g, b), style) and set_
+        return set_
 
 
 def set_lock(path: str) -> bool:

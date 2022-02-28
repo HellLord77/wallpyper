@@ -4,6 +4,7 @@ __author__ = 'HellLord'
 import atexit
 import configparser
 import copy
+import math
 import subprocess
 import sys
 import tempfile
@@ -19,8 +20,7 @@ import modules.wallhaven
 import platforms.win32 as platform
 import utils
 
-FEATURE_FORCE_PIN = False
-FEATURE_CHANGED = False
+FEATURE_PY_PIN = False
 
 MAX_CACHE = 64 * 1024 * 1024
 POLL_TIMEOUT = 0.01
@@ -61,7 +61,7 @@ DEFAULT_CONFIG = utils.Dict({
     CONFIG_TRANSITION: platform.wallpaper.Transition[platform.wallpaper.Transition.FADE],
     CONFIG_DISPLAY: '',
     CONFIG_AUTO_CHANGE: INTERVALS[0],
-    CONFIG_LAST: utils.Timer.last_start,
+    CONFIG_LAST: math.inf,
     CONFIG_AUTOSAVE: False,
     CONFIG_DIR: utils.join_path(platform.PICTURES_DIR, NAME),
     CONFIG_NOTIFY: True,
@@ -116,7 +116,7 @@ def load_config() -> bool:  # TODO verify config
     return loaded
 
 
-def _strip(config: dict[str, Any], default: dict[str, Any]) -> dict[str, Any]:
+def _strip_config(config: dict[str, Any], default: dict[str, Any]) -> dict[str, Any]:
     stripped = {}
     for option, value in default.items():
         if config[option] != value:
@@ -128,10 +128,10 @@ def save_config() -> bool:  # TODO save recently set wallpaper (?)
     saved = True
     parser = configparser.ConfigParser()
     fix_config()
-    parser[NAME] = _strip(CONFIG, DEFAULT_CONFIG)
+    parser[NAME] = _strip_config(CONFIG, DEFAULT_CONFIG)
     for module in MODULES:
         try:
-            parser[module.NAME] = _strip(module.CONFIG, module.DEFAULT_CONFIG)
+            parser[module.NAME] = _strip_config(module.CONFIG, module.DEFAULT_CONFIG)
         except TypeError:
             saved = False
     with open(INI_PATH, 'w') as file:
@@ -144,7 +144,8 @@ def fix_config():
         CONFIG[CONFIG_TRANSITION] = DEFAULT_CONFIG[CONFIG_TRANSITION]
     if DISPLAYS and CONFIG[CONFIG_DISPLAY] not in DISPLAYS:
         CONFIG[CONFIG_DISPLAY] = DEFAULT_CONFIG[CONFIG_DISPLAY]
-    CONFIG[CONFIG_LAST] = TIMER.last_start if FEATURE_CHANGED else DEFAULT_CONFIG[CONFIG_LAST]
+    if CONFIG[CONFIG_LAST] > time.time():
+        CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[CONFIG_LAST]
     if CONFIG[CONFIG_AUTO_CHANGE] not in INTERVALS:
         CONFIG[CONFIG_AUTO_CHANGE] = DEFAULT_CONFIG[CONFIG_AUTO_CHANGE]
     if not CONFIG[CONFIG_DIR]:
@@ -202,6 +203,7 @@ def on_change(previous: bool, enable: Callable, set_label: Callable) -> bool:
     changed = False
     if not change_wallpaper.is_running():
         enable(False)
+        CONFIG[CONFIG_LAST] = time.time()
         if changed := change_wallpaper(HISTORY.previous() if previous else HISTORY.next(), set_label):
             if CONFIG[CONFIG_AUTOSAVE]:
                 save_wallpaper()
@@ -219,22 +221,27 @@ def on_update_display():
     ids = platform.get_monitor_ids()
     pad = len(str(len(ids)))
     utils.add_item(
-        f'[*] {LANG.DISPLAY_ALL}', utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == DEFAULT_CONFIG[CONFIG_DISPLAY],
+        LANG.DISPLAY_ALL, utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == DEFAULT_CONFIG[CONFIG_DISPLAY],
         uid=DEFAULT_CONFIG[CONFIG_DISPLAY], on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
         args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu_display)
     DISPLAYS.clear()
-    for index, id_ in enumerate(ids):
+    for index, id_ in enumerate(ids, 1):
         DISPLAYS.add(id_)
         utils.add_item(f'[{langs.to_str(index, LANG, pad)}] {platform.get_monitor_name(id_) or LANG.DISPLAY}',
                        utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == id_, uid=id_,
                        on_click=CONFIG.__setitem__, menu_args=(utils.get_property.UID,),
                        args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu_display)
     utils.add_item(LANG.LABEL_UPDATE_DISPLAY, on_click=on_update_display, menu=menu_display)
+    fix_config()
 
 
-def on_auto_change(interval: Union[int, str]):
+def on_auto_change(interval: Union[int, str], after: Optional[float] = None):
     CONFIG[CONFIG_AUTO_CHANGE] = int(interval)
-    TIMER.start(CONFIG[CONFIG_AUTO_CHANGE]) if CONFIG[CONFIG_AUTO_CHANGE] else TIMER.stop()
+    if CONFIG[CONFIG_AUTO_CHANGE]:
+        TIMER.set_next_interval(CONFIG[CONFIG_AUTO_CHANGE])
+        TIMER.start(after)
+    else:
+        TIMER.stop()
 
 
 def on_save() -> bool:
@@ -429,9 +436,9 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_change = utils.add_submenu(LANG.MENU_CHANGE)
     TIMER.args = False, menu_change.Enable, (lambda progress=None: menu_change.SetItemLabel(
         LANG.MENU_CHANGE if progress is None else f'{LANG.MENU_CHANGE} ({langs.to_str(progress, LANG, 3)}%)'))
-    utils.add_item(LANG.LABEL_NEXT, on_click=on_change, args=TIMER.args,
+    utils.add_item(LANG.LABEL_NEXT, on_click=TIMER.start, args=(0,),
                    on_thread=False, change_state=False, menu=menu_change)
-    utils.add_item(LANG.LABEL_PREVIOUS, enable=False, uid=UID_PREVIOUS, on_click=on_change,
+    utils.add_item(LANG.LABEL_PREVIOUS, enable=False, uid=UID_PREVIOUS, on_click=on_change,  # TODO: recent
                    args=(True, *TIMER.args[1:]), on_thread=False, change_state=False, menu=menu_change)
     utils.add_item(LANG.LABEL_SAVE, on_click=on_save)
     utils.add_item(LANG.LABEL_SEARCH, on_click=on_search)
@@ -453,12 +460,12 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(LANG.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_links)
     utils.add_item(LANG.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_links)
     utils.add_separator(menu_links)
-    utils.add_item(LANG.LABEL_PIN, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN, on_click=on_pin, menu=menu_links)
-    utils.add_item(LANG.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN, on_click=on_unpin, menu=menu_links)
+    utils.add_item(LANG.LABEL_PIN, enable=pyinstall.FROZEN or FEATURE_PY_PIN, on_click=on_pin, menu=menu_links)
+    utils.add_item(LANG.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_PY_PIN, on_click=on_unpin, menu=menu_links)
     utils.add_separator(menu_links)
-    unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN,
+    unpin = utils.add_item(LANG.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PY_PIN,
                            on_click=on_unpin_start, menu=menu_links)
-    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_FORCE_PIN,
+    utils.add_item(LANG.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PY_PIN,
                    on_click=on_pin_start, menu_args=(utils.set_property.ENABLE,),
                    args=(unpin.Enable,), change_state=False, position=9, menu=menu_links)
     utils.add_item(LANG.LABEL_CLEAR, on_click=on_clear, menu=menu_actions)
@@ -515,14 +522,16 @@ def start():  # TODO dark theme
     load_config()
     create_menu()
     on_animate(CONFIG[CONFIG_ANIMATE])
-    on_auto_change(CONFIG[CONFIG_AUTO_CHANGE])
     on_auto_start(CONFIG[CONFIG_START])
     on_save_config(CONFIG[CONFIG_SAVE])
-    if ARG_CHANGE in sys.argv or (FEATURE_CHANGED and CONFIG[CONFIG_AUTO_CHANGE] and
-                                  time.time() >= CONFIG[CONFIG_AUTO_CHANGE] + CONFIG[CONFIG_LAST]):
-        TIMER.last_start = time.time()
-        on_change(*TIMER.args)
-    utils.start(RES_TRAY, NAME, on_change, TIMER.args)
+    after = CONFIG[CONFIG_AUTO_CHANGE] + CONFIG[CONFIG_LAST] - time.time()
+    if ARG_CHANGE in sys.argv or (CONFIG[CONFIG_AUTO_CHANGE] and after <= 0):
+        TIMER.once = True
+        TIMER.start(0)
+        TIMER.once = False
+    if CONFIG[CONFIG_AUTO_CHANGE]:
+        on_auto_change(CONFIG[CONFIG_AUTO_CHANGE], None if after <= 0 else after)
+    utils.start(RES_TRAY, NAME, TIMER.start, (0,))
 
 
 def stop():

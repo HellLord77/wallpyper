@@ -218,7 +218,7 @@ def _animation_worker() -> bool:
     while True:
         try:
             delay, icon = next(_ANIMATIONS_[0][-1][0])
-            _TASK_BAR_ICON.SetIcon(icon, _ANIMATIONS_[0][-1][1])
+            _TASK_BAR_ICON.IsIconInstalled() and _TASK_BAR_ICON.SetIcon(icon, _ANIMATIONS_[0][-1][1])
         except IndexError:
             return _TASK_BAR_ICON.IsIconInstalled() and _TASK_BAR_ICON.SetIcon(_ICON, _APP.GetAppName())
         else:

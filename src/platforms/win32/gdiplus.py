@@ -69,6 +69,15 @@ class Graphics(_GdiplusBase):
         ctyped.func.GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
         return self
 
+    @classmethod
+    def validate_hdc(cls, hdc: ctyped.type.HDC) -> bool:
+        try:
+            cls.from_hdc(hdc)
+        except GdiplusError:
+            return False
+        else:
+            return True
+
     @staticmethod
     def _get_func(float_func: Callable, int_func: Callable, *numbers: Optional[float]) -> Callable:
         for number in numbers:
@@ -204,7 +213,7 @@ class Image(_GdiplusBase):
         return ctyped.enum.GpStatus.Ok == ctyped.func.GdiPlus.GdipImageSelectActiveFrame(
             self, self._get_dimension_id() if _id is None else _id, index)
 
-    def iter_frames(self) -> Generator[str, None, None]:
+    def iter_frames(self) -> Generator[int, None, None]:
         dimension_id = self._get_dimension_id()
         for index in range(self.get_frame_count(dimension_id)):
             self.select_frame(index, dimension_id)

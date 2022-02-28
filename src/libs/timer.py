@@ -21,7 +21,7 @@ class Timer:
     last_start = math.inf
 
     def __init__(self, interval: float, target: Callable, args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None, once: Optional[bool] = None, start: Optional[bool] = None):
+                 kwargs: Optional[Mapping[str, Any]] = None, once: bool = False, start: bool = False):
         self._interval = interval
         self.target = target
         self.args = () if args is None else args
@@ -56,10 +56,10 @@ class Timer:
                     removed += 1
         return removed
 
-    def _function(self):
+    def _callback(self):
         self._running += 1
         self.last_start = time.time()
-        if not (self._interval == 0 or self.once):
+        if self._interval != 0 and not self.once:
             self.start()
         try:
             with contextlib.suppress(_TimerExit):
@@ -71,24 +71,29 @@ class Timer:
         self._interval = interval
 
     def is_not_stopped(self, index: int = -1) -> bool:
-        with contextlib.suppress(IndexError):
+        try:
             return self._timers[index].is_alive()
-        return False
+        except IndexError:
+            return False
 
-    def start(self, interval: Optional[float] = None):
+    def start(self, after: Optional[float] = None):
         self.stop()
         self._clean_timers()
-        if interval is not None:
-            self.set_next_interval(interval)
-        timer = threading.Timer(self._interval, self._function)
+        timer = threading.Timer(self._interval if after is None else after, self._callback)
         timer.name = f'{__name__}-{__version__}-{type(self).__name__}({self.target.__name__})'
         timer.daemon = True
         timer.start()
         self._timers.append(timer)
 
-    def stop(self, index: int = -1) -> bool:
+    def start_once(self):
+        once = self.once
+        self.once = True
+        self.start(0)
+        self.once = once
+
+    def stop(self, _index: int = -1) -> bool:
         try:
-            timer = self._timers[index]
+            timer = self._timers[_index]
         except IndexError:
             pass
         else:
@@ -105,15 +110,14 @@ class Timer:
         return killed
 
 
-def start_once(interval: Optional[float] = None, target: Optional[Callable] = None, args: Optional[Iterable] = None,
+def start_once(interval: Optional[float], target: Callable, args: Optional[Iterable] = None,
                kwargs: Optional[Mapping[str, Any]] = None) -> Timer:
-    return Timer(0 if interval is None else interval, (lambda *_, **__: None) if target is None else target, args,
-                 kwargs, True, True)
+    return Timer(0 if interval is None else interval, target, args, kwargs, True, True)
 
 
 def on_thread(target: Callable) -> Callable[[...], Timer]:
     @functools.wraps(target)
     def wrapper(*args, **kwargs) -> Timer:
-        return start_once(target=target, args=args, kwargs=kwargs)
+        return start_once(None, target, args, kwargs)
 
     return wrapper

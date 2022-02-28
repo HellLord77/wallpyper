@@ -25,7 +25,7 @@ from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoRe
 
 DEFAULT = object()
 ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-TYPE = typing.TypeVar('TYPE')
+T = typing.TypeVar('T')
 
 
 class _Mutable:
@@ -162,11 +162,15 @@ class TimeDeltaEx(datetime.timedelta):
     __float__ = datetime.timedelta.total_seconds
 
 
-def _to_type(text: str, expected_type: type[TYPE]) -> TYPE:
+def _to_type(text: str, expected_type: type[T]) -> T:
     if isinstance(val := ast.literal_eval(text), expected_type):
         return val
     else:
         raise TypeError
+
+
+def to_bool(string: str) -> bool:
+    return _to_type(string, bool)
 
 
 def to_tuple(string: str) -> tuple:
