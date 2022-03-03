@@ -12,7 +12,7 @@ $Version = "0.0.2"
     $OneFile = $False
 #>
 
-$Datas = @("resources", "platforms\win32\syspin.exe")
+$Datas = @("resources", "win32\syspin.exe")
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True

@@ -1,8 +1,7 @@
-__version__ = '0.0.17'
+__version__ = '0.0.18'
 
 import contextlib
 import ntpath
-import operator
 import os
 import subprocess
 import time
@@ -10,7 +9,7 @@ import winreg
 from typing import ContextManager, Generator, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
-from . import gdiplus, wallpaper
+from . import _utils, gdiplus, wallpaper
 
 
 def _get_dir(folderid: str) -> str:
@@ -39,16 +38,6 @@ WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'Transc
 
 
 @contextlib.contextmanager
-def _string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWSTR]:
-    ptr = ctyped.type.LPWSTR(*() if size is None else ('\0' * size,))
-    try:
-        yield ptr
-    finally:
-        if size is None and ptr:
-            ctyped.func.kernel32.LocalFree(ptr)
-
-
-@contextlib.contextmanager
 def _open_clipboard() -> ContextManager[None]:
     ctyped.func.user32.OpenClipboard(None)
     try:
@@ -61,16 +50,6 @@ def _set_clipboard(format_: int, hglobal: ctyped.type.HGLOBAL):
     with _open_clipboard():
         ctyped.func.user32.EmptyClipboard()
         ctyped.func.user32.SetClipboardData(format_, hglobal)
-
-
-@contextlib.contextmanager
-def _get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.func.shell32.ILCreateFromPath(path) for path in paths)
-    try:
-        yield ids
-    finally:
-        for id_ in ids:
-            ctyped.func.shell32.ILFree(id_)
 
 
 @contextlib.contextmanager
@@ -97,7 +76,7 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
                 yield prop_store
                 return
     else:
-        with ctyped.conv_com(path_or_interface, ctyped.com.IPropertyStore) as prop_store:
+        with ctyped.cast_com(path_or_interface, ctyped.com.IPropertyStore) as prop_store:
             yield prop_store
             return
     yield None
@@ -141,7 +120,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
     if isinstance(path_or_link, str):
         with ctyped.init_com(ctyped.com.IShellLinkW) as link:
             if link:
-                with ctyped.conv_com(link, ctyped.com.IPersistFile) as file:
+                with ctyped.cast_com(link, ctyped.com.IPersistFile) as file:
                     if file and ctyped.macro.SUCCEEDED(file.Load(path_or_link, ctyped.const.STGM_READ)):
                         yield link
                         return
@@ -151,7 +130,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
 
 
 def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
-    with ctyped.conv_com(link, ctyped.com.IPersistFile) as file:
+    with ctyped.cast_com(link, ctyped.com.IPersistFile) as file:
         try:
             file.Save(path, True)
         except (OSError, PermissionError):
@@ -166,7 +145,7 @@ def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     data = []
     word = ctyped.type.WORD()
     c_int = ctyped.type.c_int()
-    with _string_buffer(ctyped.const.SHRT_MAX) as buff:
+    with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
         with _load_link(path_or_link) as link:
             link.GetPath(buff, ctyped.const.SHRT_MAX, None, ctyped.enum.SLGP_FLAGS.SLGP_RAWPATH.value)
             data.append(buff.value)
@@ -211,7 +190,7 @@ def _set_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     return True
 
 
-def _get_link_paths(dir_: str, recursive: Optional[bool] = None) -> Generator[str, None, None]:
+def _get_link_paths(dir_: str, recursive: bool = False) -> Generator[str, None, None]:
     dir_entry: os.DirEntry
     for dir_entry in os.scandir(dir_):
         if recursive and dir_entry.is_dir():
@@ -248,7 +227,7 @@ def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Point
         flags = 0,
     sz = ctyped.type.DWORD()
     getter(hdevinfo, dev_info_ref, key_ref, type_ref, None, 0, ctyped.byref(sz), *flags)
-    with _string_buffer(sz.value) as buff:
+    with _utils.string_buffer(sz.value) as buff:
         getter(hdevinfo, dev_info_ref, key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), sz, None, *flags)
         return buff.value
 
@@ -271,36 +250,8 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: Union[int, tuple[
     return tuple(vals)
 
 
-def _get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
-    sz = ctyped.type.ULONG()
-    type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
-    prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-    ctyped.func.cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
-    with _string_buffer(sz.value) as buff:
-        ctyped.func.cfgmgr32.CM_Get_Device_Interface_PropertyW(
-            dev_path, prop_key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
-        return buff.value
-
-
-def _get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str, ...]:
-    props = []
-    dev_int = ctyped.type.DEVINST()
-    sz = ctyped.type.ULONG()
-    type_ = ctyped.type.DEVPROPTYPE()
-    for devpkey in devpkeys:
-        prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-        ctyped.func.cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
-        ctyped.func.cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(type_),
-                                                      None, ctyped.byref(sz), 0)
-        with _string_buffer(sz.value) as buff:
-            ctyped.func.cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(type_),
-                                                          ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
-            props.append(buff.value)
-    return tuple(props)
-
-
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
-    with _string_buffer() as buff:
+    with _utils.string_buffer() as buff:
         ctyped.func.kernel32.FormatMessageW((
                 ctyped.const.FORMAT_MESSAGE_ALLOCATE_BUFFER |
                 ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS),
@@ -311,14 +262,25 @@ def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     return error
 
 
+def show_error(title: str, text: str) -> bool:
+    return ctyped.func.user32.MessageBoxW(
+        None, text, title, ctyped.const.MB_OK | ctyped.const.MB_ICONERROR | ctyped.const.MB_SYSTEMMODAL) != 0
+
+
+def sanitize_filename(name: str) -> str:
+    pwstr = ctyped.type.PWSTR(name)
+    return '' if ctyped.func.shell32.PathCleanupSpec(None, pwstr) & ctyped.const.PCS_FATAL else pwstr.value
+
+
 def get_max_shutdown_time() -> float:
     buff = ctyped.type.c_int()
     ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
     return buff.value / 1000
 
 
-def refresh_dir(dir_: str):
-    ctyped.func.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir_, None)
+# noinspection PyShadowingBuiltins
+def refresh_dir(dir: str):
+    ctyped.func.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir, None)
 
 
 def press_keyboard(key: int) -> bool:
@@ -337,9 +299,28 @@ def open_file(path: str) -> bool:
 
 
 def open_file_path(path: str) -> bool:
-    with _get_itemidlist(path) as pidl:
-        ctyped.func.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0)
-    return True
+    with _utils.get_itemidlist(path) as pidl:
+        return ctyped.macro.SUCCEEDED(ctyped.func.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0))
+
+
+def open_file_with(path: str) -> bool:
+    info_ref = ctyped.byref(ctyped.struct.OPENASINFO(path, oaifInFlags=(
+            ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_HIDE_REGISTRATION)))
+    try:
+        return ctyped.const.S_OK == ctyped.func.shell32.SHOpenWithDialog(None, info_ref)
+    except OSError as error:
+        return error.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED)
+
+
+def open_file_with_ex(path: str) -> bool:
+    with ctyped.get_winrt(ctyped.com.ILauncherOptions, True) as options:
+        if options and ctyped.macro.SUCCEEDED(options.put_DisplayApplicationPicker(True)):
+            with ctyped.get_winrt(ctyped.com.ILauncherStatics) as launcher, _utils.open_file(path) as file:
+                if launcher and file:
+                    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+                    if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, operation.get_ref())):
+                        return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+    return False
 
 
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
@@ -347,21 +328,27 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
         if dialog:
             dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS)
             if path is not None:
-                with contextlib.suppress(FileNotFoundError):
-                    with ctyped.init_com(ctyped.com.IShellItem, False) as item:
+                with ctyped.init_com(ctyped.com.IShellItem, False) as item:
+                    try:
                         ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
+                    except FileNotFoundError:
+                        pass
+                    except OSError as error:
+                        if error.winerror != ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
+                            return ''
+                    else:
                         dialog.SetFolder(item)
-                dialog.SetFileName(path)
             if title is not None:
                 dialog.SetTitle(title)
             try:
                 dialog.Show(None)
-            except OSError:
-                return path
+            except OSError as error:
+                if error.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED):
+                    return path
             else:
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
-                    with _string_buffer() as buff:
+                    with _utils.string_buffer() as buff:
                         item.GetDisplayName(ctyped.enum.SIGDN.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
                         dir_ = buff.value
                     return dir_
@@ -441,7 +428,7 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
             ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-            with ctyped.conv_com(picture, ctyped.com.IPictureDisp) as picture_disp:
+            with ctyped.cast_com(picture, ctyped.com.IPictureDisp) as picture_disp:
                 try:
                     ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
                 except OSError:
@@ -449,30 +436,6 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
                 else:
                     return True
     return False
-
-
-def get_monitor_count() -> int:
-    num = ctyped.type.c_int()
-    ctyped.func.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
-    return num.value
-
-
-def get_monitor_ids() -> tuple[str, ...]:
-    monitors = []
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-        if wallpaper:
-            count = ctyped.type.UINT()
-            wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
-            for index in range(count.value):
-                with _string_buffer() as buff:
-                    wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
-                    monitors.append(buff.value)
-    return tuple(monitors)
-
-
-def get_monitor_name(id_: str) -> Optional[str]:
-    dev_id = _get_str_dev_id_prop(id_, ctyped.const.DEVPKEY_Device_InstanceId)
-    return _get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else None
 
 
 def get_direct_show_devices_properties(clsid: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
@@ -501,48 +464,6 @@ def get_direct_show_devices_properties(clsid: str, prop_names: tuple[str] = ('De
     return tuple(devices)
 
 
-def _get_wallpaper_path_param() -> str:
-    with _string_buffer(ctyped.const.SHRT_MAX) as buff:
-        ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
-        return buff.value
-
-
-def _get_wallpaper_path_iactivedesktop() -> str:
-    with _string_buffer(ctyped.const.SHRT_MAX) as buff:
-        with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
-            if desktop:
-                desktop.GetWallpaper(buff, ctyped.const.SHRT_MAX, ctyped.const.AD_GETWP_BMP)
-        return buff.value
-
-
-def _get_wallpaper_path_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-        if wallpaper:
-            with _string_buffer() as buff:
-                return tuple(buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
-                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitor_ids()))
-        else:
-            return ()
-
-
-def get_wallpaper_path(monitor: str = None) -> str:
-    return ((_get_wallpaper_path_param() or _get_wallpaper_path_iactivedesktop())
-            if monitor is None else _get_wallpaper_path_idesktopwallpaper(monitor)[0])
-
-
-def set_slideshow(*paths: str) -> bool:
-    with _get_itemidlist(*paths) as pidl:
-        id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
-        with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-            if wallpaper:
-                with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
-                    ctyped.func.shell32.SHCreateShellItemArrayFromIDLists(
-                        len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
-                    wallpaper.SetSlideshow(shl_arr)
-                    return True
-    return False
-
-
 def _register_autorun_reg(name: str, path: str, *args: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_KEY,
                         access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
@@ -556,13 +477,12 @@ def _register_autorun_reg(name: str, path: str, *args: str) -> bool:
 
 
 def _register_autorun_link(name: str, path: str, *args: str, show: bool, aumi: Optional[str] = None) -> bool:
-    return create_shortcut(ntpath.join(_STARTUP_DIR, f'{name}.{LINK_EXT}'), path, *args, show=show, uid=aumi)
+    return create_shortcut(ntpath.join(_STARTUP_DIR, f'{name}{LINK_EXT}'), path, *args, show=show, uid=aumi)
 
 
 def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: Optional[str] = None) -> bool:
-    return unregister_autorun(name, uid) and (
-            _register_autorun_link(name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path,
-                                                                                                    *args))
+    return unregister_autorun(name, uid) and (_register_autorun_link(
+        name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path, *args))
 
 
 def _unregister_autorun_reg(name: str) -> bool:
@@ -602,18 +522,19 @@ def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', ico
     return False
 
 
-def remove_shortcuts(dir_: str, uid: str, rmdir: bool = True) -> bool:
+# noinspection PyShadowingBuiltins
+def remove_shortcuts(dir: str, uid: str, rmdir: bool = True) -> bool:
     if uid is None:
         return False
     removed = True
-    for path in _get_link_paths(dir_, True):
+    for path in _get_link_paths(dir, True):
         if uid == _get_str_ex_props(path, ctyped.const.PKEY_AppUserModel_ID)[0]:
             try:
                 os.remove(path)
             except (FileNotFoundError, PermissionError):
                 removed = False
-            if rmdir and not any(os.scandir(dir__ := ntpath.dirname(path))):
-                os.rmdir(dir__)
+            if rmdir and not any(os.scandir(dir_ := ntpath.dirname(path))):
+                os.rmdir(dir_)
     return removed
 
 

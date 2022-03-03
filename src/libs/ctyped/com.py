@@ -144,7 +144,7 @@ class IDesktopWallpaper(IUnknown):
 
 class IModalWindow(IUnknown):
     __CLSID__ = _const.CLSID_FileOpenDialog
-    Show: _Callable[[_type.HWND],
+    Show: _Callable[[_Optional[_type.HWND]],
                     _type.HRESULT]
 
 
@@ -765,6 +765,53 @@ class ILockScreenStatics(IInspectable):
     SetImageStreamAsync: _Callable[[IRandomAccessStream,
                                     _Pointer[IAsyncAction]],
                                    _type.HRESULT]
+
+
+class ILauncherOptions(IInspectable):
+    __RuntimeClass__ = _const.RuntimeClass_Windows_System_LauncherOptions
+    get_TreatAsUntrusted: _Callable[[_Pointer[_type.boolean]],
+                                    _type.HRESULT]
+    put_TreatAsUntrusted: _Callable[[_type.boolean],
+                                    _type.HRESULT]
+    get_DisplayApplicationPicker: _Callable[[_Pointer[_type.boolean]],
+                                            _type.HRESULT]
+    put_DisplayApplicationPicker: _Callable[[_type.boolean],
+                                            _type.HRESULT]
+    get_UI: _Callable
+    get_PreferredApplicationPackageFamilyName: _Callable[[_Pointer[_type.HSTRING]],
+                                                         _type.HRESULT]
+    put_PreferredApplicationPackageFamilyName: _Callable[[_type.HSTRING],
+                                                         _type.HRESULT]
+    get_PreferredApplicationDisplayName: _Callable[[_Pointer[_type.HSTRING]],
+                                                   _type.HRESULT]
+    put_PreferredApplicationDisplayName: _Callable[[_type.HSTRING],
+                                                   _type.HRESULT]
+    get_FallbackUri: _Callable[[_Pointer[IUriRuntimeClass]],
+                               _type.HRESULT]
+    put_FallbackUri: _Callable[[IUriRuntimeClass],
+                               _type.HRESULT]
+    get_ContentType: _Callable[[_Pointer[_type.HSTRING]],
+                               _type.HRESULT]
+    put_ContentType: _Callable[[_type.HSTRING],
+                               _type.HRESULT]
+
+
+class ILauncherStatics(IInspectable):
+    __RuntimeClass__ = _const.RuntimeClass_Windows_System_Launcher
+    LaunchFileAsync: _Callable[[IStorageFile,
+                                _Pointer[IAsyncOperation]],
+                               _type.HRESULT]
+    LaunchFileWithOptionsAsync: _Callable[[IStorageFile,
+                                           ILauncherOptions,
+                                           _Pointer[IAsyncOperation]],
+                                          _type.HRESULT]
+    LaunchUriAsync: _Callable[[IUriRuntimeClass,
+                               _Pointer[IAsyncOperation]],
+                              _type.HRESULT]
+    LaunchUriWithOptionsAsync: _Callable[[IUriRuntimeClass,
+                                          ILauncherOptions,
+                                          _Pointer[IAsyncOperation]],
+                                         _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:

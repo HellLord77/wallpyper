@@ -35,7 +35,7 @@ class _Module:
 
 
 class _Globals(dict):
-    def __init__(self, replace_once: _Optional[bool] = None):
+    def __init__(self, replace_once: bool = False):
         self.replace_once = replace_once
         self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         vars_ = vars(self.module)

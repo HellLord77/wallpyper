@@ -21,6 +21,7 @@ _languages = (
 )
 
 DEFAULT = en
+LANGUAGE = DEFAULT
 
 
 def _getattr(name: str) -> str:

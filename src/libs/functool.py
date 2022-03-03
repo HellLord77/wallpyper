@@ -162,6 +162,23 @@ class TimeDeltaEx(datetime.timedelta):
     __float__ = datetime.timedelta.total_seconds
 
 
+class RemoteFile:
+    def __init__(self, url: str, name: str, size: Optional[int] = None, md5: Optional[str] = None):
+        self.url = url
+        self.name = name
+        self.size = size
+        self.md5 = md5
+
+    def __bool__(self):
+        return bool(self.url)
+
+    def __eq__(self, other):
+        return self.url == other.url
+
+    def __hash__(self):
+        return hash(self.url)
+
+
 def _to_type(text: str, expected_type: type[T]) -> T:
     if isinstance(val := ast.literal_eval(text), expected_type):
         return val
@@ -183,6 +200,10 @@ def to_list(string: str) -> list:
 
 def to_set(string: str) -> set:
     return _to_type(string, set)
+
+
+def to_dict(string: str) -> dict:
+    return _to_type(string, dict)
 
 
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
@@ -333,18 +354,35 @@ def strip_ansi(string: str) -> str:
     return ANSI.sub('', string)
 
 
-def encrypt(obj) -> str:
+def split_ex(string: str, length: int = 64) -> tuple[str]:
+    return tuple(string[index: length + index] for index in range(0, len(string), length))
+
+
+def shrink_string_end(string: str, max_len: int, end: str = '...') -> str:
+    return f'{string[:max_len - len(end)]}{end}' if len(string) > max_len else string
+
+
+def shrink_string_mid(string: str, max_len: int, mid: str = '...') -> str:
+    if len(string) > max_len:
+        max_ = max_len - len(mid)
+        left = math.ceil(max_ / 2)
+        string = f'{string[:left]}{mid}{string[left - max_:]}'
+    return string
+
+
+def encrypt(obj, split: bool = False) -> str:
     try:
         pickled = pickle.dumps(obj)
     except TypeError:
         return ''
-    return binascii.b2a_base64(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled,
-                               newline=False).decode()
+    base64 = binascii.b2a_base64(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled,
+                                 newline=False).decode()
+    return '\n'.join(split_ex(base64)) if split else base64
 
 
 def decrypt(data: str, default: Any = None) -> Any:
     try:
-        decoded = binascii.a2b_base64(data.encode())
+        decoded = binascii.a2b_base64(''.join(data.split('\n')).encode())
     except binascii.Error:
         return default
     size = hashlib.blake2b().digest_size
@@ -421,6 +459,18 @@ def once_run(func: Callable) -> Callable:
     return wrapper
 
 
+def queue_run(func: Callable) -> Callable:
+    lock = threading.Lock()
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with lock:
+            return func(*args, **kwargs)
+
+    wrapper.is_running = lock.locked
+    return wrapper
+
+
 def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]], running: threading.Event,
                   wrapper: Callable) -> NoReturn:
     while True:
@@ -435,7 +485,7 @@ def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str
                     works.task_done()
 
 
-def queue_run(func: Callable) -> Callable:
+def queue_run_ex(func: Callable) -> Callable:
     running = threading.Event()
     works = queue.Queue()
 
@@ -443,7 +493,7 @@ def queue_run(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):
         works.put((args, kwargs))
 
-    threading.Thread(target=_queue_worker, name=f'{__name__}-{__version__}-{queue_run.__name__}({func.__name__})',
+    threading.Thread(target=_queue_worker, name=f'{__name__}-{__version__}-{queue_run_ex.__name__}({func.__name__})',
                      args=(func, works, running, wrapper), daemon=True).start()
     wrapper.is_running = lambda: running.is_set() or bool(works.unfinished_tasks)
     wrapper.reset = lambda: clear_queue(works)
@@ -479,8 +529,8 @@ def threaded_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res: Any, res_as_arg: Optional[bool],
-          unpack_res: Optional[bool]) -> Any:
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res: Any, res_as_arg: bool,
+          unpack_res: bool) -> Any:
     if res_as_arg:
         if unpack_res:
             if isinstance(res, Iterable):
@@ -491,8 +541,7 @@ def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res: Any, r
     return func(*args, **kwargs)
 
 
-def call_after(pre_func: Callable, res_as_arg: Optional[bool] = None, unpack_res: Optional[bool] = None) -> Callable[
-    [Callable], Callable]:
+def call_after(pre_func: Callable, res_as_arg: bool = False, unpack_res: bool = False) -> Callable:
     def call_after_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -504,8 +553,7 @@ def call_after(pre_func: Callable, res_as_arg: Optional[bool] = None, unpack_res
     return call_after_
 
 
-def call_before(post_func: Callable, res_as_arg: Optional[bool] = None, unpack_res: Optional[bool] = None) -> Callable[
-    [Callable], Callable]:
+def call_before(post_func: Callable, res_as_arg: bool = False, unpack_res: bool = False) -> Callable:
     def call_before_(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

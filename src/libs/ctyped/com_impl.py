@@ -48,7 +48,7 @@ class IUnknown(_type.c_void_p):
     def __init__(self):  # TODO lazy init from value & test no ref vtbl
         # self._vtbl = self._vtbl(*(type_(getattr(self, name)) if func is None else func for (name, type_), func in
         #                           zip(self._vtbl._fields_, self._funcs)))
-        # noinspection PyUnresolvedReferences,PyProtectedMember
+        # noinspection PyProtectedMember,PyUnresolvedReferences
         self._ptr = _pointer(self._vtbl(*(type_(getattr(self, name)) if func is None else func
                                           for (name, type_), func in zip(self._vtbl._fields_, self._funcs))))
         super().__init__(_addressof(self._ptr))
@@ -146,7 +146,8 @@ class IAsyncActionWithProgressCompletedHandler(IUnknown):
 
 
 class IAsyncOperationCompletedHandler(IUnknown):
-    __IID__ = {_const.IID_IAsyncOperationCompletedHandler_IRandomAccessStream,
+    __IID__ = {_const.IID_IAsyncOperationCompletedHandler_bool,
+               _const.IID_IAsyncOperationCompletedHandler_IRandomAccessStream,
                _const.IID_IAsyncOperationCompletedHandler_IStorageFile,
                _const.IID_IAsyncOperationCompletedHandler_IStorageFolder}
 

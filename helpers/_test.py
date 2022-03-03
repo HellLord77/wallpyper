@@ -2,15 +2,34 @@ from __future__ import annotations as _
 
 __version__ = '0.0.1'
 
+import io
 import itertools
+import sys
+import threading
 import time
+import tkinter.messagebox
+import types
 from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
 import libs.ctyped as ctyped
-import platforms.win32 as win32
-import platforms.win32.gdiplus as gdiplus
-from platforms.win32.wallpaper import Style, Transition
+import win32.gdiplus as gdiplus
+
+
+def exception_handler(excepthook: Callable, *args, **kwargs):
+    stderr = sys.stderr
+    sys.stderr = io.StringIO()
+    excepthook(*args, **kwargs)
+    sys.stderr.seek(0)
+    root = tkinter.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    tkinter.messagebox.showerror(args[0][0].__name__, sys.stderr.read())
+    root.destroy()
+    sys.stderr = stderr
+
+
+threading.excepthook = types.MethodType(exception_handler, threading.excepthook)
 
 NAME = f'{__name__}-{__version__}'
 EVENT_CLOSE = ctyped.const.WM_CLOSE
@@ -138,7 +157,7 @@ class SysTray:
             except KeyError:
                 return False
         else:
-            cls._binds[0][ctyped.const.WM_CLOSE] = (callback, () if args is None else {},
+            cls._binds[0][ctyped.const.WM_CLOSE] = (callback, () if args is None else args,
                                                     {} if kwargs is None else kwargs)
         return True
 
@@ -204,14 +223,14 @@ class SysTray:
         self._shown = not bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._shown
 
-    def show_balloon(self, title: str, text: Optional[str] = None, icon: Optional[int] = None,
-                     silent: Optional[bool] = None) -> bool:
+    def show_balloon(self, title: str, text: Optional[str] = None,
+                     icon: Optional[int] = None, silent: bool = False) -> bool:
         hicon = self._data.hIcon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
         self._data.hIcon = self._hicon
         self._data.szInfo = text or title
         self._data.szInfoTitle = title if text else ''
-        self._data.dwInfoFlags = (icon or Icon.NONE) | (bool(silent) * ctyped.const.NIIF_NOSOUND)
+        self._data.dwInfoFlags = (icon or Icon.NONE) | (silent * ctyped.const.NIIF_NOSOUND)
         shown = self.show()
         self._data.uFlags = self._flags
         self._set_hicon(hicon)
@@ -228,7 +247,7 @@ class SysTray:
 def bind(event: int, callback: Callable, args: Optional[Iterable] = None,
          kwargs: Optional[Mapping[str, Any]] = None, _uid: int = 0):
     # noinspection PyProtectedMember
-    SysTray._binds[_uid][event] = callback, () if args is None else {}, {} if kwargs is None else kwargs
+    SysTray._binds[_uid][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
 
 
 def unbind(event: int, _uid: int = 0) -> bool:
@@ -257,24 +276,15 @@ def _foo3(*evt):
         s.bind(e, lambda: None)
 
 
-def test():
-    path = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-3zyjy9.jpg'
-    mon = win32.get_monitor_ids()[1]
-    position = Style.DEFAULT
-    r = 0
-    g = 0
-    b = 0
-    transition = Transition.LEFT
-    duration = 1
-    win32.wallpaper.set(path, mon)
-    # set(path, mon)
+def _test():
+    print(ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER))
 
 
 if __name__ == '__main__':
-    test()
+    _test()
     try:
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
     except KeyboardInterrupt:
         pass
     exit()

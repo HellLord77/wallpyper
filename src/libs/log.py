@@ -48,7 +48,7 @@ def _flush(path: str):
             shutil.copyfileobj(_STREAM, file)
 
 
-def redirect_stdout(path: str, tee: Optional[bool] = None, write_once: Optional[bool] = None):
+def redirect_stdout(path: str, tee: bool = False, write_once: bool = False):
     global _WRITE
     if write_once:
         atexit.register(_flush, path)
@@ -75,7 +75,7 @@ def _excepthook(excepthook: Callable, *args, **kwargs):
     excepthook(*args, **kwargs)
 
 
-def write_on_error(path: str):
+def write_on_exception(path: str):
     global _DUMP
     _DUMP = False
     sys.excepthook = types.MethodType(_excepthook, sys.excepthook)

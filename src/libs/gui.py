@@ -6,7 +6,7 @@ import functools
 import itertools
 import threading
 import time
-from typing import Any, Callable, Iterable, Mapping, Optional, Union
+from typing import Any, Callable, Iterable, Mapping, MutableMapping, Optional, Union
 
 import wx
 import wx.adv
@@ -94,39 +94,41 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
     return wrapper_thread
 
 
-def add_menu_item(label: str, kind: int = Item.NORMAL, check: Optional[bool] = None, enable: bool = True,
+def on_menu_item_click(menu_item: wx.MenuItem, callback: Optional[Callable] = None,
+                       menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
+                       kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, change_state: bool = True,
+                       pre_menu_args: bool = True, menu: Union[wx.Menu, wx.MenuItem] = _MENU):
+    if isinstance(menu, wx.MenuItem):
+        menu = menu.GetSubMenu()
+    menu.Bind(wx.EVT_MENU, _get_wrapper(
+        callback, () if menu_args is None else menu_args, () if args is None else args,
+        {} if kwargs is None else kwargs, change_state, on_thread, pre_menu_args), menu_item)
+
+
+def add_menu_item(label: str, kind: int = Item.NORMAL, check: bool = False, enable: bool = True,
                   uid: str = '', on_click: Optional[Callable] = None, menu_args: Optional[Iterable[str]] = None,
                   args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True,
                   change_state: bool = True, position: Optional[int] = None, pre_menu_args: bool = True,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
-    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position, wx.ID_ANY,
-                                         label, uid, kind)
-    if check is not None:
+    menu_item: wx.MenuItem = menu.Insert(menu.GetMenuItemCount() if position is None else position,
+                                         wx.ID_ANY, label, uid, kind)
+    if menu_item.IsCheckable():
         menu_item.Check(check)
     menu_item.Enable(enable)
     if on_click is not None:
-        menu.Bind(wx.EVT_MENU,
-                  _get_wrapper(on_click, () if menu_args is None else menu_args, () if args is None else args,
-                               {} if kwargs is None else kwargs, change_state, on_thread, pre_menu_args), menu_item)
+        on_menu_item_click(menu_item, on_click, menu_args, args, kwargs, on_thread, change_state, pre_menu_args, menu)
     return menu_item
 
 
-def remove_menu_items(*menus: Union[wx.Menu, wx.MenuItem], menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> int:
+def remove_menu_items(menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> int:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
     count = 0
-    if menus:
-        for menu_ in menus:
-            if isinstance(menu_, wx.MenuItem):
-                menu_ = menu_.GetSubMenu()
-            menu.Remove(menu_)
-            count += 1
-    else:
-        for menu_ in menu.GetMenuItems():
-            menu.Remove(menu_)
-            count += 1
+    for menu_ in menu.GetMenuItems():
+        menu.Remove(menu_)
+        count += 1
     return count
 
 
@@ -136,16 +138,32 @@ def add_separator(menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     return menu.AppendSeparator()
 
 
-def add_submenu(label: str, enable: Optional[bool] = None, uid: Optional[str] = None,
+def add_submenu(label: str, enable: bool = True, uid: Optional[str] = None,
                 menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
     menu_item = menu.AppendSubMenu(wx.Menu(), label)
-    if enable is not None:
-        menu_item.Enable(enable)
+    menu_item.Enable(enable)
     if uid is not None:
         menu_item.SetHelp(uid)
     return menu_item
+
+
+def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool], key: str,
+                         menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+    return add_menu_item(label, Item.CHECK, mapping[key], on_click=mapping.__setitem__,
+                         menu_args=(Property.CHECKED,), args=(key,), pre_menu_args=False, menu=menu)
+
+
+def add_mapped_submenu(label_or_submenu: Union[str, wx.MenuItem], items: Mapping[str, str],
+                       mapping: MutableMapping[str, str], key: str, enable: bool = True,
+                       uid: Optional[str] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+    submenu = add_submenu(label_or_submenu, enable, uid, menu) if isinstance(label_or_submenu,
+                                                                             str) else label_or_submenu
+    for uid_, label_ in items.items():
+        add_menu_item(label_, Item.RADIO, mapping[key] == uid_, uid=uid_, on_click=mapping.__setitem__,
+                      menu_args=(Property.UID,), args=(key,), pre_menu_args=False, menu=submenu)
+    return submenu
 
 
 def get_menu_item_by_uid(uid: str, recursive: bool = True,

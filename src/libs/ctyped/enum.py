@@ -19,7 +19,8 @@ class _IntEnumMeta(_enum.EnumMeta):
 
 
 class _IntEnum(_enum.Enum, metaclass=_IntEnumMeta):
-    pass
+    def __or__(self, other):
+        pass
 
 
 class AsyncStatus(_IntEnum):
@@ -479,6 +480,17 @@ class MONITOR_DPI_TYPE(_IntEnum):
     MDT_ANGULAR_DPI = 1
     MDT_RAW_DPI = 2
     MDT_DEFAULT = MDT_EFFECTIVE_DPI
+
+
+# noinspection PyPep8Naming
+class OPEN_AS_INFO_FLAGS(_IntEnum):
+    OAIF_ALLOW_REGISTRATION = 0x00000001
+    OAIF_REGISTER_EXT = 0x00000002
+    OAIF_EXEC = 0x00000004
+    OAIF_FORCE_REGISTRATION = 0x00000008
+    OAIF_HIDE_REGISTRATION = 0x00000020
+    OAIF_URL_PROTOCOL = 0x00000040
+    OAIF_FILE_IS_URI = 0x00000080
 
 
 GpMatrixOrder = MatrixOrder

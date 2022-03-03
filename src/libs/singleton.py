@@ -103,12 +103,13 @@ def _get_uid(data_or_path: Union[bytes, str], prefix: Optional[str] = None) -> s
     return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
 
 
-def init(uuid: str, uid_prefix: Optional[str] = None, wait: Optional[bool] = None, on_crash: Optional[Callable] = None,
+def init(uuid: str, uid_prefix: Optional[str] = None, wait: bool = False, on_crash: Optional[Callable] = None,
          on_crash_args: Optional[Iterable] = None, on_crash_kwargs: Optional[Mapping[str, Any]] = None,
          on_wait: Optional[Callable] = None, on_wait_args: Optional[Iterable] = None,
          on_wait_kwargs: Optional[Mapping[str, Any]] = None, on_exit: Optional[Callable] = None,
          on_exit_args: Optional[Iterable] = None, on_exit_kwargs: Optional[Mapping[str, Any]] = None,
-         method: Optional[Callable] = None) -> Optional[NoReturn]:
-    (method or Method.FILE)(_get_uid(uuid.encode(), uid_prefix), bool(wait), on_crash, on_crash_args or (),
-                            on_crash_kwargs or {}, on_wait, on_wait_args or (), on_wait_kwargs or {}, on_exit,
-                            on_exit_args or (), on_exit_kwargs or {})
+         method: Callable = Method.FILE) -> Optional[NoReturn]:
+    method(_get_uid(uuid.encode(), uid_prefix), wait, on_crash, () if on_crash_args is None else on_crash_args,
+           {} if on_crash_kwargs is None else on_crash_kwargs, on_wait, () if on_wait_args is None else on_wait_args,
+           {} if on_wait_kwargs is None else on_wait_kwargs, on_exit, () if on_exit_args is None else on_exit_args,
+           {} if on_exit_kwargs is None else on_exit_args)

@@ -1,37 +1,33 @@
 __version__ = '0.0.4'
 
 import os
-import sys
-import webbrowser
 
-import libs.file
 import libs.functool
 import libs.gui
+import libs.paths
 import libs.request
 import libs.timer
 
-max_int = sys.maxsize
+path_exists = os.path.isfile
+dir_exists = os.path.isdir
+get_dir = os.path.dirname
+get_filename = os.path.basename
+abspath = os.path.realpath
+split_filename = os.path.splitext
 
-file_exists = os.path.isfile
-exists_dir = os.path.isdir
-dir_name = os.path.dirname
-file_name = os.path.basename
-abs_path = os.path.realpath
-
-open_browser = webbrowser.open
-
-join_path = libs.file.join
-replace_extension = libs.file.replace_ext
-list_dir = libs.file.iter_dir
-copy_file = libs.file.copy
-is_empty_dir = libs.file.is_empty
-make_dirs = libs.file.make_dir
-trim_dir = libs.file.trim
-delete = libs.file.remove
+join_path = libs.paths.join
+replace_extension = libs.paths.replace_ext
+list_dir = libs.paths.iter_dir
+copy_file = libs.paths.copy
+is_empty_dir = libs.paths.is_empty
+make_dirs = libs.paths.make_dir
+trim_dir = libs.paths.trim
+delete = libs.paths.remove
 
 Int = libs.functool.MutableInt
 List = libs.functool.PointedList
 Dict = libs.functool.FrozenDict
+Wallpaper = libs.functool.RemoteFile
 try_any = libs.functool.any_ex
 enquote = libs.functool.enquote
 reverse = libs.functool.reversed_ex
@@ -47,10 +43,13 @@ item = libs.gui.Item
 icon = libs.gui.Icon
 get_property = libs.gui.Property
 set_property = libs.gui.Method
+on_item_click = libs.gui.on_menu_item_click
 add_item = libs.gui.add_menu_item
-remove_items = libs.gui.remove_menu_items
+add_synced_item = libs.gui.add_mapped_menu_item
+add_synced_items = libs.gui.add_mapped_submenu
+clear_menu = libs.gui.remove_menu_items
 add_separator = libs.gui.add_separator
-add_submenu = libs.gui.add_submenu
+add_menu = libs.gui.add_submenu
 get_item = libs.gui.get_menu_item_by_uid
 notify = libs.gui.show_balloon
 start = libs.gui.start_loop
@@ -61,8 +60,10 @@ inanimate = libs.gui.stop_animation
 pause_animation = libs.gui.disable_animation
 
 status = libs.request.Status
-join_url = libs.request.urljoin
-open_url = libs.request.urlopen
+join_url = libs.request.join
+query_url = libs.request.query
+encode_url = libs.request.encode
+open_url = libs.request.open
 download_url = libs.request.download
 upload_url = libs.request.upload
 

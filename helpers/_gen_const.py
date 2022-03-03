@@ -65,10 +65,14 @@ def knownfolders():
 
 def _runtime_class(file: str):
     path = os.path.join(SDK_PATH, 'winrt', file)
+    classes = []
     with open(path, 'r') as file:
         for match in re.finditer(r'(RuntimeClass_.*)\[]\s=\sL"(.*)";', file.read()):
             groups = match.groups()
-            print(f"{groups[0]} = '{groups[1]}'")
+            class_ = f"{groups[0]} = '{groups[1]}'"
+            if class_ not in classes:
+                classes.append(class_)
+    print('\n'.join(classes))
 
 
 def windows_storage_streams():
@@ -79,5 +83,17 @@ def windows_storage():
     _runtime_class('windows.storage.h')
 
 
+def windows_system():
+    _runtime_class('windows.system.h')
+
+
+def winerror():
+    path = os.path.join(SDK_PATH, 'shared', 'winerror.h')
+    with open(path, 'r') as file:
+        for match in re.finditer(r'#define (ERROR_.*)\s(\d*)L', file.read()):
+            group = match.groups()
+            print(f'{group[0].strip()} = {group[1]}')
+
+
 if __name__ == '__main__':
-    wincodec()
+    winerror()

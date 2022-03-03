@@ -1,4 +1,4 @@
-__version__ = '0.2.6'
+__version__ = '0.2.7'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -63,13 +63,15 @@ def get_guid(string: str) -> struct.GUID:
 
 
 @_contextlib.contextmanager
-def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
-                                                                  tuple[Pointer[struct.IID], Pointer[CT]]]]:
+def _prep_com(type_: _builtins.type[CT],
+              init: bool) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
+                                                   _Optional[tuple[Pointer[struct.IID], Pointer[CT]]]]]:
     func.ole32.CoInitializeEx(None,
                               enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else func.ole32.CoInitialize(None)
     obj = type_()
     try:
-        yield obj, byref(get_guid(type_.__CLSID__)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(obj)
+        yield obj, byref(get_guid(type_.__CLSID__)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(
+            obj) if init else None
     finally:
         if obj:
             obj.Release()
@@ -79,18 +81,15 @@ def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[tuple[CT, _Optional[
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
 def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
-    with _prep_com(type) as (obj, clsid_ref, args):
-        try:
-            yield obj if not init or macro.SUCCEEDED(
-                func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
-        except OSError:
-            yield None
+    with _prep_com(type, init) as (obj, clsid_ref, args):
+        yield obj if not init or macro.SUCCEEDED(
+            func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def conv_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
-    with _prep_com(type) as (obj_, _, args):
+def cast_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
+    with _prep_com(type, True) as (obj_, _, args):
         if macro.SUCCEEDED(obj.QueryInterface(*args)):
             yield obj_
         else:
@@ -98,28 +97,30 @@ def conv_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _Con
 
 
 @_contextlib.contextmanager
-def _prep_winrt(type_: _builtins.type[CT]) -> _ContextManager[tuple[type.HSTRING, Pointer[struct.IID],
-                                                                    Pointer[com.IActivationFactory]]]:
-    func.combase.RoInitialize(
-        enum.RO_INIT_TYPE.RO_INIT_MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
-    factory = com.IActivationFactory()
+def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
+                                                                                _Optional[Pointer[struct.IID]],
+                                                                                Pointer[com.IInspectable]]]:
+    func.combase.RoInitialize(enum.RO_INIT_TYPE.RO_INIT_MULTITHREADED
+                              if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
+    base = com.IInspectable() if init else com.IActivationFactory()
     try:
-        yield handle.HSTRING.from_string(type_.__RuntimeClass__), macro.__uuidof(type_.__name__), factory
+        yield handle.HSTRING.from_string(type_.__RuntimeClass__), None if init else macro.__uuidof(type_.__name__), base
     finally:
-        if factory:
-            factory.Release()
+        if base:
+            base.Release()
         func.combase.RoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def get_winrt(type: _builtins.type[CT]) -> _ContextManager[_Optional[_builtins.type[CT]]]:  # TODO init: bool = False
-    with _prep_winrt(type) as (*args, factory):
-        if macro.SUCCEEDED(func.combase.RoGetActivationFactory(*args, byref(factory))):
-            with conv_com(factory, type) as obj:
+def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_Optional[CT]]:
+    with _prep_winrt(type, init) as (*args, base):
+        if macro.SUCCEEDED(func.combase.RoActivateInstance(args[0], byref(base))
+                           if init else func.combase.RoGetActivationFactory(*args, byref(base))):
+            with cast_com(base, type) as obj:
                 yield obj
         else:
-            yield None
+            yield
 
 
 class Async:

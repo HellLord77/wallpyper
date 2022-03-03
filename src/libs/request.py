@@ -1,6 +1,8 @@
 __version__ = '0.0.4'
 
+import builtins
 import contextlib
+import hashlib
 import http.client
 import json
 import os
@@ -76,7 +78,7 @@ class Response:
         return self.response.read(n)
 
 
-def urljoin(base: str, *urls: str) -> str:
+def join(base: str, *urls: str) -> str:
     if not base.endswith('/'):
         base = f'{base}/'
     for url in urls:
@@ -84,14 +86,30 @@ def urljoin(base: str, *urls: str) -> str:
     return base[:-1]
 
 
-def urlopen(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None,
-            headers: Optional[Mapping[str, str]] = None, redirection: Optional[bool] = None,
-            stream: Optional[bool] = None) -> Response:
-    query = {}
-    for key, value in (params or {}).items():
-        query[key] = value
+def query(url: str) -> dict[str, list[str]]:
+    return urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+
+
+def encode(url: str, params: Optional[Mapping[str, Union[str, Iterable[str]]]] = None) -> str:
+    if params is None:
+        return url
+    parts = urllib.parse.urlparse(url)
+    query_ = urllib.parse.parse_qs(parts.query)
+    for key, val in params.items():
+        if key not in query_:
+            query_[key] = []
+        if isinstance(val, str):
+            query_[key].append(val)
+        else:
+            query_[key].extend(val)
+    return urllib.parse.urlunparse(parts._replace(query=urllib.parse.urlencode(query_, True)))
+
+
+# noinspection PyShadowingBuiltins
+def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None,
+         headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> Response:
     try:
-        request = urllib.request.Request(f'{url}?{urllib.parse.urlencode(query)}', data)
+        request = urllib.request.Request(encode(url, params), data)
     except ValueError as error:
         return Response(urllib.error.URLError(error))
     else:
@@ -99,48 +117,67 @@ def urlopen(url: str, params: Optional[Mapping[str, str]] = None, data: Optional
         for head, val in (headers or {}).items():
             request.add_header(head, val)
         try:
-            urllib.request.install_opener(_OPENERS[1 if redirection else 0])
+            urllib.request.install_opener(_OPENERS[redirect])
             response = urllib.request.urlopen(request)
         except urllib.error.URLError as response:
             return Response(response)
         else:
             lazy_response = Response(response)
-            if stream is False:
+            if not stream:
                 lazy_response.get_content()
             return lazy_response
 
 
-def download(url: str, path: str, size: Optional[int] = None, chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None, on_write: Optional[Callable[[int, ...], Any]] = None,
-             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    response = urlopen(url)
+def _get_hash(path: str, type_: str = 'md5') -> str:
+    hash__ = hashlib.new(type_)
+    with builtins.open(path or sys.argv[0], 'rb') as file:
+        while buffer := file.read(MAX_CHUNK):
+            hash__.update(buffer)
+    return hash__.hexdigest()
+
+
+def download(url: str, path: str, size: Optional[int] = None, md5: Optional[str] = None,
+             chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
+             on_write: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
+             kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+    response = open(url)
+    if os.path.exists(path):
+        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path))):
+            return True
+        elif os.path.isdir(path):
+            return False
+    else:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
     if response:
         size = size or int(response.get_header('Content-Length', str(sys.maxsize)))
-        if os.path.exists(path):
-            if os.path.isfile(path) and size == os.path.getsize(path):
+        if os.path.isfile(path):
+            if size == os.path.getsize(path):
                 return True
             else:
                 os.remove(path)
-        else:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
-        with open(path, 'wb') as file:
-            write = file.write
-            args = () if args is None else {}
-            kwargs = {} if kwargs is None else kwargs
-            ratio = 0
-            for chunk in response:
-                write(chunk)
-                ratio += len(chunk) / size
-                if on_write:
-                    on_write(round(ratio * 100), *args, **kwargs)
-        return os.path.isfile(path) and size == os.path.getsize(path)
+        try:
+            with builtins.open(path, 'wb') as file:
+                args = () if args is None else args
+                kwargs = {} if kwargs is None else kwargs
+                ratio = 0
+                for chunk in response:
+                    file.write(chunk)
+                    ratio += len(chunk) / size
+                    if on_write:
+                        on_write(round(ratio * 100), *args, **kwargs)
+        except PermissionError:
+            return False
+        if os.path.isfile(path) and size == os.path.getsize(path):
+            if on_write:
+                on_write(100, *args, **kwargs)
+            return True
     return False
 
 
 def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None,
            files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO chunked upload
-           headers: Optional[Mapping[str, str]] = None, redirection: Optional[bool] = None) -> Response:
+           headers: Optional[Mapping[str, str]] = None, redirect: bool = True) -> Response:
     boundary = uuid.uuid4().hex
     data = b''
     for name, val in (fields or {}).items():
@@ -149,7 +186,7 @@ def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optiona
         data += (f'--{boundary}{_CRLF}Content-Disposition: form-data; name="{name}"; '
                  f'filename="{name_path[0] or os.path.basename(name_path[1])}"{_CRLF * 2}'.encode())
         if os.path.isfile(name_path[1]):
-            with open(name_path[1], 'rb') as file:
+            with builtins.open(name_path[1], 'rb') as file:
                 buffer = file.read(MAX_CHUNK)
                 while buffer:
                     data += buffer
@@ -158,4 +195,4 @@ def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optiona
     data += f'--{boundary}--{_CRLF}'.encode()
     headers_ = {'Content-Type': f'multipart/form-data; boundary={boundary}'}
     headers_.update(headers or {})
-    return urlopen(url, params, data, headers_, redirection)
+    return open(url, params, data, headers_, redirect)

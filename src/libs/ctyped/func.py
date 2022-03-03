@@ -188,6 +188,9 @@ class gdi32(_WinFunc):
     GetBitmapDimensionEx: _Callable[[_type.HBITMAP,
                                      _Pointer[_struct.SIZE]],
                                     _type.BOOL]
+    GetClipBox: _Callable[[_type.HDC,
+                           _Pointer[_struct.RECT]],
+                          _type.c_int]
     GetDIBits: _Callable[[_type.HDC,
                           _type.HBITMAP,
                           _type.UINT,
@@ -660,6 +663,9 @@ class shell32(_WinFunc):
                                 _Pointer[_struct.ITEMIDLIST]]
     ILFree: _Callable[[_Optional[_Pointer[_struct.ITEMIDLIST]]],
                       _type.c_void_p]
+    PathCleanupSpec: _Callable[[_Optional[_type.PCWSTR],
+                                _type.PWSTR],
+                               _type.c_int]
     SHBrowseForFolderA: _Callable[[_Pointer[_struct.BROWSEINFOA]],
                                   _Pointer[_Pointer[_struct.ITEMIDLIST]]]
     SHBrowseForFolderW: _Callable[[_Pointer[_struct.BROWSEINFOW]],
@@ -706,6 +712,9 @@ class shell32(_WinFunc):
                                            _Optional[_Pointer[_Pointer[_struct.ITEMIDLIST]]],
                                            _type.DWORD],
                                           _type.SHSTDAPI]
+    SHOpenWithDialog: _Callable[[_Optional[_type.HWND],
+                                 _Pointer[_struct.OPENASINFO]],
+                                _type.SHSTDAPI]
     ShellExecuteA: _Callable[[_Optional[_type.HWND],
                               _Optional[_type.LPCSTR],
                               _type.LPCSTR,
@@ -833,6 +842,64 @@ class shlwapi(_WinFunc):
                                _type.BOOL]
     PathFileExistsW: _Callable[[_type.LPCWSTR],
                                _type.BOOL]
+    PathGetDriveNumberA: _Callable[[_type.LPCSTR],
+                                   _type.BOOL]
+    PathGetDriveNumberW: _Callable[[_type.LPCWSTR],
+                                   _type.BOOL]
+    PathIsDirectoryA: _Callable[[_type.LPCSTR],
+                                _type.BOOL]
+    PathIsDirectoryW: _Callable[[_type.LPCWSTR],
+                                _type.BOOL]
+    PathIsDirectoryEmptyA: _Callable[[_type.LPCSTR],
+                                     _type.BOOL]
+    PathIsDirectoryEmptyW: _Callable[[_type.LPCWSTR],
+                                     _type.BOOL]
+    PathIsFileSpecA: _Callable[[_type.LPCSTR],
+                               _type.BOOL]
+    PathIsFileSpecW: _Callable[[_type.LPCWSTR],
+                               _type.BOOL]
+    PathIsNetworkPathA: _Callable[[_type.LPCSTR],
+                                  _type.BOOL]
+    PathIsNetworkPathW: _Callable[[_type.LPCWSTR],
+                                  _type.BOOL]
+    PathIsRelativeA: _Callable[[_type.LPCSTR],
+                               _type.BOOL]
+    PathIsRelativeW: _Callable[[_type.LPCWSTR],
+                               _type.BOOL]
+    PathIsRootA: _Callable[[_type.LPCSTR],
+                           _type.BOOL]
+    PathIsRootW: _Callable[[_type.LPCWSTR],
+                           _type.BOOL]
+    PathIsUNCA: _Callable[[_type.LPCSTR],
+                          _type.BOOL]
+    PathIsUNCW: _Callable[[_type.LPCWSTR],
+                          _type.BOOL]
+    PathIsUNCServerA: _Callable[[_type.LPCSTR],
+                                _type.BOOL]
+    PathIsUNCServerW: _Callable[[_type.LPCWSTR],
+                                _type.BOOL]
+    PathIsUNCServerShareA: _Callable[[_type.LPCSTR],
+                                     _type.BOOL]
+    PathIsUNCServerShareW: _Callable[[_type.LPCWSTR],
+                                     _type.BOOL]
+    PathRemoveFileSpecA: _Callable[[_type.LPSTR],
+                                   _type.BOOL]
+    PathRemoveFileSpecW: _Callable[[_type.LPWSTR],
+                                   _type.BOOL]
+    PathRenameExtensionA: _Callable[[_type.LPSTR,
+                                     _type.LPCSTR],
+                                    _type.BOOL]
+    PathRenameExtensionW: _Callable[[_type.LPWSTR,
+                                     _type.LPCWSTR],
+                                    _type.BOOL]
+    PathSearchAndQualifyA: _Callable[[_type.LPCSTR,
+                                      _type.LPSTR,
+                                      _type.UINT],
+                                     _type.BOOL]
+    PathSearchAndQualifyW: _Callable[[_type.LPCWSTR,
+                                      _type.LPWSTR,
+                                      _type.UINT],
+                                     _type.BOOL]
 
 
 class Taskbar(_WinFunc):
@@ -844,6 +911,9 @@ class user32(_WinFunc):
     BeginPaint: _Callable[[_type.HWND,
                            _Pointer[_struct.PAINTSTRUCT]],
                           _type.HDC]
+    ClientToScreen: _Callable[[_type.HWND,
+                               _Pointer[_struct.POINT]],
+                              _type.BOOL]
     CloseClipboard: _Callable[[],
                               _type.BOOL]
     CreateIconFromResource: _Callable[[_type.PBYTE,
@@ -932,6 +1002,9 @@ class user32(_WinFunc):
     EnumWindows: _Callable[[_type.WNDENUMPROC,
                             _type.LPARAM],
                            _type.BOOL]
+    EqualRect: _Callable[[_Pointer[_struct.RECT],
+                          _Pointer[_struct.RECT]],
+                         _type.BOOL]
     FillRect: _Callable[[_type.HDC,
                          _Pointer[_struct.RECT],
                          _type.HBRUSH],
@@ -960,6 +1033,9 @@ class user32(_WinFunc):
                               _type.LPWSTR,
                               _type.c_int],
                              _type.c_int]
+    GetClientRect: _Callable[[_type.HWND,
+                              _Pointer[_struct.RECT]],
+                             _type.BOOL]
     GetClipboardData: _Callable[[_type.UINT],
                                 _type.HANDLE]
     GetCursorPos: _Callable[[_Pointer[_struct.POINT]],
@@ -972,6 +1048,8 @@ class user32(_WinFunc):
                        _type.HDC]
     GetDpiForSystem: _Callable[[],
                                _type.UINT]
+    GetForegroundWindow: _Callable[[],
+                                   _type.HWND]
     GetMenu: _Callable[[_type.HWND],
                        _type.HMENU]
     GetMenuInfo: _Callable[[_type.HMENU,
@@ -1008,6 +1086,9 @@ class user32(_WinFunc):
                          _type.HWND]
     GetWindowDC: _Callable[[_Optional[_type.HWND]],
                            _type.HDC]
+    GetWindowRect: _Callable[[_type.HWND,
+                              _Pointer[_struct.RECT]],
+                             _type.BOOL]
     GetWindowTextA: _Callable[[_type.HWND,
                                _type.LPSTR,
                                _type.c_int],
@@ -1016,6 +1097,12 @@ class user32(_WinFunc):
                                _type.LPWSTR,
                                _type.c_int],
                               _type.c_int]
+    IntersectRect: _Callable[[_Pointer[_struct.RECT],
+                              _Pointer[_struct.RECT],
+                              _Pointer[_struct.RECT]],
+                             _type.BOOL]
+    IsRectEmpty: _Callable[[_Pointer[_struct.RECT]],
+                           _type.BOOL]
     KillTimer: _Callable[[_type.HWND,
                           _type.UINT_PTR],
                          _type.BOOL]
@@ -1041,6 +1128,21 @@ class user32(_WinFunc):
                           _type.HANDLE]
     LockWorkStation: _Callable[[],
                                _type.BOOL]
+    MapWindowPoints: _Callable[[_Optional[_type.HWND],
+                                _Optional[_type.HWND],
+                                _Pointer[_struct.POINT],
+                                _type.UINT],
+                               _type.c_int]
+    MessageBoxA: _Callable[[_Optional[_type.HWND],
+                            _Optional[_type.LPCSTR],
+                            _Optional[_type.LPCSTR],
+                            _type.UINT],
+                           _type.c_int]
+    MessageBoxW: _Callable[[_Optional[_type.HWND],
+                            _Optional[_type.LPCWSTR],
+                            _Optional[_type.LPCWSTR],
+                            _type.UINT],
+                           _type.c_int]
     MonitorFromPoint: _Callable[[_struct.POINT,
                                  _type.DWORD],
                                 _type.HMONITOR]
@@ -1059,10 +1161,17 @@ class user32(_WinFunc):
                                _type.LONG,
                                _type.LONG],
                               _type.VOID]
+    OffsetRect: _Callable[[_Pointer[_struct.RECT],
+                           _Pointer[_struct.RECT],
+                           _Pointer[_struct.RECT]],
+                          _type.BOOL]
     OpenClipboard: _Callable[[_Optional[_type.HWND]],
                              _type.BOOL]
     PostQuitMessage: _Callable[[_type.c_int],
                                _type.c_void_p]
+    PtInRect: _Callable[[_Pointer[_struct.RECT],
+                         _struct.POINT],
+                        _type.BOOL]
     RegisterClassExA: _Callable[[_Pointer[_struct.WNDCLASSEXA]],
                                 _type.ATOM]
     RegisterClassExW: _Callable[[_Pointer[_struct.WNDCLASSEXW]],
@@ -1156,6 +1265,10 @@ class user32(_WinFunc):
     ShowWindow: _Callable[[_type.HWND,
                            _type.c_int],
                           _type.BOOL]
+    SubtractRect: _Callable[[_Pointer[_struct.RECT],
+                             _Pointer[_struct.RECT],
+                             _Pointer[_struct.RECT]],
+                            _type.BOOL]
     SystemParametersInfoA: _Callable[[_type.UINT,
                                       _type.UINT,
                                       _type.PVOID,
@@ -1175,6 +1288,10 @@ class user32(_WinFunc):
                                  _type.BOOL]
     UnhookWindowsHookEx: _Callable[[_type.HHOOK],
                                    _type.BOOL]
+    UnionRect: _Callable[[_Pointer[_struct.RECT],
+                          _Pointer[_struct.RECT],
+                          _Pointer[_struct.RECT]],
+                         _type.BOOL]
     UnregisterClassA: _Callable[[_type.LPCSTR,
                                  _type.HINSTANCE],
                                 _type.BOOL]

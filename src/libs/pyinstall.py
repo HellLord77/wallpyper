@@ -5,13 +5,12 @@ import os
 import shutil
 import sys
 import tempfile
-from typing import Optional
 
 FROZEN = hasattr(sys, 'frozen')
 TEMP_DIR = getattr(sys, '_MEIPASS', '')
 
 
-def clean_temp(remove_base: Optional[bool] = None) -> bool:
+def clean_temp(remove_base: bool = False) -> bool:
     cleaned = True
     base = os.path.dirname(TEMP_DIR) or tempfile.gettempdir()
     for dir_ in glob.iglob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):

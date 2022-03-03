@@ -1,14 +1,15 @@
 import concurrent.futures
 import contextlib
+import operator
 import os
 import random
 import sys
 import threading
 import time
-from typing import Union, Optional, Any, Iterable, Callable, Mapping, ContextManager
+from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
-from . import gdiplus
+from . import _utils, gdiplus
 
 _RETRY = 5
 _LOCK = threading.Lock()
@@ -253,6 +254,30 @@ class Transition(metaclass=_Enum):
         _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal))
 
 
+def get_monitor_count() -> int:
+    num = ctyped.type.c_int()
+    ctyped.func.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
+    return num.value
+
+
+def get_monitor_ids() -> tuple[str, ...]:
+    monitors = []
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            count = ctyped.type.UINT()
+            wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
+            for index in range(count.value):
+                with _utils.string_buffer() as buff:
+                    wallpaper.GetMonitorDevicePathAt(index, ctyped.byref(buff))
+                    monitors.append(buff.value)
+    return tuple(monitors)
+
+
+def get_monitor_name(id_: str) -> Optional[str]:
+    dev_id = _utils.get_str_dev_id_prop(id_, ctyped.const.DEVPKEY_Device_InstanceId)
+    return _utils.get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else None
+
+
 def get_style() -> Optional[int]:
     with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
@@ -337,10 +362,20 @@ def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus
     return bitmap.get_hbitmap().get_hdc()
 
 
-def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
+def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
+    rect = ctyped.struct.RECT()
+    fore_hwnd = ctyped.func.user32.GetForegroundWindow()
+    if (fore_hwnd and ctyped.func.user32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
+            ctyped.func.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
+        rect_ = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
+        return bool(ctyped.func.user32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
+    return True
+
+
+def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,  # TODO randomly skipped
                      src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
-                     transition: int = Transition.DISABLED, duration: float = 0, max_steps: int = sys.maxsize) -> bool:
-    if hwnd := _get_workerw_hwnd():
+                     transition: int = Transition.DISABLED, duration: float = 0, max_steps: int = sys.maxsize):
+    if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
         src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h)
         if transition != Transition.DISABLED:
@@ -367,8 +402,7 @@ def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, 
                     ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
                                              src, src_ox, src_oy, ctyped.const.SRCCOPY)
                 time.sleep(duration / max_steps)
-        return bool(ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY))
-    return False
+            ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 
 def _get_dpi(x: int, y: int) -> tuple[int, int]:
@@ -384,6 +418,35 @@ def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
               a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
     return (b << ctyped.const.BlueShift | g << ctyped.const.GreenShift |
             r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
+
+
+def _get_param() -> str:
+    with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
+        ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
+        return buff.value
+
+
+def _get_iactivedesktop() -> str:
+    with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
+        with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
+            if desktop:
+                desktop.GetWallpaper(buff, ctyped.const.SHRT_MAX, ctyped.const.AD_GETWP_BMP)
+        return buff.value
+
+
+def _get_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            with _utils.string_buffer() as buff:
+                return tuple(buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
+                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitor_ids()))
+        else:
+            return ()
+
+
+def get(monitor: str = None) -> str:
+    return ((_get_param() or _get_iactivedesktop())
+            if monitor is None else _get_idesktopwallpaper(monitor)[0])
 
 
 def _set_param(path: str) -> bool:
@@ -419,13 +482,19 @@ def _set_idesktopwallpaper(path: str, monitor: str, color: Optional[ctyped.type.
 # noinspection PyShadowingBuiltins
 def set(path: str, *monitors: str, style: int = Style.DEFAULT, r: int = 0,
         g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
+    if style in (Style.DEFAULT, default_style := get_style()):
+        style = default_style
+        path_ = path.casefold()
+        for path__ in _get_idesktopwallpaper(*monitors):
+            if path_ != path__.casefold():
+                break
+        else:
+            return True
     try:
         image = gdiplus.Bitmap.from_file(path)
     except gdiplus.GdiplusError:
         return False
     else:
-        if style == Style.DEFAULT:
-            style = get_style()
         if style is not None:
             if style in (Style.TILE, Style.SPAN):
                 monitors_x_y_w_h = (0, 0, ctyped.func.user32.GetSystemMetrics(
@@ -467,6 +536,19 @@ def set_lock(path: str) -> bool:
     return False
 
 
+def set_slideshow(*paths: str) -> bool:
+    with _utils.get_itemidlist(*paths) as pidl:
+        id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
+        with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+            if wallpaper:
+                with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
+                    ctyped.func.shell32.SHCreateShellItemArrayFromIDLists(
+                        len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
+                    wallpaper.SetSlideshow(shl_arr)
+                    return True
+    return False
+
+
 @contextlib.contextmanager
 def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
     operation = ctyped.Async(ctyped.com.IAsyncOperation)
@@ -487,19 +569,6 @@ def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional
         with ctyped.init_com(ctyped.com.IOutputStream, False) as output_stream:
             if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
                 yield output_stream
-                return
-    yield None
-
-
-@contextlib.contextmanager
-def _open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
-        if file_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
-                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
-                    file := operation.get(ctyped.com.IStorageFile)):
-                yield file
                 return
     yield None
 
@@ -537,6 +606,6 @@ def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] 
         if input_stream:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             open(path, 'w').close()
-            with _open_file(path) as file, _get_output_stream(file) as output_stream:
+            with _utils.open_file(path) as file, _get_output_stream(file) as output_stream:
                 return output_stream and _copy_stream(input_stream, output_stream, progress_callback, args, kwargs)
     return False

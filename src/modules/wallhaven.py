@@ -1,6 +1,6 @@
 __version__ = '0.0.1'
 
-from typing import Generator
+from typing import Generator, Optional
 
 import utils
 
@@ -23,23 +23,23 @@ DEFAULT_CONFIG = {
 }
 
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
+SETTINGS_URL = utils.join_url(BASE_URL, 'settings')
 CONFIG = {}
-SEARCH_DATA = None
 
 
-def sanitize_config():  # TODO validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
+def fix_config():  # TODO validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
     # ^[01]{3}$
     # ^(desc|asc)$
     ...
 
 
 def authenticate(api_key: str) -> bool:
-    return bool(utils.open_url(utils.join_url(BASE_URL, 'settings'), {'apikey': api_key}))
+    return bool(utils.open_url(SETTINGS_URL, {'apikey': api_key}))
 
 
 @utils.cache
-def _update_search_data(config: dict[str, str]) -> Generator[str, None, None]:
-    search_data = []
+def _update_search_data(config: dict[str, str]) -> Generator[Optional[utils.Wallpaper], None, None]:
+    search_datas = []
     meta = {
         'current_page': 1,
         'last_page': 1,
@@ -47,18 +47,21 @@ def _update_search_data(config: dict[str, str]) -> Generator[str, None, None]:
     }
     params = config.copy()
     while True:
-        if not search_data:
+        if not search_datas:
             params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
             params['seed'] = meta['seed'] or ''
             response = utils.open_url(SEARCH_URl, params)
             if response:
-                search_data, meta = response.get_json().values()
-            if not search_data:
-                search_data.append({'path': ''})
-        yield search_data.pop(0)['path']
+                search_datas, meta = response.get_json().values()
+            if not search_datas:
+                yield
+                continue
+        search_data = search_datas.pop(0)
+        url = search_data['path']
+        yield utils.Wallpaper(url, utils.get_filename(url), search_data['file_size'])
 
 
-def get_next_url() -> str:
+def get_next_wallpaper() -> Optional[utils.Wallpaper]:
     return next(_update_search_data(CONFIG.copy()))
 
 

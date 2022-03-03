@@ -19,6 +19,11 @@ def FAILED(hr: int) -> bool:
 
 
 # noinspection PyPep8Naming
+def HRESULT_FROM_WIN32(x: int) -> int:
+    return _type.HRESULT(x if x < 0 else (x & 0x0000FFFF) | _const.FACILITY_WIN32 << 16 | 0x80000000).value
+
+
+# noinspection PyPep8Naming
 def MAKEWORD(a: int, b: int) -> int:
     return (a & 0xff) | (b & 0xff) << 8
 

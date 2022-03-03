@@ -48,7 +48,7 @@ def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Option
     write = dst.write
     size = size or sys.maxsize
     chunk_size = chunk_size or CHUNK
-    args = () if args is None else {}
+    args = () if args is None else args
     kwargs = {} if kwargs is None else kwargs
     ratio = 0
     chunk = read(chunk_size)
@@ -81,12 +81,15 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_empty(path: str, recursive: Optional[bool] = None) -> bool:
+def is_empty(path: str, recursive: bool = False) -> bool:
     if recursive:
-        for dir_ in os.listdir(path):
-            path_ = os.path.join(path, dir_)
-            if os.path.isfile(path_) or not is_empty(path_, recursive):
-                return False
+        try:
+            for dir_ in os.listdir(path):
+                path_ = os.path.join(path, dir_)
+                if os.path.isfile(path_) or not is_empty(path_, recursive):
+                    return False
+        except PermissionError:
+            return False
         return True
     return not any(os.scandir(path))
 
@@ -108,7 +111,7 @@ def trim(path: str, target: int) -> bool:
     return trimmed
 
 
-def remove(path: str, recursive: Optional[bool] = None, timeout: Optional[float] = None) -> bool:
+def remove(path: str, recursive: bool = False, timeout: Optional[float] = None) -> bool:
     tried = False
     end_time = time.time() + (timeout or 0)
     while not tried or end_time > time.time():
