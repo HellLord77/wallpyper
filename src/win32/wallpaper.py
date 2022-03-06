@@ -606,6 +606,9 @@ def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] 
         if input_stream:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             open(path, 'w').close()
-            with _utils.open_file(path) as file, _get_output_stream(file) as output_stream:
-                return output_stream and _copy_stream(input_stream, output_stream, progress_callback, args, kwargs)
+            with _utils.open_file(path) as file:
+                if file:
+                    with _get_output_stream(file) as output_stream:
+                        return output_stream and _copy_stream(input_stream, output_stream,
+                                                              progress_callback, args, kwargs)
     return False

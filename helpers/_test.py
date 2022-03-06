@@ -13,6 +13,7 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
 import libs.ctyped as ctyped
+import utils
 import win32.gdiplus as gdiplus
 
 
@@ -276,12 +277,32 @@ def _foo3(*evt):
         s.bind(e, lambda: None)
 
 
+@utils.cache
+def cached(**params):
+    print('reset')
+    yield 1
+    params['awd'] = 'awd'
+    yield 2
+    params['awd2'] = 'awd'
+    yield 3
+
+
+import libs.locales
+
+
 def _test():
-    print(ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER))
+    us = libs.locales.Country.get('BD')
+    print(us)
+    bn = libs.locales.Language.get(alpha_2='bn')
+    print(bn)
+    lc = libs.locales.Locale.get()
+    print(lc)
+    print(libs.locales.Country.get())
 
 
 if __name__ == '__main__':
     _test()
+    exit()
     try:
         while True:
             time.sleep(0.1)

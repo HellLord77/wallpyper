@@ -519,12 +519,30 @@ class kernel32(_WinFunc):
                                 _type.HMODULE]
     GetModuleHandleW: _Callable[[_Optional[_type.LPCWSTR]],
                                 _type.HMODULE]
+    GetSystemDefaultLangID: _Callable[[],
+                                      _type.LANGID]
+    GetSystemDefaultLCID: _Callable[[],
+                                    _type.LCID]
+    GetSystemDefaultLocaleName: _Callable[[_type.LPWSTR,
+                                           _type.c_int],
+                                          _type.c_int]
     GetTempPathA: _Callable[[_type.DWORD,
                              _type.LPSTR],
                             _type.DWORD]
     GetTempPathW: _Callable[[_type.DWORD,
                              _type.LPWSTR],
                             _type.DWORD]
+    GetThreadLocale: _Callable[[],
+                               _type.LCID]
+    GetUserDefaultLangID: _Callable[[],
+                                    _type.LANGID]
+    GetUserDefaultLCID: _Callable[[],
+                                  _type.LCID]
+    GetUserDefaultUILanguage: _Callable[[],
+                                        _type.LANGID]
+    GetUserDefaultLocaleName: _Callable[[_type.LPWSTR,
+                                         _type.c_int],
+                                        _type.c_int]
     GlobalAlloc: _Callable[[_type.UINT,
                             _type.SIZE_T],
                            _type.HGLOBAL]
@@ -542,6 +560,8 @@ class kernel32(_WinFunc):
                          _type.BOOL]
     SetLastError: _Callable[[_type.DWORD],
                             _type.c_void_p]
+    SetThreadLocale: _Callable[[_type.LCID],
+                               _type.BOOL]
     Sleep: _Callable[[_type.DWORD],
                      _type.VOID]
     SwitchToThread: _Callable[[],

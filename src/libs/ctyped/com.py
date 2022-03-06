@@ -8,13 +8,13 @@ from typing import Callable as _Callable, Optional as _Optional
 from . import com_impl as _com_impl, const as _const, enum as _enum, struct as _struct, type as _type
 from ._head import _format_annotations, _get_func_doc, _Globals, _Pointer, _resolve_type
 
-_ASSIGNED = ('__CLSID__', '__RuntimeClass__',
+_ASSIGNED = ('_CLSID_', '_RuntimeClass_',
              *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))
 
 
 class IUnknown(_type.c_void_p):
-    __CLSID__ = ''
-    __RuntimeClass__ = ''
+    _CLSID_ = ''
+    _RuntimeClass_ = ''
     QueryInterface: _Callable[[_Pointer[_struct.IID],
                                _type.c_void_p],
                               _type.HRESULT]
@@ -61,7 +61,7 @@ class IShellItemArray(IUnknown):
 
 
 class IActiveDesktop(IUnknown):
-    __CLSID__ = _const.CLSID_ActiveDesktop
+    _CLSID_ = _const.CLSID_ActiveDesktop
     ApplyChanges: _Callable[[_type.DWORD],
                             _type.HRESULT]
     GetWallpaper: _Callable[[_type.PWSTR,
@@ -101,7 +101,7 @@ class IActiveDesktop(IUnknown):
 
 
 class IDesktopWallpaper(IUnknown):
-    __CLSID__ = _const.CLSID_DesktopWallpaper
+    _CLSID_ = _const.CLSID_DesktopWallpaper
     SetWallpaper: _Callable[[_Optional[_type.LPCWSTR],
                              _type.LPCWSTR],
                             _type.HRESULT]
@@ -143,7 +143,7 @@ class IDesktopWallpaper(IUnknown):
 
 
 class IModalWindow(IUnknown):
-    __CLSID__ = _const.CLSID_FileOpenDialog
+    _CLSID_ = _const.CLSID_FileOpenDialog
     Show: _Callable[[_Optional[_type.HWND]],
                     _type.HRESULT]
 
@@ -202,7 +202,7 @@ class IInspectable(IUnknown):
 
 
 class IUserNotification(IUnknown):
-    __CLSID__ = _const.CLSID_UserNotification
+    _CLSID_ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR,
                                _type.LPCWSTR,
                                _type.DWORD],
@@ -222,7 +222,7 @@ class IUserNotification(IUnknown):
 
 
 class IUserNotification2(IUnknown):
-    __CLSID__ = _const.CLSID_UserNotification
+    _CLSID_ = _const.CLSID_UserNotification
     SetBalloonInfo: _Callable[[_type.LPCWSTR,
                                _type.LPCWSTR,
                                _type.DWORD],
@@ -325,7 +325,7 @@ class IMoniker(IPersistStream):
 
 
 class IShellLinkA(IUnknown):
-    __CLSID__ = _const.CLSID_ShellLink
+    _CLSID_ = _const.CLSID_ShellLink
     GetPath: _Callable[[_type.LPWSTR,
                         _type.c_int,
                         _Optional[_Pointer[_struct.WIN32_FIND_DATAA]],
@@ -376,7 +376,7 @@ class IShellLinkA(IUnknown):
 
 
 class IShellLinkW(IUnknown):
-    __CLSID__ = _const.CLSID_ShellLink
+    _CLSID_ = _const.CLSID_ShellLink
     GetPath: _Callable[[_type.LPWSTR,
                         _type.c_int,
                         _Optional[_Pointer[_struct.WIN32_FIND_DATAW]],
@@ -427,7 +427,7 @@ class IShellLinkW(IUnknown):
 
 
 class IStartMenuPinnedList(IUnknown):
-    __CLSID__ = _const.CLSID_StartMenuPin
+    _CLSID_ = _const.CLSID_StartMenuPin
     RemoveFromList: _Callable[[IShellItem],
                               _type.HRESULT]
 
@@ -475,7 +475,7 @@ class IPictureDisp(IDispatch):
 
 
 class ICreateDevEnum(IUnknown):
-    __CLSID__ = _const.CLSID_SystemDeviceEnum
+    _CLSID_ = _const.CLSID_SystemDeviceEnum
     CreateClassEnumerator: _Callable[[_Pointer[_struct.CLSID],
                                       _Pointer[IEnumMoniker],
                                       _type.DWORD],
@@ -565,7 +565,7 @@ class IActivationFactory(IInspectable):
 
 
 class IStorageFolderStatics(IInspectable):
-    __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_StorageFolder
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFolder
     GetFolderFromPathAsync: _Callable[[_type.HSTRING,
                                        _Pointer[IAsyncOperation]],
                                       _type.HRESULT]
@@ -604,7 +604,7 @@ class IStorageFolder(IInspectable):
 
 
 class IStorageFileStatics(IInspectable):
-    __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_StorageFile
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFile
     GetFileFromPathAsync: _Callable[[_type.HSTRING,
                                      _Pointer[IAsyncOperation]],
                                     _type.HRESULT]
@@ -714,7 +714,7 @@ class IOutputStream(IInspectable):
 
 
 class IRandomAccessStreamStatics(IInspectable):
-    __RuntimeClass__ = _const.RuntimeClass_Windows_Storage_Streams_RandomAccessStream
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_Streams_RandomAccessStream
     CopyAsync: _Callable[[IInputStream,
                           IOutputStream,
                           _Pointer[IAsyncOperationWithProgress]],
@@ -754,7 +754,7 @@ class IRandomAccessStream(IInspectable):
 
 
 class ILockScreenStatics(IInspectable):
-    __RuntimeClass__ = _const.RuntimeClass_Windows_System_UserProfile_LockScreen
+    _RuntimeClass_ = _const.RuntimeClass_Windows_System_UserProfile_LockScreen
     get_OriginalImageFile: _Callable[[_Pointer[IUriRuntimeClass]],
                                      _type.HRESULT]
     GetImageStream: _Callable[[_Pointer[IRandomAccessStream]],
@@ -768,7 +768,7 @@ class ILockScreenStatics(IInspectable):
 
 
 class ILauncherOptions(IInspectable):
-    __RuntimeClass__ = _const.RuntimeClass_Windows_System_LauncherOptions
+    _RuntimeClass_ = _const.RuntimeClass_Windows_System_LauncherOptions
     get_TreatAsUntrusted: _Callable[[_Pointer[_type.boolean]],
                                     _type.HRESULT]
     put_TreatAsUntrusted: _Callable[[_type.boolean],
@@ -797,7 +797,7 @@ class ILauncherOptions(IInspectable):
 
 
 class ILauncherStatics(IInspectable):
-    __RuntimeClass__ = _const.RuntimeClass_Windows_System_Launcher
+    _RuntimeClass_ = _const.RuntimeClass_Windows_System_Launcher
     LaunchFileAsync: _Callable[[IStorageFile,
                                 _Pointer[IAsyncOperation]],
                                _type.HRESULT]

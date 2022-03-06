@@ -10,17 +10,14 @@ from ._head import _Globals, _Pointer, _resolve_type
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = (
     '__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__', '__mod__',
-    '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__'
-)
+    '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
 _CT_R_BINARY = (
     '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__', '__rmod__',
-    '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__'
-)
+    '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__')
 _CT_I_BINARY = (
     '__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
-    '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__'
-)
-_CT_UNARY = ('__neg__', '__pos__', '__abs__', '__invert__', '__round__', '__trunc__', '__floor__', '__ceil__')
+    '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__')
+_CT_UNARY = '__neg__', '__pos__', '__abs__', '__invert__', '__round__', '__trunc__', '__floor__', '__ceil__'
 _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
 _MAGICS = {}
@@ -93,6 +90,7 @@ va_list = c_char_p
 BOOL = c_int
 BYTE = c_uchar
 CHAR = c_char
+CCHAR = c_char
 DOUBLE = c_double
 DWORD = c_ulong
 FLOAT = c_float
@@ -155,6 +153,8 @@ DWORD_PTR = ULONG_PTR
 HANDLE = PVOID
 HDEVINFO = PVOID
 HDSKSPC = PVOID
+LANGID = WORD
+LCID = DWORD
 LP = LPWSTR
 LPARAM = LONG_PTR
 LPCTCH = LPCWCH

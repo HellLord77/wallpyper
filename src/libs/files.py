@@ -13,6 +13,28 @@ DELAY = 0.01
 CHUNK = 1024 * 1024
 
 
+class File:
+    def __init__(self, url: str, name: str, size: Optional[int] = None, md5: Optional[bytes] = None,
+                 sha256: Optional[bytes] = None):
+        self.url = url
+        self.name = name
+        self.size = size
+        self.md5 = md5
+        self.sha256 = sha256
+
+    def __bool__(self):
+        return bool(str(self))
+
+    def __str__(self):
+        return self.url
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))
+
+
 def join(base: str, *children: str) -> str:
     return os.path.realpath(os.path.join(base, *children))
 

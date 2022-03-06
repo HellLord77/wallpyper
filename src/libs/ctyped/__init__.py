@@ -70,7 +70,8 @@ def _prep_com(type_: _builtins.type[CT],
                               enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else func.ole32.CoInitialize(None)
     obj = type_()
     try:
-        yield obj, byref(get_guid(type_.__CLSID__)) if type_.__CLSID__ else None, macro.IID_PPV_ARGS(
+        # noinspection PyProtectedMember
+        yield obj, byref(get_guid(type_._CLSID_)) if type_._CLSID_ else None, macro.IID_PPV_ARGS(
             obj) if init else None
     finally:
         if obj:
@@ -104,7 +105,8 @@ def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[
                               if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
     base = com.IInspectable() if init else com.IActivationFactory()
     try:
-        yield handle.HSTRING.from_string(type_.__RuntimeClass__), None if init else macro.__uuidof(type_.__name__), base
+        # noinspection PyProtectedMember
+        yield handle.HSTRING.from_string(type_._RuntimeClass_), None if init else macro.__uuidof(type_.__name__), base
     finally:
         if base:
             base.Release()

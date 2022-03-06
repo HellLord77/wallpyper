@@ -1,4 +1,4 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import builtins
 import contextlib
@@ -32,7 +32,13 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 _MIN_CHUNK = 32 * 1024
 _OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
 
+ACCEPT_LANGUAGE = 'en-US'
 USER_AGENT = f'{__name__}/{__version__}'
+
+
+class Header:
+    ACCEPT_LANGUAGE = 'Accept-Language'
+    USER_AGENT = 'User-Agent'
 
 
 class Response:
@@ -78,6 +84,11 @@ class Response:
         return self.response.read(n)
 
 
+def strip(url: str) -> str:
+    parts = urllib.parse.urlparse(url)
+    return f'{parts.scheme}://{parts.netloc}{parts.path}'
+
+
 def join(base: str, *urls: str) -> str:
     if not base.endswith('/'):
         base = f'{base}/'
@@ -113,7 +124,8 @@ def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[by
     except ValueError as error:
         return Response(urllib.error.URLError(error))
     else:
-        request.add_header('User-Agent', USER_AGENT)
+        request.add_header(Header.ACCEPT_LANGUAGE, ACCEPT_LANGUAGE)
+        request.add_header(Header.USER_AGENT, USER_AGENT)
         for head, val in (headers or {}).items():
             request.add_header(head, val)
         try:
@@ -128,21 +140,22 @@ def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[by
             return lazy_response
 
 
-def _get_hash(path: str, type_: str = 'md5') -> str:
-    hash__ = hashlib.new(type_)
-    with builtins.open(path or sys.argv[0], 'rb') as file:
+def _get_hash(path: str, type_: str = 'md5') -> bytes:
+    hash_ = hashlib.new(type_)
+    with builtins.open(path, 'rb') as file:
         while buffer := file.read(MAX_CHUNK):
-            hash__.update(buffer)
-    return hash__.hexdigest()
+            hash_.update(buffer)
+    return hash_.digest()
 
 
-def download(url: str, path: str, size: Optional[int] = None, md5: Optional[str] = None,
-             chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
-             on_write: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
+def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None,
+             sha256: Optional[bytes] = None, chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
+             callback: Optional[Callable[[int, ...], bool]] = None, args: Optional[Iterable] = None,
              kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     response = open(url)
     if os.path.exists(path):
-        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path))):
+        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path)) or (
+                sha256 and _get_hash(path, 'sha256'))):
             return True
         elif os.path.isdir(path):
             return False
@@ -156,21 +169,27 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[str]
             else:
                 os.remove(path)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
+        cancelled = False
         try:
             with builtins.open(path, 'wb') as file:
+                write = file.write
                 args = () if args is None else args
                 kwargs = {} if kwargs is None else kwargs
                 ratio = 0
                 for chunk in response:
-                    file.write(chunk)
+                    write(chunk)
                     ratio += len(chunk) / size
-                    if on_write:
-                        on_write(round(ratio * 100), *args, **kwargs)
+                    if callback and not callback(round(ratio * 100), *args, **kwargs):
+                        cancelled = True
+                        break
+            if cancelled:
+                os.remove(path)
+                return False
         except PermissionError:
             return False
         if os.path.isfile(path) and size == os.path.getsize(path):
-            if on_write:
-                on_write(100, *args, **kwargs)
+            if callback:
+                callback(100, *args, **kwargs)
             return True
     return False
 

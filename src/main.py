@@ -17,25 +17,27 @@ import webbrowser
 from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional, Union
 
 import langs
-import libs.functool as functool
+import libs.files as paths
+import libs.gui as gui
 import libs.log as log
-import libs.paths as paths
+import libs.misc as misc
 import libs.pyinstall as pyinstall
 import libs.request as request
 import libs.singleton as singleton
+import libs.timer as timer
 import utils
 import win32
-from modules import bing, wallhaven  # TODO lazy
+from modules import bing, spotlight, wallhaven  # TODO lazy
 
 FEATURE_PIN_PYTHON = False
-FEATURE_UPLOAD_GOOGLE = True
+FEATURE_UPLOAD_GOOGLE = False
 FEATURE_OPEN_WITH = False
 FEATURE_UPDATE_DISPLAY = True
 
 MAX_CACHE = 64 * 1024 * 1024
+MAX_LABEL = 25
 MAX_RECENT = 9
 POLL_TIMEOUT = 0.01
-MAX_LABEL = 25
 
 NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
@@ -67,18 +69,19 @@ GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
-MODULES = bing, wallhaven,
-
-CONFIG = {}
-DISPLAYS = []
-RECENT: collections.deque[utils.Wallpaper] = collections.deque(maxlen=MAX_RECENT)
-TIMER = utils.Timer.__new__(utils.Timer)
+MODULES = bing, spotlight, wallhaven
 
 STRINGS = langs.LANGUAGE = langs.en
 MODULE = MODULES[0]
-DEFAULT_CONFIG = utils.Dict({
+
+DISPLAYS: list[str] = []
+RECENT: collections.deque[utils.Wallpaper] = collections.deque(maxlen=MAX_RECENT)
+TIMER = timer.Timer.__new__(timer.Timer)
+CONFIG = {}
+
+DEFAULT_CONFIG = {
     CONFIG_LAST: math.inf,
-    CONFIG_RECENT: functool.encrypt(RECENT, True),
+    CONFIG_RECENT: misc.encrypt(RECENT, True),
     CONFIG_TRANSITION: win32.wallpaper.Transition[win32.wallpaper.Transition.RANDOM],
     CONFIG_DISPLAY: '',
     CONFIG_CHANGE: INTERVALS[0],
@@ -89,15 +92,14 @@ DEFAULT_CONFIG = utils.Dict({
     CONFIG_ANIMATE: True,
     CONFIG_CACHE: False,
     CONFIG_START: False,
-    CONFIG_SAVE: False
-})
+    CONFIG_SAVE: False}
 
 
 def fix_config(loaded: bool = True):
     if CONFIG[CONFIG_TRANSITION] not in win32.wallpaper.Transition:
         CONFIG[CONFIG_TRANSITION] = DEFAULT_CONFIG[CONFIG_TRANSITION]
     if loaded:
-        CONFIG[CONFIG_RECENT] = functool.encrypt(RECENT, True)
+        CONFIG[CONFIG_RECENT] = misc.encrypt(RECENT, True)
     if CONFIG[CONFIG_DISPLAY] not in DISPLAYS:
         CONFIG[CONFIG_DISPLAY] = DEFAULT_CONFIG[CONFIG_DISPLAY]
     if CONFIG[CONFIG_LAST] > time.time():
@@ -123,8 +125,8 @@ def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float,
 
 def load_config() -> bool:
     parser = configparser.ConfigParser(
-        converters={tuple.__name__: functool.to_tuple, list.__name__: functool.to_list,
-                    set.__name__: functool.to_set, dict.__name__: functool.to_dict})
+        converters={tuple.__name__: misc.to_tuple, list.__name__: misc.to_list,
+                    set.__name__: misc.to_set, dict.__name__: misc.to_dict})
     try:
         loaded = bool(parser.read(INI_PATH))
     except configparser.MissingSectionHeaderError:
@@ -150,29 +152,29 @@ def _strip_config(config: dict[str, Any], default: dict[str, Any]) -> dict[str, 
 def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
     parser = configparser.ConfigParser()
     fix_config()
-    parser[NAME] = _strip_config(CONFIG, DEFAULT_CONFIG)
+    if config := _strip_config(CONFIG, DEFAULT_CONFIG):
+        parser[NAME] = config
     for module in MODULES:
         module.fix_config()
-        parser[module.NAME] = _strip_config(module.CONFIG, module.DEFAULT_CONFIG)
+        if config := _strip_config(module.CONFIG, module.DEFAULT_CONFIG):
+            parser[module.NAME] = config
     with open(INI_PATH, 'w') as file:
         parser.write(file)
     return utils.path_exists(INI_PATH)
 
 
-@functools.lru_cache
-def _download_lock(_: str) -> threading.Lock:
-    return threading.Lock()
+_arg_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_wallpaper(wallpaper: utils.Wallpaper, progress_callback: Optional[Callable[[int, ...], Any]] = None,
+def download_wallpaper(wallpaper: utils.Wallpaper, query_callback: Optional[Callable[[int, ...], Any]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = utils.join_path(TEMP_DIR, wallpaper.name)
-    with _download_lock(wallpaper.url):
+    with _arg_lock(wallpaper.url):
         utils.animate(RES_BUSY, STRINGS.STATUS_DOWNLOAD)
         try:
-            return temp_path if request.download(wallpaper.url, temp_path,
-                                                 wallpaper.size, wallpaper.md5, chunk_count=100,
-                                                 on_write=progress_callback, args=args, kwargs=kwargs) else None
+            return temp_path if request.download(wallpaper.url, temp_path, wallpaper.size,
+                                                 wallpaper.md5, wallpaper.sha256, chunk_count=100,
+                                                 callback=query_callback, args=args, kwargs=kwargs) else None
         finally:
             utils.inanimate(STRINGS.STATUS_DOWNLOAD)
 
@@ -185,8 +187,11 @@ def change_wallpaper(wallpaper: Optional[utils.Wallpaper] = None,
     if progress_callback:
         progress_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if not wallpaper:
-        while (wallpaper := MODULE.get_next_wallpaper()) and CONFIG[CONFIG_SKIP] and wallpaper in RECENT:
-            pass
+        wallpapers = set()
+        while (wallpaper := next(MODULE.get_next_wallpaper(
+                **{key: val for key, val in MODULE.CONFIG.items() if not key.startswith(
+                    '_')}))) and CONFIG[CONFIG_SKIP] and wallpaper in RECENT and wallpaper not in wallpapers:
+            wallpapers.add(wallpaper)
     if wallpaper:
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
@@ -210,8 +215,8 @@ def save_wallpaper(path: str) -> bool:
 def search_wallpaper(path: str) -> bool:
     searched = False
     utils.animate(RES_BUSY, STRINGS.STATUS_SEARCH)
-    if location := utils.upload_url(GOOGLE_UPLOAD_URL, files={'encoded_image': (None, path)},
-                                    redirect=False).get_header('location'):
+    if location := request.upload(GOOGLE_UPLOAD_URL, files={'encoded_image': (None, path)},
+                                  redirect=False).get_header('location'):
         searched = webbrowser.open(location)
     utils.inanimate(STRINGS.STATUS_SEARCH)
     return searched
@@ -242,7 +247,7 @@ def on_bing(url: str) -> bool:
     return opened
 
 
-@utils.thread
+@timer.on_thread
 def on_change(enable: Callable, menu_recent, set_label: Callable,
               wallpaper: Optional[utils.Wallpaper] = None, auto_change: bool = True) -> bool:
     changed = False
@@ -282,51 +287,58 @@ def on_click(callback: Callable[[str], bool], wallpaper: Union[str, utils.Wallpa
     return success
 
 
-def _update_recent(menu):  # TODO smart
-    utils.clear_menu(menu)
-    for index, wallpaper in enumerate(RECENT, 1):
-        menu_wallpaper = utils.add_menu(
-            f'{langs.to_str(index, STRINGS)}. {functool.shrink_string_end(wallpaper.name, MAX_LABEL)}', menu=menu)
-        utils.add_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
-                       on_thread=False, change_state=False, menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_SET_LOCK, on_click=on_click,
-                       args=(win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK),
-                       menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_SAVE, on_click=on_click,
-                       args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE), menu=menu_wallpaper)
-        utils.add_separator(menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,), menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
-            win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,),
-                       menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_OPEN, on_click=on_click,
-                       args=(win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN), menu=menu_wallpaper)
-        if FEATURE_OPEN_WITH:
-            utils.add_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click,
-                           args=(win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH),
-                           menu=menu_wallpaper)
-        utils.add_separator(menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,), menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
-                       args=(win32.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH),
-                       menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_COPY, on_click=on_click,
-                       args=(win32.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY), menu=menu_wallpaper)
-        utils.add_separator(menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,), menu=menu_wallpaper)
-        utils.add_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,), menu=menu_wallpaper)
-        if FEATURE_UPLOAD_GOOGLE:
-            utils.add_item(STRINGS.LABEL_SEARCH, on_click=on_click,
-                           args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
-                           menu=menu_wallpaper)
-    utils.add_separator(menu)
-    utils.add_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(menu.Enable,), menu=menu)
-    menu.Enable(bool(RECENT))
-
-
 def on_clear(enable: Callable):
     RECENT.clear()
     enable(False)
+
+
+def _update_recent(menu):
+    items = gui.get_menu_items(menu)
+    for index, wallpaper in enumerate(RECENT):
+        label = f'{langs.to_str(index + 1, STRINGS)}. {misc.shrink_string_end(wallpaper.name, MAX_LABEL)}'
+        if wallpaper in items:
+            menu_wallpaper = items[wallpaper.url]
+            menu_wallpaper.SetItemLabel(label)
+            gui.set_menu_item_position(menu_wallpaper, index, menu)
+        else:
+            menu_wallpaper = utils.add_menu(label, uid=wallpaper.url, position=index, menu=menu)
+            utils.add_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
+                           on_thread=False, change_state=False, menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_SET_LOCK, on_click=on_click,
+                           args=(win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK),
+                           menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_SAVE, on_click=on_click,
+                           args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE), menu=menu_wallpaper)
+            utils.add_separator(menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,), menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
+                win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,),
+                           menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
+                win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN), menu=menu_wallpaper)
+            if FEATURE_OPEN_WITH:
+                utils.add_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
+                    win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH),
+                               menu=menu_wallpaper)
+            utils.add_separator(menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,), menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
+                           args=(win32.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH),
+                           menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_COPY, on_click=on_click,
+                           args=(win32.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY),
+                           menu=menu_wallpaper)
+            utils.add_separator(menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,), menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,), menu=menu_wallpaper)
+            if FEATURE_UPLOAD_GOOGLE:
+                utils.add_item(STRINGS.LABEL_SEARCH, on_click=on_click,
+                               args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
+                               menu=menu_wallpaper)
+    for uid, menu_wallpaper in items.items():
+        if uid and uid not in RECENT:
+            gui.remove_menu_items(menu_wallpaper, menu=menu)
+    menu.Enable(bool(RECENT))
 
 
 def on_auto_change(interval: Union[int, str], after: Optional[float] = None):
@@ -355,7 +367,7 @@ def on_update_display(menu, update: bool = True):
     if update:
         _update_display()
     pad = len(str(len(DISPLAYS)))
-    utils.clear_menu(menu)
+    gui.remove_menu_items(menu=menu)
     utils.add_item(f'{langs.to_str(0, STRINGS, pad)}. {STRINGS.DISPLAY_ALL}',
                    utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == DEFAULT_CONFIG[CONFIG_DISPLAY],
                    uid=DEFAULT_CONFIG[CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
@@ -489,7 +501,7 @@ def _is_running() -> bool:
             search_wallpaper.is_running() or pin_to_start.is_running())
 
 
-@utils.thread
+@timer.on_thread
 def on_quit():
     TIMER.stop()
     utils.disable()
@@ -505,9 +517,15 @@ def on_quit():
 def create_menu():  # TODO slideshow (smaller timer)
     item_change = utils.add_item(STRINGS.LABEL_CHANGE)
     menu_recent = utils.add_menu(STRINGS.MENU_RECENT, False)
-    TIMER.__init__(0, on_change, (item_change.Enable, menu_recent, (lambda progress=None: item_change.SetItemLabel(
-        STRINGS.LABEL_CHANGE if progress is None else f'{STRINGS.LABEL_CHANGE} '  # TODO exploding width
-                                                      f'({langs.to_str(progress, STRINGS, 3)}%)'))))
+
+    def query_callback(progress: Optional[int] = None) -> bool:
+        item_change.SetItemLabel(STRINGS.LABEL_CHANGE if progress is None else
+                                 f'{STRINGS.LABEL_CHANGE} ({langs.to_str(progress, STRINGS, 3)}%)')
+        return True  # TODO exploding width
+
+    TIMER.__init__(0, on_change, (item_change.Enable, menu_recent, query_callback))
+    utils.add_separator(menu_recent)
+    utils.add_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(menu_recent.Enable,), menu=menu_recent)
     _update_recent(menu_recent)
     utils.on_item_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
     utils.add_separator()
@@ -551,7 +569,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_display = utils.add_menu(STRINGS.MENU_DISPLAY, menu=menu_settings)
     on_update_display(menu_display, False)
     utils.add_synced_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP, menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)
+    utils.add_synced_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)  # TODO similar to pause_animation
     utils.add_item(STRINGS.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
                    on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_settings)
     utils.add_synced_item(STRINGS.LABEL_CACHE, CONFIG, CONFIG_CACHE, menu_settings)
@@ -567,13 +585,14 @@ def start():  # TODO dark theme
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
         log.init(utils.get_filename(__file__), utils.get_filename(utils.__file__),
                  utils.re_join_path('libs', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
-                 utils.re_join_path('win32s', r'.*\.py'), level=log.Level.INFO, check_comp=False)
+                 utils.re_join_path('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     utils.make_dirs(TEMP_DIR)
     utils.trim_dir(TEMP_DIR, MAX_CACHE)
     _update_display()
     load_config()
-    RECENT.extend({wallpaper: None for wallpaper in functool.decrypt(CONFIG[CONFIG_RECENT], ())})
+    RECENT.extend({wallpaper: None for wallpaper in misc.decrypt(CONFIG[CONFIG_RECENT], ())})
+    MODULE.get_next_wallpaper = misc.one_cache(MODULE.get_next_wallpaper)
     create_menu()
     on_animate(CONFIG[CONFIG_ANIMATE])
     apply_auto_start(CONFIG[CONFIG_START])
@@ -587,7 +606,7 @@ def start():  # TODO dark theme
 
 
 def stop():
-    utils.Timer.kill_all()
+    timer.Timer.kill_all()
     apply_auto_start(CONFIG[CONFIG_START])
     apply_save_config(CONFIG[CONFIG_SAVE])
     utils.trim_dir(TEMP_DIR, MAX_CACHE) if CONFIG[CONFIG_CACHE] else utils.delete(TEMP_DIR, True)

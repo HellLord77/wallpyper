@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.1'  # https://wallhaven.cc/help/api
 
 from typing import Generator, Optional
 
@@ -19,8 +19,7 @@ DEFAULT_CONFIG = {
     'ratios': '',
     'colors': '',
     'page': '',
-    'seed': ''
-}
+    'seed': ''}
 
 SEARCH_URl = utils.join_url(BASE_URL, 'search')
 SETTINGS_URL = utils.join_url(BASE_URL, 'settings')
@@ -33,19 +32,13 @@ def fix_config():  # TODO validate & sanitize CONFIG with regex, fallback to DEF
     ...
 
 
-def authenticate(api_key: str) -> bool:
-    return bool(utils.open_url(SETTINGS_URL, {'apikey': api_key}))
-
-
-@utils.cache
-def _update_search_data(config: dict[str, str]) -> Generator[Optional[utils.Wallpaper], None, None]:
-    search_datas = []
+def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], None, None]:
+    search_datas: Optional[list] = None
     meta = {
         'current_page': 1,
         'last_page': 1,
         'seed': None
     }
-    params = config.copy()
     while True:
         if not search_datas:
             params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
@@ -61,9 +54,9 @@ def _update_search_data(config: dict[str, str]) -> Generator[Optional[utils.Wall
         yield utils.Wallpaper(url, utils.get_filename(url), search_data['file_size'])
 
 
-def get_next_wallpaper() -> Optional[utils.Wallpaper]:
-    return next(_update_search_data(CONFIG.copy()))
+def _authenticate(api_key: str) -> bool:
+    return bool(utils.open_url(SETTINGS_URL, {'apikey': api_key}))
 
 
 def create_menu():
-    utils.add_item(NAME, on_click=utils.not_implemented, args=(NAME,))
+    ...

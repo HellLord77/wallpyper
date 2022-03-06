@@ -21,6 +21,7 @@ import threading
 import time
 import typing
 import uuid
+import zlib
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
 DEFAULT = object()
@@ -160,23 +161,6 @@ class TimeDeltaEx(datetime.timedelta):
         return int(float(self))
 
     __float__ = datetime.timedelta.total_seconds
-
-
-class RemoteFile:
-    def __init__(self, url: str, name: str, size: Optional[int] = None, md5: Optional[str] = None):
-        self.url = url
-        self.name = name
-        self.size = size
-        self.md5 = md5
-
-    def __bool__(self):
-        return bool(self.url)
-
-    def __eq__(self, other):
-        return self.url == other.url
-
-    def __hash__(self):
-        return hash(self.url)
 
 
 def _to_type(text: str, expected_type: type[T]) -> T:
@@ -375,19 +359,26 @@ def encrypt(obj, split: bool = False) -> str:
         pickled = pickle.dumps(obj)
     except TypeError:
         return ''
-    base64 = binascii.b2a_base64(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled,
-                                 newline=False).decode()
+    base64 = binascii.b2a_base64(
+        zlib.compress(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled),
+        newline=False).decode()
     return '\n'.join(split_ex(base64)) if split else base64
 
 
-def decrypt(data: str, default: Any = None) -> Any:
+def decrypt(data: str, default: Any = None, key: Optional[int] = None) -> Any:
     try:
-        decoded = binascii.a2b_base64(''.join(data.split('\n')).encode())
-    except binascii.Error:
+        decoded = zlib.decompress(binascii.a2b_base64(''.join(data.split('\n')).encode()))
+    except (binascii.Error, zlib.error):
         return default
     size = hashlib.blake2b().digest_size
-    return pickle.loads(decoded[size:]) if decoded[:size] == hashlib.blake2b(decoded[size:], key=str(
-        uuid.getnode()).encode()).digest() else default
+    if decoded[:size] == hashlib.blake2b(decoded[size:],
+                                         key=str(uuid.getnode() if key is None else key).encode()).digest():
+        try:
+            return pickle.loads(decoded[size:])
+        except AttributeError:
+            return default
+    else:
+        return default
 
 
 def _get_params(args, kwargs):
