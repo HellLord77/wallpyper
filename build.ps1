@@ -1,4 +1,4 @@
-$Version = "0.0.2"
+$Version = "0.0.3"
 
 <#
 .INPUTS
@@ -17,7 +17,6 @@ $Datas = @("resources", "win32\syspin.exe", "libs\locales\iso_639-2.json", "libs
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True
-$UPX = $True
 
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
@@ -78,11 +77,11 @@ function Build-Project
     }
     if ($UPX)
     {
-        if (!(Get-Command "upx.exe" -ErrorAction SilentlyContinue))
+        if (!(Get-Command upx -ErrorAction SilentlyContinue))
         {
             choco install upx --verbose --yes
         }
-        Get-Command "upx.exe"
+        Get-Command upx
     }
     else
     {

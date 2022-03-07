@@ -8,6 +8,7 @@ import contextlib
 import copy
 import functools
 import math
+import os.path
 import subprocess
 import sys
 import tempfile
@@ -30,7 +31,6 @@ import win32
 from modules import bing, spotlight, wallhaven  # TODO lazy
 
 FEATURE_PIN_PYTHON = False
-FEATURE_UPLOAD_GOOGLE = False
 FEATURE_OPEN_WITH = False
 FEATURE_UPDATE_DISPLAY = True
 
@@ -56,11 +56,12 @@ CONFIG_ANIMATE = 'animate_icon'
 CONFIG_CACHE = 'image_cache'
 CONFIG_START = 'auto_start'
 CONFIG_SAVE = 'save_settings'
+CONFIG_MODULE = 'active_module'
 
 EXIT_TIMEOUT = win32.get_max_shutdown_time()
 UUID = f'{__author__}.{NAME}'
 SHORTCUT_NAME = f'{NAME}{win32.LINK_EXT}'
-RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(utils.get_dir(__file__), 'resources', name)
+RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(os.path.dirname(__file__), 'resources', name)
                                 for name in ('icon.ico', 'tray.png', 'busy.gif'))
 TEMP_DIR = paths.join(tempfile.gettempdir(), NAME)
 INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, NAME, f'{NAME}.ini')
@@ -68,31 +69,32 @@ LOG_PATH = paths.replace_ext(INI_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
+
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 MODULES = bing, spotlight, wallhaven
 
-STRINGS = langs.LANGUAGE = langs.en
 MODULE = MODULES[0]
-
+STRINGS = langs.LANGUAGE = langs.en
 DISPLAYS: list[str] = []
-RECENT: collections.deque[utils.Wallpaper] = collections.deque(maxlen=MAX_RECENT)
 TIMER = timer.Timer.__new__(timer.Timer)
-CONFIG = {}
+RECENT: collections.deque[utils.Wallpaper] = collections.deque(maxlen=MAX_RECENT)
 
 DEFAULT_CONFIG = {
     CONFIG_LAST: math.inf,
     CONFIG_RECENT: misc.encrypt(RECENT, True),
-    CONFIG_TRANSITION: win32.wallpaper.Transition[win32.wallpaper.Transition.RANDOM],
     CONFIG_DISPLAY: '',
-    CONFIG_CHANGE: INTERVALS[0],
     CONFIG_AUTOSAVE: False,
-    CONFIG_DIR: utils.join_path(win32.PICTURES_DIR, NAME),
     CONFIG_SKIP: False,
     CONFIG_NOTIFY: True,
     CONFIG_ANIMATE: True,
     CONFIG_CACHE: False,
     CONFIG_START: False,
-    CONFIG_SAVE: False}
+    CONFIG_SAVE: False,
+    CONFIG_CHANGE: INTERVALS[0],
+    CONFIG_MODULE: MODULE.NAME,
+    CONFIG_DIR: utils.join_path(win32.PICTURES_DIR, NAME),
+    CONFIG_TRANSITION: win32.wallpaper.Transition[win32.wallpaper.Transition.RANDOM]}
+CONFIG = {}
 
 
 def notify(title: str, text: str):
@@ -113,6 +115,11 @@ def fix_config(loaded: bool = True):
         CONFIG[CONFIG_CHANGE] = DEFAULT_CONFIG[CONFIG_CHANGE]
     if not CONFIG[CONFIG_DIR]:  # TODO: is_path_exists_or_creatable
         CONFIG[CONFIG_DIR] = DEFAULT_CONFIG[CONFIG_DIR]
+    for module in MODULES:
+        if module.NAME == CONFIG[CONFIG_MODULE]:
+            break
+    else:
+        CONFIG[CONFIG_MODULE] = DEFAULT_CONFIG[CONFIG_MODULE]
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool, tuple, list, set]]],
@@ -165,7 +172,7 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
             parser[module.NAME] = config
     with open(INI_PATH, 'w') as file:
         parser.write(file)
-    return utils.path_exists(INI_PATH)
+    return os.path.isfile(INI_PATH)
 
 
 _arg_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -213,7 +220,7 @@ def change_wallpaper(wallpaper: Optional[utils.Wallpaper] = None,
 
 @utils.single
 def save_wallpaper(path: str) -> bool:
-    return utils.copy_file(path, utils.join_path(CONFIG[CONFIG_DIR], utils.get_filename(path)))
+    return utils.copy_file(path, utils.join_path(CONFIG[CONFIG_DIR], os.path.basename(path)))
 
 
 @utils.single
@@ -221,7 +228,7 @@ def search_wallpaper(path: str) -> bool:
     searched = False
     utils.animate(RES_BUSY, STRINGS.STATUS_SEARCH)
     if location := request.upload(GOOGLE_UPLOAD_URL, files={'encoded_image': (None, path)},
-                                  redirect=False).get_header('location'):
+                                  redirect=False).getheader('location'):
         searched = webbrowser.open(location)
     utils.inanimate(STRINGS.STATUS_SEARCH)
     return searched
@@ -336,19 +343,20 @@ def _update_recent(menu):
             utils.add_separator(menu_wallpaper)
             utils.add_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,), menu=menu_wallpaper)
             utils.add_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,), menu=menu_wallpaper)
-            if FEATURE_UPLOAD_GOOGLE:
-                utils.add_item(STRINGS.LABEL_SEARCH, on_click=on_click,
-                               args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
-                               menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_SEARCH, on_click=on_click,
+                           args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
+                           menu=menu_wallpaper)
     if menu_items := tuple(menu_wallpaper for uid, menu_wallpaper in items.items() if uid and uid not in RECENT):
         gui.remove_menu_items(*menu_items, menu=menu)
     menu.Enable(bool(RECENT))
 
 
 def on_auto_change(interval: Union[int, str], after: Optional[float] = None):
-    CONFIG[CONFIG_CHANGE] = int(interval)
-    if CONFIG[CONFIG_CHANGE]:
-        TIMER.set_next_interval(CONFIG[CONFIG_CHANGE])
+    if isinstance(interval, str):
+        interval = int(interval)
+    CONFIG[CONFIG_CHANGE] = interval
+    if interval:
+        TIMER.set_next_interval(interval)
         TIMER.start(after)
     else:
         TIMER.stop()
@@ -388,7 +396,7 @@ def on_update_display(menu, update: bool = True):
 def _get_launch_args() -> list[str]:
     argv = [sys.executable]
     if not pyinstall.FROZEN:
-        argv.append(utils.abspath(__file__))
+        argv.append(os.path.realpath(__file__))
     return argv
 
 
@@ -532,7 +540,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     _update_recent(menu_recent)
     utils.on_item_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
     utils.add_separator()
-    utils.add_item(f'{MODULE.NAME}-{MODULE.__version__}', enable=False)
+    utils.add_item(MODULE.NAME, enable=False)
     MODULE.create_menu()
     utils.add_separator()
     menu_actions = utils.add_menu(STRINGS.MENU_ACTIONS)
@@ -547,30 +555,31 @@ def create_menu():  # TODO slideshow (smaller timer)
     utils.add_item(STRINGS.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON, on_click=on_unpin,
                    menu=menu_links)
     utils.add_separator(menu_links)
-    unpin = utils.add_item(STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
-                           on_click=on_unpin_start, menu=menu_links)
+    unpin_enable = utils.add_item(STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
+                                  on_click=on_unpin_start, menu=menu_links).Enable
     utils.add_item(STRINGS.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
                    on_click=on_pin_start, menu_args=(utils.set_property.ENABLE,),
-                   args=(unpin.Enable,), change_state=False, position=9, menu=menu_links)
+                   args=(unpin_enable,), change_state=False, position=9, menu=menu_links)
     utils.add_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
     utils.add_item(STRINGS.LABEL_RESET, on_click=on_reset, menu=menu_actions)
     utils.add_item(STRINGS.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
     utils.add_item(STRINGS.LABEL_ABOUT, on_click=on_about, menu=menu_actions)
     menu_auto = utils.add_menu(STRINGS.MENU_AUTO)
-    menu_auto_change = utils.add_menu(STRINGS.MENU_AUTO_CHANGE, menu=menu_auto)
-    for interval in INTERVALS:
-        utils.add_item(getattr(STRINGS, f'TIME_{interval}'), utils.item.RADIO,
-                       CONFIG[CONFIG_CHANGE] == interval, uid=str(interval),
-                       on_click=on_auto_change, menu_args=(utils.get_property.UID,), menu=menu_auto_change)
+    utils.add_synced_items(STRINGS.MENU_AUTO_CHANGE,
+                           {str(interval): getattr(STRINGS, f'TIME_{interval}') for interval in INTERVALS},
+                           CONFIG, CONFIG_CHANGE, on_click=on_auto_change, menu=menu_auto)
     utils.add_separator(menu_auto)
     utils.add_synced_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, CONFIG_AUTOSAVE, menu_auto)
     utils.add_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu=menu_auto)
     menu_settings = utils.add_menu(STRINGS.MENU_SETTINGS)
+    menu_display = utils.add_menu(STRINGS.MENU_DISPLAY, menu=menu_settings)
+    on_update_display(menu_display, False)
+    utils.add_synced_items(STRINGS.MENU_MODULE,
+                           {module.NAME: f'{module.NAME}\t{module.__version__}' for module in MODULES},
+                           CONFIG, CONFIG_MODULE, on_click=lambda _: on_restart(), menu=menu_settings)
     utils.add_synced_items(STRINGS.MENU_TRANSITION, {
         str(transition): getattr(STRINGS, f'TRANSITION_{transition}')
         for transition in win32.wallpaper.Transition}, CONFIG, CONFIG_TRANSITION, menu=menu_settings)
-    menu_display = utils.add_menu(STRINGS.MENU_DISPLAY, menu=menu_settings)
-    on_update_display(menu_display, False)
     utils.add_synced_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP, menu_settings)
     utils.add_synced_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)
     utils.add_item(STRINGS.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
@@ -582,11 +591,12 @@ def create_menu():  # TODO slideshow (smaller timer)
 
 
 def start():  # TODO dark theme
+    global MODULE
     singleton.init(UUID, NAME, ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',),
                    on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if ARG_DEBUG in sys.argv:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
-        log.init(utils.get_filename(__file__), utils.get_filename(utils.__file__),
+        log.init(os.path.basename(__file__), os.path.basename(utils.__file__),
                  utils.re_join_path('libs', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
                  utils.re_join_path('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
@@ -595,6 +605,10 @@ def start():  # TODO dark theme
     _update_display()
     load_config()
     RECENT.extend({wallpaper: None for wallpaper in misc.decrypt(CONFIG[CONFIG_RECENT], ())})
+    for module in MODULES:
+        if module.NAME == CONFIG[CONFIG_MODULE]:
+            MODULE = module
+            break
     MODULE.get_next_wallpaper = misc.one_cache(MODULE.get_next_wallpaper)
     create_menu()
     on_animate(CONFIG[CONFIG_ANIMATE])
@@ -612,7 +626,7 @@ def stop():
     apply_auto_start(CONFIG[CONFIG_START])
     apply_save_config(CONFIG[CONFIG_SAVE])
     utils.trim_dir(TEMP_DIR, MAX_CACHE) if CONFIG[CONFIG_CACHE] else utils.delete(TEMP_DIR, True)
-    if utils.dir_exists(TEMP_DIR) and utils.is_empty_dir(TEMP_DIR, True):
+    if os.path.isdir(TEMP_DIR) and utils.is_empty_dir(TEMP_DIR, True):
         utils.delete(TEMP_DIR, True)
 
 

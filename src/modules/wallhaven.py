@@ -1,11 +1,15 @@
 __version__ = '0.0.1'  # https://wallhaven.cc/help/api
 
+import os.path
 from typing import Generator, Optional
 
 import utils
 
 NAME = 'wallhaven'
 BASE_URL = utils.join_url('https://wallhaven.cc', 'api', 'v1')
+SEARCH_URl = utils.join_url(BASE_URL, 'search')
+SETTINGS_URL = utils.join_url(BASE_URL, 'settings')
+
 DEFAULT_CONFIG = {
     'apikey': '',
     'q': '',
@@ -20,9 +24,6 @@ DEFAULT_CONFIG = {
     'colors': '',
     'page': '',
     'seed': ''}
-
-SEARCH_URl = utils.join_url(BASE_URL, 'search')
-SETTINGS_URL = utils.join_url(BASE_URL, 'settings')
 CONFIG = {}
 
 
@@ -50,7 +51,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
                 continue
         search_data = search_datas.pop(0)
         url = search_data['path']
-        yield utils.Wallpaper(url, utils.get_filename(url), search_data['file_size'])
+        yield utils.Wallpaper(url, os.path.basename(url), search_data['file_size'])
 
 
 def _authenticate(api_key: str) -> bool:

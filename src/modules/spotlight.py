@@ -2,6 +2,7 @@ __version__ = '0.0.1'  # https://github.com/ORelio/Spotlight-Downloader
 
 import base64
 import json
+import os.path
 from typing import Optional, Generator
 
 import libs.locales as locales
@@ -16,9 +17,9 @@ ORIENTATIONS = 'landscape', 'portrait'
 
 NAME = 'spotlight'
 BASE_URL = utils.join_url('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
+
 DEFAULT_CONFIG = {CONFIG_LOCALE: LOCALES[0],
                   CONFIG_ORIENTATION: ORIENTATIONS[0]}
-
 CONFIG = {}
 
 
@@ -44,7 +45,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
                 continue
         image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{CONFIG[CONFIG_ORIENTATION]}']
         url = image['u']
-        yield utils.Wallpaper(url, utils.set_ext(utils.get_filename(utils.strip_url(url)), 'jpg'),
+        yield utils.Wallpaper(url, utils.set_ext(os.path.basename(utils.strip_url(url)), 'jpg'),
                               int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
 
 

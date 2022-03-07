@@ -175,11 +175,19 @@ def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool], key: st
 
 def add_mapped_submenu(label_or_submenu: Union[str, wx.MenuItem], items: Mapping[str, str],
                        mapping: MutableMapping[str, str], key: str, enable: bool = True,
-                       uid: Optional[str] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+                       uid: Optional[str] = None, on_click: Optional[Callable[[str], Any]] = None,
+                       menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     submenu = add_submenu(label_or_submenu, enable, uid, menu=menu) if isinstance(label_or_submenu,
                                                                                   str) else label_or_submenu
-    for uid_, label_ in items.items():
-        add_menu_item(label_, Item.RADIO, mapping[key] == uid_, uid=uid_, on_click=mapping.__setitem__,
+    if on_click is None:
+        on_click_ = mapping.__setitem__
+    else:
+        @functools.wraps(on_click)
+        def on_click_(key_: str, uid_: str):
+            mapping[key_] = uid_
+            on_click(uid_)
+    for uid__, label_ in items.items():
+        add_menu_item(label_, Item.RADIO, mapping[key] == uid__, uid=uid__, on_click=on_click_,
                       menu_args=(Property.UID,), args=(key,), pre_menu_args=False, menu=submenu)
     return submenu
 

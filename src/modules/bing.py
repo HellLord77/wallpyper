@@ -1,5 +1,6 @@
 __version__ = '0.0.1'  # https://github.com/timothymctim/Bing-wallpapers
 
+import os.path
 from typing import Optional, Generator
 
 import libs.locales as locales
@@ -16,13 +17,13 @@ RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x
 
 NAME = 'bing'
 BASE_URL = 'https://www.bing.com'
+ARCHIVE_URL = utils.join_url(BASE_URL, 'HPImageArchive.aspx')
+IMAGE_URL = utils.join_url(BASE_URL, 'th')
+
 DEFAULT_CONFIG = {
     CONFIG_DAY: '0',
     CONFIG_MARKET: MARKETS[5],
     CONFIG_RESOLUTION: RESOLUTIONS[5]}
-
-ARCHIVE_URL = utils.join_url(BASE_URL, 'HPImageArchive.aspx')
-IMAGE_URL = utils.join_url(BASE_URL, 'th')
 CONFIG = {}
 
 
@@ -57,7 +58,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
                 yield
                 continue
         query = utils.query_url(images.pop(0)['url'])
-        name_ext = utils.split_filename(query['id'][0])
+        name_ext = os.path.splitext(query['id'][0])
         query['id'] = f'{name_ext[0][:name_ext[0].rfind("_") + 1]}{CONFIG[CONFIG_RESOLUTION]}{name_ext[1]}'
         yield utils.Wallpaper(utils.encode_url(IMAGE_URL, query), query['id'][4:])
 

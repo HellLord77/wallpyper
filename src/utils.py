@@ -1,23 +1,13 @@
 __version__ = '0.0.4'
 
-import os
-
 import libs.files
 import libs.gui
 import libs.misc
 import libs.request
 
-path_exists = os.path.isfile
-dir_exists = os.path.isdir
-get_dir = os.path.dirname
-get_filename = os.path.basename
-abspath = os.path.realpath
-split_filename = os.path.splitext
-
 Wallpaper = libs.files.File
 join_path = libs.files.join
 set_ext = libs.files.replace_ext
-list_dir = libs.files.iter_dir
 copy_file = libs.files.copy
 is_empty_dir = libs.files.is_empty
 make_dirs = libs.files.make_dir
