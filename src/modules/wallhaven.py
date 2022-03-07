@@ -26,9 +26,8 @@ SETTINGS_URL = utils.join_url(BASE_URL, 'settings')
 CONFIG = {}
 
 
-def fix_config():  # TODO validate & sanitize CONFIG with regex, fallback to DEFAULT_CONFIG
+def fix_config():
     # ^[01]{3}$
-    # ^(desc|asc)$
     ...
 
 

@@ -1,4 +1,4 @@
-_DIGITS = '0123456789'  # TODO class
+_DIGITS = '0123456789'
 DESCRIPTION = 'Python Wallpaper Changer!'
 DISPLAY = 'Unknown Display'
 DISPLAY_ALL = 'All Displays'

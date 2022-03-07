@@ -95,6 +95,11 @@ DEFAULT_CONFIG = {
     CONFIG_SAVE: False}
 
 
+def notify(title: str, text: str):
+    if CONFIG[CONFIG_NOTIFY]:
+        gui.show_balloon(title, text)
+
+
 def fix_config(loaded: bool = True):
     if CONFIG[CONFIG_TRANSITION] not in win32.wallpaper.Transition:
         CONFIG[CONFIG_TRANSITION] = DEFAULT_CONFIG[CONFIG_TRANSITION]
@@ -224,26 +229,26 @@ def search_wallpaper(path: str) -> bool:
 
 def on_open_url(url: str) -> bool:
     if not (opened := webbrowser.open(url)):
-        utils.notify(STRINGS.LABEL_OPEN_BROWSER, STRINGS.FAIL_OPEN_BROWSER)
+        notify(STRINGS.LABEL_OPEN_BROWSER, STRINGS.FAIL_OPEN_BROWSER)
     return opened
 
 
 def on_copy_url(url: str) -> bool:
     if not (copied := win32.copy_text(url)):
-        utils.notify(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
+        notify(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
     return copied
 
 
 def on_google(url: str) -> bool:
-    if not (opened := webbrowser.open(request.encode(GOOGLE_URL, {'image_url': url}))) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
+    if not (opened := webbrowser.open(request.encode(GOOGLE_URL, {'image_url': url}))):
+        notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
     return opened
 
 
 def on_bing(url: str) -> bool:
     if not (opened := webbrowser.open(request.encode(
-            BING_URL, {'view': 'detailv2', 'iss': 'sbi', 'q': f'imgurl:{url}'}))) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
+            BING_URL, {'view': 'detailv2', 'iss': 'sbi', 'q': f'imgurl:{url}'}))):
+        notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
     return opened
 
 
@@ -266,8 +271,8 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
         utils.inanimate(STRINGS.STATUS_CHANGE)
         _update_recent(menu_recent)
         enable()
-    if not changed and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
+    if not changed:
+        notify(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
     return changed
 
 
@@ -282,8 +287,8 @@ def on_click(callback: Callable[[str], bool], wallpaper: Union[str, utils.Wallpa
         if path := wallpaper if isinstance(wallpaper, str) else download_wallpaper(wallpaper):
             with contextlib.suppress(BaseException):
                 success = callback(path)
-    if not success and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(title, text)
+    if not success:
+        notify(title, text)
     return success
 
 
@@ -335,9 +340,8 @@ def _update_recent(menu):
                 utils.add_item(STRINGS.LABEL_SEARCH, on_click=on_click,
                                args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
                                menu=menu_wallpaper)
-    for uid, menu_wallpaper in items.items():
-        if uid and uid not in RECENT:
-            gui.remove_menu_items(menu_wallpaper, menu=menu)
+    if menu_items := tuple(menu_wallpaper for uid, menu_wallpaper in items.items() if uid and uid not in RECENT):
+        gui.remove_menu_items(*menu_items, menu=menu)
     menu.Enable(bool(RECENT))
 
 
@@ -353,8 +357,8 @@ def on_auto_change(interval: Union[int, str], after: Optional[float] = None):
 def on_modify_save() -> bool:
     if path := win32.select_folder(STRINGS.LABEL_SAVE_DIR, CONFIG[CONFIG_DIR]):
         CONFIG[CONFIG_DIR] = path
-    elif CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
+    else:
+        notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)
 
 
@@ -395,39 +399,39 @@ def _create_shortcut(dir_: str) -> bool:
 
 
 def on_shortcut() -> bool:
-    if not (created := _create_shortcut(win32.DESKTOP_DIR)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_DESKTOP, STRINGS.FAIL_DESKTOP)
+    if not (created := _create_shortcut(win32.DESKTOP_DIR)):
+        notify(STRINGS.LABEL_DESKTOP, STRINGS.FAIL_DESKTOP)
     return created
 
 
 def on_remove_shortcuts() -> bool:
-    if not (removed := win32.remove_shortcuts(win32.DESKTOP_DIR, UUID)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_REMOVE_DESKTOP)
+    if not (removed := win32.remove_shortcuts(win32.DESKTOP_DIR, UUID)):
+        notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_REMOVE_DESKTOP)
     return removed
 
 
 def on_start_shortcut() -> bool:
-    if not (created := _create_shortcut(utils.join_path(win32.START_DIR, NAME))) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
+    if not (created := _create_shortcut(utils.join_path(win32.START_DIR, NAME))):
+        notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
     return created
 
 
 def on_remove_start_shortcuts() -> bool:
-    if not (removed := win32.remove_shortcuts(win32.START_DIR, UUID)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_REMOVE_START_MENU)
+    if not (removed := win32.remove_shortcuts(win32.START_DIR, UUID)):
+        notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_REMOVE_START_MENU)
     return removed
 
 
 def on_pin() -> bool:
     if not (pinned := win32.add_pin(*_get_launch_args(), name=NAME, icon_path='' if pyinstall.FROZEN else RES_ICON,
-                                    show=pyinstall.FROZEN)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
+                                    show=pyinstall.FROZEN)):
+        notify(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
     return pinned
 
 
 def on_unpin() -> bool:
-    if not (unpinned := win32.remove_pins(*_get_launch_args())) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
+    if not (unpinned := win32.remove_pins(*_get_launch_args())):
+        notify(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
     return unpinned
 
 
@@ -445,20 +449,20 @@ def on_pin_start(enable: Callable, enable_: Callable) -> bool:
         pinned = pin_to_start()
         enable_()
         enable()
-    if not pinned and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
+    if not pinned:
+        notify(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
     return pinned
 
 
 def on_unpin_start() -> bool:
-    if not (unpinned := win32.remove_pins(*_get_launch_args(), taskbar=False)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
+    if not (unpinned := win32.remove_pins(*_get_launch_args(), taskbar=False)):
+        notify(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
     return unpinned
 
 
 def on_clear_cache() -> bool:
-    if not (cleared := utils.delete(TEMP_DIR, True)) and CONFIG[CONFIG_NOTIFY]:
-        utils.notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
+    if not (cleared := utils.delete(TEMP_DIR, True)):
+        notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
     return cleared
 
 
@@ -506,8 +510,7 @@ def on_quit():
     TIMER.stop()
     utils.disable()
     if _is_running():
-        if CONFIG[CONFIG_NOTIFY]:
-            utils.notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
+        notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + EXIT_TIMEOUT
         while end_time > time.time() and _is_running():
             time.sleep(POLL_TIMEOUT)
@@ -569,7 +572,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_display = utils.add_menu(STRINGS.MENU_DISPLAY, menu=menu_settings)
     on_update_display(menu_display, False)
     utils.add_synced_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP, menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)  # TODO similar to pause_animation
+    utils.add_synced_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)
     utils.add_item(STRINGS.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
                    on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_settings)
     utils.add_synced_item(STRINGS.LABEL_CACHE, CONFIG, CONFIG_CACHE, menu_settings)
@@ -599,8 +602,7 @@ def start():  # TODO dark theme
     apply_save_config(CONFIG[CONFIG_SAVE])
     after = CONFIG[CONFIG_CHANGE] + CONFIG[CONFIG_LAST] - time.time()
     if ARG_CHANGE in sys.argv or (CONFIG[CONFIG_CHANGE] and after <= 0):
-        # noinspection PyTypeChecker
-        on_change(*TIMER.args, False)
+        on_change(*TIMER.args, auto_change=False)
     on_auto_change(CONFIG[CONFIG_CHANGE], None if after <= 0 else after)
     utils.start(RES_TRAY, NAME, on_change, TIMER.args)
 

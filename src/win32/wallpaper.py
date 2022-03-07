@@ -3,7 +3,6 @@ import contextlib
 import operator
 import os
 import random
-import sys
 import threading
 import time
 from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional, Union
@@ -372,9 +371,9 @@ def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_
     return True
 
 
-def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,  # TODO randomly skipped
+def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
-                     transition: int = Transition.DISABLED, duration: float = 0, max_steps: int = sys.maxsize):
+                     transition: int = Transition.DISABLED, duration: float = 0):  # TODO randomly skipped
     if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
         src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h)
@@ -401,7 +400,6 @@ def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, 
                         passed / duration, dst_w, dst_h, *args):
                     ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
                                              src, src_ox, src_oy, ctyped.const.SRCCOPY)
-                time.sleep(duration / max_steps)
             ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 

@@ -1,6 +1,6 @@
 $Version = "0.0.2"
 
-<#  TODO UPX
+<#
 .INPUTS
     $Datas = @()
     $Debug = $False
@@ -10,12 +10,16 @@ $Version = "0.0.2"
     $NoConsole = $False
     $Obfuscate = $False
     $OneFile = $False
+    $UPX = $False
 #>
 
 $Datas = @("resources", "win32\syspin.exe", "libs\locales\iso_639-2.json", "libs\locales\iso_3166-1.json")
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True
+$UPX = $True
+
+$MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 function Get-Name
 {
@@ -71,6 +75,18 @@ function Build-Project
     if ($OneFile)
     {
         $MainArgs += "--onefile"
+    }
+    if ($UPX)
+    {
+        if (!(Get-Command "upx.exe" -ErrorAction SilentlyContinue))
+        {
+            choco install upx --verbose --yes
+        }
+        Get-Command "upx.exe"
+    }
+    else
+    {
+        $MainArgs += "--noupx"
     }
 
     if (!$EntryPoint)
@@ -154,7 +170,6 @@ function Upload-Build
     if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
     {
         # choco install megacmd --verbose --yes FIXME Error retrieving packages from source
-        $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
         $Temp = Join-Path $Env:TEMP (Split-Path $MegaURL -Leaf)
         Invoke-WebRequest $MegaURL -OutFile $Temp
         Start-Process $Temp "/S" -Wait
