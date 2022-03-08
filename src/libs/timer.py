@@ -17,7 +17,7 @@ _CTimerExit = ctypes.py_object(_TimerExit)
 
 
 class Timer:
-    _refs = []
+    _selves = []
     last_start = math.inf
 
     def __init__(self, interval: float, target: Callable, args: Optional[Iterable] = None,
@@ -29,15 +29,15 @@ class Timer:
         self.once = once
         self._running = 0
         self._timers: list[threading.Timer] = []
-        self._refs.append(self)
+        self._selves.append(self)
         if start:
             self.start()
 
     @classmethod
     def kill_all(cls) -> bool:
         killed = True
-        for timer in cls._refs:
-            killed = timer.kill() and killed
+        for self in cls._selves:
+            killed = self.kill() and killed
         return killed
 
     @property

@@ -5,7 +5,8 @@ import os
 import random
 import threading
 import time
-from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional, Union
+import typing
+from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
 
 import libs.ctyped as ctyped
 from . import _utils, gdiplus
@@ -26,7 +27,15 @@ class _Enum(type):
     def __iter__(self):
         return iter(self._vars)
 
-    def __getitem__(self, var_or_val: Union[int, str]) -> Union[int, str]:
+    @typing.overload
+    def __getitem__(self, var_or_val: int) -> str:
+        pass
+
+    @typing.overload
+    def __getitem__(self, var_or_val: str) -> int:
+        pass
+
+    def __getitem__(self, var_or_val):
         if isinstance(var_or_val, int):
             for var, val_ in self._vars.items():
                 if var_or_val == val_:

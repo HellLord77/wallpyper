@@ -477,7 +477,7 @@ def _register_autorun_reg(name: str, path: str, *args: str) -> bool:
 
 
 def _register_autorun_link(name: str, path: str, *args: str, show: bool, aumi: Optional[str] = None) -> bool:
-    return create_shortcut(ntpath.join(_STARTUP_DIR, f'{name}{LINK_EXT}'), path, *args, show=show, uid=aumi)
+    return create_shortcut(ntpath.join(_STARTUP_DIR, name), path, *args, show=show, uid=aumi)
 
 
 def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: Optional[str] = None) -> bool:
@@ -510,7 +510,7 @@ def unregister_autorun(name: Optional[str] = None, uid: Optional[str] = None) ->
 
 def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0,
                     comment: Optional[str] = None, start_in: Optional[str] = None, show: bool = True,
-                    uid: Optional[str] = None) -> bool:
+                    uid: Optional[str] = None, ext: str = LINK_EXT) -> bool:
     with ctyped.init_com(ctyped.com.IShellLinkW) as link:
         if link:
             set_ = _set_link_data(link, target, comment, ntpath.dirname(
@@ -518,7 +518,7 @@ def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', ico
                 args), show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
                                   icon=(icon_path, icon_index))
             return set_ and (uid is None or _set_str_ex_props(link, {
-                ctyped.const.PKEY_AppUserModel_ID: uid})) and _save_link(link, path)
+                ctyped.const.PKEY_AppUserModel_ID: uid})) and _save_link(link, f'{path}{ext}')
     return False
 
 

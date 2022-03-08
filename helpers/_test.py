@@ -2,6 +2,7 @@ from __future__ import annotations as _
 
 __version__ = '0.0.1'
 
+import atexit
 import io
 import itertools
 import sys
@@ -13,7 +14,6 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
 import libs.ctyped as ctyped
-import utils
 import win32.gdiplus as gdiplus
 
 
@@ -82,13 +82,16 @@ class Icon:
 
 class SysTray:
     _binds: dict[int, dict[int, tuple[Callable, tuple, dict]]] = {0: {}}
+    _wm_taskbar_created = ctyped.func.user32.RegisterWindowMessageW('TaskbarCreated')
     _class = None
     _flags = ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP
-    _frames_and_on_timer = None
+    _frames = None
     _hicon = None
     _hwnd = None
     _shown = False
-    _uid = ctyped.type.UINT()
+    _to_del = True
+    _uid = 0
+    _selves: dict[int, SysTray] = {}
 
     def __new__(cls, *args, **kwargs):
         if not cls._hwnd:
@@ -96,26 +99,35 @@ class SysTray:
                 ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
                 hInstance=ctyped.func.kernel32.GetModuleHandleW(None), lpszClassName=f'{NAME}-{cls.__name__}')
             ctyped.func.user32.RegisterClassExW(ctyped.byref(cls._class))
-            cls._hwnd = ctyped.func.user32.CreateWindowExW(0, cls._class.lpszClassName, None, 0, 0, 0, 0, 0,
-                                                           ctyped.const.HWND_MESSAGE, None, None, None)
+            cls._hwnd = ctyped.func.user32.CreateWindowExW(0, cls._class.lpszClassName, None,
+                                                           0, 0, 0, 0, 0, None, None, None, None)
         cls._uid += 1
         return super().__new__(cls)
 
     def __init__(self, icon: Optional[Union[str, int]] = None, tooltip: Optional[str] = None):
-        self._uid = self._uid.value
+        self._uid = type(self)._uid
+        self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW),
+                                                   self._hwnd, self._uid, self._flags, ctyped.const.WM_APP)
+        self.set_icon(ctyped.const.IDI_APPLICATION if icon is None else icon)
+        if tooltip is not None:
+            self.set_tooltip(tooltip)
+        self._on_timer = ctyped.type.TIMERPROC(self._next_frame)
         self._binds[self._uid] = {}
-        self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW), self._hwnd, self._uid,
-                                                   self._flags, ctyped.const.WM_APP)
-        self.set_icon(icon or ctyped.const.IDI_APPLICATION)
-        self.set_tooltip(tooltip or '')
+        self._selves[self._uid] = self
+        atexit.register(self.__del__)
 
     def __del__(self):
-        self.hide()
-        del self._binds[self._uid]
-        if not self._binds:
-            ctyped.func.user32.DestroyWindow(self._hwnd)
-            ctyped.func.user32.UnregisterClassW(self._class.lpszClassName, ctyped.func.kernel32.GetModuleHandleW(None))
-            type(self)._hwnd = None
+        if self._to_del:
+            self.hide()
+            del self._selves[self._uid]
+            del self._binds[self._uid]
+            atexit.unregister(self.__del__)
+            self._to_del = False
+            if len(self._binds) == 1:
+                ctyped.func.user32.DestroyWindow(self._hwnd)
+                ctyped.func.user32.UnregisterClassW(self._class.lpszClassName,
+                                                    ctyped.func.kernel32.GetModuleHandleW(None))
+                type(self)._hwnd = None
 
     @classmethod
     def _call(cls, uid: int, event: int) -> Any:
@@ -125,7 +137,7 @@ class SysTray:
             # print(uid, event)
             return
         else:
-            return callback(*args, **kwargs)
+            return callback(None if uid == 0 else cls._selves[uid], event, *args, **kwargs)
 
     @classmethod
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
@@ -141,6 +153,10 @@ class SysTray:
             ...
         elif message == ctyped.const.WM_APP:
             cls._call(wparam, lparam)
+        elif message == cls._wm_taskbar_created:
+            for self in cls._selves.values():
+                # noinspection PyUnresolvedReferences
+                self._update()
         else:
             return ctyped.func.user32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
@@ -150,7 +166,7 @@ class SysTray:
         return cls._hwnd
 
     @classmethod
-    def run_at_exit(cls, callback: Optional[Callable] = None, args: Optional[Iterable] = None,
+    def run_at_exit(cls, callback: Optional[Callable[[None, int], Any]] = None, args: Optional[Iterable] = None,
                     kwargs: Optional[Mapping[str, Any]] = None) -> bool:
         if callback is None:
             try:
@@ -196,20 +212,19 @@ class SysTray:
         return self._update()
 
     def _next_frame(self, *_):
-        frame = next(self._frames_and_on_timer[0])
-        self._set_hicon(frame[1])
-        ctyped.func.user32.SetTimer(self._hwnd, 0, frame[0], self._frames_and_on_timer[1])
+        delay, hicon = next(self._frames)
+        self._set_hicon(hicon)
+        ctyped.func.user32.SetTimer(self._hwnd, 0, delay, self._on_timer)
 
     def set_animation(self, gif_path: str):
         self.stop_animation()
-        # noinspection PyTypeChecker
-        self._frames_and_on_timer = itertools.cycle(_get_gif_frames(gif_path)), ctyped.type.TIMERPROC(self._next_frame)
+        self._frames = itertools.cycle(_get_gif_frames(gif_path))
         self._next_frame()
 
     def stop_animation(self):
         ctyped.func.user32.KillTimer(self._hwnd, 0)
         self._set_hicon(self._hicon)
-        self._frames_and_on_timer = None
+        self._frames = None
 
     def _update(self) -> bool:
         return self._shown and bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
@@ -224,29 +239,36 @@ class SysTray:
         self._shown = not bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._shown
 
+    def destroy(self):
+        self.__del__()
+
     def show_balloon(self, title: str, text: Optional[str] = None,
-                     icon: Optional[int] = None, silent: bool = False) -> bool:
-        hicon = self._data.hIcon
+                     icon: int = Icon.NONE, silent: bool = False) -> bool:
+        hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
         self._data.hIcon = self._hicon
-        self._data.szInfo = text or title
-        self._data.szInfoTitle = title if text else ''
-        self._data.dwInfoFlags = (icon or Icon.NONE) | (silent * ctyped.const.NIIF_NOSOUND)
+        if text is None:
+            self._data.szInfo = title
+            self._data.szInfoTitle = ''
+        else:
+            self._data.szInfo = text
+            self._data.szInfoTitle = title
+        self._data.dwInfoFlags = icon | (silent * ctyped.const.NIIF_NOSOUND)
         shown = self.show()
         self._data.uFlags = self._flags
         self._set_hicon(hicon)
         return shown
 
-    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping[str, Any]] = None):
+    def bind(self, event: int, callback: Callable[[SysTray, int], Any],
+             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
         bind(event, callback, args, kwargs, self._uid)
 
     def unbind(self, event: int) -> bool:
         return unbind(event, self._uid)
 
 
-def bind(event: int, callback: Callable, args: Optional[Iterable] = None,
-         kwargs: Optional[Mapping[str, Any]] = None, _uid: int = 0):
+def bind(event: int, callback: Callable[[Optional[SysTray], int], Any],
+         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None, _uid: int = 0):
     # noinspection PyProtectedMember
     SysTray._binds[_uid][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
 
@@ -261,74 +283,56 @@ def unbind(event: int, _uid: int = 0) -> bool:
         return True
 
 
-def _foo():
+def _foo(s: SysTray, e):
     # s.show_balloon('title')
     s.set_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif')
+    s.show_balloon('very busy', 'mini text', Icon.INFO)
     print('_foo')
     return 0
 
 
-def _foo2():
+def _foo2(s, e):
     s.exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
 
 
-def _foo3(*evt):
-    for e in evt:
-        s.bind(e, lambda: None)
-
-
-@utils.cache
-def cached(**params):
-    print('reset')
-    yield 1
-    params['awd'] = 'awd'
-    yield 2
-    params['awd2'] = 'awd'
-    yield 3
-
-
-import libs.locales
-
-
-def _test():
-    us = libs.locales.Country.get('BD')
-    print(us)
-    bn = libs.locales.Language.get(alpha_2='bn')
-    print(bn)
-    lc = libs.locales.Locale.get()
-    print(lc)
-    print(libs.locales.Country.get())
-
-
-if __name__ == '__main__':
-    _test()
-    exit()
+def _wait():
     try:
         while True:
             time.sleep(0.1)
     except KeyboardInterrupt:
         pass
-    exit()
 
+
+def _test_sys_tray():
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
-    gif = r'D:\Projects\Wallpyper\src\resources\busy.gif'
-    bind(EVENT_CLOSE, lambda: print(6969))
+    bind(EVENT_CLOSE, lambda *args: print(6969))
     s = SysTray(p, 'tip')
     s.bind(Event.LEFT_DOUBLE, _foo)
     s.bind(Event.RIGHT_UP, _foo2)
     # _foo3(Event.MOVE, Event.LEFT_DOWN, Event.LEFT_UP, Event.RIGHT_DOWN, Event.BALLOON_HIDDEN)
-    s.bind(Event.BALLOON_QUEUED, lambda: print('shown'))
-    s.bind(Event.BALLOON_HIDDEN - 1, lambda: print('show_balloon hide'))
-    s.bind(Event.BALLOON_CLICK, lambda: print('show_balloon click'))
-    s.bind(ctyped.const.NIN_SELECT, lambda: print('sel'))
+    s.bind(Event.BALLOON_QUEUED, lambda *args: print('shown'))
+    s.bind(Event.BALLOON_HIDDEN - 1, lambda *args: print('show_balloon hide'))
+    s.bind(Event.BALLOON_CLICK, lambda *args: print('show_balloon click'))
+    s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
     s.show()
     p2 = r'D:\Projects\wallpyper\src\resources\icon.ico'
     s2 = SysTray(p2, 'no tip')
-    s2.bind(Event.LEFT_DOUBLE, lambda: print('2nd'))
-    s2.bind(Event.RIGHT_UP, s2.hide)
-    # s2.show()
+    s2.bind(Event.LEFT_DOUBLE, lambda *args: print('2nd'))
+    s2.bind(Event.RIGHT_UP, lambda *args: s2.hide())
+    s2.show()
     # _foo()
     # s2.mainloop()
-    s.mainloop()
-    del s
-    exit()
+    SysTray.mainloop()
+
+
+def _test():
+    info = ctyped.struct.SHELLEXECUTEINFOW(ctyped.sizeof(ctyped.struct.SHELLEXECUTEINFOW), lpVerb='open',
+                                           lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
+    print(ctyped.func.shell32.ShellExecuteExW(ctyped.byref(info)))
+
+
+if __name__ == '__main__':
+    _test()
+    # _test_sys_tray()
+    # _wait()
+    sys.exit()

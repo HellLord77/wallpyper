@@ -118,6 +118,14 @@ class VARIANT_U:
     decVal: _struct.DECIMAL
 
 
+# noinspection PyPep8Naming
+@_union
+class SHELLEXECUTEINFO_U:
+    hIcon: _type.HANDLE
+    if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:
+        hMonitor: _type.HANDLE
+
+
 def _init(item: str) -> type[_ctypes.Union]:
     _globals.check_item(item)
 

@@ -1,15 +1,14 @@
 __version__ = '0.1.13'  # TODO 0xC0000409 (STATUS_STACK_BUFFER_OVERRUN)
 __author__ = 'HellLord'
 
-import atexit
 import collections
 import configparser
 import contextlib
 import copy
 import functools
 import math
+import multiprocessing
 import os.path
-import subprocess
 import sys
 import tempfile
 import threading
@@ -58,9 +57,8 @@ CONFIG_START = 'auto_start'
 CONFIG_SAVE = 'save_settings'
 CONFIG_MODULE = 'active_module'
 
-EXIT_TIMEOUT = win32.get_max_shutdown_time()
+RESTART_CODE = 123
 UUID = f'{__author__}.{NAME}'
-SHORTCUT_NAME = f'{NAME}{win32.LINK_EXT}'
 RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(os.path.dirname(__file__), 'resources', name)
                                 for name in ('icon.ico', 'tray.png', 'busy.gif'))
 TEMP_DIR = paths.join(tempfile.gettempdir(), NAME)
@@ -71,11 +69,12 @@ GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
-MODULES = bing, spotlight, wallhaven
+MODULES = {module.NAME: module for module in (bing, spotlight, wallhaven)}
 
-MODULE = MODULES[0]
+MODULE = wallhaven
 STRINGS = langs.LANGUAGE = langs.en
 DISPLAYS: list[str] = []
+RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[utils.Wallpaper] = collections.deque(maxlen=MAX_RECENT)
 
@@ -115,10 +114,7 @@ def fix_config(loaded: bool = True):
         CONFIG[CONFIG_CHANGE] = DEFAULT_CONFIG[CONFIG_CHANGE]
     if not CONFIG[CONFIG_DIR]:  # TODO: is_path_exists_or_creatable
         CONFIG[CONFIG_DIR] = DEFAULT_CONFIG[CONFIG_DIR]
-    for module in MODULES:
-        if module.NAME == CONFIG[CONFIG_MODULE]:
-            break
-    else:
+    if CONFIG[CONFIG_MODULE] not in MODULES:
         CONFIG[CONFIG_MODULE] = DEFAULT_CONFIG[CONFIG_MODULE]
 
 
@@ -147,8 +143,8 @@ def load_config() -> bool:
                tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
     loaded = _load_config(getters, NAME, CONFIG, DEFAULT_CONFIG) and loaded
     fix_config(False)
-    for module in MODULES:
-        loaded = _load_config(getters, module.NAME, module.CONFIG, module.DEFAULT_CONFIG) and loaded
+    for name, module in MODULES.items():
+        loaded = _load_config(getters, name, module.CONFIG, module.DEFAULT_CONFIG) and loaded
         module.fix_config()
     return loaded
 
@@ -166,10 +162,10 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
     fix_config()
     if config := _strip_config(CONFIG, DEFAULT_CONFIG):
         parser[NAME] = config
-    for module in MODULES:
+    for name, module in MODULES.items():
         module.fix_config()
         if config := _strip_config(module.CONFIG, module.DEFAULT_CONFIG):
-            parser[module.NAME] = config
+            parser[name] = config
     with open(INI_PATH, 'w') as file:
         parser.write(file)
     return os.path.isfile(INI_PATH)
@@ -401,9 +397,9 @@ def _get_launch_args() -> list[str]:
 
 
 def _create_shortcut(dir_: str) -> bool:
-    return utils.make_dirs(dir_) and win32.create_shortcut(
-        utils.join_path(dir_, SHORTCUT_NAME), *_get_launch_args(),
-        icon_path=RES_ICON * (not pyinstall.FROZEN), comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
+    return utils.make_dirs(dir_) and win32.create_shortcut(utils.join_path(dir_, NAME), *_get_launch_args(),
+                                                           icon_path=RES_ICON * (not pyinstall.FROZEN),
+                                                           comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
 
 
 def on_shortcut() -> bool:
@@ -480,11 +476,7 @@ def on_reset():
 
 
 def on_restart():
-    args = _get_launch_args()
-    args.extend(sys.argv[1:])
-    if ARG_WAIT not in args:
-        args.append(ARG_WAIT)
-    atexit.register(subprocess.Popen, args, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    RESTART.set()
     on_quit()
 
 
@@ -519,7 +511,7 @@ def on_quit():
     utils.disable()
     if _is_running():
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
-        end_time = time.time() + EXIT_TIMEOUT
+        end_time = time.time() + win32.get_max_shutdown_time()
         while end_time > time.time() and _is_running():
             time.sleep(POLL_TIMEOUT)
     utils.stop()
@@ -575,7 +567,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     menu_display = utils.add_menu(STRINGS.MENU_DISPLAY, menu=menu_settings)
     on_update_display(menu_display, False)
     utils.add_synced_items(STRINGS.MENU_MODULE,
-                           {module.NAME: f'{module.NAME}\t{module.__version__}' for module in MODULES},
+                           {name: f'{name}\t{module.__version__}' for name, module in MODULES.items()},
                            CONFIG, CONFIG_MODULE, on_click=lambda _: on_restart(), menu=menu_settings)
     utils.add_synced_items(STRINGS.MENU_TRANSITION, {
         str(transition): getattr(STRINGS, f'TRANSITION_{transition}')
@@ -605,10 +597,7 @@ def start():  # TODO dark theme
     _update_display()
     load_config()
     RECENT.extend({wallpaper: None for wallpaper in misc.decrypt(CONFIG[CONFIG_RECENT], ())})
-    for module in MODULES:
-        if module.NAME == CONFIG[CONFIG_MODULE]:
-            MODULE = module
-            break
+    MODULE = MODULES[CONFIG[CONFIG_MODULE]]
     MODULE.get_next_wallpaper = misc.one_cache(MODULE.get_next_wallpaper)
     create_menu()
     on_animate(CONFIG[CONFIG_ANIMATE])
@@ -630,10 +619,22 @@ def stop():
         utils.delete(TEMP_DIR, True)
 
 
-def main() -> NoReturn:
+def run() -> NoReturn:
     start()
     stop()
-    sys.exit()
+    sys.exit(RESTART_CODE * RESTART.is_set())
+
+
+def main():
+    multiprocessing.freeze_support()
+    multiprocessing.set_start_method('spawn')
+    exitcode = RESTART_CODE
+    while exitcode == RESTART_CODE:
+        process = multiprocessing.Process(target=run, daemon=True)
+        process.start()  # TODO messagebox(sys.stderr)
+        process.join()
+        exitcode = process.exitcode
+    sys.exit(exitcode)
 
 
 if __name__ == '__main__':

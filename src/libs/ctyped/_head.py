@@ -9,7 +9,6 @@ import typing as _typing
 from typing import (Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView,
                     NoReturn as _NoReturn, Optional as _Optional, Sequence as _Sequence)
 
-_DEBUG = False
 _CT = _typing.TypeVar('_CT')
 
 
@@ -149,7 +148,7 @@ def _pretty_tuple(*itt: tuple[str, ...], name: str = '') -> str:
     return f'\n'.join(f'{name}({", ".join(line[:-1])}) -> {line[-1]}' for line in lines)
 
 
-def _get_func_doc(name: str, restype: _Any, argtypes: tuple, annotations: tuple[str]) -> str:
+def _get_func_doc(name: str, restype: _Any, argtypes: _Sequence, annotations: tuple[str]) -> str:
     return _pretty_tuple(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, "__name__", restype)),
                          name=name)
 

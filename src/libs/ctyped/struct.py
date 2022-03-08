@@ -665,6 +665,44 @@ class OPENASINFO:
     oaifInFlags: _enum.OPEN_AS_INFO_FLAGS = _NONE
 
 
+@_struct
+class SHELLEXECUTEINFOA:
+    cbSize: _type.DWORD = _NONE
+    fMask: _type.ULONG = _NONE
+    hwnd: _type.HWND = _NONE
+    lpVerb: _type.LPCSTR = _NONE
+    lpFile: _type.LPCSTR = _NONE
+    lpParameters: _type.LPCSTR = _NONE
+    lpDirectory: _type.LPCSTR = _NONE
+    nShow: _type.c_int = _NONE
+    hInstApp: _type.HINSTANCE = _NONE
+    lpIDList: _type.c_void_p = _NONE
+    lpClass: _type.LPCSTR = _NONE
+    hkeyClass: _type.HKEY = _NONE
+    dwHotKey: _type.DWORD = _NONE
+    U: _union.SHELLEXECUTEINFO_U = _NONE
+    hProcess: _type.HANDLE = _NONE
+
+
+@_struct
+class SHELLEXECUTEINFOW:
+    cbSize: _type.DWORD = _NONE
+    fMask: _type.ULONG = _NONE
+    hwnd: _type.HWND = _NONE
+    lpVerb: _type.LPCWSTR = _NONE
+    lpFile: _type.LPCWSTR = _NONE
+    lpParameters: _type.LPCWSTR = _NONE
+    lpDirectory: _type.LPCWSTR = _NONE
+    nShow: _type.c_int = _NONE
+    hInstApp: _type.HINSTANCE = _NONE
+    lpIDList: _type.c_void_p = _NONE
+    lpClass: _type.LPCWSTR = _NONE
+    hkeyClass: _type.HKEY = _NONE
+    dwHotKey: _type.DWORD = _NONE
+    U: _union.SHELLEXECUTEINFO_U = _NONE
+    hProcess: _type.HANDLE = _NONE
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
