@@ -1,4 +1,4 @@
-__version__ = '0.0.18'
+__version__ = '0.0.19'
 
 import contextlib
 import ntpath
@@ -11,29 +11,19 @@ from typing import ContextManager, Generator, Mapping, Optional, Union
 import libs.ctyped as ctyped
 from . import _utils, gdiplus, wallpaper
 
-
-def _get_dir(folderid: str) -> str:
-    buff = ctyped.type.PWSTR()
-    ctyped.func.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(folderid)),
-                                             ctyped.enum.KNOWN_FOLDER_FLAG.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
-    path = buff.value
-    ctyped.func.ole32.CoTaskMemFree(buff)
-    return path
-
-
 _PIN_TIMEOUT = 3
 _POLL_TIMEOUT = 0.01
-_APPDATA_DIR = _get_dir(ctyped.const.FOLDERID_RoamingAppData)
-_STARTUP_DIR = _get_dir(ctyped.const.FOLDERID_Startup)
+_APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
+_STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
 _TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
 _STARTUP_KEY = ntpath.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
 _SYSPIN_PATH = ntpath.join(ntpath.dirname(__file__), 'syspin.exe')
 
 LINK_EXT = '.lnk'
 SAVE_DIR = _APPDATA_DIR
-DESKTOP_DIR = _get_dir(ctyped.const.FOLDERID_Desktop)
-PICTURES_DIR = _get_dir(ctyped.const.FOLDERID_Pictures)
-START_DIR = _get_dir(ctyped.const.FOLDERID_Programs)
+DESKTOP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Desktop)
+PICTURES_DIR = _utils.get_dir(ctyped.const.FOLDERID_Pictures)
+START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
 WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 
@@ -308,8 +298,8 @@ def open_file_with(path: str) -> bool:
             ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_HIDE_REGISTRATION)))
     try:
         return ctyped.const.S_OK == ctyped.func.shell32.SHOpenWithDialog(None, info_ref)
-    except OSError as error:
-        return error.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED)
+    except OSError as e:
+        return e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED)
 
 
 def open_file_with_ex(path: str) -> bool:
@@ -333,8 +323,8 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                         ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
                     except FileNotFoundError:
                         pass
-                    except OSError as error:
-                        if error.winerror != ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
+                    except OSError as e:
+                        if e.winerror != ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
                             return ''
                     else:
                         dialog.SetFolder(item)
@@ -342,8 +332,8 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 dialog.SetTitle(title)
             try:
                 dialog.Show(None)
-            except OSError as error:
-                if error.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED):
+            except OSError as e:
+                if e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED):
                     return path
             else:
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
@@ -438,8 +428,8 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
     return False
 
 
-def get_direct_show_devices_properties(clsid: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> \
-        tuple[tuple[Optional[str], ...], ...]:
+def get_direct_show_devices_properties(
+        clsid: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> tuple[tuple[Optional[str], ...], ...]:
     devices = []
     with ctyped.init_com(ctyped.com.ICreateDevEnum) as dev_enum:
         if dev_enum:
@@ -487,12 +477,7 @@ def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: O
 
 def _unregister_autorun_reg(name: str) -> bool:
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_KEY, access=winreg.KEY_SET_VALUE) as key:
-        for _ in range(2):
-            try:
-                winreg.DeleteValue(key, name)
-            except FileNotFoundError:
-                return True
-    return False
+        return _utils.delete_key(key, name)
 
 
 def _unregister_autorun_link(aumi: str) -> bool:

@@ -17,6 +17,7 @@ import webbrowser
 from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional, Union
 
 import langs
+import libs.files as files
 import libs.files as paths
 import libs.gui as gui
 import libs.log as log
@@ -59,9 +60,9 @@ CONFIG_MODULE = 'active_module'
 
 RESTART_CODE = 123
 UUID = f'{__author__}.{NAME}'
-RES_ICON, RES_TRAY, RES_BUSY = (utils.join_path(os.path.dirname(__file__), 'resources', name)
+RES_ICON, RES_TRAY, RES_BUSY = (files.join(os.path.dirname(__file__), 'resources', name)
                                 for name in ('icon.ico', 'tray.png', 'busy.gif'))
-TEMP_DIR = paths.join(tempfile.gettempdir(), NAME)
+TEMP_DIR = win32.wallpaper.TEMP_DIR = paths.join(tempfile.gettempdir(), NAME)
 INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, NAME, f'{NAME}.ini')
 LOG_PATH = paths.replace_ext(INI_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
@@ -76,7 +77,7 @@ STRINGS = langs.LANGUAGE = langs.en
 DISPLAYS: list[str] = []
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
-RECENT: collections.deque[utils.Wallpaper] = collections.deque(maxlen=MAX_RECENT)
+RECENT: collections.deque[files.File] = collections.deque(maxlen=MAX_RECENT)
 
 DEFAULT_CONFIG = {
     CONFIG_LAST: math.inf,
@@ -91,7 +92,7 @@ DEFAULT_CONFIG = {
     CONFIG_SAVE: False,
     CONFIG_CHANGE: INTERVALS[0],
     CONFIG_MODULE: MODULE.NAME,
-    CONFIG_DIR: utils.join_path(win32.PICTURES_DIR, NAME),
+    CONFIG_DIR: files.join(win32.PICTURES_DIR, NAME),
     CONFIG_TRANSITION: win32.wallpaper.Transition[win32.wallpaper.Transition.RANDOM]}
 CONFIG = {}
 
@@ -174,9 +175,9 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 _arg_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_wallpaper(wallpaper: utils.Wallpaper, query_callback: Optional[Callable[[int, ...], Any]] = None,
+def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[int, ...], Any]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
-    temp_path = utils.join_path(TEMP_DIR, wallpaper.name)
+    temp_path = files.join(TEMP_DIR, wallpaper.name)
     with _arg_lock(wallpaper.url):
         utils.animate(RES_BUSY, STRINGS.STATUS_DOWNLOAD)
         try:
@@ -187,8 +188,8 @@ def download_wallpaper(wallpaper: utils.Wallpaper, query_callback: Optional[Call
             utils.inanimate(STRINGS.STATUS_DOWNLOAD)
 
 
-@utils.single
-def change_wallpaper(wallpaper: Optional[utils.Wallpaper] = None,
+@misc.singleton_run
+def change_wallpaper(wallpaper: Optional[files.File] = None,
                      progress_callback: Optional[Callable[[int, ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
@@ -214,12 +215,12 @@ def change_wallpaper(wallpaper: Optional[utils.Wallpaper] = None,
     return changed
 
 
-@utils.single
+@misc.singleton_run
 def save_wallpaper(path: str) -> bool:
-    return utils.copy_file(path, utils.join_path(CONFIG[CONFIG_DIR], os.path.basename(path)))
+    return files.copy(path, files.join(CONFIG[CONFIG_DIR], os.path.basename(path)))
 
 
-@utils.single
+@misc.singleton_run
 def search_wallpaper(path: str) -> bool:
     searched = False
     utils.animate(RES_BUSY, STRINGS.STATUS_SEARCH)
@@ -257,7 +258,7 @@ def on_bing(url: str) -> bool:
 
 @timer.on_thread
 def on_change(enable: Callable, menu_recent, set_label: Callable,
-              wallpaper: Optional[utils.Wallpaper] = None, auto_change: bool = True) -> bool:
+              wallpaper: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if not change_wallpaper.is_running():
         enable(False)
@@ -268,7 +269,7 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
         CONFIG[CONFIG_LAST] = time.time()
         if changed := change_wallpaper(wallpaper, set_label):
             if CONFIG[CONFIG_AUTOSAVE]:
-                on_click(save_wallpaper, utils.join_path(TEMP_DIR, RECENT[0].name),
+                on_click(save_wallpaper, files.join(TEMP_DIR, RECENT[0].name),
                          STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         set_label()
         utils.inanimate(STRINGS.STATUS_CHANGE)
@@ -279,7 +280,7 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
     return changed
 
 
-def on_click(callback: Callable[[str], bool], wallpaper: Union[str, utils.Wallpaper], title: str, text: str) -> bool:
+def on_click(callback: Callable[[str], bool], wallpaper: Union[str, files.File], title: str, text: str) -> bool:
     success = False
     try:
         # noinspection PyUnresolvedReferences
@@ -318,10 +319,10 @@ def _update_recent(menu):
             utils.add_item(STRINGS.LABEL_SAVE, on_click=on_click,
                            args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE), menu=menu_wallpaper)
             utils.add_separator(menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,), menu=menu_wallpaper)
             utils.add_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
                 win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,),
                            menu=menu_wallpaper)
+            utils.add_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,), menu=menu_wallpaper)
             utils.add_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
                 win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN), menu=menu_wallpaper)
             if FEATURE_OPEN_WITH:
@@ -397,9 +398,9 @@ def _get_launch_args() -> list[str]:
 
 
 def _create_shortcut(dir_: str) -> bool:
-    return utils.make_dirs(dir_) and win32.create_shortcut(utils.join_path(dir_, NAME), *_get_launch_args(),
-                                                           icon_path=RES_ICON * (not pyinstall.FROZEN),
-                                                           comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
+    return files.make_dir(dir_) and win32.create_shortcut(files.join(dir_, NAME), *_get_launch_args(),
+                                                          icon_path=RES_ICON * (not pyinstall.FROZEN),
+                                                          comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
 
 
 def on_shortcut() -> bool:
@@ -415,7 +416,7 @@ def on_remove_shortcuts() -> bool:
 
 
 def on_start_shortcut() -> bool:
-    if not (created := _create_shortcut(utils.join_path(win32.START_DIR, NAME))):
+    if not (created := _create_shortcut(files.join(win32.START_DIR, NAME))):
         notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
     return created
 
@@ -439,7 +440,7 @@ def on_unpin() -> bool:
     return unpinned
 
 
-@utils.single
+@misc.singleton_run
 def pin_to_start() -> bool:
     return win32.add_pin(*_get_launch_args(), taskbar=False, name=NAME,
                          icon_path='' if pyinstall.FROZEN else RES_ICON, show=pyinstall.FROZEN)
@@ -465,7 +466,7 @@ def on_unpin_start() -> bool:
 
 
 def on_clear_cache() -> bool:
-    if not (cleared := utils.delete(TEMP_DIR, True)):
+    if not (cleared := files.remove(TEMP_DIR, True)):
         notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
     return cleared
 
@@ -493,7 +494,7 @@ def apply_auto_start(start: bool) -> bool:
 
 
 def apply_save_config(save: bool) -> bool:
-    return save_config() if save else utils.delete(INI_PATH)
+    return save_config() if save else files.remove(INI_PATH)
 
 
 def on_about():
@@ -589,11 +590,11 @@ def start():  # TODO dark theme
     if ARG_DEBUG in sys.argv:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
         log.init(os.path.basename(__file__), os.path.basename(utils.__file__),
-                 utils.re_join_path('libs', r'.*\.py'), utils.re_join_path('modules', r'.*\.py'),
-                 utils.re_join_path('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
+                 misc.re_join('libs', r'.*\.py'), misc.re_join('modules', r'.*\.py'),
+                 misc.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
-    utils.make_dirs(TEMP_DIR)
-    utils.trim_dir(TEMP_DIR, MAX_CACHE)
+    files.make_dir(TEMP_DIR)
+    files.trim_dir(TEMP_DIR, MAX_CACHE)
     _update_display()
     load_config()
     RECENT.extend({wallpaper: None for wallpaper in misc.decrypt(CONFIG[CONFIG_RECENT], ())})
@@ -614,9 +615,9 @@ def stop():
     timer.Timer.kill_all()
     apply_auto_start(CONFIG[CONFIG_START])
     apply_save_config(CONFIG[CONFIG_SAVE])
-    utils.trim_dir(TEMP_DIR, MAX_CACHE) if CONFIG[CONFIG_CACHE] else utils.delete(TEMP_DIR, True)
-    if os.path.isdir(TEMP_DIR) and utils.is_empty_dir(TEMP_DIR, True):
-        utils.delete(TEMP_DIR, True)
+    files.trim_dir(TEMP_DIR, MAX_CACHE) if CONFIG[CONFIG_CACHE] else files.remove(TEMP_DIR, True)
+    if os.path.isdir(TEMP_DIR) and files.is_empty_dir(TEMP_DIR, True):
+        files.remove(TEMP_DIR, True)
 
 
 def run() -> NoReturn:
@@ -631,7 +632,7 @@ def main():
     exitcode = RESTART_CODE
     while exitcode == RESTART_CODE:
         process = multiprocessing.Process(target=run, daemon=True)
-        process.start()  # TODO messagebox(sys.stderr)
+        process.start()
         process.join()
         exitcode = process.exitcode
     sys.exit(exitcode)

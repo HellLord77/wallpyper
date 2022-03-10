@@ -1,21 +1,30 @@
 import concurrent.futures
 import contextlib
+import functools
+import ntpath
 import operator
 import os
 import random
+import tempfile
 import threading
 import time
 import typing
-from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
+import winreg
+from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
 from . import _utils, gdiplus
 
-_RETRY = 5
-_LOCK = threading.Lock()
+_HWND_RETRY = 5
+_DELETE_TEMP_AFTER = 0.5
+_USE_TEMP_FILE = True
+_TEMP_FILE = 'wallpaper{}.jpg'
+_HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
+
+TEMP_DIR = tempfile.gettempdir()
 
 
-class _Enum(type):
+class _IntEnum(type):
     def __new__(mcs, *args, **kwargs):
         self = super().__new__(mcs, *args, **kwargs)
         self._vars = {var: val for var, val in vars(self).items() if not var.startswith('_')}
@@ -44,14 +53,14 @@ class _Enum(type):
         else:
             return self._vars[var_or_val]
 
-    def _random(self, *ignore: int):
+    def get_random(self, *ignores: int) -> int:
         vals = tuple(self._vars.values())
-        while (rand := random.choice(vals)) in ignore:
+        while (rand := random.choice(vals)) in ignores:
             pass
         return rand
 
 
-class Style(metaclass=_Enum):
+class Style(metaclass=_IntEnum):
     DEFAULT = -1
     FILL = ctyped.const.WPSTYLE_CROPTOFIT
     FIT = ctyped.const.WPSTYLE_KEEPASPECT
@@ -61,7 +70,7 @@ class Style(metaclass=_Enum):
     SPAN = ctyped.const.WPSTYLE_SPAN
 
 
-class Transition(metaclass=_Enum):
+class Transition(metaclass=_IntEnum):
     DISABLED = -2
     RANDOM = -1
     FADE = 0
@@ -191,29 +200,17 @@ class Transition(metaclass=_Enum):
         yield dst_w_, 0, dst_w - dst_w_ * 2, dst_h, dst_w_, 0
 
     @staticmethod
+    def _reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
+        dst_w_ = int(half_dst_w * factor)
+        yield 0, 0, dst_w_, dst_h, 0, 0
+        yield dst_w - dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
+
+    @staticmethod
     def _slide_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
         dst_w_ = int(half_dst_w * factor)
         half_dst_w_ = int(half_dst_w)
         yield half_dst_w_ - dst_w_, 0, dst_w_, dst_h, 0, 0
         yield half_dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
-
-    @staticmethod
-    def _horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
-        dst_h_ = int(half_dst_h * (1 - factor))
-        yield 0, dst_h_, dst_w, dst_h - dst_h_ * 2, 0, dst_h_
-
-    @staticmethod
-    def _slide_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
-        dst_h_ = int(half_dst_h * factor)
-        half_dst_h_ = int(half_dst_h)
-        yield 0, half_dst_h_ - dst_h_, dst_w, dst_h_, 0, 0
-        yield 0, half_dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
-
-    @staticmethod
-    def _reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
-        dst_w_ = int(half_dst_w * factor)
-        yield 0, 0, dst_w_, dst_h, 0, 0
-        yield dst_w - dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
 
     @staticmethod
     def _slide_reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
@@ -223,10 +220,22 @@ class Transition(metaclass=_Enum):
         yield dst_w - dst_w_, 0, dst_w_, dst_h, half_dst_w_, 0
 
     @staticmethod
+    def _horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+        dst_h_ = int(half_dst_h * (1 - factor))
+        yield 0, dst_h_, dst_w, dst_h - dst_h_ * 2, 0, dst_h_
+
+    @staticmethod
     def _reverse_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
         dst_h_ = int(half_dst_h * factor)
         yield 0, 0, dst_w, dst_h_, 0, 0
         yield 0, dst_h - dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
+
+    @staticmethod
+    def _slide_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+        dst_h_ = int(half_dst_h * factor)
+        half_dst_h_ = int(half_dst_h)
+        yield 0, half_dst_h_ - dst_h_, dst_w, dst_h_, 0, 0
+        yield 0, half_dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
 
     @staticmethod
     def _slide_reverse_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
@@ -295,138 +304,6 @@ def get_style() -> Optional[int]:
     return None
 
 
-def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
-    rect = ctyped.struct.RECT()
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-        if wallpaper:
-            if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
-                return rect.left - ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
-    return 0, 0, 0, 0
-
-
-def _spawn_workerw():
-    ctyped.func.user32.SendMessageW(ctyped.func.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
-
-
-@ctyped.type.WNDENUMPROC
-def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-    if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
-        if (hwnd_ := ctyped.func.user32.FindWindowExW(None, hwnd, 'WorkerW', None)) is not None:
-            ctyped.type.LPARAM.from_address(lparam).value = hwnd_
-    return True
-
-
-def _get_workerw_hwnd() -> Optional[int]:
-    hwnd = ctyped.type.LPARAM()
-    for _ in range(_RETRY):
-        _spawn_workerw()
-        ctyped.func.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd))
-        if hwnd.value:
-            break
-    else:
-        return None
-    return hwnd.value
-
-
-def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
-            by_h: bool = True, div: int = 2) -> tuple[int, int, int, int]:
-    ratio = to_w / to_h
-    if by_h:
-        w = from_h * ratio
-        return round((from_w - w) / div), 0, int(w), from_h
-    else:
-        h = from_w / ratio
-        return 0, round((from_h - h) / div), from_w, int(h)
-
-
-def _get_position(w: int, h: int, src_w: int, src_h: int,
-                  pos: int = Style.FILL) -> tuple[int, int, int, int]:
-    if pos == Style.CENTER:
-        dw = src_w - w
-        dh = src_h - h
-        return int(dw / 2), int(dh / 2), src_w - dw, src_h - dh
-    elif pos in (Style.TILE, Style.STRETCH):
-        return 0, 0, src_w, src_h
-    elif pos == Style.FIT:
-        return _fit_by(src_w, src_h, w, h, w / src_w > h / src_h)
-    elif pos == Style.FILL:
-        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h, 3)
-    elif pos == Style.SPAN:
-        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h)
-    return 0, 0, 0, 0
-
-
-def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus.Bitmap,
-                  src_x: int, src_y: int, src_w: int, src_h: int) -> ctyped.handle.HDC:
-    bitmap = gdiplus.Bitmap.from_dimension(width, height)
-    graphics = bitmap.get_graphics()
-    graphics.fill_rect_with_color(color, 0, 0, width, height)
-    graphics.set_scale(width / src_w, height / src_h)
-    with _LOCK:
-        src.set_resolution(graphics.dpi_x, graphics.dpi_y)
-        graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
-    return bitmap.get_hbitmap().get_hdc()
-
-
-def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
-    rect = ctyped.struct.RECT()
-    fore_hwnd = ctyped.func.user32.GetForegroundWindow()
-    if (fore_hwnd and ctyped.func.user32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
-            ctyped.func.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
-        rect_ = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
-        return bool(ctyped.func.user32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
-    return True
-
-
-def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
-                     src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
-                     transition: int = Transition.DISABLED, duration: float = 0):  # TODO randomly skipped
-    if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
-        dst = ctyped.handle.HDC.from_hwnd(hwnd)
-        src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h)
-        if transition != Transition.DISABLED:
-            if transition == Transition.RANDOM:
-                # noinspection PyProtectedMember
-                transition = Transition._random(Transition.DISABLED, Transition.RANDOM)
-            args = []
-            if transition == Transition.FADE:
-                dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
-                ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
-                args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
-                             dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
-            if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
-                              Transition.EXPLODE, Transition.SLIDE_VERTICAL, Transition.SLIDE_REVERSE_VERTICAL):
-                args.append(dst_w / 2)
-            if transition in (Transition.HORIZONTAL, Transition.REVERSE_HORIZONTAL,
-                              Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
-                args.append(dst_h / 2)
-            start = time.time()
-            while duration > (passed := time.time() - start):
-                # noinspection PyProtectedMember
-                for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
-                        passed / duration, dst_w, dst_h, *args):
-                    ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
-                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
-            ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
-
-
-def _get_dpi(x: int, y: int) -> tuple[int, int]:
-    dpi_x = ctyped.type.UINT()
-    dpi_y = ctyped.type.UINT()
-    ctyped.func.shcore.GetDpiForMonitor(ctyped.func.user32.MonitorFromPoint(
-        ctyped.struct.POINT(x, y), ctyped.const.MONITOR_DEFAULTTOPRIMARY),
-        ctyped.enum.MONITOR_DPI_TYPE.MDT_DEFAULT, ctyped.byref(dpi_x), ctyped.byref(dpi_y))
-    return dpi_x.value, dpi_y.value
-
-
-def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
-              a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
-    return (b << ctyped.const.BlueShift | g << ctyped.const.GreenShift |
-            r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
-
-
 def _get_param() -> str:
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
         ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
@@ -456,6 +333,130 @@ def get(monitor: str = None) -> str:
             if monitor is None else _get_idesktopwallpaper(monitor)[0])
 
 
+def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
+    rect = ctyped.struct.RECT()
+    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
+                return rect.left - ctyped.func.user32.GetSystemMetrics(
+                    ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.func.user32.GetSystemMetrics(
+                    ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
+    return 0, 0, 0, 0
+
+
+def _spawn_workerw():
+    ctyped.func.user32.SendMessageW(ctyped.func.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
+
+
+@ctyped.type.WNDENUMPROC
+def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
+    if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
+        if (hwnd_ := ctyped.func.user32.FindWindowExW(None, hwnd, 'WorkerW', None)) is not None:
+            ctyped.type.LPARAM.from_address(lparam).value = hwnd_
+    return True
+
+
+def _get_workerw_hwnd() -> Optional[int]:
+    hwnd = ctyped.type.LPARAM()
+    for _ in range(_HWND_RETRY):
+        _spawn_workerw()
+        if ctyped.func.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd)) and hwnd.value:
+            return hwnd.value
+
+
+def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
+            by_h: bool = True, div: int = 2) -> tuple[int, int, int, int]:
+    ratio = to_w / to_h
+    if by_h:
+        w = from_h * ratio
+        return round((from_w - w) / div), 0, int(w), from_h
+    else:
+        h = from_w / ratio
+        return 0, round((from_h - h) / div), from_w, int(h)
+
+
+def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,  # FIXED _USE_TEMP_FILE (Style.CENTER scales to 95%)
+                     pos: int = Style.FILL) -> tuple[int, int, int, int]:
+    if pos == Style.CENTER:
+        dw = src_w - w
+        dh = src_h - h
+        return int(dw / 2), int(dh / 2), src_w - dw, src_h - dh
+    elif pos in (Style.TILE, Style.STRETCH):
+        return 0, 0, src_w, src_h
+    elif pos == Style.FIT:
+        return _fit_by(src_w, src_h, w, h, w / src_w > h / src_h)
+    elif pos == Style.FILL:
+        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h, 3)
+    elif pos == Style.SPAN:
+        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h)
+    return 0, 0, 0, 0
+
+
+_src_lock = functools.lru_cache(lambda _: threading.Lock())
+
+
+def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus.Bitmap,
+                  src_x: int, src_y: int, src_w: int, src_h: int, path: str) -> ctyped.handle.HDC:
+    bitmap = gdiplus.Bitmap.from_dimension(width, height)
+    graphics = bitmap.get_graphics()
+    graphics.fill_rect_with_color(color, 0, 0, width, height)
+    graphics.set_scale(width / src_w, height / src_h)
+    with _src_lock(src):
+        src.set_resolution(graphics.dpi_x, graphics.dpi_y)
+        graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
+    if path:
+        bitmap.save(path)
+    return bitmap.get_hbitmap().get_hdc()
+
+
+def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
+    rect = ctyped.struct.RECT()
+    fore_hwnd = ctyped.func.user32.GetForegroundWindow()
+    if (fore_hwnd and ctyped.func.user32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
+            ctyped.func.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
+        rect_ = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
+        return bool(ctyped.func.user32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
+    return True
+
+
+def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,  # TODO randomly skipped
+                     src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
+                     transition: int = Transition.DISABLED, duration: float = 0, temp_path: Optional[str] = None):
+    if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
+        dst = ctyped.handle.HDC.from_hwnd(hwnd)
+        src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h,
+                            '' if temp_path is None else temp_path)
+        if transition != Transition.DISABLED:
+            if transition == Transition.RANDOM:
+                transition = Transition.get_random(Transition.DISABLED, Transition.RANDOM)
+            args = []
+            if transition == Transition.FADE:
+                dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
+                ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
+                args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
+                             dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
+            if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
+                              Transition.EXPLODE, Transition.SLIDE_VERTICAL, Transition.SLIDE_REVERSE_VERTICAL):
+                args.append(dst_w / 2)
+            if transition in (Transition.HORIZONTAL, Transition.REVERSE_HORIZONTAL,
+                              Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
+                args.append(dst_h / 2)
+            start = time.time()
+            while duration > (passed := time.time() - start):
+                # noinspection PyProtectedMember
+                for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
+                        passed / duration, dst_w, dst_h, *args):
+                    ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
+                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
+        ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
+
+
+def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
+              a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
+    return (b << ctyped.const.BlueShift | g << ctyped.const.GreenShift |
+            r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
+
+
 def _set_param(path: str) -> bool:
     return bool(ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
                                                          ctyped.const.SPIF_SENDWININICHANGE))
@@ -471,19 +472,45 @@ def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
     return False
 
 
-def _set_idesktopwallpaper(path: str, monitor: str, color: Optional[ctyped.type.COLORREF] = None,
-                           style: Optional[ctyped.enum.DESKTOP_WALLPAPER_POSITION] = None) -> bool:
+def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ctyped.type.COLORREF] = None,
+                           style: Optional[Union[int, ctyped.enum.DESKTOP_WALLPAPER_POSITION]] = None) -> bool:
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
-            if color is not None:
-                wallpaper.SetBackgroundColor(color)
+            if color is not None and ctyped.macro.FAILED(wallpaper.SetBackgroundColor(color)):
+                return False
             if style is not None:
-                wallpaper.SetPosition(style)
-            if style in (ctyped.const.WPSTYLE_SPAN, ctyped.const.WPSTYLE_TILE):
+                try:
+                    if ctyped.macro.FAILED(wallpaper.SetPosition(style)):
+                        return False
+                except OSError as e:
+                    if e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
+                        return False
+                    else:
+                        raise e
+            if style in (Style.SPAN, Style.TILE):
                 return _set_param(path)
             else:
-                return ctyped.macro.SUCCEEDED(wallpaper.SetWallpaper(monitor, path))
+                try:
+                    return ctyped.macro.SUCCEEDED(wallpaper.SetWallpaper(monitor, path))
+                except OSError as e:
+                    if e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
+                        return False
+                    else:
+                        raise e
     return False
+
+
+def _set(image: gdiplus.Bitmap, monitor_x_y_w_h: tuple[int, int, int, int], style: int,
+         argb: int, rgb: int, transition: int, duration: int, path: str, monitor: Optional[str]):
+    # noinspection PyTypeChecker
+    _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
+                     argb, transition, duration, path if _USE_TEMP_FILE else None)
+    try:
+        return _set_idesktopwallpaper(path, monitor, rgb, style)
+    finally:
+        if _USE_TEMP_FILE:
+            time.sleep(_DELETE_TEMP_AFTER)
+            ctyped.func.kernel32.DeleteFileW(path)
 
 
 # noinspection PyShadowingBuiltins
@@ -491,41 +518,42 @@ def set(path: str, *monitors: str, style: int = Style.DEFAULT, r: int = 0,
         g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
     if style in (Style.DEFAULT, default_style := get_style()):
         style = default_style
+        if style is None:
+            return False
         path_ = path.casefold()
         for path__ in _get_idesktopwallpaper(*monitors):
             if path_ != path__.casefold():
                 break
         else:
             return True
-    try:
-        image = gdiplus.Bitmap.from_file(path)
-    except gdiplus.GdiplusError:
-        return False
-    else:
-        if style is not None:
-            if style in (Style.TILE, Style.SPAN):
-                monitors_x_y_w_h = (0, 0, ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_CYVIRTUALSCREEN)),
-                if style == Style.TILE:
-                    bitmap = gdiplus.Bitmap.from_dimension(*monitors_x_y_w_h[0][2:])
-                    graphics = bitmap.get_graphics()
-                    image.set_resolution(graphics.dpi_x, graphics.dpi_y)
-                    for x in range(0, bitmap.width, image.width):
-                        for y in range(0, bitmap.height, image.height):
-                            graphics.draw_image(image, x, y)
-                    image = bitmap
-            else:
-                monitors_x_y_w_h = tuple(_get_monitor_x_y_w_h(monitor) for monitor in monitors)
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                for monitor_x_y_w_h in monitors_x_y_w_h:
-                    executor.submit(_draw_on_workerw, image, *monitor_x_y_w_h,
-                                    *_get_position(*monitor_x_y_w_h[2:], image.width, image.height, style),
-                                    _get_argb(r, g, b), transition, duration)
-        set_ = True
-        for monitor in monitors:
-            set_ = _set_idesktopwallpaper(path, monitor, ctyped.macro.RGB(r, g, b), style) and set_
-        return set_
+    if image := gdiplus.Bitmap.from_file(path):
+        if style in (Style.TILE, Style.SPAN):
+            monitors = None,
+            monitors_x_y_w_h = (0, 0, ctyped.func.user32.GetSystemMetrics(
+                ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
+                ctyped.const.SM_CYVIRTUALSCREEN)),
+            if style == Style.TILE:
+                bitmap = gdiplus.Bitmap.from_dimension(*monitors_x_y_w_h[0][2:])
+                graphics = bitmap.get_graphics()
+                image.set_resolution(graphics.dpi_x, graphics.dpi_y)
+                for x in range(0, bitmap.width, image.width):
+                    for y in range(0, bitmap.height, image.height):
+                        graphics.draw_image(image, x, y)
+                image = bitmap
+        else:
+            monitors_x_y_w_h = tuple(_get_monitor_x_y_w_h(monitor) for monitor in monitors)
+        argb = _get_argb(r, g, b)
+        rgb = ctyped.macro.RGB(r, g, b)
+        if _USE_TEMP_FILE:
+            os.makedirs(TEMP_DIR, exist_ok=True)
+            path = os.path.join(TEMP_DIR, _TEMP_FILE)
+        futures = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for index, (monitor, monitor_x_y_w_h) in enumerate(zip(monitors, monitors_x_y_w_h)):
+                futures.append(executor.submit(_set, image, monitor_x_y_w_h, style, argb, rgb, transition, duration,
+                                               path.format(index) if _USE_TEMP_FILE else path, monitor))
+        return all(future.result() for future in futures)
+    return False
 
 
 def set_lock(path: str) -> bool:
@@ -619,3 +647,16 @@ def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] 
                         return output_stream and _copy_stream(input_stream, output_stream,
                                                               progress_callback, args, kwargs)
     return False
+
+
+def remove_from_history(*paths: str) -> bool:
+    removed = True
+    paths = tuple(path.casefold() for path in paths)
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _HISTORY_KEY,
+                        access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
+        for index in range(5):
+            name = f'BackgroundHistoryPath{index}'
+            val, type_ = winreg.QueryValueEx(key, name)
+            if type_ == winreg.REG_SZ and val.casefold() in paths:
+                removed = _utils.delete_key(key, name) and removed
+    return removed

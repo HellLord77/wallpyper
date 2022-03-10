@@ -703,6 +703,55 @@ class SHELLEXECUTEINFOW:
     hProcess: _type.HANDLE = _NONE
 
 
+@_struct
+class COMPPOS:
+    dwSize: _type.DWORD = _NONE
+    iLeft: _type.c_int = _NONE
+    iTop: _type.c_int = _NONE
+    dwWidth: _type.DWORD = _NONE
+    dwHeight: _type.DWORD = _NONE
+    izIndex: _type.c_int = _NONE
+    fCanResize: _type.BOOL = _NONE
+    fCanResizeX: _type.BOOL = _NONE
+    fCanResizeY: _type.BOOL = _NONE
+    iPreferredLeftPercent: _type.c_int = _NONE
+    iPreferredTopPercent: _type.c_int = _NONE
+
+
+@_struct
+class COMPSTATEINFO:
+    dwSize: _type.DWORD = _NONE
+    iLeft: _type.c_int = _NONE
+    iTop: _type.c_int = _NONE
+    dwWidth: _type.DWORD = _NONE
+    dwHeight: _type.DWORD = _NONE
+    dwItemState: _type.DWORD = _NONE
+
+
+@_struct
+class COMPONENT:
+    dwSize: _type.DWORD = _NONE
+    dwID: _type.DWORD = _NONE
+    iComponentType: _type.c_int = _NONE
+    fChecked: _type.BOOL = _NONE
+    fDirty: _type.BOOL = _NONE
+    fNoScroll: _type.BOOL = _NONE
+    cpPos: COMPPOS = _NONE
+    wszFriendlyName: _type.WCHAR * _const.MAX_PATH = _NONE
+    wszSource: _type.WCHAR * _const.INTERNET_MAX_URL_LENGTH = _NONE
+    wszSubscribedURL: _type.WCHAR * _const.INTERNET_MAX_URL_LENGTH = _NONE
+    dwCurItemState: _type.DWORD = _NONE
+    csiOriginal: COMPSTATEINFO = _NONE
+    csiRestored: COMPSTATEINFO = _NONE
+
+
+@_struct
+class COMPONENTSOPT:
+    dwSize: _type.DWORD = _NONE
+    fEnableComponents: _type.BOOL = _NONE
+    fActiveDesktop: _type.BOOL = _NONE
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

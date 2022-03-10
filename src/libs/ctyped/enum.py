@@ -18,9 +18,8 @@ class _IntEnumMeta(_enum.EnumMeta):
         pass
 
 
-class _IntEnum(_enum.Enum, metaclass=_IntEnumMeta):
-    def __or__(self, other):
-        pass
+class _IntEnum(_enum.IntEnum, metaclass=_IntEnumMeta):
+    pass
 
 
 class AsyncStatus(_IntEnum):

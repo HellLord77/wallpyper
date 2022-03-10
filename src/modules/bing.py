@@ -1,9 +1,11 @@
 __version__ = '0.0.1'  # https://github.com/timothymctim/Bing-wallpapers
 
 import os.path
-from typing import Optional, Generator
+from typing import Generator, Optional
 
+import libs.files as files
 import libs.locales as locales
+import libs.request as request
 import utils
 from langs import LANGUAGE as STRINGS
 
@@ -17,8 +19,8 @@ RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x
 
 NAME = 'bing'
 BASE_URL = 'https://www.bing.com'
-ARCHIVE_URL = utils.join_url(BASE_URL, 'HPImageArchive.aspx')
-IMAGE_URL = utils.join_url(BASE_URL, 'th')
+ARCHIVE_URL = request.join(BASE_URL, 'HPImageArchive.aspx')
+IMAGE_URL = request.join(BASE_URL, 'th')
 
 DEFAULT_CONFIG = {
     CONFIG_DAY: '0',
@@ -36,7 +38,7 @@ def fix_config():
         CONFIG[CONFIG_RESOLUTION] = DEFAULT_CONFIG[CONFIG_RESOLUTION]
 
 
-def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], None, None]:
+def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, None]:
     images: Optional[list] = None
     params['format'] = 'js'
     params['n'] = '8'
@@ -45,7 +47,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
             images_ = []
             for day in range(int(params[CONFIG_DAY]), MAX_DAY):
                 params[CONFIG_DAY] = str(day)
-                response = utils.open_url(ARCHIVE_URL, params)
+                response = request.open(ARCHIVE_URL, params)
                 if response:
                     for image in response.get_json()['images']:
                         if image not in images_:
@@ -57,10 +59,10 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
             if not images:
                 yield
                 continue
-        query = utils.query_url(images.pop(0)['url'])
+        query = request.query(images.pop(0)['url'])
         name_ext = os.path.splitext(query['id'][0])
-        query['id'] = f'{name_ext[0][:name_ext[0].rfind("_") + 1]}{CONFIG[CONFIG_RESOLUTION]}{name_ext[1]}'
-        yield utils.Wallpaper(utils.encode_url(IMAGE_URL, query), query['id'][4:])
+        query['id'][0] = f'{name_ext[0][:name_ext[0].rfind("_") + 1]}{CONFIG[CONFIG_RESOLUTION]}{name_ext[1]}'
+        yield files.File(request.encode(IMAGE_URL, query), query['id'][0][4:])
 
 
 def create_menu():

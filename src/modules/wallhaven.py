@@ -3,12 +3,13 @@ __version__ = '0.0.1'  # https://wallhaven.cc/help/api
 import os.path
 from typing import Generator, Optional
 
-import utils
+import libs.files as files
+import libs.request as request
 
 NAME = 'wallhaven'
-BASE_URL = utils.join_url('https://wallhaven.cc', 'api', 'v1')
-SEARCH_URl = utils.join_url(BASE_URL, 'search')
-SETTINGS_URL = utils.join_url(BASE_URL, 'settings')
+BASE_URL = request.join('https://wallhaven.cc', 'api', 'v1')
+SEARCH_URl = request.join(BASE_URL, 'search')
+SETTINGS_URL = request.join(BASE_URL, 'settings')
 
 DEFAULT_CONFIG = {
     'apikey': '',
@@ -32,7 +33,7 @@ def fix_config():
     ...
 
 
-def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], None, None]:
+def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, None]:
     search_datas: Optional[list] = None
     meta = {
         'current_page': 1,
@@ -43,7 +44,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
         if not search_datas:
             params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
             params['seed'] = meta['seed'] or ''
-            response = utils.open_url(SEARCH_URl, params)
+            response = request.open(SEARCH_URl, params)
             if response:
                 search_datas, meta = response.get_json().values()
             if not search_datas:
@@ -51,11 +52,11 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
                 continue
         search_data = search_datas.pop(0)
         url = search_data['path']
-        yield utils.Wallpaper(url, os.path.basename(url), search_data['file_size'])
+        yield files.File(url, os.path.basename(url), search_data['file_size'])
 
 
 def _authenticate(api_key: str) -> bool:
-    return bool(utils.open_url(SETTINGS_URL, {'apikey': api_key}))
+    return bool(request.open(SETTINGS_URL, {'apikey': api_key}))
 
 
 def create_menu():

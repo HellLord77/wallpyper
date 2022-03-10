@@ -22,7 +22,7 @@ import time
 import typing
 import uuid
 import zlib
-from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
+from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional, Protocol
 
 DEFAULT = object()
 ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
@@ -492,7 +492,14 @@ def queue_run_ex(func: Callable) -> Callable:
     return wrapper
 
 
-def singleton_run(func: Callable) -> Callable:
+class _SingletonCallable(Protocol):
+    is_running: Callable[[], bool]
+
+    def __call__(self, *args, **kwargs):
+        pass
+
+
+def singleton_run(func: Callable) -> _SingletonCallable:
     running = threading.Event()
 
     @functools.wraps(func)

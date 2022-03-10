@@ -103,12 +103,12 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_empty(path: str, recursive: bool = False) -> bool:
+def is_empty_dir(path: str, recursive: bool = False) -> bool:
     if recursive:
         try:
             for dir_ in os.listdir(path):
                 path_ = os.path.join(path, dir_)
-                if os.path.isfile(path_) or not is_empty(path_, recursive):
+                if os.path.isfile(path_) or not is_empty_dir(path_, recursive):
                     return False
         except PermissionError:
             return False
@@ -116,7 +116,7 @@ def is_empty(path: str, recursive: bool = False) -> bool:
     return not any(os.scandir(path))
 
 
-def trim(path: str, target: int) -> bool:
+def trim_dir(path: str, target: int) -> bool:
     trimmed = False
     paths = glob.glob(os.path.join(path, '**'), recursive=True)
     paths.sort(key=os.path.getctime, reverse=True)

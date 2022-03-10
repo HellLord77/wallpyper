@@ -14,6 +14,7 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
 import libs.ctyped as ctyped
+import win32
 import win32.gdiplus as gdiplus
 
 
@@ -105,7 +106,7 @@ class SysTray:
         return super().__new__(cls)
 
     def __init__(self, icon: Optional[Union[str, int]] = None, tooltip: Optional[str] = None):
-        self._uid = type(self)._uid
+        self._uid = self._uid
         self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW),
                                                    self._hwnd, self._uid, self._flags, ctyped.const.WM_APP)
         self.set_icon(ctyped.const.IDI_APPLICATION if icon is None else icon)
@@ -325,10 +326,17 @@ def _test_sys_tray():
     SysTray.mainloop()
 
 
-def _test():
+def _test_():
     info = ctyped.struct.SHELLEXECUTEINFOW(ctyped.sizeof(ctyped.struct.SHELLEXECUTEINFOW), lpVerb='open',
                                            lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
     print(ctyped.func.shell32.ShellExecuteExW(ctyped.byref(info)))
+
+
+def _test():
+    path = r'C:\Users\ratul\AppData\Local\Temp\E7BF96E18754D71E41B32A8EDCDE9E2F1DBAF47C7CD05D6D0764CD4E4EA5066.png'
+    bmp = win32.gdiplus.Bitmap.from_file(path)
+    print(bmp, bool(bmp), bmp._valid)
+    pass
 
 
 if __name__ == '__main__':

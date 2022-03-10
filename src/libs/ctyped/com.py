@@ -84,20 +84,49 @@ class IActiveDesktop(IUnknown):
     SetPattern: _Callable[[_type.PCWSTR,
                            _type.DWORD],
                           _type.HRESULT]
-    GetDesktopItemOptions: _Callable
-    SetDesktopItemOptions: _Callable
-    AddDesktopItem: _Callable
-    AddDesktopItemWithUI: _Callable
-    ModifyDesktopItem: _Callable
-    RemoveDesktopItem: _Callable
+    GetDesktopItemOptions: _Callable[[_Pointer[_struct.COMPONENTSOPT],
+                                      _type.DWORD],
+                                     _type.HRESULT]
+    SetDesktopItemOptions: _Callable[[_Pointer[_struct.COMPONENTSOPT],
+                                      _type.DWORD],
+                                     _type.HRESULT]
+    AddDesktopItem: _Callable[[_Pointer[_struct.COMPONENT],
+                               _type.DWORD],
+                              _type.HRESULT]
+    AddDesktopItemWithUI: _Callable[[_Optional[_type.HWND],
+                                     _Pointer[_struct.COMPONENT],
+                                     _type.DWORD],
+                                    _type.HRESULT]
+    ModifyDesktopItem: _Callable[[_Pointer[_struct.COMPONENT],
+                                  _type.DWORD],
+                                 _type.HRESULT]
+    RemoveDesktopItem: _Callable[[_Pointer[_struct.COMPONENT],
+                                  _type.DWORD],
+                                 _type.HRESULT]
     GetDesktopItemCount: _Callable[[_Pointer[_type.c_int],
                                     _type.DWORD],
                                    _type.HRESULT]
-    GetDesktopItem: _Callable
-    GetDesktopItemByID: _Callable
-    GenerateDesktopItemHtml: _Callable
-    AddUrl: _Callable
-    GetDesktopItemBySource: _Callable
+    GetDesktopItem: _Callable[[_type.c_int,
+                               _Pointer[_struct.COMPONENT],
+                               _type.DWORD],
+                              _type.HRESULT]
+    GetDesktopItemByID: _Callable[[_type.ULONG_PTR,
+                                   _Pointer[_struct.COMPONENT],
+                                   _type.DWORD],
+                                  _type.HRESULT]
+    GenerateDesktopItemHtml: _Callable[[_type.PCWSTR,
+                                        _Pointer[_struct.COMPONENT],
+                                        _type.DWORD],
+                                       _type.HRESULT]
+    AddUrl: _Callable[[_Optional[_type.HWND],
+                       _type.PCWSTR,
+                       _Pointer[_struct.COMPONENT],
+                       _type.DWORD],
+                      _type.HRESULT]
+    GetDesktopItemBySource: _Callable[[_type.PCWSTR,
+                                       _Pointer[_struct.COMPONENT],
+                                       _type.DWORD],
+                                      _type.HRESULT]
 
 
 class IDesktopWallpaper(IUnknown):

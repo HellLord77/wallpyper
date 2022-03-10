@@ -1,7 +1,17 @@
 import contextlib
+import winreg
 from typing import ContextManager, Optional
 
 import libs.ctyped as ctyped
+
+
+def get_dir(folderid: str) -> str:
+    buff = ctyped.type.PWSTR()
+    ctyped.func.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(folderid)),
+                                             ctyped.enum.KNOWN_FOLDER_FLAG.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
+    path = buff.value
+    ctyped.func.ole32.CoTaskMemFree(buff)
+    return path
 
 
 @contextlib.contextmanager
@@ -63,3 +73,12 @@ def open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
                 yield file
                 return
     yield None
+
+
+def delete_key(key: winreg.HKEYType, name: str) -> bool:
+    for _ in range(2):
+        try:
+            winreg.DeleteValue(key, name)
+        except FileNotFoundError:
+            return True
+    return False

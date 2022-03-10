@@ -3,9 +3,11 @@ __version__ = '0.0.1'  # https://github.com/ORelio/Spotlight-Downloader
 import base64
 import json
 import os.path
-from typing import Optional, Generator
+from typing import Generator, Optional
 
+import libs.files as files
 import libs.locales as locales
+import libs.request as request
 import utils
 from langs import LANGUAGE as STRINGS
 
@@ -16,7 +18,7 @@ LOCALES = 'en-US', 'de-DE', 'fr-FR', 'zh-CN', 'es-ES', 'ru-RU', 'en-GB', 'bn-IN'
 ORIENTATIONS = 'landscape', 'portrait'
 
 NAME = 'spotlight'
-BASE_URL = utils.join_url('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
+BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
 DEFAULT_CONFIG = {CONFIG_LOCALE: LOCALES[0],
                   CONFIG_ORIENTATION: ORIENTATIONS[0]}
@@ -28,7 +30,7 @@ def fix_config():
         CONFIG[CONFIG_ORIENTATION] = DEFAULT_CONFIG[CONFIG_ORIENTATION]
 
 
-def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], None, None]:
+def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, None]:
     items: Optional[list] = None
     params['pid'] = '209567'
     params['fmt'] = 'json'
@@ -37,7 +39,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
     params['ctry'] = CONFIG_LOCALE.split('-')[-1].lower()
     while True:
         if not items:
-            response = utils.open_url(BASE_URL, params)
+            response = request.open(BASE_URL, params)
             if response:
                 items = response.get_json()['batchrsp']['items']
             if not items:
@@ -45,8 +47,8 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[utils.Wallpaper], No
                 continue
         image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{CONFIG[CONFIG_ORIENTATION]}']
         url = image['u']
-        yield utils.Wallpaper(url, utils.set_ext(os.path.basename(utils.strip_url(url)), 'jpg'),
-                              int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
+        yield files.File(url, files.replace_ext(os.path.basename(request.strip(url)), 'jpg'),
+                         int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
 
 
 def create_menu():

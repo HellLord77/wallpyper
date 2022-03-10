@@ -69,11 +69,11 @@ class _Response:
     def get_content(self) -> bytes:
         return self.response.read()
 
-    def get_json(self) -> Optional[Union[dict, list, str, int, float, bool]]:
+    def get_json(self):
         try:
             return json.loads(self.get_text())
         except json.decoder.JSONDecodeError:
-            return None
+            return
 
     def get_text(self) -> str:
         return self.get_content().decode()
@@ -119,8 +119,8 @@ def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[by
          headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> _Response:
     try:
         request = urllib.request.Request(encode(url, params), data)
-    except ValueError as error:
-        return _Response(urllib.error.URLError(error))
+    except ValueError as e:
+        return _Response(urllib.error.URLError(e))
     else:
         request.add_header(Header.ACCEPT_LANGUAGE, ACCEPT_LANGUAGE)
         request.add_header(Header.USER_AGENT, USER_AGENT)
