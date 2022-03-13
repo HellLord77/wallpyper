@@ -9,6 +9,11 @@ import libs.request as request
 import utils
 from langs import LANGUAGE as STRINGS
 
+NAME = 'bing'
+BASE_URL = 'https://www.bing.com'
+ARCHIVE_URL = request.join(BASE_URL, 'HPImageArchive.aspx')
+IMAGE_URL = request.join(BASE_URL, 'th')
+
 CONFIG_DAY = 'idx'
 CONFIG_MARKET = 'mkt'
 CONFIG_RESOLUTION = '_resolution'
@@ -16,11 +21,6 @@ CONFIG_RESOLUTION = '_resolution'
 MAX_DAY = 8
 MARKETS = 'de-DE', 'en-AU', 'en-CA', 'en-GB', 'en-IN', 'en-US', 'fr-CA', 'fr-FR', 'ja-JP', 'zh-CN'
 RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x1080', 'UHD'
-
-NAME = 'bing'
-BASE_URL = 'https://www.bing.com'
-ARCHIVE_URL = request.join(BASE_URL, 'HPImageArchive.aspx')
-IMAGE_URL = request.join(BASE_URL, 'th')
 
 DEFAULT_CONFIG = {
     CONFIG_DAY: '0',
@@ -66,9 +66,9 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, N
 
 
 def create_menu():
-    utils.add_synced_items(STRINGS.BING_LABEL_DAY, {str(day): getattr(
+    utils.add_synced_items(STRINGS.BING_MENU_DAY, {str(day): getattr(
         STRINGS, f'BING_DAY_{day}') for day in range(int(DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)}, CONFIG, CONFIG_DAY)
-    utils.add_synced_items(STRINGS.BING_LABEL_MARKET, {market: '\t'.join(locales.Locale.get(
+    utils.add_synced_items(STRINGS.BING_MENU_MARKET, {market: '\t'.join(locales.Locale.get(
         *market.split('-')).name.split(' - ')[::-1]) for market in MARKETS}, CONFIG, CONFIG_MARKET)
-    utils.add_synced_items(STRINGS.BING_LABEL_RESOLUTION, {resolution: getattr(STRINGS, f'BING_RESOLUTION_{resolution}')
-                                                           for resolution in RESOLUTIONS}, CONFIG, CONFIG_RESOLUTION)
+    utils.add_synced_items(STRINGS.BING_MENU_RESOLUTION, {resolution: getattr(STRINGS, f'BING_RESOLUTION_{resolution}')
+                                                          for resolution in RESOLUTIONS}, CONFIG, CONFIG_RESOLUTION)

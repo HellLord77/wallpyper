@@ -342,15 +342,15 @@ def split_ex(string: str, length: int = 64) -> tuple[str]:
     return tuple(string[index: length + index] for index in range(0, len(string), length))
 
 
-def shrink_string_end(string: str, max_len: int, end: str = '...') -> str:
-    return f'{string[:max_len - len(end)]}{end}' if len(string) > max_len else string
+def shrink_string(string: str, max_len: int, filler: str = '...') -> str:
+    return f'{string[:max_len - len(filler)]}{filler}' if len(string) > max_len else string
 
 
-def shrink_string_mid(string: str, max_len: int, mid: str = '...') -> str:
+def shrink_string_mid(string: str, max_len: int, filler: str = '...') -> str:
     if len(string) > max_len:
-        max_ = max_len - len(mid)
+        max_ = max_len - len(filler)
         left = math.ceil(max_ / 2)
-        string = f'{string[:left]}{mid}{string[left - max_:]}'
+        string = f'{string[:left]}{filler}{string[left - max_:]}'
     return string
 
 

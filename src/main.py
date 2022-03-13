@@ -26,7 +26,6 @@ import libs.pyinstall as pyinstall
 import libs.request as request
 import libs.singleton as singleton
 import libs.timer as timer
-import utils
 import win32
 from modules import bing, spotlight, wallhaven  # TODO lazy
 
@@ -59,12 +58,13 @@ CONFIG_SAVE = 'save_settings'
 CONFIG_MODULE = 'active_module'
 
 RESTART_CODE = 123
+ALL_DISPLAY = 'DISPLAY'
 UUID = f'{__author__}.{NAME}'
 RES_ICON, RES_TRAY, RES_BUSY = (files.join(os.path.dirname(__file__), 'resources', name)
                                 for name in ('icon.ico', 'tray.png', 'busy.gif'))
 TEMP_DIR = win32.wallpaper.TEMP_DIR = paths.join(tempfile.gettempdir(), NAME)
-INI_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, NAME, f'{NAME}.ini')
-LOG_PATH = paths.replace_ext(INI_PATH, 'log')
+CONFIG_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, NAME, f'{NAME}.ini')
+LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
@@ -82,7 +82,7 @@ RECENT: collections.deque[files.File] = collections.deque(maxlen=MAX_RECENT)
 DEFAULT_CONFIG = {
     CONFIG_LAST: math.inf,
     CONFIG_RECENT: misc.encrypt(RECENT, True),
-    CONFIG_DISPLAY: '',
+    CONFIG_DISPLAY: ALL_DISPLAY,
     CONFIG_AUTOSAVE: False,
     CONFIG_SKIP: False,
     CONFIG_NOTIFY: True,
@@ -137,7 +137,7 @@ def load_config() -> bool:
         converters={tuple.__name__: misc.to_tuple, list.__name__: misc.to_list,
                     set.__name__: misc.to_set, dict.__name__: misc.to_dict})
     try:
-        loaded = bool(parser.read(INI_PATH))
+        loaded = bool(parser.read(CONFIG_PATH))
     except configparser.MissingSectionHeaderError:
         loaded = False
     getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
@@ -151,25 +151,21 @@ def load_config() -> bool:
 
 
 def _strip_config(config: dict[str, Any], default: dict[str, Any]) -> dict[str, Any]:
-    stripped = {}
-    for option, value in sorted(default.items()):
-        if config[option] != value:
-            stripped[option] = config[option]
-    return stripped
+    return {option: config[option] for option, value in default.items() if config[option] != value}
 
 
 def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
-    parser = configparser.ConfigParser()
     fix_config()
+    parser = configparser.ConfigParser()
     if config := _strip_config(CONFIG, DEFAULT_CONFIG):
         parser[NAME] = config
     for name, module in MODULES.items():
         module.fix_config()
         if config := _strip_config(module.CONFIG, module.DEFAULT_CONFIG):
             parser[name] = config
-    with open(INI_PATH, 'w') as file:
+    with open(CONFIG_PATH, 'w') as file:
         parser.write(file)
-    return os.path.isfile(INI_PATH)
+    return os.path.isfile(CONFIG_PATH)
 
 
 _arg_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -179,13 +175,13 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = files.join(TEMP_DIR, wallpaper.name)
     with _arg_lock(wallpaper.url):
-        utils.animate(RES_BUSY, STRINGS.STATUS_DOWNLOAD)
+        gui.start_animation(RES_BUSY, STRINGS.STATUS_DOWNLOAD)
         try:
             return temp_path if request.download(wallpaper.url, temp_path, wallpaper.size,
                                                  wallpaper.md5, wallpaper.sha256, chunk_count=100,
                                                  callback=query_callback, args=args, kwargs=kwargs) else None
         finally:
-            utils.inanimate(STRINGS.STATUS_DOWNLOAD)
+            gui.stop_animation(STRINGS.STATUS_DOWNLOAD)
 
 
 @misc.singleton_run
@@ -207,9 +203,11 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
         RECENT.appendleft(wallpaper)
         wallpaper.name = win32.sanitize_filename(wallpaper.name)
         if path := download_wallpaper(wallpaper, progress_callback, args, kwargs):
-            changed = win32.wallpaper.set(
-                path, *(CONFIG[CONFIG_DISPLAY],) if CONFIG[CONFIG_DISPLAY] else DISPLAYS,
-                transition=getattr(win32.wallpaper.Transition, CONFIG[CONFIG_TRANSITION]))
+            # noinspection PyArgumentList
+            changed = win32.wallpaper.set_multi(*(
+                win32.wallpaper.Wallpaper(path, display, transition=getattr(
+                    win32.wallpaper.Transition, CONFIG[CONFIG_TRANSITION]))
+                for display in (DISPLAYS if CONFIG[CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[CONFIG_DISPLAY],))))
     if progress_callback:
         progress_callback(100, *() if args is None else args, **{} if kwargs is None else kwargs)
     return changed
@@ -223,11 +221,11 @@ def save_wallpaper(path: str) -> bool:
 @misc.singleton_run
 def search_wallpaper(path: str) -> bool:
     searched = False
-    utils.animate(RES_BUSY, STRINGS.STATUS_SEARCH)
+    gui.start_animation(RES_BUSY, STRINGS.STATUS_SEARCH)
     if location := request.upload(GOOGLE_UPLOAD_URL, files={'encoded_image': (None, path)},
                                   redirect=False).getheader('location'):
         searched = webbrowser.open(location)
-    utils.inanimate(STRINGS.STATUS_SEARCH)
+    gui.stop_animation(STRINGS.STATUS_SEARCH)
     return searched
 
 
@@ -238,7 +236,7 @@ def on_open_url(url: str) -> bool:
 
 
 def on_copy_url(url: str) -> bool:
-    if not (copied := win32.copy_text(url)):
+    if not (copied := win32.clipboard.copy_text(url)):
         notify(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
     return copied
 
@@ -263,7 +261,7 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
     if not change_wallpaper.is_running():
         enable(False)
         menu_recent.Enable(False)
-        utils.animate(RES_BUSY, STRINGS.STATUS_CHANGE)
+        gui.start_animation(RES_BUSY, STRINGS.STATUS_CHANGE)
         if auto_change:
             on_auto_change(CONFIG[CONFIG_CHANGE])
         CONFIG[CONFIG_LAST] = time.time()
@@ -272,7 +270,7 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
                 on_click(save_wallpaper, files.join(TEMP_DIR, RECENT[0].name),
                          STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         set_label()
-        utils.inanimate(STRINGS.STATUS_CHANGE)
+        gui.stop_animation(STRINGS.STATUS_CHANGE)
         _update_recent(menu_recent)
         enable()
     if not changed:
@@ -304,45 +302,49 @@ def on_clear(enable: Callable):
 def _update_recent(menu):
     items = gui.get_menu_items(menu)
     for index, wallpaper in enumerate(RECENT):
-        label = f'{langs.to_str(index + 1, STRINGS)}. {misc.shrink_string_end(wallpaper.name, MAX_LABEL)}'
+        label = f'{langs.to_str(index + 1, STRINGS)}. {misc.shrink_string(wallpaper.name, MAX_LABEL)}'
         if wallpaper in items:
             menu_wallpaper = items[wallpaper.url]
             menu_wallpaper.SetItemLabel(label)
             gui.set_menu_item_position(menu_wallpaper, index, menu)
         else:
-            menu_wallpaper = utils.add_menu(label, uid=wallpaper.url, position=index, menu=menu)
-            utils.add_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
-                           on_thread=False, change_state=False, menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_SET_LOCK, on_click=on_click,
-                           args=(win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK),
-                           menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_SAVE, on_click=on_click,
-                           args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE), menu=menu_wallpaper)
-            utils.add_separator(menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
+            menu_wallpaper = gui.add_submenu(label, uid=wallpaper.url, position=index, menu=menu)
+            gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
+                              on_thread=False, change_state=False, menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
+                win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK,
+                STRINGS.FAIL_CHANGE_LOCK), menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click,
+                              args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE),
+                              menu=menu_wallpaper)
+            gui.add_separator(menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
                 win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,),
-                           menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,), menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
+                              menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,),
+                              menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
                 win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN), menu=menu_wallpaper)
             if FEATURE_OPEN_WITH:
-                utils.add_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
+                gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
                     win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH),
-                               menu=menu_wallpaper)
-            utils.add_separator(menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,), menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
-                           args=(win32.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH),
-                           menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_COPY, on_click=on_click,
-                           args=(win32.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY),
-                           menu=menu_wallpaper)
-            utils.add_separator(menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,), menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,), menu=menu_wallpaper)
-            utils.add_item(STRINGS.LABEL_SEARCH, on_click=on_click,
-                           args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
-                           menu=menu_wallpaper)
+                                  menu=menu_wallpaper)
+            gui.add_separator(menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,), menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
+                              args=(
+                                  win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH,
+                                  STRINGS.FAIL_COPY_PATH),
+                              menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_click,
+                              args=(win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY),
+                              menu=menu_wallpaper)
+            gui.add_separator(menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,), menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,), menu=menu_wallpaper)
+            gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click,
+                              args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,),
+                              menu=menu_wallpaper)
     if menu_items := tuple(menu_wallpaper for uid, menu_wallpaper in items.items() if uid and uid not in RECENT):
         gui.remove_menu_items(*menu_items, menu=menu)
     menu.Enable(bool(RECENT))
@@ -375,18 +377,17 @@ def _update_display():
 def on_update_display(menu, update: bool = True):
     if update:
         _update_display()
-    pad = len(str(len(DISPLAYS)))
     gui.remove_menu_items(menu=menu)
-    utils.add_item(f'{langs.to_str(0, STRINGS, pad)}. {STRINGS.DISPLAY_ALL}',
-                   utils.item.RADIO, CONFIG[CONFIG_DISPLAY] == DEFAULT_CONFIG[CONFIG_DISPLAY],
-                   uid=DEFAULT_CONFIG[CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
-                   menu_args=(utils.get_property.UID,), args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu)
-    utils.add_synced_items(menu, {
-        id_: f'{langs.to_str(index, STRINGS, pad)}. {win32.wallpaper.get_monitor_name(id_) or STRINGS.DISPLAY}'
+    gui.add_menu_item(f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}',
+                      gui.Item.RADIO, CONFIG[CONFIG_DISPLAY] == DEFAULT_CONFIG[CONFIG_DISPLAY],
+                      uid=DEFAULT_CONFIG[CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
+                      menu_args=(gui.Property.UID,), args=(CONFIG_DISPLAY,), pre_menu_args=False, menu=menu)
+    gui.add_mapped_submenu(menu, {
+        id_: f'{langs.to_str(index, STRINGS)}. {win32.wallpaper.get_monitor_name(id_) or STRINGS.DISPLAY}'
         for index, id_ in enumerate(DISPLAYS, 1)}, CONFIG, CONFIG_DISPLAY)
     if FEATURE_UPDATE_DISPLAY:
-        utils.add_separator(menu)
-        utils.add_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_update_display, args=(menu,), menu=menu)
+        gui.add_separator(menu)
+        gui.add_menu_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_update_display, args=(menu,), menu=menu)
     # TODO: add lock screen
 
 
@@ -483,7 +484,7 @@ def on_restart():
 
 def on_animate(checked: bool):
     CONFIG[CONFIG_ANIMATE] = checked
-    utils.pause_animation(not checked)
+    gui.disable_animation(not checked)
 
 
 # noinspection PyShadowingNames
@@ -494,11 +495,11 @@ def apply_auto_start(start: bool) -> bool:
 
 
 def apply_save_config(save: bool) -> bool:
-    return save_config() if save else files.remove(INI_PATH)
+    return save_config() if save else files.remove(CONFIG_PATH)
 
 
 def on_about():
-    utils.not_implemented(STRINGS.LABEL_ABOUT)
+    gui.show_balloon(STRINGS.LABEL_ABOUT, str(NotImplemented))
 
 
 def _is_running() -> bool:
@@ -509,18 +510,18 @@ def _is_running() -> bool:
 @timer.on_thread
 def on_quit():
     TIMER.stop()
-    utils.disable()
+    gui.disable_events()
     if _is_running():
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + win32.get_max_shutdown_time()
         while end_time > time.time() and _is_running():
             time.sleep(POLL_TIMEOUT)
-    utils.stop()
+    gui.stop_loop()
 
 
 def create_menu():  # TODO slideshow (smaller timer)
-    item_change = utils.add_item(STRINGS.LABEL_CHANGE)
-    menu_recent = utils.add_menu(STRINGS.MENU_RECENT, False)
+    item_change = gui.add_menu_item(STRINGS.LABEL_CHANGE)
+    menu_recent = gui.add_submenu(STRINGS.MENU_RECENT, False)
 
     def query_callback(progress: Optional[int] = None) -> bool:
         item_change.SetItemLabel(STRINGS.LABEL_CHANGE if progress is None else
@@ -528,59 +529,61 @@ def create_menu():  # TODO slideshow (smaller timer)
         return True  # TODO exploding width
 
     TIMER.__init__(0, on_change, (item_change.Enable, menu_recent, query_callback))
-    utils.add_separator(menu_recent)
-    utils.add_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(menu_recent.Enable,), menu=menu_recent)
+    gui.add_separator(menu_recent)
+    gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(menu_recent.Enable,), menu=menu_recent)
     _update_recent(menu_recent)
-    utils.on_item_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
-    utils.add_separator()
-    utils.add_item(MODULE.NAME, enable=False)
+    gui.on_menu_item_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
+    gui.add_separator()
+    gui.add_menu_item(MODULE.NAME, enable=False)
     MODULE.create_menu()
-    utils.add_separator()
-    menu_actions = utils.add_menu(STRINGS.MENU_ACTIONS)
-    menu_links = utils.add_menu(STRINGS.MENU_LINKS, menu=menu_actions)
-    utils.add_item(STRINGS.LABEL_DESKTOP, on_click=on_shortcut, menu=menu_links)
-    utils.add_item(STRINGS.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts, menu=menu_links)
-    utils.add_separator(menu_links)
-    utils.add_item(STRINGS.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_links)
-    utils.add_item(STRINGS.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_links)
-    utils.add_separator(menu_links)
-    utils.add_item(STRINGS.LABEL_PIN, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON, on_click=on_pin, menu=menu_links)
-    utils.add_item(STRINGS.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON, on_click=on_unpin,
-                   menu=menu_links)
-    utils.add_separator(menu_links)
-    unpin_enable = utils.add_item(STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
-                                  on_click=on_unpin_start, menu=menu_links).Enable
-    utils.add_item(STRINGS.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
-                   on_click=on_pin_start, menu_args=(utils.set_property.ENABLE,),
-                   args=(unpin_enable,), change_state=False, position=9, menu=menu_links)
-    utils.add_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
-    utils.add_item(STRINGS.LABEL_RESET, on_click=on_reset, menu=menu_actions)
-    utils.add_item(STRINGS.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
-    utils.add_item(STRINGS.LABEL_ABOUT, on_click=on_about, menu=menu_actions)
-    menu_auto = utils.add_menu(STRINGS.MENU_AUTO)
-    utils.add_synced_items(STRINGS.MENU_AUTO_CHANGE,
+    gui.add_separator()
+    menu_actions = gui.add_submenu(STRINGS.MENU_ACTIONS)
+    menu_links = gui.add_submenu(STRINGS.MENU_LINKS, menu=menu_actions)
+    gui.add_menu_item(STRINGS.LABEL_DESKTOP, on_click=on_shortcut, menu=menu_links)
+    gui.add_menu_item(STRINGS.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts, menu=menu_links)
+    gui.add_separator(menu_links)
+    gui.add_menu_item(STRINGS.LABEL_START_MENU, on_click=on_start_shortcut, menu=menu_links)
+    gui.add_menu_item(STRINGS.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts, menu=menu_links)
+    gui.add_separator(menu_links)
+    gui.add_menu_item(STRINGS.LABEL_PIN, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
+                      on_click=on_pin, menu=menu_links)
+    gui.add_menu_item(STRINGS.LABEL_UNPIN, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
+                      on_click=on_unpin, menu=menu_links)
+    gui.add_separator(menu_links)
+    unpin_enable = gui.add_menu_item(STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
+                                     on_click=on_unpin_start, menu=menu_links).Enable
+    gui.add_menu_item(STRINGS.LABEL_PIN_START, enable=pyinstall.FROZEN or FEATURE_PIN_PYTHON,
+                      on_click=on_pin_start, menu_args=(gui.Method.ENABLE,),
+                      args=(unpin_enable,), change_state=False, position=9, menu=menu_links)
+    gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache, menu=menu_actions)
+    gui.add_menu_item(STRINGS.LABEL_RESET, on_click=on_reset, menu=menu_actions)
+    gui.add_menu_item(STRINGS.LABEL_RESTART, on_click=on_restart, menu=menu_actions)
+    gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about, menu=menu_actions)
+    menu_settings = gui.add_submenu(STRINGS.MENU_SETTINGS)
+    menu_auto = gui.add_submenu(STRINGS.MENU_AUTO, menu=menu_settings)
+    gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE,
                            {str(interval): getattr(STRINGS, f'TIME_{interval}') for interval in INTERVALS},
                            CONFIG, CONFIG_CHANGE, on_click=on_auto_change, menu=menu_auto)
-    utils.add_separator(menu_auto)
-    utils.add_synced_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, CONFIG_AUTOSAVE, menu_auto)
-    utils.add_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu=menu_auto)
-    menu_settings = utils.add_menu(STRINGS.MENU_SETTINGS)
-    menu_display = utils.add_menu(STRINGS.MENU_DISPLAY, menu=menu_settings)
-    on_update_display(menu_display, False)
-    utils.add_synced_items(STRINGS.MENU_MODULE,
-                           {name: f'{name}\t{module.__version__}' for name, module in MODULES.items()},
-                           CONFIG, CONFIG_MODULE, on_click=lambda _: on_restart(), menu=menu_settings)
-    utils.add_synced_items(STRINGS.MENU_TRANSITION, {
+    gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP, menu_auto)
+    gui.add_separator(menu_auto)
+    gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, CONFIG_AUTOSAVE, menu_auto)
+    gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu=menu_auto)
+    gui.add_mapped_submenu(STRINGS.MENU_TRANSITION, {
         str(transition): getattr(STRINGS, f'TRANSITION_{transition}')
         for transition in win32.wallpaper.Transition}, CONFIG, CONFIG_TRANSITION, menu=menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP, menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)
-    utils.add_item(STRINGS.LABEL_ANIMATE, utils.item.CHECK, CONFIG[CONFIG_ANIMATE],
-                   on_click=on_animate, menu_args=(utils.get_property.CHECKED,), menu=menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_CACHE, CONFIG, CONFIG_CACHE, menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_START, CONFIG, CONFIG_START, menu_settings)
-    utils.add_synced_item(STRINGS.LABEL_CONFIG, CONFIG, CONFIG_SAVE, menu_settings)
-    utils.add_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False)
+    menu_display = gui.add_submenu(STRINGS.MENU_DISPLAY, menu=menu_settings)
+    on_update_display(menu_display, False)
+    gui.add_mapped_submenu(STRINGS.MENU_MODULE,
+                           {name: f'{name}\t{module.__version__}' for name, module in MODULES.items()},
+                           CONFIG, CONFIG_MODULE, on_click=lambda _: on_restart(), menu=menu_settings)
+    gui.add_separator(menu_settings)
+    gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY, menu_settings)
+    gui.add_menu_item(STRINGS.LABEL_ANIMATE, gui.Item.CHECK, CONFIG[CONFIG_ANIMATE],
+                      on_click=on_animate, menu_args=(gui.Property.CHECKED,), menu=menu_settings)
+    gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CONFIG, CONFIG_CACHE, menu_settings)
+    gui.add_mapped_menu_item(STRINGS.LABEL_START, CONFIG, CONFIG_START, menu_settings)
+    gui.add_mapped_menu_item(STRINGS.LABEL_CONFIG, CONFIG, CONFIG_SAVE, menu_settings)
+    gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False)
 
 
 def start():  # TODO dark theme
@@ -589,7 +592,7 @@ def start():  # TODO dark theme
                    on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if ARG_DEBUG in sys.argv:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
-        log.init(os.path.basename(__file__), os.path.basename(utils.__file__),
+        log.init(os.path.basename(__file__),
                  misc.re_join('libs', r'.*\.py'), misc.re_join('modules', r'.*\.py'),
                  misc.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
@@ -608,7 +611,7 @@ def start():  # TODO dark theme
     if ARG_CHANGE in sys.argv or (CONFIG[CONFIG_CHANGE] and after <= 0):
         on_change(*TIMER.args, auto_change=False)
     on_auto_change(CONFIG[CONFIG_CHANGE], None if after <= 0 else after)
-    utils.start(RES_TRAY, NAME, on_change, TIMER.args)
+    gui.start_loop(RES_TRAY, NAME, on_change, TIMER.args)
 
 
 def stop():
@@ -631,7 +634,7 @@ def main():
     multiprocessing.set_start_method('spawn')
     exitcode = RESTART_CODE
     while exitcode == RESTART_CODE:
-        process = multiprocessing.Process(target=run, daemon=True)
+        process = multiprocessing.Process(target=run, name=f'{NAME}-{__version__}', daemon=True)
         process.start()
         process.join()
         exitcode = process.exitcode

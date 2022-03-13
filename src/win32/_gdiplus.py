@@ -39,16 +39,16 @@ class Graphics(_GdiplusBase):
     def dpi_x(self) -> float:
         if self._dpi_x is None:
             dpi_x = ctyped.type.REAL()
-            ctyped.func.GdiPlus.GdipGetDpiX(self, ctyped.byref(dpi_x))
-            self._dpi_x = dpi_x.value
+            if not ctyped.func.GdiPlus.GdipGetDpiX(self, ctyped.byref(dpi_x)):
+                self._dpi_x = dpi_x.value
         return self._dpi_x
 
     @property
     def dpi_y(self) -> float:
         if self._dpi_y is None:
             dpi_y = ctyped.type.REAL()
-            ctyped.func.GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y))
-            self._dpi_y = dpi_y.value
+            if not ctyped.func.GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y)):
+                self._dpi_y = dpi_y.value
         return self._dpi_y
 
     @classmethod
@@ -135,16 +135,16 @@ class Image(_GdiplusBase):
     def width(self) -> int:
         if self._width is None:
             width = ctyped.type.UINT()
-            ctyped.func.GdiPlus.GdipGetImageWidth(self, ctyped.byref(width))
-            self._width = width.value
+            if not ctyped.func.GdiPlus.GdipGetImageWidth(self, ctyped.byref(width)):
+                self._width = width.value
         return self._width
 
     @property
     def height(self) -> int:
         if self._height is None:
             height = ctyped.type.UINT()
-            ctyped.func.GdiPlus.GdipGetImageHeight(self, ctyped.byref(height))
-            self._height = height.value
+            if not ctyped.func.GdiPlus.GdipGetImageHeight(self, ctyped.byref(height)):
+                self._height = height.value
         return self._height
 
     @classmethod

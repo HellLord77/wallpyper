@@ -1,24 +1,22 @@
+import collections
 import concurrent.futures
 import contextlib
-import functools
 import ntpath
 import operator
 import os
 import random
 import tempfile
-import threading
 import time
 import typing
 import winreg
 from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
-from . import _utils, gdiplus
+from . import _utils, _gdiplus
 
 _HWND_RETRY = 5
 _DELETE_TEMP_AFTER = 0.5
-_USE_TEMP_FILE = True
-_TEMP_FILE = 'wallpaper{}.jpg'
+_TEMP_FILE = '{}.jpg'
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 
 TEMP_DIR = tempfile.gettempdir()
@@ -328,7 +326,7 @@ def _get_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
             return ()
 
 
-def get(monitor: str = None) -> str:
+def get(monitor: Optional[str] = None) -> str:
     return ((_get_param() or _get_iactivedesktop())
             if monitor is None else _get_idesktopwallpaper(monitor)[0])
 
@@ -376,34 +374,30 @@ def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
 
 
 def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,  # FIXED _USE_TEMP_FILE (Style.CENTER scales to 95%)
-                     pos: int = Style.FILL) -> tuple[int, int, int, int]:
-    if pos == Style.CENTER:
+                     style: int = Style.FILL) -> tuple[int, int, int, int]:
+    if style == Style.CENTER:
         dw = src_w - w
         dh = src_h - h
         return int(dw / 2), int(dh / 2), src_w - dw, src_h - dh
-    elif pos in (Style.TILE, Style.STRETCH):
+    elif style in (Style.TILE, Style.STRETCH):
         return 0, 0, src_w, src_h
-    elif pos == Style.FIT:
+    elif style == Style.FIT:
         return _fit_by(src_w, src_h, w, h, w / src_w > h / src_h)
-    elif pos == Style.FILL:
+    elif style == Style.FILL:
         return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h, 3)
-    elif pos == Style.SPAN:
+    elif style == Style.SPAN:
         return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h)
     return 0, 0, 0, 0
 
 
-_src_lock = functools.lru_cache(lambda _: threading.Lock())
-
-
-def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: gdiplus.Bitmap,
+def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
                   src_x: int, src_y: int, src_w: int, src_h: int, path: str) -> ctyped.handle.HDC:
-    bitmap = gdiplus.Bitmap.from_dimension(width, height)
+    bitmap = _gdiplus.Bitmap.from_dimension(width, height)
     graphics = bitmap.get_graphics()
     graphics.fill_rect_with_color(color, 0, 0, width, height)
     graphics.set_scale(width / src_w, height / src_h)
-    with _src_lock(src):
-        src.set_resolution(graphics.dpi_x, graphics.dpi_y)
-        graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
+    src.set_resolution(graphics.dpi_x, graphics.dpi_y)
+    graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
     if path:
         bitmap.save(path)
     return bitmap.get_hbitmap().get_hdc()
@@ -419,13 +413,12 @@ def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_
     return True
 
 
-def _draw_on_workerw(image: gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,  # TODO randomly skipped
-                     src_x: int, src_y: int, src_w: int, src_h: int, color: ctyped.type.ARGB = 0,
-                     transition: int = Transition.DISABLED, duration: float = 0, temp_path: Optional[str] = None):
+def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,  # TODO randomly skipped
+                     src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
+                     color: ctyped.type.ARGB = 0, transition: int = Transition.DISABLED, duration: float = 0):
     if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
-        src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h,
-                            '' if temp_path is None else temp_path)
+        src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
         if transition != Transition.DISABLED:
             if transition == Transition.RANDOM:
                 transition = Transition.get_random(Transition.DISABLED, Transition.RANDOM)
@@ -500,40 +493,34 @@ def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ct
     return False
 
 
-def _set(image: gdiplus.Bitmap, monitor_x_y_w_h: tuple[int, int, int, int], style: int,
+def _set(image: _gdiplus.Bitmap, monitor_x_y_w_h: tuple[int, int, int, int], style: int,
          argb: int, rgb: int, transition: int, duration: int, path: str, monitor: Optional[str]):
     # noinspection PyTypeChecker
     _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
-                     argb, transition, duration, path if _USE_TEMP_FILE else None)
+                     path, argb, transition, duration)
     try:
         return _set_idesktopwallpaper(path, monitor, rgb, style)
     finally:
-        if _USE_TEMP_FILE:
-            time.sleep(_DELETE_TEMP_AFTER)
-            ctyped.func.kernel32.DeleteFileW(path)
+        time.sleep(_DELETE_TEMP_AFTER)
+        ctyped.func.kernel32.DeleteFileW(path)
 
 
 # noinspection PyShadowingBuiltins
-def set(path: str, *monitors: str, style: int = Style.DEFAULT, r: int = 0,
-        g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
-    if style in (Style.DEFAULT, default_style := get_style()):
-        style = default_style
-        if style is None:
-            return False
-        path_ = path.casefold()
-        for path__ in _get_idesktopwallpaper(*monitors):
-            if path_ != path__.casefold():
-                break
-        else:
-            return True
-    if image := gdiplus.Bitmap.from_file(path):
+def set(path: str, *monitors: str, fade: bool = True):
+    return _set_idesktopwallpaper(path, *monitors) if monitors else _set_iactivedesktop(
+        path, fade) if fade else _set_param(path)
+
+
+def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.DEFAULT,
+           r: int = 0, g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
+    if (style != Style.DEFAULT or (style := get_style()) is not None) and (image := _gdiplus.Bitmap.from_file(path)):
         if style in (Style.TILE, Style.SPAN):
-            monitors = None,
-            monitors_x_y_w_h = (0, 0, ctyped.func.user32.GetSystemMetrics(
+            monitor = 'DISPLAY',
+            monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
-                ctyped.const.SM_CYVIRTUALSCREEN)),
+                ctyped.const.SM_CYVIRTUALSCREEN)
             if style == Style.TILE:
-                bitmap = gdiplus.Bitmap.from_dimension(*monitors_x_y_w_h[0][2:])
+                bitmap = _gdiplus.Bitmap.from_dimension(*monitor_x_y_w_h[2:])
                 graphics = bitmap.get_graphics()
                 image.set_resolution(graphics.dpi_x, graphics.dpi_y)
                 for x in range(0, bitmap.width, image.width):
@@ -541,19 +528,29 @@ def set(path: str, *monitors: str, style: int = Style.DEFAULT, r: int = 0,
                         graphics.draw_image(image, x, y)
                 image = bitmap
         else:
-            monitors_x_y_w_h = tuple(_get_monitor_x_y_w_h(monitor) for monitor in monitors)
-        argb = _get_argb(r, g, b)
-        rgb = ctyped.macro.RGB(r, g, b)
-        if _USE_TEMP_FILE:
-            os.makedirs(TEMP_DIR, exist_ok=True)
-            path = os.path.join(TEMP_DIR, _TEMP_FILE)
-        futures = []
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            for index, (monitor, monitor_x_y_w_h) in enumerate(zip(monitors, monitors_x_y_w_h)):
-                futures.append(executor.submit(_set, image, monitor_x_y_w_h, style, argb, rgb, transition, duration,
-                                               path.format(index) if _USE_TEMP_FILE else path, monitor))
-        return all(future.result() for future in futures)
+            monitor_x_y_w_h = _get_monitor_x_y_w_h(monitor)
+        os.makedirs(TEMP_DIR, exist_ok=True)
+        temp_path = os.path.join(TEMP_DIR, _TEMP_FILE).format(_utils.sanitize_filename(monitor))
+        # noinspection PyTypeChecker
+        _draw_on_workerw(image, *monitor_x_y_w_h,
+                         *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
+                         temp_path, _get_argb(r, g, b), transition, duration)
+        try:
+            return _set_idesktopwallpaper(temp_path, monitor, ctyped.macro.RGB(r, g, b), style)
+        finally:
+            time.sleep(_DELETE_TEMP_AFTER)
+            ctyped.func.kernel32.DeleteFileW(temp_path)
     return False
+
+
+Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'transition', 'duration'),
+                                   defaults=(Style.DEFAULT, 0, 0, 0, Transition.FADE, 1))
+
+
+def set_multi(*wallpapers: Wallpaper):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = tuple(executor.submit(set_ex, *wallpaper) for wallpaper in wallpapers)
+    return all(future.result() for future in futures)
 
 
 def set_lock(path: str) -> bool:

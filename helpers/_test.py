@@ -14,8 +14,7 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
 import libs.ctyped as ctyped
-import win32
-import win32.gdiplus as gdiplus
+import win32._gdiplus as gdiplus
 
 
 def exception_handler(excepthook: Callable, *args, **kwargs):
@@ -333,10 +332,8 @@ def _test_():
 
 
 def _test():
-    path = r'C:\Users\ratul\AppData\Local\Temp\E7BF96E18754D71E41B32A8EDCDE9E2F1DBAF47C7CD05D6D0764CD4E4EA5066.png'
-    bmp = win32.gdiplus.Bitmap.from_file(path)
-    print(bmp, bool(bmp), bmp._valid)
-    pass
+    import modules.wallhaven as wallhaven
+    print(wallhaven._authenticate('38QakOzgfHIohe1JO0f3aoQIbm1pKYK'))
 
 
 if __name__ == '__main__':

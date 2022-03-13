@@ -11,14 +11,14 @@ import libs.request as request
 import utils
 from langs import LANGUAGE as STRINGS
 
+NAME = 'spotlight'
+BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
+
 CONFIG_LOCALE = 'pl'
 CONFIG_ORIENTATION = '_orientation'
 
 LOCALES = 'en-US', 'de-DE', 'fr-FR', 'zh-CN', 'es-ES', 'ru-RU', 'en-GB', 'bn-IN', 'da-DK'
 ORIENTATIONS = 'landscape', 'portrait'
-
-NAME = 'spotlight'
-BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
 DEFAULT_CONFIG = {CONFIG_LOCALE: LOCALES[0],
                   CONFIG_ORIENTATION: ORIENTATIONS[0]}
@@ -52,7 +52,7 @@ def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, N
 
 
 def create_menu():
-    utils.add_synced_items(STRINGS.SPOTLIGHT_LABEL_LOCALE, {locale: '\t'.join(locales.Locale.get(
+    utils.add_synced_items(STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: '\t'.join(locales.Locale.get(
         *locale.split('-')).name.split(' - ')[::-1]) for locale in LOCALES}, CONFIG, CONFIG_LOCALE)
-    utils.add_synced_items(STRINGS.SPOTLIGHT_LABEL_ORIENTATION, {orientation: getattr(
+    utils.add_synced_items(STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
         STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS}, CONFIG, CONFIG_ORIENTATION)
