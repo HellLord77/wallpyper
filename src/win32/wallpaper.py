@@ -59,7 +59,6 @@ class _IntEnum(type):
 
 
 class Style(metaclass=_IntEnum):
-    DEFAULT = -1
     FILL = ctyped.const.WPSTYLE_CROPTOFIT
     FIT = ctyped.const.WPSTYLE_KEEPASPECT
     STRETCH = ctyped.const.WPSTYLE_STRETCH
@@ -511,11 +510,11 @@ def set(path: str, *monitors: str, fade: bool = True):
         path, fade) if fade else _set_param(path)
 
 
-def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.DEFAULT,
+def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
            r: int = 0, g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
-    if (style != Style.DEFAULT or (style := get_style()) is not None) and (image := _gdiplus.Bitmap.from_file(path)):
+    if image := _gdiplus.Bitmap.from_file(path):
         if style in (Style.TILE, Style.SPAN):
-            monitor = 'DISPLAY',
+            monitor = 'DISPLAY'
             monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
                 ctyped.const.SM_CYVIRTUALSCREEN)
@@ -536,7 +535,8 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.DEFAULT,
                          *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
                          temp_path, _get_argb(r, g, b), transition, duration)
         try:
-            return _set_idesktopwallpaper(temp_path, monitor, ctyped.macro.RGB(r, g, b), style)
+            return _set_idesktopwallpaper(temp_path, monitor, ctyped.macro.RGB(r, g, b),
+                                          style if style in (Style.TILE, Style.SPAN) else Style.FILL)
         finally:
             time.sleep(_DELETE_TEMP_AFTER)
             ctyped.func.kernel32.DeleteFileW(temp_path)
@@ -544,7 +544,7 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.DEFAULT,
 
 
 Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'transition', 'duration'),
-                                   defaults=(Style.DEFAULT, 0, 0, 0, Transition.FADE, 1))
+                                   defaults=(Style.FILL, 0, 0, 0, Transition.FADE, 1))
 
 
 def set_multi(*wallpapers: Wallpaper):

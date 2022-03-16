@@ -5,6 +5,7 @@ from typing import Generator, Optional
 
 import libs.files as files
 import libs.locales as locales
+import libs.misc as misc
 import libs.request as request
 import utils
 from langs import LANGUAGE as STRINGS
@@ -38,6 +39,7 @@ def fix_config():
         CONFIG[CONFIG_RESOLUTION] = DEFAULT_CONFIG[CONFIG_RESOLUTION]
 
 
+@misc.one_cache
 def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, None]:
     images: Optional[list] = None
     params['format'] = 'js'

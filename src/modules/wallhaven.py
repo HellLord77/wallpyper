@@ -6,6 +6,7 @@ from typing import Callable, Generator, Optional
 
 import libs.files as files
 import libs.gui as gui
+import libs.misc as misc
 import libs.request as request
 import utils
 from langs import LANGUAGE as STRINGS
@@ -59,6 +60,7 @@ def fix_config():
         CONFIG[CONFIG_RANGE] = DEFAULT_CONFIG[CONFIG_RANGE]
 
 
+@misc.one_cache
 def get_next_wallpaper(**params: str) -> Generator[Optional[files.File], None, None]:
     search_datas: Optional[list] = None
     meta = {

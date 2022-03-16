@@ -427,7 +427,7 @@ def time_cache(secs: float = math.inf, size: int = math.inf) -> Callable[[Callab
                         del cache[0]
             return cached[1]
 
-        wrapper.reset = cache.clear()
+        wrapper.reset = cache.clear
         return wrapper
 
     return time_cache_
@@ -492,14 +492,15 @@ def queue_run_ex(func: Callable) -> Callable:
     return wrapper
 
 
-class _SingletonCallable(Protocol):
+# noinspection PyProtocol
+class SingletonCallable(Callable, Protocol):
     is_running: Callable[[], bool]
 
     def __call__(self, *args, **kwargs):
         pass
 
 
-def singleton_run(func: Callable) -> _SingletonCallable:
+def singleton_run(func: Callable) -> SingletonCallable:
     running = threading.Event()
 
     @functools.wraps(func)
