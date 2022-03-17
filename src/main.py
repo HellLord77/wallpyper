@@ -45,9 +45,10 @@ ARG_WAIT = 'wait'
 CONFIG_ANIMATE = 'animate_icon'
 CONFIG_AUTOSAVE = 'auto_save'
 CONFIG_CACHE = 'image_cache'
-CONFIG_CHANGE = 'auto_change'
+CONFIG_INTERVAL = 'change_interval'
 CONFIG_DIR = 'save_dir'
 CONFIG_DISPLAY = 'selected_display'
+CONFIG_FIRST = '_first_run'
 CONFIG_LAST = '_last_changed'
 CONFIG_MODULE = 'active_module'
 CONFIG_NOTIFY = 'notify_errors'
@@ -55,7 +56,7 @@ CONFIG_RECENT = '_recent_list'
 CONFIG_SAVE = 'save_settings'
 CONFIG_SKIP = 'skip_recent'
 CONFIG_START = 'auto_start'
-CONFIG_STYLE = 'wallpaper_style'
+CONFIG_STYLE = 'wallpaper_fit'
 CONFIG_TRANSITION = 'wallpaper_transition'
 
 RESTART_CODE = 123
@@ -84,6 +85,7 @@ DEFAULT_CONFIG = {
     CONFIG_LAST: math.inf,
     CONFIG_RECENT: misc.encrypt(RECENT, True),
     CONFIG_DISPLAY: ALL_DISPLAY,
+    CONFIG_FIRST: True,
     CONFIG_AUTOSAVE: False,
     CONFIG_SKIP: False,
     CONFIG_NOTIFY: True,
@@ -91,7 +93,7 @@ DEFAULT_CONFIG = {
     CONFIG_CACHE: False,
     CONFIG_START: False,
     CONFIG_SAVE: False,
-    CONFIG_CHANGE: INTERVALS[0],
+    CONFIG_INTERVAL: INTERVALS[0],
     CONFIG_MODULE: MODULE.NAME,
     CONFIG_DIR: files.join(win32.PICTURES_DIR, NAME),
     CONFIG_STYLE: win32.wallpaper.Style[win32.wallpaper.Style.FILL],
@@ -104,23 +106,30 @@ def notify(title: str, text: str):
         gui.show_balloon(title, text)
 
 
+def _fix_config(key: str, itt: Iterable):
+    val = CONFIG[key]
+    if is_str := isinstance(val, str):
+        val = val.casefold()
+    for val_ in itt:
+        if val == (val_.casefold() if is_str else val_):
+            CONFIG[key] = val_
+            break
+    else:
+        CONFIG[key] = DEFAULT_CONFIG[key]
+
+
 def fix_config(loaded: bool = True):
-    if CONFIG[CONFIG_STYLE] not in win32.wallpaper.Style:
-        CONFIG[CONFIG_STYLE] = DEFAULT_CONFIG[CONFIG_STYLE]
-    if CONFIG[CONFIG_TRANSITION] not in win32.wallpaper.Transition:
-        CONFIG[CONFIG_TRANSITION] = DEFAULT_CONFIG[CONFIG_TRANSITION]
+    _fix_config(CONFIG_STYLE, win32.wallpaper.Style)
+    _fix_config(CONFIG_TRANSITION, win32.wallpaper.Transition)
     if loaded:
-        CONFIG[CONFIG_RECENT] = misc.encrypt(RECENT, True)
-    if CONFIG[CONFIG_DISPLAY] not in DISPLAYS:
-        CONFIG[CONFIG_DISPLAY] = DEFAULT_CONFIG[CONFIG_DISPLAY]
+        CONFIG[CONFIG_RECENT] = f'\n{misc.encrypt(RECENT, True)}'
+    _fix_config(CONFIG_DISPLAY, DISPLAYS)
     if CONFIG[CONFIG_LAST] > time.time():
         CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[CONFIG_LAST]
-    if CONFIG[CONFIG_CHANGE] not in INTERVALS:
-        CONFIG[CONFIG_CHANGE] = DEFAULT_CONFIG[CONFIG_CHANGE]
+    _fix_config(CONFIG_INTERVAL, INTERVALS)
     if not CONFIG[CONFIG_DIR]:  # TODO: is_path_exists_or_creatable
         CONFIG[CONFIG_DIR] = DEFAULT_CONFIG[CONFIG_DIR]
-    if CONFIG[CONFIG_MODULE] not in MODULES:
-        CONFIG[CONFIG_MODULE] = DEFAULT_CONFIG[CONFIG_MODULE]
+    _fix_config(CONFIG_MODULE, MODULES)
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool, tuple, list, set]]],
@@ -155,7 +164,7 @@ def load_config() -> bool:
 
 
 def _strip_config(config: dict[str, Any], default: dict[str, Any]) -> dict[str, Any]:
-    return {option: config[option] for option, value in default.items() if config[option] != value}
+    return {option: config[option] for option, value in sorted(default.items()) if config[option] != value}
 
 
 def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
@@ -170,6 +179,13 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
     with open(CONFIG_PATH, 'w') as file:
         parser.write(file)
     return os.path.isfile(CONFIG_PATH)
+
+
+@timer.on_thread
+def first_run():  # FIXME my icon
+    while not gui.is_running():
+        time.sleep(POLL_TIMEOUT)
+    CONFIG[CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST, gui.Icon.INFORMATION)
 
 
 _arg_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -197,9 +213,9 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
         progress_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if not wallpaper:
         wallpapers = set()
+        config = {key: val for key, val in MODULE.CONFIG.items() if not key.startswith('_')}
         while (wallpaper := next(MODULE.get_next_wallpaper(
-                **{key: val for key, val in MODULE.CONFIG.items() if not key.startswith(
-                    '_')}))) and CONFIG[CONFIG_SKIP] and wallpaper in RECENT and wallpaper not in wallpapers:
+                **config))) and CONFIG[CONFIG_SKIP] and wallpaper in RECENT and wallpaper not in wallpapers:
             wallpapers.add(wallpaper)
     if wallpaper:
         with contextlib.suppress(ValueError):
@@ -267,11 +283,10 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
         menu_recent.Enable(False)
         gui.start_animation(RES_BUSY, STRINGS.STATUS_CHANGE)
         if auto_change:
-            on_auto_change(CONFIG[CONFIG_CHANGE])
+            on_auto_change(CONFIG[CONFIG_INTERVAL])
         CONFIG[CONFIG_LAST] = time.time()
-        if changed := change_wallpaper(wallpaper, set_label):
-            if CONFIG[CONFIG_AUTOSAVE]:
-                on_click(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE, False)
+        if (changed := change_wallpaper(wallpaper, set_label)) and CONFIG[CONFIG_AUTOSAVE]:
+            on_click(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         set_label()
         gui.stop_animation(STRINGS.STATUS_CHANGE)
         _update_recent(menu_recent)
@@ -281,14 +296,13 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
     return changed
 
 
-def on_click(callback: misc.SingletonCallable[[str], bool], wallpaper: files.File,
-             title: str, text: str, download: bool = True) -> bool:
+def on_click(callback: misc.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
     except AttributeError:
         running = False
-    if not running and (path := download_wallpaper(wallpaper) if download else files.join(TEMP_DIR, wallpaper.name)):
+    if not running and (path := download_wallpaper(wallpaper)):
         with contextlib.suppress(BaseException):
             success = callback(path)
     if not success:
@@ -302,52 +316,53 @@ def on_clear(enable: Callable):
 
 
 def _update_recent(menu):
-    items = gui.get_menu_items(menu)
-    for index, wallpaper in enumerate(RECENT):
-        label = f'{langs.to_str(index + 1, STRINGS)}. {misc.shrink_string(wallpaper.name, MAX_LABEL)}'
-        if wallpaper in items:
-            menu_wallpaper = items[wallpaper.url]
-            menu_wallpaper.SetItemLabel(label)
-            gui.set_menu_item_position(menu_wallpaper, index, menu)
-        else:
-            with gui.set_main_menu(gui.add_submenu(label, uid=wallpaper.url, position=index, menu=menu)):
-                gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
-                                  on_thread=False, change_state=False)
-                gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
-                    win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK,
-                    STRINGS.FAIL_CHANGE_LOCK))
-                gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click,
-                                  args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE))
-                gui.add_separator()
-                gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
-                    win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,))
-                gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,))
-                gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
-                    win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN))
-                if FEATURE_OPEN_WITH:
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
-                        win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH))
-                gui.add_separator()
-                gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,))
-                gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
-                                  args=(win32.clipboard.copy_text, wallpaper,
-                                        STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH))
-                gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_click,
-                                  args=(win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY))
-                gui.add_separator()
-                gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,))
-                gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,))
-                gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click,
-                                  args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,))
-    if menu_items := tuple(menu_wallpaper for uid, menu_wallpaper in items.items() if uid and uid not in RECENT):
-        gui.remove_menu_items(menu_items, menu)
+    with gui.set_main_menu(menu):
+        items = gui.get_menu_items()
+        for index, wallpaper in enumerate(RECENT):
+            label = f'{langs.to_str(index + 1, STRINGS)}. {misc.shrink_string(wallpaper.name, MAX_LABEL)}'
+            if wallpaper in items:
+                menu_wallpaper = items[wallpaper.url]
+                menu_wallpaper.SetItemLabel(label)
+                gui.set_menu_item_position(menu_wallpaper, index)
+            else:
+                with gui.set_main_menu(gui.add_submenu(label, uid=wallpaper.url, position=index)):
+                    gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
+                                      on_thread=False, change_state=False)
+                    gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
+                        win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK,
+                        STRINGS.FAIL_CHANGE_LOCK))
+                    gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click,
+                                      args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE))
+                    gui.add_separator()
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
+                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
+                        win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN))
+                    if FEATURE_OPEN_WITH:
+                        gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
+                            win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH))
+                    gui.add_separator()
+                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,))
+                    gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
+                                      args=(win32.clipboard.copy_text, wallpaper,
+                                            STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH))
+                    gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_click, args=(
+                        win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY))
+                    gui.add_separator()
+                    gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,))
+                    gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,))
+                    gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click,
+                                      args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,))
+        if menu_items := tuple(menu_wallpaper for uid, menu_wallpaper in items.items() if uid and uid not in RECENT):
+            gui.remove_menu_items(menu_items)
     menu.Enable(bool(RECENT))
 
 
 def on_auto_change(interval: Union[int, str], after: Optional[float] = None):
     if isinstance(interval, str):
         interval = int(interval)
-    CONFIG[CONFIG_CHANGE] = interval
+    CONFIG[CONFIG_INTERVAL] = interval
     if interval:
         TIMER.set_next_interval(interval)
         TIMER.start(after)
@@ -493,7 +508,7 @@ def on_about():
 
 def apply_auto_start(start_: bool) -> bool:
     return win32.register_autorun(
-        NAME, *_get_launch_args(), *((ARG_CHANGE,) if CONFIG[CONFIG_CHANGE] else ()),
+        NAME, *_get_launch_args(), *((ARG_CHANGE,) if CONFIG[CONFIG_INTERVAL] else ()),
         show=pyinstall.FROZEN, uid=UUID) if start_ else win32.unregister_autorun(NAME, UUID)
 
 
@@ -560,8 +575,7 @@ def create_menu():  # TODO slideshow (smaller timer)
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_AUTO)):
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE,
                                    {str(interval): getattr(STRINGS, f'TIME_{interval}') for interval in INTERVALS},
-                                   CONFIG, CONFIG_CHANGE, on_click=on_auto_change)
-            gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP)
+                                   CONFIG, CONFIG_INTERVAL, on_click=on_auto_change)
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, CONFIG_AUTOSAVE)
             gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save)
@@ -577,8 +591,9 @@ def create_menu():  # TODO slideshow (smaller timer)
                                {name: f'{name}\t{module.__version__}' for name, module in MODULES.items()},
                                CONFIG, CONFIG_MODULE, on_click=on_module, args=(menu_module,))
         gui.add_separator()
-        gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY)
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, CONFIG_ANIMATE, gui.enable_animation)
+        gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY)
+        gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CONFIG, CONFIG_CACHE)
         gui.add_mapped_menu_item(STRINGS.LABEL_START, CONFIG, CONFIG_START)
         gui.add_mapped_menu_item(STRINGS.LABEL_CONFIG, CONFIG, CONFIG_SAVE)
@@ -603,10 +618,12 @@ def start():  # TODO dark theme
     gui.enable_animation(CONFIG[CONFIG_ANIMATE])
     apply_auto_start(CONFIG[CONFIG_START])
     apply_save_config(CONFIG[CONFIG_SAVE])
-    after = CONFIG[CONFIG_CHANGE] + CONFIG[CONFIG_LAST] - time.time()
-    if ARG_CHANGE in sys.argv or (CONFIG[CONFIG_CHANGE] and after <= 0):
+    after = CONFIG[CONFIG_INTERVAL] + CONFIG[CONFIG_LAST] - time.time()
+    if ARG_CHANGE in sys.argv or (CONFIG[CONFIG_INTERVAL] and after <= 0):
         on_change(*TIMER.args, auto_change=False)
-    on_auto_change(CONFIG[CONFIG_CHANGE], None if after <= 0 else after)
+    on_auto_change(CONFIG[CONFIG_INTERVAL], None if after <= 0 else after)
+    if CONFIG[CONFIG_FIRST]:
+        first_run()
     gui.start_loop(RES_TRAY, NAME, on_change, TIMER.args)
 
 
