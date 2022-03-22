@@ -14,7 +14,8 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Union
 from typing import Optional
 
 import libs.ctyped as ctyped
-import win32._gdiplus as gdiplus
+import win32._gdiplus as _gdiplus
+import win32._utils as _utils
 
 
 def exception_handler(excepthook: Callable, *args, **kwargs):
@@ -37,8 +38,8 @@ EVENT_CLOSE = ctyped.const.WM_CLOSE
 
 
 def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
-    graphics = gdiplus.Graphics.from_hdc(hdc)
-    brush = gdiplus.SolidFill.from_color(argb)
+    graphics = _gdiplus.Graphics.from_hdc(hdc)
+    brush = _gdiplus.SolidFill.from_color(argb)
     if out_x < in_x:
         graphics.fill_rect(brush, out_x, out_y, in_x - out_x, out_h)
     if out_y < in_y:
@@ -50,7 +51,7 @@ def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, ar
 
 
 def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
-    bitmap = gdiplus.Bitmap.from_file(path)
+    bitmap = _gdiplus.Bitmap.from_file(path)
     delays: ctyped.Pointer[ctyped.type.c_long] = bitmap.get_property(ctyped.const.PropertyTagFrameDelay)
     for index in bitmap.iter_frames():
         yield delays[index] * 10, bitmap.get_hicon()
@@ -81,15 +82,15 @@ class Icon:
 
 
 class SysTray:
-    _binds: dict[int, dict[int, tuple[Callable, tuple, dict]]] = {0: {}}
-    _wm_taskbar_created = ctyped.func.user32.RegisterWindowMessageW('TaskbarCreated')
+    _binds: dict[int, dict[int, tuple[Callable, Iterable, Mapping]]] = {0: {}}
+    _wm_taskbar_created = ctyped.lib.User32.RegisterWindowMessageW('TaskbarCreated')
     _class = None
     _flags = ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP
     _frames = None
     _hicon = None
     _hwnd = None
     _shown = False
-    _to_del = True
+    _deleted = False
     _uid = 0
     _selves: dict[int, SysTray] = {}
 
@@ -97,10 +98,10 @@ class SysTray:
         if not cls._hwnd:
             cls._class = ctyped.struct.WNDCLASSEXW(
                 ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(cls._callback),
-                hInstance=ctyped.func.kernel32.GetModuleHandleW(None), lpszClassName=f'{NAME}-{cls.__name__}')
-            ctyped.func.user32.RegisterClassExW(ctyped.byref(cls._class))
-            cls._hwnd = ctyped.func.user32.CreateWindowExW(0, cls._class.lpszClassName, None,
-                                                           0, 0, 0, 0, 0, None, None, None, None)
+                hInstance=ctyped.lib.Kernel32.GetModuleHandleW(None), lpszClassName=f'{NAME}-{cls.__name__}')
+            ctyped.lib.User32.RegisterClassExW(ctyped.byref(cls._class))
+            cls._hwnd = ctyped.lib.User32.CreateWindowExW(0, cls._class.lpszClassName, None,
+                                                          0, 0, 0, 0, 0, None, None, None, None)
         cls._uid += 1
         return super().__new__(cls)
 
@@ -117,16 +118,16 @@ class SysTray:
         atexit.register(self.__del__)
 
     def __del__(self):
-        if self._to_del:
+        if not self._deleted:
             self.hide()
             del self._selves[self._uid]
             del self._binds[self._uid]
             atexit.unregister(self.__del__)
-            self._to_del = False
+            self._deleted = True
             if len(self._binds) == 1:
-                ctyped.func.user32.DestroyWindow(self._hwnd)
-                ctyped.func.user32.UnregisterClassW(self._class.lpszClassName,
-                                                    ctyped.func.kernel32.GetModuleHandleW(None))
+                ctyped.lib.User32.DestroyWindow(self._hwnd)
+                ctyped.lib.User32.UnregisterClassW(self._class.lpszClassName,
+                                                   ctyped.lib.Kernel32.GetModuleHandleW(None))
                 type(self)._hwnd = None
 
     @classmethod
@@ -143,12 +144,12 @@ class SysTray:
     def _callback(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
                   lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         if message == ctyped.const.WM_DESTROY:
-            ctyped.func.user32.PostQuitMessage(0)
+            ctyped.lib.User32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
             try:
                 cls._call(0, message)
             finally:
-                ctyped.func.user32.DestroyWindow(hwnd)
+                ctyped.lib.User32.DestroyWindow(hwnd)
         elif message == ctyped.const.WM_QUERYENDSESSION:
             ...
         elif message == ctyped.const.WM_APP:
@@ -158,12 +159,8 @@ class SysTray:
                 # noinspection PyUnresolvedReferences
                 self._update()
         else:
-            return ctyped.func.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+            return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
-
-    @classmethod
-    def get_handle(cls) -> int:
-        return cls._hwnd
 
     @classmethod
     def run_at_exit(cls, callback: Optional[Callable[[None, int], Any]] = None, args: Optional[Iterable] = None,
@@ -182,16 +179,17 @@ class SysTray:
     def mainloop(cls) -> int:
         msg = ctyped.struct.MSG()
         msg_ref = ctyped.byref(msg)
-        while ctyped.func.user32.GetMessageW(msg_ref, cls._hwnd, 0, 0) > 0:
-            ctyped.func.user32.TranslateMessage(msg_ref)
-            ctyped.func.user32.DispatchMessageW(msg_ref)
+        while ctyped.lib.User32.GetMessageW(msg_ref, cls._hwnd, 0, 0) > 0:
+            ctyped.lib.User32.TranslateMessage(msg_ref)
+            ctyped.lib.User32.DispatchMessageW(msg_ref)
         return msg.wParam
 
     @classmethod
     def exit_mainloop(cls) -> bool:
-        return not bool(ctyped.func.user32.SendMessageW(cls._hwnd, ctyped.const.WM_CLOSE, 0, 0))
+        return not ctyped.lib.User32.SendMessageW(cls._hwnd, ctyped.const.WM_CLOSE, 0, 0)
 
-    def is_shown(self) -> bool:
+    @property
+    def shown(self) -> bool:
         return self._shown
 
     def _set_hicon(self, hicon: ctyped.type.HICON) -> bool:
@@ -201,9 +199,9 @@ class SysTray:
     def set_icon(self, path_or_res: Union[str, int]) -> bool:
         self.stop_animation()
         if isinstance(path_or_res, str):
-            self._hicon = gdiplus.Bitmap.from_file(path_or_res).get_hicon()
+            self._hicon = _gdiplus.Bitmap.from_file(path_or_res).get_hicon()
         else:
-            self._hicon = ctyped.handle.HICON.from_system(path_or_res)
+            self._hicon = ctyped.handle.HICON.from_resource(path_or_res)
         self._set_hicon(self._hicon)
         return bool(self._hicon)
 
@@ -214,7 +212,7 @@ class SysTray:
     def _next_frame(self, *_):
         delay, hicon = next(self._frames)
         self._set_hicon(hicon)
-        ctyped.func.user32.SetTimer(self._hwnd, 0, delay, self._on_timer)
+        ctyped.lib.User32.SetTimer(self._hwnd, 0, delay, self._on_timer)
 
     def set_animation(self, gif_path: str):
         self.stop_animation()
@@ -222,13 +220,13 @@ class SysTray:
         self._next_frame()
 
     def stop_animation(self):
-        ctyped.func.user32.KillTimer(self._hwnd, 0)
+        ctyped.lib.User32.KillTimer(self._hwnd, 0)
         self._set_hicon(self._hicon)
         self._frames = None
 
     def _update(self) -> bool:
-        return self._shown and bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
-            self._data)) or ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
+        return self._shown and bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
+            self._data)) or ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
 
     def show(self) -> bool:
         self._shown = True
@@ -236,7 +234,7 @@ class SysTray:
         return self._shown
 
     def hide(self) -> bool:
-        self._shown = not bool(ctyped.func.shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
+        self._shown = not bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._shown
 
     def destroy(self):
@@ -283,11 +281,35 @@ def unbind(event: int, _uid: int = 0) -> bool:
         return True
 
 
+class MenuItem:
+    def __init__(self):
+        self._info = ctyped.struct.MENUITEMINFOW(ctyped.sizeof(ctyped.struct.MENUITEMINFOW))
+
+
+class Menu:
+    def __init__(self):
+        self._menu = ctyped.handle.HMENU.from_direction(False)
+
+    def get_string(self, id_or_pos: int, pos: bool = False) -> str:
+        flag = ctyped.const.MF_BYPOSITION if pos else ctyped.const.MF_BYCOMMAND
+        sz = ctyped.lib.User32.GetMenuStringW(self._menu, id_or_pos, None, 0, flag)
+        if sz:
+            with _utils.string_buffer(sz) as buff:
+                ctyped.lib.User32.GetMenuStringW(self._menu, id_or_pos, buff, sz, flag)
+                return buff.value
+        return ''
+
+
 def _foo(s: SysTray, e):
     # s.show_balloon('title')
     s.set_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif')
-    s.show_balloon('very busy', 'mini text', Icon.INFO)
-    print('_foo')
+    # s.show_balloon('very busy', 'mini text', Icon.USER)
+    menu = ctyped.lib.User32.CreatePopupMenu()
+    ctyped.lib.User32.SetMenu(s._hwnd, menu)
+    new_id = 5
+    ctyped.lib.User32.AppendMenuW(menu, ctyped.const.MF_SEPARATOR, new_id, None)
+    ctyped.lib.User32.TrackPopupMenu(menu, ctyped.const.TPM_BOTTOMALIGN | ctyped.const.TPM_LEFTALIGN,
+                                     0, 0, 0, s._hwnd, None)
     return 0
 
 
@@ -328,16 +350,11 @@ def _test_sys_tray():
 def _test_():
     info = ctyped.struct.SHELLEXECUTEINFOW(ctyped.sizeof(ctyped.struct.SHELLEXECUTEINFOW), lpVerb='open',
                                            lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
-    print(ctyped.func.shell32.ShellExecuteExW(ctyped.byref(info)))
-
-
-def _test():
-    import modules.wallhaven as wallhaven
-    print(wallhaven._authenticate('38QakOzgfHIohe1JO0f3aoQIbm1pKYK'))
+    print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
 if __name__ == '__main__':
-    _test()
-    # _test_sys_tray()
+    _test_sys_tray()
+    # _test()
     # _wait()
     sys.exit()

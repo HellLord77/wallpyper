@@ -183,9 +183,8 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 
 @timer.on_thread
 def first_run():  # FIXME my icon
-    while not gui.is_running():
-        time.sleep(POLL_TIMEOUT)
-    CONFIG[CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST, gui.Icon.INFORMATION)
+    if CONFIG[CONFIG_FIRST]:
+        CONFIG[CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST, gui.Icon.INFORMATION)
 
 
 _arg_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -209,8 +208,12 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
                      progress_callback: Optional[Callable[[int, ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
+    if args is None:
+        args = ()
+    if kwargs is None:
+        kwargs = {}
     if progress_callback:
-        progress_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
+        progress_callback(0, *args, **kwargs)
     if not wallpaper:
         wallpapers = set()
         config = {key: val for key, val in MODULE.CONFIG.items() if not key.startswith('_')}
@@ -228,8 +231,6 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
                 win32.wallpaper.Wallpaper(path, display, getattr(win32.wallpaper.Style, CONFIG[CONFIG_STYLE]),
                                           transition=getattr(win32.wallpaper.Transition, CONFIG[CONFIG_TRANSITION]))
                 for display in (DISPLAYS if CONFIG[CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[CONFIG_DISPLAY],))))
-    if progress_callback:
-        progress_callback(100, *() if args is None else args, **{} if kwargs is None else kwargs)
     return changed
 
 
@@ -537,10 +538,10 @@ def create_menu():  # TODO slideshow (smaller timer)
     item_change = gui.add_menu_item(STRINGS.LABEL_CHANGE)
     menu_recent = gui.add_submenu(STRINGS.MENU_RECENT, False)
 
-    def query_callback(progress: Optional[int] = None) -> bool:
+    def query_callback(progress: Optional[int] = None) -> bool:  # TODO fix exploding width
         item_change.SetItemLabel(STRINGS.LABEL_CHANGE if progress is None else
-                                 f'{STRINGS.LABEL_CHANGE} ({langs.to_str(progress, STRINGS, 3)}%)')
-        return True  # TODO fix exploding width
+                                 f'{STRINGS.LABEL_CHANGE} ({langs.to_str(min(99, progress), STRINGS, 2)}%)')
+        return True
 
     TIMER.__init__(0, on_change, (item_change.Enable, menu_recent, query_callback))
     gui.add_separator(menu=menu_recent)
@@ -613,7 +614,7 @@ def start():  # TODO dark theme
     files.trim_dir(TEMP_DIR, MAX_CACHE)
     _update_display()
     load_config()
-    RECENT.extend({wallpaper: None for wallpaper in misc.decrypt(CONFIG[CONFIG_RECENT], ())})
+    RECENT.extend(misc.decrypt(CONFIG[CONFIG_RECENT], ()))
     create_menu()
     gui.enable_animation(CONFIG[CONFIG_ANIMATE])
     apply_auto_start(CONFIG[CONFIG_START])
@@ -622,9 +623,7 @@ def start():  # TODO dark theme
     if ARG_CHANGE in sys.argv or (CONFIG[CONFIG_INTERVAL] and after <= 0):
         on_change(*TIMER.args, auto_change=False)
     on_auto_change(CONFIG[CONFIG_INTERVAL], None if after <= 0 else after)
-    if CONFIG[CONFIG_FIRST]:
-        first_run()
-    gui.start_loop(RES_TRAY, NAME, on_change, TIMER.args)
+    gui.start_loop(RES_TRAY, NAME, on_change, TIMER.args, call_after=first_run)
 
 
 def stop():

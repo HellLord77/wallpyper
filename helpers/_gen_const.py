@@ -7,7 +7,9 @@ from bs4 import BeautifulSoup
 
 import libs.locales._ as locales
 
-SDK_PATH = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits', '10', 'Include', '10.0.22000.0')
+_KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
+SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22000.0')
+NET_PATH = os.path.join(_KITS, 'NETFXSDK', '4.8', 'Include', 'um')
 
 
 def _format(sec: str, sz: int) -> str:
@@ -99,6 +101,17 @@ def winerror():
         for match in re.finditer(r'#define (ERROR_.*)\s(\d*)L', file.read()):
             group = match.groups()
             print(f'{group[0].strip()} = {group[1]}')
+
+
+def mscoree():
+    path = os.path.join(NET_PATH, 'mscoree.h')
+    with open(path, 'r') as file:
+        for line in file.readlines():
+            if line.startswith('EXTERN_GUID('):
+                line = line.replace(' ', '')
+                guid = line.split(',')[1:]
+                guid[-1] = guid[-1][:-3]
+                print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
 
 
 def _gen_bcp47(lang_str: str, coun_str: str):
@@ -202,4 +215,4 @@ def iso3166():
 
 
 if __name__ == '__main__':
-    iso3166()
+    mscoree()

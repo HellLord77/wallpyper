@@ -51,7 +51,7 @@ class _Globals(dict):
             try:
                 val = vars(self.module)[item]
             except KeyError:
-                # noinspection PyProtectedMember
+                # noinspection PyUnresolvedReferences,PyProtectedMember
                 val = self.module._init(item)
             else:
                 self.vars_[item] = val
@@ -120,6 +120,11 @@ def _cast(obj: _Any, type: type[_CT]) -> _Pointer[_CT]:
         return _cast(_ctypes.byref(obj), type)
     except TypeError:
         return _cast(obj, _ctypes.POINTER(type))
+
+
+# noinspection PyShadowingBuiltins
+def _cast_int(obj: int, type: _CT) -> int:
+    return obj & (2 ** (_ctypes.sizeof(type) * 8) - 1)
 
 
 def _not_internal(name: str) -> bool:

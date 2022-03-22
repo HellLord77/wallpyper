@@ -82,17 +82,17 @@ def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Option
         chunk = read(chunk_size)
 
 
-def copy(src_path: str, dest_path: str, chunk_size: Optional[int] = None,
+def copy(src_path: str, dst_path: str, chunk_size: Optional[int] = None,
          callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
          kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if os.path.exists(src_path):
-        if not os.path.exists(dest_path):
+        if not os.path.exists(dst_path):
             with contextlib.suppress(PermissionError):
                 with open(src_path, 'rb') as src:
-                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                    with open(dest_path, 'wb') as dst:
+                    os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+                    with open(dst_path, 'wb') as dst:
                         copyfileobj(src, dst, os.path.getsize(src_path), chunk_size, callback, args, kwargs)
-        return os.path.exists(dest_path) and filecmp.cmp(src_path, dest_path)
+        return os.path.exists(dst_path) and filecmp.cmp(src_path, dst_path)
     return False
 
 

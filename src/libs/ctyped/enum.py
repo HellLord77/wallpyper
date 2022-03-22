@@ -492,6 +492,108 @@ class OPEN_AS_INFO_FLAGS(_IntEnum):
     OAIF_FILE_IS_URI = 0x00000080
 
 
+class COINITICOR(_IntEnum):
+    COINITCOR_DEFAULT = _AUTO
+
+
+class COINITIEE(_IntEnum):
+    COINITEE_DEFAULT = _AUTO
+    COINITEE_DLL = _AUTO
+    COINITEE_MAIN = _AUTO
+
+
+class COUNINITIEE(_IntEnum):
+    COUNINITEE_DEFAULT = _AUTO
+    COUNINITEE_DLL = _AUTO
+
+
+# noinspection PyPep8Naming
+class HOST_TYPE(_IntEnum):
+    HOST_TYPE_DEFAULT = _AUTO
+    HOST_TYPE_APPLAUNCH = _AUTO
+    HOST_TYPE_CORFLAG = _AUTO
+
+
+# noinspection PyPep8Naming
+class STARTUP_FLAGS(_IntEnum):
+    STARTUP_CONCURRENT_GC = 0x1
+    STARTUP_LOADER_OPTIMIZATION_MASK = 0x3 << 1
+    STARTUP_LOADER_OPTIMIZATION_SINGLE_DOMAIN = 0x1 << 1
+    STARTUP_LOADER_OPTIMIZATION_MULTI_DOMAIN = 0x2 << 1
+    STARTUP_LOADER_OPTIMIZATION_MULTI_DOMAIN_HOST = 0x3 << 1
+    STARTUP_LOADER_SAFEMODE = 0x10
+    STARTUP_LOADER_SETPREFERENCE = 0x100
+    STARTUP_SERVER_GC = 0x1000
+    STARTUP_HOARD_GC_VM = 0x2000
+    STARTUP_SINGLE_VERSION_HOSTING_INTERFACE = 0x4000
+    STARTUP_LEGACY_IMPERSONATION = 0x10000
+    STARTUP_DISABLE_COMMITTHREADSTACK = 0x20000
+    STARTUP_ALWAYSFLOW_IMPERSONATION = 0x40000
+    STARTUP_TRIM_GC_COMMIT = 0x80000
+    STARTUP_ETW = 0x100000
+    STARTUP_ARM = 0x400000
+
+
+# noinspection PyPep8Naming
+class CLSID_RESOLUTION_FLAGS(_IntEnum):
+    CLSID_RESOLUTION_DEFAULT = _AUTO
+    CLSID_RESOLUTION_REGISTERED = _AUTO
+
+
+# noinspection PyPep8Naming
+class RUNTIME_INFO_FLAGS(_IntEnum):
+    RUNTIME_INFO_UPGRADE_VERSION = 0x1
+    RUNTIME_INFO_REQUEST_IA64 = 0x2
+    RUNTIME_INFO_REQUEST_AMD64 = 0x4
+    RUNTIME_INFO_REQUEST_X86 = 0x8
+    RUNTIME_INFO_DONT_RETURN_DIRECTORY = 0x10
+    RUNTIME_INFO_DONT_RETURN_VERSION = 0x20
+    RUNTIME_INFO_DONT_SHOW_ERROR_DIALOG = 0x40
+    RUNTIME_INFO_IGNORE_ERROR_MODE = 0x1000
+
+
+# noinspection PyPep8Naming
+class APPDOMAIN_SECURITY_FLAGS(_IntEnum):
+    APPDOMAIN_SECURITY_DEFAULT = 0
+    APPDOMAIN_SECURITY_SANDBOXED = 0x1
+    APPDOMAIN_SECURITY_FORBID_CROSSAD_REVERSE_PINVOKE = 0x2
+    APPDOMAIN_FORCE_TRIVIAL_WAIT_OPERATIONS = 0x8
+
+
+class HandPreference(_IntEnum):
+    HandPreference_LeftHanded = _AUTO
+    HandPreference_RightHanded = _AUTO
+
+
+class UIElementType(_IntEnum):
+    UIElementType_ActiveCaption = 0
+    UIElementType_Background = 1
+    UIElementType_ButtonFace = 2
+    UIElementType_ButtonText = 3
+    UIElementType_CaptionText = 4
+    UIElementType_GrayText = 5
+    UIElementType_Highlight = 6
+    UIElementType_HighlightText = 7
+    UIElementType_Hotlight = 8
+    UIElementType_InactiveCaption = 9
+    UIElementType_InactiveCaptionText = 10
+    UIElementType_Window = 11
+    UIElementType_WindowText = 12
+    UIElementType_AccentColor = 1000
+    UIElementType_TextHigh = 1001
+    UIElementType_TextMedium = 1002
+    UIElementType_TextLow = 1003
+    UIElementType_TextContrastWithHigh = 1004
+    UIElementType_NonTextHigh = 1005
+    UIElementType_NonTextMediumHigh = 1006
+    UIElementType_NonTextMedium = 1007
+    UIElementType_NonTextMediumLow = 1008
+    UIElementType_NonTextLow = 1009
+    UIElementType_PageBackground = 1010
+    UIElementType_PopupBackground = 1011
+    UIElementType_OverlayOutsidePopup = 1012,
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status

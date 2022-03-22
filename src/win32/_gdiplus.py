@@ -6,12 +6,51 @@ from typing import Callable, Generator, Optional
 import libs.ctyped as ctyped
 
 
+class Color(int):
+    @classmethod
+    def from_argb(cls, a: int, r: int, g: int, b: int) -> Color:
+        return Color(ctyped.cast_int(b << ctyped.const.BlueShift, ctyped.type.ARGB) |
+                     ctyped.cast_int(g << ctyped.const.GreenShift, ctyped.type.ARGB) |
+                     ctyped.cast_int(r << ctyped.const.RedShift, ctyped.type.ARGB) |
+                     ctyped.cast_int(a << ctyped.const.AlphaShift, ctyped.type.ARGB))
+
+    @classmethod
+    def from_rgb(cls, r: int, g: int, b: int) -> Color:
+        return cls.from_argb(255, r, g, b)
+
+    @classmethod
+    def from_colorref(cls, rgb: ctyped.type.COLORREF) -> Color:
+        return cls.from_rgb(ctyped.macro.GetRValue(rgb), ctyped.macro.GetGValue(rgb), ctyped.macro.GetBValue(rgb))
+
+    def get_alpha(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.AlphaShift, ctyped.type.BYTE)
+
+    def get_red(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.RedShift, ctyped.type.BYTE)
+
+    def get_green(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.GreenShift, ctyped.type.BYTE)
+
+    def get_blue(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.BlueShift, ctyped.type.BYTE)
+
+    def get_colorref(self) -> int:
+        return ctyped.macro.RGB(self.get_red(), self.get_green(), self.get_blue())
+
+
 class _GdiplusToken(ctyped.type.ULONG_PTR):
+    count = 0
+
     def __init__(self):
-        ctyped.func.GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)
+        if not self.count:
+            ctyped.lib.GdiPlus.GdiplusStartup(ctyped.byref(self),
+                                              ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)
+        type(self).count += 1
 
     def __del__(self):
-        ctyped.func.GdiPlus.GdiplusShutdown(self)
+        type(self).count -= 1
+        if not self.count:
+            ctyped.lib.GdiPlus.GdiplusShutdown(self)
 
 
 class _GdiplusBase(ctyped.type.c_void_p):
@@ -33,13 +72,13 @@ class Graphics(_GdiplusBase):
     _dpi_y = None
 
     def __del__(self):
-        ctyped.func.GdiPlus.GdipDeleteGraphics(self)
+        ctyped.lib.GdiPlus.GdipDeleteGraphics(self)
 
     @property
     def dpi_x(self) -> float:
         if self._dpi_x is None:
             dpi_x = ctyped.type.REAL()
-            if not ctyped.func.GdiPlus.GdipGetDpiX(self, ctyped.byref(dpi_x)):
+            if not ctyped.lib.GdiPlus.GdipGetDpiX(self, ctyped.byref(dpi_x)):
                 self._dpi_x = dpi_x.value
         return self._dpi_x
 
@@ -47,20 +86,20 @@ class Graphics(_GdiplusBase):
     def dpi_y(self) -> float:
         if self._dpi_y is None:
             dpi_y = ctyped.type.REAL()
-            if not ctyped.func.GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y)):
+            if not ctyped.lib.GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y)):
                 self._dpi_y = dpi_y.value
         return self._dpi_y
 
     @classmethod
     def from_hdc(cls, hdc: ctyped.type.HDC) -> Graphics:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(self))
         return self
 
     @classmethod
     def from_image(cls, image: ctyped.type.GpImage) -> Graphics:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
         return self
 
     @staticmethod
@@ -71,14 +110,14 @@ class Graphics(_GdiplusBase):
         return int_func
 
     def set_scale(self, scale_x: float = 1, scale_y: float = 1):
-        ctyped.func.GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.MatrixOrderPrepend)
+        ctyped.lib.GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.MatrixOrderPrepend)
 
     def draw_image(self, src: Image, x: float = 0, y: float = 0):
-        self._get_func(ctyped.func.GdiPlus.GdipDrawImage, ctyped.func.GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
+        self._get_func(ctyped.lib.GdiPlus.GdipDrawImage, ctyped.lib.GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
 
     def draw_image_from_rect(self, src: Image, x: float = 0, y: float = 0, src_x: float = 0, src_y: float = 0,
                              src_w: Optional[float] = None, src_h: Optional[float] = None):
-        self._get_func(ctyped.func.GdiPlus.GdipDrawImagePointRect, ctyped.func.GdiPlus.GdipDrawImagePointRectI, x, y,
+        self._get_func(ctyped.lib.GdiPlus.GdipDrawImagePointRect, ctyped.lib.GdiPlus.GdipDrawImagePointRectI, x, y,
                        src_x, src_y, src_w, src_h)(self, src, x, y, src_x, src_y, src.width if src_w is None else src_w,
                                                    src.height if src_h is None else src_h, ctyped.enum.GpUnit.UnitPixel)
 
@@ -91,13 +130,13 @@ class Graphics(_GdiplusBase):
             src_h = src.height
         image_attrs = ImageAttributes.from_color_matrix(color_matrix_from_alpha(alpha))
         draw_abort = ctyped.type.DrawImageAbort()
-        self._get_func(ctyped.func.GdiPlus.GdipDrawImageRectRect, ctyped.func.GdiPlus.GdipDrawImageRectRectI, x, y,
+        self._get_func(ctyped.lib.GdiPlus.GdipDrawImageRectRect, ctyped.lib.GdiPlus.GdipDrawImageRectRectI, x, y,
                        w, h, src_x, src_y, src_w, src_h)(self, src, x, y, src_w if w is None else w,
                                                          src_h if h is None else h, src_x, src_y, src_w, src_h,
                                                          ctyped.enum.GpUnit.UnitPixel, image_attrs, draw_abort, None)
 
     def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float):
-        ctyped.func.GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
+        ctyped.lib.GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
 
     def fill_rect_with_color(self, color: ctyped.type.ARGB, x: float, y: float, width: float, height: float):
         self.fill_rect(SolidFill.from_color(color), x, y, width, height)
@@ -105,23 +144,23 @@ class Graphics(_GdiplusBase):
 
 class Brush(_GdiplusBase):
     def __del__(self):
-        ctyped.func.GdiPlus.GdipDeleteBrush(self)
+        ctyped.lib.GdiPlus.GdipDeleteBrush(self)
 
 
 class SolidFill(Brush):
     @classmethod
     def from_color(cls, color: ctyped.type.ARGB) -> SolidFill:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
         return self
 
     def get_color(self) -> ctyped.type.ARGB:
         color = ctyped.type.ARGB()
-        ctyped.func.GdiPlus.GdipGetSolidFillColor(self, ctyped.byref(color))
+        ctyped.lib.GdiPlus.GdipGetSolidFillColor(self, ctyped.byref(color))
         return color.value
 
     def set_color(self, color: ctyped.type.ARGB):
-        ctyped.func.GdiPlus.GdipSetSolidFillColor(self, color)
+        ctyped.lib.GdiPlus.GdipSetSolidFillColor(self, color)
 
 
 class Image(_GdiplusBase):
@@ -129,13 +168,13 @@ class Image(_GdiplusBase):
     _height = None
 
     def __del__(self):
-        ctyped.func.GdiPlus.GdipDisposeImage(self)
+        ctyped.lib.GdiPlus.GdipDisposeImage(self)
 
     @property
     def width(self) -> int:
         if self._width is None:
             width = ctyped.type.UINT()
-            if not ctyped.func.GdiPlus.GdipGetImageWidth(self, ctyped.byref(width)):
+            if not ctyped.lib.GdiPlus.GdipGetImageWidth(self, ctyped.byref(width)):
                 self._width = width.value
         return self._width
 
@@ -143,25 +182,25 @@ class Image(_GdiplusBase):
     def height(self) -> int:
         if self._height is None:
             height = ctyped.type.UINT()
-            if not ctyped.func.GdiPlus.GdipGetImageHeight(self, ctyped.byref(height)):
+            if not ctyped.lib.GdiPlus.GdipGetImageHeight(self, ctyped.byref(height)):
                 self._height = height.value
         return self._height
 
     @classmethod
     def from_file(cls, path: str) -> Image:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(self))
         return self
 
     @staticmethod
     def _get_encoder_clsid(ext: str) -> Optional[ctyped.Pointer[ctyped.struct.CLSID]]:
         number = ctyped.type.UINT()
         size = ctyped.type.UINT()
-        ctyped.func.GdiPlus.GdipGetImageEncodersSize(ctyped.byref(number), ctyped.byref(size))
+        ctyped.lib.GdiPlus.GdipGetImageEncodersSize(ctyped.byref(number), ctyped.byref(size))
         with ctyped.buffer(size.value) as buff:
             if buff:
                 codec_info = ctyped.cast(buff, ctyped.struct.ImageCodecInfo)
-                ctyped.func.GdiPlus.GdipGetImageEncoders(number, size, codec_info)
+                ctyped.lib.GdiPlus.GdipGetImageEncoders(number, size, codec_info)
                 for index in range(number.value):
                     if ext in codec_info[index].FilenameExtension:
                         return ctyped.byref(codec_info[index].Clsid)
@@ -170,8 +209,8 @@ class Image(_GdiplusBase):
     def _get_dimension_id(self) -> ctyped.Pointer[ctyped.struct.GUID]:
         count = ctyped.type.UINT()
         guid_ref = ctyped.byref(ctyped.struct.GUID())
-        ctyped.func.GdiPlus.GdipImageGetFrameDimensionsCount(self, ctyped.byref(count))
-        ctyped.func.GdiPlus.GdipImageGetFrameDimensionsList(self, guid_ref, count)
+        ctyped.lib.GdiPlus.GdipImageGetFrameDimensionsCount(self, ctyped.byref(count))
+        ctyped.lib.GdiPlus.GdipImageGetFrameDimensionsList(self, guid_ref, count)
         return guid_ref
 
     def get_graphics(self) -> Graphics:
@@ -179,12 +218,12 @@ class Image(_GdiplusBase):
 
     def get_frame_count(self, _id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> int:
         count = ctyped.type.UINT()
-        ctyped.func.GdiPlus.GdipImageGetFrameCount(self, self._get_dimension_id() if _id is None else _id,
-                                                   ctyped.byref(count))
+        ctyped.lib.GdiPlus.GdipImageGetFrameCount(self, self._get_dimension_id() if _id is None else _id,
+                                                  ctyped.byref(count))
         return count.value
 
     def select_frame(self, index: int = 0, _id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> bool:
-        return not ctyped.func.GdiPlus.GdipImageSelectActiveFrame(
+        return not ctyped.lib.GdiPlus.GdipImageSelectActiveFrame(
             self, self._get_dimension_id() if _id is None else _id, index)
 
     def iter_frames(self) -> Generator[int, None, None]:
@@ -195,11 +234,11 @@ class Image(_GdiplusBase):
 
     def get_property(self, tag: int) -> Optional[ctyped.Pointer]:
         size = ctyped.type.UINT()
-        ctyped.func.GdiPlus.GdipGetPropertyItemSize(self, tag, ctyped.byref(size))
+        ctyped.lib.GdiPlus.GdipGetPropertyItemSize(self, tag, ctyped.byref(size))
         with ctyped.buffer(size.value) as buff:
             if buff:
                 property_item = ctyped.cast(buff, ctyped.struct.PropertyItem)
-                ctyped.func.GdiPlus.GdipGetPropertyItem(self, tag, size, property_item)
+                ctyped.lib.GdiPlus.GdipGetPropertyItem(self, tag, size, property_item)
                 if property_item.contents.type == ctyped.const.PropertyTagTypeByte:
                     type_ = ctyped.type.c_byte
                 elif property_item.contents.type == ctyped.const.PropertyTagTypeShort:
@@ -218,7 +257,7 @@ class Image(_GdiplusBase):
 
     def save(self, path: str) -> bool:
         if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):
-            return not ctyped.func.GdiPlus.GdipSaveImageToFile(self, path, encoder, None)
+            return not ctyped.lib.GdiPlus.GdipSaveImageToFile(self, path, encoder, None)
         return False
 
 
@@ -227,45 +266,52 @@ class Bitmap(Image):
     def from_dimension(cls, width: int, height: int,
                        pixel_format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipCreateBitmapFromScan0(width, height, 0,
-                                                                        pixel_format, None, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipCreateBitmapFromScan0(width, height, 0,
+                                                                       pixel_format, None, ctyped.byref(self))
         return self
 
     @classmethod
     def from_file(cls, path: str) -> Bitmap:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(self))
         return self
 
     @classmethod
     def from_graphics(cls, width: int, height: int, graphics: ctyped.type.GpGraphics) -> Bitmap:
         self = cls()
-        self._valid = not ctyped.func.GdiPlus.GdipCreateBitmapFromGraphics(width, height, graphics, ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipCreateBitmapFromGraphics(width, height, graphics, ctyped.byref(self))
         return self
 
     def get_hicon(self) -> ctyped.handle.HICON:
         hicon = ctyped.handle.HICON()
-        ctyped.func.GdiPlus.GdipCreateHICONFromBitmap(self, ctyped.byref(hicon))
+        ctyped.lib.GdiPlus.GdipCreateHICONFromBitmap(self, ctyped.byref(hicon))
         return hicon
 
     def get_hbitmap(self) -> ctyped.handle.HBITMAP:
         hbitmap = ctyped.handle.HBITMAP()
-        ctyped.func.GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0)
+        ctyped.lib.GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0)
         return hbitmap
 
+    def get_pixel(self, x: int, y: int) -> int:
+        argb = ctyped.type.ARGB()
+        return -1 if ctyped.lib.GdiPlus.GdipBitmapGetPixel(self, x, y, ctyped.byref(argb)) else argb.value
+
+    def set_pixel(self, x: int, y: int, argb: int) -> bool:
+        return not ctyped.lib.GdiPlus.GdipBitmapSetPixel(self, x, y, argb)
+
     def set_resolution(self, dpi_x: float, dpi_y: float) -> bool:
-        return not ctyped.func.GdiPlus.GdipBitmapSetResolution(self, dpi_x, dpi_y)
+        return not ctyped.lib.GdiPlus.GdipBitmapSetResolution(self, dpi_x, dpi_y)
 
 
 class ImageAttributes(_GdiplusBase):
     def __del__(self):
-        ctyped.func.GdiPlus.GdipDisposeImageAttributes(self)
+        ctyped.lib.GdiPlus.GdipDisposeImageAttributes(self)
 
     @classmethod
     def from_color_matrix(cls, color_matrix: ctyped.struct.ColorMatrix) -> ImageAttributes:
         self = cls()
-        ctyped.func.GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
-        self._valid = not ctyped.func.GdiPlus.GdipSetImageAttributesColorMatrix(
+        ctyped.lib.GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
+        self._valid = not ctyped.lib.GdiPlus.GdipSetImageAttributesColorMatrix(
             self, ctyped.enum.ColorAdjustType.ColorAdjustTypeDefault, True,
             ctyped.byref(color_matrix), None, ctyped.enum.ColorMatrixFlags.ColorMatrixFlagsDefault)
         return self

@@ -7,16 +7,16 @@ import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
                     Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
-from . import com, com_impl, const, type, enum, func, handle, macro, struct, union
-from ._head import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
-                    _byref as byref, _cast as cast, _pointer as pointer, _sizeof as sizeof)
+from . import com, com_impl, const, enum, handle, lib, macro, struct, type, union
+from ._head import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
+                    _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
 THREADED_COM = False
 
 
-# noinspection PyProtectedMember
-def set_error_handler(lib: func._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
-                      args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None):
+# noinspection PyProtectedMember,PyShadowingNames
+def set_return_checker(lib: lib._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
+                       args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None):
     if args is None:
         args = ()
     if kwargs is None:
@@ -30,11 +30,11 @@ def set_error_handler(lib: func._CDLL, callback: _Optional[_Callable[[_Any, _Cal
 
 @_contextlib.contextmanager
 def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
-    ptr = func.msvcrt.malloc(size)
+    ptr = lib.msvcrt.malloc(size)
     try:
         yield None if ptr == 0 else ptr
     finally:
-        func.msvcrt.free(ptr)
+        lib.msvcrt.free(ptr)
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -58,7 +58,7 @@ def char_array(string):
 
 def get_guid(string: str) -> struct.GUID:
     guid = struct.GUID()
-    func.shell32.GUIDFromStringW(string, byref(guid))
+    lib.Shell32.GUIDFromStringW(string, byref(guid))
     return guid
 
 
@@ -66,8 +66,8 @@ def get_guid(string: str) -> struct.GUID:
 def _prep_com(type_: _builtins.type[CT],
               init: bool) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
                                                    _Optional[tuple[Pointer[struct.IID], Pointer[CT]]]]]:
-    func.ole32.CoInitializeEx(None,
-                              enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else func.ole32.CoInitialize(None)
+    lib.Ole32.CoInitializeEx(None,
+                             enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
     obj = type_()
     try:
         # noinspection PyProtectedMember
@@ -76,7 +76,7 @@ def _prep_com(type_: _builtins.type[CT],
     finally:
         if obj:
             obj.Release()
-        func.ole32.CoUninitialize()
+        lib.Ole32.CoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -84,7 +84,7 @@ def _prep_com(type_: _builtins.type[CT],
 def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type, init) as (obj, clsid_ref, args):
         yield obj if not init or macro.SUCCEEDED(
-            func.ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
+            lib.Ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -101,8 +101,8 @@ def cast_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _Con
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[com.IInspectable]]]:
-    func.combase.RoInitialize(enum.RO_INIT_TYPE.RO_INIT_MULTITHREADED
-                              if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
+    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.RO_INIT_MULTITHREADED
+                             if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
     base = com.IInspectable() if init else com.IActivationFactory()
     try:
         # noinspection PyProtectedMember
@@ -110,15 +110,15 @@ def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[
     finally:
         if base:
             base.Release()
-        func.combase.RoUninitialize()
+        lib.Combase.RoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
 def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_Optional[CT]]:
     with _prep_winrt(type, init) as (*args, base):
-        if macro.SUCCEEDED(func.combase.RoActivateInstance(args[0], byref(base))
-                           if init else func.combase.RoGetActivationFactory(*args, byref(base))):
+        if macro.SUCCEEDED(lib.Combase.RoActivateInstance(args[0], byref(base))
+                           if init else lib.Combase.RoGetActivationFactory(*args, byref(base))):
             with cast_com(base, type) as obj:
                 yield obj
         else:

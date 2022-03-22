@@ -6,7 +6,7 @@ SYS32 = os.path.join(os.environ['windir'], 'System32')
 
 def main():
     names = {}
-    with open('../src/libs/ctyped/func.py') as file:
+    with open('../src/libs/ctyped/lib.py') as file:
         for match in re.finditer(r'class ([^_].*)\(_WinFunc\):', file.read()):
             name = match.groups()[0]
             with open(os.path.join(SYS32, f'{name}.dll')) as dll:

@@ -14,7 +14,6 @@ _ASSIGNED = ('_CLSID_', '_RuntimeClass_',
 
 class IUnknown(_type.c_void_p):
     _CLSID_ = ''
-    _RuntimeClass_ = ''
     QueryInterface: _Callable[[_Pointer[_struct.IID],
                                _type.c_void_p],
                               _type.HRESULT]
@@ -22,6 +21,12 @@ class IUnknown(_type.c_void_p):
                       _type.ULONG]
     Release: _Callable[[],
                        _type.ULONG]
+
+
+class IInspectable(IUnknown):
+    GetIids: _Callable
+    GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
+    GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]], _type.HRESULT]
 
 
 class IShellItem(IUnknown):
@@ -222,12 +227,6 @@ class IFileDialog(IModalWindow):
 class IFileOpenDialog(IFileDialog):
     GetResults: _Callable
     GetSelectedItems: _Callable
-
-
-class IInspectable(IUnknown):
-    GetIids: _Callable
-    GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
-    GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]], _type.HRESULT]
 
 
 class IUserNotification(IUnknown):
@@ -537,6 +536,50 @@ class IPropertyBag(IUnknown):
                      _type.HRESULT]
 
 
+class IHostControl(IUnknown):
+    GetHostManager: _Callable
+    SetAppDomainManager: _Callable[[_type.DWORD,
+                                    IUnknown],
+                                   _type.HRESULT]
+
+
+class ICLRControl(IUnknown):
+    GetCLRManager: _Callable
+    SetAppDomainManagerType: _Callable[[_type.LPCWSTR,
+                                        _type.LPCWSTR],
+                                       _type.HRESULT]
+
+
+class ICLRRuntimeHost(IUnknown):
+    Start: _Callable[[],
+                     _type.HRESULT]
+    Stop: _Callable[[],
+                    _type.HRESULT]
+    SetHostControl: _Callable[[IHostControl],
+                              _type.HRESULT]
+    GetCLRControl: _Callable[[_Pointer[ICLRControl]],
+                             _type.HRESULT]
+    UnloadAppDomain: _Callable[[_type.DWORD,
+                                _type.BOOL],
+                               _type.HRESULT]
+    ExecuteInAppDomain: _Callable
+    GetCurrentAppDomainId: _Callable[[_Pointer[_type.DWORD]],
+                                     _type.HRESULT]
+    ExecuteApplication: _Callable[[_type.LPCWSTR,
+                                   _type.DWORD,
+                                   _Pointer[_type.LPCWSTR],
+                                   _type.DWORD,
+                                   _Pointer[_type.LPCWSTR],
+                                   _Pointer[_type.c_int]],
+                                  _type.HRESULT]
+    ExecuteInDefaultAppDomain: _Callable[[_type.LPCWSTR,
+                                          _type.LPCWSTR,
+                                          _type.LPCWSTR,
+                                          _type.LPCWSTR,
+                                          _Pointer[_type.DWORD]],
+                                         _type.HRESULT]
+
+
 class IAsyncInfo(IInspectable):
     get_Id: _Callable[[_Pointer[_type.c_uint32]],
                       _type.HRESULT]
@@ -593,13 +636,6 @@ class IActivationFactory(IInspectable):
                                 _type.HRESULT]
 
 
-class IStorageFolderStatics(IInspectable):
-    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFolder
-    GetFolderFromPathAsync: _Callable[[_type.HSTRING,
-                                       _Pointer[IAsyncOperation]],
-                                      _type.HRESULT]
-
-
 class IStorageFolder(IInspectable):
     CreateFileAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
                                                       _Pointer[IAsyncOperation]],
@@ -630,18 +666,6 @@ class IStorageFolder(IInspectable):
                                                                   _type.HSTRING]
     GetItemsAsyncOverloadDefaultStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
                                                          _type.HSTRING]
-
-
-class IStorageFileStatics(IInspectable):
-    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFile
-    GetFileFromPathAsync: _Callable[[_type.HSTRING,
-                                     _Pointer[IAsyncOperation]],
-                                    _type.HRESULT]
-    GetFileFromApplicationUriAsync: _Callable
-    CreateStreamedFileAsync: _Callable
-    ReplaceWithStreamedFileAsync: _Callable
-    CreateStreamedFileFromUriAsync: _Callable
-    ReplaceWithStreamedFileFromUriAsync: _Callable
 
 
 class IStorageFile(IInspectable):
@@ -742,23 +766,6 @@ class IOutputStream(IInspectable):
     FlushAsync: _Callable
 
 
-class IRandomAccessStreamStatics(IInspectable):
-    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_Streams_RandomAccessStream
-    CopyAsync: _Callable[[IInputStream,
-                          IOutputStream,
-                          _Pointer[IAsyncOperationWithProgress]],
-                         _type.HRESULT]
-    CopySizeAsync: _Callable[[IInputStream,
-                              IOutputStream,
-                              _type.UINT64,
-                              _Pointer[IAsyncOperationWithProgress]],
-                             _type.HRESULT]
-    CopyAndCloseAsync: _Callable[[IInputStream,
-                                  IOutputStream,
-                                  _Pointer[IAsyncOperationWithProgress]],
-                                 _type.HRESULT]
-
-
 class IRandomAccessStream(IInspectable):
     get_Size: _Callable[[_Pointer[_type.UINT64]],
                         _type.HRESULT]
@@ -780,6 +787,42 @@ class IRandomAccessStream(IInspectable):
                            _type.HRESULT]
     get_CanWrite: _Callable[[_Pointer[_type.boolean]],
                             _type.HRESULT]
+
+
+class IStorageFolderStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFolder
+    GetFolderFromPathAsync: _Callable[[_type.HSTRING,
+                                       _Pointer[IAsyncOperation]],
+                                      _type.HRESULT]
+
+
+class IStorageFileStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFile
+    GetFileFromPathAsync: _Callable[[_type.HSTRING,
+                                     _Pointer[IAsyncOperation]],
+                                    _type.HRESULT]
+    GetFileFromApplicationUriAsync: _Callable
+    CreateStreamedFileAsync: _Callable
+    ReplaceWithStreamedFileAsync: _Callable
+    CreateStreamedFileFromUriAsync: _Callable
+    ReplaceWithStreamedFileFromUriAsync: _Callable
+
+
+class IRandomAccessStreamStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_Streams_RandomAccessStream
+    CopyAsync: _Callable[[IInputStream,
+                          IOutputStream,
+                          _Pointer[IAsyncOperationWithProgress]],
+                         _type.HRESULT]
+    CopySizeAsync: _Callable[[IInputStream,
+                              IOutputStream,
+                              _type.UINT64,
+                              _Pointer[IAsyncOperationWithProgress]],
+                             _type.HRESULT]
+    CopyAndCloseAsync: _Callable[[IInputStream,
+                                  IOutputStream,
+                                  _Pointer[IAsyncOperationWithProgress]],
+                                 _type.HRESULT]
 
 
 class ILockScreenStatics(IInspectable):
@@ -841,6 +884,37 @@ class ILauncherStatics(IInspectable):
                                           ILauncherOptions,
                                           _Pointer[IAsyncOperation]],
                                          _type.HRESULT]
+
+
+class IUISettings(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_ViewManagement_UISettings
+    get_HandPreference: _Callable[[_Pointer[_enum.HandPreference]],
+                                  _type.HRESULT]
+    get_CursorSize: _Callable[[_Pointer[_struct.SIZE]],
+                              _type.HRESULT]
+    get_ScrollBarSize: _Callable[[_Pointer[_struct.SIZE]],
+                                 _type.HRESULT]
+    get_ScrollBarArrowSize: _Callable[[_Pointer[_struct.SIZE]],
+                                      _type.HRESULT]
+    get_ScrollBarThumbBoxSize: _Callable[[_Pointer[_struct.SIZE]],
+                                         _type.HRESULT]
+    get_MessageDuration: _Callable[[_Pointer[_type.UINT32]],
+                                   _type.HRESULT]
+    get_AnimationsEnabled: _Callable[[_Pointer[_type.boolean]],
+                                     _type.HRESULT]
+    get_CaretBrowsingEnabled: _Callable[[_Pointer[_type.boolean]],
+                                        _type.HRESULT]
+    get_CaretBlinkRate: _Callable[[_Pointer[_type.UINT32]],
+                                  _type.HRESULT]
+    get_CaretWidth: _Callable[[_Pointer[_type.UINT32]],
+                              _type.HRESULT]
+    get_DoubleClickTime: _Callable[[_Pointer[_type.UINT32]],
+                                   _type.HRESULT]
+    get_MouseHoverTime: _Callable[[_Pointer[_type.UINT32]],
+                                  _type.HRESULT]
+    UIElementColor: _Callable[[_enum.UIElementType,
+                               _Pointer[_struct.Color]],
+                              _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:

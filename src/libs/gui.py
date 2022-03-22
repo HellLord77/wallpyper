@@ -4,6 +4,7 @@ import atexit
 import contextlib
 import functools
 import itertools
+import sys
 import threading
 import time
 from typing import Any, Callable, ContextManager, Iterable, Mapping, MutableMapping, Optional, Union
@@ -60,8 +61,6 @@ _ANIMATIONS_ = [_ANIMATIONS, []]
 _ANIMATION_THREAD = f'{__name__}-{__version__}-{type(_TASK_BAR_ICON).__name__}Animation'
 _MAIN_MENU = [_MENU]
 
-is_running = _APP.IsMainLoopRunning
-
 
 @contextlib.contextmanager
 def set_main_menu(menu: Union[wx.Menu, wx.MenuItem]) -> ContextManager[None]:
@@ -115,19 +114,21 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
 
 
 def set_on_click(menu_item: wx.MenuItem, callback: Optional[Callable] = None,
-                 menu_args: Iterable[str] = (), args: Iterable = (),
+                 menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
                  kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, change_state: bool = True,
                  pre_menu_args: bool = True, menu: Union[wx.Menu, wx.MenuItem] = _MENU):
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
-    menu.Bind(wx.EVT_MENU, _get_wrapper(callback, menu_args, args, {} if kwargs is None else kwargs,
-                                        change_state, on_thread, pre_menu_args), menu_item)
+    menu.Bind(wx.EVT_MENU, _get_wrapper(
+        callback, () if menu_args is None else menu_args, () if args is None else args,
+        {} if kwargs is None else kwargs, change_state, on_thread, pre_menu_args), menu_item)
 
 
 def add_menu_item(label: str = '', kind: int = Item.NORMAL, check: bool = False, enable: bool = True,
-                  uid: Optional[str] = None, on_click: Optional[Callable] = None, menu_args: Iterable[str] = (),
-                  args: Iterable = (), kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True,
-                  change_state: bool = True, position: Optional[int] = None, pre_menu_args: bool = True,
+                  uid: Optional[str] = None, on_click: Optional[Callable] = None,
+                  menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
+                  kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, change_state: bool = True,
+                  position: Optional[int] = None, pre_menu_args: bool = True,
                   menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
@@ -187,11 +188,13 @@ def set_menu_item_position(menu_item: wx.MenuItem, position: Optional[int] = Non
 
 
 def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool], key: str, on_click: Optional[Callable] = None,
-                         args: Iterable = (), kwargs: Optional[Mapping[str, Any]] = None,
+                         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
                          menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if on_click is None:
         on_click_ = mapping.__setitem__
     else:
+        if args is None:
+            args = ()
         if kwargs is None:
             kwargs = {}
 
@@ -206,13 +209,16 @@ def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool], key: st
 def add_mapped_submenu(label_or_submenu: Union[str, wx.MenuItem], items: Mapping[str, str],
                        mapping: MutableMapping[str, str], key: str, enable: bool = True,
                        uid: Optional[str] = None, on_click: Optional[Callable] = None,
-                       args: Iterable = (), kwargs: Optional[Mapping[str, Any]] = None,
-                       position: Optional[int] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
-    submenu = add_submenu(label_or_submenu, enable, uid, position, menu) if isinstance(label_or_submenu,
-                                                                                       str) else label_or_submenu
+                       args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
+                       position: Optional[int] = None, max_len: int = sys.maxsize,
+                       menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+    submenu: wx.MenuItem = add_submenu(label_or_submenu, enable, uid, position, menu) if isinstance(
+        label_or_submenu, str) else label_or_submenu
     if on_click is None:
         on_click_ = mapping.__setitem__
     else:
+        if args is None:
+            args = ()
         if kwargs is None:
             kwargs = {}
 
@@ -220,9 +226,12 @@ def add_mapped_submenu(label_or_submenu: Union[str, wx.MenuItem], items: Mapping
         def on_click_(key_: str, uid_: str):
             mapping[key_] = uid_
             return on_click(uid_, *args, **kwargs)
-    for uid__, label_ in items.items():
+    submenu_ = submenu.GetSubMenu()
+    for index, (uid__, label_) in enumerate(items.items(), 1):
         add_menu_item(label_, Item.RADIO, mapping[key] == uid__, uid=uid__, on_click=on_click_,
-                      menu_args=(Property.UID,), args=(key,), pre_menu_args=False, menu=submenu)
+                      menu_args=(Property.UID,), args=(key,), pre_menu_args=False, menu=submenu_)
+        if not index % max_len:
+            submenu_.Break()
     return submenu
 
 
@@ -257,10 +266,14 @@ def _destroy():
 
 
 def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Callable] = None,
-               args: Iterable = (), kwargs: Optional[Mapping[str, Any]] = None):
+               args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
+               call_after: Optional[Callable] = None, call_after_args: Optional[Iterable] = None,
+               call_after_kwargs: Optional[Mapping[str, Any]] = None):
     _APP.SetAppName(tooltip)
     _ICON.LoadFile(path)
-    if callback:
+    if callback is not None:
+        if args is None:
+            args = ()
         if kwargs is None:
             kwargs = {}
 
@@ -275,6 +288,9 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
     _FRAME.Bind(wx.EVT_CLOSE, stop_loop)
     _APP.Bind(wx.EVT_END_SESSION, stop_loop)
     atexit.register(_destroy)
+    if call_after is not None:
+        wx.CallAfter(call_after, *() if call_after_args is None else call_after_args,
+                     **{} if call_after_kwargs is None else call_after_kwargs)
     _APP.MainLoop()
 
 

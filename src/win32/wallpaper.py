@@ -15,7 +15,7 @@ import libs.ctyped as ctyped
 from . import _utils, _gdiplus
 
 _HWND_RETRY = 5
-_DELETE_TEMP_AFTER = 0.5
+_DELETE_AFTER = 0.5
 _TEMP_FILE = '{}.jpg'
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 
@@ -102,9 +102,9 @@ class Transition(metaclass=_IntEnum):
     def _fade(factor: float, dst_w: int, dst_h: int, dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC,
               blend: ctyped.struct.BLENDFUNCTION, dst_bk: ctyped.type.HDC, tmp_dst: ctyped.type.HDC):
         blend.SourceConstantAlpha = int(255 * factor)
-        ctyped.func.gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
-        ctyped.func.msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
-        ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.Gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.Msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
+        ctyped.lib.Gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
         return
         # noinspection PyUnreachableCode
         yield
@@ -270,7 +270,7 @@ class Transition(metaclass=_IntEnum):
 
 def get_monitor_count() -> int:
     num = ctyped.type.c_int()
-    ctyped.func.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
+    ctyped.lib.User32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
     return num.value
 
 
@@ -303,7 +303,7 @@ def get_style() -> Optional[int]:
 
 def _get_param() -> str:
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
-        ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
+        ctyped.lib.User32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
         return buff.value
 
 
@@ -335,20 +335,20 @@ def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
     with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
-                return rect.left - ctyped.func.user32.GetSystemMetrics(
-                    ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.func.user32.GetSystemMetrics(
+                return rect.left - ctyped.lib.User32.GetSystemMetrics(
+                    ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.User32.GetSystemMetrics(
                     ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
     return 0, 0, 0, 0
 
 
 def _spawn_workerw():
-    ctyped.func.user32.SendMessageW(ctyped.func.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
+    ctyped.lib.User32.SendMessageW(ctyped.lib.User32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
 
 
 @ctyped.type.WNDENUMPROC
 def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-    if ctyped.func.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
-        if (hwnd_ := ctyped.func.user32.FindWindowExW(None, hwnd, 'WorkerW', None)) is not None:
+    if ctyped.lib.User32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
+        if (hwnd_ := ctyped.lib.User32.FindWindowExW(None, hwnd, 'WorkerW', None)) is not None:
             ctyped.type.LPARAM.from_address(lparam).value = hwnd_
     return True
 
@@ -357,7 +357,7 @@ def _get_workerw_hwnd() -> Optional[int]:
     hwnd = ctyped.type.LPARAM()
     for _ in range(_HWND_RETRY):
         _spawn_workerw()
-        if ctyped.func.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd)) and hwnd.value:
+        if ctyped.lib.User32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd)) and hwnd.value:
             return hwnd.value
 
 
@@ -372,7 +372,7 @@ def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
         return 0, round((from_h - h) / div), from_w, int(h)
 
 
-def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,  # FIXED _USE_TEMP_FILE (Style.CENTER scales to 95%)
+def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
                      style: int = Style.FILL) -> tuple[int, int, int, int]:
     if style == Style.CENTER:
         dw = src_w - w
@@ -404,11 +404,11 @@ def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplu
 
 def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
     rect = ctyped.struct.RECT()
-    fore_hwnd = ctyped.func.user32.GetForegroundWindow()
-    if (fore_hwnd and ctyped.func.user32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
-            ctyped.func.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
+    fore_hwnd = ctyped.lib.User32.GetForegroundWindow()
+    if (fore_hwnd and ctyped.lib.User32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
+            ctyped.lib.User32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
         rect_ = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
-        return bool(ctyped.func.user32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
+        return bool(ctyped.lib.User32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
     return True
 
 
@@ -424,7 +424,7 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
             args = []
             if transition == Transition.FADE:
                 dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
-                ctyped.func.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
+                ctyped.lib.Gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
                 args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
                              dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
             if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
@@ -438,20 +438,14 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                 # noinspection PyProtectedMember
                 for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
                         passed / duration, dst_w, dst_h, *args):
-                    ctyped.func.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
-                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
-        ctyped.func.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
-
-
-def _get_argb(r: ctyped.type.BYTE, g: ctyped.type.BYTE, b: ctyped.type.BYTE,
-              a: ctyped.type.BYTE = 255) -> ctyped.type.ARGB:
-    return (b << ctyped.const.BlueShift | g << ctyped.const.GreenShift |
-            r << ctyped.const.RedShift | a << ctyped.const.AlphaShift)
+                    ctyped.lib.Gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
+                                            src, src_ox, src_oy, ctyped.const.SRCCOPY)
+        ctyped.lib.Gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 
 def _set_param(path: str) -> bool:
-    return bool(ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                         ctyped.const.SPIF_SENDWININICHANGE))
+    return bool(ctyped.lib.User32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
+                                                        ctyped.const.SPIF_SENDWININICHANGE))
 
 
 def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
@@ -492,18 +486,6 @@ def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ct
     return False
 
 
-def _set(image: _gdiplus.Bitmap, monitor_x_y_w_h: tuple[int, int, int, int], style: int,
-         argb: int, rgb: int, transition: int, duration: int, path: str, monitor: Optional[str]):
-    # noinspection PyTypeChecker
-    _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
-                     path, argb, transition, duration)
-    try:
-        return _set_idesktopwallpaper(path, monitor, rgb, style)
-    finally:
-        time.sleep(_DELETE_TEMP_AFTER)
-        ctyped.func.kernel32.DeleteFileW(path)
-
-
 # noinspection PyShadowingBuiltins
 def set(path: str, *monitors: str, fade: bool = True):
     return _set_idesktopwallpaper(path, *monitors) if monitors else _set_iactivedesktop(
@@ -515,8 +497,8 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
     if image := _gdiplus.Bitmap.from_file(path):
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
-            monitor_x_y_w_h = 0, 0, ctyped.func.user32.GetSystemMetrics(
-                ctyped.const.SM_CXVIRTUALSCREEN), ctyped.func.user32.GetSystemMetrics(
+            monitor_x_y_w_h = 0, 0, ctyped.lib.User32.GetSystemMetrics(
+                ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.User32.GetSystemMetrics(
                 ctyped.const.SM_CYVIRTUALSCREEN)
             if style == Style.TILE:
                 bitmap = _gdiplus.Bitmap.from_dimension(*monitor_x_y_w_h[2:])
@@ -533,13 +515,13 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
         # noinspection PyTypeChecker
         _draw_on_workerw(image, *monitor_x_y_w_h,
                          *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
-                         temp_path, _get_argb(r, g, b), transition, duration)
+                         temp_path, _gdiplus.Color.from_rgb(r, g, b), transition, duration)
         try:
-            return _set_idesktopwallpaper(temp_path, monitor, ctyped.macro.RGB(r, g, b),
-                                          style if style in (Style.TILE, Style.SPAN) else Style.FILL)
+            return _set_idesktopwallpaper(temp_path, monitor,
+                                          style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
         finally:
-            time.sleep(_DELETE_TEMP_AFTER)
-            ctyped.func.kernel32.DeleteFileW(temp_path)
+            time.sleep(_DELETE_AFTER)
+            ctyped.lib.Kernel32.DeleteFileW(temp_path)
     return False
 
 
@@ -574,7 +556,7 @@ def set_slideshow(*paths: str) -> bool:
         with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
             if wallpaper:
                 with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
-                    ctyped.func.shell32.SHCreateShellItemArrayFromIDLists(
+                    ctyped.lib.Shell32.SHCreateShellItemArrayFromIDLists(
                         len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
                     wallpaper.SetSlideshow(shl_arr)
                     return True

@@ -35,7 +35,7 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
         with ctyped.init_com(ctyped.com.IPropertyStore, False) as prop_store:
             flag = (ctyped.enum.GETPROPERTYSTOREFLAGS.GPS_READWRITE
                     if write else ctyped.enum.GETPROPERTYSTOREFLAGS.GPS_PREFERQUERYPROPERTIES)
-            if ctyped.macro.SUCCEEDED(ctyped.func.shell32.SHGetPropertyStoreFromParsingName(
+            if ctyped.macro.SUCCEEDED(ctyped.lib.Shell32.SHGetPropertyStoreFromParsingName(
                     path_or_interface, None, flag, *ctyped.macro.IID_PPV_ARGS(prop_store))):
                 yield prop_store
                 return
@@ -58,7 +58,7 @@ def _get_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
                     prop_store.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]),
                                                                                key[1])), var_ref)
                 vals.append(var.U.S.U.pwszVal)
-                ctyped.func.ole32.PropVariantClear(var_ref)
+                ctyped.lib.Ole32.PropVariantClear(var_ref)
     return tuple(vals)
 
 
@@ -167,25 +167,25 @@ def _get_link_paths(dir_: str, recursive: bool = False) -> Generator[str, None, 
 @contextlib.contextmanager
 def _get_hdevinfo(guid_ref: Optional[ctyped.Pointer[ctyped.struct.GUID]],
                   flags: ctyped.type.DWORD) -> ContextManager[Optional[ctyped.type.HDEVINFO]]:
-    if (hdevinfo := ctyped.func.setupapi.SetupDiGetClassDevsW(guid_ref, None, None,
-                                                              flags)) == ctyped.const.INVALID_HANDLE_VALUE:
+    if (hdevinfo := ctyped.lib.Setupapi.SetupDiGetClassDevsW(guid_ref, None, None,
+                                                             flags)) == ctyped.const.INVALID_HANDLE_VALUE:
         yield None
     else:
         try:
             yield hdevinfo
         finally:
-            ctyped.func.setupapi.SetupDiDestroyDeviceInfoList(hdevinfo)
+            ctyped.lib.Setupapi.SetupDiDestroyDeviceInfoList(hdevinfo)
 
 
 def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Pointer[ctyped.struct.SP_DEVINFO_DATA],
                       spdrp_or_devpkey: Union[int, tuple[str, int]]) -> str:
     if isinstance(spdrp_or_devpkey, int):
-        getter = ctyped.func.setupapi.SetupDiGetDeviceRegistryPropertyW
+        getter = ctyped.lib.Setupapi.SetupDiGetDeviceRegistryPropertyW
         key_ref = spdrp_or_devpkey
         type_ref = None
         flags = ()
     else:
-        getter = ctyped.func.setupapi.SetupDiGetDevicePropertyW
+        getter = ctyped.lib.Setupapi.SetupDiGetDevicePropertyW
         key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(spdrp_or_devpkey[0]), spdrp_or_devpkey[1]))
         type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
         flags = 0,
@@ -208,7 +208,7 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: Union[int, tuple[
             dev_info = ctyped.struct.SP_DEVINFO_DATA(ctyped.sizeof(ctyped.struct.SP_DEVINFO_DATA))
             dev_info_ref = ctyped.byref(dev_info)
             index = 0
-            while ctyped.func.setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
+            while ctyped.lib.Setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
                 vals.append(tuple(_get_str_dev_prop(hdevinfo, dev_info_ref, devpkey) for devpkey in devpkeys))
                 index += 1
     return tuple(vals)
@@ -216,10 +216,10 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: Union[int, tuple[
 
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     with _utils.string_buffer() as buff:
-        ctyped.func.kernel32.FormatMessageW((
+        ctyped.lib.Kernel32.FormatMessageW((
                 ctyped.const.FORMAT_MESSAGE_ALLOCATE_BUFFER |
                 ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS),
-            None, ctyped.func.kernel32.GetLastError() if hresult is None else hresult,
+            None, ctyped.lib.Kernel32.GetLastError() if hresult is None else hresult,
             ctyped.macro.MAKELANGID(ctyped.const.LANG_NEUTRAL, ctyped.const.SUBLANG_DEFAULT),
             ctyped.cast(ctyped.byref(buff), ctyped.type.LPWSTR), 0, None)
         error = buff.value.strip()
@@ -227,46 +227,46 @@ def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
 
 
 def show_error(title: str, text: str) -> bool:
-    return ctyped.func.user32.MessageBoxW(
+    return ctyped.lib.User32.MessageBoxW(
         None, text, title, ctyped.const.MB_OK | ctyped.const.MB_ICONERROR | ctyped.const.MB_SYSTEMMODAL) != 0
 
 
 def get_max_shutdown_time() -> float:
     buff = ctyped.type.c_int()
-    ctyped.func.user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
+    ctyped.lib.User32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
     return buff.value / 1000
 
 
 # noinspection PyShadowingBuiltins
 def refresh_dir(dir: str):
-    ctyped.func.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir, None)
+    ctyped.lib.Shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir, None)
 
 
 def press_keyboard(key: int) -> bool:
     input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_U(ki=ctyped.struct.KEYBDINPUT(key)))
     ref = ctyped.byref(input_)
     sz = ctyped.sizeof(ctyped.struct.INPUT)
-    down = ctyped.func.user32.SendInput(1, ref, sz) == 1
+    down = ctyped.lib.User32.SendInput(1, ref, sz) == 1
     if down:
         input_.U.ki.dwFlags = ctyped.const.KEYEVENTF_KEYUP
-        return ctyped.func.user32.SendInput(1, ref, sz) == 1
+        return ctyped.lib.User32.SendInput(1, ref, sz) == 1
     return False
 
 
 def open_file(path: str) -> bool:
-    return ctyped.func.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+    return ctyped.lib.Shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
 
 
 def open_file_path(path: str) -> bool:
     with _utils.get_itemidlist(path) as pidl:
-        return ctyped.macro.SUCCEEDED(ctyped.func.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0))
+        return ctyped.macro.SUCCEEDED(ctyped.lib.Shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0))
 
 
 def open_file_with(path: str) -> bool:
     info_ref = ctyped.byref(ctyped.struct.OPENASINFO(path, oaifInFlags=(
             ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_HIDE_REGISTRATION)))
     try:
-        return ctyped.const.S_OK == ctyped.func.shell32.SHOpenWithDialog(None, info_ref)
+        return ctyped.const.S_OK == ctyped.lib.Shell32.SHOpenWithDialog(None, info_ref)
     except OSError as e:
         return e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED)
 
@@ -289,7 +289,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
             if path is not None:
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     try:
-                        ctyped.func.shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
+                        ctyped.lib.Shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
                     except FileNotFoundError:
                         pass
                     except OSError as e:
@@ -317,11 +317,11 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
 def _choose_color_hook(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
                        _: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.UINT_PTR:
     if message == ctyped.const.WM_INITDIALOG:
-        ctyped.func.user32.SetWindowPos(hwnd, ctyped.const.HWND_TOPMOST, 0, 0, 0, 0,
-                                        ctyped.const.SWP_NOSIZE | ctyped.const.SWP_NOMOVE)
+        ctyped.lib.User32.SetWindowPos(hwnd, ctyped.const.HWND_TOPMOST, 0, 0, 0, 0,
+                                       ctyped.const.SWP_NOSIZE | ctyped.const.SWP_NOMOVE)
         title_address = ctyped.struct.CHOOSECOLORW.from_address(lparam).lCustData
         if title_address:
-            ctyped.func.user32.SetWindowTextW(hwnd, ctyped.type.LPWSTR.from_address(title_address).value)
+            ctyped.lib.User32.SetWindowTextW(hwnd, ctyped.type.LPWSTR.from_address(title_address).value)
     return 0
 
 
@@ -333,7 +333,7 @@ def choose_color(title: Optional[str] = None, color: Optional[int] = None,
         lpCustColors=ctyped.array(ctyped.type.COLORREF, *(() if custom_colors is None else custom_colors), size=16),
         Flags=ctyped.const.CC_RGBINIT | ctyped.const.CC_FULLOPEN | ctyped.const.CC_ENABLEHOOK,
         lCustData=0 if title is None else ctyped.addressof(data), lpfnHook=ctyped.type.LPCCHOOKPROC(_choose_color_hook))
-    if ctyped.func.comdlg32.ChooseColorW(ctyped.byref(color_chooser)):
+    if ctyped.lib.Comdlg32.ChooseColorW(ctyped.byref(color_chooser)):
         color = color_chooser.rgbResult
     if custom_colors is not None:
         custom_colors[:] = color_chooser.lpCustColors[:16]
@@ -346,10 +346,10 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
             pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
-            ctyped.func.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
+            ctyped.lib.OleAut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
             with ctyped.cast_com(picture, ctyped.com.IPictureDisp) as picture_disp:
                 try:
-                    ctyped.func.oleaut32.OleSavePictureFile(picture_disp, path)
+                    ctyped.lib.OleAut32.OleSavePictureFile(picture_disp, path)
                 except OSError:
                     pass
                 else:
@@ -374,11 +374,11 @@ def get_direct_show_devices_properties(
                                 var_ref = ctyped.byref(var)
                                 props.clear()
                                 for prop_name in prop_names:
-                                    ctyped.func.oleaut32.VariantInit(var_ref)
+                                    ctyped.lib.OleAut32.VariantInit(var_ref)
                                     with contextlib.suppress(FileNotFoundError):
                                         prop_bag.Read(prop_name, var_ref, None)
                                     props.append(var.U.S.U.bstrVal)
-                                    ctyped.func.oleaut32.VariantClear(var_ref)
+                                    ctyped.lib.OleAut32.VariantClear(var_ref)
                                 devices.append(tuple(props))
     return tuple(devices)
 
@@ -493,10 +493,10 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
                 with ctyped.init_com(ctyped.com.IStartMenuPinnedList) as pinned:
                     if pinned:
                         with ctyped.init_com(ctyped.com.IShellItem, False) as item:
-                            ctyped.func.shell32.SHCreateItemFromParsingName(path, None,
-                                                                            *ctyped.macro.IID_PPV_ARGS(item))
+                            ctyped.lib.Shell32.SHCreateItemFromParsingName(path, None,
+                                                                           *ctyped.macro.IID_PPV_ARGS(item))
                             if item:
                                 removed = pinned.RemoveFromList(item) == 0 and removed
             if ntpath.isfile(path):
-                removed = ctyped.func.kernel32.DeleteFileW(path) and removed
+                removed = ctyped.lib.Kernel32.DeleteFileW(path) and removed
     return removed

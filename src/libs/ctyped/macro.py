@@ -1,10 +1,10 @@
-from . import com as _com, const as _const, func as _func, struct as _struct, type as _type
-from ._head import _Pointer, _byref
+from . import com as _com, const as _const, lib as _func, struct as _struct, type as _type
+from ._head import _Pointer, _byref, _cast_int
 
 
 def __uuidof(_: str) -> _Pointer[_struct.IID]:
     iid_ref = _byref(_struct.IID())
-    _func.ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
+    _func.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
     return iid_ref
 
 
@@ -95,17 +95,7 @@ def GetBValue(rgb: int) -> int:
 
 # noinspection PyPep8Naming
 def IS_INTRESOURCE(_r: int) -> bool:
-    return _type.ULONG_PTR(_r) >> 16 == 0
-
-
-# noinspection PyPep8Naming
-def MAKEINTRESOURCEA(i: int) -> int:
-    return _type.c_void_p.from_buffer(_type.LPSTR(_type.ULONG_PTR(_type.WORD(i)).value)).value
-
-
-# noinspection PyPep8Naming
-def MAKEINTRESOURCEW(i: int) -> int:
-    return _type.c_void_p.from_buffer(_type.LPWSTR(_type.ULONG_PTR(_type.WORD(i)).value)).value
+    return _cast_int(_r, _type.ULONG_PTR) >> 16 == 0
 
 
 # noinspection PyPep8Naming
@@ -119,13 +109,23 @@ def GET_Y_LPARAM(lp: int) -> int:
 
 
 # noinspection PyPep8Naming
-def GetScode(sc: int) -> _type.SCODE:
-    return _type.SCODE(sc)
+def GetScode(sc: int) -> int:
+    return _cast_int(sc, _type.SCODE)
 
 
 # noinspection PyPep8Naming
-def ResultFromScode(sc: int) -> _type.HRESULT:
-    return _type.HRESULT(sc)
+def ResultFromScode(sc: int) -> int:
+    return _type.HRESULT(sc).value
+
+
+# noinspection PyPep8Naming
+def MAKEINTRESOURCEA(i: int) -> _type.LPSTR:
+    return _type.LPSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
+
+
+# noinspection PyPep8Naming
+def MAKEINTRESOURCEW(i: int) -> _type.LPWSTR:
+    return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 
 
 # noinspection PyPep8Naming

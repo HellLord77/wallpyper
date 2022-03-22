@@ -28,7 +28,7 @@ class _CDLL(type):
                     raise AttributeError(f"lib '{self.__name__}' has no function '{name}'") from None
                 except TypeError:
                     try:
-                        self._lib = _ctypes.pythonapi if self is python else getattr(
+                        self._lib = _ctypes.pythonapi if self is Python else getattr(
                             getattr(_ctypes, type(self).__name__[1:].lower()), self.__name__)
                     except FileNotFoundError as e:
                         raise e from None
@@ -69,8 +69,7 @@ class _WinFunc(_Func, metaclass=_WinDLL):
     pass
 
 
-# noinspection PyPep8Naming
-class python(_PyFunc):
+class Python(_PyFunc):
     Py_Initialize: _Callable[[],
                              _type.c_void_p]
     Py_InitializeEx: _Callable[[_type.c_int],
@@ -83,8 +82,7 @@ class python(_PyFunc):
                              _type.c_int]
 
 
-# noinspection PyPep8Naming
-class cfgmgr32(_WinFunc):
+class Cfgmgr32(_WinFunc):
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
                                          _Pointer[_struct.DEVPROPKEY],
                                          _Pointer[_type.DEVPROPTYPE],
@@ -109,8 +107,7 @@ class cfgmgr32(_WinFunc):
                                   _type.CONFIGRET]
 
 
-# noinspection PyPep8Naming
-class combase(_WinFunc):
+class Combase(_WinFunc):
     RoActivateInstance: _Callable[[_type.HSTRING,
                                    _Pointer[_com.IInspectable]],
                                   _type.HRESULT]
@@ -154,16 +151,14 @@ class combase(_WinFunc):
                                       _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class comdlg32(_WinFunc):
+class Comdlg32(_WinFunc):
     ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
                             _type.BOOL]
     ChooseColorW: _Callable[[_Pointer[_struct.CHOOSECOLORW]],
                             _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class gdi32(_WinFunc):
+class Gdi32(_WinFunc):
     BitBlt: _Callable[[_type.HDC,
                        _type.c_int,
                        _type.c_int,
@@ -278,6 +273,16 @@ class gdi32(_WinFunc):
 
 
 class GdiPlus(_WinFunc):
+    GdipBitmapGetPixel: _Callable[[_type.GpBitmap,
+                                   _type.INT,
+                                   _type.INT,
+                                   _Pointer[_type.ARGB]],
+                                  _enum.GpStatus]
+    GdipBitmapSetPixel: _Callable[[_type.GpBitmap,
+                                   _type.INT,
+                                   _type.INT,
+                                   _type.ARGB],
+                                  _enum.GpStatus]
     GdipBitmapSetResolution: _Callable[[_type.GpBitmap,
                                         _type.REAL,
                                         _type.REAL],
@@ -507,8 +512,7 @@ class GdiPlus(_WinFunc):
                               _enum.Status]
 
 
-# noinspection PyPep8Naming
-class kernel32(_WinFunc):
+class Kernel32(_WinFunc):
     CloseHandle: _Callable[[_type.HANDLE],
                            _type.BOOL]
     DeleteFileA: _Callable[[_type.LPCSTR],
@@ -604,8 +608,32 @@ class kernel32(_WinFunc):
                                 _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class msimg32(_WinFunc):
+class MSCorEE(_WinFunc):
+    CoEEShutDownCOM: _Callable[[],
+                               _type.c_void_p]
+    CoInitializeCor: _Callable[[_type.DWORD],
+                               _type.HRESULT]
+    CoInitializeEE: _Callable[[_enum.COINITIEE],
+                              _type.HRESULT]
+    CorBindToCurrentRuntime: _Callable[[_Optional[_type.LPCWSTR],
+                                        _Pointer[_struct.CLSID],
+                                        _Pointer[_struct.IID],
+                                        _type.LPVOID],
+                                       _type.HRESULT]
+    CorBindToRuntimeEx: _Callable[[_Optional[_type.LPCWSTR],
+                                   _Optional[_type.LPCWSTR],
+                                   _enum.STARTUP_FLAGS,
+                                   _Pointer[_struct.CLSID],
+                                   _Pointer[_struct.IID],
+                                   _type.LPVOID],
+                                  _type.HRESULT]
+    CoUninitializeCor: _Callable[[],
+                                 _type.c_void_p]
+    CoUninitializeEE: _Callable[[_type.BOOL],
+                                _type.c_void_p]
+
+
+class Msimg32(_WinFunc):
     AlphaBlend: _Callable[[_type.HDC,
                            _type.c_int,
                            _type.c_int,
@@ -640,8 +668,7 @@ class ntdll(_WinFunc):
                                       _type.c_ubyte]
 
 
-# noinspection PyPep8Naming
-class ole32(_WinFunc):
+class Ole32(_WinFunc):
     CLSIDFromString: _Callable[[_type.LPCOLESTR,
                                 _Pointer[_struct.CLSID]],
                                _type.HRESULT]
@@ -682,14 +709,12 @@ class ole32(_WinFunc):
                              _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class oleacc(_WinFunc):
+class Oleacc(_WinFunc):
     GetProcessHandleFromHwnd: _Callable[[_type.HWND],
                                         _type.HANDLE]
 
 
-# noinspection PyPep8Naming
-class oleaut32(_WinFunc):
+class OleAut32(_WinFunc):
     OleCreatePictureIndirect: _Callable[[_Pointer[_struct.PICTDESC],
                                          _Pointer[_struct.IID],
                                          _type.BOOL,
@@ -704,16 +729,19 @@ class oleaut32(_WinFunc):
                            _type.c_void_p]
 
 
-# noinspection PyPep8Naming
-class shell32(_WinFunc):
+class Shell32(_WinFunc):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 703
-    GUIDFromStringW: _Callable[[_type.LPCTSTR,
+    GUIDFromStringW: _Callable[[_type.LPCWSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 704
-    ILCreateFromPath: _Callable[[_type.PCTSTR],
+    ILCreateFromPath: _Callable[[_type.PCWSTR],
                                 _Pointer[_struct.ITEMIDLIST]]
+    ILCreateFromPathA: _Callable[[_type.PCSTR],
+                                 _Pointer[_struct.ITEMIDLIST]]
+    ILCreateFromPathW: _Callable[[_type.PCWSTR],
+                                 _Pointer[_struct.ITEMIDLIST]]
     ILFree: _Callable[[_Optional[_Pointer[_struct.ITEMIDLIST]]],
                       _type.c_void_p]
     PathCleanupSpec: _Callable[[_Optional[_type.PCWSTR],
@@ -794,8 +822,7 @@ class shell32(_WinFunc):
                                  _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class setupapi(_WinFunc):
+class Setupapi(_WinFunc):
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
                                               _Pointer[_struct.SP_DEVINFO_DATA],
                                               _Pointer[_struct.GUID],
@@ -873,8 +900,7 @@ class setupapi(_WinFunc):
                                                  _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class shcore(_WinFunc):
+class Shcore(_WinFunc):
     GetDpiForMonitor: _Callable[[_type.HMONITOR,
                                  _enum.MONITOR_DPI_TYPE,
                                  _Pointer[_type.UINT],
@@ -887,12 +913,11 @@ class shcore(_WinFunc):
                                       _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class shlwapi(_WinFunc):
+class Shlwapi(_WinFunc):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 269
-    GUIDFromStringW: _Callable[[_type.LPCTSTR,
+    GUIDFromStringW: _Callable[[_type.LPCWSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 270
     PathFileExistsA: _Callable[[_type.LPCSTR],
@@ -963,11 +988,48 @@ class Taskbar(_WinFunc):
     pass
 
 
-# noinspection PyPep8Naming
-class user32(_WinFunc):
+class User32(_WinFunc):
+    AppendMenuA: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _type.UINT_PTR,
+                            _Optional[_type.LPCSTR]],
+                           _type.BOOL]
+    AppendMenuW: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _type.UINT_PTR,
+                            _Optional[_type.LPCWSTR]],
+                           _type.BOOL]
     BeginPaint: _Callable[[_type.HWND,
                            _Pointer[_struct.PAINTSTRUCT]],
                           _type.HDC]
+    CalculatePopupWindowPosition: _Callable[[_Pointer[_struct.POINT],
+                                             _Pointer[_struct.SIZE],
+                                             _type.UINT,
+                                             _Optional[_Pointer[_struct.RECT]],
+                                             _Pointer[_struct.RECT]],
+                                            _type.BOOL]
+    ChangeMenuA: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _Optional[_type.LPCSTR],
+                            _type.UINT,
+                            _type.UINT],
+                           _type.BOOL]
+    ChangeMenuW: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _Optional[_type.LPCWSTR],
+                            _type.UINT,
+                            _type.UINT],
+                           _type.BOOL]
+    CheckMenuItem: _Callable[[_type.HMENU,
+                              _type.UINT,
+                              _type.UINT],
+                             _type.DWORD]
+    CheckMenuRadioItem: _Callable[[_type.HMENU,
+                                   _type.UINT,
+                                   _type.UINT,
+                                   _type.UINT,
+                                   _type.UINT],
+                                  _type.BOOL]
     ClientToScreen: _Callable[[_type.HWND,
                                _Pointer[_struct.POINT]],
                               _type.BOOL]
@@ -986,6 +1048,10 @@ class user32(_WinFunc):
                                          _type.c_int,
                                          _type.UINT],
                                         _type.HICON]
+    CreateMenu: _Callable[[],
+                          _type.HMENU]
+    CreatePopupMenu: _Callable[[],
+                               _type.HMENU]
     CreateWindowExA: _Callable[[_type.DWORD,
                                 _Optional[_type.LPCSTR],
                                 _Optional[_type.LPCSTR],
@@ -1022,7 +1088,13 @@ class user32(_WinFunc):
                                _type.WPARAM,
                                _type.LPARAM],
                               _type.LRESULT]
+    DeleteMenu: _Callable[[_type.HMENU,
+                           _type.UINT,
+                           _type.UINT],
+                          _type.BOOL]
     DestroyIcon: _Callable[[_type.HICON],
+                           _type.BOOL]
+    DestroyMenu: _Callable[[_type.HMENU],
                            _type.BOOL]
     DestroyWindow: _Callable[[_type.HWND],
                              _type.BOOL]
@@ -1033,6 +1105,10 @@ class user32(_WinFunc):
     DrawMenuBar: _Callable[[_type.HWND],
                            _type.BOOL]
     EmptyClipboard: _Callable[[],
+                              _type.BOOL]
+    EnableMenuItem: _Callable[[_type.HMENU,
+                               _type.UINT,
+                               _type.UINT],
                               _type.BOOL]
     EndPaint: _Callable[[_type.HWND,
                          _Pointer[_struct.PAINTSTRUCT]],
@@ -1109,9 +1185,32 @@ class user32(_WinFunc):
                                    _type.HWND]
     GetMenu: _Callable[[_type.HWND],
                        _type.HMENU]
+    GetMenuCheckMarkDimensions: _Callable[[],
+                                          _type.LONG]
     GetMenuInfo: _Callable[[_type.HMENU,
                             _Pointer[_struct.MENUINFO]],
                            _type.BOOL]
+    GetMenuItemCount: _Callable[[_Optional[_type.HMENU]],
+                                _type.c_int]
+    GetMenuItemID: _Callable[[_type.HMENU,
+                              _type.c_int],
+                             _type.UINT]
+    GetMenuStringA: _Callable[[_type.HMENU,
+                               _type.UINT,
+                               _Optional[_type.LPSTR],
+                               _type.c_int,
+                               _type.UINT],
+                              _type.c_int]
+    GetMenuState: _Callable[[_type.HMENU,
+                             _type.UINT,
+                             _type.UINT],
+                            _type.UINT]
+    GetMenuStringW: _Callable[[_type.HMENU,
+                               _type.UINT,
+                               _Optional[_type.LPWSTR],
+                               _type.c_int,
+                               _type.UINT],
+                              _type.c_int]
     GetMessageA: _Callable[[_Pointer[_struct.MSG],
                             _Optional[_type.HWND],
                             _type.UINT,
@@ -1154,6 +1253,23 @@ class user32(_WinFunc):
                                _type.LPWSTR,
                                _type.c_int],
                               _type.c_int]
+    HiliteMenuItem: _Callable[[_type.HWND,
+                               _type.HMENU,
+                               _type.UINT,
+                               _type.UINT],
+                              _type.BOOL]
+    InsertMenuA: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _type.UINT,
+                            _type.UINT_PTR,
+                            _Optional[_type.LPCSTR]],
+                           _type.BOOL]
+    InsertMenuW: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _type.UINT,
+                            _type.UINT_PTR,
+                            _Optional[_type.LPCWSTR]],
+                           _type.BOOL]
     IntersectRect: _Callable[[_Pointer[_struct.RECT],
                               _Pointer[_struct.RECT],
                               _Pointer[_struct.RECT]],
@@ -1167,22 +1283,32 @@ class user32(_WinFunc):
                           _type.UINT],
                          _type.HICON]
     LoadIconW: _Callable[[_Optional[_type.HINSTANCE],
-                          _type.UINT],
+                          _type.LPCWSTR],
                          _type.HICON]
-    LoadImageA: _Callable[[_type.HINSTANCE,
+    LoadImageA: _Callable[[_Optional[_type.HINSTANCE],
                            _type.LPCSTR,
                            _type.UINT,
                            _type.c_int,
                            _type.c_int,
                            _type.UINT],
                           _type.HANDLE]
-    LoadImageW: _Callable[[_type.HINSTANCE,
+    LoadImageW: _Callable[[_Optional[_type.HINSTANCE],
                            _type.LPCWSTR,
                            _type.UINT,
                            _type.c_int,
                            _type.c_int,
                            _type.UINT],
                           _type.HANDLE]
+    LoadMenuA: _Callable[[_Optional[_type.HINSTANCE],
+                          _type.LPCSTR],
+                         _type.HMENU]
+    LoadMenuW: _Callable[[_Optional[_type.HINSTANCE],
+                          _type.LPCWSTR],
+                         _type.HMENU]
+    LoadMenuIndirectA: _Callable[[_type.MENUTEMPLATEA],
+                                 _type.HMENU]
+    LoadMenuIndirectW: _Callable[[_type.MENUTEMPLATEW],
+                                 _type.HMENU]
     LockWorkStation: _Callable[[],
                                _type.BOOL]
     MapWindowPoints: _Callable[[_Optional[_type.HWND],
@@ -1200,6 +1326,18 @@ class user32(_WinFunc):
                             _Optional[_type.LPCWSTR],
                             _type.UINT],
                            _type.c_int]
+    ModifyMenuA: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _type.UINT,
+                            _type.UINT_PTR,
+                            _Optional[_type.LPCSTR]],
+                           _type.BOOL]
+    ModifyMenuW: _Callable[[_type.HMENU,
+                            _type.UINT,
+                            _type.UINT,
+                            _type.UINT_PTR,
+                            _Optional[_type.LPCWSTR]],
+                           _type.BOOL]
     MonitorFromPoint: _Callable[[_struct.POINT,
                                  _type.DWORD],
                                 _type.HMONITOR]
@@ -1237,6 +1375,10 @@ class user32(_WinFunc):
                                       _type.UINT]
     RegisterWindowMessageW: _Callable[[_type.LPCWSTR],
                                       _type.UINT]
+    RemoveMenu: _Callable[[_type.HMENU,
+                           _type.UINT,
+                           _type.UINT],
+                          _type.BOOL]
     ReleaseDC: _Callable[[_Optional[_type.HWND],
                           _type.HDC],
                          _type.c_int]
@@ -1273,9 +1415,20 @@ class user32(_WinFunc):
     SetClipboardData: _Callable[[_type.UINT,
                                  _type.HANDLE],
                                 _type.HANDLE]
+    SetCursor: _Callable[[_Optional[_type.HCURSOR]],
+                         _type.HCURSOR]
+    SetMenu: _Callable[[_type.HWND,
+                        _Optional[_type.HMENU]],
+                       _type.BOOL]
     SetMenuInfo: _Callable[[_type.HMENU,
                             _Pointer[_struct.MENUINFO]],
                            _type.BOOL]
+    SetMenuItemBitmaps: _Callable[[_type.HMENU,
+                                   _type.UINT,
+                                   _type.UINT,
+                                   _Optional[_type.HBITMAP],
+                                   _Optional[_type.HBITMAP]],
+                                  _type.BOOL]
     SetSysColors: _Callable[[_type.c_int,
                              _Pointer[_type.INT],
                              _Pointer[_type.COLORREF]],
@@ -1323,6 +1476,8 @@ class user32(_WinFunc):
     SetWindowTextW: _Callable[[_type.HWND,
                                _type.LPCWSTR],
                               _type.BOOL]
+    ShowCursor: _Callable[[_type.BOOL],
+                          _type.c_int]
     ShowWindow: _Callable[[_type.HWND,
                            _type.c_int],
                           _type.BOOL]
@@ -1340,6 +1495,21 @@ class user32(_WinFunc):
                                       _type.PVOID,
                                       _type.UINT],
                                      _type.BOOL]
+    TrackPopupMenu: _Callable[[_type.HMENU,
+                               _type.UINT,
+                               _type.c_int,
+                               _type.c_int,
+                               _type.c_int,
+                               _type.HWND,
+                               _Optional[_Pointer[_struct.RECT]]],
+                              _type.BOOL]
+    TrackPopupMenuEx: _Callable[[_type.HMENU,
+                                 _type.UINT,
+                                 _type.c_int,
+                                 _type.c_int,
+                                 _type.HWND,
+                                 _Optional[_Pointer[_struct.TPMPARAMS]]],
+                                _type.BOOL]
     TranslateMessage: _Callable[[_Pointer[_struct.MSG]],
                                 _type.BOOL]
     UnhookWinEvent: _Callable[[_type.HWINEVENTHOOK],
@@ -1361,8 +1531,7 @@ class user32(_WinFunc):
                                 _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class uxtheme(_WinFunc):
+class UxTheme(_WinFunc):
     SetWindowTheme: _Callable[[_type.HWND,
                                _Optional[_type.LPCWSTR],
                                _Optional[_type.LPCWSTR]],
