@@ -7,20 +7,19 @@ import libs.ctyped as ctyped
 
 
 class Color(int):
+    def __str__(self):
+        return f'#{self.get_red():02x}{self.get_green():02x}{self.get_blue():02x}{self.get_alpha():02x}'
+
     @classmethod
-    def from_argb(cls, a: int, r: int, g: int, b: int) -> Color:
+    def from_rgba(cls, r: int, g: int, b: int, a: int = 255) -> Color:
         return Color(ctyped.cast_int(b << ctyped.const.BlueShift, ctyped.type.ARGB) |
                      ctyped.cast_int(g << ctyped.const.GreenShift, ctyped.type.ARGB) |
                      ctyped.cast_int(r << ctyped.const.RedShift, ctyped.type.ARGB) |
                      ctyped.cast_int(a << ctyped.const.AlphaShift, ctyped.type.ARGB))
 
     @classmethod
-    def from_rgb(cls, r: int, g: int, b: int) -> Color:
-        return cls.from_argb(255, r, g, b)
-
-    @classmethod
-    def from_colorref(cls, rgb: ctyped.type.COLORREF) -> Color:
-        return cls.from_rgb(ctyped.macro.GetRValue(rgb), ctyped.macro.GetGValue(rgb), ctyped.macro.GetBValue(rgb))
+    def from_colorref(cls, bgr: ctyped.type.COLORREF) -> Color:
+        return cls.from_rgba(ctyped.macro.GetRValue(bgr), ctyped.macro.GetGValue(bgr), ctyped.macro.GetBValue(bgr))
 
     def get_alpha(self) -> int:
         return ctyped.cast_int(self >> ctyped.const.AlphaShift, ctyped.type.BYTE)

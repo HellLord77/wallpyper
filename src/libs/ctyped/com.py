@@ -6,7 +6,7 @@ import types as _types
 from typing import Callable as _Callable, Optional as _Optional
 
 from . import com_impl as _com_impl, const as _const, enum as _enum, struct as _struct, type as _type
-from ._head import _format_annotations, _get_func_doc, _Globals, _Pointer, _resolve_type
+from ._utils import _format_annotations, _get_func_doc, _Globals, _Pointer, _resolve_type
 
 _ASSIGNED = ('_CLSID_', '_RuntimeClass_',
              *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS if assigned != '__doc__'))

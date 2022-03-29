@@ -5,7 +5,7 @@ import operator as _operator
 from typing import Callable as _Callable, Optional as _Optional, Union as _Union
 
 from . import const as _const, struct as _struct
-from ._head import _Globals, _Pointer, _resolve_type
+from ._utils import _Globals, _Pointer, _resolve_type
 
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = (
@@ -74,6 +74,7 @@ PCHAR = c_char_p
 PCNZCH = c_char_p
 PCNZWCH = c_wchar_p
 PCSTR = c_char_p
+PCSZ = c_char_p
 PCWCH = c_wchar_p
 PCWSTR = c_wchar_p
 PCZZSTR = c_char_p
@@ -153,6 +154,7 @@ DWORD_PTR = ULONG_PTR
 HANDLE = PVOID
 HDEVINFO = PVOID
 HDSKSPC = PVOID
+KPRIORITY = LONG
 LANGID = WORD
 LCID = DWORD
 LP = LPWSTR
@@ -161,6 +163,7 @@ LPOLESTR = LPWSTR
 LRESULT = LONG_PTR
 MENUTEMPLATEA = VOID
 MENUTEMPLATEW = VOID
+NTSTATUS = LONG
 OLECHAR = WCHAR
 PROPID = ULONG
 PSSTDAPI = HRESULT
@@ -195,6 +198,7 @@ HMENU = HANDLE
 HMETAFILE = HANDLE
 HMODULE = HANDLE
 HMONITOR = HANDLE
+HPAINTBUFFER = HANDLE
 HPALETTE = HANDLE
 HPEN = HANDLE
 HRGN = HANDLE
@@ -203,6 +207,7 @@ HSTR = HANDLE
 HSTRING = HANDLE
 HSTRING_BUFFER = HANDLE
 HTASK = HANDLE
+HTHEME = HANDLE
 HUMPD = HANDLE
 HWINEVENTHOOK = HANDLE
 HWINSTA = HANDLE
@@ -224,6 +229,8 @@ PDWORD_PTR = _Pointer[DWORD_PTR]
 
 BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
+DLGPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], INT_PTR]
+DRAWSTATEPROC = _Callable[[HDC, LPARAM, WPARAM, c_int, c_int], BOOL]
 EDITWORDBREAKPROCA = _Callable[[LPSTR, c_int, c_int, c_int], c_int]
 EDITWORDBREAKPROCW = _Callable[[LPWSTR, c_int, c_int, c_int], c_int]
 GRAYSTRINGPROC = _Callable[[HDC, LPARAM, c_int], BOOL]

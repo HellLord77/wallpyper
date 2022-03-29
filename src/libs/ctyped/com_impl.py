@@ -5,8 +5,8 @@ import types as _types
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import com as _com, const as _const, enum as _enum, lib as _func, struct as _struct, type as _type
-from ._head import _addressof, _byref, _not_internal, _Pointer, _pointer, _resolve_type
+from . import com as _com, const as _const, enum as _enum, lib as _lib, struct as _struct, type as _type
+from ._utils import _addressof, _byref, _not_internal, _Pointer, _pointer, _resolve_type
 
 
 class IUnknown(_type.c_void_p):
@@ -64,7 +64,7 @@ class IUnknown(_type.c_void_p):
             return _const.E_INVALIDARG
         ppvObject.contents.value = None
         iid = _type.LPOLESTR()
-        _func.Ole32.StringFromIID(riid, _byref(iid))
+        _lib.Ole32.StringFromIID(riid, _byref(iid))
         if iid.value in self.__IID__:
             ppvObject.contents.value = _type.LPVOID.from_buffer(self).value
             self.AddRef()

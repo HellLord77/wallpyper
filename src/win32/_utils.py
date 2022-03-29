@@ -72,7 +72,7 @@ def open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
                     file := operation.get(ctyped.com.IStorageFile)):
                 yield file
                 return
-    yield None
+    yield
 
 
 def delete_key(key: winreg.HKEYType, name: str) -> bool:

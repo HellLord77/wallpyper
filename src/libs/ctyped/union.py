@@ -5,7 +5,7 @@ import functools as _functools
 from dataclasses import dataclass as _union
 
 from . import const as _const, struct as _struct, type as _type
-from ._head import _Globals, _Pointer, _resolve_type
+from ._utils import _Globals, _Pointer, _resolve_type
 
 
 # noinspection PyPep8Naming

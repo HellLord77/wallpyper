@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 import winreg
-from typing import ContextManager, Generator, Mapping, Optional, Union
+from typing import ContextManager, Generator, Mapping, MutableSequence, Optional, Union
 
 import libs.ctyped as ctyped
 from . import _gdiplus, _utils, clipboard, wallpaper
@@ -43,7 +43,7 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
         with ctyped.cast_com(path_or_interface, ctyped.com.IPropertyStore) as prop_store:
             yield prop_store
             return
-    yield None
+    yield
 
 
 def _get_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
@@ -88,7 +88,7 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
                     if file and ctyped.macro.SUCCEEDED(file.Load(path_or_link, ctyped.const.STGM_READ)):
                         yield link
                         return
-        yield None
+        yield
     else:
         yield path_or_link
 
@@ -169,7 +169,7 @@ def _get_hdevinfo(guid_ref: Optional[ctyped.Pointer[ctyped.struct.GUID]],
                   flags: ctyped.type.DWORD) -> ContextManager[Optional[ctyped.type.HDEVINFO]]:
     if (hdevinfo := ctyped.lib.Setupapi.SetupDiGetClassDevsW(guid_ref, None, None,
                                                              flags)) == ctyped.const.INVALID_HANDLE_VALUE:
-        yield None
+        yield
     else:
         try:
             yield hdevinfo
@@ -326,7 +326,7 @@ def _choose_color_hook(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
 
 
 def choose_color(title: Optional[str] = None, color: Optional[int] = None,
-                 custom_colors: Optional[list[int]] = None) -> Optional[int]:
+                 custom_colors: Optional[MutableSequence[int]] = None) -> Optional[int]:
     data = ctyped.type.LPWSTR(title)
     color_chooser = ctyped.struct.CHOOSECOLORW(ctyped.sizeof(
         ctyped.struct.CHOOSECOLORW), rgbResult=0 if color is None else color,
@@ -362,12 +362,12 @@ def get_direct_show_devices_properties(
     devices = []
     with ctyped.init_com(ctyped.com.ICreateDevEnum) as dev_enum:
         if dev_enum:
-            with ctyped.init_com(ctyped.com.IEnumMoniker, False) as enum_moniker:
-                dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(clsid)), ctyped.byref(enum_moniker), 0)
+            with ctyped.init_com(ctyped.com.IEnumMoniker, False) as monikers:
+                dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(clsid)), ctyped.byref(monikers), 0)
                 with ctyped.init_com(ctyped.com.IMoniker, False) as moniker:
                     with ctyped.init_com(ctyped.com.IPropertyBag, False) as prop_bag:
                         props = []
-                        while enum_moniker.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
+                        while monikers.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
                             if ctyped.macro.SUCCEEDED(moniker.BindToStorage(None, None,
                                                                             *ctyped.macro.IID_PPV_ARGS(prop_bag))):
                                 var = ctyped.struct.VARIANT()

@@ -6,7 +6,7 @@ import itertools as _itertools
 from dataclasses import dataclass as _struct
 
 from . import const as _const, enum as _enum, type as _type, union as _union
-from ._head import _Globals, _Pointer, _resolve_type
+from ._utils import _Globals, _Pointer, _resolve_type
 
 _EMPTY = None
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
@@ -746,6 +746,25 @@ class COMPONENT:
 
 
 @_struct
+class DROPSTRUCT:
+    hwndSource: _type.HWND = _EMPTY
+    hwndSink: _type.HWND = _EMPTY
+    wFmt: _type.DWORD = _EMPTY
+    dwData: _type.ULONG_PTR = _EMPTY
+    ptDrop: POINT = _EMPTY
+    dwControlData: _type.DWORD = _EMPTY
+
+
+@_struct
+class DRAWTEXTPARAMS:
+    cbSize: _type.UINT = _EMPTY
+    iTabLength: _type.c_int = _EMPTY
+    iLeftMargin: _type.c_int = _EMPTY
+    iRightMargin: _type.c_int = _EMPTY
+    uiLengthDrawn: _type.UINT = _EMPTY
+
+
+@_struct
 class COMPONENTSOPT:
     dwSize: _type.DWORD = _EMPTY
     fEnableComponents: _type.BOOL = _EMPTY
@@ -785,12 +804,178 @@ class Color:
     B: _type.BYTE = _EMPTY
 
 
+@_struct
+class STRING:
+    Length: _type.USHORT = _EMPTY
+    MaximumLength: _type.USHORT = _EMPTY
+    Buffer: _type.PCHAR = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class UNICODE_STRING:
+    Length: _type.USHORT = _EMPTY
+    MaximumLength: _type.USHORT = _EMPTY
+    Buffer: _type.PWSTR = _EMPTY
+
+
+@_struct
+class INITCOMMONCONTROLSEX:
+    dwSize: _type.DWORD = _EMPTY
+    dwICC: _type.DWORD = _EMPTY
+
+
+@_struct
+class COLORSCHEME:
+    dwSize: _type.DWORD = _EMPTY
+    clrBtnHighlight: _type.COLORREF = _EMPTY
+    clrBtnShadow: _type.COLORREF = _EMPTY
+
+
+@_struct
+class DTBGOPTS:
+    dwSize: _type.DWORD = _EMPTY
+    dwFlags: _type.DWORD = _EMPTY
+    rcClip: RECT = _EMPTY
+
+
+@_struct
+class TEXTMETRICA:
+    tmHeight: _type.LONG = _EMPTY
+    tmAscent: _type.LONG = _EMPTY
+    tmDescent: _type.LONG = _EMPTY
+    tmInternalLeading: _type.LONG = _EMPTY
+    tmExternalLeading: _type.LONG = _EMPTY
+    tmAveCharWidth: _type.LONG = _EMPTY
+    tmMaxCharWidth: _type.LONG = _EMPTY
+    tmWeight: _type.LONG = _EMPTY
+    tmOverhang: _type.LONG = _EMPTY
+    tmDigitizedAspectX: _type.LONG = _EMPTY
+    tmDigitizedAspectY: _type.LONG = _EMPTY
+    tmFirstChar: _type.BYTE = _EMPTY
+    tmLastChar: _type.BYTE = _EMPTY
+    tmDefaultChar: _type.BYTE = _EMPTY
+    tmBreakChar: _type.BYTE = _EMPTY
+    tmItalic: _type.BYTE = _EMPTY
+    tmUnderlined: _type.BYTE = _EMPTY
+    tmStruckOut: _type.BYTE = _EMPTY
+    tmPitchAndFamily: _type.BYTE = _EMPTY
+    tmCharSet: _type.BYTE = _EMPTY
+
+
+@_struct
+class TEXTMETRICW:
+    tmHeight: _type.LONG = _EMPTY
+    tmAscent: _type.LONG = _EMPTY
+    tmDescent: _type.LONG = _EMPTY
+    tmInternalLeading: _type.LONG = _EMPTY
+    tmExternalLeading: _type.LONG = _EMPTY
+    tmAveCharWidth: _type.LONG = _EMPTY
+    tmMaxCharWidth: _type.LONG = _EMPTY
+    tmWeight: _type.LONG = _EMPTY
+    tmOverhang: _type.LONG = _EMPTY
+    tmDigitizedAspectX: _type.LONG = _EMPTY
+    tmDigitizedAspectY: _type.LONG = _EMPTY
+    tmFirstChar: _type.WCHAR = _EMPTY
+    tmLastChar: _type.WCHAR = _EMPTY
+    tmDefaultChar: _type.WCHAR = _EMPTY
+    tmBreakChar: _type.WCHAR = _EMPTY
+    tmItalic: _type.BYTE = _EMPTY
+    tmUnderlined: _type.BYTE = _EMPTY
+    tmStruckOut: _type.BYTE = _EMPTY
+    tmPitchAndFamily: _type.BYTE = _EMPTY
+    tmCharSet: _type.BYTE = _EMPTY
+
+
+@_struct
+class LOGFONTA:
+    lfHeight: _type.LONG = _EMPTY
+    lfWidth: _type.LONG = _EMPTY
+    lfEscapement: _type.LONG = _EMPTY
+    lfOrientation: _type.LONG = _EMPTY
+    lfWeight: _type.LONG = _EMPTY
+    lfItalic: _type.BYTE = _EMPTY
+    lfUnderline: _type.BYTE = _EMPTY
+    lfStrikeOut: _type.BYTE = _EMPTY
+    lfCharSet: _type.BYTE = _EMPTY
+    lfOutPrecision: _type.BYTE = _EMPTY
+    lfClipPrecision: _type.BYTE = _EMPTY
+    lfQuality: _type.BYTE = _EMPTY
+    lfPitchAndFamily: _type.BYTE = _EMPTY
+    lfFaceName: _type.CHAR * _const.LF_FACESIZE = _EMPTY
+
+
+@_struct
+class LOGFONTW:
+    lfHeight: _type.LONG = _EMPTY
+    lfWidth: _type.LONG = _EMPTY
+    lfEscapement: _type.LONG = _EMPTY
+    lfOrientation: _type.LONG = _EMPTY
+    lfWeight: _type.LONG = _EMPTY
+    lfItalic: _type.BYTE = _EMPTY
+    lfUnderline: _type.BYTE = _EMPTY
+    lfStrikeOut: _type.BYTE = _EMPTY
+    lfCharSet: _type.BYTE = _EMPTY
+    lfOutPrecision: _type.BYTE = _EMPTY
+    lfClipPrecision: _type.BYTE = _EMPTY
+    lfQuality: _type.BYTE = _EMPTY
+    lfPitchAndFamily: _type.BYTE = _EMPTY
+    lfFaceName: _type.WCHAR * _const.LF_FACESIZE = _EMPTY
+
+
+@_struct
+class MARGINS:
+    cxLeftWidth: _type.c_int = _EMPTY
+    cxRightWidth: _type.c_int = _EMPTY
+    cyTopHeight: _type.c_int = _EMPTY
+    cyBottomHeight: _type.c_int = _EMPTY
+
+
+@_struct
+class INTLIST:
+    iValueCount: _type.c_int = _EMPTY
+    iValues: _type.c_int * _const.MAX_INTLIST_COUNT = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class WTA_OPTIONS:
+    dwFlags: _type.DWORD = _EMPTY
+    dwMask: _type.DWORD = _EMPTY
+
+
+@_struct
+class GUITHREADINFO:
+    cbSize: _type.DWORD = _EMPTY
+    flags: _type.DWORD = _EMPTY
+    hwndActive: _type.HWND = _EMPTY
+    hwndFocus: _type.HWND = _EMPTY
+    hwndCapture: _type.HWND = _EMPTY
+    hwndMenuOwner: _type.HWND = _EMPTY
+    hwndMoveSize: _type.HWND = _EMPTY
+    hwndCaret: _type.HWND = _EMPTY
+    rcCaret: RECT = _EMPTY
+
+
+@_struct
+class DLGTEMPLATE:
+    style: _type.DWORD = _EMPTY
+    dwExtendedStyle: _type.DWORD = _EMPTY
+    cdit: _type.WORD = _EMPTY
+    x: _type.c_short = _EMPTY
+    y: _type.c_short = _EMPTY
+    cx: _type.c_short = _EMPTY
+    cy: _type.c_short = _EMPTY
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
 KNOWNFOLDERID = GUID
 DEVPROPGUID = GUID
 VARIANTARG = VARIANT
+ANSI_STRING = STRING
+OEM_STRING = STRING
 
 
 def _init(item: str) -> type[_ctypes.Structure]:

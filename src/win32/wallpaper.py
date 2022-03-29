@@ -1,11 +1,13 @@
 import collections
 import concurrent.futures
 import contextlib
+import functools
 import ntpath
 import operator
 import os
 import random
 import tempfile
+import threading
 import time
 import typing
 import winreg
@@ -492,6 +494,9 @@ def set(path: str, *monitors: str, fade: bool = True):
         path, fade) if fade else _set_param(path)
 
 
+_temp_lock = functools.lru_cache(lambda _: threading.Lock())
+
+
 def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
            r: int = 0, g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
@@ -512,16 +517,16 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
             monitor_x_y_w_h = _get_monitor_x_y_w_h(monitor)
         os.makedirs(TEMP_DIR, exist_ok=True)
         temp_path = os.path.join(TEMP_DIR, _TEMP_FILE).format(_utils.sanitize_filename(monitor))
-        # noinspection PyTypeChecker
-        _draw_on_workerw(image, *monitor_x_y_w_h,
-                         *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
-                         temp_path, _gdiplus.Color.from_rgb(r, g, b), transition, duration)
-        try:
-            return _set_idesktopwallpaper(temp_path, monitor,
-                                          style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
-        finally:
-            time.sleep(_DELETE_AFTER)
-            ctyped.lib.Kernel32.DeleteFileW(temp_path)
+        with _temp_lock(temp_path):
+            # noinspection PyTypeChecker
+            _draw_on_workerw(image, *monitor_x_y_w_h,
+                             *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
+                             temp_path, _gdiplus.Color.from_rgba(r, g, b), transition, duration)
+            try:
+                return _set_idesktopwallpaper(temp_path, monitor,
+                                              style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
+            finally:
+                threading.Timer(_DELETE_AFTER, ctyped.lib.Kernel32.DeleteFileW, (temp_path,)).start()
     return False
 
 
@@ -572,7 +577,7 @@ def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[
             if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
                 yield input_stream
                 return
-    yield None
+    yield
 
 
 @contextlib.contextmanager
@@ -584,7 +589,7 @@ def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional
             if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
                 yield output_stream
                 return
-    yield None
+    yield
 
 
 @contextlib.contextmanager
@@ -597,7 +602,7 @@ def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IIn
                         if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
                             yield input_stream
                             return
-    yield None
+    yield
 
 
 def _copy_stream(input_stream: ctyped.com.IInputStream, output_stream: ctyped.com.IOutputStream,

@@ -2,12 +2,13 @@ from __future__ import annotations as _
 
 import enum as _enum
 import functools as _functools
+import sys as _sys
 from typing import Optional as _Optional, Union as _Union
 
 from . import type as _type
-from ._head import _Globals
+from ._utils import _Globals
 
-_AUTO = -1
+_AUTO = _sys.maxsize
 _ASSIGNED = ('__str__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS))
 
 
@@ -71,7 +72,7 @@ class FileAccessMode(_IntEnum):
 
 
 class FileAttributes(_IntEnum):
-    Normal = 0
+    Normal = _AUTO
     ReadOnly = 0x1
     Directory = 0x10
     Archive = 0x20
@@ -205,7 +206,7 @@ class FILEOPENDIALOGOPTIONS(_IntEnum):
 
 
 class GETPROPERTYSTOREFLAGS(_IntEnum):
-    GPS_DEFAULT = 0
+    GPS_DEFAULT = _AUTO
     GPS_HANDLERPROPERTIESONLY = 0x1
     GPS_READWRITE = 0x2
     GPS_TEMPORARY = 0x4
@@ -256,9 +257,9 @@ class CombineMode(_IntEnum):
 
 class QualityMode(_IntEnum):
     QualityModeInvalid = -1
-    QualityModeDefault = 0
-    QualityModeLow = 1
-    QualityModeHigh = 2
+    QualityModeDefault = _AUTO
+    QualityModeLow = _AUTO
+    QualityModeHigh = _AUTO
 
 
 class FillMode(_IntEnum):
@@ -267,7 +268,7 @@ class FillMode(_IntEnum):
 
 
 class InputStreamOptions(_IntEnum):
-    None_ = 0
+    None_ = _AUTO
     Partial = 0x1
     ReadAhead = 0x2
 
@@ -299,7 +300,7 @@ class RO_INIT_TYPE(_IntEnum):
 
 
 class SIGDN(_IntEnum):
-    SIGDN_NORMALDISPLAY = 0
+    SIGDN_NORMALDISPLAY = _AUTO
     SIGDN_PARENTRELATIVEPARSING = 0x80018001
     SIGDN_DESKTOPABSOLUTEPARSING = 0x80028000
     SIGDN_PARENTRELATIVEEDITING = 0x80031001
@@ -359,50 +360,50 @@ class SHGFP_TYPE(_IntEnum):
 
 
 class VARENUM(_IntEnum):
-    VT_EMPTY = 0
-    VT_NULL = 1
-    VT_I2 = 2
-    VT_I4 = 3
-    VT_R4 = 4
-    VT_R8 = 5
-    VT_CY = 6
-    VT_DATE = 7
-    VT_BSTR = 8
-    VT_DISPATCH = 9
-    VT_ERROR = 10
-    VT_BOOL = 11
-    VT_VARIANT = 12
-    VT_UNKNOWN = 13
-    VT_DECIMAL = 14
+    VT_EMPTY = _AUTO
+    VT_NULL = _AUTO
+    VT_I2 = _AUTO
+    VT_I4 = _AUTO
+    VT_R4 = _AUTO
+    VT_R8 = _AUTO
+    VT_CY = _AUTO
+    VT_DATE = _AUTO
+    VT_BSTR = _AUTO
+    VT_DISPATCH = _AUTO
+    VT_ERROR = _AUTO
+    VT_BOOL = _AUTO
+    VT_VARIANT = _AUTO
+    VT_UNKNOWN = _AUTO
+    VT_DECIMAL = _AUTO
     VT_I1 = 16
-    VT_UI1 = 17
-    VT_UI2 = 18
-    VT_UI4 = 19
-    VT_I8 = 20
-    VT_UI8 = 21
-    VT_INT = 22
-    VT_UINT = 23
-    VT_VOID = 24
-    VT_HRESULT = 25
-    VT_PTR = 26
-    VT_SAFEARRAY = 27
-    VT_CARRAY = 28
-    VT_USERDEFINED = 29
-    VT_LPSTR = 30
-    VT_LPWSTR = 31
+    VT_UI1 = _AUTO
+    VT_UI2 = _AUTO
+    VT_UI4 = _AUTO
+    VT_I8 = _AUTO
+    VT_UI8 = _AUTO
+    VT_INT = _AUTO
+    VT_UINT = _AUTO
+    VT_VOID = _AUTO
+    VT_HRESULT = _AUTO
+    VT_PTR = _AUTO
+    VT_SAFEARRAY = _AUTO
+    VT_CARRAY = _AUTO
+    VT_USERDEFINED = _AUTO
+    VT_LPSTR = _AUTO
+    VT_LPWSTR = _AUTO
     VT_RECORD = 36
-    VT_INT_PTR = 37
-    VT_UINT_PTR = 38
+    VT_INT_PTR = _AUTO
+    VT_UINT_PTR = _AUTO
     VT_FILETIME = 64
-    VT_BLOB = 65
-    VT_STREAM = 66
-    VT_STORAGE = 67
-    VT_STREAMED_OBJECT = 68
-    VT_STORED_OBJECT = 69
-    VT_BLOB_OBJECT = 70
-    VT_CF = 71
-    VT_CLSID = 72
-    VT_VERSIONED_STREAM = 73
+    VT_BLOB = _AUTO
+    VT_STREAM = _AUTO
+    VT_STORAGE = _AUTO
+    VT_STREAMED_OBJECT = _AUTO
+    VT_STORED_OBJECT = _AUTO
+    VT_BLOB_OBJECT = _AUTO
+    VT_CF = _AUTO
+    VT_CLSID = _AUTO
+    VT_VERSIONED_STREAM = _AUTO
     VT_BSTR_BLOB = 0xfff
     VT_VECTOR = 0x1000
     VT_ARRAY = 0x2000
@@ -423,7 +424,7 @@ class SLGP_FLAGS(_IntEnum):
 
 # noinspection PyPep8Naming
 class SLR_FLAGS(_IntEnum):
-    SLR_NONE = 0
+    SLR_NONE = _AUTO
     SLR_NO_UI = 0x1
     SLR_ANY_MATCH = 0x2
     SLR_UPDATE = 0x4
@@ -459,9 +460,13 @@ class RotateFlipType(_IntEnum):
     Rotate270FlipXY = Rotate90FlipNone
 
 
+class COINITBASE(_IntEnum):
+    COINITBASE_MULTITHREADED = _AUTO
+
+
 class COINIT(_IntEnum):
+    COINIT_MULTITHREADED = COINITBASE.COINITBASE_MULTITHREADED
     COINIT_APARTMENTTHREADED = 0x2
-    COINIT_MULTITHREADED = COINITBASE_MULTITHREADED = 0
     COINIT_DISABLE_OLE1DDE = 0x4
     COINIT_SPEED_OVER_MEMORY = 0x8
 
@@ -476,8 +481,8 @@ class PROCESS_DPI_AWARENESS(_IntEnum):
 # noinspection PyPep8Naming
 class MONITOR_DPI_TYPE(_IntEnum):
     MDT_EFFECTIVE_DPI = 0
-    MDT_ANGULAR_DPI = 1
-    MDT_RAW_DPI = 2
+    MDT_ANGULAR_DPI = _AUTO
+    MDT_RAW_DPI = _AUTO
     MDT_DEFAULT = MDT_EFFECTIVE_DPI
 
 
@@ -554,7 +559,7 @@ class RUNTIME_INFO_FLAGS(_IntEnum):
 
 # noinspection PyPep8Naming
 class APPDOMAIN_SECURITY_FLAGS(_IntEnum):
-    APPDOMAIN_SECURITY_DEFAULT = 0
+    APPDOMAIN_SECURITY_DEFAULT = _AUTO
     APPDOMAIN_SECURITY_SANDBOXED = 0x1
     APPDOMAIN_SECURITY_FORBID_CROSSAD_REVERSE_PINVOKE = 0x2
     APPDOMAIN_FORCE_TRIVIAL_WAIT_OPERATIONS = 0x8
@@ -566,32 +571,221 @@ class HandPreference(_IntEnum):
 
 
 class UIElementType(_IntEnum):
-    UIElementType_ActiveCaption = 0
-    UIElementType_Background = 1
-    UIElementType_ButtonFace = 2
-    UIElementType_ButtonText = 3
-    UIElementType_CaptionText = 4
-    UIElementType_GrayText = 5
-    UIElementType_Highlight = 6
-    UIElementType_HighlightText = 7
-    UIElementType_Hotlight = 8
-    UIElementType_InactiveCaption = 9
-    UIElementType_InactiveCaptionText = 10
-    UIElementType_Window = 11
-    UIElementType_WindowText = 12
+    UIElementType_ActiveCaption = _AUTO
+    UIElementType_Background = _AUTO
+    UIElementType_ButtonFace = _AUTO
+    UIElementType_ButtonText = _AUTO
+    UIElementType_CaptionText = _AUTO
+    UIElementType_GrayText = _AUTO
+    UIElementType_Highlight = _AUTO
+    UIElementType_HighlightText = _AUTO
+    UIElementType_Hotlight = _AUTO
+    UIElementType_InactiveCaption = _AUTO
+    UIElementType_InactiveCaptionText = _AUTO
+    UIElementType_Window = _AUTO
+    UIElementType_WindowText = _AUTO
     UIElementType_AccentColor = 1000
-    UIElementType_TextHigh = 1001
-    UIElementType_TextMedium = 1002
-    UIElementType_TextLow = 1003
-    UIElementType_TextContrastWithHigh = 1004
-    UIElementType_NonTextHigh = 1005
-    UIElementType_NonTextMediumHigh = 1006
-    UIElementType_NonTextMedium = 1007
-    UIElementType_NonTextMediumLow = 1008
-    UIElementType_NonTextLow = 1009
-    UIElementType_PageBackground = 1010
-    UIElementType_PopupBackground = 1011
-    UIElementType_OverlayOutsidePopup = 1012,
+    UIElementType_TextHigh = _AUTO
+    UIElementType_TextMedium = _AUTO
+    UIElementType_TextLow = _AUTO
+    UIElementType_TextContrastWithHigh = _AUTO
+    UIElementType_NonTextHigh = _AUTO
+    UIElementType_NonTextMediumHigh = _AUTO
+    UIElementType_NonTextMedium = _AUTO
+    UIElementType_NonTextMediumLow = _AUTO
+    UIElementType_NonTextLow = _AUTO
+    UIElementType_PageBackground = _AUTO
+    UIElementType_PopupBackground = _AUTO
+    UIElementType_OverlayOutsidePopup = _AUTO
+
+
+# noinspection PyPep8Naming
+class URL_SCHEME(_IntEnum):
+    URL_SCHEME_INVALID = -1
+    URL_SCHEME_UNKNOWN = _AUTO
+    URL_SCHEME_FTP = _AUTO
+    URL_SCHEME_HTTP = _AUTO
+    URL_SCHEME_GOPHER = _AUTO
+    URL_SCHEME_MAILTO = _AUTO
+    URL_SCHEME_NEWS = _AUTO
+    URL_SCHEME_NNTP = _AUTO
+    URL_SCHEME_TELNET = _AUTO
+    URL_SCHEME_WAIS = _AUTO
+    URL_SCHEME_FILE = _AUTO
+    URL_SCHEME_MK = _AUTO
+    URL_SCHEME_HTTPS = _AUTO
+    URL_SCHEME_SHELL = _AUTO
+    URL_SCHEME_SNEWS = _AUTO
+    URL_SCHEME_LOCAL = _AUTO
+    URL_SCHEME_JAVASCRIPT = _AUTO
+    URL_SCHEME_VBSCRIPT = _AUTO
+    URL_SCHEME_ABOUT = _AUTO
+    URL_SCHEME_RES = _AUTO
+    URL_SCHEME_MSSHELLROOTED = _AUTO
+    URL_SCHEME_MSSHELLIDLIST = _AUTO
+    URL_SCHEME_MSHELP = _AUTO
+    URL_SCHEME_MSSHELLDEVICE = _AUTO
+    URL_SCHEME_WILDCARD = _AUTO
+    URL_SCHEME_SEARCH_MS = _AUTO
+    URL_SCHEME_SEARCH = _AUTO
+    URL_SCHEME_KNOWNFOLDER = _AUTO
+    URL_SCHEME_MAXVALUE = _AUTO
+
+
+# noinspection PyPep8Naming
+class URL_PART(_IntEnum):
+    URL_PART_NONE = _AUTO
+    URL_PART_SCHEME = _AUTO
+    URL_PART_HOSTNAME = _AUTO
+    URL_PART_USERNAME = _AUTO
+    URL_PART_PASSWORD = _AUTO
+    URL_PART_PORT = _AUTO
+    URL_PART_QUERY = _AUTO
+
+
+class URLIS(_IntEnum):
+    URLIS_URL = _AUTO
+    URLIS_OPAQUE = _AUTO
+    URLIS_NOHISTORY = _AUTO
+    URLIS_FILEURL = _AUTO
+    URLIS_APPLIABLE = _AUTO
+    URLIS_DIRECTORY = _AUTO
+    URLIS_HASQUERY = _AUTO
+
+
+# noinspection PyPep8Naming
+class TA_PROPERTY(_IntEnum):
+    TAP_FLAGS = _AUTO
+    TAP_TRANSFORMCOUNT = _AUTO
+    TAP_STAGGERDELAY = _AUTO
+    TAP_STAGGERDELAYCAP = _AUTO
+    TAP_STAGGERDELAYFACTOR = _AUTO
+    TAP_ZORDER = _AUTO
+
+
+# noinspection PyPep8Naming
+class TA_PROPERTY_FLAG(_IntEnum):
+    TAPF_NONE = 0x0
+    TAPF_HASSTAGGER = 0x1
+    TAPF_ISRTLAWARE = 0x2
+    TAPF_ALLOWCOLLECTION = 0x4
+    TAPF_HASBACKGROUND = 0x8
+    TAPF_HASPERSPECTIVE = 0x10
+
+
+# noinspection PyPep8Naming
+class TA_TRANSFORM_TYPE(_IntEnum):
+    TATT_TRANSLATE_2D = _AUTO
+    TATT_SCALE_2D = _AUTO
+    TATT_OPACITY = _AUTO
+    TATT_CLIP = _AUTO
+
+
+# noinspection PyPep8Naming
+class TA_TRANSFORM_FLAG(_IntEnum):
+    TATF_NONE = 0x0
+    TATF_TARGETVALUES_USER = 0x1
+    TATF_HASINITIALVALUES = 0x2
+    TATF_HASORIGINVALUES = 0x4
+
+
+class THEMESIZE(_IntEnum):
+    TS_MIN = _AUTO
+    TS_TRUE = _AUTO
+    TS_DRAW = _AUTO
+
+
+class PROPERTYORIGIN(_IntEnum):
+    PO_STATE = _AUTO
+    PO_PART = _AUTO
+    PO_CLASS = _AUTO
+    PO_GLOBAL = _AUTO
+    PO_NOTFOUND = _AUTO
+
+
+class WINDOWTHEMEATTRIBUTETYPE(_IntEnum):
+    WTA_NONCLIENT = 1
+
+
+# noinspection PyPep8Naming
+class BP_ANIMATIONSTYLE(_IntEnum):
+    BPAS_NONE = _AUTO
+    BPAS_LINEAR = _AUTO
+    BPAS_CUBIC = _AUTO
+    BPAS_SINE = _AUTO
+
+
+class MENUSTYLEPARTS(_IntEnum):
+    MENU_MENUITEM_TMSCHEMA = 1
+    MENU_MENUDROPDOWN_TMSCHEMA = _AUTO
+    MENU_MENUBARITEM_TMSCHEMA = _AUTO
+    MENU_MENUBARDROPDOWN_TMSCHEMA = _AUTO
+    MENU_CHEVRON_TMSCHEMA = _AUTO
+    MENU_SEPARATOR_TMSCHEMA = _AUTO
+    MENU_BARBACKGROUND = _AUTO
+    MENU_BARITEM = _AUTO
+    MENU_POPUPBACKGROUND = _AUTO
+    MENU_POPUPBORDERS = _AUTO
+    MENU_POPUPCHECK = _AUTO
+    MENU_POPUPCHECKBACKGROUND = _AUTO
+    MENU_POPUPGUTTER = _AUTO
+    MENU_POPUPITEM = _AUTO
+    MENU_POPUPSEPARATOR = _AUTO
+    MENU_POPUPSUBMENU = _AUTO
+    MENU_SYSTEMCLOSE = _AUTO
+    MENU_SYSTEMMAXIMIZE = _AUTO
+    MENU_SYSTEMMINIMIZE = _AUTO
+    MENU_SYSTEMRESTORE = _AUTO
+
+
+class BARBACKGROUNDSTATES(_IntEnum):
+    MB_ACTIVE = 1
+    MB_INACTIVE = _AUTO
+
+
+class POPUPCHECKSTATES(_IntEnum):
+    MC_CHECKMARKNORMAL = 1
+    MC_CHECKMARKDISABLED = _AUTO
+    MC_BULLETNORMAL = _AUTO
+    MC_BULLETDISABLED = _AUTO
+
+
+class POPUPCHECKBACKGROUNDSTATES(_IntEnum):
+    MCB_DISABLED = 1
+    MCB_NORMAL = _AUTO
+    MCB_BITMAP = _AUTO
+
+
+class POPUPITEMSTATES(_IntEnum):
+    MPI_NORMAL = 1
+    MPI_HOT = _AUTO
+    MPI_DISABLED = _AUTO
+    MPI_DISABLEDHOT = _AUTO
+
+
+class POPUPSUBMENUSTATES(_IntEnum):
+    MSM_NORMAL = 1
+    MSM_DISABLED = _AUTO
+
+
+class SYSTEMCLOSESTATES(_IntEnum):
+    MSYSC_NORMAL = 1
+    MSYSC_DISABLED = _AUTO
+
+
+class SYSTEMMAXIMIZESTATES(_IntEnum):
+    MSYSMX_NORMAL = 1
+    MSYSMX_DISABLED = _AUTO
+
+
+class SYSTEMMINIMIZESTATES(_IntEnum):
+    MSYSMN_NORMAL = 1
+    MSYSMN_DISABLED = _AUTO
+
+
+class SYSTEMRESTORESTATES(_IntEnum):
+    MSYSR_NORMAL = 1
+    MSYSR_DISABLED = _AUTO
 
 
 GpMatrixOrder = MatrixOrder

@@ -1,10 +1,10 @@
-from . import com as _com, const as _const, lib as _func, struct as _struct, type as _type
-from ._head import _Pointer, _byref, _cast_int
+from . import com as _com, const as _const, lib as _lib, struct as _struct, type as _type
+from ._utils import _Pointer, _byref, _cast_int
 
 
 def __uuidof(_: str) -> _Pointer[_struct.IID]:
     iid_ref = _byref(_struct.IID())
-    _func.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
+    _lib.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
     return iid_ref
 
 

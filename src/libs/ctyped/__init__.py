@@ -1,15 +1,16 @@
-__version__ = '0.2.7'
+__version__ = '0.2.8'
 
 import builtins as _builtins
 import contextlib as _contextlib
+import functools as _functools
 import threading as _threading
 import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
                     Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
 from . import com, com_impl, const, enum, handle, lib, macro, struct, type, union
-from ._head import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
-                    _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
+from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
+                     _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
 THREADED_COM = False
 
@@ -21,18 +22,23 @@ def set_return_checker(lib: lib._CDLL, callback: _Optional[_Callable[[_Any, _Cal
         args = ()
     if kwargs is None:
         kwargs = {}
-    lib._errcheck = lambda res, *args_: (callback(res, *args_, *args, **kwargs), res)[1]
+
+    @_functools.wraps
+    def errcheck(res, *args_):
+        callback(res, *args_, *args, **kwargs)
+        return res
+
+    lib._errcheck = errcheck
     if lib._funcs:
-        for func_ in lib._funcs:
-            if func_ in dir(lib):
-                getattr(lib, func_).errcheck = lib._errcheck
+        for func in set(lib._funcs).intersection(dir(lib)):
+            getattr(lib, func).errcheck = errcheck
 
 
 @_contextlib.contextmanager
 def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
     ptr = lib.msvcrt.malloc(size)
     try:
-        yield None if ptr == 0 else ptr
+        yield ptr if ptr else None
     finally:
         lib.msvcrt.free(ptr)
 
@@ -43,16 +49,19 @@ def array(type: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Opti
 
 
 @_typing.overload
-def char_array(string: bytes) -> Pointer[type.c_char]:
+def char_array(string: bytes = b'', size: _Optional[int] = None) -> Pointer[type.c_char]:
     pass
 
 
 @_typing.overload
-def char_array(string: str) -> Pointer[type.c_wchar]:
+def char_array(string: str = '', size: _Optional[int] = None) -> Pointer[type.c_wchar]:
     pass
 
 
-def char_array(string):
+def char_array(string='', size=None):
+    if size is not None:
+        size -= 1
+        string = string[:size] + (b'\0' if isinstance(string, bytes) else '\0') * (size - len(string))
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
 
 
@@ -91,10 +100,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
 @_contextlib.contextmanager
 def cast_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type, True) as (obj_, _, args):
-        if macro.SUCCEEDED(obj.QueryInterface(*args)):
-            yield obj_
-        else:
-            yield None
+        yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*args)) else None
 
 
 @_contextlib.contextmanager

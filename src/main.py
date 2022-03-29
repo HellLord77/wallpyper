@@ -187,13 +187,13 @@ def first_run():  # FIXME my icon
         CONFIG[CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST, gui.Icon.INFORMATION)
 
 
-_arg_lock = functools.lru_cache(lambda _: threading.Lock())
+_download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
 def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[int, ...], Any]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = files.join(TEMP_DIR, wallpaper.name)
-    with _arg_lock(wallpaper.url):
+    with _download_lock(wallpaper.url):
         gui.start_animation(RES_BUSY, STRINGS.STATUS_DOWNLOAD)
         try:
             return temp_path if request.download(wallpaper.url, temp_path, wallpaper.size,
