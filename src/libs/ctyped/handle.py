@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-from typing import Optional as _Optional
+from typing import Optional as _Optional, Sequence as _Sequence
 
 from . import const as _const, lib as _lib, macro as _macro, struct as _struct, type as _type
 from ._utils import _byref, _sizeof
@@ -41,12 +41,21 @@ class HDC(_type.HDC):
         return self
 
 
+class HCURSOR(_type.HCURSOR):
+    def __del__(self):
+        _lib.User32.DestroyCursor(self)
+
+    @classmethod
+    def from_idc(cls, idc: int, hinstance: _Optional[_type.HINSTANCE] = None) -> HCURSOR:
+        return cls(_lib.User32.LoadCursorW(hinstance, _macro.MAKEINTRESOURCEW(idc)))
+
+
 class HICON(_type.HICON):
     def __del__(self):
         _lib.User32.DestroyIcon(self)
 
     @classmethod
-    def from_res(cls, idi: int, hinstance: _Optional[_type.HINSTANCE] = None) -> HICON:
+    def from_idi(cls, idi: int, hinstance: _Optional[_type.HINSTANCE] = None) -> HICON:
         return cls(_lib.User32.LoadIconW(hinstance, _macro.MAKEINTRESOURCEW(idi)))
 
 
@@ -85,6 +94,7 @@ class HBITMAP(_type.HBITMAP):
 
 class HMENU(_type.HMENU):
     _by_mf = _const.MF_BYCOMMAND, _const.MF_BYPOSITION
+    _hwnd = None
 
     def __del__(self):
         _lib.User32.DestroyMenu(self)
@@ -95,11 +105,17 @@ class HMENU(_type.HMENU):
 
     @classmethod
     def from_hwnd(cls, hwnd: _type.HWND) -> HMENU:
-        return cls(_lib.User32.GetMenu(hwnd))
+        self = cls(_lib.User32.GetMenu(hwnd))
+        self._hwnd = hwnd
+        return self
 
     @classmethod
-    def from_res(cls, idm: int, hinstance: _Optional[_type.HINSTANCE] = None) -> HMENU:
+    def from_idm(cls, idm: int, hinstance: _Optional[_type.HINSTANCE] = None) -> HMENU:
         return cls(_lib.User32.LoadMenuW(hinstance, _macro.MAKEINTRESOURCEW(idm)))
+
+    def set_hwnd(self, hwnd: _type.HWND) -> bool:
+        self._hwnd = hwnd
+        return bool(_lib.User32.SetMenu(hwnd, self))
 
     def get_item_count(self):
         return _lib.User32.GetMenuItemCount(self)
@@ -119,9 +135,41 @@ class HMENU(_type.HMENU):
     def get_item_submenu(self, pos: int) -> HMENU:
         return type(self)(_lib.User32.GetSubMenu(self, pos))
 
+    def enable_item(self, id_or_pos: int, enable: bool = True, gray: bool = True, by_pos: bool = False) -> bool:
+        return bool(_lib.User32.EnableMenuItem(self, id_or_pos, self._by_mf[by_pos] | (
+            _const.MF_ENABLED if enable else (_const.MF_GRAYED if gray else _const.MF_DISABLED))))
+
     def check_item(self, id_or_pos: int, check: bool = True, by_pos: bool = False) -> bool:
         return bool(_lib.User32.CheckMenuItem(self, id_or_pos, self._by_mf[by_pos] | (
             _const.MF_CHECKED if check else _const.MF_UNCHECKED)))
 
     def set_default_item(self, id_or_pos: int, by_pos: bool = False) -> bool:
         return bool(_lib.User32.SetMenuDefaultItem(self, id_or_pos, by_pos))
+
+    def set_item_bitmaps(self, id_or_pos: int, checked: _Optional[_type.HBITMAP] = None,
+                         unchecked: _Optional[_type.HBITMAP] = None, by_pos: bool = False) -> bool:
+        return bool(_lib.User32.SetMenuItemBitmaps(self, id_or_pos, self._by_mf[by_pos], checked, unchecked))
+
+    def check_radio_item(self, id_or_pos: int, id_or_pos_first: int, id_or_pos_last: int, by_pos: bool = False) -> bool:
+        return bool(_lib.User32.CheckMenuRadioItem(self, id_or_pos_first,
+                                                   id_or_pos_last, id_or_pos, self._by_mf[by_pos]))
+
+    def track(self, pos: _Optional[_Sequence[int, int]] = None,
+              alignment: int = _const.TPM_LEFTALIGN | _const.TPM_TOPALIGN, right_button: bool = False,
+              animation: int = _const.TPM_NOANIMATION, hwnd: _Optional[_type.HWND] = None) -> int:
+        if hwnd is not None:
+            self._hwnd = hwnd
+        if pos is None:
+            pt = _struct.POINT()
+            if not _lib.User32.GetCursorPos(_byref(pt)):
+                return 0
+            pos = pt.x, pt.y
+        # _lib.User32.SetForegroundWindow(self._hwnd) # TODO exit_mainloop fails
+        # noinspection PyTypeChecker
+        return _lib.User32.TrackPopupMenu(self, alignment | (
+            _const.TPM_RIGHTBUTTON if right_button else _const.TPM_LEFTBUTTON) | animation, *pos, 0, self._hwnd, None)
+
+    def untrack(self, hwnd: _Optional[_type.HWND] = None) -> bool:
+        if hwnd is not None:
+            self._hwnd = hwnd
+        return not _lib.User32.SendMessageW(self._hwnd, _const.WM_CANCELMODE, 0, 0)

@@ -246,6 +246,34 @@ class NOTIFYICONDATAW:
 
 
 @_struct
+class WNDCLASSA:
+    style: _type.UINT = _EMPTY
+    lpfnWndProc: _type.WNDPROC = _EMPTY
+    cbClsExtra: _type.c_int = _EMPTY
+    cbWndExtra: _type.c_int = _EMPTY
+    hInstance: _type.HINSTANCE = _EMPTY
+    hIcon: _type.HINSTANCE = _EMPTY
+    hCursor: _type.HCURSOR = _EMPTY
+    hbrBackground: _type.HBRUSH = _EMPTY
+    lpszMenuName: _type.LPCSTR = _EMPTY
+    lpszClassName: _type.LPCSTR = _EMPTY
+
+
+@_struct
+class WNDCLASSW:
+    style: _type.UINT = _EMPTY
+    lpfnWndProc: _type.WNDPROC = _EMPTY
+    cbClsExtra: _type.c_int = _EMPTY
+    cbWndExtra: _type.c_int = _EMPTY
+    hInstance: _type.HINSTANCE = _EMPTY
+    hIcon: _type.HINSTANCE = _EMPTY
+    hCursor: _type.HCURSOR = _EMPTY
+    hbrBackground: _type.HBRUSH = _EMPTY
+    lpszMenuName: _type.LPCWSTR = _EMPTY
+    lpszClassName: _type.LPCWSTR = _EMPTY
+
+
+@_struct
 class WNDCLASSEXA:
     cbSize: _type.UINT = _EMPTY
     style: _type.UINT = _EMPTY

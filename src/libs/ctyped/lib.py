@@ -528,6 +528,29 @@ class GdiPlus(_WinFunc):
 
 
 class Kernel32(_WinFunc):
+    # consoleapi
+    AllocConsole: _Callable[[],
+                            _type.BOOL]
+    AttachConsole: _Callable[[_type.DWORD],
+                             _type.BOOL]
+    FreeConsole: _Callable[[],
+                           _type.BOOL]
+    GetConsoleCP: _Callable[[],
+                            _type.UINT]
+    GetConsoleMode: _Callable[[_type.HANDLE,
+                               _Pointer[_type.DWORD]],
+                              _type.BOOL]
+    GetConsoleOutputCP: _Callable[[],
+                                  _type.UINT]
+    GetNumberOfConsoleInputEvents: _Callable[[_type.HANDLE,
+                                              _Pointer[_type.DWORD]],
+                                             _type.BOOL]
+    SetConsoleCtrlHandler: _Callable[[_Optional[_type.PHANDLER_ROUTINE],
+                                      _type.BOOL],
+                                     _type.BOOL]
+    SetConsoleMode: _Callable[[_type.HANDLE,
+                               _type.DWORD],
+                              _type.BOOL]
     # errhandlingapi
     GetLastError: _Callable[[],
                             _type.DWORD]
@@ -1486,6 +1509,8 @@ class User32(_WinFunc):
                            _type.UINT,
                            _type.UINT],
                           _type.BOOL]
+    DestroyCursor: _Callable[[_type.HCURSOR],
+                             _type.BOOL]
     DestroyIcon: _Callable[[_type.HICON],
                            _type.BOOL]
     DestroyMenu: _Callable[[_type.HMENU],
@@ -1547,6 +1572,8 @@ class User32(_WinFunc):
     EndDialog: _Callable[[_type.HWND,
                           _type.INT_PTR],
                          _type.BOOL]
+    EndMenu: _Callable[[],
+                       _type.BOOL]
     EndPaint: _Callable[[_type.HWND,
                          _Pointer[_struct.PAINTSTRUCT]],
                         _type.BOOL]
@@ -1735,6 +1762,8 @@ class User32(_WinFunc):
                              _type.HMENU]
     GetSystemMetrics: _Callable[[_type.c_int],
                                 _type.c_int]
+    GetTopWindow: _Callable[[_Optional[_type.HWND]],
+                            _type.HWND]
     GetWindow: _Callable[[_type.HWND,
                           _type.UINT],
                          _type.HWND]
@@ -1779,7 +1808,7 @@ class User32(_WinFunc):
                                 _type.BOOL,
                                 _Pointer[_struct.MENUITEMINFOA]],
                                _type.BOOL]
-    InsertMenuItemA: _Callable[[_type.HMENU,
+    InsertMenuItemW: _Callable[[_type.HMENU,
                                 _type.UINT,
                                 _type.BOOL,
                                 _Pointer[_struct.MENUITEMINFOW]],
@@ -1807,6 +1836,16 @@ class User32(_WinFunc):
     KillTimer: _Callable[[_type.HWND,
                           _type.UINT_PTR],
                          _type.BOOL]
+    LoadCursorA: _Callable[[_Optional[_type.HINSTANCE],
+                            _type.LPCSTR],
+                           _type.HCURSOR]
+    LoadCursorW: _Callable[[_Optional[_type.HINSTANCE],
+                            _type.LPCWSTR],
+                           _type.HCURSOR]
+    LoadCursorFromFileA: _Callable[[_type.LPCSTR],
+                                   _type.HCURSOR]
+    LoadCursorFromFileW: _Callable[[_type.LPCWSTR],
+                                   _type.HCURSOR]
     LoadIconA: _Callable[[_Optional[_type.HINSTANCE],
                           _type.UINT],
                          _type.HICON]
@@ -1909,6 +1948,10 @@ class User32(_WinFunc):
     PtInRect: _Callable[[_Pointer[_struct.RECT],
                          _struct.POINT],
                         _type.BOOL]
+    RegisterClassA: _Callable[[_Pointer[_struct.WNDCLASSA]],
+                              _type.ATOM]
+    RegisterClassW: _Callable[[_Pointer[_struct.WNDCLASSW]],
+                              _type.ATOM]
     RegisterClassExA: _Callable[[_Pointer[_struct.WNDCLASSEXA]],
                                 _type.ATOM]
     RegisterClassExW: _Callable[[_Pointer[_struct.WNDCLASSEXW]],
