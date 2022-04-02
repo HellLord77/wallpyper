@@ -1939,8 +1939,28 @@ class User32(_WinFunc):
                         _type.BOOL]
     PaintDesktop: _Callable[[_type.HDC],
                             _type.BOOL]
+    PostMessageA: _Callable[[_Optional[_type.HWND],
+                             _type.UINT,
+                             _type.WPARAM,
+                             _type.LPARAM],
+                            _type.BOOL]
+    PostMessageW: _Callable[[_Optional[_type.HWND],
+                             _type.UINT,
+                             _type.WPARAM,
+                             _type.LPARAM],
+                            _type.BOOL]
     PostQuitMessage: _Callable[[_type.c_int],
                                _type.c_void_p]
+    PostThreadMessageA: _Callable[[_type.DWORD,
+                                   _type.UINT,
+                                   _type.WPARAM,
+                                   _type.LPARAM],
+                                  _type.BOOL]
+    PostThreadMessageW: _Callable[[_type.DWORD,
+                                   _type.UINT,
+                                   _type.WPARAM,
+                                   _type.LPARAM],
+                                  _type.BOOL]
     PrintWindow: _Callable[[_type.HWND,
                             _type.HDC,
                             _type.UINT],
@@ -2009,6 +2029,16 @@ class User32(_WinFunc):
                                     _type.UINT,
                                     _Optional[_type.PDWORD_PTR]],
                                    _type.LRESULT]
+    SendNotifyMessageA: _Callable[[_type.HWND,
+                                   _type.UINT,
+                                   _type.WPARAM,
+                                   _type.LPARAM],
+                                  _type.BOOL]
+    SendNotifyMessageW: _Callable[[_type.HWND,
+                                   _type.UINT,
+                                   _type.WPARAM,
+                                   _type.LPARAM],
+                                  _type.BOOL]
     SetActiveWindow: _Callable[[_type.HWND],
                                _type.BOOL]
     SetClipboardData: _Callable[[_type.UINT,

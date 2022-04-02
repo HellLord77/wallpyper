@@ -11,7 +11,7 @@ import threading
 import time
 import tkinter.messagebox
 import types
-from typing import Any, Callable, Generator, Iterable, Mapping, Union, Sequence
+from typing import Any, Callable, Iterable, Mapping, Union, Sequence
 from typing import Optional
 
 import libs.ctyped as ctyped
@@ -50,14 +50,14 @@ def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, ar
         graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
 
 
-def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
+def _get_gif_frames(path: str) -> tuple[tuple[float, ctyped.handle.HICON]]:
     bitmap = _gdiplus.Bitmap.from_file(path)
     delays: ctyped.Pointer[ctyped.type.c_long] = bitmap.get_property(ctyped.const.PropertyTagFrameDelay)
-    for index in bitmap.iter_frames():
-        yield delays[index] * 10, bitmap.get_hicon()
+    # noinspection PyTypeChecker
+    return tuple((delays[index] / 100, bitmap.get_hicon()) for index in bitmap.iter_frames())
 
 
-_WM_TASKBAR_CREATE = ctyped.lib.User32.RegisterWindowMessageW('TaskbarCreated')
+_WM_TASKBARCREATED = ctyped.lib.User32.RegisterWindowMessageW('TaskbarCreated')
 _WM_SYS_TRAY_TRIGGER = ctyped.const.WM_APP
 
 
@@ -91,14 +91,49 @@ class Icon:
     USER = ctyped.const.NIIF_USER
 
 
-class Gui:
-    _binds = {}
-    _selves = {}
+class _EventHandler:
+    _init_event_handler = True
+    _id: int
+    _id_gen: itertools.count
+    _bindings: dict[int, dict[int, tuple[Callable, Iterable, Mapping]]]
+
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(*args, **kwargs)
+        if cls._init_event_handler:
+            cls._id_gen = itertools.count(1)
+            cls._bindings = {}
+            cls._init_event_handler = False
+
+    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None):
+        self._bindings[self._id][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
+
+    def unbind(self, event: int) -> bool:
+        try:
+            del self._bindings[self._id][event]
+        except KeyError:
+            return False
+        else:
+            return True
+
+    def trigger(self, event: int) -> Any:
+        try:
+            callback, args, kwargs = self._bindings[self._id][event]
+        except KeyError:
+            pass
+        else:
+            return callback(event, self, *args, **kwargs)
+
+
+class Gui(_EventHandler):
+    _selves: dict[int, Gui] = {}
 
     _hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
     _mainloop_running = False
 
     def __init__(self, name: Optional[str] = None):
+        self._id = next(self._id_gen)
+        self._bindings[self._id] = {}
+
         self._class = ctyped.struct.WNDCLASSEXW(
             ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc),
             hInstance=self._hinstance, lpszClassName=f'{NAME}-{type(self).__name__}' if name is None else name)
@@ -106,14 +141,13 @@ class Gui:
         self._hwnd = ctyped.lib.User32.CreateWindowExW(0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED,
                                                        0, 0, 0, 0, None, None, self._hinstance, None)
         self._attached = []
-        self._binds[self._hwnd] = {}
-        self._selves[self._hwnd] = self
+        self._selves[self._id] = self
         atexit.register(self.destroy)
 
     def destroy(self):
         atexit.unregister(self.destroy)
-        del self._selves[self._hwnd]
-        del self._binds[self._hwnd]
+        del self._selves[self._id]
+        del self._bindings[self._id]
         while self._attached:
             self._attached.pop().destroy()
         ctyped.lib.User32.DestroyWindow(self._hwnd)
@@ -128,19 +162,20 @@ class Gui:
             ctyped.lib.User32.DestroyWindow(hwnd)
         elif message == ctyped.const.WM_QUERYENDSESSION:
             ...
+        elif message == _WM_TASKBARCREATED:
+            # noinspection PyProtectedMember
+            SysTray._update_all()
         elif message == ctyped.const.WM_DISPLAYCHANGE:
             cls._selves[hwnd].trigger(message)
         elif message == _WM_SYS_TRAY_TRIGGER:
-            SysTray.trigger(wparam, lparam)
-        elif message == _WM_TASKBAR_CREATE:
             # noinspection PyProtectedMember
-            for sys_tray in SysTray._selves.values():
-                sys_tray.update()
+            SysTray._selves[wparam].trigger(lparam)
         elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND):
             if lparam:
-                Menu.trigger(Menu.__new__(Menu, lparam), ctyped.macro.LOWORD(wparam), message,
-                             message == ctyped.const.WM_MENUCOMMAND or ctyped.const.MF_POPUP == ctyped.macro.HIWORD(
-                                 wparam) & ctyped.const.MF_POPUP)
+                # noinspection PyProtectedMember
+                Menu._selves[lparam].trigger_item(ctyped.macro.LOWORD(
+                    wparam), message, message == ctyped.const.WM_MENUCOMMAND or (
+                        ctyped.const.MF_POPUP == ctyped.macro.HIWORD(wparam) & ctyped.const.MF_POPUP))
         else:
             return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
@@ -155,28 +190,13 @@ class Gui:
         if gui is None:
             gui = cls.get()
             if gui is None:
-                raise RuntimeError(f"No instance of '{cls.__name__}' created yet")
+                raise RuntimeError(f"'{cls.__name__}' not created yet")
         gui._attached.append(obj)
         return gui._hwnd
 
-    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None):
-        self._binds[self._hwnd][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
-
-    def unbind(self, event: int) -> bool:
-        try:
-            del self._binds[self._hwnd][event]
-        except KeyError:
-            return False
-        else:
-            return True
-
-    def trigger(self, event: int) -> Any:
-        try:
-            callback, args, kwargs = self._binds[self._hwnd][event]
-        except KeyError:
-            pass
-        else:
-            return callback(event, self, *args, **kwargs)
+    @property
+    def name(self) -> str:
+        return self._class.lpszClassName
 
     def mainloop(self) -> int:
         self._mainloop_running = True
@@ -189,48 +209,43 @@ class Gui:
         return msg.wParam
 
     def exit_mainloop(self) -> bool:
-        return not ctyped.lib.User32.SendMessageW(self._hwnd, ctyped.const.WM_CLOSE, 0, 0)
+        return bool(ctyped.handle.HWND.send_message(self._hwnd, ctyped.const.WM_CLOSE, wait=False))
 
 
-class SysTray:
+class SysTray(_EventHandler):
     _hwnd = None
-    _binds = {}
     _selves: dict[int, SysTray] = {}
 
-    _id_gen = itertools.count(1)
     _flags = ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP
-    _frames = None
     _hicon = None
     _shown = False
+    _animation_frames = None
 
     def __init__(self, icon: Union[int, str] = ctyped.const.IDI_APPLICATION,
-                 tooltip: Optional[str] = None, gui: Optional[Gui] = None):
-        self._hwnd = Gui.attach(self, gui)
+                 tooltip: Optional[str] = None, *, _gui: Optional[Gui] = None):
+        self._hwnd = Gui.attach(self, _gui)
         self._id = next(self._id_gen)
+        self._bindings[self._id] = {}
+
+        self._animation_name = f'{Gui.get().name}-{type(self).__name__}(Animation-{self._id})'
+        self._animation_event = threading.Event()
         self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW),
                                                    self._hwnd, self._id, self._flags, _WM_SYS_TRAY_TRIGGER)
         self.set_icon(icon)
         if tooltip is not None:
             self.set_tooltip(tooltip)
-        self._on_timer = ctyped.type.TIMERPROC(self._next_frame)
-        self._binds[self._id] = {}
         self._selves[self._id] = self
 
     def destroy(self):
         del self._selves[self._id]
-        del self._binds[self._id]
+        del self._bindings[self._id]
+        self.stop_animation()
         self.hide()
 
-    # noinspection PyShadowingBuiltins
     @classmethod
-    def trigger(cls, id: int, event: int) -> Any:
-        try:
-            callback, args, kwargs = cls._binds[id][event]
-        except KeyError:
-            # print(id, event)
-            pass
-        else:
-            return callback(event, cls._selves[id], *args, **kwargs)
+    def _update_all(cls):
+        for self in cls._selves.values():
+            self._update()
 
     @property
     def shown(self) -> bool:
@@ -238,7 +253,7 @@ class SysTray:
 
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
         self._data.hIcon = hicon
-        return self.update()
+        return self._update()
 
     def set_icon(self, res_or_path: Union[int, str]) -> bool:
         self.stop_animation()
@@ -251,34 +266,33 @@ class SysTray:
 
     def set_tooltip(self, text: str) -> bool:
         self._data.szTip = text
-        return self.update()
+        return self._update()
 
-    def _next_frame(self, *_):
-        delay, hicon = next(self._frames)
-        self._set_hicon(hicon)
-        ctyped.lib.User32.SetTimer(self._hwnd, 0, delay, self._on_timer)
+    def _set_next_frame(self):
+        while not self._animation_event.is_set():
+            delay, hicon = next(self._animation_frames)
+            self._set_hicon(hicon)
+            self._animation_event.wait(delay)
 
     def set_animation(self, gif_path: str):
         self.stop_animation()
-        self._frames = itertools.cycle(_get_gif_frames(gif_path))
-        self._next_frame()
+        self._animation_frames = itertools.cycle(_get_gif_frames(gif_path))
+        threading.Thread(target=self._set_next_frame, name=self._animation_name).start()
 
     def stop_animation(self):
-        ctyped.lib.User32.KillTimer(self._hwnd, 0)
+        self._animation_event.set()
         self._set_hicon(self._hicon)
-        self._frames = None
+        self._animation_frames = None
+        self._animation_event.clear()
 
-    def update(self, show: bool = False) -> bool:
-        updated = False
-        if show or self._shown:
-            updated = bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
-                self._data)) or ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
-            if show:
-                self._shown = updated
-        return updated
+    def _update(self) -> bool:
+        return self._shown and bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
+            self._data)) or ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
 
     def show(self) -> bool:
-        return self.update(True)
+        self._shown = True
+        self._shown = self._update()
+        return self._shown
 
     def hide(self) -> bool:
         self._shown = not bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
@@ -295,23 +309,14 @@ class SysTray:
         else:
             self._data.szInfo = text
             self._data.szInfoTitle = title
-        self._data.dwInfoFlags = icon | (silent * ctyped.const.NIIF_NOSOUND)
-        shown = self.show()
-        self._data.uFlags = self._flags
-        self._set_hicon(hicon)
-        return shown
-
-    def bind(self, event: int, callback: Callable,
-             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
-        self._binds[self._id][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
-
-    def unbind(self, event: int) -> bool:
+        self._data.dwInfoFlags = icon | ctyped.const.NIIF_RESPECT_QUIET_TIME
+        if silent:
+            self._data.dwInfoFlags |= ctyped.const.NIIF_NOSOUND
         try:
-            del self._binds[self._id][event]
-        except KeyError:
-            return False
-        else:
-            return True
+            return self.show()
+        finally:
+            self._data.uFlags = self._flags
+            self._set_hicon(hicon)
 
 
 class _MenuItemKind:
@@ -330,14 +335,20 @@ class MenuItemImage:
     MAXIMIZE = ctyped.const.HBMMENU_POPUP_MAXIMIZE
 
 
-class MenuItem:
-    _id_gen = itertools.count(1)
+class MenuItem(_EventHandler):
+    _selves: dict[int, MenuItem] = {}
 
-    # noinspection PyShadowingBuiltins
-    def __init__(self, menu: Menu, id: Optional[int] = None):
+    def __init__(self, menu: Menu):
+        self._id = next(self._id_gen)
+        self._bindings[self._id] = {}
+
         self._menu = menu
-        self._id = next(self._id_gen) if id is None else id
         self._hbmps: list[Optional[ctyped.handle.HBITMAP]] = [None] * 3
+        self._selves[self._id] = self
+
+    def __del__(self):
+        del self._selves[self._id]
+        del self._bindings[self._id]
 
     def __eq__(self, other: MenuItem):
         return self._menu == other._menu and self._id == other._id
@@ -419,19 +430,9 @@ class MenuItem:
     def set_image(self, res_or_path: Union[int, str], image_only: bool = False) -> bool:
         return self._menu.set_item_image(self._id, res_or_path, image_only)
 
-    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None):
-        self._menu.bind_item(self._id, event, callback, args, kwargs)
-
-    def unbind(self, event: int) -> bool:
-        return self._menu.unbind_item(self._id, event)
-
-    def trigger(self, event: int) -> Any:
-        return self._menu.trigger_item(self._id, event)
-
 
 class Menu:
     _hwnd = None
-    _binds = {}
     _selves: dict[int, Menu] = {}
 
     _mim_field = {
@@ -450,18 +451,12 @@ class Menu:
         ctyped.const.MIIM_BITMAP: ('hbmpItem',),
         ctyped.const.MIIM_FTYPE: ('fType',)}
 
-    def __new__(cls, hmenu: Optional[ctyped.type.HMENU] = None, *_, **__):
-        if hmenu is not None and (self := cls._selves.get(int(hmenu))) is not None:
-            return self
-        return super().__new__(cls)
-
-    def __init__(self, hmenu: Optional[ctyped.type.HMENU] = None, gui: Optional[Gui] = None):
-        self._hwnd = Gui.attach(self, gui)
-        self._hmenu = ctyped.handle.HMENU.from_type() if hmenu is None else hmenu
+    def __init__(self, *, _gui: Optional[Gui] = None):
+        self._hwnd = Gui.attach(self, _gui)
+        self._hmenu = ctyped.handle.HMENU.from_type()
         ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
             ctyped.sizeof(ctyped.struct.MENUINFO), ctyped.const.MIM_STYLE, ctyped.const.MNS_NOTIFYBYPOS)))
         self._hmenu.set_hwnd(self._hwnd)
-        self._binds[self._hmenu.value] = {}
         self._selves[self._hmenu.value] = self
         self._items = []
 
@@ -469,7 +464,7 @@ class Menu:
         return self._hmenu == other._hmenu
 
     def __contains__(self, id_or_item: Union[int, MenuItem]):
-        return id_or_item in self._items if isinstance(id_or_item, MenuItem) else self.get(id_or_item) is not None
+        return self.get(id_or_item) is not None
 
     def __len__(self):
         return len(self._items)
@@ -492,37 +487,18 @@ class Menu:
 
     def destroy(self):
         del self._selves[self._hmenu.value]
-        del self._binds[self._hmenu.value]
         del self._hmenu
-
-    @classmethod
-    def trigger(cls, menu: Menu, id_or_pos_or_item: Union[int, MenuItem], event: int, by_pos: bool = False) -> Any:
-        if not isinstance(id_or_pos_or_item, MenuItem):
-            id_or_pos_or_item = menu.get(id_or_pos_or_item, by_pos=by_pos)
-        try:
-            callback, args, kwargs = cls._binds[menu._hmenu.value][id_or_pos_or_item.get_id()][event]
-        except KeyError:
-            pass
-        else:
-            return callback(event, id_or_pos_or_item, *args, **kwargs)
-
-    def _update(self):
-        self._items = []
-        for pos in range(self.get_count()):
-            item = self.get(id_ := self.get_item_id(pos))
-            self._items.append(MenuItem(self, id_) if item is None else item)
 
     def get_count(self) -> int:
         return self._hmenu.get_item_count()
 
-    def get(self, id_or_pos: int, default: Any = None, by_pos: bool = False) -> MenuItem:
+    def get(self, id_or_pos_or_item: Union[int, MenuItem], default: Any = None, by_pos: bool = False) -> MenuItem:
         if by_pos:
             with contextlib.suppress(IndexError):
-                return self[id_or_pos]
-        else:
-            for item in self:
-                if id_or_pos == item.get_id():
-                    return item
+                return self[id_or_pos_or_item]
+        elif (info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_ID, by_pos)) is not None:
+            # noinspection PyProtectedMember
+            return MenuItem._selves[info[0]]
         return default
 
     def append(self, text: str = '', image: Optional = None, submenu: Optional[Menu] = None,
@@ -553,6 +529,21 @@ class Menu:
 
     def clear(self) -> bool:
         return self.__delitem__(slice(None))
+
+    def show(self, pos: Optional[Sequence[int, int]] = None, timeout: Optional[float] = None) -> bool:
+        if pos is None:
+            point = ctyped.struct.POINT()
+            ctyped.lib.User32.GetCursorPos(ctyped.byref(point))
+            pos = point.x, point.y
+        timer = threading.Timer(timeout, self.hide)
+        timer.start()
+        try:
+            return bool(self._hmenu.track(*pos))
+        finally:
+            timer.cancel()
+
+    def hide(self) -> bool:
+        return self._hmenu.untrack()
 
     def _get_item_props(self, id_or_pos_or_item: Union[int, MenuItem],
                         states: bool, index: int, by_pos: bool) -> Optional[bool]:
@@ -647,7 +638,7 @@ class Menu:
 
     def get_item_submenu(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[Menu]:
         if info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_SUBMENU, by_pos):
-            return type(self)(ctyped.handle.HMENU(info[0]))
+            return self._selves[info[0]]
 
     def _set_item_info(self, id_or_pos_or_item: Union[int, MenuItem],
                        infos: Iterable, miim: int, by_pos: bool) -> bool:
@@ -777,52 +768,28 @@ class Menu:
 
     def bind_item(self, id_or_pos_or_item: Union[int, MenuItem], event: int, callback: Callable,
                   args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None, by_pos: bool = False):
-        if not isinstance(id_or_pos_or_item, MenuItem):
-            id_or_pos_or_item = self.get(id_or_pos_or_item, by_pos=by_pos)
-        try:
-            binds = self._binds[self._hmenu.value][id_or_pos_or_item.get_id()]
-        except KeyError:
-            binds = self._binds[self._hmenu.value][id_or_pos_or_item.get_id()] = {}
-        binds[event] = callback, () if args is None else args, {} if kwargs is None else kwargs
+        self.get(id_or_pos_or_item, by_pos=by_pos).bind(event, callback, args, kwargs)
 
     def unbind_item(self, id_or_pos_or_item: Union[int, MenuItem], event: int, by_pos: bool = False) -> bool:
-        if by_pos or isinstance(id_or_pos_or_item, MenuItem):
-            id_or_pos_or_item = self.get_item_id(id_or_pos_or_item)
-        try:
-            del self._binds[self._hmenu.value][id_or_pos_or_item][event]
-        except KeyError:
-            return False
-        else:
-            return True
+        return self.get(id_or_pos_or_item, by_pos=by_pos).unbind(event)
 
     def trigger_item(self, id_or_pos_or_item: Union[int, MenuItem], event: int, by_pos: bool = False) -> Any:
-        return self.trigger(self, id_or_pos_or_item, event, by_pos)
-
-    def show(self, pos: Optional[Sequence[int, int]] = None, timeout: Optional[float] = None) -> bool:
-        if timeout is None:
-            timer = None
-        else:
-            timer = threading.Timer(timeout, self.hide)
-            timer.start()
-        try:
-            return bool(self._hmenu.track(pos))
-        finally:
-            if timer is not None:
-                timer.cancel()
-
-    def hide(self) -> bool:
-        return self._hmenu.untrack(self._hwnd)
+        return self.get(id_or_pos_or_item, by_pos=by_pos).trigger(event)
 
 
 def _foo(e, s: SysTray, menu: Menu, item: MenuItem):
     # s.show_balloon('very busy', 'mini text', Icon.USER)
-    # s.set_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif')
     menu.show()
     return 0
 
 
-def _foo2(s, e):
-    print(Gui.get().exit_mainloop())  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
+def _foo2(e: int, s: SysTray):
+    s.set_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif')
+    # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
+
+
+def foo3(e, m: SysTray, s: SysTray):
+    s.stop_animation()
 
 
 def _wait():
@@ -833,31 +800,31 @@ def _wait():
         pass
 
 
-def test_cb(*args):
-    print('test_cb', args)
-
-
 def _test_sys_tray():
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
     # bind(EVENT_CLOSE, lambda *args: print(6969))
     g = Gui()
     s = SysTray(p, 'tip')
     menu = Menu()
-    it = menu.append('dump')
+    it = menu.append('stop animate')
     it.set_right_ordered()
-    it.bind(Event.MENU_ITEM_CLICK, test_cb)
+    it.bind(Event.MENU_ITEM_CLICK, foo3, (s,))
+    ball = menu.append('balloon')
+    ball.bind(Event.MENU_ITEM_CLICK, lambda *args: s.show_balloon('very busy', 'mini text', Icon.USER))
     # print(menu.set_item_image(it, p))
     # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
     item = menu.append('text', check=True)
     # print(item.get_id(), menu.get_item_id(item))
-    item.set_text('text2\ntooltip')
     menu2 = Menu()
     menu2.append('gg')
     it7 = menu2.append('69')
     it7.bind(Event.MENU_ITEM_HOVER, lambda *args: print('hover', args))
     menu2.append('new')
+    ex = menu.append('exit')
+    ex.bind(Event.MENU_ITEM_CLICK, lambda *args: g.exit_mainloop())
     # print(item.set_image(r'D:\Projects\wallpyper\src\resources\tray.png', True))
-    menu.set_item_submenu(item, menu2)
+    # menu.set_item_submenu(item, menu2)
+    item.set_submenu(menu2)
     g.bind(Event.DISPLAY_CHANGE, lambda *args: print('display', args))
 
     s.bind(Event.SYS_TRAY_RIGHT_UP, _foo, (menu, item))
@@ -867,15 +834,9 @@ def _test_sys_tray():
     s.bind(Event.BALLOON_CLICK, lambda *args: print('show_balloon click'))
     s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
     s.show()
-    # p2 = r'D:\Projects\wallpyper\src\resources\icon.ico'
-    # s2 = SysTray(p2, 'no tip')
-    # s2.bind(Event.SYS_TRAY_LEFT_DOUBLE, lambda *args: print('2nd'))
-    # s2.bind(Event.RIGHT_UP, lambda *args: s2.hide())
-    # s2.show()
-    # _foo()
-    # s2.mainloop()
     g.mainloop()
     g.destroy()
+    print('exit')
 
 
 def _test_():

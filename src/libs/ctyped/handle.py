@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-from typing import Optional as _Optional, Sequence as _Sequence
+from typing import Optional as _Optional
 
 from . import const as _const, lib as _lib, macro as _macro, struct as _struct, type as _type
 from ._utils import _byref, _sizeof
@@ -154,22 +154,19 @@ class HMENU(_type.HMENU):
         return bool(_lib.User32.CheckMenuRadioItem(self, id_or_pos_first,
                                                    id_or_pos_last, id_or_pos, self._by_mf[by_pos]))
 
-    def track(self, pos: _Optional[_Sequence[int, int]] = None,
-              alignment: int = _const.TPM_LEFTALIGN | _const.TPM_TOPALIGN, right_button: bool = False,
-              animation: int = _const.TPM_NOANIMATION, hwnd: _Optional[_type.HWND] = None) -> int:
-        if hwnd is not None:
-            self._hwnd = hwnd
-        if pos is None:
-            pt = _struct.POINT()
-            if not _lib.User32.GetCursorPos(_byref(pt)):
-                return 0
-            pos = pt.x, pt.y
-        # _lib.User32.SetForegroundWindow(self._hwnd) # TODO exit_mainloop fails
-        # noinspection PyTypeChecker
+    def track(self, x: int, y: int, alignment: int = _const.TPM_LEFTALIGN | _const.TPM_TOPALIGN,
+              right_button: bool = False, animation: int = _const.TPM_NOANIMATION) -> int:
+        _lib.User32.SetForegroundWindow(self._hwnd)
         return _lib.User32.TrackPopupMenu(self, alignment | (
-            _const.TPM_RIGHTBUTTON if right_button else _const.TPM_LEFTBUTTON) | animation, *pos, 0, self._hwnd, None)
+            _const.TPM_RIGHTBUTTON if right_button else _const.TPM_LEFTBUTTON) | animation, x, y, 0, self._hwnd, None)
 
-    def untrack(self, hwnd: _Optional[_type.HWND] = None) -> bool:
-        if hwnd is not None:
-            self._hwnd = hwnd
+    def untrack(self) -> bool:
         return not _lib.User32.SendMessageW(self._hwnd, _const.WM_CANCELMODE, 0, 0)
+
+
+class HWND(_type.HWND):
+    def __del__(self):
+        _lib.User32.DestroyWindow(self)
+
+    def send_message(self, msg: int, wparam: int = 0, lparam: int = 0, wait: bool = True) -> int:
+        return (_lib.User32.SendMessageW if wait else _lib.User32.PostMessageW)(self, msg, wparam, lparam)
