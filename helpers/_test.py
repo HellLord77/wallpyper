@@ -11,7 +11,7 @@ import threading
 import time
 import tkinter.messagebox
 import types
-from typing import Any, Callable, Iterable, Mapping, Union, Sequence
+from typing import Any, Callable, Iterable, Mapping, Union, Sequence, Generator
 from typing import Optional
 
 import libs.ctyped as ctyped
@@ -50,15 +50,18 @@ def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, ar
         graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
 
 
-def _get_gif_frames(path: str) -> tuple[tuple[float, ctyped.handle.HICON]]:
+def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
     bitmap = _gdiplus.Bitmap.from_file(path)
     delays: ctyped.Pointer[ctyped.type.c_long] = bitmap.get_property(ctyped.const.PropertyTagFrameDelay)
-    # noinspection PyTypeChecker
-    return tuple((delays[index] / 100, bitmap.get_hicon()) for index in bitmap.iter_frames())
+    for index in bitmap.iter_frames():
+        yield delays[index] * 10, bitmap.get_hicon()
 
 
 _WM_TASKBARCREATED = ctyped.lib.User32.RegisterWindowMessageW('TaskbarCreated')
-_WM_SYS_TRAY_TRIGGER = ctyped.const.WM_APP
+_WM_SYS_TRAY = ctyped.const.WM_APP
+
+_TID_SYS_TRAY_ANIMATION = 0
+_TID_MENU_ITEM_TOOLTIP = 1
 
 
 class Event:
@@ -75,15 +78,19 @@ class Event:
     SYS_TRAY_MIDDLE_UP = ctyped.const.WM_MBUTTONUP
     SYS_TRAY_MIDDLE_DOUBLE = ctyped.const.WM_MBUTTONDBLCLK
 
-    BALLOON_QUEUED = ctyped.const.NIN_BALLOONSHOW
-    BALLOON_HIDDEN = ctyped.const.NIN_BALLOONTIMEOUT
+    BALLOON_QUEUE = ctyped.const.NIN_BALLOONSHOW
+    BALLOON_HIDE = ctyped.const.NIN_BALLOONTIMEOUT
     BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK
 
-    MENU_ITEM_HOVER = ctyped.const.WM_MENUSELECT
-    MENU_ITEM_CLICK = ctyped.const.WM_MENUCOMMAND
+    MENU_SHOW = ctyped.const.WM_INITMENUPOPUP
+    MENU_HIDE = ctyped.const.WM_UNINITMENUPOPUP
+
+    MENU_ITEM_HIGHLIGHT = ctyped.const.WM_MENUSELECT
+    MENU_ITEM_LEFT_UP = ctyped.const.WM_MENUCOMMAND
+    MENU_ITEM_RIGHT_UP = ctyped.const.WM_MENURBUTTONUP
 
 
-class Icon:
+class SysTrayIcon:
     NONE = ctyped.const.NIIF_NONE
     INFO = ctyped.const.NIIF_INFO
     WARNING = ctyped.const.NIIF_WARNING
@@ -91,18 +98,45 @@ class Icon:
     USER = ctyped.const.NIIF_USER
 
 
-class _EventHandler:
-    _init_event_handler = True
-    _id: int
-    _id_gen: itertools.count
-    _bindings: dict[int, dict[int, tuple[Callable, Iterable, Mapping]]]
+class _MenuItemKind:
+    SEPARATOR = 0
+    STRING = 1
+    CHECK = 2
+    RADIO = 3
+    IMAGE = 4
+    SUBMENU = 5
 
-    def __init_subclass__(cls, *args, **kwargs):
-        super().__init_subclass__(*args, **kwargs)
-        if cls._init_event_handler:
-            cls._id_gen = itertools.count(1)
-            cls._bindings = {}
-            cls._init_event_handler = False
+
+class MenuItemImage:
+    CLOSE = ctyped.const.HBMMENU_POPUP_CLOSE
+    RESTORE = ctyped.const.HBMMENU_POPUP_RESTORE
+    MINIMIZE = ctyped.const.HBMMENU_POPUP_MINIMIZE
+    MAXIMIZE = ctyped.const.HBMMENU_POPUP_MAXIMIZE
+
+
+class _EventHandler:
+    _id: int
+    _selves: dict[int, _EventHandler] = None
+    _bindings: dict[int, dict[int, tuple[Callable, Iterable, Mapping]]] = None
+
+    # noinspection PyShadowingBuiltins
+    def __init__(self, id: int):
+        if self._selves is None:
+            type(self)._selves = {}
+        if self._bindings is None:
+            type(self)._bindings = {}
+        self._id = id
+        self._selves[id] = self
+        self._bindings[id] = {}
+
+    def destroy(self) -> bool:
+        try:
+            del self._selves[self._id]
+            del self._bindings[self._id]
+        except KeyError:
+            return False
+        else:
+            return True
 
     def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None):
         self._bindings[self._id][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
@@ -125,36 +159,47 @@ class _EventHandler:
 
 
 class Gui(_EventHandler):
-    _selves: dict[int, Gui] = {}
+    _selves: dict[int, Gui]
 
     _hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
     _mainloop_running = False
+    _menu_item_tooltip_proc = None
 
     def __init__(self, name: Optional[str] = None):
-        self._id = next(self._id_gen)
-        self._bindings[self._id] = {}
-
-        self._class = ctyped.struct.WNDCLASSEXW(
-            ctyped.sizeof(ctyped.struct.WNDCLASSEXW), lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc),
-            hInstance=self._hinstance, lpszClassName=f'{NAME}-{type(self).__name__}' if name is None else name)
+        self._class = ctyped.struct.WNDCLASSEXW(lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc),
+                                                hInstance=self._hinstance,
+                                                lpszClassName=f'{NAME}-{type(self).__name__}' if name is None else name)
         ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class))
-        self._hwnd = ctyped.lib.User32.CreateWindowExW(0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED,
-                                                       0, 0, 0, 0, None, None, self._hinstance, None)
+        self._hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(0, self._class.lpszClassName, None,
+                                                                          ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None,
+                                                                          None, self._hinstance, None))
+        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
+            ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
+            ctyped.const.WS_POPUP | ctyped.const.TTS_NOPREFIX | ctyped.const.TTS_ALWAYSTIP,
+            ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
+            ctyped.const.CW_USEDEFAULT, self._hwnd, None, None, None))
+        self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(uFlags=ctyped.const.TTF_SUBCLASS)
         self._attached = []
-        self._selves[self._id] = self
+        self._mainloop_lock = threading.Lock()
+        self._menu_item_tooltip_lock = threading.Lock()
+        super().__init__(self._hwnd.value)
         atexit.register(self.destroy)
 
-    def destroy(self):
+    def destroy(self) -> bool:
         atexit.unregister(self.destroy)
-        del self._selves[self._id]
-        del self._bindings[self._id]
+        ctyped.lib.User32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
         while self._attached:
             self._attached.pop().destroy()
-        ctyped.lib.User32.DestroyWindow(self._hwnd)
+        self._menu_item_tooltip = None
+        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_DELTOOLW)
+        self._menu_item_tooltip_hwnd = None
+        self._hwnd = None
+        self._menu_item_tooltip_proc = None
         ctyped.lib.User32.UnregisterClassW(self._class.lpszClassName, self._hinstance)
+        return super().destroy()
 
     @classmethod
-    def _wnd_proc(cls, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
+    def _wnd_proc(cls: Gui, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
                   wparam: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         if message == ctyped.const.WM_DESTROY:
             ctyped.lib.User32.PostQuitMessage(0)
@@ -165,28 +210,44 @@ class Gui(_EventHandler):
         elif message == _WM_TASKBARCREATED:
             # noinspection PyProtectedMember
             SysTray._update_all()
+        elif message == ctyped.const.WM_MOUSELEAVE:
+            cls._selves[hwnd]._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, lparam=lparam)
+        elif message == ctyped.const.WM_ENTERIDLE:
+            ctyped.lib.User32.KillTimer(hwnd, _TID_MENU_ITEM_TOOLTIP)
+            if wparam == ctyped.const.MSGF_MENU and (proc := cls._selves[hwnd]._menu_item_tooltip_proc) is not None:
+                ctyped.lib.User32.SetTimer(hwnd, _TID_MENU_ITEM_TOOLTIP, 800, proc)
         elif message == ctyped.const.WM_DISPLAYCHANGE:
             cls._selves[hwnd].trigger(message)
-        elif message == _WM_SYS_TRAY_TRIGGER:
+        elif message == _WM_SYS_TRAY:
             # noinspection PyProtectedMember
             SysTray._selves[wparam].trigger(lparam)
-        elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND):
+        elif message in (ctyped.const.WM_INITMENUPOPUP, ctyped.const.WM_UNINITMENUPOPUP):
+            # noinspection PyProtectedMember
+            Menu._selves[wparam].trigger(message)
+        elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND, ctyped.const.WM_MENURBUTTONUP):
             if lparam:
+                is_select = message == ctyped.const.WM_MENUSELECT
                 # noinspection PyProtectedMember
-                Menu._selves[lparam].trigger_item(ctyped.macro.LOWORD(
-                    wparam), message, message == ctyped.const.WM_MENUCOMMAND or (
+                item = Menu._selves[lparam].get(ctyped.macro.LOWORD(wparam), by_pos=not is_select or (
                         ctyped.const.MF_POPUP == ctyped.macro.HIWORD(wparam) & ctyped.const.MF_POPUP))
+                if is_select:
+                    ctyped.handle.HWND.send_message(hwnd, ctyped.const.WM_MOUSELEAVE)
+                    cls._selves[hwnd]._menu_item_tooltip_proc = item._tooltip_proc
+                    ctyped.lib.User32.TrackMouseEvent(ctyped.byref(
+                        ctyped.struct.TRACKMOUSEEVENT(dwFlags=ctyped.const.TME_LEAVE, hwndTrack=hwnd)))
+                item.trigger(message)
         else:
             return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
 
+    # noinspection PyShadowingBuiltins
     @classmethod
     def get(cls) -> Optional[Gui]:
         with contextlib.suppress(StopIteration):
             return next(reversed(cls._selves.values()))
 
     @classmethod
-    def attach(cls, obj, gui: Optional[Gui]) -> ctyped.type.HWND:
+    def attach(cls, obj, gui: Optional[Gui]) -> ctyped.handle.HWND:
         if gui is None:
             gui = cls.get()
             if gui is None:
@@ -194,27 +255,37 @@ class Gui(_EventHandler):
         gui._attached.append(obj)
         return gui._hwnd
 
-    @property
-    def name(self) -> str:
+    def _show_menu_item_tooltip(self, text: str):
+        with self._menu_item_tooltip_lock:
+            self._menu_item_tooltip.lpszText = text
+            lparam = ctyped.addressof(self._menu_item_tooltip)
+            self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_ADDTOOLW, lparam=lparam)
+            self._hwnd.send_message(ctyped.const.WM_MOUSELEAVE, lparam=lparam)
+            self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, 1, lparam)
+
+    def get_name(self) -> str:
         return self._class.lpszClassName
 
-    def mainloop(self) -> int:
-        self._mainloop_running = True
-        msg = ctyped.struct.MSG()
-        msg_ref = ctyped.byref(msg)
-        while ctyped.lib.User32.GetMessageW(msg_ref, self._hwnd, 0, 0) > 0:
-            ctyped.lib.User32.TranslateMessage(msg_ref)
-            ctyped.lib.User32.DispatchMessageW(msg_ref)
-        self._mainloop_running = False
-        return msg.wParam
+    def is_mainloop_running(self) -> bool:
+        return self._mainloop_lock.locked()
+
+    def mainloop(self) -> Optional[int]:
+        with self._mainloop_lock:
+            msg = ctyped.struct.MSG()
+            msg_ref = ctyped.byref(msg)
+            while ctyped.lib.User32.GetMessageW(msg_ref, self._hwnd, 0, 0) > 0:
+                ctyped.lib.User32.TranslateMessage(msg_ref)
+                ctyped.lib.User32.DispatchMessageW(msg_ref)
+            return msg.wParam
 
     def exit_mainloop(self) -> bool:
-        return bool(ctyped.handle.HWND.send_message(self._hwnd, ctyped.const.WM_CLOSE, wait=False))
+        return bool(self._hwnd.send_message(ctyped.const.WM_CLOSE, wait=False))
 
 
 class SysTray(_EventHandler):
+    _selves: dict[int, SysTray]
     _hwnd = None
-    _selves: dict[int, SysTray] = {}
+    _id_gen = itertools.count(1)
 
     _flags = ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP
     _hicon = None
@@ -224,31 +295,25 @@ class SysTray(_EventHandler):
     def __init__(self, icon: Union[int, str] = ctyped.const.IDI_APPLICATION,
                  tooltip: Optional[str] = None, *, _gui: Optional[Gui] = None):
         self._hwnd = Gui.attach(self, _gui)
-        self._id = next(self._id_gen)
-        self._bindings[self._id] = {}
-
-        self._animation_name = f'{Gui.get().name}-{type(self).__name__}(Animation-{self._id})'
-        self._animation_event = threading.Event()
-        self._data = ctyped.struct.NOTIFYICONDATAW(ctyped.sizeof(ctyped.struct.NOTIFYICONDATAW),
-                                                   self._hwnd, self._id, self._flags, _WM_SYS_TRAY_TRIGGER)
+        self._animation_proc = ctyped.type.TIMERPROC(self._set_next_frame)
+        super().__init__(next(self._id_gen))
+        self._data = ctyped.struct.NOTIFYICONDATAW(hWnd=self._hwnd, uID=self._id,
+                                                   uFlags=self._flags, uCallbackMessage=_WM_SYS_TRAY)
         self.set_icon(icon)
         if tooltip is not None:
             self.set_tooltip(tooltip)
-        self._selves[self._id] = self
 
-    def destroy(self):
-        del self._selves[self._id]
-        del self._bindings[self._id]
+    def destroy(self) -> bool:
         self.stop_animation()
         self.hide()
+        return super().destroy()
 
     @classmethod
     def _update_all(cls):
         for self in cls._selves.values():
             self._update()
 
-    @property
-    def shown(self) -> bool:
+    def is_shown(self) -> bool:
         return self._shown
 
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
@@ -268,22 +333,24 @@ class SysTray(_EventHandler):
         self._data.szTip = text
         return self._update()
 
-    def _set_next_frame(self):
-        while not self._animation_event.is_set():
+    def _set_next_frame(self, *_):
+        try:
             delay, hicon = next(self._animation_frames)
+        except TypeError:
+            pass
+        else:
             self._set_hicon(hicon)
-            self._animation_event.wait(delay)
+            ctyped.lib.User32.SetTimer(self._hwnd, _TID_SYS_TRAY_ANIMATION, delay, self._animation_proc)
 
     def set_animation(self, gif_path: str):
         self.stop_animation()
-        self._animation_frames = itertools.cycle(_get_gif_frames(gif_path))
-        threading.Thread(target=self._set_next_frame, name=self._animation_name).start()
+        self._animation_frames = itertools.cycle(tuple(_get_gif_frames(gif_path)))
+        self._set_next_frame()
 
     def stop_animation(self):
-        self._animation_event.set()
-        self._set_hicon(self._hicon)
         self._animation_frames = None
-        self._animation_event.clear()
+        ctyped.lib.User32.KillTimer(self._hwnd, _TID_SYS_TRAY_ANIMATION)
+        self._set_hicon(self._hicon)
 
     def _update(self) -> bool:
         return self._shown and bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
@@ -299,7 +366,7 @@ class SysTray(_EventHandler):
         return not self._shown
 
     def show_balloon(self, title: str, text: Optional[str] = None,
-                     icon: int = Icon.NONE, silent: bool = False) -> bool:
+                     icon: int = SysTrayIcon.NONE, silent: bool = False) -> bool:
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
         self._data.hIcon = self._hicon
@@ -319,121 +386,9 @@ class SysTray(_EventHandler):
             self._set_hicon(hicon)
 
 
-class _MenuItemKind:
-    SEPARATOR = 0
-    STRING = 1
-    CHECK = 2
-    RADIO = 3
-    IMAGE = 4
-    SUBMENU = 5
-
-
-class MenuItemImage:
-    CLOSE = ctyped.const.HBMMENU_POPUP_CLOSE
-    RESTORE = ctyped.const.HBMMENU_POPUP_RESTORE
-    MINIMIZE = ctyped.const.HBMMENU_POPUP_MINIMIZE
-    MAXIMIZE = ctyped.const.HBMMENU_POPUP_MAXIMIZE
-
-
-class MenuItem(_EventHandler):
-    _selves: dict[int, MenuItem] = {}
-
-    def __init__(self, menu: Menu):
-        self._id = next(self._id_gen)
-        self._bindings[self._id] = {}
-
-        self._menu = menu
-        self._hbmps: list[Optional[ctyped.handle.HBITMAP]] = [None] * 3
-        self._selves[self._id] = self
-
-    def __del__(self):
-        del self._selves[self._id]
-        del self._bindings[self._id]
-
-    def __eq__(self, other: MenuItem):
-        return self._menu == other._menu and self._id == other._id
-
-    def get_menu(self) -> Menu:
-        return self._menu
-
-    def get_id(self) -> int:
-        return self._id
-
-    def get_pos(self) -> int:
-        return self._menu.get_item_pos(self._id)
-
-    def get_types(self) -> tuple[bool, bool, bool, bool]:
-        return self._menu.get_item_types(self._id)
-
-    def is_broken(self) -> bool:
-        return self._menu.is_item_broken(self._id)
-
-    def is_radio(self) -> bool:
-        return self._menu.is_item_radio(self._id)
-
-    def is_right_ordered(self) -> bool:
-        return self._menu.is_item_right_ordered(self._id)
-
-    def is_right_justified(self) -> bool:
-        return self._menu.is_item_right_justified(self._id)
-
-    def get_states(self) -> tuple[bool, bool, bool, bool]:
-        return self._menu.get_item_states(self._id)
-
-    def is_enabled(self) -> bool:
-        return self._menu.is_item_enabled(self._id)
-
-    def is_highlighted(self) -> bool:
-        return self._menu.is_item_highlighted(self._id)
-
-    def is_checked(self) -> bool:
-        return self._menu.is_item_checked(self._id)
-
-    def is_default(self) -> bool:
-        return self._menu.is_item_default(self._id)
-
-    def get_text(self) -> str:
-        return self._menu.get_item_text(self._id)
-
-    def get_submenu(self) -> Optional[Menu]:
-        return self._menu.get_item_submenu(self._id)
-
-    def set_check_icons(self, res_or_path_checked: Optional[Union[int, str]] = None,
-                        res_or_path_unchecked: Optional[Union[int, str]] = None) -> bool:
-        return self._menu.set_item_check_icons(self._id, res_or_path_checked, res_or_path_unchecked)
-
-    def set_right_ordered(self, right_ordered: bool = True) -> bool:
-        return self._menu.set_item_right_ordered(self._id, right_ordered)
-
-    def set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None,
-                   check: Optional[bool] = None, default: Optional[bool] = None) -> bool:
-        return self._menu.set_item_states(self._id, enable, highlight, check, default)
-
-    def enable(self, enable: bool = True) -> bool:
-        return self._menu.enable_item(self._id, enable)
-
-    def highlight(self, highlight: bool = True) -> bool:
-        return self._menu.highlight_item(self._id, highlight)
-
-    def check(self, check: bool = True) -> bool:
-        return self._menu.check_item(self._id, check)
-
-    def set_default(self, default: bool = True) -> bool:
-        return self._menu.set_default_item(self._id, default)
-
-    def set_text(self, text: str) -> bool:
-        return self._menu.set_item_text(self._id, text)
-
-    def set_submenu(self, submenu: Menu) -> bool:
-        return self._menu.set_item_submenu(self._id, submenu)
-
-    def set_image(self, res_or_path: Union[int, str], image_only: bool = False) -> bool:
-        return self._menu.set_item_image(self._id, res_or_path, image_only)
-
-
-class Menu:
+class Menu(_EventHandler):
+    _selves: dict[int, Menu]
     _hwnd = None
-    _selves: dict[int, Menu] = {}
 
     _mim_field = {
         ctyped.const.MIM_BACKGROUND: 'hbrBack',
@@ -454,14 +409,16 @@ class Menu:
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = Gui.attach(self, _gui)
         self._hmenu = ctyped.handle.HMENU.from_type()
-        ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
-            ctyped.sizeof(ctyped.struct.MENUINFO), ctyped.const.MIM_STYLE, ctyped.const.MNS_NOTIFYBYPOS)))
+        ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(
+            ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS)))
         self._hmenu.set_hwnd(self._hwnd)
-        self._selves[self._hmenu.value] = self
-        self._items = []
+        self._items: list[MenuItem] = []
+        super().__init__(self._hmenu.value)
 
-    def __eq__(self, other: Menu):
-        return self._hmenu == other._hmenu
+    def destroy(self) -> bool:
+        self._items.clear()
+        self._hmenu = None
+        return super().destroy()
 
     def __contains__(self, id_or_item: Union[int, MenuItem]):
         return self.get(id_or_item) is not None
@@ -485,10 +442,6 @@ class Menu:
     def __iter__(self) -> MenuItem:
         yield from self._items
 
-    def destroy(self):
-        del self._selves[self._hmenu.value]
-        del self._hmenu
-
     def get_count(self) -> int:
         return self._hmenu.get_item_count()
 
@@ -509,7 +462,7 @@ class Menu:
     def insert(self, pos: int, text: str = '', image: Optional = None, submenu: Optional[Menu] = None,
                enable: bool = True, highlight: bool = False, check: Optional[bool] = None,
                default: bool = False, kind: int = _MenuItemKind.STRING) -> Optional[MenuItem]:
-        item = MenuItem(self)
+        item = MenuItem(self, gui=Gui._selves[self._hwnd.value])
         if ctyped.lib.User32.InsertMenuW(self._hmenu, pos,
                                          ctyped.const.MF_BYPOSITION | ctyped.const.MF_STRING, item.get_id(), None):
             self._items.insert(pos, item)
@@ -568,7 +521,6 @@ class Menu:
             by_pos = False
         if item_info is None:
             item_info = ctyped.struct.MENUITEMINFOW()
-        item_info.cbSize = ctyped.sizeof(ctyped.struct.MENUITEMINFOW)
         item_info.fMask = miim
         if ctyped.lib.User32.GetMenuItemInfoW(self._hmenu, id_or_pos_or_item, by_pos, ctyped.byref(item_info)):
             return tuple(getattr(item_info, field) for field in self._miim_fields[miim])
@@ -645,7 +597,7 @@ class Menu:
         if isinstance(id_or_pos_or_item, MenuItem):
             id_or_pos_or_item = id_or_pos_or_item.get_id()
             by_pos = False
-        item_info = ctyped.struct.MENUITEMINFOW(ctyped.sizeof(ctyped.struct.MENUITEMINFOW), miim)
+        item_info = ctyped.struct.MENUITEMINFOW(fMask=miim)
         for field, info in zip(self._miim_fields[miim], infos):
             setattr(item_info, field, info)
         return bool(ctyped.lib.User32.SetMenuItemInfoW(self._hmenu, id_or_pos_or_item, by_pos, ctyped.byref(item_info)))
@@ -777,6 +729,108 @@ class Menu:
         return self.get(id_or_pos_or_item, by_pos=by_pos).trigger(event)
 
 
+class MenuItem(_EventHandler):
+    _selves: dict[int, MenuItem]
+    _id_gen = itertools.count(1)
+    tooltip: str = ''
+
+    def __init__(self, menu: Menu, *, gui: Optional[Gui] = None):
+        self._hwnd = Gui.attach(self, gui)
+        self._tooltip_proc = ctyped.type.TIMERPROC(self._show_tooltip)
+        self._menu = menu
+        self._hbmps: list[Optional[ctyped.handle.HBITMAP]] = [None] * 3
+        super().__init__(next(self._id_gen))
+
+    def _show_tooltip(self, *_):
+        gui = Gui._selves[self._hwnd.value]
+        gui._menu_item_tooltip_proc = None
+        ctyped.lib.User32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
+        if self.tooltip and (pos := self.get_pos()) != -1:
+            rect = ctyped.struct.RECT()
+            ctyped.lib.User32.GetMenuItemRect(self._hwnd, self._menu._hmenu, pos, ctyped.byref(rect))
+            pt = ctyped.struct.POINT()
+            ctyped.lib.User32.GetCursorPos(ctyped.byref(pt))
+            if rect.left <= pt.x <= rect.right and rect.top <= pt.y <= rect.bottom:
+                gui._show_menu_item_tooltip(self.tooltip)
+
+    def get_menu(self) -> Menu:
+        return self._menu
+
+    def get_id(self) -> int:
+        return self._id
+
+    def get_pos(self) -> int:
+        return self._menu.get_item_pos(self)
+
+    def get_types(self) -> tuple[bool, bool, bool, bool]:
+        return self._menu.get_item_types(self._id)
+
+    def is_broken(self) -> bool:
+        return self._menu.is_item_broken(self._id)
+
+    def is_radio(self) -> bool:
+        return self._menu.is_item_radio(self._id)
+
+    def is_right_ordered(self) -> bool:
+        return self._menu.is_item_right_ordered(self._id)
+
+    def is_right_justified(self) -> bool:
+        return self._menu.is_item_right_justified(self._id)
+
+    def get_states(self) -> tuple[bool, bool, bool, bool]:
+        return self._menu.get_item_states(self._id)
+
+    def is_enabled(self) -> bool:
+        return self._menu.is_item_enabled(self._id)
+
+    def is_highlighted(self) -> bool:
+        return self._menu.is_item_highlighted(self._id)
+
+    def is_checked(self) -> bool:
+        return self._menu.is_item_checked(self._id)
+
+    def is_default(self) -> bool:
+        return self._menu.is_item_default(self._id)
+
+    def get_text(self) -> str:
+        return self._menu.get_item_text(self._id)
+
+    def get_submenu(self) -> Optional[Menu]:
+        return self._menu.get_item_submenu(self._id)
+
+    def set_check_icons(self, res_or_path_checked: Optional[Union[int, str]] = None,
+                        res_or_path_unchecked: Optional[Union[int, str]] = None) -> bool:
+        return self._menu.set_item_check_icons(self._id, res_or_path_checked, res_or_path_unchecked)
+
+    def set_right_ordered(self, right_ordered: bool = True) -> bool:
+        return self._menu.set_item_right_ordered(self._id, right_ordered)
+
+    def set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None,
+                   check: Optional[bool] = None, default: Optional[bool] = None) -> bool:
+        return self._menu.set_item_states(self._id, enable, highlight, check, default)
+
+    def enable(self, enable: bool = True) -> bool:
+        return self._menu.enable_item(self._id, enable)
+
+    def highlight(self, highlight: bool = True) -> bool:
+        return self._menu.highlight_item(self._id, highlight)
+
+    def check(self, check: bool = True) -> bool:
+        return self._menu.check_item(self._id, check)
+
+    def set_default(self, default: bool = True) -> bool:
+        return self._menu.set_default_item(self._id, default)
+
+    def set_text(self, text: str) -> bool:
+        return self._menu.set_item_text(self._id, text)
+
+    def set_submenu(self, submenu: Menu) -> bool:
+        return self._menu.set_item_submenu(self._id, submenu)
+
+    def set_image(self, res_or_path: Union[int, str], image_only: bool = False) -> bool:
+        return self._menu.set_item_image(self._id, res_or_path, image_only)
+
+
 def _foo(e, s: SysTray, menu: Menu, item: MenuItem):
     # s.show_balloon('very busy', 'mini text', Icon.USER)
     menu.show()
@@ -806,11 +860,14 @@ def _test_sys_tray():
     g = Gui()
     s = SysTray(p, 'tip')
     menu = Menu()
-    it = menu.append('stop animate')
-    it.set_right_ordered()
-    it.bind(Event.MENU_ITEM_CLICK, foo3, (s,))
-    ball = menu.append('balloon')
-    ball.bind(Event.MENU_ITEM_CLICK, lambda *args: s.show_balloon('very busy', 'mini text', Icon.USER))
+    menu.bind(Event.MENU_SHOW, lambda *args: print('show menu'))
+    menu.bind(Event.MENU_HIDE, lambda *args: print('hide menu'))
+    it = menu.append('stop animate\tright')
+    it.bind(Event.MENU_ITEM_LEFT_UP, foo3, (s,))
+    it.tooltip = 'important long text tip'
+    ball = menu.append('balloon\tright2')
+    ball.bind(Event.MENU_ITEM_RIGHT_UP, lambda *args: print('balloon button right up'))
+    ball.bind(Event.MENU_ITEM_LEFT_UP, lambda *args: s.show_balloon('very busy', 'mini text', SysTrayIcon.USER))
     # print(menu.set_item_image(it, p))
     # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
     item = menu.append('text', check=True)
@@ -818,10 +875,10 @@ def _test_sys_tray():
     menu2 = Menu()
     menu2.append('gg')
     it7 = menu2.append('69')
-    it7.bind(Event.MENU_ITEM_HOVER, lambda *args: print('hover', args))
+    it7.bind(Event.MENU_ITEM_HIGHLIGHT, lambda *args: print('hover', args))
     menu2.append('new')
     ex = menu.append('exit')
-    ex.bind(Event.MENU_ITEM_CLICK, lambda *args: g.exit_mainloop())
+    ex.bind(Event.MENU_ITEM_LEFT_UP, lambda *args: g.exit_mainloop())
     # print(item.set_image(r'D:\Projects\wallpyper\src\resources\tray.png', True))
     # menu.set_item_submenu(item, menu2)
     item.set_submenu(menu2)
@@ -829,8 +886,8 @@ def _test_sys_tray():
 
     s.bind(Event.SYS_TRAY_RIGHT_UP, _foo, (menu, item))
     s.bind(Event.SYS_TRAY_LEFT_DOUBLE, _foo2)
-    s.bind(Event.BALLOON_QUEUED, lambda *args: print('shown'))
-    s.bind(Event.BALLOON_HIDDEN - 1, lambda *args: print('show_balloon hide'))
+    s.bind(Event.BALLOON_QUEUE, lambda *args: print('shown balloon'))
+    s.bind(Event.BALLOON_HIDE - 1, lambda *args: print('show_balloon hide'))
     s.bind(Event.BALLOON_CLICK, lambda *args: print('show_balloon click'))
     s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
     s.show()
@@ -840,7 +897,7 @@ def _test_sys_tray():
 
 
 def _test_():
-    info = ctyped.struct.SHELLEXECUTEINFOW(ctyped.sizeof(ctyped.struct.SHELLEXECUTEINFOW), lpVerb='open',
+    info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open',
                                            lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
@@ -852,9 +909,24 @@ def tst():
         raise TypeError
 
 
+def _enable_visual_styles() -> bool:
+    if sz := ctyped.lib.Kernel32.GetSystemDirectoryW(None, 0):
+        with _utils.string_buffer(sz) as buff:
+            if ctyped.lib.Kernel32.GetSystemDirectoryW(buff, sz):
+                ctx = ctyped.struct.ACTCTXW(dwFlags=(
+                        ctyped.const.ACTCTX_FLAG_RESOURCE_NAME_VALID |
+                        ctyped.const.ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID), lpSource='shell32.dll',
+                    lpAssemblyDirectory=buff, lpResourceName=ctyped.macro.MAKEINTRESOURCEW(124))
+                cookie = ctyped.type.ULONG_PTR()
+                return bool(ctyped.lib.Kernel32.ActivateActCtx(
+                    ctyped.lib.Kernel32.CreateActCtxW(ctyped.byref(ctx)), ctyped.byref(cookie)))
+    return False
+
+
 if __name__ == '__main__':
     # tst()
+    # print(_enable_visual_styles())
     _test_sys_tray()
-    # _test()
+    # _test_()
     # _wait()
     sys.exit()

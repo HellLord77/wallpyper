@@ -297,7 +297,7 @@ def get_monitor_name(id_: str) -> Optional[str]:
 def get_style() -> Optional[int]:
     with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
         if desktop:
-            opt = ctyped.struct.WALLPAPEROPT(ctyped.sizeof(ctyped.struct.WALLPAPEROPT))
+            opt = ctyped.struct.WALLPAPEROPT()
             if ctyped.macro.SUCCEEDED(desktop.GetWallpaperOptions(ctyped.byref(opt), 0)):
                 return opt.dwStyle
     return None

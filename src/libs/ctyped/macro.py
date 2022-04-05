@@ -34,6 +34,31 @@ def MAKELONG(a: int, b: int) -> int:
 
 
 # noinspection PyPep8Naming
+def MAKEWPARAM(l_: int, h: int) -> int:
+    return _cast_int(_cast_int(MAKELONG(l_, h), _type.DWORD), _type.WPARAM)
+
+
+# noinspection PyPep8Naming
+def MAKELPARAM(l_: int, h: int) -> int:
+    return _cast_int(_cast_int(MAKELONG(l_, h), _type.DWORD), _type.LPARAM)
+
+
+# noinspection PyPep8Naming
+def MAKELRESULT(l_: int, h: int) -> int:
+    return _cast_int(_cast_int(MAKELONG(l_, h), _type.DWORD), _type.LRESULT)
+
+
+# noinspection PyPep8Naming
+def MAKEINTATOMA(i: int) -> _type.LPSTR:
+    return _type.LPSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
+
+
+# noinspection PyPep8Naming
+def MAKEINTATOMW(i: int) -> _type.LPWSTR:
+    return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
+
+
+# noinspection PyPep8Naming
 def LOWORD(l_: int) -> int:
     return l_ & 0xffff
 

@@ -788,6 +788,40 @@ class SYSTEMRESTORESTATES(_IntEnum):
     MSYSR_DISABLED = _AUTO
 
 
+# noinspection PyPep8Naming
+class COMPUTER_NAME_FORMAT(_IntEnum):
+    ComputerNameNetBIOS = _AUTO
+    ComputerNameDnsHostname = _AUTO
+    ComputerNameDnsDomain = _AUTO
+    ComputerNameDnsFullyQualified = _AUTO
+    ComputerNamePhysicalNetBIOS = _AUTO
+    ComputerNamePhysicalDnsHostname = _AUTO
+    ComputerNamePhysicalDnsDomain = _AUTO
+    ComputerNamePhysicalDnsFullyQualified = _AUTO
+    ComputerNameMax = _AUTO
+
+
+# noinspection PyPep8Naming
+class LOGICAL_PROCESSOR_RELATIONSHIP(_IntEnum):
+    RelationProcessorCore = _AUTO
+    RelationNumaNode = _AUTO
+    RelationCache = _AUTO
+    RelationProcessorPackage = _AUTO
+    RelationGroup = _AUTO
+    RelationProcessorDie = _AUTO
+    RelationNumaNodeEx = _AUTO
+    RelationProcessorModule = _AUTO
+    RelationAll = 0xffff
+
+
+# noinspection PyPep8Naming
+class PROCESSOR_CACHE_TYPE(_IntEnum):
+    CacheUnified = _AUTO
+    CacheInstruction = _AUTO
+    CacheData = _AUTO
+    CacheTrace = _AUTO
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status

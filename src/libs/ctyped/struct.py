@@ -2,13 +2,13 @@ from __future__ import annotations as _
 
 import ctypes as _ctypes
 import functools as _functools
-import itertools as _itertools
 from dataclasses import dataclass as _struct
 
 from . import const as _const, enum as _enum, type as _type, union as _union
 from ._utils import _Globals, _Pointer, _resolve_type
 
 _EMPTY = None
+_SIZE = object()
 _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
 
 
@@ -16,8 +16,8 @@ _ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
 class GdiplusStartupInput:
     GdiplusVersion: _type.UINT32 = 1
     DebugEventCallback: _type.DebugEventProc = _EMPTY
-    SuppressBackgroundThread: _type.BOOL = False
-    SuppressExternalCodecs: _type.BOOL = False
+    SuppressBackgroundThread: _type.BOOL = _EMPTY
+    SuppressExternalCodecs: _type.BOOL = _EMPTY
 
 
 @_struct
@@ -32,7 +32,7 @@ class RGBQUAD:
     rgbBlue: _type.BYTE = _EMPTY
     rgbGreen: _type.BYTE = _EMPTY
     rgbRed: _type.BYTE = _EMPTY
-    rgbReserved: _type.BYTE = 0
+    rgbReserved: _type.BYTE = _EMPTY
 
 
 @_struct
@@ -79,7 +79,7 @@ class DIBSECTION:
 
 @_struct
 class CHOOSECOLORA:
-    lStructSize: _type.DWORD = _EMPTY
+    lStructSize: _type.DWORD = _SIZE
     hwndOwner: _type.HWND = _EMPTY
     hInstance: _type.HWND = _EMPTY
     rgbResult: _type.COLORREF = _EMPTY
@@ -92,7 +92,7 @@ class CHOOSECOLORA:
 
 @_struct
 class CHOOSECOLORW:
-    lStructSize: _type.DWORD = _EMPTY
+    lStructSize: _type.DWORD = _SIZE
     hwndOwner: _type.HWND = _EMPTY
     hInstance: _type.HWND = _EMPTY
     rgbResult: _type.COLORREF = _EMPTY
@@ -113,7 +113,7 @@ class GUID:
 
 @_struct
 class WALLPAPEROPT:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     dwStyle: _type.DWORD = _EMPTY
 
 
@@ -139,10 +139,10 @@ class SIZE:
 
 @_struct
 class MENUINFO:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     fMask: _type.DWORD = _EMPTY
     dwStyle: _type.DWORD = _EMPTY
-    cyMax: _type.UINT = 0
+    cyMax: _type.UINT = _EMPTY
     hbrBack: _type.HBRUSH = _EMPTY
     dwContextHelpID: _type.DWORD = _EMPTY
     dwMenuData: _type.ULONG_PTR = _EMPTY
@@ -161,7 +161,7 @@ class ITEMIDLIST:
 
 @_struct
 class MENUITEMINFOA:
-    cbSize: _type.UINT = _EMPTY
+    cbSize: _type.UINT = _SIZE
     fMask: _type.UINT = _EMPTY
     fType: _type.UINT = _EMPTY
     fState: _type.UINT = _EMPTY
@@ -178,7 +178,7 @@ class MENUITEMINFOA:
 
 @_struct
 class MENUITEMINFOW:
-    cbSize: _type.UINT = _EMPTY
+    cbSize: _type.UINT = _SIZE
     fMask: _type.UINT = _EMPTY
     fType: _type.UINT = _EMPTY
     fState: _type.UINT = _EMPTY
@@ -195,7 +195,7 @@ class MENUITEMINFOW:
 
 @_struct
 class NOTIFYICONDATAA:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     hWnd: _type.HWND = _EMPTY
     uID: _type.UINT = _EMPTY
     uFlags: _type.UINT = _EMPTY
@@ -221,7 +221,7 @@ class NOTIFYICONDATAA:
 
 @_struct
 class NOTIFYICONDATAW:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     hWnd: _type.HWND = _EMPTY
     uID: _type.UINT = _EMPTY
     uFlags: _type.UINT = _EMPTY
@@ -275,7 +275,7 @@ class WNDCLASSW:
 
 @_struct
 class WNDCLASSEXA:
-    cbSize: _type.UINT = _EMPTY
+    cbSize: _type.UINT = _SIZE
     style: _type.UINT = _EMPTY
     lpfnWndProc: _type.WNDPROC = _EMPTY
     cbClsExtra: _type.c_int = _EMPTY
@@ -291,7 +291,7 @@ class WNDCLASSEXA:
 
 @_struct
 class WNDCLASSEXW:
-    cbSize: _type.UINT = _EMPTY
+    cbSize: _type.UINT = _SIZE
     style: _type.UINT = _EMPTY
     lpfnWndProc: _type.WNDPROC = _EMPTY
     cbClsExtra: _type.c_int = _EMPTY
@@ -462,7 +462,7 @@ class INPUT:
 # noinspection PyPep8Naming
 @_struct
 class DISPLAY_DEVICEA:
-    cb: _type.DWORD = _EMPTY
+    cb: _type.DWORD = _SIZE
     DeviceName: _type.CHAR * 32 = _EMPTY
     DeviceString: _type.CHAR * 128 = _EMPTY
     StateFlags: _type.DWORD = _EMPTY
@@ -473,7 +473,7 @@ class DISPLAY_DEVICEA:
 # noinspection PyPep8Naming
 @_struct
 class DISPLAY_DEVICEW:
-    cb: _type.DWORD = _EMPTY
+    cb: _type.DWORD = _SIZE
     DeviceName: _type.WCHAR * 32 = _EMPTY
     DeviceString: _type.WCHAR * 128 = _EMPTY
     StateFlags: _type.DWORD = _EMPTY
@@ -546,14 +546,14 @@ if _const._WIN32:
 
 @_struct
 class PICTDESC:
-    cbSizeofstruct: _type.UINT = _EMPTY
+    cbSizeofstruct: _type.UINT = _SIZE
     picType: _type.UINT = _EMPTY
     U: _union.PICTDESC_U = _EMPTY
 
 
 @_struct
 class MONITORINFO:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     rcMonitor: RECT = _EMPTY
     rcWork: RECT = _EMPTY
     dwFlags: _type.DWORD = _EMPTY
@@ -589,7 +589,7 @@ class VARIANT:
 # noinspection PyPep8Naming
 @_struct
 class SP_DEVINFO_DATA:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     ClassGuid: GUID = _EMPTY
     DevInst: _type.DWORD = _EMPTY
     Reserved: _type.ULONG_PTR = _EMPTY
@@ -598,7 +598,7 @@ class SP_DEVINFO_DATA:
 # noinspection PyPep8Naming
 @_struct
 class SP_DEVICE_INTERFACE_DATA:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     InterfaceClassGuid: GUID = _EMPTY
     Flags: _type.DWORD = _EMPTY
     Reserved: _type.ULONG_PTR = _EMPTY
@@ -607,14 +607,14 @@ class SP_DEVICE_INTERFACE_DATA:
 # noinspection PyPep8Naming
 @_struct
 class SP_DEVICE_INTERFACE_DETAIL_DATA_A:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     DevicePath: _type.CHAR * _const.ANYSIZE_ARRAY = _EMPTY
 
 
 # noinspection PyPep8Naming
 @_struct
 class SP_DEVICE_INTERFACE_DETAIL_DATA_W:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     DevicePath: _type.WCHAR * _const.ANYSIZE_ARRAY = _EMPTY
 
 
@@ -695,7 +695,7 @@ class OPENASINFO:
 
 @_struct
 class SHELLEXECUTEINFOA:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     fMask: _type.ULONG = _EMPTY
     hwnd: _type.HWND = _EMPTY
     lpVerb: _type.LPCSTR = _EMPTY
@@ -714,7 +714,7 @@ class SHELLEXECUTEINFOA:
 
 @_struct
 class SHELLEXECUTEINFOW:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     fMask: _type.ULONG = _EMPTY
     hwnd: _type.HWND = _EMPTY
     lpVerb: _type.LPCWSTR = _EMPTY
@@ -733,7 +733,7 @@ class SHELLEXECUTEINFOW:
 
 @_struct
 class COMPPOS:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     iLeft: _type.c_int = _EMPTY
     iTop: _type.c_int = _EMPTY
     dwWidth: _type.DWORD = _EMPTY
@@ -748,7 +748,7 @@ class COMPPOS:
 
 @_struct
 class COMPSTATEINFO:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     iLeft: _type.c_int = _EMPTY
     iTop: _type.c_int = _EMPTY
     dwWidth: _type.DWORD = _EMPTY
@@ -758,7 +758,7 @@ class COMPSTATEINFO:
 
 @_struct
 class COMPONENT:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     dwID: _type.DWORD = _EMPTY
     iComponentType: _type.c_int = _EMPTY
     fChecked: _type.BOOL = _EMPTY
@@ -785,7 +785,7 @@ class DROPSTRUCT:
 
 @_struct
 class DRAWTEXTPARAMS:
-    cbSize: _type.UINT = _EMPTY
+    cbSize: _type.UINT = _SIZE
     iTabLength: _type.c_int = _EMPTY
     iLeftMargin: _type.c_int = _EMPTY
     iRightMargin: _type.c_int = _EMPTY
@@ -794,14 +794,14 @@ class DRAWTEXTPARAMS:
 
 @_struct
 class COMPONENTSOPT:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     fEnableComponents: _type.BOOL = _EMPTY
     fActiveDesktop: _type.BOOL = _EMPTY
 
 
 @_struct
 class TPMPARAMS:
-    cbSize: _type.UINT = _EMPTY
+    cbSize: _type.UINT = _SIZE
     rcExclude: RECT = _EMPTY
 
 
@@ -849,20 +849,20 @@ class UNICODE_STRING:
 
 @_struct
 class INITCOMMONCONTROLSEX:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     dwICC: _type.DWORD = _EMPTY
 
 
 @_struct
 class COLORSCHEME:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     clrBtnHighlight: _type.COLORREF = _EMPTY
     clrBtnShadow: _type.COLORREF = _EMPTY
 
 
 @_struct
 class DTBGOPTS:
-    dwSize: _type.DWORD = _EMPTY
+    dwSize: _type.DWORD = _SIZE
     dwFlags: _type.DWORD = _EMPTY
     rcClip: RECT = _EMPTY
 
@@ -974,7 +974,7 @@ class WTA_OPTIONS:
 
 @_struct
 class GUITHREADINFO:
-    cbSize: _type.DWORD = _EMPTY
+    cbSize: _type.DWORD = _SIZE
     flags: _type.DWORD = _EMPTY
     hwndActive: _type.HWND = _EMPTY
     hwndFocus: _type.HWND = _EMPTY
@@ -996,6 +996,107 @@ class DLGTEMPLATE:
     cy: _type.c_short = _EMPTY
 
 
+@_struct
+class TTTOOLINFOA:
+    cbSize: _type.UINT = _SIZE
+    uFlags: _type.UINT = _EMPTY
+    hwnd: _type.HWND = _EMPTY
+    uId: _type.UINT_PTR = _EMPTY
+    rect: RECT = _EMPTY
+    hinst: _type.HINSTANCE = _EMPTY
+    lpszText: _type.LPSTR = _EMPTY
+    lParam: _type.LPARAM = _EMPTY
+    if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
+        lpReserved: _type.c_void_p = _EMPTY
+
+
+@_struct
+class TTTOOLINFOW:
+    cbSize: _type.UINT = _SIZE
+    uFlags: _type.UINT = _EMPTY
+    hwnd: _type.HWND = _EMPTY
+    uId: _type.UINT_PTR = _EMPTY
+    rect: RECT = _EMPTY
+    hinst: _type.HINSTANCE = _EMPTY
+    lpszText: _type.LPWSTR = _EMPTY
+    lParam: _type.LPARAM = _EMPTY
+    if _const.NTDDI_VERSION >= _const.NTDDI_WINXP:
+        lpReserved: _type.c_void_p = _EMPTY
+
+
+@_struct
+class TRACKMOUSEEVENT:
+    cbSize: _type.DWORD = _SIZE
+    dwFlags: _type.DWORD = _EMPTY
+    hwndTrack: _type.HWND = _EMPTY
+    dwHoverTime: _type.DWORD = _EMPTY
+
+
+@_struct
+class RBHITTESTINFO:
+    pt: POINT = _EMPTY
+    flags: _type.UINT = _EMPTY
+    iBand: _type.c_int = _EMPTY
+
+
+@_struct
+class ACTCTXA:
+    cbSize: _type.ULONG = _SIZE
+    dwFlags: _type.DWORD = _EMPTY
+    lpSource: _type.LPCSTR = _EMPTY
+    wProcessorArchitecture: _type.USHORT = _EMPTY
+    wLangId: _type.LANGID = _EMPTY
+    lpAssemblyDirectory: _type.LPCSTR = _EMPTY
+    lpResourceName: _type.LPCSTR = _EMPTY
+    lpApplicationName: _type.LPCSTR = _EMPTY
+    hModule: _type.HMODULE = _EMPTY
+
+
+@_struct
+class ACTCTXW:
+    cbSize: _type.ULONG = _SIZE
+    dwFlags: _type.DWORD = _EMPTY
+    lpSource: _type.LPCWSTR = _EMPTY
+    wProcessorArchitecture: _type.USHORT = _EMPTY
+    wLangId: _type.LANGID = _EMPTY
+    lpAssemblyDirectory: _type.LPCWSTR = _EMPTY
+    lpResourceName: _type.LPCWSTR = _EMPTY
+    lpApplicationName: _type.LPCWSTR = _EMPTY
+    hModule: _type.HMODULE = _EMPTY
+
+
+@_struct
+class SYSTEMTIME:
+    wYear: _type.WORD = _EMPTY
+    wMonth: _type.WORD = _EMPTY
+    wDayOfWeek: _type.WORD = _EMPTY
+    wDay: _type.WORD = _EMPTY
+    wHour: _type.WORD = _EMPTY
+    wMinute: _type.WORD = _EMPTY
+    wSecond: _type.WORD = _EMPTY
+    wMilliseconds: _type.WORD = _EMPTY
+
+
+@_struct
+class OSVERSIONINFOA:
+    dwOSVersionInfoSize: _type.DWORD = _EMPTY
+    dwMajorVersion: _type.DWORD = _EMPTY
+    dwMinorVersion: _type.DWORD = _EMPTY
+    dwBuildNumber: _type.DWORD = _EMPTY
+    dwPlatformId: _type.DWORD = _EMPTY
+    szCSDVersion: _type.CHAR * 128 = _EMPTY
+
+
+@_struct
+class OSVERSIONINFOW:
+    dwOSVersionInfoSize: _type.DWORD = _EMPTY
+    dwMajorVersion: _type.DWORD = _EMPTY
+    dwMinorVersion: _type.DWORD = _EMPTY
+    dwBuildNumber: _type.DWORD = _EMPTY
+    dwPlatformId: _type.DWORD = _EMPTY
+    szCSDVersion: _type.WCHAR * 128 = _EMPTY
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
@@ -1011,14 +1112,16 @@ def _init(item: str) -> type[_ctypes.Structure]:
 
     class Struct(_ctypes.Structure):
         _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
-        _defaults = tuple((field[0], getattr(_globals.vars_[item], field[0])) for field in _fields_)
 
         def __init__(self, *args, **kwargs):
-            for name, val in _itertools.islice(self._defaults, len(args), None):
+            for name, val in self._defaults[len(args):]:
                 if val is not _EMPTY and name not in kwargs:
                     kwargs[name] = val
             super().__init__(*args, **kwargs)
 
+    # noinspection PyProtectedMember
+    Struct._defaults = tuple((field[0], _ctypes.sizeof(
+        Struct) if (val := getattr(_globals.vars_[item], field[0])) is _SIZE else val) for field in Struct._fields_)
     return _functools.update_wrapper(Struct, _globals.vars_[item], _ASSIGNED, ())
 
 

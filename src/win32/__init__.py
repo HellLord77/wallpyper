@@ -205,7 +205,7 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: Union[int, tuple[
         flags = ctyped.const.DIGCF_PRESENT
     with _get_hdevinfo(guid_ref, flags) as hdevinfo:
         if hdevinfo:
-            dev_info = ctyped.struct.SP_DEVINFO_DATA(ctyped.sizeof(ctyped.struct.SP_DEVINFO_DATA))
+            dev_info = ctyped.struct.SP_DEVINFO_DATA()
             dev_info_ref = ctyped.byref(dev_info)
             index = 0
             while ctyped.lib.Setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
@@ -246,8 +246,7 @@ def press_keyboard(key: int) -> bool:
     input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_U(ki=ctyped.struct.KEYBDINPUT(key)))
     ref = ctyped.byref(input_)
     sz = ctyped.sizeof(ctyped.struct.INPUT)
-    down = ctyped.lib.User32.SendInput(1, ref, sz) == 1
-    if down:
+    if ctyped.lib.User32.SendInput(1, ref, sz) == 1:
         input_.U.ki.dwFlags = ctyped.const.KEYEVENTF_KEYUP
         return ctyped.lib.User32.SendInput(1, ref, sz) == 1
     return False
@@ -328,8 +327,8 @@ def _choose_color_hook(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
 def choose_color(title: Optional[str] = None, color: Optional[int] = None,
                  custom_colors: Optional[MutableSequence[int]] = None) -> Optional[int]:
     data = ctyped.type.LPWSTR(title)
-    color_chooser = ctyped.struct.CHOOSECOLORW(ctyped.sizeof(
-        ctyped.struct.CHOOSECOLORW), rgbResult=0 if color is None else color,
+    color_chooser = ctyped.struct.CHOOSECOLORW(
+        rgbResult=0 if color is None else color,
         lpCustColors=ctyped.array(ctyped.type.COLORREF, *(() if custom_colors is None else custom_colors), size=16),
         Flags=ctyped.const.CC_RGBINIT | ctyped.const.CC_FULLOPEN | ctyped.const.CC_ENABLEHOOK,
         lCustData=0 if title is None else ctyped.addressof(data), lpfnHook=ctyped.type.LPCCHOOKPROC(_choose_color_hook))
@@ -343,7 +342,7 @@ def choose_color(title: Optional[str] = None, color: Optional[int] = None,
 def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
     if hbitmap:
         with ctyped.init_com(ctyped.com.IPicture, False) as picture:
-            pict_desc = ctyped.struct.PICTDESC(ctyped.sizeof(ctyped.struct.PICTDESC), ctyped.const.PICTYPE_BITMAP)
+            pict_desc = ctyped.struct.PICTDESC(picType=ctyped.const.PICTYPE_BITMAP)
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
             ctyped.lib.OleAut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])

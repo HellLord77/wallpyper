@@ -51,6 +51,7 @@ c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
 c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, _Pointer, str]]
 HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 
+c_void = c_void_p
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
 
@@ -85,7 +86,8 @@ PWCH = c_wchar_p
 PWCHAR = c_wchar_p
 PWSTR = c_wchar_p
 PZZSTR = c_char_p
-VOID = c_void_p
+VOID = c_void
+rsize_t = c_size_t
 va_list = c_char_p
 
 BOOL = c_int
@@ -149,6 +151,7 @@ DEVINST = DWORD
 DEVNODE = DWORD
 DEVPROPID = ULONG
 DEVPROPTYPE = ULONG
+DLL_DIRECTORY_COOKIE = PVOID
 DWORDLONG = ULONGLONG
 DWORD_PTR = ULONG_PTR
 HANDLE = PVOID
