@@ -1097,6 +1097,22 @@ class OSVERSIONINFOW:
     szCSDVersion: _type.WCHAR * 128 = _EMPTY
 
 
+@_struct
+class DLLVERSIONINFO:
+    cbSize: _type.DWORD = _SIZE
+    dwMajorVersion: _type.DWORD = _EMPTY
+    dwMinorVersion: _type.DWORD = _EMPTY
+    dwBuildNumber: _type.DWORD = _EMPTY
+    dwPlatformID: _type.DWORD = _EMPTY
+
+
+@_struct
+class DLLVERSIONINFO2:
+    info1: DLLVERSIONINFO = _EMPTY
+    dwFlags: _type.DWORD = _EMPTY
+    ullVersion: _type.ULONGLONG = _EMPTY
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

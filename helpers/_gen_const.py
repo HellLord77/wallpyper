@@ -1,11 +1,5 @@
 import os
 import re
-import urllib.request
-
-# noinspection PyPackageRequirements,PyUnresolvedReferences
-from bs4 import BeautifulSoup
-
-import libs.locales._ as locales
 
 _KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
 SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22000.0')
@@ -112,106 +106,6 @@ def mscoree():
                 guid = line.split(',')[1:]
                 guid[-1] = guid[-1][:-3]
                 print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
-
-
-def _gen_bcp47(lang_str: str, coun_str: str):
-    names = [None, None]
-    lang = locales.Language[lang_str]
-    coun = locales.Country[coun_str]
-    for k, v in vars(locales.Language).items():
-        if v is lang:
-            names[0] = k
-            break
-    for k, v in vars(locales.Country).items():
-        if v is coun:
-            names[1] = k
-            break
-    if all(names):
-        print(f"{lang_str}_{coun_str} = _Locale(Language.{names[0]}, Country.{names[1]}, '{lang_str}-{coun_str}')")
-
-
-def bcp47():
-    url = r'https://docs.microsoft.com/en-us/previous-versions/commerce-server/ee825488(v=cs.20)'
-    soup = BeautifulSoup(urllib.request.urlopen(urllib.request.Request(url)).read(), 'html.parser')
-    table = soup.find(lambda tag: tag.name == 'table')
-    body = table.find('tbody')
-    for row in body.find_all('tr'):
-        row = row.find_all('td')[0].contents[0].split("-")
-        if len(row) == 2:
-            for s in row:
-                if len(s) != 2:
-                    break
-            else:
-                try:
-                    _gen_bcp47(row[0], row[1])
-                except KeyError:
-                    pass
-
-
-def bcp47_2():
-    url = r'https://docs.microsoft.com/en-us/openspecs/office_standards/ms-oe376/6c085406-a698-4e12-9d4d-c3b0ee3dbc4a'
-    soup = BeautifulSoup(urllib.request.urlopen(urllib.request.Request(url)).read(), 'html.parser')
-    table = soup.find(lambda tag: tag.name == 'table')
-    body = table.find('tbody')
-    for row in body.find_all('tr')[:-1]:
-        row = row.find_all('p')[2].contents[0].split('-')
-        if len(row) == 2:
-            for s in row:
-                if len(s) != 2:
-                    break
-            else:
-                try:
-                    _gen_bcp47(row[0], row[1])
-                except KeyError:
-                    pass
-
-
-def _get_content(node) -> str:
-    while True:
-        try:
-            node = node.contents[0]
-        except AttributeError:
-            return node
-
-
-def iso639():
-    url = 'https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes'
-    soup = BeautifulSoup(urllib.request.urlopen(urllib.request.Request(url)).read(), 'html.parser')
-    table = soup.find(id='Table')
-    for row in table.find('tbody').find_all('tr')[1:]:
-        cells = row.find_all('td')
-        try:
-            three = f'+{cells[7].contents[2].contents[0]}'
-        except IndexError:
-            three = ''
-        print(f"{cells[0].get('id')} = _Language('{_get_content(cells[1])}', "
-              f"'{_get_content(cells[2]).replace(' ', ' ')}', {tuple(_get_content(cells[3]).split(', '))}, "
-              f"'{_get_content(cells[4])}', '{_get_content(cells[5])}', '{_get_content(cells[6])}', "
-              f"'{_get_content(cells[7])}{three}')")
-
-
-def iso3166():
-    url = 'https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes'
-    soup = BeautifulSoup(urllib.request.urlopen(urllib.request.Request(url)).read(), 'html.parser')
-    body = soup.find('table', class_='wikitable sortable').find('tbody')
-    quote = '\'', "\\'"
-    for row in body.find_all('tr')[2:]:
-        cells = row.find_all('td')
-        id_ = cells[0].get('id')
-        if len(cells) == 1:
-            name = _get_content(cells[0].contents[2])
-            cells = body.find(id=cells[0].contents[4].get('href')[1:]).parent.find_all('td')
-        else:
-            name = _get_content(cells[0].contents[2])
-        cc = []
-        for content in cells[7].contents:
-            if (c := _get_content(content)).startswith('.'):
-                cc.append(c)
-        print(f"{id_} = _Country('{name.replace(*quote)}', "
-              f"'{_get_content(cells[1]).replace(*quote).replace(' ', ' ')}', '{_get_content(cells[2]).strip()}', "
-              f"'{_get_content(cells[3].contents[0].contents[1])}', "
-              f"'{_get_content(cells[4].contents[0].contents[1])}', "
-              f"'{_get_content(cells[5].contents[0].contents[1])}', {tuple(cc)})")
 
 
 if __name__ == '__main__':

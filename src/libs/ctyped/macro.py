@@ -144,6 +144,11 @@ def ResultFromScode(sc: int) -> int:
 
 
 # noinspection PyPep8Naming
+def MAKEDLLVERULL(major: int, minor: int, build: int, qfe: int) -> int:
+    return major << 48 | minor << 32 | build << 16 | qfe
+
+
+# noinspection PyPep8Naming
 def MAKEINTRESOURCEA(i: int) -> _type.LPSTR:
     return _type.LPSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 

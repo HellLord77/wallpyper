@@ -15,8 +15,8 @@ from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _b
 THREADED_COM = False
 
 
-# noinspection PyProtectedMember,PyShadowingNames
-def set_return_checker(lib: lib._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
+# noinspection PyProtectedMember
+def set_return_checker(library: lib._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
                        args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None):
     if args is None:
         args = ()
@@ -28,10 +28,19 @@ def set_return_checker(lib: lib._CDLL, callback: _Optional[_Callable[[_Any, _Cal
         callback(res, *args_, *args, **kwargs)
         return res
 
-    lib._errcheck = errcheck
-    if lib._funcs:
-        for func in set(lib._funcs).intersection(dir(lib)):
-            getattr(lib, func).errcheck = errcheck
+    library._errcheck = errcheck
+    if library._funcs:
+        for func in set(library._funcs).intersection(dir(library)):
+            getattr(library, func).errcheck = errcheck
+
+
+# noinspection PyProtectedMember
+def get_loaded_path(library: lib._WinDLL) -> str:
+    if dll := library._lib:
+        buff = type.LPWSTR('\0' * const.MAX_PATH)
+        lib.Kernel32.GetModuleFileNameW(dll._handle, buff, const.MAX_PATH)
+        return buff.value
+    return ''
 
 
 @_contextlib.contextmanager

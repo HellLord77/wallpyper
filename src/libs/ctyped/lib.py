@@ -156,6 +156,8 @@ class Combase(_WinFunc):
 
 
 class Comctl32(_WinFunc):
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
     # CommCtrl
     InitCommonControls: _Callable[[],
                                   _type.c_void]
@@ -624,6 +626,9 @@ class Kernel32(_WinFunc):
                                    _Optional[_type.LPCWSTR],
                                    _Pointer[_type.HMODULE]],
                                   _type.BOOL]
+    GetProcAddress: _Callable[[_type.HMODULE,
+                               _type.LPCSTR],
+                              _type.FARPROC]
     LoadLibraryA: _Callable[[_type.LPCSTR],
                             _type.HMODULE]
     LoadLibraryW: _Callable[[_type.LPCWSTR],
@@ -1020,6 +1025,8 @@ class OleAut32(_WinFunc):
 
 
 class Shell32(_WinFunc):
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 703
@@ -1233,7 +1240,14 @@ class Shcore(_WinFunc):
                                       _type.HRESULT]
 
 
+class Shdocvw(_WinFunc):
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
+
+
 class Shlwapi(_WinFunc):
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 269
@@ -1241,6 +1255,8 @@ class Shlwapi(_WinFunc):
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 270
     # Shlwapi
+    IsInternetESCEnabled: _Callable[[],
+                                    _type.BOOL]
     PathAddBackslashA: _Callable[[_type.LPSTR],
                                  _type.LPSTR]
     PathAddBackslashW: _Callable[[_type.LPWSTR],
