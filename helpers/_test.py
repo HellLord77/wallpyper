@@ -3,6 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.0.1'
 
 import atexit
+import collections
 import contextlib
 import io
 import itertools
@@ -10,13 +11,20 @@ import sys
 import threading
 import time
 import tkinter.messagebox
-import types
 from typing import Any, Callable, Iterable, Mapping, Union, Sequence, Generator
 from typing import Optional
 
 import libs.ctyped as ctyped
+import win32
 import win32._gdiplus as _gdiplus
 import win32._utils as _utils
+
+NOTIFYICONDATAA_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'szTip', 64)
+NOTIFYICONDATAW_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'szTip', 64)
+NOTIFYICONDATAA_V2_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'guidItem')
+NOTIFYICONDATAW_V2_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'guidItem')
+NOTIFYICONDATAA_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'hBalloonIcon')
+NOTIFYICONDATAW_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'hBalloonIcon')
 
 
 def exception_handler(excepthook: Callable, *args, **kwargs):
@@ -34,8 +42,8 @@ def exception_handler(excepthook: Callable, *args, **kwargs):
     sys.stderr = stderr
 
 
-sys.excepthook = types.MethodType(exception_handler, sys.excepthook)
-threading.excepthook = types.MethodType(exception_handler, threading.excepthook)
+# sys.excepthook = types.MethodType(exception_handler, sys.excepthook)
+# threading.excepthook = types.MethodType(exception_handler, threading.excepthook)
 
 NAME = f'{__name__}-{__version__}'
 MENU_ITEM_TOOLTIP_DELAY = 800
@@ -83,7 +91,7 @@ class Event:
     SYS_TRAY_MIDDLE_UP = ctyped.const.WM_MBUTTONUP
     SYS_TRAY_MIDDLE_DOUBLE = ctyped.const.WM_MBUTTONDBLCLK
 
-    BALLOON_QUEUE = ctyped.const.NIN_BALLOONSHOW
+    BALLOON_SHOW = ctyped.const.NIN_BALLOONSHOW
     BALLOON_HIDE = ctyped.const.NIN_BALLOONTIMEOUT
     BALLOON_CLICK = ctyped.const.NIN_BALLOONUSERCLICK
 
@@ -100,7 +108,7 @@ class SysTrayIcon:
     INFO = ctyped.const.NIIF_INFO
     WARNING = ctyped.const.NIIF_WARNING
     ERROR = ctyped.const.NIIF_ERROR
-    USER = ctyped.const.NIIF_USER
+    TRAY = ctyped.const.NIIF_USER
 
 
 class _MenuItemKind:
@@ -129,6 +137,27 @@ class MenuItemTooltipIcon:
     ERROR_LARGE = ctyped.const.TTI_ERROR_LARGE
 
 
+class _IDGenerator:
+    def __init__(self, start: int = 1):
+        self._start = self._last = start - 1
+        self._generator = itertools.count(start)
+        self._released = collections.deque()
+
+    def __next__(self) -> int:
+        try:
+            return self._released.popleft()
+        except IndexError:
+            self._last = next(self._generator)
+            return self._last
+
+    # noinspection PyShadowingBuiltins
+    def release(self, id: int) -> bool:
+        if self._last >= id > self._start:
+            self._released.append(id)
+            return True
+        return False
+
+
 class _EventHandler:
     _id: int
     _selves: dict[int, _EventHandler] = None
@@ -148,6 +177,8 @@ class _EventHandler:
         try:
             del self._selves[self._id]
             del self._bindings[self._id]
+            if hasattr(self, '_id_gen'):
+                self._id_gen.release(self._id)
         except KeyError:
             return False
         else:
@@ -270,9 +301,6 @@ class Gui(_EventHandler):
                                                   ctyped.addressof(self._menu_item_tooltip_title))
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, 1, lparam)
 
-    def get_name(self) -> str:
-        return self._class.lpszClassName
-
     def is_mainloop_running(self) -> bool:
         return self._mainloop_lock.locked()
 
@@ -294,17 +322,18 @@ class _Control(_EventHandler):
         if gui is None:
             gui = Gui.get()
             if gui is None:
-                raise RuntimeError(f"Could not initialize '{type(self).__name__}' ('{Gui.__name__}' not created yet)")
+                raise RuntimeError(
+                    f"Could not initialize '{type(self).__name__} (No live instance of '{Gui.__name__}' found)")
         gui._attached.append(self)
         return gui.get_id()
 
 
 class SysTray(_Control):
     _selves: dict[int, SysTray]
-    _id_gen = itertools.count(1)
+    _id_gen = _IDGenerator()
 
-    _flags = ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP
     _hicon = None
+    _balloon_hicon = None
     _shown = False
     _animation_frames = None
 
@@ -313,8 +342,9 @@ class SysTray(_Control):
         self._hwnd = self._attach(_gui)
         self._animation_proc = ctyped.type.TIMERPROC(self._set_next_frame)
         super().__init__(next(self._id_gen))
-        self._data = ctyped.struct.NOTIFYICONDATAW(hWnd=self._hwnd, uID=self._id,
-                                                   uFlags=self._flags, uCallbackMessage=_WM_SYS_TRAY)
+        self._data = ctyped.struct.NOTIFYICONDATAW(NOTIFYICONDATAW_V3_SIZE, self._hwnd, self._id,
+                                                   ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON |
+                                                   ctyped.const.NIF_TIP, _WM_SYS_TRAY)
         self.set_icon(icon)
         if tooltip is not None:
             self.set_tooltip(tooltip)
@@ -338,10 +368,8 @@ class SysTray(_Control):
 
     def set_icon(self, res_or_path: Union[int, str]) -> bool:
         self.stop_animation()
-        if isinstance(res_or_path, str):
-            self._hicon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon()
-        else:
-            self._hicon = ctyped.handle.HICON.from_idi(res_or_path)
+        self._hicon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon() if isinstance(
+            res_or_path, str) else ctyped.handle.HICON.from_idi(res_or_path)
         self._set_hicon(self._hicon)
         return bool(self._hicon)
 
@@ -382,23 +410,27 @@ class SysTray(_Control):
         return not self._shown
 
     def show_balloon(self, title: str, text: Optional[str] = None,
-                     icon: int = SysTrayIcon.NONE, silent: bool = False) -> bool:
+                     res_or_path: Union[int, str] = SysTrayIcon.NONE, silent: bool = False) -> bool:
+        flags = self._data.uFlags
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
         self._data.hIcon = self._hicon
         if text is None:
-            self._data.szInfo = title
-            self._data.szInfoTitle = ''
-        else:
-            self._data.szInfo = text
-            self._data.szInfoTitle = title
-        self._data.dwInfoFlags = icon | ctyped.const.NIIF_RESPECT_QUIET_TIME
+            text = title
+            title = ''
+        self._data.szInfo = text
+        self._data.szInfoTitle = title
+        if isinstance(res_or_path, str):
+            self._balloon_hicon = self._data.hBalloonIcon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon()
+            res_or_path = ctyped.const.NIIF_USER
+        self._data.dwInfoFlags = res_or_path | ctyped.const.NIIF_RESPECT_QUIET_TIME
         if silent:
             self._data.dwInfoFlags |= ctyped.const.NIIF_NOSOUND
         try:
             return self.show()
         finally:
-            self._data.uFlags = self._flags
+            print(win32.get_error())
+            self._data.uFlags = flags
             self._set_hicon(hicon)
 
 
@@ -745,7 +777,7 @@ class Menu(_Control):
 
 class MenuItem(_Control):
     _selves: dict[int, MenuItem]
-    _id_gen = itertools.count(1)
+    _id_gen = _IDGenerator()
     _tooltip_text: str = ''
     _tooltip_icon: int = MenuItemTooltipIcon.NONE
     _tooltip_title: str = ''
@@ -850,7 +882,7 @@ class MenuItem(_Control):
 
 
 def _foo(e, s: SysTray, menu: Menu, item: MenuItem):
-    # s.show_balloon('very busy', 'mini text', Icon.USER)
+    # s.show_balloon('very busy', 'mini text', Icon.TRAY)
     menu.show()
     return 0
 
@@ -886,7 +918,8 @@ def _test_sys_tray():
     ball = menu.append_item('balloon\tright2')
     ball.set_tooltip('another tip')
     ball.bind(Event.MENU_ITEM_RIGHT_UP, lambda *args: print('balloon button right up'))
-    ball.bind(Event.MENU_ITEM_LEFT_UP, lambda *args: s.show_balloon('very busy', 'mini text', SysTrayIcon.USER))
+    ball.bind(Event.MENU_ITEM_LEFT_UP,
+              lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\resources\icon.ico'))
     # print(menu.set_item_image(it, p))
     # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
     item = menu.append_item('text', check=True)
@@ -906,8 +939,8 @@ def _test_sys_tray():
 
     s.bind(Event.SYS_TRAY_RIGHT_UP, _foo, (menu, item))
     s.bind(Event.SYS_TRAY_LEFT_DOUBLE, _foo2)
-    s.bind(Event.BALLOON_QUEUE, lambda *args: print('shown balloon'))
-    s.bind(Event.BALLOON_HIDE - 1, lambda *args: print('show_balloon hide'))
+    s.bind(Event.BALLOON_SHOW, lambda *args: print('show_balloon'))
+    s.bind(Event.BALLOON_HIDE, lambda *args: print('show_balloon hide'))
     s.bind(Event.BALLOON_CLICK, lambda *args: print('show_balloon click'))
     s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
     s.show()
@@ -945,8 +978,8 @@ def _enable_visual_styles() -> bool:
 
 if __name__ == '__main__':
     # tst()
-    # print(_enable_visual_styles())
-    _test_sys_tray()
+    print(_enable_visual_styles())
+    # _test_sys_tray()
     # _test_()
     # _wait()
     sys.exit()

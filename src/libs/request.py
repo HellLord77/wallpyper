@@ -1,9 +1,10 @@
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import builtins
 import contextlib
 import hashlib
 import http.client
+import io
 import json
 import os
 import sys
@@ -52,7 +53,7 @@ class _Response:
         self.response = response
         self.getheader = getattr(response, 'getheader', self._getheader)
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
-        self.file = isinstance(self.response, urllib.response.addinfourl)
+        self.file = isinstance(getattr(self.response, 'file', None), io.BufferedReader)
 
     def __bool__(self) -> bool:
         return self.file or self.status == Status.OK
@@ -69,11 +70,9 @@ class _Response:
     def get_content(self) -> bytes:
         return self.response.read()
 
-    def get_json(self):
-        try:
+    def get_json(self) -> Optional:
+        with contextlib.suppress(json.decoder.JSONDecodeError):
             return json.loads(self.get_text())
-        except json.decoder.JSONDecodeError:
-            return
 
     def get_text(self) -> str:
         return self.get_content().decode()

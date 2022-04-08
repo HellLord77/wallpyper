@@ -9,7 +9,7 @@ from . import bn
 from . import en
 
 DEFAULT = en
-LANGUAGE = DEFAULT
+STRINGS = DEFAULT
 
 
 def _getattr(name: str) -> str:

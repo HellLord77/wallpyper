@@ -37,7 +37,7 @@ class RGBQUAD:
 
 @_struct
 class BITMAPINFOHEADER:
-    biSize: _type.DWORD = _EMPTY
+    biSize: _type.DWORD = _SIZE
     biWidth: _type.LONG = _EMPTY
     biHeight: _type.LONG = _EMPTY
     biPlanes: _type.WORD = 1
@@ -203,7 +203,7 @@ class NOTIFYICONDATAA:
     hIcon: _type.HICON = _EMPTY
     if _const.NTDDI_VERSION < _const.NTDDI_WIN2K:
         szTip: _type.CHAR * 64 = _EMPTY
-    if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:
+    else:
         szTip: _type.CHAR * 128 = _EMPTY
         dwState: _type.DWORD = _EMPTY
         dwStateMask: _type.DWORD = _EMPTY
@@ -229,7 +229,7 @@ class NOTIFYICONDATAW:
     hIcon: _type.HICON = _EMPTY
     if _const.NTDDI_VERSION < _const.NTDDI_WIN2K:
         szTip: _type.WCHAR * 64 = _EMPTY
-    if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:
+    else:
         szTip: _type.WCHAR * 128 = _EMPTY
         dwState: _type.DWORD = _EMPTY
         dwStateMask: _type.DWORD = _EMPTY
@@ -536,12 +536,10 @@ class PICTDESC_U_S3:
     hicon: _type.HICON = _EMPTY
 
 
-# noinspection PyProtectedMember
-if _const._WIN32:
-    # noinspection PyPep8Naming
-    @_struct
-    class PICTDESC_U_S4:
-        hemf: _type.HMETAFILE = _EMPTY
+# noinspection PyPep8Naming
+@_struct
+class PICTDESC_U_S4:
+    hemf: _type.HMETAFILE = _EMPTY
 
 
 @_struct
@@ -1079,7 +1077,7 @@ class SYSTEMTIME:
 
 @_struct
 class OSVERSIONINFOA:
-    dwOSVersionInfoSize: _type.DWORD = _EMPTY
+    dwOSVersionInfoSize: _type.DWORD = _SIZE
     dwMajorVersion: _type.DWORD = _EMPTY
     dwMinorVersion: _type.DWORD = _EMPTY
     dwBuildNumber: _type.DWORD = _EMPTY
@@ -1089,12 +1087,42 @@ class OSVERSIONINFOA:
 
 @_struct
 class OSVERSIONINFOW:
-    dwOSVersionInfoSize: _type.DWORD = _EMPTY
+    dwOSVersionInfoSize: _type.DWORD = _SIZE
     dwMajorVersion: _type.DWORD = _EMPTY
     dwMinorVersion: _type.DWORD = _EMPTY
     dwBuildNumber: _type.DWORD = _EMPTY
     dwPlatformId: _type.DWORD = _EMPTY
     szCSDVersion: _type.WCHAR * 128 = _EMPTY
+
+
+@_struct
+class OSVERSIONINFOEXA:
+    dwOSVersionInfoSize: _type.DWORD = _SIZE
+    dwMajorVersion: _type.DWORD = _EMPTY
+    dwMinorVersion: _type.DWORD = _EMPTY
+    dwBuildNumber: _type.DWORD = _EMPTY
+    dwPlatformId: _type.DWORD = _EMPTY
+    szCSDVersion: _type.CHAR * 128 = _EMPTY
+    wServicePackMajor: _type.WORD = _EMPTY
+    wServicePackMinor: _type.WORD = _EMPTY
+    wSuiteMask: _type.WORD = _EMPTY
+    wProductType: _type.BYTE = _EMPTY
+    wReserved: _type.BYTE = _EMPTY
+
+
+@_struct
+class OSVERSIONINFOEXW:
+    dwOSVersionInfoSize: _type.DWORD = _SIZE
+    dwMajorVersion: _type.DWORD = _EMPTY
+    dwMinorVersion: _type.DWORD = _EMPTY
+    dwBuildNumber: _type.DWORD = _EMPTY
+    dwPlatformId: _type.DWORD = _EMPTY
+    szCSDVersion: _type.WCHAR * 128 = _EMPTY
+    wServicePackMajor: _type.WORD = _EMPTY
+    wServicePackMinor: _type.WORD = _EMPTY
+    wSuiteMask: _type.WORD = _EMPTY
+    wProductType: _type.BYTE = _EMPTY
+    wReserved: _type.BYTE = _EMPTY
 
 
 @_struct
@@ -1111,6 +1139,70 @@ class DLLVERSIONINFO2:
     info1: DLLVERSIONINFO = _EMPTY
     dwFlags: _type.DWORD = _EMPTY
     ullVersion: _type.ULONGLONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class SYSTEM_POWER_STATUS:
+    ACLineStatus: _type.BYTE = _EMPTY
+    BatteryFlag: _type.BYTE = _EMPTY
+    BatteryLifePercent: _type.BYTE = _EMPTY
+    Reserved1: _type.BYTE = _EMPTY
+    BatteryLifeTime: _type.DWORD = _EMPTY
+    BatteryFullLifeTime: _type.DWORD = _EMPTY
+
+
+@_struct
+class SHSTOCKICONINFO:
+    cbSize: _type.DWORD = _SIZE
+    hIcon: _type.HICON = _EMPTY
+    iSysIconIndex: _type.c_int = _EMPTY
+    iIcon: _type.c_int = _EMPTY
+    szPath: _type.WCHAR * _const.MAX_PATH = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class LARGE_INTEGER:
+    QuadPart: _type.LONGLONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class LARGE_INTEGER_S:
+    LowPart: _type.DWORD = _EMPTY
+    HighPart: _type.LONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ULARGE_INTEGER:
+    QuadPart: _type.LONGLONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ULARGE_INTEGER_S:
+    LowPart: _type.DWORD = _EMPTY
+    HighPart: _type.DWORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISK_SPACE_INFORMATION:
+    ActualTotalAllocationUnits: _type.ULONGLONG = _EMPTY
+    ActualAvailableAllocationUnits: _type.ULONGLONG = _EMPTY
+    ActualPoolUnavailableAllocationUnits: _type.ULONGLONG = _EMPTY
+    CallerTotalAllocationUnits: _type.ULONGLONG = _EMPTY
+    CallerAvailableAllocationUnits: _type.ULONGLONG = _EMPTY
+    CallerPoolUnavailableAllocationUnits: _type.ULONGLONG = _EMPTY
+    UsedAllocationUnits: _type.ULONGLONG = _EMPTY
+    TotalReservedAllocationUnits: _type.ULONGLONG = _EMPTY
+    VolumeStorageReserveAllocationUnits: _type.ULONGLONG = _EMPTY
+    AvailableCommittedAllocationUnits: _type.ULONGLONG = _EMPTY
+    PoolAvailableAllocationUnits: _type.ULONGLONG = _EMPTY
+    SectorsPerAllocationUnit: _type.DWORD = _EMPTY
+    BytesPerSector: _type.DWORD = _EMPTY
 
 
 UUID = GUID

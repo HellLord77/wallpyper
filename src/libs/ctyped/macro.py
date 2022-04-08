@@ -1,3 +1,6 @@
+import ctypes as _ctypes
+from typing import Optional as _Optional
+
 from . import com as _com, const as _const, lib as _lib, struct as _struct, type as _type
 from ._utils import _Pointer, _byref, _cast_int
 
@@ -6,6 +9,16 @@ def __uuidof(_: str) -> _Pointer[_struct.IID]:
     iid_ref = _byref(_struct.IID())
     _lib.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
     return iid_ref
+
+
+# noinspection PyPep8Naming,PyShadowingBuiltins
+def FIELD_OFFSET(type: _ctypes.Structure, field: str, _: _Optional[int] = None) -> int:
+    field_ = getattr(type, field)
+    offset = field_.offset
+    if _ is not None:
+        # noinspection PyProtectedMember
+        offset += _ctypes.sizeof(dict(type._fields_)[field]._type_) * _
+    return offset
 
 
 # noinspection PyPep8Naming

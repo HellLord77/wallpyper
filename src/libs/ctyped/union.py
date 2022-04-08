@@ -120,6 +120,20 @@ class VARIANT_U:
 
 # noinspection PyPep8Naming
 @_union
+class LARGE_INTEGER:
+    S: _struct.LARGE_INTEGER_S
+    QuadPart: _type.LONGLONG
+
+
+# noinspection PyPep8Naming
+@_union
+class ULARGE_INTEGER:
+    S: _struct.ULARGE_INTEGER_S
+    QuadPart: _type.ULONGLONG
+
+
+# noinspection PyPep8Naming
+@_union
 class SHELLEXECUTEINFO_U:
     hIcon: _type.HANDLE
     if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:

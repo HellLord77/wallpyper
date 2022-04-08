@@ -1,4 +1,4 @@
-__version__ = '0.1.13'  # TODO 0xC0000409 (STATUS_STACK_BUFFER_OVERRUN)
+__version__ = '0.1.14'  # TODO 0xC0000409 (STATUS_STACK_BUFFER_OVERRUN)
 __author__ = 'HellLord'
 
 import collections
@@ -26,8 +26,8 @@ import libs.pyinstall as pyinstall
 import libs.request as request
 import libs.singleton as singleton
 import libs.timer as timer
+import modules
 import win32
-from modules import bing, spotlight, wallhaven  # TODO lazy
 
 FEATURE_PIN_PYTHON = False
 FEATURE_OPEN_WITH = False
@@ -72,10 +72,8 @@ GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
-MODULES = {module.NAME: module for module in (bing, spotlight, wallhaven)}
 
-MODULE = wallhaven
-STRINGS = langs.LANGUAGE = langs.en
+STRINGS = langs.STRINGS = langs.en
 DISPLAYS: list[str] = []
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
@@ -94,7 +92,7 @@ DEFAULT_CONFIG = {
     CONFIG_START: False,
     CONFIG_SAVE: False,
     CONFIG_INTERVAL: INTERVALS[0],
-    CONFIG_MODULE: MODULE.NAME,
+    CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
     CONFIG_DIR: files.join(win32.PICTURES_DIR, NAME),
     CONFIG_STYLE: win32.wallpaper.Style[win32.wallpaper.Style.FILL],
     CONFIG_TRANSITION: win32.wallpaper.Transition[win32.wallpaper.Transition.RANDOM]}
@@ -127,9 +125,9 @@ def fix_config(loaded: bool = True):
     if CONFIG[CONFIG_LAST] > time.time():
         CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[CONFIG_LAST]
     _fix_config(CONFIG_INTERVAL, INTERVALS)
-    if not CONFIG[CONFIG_DIR]:  # TODO: is_path_exists_or_creatable
+    if not CONFIG[CONFIG_DIR]:  # TODO is_path_exists_or_creatable
         CONFIG[CONFIG_DIR] = DEFAULT_CONFIG[CONFIG_DIR]
-    _fix_config(CONFIG_MODULE, MODULES)
+    _fix_config(CONFIG_MODULE, modules.MODULES)
 
 
 def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool, tuple, list, set]]],
@@ -157,7 +155,7 @@ def load_config() -> bool:
                tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
     loaded = _load_config(getters, NAME, CONFIG, DEFAULT_CONFIG) and loaded
     fix_config(False)
-    for name, module in MODULES.items():
+    for name, module in modules.MODULES.items():
         loaded = _load_config(getters, name, module.CONFIG, module.DEFAULT_CONFIG) and loaded
         module.fix_config()
     return loaded
@@ -172,7 +170,7 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
     parser = configparser.ConfigParser()
     if config := _strip_config(CONFIG, DEFAULT_CONFIG):
         parser[NAME] = config
-    for name, module in MODULES.items():
+    for name, module in modules.MODULES.items():
         module.fix_config()
         if config := _strip_config(module.CONFIG, module.DEFAULT_CONFIG):
             parser[name] = config
@@ -208,18 +206,17 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
                      progress_callback: Optional[Callable[[int, ...], Any]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
-    if args is None:
-        args = ()
-    if kwargs is None:
-        kwargs = {}
     if progress_callback:
-        progress_callback(0, *args, **kwargs)
+        progress_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if not wallpaper:
+        module = modules.MODULES[CONFIG[CONFIG_MODULE]]
+        config = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
         wallpapers = set()
-        config = {key: val for key, val in MODULE.CONFIG.items() if not key.startswith('_')}
-        while (wallpaper := next(MODULE.get_next_wallpaper(
+        while (wallpaper := next(module.get_next_wallpaper(
                 **config))) and CONFIG[CONFIG_SKIP] and wallpaper in RECENT and wallpaper not in wallpapers:
             wallpapers.add(wallpaper)
+        if wallpaper in wallpapers:
+            wallpaper = None
     if wallpaper:
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
@@ -399,7 +396,7 @@ def on_update_display(menu, update: bool = True):
         if FEATURE_UPDATE_DISPLAY:
             gui.add_separator()
             gui.add_menu_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_update_display, args=(menu,))
-    # TODO: add lock screen
+    # TODO add lock screen
 
 
 def _get_launch_args() -> list[str]:
@@ -493,13 +490,12 @@ def on_restart():
     on_quit()
 
 
-def on_module(module: str, menu):
-    global MODULE
-    MODULE = MODULES[module]
-    menu.SetItemLabel(f'{MODULE.NAME}-{MODULE.__version__}')
+def on_module(name: str, menu):
+    module = modules.MODULES[name]
+    menu.SetItemLabel(module.NAME)
     with gui.set_main_menu(menu):
         gui.remove_menu_items()
-        MODULE.create_menu()
+        module.create_menu()
         menu.Enable(bool(gui.get_menu_items()))
 
 
@@ -589,10 +585,10 @@ def create_menu():  # TODO slideshow (smaller timer)
         menu_display = gui.add_submenu(STRINGS.MENU_DISPLAY)
         on_update_display(menu_display, False)
         gui.add_mapped_submenu(STRINGS.MENU_MODULE,
-                               {name: f'{name}\t{module.__version__}' for name, module in MODULES.items()},
+                               {name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()},
                                CONFIG, CONFIG_MODULE, on_click=on_module, args=(menu_module,))
         gui.add_separator()
-        gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, CONFIG_ANIMATE, gui.enable_animation)
+        gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, CONFIG_NOTIFY)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, CONFIG_SKIP)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CONFIG, CONFIG_CACHE)

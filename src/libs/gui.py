@@ -187,7 +187,8 @@ def set_menu_item_position(menu_item: wx.MenuItem, position: Optional[int] = Non
     menu.Insert(menu.GetMenuItemCount() if position is None else position, menu_item)
 
 
-def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool], key: str, on_click: Optional[Callable] = None,
+def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool],
+                         key: str, enable: bool = True, on_click: Optional[Callable] = None,
                          args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
                          menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if on_click is None:
@@ -202,7 +203,7 @@ def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool], key: st
         def on_click_(key_: str, checked: bool):
             mapping[key_] = checked
             return on_click(checked, *args, **kwargs)
-    return add_menu_item(label, Item.CHECK, mapping[key], on_click=on_click_,
+    return add_menu_item(label, Item.CHECK, mapping[key], enable, on_click=on_click_,
                          menu_args=(Property.CHECKED,), args=(key,), pre_menu_args=False, menu=menu)
 
 

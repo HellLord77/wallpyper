@@ -4,7 +4,7 @@ import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import com as _com, enum as _enum, struct as _struct, type as _type
+from . import com as _com, enum as _enum, struct as _struct, type as _type, union as _union
 from ._utils import _get_func_doc, _format_annotations, _not_internal, _Pointer, _resolve_type
 
 
@@ -559,10 +559,108 @@ class Kernel32(_WinFunc):
     SetLastError: _Callable[[_type.DWORD],
                             _type.VOID]
     # fileapi
+    AreShortNamesEnabled: _Callable[[_type.HANDLE,
+                                     _Pointer[_type.BOOL]],
+                                    _type.BOOL]
     DeleteFileA: _Callable[[_type.LPCSTR],
                            _type.BOOL]
     DeleteFileW: _Callable[[_type.LPCWSTR],
                            _type.BOOL]
+    FindFirstVolumeW: _Callable[[_type.LPWSTR,
+                                 _type.DWORD],
+                                _type.HANDLE]
+    FindNextVolumeW: _Callable[[_type.HANDLE,
+                                _type.LPWSTR,
+                                _type.DWORD],
+                               _type.BOOL]
+    FindVolumeClose: _Callable[[_type.HANDLE],
+                               _type.BOOL]
+    FlushFileBuffers: _Callable[[_type.HANDLE],
+                                _type.BOOL]
+    GetDiskFreeSpaceA: _Callable[[_type.LPCSTR,
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _Optional[_Pointer[_type.DWORD]]],
+                                 _type.BOOL]
+    GetDiskFreeSpaceW: _Callable[[_type.LPCWSTR,
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _Optional[_Pointer[_type.DWORD]]],
+                                 _type.BOOL]
+    GetDiskFreeSpaceExA: _Callable[[_type.LPCSTR,
+                                    _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                    _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                    _Optional[_Pointer[_union.ULARGE_INTEGER]]],
+                                   _type.BOOL]
+    GetDiskFreeSpaceExW: _Callable[[_type.LPCWSTR,
+                                    _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                    _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                    _Optional[_Pointer[_union.ULARGE_INTEGER]]],
+                                   _type.BOOL]
+    GetDiskSpaceInformationA: _Callable[[_Optional[_type.LPCSTR],
+                                         _Pointer[_struct.DISK_SPACE_INFORMATION]],
+                                        _type.BOOL]
+    GetDiskSpaceInformationW: _Callable[[_Optional[_type.LPCWSTR],
+                                         _Pointer[_struct.DISK_SPACE_INFORMATION]],
+                                        _type.BOOL]
+    GetDriveTypeA: _Callable[[_type.LPCSTR],
+                             _type.UINT]
+    GetDriveTypeW: _Callable[[_type.LPCWSTR],
+                             _type.UINT]
+    GetFileAttributesA: _Callable[[_type.LPCSTR],
+                                  _type.DWORD]
+    GetFileAttributesW: _Callable[[_type.LPCWSTR],
+                                  _type.DWORD]
+    GetFileSize: _Callable[[_type.HANDLE,
+                            _Optional[_Pointer[_type.DWORD]]],
+                           _type.DWORD]
+    GetFileSizeEx: _Callable[[_type.HANDLE,
+                              _Pointer[_union.LARGE_INTEGER]],
+                             _type.BOOL]
+    GetFileTime: _Callable[[_type.HANDLE,
+                            _Optional[_Pointer[_struct.FILETIME]],
+                            _Optional[_Pointer[_struct.FILETIME]],
+                            _Optional[_Pointer[_struct.FILETIME]]],
+                           _type.BOOL]
+    GetFileType: _Callable[[_type.HANDLE],
+                           _type.DWORD]
+    GetFinalPathNameByHandleA: _Callable[[_type.HANDLE,
+                                          _type.LPSTR,
+                                          _type.DWORD,
+                                          _type.DWORD],
+                                         _type.DWORD]
+    GetFinalPathNameByHandleW: _Callable[[_type.HANDLE,
+                                          _type.LPWSTR,
+                                          _type.DWORD,
+                                          _type.DWORD],
+                                         _type.DWORD]
+    GetLogicalDrives: _Callable[[],
+                                _type.DWORD]
+    GetLogicalDriveStringsA: _Callable[[_type.DWORD,
+                                        _Optional[_type.LPSTR]],
+                                       _type.DWORD]
+    GetLogicalDriveStringsW: _Callable[[_type.DWORD,
+                                        _Optional[_type.LPWSTR]],
+                                       _type.DWORD]
+    GetLongPathNameA: _Callable[[_type.LPCSTR,
+                                 _Optional[_type.LPSTR],
+                                 _type.DWORD],
+                                _type.DWORD]
+    GetLongPathNameW: _Callable[[_type.LPCWSTR,
+                                 _Optional[_type.LPWSTR],
+                                 _type.DWORD],
+                                _type.DWORD]
+    GetShortPathNameW: _Callable[[_type.LPCWSTR,
+                                  _Optional[_type.LPWSTR],
+                                  _type.DWORD],
+                                 _type.DWORD]
+    GetTempFileNameW: _Callable[[_type.LPCWSTR,
+                                 _type.LPCWSTR,
+                                 _type.UINT,
+                                 _type.LPWSTR],
+                                _type.UINT]
     GetTempPathA: _Callable[[_type.DWORD,
                              _type.LPSTR],
                             _type.DWORD]
@@ -575,6 +673,44 @@ class Kernel32(_WinFunc):
     GetTempPath2W: _Callable[[_type.DWORD,
                               _type.LPWSTR],
                              _type.DWORD]
+    GetVolumePathNameW: _Callable[[_type.LPCWSTR,
+                                   _type.LPWSTR,
+                                   _type.DWORD],
+                                  _type.DWORD]
+    LocalFileTimeToFileTime: _Callable[[_Pointer[_struct.FILETIME],
+                                        _Pointer[_struct.FILETIME]],
+                                       _type.BOOL]
+    LockFile: _Callable[[_type.HANDLE,
+                         _type.DWORD,
+                         _type.DWORD,
+                         _type.DWORD,
+                         _type.DWORD],
+                        _type.BOOL]
+    QueryDosDeviceW: _Callable[[_type.LPCWSTR,
+                                _type.LPWSTR,
+                                _type.DWORD],
+                               _type.DWORD]
+    RemoveDirectoryA: _Callable[[_type.LPCSTR],
+                                _type.BOOL]
+    RemoveDirectoryW: _Callable[[_type.LPCWSTR],
+                                _type.BOOL]
+    SetEndOfFile: _Callable[[_type.HANDLE],
+                            _type.BOOL]
+    SetFileAttributesA: _Callable[[_type.LPCSTR,
+                                   _type.DWORD],
+                                  _type.BOOL]
+    SetFileAttributesW: _Callable[[_type.LPCWSTR,
+                                   _type.DWORD],
+                                  _type.BOOL]
+    SetFileValidData: _Callable[[_type.HANDLE,
+                                 _type.LONGLONG],
+                                _type.BOOL]
+    UnlockFile: _Callable[[_type.HANDLE,
+                           _type.DWORD,
+                           _type.DWORD,
+                           _type.DWORD,
+                           _type.DWORD],
+                          _type.BOOL]
     # handleapi
     CloseHandle: _Callable[[_type.HANDLE],
                            _type.BOOL]
@@ -723,6 +859,9 @@ class Kernel32(_WinFunc):
                               _type.BOOL]
     AddRefActCtx: _Callable[[_type.HANDLE],
                             _type.VOID]
+    AssignProcessToJobObject: _Callable[[_type.HANDLE,
+                                         _type.HANDLE],
+                                        _type.BOOL]
     CreateActCtxA: _Callable[[_Pointer[_struct.ACTCTXA]],
                              _type.HANDLE]
     CreateActCtxW: _Callable[[_Pointer[_struct.ACTCTXW]],
@@ -748,6 +887,8 @@ class Kernel32(_WinFunc):
                               _type.DWORD]
     GetCurrentActCtx: _Callable[[_Pointer[_type.HANDLE]],
                                 _type.BOOL]
+    GetSystemPowerStatus: _Callable[[_Pointer[_struct.SYSTEM_POWER_STATUS]],
+                                    _type.BOOL]
     GlobalAlloc: _Callable[[_type.UINT,
                             _type.SIZE_T],
                            _type.HGLOBAL]
@@ -763,8 +904,30 @@ class Kernel32(_WinFunc):
     MoveFileW: _Callable[[_type.LPCWSTR,
                           _type.LPCWSTR],
                          _type.BOOL]
+    OpenJobObjectA: _Callable[[_type.DWORD,
+                               _type.BOOL,
+                               _type.LPCSTR],
+                              _type.HANDLE]
+    OpenJobObjectW: _Callable[[_type.DWORD,
+                               _type.BOOL,
+                               _type.LPCWSTR],
+                              _type.HANDLE]
     ReleaseActCtx: _Callable[[_type.HANDLE],
                              _type.VOID]
+    SetSystemPowerState: _Callable[[_type.BOOL,
+                                    _type.BOOL],
+                                   _type.BOOL]
+    TerminateJobObject: _Callable[[_type.HANDLE,
+                                   _type.UINT],
+                                  _type.BOOL]
+    VerifyVersionInfoA: _Callable[[_Pointer[_struct.OSVERSIONINFOEXA],
+                                   _type.DWORD,
+                                   _type.DWORDLONG],
+                                  _type.BOOL]
+    VerifyVersionInfoW: _Callable[[_Pointer[_struct.OSVERSIONINFOEXW],
+                                   _type.DWORD,
+                                   _type.DWORDLONG],
+                                  _type.BOOL]
     ZombifyActCtx: _Callable[[_type.HANDLE],
                              _type.BOOL]
     # WinNls
@@ -788,6 +951,17 @@ class Kernel32(_WinFunc):
                                         _type.c_int]
     SetThreadLocale: _Callable[[_type.LCID],
                                _type.BOOL]
+    # winnt
+    RtlGetProductInfo: _Callable[[_type.DWORD,
+                                  _type.DWORD,
+                                  _type.DWORD,
+                                  _type.DWORD,
+                                  _Pointer[_type.DWORD]],
+                                 _type.BOOLEAN]
+    VerSetConditionMask: _Callable[[_type.ULONGLONG,
+                                    _type.DWORD,
+                                    _type.BYTE],
+                                   _type.ULONGLONG]
 
 
 class MSCorEE(_WinFunc):
@@ -1058,6 +1232,20 @@ class Shell32(_WinFunc):
     Shell_NotifyIconW: _Callable[[_type.DWORD,
                                   _Pointer[_struct.NOTIFYICONDATAW]],
                                  _type.BOOL]
+    SHGetDiskFreeSpaceExA: _Callable[[_type.LPCSTR,
+                                      _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                      _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                      _Optional[_Pointer[_union.ULARGE_INTEGER]]],
+                                     _type.BOOL]
+    SHGetDiskFreeSpaceExW: _Callable[[_type.LPCWSTR,
+                                      _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                      _Optional[_Pointer[_union.ULARGE_INTEGER]],
+                                      _Optional[_Pointer[_union.ULARGE_INTEGER]]],
+                                     _type.BOOL]
+    SHGetStockIconInfo: _Callable[[_enum.SHSTOCKICONID,
+                                   _type.UINT,
+                                   _Pointer[_struct.SHSTOCKICONINFO]],
+                                  _type.HRESULT]
     # ShlObj_core
     ILClone: _Callable[[_Pointer[_struct.ITEMIDLIST]],
                        _Pointer[_struct.ITEMIDLIST]]

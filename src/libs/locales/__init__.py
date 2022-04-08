@@ -9,7 +9,7 @@ import os
 from typing import Optional, Union
 
 
-class _MetaISO(type):
+class _ISOMeta(type):
     def __new__(mcs, *args, **kwargs):
         self = super().__new__(mcs, *args, **kwargs)
         # noinspection PyUnresolvedReferences
@@ -22,7 +22,7 @@ class _MetaISO(type):
         return (next(iter(item.values())) for item in self._items)
 
 
-class _ISO(metaclass=_MetaISO):
+class _ISO(metaclass=_ISOMeta):
     _ISO_ = ''
     _BASE_ = None
 

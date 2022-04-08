@@ -53,20 +53,21 @@ def copy_text(text: str, quote: Optional[str] = None) -> bool:
 
 def copy_image(path: str) -> bool:
     hbitmap = _gdiplus.Bitmap.from_file(path).get_hbitmap()
-    bm = ctyped.struct.BITMAP()
-    if (sz_bi := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.lib.Gdi32.GetObjectW(
-            hbitmap, sz_bi, ctyped.byref(bm)):
-        sz_bih = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
-        bi = ctyped.struct.BITMAPINFOHEADER(sz_bih, bm.bmWidth, bm.bmHeight, 1, bm.bmBitsPixel, ctyped.const.BI_RGB)
-        sz = bm.bmWidthBytes * bm.bmHeight
+    bmp = ctyped.struct.BITMAP()
+    if (sz_bmp := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.lib.Gdi32.GetObjectW(
+            hbitmap, sz_bmp, ctyped.byref(bmp)):
+        header = ctyped.struct.BITMAPINFOHEADER(biWidth=bmp.bmWidth, biHeight=bmp.bmHeight,
+                                                biBitCount=bmp.bmBitsPixel, biCompression=ctyped.const.BI_RGB)
+        sz = bmp.bmWidthBytes * bmp.bmHeight
         data = ctyped.array(ctyped.type.BYTE, size=sz)
         hdc = ctyped.handle.HDC.from_hwnd()
-        if hdc and ctyped.lib.Gdi32.GetDIBits(hdc, hbitmap, 0, bi.biHeight, data, ctyped.cast(
-                bi, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
-            with _global_memory(sz_bih + sz) as handle_buff:
-                if handle_buff[1]:
-                    ctyped.lib.msvcrt.memmove(handle_buff[1], ctyped.byref(bi), sz_bih)
-                    ctyped.lib.msvcrt.memmove(handle_buff[1] + sz_bih, data, sz)
-                    _set_clipboard(ctyped.const.CF_DIB, handle_buff[0])
+        if hdc and ctyped.lib.Gdi32.GetDIBits(hdc, hbitmap, 0, header.biHeight, data, ctyped.cast(
+                header, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
+            sz_header = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)
+            with _global_memory(sz_header + sz) as (handle, buff):
+                if buff:
+                    ctyped.lib.msvcrt.memmove(buff, ctyped.byref(header), sz_header)
+                    ctyped.lib.msvcrt.memmove(buff + sz_header, data, sz)
+                    _set_clipboard(ctyped.const.CF_DIB, handle)
                     return True
     return False
