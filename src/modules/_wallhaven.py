@@ -6,7 +6,7 @@ from typing import Callable, Generator, Optional
 
 import utils
 from langs import STRINGS
-from libs import files, gui, misc, request
+from libs import files, gui, request
 from .module import _Module
 
 NAME = 'wallhaven'
@@ -61,7 +61,6 @@ class Wallhaven(_Module):
         cls._fix_config(CONFIG_RANGE, RANGES)
 
     @classmethod
-    @misc.one_cache
     def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
         datas: Optional[list] = None
         meta = {

@@ -5,7 +5,7 @@ from typing import Generator, Optional
 
 import utils
 from langs import STRINGS
-from libs import files, gui, locales, misc, request
+from libs import files, gui, locales, request
 from .module import _Module
 
 BASE_URL = request.join('https://api.pexels.com', 'v1')
@@ -55,7 +55,6 @@ class Plexels(_Module):
         cls._fix_config(CONFIG_LOCALE, LOCALES)
 
     @classmethod
-    @misc.one_cache
     def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
         photos: Optional[list] = None
         key = params.pop(CONFIG_KEY)

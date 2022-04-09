@@ -5,7 +5,7 @@ from typing import Generator, Optional
 
 import utils
 from langs import STRINGS
-from libs import files, locales, misc, request
+from libs import files, locales, request
 from .module import _Module
 
 BASE_URL = 'https://www.bing.com'
@@ -36,9 +36,7 @@ class Bing(_Module):
         cls._fix_config(CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
-    @misc.one_cache
     def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
-        print(params)
         images: Optional[list] = None
         params['format'] = 'js'
         params['n'] = '8'
@@ -60,9 +58,8 @@ class Bing(_Module):
                     yield
                     continue
             query = request.query(images.pop(0)['url'])
-            name_ext = os.path.splitext(query['id'][0])
-            query['id'][
-                0] = f'{name_ext[0][:name_ext[0].rfind("_") + 1]}{cls.CONFIG[CONFIG_RESOLUTION]}{name_ext[1]}'
+            name, ext = os.path.splitext(query['id'][0])
+            query['id'][0] = f'{name[:name.rfind("_") + 1]}{cls.CONFIG[CONFIG_RESOLUTION]}{ext}'
             yield files.File(request.encode(IMAGE_URL, query), query['id'][0][4:])
 
     @classmethod

@@ -84,6 +84,7 @@ def delete_key(key: winreg.HKEYType, name: str) -> bool:
     return False
 
 
-def sanitize_filename(name: str) -> str:
-    pwstr = ctyped.type.PWSTR(name)
-    return '' if ctyped.lib.Shell32.PathCleanupSpec(None, pwstr) & ctyped.const.PCS_FATAL else pwstr.value
+def sanitize_filename(name: str) -> Optional[str]:
+    buff = ctyped.type.PWSTR(name)
+    if ctyped.lib.Shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
+        return buff.value

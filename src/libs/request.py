@@ -147,16 +147,18 @@ def _get_hash(path: str, type_: str = 'md5') -> bytes:
 
 def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None,
              sha256: Optional[bytes] = None, chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
-             callback: Optional[Callable[[int, ...], bool]] = None, args: Optional[Iterable] = None,
+             query_callback: Optional[Callable[[int, ...], bool]] = None, args: Optional[Iterable] = None,
              kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    args = () if args is None else args
-    kwargs = {} if kwargs is None else kwargs
+    if args is None:
+        args = ()
+    if kwargs is None:
+        kwargs = {}
     response = open(url)
     if os.path.exists(path):
         if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path)) or (
                 sha256 and _get_hash(path, 'sha256'))):
-            if callback:
-                callback(100, *args, **kwargs)
+            if query_callback:
+                query_callback(100, *args, **kwargs)
             return True
         elif os.path.isdir(path):
             return False
@@ -167,31 +169,26 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
             response.response.fp.name) if response.file else sys.maxsize)))
         if os.path.isfile(path):
             if size == os.path.getsize(path):
-                if callback:
-                    callback(100, *args, **kwargs)
+                if query_callback:
+                    query_callback(100, *args, **kwargs)
                 return True
             else:
                 os.remove(path)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
-        cancelled = False
         try:
             with builtins.open(path, 'wb') as file:
-                write = file.write
                 ratio = 0
                 for chunk in response:
-                    write(chunk)
-                    ratio += len(chunk) / size
-                    if callback and not callback(round(ratio * 100), *args, **kwargs):
-                        cancelled = True
+                    ratio += file.write(chunk) / size
+                    if query_callback and not query_callback(round(ratio * 100), *args, **kwargs):
+                        file.close()
+                        os.remove(path)
                         break
-            if cancelled:
-                os.remove(path)
-                return False
         except PermissionError:
             return False
         if os.path.isfile(path) and size == os.path.getsize(path):
-            if callback:
-                callback(100, *args, **kwargs)
+            if query_callback:
+                query_callback(100, *args, **kwargs)
             return True
     return False
 

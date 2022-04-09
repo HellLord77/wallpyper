@@ -188,41 +188,45 @@ def first_run():  # FIXME my icon
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[int, ...], Any]] = None,
+def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[int, ...], bool]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = files.join(TEMP_DIR, wallpaper.name)
     with _download_lock(wallpaper.url):
         gui.start_animation(RES_BUSY, STRINGS.STATUS_DOWNLOAD)
         try:
-            return temp_path if request.download(wallpaper.url, temp_path, wallpaper.size,
-                                                 wallpaper.md5, wallpaper.sha256, chunk_count=100,
-                                                 callback=query_callback, args=args, kwargs=kwargs) else None
+            if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
+                                chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
+                return temp_path
         finally:
             gui.stop_animation(STRINGS.STATUS_DOWNLOAD)
 
 
+def get_next_wallpaper() -> Optional[files.File]:
+    module = modules.MODULES[CONFIG[CONFIG_MODULE]]
+    config = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
+    got_wallpapers = set()
+    while (next_wallpaper := next(module.get_next_wallpaper(
+            **config))) and CONFIG[CONFIG_SKIP] and next_wallpaper in RECENT and next_wallpaper not in got_wallpapers:
+        got_wallpapers.add(next_wallpaper)
+    if next_wallpaper not in got_wallpapers:
+        return next_wallpaper
+
+
 @misc.singleton_run
 def change_wallpaper(wallpaper: Optional[files.File] = None,
-                     progress_callback: Optional[Callable[[int, ...], Any]] = None,
+                     query_callback: Optional[Callable[[int, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
-    if progress_callback:
-        progress_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
-    if not wallpaper:
-        module = modules.MODULES[CONFIG[CONFIG_MODULE]]
-        config = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
-        wallpapers = set()
-        while (wallpaper := next(module.get_next_wallpaper(
-                **config))) and CONFIG[CONFIG_SKIP] and wallpaper in RECENT and wallpaper not in wallpapers:
-            wallpapers.add(wallpaper)
-        if wallpaper in wallpapers:
-            wallpaper = None
-    if wallpaper:
+    if query_callback:
+        query_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
+    if wallpaper is None:
+        wallpaper = get_next_wallpaper()
+    if wallpaper is not None:
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
         RECENT.appendleft(wallpaper)
         wallpaper.name = win32.sanitize_filename(wallpaper.name)
-        if path := download_wallpaper(wallpaper, progress_callback, args, kwargs):
+        if path := download_wallpaper(wallpaper, query_callback, args, kwargs):
             # noinspection PyArgumentList
             changed = win32.wallpaper.set_multi(*(
                 win32.wallpaper.Wallpaper(path, display, getattr(win32.wallpaper.Style, CONFIG[CONFIG_STYLE]),

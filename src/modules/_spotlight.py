@@ -7,7 +7,7 @@ from typing import Generator, Optional
 
 import utils
 from langs import STRINGS
-from libs import files, locales, misc, request
+from libs import files, locales, request
 from .module import _Module
 
 BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
@@ -31,7 +31,6 @@ class Spotlight(_Module):
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    @misc.one_cache
     def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
         items: Optional[list] = None
         params['pid'] = '209567'

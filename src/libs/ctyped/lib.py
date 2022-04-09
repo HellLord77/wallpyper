@@ -83,6 +83,139 @@ class Python(_PyFunc):
                              _type.c_int]
 
 
+class Advapi32(_WinFunc):
+    # winreg
+    AbortSystemShutdownA: _Callable[[_type.LPSTR],
+                                    _type.BOOL]
+    AbortSystemShutdownW: _Callable[[_type.LPWSTR],
+                                    _type.BOOL]
+    CheckForHiberboot: _Callable[[_Pointer[_type.BOOLEAN],
+                                  _type.BOOLEAN],
+                                 _type.DWORD]
+    InitiateShutdownA: _Callable[[_Optional[_type.LPSTR],
+                                  _Optional[_type.LPSTR],
+                                  _type.DWORD,
+                                  _type.DWORD,
+                                  _type.DWORD],
+                                 _type.DWORD]
+    InitiateShutdownW: _Callable[[_Optional[_type.LPWSTR],
+                                  _Optional[_type.LPWSTR],
+                                  _type.DWORD,
+                                  _type.DWORD,
+                                  _type.DWORD],
+                                 _type.DWORD]
+    InitiateSystemShutdownA: _Callable[[_Optional[_type.LPSTR],
+                                        _Optional[_type.LPSTR],
+                                        _type.DWORD,
+                                        _type.BOOL,
+                                        _type.BOOL],
+                                       _type.BOOL]
+    InitiateSystemShutdownW: _Callable[[_Optional[_type.LPWSTR],
+                                        _Optional[_type.LPWSTR],
+                                        _type.DWORD,
+                                        _type.BOOL,
+                                        _type.BOOL],
+                                       _type.BOOL]
+    InitiateSystemShutdownExA: _Callable[[_Optional[_type.LPSTR],
+                                          _Optional[_type.LPSTR],
+                                          _type.DWORD,
+                                          _type.BOOL,
+                                          _type.BOOL,
+                                          _type.DWORD],
+                                         _type.BOOL]
+    InitiateSystemShutdownExW: _Callable[[_Optional[_type.LPWSTR],
+                                          _Optional[_type.LPWSTR],
+                                          _type.DWORD,
+                                          _type.BOOL,
+                                          _type.BOOL,
+                                          _type.DWORD],
+                                         _type.BOOL]
+    RegCopyTreeA: _Callable[[_type.HKEY,
+                             _Optional[_type.LPCSTR],
+                             _type.HKEY],
+                            _type.LSTATUS]
+    RegCopyTreeW: _Callable[[_type.HKEY,
+                             _Optional[_type.LPCWSTR],
+                             _type.HKEY],
+                            _type.LSTATUS]
+    RegDeleteKeyValueA: _Callable[[_type.HKEY,
+                                   _Optional[_type.LPCSTR],
+                                   _Optional[_type.LPCSTR]],
+                                  _type.LSTATUS]
+    RegDeleteKeyValueW: _Callable[[_type.HKEY,
+                                   _Optional[_type.LPCWSTR],
+                                   _Optional[_type.LPCWSTR]],
+                                  _type.LSTATUS]
+    RegDeleteTreeA: _Callable[[_type.HKEY,
+                               _Optional[_type.LPCSTR]],
+                              _type.LSTATUS]
+    RegDeleteTreeW: _Callable[[_type.HKEY,
+                               _Optional[_type.LPCWSTR]],
+                              _type.LSTATUS]
+    RegLoadAppKeyA: _Callable[[_type.LPCSTR,
+                               _Pointer[_type.HKEY],
+                               _type.REGSAM,
+                               _type.DWORD,
+                               _type.DWORD],
+                              _type.LSTATUS]
+    RegLoadAppKeyW: _Callable[[_type.LPCWSTR,
+                               _Pointer[_type.HKEY],
+                               _type.REGSAM,
+                               _type.DWORD,
+                               _type.DWORD],
+                              _type.LSTATUS]
+    RegLoadMUIStringA: _Callable[[_type.HKEY,
+                                  _Optional[_type.LPCSTR],
+                                  _Optional[_type.LPSTR],
+                                  _type.DWORD,
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _type.DWORD,
+                                  _Optional[_type.LPCSTR]],
+                                 _type.LSTATUS]
+    RegLoadMUIStringW: _Callable[[_type.HKEY,
+                                  _Optional[_type.LPCWSTR],
+                                  _Optional[_type.LPWSTR],
+                                  _type.DWORD,
+                                  _Optional[_Pointer[_type.DWORD]],
+                                  _type.DWORD,
+                                  _Optional[_type.LPCWSTR]],
+                                 _type.LSTATUS]
+    RegReplaceKeyA: _Callable[[_type.HKEY,
+                               _Optional[_type.LPCSTR],
+                               _type.LPCSTR,
+                               _type.LPCSTR],
+                              _type.LSTATUS]
+    RegReplaceKeyW: _Callable[[_type.HKEY,
+                               _Optional[_type.LPCWSTR],
+                               _type.LPCWSTR,
+                               _type.LPCWSTR],
+                              _type.LSTATUS]
+    RegRestoreKeyA: _Callable[[_type.HKEY,
+                               _type.LPCSTR,
+                               _type.DWORD],
+                              _type.LSTATUS]
+    RegRestoreKeyW: _Callable[[_type.HKEY,
+                               _type.LPCWSTR,
+                               _type.DWORD],
+                              _type.LSTATUS]
+    RegSaveKeyExA: _Callable[[_type.HKEY,
+                              _type.LPCSTR,
+                              _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                              _type.DWORD],
+                             _type.LSTATUS]
+    RegSaveKeyExW: _Callable[[_type.HKEY,
+                              _type.LPCWSTR,
+                              _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                              _type.DWORD],
+                             _type.LSTATUS]
+    RegUnLoadKeyA: _Callable[[_type.HKEY,
+                              _Optional[_type.LPCSTR]],
+                             _type.LSTATUS]
+    RegUnLoadKeyW: _Callable[[_type.HKEY,
+                              _Optional[_type.LPCWSTR]],
+                             _type.LSTATUS]
+
+
 class Cfgmgr32(_WinFunc):
     # Cfgmgr32
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
@@ -1208,6 +1341,8 @@ class Shell32(_WinFunc):
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 704
     # shellapi
+    InitNetworkAddressControl: _Callable[[],
+                                         _type.BOOL]
     ShellExecuteA: _Callable[[_Optional[_type.HWND],
                               _Optional[_type.LPCSTR],
                               _type.LPCSTR,
@@ -1232,6 +1367,17 @@ class Shell32(_WinFunc):
     Shell_NotifyIconW: _Callable[[_type.DWORD,
                                   _Pointer[_struct.NOTIFYICONDATAW]],
                                  _type.BOOL]
+    Shell_NotifyIconGetRect: _Callable[[_Pointer[_struct.NOTIFYICONIDENTIFIER],
+                                        _Pointer[_struct.RECT]],
+                                       _type.BOOL]
+    SHEmptyRecycleBinA: _Callable[[_Optional[_type.HWND],
+                                   _Optional[_type.LPCSTR],
+                                   _type.DWORD],
+                                  _type.BOOL]
+    SHEmptyRecycleBinW: _Callable[[_Optional[_type.HWND],
+                                   _Optional[_type.LPCWSTR],
+                                   _type.DWORD],
+                                  _type.BOOL]
     SHGetDiskFreeSpaceExA: _Callable[[_type.LPCSTR,
                                       _Optional[_Pointer[_union.ULARGE_INTEGER]],
                                       _Optional[_Pointer[_union.ULARGE_INTEGER]],
@@ -1242,9 +1388,20 @@ class Shell32(_WinFunc):
                                       _Optional[_Pointer[_union.ULARGE_INTEGER]],
                                       _Optional[_Pointer[_union.ULARGE_INTEGER]]],
                                      _type.BOOL]
+    SHGetDriveMedia: _Callable[[_type.PCWSTR,
+                                _Pointer[_type.DWORD]],
+                               _type.UINT]
     SHGetStockIconInfo: _Callable[[_enum.SHSTOCKICONID,
                                    _type.UINT,
                                    _Pointer[_struct.SHSTOCKICONINFO]],
+                                  _type.HRESULT]
+    SHQueryUserNotificationState: _Callable[[_Pointer[_enum.QUERY_USER_NOTIFICATION_STATE]],
+                                            _type.HRESULT]
+    SHQueryRecycleBinA: _Callable[[_Optional[_type.LPCSTR],
+                                   _Pointer[_struct.SHQUERYRBINFO]],
+                                  _type.HRESULT]
+    SHQueryRecycleBinW: _Callable[[_Optional[_type.LPCWSTR],
+                                   _Pointer[_struct.SHQUERYRBINFO]],
                                   _type.HRESULT]
     # ShlObj_core
     ILClone: _Callable[[_Pointer[_struct.ITEMIDLIST]],
@@ -1715,6 +1872,32 @@ class User32(_WinFunc):
                           _type.HDC]
     BlockInput: _Callable[[_type.BOOL],
                           _type.BOOL]
+    BroadcastSystemMessageA: _Callable[[_type.DWORD,
+                                        _Optional[_Pointer[_type.DWORD]],
+                                        _type.UINT,
+                                        _type.WPARAM,
+                                        _type.LPARAM],
+                                       _type.c_long]
+    BroadcastSystemMessageW: _Callable[[_type.DWORD,
+                                        _Optional[_Pointer[_type.DWORD]],
+                                        _type.UINT,
+                                        _type.WPARAM,
+                                        _type.LPARAM],
+                                       _type.c_long]
+    BroadcastSystemMessageExA: _Callable[[_type.DWORD,
+                                          _Optional[_Pointer[_type.DWORD]],
+                                          _type.UINT,
+                                          _type.WPARAM,
+                                          _type.LPARAM,
+                                          _Optional[_Pointer[_struct.BSMINFO]]],
+                                         _type.c_long]
+    BroadcastSystemMessageExW: _Callable[[_type.DWORD,
+                                          _Optional[_Pointer[_type.DWORD]],
+                                          _type.UINT,
+                                          _type.WPARAM,
+                                          _type.LPARAM,
+                                          _Optional[_Pointer[_struct.BSMINFO]]],
+                                         _type.c_long]
     CalculatePopupWindowPosition: _Callable[[_Pointer[_struct.POINT],
                                              _Pointer[_struct.SIZE],
                                              _type.UINT,
@@ -1947,6 +2130,9 @@ class User32(_WinFunc):
     EqualRect: _Callable[[_Pointer[_struct.RECT],
                           _Pointer[_struct.RECT]],
                          _type.BOOL]
+    ExitWindowsEx: _Callable[[_type.UINT,
+                              _type.DWORD],
+                             _type.BOOL]
     FillRect: _Callable[[_type.HDC,
                          _Pointer[_struct.RECT],
                          _type.HBRUSH],
@@ -1977,6 +2163,26 @@ class User32(_WinFunc):
                            _type.HWND]
     GetAsyncKeyState: _Callable[[_type.c_int],
                                 _type.SHORT]
+    GetAutoRotationState: _Callable[[_Pointer[_enum.AR_STATE]],
+                                    _type.BOOL]
+    GetCIMSSM: _Callable[[_Pointer[_struct.INPUT_MESSAGE_SOURCE]],
+                         _type.BOOL]
+    GetClassInfoA: _Callable[[_Optional[_type.HINSTANCE],
+                              _type.LPCSTR,
+                              _Pointer[_struct.WNDCLASSA]],
+                             _type.BOOL]
+    GetClassInfoW: _Callable[[_Optional[_type.HINSTANCE],
+                              _type.LPCWSTR,
+                              _Pointer[_struct.WNDCLASSW]],
+                             _type.BOOL]
+    GetClassInfoExA: _Callable[[_Optional[_type.HINSTANCE],
+                                _type.LPCSTR,
+                                _Pointer[_struct.WNDCLASSEXA]],
+                               _type.BOOL]
+    GetClassInfoExW: _Callable[[_Optional[_type.HINSTANCE],
+                                _type.LPCWSTR,
+                                _Pointer[_struct.WNDCLASSEXW]],
+                               _type.BOOL]
     GetClassNameA: _Callable[[_type.HWND,
                               _type.LPSTR,
                               _type.c_int],
@@ -1990,6 +2196,8 @@ class User32(_WinFunc):
                              _type.BOOL]
     GetClipboardData: _Callable[[_type.UINT],
                                 _type.HANDLE]
+    GetCurrentInputMessageSource: _Callable[[_Pointer[_struct.INPUT_MESSAGE_SOURCE]],
+                                            _type.BOOL]
     GetCursorPos: _Callable[[_Pointer[_struct.POINT]],
                             _type.BOOL]
     GetDesktopWindow: _Callable[[],
@@ -2002,6 +2210,12 @@ class User32(_WinFunc):
                        _type.HDC]
     GetDialogBaseUnits: _Callable[[],
                                   _type.c_long]
+    GetDisplayAutoRotationPreferences: _Callable[[_Pointer[_enum.ORIENTATION_PREFERENCE]],
+                                                 _type.BOOL]
+    GetDisplayAutoRotationPreferencesByProcessId: _Callable[[_type.DWORD,
+                                                             _Pointer[_enum.ORIENTATION_PREFERENCE],
+                                                             _Pointer[_type.BOOL]],
+                                                            _type.BOOL]
     GetDlgCtrlID: _Callable[[_type.HWND],
                             _type.c_int]
     GetDlgItem: _Callable[[_Optional[_type.HWND],
@@ -2022,6 +2236,8 @@ class User32(_WinFunc):
                                 _type.LPWSTR,
                                 _type.c_int],
                                _type.UINT]
+    GetDoubleClickTime: _Callable[[],
+                                  _type.UINT]
     GetDpiForSystem: _Callable[[],
                                _type.UINT]
     GetDpiForWindow: _Callable[[_type.HWND],
@@ -2098,6 +2314,12 @@ class User32(_WinFunc):
                             _type.UINT,
                             _type.UINT],
                            _type.BOOL]
+    GetMessageExtraInfo: _Callable[[],
+                                   _type.LPARAM]
+    GetMessagePos: _Callable[[],
+                             _type.DWORD]
+    GetMessageTime: _Callable[[],
+                              _type.LONG]
     GetMonitorInfoA: _Callable[[_type.HMONITOR,
                                 _Pointer[_struct.MONITORINFO]],
                                _type.BOOL]
@@ -2130,6 +2352,8 @@ class User32(_WinFunc):
                                 _type.c_int]
     GetTopWindow: _Callable[[_Optional[_type.HWND]],
                             _type.HWND]
+    GetUnpredictedMessagePos: _Callable[[],
+                                        _type.DWORD]
     GetWindow: _Callable[[_type.HWND,
                           _type.UINT],
                          _type.HWND]
@@ -2191,6 +2415,8 @@ class User32(_WinFunc):
                                   _type.UINT]
     IsGUIThread: _Callable[[_type.BOOL],
                            _type.BOOL]
+    IsImmersiveProcess: _Callable[[_type.HANDLE],
+                                  _type.BOOL]
     IsMenu: _Callable[[_type.HMENU],
                       _type.BOOL]
     IsProcessDPIAware: _Callable[[],
@@ -2199,6 +2425,8 @@ class User32(_WinFunc):
                            _type.BOOL]
     IsWindow: _Callable[[_type.HWND],
                         _type.BOOL]
+    IsWow64Message: _Callable[[],
+                              _type.BOOL]
     KillTimer: _Callable[[_type.HWND,
                           _type.UINT_PTR],
                          _type.BOOL]
@@ -2390,6 +2618,20 @@ class User32(_WinFunc):
                              _type.WPARAM,
                              _type.LPARAM],
                             _type.LRESULT]
+    SendMessageCallbackA: _Callable[[_type.HWND,
+                                     _type.UINT,
+                                     _type.WPARAM,
+                                     _type.LPARAM,
+                                     _type.SENDASYNCPROC,
+                                     _type.ULONG_PTR],
+                                    _type.BOOL]
+    SendMessageCallbackW: _Callable[[_type.HWND,
+                                     _type.UINT,
+                                     _type.WPARAM,
+                                     _type.LPARAM,
+                                     _type.SENDASYNCPROC,
+                                     _type.ULONG_PTR],
+                                    _type.BOOL]
     SendMessageTimeoutA: _Callable[[_type.HWND,
                                     _type.UINT,
                                     _type.WPARAM,
@@ -2423,6 +2665,8 @@ class User32(_WinFunc):
                                 _type.HANDLE]
     SetCursor: _Callable[[_Optional[_type.HCURSOR]],
                          _type.HCURSOR]
+    SetDisplayAutoRotationPreferences: _Callable[[_enum.ORIENTATION_PREFERENCE],
+                                                 _type.BOOL]
     SetDlgItemInt: _Callable[[_type.HWND,
                               _type.c_int,
                               _type.UINT,
@@ -2436,6 +2680,8 @@ class User32(_WinFunc):
                                 _type.c_int,
                                 _type.LPCWSTR],
                                _type.BOOL]
+    SetDoubleClickTime: _Callable[[_type.UINT],
+                                  _type.BOOL]
     SetFocus: _Callable[[_type.HWND],
                         _type.HWND]
     SetForegroundWindow: _Callable[[_type.HWND],
@@ -2468,6 +2714,8 @@ class User32(_WinFunc):
                                  _type.BOOL,
                                  _Pointer[_struct.MENUITEMINFOW]],
                                 _type.BOOL]
+    SetMessageExtraInfo: _Callable[[_type.LPARAM],
+                                   _type.LPARAM]
     SetParent: _Callable[[_type.HWND,
                           _Optional[_type.HWND]],
                          _type.HWND]
@@ -2475,6 +2723,8 @@ class User32(_WinFunc):
                                        _type.BOOL]
     SetProcessDPIAware: _Callable[[],
                                   _type.BOOL]
+    SetProcessRestrictionExemption: _Callable[[_type.BOOL],
+                                              _type.BOOL]
     SetSysColors: _Callable[[_type.c_int,
                              _Pointer[_type.INT],
                              _Pointer[_type.COLORREF]],
@@ -2533,10 +2783,21 @@ class User32(_WinFunc):
     ShowWindowAsync: _Callable[[_type.HWND,
                                 _type.c_int],
                                _type.BOOL]
+    ShutdownBlockReasonCreate: _Callable[[_type.HWND,
+                                          _type.LPCWSTR],
+                                         _type.BOOL]
+    ShutdownBlockReasonDestroy: _Callable[[_type.HWND],
+                                          _type.BOOL]
+    ShutdownBlockReasonQuery: _Callable[[_type.HWND,
+                                         _Optional[_type.LPWSTR],
+                                         _Pointer[_type.DWORD]],
+                                        _type.BOOL]
     SubtractRect: _Callable[[_Pointer[_struct.RECT],
                              _Pointer[_struct.RECT],
                              _Pointer[_struct.RECT]],
                             _type.BOOL]
+    SwapMouseButton: _Callable[[_type.BOOL],
+                               _type.BOOL]
     SwitchToThisWindow: _Callable[[_type.HWND,
                                    _type.BOOL],
                                   _type.VOID]

@@ -46,7 +46,7 @@ def exception_handler(excepthook: Callable, *args, **kwargs):
 # threading.excepthook = types.MethodType(exception_handler, threading.excepthook)
 
 NAME = f'{__name__}-{__version__}'
-MENU_ITEM_TOOLTIP_DELAY = 800
+MENU_ITEM_TOOLTIP_DELAY = ctyped.lib.User32.GetDoubleClickTime() * 3
 
 
 def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
@@ -978,8 +978,8 @@ def _enable_visual_styles() -> bool:
 
 if __name__ == '__main__':
     # tst()
-    print(_enable_visual_styles())
-    # _test_sys_tray()
+    # print(_enable_visual_styles())
+    _test_sys_tray()
     # _test_()
     # _wait()
     sys.exit()

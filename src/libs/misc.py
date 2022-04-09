@@ -386,6 +386,33 @@ def _get_params(args, kwargs):
     return try_ex(hash, pickle.dumps, args=((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
 
 
+class OneCachedCallable(Callable):
+    def __init__(self, func: Callable):
+        self.__func__ = func
+        self._cache = []
+
+    def __call__(self, *args, **kwargs):
+        params = _get_params(args, kwargs)
+        if not self._cache or self._cache[0] != params:
+            self._cache[:] = params, self.__func__(*args, **kwargs)
+        return self._cache[1]
+
+    def dumps(self) -> str:
+        return encrypt(self._cache)
+
+    def loads(self, data: str) -> bool:
+        cache = decrypt(data)
+        if loaded := cache is not None:
+            self._cache[:] = cache
+        return loaded
+
+    def reset(self) -> bool:
+        try:
+            return bool(self._cache)
+        finally:
+            self._cache.clear()
+
+
 def one_cache(func: Callable) -> Callable:
     cache = []
 

@@ -1,6 +1,5 @@
 from __future__ import annotations as _
 
-import abc
 import inspect
 from typing import Generator, Iterable, Optional, Union
 
@@ -16,6 +15,7 @@ class _ModuleMeta(type):
         _self.VERSION = inspect.currentframe().f_back.f_globals.get('__version__', '0.0.0')
         _self.DEFAULT_CONFIG = getattr(_self, 'DEFAULT_CONFIG', {})
         _self.CONFIG = {}
+        _self.get_next_wallpaper = misc.one_cache(_self.get_next_wallpaper)
         if not _self.NAME.startswith('_'):
             # noinspection PyTypeChecker
             MODULES[_self.__name__] = _self
@@ -38,8 +38,6 @@ class _Module(metaclass=_ModuleMeta):
         pass
 
     @classmethod
-    @misc.one_cache
-    @abc.abstractmethod
     def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
         raise NotImplementedError
 

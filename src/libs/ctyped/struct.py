@@ -246,6 +246,14 @@ class NOTIFYICONDATAW:
 
 
 @_struct
+class NOTIFYICONIDENTIFIER:
+    cbSize: _type.DWORD = _SIZE
+    hWnd: _type.HWND = _EMPTY
+    uID: _type.UINT = _EMPTY
+    guidItem: GUID = _EMPTY
+
+
+@_struct
 class WNDCLASSA:
     style: _type.UINT = _EMPTY
     lpfnWndProc: _type.WNDPROC = _EMPTY
@@ -1203,6 +1211,47 @@ class DISK_SPACE_INFORMATION:
     PoolAvailableAllocationUnits: _type.ULONGLONG = _EMPTY
     SectorsPerAllocationUnit: _type.DWORD = _EMPTY
     BytesPerSector: _type.DWORD = _EMPTY
+
+
+@_struct
+class SHQUERYRBINFO:
+    cbSize: _type.DWORD = _SIZE
+    # noinspection PyProtectedMember
+    if not _const._MAC or _const._MAC_INT_64:
+        i64Size: _type.c_int64 = _EMPTY
+        i64NumItems: _type.c_int64 = _EMPTY
+    else:
+        i64Size: _type.DWORDLONG = _EMPTY
+        i64NumItems: _type.DWORDLONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class SECURITY_ATTRIBUTES:
+    nLength: _type.DWORD = _SIZE
+    lpSecurityDescriptor: _type.LPVOID = _EMPTY
+    bInheritHandle: _type.BOOL = _EMPTY
+
+
+@_struct
+class LUID:
+    LowPart: _type.DWORD = _EMPTY
+    HighPart: _type.LONG = _EMPTY
+
+
+@_struct
+class BSMINFO:
+    cbSize: _type.DWORD = _SIZE
+    hDesk: _type.HDESK = _EMPTY
+    hwnd: _type.HWND = _EMPTY
+    luid: LUID = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class INPUT_MESSAGE_SOURCE:
+    deviceType: _enum.INPUT_MESSAGE_DEVICE_TYPE = _EMPTY
+    originId: _enum.INPUT_MESSAGE_ORIGIN_ID = _EMPTY
 
 
 UUID = GUID
