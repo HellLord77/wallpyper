@@ -5,6 +5,8 @@ from typing import Optional as _Optional
 from . import const as _const, lib as _lib, macro as _macro, struct as _struct, type as _type
 from ._utils import _byref, _sizeof
 
+_HMENU_MF = _const.MF_BYCOMMAND, _const.MF_BYPOSITION
+
 
 class HSTRING(_type.HSTRING):
     def __del__(self):
@@ -18,6 +20,25 @@ class HSTRING(_type.HSTRING):
         self = cls()
         _lib.Combase.WindowsCreateString(string, len(string), _byref(self))
         return self
+
+
+class HBRUSH(_type.HBRUSH):
+    def __del__(self):
+        _lib.Gdi32.DeleteObject(self)
+
+    @classmethod
+    def from_rgb(cls, r: int = 0, g: int = 0, b: int = 0) -> HBRUSH:
+        print(r, g, b)
+        return cls(_lib.Gdi32.CreateSolidBrush(_macro.RGB(r, g, b)))
+
+    @classmethod
+    def from_color(cls, index: int) -> HBRUSH:
+        return cls(_lib.User32.GetSysColorBrush(index))
+
+    def get_rgb(self) -> _Optional[tuple[int, int, int]]:
+        brush = _struct.LOGBRUSH()
+        if _lib.Gdi32.GetObjectW(self, _sizeof(brush), _byref(brush)):
+            return _macro.GetRValue(brush.lbColor), _macro.GetGValue(brush.lbColor), _macro.GetBValue(brush.lbColor)
 
 
 class HDC(_type.HDC):
@@ -93,7 +114,6 @@ class HBITMAP(_type.HBITMAP):
 
 
 class HMENU(_type.HMENU):
-    _by_mf = _const.MF_BYCOMMAND, _const.MF_BYPOSITION
     _hwnd = None
 
     def __del__(self):
@@ -117,30 +137,33 @@ class HMENU(_type.HMENU):
         self._hwnd = hwnd
         return bool(_lib.User32.SetMenu(hwnd, self))
 
-    def get_item_count(self):
+    def get_item_count(self) -> int:
         return _lib.User32.GetMenuItemCount(self)
+
+    def remove_item(self, id_or_pos: int, by_pos: bool = False) -> bool:
+        return bool(_lib.User32.RemoveMenu(self, id_or_pos, _HMENU_MF[by_pos]))
 
     def get_item_id(self, pos: int) -> bool:
         return bool(_lib.User32.GetMenuItemID(self, pos))
 
     def get_item_state(self, id_or_pos: int, by_pos: bool = False) -> int:
-        return _lib.User32.GetMenuState(self, id_or_pos, self._by_mf[by_pos])
+        return _lib.User32.GetMenuState(self, id_or_pos, _HMENU_MF[by_pos])
 
     def get_item_string(self, id_or_pos: int, by_pos: bool = False) -> str:
-        sz = _lib.User32.GetMenuStringW(self, id_or_pos, None, 0, self._by_mf[by_pos]) + 1
+        sz = _lib.User32.GetMenuStringW(self, id_or_pos, None, 0, _HMENU_MF[by_pos]) + 1
         buff = _type.LPWSTR('\0' * sz)
-        _lib.User32.GetMenuStringW(self, id_or_pos, buff, sz, self._by_mf[by_pos])
+        _lib.User32.GetMenuStringW(self, id_or_pos, buff, sz, _HMENU_MF[by_pos])
         return buff.value
 
     def get_item_submenu(self, pos: int) -> HMENU:
         return type(self)(_lib.User32.GetSubMenu(self, pos))
 
     def enable_item(self, id_or_pos: int, enable: bool = True, gray: bool = True, by_pos: bool = False) -> bool:
-        return bool(_lib.User32.EnableMenuItem(self, id_or_pos, self._by_mf[by_pos] | (
+        return bool(_lib.User32.EnableMenuItem(self, id_or_pos, _HMENU_MF[by_pos] | (
             _const.MF_ENABLED if enable else (_const.MF_GRAYED if gray else _const.MF_DISABLED))))
 
     def check_item(self, id_or_pos: int, check: bool = True, by_pos: bool = False) -> bool:
-        return bool(_lib.User32.CheckMenuItem(self, id_or_pos, self._by_mf[by_pos] | (
+        return bool(_lib.User32.CheckMenuItem(self, id_or_pos, _HMENU_MF[by_pos] | (
             _const.MF_CHECKED if check else _const.MF_UNCHECKED)))
 
     def set_default_item(self, id_or_pos: int, by_pos: bool = False) -> bool:
@@ -148,11 +171,11 @@ class HMENU(_type.HMENU):
 
     def set_item_bitmaps(self, id_or_pos: int, checked: _Optional[_type.HBITMAP] = None,
                          unchecked: _Optional[_type.HBITMAP] = None, by_pos: bool = False) -> bool:
-        return bool(_lib.User32.SetMenuItemBitmaps(self, id_or_pos, self._by_mf[by_pos], checked, unchecked))
+        return bool(_lib.User32.SetMenuItemBitmaps(self, id_or_pos, _HMENU_MF[by_pos], checked, unchecked))
 
     def check_radio_item(self, id_or_pos: int, id_or_pos_first: int, id_or_pos_last: int, by_pos: bool = False) -> bool:
-        return bool(_lib.User32.CheckMenuRadioItem(self, id_or_pos_first,
-                                                   id_or_pos_last, id_or_pos, self._by_mf[by_pos]))
+        return bool(_lib.User32.CheckMenuRadioItem(
+            self, id_or_pos_first, id_or_pos_last, id_or_pos, _HMENU_MF[by_pos]))
 
     def track(self, x: int, y: int, alignment: int = _const.TPM_LEFTALIGN | _const.TPM_TOPALIGN,
               right_button: bool = False, animation: int = _const.TPM_NOANIMATION) -> int:
@@ -168,5 +191,14 @@ class HWND(_type.HWND):
     def __del__(self):
         _lib.User32.DestroyWindow(self)
 
+    def get_hdc(self) -> HDC:
+        return HDC.from_hwnd(self)
+
+    def get_menu(self) -> HMENU:
+        return HMENU.from_hwnd(self)
+
     def send_message(self, msg: int, wparam: int = 0, lparam: int = 0, wait: bool = True) -> int:
         return (_lib.User32.SendMessageW if wait else _lib.User32.PostMessageW)(self, msg, wparam, lparam)
+
+    def show(self, cmd: int = _const.SW_SHOW) -> bool:
+        return bool(_lib.User32.ShowWindow(self, cmd))

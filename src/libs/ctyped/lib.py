@@ -378,6 +378,8 @@ class Gdi32(_WinFunc):
                            _type.c_int,
                            _type.LPVOID],
                           _type.c_int]
+    GetObjectType: _Callable[[_type.HGDIOBJ],
+                             _type.DWORD]
     GetStockObject: _Callable[[_type.c_int],
                               _type.HGDIOBJ]
     SelectObject: _Callable[[_type.HDC,
@@ -947,9 +949,126 @@ class Kernel32(_WinFunc):
     TerminateProcess: _Callable[[_type.HANDLE,
                                  _type.UINT],
                                 _type.BOOL]
+    # profileapi
+    QueryPerformanceCounter: _Callable[[_Pointer[_union.LARGE_INTEGER]],
+                                       _type.BOOL]
+    QueryPerformanceFrequency: _Callable[[_Pointer[_union.LARGE_INTEGER]],
+                                         _type.BOOL]
     # synchapi
+    CancelWaitableTimer: _Callable[[_type.HANDLE],
+                                   _type.BOOL]
+    CreateEventA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                             _type.BOOL,
+                             _type.BOOL,
+                             _Optional[_type.LPCSTR]],
+                            _type.HANDLE]
+    CreateEventW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                             _type.BOOL,
+                             _type.BOOL,
+                             _Optional[_type.LPCWSTR]],
+                            _type.HANDLE]
+    CreateEventExA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                               _Optional[_type.LPCSTR],
+                               _type.DWORD,
+                               _type.DWORD],
+                              _type.HANDLE]
+    CreateEventExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                               _Optional[_type.LPCWSTR],
+                               _type.DWORD,
+                               _type.DWORD],
+                              _type.HANDLE]
+    CreateMutexA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                             _type.BOOL,
+                             _Optional[_type.LPCSTR]],
+                            _type.HANDLE]
+    CreateMutexW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                             _type.BOOL,
+                             _Optional[_type.LPCWSTR]],
+                            _type.HANDLE]
+    CreateMutexExA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                               _Optional[_type.LPCSTR],
+                               _type.DWORD,
+                               _type.DWORD],
+                              _type.HANDLE]
+    CreateMutexExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                               _Optional[_type.LPCWSTR],
+                               _type.DWORD,
+                               _type.DWORD],
+                              _type.HANDLE]
+    CreateSemaphoreW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                                 _type.LONG,
+                                 _type.LONG,
+                                 _Optional[_type.LPCWSTR]],
+                                _type.HANDLE]
+    CreateSemaphoreExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                                   _type.LONG,
+                                   _type.LONG,
+                                   _Optional[_type.LPCWSTR],
+                                   _type.DWORD,
+                                   _type.DWORD],
+                                  _type.HANDLE]
+    CreateWaitableTimerW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                                     _type.BOOL,
+                                     _Optional[_type.LPCWSTR]],
+                                    _type.HANDLE]
+    CreateWaitableTimerExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                                       _Optional[_type.LPCWSTR],
+                                       _type.DWORD,
+                                       _type.DWORD],
+                                      _type.HANDLE]
+    OpenEventA: _Callable[[_type.DWORD,
+                           _type.BOOL,
+                           _type.LPCSTR],
+                          _type.HANDLE]
+    OpenEventW: _Callable[[_type.DWORD,
+                           _type.BOOL,
+                           _type.LPCWSTR],
+                          _type.HANDLE]
+    OpenMutexA: _Callable[[_type.DWORD,
+                           _type.BOOL,
+                           _type.LPCSTR],
+                          _type.HANDLE]
+    OpenMutexW: _Callable[[_type.DWORD,
+                           _type.BOOL,
+                           _type.LPCWSTR],
+                          _type.HANDLE]
+    OpenSemaphoreW: _Callable[[_type.DWORD,
+                               _type.BOOL,
+                               _type.LPCWSTR],
+                              _type.HANDLE]
+    OpenWaitableTimerW: _Callable[[_type.DWORD,
+                                   _type.BOOL,
+                                   _type.LPCWSTR],
+                                  _type.HANDLE]
+    ResetEvent: _Callable[[_type.HANDLE],
+                          _type.BOOL]
+    ReleaseMutex: _Callable[[_type.HANDLE],
+                            _type.BOOL]
+    ReleaseSemaphore: _Callable[[_type.HANDLE,
+                                 _type.LONG,
+                                 _Optional[_Pointer[_type.LONG]]],
+                                _type.BOOL]
+    SetEvent: _Callable[[_type.HANDLE],
+                        _type.BOOL]
+    SignalObjectAndWait: _Callable[[_type.HANDLE,
+                                    _type.HANDLE,
+                                    _type.DWORD,
+                                    _type.BOOL],
+                                   _type.DWORD]
     Sleep: _Callable[[_type.DWORD],
                      _type.VOID]
+    SleepEx: _Callable[[_type.DWORD,
+                        _type.BOOL],
+                       _type.DWORD]
+    WaitForMultipleObjects: _Callable[[_type.DWORD,
+                                       _Pointer[_type.HANDLE],
+                                       _type.BOOL,
+                                       _type.DWORD],
+                                      _type.DWORD]
+    WakeByAddressAll: _Callable[[_type.PVOID],
+                                _type.VOID]
+    WakeByAddressSingle: _Callable[[_type.PVOID],
+                                   _type.VOID]
     # sysinfoapi
     GetComputerNameExA: _Callable[[_enum.COMPUTER_NAME_FORMAT,
                                    _Optional[_type.LPSTR],
@@ -1842,6 +1961,14 @@ class Shlwapi(_WinFunc):
 
 class User32(_WinFunc):
     # WinUser
+    wvsprintfA: _Callable[[_type.LPSTR,
+                           _type.LPCSTR,
+                           _type.va_list],
+                          _type.c_int]
+    wvsprintfW: _Callable[[_type.LPWSTR,
+                           _type.LPCWSTR,
+                           _type.va_list],
+                          _type.c_int]
     AdjustWindowRect: _Callable[[_Pointer[_struct.RECT],
                                  _type.DWORD,
                                  _type.BOOL],
@@ -1867,6 +1994,10 @@ class User32(_WinFunc):
                             _type.UINT_PTR,
                             _Optional[_type.LPCWSTR]],
                            _type.BOOL]
+    AttachThreadInput: _Callable[[_type.DWORD,
+                                  _type.DWORD,
+                                  _type.BOOL],
+                                 _type.BOOL]
     BeginPaint: _Callable[[_type.HWND,
                            _Pointer[_struct.PAINTSTRUCT]],
                           _type.HDC]
@@ -2343,6 +2474,8 @@ class User32(_WinFunc):
                           _type.HMENU]
     GetSysColor: _Callable[[_type.c_int],
                            _type.DWORD]
+    GetSysColorBrush: _Callable[[_type.c_int],
+                                _type.HBRUSH]
     GetSystemDpiForProcess: _Callable[[_type.HANDLE],
                                       _type.UINT]
     GetSystemMenu: _Callable[[_type.HWND,
@@ -2592,6 +2725,8 @@ class User32(_WinFunc):
     ReleaseDC: _Callable[[_Optional[_type.HWND],
                           _type.HDC],
                          _type.c_int]
+    ReplyMessage: _Callable[[_type.LRESULT],
+                            _type.BOOL]
     SendDlgItemMessageA: _Callable[[_type.HWND,
                                     _type.c_int,
                                     _type.UINT,
@@ -2849,6 +2984,11 @@ class User32(_WinFunc):
                                 _type.BOOL]
     UpdateWindow: _Callable[[_type.HWND],
                             _type.BOOL]
+    WaitForInputIdle: _Callable[[_type.HANDLE,
+                                 _type.DWORD],
+                                _type.DWORD]
+    WaitMessage: _Callable[[],
+                           _type.BOOL]
     WindowFromDC: _Callable[[_type.HDC],
                             _type.HWND]
 

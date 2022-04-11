@@ -73,8 +73,23 @@ _WM_TASKBARCREATED = ctyped.lib.User32.RegisterWindowMessageW('TaskbarCreated')
 _WM_SYS_TRAY = ctyped.const.WM_APP
 _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 
-_TID_SYS_TRAY_ANIMATION = 0
-_TID_MENU_ITEM_TOOLTIP = 1
+_TID_MENU_ITEM_TOOLTIP = 0
+
+_MIM_FIELD = {
+    ctyped.const.MIM_BACKGROUND: 'hbrBack',
+    ctyped.const.MIM_HELPID: 'dwContextHelpID',
+    ctyped.const.MIM_MAXHEIGHT: 'cyMax',
+    ctyped.const.MIM_STYLE: 'dwStyle'}
+_MIIM_FIELDS = {
+    ctyped.const.MIIM_STATE: ('fState',),
+    ctyped.const.MIIM_ID: ('wID',),
+    ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_STRING: ('hSubMenu', 'dwTypeData'),
+    ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
+    ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'),
+    ctyped.const.MIIM_DATA: ('dwItemData',),
+    ctyped.const.MIIM_STRING: ('dwTypeData', 'cch'),
+    ctyped.const.MIIM_BITMAP: ('hbmpItem',),
+    ctyped.const.MIIM_FTYPE: ('fType',)}
 
 
 class Event:
@@ -103,7 +118,7 @@ class Event:
     MENU_ITEM_RIGHT_UP = ctyped.const.WM_MENURBUTTONUP
 
 
-class SysTrayIcon:
+class SystemTrayIcon:
     NONE = ctyped.const.NIIF_NONE
     INFO = ctyped.const.NIIF_INFO
     WARNING = ctyped.const.NIIF_WARNING
@@ -111,13 +126,22 @@ class SysTrayIcon:
     TRAY = ctyped.const.NIIF_USER
 
 
-class _MenuItemKind:
+class MenuBackgroundColor:
+    FACE_3D = ctyped.const.COLOR_3DFACE
+    ACTIVE_CAPTION = ctyped.const.COLOR_ACTIVECAPTION
+    BUTTON_TEXT = ctyped.const.COLOR_BTNTEXT
+    GRAY_TEXT = ctyped.const.COLOR_GRAYTEXT
+    HIGHLIGHT = ctyped.const.COLOR_HIGHLIGHT
+    HIGHLIGHT_TEXT = ctyped.const.COLOR_HIGHLIGHTTEXT
+    HOT_LIGHT = ctyped.const.COLOR_HOTLIGHT
+    WINDOW_TEXT = ctyped.const.COLOR_WINDOWTEXT
+
+
+class MenuItemType:
+    NORMAL = -1
     SEPARATOR = 0
-    STRING = 1
-    CHECK = 2
-    RADIO = 3
-    IMAGE = 4
-    SUBMENU = 5
+    CHECK = 1
+    RADIO = 2
 
 
 class MenuItemImage:
@@ -151,11 +175,12 @@ class _IDGenerator:
             return self._last
 
     # noinspection PyShadowingBuiltins
-    def release(self, id: int) -> bool:
+    def destroy(self, id: int) -> bool:
         if self._last >= id > self._start:
             self._released.append(id)
             return True
-        return False
+        else:
+            return False
 
 
 class _EventHandler:
@@ -173,12 +198,15 @@ class _EventHandler:
         self._selves[id] = self
         self._bindings[id] = {}
 
+    def __eq__(self, other: _EventHandler):
+        return type(self) is type(other) and self._id == other._id
+
     def destroy(self) -> bool:
         try:
             del self._selves[self._id]
             del self._bindings[self._id]
             if hasattr(self, '_id_gen'):
-                self._id_gen.release(self._id)
+                self._id_gen.destroy(self._id)
         except KeyError:
             return False
         else:
@@ -261,9 +289,11 @@ class Gui(_EventHandler):
         elif message == ctyped.const.WM_QUERYENDSESSION:
             ...
         elif message == _WM_TASKBARCREATED:
-            SysTray.update()
+            SystemTray.update()
         elif message in (_WM_MENU_ITEM_TOOLTIP_HIDE, ctyped.const.WM_MOUSELEAVE):
-            self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, lparam=lparam)
+            if wparam:
+                self._menu_item_tooltip_hwnd.show(ctyped.const.SW_HIDE)
+            self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE)
         elif message == ctyped.const.WM_ENTERIDLE:
             ctyped.lib.User32.KillTimer(hwnd, _TID_MENU_ITEM_TOOLTIP)
             if wparam == ctyped.const.MSGF_MENU and (proc := self._menu_item_tooltip_proc) is not None:
@@ -271,11 +301,12 @@ class Gui(_EventHandler):
         elif message == ctyped.const.WM_DISPLAYCHANGE:
             self.trigger(message)
         elif message == _WM_SYS_TRAY:
-            SysTray.get(wparam).trigger(lparam)
+            SystemTray.get(wparam).trigger(lparam)
         elif message in (ctyped.const.WM_INITMENUPOPUP, ctyped.const.WM_UNINITMENUPOPUP):
             Menu.get(wparam).trigger(message)
         elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND, ctyped.const.WM_MENURBUTTONUP):
-            ctyped.handle.HWND.send_message(hwnd, _WM_MENU_ITEM_TOOLTIP_HIDE)
+            is_command = message == ctyped.const.WM_MENUCOMMAND
+            self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, is_command)
             if lparam:
                 is_select = message == ctyped.const.WM_MENUSELECT
                 item = Menu.get(lparam).get_item(ctyped.macro.LOWORD(wparam), by_pos=not is_select or (
@@ -285,6 +316,8 @@ class Gui(_EventHandler):
                     self._menu_item_tooltip_proc = item._tooltip_proc if item._tooltip_text else None
                     ctyped.lib.User32.TrackMouseEvent(ctyped.byref(
                         ctyped.struct.TRACKMOUSEEVENT(dwFlags=ctyped.const.TME_LEAVE, hwndTrack=hwnd)))
+                if is_command and item.get_type() in (MenuItemType.CHECK, MenuItemType.RADIO):
+                    item.check(not item.is_checked())
                 item.trigger(message)
         else:
             return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
@@ -292,10 +325,10 @@ class Gui(_EventHandler):
 
     def _show_menu_item_tooltip(self, text: str, icon: int, title: str):
         self._menu_item_tooltip_proc = None
-        lparam = ctyped.addressof(self._menu_item_tooltip)
         self._menu_item_tooltip.lpszText = text
         self._menu_item_tooltip_title = ctyped.char_array(title)
-        self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, lparam=lparam)
+        lparam = ctyped.addressof(self._menu_item_tooltip)
+        self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE)
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_UPDATETIPTEXTW, lparam=lparam)
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_SETTITLEW, icon,
                                                   ctyped.addressof(self._menu_item_tooltip_title))
@@ -323,19 +356,21 @@ class _Control(_EventHandler):
             gui = Gui.get()
             if gui is None:
                 raise RuntimeError(
-                    f"Could not initialize '{type(self).__name__} (No live instance of '{Gui.__name__}' found)")
+                    f"Could not initialize '{type(self).__name__} (Live instance of '{Gui.__name__}' unavailable)")
+        # noinspection PyProtectedMember
         gui._attached.append(self)
         return gui.get_id()
 
 
-class SysTray(_Control):
-    _selves: dict[int, SysTray]
+class SystemTray(_Control):
+    _selves: dict[int, SystemTray]
     _id_gen = _IDGenerator()
 
     _hicon = None
     _balloon_hicon = None
     _shown = False
     _animation_frames = None
+    _animation_speed = 1
 
     def __init__(self, icon: Union[int, str] = ctyped.const.IDI_APPLICATION,
                  tooltip: Optional[str] = None, *, _gui: Optional[Gui] = None):
@@ -362,6 +397,9 @@ class SysTray(_Control):
     def is_shown(self) -> bool:
         return self._shown
 
+    def is_animated(self) -> bool:
+        return self._animation_frames is not None
+
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
         self._data.hIcon = hicon
         return self._update()
@@ -384,17 +422,27 @@ class SysTray(_Control):
             pass
         else:
             self._set_hicon(hicon)
-            ctyped.lib.User32.SetTimer(self._hwnd, _TID_SYS_TRAY_ANIMATION, delay, self._animation_proc)
+            ctyped.lib.User32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
 
-    def set_animation(self, gif_path: str):
+    def start_animation(self, gif_path: str) -> bool:
         self.stop_animation()
         self._animation_frames = itertools.cycle(tuple(_get_gif_frames(gif_path)))
-        self._set_next_frame()
+        try:
+            self._set_next_frame()
+        except StopIteration:
+            self._animation_frames = None
+            return False
+        else:
+            return True
 
     def stop_animation(self):
         self._animation_frames = None
-        ctyped.lib.User32.KillTimer(self._hwnd, _TID_SYS_TRAY_ANIMATION)
+        ctyped.lib.User32.KillTimer(self._hwnd, self._id)
         self._set_hicon(self._hicon)
+
+    def set_animation_speed(self, factor: float) -> bool:
+        self._animation_speed = factor
+        return bool(self._animation_frames)
 
     def _update(self) -> bool:
         return self._shown and bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
@@ -410,7 +458,7 @@ class SysTray(_Control):
         return not self._shown
 
     def show_balloon(self, title: str, text: Optional[str] = None,
-                     res_or_path: Union[int, str] = SysTrayIcon.NONE, silent: bool = False) -> bool:
+                     res_or_path: Union[int, str] = SystemTrayIcon.NONE, silent: bool = False) -> bool:
         flags = self._data.uFlags
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
@@ -437,21 +485,7 @@ class SysTray(_Control):
 class Menu(_Control):
     _selves: dict[int, Menu]
 
-    _mim_field = {
-        ctyped.const.MIM_BACKGROUND: 'hbrBack',
-        ctyped.const.MIM_HELPID: 'dwContextHelpID',
-        ctyped.const.MIM_MAXHEIGHT: 'cyMax',
-        ctyped.const.MIM_STYLE: 'dwStyle'}
-    _miim_fields = {
-        ctyped.const.MIIM_STATE: ('fState',),
-        ctyped.const.MIIM_ID: ('wID',),
-        ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_STRING: ('hSubMenu', 'dwTypeData'),
-        ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
-        ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'),
-        ctyped.const.MIIM_DATA: ('dwItemData',),
-        ctyped.const.MIIM_STRING: ('dwTypeData', 'cch'),
-        ctyped.const.MIIM_BITMAP: ('hbmpItem',),
-        ctyped.const.MIIM_FTYPE: ('fType',)}
+    _hbrush = None
 
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
@@ -459,7 +493,7 @@ class Menu(_Control):
         ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(
             ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS)))
         self._hmenu.set_hwnd(self._hwnd)
-        self._items: list[MenuItem] = []
+        self._items: list[_MenuItem] = []
         super().__init__(self._hmenu.value)
 
     def destroy(self) -> bool:
@@ -467,17 +501,17 @@ class Menu(_Control):
         self._hmenu = None
         return super().destroy()
 
-    def __contains__(self, id_or_item: Union[int, MenuItem]):
+    def __contains__(self, id_or_item: Union[int, _MenuItem]):
         return self.get_item(id_or_item) is not None
 
     def __len__(self):
         return len(self._items)
 
-    def __getitem__(self, pos: Union[int, slice]) -> Union[MenuItem, tuple[MenuItem]]:
+    def __getitem__(self, pos: Union[int, slice]) -> Union[_MenuItem, tuple[_MenuItem]]:
         items = self._items[pos]
         return tuple(items) if isinstance(pos, slice) else items
 
-    def __delitem__(self, pos_or_item: Union[int, slice, MenuItem]) -> bool:
+    def __delitem__(self, pos_or_item: Union[int, slice, _MenuItem]) -> bool:
         if isinstance(pos_or_item, slice):
             deleted = True
             for item in self[pos_or_item]:
@@ -486,42 +520,62 @@ class Menu(_Control):
         else:
             return self.remove_item(pos_or_item, True)
 
-    def __iter__(self) -> MenuItem:
+    def __iter__(self) -> _MenuItem:
         yield from self._items
 
-    def get_count(self) -> int:
+    def get_item_count(self) -> int:
         return self._hmenu.get_item_count()
 
-    def get_item(self, id_or_pos_or_item: Union[int, MenuItem], default: Any = None, by_pos: bool = False) -> MenuItem:
+    def get_item(self, id_or_pos_or_item: Union[int, _MenuItem],
+                 default: Any = None, by_pos: bool = False) -> Optional[_MenuItem]:
         if by_pos:
-            with contextlib.suppress(IndexError):
-                return self[id_or_pos_or_item]
-        elif (info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_ID, by_pos)) is not None:
-            return MenuItem.get(info[0])
+            if id_or_pos_or_item >= 0:
+                with contextlib.suppress(IndexError):
+                    return self._items[id_or_pos_or_item]
+        else:
+            if isinstance(id_or_pos_or_item, int):
+                id_or_pos_or_item = _MenuItem.get(id_or_pos_or_item)
+            if id_or_pos_or_item and self is id_or_pos_or_item.get_menu():
+                return id_or_pos_or_item
         return default
 
-    def append_item(self, text: str = '', image: Optional = None, submenu: Optional[Menu] = None,
-                    enable: bool = True, highlight: bool = False, check: Optional[bool] = None,
-                    default: bool = False, kind: int = _MenuItemKind.STRING) -> Optional[MenuItem]:
-        return self.insert_item(self.get_count(), text, image, submenu, enable, highlight, check, default, kind)
+    # noinspection PyShadowingBuiltins
+    def append_item(self, text: Optional[str] = None, image_res_or_path: Optional[Union[str, None]] = None,
+                    submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
+                    type: int = MenuItemType.NORMAL) -> Optional[_MenuItem]:
+        return self.insert_item(self.get_item_count(), text, image_res_or_path, submenu, enable, check, type)
 
-    def insert_item(self, pos: int, text: str = '', image: Optional = None, submenu: Optional[Menu] = None,
-                    enable: bool = True, highlight: bool = False, check: Optional[bool] = None,
-                    default: bool = False, kind: int = _MenuItemKind.STRING) -> Optional[MenuItem]:
-        item = MenuItem(self, gui=Gui._selves[self._hwnd])
-        if ctyped.lib.User32.InsertMenuW(self._hmenu, pos,
-                                         ctyped.const.MF_BYPOSITION | ctyped.const.MF_STRING, item.get_id(), None):
+    # noinspection PyShadowingBuiltins
+    def insert_item(self, pos: int, text: Optional[str] = None, image_res_or_path: Optional[Union[int, str]] = None,
+                    submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
+                    type: int = MenuItemType.NORMAL) -> Optional[_MenuItem]:
+        item = _MenuItem(self, type, gui=Gui.get(self._hwnd))
+        if ctyped.lib.User32.InsertMenuW(self._hmenu, pos, ctyped.const.MF_BYPOSITION, item.get_id(), None):
             self._items.insert(pos, item)
-            item.set_text(text)
-            item.set_states(enable, highlight, check, default)
+            if type == MenuItemType.SEPARATOR:
+                # noinspection PyProtectedMember
+                item._set_separator()
+            else:
+                if text is not None:
+                    item.set_text(text)
+                if image_res_or_path is not None:
+                    item.set_image(image_res_or_path, text is None)
+                if submenu is not None:
+                    item.set_submenu(submenu)
+                if type == MenuItemType.RADIO:
+                    # noinspection PyProtectedMember
+                    item._set_radio()
+                    if check is None:
+                        check = True
+                    item.check(check)
+                item.enable(enable)
             return item
 
-    def remove_item(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> bool:
-        if isinstance(id_or_pos_or_item, MenuItem):
+    def remove_item(self, id_or_pos_or_item: Union[int, _MenuItem], by_pos: bool = False) -> bool:
+        if isinstance(id_or_pos_or_item, _MenuItem):
             id_or_pos_or_item = id_or_pos_or_item.get_id()
             by_pos = False
-        removed = bool(ctyped.lib.User32.RemoveMenu(
-            self._hmenu, id_or_pos_or_item, ctyped.const.MF_BYPOSITION if by_pos else ctyped.const.MF_BYCOMMAND))
+        removed = self._hmenu.remove_item(id_or_pos_or_item, by_pos)
         if removed:
             self._items.remove(self.get_item(id_or_pos_or_item, by_pos))
         return removed
@@ -541,251 +595,86 @@ class Menu(_Control):
     def hide(self) -> bool:
         return self._hmenu.untrack()
 
-    def _get_item_props(self, id_or_pos_or_item: Union[int, MenuItem],
-                        states: bool, index: int, by_pos: bool) -> Optional[bool]:
-        # noinspection PyArgumentList
-        return None if (props := (self.get_item_states if states else self.get_item_types)(
-            id_or_pos_or_item, by_pos)) is None else props[index]
+    def _get_data(self, mim: int) -> Optional:
+        info = ctyped.struct.MENUINFO(fMask=mim)
+        if ctyped.lib.User32.GetMenuInfo(self._hmenu, ctyped.byref(info)):
+            return getattr(info, _MIM_FIELD[mim])
 
-    def _prep_item_image(self, id_or_pos_or_item: Union[int, MenuItem],
-                         res_or_path: Union[int, str], index: int, by_pos: bool) -> int:
-        if isinstance(res_or_path, str):
-            res_or_path = _gdiplus.Bitmap.from_file(res_or_path).get_hbitmap()
-            # noinspection PyProtectedMember
-            (id_or_pos_or_item if isinstance(id_or_pos_or_item, MenuItem) else self.get_item(
-                id_or_pos_or_item, by_pos))._hbmps[index] = res_or_path
-            return res_or_path.value
-        return res_or_path
+    def get_background_color(self) -> Optional[tuple[int, int, int]]:
+        if info := self._get_data(ctyped.const.MIM_BACKGROUND):
+            return ctyped.handle.HBRUSH.get_rgb(info)
 
-    def _get_item_info(self, id_or_pos_or_item: Union[int, MenuItem], miim: int, by_pos: bool,
-                       item_info: Optional[ctyped.struct.MENUITEMINFOW] = None) -> Optional[tuple]:
-        if isinstance(id_or_pos_or_item, MenuItem):
-            id_or_pos_or_item = id_or_pos_or_item.get_id()
-            by_pos = False
-        if item_info is None:
-            item_info = ctyped.struct.MENUITEMINFOW()
-        item_info.fMask = miim
-        if ctyped.lib.User32.GetMenuItemInfoW(self._hmenu, id_or_pos_or_item, by_pos, ctyped.byref(item_info)):
-            return tuple(getattr(item_info, field) for field in self._miim_fields[miim])
+    def get_max_height(self) -> Optional[int]:
+        if info := self._get_data(ctyped.const.MIM_MAXHEIGHT):
+            return info
 
-    def _get_item_image(self, id_or_pos_or_item: Union[int, MenuItem],
-                        by_pos: bool = False) -> Optional[ctyped.handle.HBITMAP]:
-        if info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_BITMAP, by_pos):
-            return ctyped.handle.HBITMAP(info[0])
+    def _get_styles(self) -> Optional[tuple[bool, bool, bool, bool, bool, bool]]:
+        if style := self._get_data(ctyped.const.MIM_STYLE):
+            return (ctyped.const.MNS_AUTODISMISS == style & ctyped.const.MNS_AUTODISMISS,
+                    ctyped.const.MNS_CHECKORBMP == style & ctyped.const.MNS_CHECKORBMP,
+                    ctyped.const.MNS_DRAGDROP == style & ctyped.const.MNS_DRAGDROP,
+                    ctyped.const.MNS_MODELESS == style & ctyped.const.MNS_MODELESS,
+                    ctyped.const.MNS_NOCHECK == style & ctyped.const.MNS_NOCHECK,
+                    ctyped.const.MNS_NOTIFYBYPOS == style & ctyped.const.MNS_NOTIFYBYPOS)
 
-    def _get_item_check_icons(self, id_or_pos_or_item: Union[int, MenuItem],
-                              by_pos: bool = False) -> Optional[tuple[ctyped.handle.HBITMAP, ctyped.handle.HBITMAP]]:
-        if info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_CHECKMARKS, by_pos):
-            return ctyped.handle.HBITMAP(info[0]), ctyped.handle.HBITMAP(info[1])
+    def get_auto_dismiss(self) -> Optional[bool]:
+        return self._get_styles()[0]
 
-    def get_item_types(self, id_or_pos_or_item: Union[int, MenuItem],
-                       by_pos: bool = False) -> Optional[tuple[bool, bool, bool, bool]]:
-        if info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_TYPE, by_pos):
-            return (ctyped.const.MFT_MENUBREAK == info[0] & ctyped.const.MFT_MENUBREAK,
-                    ctyped.const.MFT_RADIOCHECK == info[0] & ctyped.const.MFT_RADIOCHECK,
-                    ctyped.const.MFT_RIGHTORDER == info[0] & ctyped.const.MFT_RIGHTORDER,
-                    ctyped.const.MFT_RIGHTJUSTIFY == info[0] & ctyped.const.MFT_RIGHTJUSTIFY)
+    def get_no_check(self) -> Optional[bool]:
+        return self._get_styles()[4]
 
-    def is_item_broken(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, False, 0, by_pos)
+    def _set_data(self, mim: int, data, recursive: bool) -> bool:
+        info = ctyped.struct.MENUINFO(fMask=(recursive * ctyped.const.MIM_APPLYTOSUBMENUS) | mim)
+        setattr(info, _MIM_FIELD[mim], data)
+        return bool(ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
 
-    def is_item_radio(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, False, 1, by_pos)
+    def set_background_color(self, color_or_rgb: Union[int, tuple[int, int, int]], recursive: bool = True) -> bool:
+        self._hbrush = ctyped.handle.HBRUSH.from_color(color_or_rgb) if isinstance(
+            color_or_rgb, int) else ctyped.handle.HBRUSH.from_rgb(*color_or_rgb)
+        return bool(self._hbrush) and self._set_data(ctyped.const.MIM_BACKGROUND, self._hbrush, recursive)
 
-    def is_item_right_ordered(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, False, 2, by_pos)
+    def set_max_height(self, height: int = 0, recursive: bool = True) -> bool:
+        return bool(self._set_data(ctyped.const.MIM_MAXHEIGHT, height, recursive))
 
-    def is_item_right_justified(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, False, 3, by_pos)
-
-    def get_item_id(self, pos_or_item: Union[int, MenuItem]) -> int:
-        return info[0] if (info := self._get_item_info(pos_or_item, ctyped.const.MIIM_ID, True)) else -1
-
-    def get_item_states(self, id_or_pos_or_item: Union[int, MenuItem],
-                        by_pos: bool = False) -> Optional[tuple[bool, bool, bool, bool]]:
-        if info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_STATE, by_pos):
-            return (ctyped.const.MFS_ENABLED == info[0] & (ctyped.const.MF_GRAYED | ctyped.const.MFS_DISABLED),
-                    ctyped.const.MFS_HILITE == info[0] & ctyped.const.MFS_HILITE,
-                    ctyped.const.MFS_CHECKED == info[0] & ctyped.const.MFS_CHECKED,
-                    ctyped.const.MFS_DEFAULT == info[0] & ctyped.const.MFS_DEFAULT)
-
-    def is_item_enabled(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, True, 0, by_pos)
-
-    def is_item_highlighted(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, True, 1, by_pos)
-
-    def is_item_checked(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, True, 2, by_pos)
-
-    def is_item_default(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[bool]:
-        return self._get_item_props(id_or_pos_or_item, True, 3, by_pos)
-
-    def get_item_text(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> str:
-        item_info = ctyped.struct.MENUITEMINFOW()
-        if self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_STRING, by_pos, item_info) and item_info.cch:
-            item_info.cch += 1
-            with _utils.string_buffer(item_info.cch) as buff:
-                item_info.dwTypeData = buff
-                if self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_STRING, by_pos, item_info):
-                    return item_info.dwTypeData
-        return ''
-
-    def get_item_submenu(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> Optional[Menu]:
-        if info := self._get_item_info(id_or_pos_or_item, ctyped.const.MIIM_SUBMENU, by_pos):
-            return self._selves[info[0]]
-
-    def _set_item_info(self, id_or_pos_or_item: Union[int, MenuItem],
-                       infos: Iterable, miim: int, by_pos: bool) -> bool:
-        if isinstance(id_or_pos_or_item, MenuItem):
-            id_or_pos_or_item = id_or_pos_or_item.get_id()
-            by_pos = False
-        item_info = ctyped.struct.MENUITEMINFOW(fMask=miim)
-        for field, info in zip(self._miim_fields[miim], infos):
-            setattr(item_info, field, info)
-        return bool(ctyped.lib.User32.SetMenuItemInfoW(self._hmenu, id_or_pos_or_item, by_pos, ctyped.byref(item_info)))
-
-    def _set_item_icon(self, id_or_pos_or_item: Union[int, MenuItem],
-                       res_or_path: Union[int, str], by_pos: bool = False) -> bool:
-        return self._set_item_info(id_or_pos_or_item, (self._prep_item_image(
-            id_or_pos_or_item, res_or_path, 0, by_pos),), ctyped.const.MIIM_BITMAP, by_pos)
-
-    def set_item_check_icons(self, id_or_pos_or_item: Union[int, MenuItem],
-                             res_or_path_checked: Optional[Union[int, str]] = None,
-                             res_or_path_unchecked: Optional[Union[int, str]] = None, by_pos: bool = False) -> bool:
-        return self._set_item_info(id_or_pos_or_item, (
-            self._prep_item_image(id_or_pos_or_item, res_or_path_checked, 1, by_pos),
-            self._prep_item_image(id_or_pos_or_item, res_or_path_unchecked, 2, by_pos)),
-                                   ctyped.const.MIIM_CHECKMARKS, by_pos)
-
-    def _set_item_types(self, id_or_pos_or_item: Union[int, MenuItem], broken: Optional[bool] = None,
-                        radio: Optional[bool] = None, right_ordered: Optional[bool] = None,
-                        right_justified: Optional[bool] = None, by_pos: bool = False) -> bool:
-        types_ = self.get_item_types(id_or_pos_or_item, by_pos)
+    def _set_styles(self, auto_dismiss: Optional[bool] = None, check_or_image: Optional[bool] = None,
+                    drag_drop: Optional[bool] = None, modeless: Optional[bool] = None, no_check: Optional[bool] = None,
+                    notify_by_pos: Optional[bool] = None, recursive: bool = True) -> bool:
+        styles = self._get_styles()
         flags = 0
-        if types_[0] if broken is None else broken:
-            flags |= ctyped.const.MF_MENUBREAK
-        if types_[1] if radio is None else radio:
-            flags |= ctyped.const.MFT_RADIOCHECK
-        if types_[2] if right_ordered is None else right_ordered:
-            flags |= ctyped.const.MFT_RIGHTORDER
-        if types_[3] if right_justified is None else right_justified:
-            flags |= ctyped.const.MFT_RIGHTJUSTIFY
-        return self._set_item_info(id_or_pos_or_item, (flags,), ctyped.const.MIIM_FTYPE, by_pos)
+        if styles[0] if auto_dismiss is None else auto_dismiss:
+            flags |= ctyped.const.MNS_AUTODISMISS
+        if styles[1] if check_or_image is None else check_or_image:
+            flags |= ctyped.const.MNS_CHECKORBMP
+        if styles[2] if drag_drop is None else drag_drop:
+            flags |= ctyped.const.MNS_DRAGDROP
+        if styles[3] if modeless is None else modeless:
+            flags |= ctyped.const.MNS_MODELESS
+        if styles[4] if no_check is None else no_check:
+            flags |= ctyped.const.MNS_NOCHECK
+        if styles[5] if notify_by_pos is None else notify_by_pos:
+            flags |= ctyped.const.MNS_NOTIFYBYPOS
+        return bool(self._set_data(ctyped.const.MIM_STYLE, flags, recursive))
 
-    def _set_item_broken(self, id_or_pos_or_item: Union[int, MenuItem],
-                         broken: bool = True, by_pos: bool = False) -> bool:
-        return self._set_item_types(id_or_pos_or_item, broken, by_pos=by_pos)
+    def set_auto_dismiss(self, auto_dismiss: bool = True) -> bool:
+        return self._set_styles(auto_dismiss, recursive=False)
 
-    def _set_item_radio(self, id_or_pos_or_item: Union[int, MenuItem],
-                        radio: bool = True, by_pos: bool = False) -> bool:
-        return self._set_item_types(id_or_pos_or_item, radio=radio, by_pos=by_pos)
-
-    def set_item_right_ordered(self, id_or_pos_or_item: Union[int, MenuItem],
-                               right_ordered: bool = True, by_pos: bool = False) -> bool:
-        return self._set_item_types(id_or_pos_or_item, right_ordered=right_ordered, by_pos=by_pos)
-
-    def _set_item_right_justified(self, id_or_pos_or_item: Union[int, MenuItem],
-                                  right_justified: bool = True, by_pos: bool = False) -> bool:
-        return self._set_item_types(id_or_pos_or_item, right_justified=right_justified, by_pos=by_pos)
-
-    # noinspection PyShadowingBuiltins
-    def _set_item_id(self, id_or_pos_or_item: Union[int, MenuItem], id: int, by_pos: bool = False) -> bool:
-        return self._set_item_info(id_or_pos_or_item, (id,), ctyped.const.MIIM_ID, by_pos)
-
-    def set_item_states(self, id_or_pos_or_item: Union[int, MenuItem], enable: Optional[bool] = None,
-                        highlight: Optional[bool] = None, check: Optional[bool] = None,
-                        default: Optional[bool] = None, by_pos: bool = False) -> bool:
-        states = self.get_item_states(id_or_pos_or_item, by_pos)
-        flags = ctyped.const.MFS_ENABLED if (states[0] if enable is None else enable) else ctyped.const.MFS_DISABLED
-        flags |= ctyped.const.MFS_HILITE if (states[1] if highlight is None else
-                                             highlight) else ctyped.const.MFS_UNHILITE
-        flags |= ctyped.const.MFS_CHECKED if (states[2] if check is None else check) else ctyped.const.MFS_UNCHECKED
-        if states[3] if default is None else default:
-            flags |= ctyped.const.MFS_DEFAULT
-        return self._set_item_info(id_or_pos_or_item, (flags,), ctyped.const.MIIM_STATE, by_pos)
-
-    def enable_item(self, id_or_pos_or_item: Union[int, MenuItem], enable: bool = True, by_pos: bool = False) -> bool:
-        return self.set_item_states(id_or_pos_or_item, enable, by_pos=by_pos)
-
-    def highlight_item(self, id_or_pos_or_item: Union[int, MenuItem],
-                       highlight: bool = True, by_pos: bool = False) -> bool:
-        return self.set_item_states(id_or_pos_or_item, highlight=highlight, by_pos=by_pos)
-
-    def _check_item(self, id_or_pos_or_item: Union[int, MenuItem], check: bool = True, by_pos: bool = False) -> bool:
-        return self._check_item_radio(id_or_pos_or_item, by_pos) if self.is_item_radio(
-            id_or_pos_or_item, by_pos) else self.set_item_states(id_or_pos_or_item, check=check, by_pos=by_pos)
-
-    def set_default_item(self, id_or_pos_or_item: Union[int, MenuItem],
-                         default: bool = True, by_pos: bool = False) -> bool:
-        return self.set_item_states(id_or_pos_or_item, default=default, by_pos=by_pos)
-
-    def set_item_text(self, id_or_pos_or_item: Union[int, MenuItem], text: str, by_pos: bool = False) -> bool:
-        return self._set_item_info(id_or_pos_or_item, (ctyped.const.MFT_STRING, text), ctyped.const.MIIM_TYPE, by_pos)
-
-    def _set_item_image(self, id_or_pos_or_item: Union[int, MenuItem],
-                        res_or_path: Union[int, str], by_pos: bool = False) -> bool:
-        return self._set_item_info(id_or_pos_or_item, (ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(
-            self._prep_item_image(id_or_pos_or_item, res_or_path, 0, by_pos))), ctyped.const.MIIM_TYPE, by_pos)
-
-    def set_item_submenu(self, id_or_pos_or_item: Union[int, MenuItem],
-                         submenu: Menu, text: Optional[str] = None, by_pos: bool = False) -> bool:
-        return self._set_item_info(id_or_pos_or_item, (
-            submenu._hmenu, self.get_item_text(id_or_pos_or_item, by_pos)
-            if text is None else text), ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_STRING, by_pos)
-
-    def get_item_pos(self, id_or_item: Union[int, MenuItem]) -> int:
-        if isinstance(id_or_item, MenuItem):
-            id_or_item = id_or_item.get_id() if id_or_item.get_menu() is self else -1
-        for pos, item in enumerate(self):
-            if id_or_item == item.get_id():
-                return pos
-        return -1
-
-    def _check_item_radio(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> bool:
-        if not by_pos or isinstance(id_or_pos_or_item, MenuItem):
-            id_or_pos_or_item = self.get_item_pos(id_or_pos_or_item)
-        first_pos = last_pos = id_or_pos_or_item
-        while self.is_item_radio(first_pos - 1, True):
-            first_pos -= 1
-        while self.is_item_radio(last_pos + 1, True):
-            last_pos += 1
-        return self._hmenu.check_radio_item(id_or_pos_or_item, first_pos, last_pos, True)
-
-    def check_item(self, id_or_pos_or_item: Union[int, MenuItem], check: bool = True, by_pos: bool = False) -> bool:
-        return self._check_item_radio(id_or_pos_or_item, by_pos) if self.is_item_radio(
-            id_or_pos_or_item, by_pos) else self._check_item(id_or_pos_or_item, check, by_pos)
-
-    def set_item_tooltip(self, id_or_pos_or_item: Union[int, MenuItem], tooltip: str, by_pos: bool = False):
-        self.get_item(id_or_pos_or_item, by_pos=by_pos).set_tooltip(tooltip)
-
-    def set_item_image(self, id_or_pos_or_item: Union[int, MenuItem],
-                       res_or_path: Union[int, str], image_only: bool = False, by_pos: bool = False) -> bool:
-        # noinspection PyArgumentList
-        return (self._set_item_image if image_only else self._set_item_icon)(id_or_pos_or_item, res_or_path, by_pos)
-
-    def bind_item(self, id_or_pos_or_item: Union[int, MenuItem], event: int, callback: Callable,
-                  args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None, by_pos: bool = False):
-        self.get_item(id_or_pos_or_item, by_pos=by_pos).bind(event, callback, args, kwargs)
-
-    def unbind_item(self, id_or_pos_or_item: Union[int, MenuItem], event: int, by_pos: bool = False) -> bool:
-        return self.get_item(id_or_pos_or_item, by_pos=by_pos).unbind(event)
-
-    def trigger_item(self, id_or_pos_or_item: Union[int, MenuItem], event: int, by_pos: bool = False) -> Any:
-        return self.get_item(id_or_pos_or_item, by_pos=by_pos).trigger(event)
+    def set_no_check(self, no_check: bool = True, recursive: bool = True) -> bool:
+        return self._set_styles(no_check=no_check, recursive=recursive)
 
 
-class MenuItem(_Control):
-    _selves: dict[int, MenuItem]
+class _MenuItem(_Control):
+    _selves: dict[int, _MenuItem]
     _id_gen = _IDGenerator()
+
     _tooltip_text: str = ''
     _tooltip_icon: int = MenuItemTooltipIcon.NONE
     _tooltip_title: str = ''
 
-    def __init__(self, menu: Menu, *, gui: Optional[Gui] = None):
+    def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
         self._hwnd = self._attach(gui)
         self._tooltip_proc = ctyped.type.TIMERPROC(self._show_tooltip)
         self._menu = menu
+        self._type = type_
         self._hbmps: list[Optional[ctyped.handle.HBITMAP]] = [None] * 3
         super().__init__(next(self._id_gen))
 
@@ -797,102 +686,211 @@ class MenuItem(_Control):
             pt = ctyped.struct.POINT()
             ctyped.lib.User32.GetCursorPos(ctyped.byref(pt))
             if rect.left <= pt.x <= rect.right and rect.top <= pt.y <= rect.bottom:
-                Gui._selves[self._hwnd]._show_menu_item_tooltip(
+                # noinspection PyProtectedMember
+                Gui.get(self._hwnd)._show_menu_item_tooltip(
                     self._tooltip_text, self._tooltip_icon, self._tooltip_title)
 
     def get_menu(self) -> Menu:
         return self._menu
 
-    def get_pos(self) -> int:
-        return self._menu.get_item_pos(self)
+    def get_type(self) -> int:
+        return self._type
 
-    def get_types(self) -> tuple[bool, bool, bool, bool]:
-        return self._menu.get_item_types(self._id)
+    def _prep_image(self, res_or_path: Union[int, str], index: int) -> int:
+        if isinstance(res_or_path, str):
+            res_or_path = _gdiplus.Bitmap.from_file(res_or_path).get_hbitmap()
+            self._hbmps[index] = res_or_path
+            return res_or_path.value
+        return res_or_path
+
+    def _get_datas(self, miim: int, info: Optional[ctyped.struct.MENUITEMINFOW] = None) -> Optional[tuple]:
+        if info is None:
+            info = ctyped.struct.MENUITEMINFOW()
+        info.fMask = miim
+        if ctyped.lib.User32.GetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)):
+            return tuple(getattr(info, field) for field in _MIIM_FIELDS[miim])
+
+    def _get_icon(self) -> Optional[ctyped.handle.HBITMAP]:
+        if datas := self._get_datas(ctyped.const.MIIM_BITMAP):
+            return ctyped.handle.HBITMAP(datas[0])
+
+    def _get_check_icons(self) -> Optional[tuple[ctyped.handle.HBITMAP, ctyped.handle.HBITMAP]]:
+        if datas := self._get_datas(ctyped.const.MIIM_CHECKMARKS):
+            return ctyped.handle.HBITMAP(datas[0]), ctyped.handle.HBITMAP(datas[1])
+
+    def get_types(self) -> Optional[tuple[bool, bool, bool, bool]]:
+        if datas := self._get_datas(ctyped.const.MIIM_TYPE):
+            return (ctyped.const.MFT_MENUBREAK == datas[0] & ctyped.const.MFT_MENUBREAK,
+                    ctyped.const.MFT_RADIOCHECK == datas[0] & ctyped.const.MFT_RADIOCHECK,
+                    ctyped.const.MFT_RIGHTORDER == datas[0] & ctyped.const.MFT_RIGHTORDER,
+                    ctyped.const.MFT_RIGHTJUSTIFY == datas[0] & ctyped.const.MFT_RIGHTJUSTIFY)
 
     def is_broken(self) -> bool:
-        return self._menu.is_item_broken(self._id)
+        return self.get_types()[0]
 
     def is_radio(self) -> bool:
-        return self._menu.is_item_radio(self._id)
+        return self.get_types()[1]
 
     def is_right_ordered(self) -> bool:
-        return self._menu.is_item_right_ordered(self._id)
+        return self.get_types()[2]
 
     def is_right_justified(self) -> bool:
-        return self._menu.is_item_right_justified(self._id)
+        return self.get_types()[3]
 
-    def get_states(self) -> tuple[bool, bool, bool, bool]:
-        return self._menu.get_item_states(self._id)
+    def get_states(self) -> Optional[tuple[bool, bool, bool, bool]]:
+        if datas := self._get_datas(ctyped.const.MIIM_STATE):
+            return (datas[0] & (ctyped.const.MF_GRAYED | ctyped.const.MFS_DISABLED) == 0,
+                    ctyped.const.MFS_HILITE == datas[0] & ctyped.const.MFS_HILITE,
+                    ctyped.const.MFS_CHECKED == datas[0] & ctyped.const.MFS_CHECKED,
+                    ctyped.const.MFS_DEFAULT == datas[0] & ctyped.const.MFS_DEFAULT)
 
     def is_enabled(self) -> bool:
-        return self._menu.is_item_enabled(self._id)
+        return self.get_states()[0]
 
     def is_highlighted(self) -> bool:
-        return self._menu.is_item_highlighted(self._id)
+        return self.get_states()[1]
 
     def is_checked(self) -> bool:
-        return self._menu.is_item_checked(self._id)
+        return self.get_states()[2]
 
     def is_default(self) -> bool:
-        return self._menu.is_item_default(self._id)
+        return self.get_states()[3]
 
     def get_text(self) -> str:
-        return self._menu.get_item_text(self._id)
+        item_info = ctyped.struct.MENUITEMINFOW()
+        if self._get_datas(ctyped.const.MIIM_STRING, item_info) and item_info.cch:
+            item_info.cch += 1
+            with _utils.string_buffer(item_info.cch) as buff:
+                item_info.dwTypeData = buff
+                if self._get_datas(ctyped.const.MIIM_STRING, item_info):
+                    return item_info.dwTypeData
+        return ''
 
     def get_submenu(self) -> Optional[Menu]:
-        return self._menu.get_item_submenu(self._id)
+        if datas := self._get_datas(ctyped.const.MIIM_SUBMENU):
+            return Menu.get(datas[0])
+
+    def _set_datas(self, miim: int, datas: Iterable) -> bool:
+        info = ctyped.struct.MENUITEMINFOW(fMask=miim)
+        for field, data in zip(_MIIM_FIELDS[miim], datas):
+            setattr(info, field, data)
+        return bool(ctyped.lib.User32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
+
+    def _set_icon(self, res_or_path: Union[int, str]) -> bool:
+        return self._set_datas(ctyped.const.MIIM_BITMAP, (self._prep_image(res_or_path, 0),))
 
     def set_check_icons(self, res_or_path_checked: Optional[Union[int, str]] = None,
                         res_or_path_unchecked: Optional[Union[int, str]] = None) -> bool:
-        return self._menu.set_item_check_icons(self._id, res_or_path_checked, res_or_path_unchecked)
+        return self._set_datas(ctyped.const.MIIM_CHECKMARKS, (
+            self._prep_image(res_or_path_checked, 1), self._prep_image(res_or_path_unchecked, 2)))
 
-    def set_right_ordered(self, right_ordered: bool = True) -> bool:
-        return self._menu.set_item_right_ordered(self._id, right_ordered)
+    def _set_types(self, broken: Optional[bool] = None, radio: Optional[bool] = None,
+                   right_aligned: Optional[bool] = None, right_justified: Optional[bool] = None) -> bool:
+        types = self.get_types()
+        flags = 0
+        if types[0] if broken is None else broken:
+            flags |= ctyped.const.MF_MENUBREAK
+        if types[1] if radio is None else radio:
+            flags |= ctyped.const.MFT_RADIOCHECK
+        if types[2] if right_aligned is None else right_aligned:
+            flags |= ctyped.const.MFT_RIGHTORDER
+        if types[3] if right_justified is None else right_justified:
+            flags |= ctyped.const.MFT_RIGHTJUSTIFY
+        return self._set_datas(ctyped.const.MIIM_FTYPE, (flags,))
 
-    def set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None,
-                   check: Optional[bool] = None, default: Optional[bool] = None) -> bool:
-        return self._menu.set_item_states(self._id, enable, highlight, check, default)
+    def _set_broken(self, broken: bool = True) -> bool:
+        return self._set_types(broken)
+
+    def _set_radio(self, radio: bool = True) -> bool:
+        return self._set_types(radio=radio)
+
+    def set_right_aligned(self, right_aligned: bool = True) -> bool:
+        return self._set_types(right_aligned=right_aligned)
+
+    def _set_right_justified(self, right_justified: bool = True) -> bool:
+        return self._set_types(right_justified=right_justified)
+
+    # noinspection PyShadowingBuiltins
+    def _set_id(self, id: int) -> bool:
+        return self._set_datas(ctyped.const.MIIM_ID, (id,))
+
+    def _set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None,
+                    check: Optional[bool] = None, default: Optional[bool] = None) -> bool:
+        states = self.get_states()
+        flags = ctyped.const.MFS_ENABLED if (states[0] if enable is None else enable) else ctyped.const.MFS_DISABLED
+        flags |= ctyped.const.MFS_HILITE if (states[1] if highlight is None else
+                                             highlight) else ctyped.const.MFS_UNHILITE
+        flags |= ctyped.const.MFS_CHECKED if (states[2] if check is None else check) else ctyped.const.MFS_UNCHECKED
+        if states[3] if default is None else default:
+            flags |= ctyped.const.MFS_DEFAULT
+        return self._set_datas(ctyped.const.MIIM_STATE, (flags,))
 
     def enable(self, enable: bool = True) -> bool:
-        return self._menu.enable_item(self._id, enable)
+        return self._set_states(enable)
 
     def highlight(self, highlight: bool = True) -> bool:
-        return self._menu.highlight_item(self._id, highlight)
+        return self._set_states(highlight=highlight)
 
-    def check(self, check: bool = True) -> bool:
-        return self._menu.check_item(self._id, check)
+    def _check(self, check: bool = True) -> bool:
+        return self._set_states(check=check)
 
     def set_default(self, default: bool = True) -> bool:
-        return self._menu.set_default_item(self._id, default)
+        return self._set_states(default=default)
 
     def set_text(self, text: str) -> bool:
-        return self._menu.set_item_text(self._id, text)
+        return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_STRING, text))
 
-    def set_submenu(self, submenu: Menu) -> bool:
-        return self._menu.set_item_submenu(self._id, submenu)
+    def _set_image(self, res_or_path: Union[int, str]) -> bool:
+        return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(
+            self._prep_image(res_or_path, 0))))
+
+    def _set_separator(self) -> bool:
+        return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_SEPARATOR,))
+
+    def set_submenu(self, submenu: Menu, text: Optional[str] = None) -> bool:  # TODO image submenu
+        return self._set_datas(ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_STRING,
+                               (submenu.get_id(), self.get_text() if text is None else text))
+
+    def get_pos(self) -> int:
+        for pos, item in enumerate(self._menu):
+            if self == item:
+                return pos
+        return -1
+
+    def _check_radio(self) -> bool:
+        pos = first_pos = last_pos = self.get_pos()
+        while (item := self._menu.get_item(first_pos - 1, by_pos=True)) and item.is_radio():
+            first_pos -= 1
+        while (item := self._menu.get_item(last_pos + 1, by_pos=True)) and item.is_radio():
+            last_pos += 1
+        # noinspection PyProtectedMember
+        return self._menu._hmenu.check_radio_item(pos, first_pos, last_pos, True)
+
+    def check(self, check: bool = True) -> bool:
+        return (self._check_radio() if check else not self.is_checked()) if self.is_radio() else self._check(check)
 
     def set_image(self, res_or_path: Union[int, str], image_only: bool = False) -> bool:
-        return self._menu.set_item_image(self._id, res_or_path, image_only)
+        return self._set_image(res_or_path) if image_only else self._set_icon(res_or_path)
 
-    def set_tooltip(self, text: str, title: str = '', res_or_path: Union[int, str] = MenuItemTooltipIcon.NONE):
+    def set_tooltip(self, text: str, title: str = '', icon_res_or_path: Union[int, str] = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
         self._tooltip_title = title
         self._tooltip_icon = _gdiplus.Bitmap.from_file(
-            res_or_path).get_hicon() if isinstance(res_or_path, str) else res_or_path
+            icon_res_or_path).get_hicon() if isinstance(icon_res_or_path, str) else icon_res_or_path
 
 
-def _foo(e, s: SysTray, menu: Menu, item: MenuItem):
+def _foo(e, s: SystemTray, menu: Menu, item: _MenuItem):
     # s.show_balloon('very busy', 'mini text', Icon.TRAY)
     menu.show()
     return 0
 
 
-def _foo2(e: int, s: SysTray):
-    s.set_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif')
+def _foo2(e: int, s: SystemTray):
+    print(s.start_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif'))
     # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
 
 
-def foo3(e, m: SysTray, s: SysTray):
+def foo3(e, m: SystemTray, s: SystemTray):
     s.stop_animation()
 
 
@@ -908,13 +906,15 @@ def _test_sys_tray():
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
     # bind(EVENT_CLOSE, lambda *args: print(6969))
     g = Gui()
-    s = SysTray(p, 'tip')
+    s = SystemTray(p, 'tip')
     menu = Menu()
     menu.bind(Event.MENU_SHOW, lambda *args: print('show menu'))
     menu.bind(Event.MENU_HIDE, lambda *args: print('hide menu'))
     it = menu.append_item('stop animate\tright')
+    print(it.is_enabled())
     it.bind(Event.MENU_ITEM_LEFT_UP, foo3, (s,))
     it.set_tooltip('important long text tip', 'tip title', p)
+    menu.append_item(type=MenuItemType.SEPARATOR)
     ball = menu.append_item('balloon\tright2')
     ball.set_tooltip('another tip')
     ball.bind(Event.MENU_ITEM_RIGHT_UP, lambda *args: print('balloon button right up'))
@@ -922,14 +922,24 @@ def _test_sys_tray():
               lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\resources\icon.ico'))
     # print(menu.set_item_image(it, p))
     # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
-    item = menu.append_item('text', check=True)
+    item = menu.append_item('text')
     # print(item.get_id(), menu.get_item_id(item))
     menu2 = Menu()
-    menu2.append_item('gg')
+    menu2.append_item('gg', type=MenuItemType.CHECK)
+    it_ck = menu.append_item('check', type=MenuItemType.CHECK)
+    it_ck.check()
+    it_ck.set_image(MenuItemImage.MAXIMIZE)
+    # it_ck.set_image(p)  # TODO do not die
+    menu3 = Menu()
+    menu.append_item('rad test', submenu=menu3)
+    # menu.set_max_height(100)
+    # print(menu.get_max_height())
+    for i in range(6):
+        menu3.append_item('radio' + str(i), type=MenuItemType.RADIO)
     it7 = menu2.append_item('69')
     it7.bind(Event.MENU_ITEM_HIGHLIGHT, lambda *args: print('hover', args))
     menu2.append_item('new')
-    ex = menu.append_item('exit')
+    ex = menu.append_item('exit', MenuItemImage.CLOSE)
     ex.bind(Event.MENU_ITEM_LEFT_UP, lambda *args: g.exit_mainloop())
     # print(item.set_image(r'D:\Projects\wallpyper\src\resources\tray.png', True))
     # menu.set_item_submenu(item, menu2)
@@ -944,6 +954,12 @@ def _test_sys_tray():
     s.bind(Event.BALLOON_CLICK, lambda *args: print('show_balloon click'))
     s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
     s.show()
+
+    # s2 = SysTray(r'D:\Projects\wallpyper\src\resources\tray.png', 'tip2')
+    # s2.set_animation_speed(5)
+    # s2.start_animation(r'D:\Projects\wallpyper\src\resources\busy.gif')
+    # s2.show()
+
     g.mainloop()
     g.destroy()
     print('exit')
@@ -955,30 +971,7 @@ def _test_():
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
-def tst():
-    try:
-        return 69
-    finally:
-        raise TypeError
-
-
-def _enable_visual_styles() -> bool:
-    if sz := ctyped.lib.Kernel32.GetSystemDirectoryW(None, 0):
-        with _utils.string_buffer(sz) as buff:
-            if ctyped.lib.Kernel32.GetSystemDirectoryW(buff, sz):
-                ctx = ctyped.struct.ACTCTXW(dwFlags=(
-                        ctyped.const.ACTCTX_FLAG_RESOURCE_NAME_VALID |
-                        ctyped.const.ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID), lpSource='shell32.dll',
-                    lpAssemblyDirectory=buff, lpResourceName=ctyped.macro.MAKEINTRESOURCEW(124))
-                cookie = ctyped.type.ULONG_PTR()
-                return bool(ctyped.lib.Kernel32.ActivateActCtx(
-                    ctyped.lib.Kernel32.CreateActCtxW(ctyped.byref(ctx)), ctyped.byref(cookie)))
-    return False
-
-
 if __name__ == '__main__':
-    # tst()
-    # print(_enable_visual_styles())
     _test_sys_tray()
     # _test_()
     # _wait()

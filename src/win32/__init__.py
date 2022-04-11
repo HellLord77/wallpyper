@@ -12,8 +12,8 @@ import libs.ctyped as ctyped
 from . import _gdiplus, _utils, clipboard, wallpaper
 from ._utils import sanitize_filename
 
-_PIN_TIMEOUT = 3
-_POLL_TIMEOUT = 0.01
+_PIN_INTERVAL = 3
+_POLL_INTERVAL = 0.01
 _APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
 _STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
 _TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
@@ -457,7 +457,7 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
         if not subprocess.run((_SYSPIN_PATH, target, '5386' if taskbar else '51201'),
                               creationflags=subprocess.DETACHED_PROCESS).returncode:
             if args and not taskbar:
-                time.sleep(_PIN_TIMEOUT)
+                time.sleep(_PIN_INTERVAL)
             name_ = ntpath.splitext(ntpath.basename(target))[0]
             if taskbar:
                 path_ = ntpath.join(
@@ -475,9 +475,9 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
                         show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
                         icon=(icon_path, icon_index)) and _save_link(link, path)
             else:
-                end = time.time() + _PIN_TIMEOUT
+                end = time.time() + _PIN_INTERVAL
                 while (no_pin := not ntpath.isfile(path)) and end > time.time():
-                    time.sleep(_POLL_TIMEOUT)
+                    time.sleep(_POLL_INTERVAL)
                 return not no_pin
     return False
 

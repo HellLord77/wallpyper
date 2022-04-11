@@ -1254,6 +1254,52 @@ class INPUT_MESSAGE_SOURCE:
     originId: _enum.INPUT_MESSAGE_ORIGIN_ID = _EMPTY
 
 
+# noinspection PyPep8Naming
+@_struct
+class SECURITY_ATTRIBUTES:
+    nLength: _type.DWORD = _SIZE
+    lpSecurityDescriptor: _type.LPVOID = _EMPTY
+    bInheritHandle: _type.BOOL = _EMPTY
+
+
+@_struct
+class EMR:
+    iType: _type.DWORD = _EMPTY
+    nSize: _type.DWORD = _EMPTY
+
+
+@_struct
+class LOGPEN:
+    lopnStyle: _type.UINT = _EMPTY
+    lopnWidth: POINT = _EMPTY
+    lopnColor: _type.COLORREF = _EMPTY
+
+
+@_struct
+class EXTLOGPEN:
+    elpPenStyle: _type.DWORD = _EMPTY
+    elpWidth: _type.DWORD = _EMPTY
+    elpBrushStyle: _type.UINT = _EMPTY
+    elpColor: _type.COLORREF = _EMPTY
+    elpHatch: _type.ULONG_PTR = _EMPTY
+    elpNumEntries: _type.DWORD = _EMPTY
+    elpStyleEntry: _type.DWORD * 1 = _EMPTY
+
+
+@_struct
+class LOGBRUSH:
+    lbStyle: _type.UINT = _EMPTY
+    lbColor: _type.COLORREF = _EMPTY
+    lbHatch: _type.ULONG_PTR = _EMPTY
+
+
+@_struct
+class LOGBRUSH32:
+    lbStyle: _type.UINT = _EMPTY
+    lbColor: _type.COLORREF = _EMPTY
+    lbHatch: _type.ULONG = _EMPTY
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
@@ -1262,6 +1308,7 @@ DEVPROPGUID = GUID
 VARIANTARG = VARIANT
 ANSI_STRING = STRING
 OEM_STRING = STRING
+PATTERN = LOGBRUSH
 
 
 def _init(item: str) -> type[_ctypes.Structure]:

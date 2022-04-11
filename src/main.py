@@ -36,7 +36,7 @@ FEATURE_UPDATE_DISPLAY = True
 MAX_CACHE = 64 * 1024 * 1024
 MAX_LABEL = 25
 MAX_RECENT = 9
-POLL_TIMEOUT = 0.01
+POLL_INTERVAL = 0.01
 
 NAME = 'Wallpyper'
 ARG_CHANGE = 'change'
@@ -530,7 +530,7 @@ def on_quit():
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + win32.get_max_shutdown_time()
         while end_time > time.time() and _is_running():
-            time.sleep(POLL_TIMEOUT)
+            time.sleep(POLL_INTERVAL)
     gui.stop_loop()
 
 
