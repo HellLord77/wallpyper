@@ -3,9 +3,7 @@ __version__ = '0.0.1'  # https://github.com/timothymctim/Bing-wallpapers
 import os.path
 from typing import Generator, Optional
 
-import utils
-from langs import STRINGS
-from libs import files, locales, request
+from libs import files, gui, locales, request
 from .module import _Module
 
 BASE_URL = 'https://www.bing.com'
@@ -64,11 +62,11 @@ class Bing(_Module):
 
     @classmethod
     def create_menu(cls):
-        utils.add_synced_items(STRINGS.BING_MENU_DAY, {str(day): getattr(
-            STRINGS, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
+        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_DAY, {str(day): getattr(
+            cls.STRINGS, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
                                cls.CONFIG, CONFIG_DAY)
-        utils.add_synced_items(STRINGS.BING_MENU_MARKET, {market: locales.Country.get(
+        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_MARKET, {market: locales.Country.get(
             market[market.find('-') + 1:]).name for market in MARKETS}, cls.CONFIG, CONFIG_MARKET)
-        utils.add_synced_items(STRINGS.BING_MENU_RESOLUTION,
-                               {resolution: getattr(STRINGS, f'BING_RESOLUTION_{resolution}')
+        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_RESOLUTION,
+                               {resolution: getattr(cls.STRINGS, f'BING_RESOLUTION_{resolution}')
                                 for resolution in RESOLUTIONS}, cls.CONFIG, CONFIG_RESOLUTION)

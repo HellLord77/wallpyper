@@ -359,9 +359,17 @@ class Gdi32(_WinFunc):
     GetBitmapDimensionEx: _Callable[[_type.HBITMAP,
                                      _Pointer[_struct.SIZE]],
                                     _type.BOOL]
+    GetBkColor: _Callable[[_type.HDC],
+                          _type.COLORREF]
+    GetBkMode: _Callable[[_type.HDC],
+                         _type.c_int]
     GetClipBox: _Callable[[_type.HDC,
                            _Pointer[_struct.RECT]],
                           _type.c_int]
+    GetDCBrushColor: _Callable[[_type.HDC],
+                               _type.COLORREF]
+    GetDCPenColor: _Callable[[_type.HDC],
+                             _type.COLORREF]
     GetDIBits: _Callable[[_type.HDC,
                           _type.HBITMAP,
                           _type.UINT,
@@ -370,6 +378,14 @@ class Gdi32(_WinFunc):
                           _Pointer[_struct.BITMAPINFO],
                           _type.UINT],
                          _type.c_int]
+    GetGraphicsMode: _Callable[[_type.HDC],
+                               _type.c_int]
+    GetMapMode: _Callable[[_type.HDC],
+                          _type.c_int]
+    GetMetaFileA: _Callable[[_type.LPCSTR],
+                            _type.HMETAFILE]
+    GetMetaFileW: _Callable[[_type.LPCWSTR],
+                            _type.HMETAFILE]
     GetObjectA: _Callable[[_type.HANDLE,
                            _type.c_int,
                            _type.LPVOID],
@@ -380,8 +396,27 @@ class Gdi32(_WinFunc):
                           _type.c_int]
     GetObjectType: _Callable[[_type.HGDIOBJ],
                              _type.DWORD]
+    GetPixel: _Callable[[_type.HDC,
+                         _type.c_int,
+                         _type.c_int],
+                        _type.COLORREF]
+    GetPixelFormat: _Callable[[_type.HDC],
+                              _type.c_int]
+    GetPolyFillMode: _Callable[[_type.HDC],
+                               _type.c_int]
+    GetRandomRgn: _Callable[[_type.HDC,
+                             _type.HRGN,
+                             _type.INT],
+                            _type.c_int]
+    GetRgnBox: _Callable[[_type.HRGN,
+                          _Pointer[_struct.RECT]],
+                         _type.c_int]
+    GetROP2: _Callable[[_type.HDC],
+                       _type.c_int]
     GetStockObject: _Callable[[_type.c_int],
                               _type.HGDIOBJ]
+    GetStretchBltMode: _Callable[[_type.HDC],
+                                 _type.c_int]
     SelectObject: _Callable[[_type.HDC,
                              _type.HGDIOBJ],
                             _type.HGDIOBJ]
@@ -439,6 +474,9 @@ class GdiPlus(_WinFunc):
                                         _type.REAL,
                                         _type.REAL],
                                        _enum.GpStatus]
+    GdipClonePen: _Callable[[_type.GpPen,
+                             _Pointer[_type.GpPen]],
+                            _enum.GpStatus]
     GdipCreateBitmapFromFile: _Callable[[_type.LPWSTR,
                                          _Pointer[_type.GpBitmap]],
                                         _enum.GpStatus]
@@ -473,6 +511,16 @@ class GdiPlus(_WinFunc):
                                          _enum.GpStatus]
     GdipCreateImageAttributes: _Callable[[_Pointer[_type.GpImageAttributes]],
                                          _enum.GpStatus]
+    GdipCreatePen1: _Callable[[_type.ARGB,
+                               _type.REAL,
+                               _enum.GpUnit,
+                               _Pointer[_type.GpPen]],
+                              _enum.GpStatus]
+    GdipCreatePen2: _Callable[[_type.GpBrush,
+                               _type.REAL,
+                               _enum.GpUnit,
+                               _Pointer[_type.GpPen]],
+                              _enum.GpStatus]
     GdipCreateSolidFill: _Callable[[_type.ARGB,
                                     _Pointer[_type.GpSolidFill]],
                                    _enum.GpStatus]
@@ -482,6 +530,8 @@ class GdiPlus(_WinFunc):
                                       _enum.GpStatus]
     GdipDeleteGraphics: _Callable[[_type.GpGraphics],
                                   _enum.GpStatus]
+    GdipDeletePen: _Callable[[_type.GpPen],
+                             _enum.GpStatus]
     GdipDisposeImage: _Callable[[_type.GpImage],
                                 _enum.GpStatus]
     GdipDisposeImageAttributes: _Callable[[_type.GpImageAttributes],
@@ -588,12 +638,24 @@ class GdiPlus(_WinFunc):
     GdipGetImageHeight: _Callable[[_type.GpImage,
                                    _Pointer[_type.UINT]],
                                   _enum.GpStatus]
+    GdipGetImagePixelFormat: _Callable[[_type.GpImage,
+                                        _Pointer[_type.PixelFormat]],
+                                       _enum.GpStatus]
     GdipGetImageWidth: _Callable[[_type.GpImage,
                                   _Pointer[_type.UINT]],
                                  _enum.GpStatus]
     GdipGetImageGraphicsContext: _Callable[[_type.GpImage,
                                             _Pointer[_type.GpGraphics]],
                                            _enum.GpStatus]
+    GdipGetPenColor: _Callable[[_type.GpPen,
+                                _Pointer[_type.ARGB]],
+                               _enum.GpStatus]
+    GdipGetPenUnit: _Callable[[_type.GpPen,
+                               _Pointer[_enum.GpUnit]],
+                              _enum.GpStatus]
+    GdipGetPenWidth: _Callable[[_type.GpPen,
+                                _Pointer[_type.REAL]],
+                               _enum.GpStatus]
     GdipGetPropertyItem: _Callable[[_type.GpImage,
                                     _type.PROPID,
                                     _type.UINT,
@@ -650,6 +712,15 @@ class GdiPlus(_WinFunc):
                                                  _type.UINT,
                                                  _Pointer[_struct.ColorMap]],
                                                 _enum.GpStatus]
+    GdipSetPenColor: _Callable[[_type.GpPen,
+                                _type.ARGB],
+                               _enum.GpStatus]
+    GdipSetPenUnit: _Callable[[_type.GpPen,
+                               _enum.GpUnit],
+                              _enum.GpStatus]
+    GdipSetPenWidth: _Callable[[_type.GpPen,
+                                _type.REAL],
+                               _enum.GpStatus]
     GdipSetSolidFillColor: _Callable[[_type.GpSolidFill,
                                       _type.ARGB],
                                      _enum.GpStatus]

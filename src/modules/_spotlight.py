@@ -5,9 +5,7 @@ import json
 import os.path
 from typing import Generator, Optional
 
-import utils
-from langs import STRINGS
-from libs import files, locales, request
+from libs import files, gui, locales, request
 from .module import _Module
 
 BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
@@ -53,8 +51,8 @@ class Spotlight(_Module):
 
     @classmethod
     def create_menu(cls):
-        utils.add_synced_items(STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: locales.Country.get(
+        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: locales.Country.get(
             locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
-        utils.add_synced_items(STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
-            STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS}, cls.CONFIG,
-                               CONFIG_ORIENTATION)
+        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
+            cls.STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+                               cls.CONFIG, CONFIG_ORIENTATION)

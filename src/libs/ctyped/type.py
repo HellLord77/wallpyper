@@ -2,7 +2,7 @@ import ctypes as _ctypes
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
-from typing import Callable as _Callable, Optional as _Optional, Union as _Union
+from typing import Callable as _Callable, Union as _Union
 
 from . import const as _const, struct as _struct
 from ._utils import _Globals, _Pointer, _resolve_type
@@ -25,7 +25,7 @@ _MAGICS = {}
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
-c_char_p: type[_ctypes.c_char_p] = _Optional[_Union[_ctypes.c_char_p, _Pointer, bytes]]
+c_char_p: type[_ctypes.c_char_p] = _Union[_ctypes.c_char_p, _Pointer, bytes]
 c_double: type[_ctypes.c_double] = _Union[_ctypes.c_double, float]
 c_float: type[_ctypes.c_float] = _Union[_ctypes.c_float, float]
 c_int: type[_ctypes.c_int] = _Union[_ctypes.c_int, int]
@@ -46,10 +46,9 @@ c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
 c_uint8: type[_ctypes.c_uint8] = _Union[_ctypes.c_uint8, int]
 c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
 c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
-c_void_p: type[_ctypes.c_void_p] = _Optional[_Union[_ctypes.c_void_p, _ctypes.c_char_p,
-                                                    _ctypes.c_wchar_p, _Pointer, int, str]]
+c_void_p: type[_ctypes.c_void_p] = _Union[_ctypes.c_void_p, _ctypes.c_char_p, _ctypes.c_wchar_p, _Pointer, int, str]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
-c_wchar_p: type[_ctypes.c_wchar_p] = _Optional[_Union[_ctypes.c_wchar_p, _Pointer, str]]
+c_wchar_p: type[_ctypes.c_wchar_p] = _Union[_ctypes.c_wchar_p, _Pointer, str]
 HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
 
 c_void = c_void_p
@@ -132,6 +131,7 @@ GpCachedBitmap = _obj_p
 GpGraphics = _obj_p
 GpImage = _obj_p
 GpImageAttributes = _obj_p
+GpPen = _obj_p
 GpSolidFill = _obj_p
 
 _enum = c_uint

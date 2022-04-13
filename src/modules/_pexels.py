@@ -3,8 +3,6 @@ __version__ = '0.0.1'  # https://www.pexels.com/api/documentation
 import os
 from typing import Generator, Optional
 
-import utils
-from langs import STRINGS
 from libs import files, gui, locales, request
 from .module import _Module
 
@@ -31,8 +29,8 @@ def on_curated(curated: bool, menu):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(response := request.open(
-        CURATED_URL, {'per_page': '1'}, headers={'Authorization': key})) and 'error' not in response.get_json()
+    return bool(response := request.open(SEARCH_URL, {'query': 'people', 'per_page': '1'},
+                                         headers={'Authorization': key})) and 'error' not in response.get_json()
 
 
 class Plexels(_Module):
@@ -80,15 +78,15 @@ class Plexels(_Module):
 
     @classmethod
     def create_menu(cls):
-        menu_search = gui.add_submenu(STRINGS.PEXELS_MENU_SEARCH, not cls.CONFIG[CONFIG_CURATED])
+        menu_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CONFIG[CONFIG_CURATED])
         with gui.set_main_menu(menu_search):
-            utils.add_synced_items(STRINGS.PEXELS_MENU_ORIENTATION,
-                                   {orientation: getattr(STRINGS, f'PEXELS_ORIENTATION_{orientation}')
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
+                                   {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
                                     for orientation in ORIENTATIONS}, cls.CONFIG, CONFIG_ORIENTATION)
-            utils.add_synced_items(STRINGS.PEXELS_MENU_SIZE, {size: getattr(STRINGS, f'PEXELS_SIZE_{size}')
-                                                              for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
-            utils.add_synced_items(STRINGS.PEXELS_MENU_LOCALE, {locale: locales.Country.get(
-                locale[locale.find('-') + 1:]).name if locale else STRINGS.PEXELS_LOCALE_
-                                                                for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
-        gui.add_mapped_menu_item(STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_SIZE, {size: getattr(cls.STRINGS, f'PEXELS_SIZE_{size}')
+                                                                  for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: locales.Country.get(
+                locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
+                                                                    for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
+        gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
                                  bool(cls.CONFIG[CONFIG_KEY]), on_curated, (menu_search,))

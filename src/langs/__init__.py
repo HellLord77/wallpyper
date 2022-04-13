@@ -9,7 +9,6 @@ from . import bn
 from . import en
 
 DEFAULT = en
-STRINGS = DEFAULT
 
 
 def _getattr(name: str) -> str:

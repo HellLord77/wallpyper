@@ -3,6 +3,7 @@ from __future__ import annotations as _
 import inspect
 from typing import Generator, Iterable, Optional, Union
 
+import langs
 from libs import files, misc
 
 MODULES: dict[str, type[_Module]] = {}
@@ -27,6 +28,7 @@ class _Module(metaclass=_ModuleMeta):
     VERSION: str
     DEFAULT_CONFIG: dict[str, str]
     CONFIG: dict[str, Union[bool, str]]
+    STRINGS = langs.DEFAULT
 
     @classmethod
     def _fix_config(cls, key: str, values: Iterable[str]):

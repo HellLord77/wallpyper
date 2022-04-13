@@ -146,6 +146,27 @@ class Brush(_GdiplusBase):
         ctyped.lib.GdiPlus.GdipDeleteBrush(self)
 
 
+class Pen(_GdiplusBase):
+    def __del__(self):
+        ctyped.lib.GdiPlus.GdipDeletePen(self)
+
+    def get_color(self) -> ctyped.type.ARGB:
+        color = ctyped.type.ARGB()
+        ctyped.lib.GdiPlus.GdipGetPenColor(self, ctyped.byref(color))
+        return color.value
+
+    def get_width(self) -> float:
+        width = ctyped.type.REAL()
+        ctyped.lib.GdiPlus.GdipGetPenWidth(self, ctyped.byref(width))
+        return width.value
+
+    def set_color(self, color: ctyped.type.ARGB):
+        ctyped.lib.GdiPlus.GdipSetPenColor(self, color)
+
+    def set_width(self, width: float):
+        ctyped.lib.GdiPlus.GdipSetPenWidth(self, width)
+
+
 class SolidFill(Brush):
     @classmethod
     def from_color(cls, color: ctyped.type.ARGB) -> SolidFill:
@@ -215,15 +236,20 @@ class Image(_GdiplusBase):
     def get_graphics(self) -> Graphics:
         return Graphics.from_image(self)
 
-    def get_frame_count(self, _id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> int:
+    def get_frame_count(self, dimension_id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> int:
         count = ctyped.type.UINT()
-        ctyped.lib.GdiPlus.GdipImageGetFrameCount(self, self._get_dimension_id() if _id is None else _id,
-                                                  ctyped.byref(count))
+        ctyped.lib.GdiPlus.GdipImageGetFrameCount(
+            self, self._get_dimension_id() if dimension_id is None else dimension_id, ctyped.byref(count))
         return count.value
 
-    def select_frame(self, index: int = 0, _id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> bool:
+    def get_pixel_format(self) -> int:
+        pixel_format = ctyped.type.PixelFormat()
+        ctyped.lib.GdiPlus.GdipGetImagePixelFormat(self, ctyped.byref(pixel_format))
+        return pixel_format.value
+
+    def select_frame(self, index: int = 0, dimension_id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> bool:
         return not ctyped.lib.GdiPlus.GdipImageSelectActiveFrame(
-            self, self._get_dimension_id() if _id is None else _id, index)
+            self, self._get_dimension_id() if dimension_id is None else dimension_id, index)
 
     def iter_frames(self) -> Generator[int, None, None]:
         dimension_id = self._get_dimension_id()
@@ -290,6 +316,14 @@ class Bitmap(Image):
         hbitmap = ctyped.handle.HBITMAP()
         ctyped.lib.GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0)
         return hbitmap
+
+    def get_resized(self, width: Optional[int] = None, height: Optional[int] = None) -> Bitmap:
+        bitmap = self.from_dimension(self.width if width is None else width,
+                                     self.height if height is None else height, self.get_pixel_format())
+        graphics = bitmap.get_graphics()
+        graphics.set_scale(width / self.width, height / self.height)
+        graphics.draw_image_from_rect(self)
+        return bitmap
 
     def get_pixel(self, x: int, y: int) -> int:
         argb = ctyped.type.ARGB()

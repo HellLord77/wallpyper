@@ -13,7 +13,7 @@ $Version = "0.0.3"
     $UPX = $False
 #>
 
-$Datas = @("resources", "win32\syspin.exe", "libs\locales\iso_639-2.json", "libs\locales\iso_3166-1.json")
+$Datas = @("libs\colors\colornames.min.json", "libs\locales\iso_639-2.json", "libs\locales\iso_3166-1.json", "resources", "win32\syspin.exe")
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True

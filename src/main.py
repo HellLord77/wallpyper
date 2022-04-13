@@ -72,8 +72,7 @@ GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
-
-STRINGS = langs.STRINGS = langs.en
+STRINGS = langs.en
 DISPLAYS: list[str] = []
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)

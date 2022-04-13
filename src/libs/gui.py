@@ -63,7 +63,7 @@ _MAIN_MENU = [_MENU]
 
 
 @contextlib.contextmanager
-def set_main_menu(menu: Union[wx.Menu, wx.MenuItem]) -> ContextManager[None]:
+def set_main_menu(menu: Union[wx.Menu, wx.MenuItem]) -> ContextManager[wx.Menu]:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
     defaults_bk = {}
@@ -73,7 +73,7 @@ def set_main_menu(menu: Union[wx.Menu, wx.MenuItem]) -> ContextManager[None]:
             func.__defaults__ = tuple(menu if default is _MAIN_MENU[-1] else default for default in defaults)
     _MAIN_MENU.append(menu)
     try:
-        yield
+        yield menu
     finally:
         for func, defaults in defaults_bk.items():
             func.__defaults__ = defaults
@@ -162,10 +162,11 @@ def remove_menu_items(menu_items: Iterable[wx.MenuItem] = (), menu: Union[wx.Men
     return count
 
 
-def add_separator(uid: Optional[str] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+def add_separator(uid: Optional[str] = None, position: Optional[int] = None,
+                  menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
-    return add_menu_item(kind=Item.SEPARATOR, uid=uid, menu=menu)
+    return add_menu_item(kind=Item.SEPARATOR, uid=uid, position=position, menu=menu)
 
 
 def add_submenu(label: str, enable: bool = True, uid: Optional[str] = None,
