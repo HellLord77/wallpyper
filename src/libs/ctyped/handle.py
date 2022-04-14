@@ -12,14 +12,14 @@ class HSTRING(_type.HSTRING):
     def __del__(self):
         _lib.Combase.WindowsDeleteString(self)
 
-    def __str__(self):
-        return _lib.Combase.WindowsGetStringRawBuffer(self, None)
-
     @classmethod
     def from_string(cls, string: str = ''):
         self = cls()
         _lib.Combase.WindowsCreateString(string, len(string), _byref(self))
         return self
+
+    def get_string(self) -> str:
+        return _lib.Combase.WindowsGetStringRawBuffer(self, None)
 
 
 class HBRUSH(_type.HBRUSH):

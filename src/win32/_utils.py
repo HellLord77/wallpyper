@@ -9,9 +9,10 @@ def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
     ctyped.lib.Shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(folderid)),
                                             ctyped.enum.KNOWN_FOLDER_FLAG.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
-    path = buff.value
-    ctyped.lib.Ole32.CoTaskMemFree(buff)
-    return path
+    try:
+        return buff.value
+    finally:
+        ctyped.lib.Ole32.CoTaskMemFree(buff)
 
 
 @contextlib.contextmanager
@@ -67,9 +68,8 @@ def open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
     with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
         if file_statics:
             operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
-                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
-                    file := operation.get(ctyped.com.IStorageFile)):
+            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(
+                    path), operation.get_ref())) and (file := operation.get(ctyped.com.IStorageFile)):
                 yield file
                 return
     yield

@@ -149,7 +149,8 @@ class IAsyncOperationCompletedHandler(IUnknown):
     __IID__ = {_const.IID_IAsyncOperationCompletedHandler_bool,
                _const.IID_IAsyncOperationCompletedHandler_IRandomAccessStream,
                _const.IID_IAsyncOperationCompletedHandler_IStorageFile,
-               _const.IID_IAsyncOperationCompletedHandler_IStorageFolder}
+               _const.IID_IAsyncOperationCompletedHandler_IStorageFolder,
+               _const.IID_IAsyncOperationCompletedHandler_IXmlDocument}
 
     # noinspection PyPep8Naming,PyUnusedLocal
     @staticmethod

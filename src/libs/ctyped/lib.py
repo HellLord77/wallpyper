@@ -251,6 +251,8 @@ class Combase(_WinFunc):
                                        _Pointer[_struct.IID],
                                        _Pointer[_com.IActivationFactory]],
                                       _type.HRESULT]
+    RoGetApartmentIdentifier: _Callable[[_Pointer[_type.UINT64]],
+                                        _type.HRESULT]
     RoInitialize: _Callable[[_enum.RO_INIT_TYPE],
                             _type.HRESULT]
     RoUninitialize: _Callable[[],
@@ -304,6 +306,32 @@ class Comdlg32(_WinFunc):
                             _type.BOOL]
     ChooseColorW: _Callable[[_Pointer[_struct.CHOOSECOLORW]],
                             _type.BOOL]
+
+
+class ComputeCore(_WinFunc):
+    # computecore
+    HcsGetServiceProperties: _Callable[[_Optional[_type.PCWSTR],
+                                        _Pointer[_type.PWSTR]],
+                                       _type.HRESULT]
+    HcsModifyServiceSettings: _Callable[[_type.PCWSTR,
+                                         _Optional[_Pointer[_type.PWSTR]]],
+                                        _type.HRESULT]
+    HcsSubmitWerReport: _Callable[[_type.PCWSTR],
+                                  _type.HRESULT]
+    HcsCreateEmptyGuestStateFile: _Callable[[_type.PCWSTR],
+                                            _type.HRESULT]
+    HcsCreateEmptyRuntimeStateFile: _Callable[[_type.PCWSTR],
+                                              _type.HRESULT]
+    HcsGrantVmAccess: _Callable[[_type.PCWSTR,
+                                 _type.PCWSTR],
+                                _type.HRESULT]
+    HcsRevokeVmAccess: _Callable[[_type.PCWSTR,
+                                  _type.PCWSTR],
+                                 _type.HRESULT]
+    HcsGrantVmGroupAccess: _Callable[[_type.PCWSTR],
+                                     _type.HRESULT]
+    HcsRevokeVmGroupAccess: _Callable[[_type.PCWSTR],
+                                      _type.HRESULT]
 
 
 class Gdi32(_WinFunc):
@@ -1430,7 +1458,7 @@ class Ole32(_WinFunc):
     CoInitializeEx: _Callable[[_Optional[_type.LPVOID],
                                _type.DWORD],
                               _type.HRESULT]
-    CoTaskMemFree: _Callable[[_type.LPVOID],
+    CoTaskMemFree: _Callable[[_Optional[_type.LPVOID]],
                              _type.c_void]
     CoUninitialize: _Callable[[],
                               _type.VOID]
@@ -1594,6 +1622,8 @@ class Shell32(_WinFunc):
                                    _Pointer[_struct.SHQUERYRBINFO]],
                                   _type.HRESULT]
     # ShlObj_core
+    GetCurrentProcessExplicitAppUserModelID: _Callable[[_Pointer[_type.PWSTR]],
+                                                       _type.HRESULT]
     ILClone: _Callable[[_Pointer[_struct.ITEMIDLIST]],
                        _Pointer[_struct.ITEMIDLIST]]
     ILCloneFirst: _Callable[[_Pointer[_struct.ITEMIDLIST]],
@@ -1630,6 +1660,8 @@ class Shell32(_WinFunc):
     PathCleanupSpec: _Callable[[_Optional[_type.PCWSTR],
                                 _type.PWSTR],
                                _type.c_int]
+    SetCurrentProcessExplicitAppUserModelID: _Callable[[_type.PCWSTR],
+                                                       _type.HRESULT]
     SHBrowseForFolderA: _Callable[[_Pointer[_struct.BROWSEINFOA]],
                                   _Pointer[_Pointer[_struct.ITEMIDLIST]]]
     SHBrowseForFolderW: _Callable[[_Pointer[_struct.BROWSEINFOW]],

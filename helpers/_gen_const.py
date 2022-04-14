@@ -85,6 +85,22 @@ def windows_storage():
     _runtime_class('windows.storage.h')
 
 
+def windows_data_xml_dom():
+    _runtime_class('windows.data.xml.dom.h')
+
+
+def windows_system_userprofile():
+    _runtime_class('windows.system.userprofile.h')
+
+
+def windows_ui_notifications():
+    _runtime_class('windows.ui.notifications.h')
+
+
+def windows_ui_viewmanagement():
+    _runtime_class('windows.ui.viewmanagement.h')
+
+
 def windows_system():
     _runtime_class('windows.system.h')
 
@@ -109,4 +125,4 @@ def mscoree():
 
 
 if __name__ == '__main__':
-    mscoree()
+    windows_system_userprofile()

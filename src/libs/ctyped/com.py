@@ -917,6 +917,122 @@ class IUISettings(IInspectable):
                               _type.HRESULT]
 
 
+class IXmlDocumentIO(IInspectable):
+    LoadXml: _Callable[[_type.HSTRING],
+                       _type.HRESULT]
+    LoadXmlWithSettings: _Callable
+    SaveToFileAsync: _Callable[[IStorageFile,
+                                _Pointer[IAsyncAction]],
+                               _type.HRESULT]
+
+
+class IXmlDocumentIO2(IInspectable):
+    LoadXmlFromBuffer: _Callable[[IBuffer],
+                                 _type.HRESULT]
+    LoadXmlFromBufferWithSettings: _Callable
+
+
+class IXmlDocumentStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Data_Xml_Dom_XmlDocument
+    LoadFromUriAsync: _Callable[[IUriRuntimeClass,
+                                 _Pointer[IAsyncOperation]],
+                                _type.HRESULT]
+    LoadFromUriWithSettingsAsync: _Callable
+    LoadFromFileAsync: _Callable[[IStorageFile,
+                                  _Pointer[IAsyncOperation]],
+                                 _type.HRESULT]
+    LoadFromFileWithSettingsAsync: _Callable
+
+
+class IXmlDocument(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_Data_Xml_Dom_XmlDocument
+    get_Doctype: _Callable
+    get_Implementation: _Callable
+    get_DocumentElement: _Callable
+    CreateElement: _Callable
+    CreateDocumentFragment: _Callable
+    CreateTextNode: _Callable
+    CreateComment: _Callable
+    CreateProcessingInstruction: _Callable
+    CreateAttribute: _Callable
+    CreateEntityReference: _Callable
+    GetElementsByTagName: _Callable
+    CreateCDataSection: _Callable
+    get_DocumentUri: _Callable
+    CreateAttributeNS: _Callable
+    CreateElementNS: _Callable
+    GetElementById: _Callable
+    ImportNode: _Callable
+
+
+class IXmlNodeSerializer(IInspectable):
+    GetXml: _Callable[[_Pointer[_type.HSTRING]],
+                      _type.HRESULT]
+    get_InnerText: _Callable[[_Pointer[_type.HSTRING]],
+                             _type.HRESULT]
+    put_InnerText: _Callable[[_type.HSTRING],
+                             _type.HRESULT]
+
+
+class IToastNotification(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotification
+    get_Content: _Callable
+    put_ExpirationTime: _Callable
+    get_ExpirationTime: _Callable
+    add_Dismissed: _Callable
+    remove_Dismissed: _Callable
+    add_Activated: _Callable
+    remove_Activated: _Callable
+    add_Failed: _Callable
+    remove_Failed: _Callable
+
+
+class IToastNotificationFactory(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotification
+    CreateToastNotification: _Callable[[IXmlDocument,
+                                        _Pointer[IToastNotification]],
+                                       _type.HRESULT]
+
+
+class IToastNotifier(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotifier
+    Show: _Callable[[IToastNotification],
+                    _type.HRESULT]
+    Hide: _Callable[[IToastNotification],
+                    _type.HRESULT]
+    get_Setting: _Callable[[_Pointer[_enum.NotificationSetting]],
+                           _type.HRESULT]
+    AddToSchedule: _Callable
+    RemoveFromSchedule: _Callable
+    GetScheduledToastNotifications: _Callable
+
+
+class IToastNotificationManagerStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
+    CreateToastNotifier: _Callable[[_Pointer[IToastNotifier]],
+                                   _type.HRESULT]
+    CreateToastNotifierWithId: _Callable[[_type.HSTRING,
+                                          _Pointer[IToastNotifier]],
+                                         _type.HRESULT]
+    GetTemplateContent: _Callable
+
+
+class IToastNotificationManagerStatics2(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
+    get_History: _Callable
+
+
+class IToastNotificationManagerStatics4(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
+    GetForUser: _Callable
+    ConfigureNotificationMirroring: _Callable
+
+
+class IToastNotificationManagerStatics5(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
+    GetDefault: _Callable
+
+
 def _method_type(types: _Callable) -> list:
     types = _resolve_type(types)
     types.insert(1, _type.c_void_p)

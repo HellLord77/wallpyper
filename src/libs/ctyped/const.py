@@ -7552,8 +7552,22 @@ WhiteSmoke = 0xFFF5F5F5
 Yellow = 0xFFFFFF00
 YellowGreen = 0xFF9ACD32
 # RuntimeClass
-RuntimeClass_Windows_UI_ViewManagement_UISettings = 'Windows.UI.ViewManagement.UISettings'
-RuntimeClass_Windows_System_UserProfile_LockScreen = 'Windows.System.UserProfile.LockScreen'
+RuntimeClass_Windows_Data_Xml_Dom_DtdEntity = 'Windows.Data.Xml.Dom.DtdEntity'
+RuntimeClass_Windows_Data_Xml_Dom_DtdNotation = 'Windows.Data.Xml.Dom.DtdNotation'
+RuntimeClass_Windows_Data_Xml_Dom_XmlAttribute = 'Windows.Data.Xml.Dom.XmlAttribute'
+RuntimeClass_Windows_Data_Xml_Dom_XmlCDataSection = 'Windows.Data.Xml.Dom.XmlCDataSection'
+RuntimeClass_Windows_Data_Xml_Dom_XmlComment = 'Windows.Data.Xml.Dom.XmlComment'
+RuntimeClass_Windows_Data_Xml_Dom_XmlDocument = 'Windows.Data.Xml.Dom.XmlDocument'
+RuntimeClass_Windows_Data_Xml_Dom_XmlDocumentFragment = 'Windows.Data.Xml.Dom.XmlDocumentFragment'
+RuntimeClass_Windows_Data_Xml_Dom_XmlDocumentType = 'Windows.Data.Xml.Dom.XmlDocumentType'
+RuntimeClass_Windows_Data_Xml_Dom_XmlDomImplementation = 'Windows.Data.Xml.Dom.XmlDomImplementation'
+RuntimeClass_Windows_Data_Xml_Dom_XmlElement = 'Windows.Data.Xml.Dom.XmlElement'
+RuntimeClass_Windows_Data_Xml_Dom_XmlEntityReference = 'Windows.Data.Xml.Dom.XmlEntityReference'
+RuntimeClass_Windows_Data_Xml_Dom_XmlLoadSettings = 'Windows.Data.Xml.Dom.XmlLoadSettings'
+RuntimeClass_Windows_Data_Xml_Dom_XmlNamedNodeMap = 'Windows.Data.Xml.Dom.XmlNamedNodeMap'
+RuntimeClass_Windows_Data_Xml_Dom_XmlNodeList = 'Windows.Data.Xml.Dom.XmlNodeList'
+RuntimeClass_Windows_Data_Xml_Dom_XmlProcessingInstruction = 'Windows.Data.Xml.Dom.XmlProcessingInstruction'
+RuntimeClass_Windows_Data_Xml_Dom_XmlText = 'Windows.Data.Xml.Dom.XmlText'
 RuntimeClass_Windows_Storage_AppDataPaths = 'Windows.Storage.AppDataPaths'
 RuntimeClass_Windows_Storage_ApplicationData = 'Windows.Storage.ApplicationData'
 RuntimeClass_Windows_Storage_ApplicationDataCompositeValue = 'Windows.Storage.ApplicationDataCompositeValue'
@@ -7653,6 +7667,89 @@ RuntimeClass_Windows_System_UserDeviceAssociationChangedEventArgs = (
     'Windows.System.UserDeviceAssociationChangedEventArgs')
 RuntimeClass_Windows_System_UserPicker = 'Windows.System.UserPicker'
 RuntimeClass_Windows_System_UserWatcher = 'Windows.System.UserWatcher'
+RuntimeClass_Windows_System_UserProfile_AdvertisingManager = 'Windows.System.UserProfile.AdvertisingManager'
+RuntimeClass_Windows_System_UserProfile_AdvertisingManagerForUser = (
+    'Windows.System.UserProfile.AdvertisingManagerForUser')
+RuntimeClass_Windows_System_UserProfile_AssignedAccessSettings = 'Windows.System.UserProfile.AssignedAccessSettings'
+RuntimeClass_Windows_System_UserProfile_DiagnosticsSettings = 'Windows.System.UserProfile.DiagnosticsSettings'
+RuntimeClass_Windows_System_UserProfile_FirstSignInSettings = 'Windows.System.UserProfile.FirstSignInSettings'
+RuntimeClass_Windows_System_UserProfile_GlobalizationPreferences = 'Windows.System.UserProfile.GlobalizationPreferences'
+RuntimeClass_Windows_System_UserProfile_GlobalizationPreferencesForUser = (
+    'Windows.System.UserProfile.GlobalizationPreferencesForUser')
+RuntimeClass_Windows_System_UserProfile_LockScreen = 'Windows.System.UserProfile.LockScreen'
+RuntimeClass_Windows_System_UserProfile_UserInformation = 'Windows.System.UserProfile.UserInformation'
+RuntimeClass_Windows_System_UserProfile_UserProfilePersonalizationSettings = (
+    'Windows.System.UserProfile.UserProfilePersonalizationSettings')
+RuntimeClass_Windows_UI_Notifications_AdaptiveNotificationText = 'Windows.UI.Notifications.AdaptiveNotificationText'
+RuntimeClass_Windows_UI_Notifications_BadgeNotification = 'Windows.UI.Notifications.BadgeNotification'
+RuntimeClass_Windows_UI_Notifications_BadgeUpdateManager = 'Windows.UI.Notifications.BadgeUpdateManager'
+RuntimeClass_Windows_UI_Notifications_BadgeUpdateManagerForUser = 'Windows.UI.Notifications.BadgeUpdateManagerForUser'
+RuntimeClass_Windows_UI_Notifications_BadgeUpdater = 'Windows.UI.Notifications.BadgeUpdater'
+RuntimeClass_Windows_UI_Notifications_KnownAdaptiveNotificationHints = (
+    'Windows.UI.Notifications.KnownAdaptiveNotificationHints')
+RuntimeClass_Windows_UI_Notifications_KnownAdaptiveNotificationTextStyles = (
+    'Windows.UI.Notifications.KnownAdaptiveNotificationTextStyles')
+RuntimeClass_Windows_UI_Notifications_KnownNotificationBindings = 'Windows.UI.Notifications.KnownNotificationBindings'
+RuntimeClass_Windows_UI_Notifications_Notification = 'Windows.UI.Notifications.Notification'
+RuntimeClass_Windows_UI_Notifications_NotificationBinding = 'Windows.UI.Notifications.NotificationBinding'
+RuntimeClass_Windows_UI_Notifications_NotificationData = 'Windows.UI.Notifications.NotificationData'
+RuntimeClass_Windows_UI_Notifications_NotificationVisual = 'Windows.UI.Notifications.NotificationVisual'
+RuntimeClass_Windows_UI_Notifications_ScheduledTileNotification = 'Windows.UI.Notifications.ScheduledTileNotification'
+RuntimeClass_Windows_UI_Notifications_ScheduledToastNotification = 'Windows.UI.Notifications.ScheduledToastNotification'
+RuntimeClass_Windows_UI_Notifications_ScheduledToastNotificationShowingEventArgs = (
+    'Windows.UI.Notifications.ScheduledToastNotificationShowingEventArgs')
+RuntimeClass_Windows_UI_Notifications_ShownTileNotification = 'Windows.UI.Notifications.ShownTileNotification'
+RuntimeClass_Windows_UI_Notifications_TileFlyoutNotification = 'Windows.UI.Notifications.TileFlyoutNotification'
+RuntimeClass_Windows_UI_Notifications_TileFlyoutUpdateManager = 'Windows.UI.Notifications.TileFlyoutUpdateManager'
+RuntimeClass_Windows_UI_Notifications_TileFlyoutUpdater = 'Windows.UI.Notifications.TileFlyoutUpdater'
+RuntimeClass_Windows_UI_Notifications_TileNotification = 'Windows.UI.Notifications.TileNotification'
+RuntimeClass_Windows_UI_Notifications_TileUpdateManager = 'Windows.UI.Notifications.TileUpdateManager'
+RuntimeClass_Windows_UI_Notifications_TileUpdateManagerForUser = 'Windows.UI.Notifications.TileUpdateManagerForUser'
+RuntimeClass_Windows_UI_Notifications_TileUpdater = 'Windows.UI.Notifications.TileUpdater'
+RuntimeClass_Windows_UI_Notifications_ToastActivatedEventArgs = 'Windows.UI.Notifications.ToastActivatedEventArgs'
+RuntimeClass_Windows_UI_Notifications_ToastCollection = 'Windows.UI.Notifications.ToastCollection'
+RuntimeClass_Windows_UI_Notifications_ToastCollectionManager = 'Windows.UI.Notifications.ToastCollectionManager'
+RuntimeClass_Windows_UI_Notifications_ToastDismissedEventArgs = 'Windows.UI.Notifications.ToastDismissedEventArgs'
+RuntimeClass_Windows_UI_Notifications_ToastFailedEventArgs = 'Windows.UI.Notifications.ToastFailedEventArgs'
+RuntimeClass_Windows_UI_Notifications_ToastNotification = 'Windows.UI.Notifications.ToastNotification'
+RuntimeClass_Windows_UI_Notifications_ToastNotificationActionTriggerDetail = (
+    'Windows.UI.Notifications.ToastNotificationActionTriggerDetail')
+RuntimeClass_Windows_UI_Notifications_ToastNotificationHistory = 'Windows.UI.Notifications.ToastNotificationHistory'
+RuntimeClass_Windows_UI_Notifications_ToastNotificationHistoryChangedTriggerDetail = (
+    'Windows.UI.Notifications.ToastNotificationHistoryChangedTriggerDetail')
+RuntimeClass_Windows_UI_Notifications_ToastNotificationManager = 'Windows.UI.Notifications.ToastNotificationManager'
+RuntimeClass_Windows_UI_Notifications_ToastNotificationManagerForUser = (
+    'Windows.UI.Notifications.ToastNotificationManagerForUser')
+RuntimeClass_Windows_UI_Notifications_ToastNotifier = 'Windows.UI.Notifications.ToastNotifier'
+RuntimeClass_Windows_UI_Notifications_UserNotification = 'Windows.UI.Notifications.UserNotification'
+RuntimeClass_Windows_UI_Notifications_UserNotificationChangedEventArgs = (
+    'Windows.UI.Notifications.UserNotificationChangedEventArgs')
+RuntimeClass_Windows_UI_ViewManagement_AccessibilitySettings = 'Windows.UI.ViewManagement.AccessibilitySettings'
+RuntimeClass_Windows_UI_ViewManagement_ActivationViewSwitcher = 'Windows.UI.ViewManagement.ActivationViewSwitcher'
+RuntimeClass_Windows_UI_ViewManagement_ApplicationView = 'Windows.UI.ViewManagement.ApplicationView'
+RuntimeClass_Windows_UI_ViewManagement_ApplicationViewConsolidatedEventArgs = (
+    'Windows.UI.ViewManagement.ApplicationViewConsolidatedEventArgs')
+RuntimeClass_Windows_UI_ViewManagement_ApplicationViewScaling = 'Windows.UI.ViewManagement.ApplicationViewScaling'
+RuntimeClass_Windows_UI_ViewManagement_ApplicationViewSwitcher = 'Windows.UI.ViewManagement.ApplicationViewSwitcher'
+RuntimeClass_Windows_UI_ViewManagement_ApplicationViewTitleBar = 'Windows.UI.ViewManagement.ApplicationViewTitleBar'
+RuntimeClass_Windows_UI_ViewManagement_ApplicationViewTransferContext = (
+    'Windows.UI.ViewManagement.ApplicationViewTransferContext')
+RuntimeClass_Windows_UI_ViewManagement_InputPane = 'Windows.UI.ViewManagement.InputPane'
+RuntimeClass_Windows_UI_ViewManagement_InputPaneVisibilityEventArgs = (
+    'Windows.UI.ViewManagement.InputPaneVisibilityEventArgs')
+RuntimeClass_Windows_UI_ViewManagement_ProjectionManager = 'Windows.UI.ViewManagement.ProjectionManager'
+RuntimeClass_Windows_UI_ViewManagement_StatusBar = 'Windows.UI.ViewManagement.StatusBar'
+RuntimeClass_Windows_UI_ViewManagement_StatusBarProgressIndicator = (
+    'Windows.UI.ViewManagement.StatusBarProgressIndicator')
+RuntimeClass_Windows_UI_ViewManagement_UISettings = 'Windows.UI.ViewManagement.UISettings'
+RuntimeClass_Windows_UI_ViewManagement_UISettingsAnimationsEnabledChangedEventArgs = (
+    'Windows.UI.ViewManagement.UISettingsAnimationsEnabledChangedEventArgs')
+RuntimeClass_Windows_UI_ViewManagement_UISettingsAutoHideScrollBarsChangedEventArgs = (
+    'Windows.UI.ViewManagement.UISettingsAutoHideScrollBarsChangedEventArgs')
+RuntimeClass_Windows_UI_ViewManagement_UISettingsMessageDurationChangedEventArgs = (
+    'Windows.UI.ViewManagement.UISettingsMessageDurationChangedEventArgs')
+RuntimeClass_Windows_UI_ViewManagement_UIViewSettings = 'Windows.UI.ViewManagement.UIViewSettings'
+RuntimeClass_Windows_UI_ViewManagement_ViewModePreferences = 'Windows.UI.ViewManagement.ViewModePreferences'
 # GUID
 GUID_DEVCLASS_1394 = '{6BDD1FC1-810F-11D0-BEC7-08002BE2092F}'
 GUID_DEVCLASS_1394DEBUG = '{66F250D6-7801-4A64-B139-EEA80A450B24}'
@@ -8166,10 +8263,23 @@ IID_ILauncherStatics = '{277151C3-9E3E-42F6-91A4-5DFDEB232451}'
 IID_ILauncherOptions = '{BAFA21D8-B071-4CD8-853E-341203E557D3}'
 IID_ILauncherUIOptions = '{1B25DA6E-8AA6-41E9-8251-4165F5985F49}'
 IID_IOutputStream = '{905A0FE6-BC53-11DF-8C49-001E4FC686DA}'
+IID_IXmlDocumentIO = '{6CD0E74E-EE65-4489-9EBF-CA43E87BA637}'
+IID_IXmlDocumentIO2 = '{5D034661-7BD8-4AD5-9EBF-81E6347263B1}'
+IID_IXmlDocumentStatics = '{5543D254-D757-4B79-9539-232B18F50BF1}'
+IID_IXmlDocument = '{F7F3A506-1E87-42D6-BCFB-B8C809FA5494}'
+IID_IXmlNodeSerializer = '{5CC5B382-E6DD-4991-ABEF-06D8D2E7BD0C}'
+IID_IToastNotification = '{997E2675-059E-4E60-8B06-1760917C8B80}'
+IID_IToastNotificationFactory = '{04124B20-82C6-4229-B109-FD9ED4662B53}'
+IID_IToastNotifier = '{75927B93-03F3-41EC-91D3-6E5BAC1B38E7}'
+IID_IToastNotificationManagerStatics = '{50AC103F-D235-4598-BBEF-98FE4D1A3AD4}'
+IID_IToastNotificationManagerStatics2 = '{7AB93C52-0E48-4750-BA9D-1A4113981847}'
+IID_IToastNotificationManagerStatics4 = '{8F993FD3-E516-45FB-8130-398E93FA52C3}'
+IID_IToastNotificationManagerStatics5 = '{D6F5F569-D40D-407C-8989-88CAB42CFD14}'
 IID_IAsyncOperationCompletedHandler_bool = '{C1D3D1A2-AE17-5A5F-B5A2-BDCC8844889A}'
 IID_IAsyncOperationCompletedHandler_IRandomAccessStream = '{398C4183-793D-5B00-819B-4AEF92485E94}'
 IID_IAsyncOperationCompletedHandler_IStorageFile = '{E521C894-2C26-5946-9E61-2B5E188D01ED}'
 IID_IAsyncOperationCompletedHandler_IStorageFolder = '{C211026E-9E63-5452-BA54-3A07D6A96874}'
+IID_IAsyncOperationCompletedHandler_IXmlDocument = '{5EEF7817-93DD-5C0B-9E5A-EB490408F3A9}'
 IID_IAsyncOperationWithProgressHandler_UINT64_UINT64 = '{FFB2B65D-4120-5D13-826D-107851E6BB1C}'
 IID_IAsyncOperationWithProgressCompletedHandler_UINT64_UINT64 = '{D2024E41-5500-5B5A-BA46-CB7009596A2F}'
 # DEVPKEY

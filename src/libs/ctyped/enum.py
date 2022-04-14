@@ -989,6 +989,19 @@ class ORIENTATION_PREFERENCE(_IntEnum):
     ORIENTATION_PREFERENCE_PORTRAIT_FLIPPED = 0x8
 
 
+class NotificationMirroring(_IntEnum):
+    NotificationMirroring_Allowed = _AUTO
+    NotificationMirroring_Disabled = _AUTO
+
+
+class NotificationSetting(_IntEnum):
+    NotificationSetting_Enabled = _AUTO
+    NotificationSetting_DisabledForApplication = _AUTO
+    NotificationSetting_DisabledForUser = _AUTO
+    NotificationSetting_DisabledByGroupPolicy = _AUTO
+    NotificationSetting_DisabledByManifest = _AUTO
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status

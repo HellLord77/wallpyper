@@ -83,7 +83,7 @@ _MIM_FIELD = {
 _MIIM_FIELDS = {
     ctyped.const.MIIM_STATE: ('fState',),
     ctyped.const.MIIM_ID: ('wID',),
-    ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_STRING: ('hSubMenu', 'dwTypeData'),
+    ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_TYPE: ('hSubMenu', 'dwTypeData'),
     ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
     ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'),
     ctyped.const.MIIM_DATA: ('dwItemData',),
@@ -377,7 +377,7 @@ class SystemTray(_Control):
     _selves: dict[int, SystemTray]
     _id_gen = _IDGenerator()
 
-    _shown = False
+    _show = False
     _hicon = None
     _balloon_hicon = None
     _animation_frames = None
@@ -405,11 +405,12 @@ class SystemTray(_Control):
         for self in cls._selves.values():
             self._update()
 
-    def is_shown(self) -> bool:
-        return self._shown
-
     def is_animated(self) -> bool:
         return self._animation_frames is not None
+
+    def is_shown(self) -> bool:
+        return not bool(ctyped.lib.Shell32.Shell_NotifyIconGetRect(ctyped.byref(
+            ctyped.struct.NOTIFYICONIDENTIFIER(hWnd=self._hwnd, uID=self._id)), ctyped.byref(ctyped.struct.RECT())))
 
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
         self._data.hIcon = hicon
@@ -437,14 +438,10 @@ class SystemTray(_Control):
 
     def start_animation(self, gif_path: str) -> bool:
         self.stop_animation()
-        self._animation_frames = itertools.cycle(tuple(_get_gif_frames(gif_path)))
-        try:
+        self._animation_frames = itertools.cycle(frames := tuple(_get_gif_frames(gif_path)))
+        if frames:
             self._set_next_frame()
-        except StopIteration:
-            self._animation_frames = None
-            return False
-        else:
-            return True
+        return bool(frames)
 
     def stop_animation(self):
         self._animation_frames = None
@@ -456,17 +453,17 @@ class SystemTray(_Control):
         return bool(self._animation_frames)
 
     def _update(self) -> bool:
-        return self._shown and bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
+        return self._show and bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
             self._data)) or ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
 
     def show(self) -> bool:
-        self._shown = True
-        self._shown = self._update()
-        return self._shown
+        self._show = True
+        self._show = self._update()
+        return self._show
 
     def hide(self) -> bool:
-        self._shown = not bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
-        return not self._shown
+        self._show = not bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
+        return not self._show
 
     def show_balloon(self, title: str, text: Optional[str] = None,
                      res_or_path: Union[int, str] = SystemTrayIcon.NONE, silent: bool = False) -> bool:
@@ -570,7 +567,7 @@ class Menu(_Control):
                 if text is not None:
                     item.set_text(text)
                 if image_res_or_path is not None:
-                    item.set_image(image_res_or_path, text is None)
+                    item.set_image(image_res_or_path) if text is None else item.set_icon(image_res_or_path)
                 if submenu is not None:
                     item.set_submenu(submenu)
                 if type == MenuItemType.RADIO:
@@ -714,7 +711,7 @@ class _MenuItem(_Control):
     def get_type(self) -> int:
         return self._type
 
-    def _prep_image(self, res_or_path: Union[int, str], index: int, resize) -> int:
+    def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
         if isinstance(res_or_path, str):
             res_or_path = _gdiplus.Bitmap.from_file(res_or_path)
             if resize:
@@ -797,7 +794,7 @@ class _MenuItem(_Control):
             setattr(info, field, data)
         return bool(ctyped.lib.User32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
 
-    def _set_icon(self, res_or_path: Union[int, str], resize: bool) -> bool:
+    def set_icon(self, res_or_path: Union[int, str], resize: bool = True) -> bool:
         return self._set_datas(ctyped.const.MIIM_BITMAP, (self._prep_image(res_or_path, 0, resize),))
 
     def _set_check_icons(self, res_or_path_checked: Optional[Union[int, str]],
@@ -861,15 +858,15 @@ class _MenuItem(_Control):
     def set_text(self, text: str) -> bool:
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_STRING, text))
 
-    def _set_image(self, res_or_path: Union[int, str], resize: bool) -> bool:
+    def set_image(self, res_or_path: Union[int, str]) -> bool:
         return self._set_datas(ctyped.const.MIIM_TYPE, (
-            ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(self._prep_image(res_or_path, 0, resize))))
+            ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(self._prep_image(res_or_path, 0, False))))
 
     def _set_separator(self) -> bool:
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_SEPARATOR,))
 
     def set_submenu(self, submenu: Menu, text: Optional[str] = None) -> bool:  # TODO image submenu
-        return self._set_datas(ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_STRING,
+        return self._set_datas(ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_TYPE,
                                (submenu.get_id(), self.get_text() if text is None else text))
 
     def get_pos(self) -> int:
@@ -895,9 +892,6 @@ class _MenuItem(_Control):
 
     def set_unchecked_icon(self, res_or_path: Optional[Union[int, str]] = None, resize: bool = True) -> bool:
         return self._set_check_icons(self._hbmps[1], res_or_path, resize)
-
-    def set_image(self, res_or_path: Union[int, str], image_only: bool = False, resize: bool = True) -> bool:
-        return self._set_image(res_or_path, resize) if image_only else self._set_icon(res_or_path, resize)
 
     def set_tooltip(self, text: str, title: str = '', icon_res_or_path: Union[int, str] = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
@@ -929,12 +923,14 @@ def _wait():
         pass
 
 
-def _test_sys_tray():
+def _test_gui():
     p = r'D:\Projects\wallpyper\src\resources\tray.png'
     # bind(EVENT_CLOSE, lambda *args: print(6969))
     g = Gui()
     s = SystemTray(p, 'tip')
     menu = Menu()
+    not_hidden = menu.append_item('tray icon shown')
+    not_hidden.bind(MenuItemEvent.LEFT_UP, lambda *args: print(s.is_shown()))
     it = menu.append_item('stop animate\tright')
     print(it.is_enabled())
     it.bind(MenuItemEvent.LEFT_UP, foo3, (s,))
@@ -968,6 +964,7 @@ def _test_sys_tray():
     # print(item.set_image(r'D:\Projects\wallpyper\src\resources\tray.png', True))
     # menu.set_item_submenu(item, menu2)
     item.set_submenu(menu2)
+    item.set_image(p)
     item.set_tooltip('https://www.google.com')
     g.bind(GuiEvent.DISPLAY_CHANGE, lambda *args: print('display', args))
 
@@ -989,14 +986,53 @@ def _test_sys_tray():
     print('exit')
 
 
-def _test_():
+def _test_settings():
     info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open',
                                            lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
+def _test_toast():
+    aumi = 'HellLord.Wallpyper'
+    xml_data = '''
+<toast>
+    <visual>
+        <binding template="ToastGeneric">
+            <text>Sample toast</text>
+            <text>Sample content</text>
+        </binding>
+    </visual>
+</toast>'''
+
+    with ctyped.get_winrt(ctyped.com.IToastNotificationManagerStatics) as manager:
+        with ctyped.init_com(ctyped.com.IToastNotifier, False) as notifier:
+            print(manager.CreateToastNotifierWithId(ctyped.handle.HSTRING.from_string(aumi), ctyped.byref(notifier)))
+            with ctyped.get_winrt(ctyped.com.IToastNotificationFactory) as factory, win32.xml.loads(
+                    xml_data) as xml, ctyped.init_com(ctyped.com.IToastNotification, False) as toast:
+                print(factory.CreateToastNotification(xml, ctyped.byref(toast)))
+                print(notifier.Show(toast))
+
+
+def get_aumi() -> str:
+    buff = ctyped.type.PWSTR()
+    try:
+        ctyped.lib.Shell32.GetCurrentProcessExplicitAppUserModelID(ctyped.byref(buff))
+    except OSError:
+        return ''
+    else:
+        try:
+            return buff.value
+        finally:
+            ctyped.lib.Ole32.CoTaskMemFree(buff)
+
+
+def set_aumi(aumi: str = '') -> bool:
+    return ctyped.macro.SUCCEEDED(ctyped.lib.Shell32.SetCurrentProcessExplicitAppUserModelID(aumi))
+
+
 if __name__ == '__main__':
-    _test_sys_tray()
-    # _test_()
+    # _test_toast()
+    _test_gui()
+    # _test_settings()
     # _wait()
     sys.exit()

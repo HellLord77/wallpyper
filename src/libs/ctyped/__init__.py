@@ -200,10 +200,10 @@ class Async:
                 self._info_ = info
         return self._info_
 
-    def _put(self, putter: _Callable, handler: _Union[_AsyncCompletedHandler, _AsyncProgressHandler]):
-        putter(handler) if THREADED_COM else _threading.Thread(
-            target=putter, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
-                                f'({_builtins.type(self._async).__name__}.{putter.__name__})', args=(handler,)).start()
+    def _put(self, put: _Callable, handler: _Union[_AsyncCompletedHandler, _AsyncProgressHandler]):
+        put(handler) if THREADED_COM else _threading.Thread(
+            target=put, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
+                             f'({_builtins.type(self._async).__name__}.{put.__name__})', args=(handler,)).start()
 
     def get_ref(self) -> _Union[Pointer[com.IAsyncAction], Pointer[com.IAsyncActionWithProgress],
                                 Pointer[com.IAsyncOperation], Pointer[com.IAsyncOperationWithProgress]]:
