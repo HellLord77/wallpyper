@@ -330,7 +330,7 @@ class Gui(_EventHandler):
             return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
 
-    def _show_menu_item_tooltip(self, text: str, icon: int, title: str):
+    def _show_menu_item_tooltip(self, text: str, icon: int, title: str, pos: Optional[tuple[int, int]] = None):
         self._menu_item_tooltip_proc = None
         self._menu_item_tooltip.lpszText = text
         self._menu_item_tooltip_title = ctyped.char_array(title)
@@ -340,6 +340,9 @@ class Gui(_EventHandler):
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_SETTITLEW, icon,
                                                   ctyped.addressof(self._menu_item_tooltip_title))
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, 1, lparam)
+        if pos:
+            ctyped.lib.User32.SetWindowPos(self._menu_item_tooltip_hwnd, None, *pos, 0, 0,
+                                           ctyped.const.SWP_NOACTIVATE | ctyped.const.SWP_NOSIZE)
 
     def is_mainloop_running(self) -> bool:
         return self._mainloop_lock.locked()
@@ -695,15 +698,18 @@ class _MenuItem(_Control):
 
     def _show_tooltip(self, *_):
         ctyped.lib.User32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
-        if self._tooltip_text and (pos := self.get_pos()) != -1:
+        if self._tooltip_text and self.is_highlighted():
             rect = ctyped.struct.RECT()
-            ctyped.lib.User32.GetMenuItemRect(self._hwnd, self._menu.get_id(), pos, ctyped.byref(rect))
+            ctyped.lib.User32.GetMenuItemRect(self._hwnd, self._menu.get_id(), self.get_pos(), ctyped.byref(rect))
             pt = ctyped.struct.POINT()
             ctyped.lib.User32.GetCursorPos(ctyped.byref(pt))
             if rect.left <= pt.x <= rect.right and rect.top <= pt.y <= rect.bottom:
-                # noinspection PyProtectedMember
-                Gui.get(self._hwnd)._show_menu_item_tooltip(
-                    self._tooltip_text, self._tooltip_icon, self._tooltip_title)
+                pos = None
+            else:
+                pos = rect.left + int((rect.right - rect.left) / 2), rect.top + int((rect.bottom - rect.top) / 2)
+            # noinspection PyProtectedMember
+            Gui.get(self._hwnd)._show_menu_item_tooltip(
+                self._tooltip_text, self._tooltip_icon, self._tooltip_title, pos)
 
     def get_menu(self) -> Menu:
         return self._menu
