@@ -1,4 +1,4 @@
-__version__ = '0.0.3'  # https://wallhaven.cc/help/api
+__version__ = '0.0.2'  # https://wallhaven.cc/help/api
 
 import os.path
 import re
@@ -7,7 +7,6 @@ from typing import Callable, Generator, Optional
 from libs import colors, files, gui, request
 from .module import _Module
 
-NAME = 'wallhaven'
 BASE_URL = request.join('https://wallhaven.cc', 'api', 'v1')
 SEARCH_URl = request.join(BASE_URL, 'search')
 SETTINGS_URL = request.join(BASE_URL, 'settings')
@@ -41,7 +40,6 @@ def _authenticate(key: str) -> bool:
 
 
 class Wallhaven(_Module):
-    NAME = 'Wallhaven'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',
@@ -124,7 +122,7 @@ class Wallhaven(_Module):
         for ratio in RATIOS:
             gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.Item.CHECK, ratio in ratios,
                               uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
-        gui.add_separator(position=6, menu=menu_ratio)
+        gui.add_separator(6, menu_ratio)
         gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colors.get_name(
             color) if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}, cls.CONFIG, CONFIG_COLORS)
 

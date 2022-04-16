@@ -20,7 +20,7 @@ RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x
 
 
 class Bing(_Module):
-    NAME = 'Bing Daily Wallpaper'
+    NAME = 'Bing Wallpaper'
     DEFAULT_CONFIG = {
         CONFIG_DAY: '0',
         CONFIG_MARKET: MARKETS[5],

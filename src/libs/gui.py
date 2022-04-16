@@ -162,11 +162,10 @@ def remove_menu_items(menu_items: Iterable[wx.MenuItem] = (), menu: Union[wx.Men
     return count
 
 
-def add_separator(uid: Optional[str] = None, position: Optional[int] = None,
-                  menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
+def add_separator(position: Optional[int] = None, menu: Union[wx.Menu, wx.MenuItem] = _MENU) -> wx.MenuItem:
     if isinstance(menu, wx.MenuItem):
         menu = menu.GetSubMenu()
-    return add_menu_item(kind=Item.SEPARATOR, uid=uid, position=position, menu=menu)
+    return add_menu_item(kind=Item.SEPARATOR, position=position, menu=menu)
 
 
 def add_submenu(label: str, enable: bool = True, uid: Optional[str] = None,

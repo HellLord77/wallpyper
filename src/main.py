@@ -21,11 +21,11 @@ import libs.files as files
 import libs.files as paths
 import libs.gui as gui
 import libs.log as log
-import libs.misc as misc
 import libs.pyinstall as pyinstall
 import libs.request as request
 import libs.singleton as singleton
 import libs.timer as timer
+import libs.utils as utils
 import modules
 import win32
 
@@ -80,7 +80,7 @@ RECENT: collections.deque[files.File] = collections.deque(maxlen=MAX_RECENT)
 
 DEFAULT_CONFIG = {
     CONFIG_LAST: math.inf,
-    CONFIG_RECENT: misc.encrypt(RECENT, True),
+    CONFIG_RECENT: utils.encrypt(RECENT, True),
     CONFIG_DISPLAY: ALL_DISPLAY,
     CONFIG_FIRST: True,
     CONFIG_AUTOSAVE: False,
@@ -119,7 +119,7 @@ def fix_config(loaded: bool = True):
     _fix_config(CONFIG_STYLE, win32.wallpaper.Style)
     _fix_config(CONFIG_TRANSITION, win32.wallpaper.Transition)
     if loaded:
-        CONFIG[CONFIG_RECENT] = f'\n{misc.encrypt(RECENT, True)}'
+        CONFIG[CONFIG_RECENT] = f'\n{utils.encrypt(RECENT, True)}'
     _fix_config(CONFIG_DISPLAY, DISPLAYS)
     if CONFIG[CONFIG_LAST] > time.time():
         CONFIG[CONFIG_LAST] = DEFAULT_CONFIG[CONFIG_LAST]
@@ -144,8 +144,8 @@ def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float,
 
 def load_config() -> bool:
     parser = configparser.ConfigParser(
-        converters={tuple.__name__: misc.to_tuple, list.__name__: misc.to_list,
-                    set.__name__: misc.to_set, dict.__name__: misc.to_dict})
+        converters={tuple.__name__: utils.to_tuple, list.__name__: utils.to_list,
+                    set.__name__: utils.to_set, dict.__name__: utils.to_dict})
     try:
         loaded = bool(parser.read(CONFIG_PATH))
     except configparser.MissingSectionHeaderError:
@@ -202,7 +202,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
 
 def get_next_wallpaper() -> Optional[files.File]:
     module = modules.MODULES[CONFIG[CONFIG_MODULE]]
-    config = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
+    config = {key: str(val) for key, val in module.CONFIG.items() if not key.startswith('_')}
     got_wallpapers = set()
     while (next_wallpaper := next(module.get_next_wallpaper(
             **config))) and CONFIG[CONFIG_SKIP] and next_wallpaper in RECENT and next_wallpaper not in got_wallpapers:
@@ -211,7 +211,7 @@ def get_next_wallpaper() -> Optional[files.File]:
         return next_wallpaper
 
 
-@misc.singleton_run
+@utils.singleton_run
 def change_wallpaper(wallpaper: Optional[files.File] = None,
                      query_callback: Optional[Callable[[int, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
@@ -234,12 +234,12 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
     return changed
 
 
-@misc.singleton_run
+@utils.singleton_run
 def save_wallpaper(path: str) -> bool:
     return files.copy(path, files.join(CONFIG[CONFIG_DIR], os.path.basename(path)))
 
 
-@misc.singleton_run
+@utils.singleton_run
 def search_wallpaper(path: str) -> bool:
     searched = False
     gui.start_animation(RES_BUSY, STRINGS.STATUS_SEARCH)
@@ -297,7 +297,7 @@ def on_change(enable: Callable, menu_recent, set_label: Callable,
     return changed
 
 
-def on_click(callback: misc.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
+def on_click(callback: utils.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -320,7 +320,7 @@ def _update_recent(menu):
     with gui.set_main_menu(menu):
         items = gui.get_menu_items()
         for index, wallpaper in enumerate(RECENT):
-            label = f'{langs.to_str(index + 1, STRINGS)}. {misc.shrink_string(wallpaper.name, MAX_LABEL)}'
+            label = f'{langs.to_str(index + 1, STRINGS)}. {utils.shrink_string(wallpaper.name, MAX_LABEL)}'
             if wallpaper in items:
                 menu_wallpaper = items[wallpaper.url]
                 menu_wallpaper.SetItemLabel(label)
@@ -452,7 +452,7 @@ def on_unpin() -> bool:
     return unpinned
 
 
-@misc.singleton_run
+@utils.singleton_run
 def pin_to_start() -> bool:
     return win32.add_pin(*_get_launch_args(), taskbar=False, name=NAME,
                          icon_path='' if pyinstall.FROZEN else RES_ICON, show=pyinstall.FROZEN)
@@ -606,14 +606,14 @@ def start():  # TODO dark theme
     if ARG_DEBUG in sys.argv:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
         log.init(os.path.basename(__file__),
-                 misc.re_join('libs', r'.*\.py'), misc.re_join('modules', r'.*\.py'),
-                 misc.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
+                 utils.re_join('libs', r'.*\.py'), utils.re_join('modules', r'.*\.py'),
+                 utils.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     files.make_dir(TEMP_DIR)
     files.trim_dir(TEMP_DIR, MAX_CACHE)
     _update_display()
     load_config()
-    RECENT.extend(misc.decrypt(CONFIG[CONFIG_RECENT], ()))
+    RECENT.extend(utils.decrypt(CONFIG[CONFIG_RECENT], ()))
     create_menu()
     gui.enable_animation(CONFIG[CONFIG_ANIMATE])
     apply_auto_start(CONFIG[CONFIG_START])

@@ -1,4 +1,4 @@
-__version__ = '0.0.1'  # https://www.pexels.com/api/documentation
+__version__ = '0.0.2'  # https://www.pexels.com/api/documentation
 
 import os
 from typing import Generator, Optional
@@ -14,10 +14,13 @@ CONFIG_KEY = 'key'
 CONFIG_CURATED = 'curated'
 CONFIG_ORIENTATION = 'orientation'
 CONFIG_SIZE = 'size'
+CONFIG_COLOR = 'color'
 CONFIG_LOCALE = 'locale'
 
 ORIENTATIONS = '', 'landscape', 'portrait', 'square'
 SIZES = '', 'large', 'medium', 'small'
+COLORS = (
+    '', 'red', 'orange', 'yellow', 'green', 'turquoise', 'blue', 'violet', 'pink', 'brown', 'black', 'gray', 'white')
 LOCALES = (
     '', 'en-US', 'pt-BR', 'es-ES', 'ca-ES', 'de-DE', 'it-IT', 'fr-FR', 'sv-SE',
     'id-ID', 'pl-PL', 'ja-JP', 'zh-TW', 'zh-CN', 'ko-KR', 'th-TH', 'nl-NL', 'hu-HU', 'vi-VN',
@@ -29,27 +32,24 @@ def on_curated(curated: bool, menu):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(response := request.open(SEARCH_URL, {'query': 'people', 'per_page': '1'},
-                                         headers={'Authorization': key})) and 'error' not in response.get_json()
+    return bool(request.open(CURATED_URL, {'per_page': '1'}, headers={'Authorization': key}))
 
 
-class Plexels(_Module):
-    NAME = 'Pexels'
+class Pexels(_Module):
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         CONFIG_CURATED: False,
         'query': '',
         CONFIG_ORIENTATION: ORIENTATIONS[0],
         CONFIG_SIZE: SIZES[0],
-        'color': '',
+        CONFIG_COLOR: COLORS[0],
         CONFIG_LOCALE: LOCALES[0]}
 
     @classmethod
     def fix_config(cls):
-        if not cls.CONFIG[CONFIG_KEY]:
-            cls.CONFIG[CONFIG_CURATED] = True
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(CONFIG_SIZE, SIZES)
+        cls._fix_config(CONFIG_COLOR, COLORS)
         cls._fix_config(CONFIG_LOCALE, LOCALES)
 
     @classmethod
@@ -66,10 +66,12 @@ class Plexels(_Module):
         while True:
             if not photos:
                 response = request.open(query_url, params, headers={'Authorization': key})
+                if not response:
+                    print(response.get_content())
                 if response:
                     json = response.get_json()
                     photos = json.get('photos')
-                    params['page'] = str(int(params['page']) + bool(json.get('next_page')))
+                    params['page'] = str(int(params['page']) + 1) if json.get('next_page') else '1'
                 if not photos:
                     yield
                     continue
@@ -83,10 +85,12 @@ class Plexels(_Module):
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
                                     for orientation in ORIENTATIONS}, cls.CONFIG, CONFIG_ORIENTATION)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_SIZE, {size: getattr(cls.STRINGS, f'PEXELS_SIZE_{size}')
-                                                                  for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_SIZE, {size: getattr(
+                cls.STRINGS, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_COLOR, {color: getattr(
+                cls.STRINGS, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CONFIG, CONFIG_COLOR)
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: locales.Country.get(
                 locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
                                                                     for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
         gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
-                                 bool(cls.CONFIG[CONFIG_KEY]), on_curated, (menu_search,))
+                                 on_click=on_curated, args=(menu_search,))

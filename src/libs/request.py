@@ -23,6 +23,8 @@ MAX_CHUNK = 1024 * 1024
 class Status:
     OK = 200
     FOUND = 302
+    BAD_REQUEST = 400
+    NOT_FOUND = 404
     IM_A_TEAPOT = 418
 
 
