@@ -391,16 +391,15 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
     return 0, 0, 0, 0
 
 
-def _get_temp_hdc(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
-                  src_x: int, src_y: int, src_w: int, src_h: int, path: str) -> ctyped.handle.HDC:
+def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
+                   src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> ctyped.handle.HDC:
     bitmap = _gdiplus.Bitmap.from_dimension(width, height)
     graphics = bitmap.get_graphics()
     graphics.fill_rect_with_color(color, 0, 0, width, height)
     graphics.set_scale(width / src_w, height / src_h)
     src.set_resolution(graphics.dpi_x, graphics.dpi_y)
     graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
-    if path:
-        bitmap.save(path)
+    bitmap.save(temp_path)
     return bitmap.get_hbitmap().get_hdc()
 
 
@@ -414,12 +413,12 @@ def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_
     return True
 
 
-def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,  # TODO randomly skipped
+def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
                      color: ctyped.type.ARGB = 0, transition: int = Transition.DISABLED, duration: float = 0):
     if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
-        src = _get_temp_hdc(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
+        src = _save_temp_bmp(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
         if transition != Transition.DISABLED:
             if transition == Transition.RANDOM:
                 transition = Transition.get_random(Transition.DISABLED, Transition.RANDOM)
@@ -556,15 +555,13 @@ def set_lock(path: str) -> bool:
 
 
 def set_slideshow(*paths: str) -> bool:
-    with _utils.get_itemidlist(*paths) as pidl:
-        id_arr = ctyped.array(ctyped.pointer(ctyped.struct.ITEMIDLIST), *pidl)
-        with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
-            if wallpaper:
-                with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
-                    ctyped.lib.Shell32.SHCreateShellItemArrayFromIDLists(
-                        len(id_arr), ctyped.byref(id_arr[0]), ctyped.byref(shl_arr))
-                    wallpaper.SetSlideshow(shl_arr)
-                    return True
+    with _utils.get_itemidlist(*paths) as pidl, ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+        if wallpaper:
+            with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
+                id_arr = ctyped.array(*pidl)
+                return ctyped.macro.SUCCEEDED(
+                    ctyped.lib.Shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(
+                        id_arr[0]), ctyped.byref(shl_arr))) and ctyped.macro.SUCCEEDED(wallpaper.SetSlideshow(shl_arr))
     return False
 
 

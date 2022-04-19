@@ -3,7 +3,7 @@ from __future__ import annotations as _
 import enum as _enum
 import functools as _functools
 import sys as _sys
-from typing import Optional as _Optional, Union as _Union
+from typing import Optional as _Optional
 
 from . import type as _type
 from ._utils import _Globals
@@ -260,6 +260,11 @@ class QualityMode(_IntEnum):
     QualityModeDefault = _AUTO
     QualityModeLow = _AUTO
     QualityModeHigh = _AUTO
+
+
+class CompositingMode(_IntEnum):
+    CompositingModeSourceOver = _AUTO
+    CompositingModeSourceCopy = _AUTO
 
 
 class FillMode(_IntEnum):
@@ -1002,6 +1007,86 @@ class NotificationSetting(_IntEnum):
     NotificationSetting_DisabledByManifest = _AUTO
 
 
+class InterpolationMode(_IntEnum):
+    InterpolationModeInvalid = QualityMode.QualityModeInvalid
+    InterpolationModeDefault = QualityMode.QualityModeDefault
+    InterpolationModeLowQuality = QualityMode.QualityModeLow
+    InterpolationModeHighQuality = QualityMode.QualityModeHigh
+    InterpolationModeBilinear = _AUTO
+    InterpolationModeBicubic = _AUTO
+    InterpolationModeNearestNeighbor = _AUTO
+    InterpolationModeHighQualityBilinear = _AUTO
+    InterpolationModeHighQualityBicubic = _AUTO
+
+
+class SmoothingMode(_IntEnum):
+    SmoothingModeInvalid = QualityMode.QualityModeInvalid
+    SmoothingModeDefault = QualityMode.QualityModeDefault
+    SmoothingModeHighSpeed = QualityMode.QualityModeLow
+    SmoothingModeHighQuality = QualityMode.QualityModeHigh
+    SmoothingModeNone = _AUTO
+    SmoothingModeAntiAlias = _AUTO
+
+
+class CompositingQuality(_IntEnum):
+    CompositingQualityInvalid = QualityMode.QualityModeInvalid
+    CompositingQualityDefault = QualityMode.QualityModeDefault
+    CompositingQualityHighSpeed = QualityMode.QualityModeLow
+    CompositingQualityHighQuality = QualityMode.QualityModeHigh
+    CompositingQualityGammaCorrected = _AUTO
+    CompositingQualityAssumeLinear = _AUTO
+
+
+class PixelOffsetMode(_IntEnum):
+    PixelOffsetModeInvalid = QualityMode.QualityModeInvalid
+    PixelOffsetModeDefault = QualityMode.QualityModeDefault
+    PixelOffsetModeHighSpeed = QualityMode.QualityModeLow
+    PixelOffsetModeHighQuality = QualityMode.QualityModeHigh
+    PixelOffsetModeNone = _AUTO
+    PixelOffsetModeHalf = _AUTO
+
+
+class EncoderParameterValueType(_IntEnum):
+    EncoderParameterValueTypeByte = 1
+    EncoderParameterValueTypeASCII = _AUTO
+    EncoderParameterValueTypeShort = _AUTO
+    EncoderParameterValueTypeLong = _AUTO
+    EncoderParameterValueTypeRational = _AUTO
+    EncoderParameterValueTypeLongRange = _AUTO
+    EncoderParameterValueTypeUndefined = _AUTO
+    EncoderParameterValueTypeRationalRange = _AUTO
+    EncoderParameterValueTypePointer = _AUTO
+
+
+class EncoderValue(_IntEnum):
+    EncoderValueColorTypeCMYK = _AUTO
+    EncoderValueColorTypeYCCK = _AUTO
+    EncoderValueCompressionLZW = _AUTO
+    EncoderValueCompressionCCITT3 = _AUTO
+    EncoderValueCompressionCCITT4 = _AUTO
+    EncoderValueCompressionRle = _AUTO
+    EncoderValueCompressionNone = _AUTO
+    EncoderValueScanMethodInterlaced = _AUTO
+    EncoderValueScanMethodNonInterlaced = _AUTO
+    EncoderValueVersionGif87 = _AUTO
+    EncoderValueVersionGif89 = _AUTO
+    EncoderValueRenderProgressive = _AUTO
+    EncoderValueRenderNonProgressive = _AUTO
+    EncoderValueTransformRotate90 = _AUTO
+    EncoderValueTransformRotate180 = _AUTO
+    EncoderValueTransformRotate270 = _AUTO
+    EncoderValueTransformFlipHorizontal = _AUTO
+    EncoderValueTransformFlipVertical = _AUTO
+    EncoderValueMultiFrame = _AUTO
+    EncoderValueLastFrame = _AUTO
+    EncoderValueFlush = _AUTO
+    EncoderValueFrameDimensionTime = _AUTO
+    EncoderValueFrameDimensionResolution = _AUTO
+    EncoderValueFrameDimensionPage = _AUTO
+    EncoderValueColorTypeGray = _AUTO
+    EncoderValueColorTypeRGB = _AUTO
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status
@@ -1032,24 +1117,22 @@ def _get_members(enum: _IntEnum) -> dict[int, str]:
 def _init(item: str) -> type:
     _globals.check_item(item)
 
-    class Enum(_type.c_uint, metaclass=_EnumMeta):
+    class Enum(_type.c_int, metaclass=_EnumMeta):
         _name = None
-        __members__ = _get_members(_globals.vars_[item])
+        __members__: dict[str, int] = _get_members(_globals.vars_[item])
 
         def __init__(self, value: _Optional[int] = None):
             if value is None:
-                for val in self.__members__.values():
-                    value = val
-                    break
+                value = next(iter(self.__members__.values()))
             super().__init__(value)
 
         @property
-        def _name_(self) -> _Union[int, str]:
+        def _name_(self) -> str:
             if self._name is None:
                 for name, val in self.__members__.items():
                     if self.value == val:
                         return name
-                return self.value
+                return str(self.value)
             else:
                 return self._name
 

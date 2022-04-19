@@ -53,8 +53,9 @@ def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
-def array(type: _builtins.type[CT] = type.c_void_p, *elements: _Any, size: _Optional[int] = None) -> Pointer[CT]:
-    return (type * (size or len(elements)))(*elements)
+def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None, size: _Optional[int] = None) -> Pointer[CT]:
+    return ((_builtins.type(elements[0]) if type is None else type) * (
+        len(elements) if size is None else size))(*elements)
 
 
 @_typing.overload

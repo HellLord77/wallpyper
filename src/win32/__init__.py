@@ -328,8 +328,8 @@ def choose_color(title: Optional[str] = None, color: Optional[int] = None,
                  custom_colors: Optional[MutableSequence[int]] = None) -> Optional[int]:
     data = ctyped.type.LPWSTR(title)
     color_chooser = ctyped.struct.CHOOSECOLORW(
-        rgbResult=0 if color is None else color,
-        lpCustColors=ctyped.array(ctyped.type.COLORREF, *(() if custom_colors is None else custom_colors), size=16),
+        rgbResult=0 if color is None else color, lpCustColors=ctyped.array(*(
+            () if custom_colors is None else custom_colors), type=ctyped.type.COLORREF, size=16),
         Flags=ctyped.const.CC_RGBINIT | ctyped.const.CC_FULLOPEN | ctyped.const.CC_ENABLEHOOK,
         lCustData=0 if title is None else ctyped.addressof(data), lpfnHook=ctyped.type.LPCCHOOKPROC(_choose_color_hook))
     if ctyped.lib.Comdlg32.ChooseColorW(ctyped.byref(color_chooser)):

@@ -280,9 +280,14 @@ class Image(_GdiplusBase):
                     type_ = ctyped.type.c_void_p
                 return ctyped.pointer(type_).from_buffer(property_item.contents.value)
 
-    def save(self, path: str) -> bool:
+    def save(self, path: str, quality: int = 100) -> bool:
         if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):
-            return not ctyped.lib.GdiPlus.GdipSaveImageToFile(self, path, encoder, None)
+            quality_ = ctyped.type.LONG(quality)
+            params = ctyped.struct.EncoderParameters(1, ctyped.array(
+                ctyped.struct.EncoderParameter(ctyped.get_guid(ctyped.const.EncoderQuality), 1,
+                                               int(ctyped.enum.EncoderParameterValueType.EncoderParameterValueTypeLong),
+                                               ctyped.cast(quality_, ctyped.type.VOID))))
+            return not ctyped.lib.GdiPlus.GdipSaveImageToFile(self, path, encoder, ctyped.byref(params))
         return False
 
 

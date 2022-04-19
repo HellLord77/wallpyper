@@ -34,7 +34,7 @@ def functiondiscoverykeys_devpkey():
 
 def _guid(path: str, prefix: str = 'GUID'):
     with open(path, 'r') as file:
-        for match in re.finditer(rf'DEFINE_GUID.*({prefix}_.*)\);', file.read()):
+        for match in re.finditer(rf'DEFINE_GUID.*({prefix}.*)\);', file.read()):
             guid = match.groups()[0].replace(',', ' ').split()
             guid[1] = guid[1].replace('L', '')
             print(f"{guid[0]} = '{_str(guid[1:12])}'")
@@ -47,6 +47,13 @@ def devguid():
 def wincodec():
     _guid(os.path.join(SDK_PATH, 'um', 'wincodec.h'), 'CLSID')
     _guid(os.path.join(SDK_PATH, 'um', 'wincodec.h'))
+
+
+def gdiplusimaging():
+    with open(os.path.join(SDK_PATH, 'um', 'gdiplusimaging.h'), 'r') as file:
+        for match in re.finditer(r'DEFINE_GUID\((.*)\);', file.read()):
+            guid = match.groups()[0].replace(',', ' ').split()
+            print(f"{guid[0]} = '{_str(guid[1:12])}'")
 
 
 def devpkey():
@@ -125,4 +132,4 @@ def mscoree():
 
 
 if __name__ == '__main__':
-    windows_system_userprofile()
+    gdiplusimaging()

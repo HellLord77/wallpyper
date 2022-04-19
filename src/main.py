@@ -30,7 +30,8 @@ import modules
 import win32
 
 FEATURE_PIN_PYTHON = False
-FEATURE_OPEN_WITH = False
+FEATURE_OPEN_WITH = True
+FEATURE_GOOGLE_SEARCH = False
 FEATURE_UPDATE_DISPLAY = True
 
 MAX_CACHE = 128 * 1024 * 1024
@@ -330,31 +331,30 @@ def _update_recent(menu):
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
                                       on_thread=False, change_state=False)
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
-                        win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK,
-                        STRINGS.FAIL_CHANGE_LOCK))
+                        win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK))
                     gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click,
                                       args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE))
                     gui.add_separator()
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
-                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,))
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,))
                     gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
                         win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN))
                     if FEATURE_OPEN_WITH:
                         gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
                             win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
+                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,))
                     gui.add_separator()
-                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,))
-                    gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click,
-                                      args=(win32.clipboard.copy_text, wallpaper,
-                                            STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH))
+                    gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click, args=(
+                        win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH))
                     gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_click, args=(
                         win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY))
+                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,))
                     gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,))
-                    gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click,
-                                      args=(search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,))
+                    if FEATURE_GOOGLE_SEARCH:
+                        gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click, args=(
+                            search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,))
         if menu_items := tuple(menu_wallpaper for uid, menu_wallpaper in items.items() if uid and uid not in RECENT):
             gui.remove_menu_items(menu_items)
     menu.Enable(bool(RECENT))

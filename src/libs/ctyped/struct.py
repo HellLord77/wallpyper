@@ -665,7 +665,7 @@ class EncoderParameter:
     Guid: GUID = _EMPTY
     NumberOfValues: _type.ULONG = _EMPTY
     Type: _type.ULONG = _EMPTY
-    Value: _Pointer[_type.VOID] = _EMPTY
+    Value: _type.PVOID = _EMPTY
 
 
 @_struct

@@ -45,9 +45,7 @@ class IUnknown(_type.c_void_p):
             cls._vtbl = type(cls.__name__, (_ctypes.Structure,), {'_fields_': tuple(fields)})
         return super().__new__(cls)
 
-    def __init__(self):  # TODO lazy init from value & test no ref vtbl
-        # self._vtbl = self._vtbl(*(type_(getattr(self, name)) if func is None else func for (name, type_), func in
-        #                           zip(self._vtbl._fields_, self._funcs)))
+    def __init__(self):  # TODO lazy init from value
         # noinspection PyProtectedMember,PyUnresolvedReferences
         self._ptr = _pointer(self._vtbl(*(type_(getattr(self, name)) if func is None else func
                                           for (name, type_), func in zip(self._vtbl._fields_, self._funcs))))

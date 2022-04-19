@@ -620,7 +620,7 @@ class IAsyncOperation(IInspectable):
                           _type.HRESULT]
 
 
-class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child (?)
+class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child
     put_Progress: _Callable[[_com_impl.IAsyncOperationProgressHandler],
                             _type.HRESULT]
     get_Progress: _Callable

@@ -59,7 +59,7 @@ def copy_image(path: str) -> bool:
         header = ctyped.struct.BITMAPINFOHEADER(biWidth=bmp.bmWidth, biHeight=bmp.bmHeight,
                                                 biBitCount=bmp.bmBitsPixel, biCompression=ctyped.const.BI_RGB)
         sz = bmp.bmWidthBytes * bmp.bmHeight
-        data = ctyped.array(ctyped.type.BYTE, size=sz)
+        data = ctyped.array(type=ctyped.type.BYTE, size=sz)
         hdc = ctyped.handle.HDC.from_hwnd()
         if hdc and ctyped.lib.Gdi32.GetDIBits(hdc, hbitmap, 0, header.biHeight, data, ctyped.cast(
                 header, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):

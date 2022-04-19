@@ -643,6 +643,9 @@ class GdiPlus(_WinFunc):
                                    _type.INT,
                                    _type.INT],
                                   _enum.GpStatus]
+    GdipGetCompositingQuality: _Callable[[_type.GpGraphics,
+                                          _Pointer[_enum.CompositingQuality]],
+                                         _enum.GpStatus]
     GdipGetDC: _Callable[[_type.GpGraphics,
                           _Pointer[_type.HDC]],
                          _enum.GpStatus]
@@ -675,6 +678,9 @@ class GdiPlus(_WinFunc):
     GdipGetImageGraphicsContext: _Callable[[_type.GpImage,
                                             _Pointer[_type.GpGraphics]],
                                            _enum.GpStatus]
+    GdipGetInterpolationMode: _Callable[[_type.GpGraphics,
+                                         _Pointer[_enum.InterpolationMode]],
+                                        _enum.GpStatus]
     GdipGetPenColor: _Callable[[_type.GpPen,
                                 _Pointer[_type.ARGB]],
                                _enum.GpStatus]
@@ -684,6 +690,9 @@ class GdiPlus(_WinFunc):
     GdipGetPenWidth: _Callable[[_type.GpPen,
                                 _Pointer[_type.REAL]],
                                _enum.GpStatus]
+    GdipGetPixelOffsetMode: _Callable[[_type.GpGraphics,
+                                       _Pointer[_enum.PixelOffsetMode]],
+                                      _enum.GpStatus]
     GdipGetPropertyItem: _Callable[[_type.GpImage,
                                     _type.PROPID,
                                     _type.UINT,
@@ -693,9 +702,15 @@ class GdiPlus(_WinFunc):
                                         _type.PROPID,
                                         _Pointer[_type.UINT]],
                                        _enum.GpStatus]
+    GdipGetSmoothingMode: _Callable[[_type.GpGraphics,
+                                     _Pointer[_enum.SmoothingMode]],
+                                    _enum.GpStatus]
     GdipGetSolidFillColor: _Callable[[_type.GpSolidFill,
                                       _Pointer[_type.ARGB]],
                                      _enum.GpStatus]
+    GdipGetTextContrast: _Callable[[_type.GpGraphics,
+                                    _Pointer[_type.UINT]],
+                                   _enum.GpStatus]
     GdipImageGetFrameCount: _Callable[[_type.GpImage,
                                        _Pointer[_struct.GUID],
                                        _Pointer[_type.UINT]],
@@ -727,6 +742,9 @@ class GdiPlus(_WinFunc):
                                         _type.REAL,
                                         _enum.GpMatrixOrder],
                                        _enum.GpStatus]
+    GdipSetCompositingQuality: _Callable[[_type.GpGraphics,
+                                          _enum.CompositingQuality],
+                                         _enum.GpStatus]
     GdipSetImageAttributesColorMatrix: _Callable[[_type.GpImageAttributes,
                                                   _enum.ColorAdjustType,
                                                   _type.BOOL,
@@ -740,6 +758,9 @@ class GdiPlus(_WinFunc):
                                                  _type.UINT,
                                                  _Pointer[_struct.ColorMap]],
                                                 _enum.GpStatus]
+    GdipSetInterpolationMode: _Callable[[_type.GpGraphics,
+                                         _enum.InterpolationMode],
+                                        _enum.GpStatus]
     GdipSetPenColor: _Callable[[_type.GpPen,
                                 _type.ARGB],
                                _enum.GpStatus]
@@ -749,12 +770,23 @@ class GdiPlus(_WinFunc):
     GdipSetPenWidth: _Callable[[_type.GpPen,
                                 _type.REAL],
                                _enum.GpStatus]
+    GdipSetPixelOffsetMode: _Callable[[_type.GpGraphics,
+                                       _enum.PixelOffsetMode],
+                                      _enum.GpStatus]
+    GdipSetSmoothingMode: _Callable[[_type.GpGraphics,
+                                     _enum.SmoothingMode],
+                                    _enum.GpStatus]
     GdipSetSolidFillColor: _Callable[[_type.GpSolidFill,
                                       _type.ARGB],
                                      _enum.GpStatus]
+    GdipSetTextContrast: _Callable[[_type.GpGraphics,
+                                    _type.UINT],
+                                   _enum.GpStatus]
     GdipReleaseDC: _Callable[[_type.GpGraphics,
                               _type.HDC],
                              _enum.GpStatus]
+    GdipResetWorldTransform: _Callable[[_type.GpGraphics],
+                                       _enum.GpStatus]
     GdiplusShutdown: _Callable[[_type.ULONG_PTR],
                                _type.VOID]
     GdiplusStartup: _Callable[[_Pointer[_type.ULONG_PTR],
