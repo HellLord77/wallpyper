@@ -33,8 +33,8 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
                write: bool = False) -> ContextManager[Optional[ctyped.com.IPropertyStore]]:
     if isinstance(path_or_interface, str):
         with ctyped.init_com(ctyped.com.IPropertyStore, False) as prop_store:
-            flag = (ctyped.enum.GETPROPERTYSTOREFLAGS.GPS_READWRITE
-                    if write else ctyped.enum.GETPROPERTYSTOREFLAGS.GPS_PREFERQUERYPROPERTIES)
+            flag = (ctyped.enum.GETPROPERTYSTOREFLAGS.READWRITE
+                    if write else ctyped.enum.GETPROPERTYSTOREFLAGS.PREFERQUERYPROPERTIES)
             if ctyped.macro.SUCCEEDED(ctyped.lib.Shell32.SHGetPropertyStoreFromParsingName(
                     path_or_interface, None, flag, *ctyped.macro.IID_PPV_ARGS(prop_store))):
                 yield prop_store
@@ -67,7 +67,7 @@ def _set_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
     with _load_prop(path_or_interface, True) as prop_store:
         if prop_store:
             var = ctyped.struct.PROPVARIANT()
-            var.U.S.vt = ctyped.enum.VARENUM.VT_LPWSTR.value
+            var.U.S.vt = ctyped.enum.VARENUM.LPWSTR.value
             for key, val in pkeys.items():
                 var.U.S.U.pwszVal = val
                 with contextlib.suppress(OSError):
@@ -111,7 +111,7 @@ def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     c_int = ctyped.type.c_int()
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
         with _load_link(path_or_link) as link:
-            link.GetPath(buff, ctyped.const.SHRT_MAX, None, ctyped.enum.SLGP_FLAGS.SLGP_RAWPATH.value)
+            link.GetPath(buff, ctyped.const.SHRT_MAX, None, ctyped.enum.SLGP_FLAGS.RAWPATH.value)
             data.append(buff.value)
             link.GetDescription(buff, ctyped.const.SHRT_MAX)
             data.append(buff.value)
@@ -263,7 +263,7 @@ def open_file_path(path: str) -> bool:
 
 def open_file_with(path: str) -> bool:
     info_ref = ctyped.byref(ctyped.struct.OPENASINFO(path, oaifInFlags=(
-            ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.OAIF_HIDE_REGISTRATION)))
+            ctyped.enum.OPEN_AS_INFO_FLAGS.EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.HIDE_REGISTRATION)))
     try:
         return ctyped.const.S_OK == ctyped.lib.Shell32.SHOpenWithDialog(None, info_ref)
     except OSError as e:
@@ -284,7 +284,7 @@ def open_file_with_ex(path: str) -> bool:
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
     with ctyped.init_com(ctyped.com.IFileDialog) as dialog:
         if dialog:
-            dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.FOS_PICKFOLDERS)
+            dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.PICKFOLDERS)
             if path is not None:
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     try:
@@ -307,7 +307,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 with ctyped.init_com(ctyped.com.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
                     with _utils.string_buffer() as buff:
-                        item.GetDisplayName(ctyped.enum.SIGDN.SIGDN_DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
+                        item.GetDisplayName(ctyped.enum.SIGDN.DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
                         dir_ = buff.value
                     return dir_
     return ''

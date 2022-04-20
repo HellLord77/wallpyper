@@ -5,6 +5,7 @@ import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
+import types as _types
 import typing as _typing
 from typing import (Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView,
                     NoReturn as _NoReturn, Optional as _Optional, Sequence as _Sequence)
@@ -17,10 +18,10 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
     value: _CT
 
 
-class _Module:
+class _Module(_types.ModuleType):
     __slots__ = '_name', '_module'
-    __spec__ = None
 
+    # noinspection PyMissingConstructor
     def __init__(self, name: str):
         self._name = name
         self._module = None
@@ -192,9 +193,7 @@ def _resolve_type(type_: _Any) -> _Any:
 
 def _init():
     for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
-        if module.name not in _sys.modules:
-            # noinspection PyTypeChecker
-            _sys.modules[module.name] = _Module(module.name)
+        _sys.modules[module.name] = _sys.modules.get(module.name, _Module(module.name))
 
 
 _init()

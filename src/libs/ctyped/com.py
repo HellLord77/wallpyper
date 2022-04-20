@@ -25,8 +25,10 @@ class IUnknown(_type.c_void_p):
 
 class IInspectable(IUnknown):
     GetIids: _Callable
-    GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]], _type.HRESULT]
-    GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]], _type.HRESULT]
+    GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]],
+                                   _type.HRESULT]
+    GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]],
+                             _type.HRESULT]
 
 
 class IShellItem(IUnknown):
@@ -580,6 +582,19 @@ class ICLRRuntimeHost(IUnknown):
                                          _type.HRESULT]
 
 
+class IDesktopWindowXamlSourceNative(IUnknown):
+    AttachToWindow: _Callable[[_type.HWND],
+                              _type.HRESULT]
+    get_WindowHandle: _Callable[[_Pointer[_type.HWND]],
+                                _type.HRESULT]
+
+
+class IDesktopWindowXamlSourceNative2(IDesktopWindowXamlSourceNative):
+    PreTranslateMessage: _Callable[[_Pointer[_struct.MSG],
+                                    _Pointer[_type.BOOL]],
+                                   _type.HRESULT]
+
+
 class IAsyncInfo(IInspectable):
     get_Id: _Callable[[_Pointer[_type.c_uint32]],
                       _type.HRESULT]
@@ -976,15 +991,25 @@ class IXmlNodeSerializer(IInspectable):
 
 class IToastNotification(IInspectable):
     _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotification
-    get_Content: _Callable
+    get_Content: _Callable[[_Pointer[IXmlDocument]],
+                           _type.HRESULT]
     put_ExpirationTime: _Callable
     get_ExpirationTime: _Callable
-    add_Dismissed: _Callable
-    remove_Dismissed: _Callable
-    add_Activated: _Callable
-    remove_Activated: _Callable
-    add_Failed: _Callable
-    remove_Failed: _Callable
+    add_Dismissed: _Callable[[_com_impl.ITypedEventHandler,
+                              _Pointer[_struct.EventRegistrationToken]],
+                             _type.HRESULT]
+    remove_Dismissed: _Callable[[_struct.EventRegistrationToken],
+                                _type.HRESULT]
+    add_Activated: _Callable[[_com_impl.ITypedEventHandler,
+                              _Pointer[_struct.EventRegistrationToken]],
+                             _type.HRESULT]
+    remove_Activated: _Callable[[_struct.EventRegistrationToken],
+                                _type.HRESULT]
+    add_Failed: _Callable[[_com_impl.ITypedEventHandler,
+                           _Pointer[_struct.EventRegistrationToken]],
+                          _type.HRESULT]
+    remove_Failed: _Callable[[_struct.EventRegistrationToken],
+                             _type.HRESULT]
 
 
 class IToastNotificationFactory(IInspectable):
@@ -1031,6 +1056,62 @@ class IToastNotificationManagerStatics4(IInspectable):
 class IToastNotificationManagerStatics5(IInspectable):
     _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
     GetDefault: _Callable
+
+
+class IToastActivatedEventArgs(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastActivatedEventArgs
+    get_Argument: _Callable[[_Pointer[_type.HSTRING]],
+                            _type.HRESULT]
+
+
+class IToastActivatedEventArgs2(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastActivatedEventArgs
+    get_UserInput: _Callable
+
+
+class IToastDismissedEventArgs(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastDismissedEventArgs
+    get_Reason: _Callable[[_Pointer[_enum.ToastDismissalReason]],
+                          _type.HRESULT]
+
+
+class IToastFailedEventArgs(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastFailedEventArgs
+    get_ErrorCode: _Callable[[_Pointer[_type.HRESULT]],
+                             _type.HRESULT]
+
+
+class IWindowsXamlManager(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_WindowsXamlManager
+
+
+class IWindowsXamlManagerStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_WindowsXamlManager
+    InitializeForCurrentThread: _Callable[[_Pointer[IWindowsXamlManager]],
+                                          _type.HRESULT]
+
+
+class IDesktopWindowXamlSource(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_DesktopWindowXamlSource
+    get_Content: _Callable
+    put_Content: _Callable
+    get_HasFocus: _Callable[[_Pointer[_type.boolean]],
+                            _type.HRESULT]
+    add_TakeFocusRequested: _Callable
+    remove_TakeFocusRequested: _Callable[[_struct.EventRegistrationToken],
+                                         _type.HRESULT]
+    add_GotFocus: _Callable
+    remove_GotFocus: _Callable[[_struct.EventRegistrationToken],
+                               _type.HRESULT]
+    NavigateFocus: _Callable
+
+
+class IDesktopWindowXamlSourceFactory(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_DesktopWindowXamlSource
+    CreateInstance: _Callable[[IInspectable,
+                               _Pointer[IInspectable],
+                               _Pointer[IDesktopWindowXamlSource]],
+                              _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:

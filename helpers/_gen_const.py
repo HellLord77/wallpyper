@@ -112,6 +112,10 @@ def windows_system():
     _runtime_class('windows.system.h')
 
 
+def windows_ui_xaml_hosting():
+    _runtime_class('windows.ui.xaml.hosting.h')
+
+
 def winerror():
     path = os.path.join(SDK_PATH, 'shared', 'winerror.h')
     with open(path, 'r') as file:
@@ -132,4 +136,4 @@ def mscoree():
 
 
 if __name__ == '__main__':
-    gdiplusimaging()
+    windows_ui_xaml_hosting()

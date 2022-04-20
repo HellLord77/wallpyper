@@ -998,7 +998,24 @@ def _test_settings():
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
+class ToastDismiss(ctyped.com_impl.ITypedEventHandler):
+    # noinspection PyPep8Naming
+    @staticmethod
+    def Invoke(This: ctyped.Pointer[ctyped.com_impl.ITypedEventHandler],
+               sender: ctyped.com.IToastNotification, args: ctyped.com.IInspectable) -> ctyped.type.HRESULT:
+        print('invoke', This, sender, args)
+        hs = ctyped.handle.HSTRING()
+        args.GetRuntimeClassName(ctyped.byref(hs))
+        print(hs.get_string())
+        with ctyped.cast_com(args, ctyped.com.IToastDismissedEventArgs) as args_:
+            r = ctyped.enum.ToastDismissalReason()
+            args_.get_Reason(ctyped.byref(r))
+            print(r)
+        return 0
+
+
 def _test_toast():
+    ctyped.THREADED_COM = True
     aumi = 'HellLord.Wallpyper'
     xml_data = '''
 <toast>
@@ -1009,6 +1026,7 @@ def _test_toast():
         </binding>
     </visual>
 </toast>'''
+    on_dismissed = ToastDismiss()
 
     with ctyped.get_winrt(ctyped.com.IToastNotificationManagerStatics) as manager:
         with ctyped.init_com(ctyped.com.IToastNotifier, False) as notifier:
@@ -1016,29 +1034,29 @@ def _test_toast():
             with ctyped.get_winrt(ctyped.com.IToastNotificationFactory) as factory, win32.xml.loads(
                     xml_data) as xml, ctyped.init_com(ctyped.com.IToastNotification, False) as toast:
                 print(factory.CreateToastNotification(xml, ctyped.byref(toast)))
+                token = ctyped.struct.EventRegistrationToken()
+                threading.Thread(target=toast.add_Dismissed, args=(on_dismissed, ctyped.byref(token))).start()
                 print(notifier.Show(toast))
+                print('wait')
+                _wait()
+                if token:
+                    toast.remove_Dismissed(token)
 
 
-def get_aumi() -> str:
-    buff = ctyped.type.PWSTR()
-    try:
-        ctyped.lib.Shell32.GetCurrentProcessExplicitAppUserModelID(ctyped.byref(buff))
-    except OSError:
-        return ''
-    else:
-        try:
-            return buff.value
-        finally:
-            ctyped.lib.Ole32.CoTaskMemFree(buff)
-
-
-def set_aumi(aumi: str = '') -> bool:
-    return ctyped.macro.SUCCEEDED(ctyped.lib.Shell32.SetCurrentProcessExplicitAppUserModelID(aumi))
+def _test_winui():
+    g = Gui()
+    with ctyped.get_winrt(ctyped.com.IWindowsXamlManagerStatics) as manager_statics:
+        manager = ctyped.com.IWindowsXamlManager()
+        manager_statics.InitializeForCurrentThread(ctyped.byref(manager))
+        with ctyped.get_winrt(ctyped.com.IDesktopWindowXamlSource, True) as source:
+            with ctyped.cast_com(source, ctyped.com.IDesktopWindowXamlSourceNative) as source_native:
+                print(source_native)
 
 
 if __name__ == '__main__':
     # _test_toast()
-    _test_gui()
+    _test_winui()
+    # _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()

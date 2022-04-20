@@ -31,19 +31,19 @@ class AsyncStatus(_IntEnum):
 
 
 class ColorAdjustType(_IntEnum):
-    ColorAdjustTypeDefault = _AUTO
-    ColorAdjustTypeBitmap = _AUTO
-    ColorAdjustTypeBrush = _AUTO
-    ColorAdjustTypePen = _AUTO
-    ColorAdjustTypeText = _AUTO
-    ColorAdjustTypeCount = _AUTO
-    ColorAdjustTypeAny = _AUTO
+    Default = _AUTO
+    Bitmap = _AUTO
+    Brush = _AUTO
+    Pen = _AUTO
+    Text = _AUTO
+    Count = _AUTO
+    Any = _AUTO
 
 
 class ColorMatrixFlags(_IntEnum):
-    ColorMatrixFlagsDefault = _AUTO
-    ColorMatrixFlagsSkipGrays = _AUTO
-    ColorMatrixFlagsAltGray = _AUTO
+    Default = _AUTO
+    SkipGrays = _AUTO
+    AltGray = _AUTO
 
 
 class CreationCollisionOption(_IntEnum):
@@ -148,128 +148,128 @@ class StreamedFileFailureMode(_IntEnum):
 
 # noinspection PyPep8Naming
 class DESKTOP_SLIDESHOW_DIRECTION(_IntEnum):
-    DSD_FORWARD = _AUTO
-    DSD_BACKWARD = _AUTO
+    FORWARD = _AUTO
+    BACKWARD = _AUTO
 
 
 # noinspection PyPep8Naming
 class DESKTOP_SLIDESHOW_OPTIONS(_IntEnum):
-    DSO_SHUFFLEIMAGES = 0x1
+    SHUFFLEIMAGES = 0x1
 
 
 # noinspection PyPep8Naming
 class DESKTOP_SLIDESHOW_STATE(_IntEnum):
-    DSS_ENABLED = 0x1
-    DSS_SLIDESHOW = 0x2
-    DSS_DISABLED_BY_REMOTE_SESSION = 0x4
+    ENABLED = 0x1
+    SLIDESHOW = 0x2
+    DISABLED_BY_REMOTE_SESSION = 0x4
 
 
 # noinspection PyPep8Naming
 class DESKTOP_WALLPAPER_POSITION(_IntEnum):
-    DWPOS_CENTER = _AUTO
-    DWPOS_TILE = _AUTO
-    DWPOS_STRETCH = _AUTO
-    DWPOS_FIT = _AUTO
-    DWPOS_FILL = _AUTO
-    DWPOS_SPAN = _AUTO
+    CENTER = _AUTO
+    TILE = _AUTO
+    STRETCH = _AUTO
+    FIT = _AUTO
+    FILL = _AUTO
+    SPAN = _AUTO
 
 
 class DebugEventLevel(_IntEnum):
-    DebugEventLevelFatal = _AUTO
-    DebugEventLevelWarning = _AUTO
+    Fatal = _AUTO
+    Warning = _AUTO
 
 
 class FILEOPENDIALOGOPTIONS(_IntEnum):
-    FOS_OVERWRITEPROMPT = 0x2
-    FOS_STRICTFILETYPES = 0x4
-    FOS_NOCHANGEDIR = 0x8
-    FOS_PICKFOLDERS = 0x20
-    FOS_FORCEFILESYSTEM = 0x40
-    FOS_ALLNONSTORAGEITEMS = 0x80
-    FOS_NOVALIDATE = 0x100
-    FOS_ALLOWMULTISELECT = 0x200
-    FOS_PATHMUSTEXIST = 0x800
-    FOS_FILEMUSTEXIST = 0x1000
-    FOS_CREATEPROMPT = 0x2000
-    FOS_SHAREAWARE = 0x4000
-    FOS_NOREADONLYRETURN = 0x8000
-    FOS_NOTESTFILECREATE = 0x10000
-    FOS_HIDEMRUPLACES = 0x20000
-    FOS_HIDEPINNEDPLACES = 0x40000
-    FOS_NODEREFERENCELINKS = 0x100000
-    FOS_OKBUTTONNEEDSINTERACTION = 0x200000
-    FOS_DONTADDTORECENT = 0x2000000
-    FOS_FORCESHOWHIDDEN = 0x10000000
-    FOS_DEFAULTNOMINIMODE = 0x20000000
-    FOS_FORCEPREVIEWPANEON = 0x40000000
-    FOS_SUPPORTSTREAMABLEITEMS = 0x80000000
+    OVERWRITEPROMPT = 0x2
+    STRICTFILETYPES = 0x4
+    NOCHANGEDIR = 0x8
+    PICKFOLDERS = 0x20
+    FORCEFILESYSTEM = 0x40
+    ALLNONSTORAGEITEMS = 0x80
+    NOVALIDATE = 0x100
+    ALLOWMULTISELECT = 0x200
+    PATHMUSTEXIST = 0x800
+    FILEMUSTEXIST = 0x1000
+    CREATEPROMPT = 0x2000
+    SHAREAWARE = 0x4000
+    NOREADONLYRETURN = 0x8000
+    NOTESTFILECREATE = 0x10000
+    HIDEMRUPLACES = 0x20000
+    HIDEPINNEDPLACES = 0x40000
+    NODEREFERENCELINKS = 0x100000
+    OKBUTTONNEEDSINTERACTION = 0x200000
+    DONTADDTORECENT = 0x2000000
+    FORCESHOWHIDDEN = 0x10000000
+    DEFAULTNOMINIMODE = 0x20000000
+    FORCEPREVIEWPANEON = 0x40000000
+    SUPPORTSTREAMABLEITEMS = 0x80000000
 
 
 class GETPROPERTYSTOREFLAGS(_IntEnum):
-    GPS_DEFAULT = _AUTO
-    GPS_HANDLERPROPERTIESONLY = 0x1
-    GPS_READWRITE = 0x2
-    GPS_TEMPORARY = 0x4
-    GPS_FASTPROPERTIESONLY = 0x8
-    GPS_OPENSLOWITEM = 0x10
-    GPS_DELAYCREATION = 0x20
-    GPS_BESTEFFORT = 0x40
-    GPS_NO_OPLOCK = 0x80
-    GPS_PREFERQUERYPROPERTIES = 0x100
-    GPS_EXTRINSICPROPERTIES = 0x200
-    GPS_EXTRINSICPROPERTIESONLY = 0x400
-    GPS_VOLATILEPROPERTIES = 0x800
-    GPS_VOLATILEPROPERTIESONLY = 0x1000
-    GPS_MASK_VALID = 0x1fff
+    DEFAULT = _AUTO
+    HANDLERPROPERTIESONLY = 0x1
+    READWRITE = 0x2
+    TEMPORARY = 0x4
+    FASTPROPERTIESONLY = 0x8
+    OPENSLOWITEM = 0x10
+    DELAYCREATION = 0x20
+    BESTEFFORT = 0x40
+    NO_OPLOCK = 0x80
+    PREFERQUERYPROPERTIES = 0x100
+    EXTRINSICPROPERTIES = 0x200
+    EXTRINSICPROPERTIESONLY = 0x400
+    VOLATILEPROPERTIES = 0x800
+    VOLATILEPROPERTIESONLY = 0x1000
+    MASK_VALID = 0x1fff
 
 
 class GenericFontFamily(_IntEnum):
-    GenericFontFamilySerif = _AUTO
-    GenericFontFamilySansSerif = _AUTO
-    GenericFontFamilyMonospace = _AUTO
+    Serif = _AUTO
+    SansSerif = _AUTO
+    Monospace = _AUTO
 
 
 class MatrixOrder(_IntEnum):
-    MatrixOrderPrepend = _AUTO
-    MatrixOrderAppend = _AUTO
+    Prepend = _AUTO
+    Append = _AUTO
 
 
 class WarpMode(_IntEnum):
-    WarpModePerspective = _AUTO
-    WarpModeBilinear = _AUTO
+    Perspective = _AUTO
+    Bilinear = _AUTO
 
 
 class LinearGradientMode(_IntEnum):
-    LinearGradientModeHorizontal = _AUTO
-    LinearGradientModeVertical = _AUTO
-    LinearGradientModeForwardDiagonal = _AUTO
-    LinearGradientModeBackwardDiagonal = _AUTO
+    Horizontal = _AUTO
+    Vertical = _AUTO
+    ForwardDiagonal = _AUTO
+    BackwardDiagonal = _AUTO
 
 
 class CombineMode(_IntEnum):
-    CombineModeReplace = _AUTO
-    CombineModeIntersect = _AUTO
-    CombineModeUnion = _AUTO
-    CombineModeXor = _AUTO
-    CombineModeExclude = _AUTO
-    CombineModeComplement = _AUTO
+    Replace = _AUTO
+    Intersect = _AUTO
+    Union = _AUTO
+    Xor = _AUTO
+    Exclude = _AUTO
+    Complement = _AUTO
 
 
 class QualityMode(_IntEnum):
-    QualityModeInvalid = -1
-    QualityModeDefault = _AUTO
-    QualityModeLow = _AUTO
-    QualityModeHigh = _AUTO
+    Invalid = -1
+    Default = _AUTO
+    Low = _AUTO
+    High = _AUTO
 
 
 class CompositingMode(_IntEnum):
-    CompositingModeSourceOver = _AUTO
-    CompositingModeSourceCopy = _AUTO
+    SourceOver = _AUTO
+    SourceCopy = _AUTO
 
 
 class FillMode(_IntEnum):
-    FillModeAlternate = _AUTO
-    FillModeWinding = _AUTO
+    Alternate = _AUTO
+    Winding = _AUTO
 
 
 class InputStreamOptions(_IntEnum):
@@ -280,41 +280,41 @@ class InputStreamOptions(_IntEnum):
 
 # noinspection PyPep8Naming
 class KNOWN_FOLDER_FLAG(_IntEnum):
-    KF_FLAG_DEFAULT = 0x00000000
-    KF_FLAG_FORCE_APP_DATA_REDIRECTION = 0x00080000
-    KF_FLAG_RETURN_FILTER_REDIRECTION_TARGET = 0x00040000
-    KF_FLAG_FORCE_PACKAGE_REDIRECTION = 0x00020000
-    KF_FLAG_NO_PACKAGE_REDIRECTION = 0x00010000
-    KF_FLAG_FORCE_APPCONTAINER_REDIRECTION = 0x00020000
-    KF_FLAG_NO_APPCONTAINER_REDIRECTION = 0x00010000
-    KF_FLAG_CREATE = 0x00008000
-    KF_FLAG_DONT_VERIFY = 0x00004000
-    KF_FLAG_DONT_UNEXPAND = 0x00002000
-    KF_FLAG_NO_ALIAS = 0x00001000
-    KF_FLAG_INIT = 0x00000800
-    KF_FLAG_DEFAULT_PATH = 0x00000400
-    KF_FLAG_NOT_PARENT_RELATIVE = 0x00000200
-    KF_FLAG_SIMPLE_IDLIST = 0x00000100
-    KF_FLAG_ALIAS_ONLY = 0x80000000
+    DEFAULT = 0x00000000
+    FORCE_APP_DATA_REDIRECTION = 0x00080000
+    RETURN_FILTER_REDIRECTION_TARGET = 0x00040000
+    FORCE_PACKAGE_REDIRECTION = 0x00020000
+    NO_PACKAGE_REDIRECTION = 0x00010000
+    FORCE_APPCONTAINER_REDIRECTION = 0x00020000
+    NO_APPCONTAINER_REDIRECTION = 0x00010000
+    CREATE = 0x00008000
+    DONT_VERIFY = 0x00004000
+    DONT_UNEXPAND = 0x00002000
+    NO_ALIAS = 0x00001000
+    INIT = 0x00000800
+    DEFAULT_PATH = 0x00000400
+    NOT_PARENT_RELATIVE = 0x00000200
+    SIMPLE_IDLIST = 0x00000100
+    ALIAS_ONLY = 0x80000000
 
 
 # noinspection PyPep8Naming
 class RO_INIT_TYPE(_IntEnum):
-    RO_INIT_SINGLETHREADED = _AUTO
-    RO_INIT_MULTITHREADED = _AUTO
+    SINGLETHREADED = _AUTO
+    MULTITHREADED = _AUTO
 
 
 class SIGDN(_IntEnum):
-    SIGDN_NORMALDISPLAY = _AUTO
-    SIGDN_PARENTRELATIVEPARSING = 0x80018001
-    SIGDN_DESKTOPABSOLUTEPARSING = 0x80028000
-    SIGDN_PARENTRELATIVEEDITING = 0x80031001
-    SIGDN_DESKTOPABSOLUTEEDITING = 0x8004c000
-    SIGDN_FILESYSPATH = 0x80058000
-    SIGDN_URL = 0x80068000
-    SIGDN_PARENTRELATIVEFORADDRESSBAR = 0x8007c001
-    SIGDN_PARENTRELATIVE = 0x80080001
-    SIGDN_PARENTRELATIVEFORUI = 0x80094001
+    NORMALDISPLAY = _AUTO
+    PARENTRELATIVEPARSING = 0x80018001
+    DESKTOPABSOLUTEPARSING = 0x80028000
+    PARENTRELATIVEEDITING = 0x80031001
+    DESKTOPABSOLUTEEDITING = 0x8004c000
+    FILESYSPATH = 0x80058000
+    URL = 0x80068000
+    PARENTRELATIVEFORADDRESSBAR = 0x8007c001
+    PARENTRELATIVE = 0x80080001
+    PARENTRELATIVEFORUI = 0x80094001
 
 
 class TrustLevel(_IntEnum):
@@ -324,13 +324,13 @@ class TrustLevel(_IntEnum):
 
 
 class Unit(_IntEnum):
-    UnitWorld = _AUTO
-    UnitDisplay = _AUTO
-    UnitPixel = _AUTO
-    UnitPoint = _AUTO
-    UnitInch = _AUTO
-    UnitDocument = _AUTO
-    UnitMillimeter = _AUTO
+    World = _AUTO
+    Display = _AUTO
+    Pixel = _AUTO
+    Point = _AUTO
+    Inch = _AUTO
+    Document = _AUTO
+    Millimeter = _AUTO
 
 
 class Status(_IntEnum):
@@ -360,731 +360,737 @@ class Status(_IntEnum):
 
 # noinspection PyPep8Naming
 class SHGFP_TYPE(_IntEnum):
-    SHGFP_TYPE_CURRENT = _AUTO
-    SHGFP_TYPE_DEFAULT = _AUTO
+    CURRENT = _AUTO
+    DEFAULT = _AUTO
 
 
 class VARENUM(_IntEnum):
-    VT_EMPTY = _AUTO
-    VT_NULL = _AUTO
-    VT_I2 = _AUTO
-    VT_I4 = _AUTO
-    VT_R4 = _AUTO
-    VT_R8 = _AUTO
-    VT_CY = _AUTO
-    VT_DATE = _AUTO
-    VT_BSTR = _AUTO
-    VT_DISPATCH = _AUTO
-    VT_ERROR = _AUTO
-    VT_BOOL = _AUTO
-    VT_VARIANT = _AUTO
-    VT_UNKNOWN = _AUTO
-    VT_DECIMAL = _AUTO
-    VT_I1 = 16
-    VT_UI1 = _AUTO
-    VT_UI2 = _AUTO
-    VT_UI4 = _AUTO
-    VT_I8 = _AUTO
-    VT_UI8 = _AUTO
-    VT_INT = _AUTO
-    VT_UINT = _AUTO
-    VT_VOID = _AUTO
-    VT_HRESULT = _AUTO
-    VT_PTR = _AUTO
-    VT_SAFEARRAY = _AUTO
-    VT_CARRAY = _AUTO
-    VT_USERDEFINED = _AUTO
-    VT_LPSTR = _AUTO
-    VT_LPWSTR = _AUTO
-    VT_RECORD = 36
-    VT_INT_PTR = _AUTO
-    VT_UINT_PTR = _AUTO
-    VT_FILETIME = 64
-    VT_BLOB = _AUTO
-    VT_STREAM = _AUTO
-    VT_STORAGE = _AUTO
-    VT_STREAMED_OBJECT = _AUTO
-    VT_STORED_OBJECT = _AUTO
-    VT_BLOB_OBJECT = _AUTO
-    VT_CF = _AUTO
-    VT_CLSID = _AUTO
-    VT_VERSIONED_STREAM = _AUTO
-    VT_BSTR_BLOB = 0xfff
-    VT_VECTOR = 0x1000
-    VT_ARRAY = 0x2000
-    VT_BYREF = 0x4000
-    VT_RESERVED = 0x8000
-    VT_ILLEGAL = 0xffff
-    VT_ILLEGALMASKED = 0xfff
-    VT_TYPEMASK = 0xfff
+    EMPTY = _AUTO
+    NULL = _AUTO
+    I2 = _AUTO
+    I4 = _AUTO
+    R4 = _AUTO
+    R8 = _AUTO
+    CY = _AUTO
+    DATE = _AUTO
+    BSTR = _AUTO
+    DISPATCH = _AUTO
+    ERROR = _AUTO
+    BOOL = _AUTO
+    VARIANT = _AUTO
+    UNKNOWN = _AUTO
+    DECIMAL = _AUTO
+    I1 = 16
+    UI1 = _AUTO
+    UI2 = _AUTO
+    UI4 = _AUTO
+    I8 = _AUTO
+    UI8 = _AUTO
+    INT = _AUTO
+    UINT = _AUTO
+    VOID = _AUTO
+    HRESULT = _AUTO
+    PTR = _AUTO
+    SAFEARRAY = _AUTO
+    CARRAY = _AUTO
+    USERDEFINED = _AUTO
+    LPSTR = _AUTO
+    LPWSTR = _AUTO
+    RECORD = 36
+    INT_PTR = _AUTO
+    UINT_PTR = _AUTO
+    FILETIME = 64
+    BLOB = _AUTO
+    STREAM = _AUTO
+    STORAGE = _AUTO
+    STREAMED_OBJECT = _AUTO
+    STORED_OBJECT = _AUTO
+    BLOB_OBJECT = _AUTO
+    CF = _AUTO
+    CLSID = _AUTO
+    VERSIONED_STREAM = _AUTO
+    BSTR_BLOB = 0xfff
+    VECTOR = 0x1000
+    ARRAY = 0x2000
+    BYREF = 0x4000
+    RESERVED = 0x8000
+    ILLEGAL = 0xffff
+    ILLEGALMASKED = 0xfff
+    TYPEMASK = 0xfff
 
 
 # noinspection PyPep8Naming
 class SLGP_FLAGS(_IntEnum):
-    SLGP_SHORTPATH = 0x1
-    SLGP_UNCPRIORITY = 0x2
-    SLGP_RAWPATH = 0x4
-    SLGP_RELATIVEPRIORITY = 0x8
+    SHORTPATH = 0x1
+    UNCPRIORITY = 0x2
+    RAWPATH = 0x4
+    RELATIVEPRIORITY = 0x8
 
 
 # noinspection PyPep8Naming
 class SLR_FLAGS(_IntEnum):
-    SLR_NONE = _AUTO
-    SLR_NO_UI = 0x1
-    SLR_ANY_MATCH = 0x2
-    SLR_UPDATE = 0x4
-    SLR_NOUPDATE = 0x8
-    SLR_NOSEARCH = 0x10
-    SLR_NOTRACK = 0x20
-    SLR_NOLINKINFO = 0x40
-    SLR_INVOKE_MSI = 0x80
-    SLR_NO_UI_WITH_MSG_PUMP = 0x101
-    SLR_OFFER_DELETE_WITHOUT_FILE = 0x200
-    SLR_KNOWNFOLDER = 0x400
-    SLR_MACHINE_IN_LOCAL_TARGET = 0x800
-    SLR_UPDATE_MACHINE_AND_SID = 0x1000
-    SLR_NO_OBJECT_ID = 0x2000
+    NONE = _AUTO
+    NO_UI = 0x1
+    ANY_MATCH = 0x2
+    UPDATE = 0x4
+    NOUPDATE = 0x8
+    NOSEARCH = 0x10
+    NOTRACK = 0x20
+    NOLINKINFO = 0x40
+    INVOKE_MSI = 0x80
+    NO_UI_WITH_MSG_PUMP = 0x101
+    OFFER_DELETE_WITHOUT_FILE = 0x200
+    KNOWNFOLDER = 0x400
+    MACHINE_IN_LOCAL_TARGET = 0x800
+    UPDATE_MACHINE_AND_SID = 0x1000
+    NO_OBJECT_ID = 0x2000
 
 
 class RotateFlipType(_IntEnum):
-    RotateNoneFlipNone = 0
-    Rotate90FlipNone = 1
-    Rotate180FlipNone = 2
-    Rotate270FlipNone = 3
-    RotateNoneFlipX = 4
-    Rotate90FlipX = 5
-    Rotate180FlipX = 6
-    Rotate270FlipX = 7
-    RotateNoneFlipY = Rotate180FlipX
-    Rotate90FlipY = Rotate270FlipX
-    Rotate180FlipY = RotateNoneFlipX
-    Rotate270FlipY = Rotate90FlipX
-    RotateNoneFlipXY = Rotate180FlipNone
-    Rotate90FlipXY = Rotate270FlipNone
-    Rotate180FlipXY = RotateNoneFlipNone
-    Rotate270FlipXY = Rotate90FlipNone
+    RNoneFlipNone = 0
+    R90FlipNone = 1
+    R180FlipNone = 2
+    R270FlipNone = 3
+    RNoneFlipX = 4
+    R90FlipX = 5
+    R180FlipX = 6
+    R270FlipX = 7
+    RNoneFlipY = R180FlipX
+    R90FlipY = R270FlipX
+    R180FlipY = RNoneFlipX
+    R270FlipY = R90FlipX
+    RNoneFlipXY = R180FlipNone
+    R90FlipXY = R270FlipNone
+    R180FlipXY = RNoneFlipNone
+    R270FlipXY = R90FlipNone
 
 
 class COINITBASE(_IntEnum):
-    COINITBASE_MULTITHREADED = _AUTO
+    MULTITHREADED = _AUTO
 
 
 class COINIT(_IntEnum):
-    COINIT_MULTITHREADED = COINITBASE.COINITBASE_MULTITHREADED
-    COINIT_APARTMENTTHREADED = 0x2
-    COINIT_DISABLE_OLE1DDE = 0x4
-    COINIT_SPEED_OVER_MEMORY = 0x8
+    MULTITHREADED = COINITBASE.MULTITHREADED
+    APARTMENTTHREADED = 0x2
+    DISABLE_OLE1DDE = 0x4
+    SPEED_OVER_MEMORY = 0x8
 
 
 # noinspection PyPep8Naming
 class PROCESS_DPI_AWARENESS(_IntEnum):
-    PROCESS_DPI_UNAWARE = _AUTO
-    PROCESS_SYSTEM_DPI_AWARE = _AUTO
-    PROCESS_PER_MONITOR_DPI_AWARE = _AUTO
+    DPI_UNAWARE = _AUTO
+    SYSTEM_DPI_AWARE = _AUTO
+    PER_MONITOR_DPI_AWARE = _AUTO
 
 
 # noinspection PyPep8Naming
 class MONITOR_DPI_TYPE(_IntEnum):
-    MDT_EFFECTIVE_DPI = 0
-    MDT_ANGULAR_DPI = _AUTO
-    MDT_RAW_DPI = _AUTO
-    MDT_DEFAULT = MDT_EFFECTIVE_DPI
+    EFFECTIVE_DPI = 0
+    ANGULAR_DPI = _AUTO
+    RAW_DPI = _AUTO
+    DEFAULT = EFFECTIVE_DPI
 
 
 # noinspection PyPep8Naming
 class OPEN_AS_INFO_FLAGS(_IntEnum):
-    OAIF_ALLOW_REGISTRATION = 0x00000001
-    OAIF_REGISTER_EXT = 0x00000002
-    OAIF_EXEC = 0x00000004
-    OAIF_FORCE_REGISTRATION = 0x00000008
-    OAIF_HIDE_REGISTRATION = 0x00000020
-    OAIF_URL_PROTOCOL = 0x00000040
-    OAIF_FILE_IS_URI = 0x00000080
+    ALLOW_REGISTRATION = 0x00000001
+    REGISTER_EXT = 0x00000002
+    EXEC = 0x00000004
+    FORCE_REGISTRATION = 0x00000008
+    HIDE_REGISTRATION = 0x00000020
+    URL_PROTOCOL = 0x00000040
+    FILE_IS_URI = 0x00000080
 
 
 class COINITICOR(_IntEnum):
-    COINITCOR_DEFAULT = _AUTO
+    DEFAULT = _AUTO
 
 
 class COINITIEE(_IntEnum):
-    COINITEE_DEFAULT = _AUTO
-    COINITEE_DLL = _AUTO
-    COINITEE_MAIN = _AUTO
+    DEFAULT = _AUTO
+    DLL = _AUTO
+    MAIN = _AUTO
 
 
 class COUNINITIEE(_IntEnum):
-    COUNINITEE_DEFAULT = _AUTO
-    COUNINITEE_DLL = _AUTO
+    DEFAULT = _AUTO
+    DLL = _AUTO
 
 
 # noinspection PyPep8Naming
 class HOST_TYPE(_IntEnum):
-    HOST_TYPE_DEFAULT = _AUTO
-    HOST_TYPE_APPLAUNCH = _AUTO
-    HOST_TYPE_CORFLAG = _AUTO
+    DEFAULT = _AUTO
+    APPLAUNCH = _AUTO
+    CORFLAG = _AUTO
 
 
 # noinspection PyPep8Naming
 class STARTUP_FLAGS(_IntEnum):
-    STARTUP_CONCURRENT_GC = 0x1
-    STARTUP_LOADER_OPTIMIZATION_MASK = 0x3 << 1
-    STARTUP_LOADER_OPTIMIZATION_SINGLE_DOMAIN = 0x1 << 1
-    STARTUP_LOADER_OPTIMIZATION_MULTI_DOMAIN = 0x2 << 1
-    STARTUP_LOADER_OPTIMIZATION_MULTI_DOMAIN_HOST = 0x3 << 1
-    STARTUP_LOADER_SAFEMODE = 0x10
-    STARTUP_LOADER_SETPREFERENCE = 0x100
-    STARTUP_SERVER_GC = 0x1000
-    STARTUP_HOARD_GC_VM = 0x2000
-    STARTUP_SINGLE_VERSION_HOSTING_INTERFACE = 0x4000
-    STARTUP_LEGACY_IMPERSONATION = 0x10000
-    STARTUP_DISABLE_COMMITTHREADSTACK = 0x20000
-    STARTUP_ALWAYSFLOW_IMPERSONATION = 0x40000
-    STARTUP_TRIM_GC_COMMIT = 0x80000
-    STARTUP_ETW = 0x100000
-    STARTUP_ARM = 0x400000
+    CONCURRENT_GC = 0x1
+    LOADER_OPTIMIZATION_MASK = 0x3 << 1
+    LOADER_OPTIMIZATION_SINGLE_DOMAIN = 0x1 << 1
+    LOADER_OPTIMIZATION_MULTI_DOMAIN = 0x2 << 1
+    LOADER_OPTIMIZATION_MULTI_DOMAIN_HOST = 0x3 << 1
+    LOADER_SAFEMODE = 0x10
+    LOADER_SETPREFERENCE = 0x100
+    SERVER_GC = 0x1000
+    HOARD_GC_VM = 0x2000
+    SINGLE_VERSION_HOSTING_INTERFACE = 0x4000
+    LEGACY_IMPERSONATION = 0x10000
+    DISABLE_COMMITTHREADSTACK = 0x20000
+    ALWAYSFLOW_IMPERSONATION = 0x40000
+    TRIM_GC_COMMIT = 0x80000
+    ETW = 0x100000
+    ARM = 0x400000
 
 
 # noinspection PyPep8Naming
 class CLSID_RESOLUTION_FLAGS(_IntEnum):
-    CLSID_RESOLUTION_DEFAULT = _AUTO
-    CLSID_RESOLUTION_REGISTERED = _AUTO
+    RESOLUTION_DEFAULT = _AUTO
+    RESOLUTION_REGISTERED = _AUTO
 
 
 # noinspection PyPep8Naming
 class RUNTIME_INFO_FLAGS(_IntEnum):
-    RUNTIME_INFO_UPGRADE_VERSION = 0x1
-    RUNTIME_INFO_REQUEST_IA64 = 0x2
-    RUNTIME_INFO_REQUEST_AMD64 = 0x4
-    RUNTIME_INFO_REQUEST_X86 = 0x8
-    RUNTIME_INFO_DONT_RETURN_DIRECTORY = 0x10
-    RUNTIME_INFO_DONT_RETURN_VERSION = 0x20
-    RUNTIME_INFO_DONT_SHOW_ERROR_DIALOG = 0x40
-    RUNTIME_INFO_IGNORE_ERROR_MODE = 0x1000
+    UPGRADE_VERSION = 0x1
+    REQUEST_IA64 = 0x2
+    REQUEST_AMD64 = 0x4
+    REQUEST_X86 = 0x8
+    DONT_RETURN_DIRECTORY = 0x10
+    DONT_RETURN_VERSION = 0x20
+    DONT_SHOW_ERROR_DIALOG = 0x40
+    IGNORE_ERROR_MODE = 0x1000
 
 
 # noinspection PyPep8Naming
 class APPDOMAIN_SECURITY_FLAGS(_IntEnum):
-    APPDOMAIN_SECURITY_DEFAULT = _AUTO
-    APPDOMAIN_SECURITY_SANDBOXED = 0x1
-    APPDOMAIN_SECURITY_FORBID_CROSSAD_REVERSE_PINVOKE = 0x2
-    APPDOMAIN_FORCE_TRIVIAL_WAIT_OPERATIONS = 0x8
+    SECURITY_DEFAULT = _AUTO
+    SECURITY_SANDBOXED = 0x1
+    SECURITY_FORBID_CROSSAD_REVERSE_PINVOKE = 0x2
+    FORCE_TRIVIAL_WAIT_OPERATIONS = 0x8
 
 
 class HandPreference(_IntEnum):
-    HandPreference_LeftHanded = _AUTO
-    HandPreference_RightHanded = _AUTO
+    LeftHanded = _AUTO
+    RightHanded = _AUTO
 
 
 class UIElementType(_IntEnum):
-    UIElementType_ActiveCaption = _AUTO
-    UIElementType_Background = _AUTO
-    UIElementType_ButtonFace = _AUTO
-    UIElementType_ButtonText = _AUTO
-    UIElementType_CaptionText = _AUTO
-    UIElementType_GrayText = _AUTO
-    UIElementType_Highlight = _AUTO
-    UIElementType_HighlightText = _AUTO
-    UIElementType_Hotlight = _AUTO
-    UIElementType_InactiveCaption = _AUTO
-    UIElementType_InactiveCaptionText = _AUTO
-    UIElementType_Window = _AUTO
-    UIElementType_WindowText = _AUTO
-    UIElementType_AccentColor = 1000
-    UIElementType_TextHigh = _AUTO
-    UIElementType_TextMedium = _AUTO
-    UIElementType_TextLow = _AUTO
-    UIElementType_TextContrastWithHigh = _AUTO
-    UIElementType_NonTextHigh = _AUTO
-    UIElementType_NonTextMediumHigh = _AUTO
-    UIElementType_NonTextMedium = _AUTO
-    UIElementType_NonTextMediumLow = _AUTO
-    UIElementType_NonTextLow = _AUTO
-    UIElementType_PageBackground = _AUTO
-    UIElementType_PopupBackground = _AUTO
-    UIElementType_OverlayOutsidePopup = _AUTO
+    ActiveCaption = _AUTO
+    Background = _AUTO
+    ButtonFace = _AUTO
+    ButtonText = _AUTO
+    CaptionText = _AUTO
+    GrayText = _AUTO
+    Highlight = _AUTO
+    HighlightText = _AUTO
+    Hotlight = _AUTO
+    InactiveCaption = _AUTO
+    InactiveCaptionText = _AUTO
+    Window = _AUTO
+    WindowText = _AUTO
+    AccentColor = 1000
+    TextHigh = _AUTO
+    TextMedium = _AUTO
+    TextLow = _AUTO
+    TextContrastWithHigh = _AUTO
+    NonTextHigh = _AUTO
+    NonTextMediumHigh = _AUTO
+    NonTextMedium = _AUTO
+    NonTextMediumLow = _AUTO
+    NonTextLow = _AUTO
+    PageBackground = _AUTO
+    PopupBackground = _AUTO
+    OverlayOutsidePopup = _AUTO
 
 
 # noinspection PyPep8Naming
 class URL_SCHEME(_IntEnum):
-    URL_SCHEME_INVALID = -1
-    URL_SCHEME_UNKNOWN = _AUTO
-    URL_SCHEME_FTP = _AUTO
-    URL_SCHEME_HTTP = _AUTO
-    URL_SCHEME_GOPHER = _AUTO
-    URL_SCHEME_MAILTO = _AUTO
-    URL_SCHEME_NEWS = _AUTO
-    URL_SCHEME_NNTP = _AUTO
-    URL_SCHEME_TELNET = _AUTO
-    URL_SCHEME_WAIS = _AUTO
-    URL_SCHEME_FILE = _AUTO
-    URL_SCHEME_MK = _AUTO
-    URL_SCHEME_HTTPS = _AUTO
-    URL_SCHEME_SHELL = _AUTO
-    URL_SCHEME_SNEWS = _AUTO
-    URL_SCHEME_LOCAL = _AUTO
-    URL_SCHEME_JAVASCRIPT = _AUTO
-    URL_SCHEME_VBSCRIPT = _AUTO
-    URL_SCHEME_ABOUT = _AUTO
-    URL_SCHEME_RES = _AUTO
-    URL_SCHEME_MSSHELLROOTED = _AUTO
-    URL_SCHEME_MSSHELLIDLIST = _AUTO
-    URL_SCHEME_MSHELP = _AUTO
-    URL_SCHEME_MSSHELLDEVICE = _AUTO
-    URL_SCHEME_WILDCARD = _AUTO
-    URL_SCHEME_SEARCH_MS = _AUTO
-    URL_SCHEME_SEARCH = _AUTO
-    URL_SCHEME_KNOWNFOLDER = _AUTO
-    URL_SCHEME_MAXVALUE = _AUTO
+    INVALID = -1
+    UNKNOWN = _AUTO
+    FTP = _AUTO
+    HTTP = _AUTO
+    GOPHER = _AUTO
+    MAILTO = _AUTO
+    NEWS = _AUTO
+    NNTP = _AUTO
+    TELNET = _AUTO
+    WAIS = _AUTO
+    FILE = _AUTO
+    MK = _AUTO
+    HTTPS = _AUTO
+    SHELL = _AUTO
+    SNEWS = _AUTO
+    LOCAL = _AUTO
+    JAVASCRIPT = _AUTO
+    VBSCRIPT = _AUTO
+    ABOUT = _AUTO
+    RES = _AUTO
+    MSSHELLROOTED = _AUTO
+    MSSHELLIDLIST = _AUTO
+    MSHELP = _AUTO
+    MSSHELLDEVICE = _AUTO
+    WILDCARD = _AUTO
+    SEARCH_MS = _AUTO
+    SEARCH = _AUTO
+    KNOWNFOLDER = _AUTO
+    MAXVALUE = _AUTO
 
 
 # noinspection PyPep8Naming
 class URL_PART(_IntEnum):
-    URL_PART_NONE = _AUTO
-    URL_PART_SCHEME = _AUTO
-    URL_PART_HOSTNAME = _AUTO
-    URL_PART_USERNAME = _AUTO
-    URL_PART_PASSWORD = _AUTO
-    URL_PART_PORT = _AUTO
-    URL_PART_QUERY = _AUTO
+    NONE = _AUTO
+    SCHEME = _AUTO
+    HOSTNAME = _AUTO
+    USERNAME = _AUTO
+    PASSWORD = _AUTO
+    PORT = _AUTO
+    QUERY = _AUTO
 
 
 class URLIS(_IntEnum):
-    URLIS_URL = _AUTO
-    URLIS_OPAQUE = _AUTO
-    URLIS_NOHISTORY = _AUTO
-    URLIS_FILEURL = _AUTO
-    URLIS_APPLIABLE = _AUTO
-    URLIS_DIRECTORY = _AUTO
-    URLIS_HASQUERY = _AUTO
+    URL = _AUTO
+    OPAQUE = _AUTO
+    NOHISTORY = _AUTO
+    FILEURL = _AUTO
+    APPLIABLE = _AUTO
+    DIRECTORY = _AUTO
+    HASQUERY = _AUTO
 
 
 # noinspection PyPep8Naming
 class TA_PROPERTY(_IntEnum):
-    TAP_FLAGS = _AUTO
-    TAP_TRANSFORMCOUNT = _AUTO
-    TAP_STAGGERDELAY = _AUTO
-    TAP_STAGGERDELAYCAP = _AUTO
-    TAP_STAGGERDELAYFACTOR = _AUTO
-    TAP_ZORDER = _AUTO
+    FLAGS = _AUTO
+    TRANSFORMCOUNT = _AUTO
+    STAGGERDELAY = _AUTO
+    STAGGERDELAYCAP = _AUTO
+    STAGGERDELAYFACTOR = _AUTO
+    ZORDER = _AUTO
 
 
 # noinspection PyPep8Naming
 class TA_PROPERTY_FLAG(_IntEnum):
-    TAPF_NONE = 0x0
-    TAPF_HASSTAGGER = 0x1
-    TAPF_ISRTLAWARE = 0x2
-    TAPF_ALLOWCOLLECTION = 0x4
-    TAPF_HASBACKGROUND = 0x8
-    TAPF_HASPERSPECTIVE = 0x10
+    NONE = 0x0
+    HASSTAGGER = 0x1
+    ISRTLAWARE = 0x2
+    ALLOWCOLLECTION = 0x4
+    HASBACKGROUND = 0x8
+    HASPERSPECTIVE = 0x10
 
 
 # noinspection PyPep8Naming
 class TA_TRANSFORM_TYPE(_IntEnum):
-    TATT_TRANSLATE_2D = _AUTO
-    TATT_SCALE_2D = _AUTO
-    TATT_OPACITY = _AUTO
-    TATT_CLIP = _AUTO
+    TRANSLATE_2D = _AUTO
+    SCALE_2D = _AUTO
+    OPACITY = _AUTO
+    CLIP = _AUTO
 
 
 # noinspection PyPep8Naming
 class TA_TRANSFORM_FLAG(_IntEnum):
-    TATF_NONE = 0x0
-    TATF_TARGETVALUES_USER = 0x1
-    TATF_HASINITIALVALUES = 0x2
-    TATF_HASORIGINVALUES = 0x4
+    NONE = 0x0
+    TARGETVALUES_USER = 0x1
+    HASINITIALVALUES = 0x2
+    HASORIGINVALUES = 0x4
 
 
 class THEMESIZE(_IntEnum):
-    TS_MIN = _AUTO
-    TS_TRUE = _AUTO
-    TS_DRAW = _AUTO
+    MIN = _AUTO
+    TRUE = _AUTO
+    DRAW = _AUTO
 
 
 class PROPERTYORIGIN(_IntEnum):
-    PO_STATE = _AUTO
-    PO_PART = _AUTO
-    PO_CLASS = _AUTO
-    PO_GLOBAL = _AUTO
-    PO_NOTFOUND = _AUTO
+    STATE = _AUTO
+    PART = _AUTO
+    CLASS = _AUTO
+    GLOBAL = _AUTO
+    NOTFOUND = _AUTO
 
 
 class WINDOWTHEMEATTRIBUTETYPE(_IntEnum):
-    WTA_NONCLIENT = 1
+    NONCLIENT = 1
 
 
 # noinspection PyPep8Naming
 class BP_ANIMATIONSTYLE(_IntEnum):
-    BPAS_NONE = _AUTO
-    BPAS_LINEAR = _AUTO
-    BPAS_CUBIC = _AUTO
-    BPAS_SINE = _AUTO
+    NONE = _AUTO
+    LINEAR = _AUTO
+    CUBIC = _AUTO
+    SINE = _AUTO
 
 
 class MENUSTYLEPARTS(_IntEnum):
-    MENU_MENUITEM_TMSCHEMA = 1
-    MENU_MENUDROPDOWN_TMSCHEMA = _AUTO
-    MENU_MENUBARITEM_TMSCHEMA = _AUTO
-    MENU_MENUBARDROPDOWN_TMSCHEMA = _AUTO
-    MENU_CHEVRON_TMSCHEMA = _AUTO
-    MENU_SEPARATOR_TMSCHEMA = _AUTO
-    MENU_BARBACKGROUND = _AUTO
-    MENU_BARITEM = _AUTO
-    MENU_POPUPBACKGROUND = _AUTO
-    MENU_POPUPBORDERS = _AUTO
-    MENU_POPUPCHECK = _AUTO
-    MENU_POPUPCHECKBACKGROUND = _AUTO
-    MENU_POPUPGUTTER = _AUTO
-    MENU_POPUPITEM = _AUTO
-    MENU_POPUPSEPARATOR = _AUTO
-    MENU_POPUPSUBMENU = _AUTO
-    MENU_SYSTEMCLOSE = _AUTO
-    MENU_SYSTEMMAXIMIZE = _AUTO
-    MENU_SYSTEMMINIMIZE = _AUTO
-    MENU_SYSTEMRESTORE = _AUTO
+    MENUITEM_TMSCHEMA = 1
+    MENUDROPDOWN_TMSCHEMA = _AUTO
+    MENUBARITEM_TMSCHEMA = _AUTO
+    MENUBARDROPDOWN_TMSCHEMA = _AUTO
+    CHEVRON_TMSCHEMA = _AUTO
+    SEPARATOR_TMSCHEMA = _AUTO
+    BARBACKGROUND = _AUTO
+    BARITEM = _AUTO
+    POPUPBACKGROUND = _AUTO
+    POPUPBORDERS = _AUTO
+    POPUPCHECK = _AUTO
+    POPUPCHECKBACKGROUND = _AUTO
+    POPUPGUTTER = _AUTO
+    POPUPITEM = _AUTO
+    POPUPSEPARATOR = _AUTO
+    POPUPSUBMENU = _AUTO
+    SYSTEMCLOSE = _AUTO
+    SYSTEMMAXIMIZE = _AUTO
+    SYSTEMMINIMIZE = _AUTO
+    SYSTEMRESTORE = _AUTO
 
 
 class BARBACKGROUNDSTATES(_IntEnum):
-    MB_ACTIVE = 1
-    MB_INACTIVE = _AUTO
+    ACTIVE = 1
+    INACTIVE = _AUTO
 
 
 class POPUPCHECKSTATES(_IntEnum):
-    MC_CHECKMARKNORMAL = 1
-    MC_CHECKMARKDISABLED = _AUTO
-    MC_BULLETNORMAL = _AUTO
-    MC_BULLETDISABLED = _AUTO
+    CHECKMARKNORMAL = 1
+    CHECKMARKDISABLED = _AUTO
+    BULLETNORMAL = _AUTO
+    BULLETDISABLED = _AUTO
 
 
 class POPUPCHECKBACKGROUNDSTATES(_IntEnum):
-    MCB_DISABLED = 1
-    MCB_NORMAL = _AUTO
-    MCB_BITMAP = _AUTO
+    DISABLED = 1
+    NORMAL = _AUTO
+    BITMAP = _AUTO
 
 
 class POPUPITEMSTATES(_IntEnum):
-    MPI_NORMAL = 1
-    MPI_HOT = _AUTO
-    MPI_DISABLED = _AUTO
-    MPI_DISABLEDHOT = _AUTO
+    NORMAL = 1
+    HOT = _AUTO
+    DISABLED = _AUTO
+    DISABLEDHOT = _AUTO
 
 
 class POPUPSUBMENUSTATES(_IntEnum):
-    MSM_NORMAL = 1
-    MSM_DISABLED = _AUTO
+    NORMAL = 1
+    DISABLED = _AUTO
 
 
 class SYSTEMCLOSESTATES(_IntEnum):
-    MSYSC_NORMAL = 1
-    MSYSC_DISABLED = _AUTO
+    NORMAL = 1
+    DISABLED = _AUTO
 
 
 class SYSTEMMAXIMIZESTATES(_IntEnum):
-    MSYSMX_NORMAL = 1
-    MSYSMX_DISABLED = _AUTO
+    NORMAL = 1
+    DISABLED = _AUTO
 
 
 class SYSTEMMINIMIZESTATES(_IntEnum):
-    MSYSMN_NORMAL = 1
-    MSYSMN_DISABLED = _AUTO
+    NORMAL = 1
+    DISABLED = _AUTO
 
 
 class SYSTEMRESTORESTATES(_IntEnum):
-    MSYSR_NORMAL = 1
-    MSYSR_DISABLED = _AUTO
+    NORMAL = 1
+    DISABLED = _AUTO
 
 
 # noinspection PyPep8Naming
 class COMPUTER_NAME_FORMAT(_IntEnum):
-    ComputerNameNetBIOS = _AUTO
-    ComputerNameDnsHostname = _AUTO
-    ComputerNameDnsDomain = _AUTO
-    ComputerNameDnsFullyQualified = _AUTO
-    ComputerNamePhysicalNetBIOS = _AUTO
-    ComputerNamePhysicalDnsHostname = _AUTO
-    ComputerNamePhysicalDnsDomain = _AUTO
-    ComputerNamePhysicalDnsFullyQualified = _AUTO
-    ComputerNameMax = _AUTO
+    NetBIOS = _AUTO
+    DnsHostname = _AUTO
+    DnsDomain = _AUTO
+    DnsFullyQualified = _AUTO
+    PhysicalNetBIOS = _AUTO
+    PhysicalDnsHostname = _AUTO
+    PhysicalDnsDomain = _AUTO
+    PhysicalDnsFullyQualified = _AUTO
+    Max = _AUTO
 
 
 # noinspection PyPep8Naming
 class LOGICAL_PROCESSOR_RELATIONSHIP(_IntEnum):
-    RelationProcessorCore = _AUTO
-    RelationNumaNode = _AUTO
-    RelationCache = _AUTO
-    RelationProcessorPackage = _AUTO
-    RelationGroup = _AUTO
-    RelationProcessorDie = _AUTO
-    RelationNumaNodeEx = _AUTO
-    RelationProcessorModule = _AUTO
-    RelationAll = 0xffff
+    ProcessorCore = _AUTO
+    NumaNode = _AUTO
+    Cache = _AUTO
+    ProcessorPackage = _AUTO
+    Group = _AUTO
+    ProcessorDie = _AUTO
+    NumaNodeEx = _AUTO
+    ProcessorModule = _AUTO
+    All = 0xffff
 
 
 # noinspection PyPep8Naming
 class PROCESSOR_CACHE_TYPE(_IntEnum):
-    CacheUnified = _AUTO
-    CacheInstruction = _AUTO
-    CacheData = _AUTO
-    CacheTrace = _AUTO
+    Unified = _AUTO
+    Instruction = _AUTO
+    Data = _AUTO
+    Trace = _AUTO
 
 
 # noinspection PyPep8Naming
 class RTL_UMS_THREAD_INFO_CLASS(_IntEnum):
-    UmsThreadInvalidInfoClass = _AUTO
-    UmsThreadUserContext = _AUTO
-    UmsThreadPriority = _AUTO
-    UmsThreadAffinity = _AUTO
-    UmsThreadTeb = _AUTO
-    UmsThreadIsSuspended = _AUTO
-    UmsThreadIsTerminated = _AUTO
-    UmsThreadMaxInfoClass = _AUTO
+    InvalidInfoClass = _AUTO
+    UserContext = _AUTO
+    Priority = _AUTO
+    Affinity = _AUTO
+    Teb = _AUTO
+    IsSuspended = _AUTO
+    IsTerminated = _AUTO
+    MaxInfoClass = _AUTO
 
 
 # noinspection PyPep8Naming
 class RTL_UMS_SCHEDULER_REASON(_IntEnum):
-    UmsSchedulerStartup = _AUTO
-    UmsSchedulerThreadBlocked = _AUTO
-    UmsSchedulerThreadYield = _AUTO
+    Startup = _AUTO
+    ThreadBlocked = _AUTO
+    ThreadYield = _AUTO
 
 
 class SHSTOCKICONID(_IntEnum):
-    SIID_DOCNOASSOC = _AUTO
-    SIID_DOCASSOC = _AUTO
-    SIID_APPLICATION = _AUTO
-    SIID_FOLDER = _AUTO
-    SIID_FOLDEROPEN = _AUTO
-    SIID_DRIVE525 = _AUTO
-    SIID_DRIVE35 = _AUTO
-    SIID_DRIVEREMOVE = _AUTO
-    SIID_DRIVEFIXED = _AUTO
-    SIID_DRIVENET = _AUTO
-    SIID_DRIVENETDISABLED = _AUTO
-    SIID_DRIVECD = _AUTO
-    SIID_DRIVERAM = _AUTO
-    SIID_WORLD = _AUTO
-    SIID_SERVER = 15
-    SIID_PRINTER = _AUTO
-    SIID_MYNETWORK = _AUTO
-    SIID_FIND = 22
-    SIID_HELP = _AUTO
-    SIID_SHARE = 28
-    SIID_LINK = _AUTO
-    SIID_SLOWFILE = _AUTO
-    SIID_RECYCLER = _AUTO
-    SIID_RECYCLERFULL = _AUTO
-    SIID_MEDIACDAUDIO = 40
-    SIID_LOCK = 47
-    SIID_AUTOLIST = 49
-    SIID_PRINTERNET = 50
-    SIID_SERVERSHARE = _AUTO
-    SIID_PRINTERFAX = _AUTO
-    SIID_PRINTERFAXNET = _AUTO
-    SIID_PRINTERFILE = _AUTO
-    SIID_STACK = _AUTO
-    SIID_MEDIASVCD = _AUTO
-    SIID_STUFFEDFOLDER = _AUTO
-    SIID_DRIVEUNKNOWN = _AUTO
-    SIID_DRIVEDVD = _AUTO
-    SIID_MEDIADVD = _AUTO
-    SIID_MEDIADVDRAM = _AUTO
-    SIID_MEDIADVDRW = _AUTO
-    SIID_MEDIADVDR = _AUTO
-    SIID_MEDIADVDROM = _AUTO
-    SIID_MEDIACDAUDIOPLUS = _AUTO
-    SIID_MEDIACDRW = _AUTO
-    SIID_MEDIACDR = _AUTO
-    SIID_MEDIACDBURN = _AUTO
-    SIID_MEDIABLANKCD = _AUTO
-    SIID_MEDIACDROM = _AUTO
-    SIID_AUDIOFILES = _AUTO
-    SIID_IMAGEFILES = _AUTO
-    SIID_VIDEOFILES = _AUTO
-    SIID_MIXEDFILES = _AUTO
-    SIID_FOLDERBACK = _AUTO
-    SIID_FOLDERFRONT = _AUTO
-    SIID_SHIELD = _AUTO
-    SIID_WARNING = _AUTO
-    SIID_INFO = _AUTO
-    SIID_ERROR = _AUTO
-    SIID_KEY = _AUTO
-    SIID_SOFTWARE = _AUTO
-    SIID_RENAME = _AUTO
-    SIID_DELETE = _AUTO
-    SIID_MEDIAAUDIODVD = _AUTO
-    SIID_MEDIAMOVIEDVD = _AUTO
-    SIID_MEDIAENHANCEDCD = _AUTO
-    SIID_MEDIAENHANCEDDVD = _AUTO
-    SIID_MEDIAHDDVD = _AUTO
-    SIID_MEDIABLURAY = _AUTO
-    SIID_MEDIAVCD = _AUTO
-    SIID_MEDIADVDPLUSR = _AUTO
-    SIID_MEDIADVDPLUSRW = _AUTO
-    SIID_DESKTOPPC = _AUTO
-    SIID_MOBILEPC = _AUTO
-    SIID_USERS = _AUTO
-    SIID_MEDIASMARTMEDIA = _AUTO
-    SIID_MEDIACOMPACTFLASH = _AUTO
-    SIID_DEVICECELLPHONE = _AUTO
-    SIID_DEVICECAMERA = _AUTO
-    SIID_DEVICEVIDEOCAMERA = _AUTO
-    SIID_DEVICEAUDIOPLAYER = _AUTO
-    SIID_NETWORKCONNECT = _AUTO
-    SIID_INTERNET = _AUTO
-    SIID_ZIPFILE = _AUTO
-    SIID_SETTINGS = _AUTO
-    SIID_DRIVEHDDVD = 132
-    SIID_DRIVEBD = _AUTO
-    SIID_MEDIAHDDVDROM = _AUTO
-    SIID_MEDIAHDDVDR = _AUTO
-    SIID_MEDIAHDDVDRAM = _AUTO
-    SIID_MEDIABDROM = _AUTO
-    SIID_MEDIABDR = _AUTO
-    SIID_MEDIABDRE = _AUTO
-    SIID_CLUSTEREDDRIVE = _AUTO
-    SIID_MAX_ICONS = 181
+    DOCNOASSOC = _AUTO
+    DOCASSOC = _AUTO
+    APPLICATION = _AUTO
+    FOLDER = _AUTO
+    FOLDEROPEN = _AUTO
+    DRIVE525 = _AUTO
+    DRIVE35 = _AUTO
+    DRIVEREMOVE = _AUTO
+    DRIVEFIXED = _AUTO
+    DRIVENET = _AUTO
+    DRIVENETDISABLED = _AUTO
+    DRIVECD = _AUTO
+    DRIVERAM = _AUTO
+    WORLD = _AUTO
+    SERVER = 15
+    PRINTER = _AUTO
+    MYNETWORK = _AUTO
+    FIND = 22
+    HELP = _AUTO
+    SHARE = 28
+    LINK = _AUTO
+    SLOWFILE = _AUTO
+    RECYCLER = _AUTO
+    RECYCLERFULL = _AUTO
+    MEDIACDAUDIO = 40
+    LOCK = 47
+    AUTOLIST = 49
+    PRINTERNET = 50
+    SERVERSHARE = _AUTO
+    PRINTERFAX = _AUTO
+    PRINTERFAXNET = _AUTO
+    PRINTERFILE = _AUTO
+    STACK = _AUTO
+    MEDIASVCD = _AUTO
+    STUFFEDFOLDER = _AUTO
+    DRIVEUNKNOWN = _AUTO
+    DRIVEDVD = _AUTO
+    MEDIADVD = _AUTO
+    MEDIADVDRAM = _AUTO
+    MEDIADVDRW = _AUTO
+    MEDIADVDR = _AUTO
+    MEDIADVDROM = _AUTO
+    MEDIACDAUDIOPLUS = _AUTO
+    MEDIACDRW = _AUTO
+    MEDIACDR = _AUTO
+    MEDIACDBURN = _AUTO
+    MEDIABLANKCD = _AUTO
+    MEDIACDROM = _AUTO
+    AUDIOFILES = _AUTO
+    IMAGEFILES = _AUTO
+    VIDEOFILES = _AUTO
+    MIXEDFILES = _AUTO
+    FOLDERBACK = _AUTO
+    FOLDERFRONT = _AUTO
+    SHIELD = _AUTO
+    WARNING = _AUTO
+    INFO = _AUTO
+    ERROR = _AUTO
+    KEY = _AUTO
+    SOFTWARE = _AUTO
+    RENAME = _AUTO
+    DELETE = _AUTO
+    MEDIAAUDIODVD = _AUTO
+    MEDIAMOVIEDVD = _AUTO
+    MEDIAENHANCEDCD = _AUTO
+    MEDIAENHANCEDDVD = _AUTO
+    MEDIAHDDVD = _AUTO
+    MEDIABLURAY = _AUTO
+    MEDIAVCD = _AUTO
+    MEDIADVDPLUSR = _AUTO
+    MEDIADVDPLUSRW = _AUTO
+    DESKTOPPC = _AUTO
+    MOBILEPC = _AUTO
+    USERS = _AUTO
+    MEDIASMARTMEDIA = _AUTO
+    MEDIACOMPACTFLASH = _AUTO
+    DEVICECELLPHONE = _AUTO
+    DEVICECAMERA = _AUTO
+    DEVICEVIDEOCAMERA = _AUTO
+    DEVICEAUDIOPLAYER = _AUTO
+    NETWORKCONNECT = _AUTO
+    INTERNET = _AUTO
+    ZIPFILE = _AUTO
+    SETTINGS = _AUTO
+    DRIVEHDDVD = 132
+    DRIVEBD = _AUTO
+    MEDIAHDDVDROM = _AUTO
+    MEDIAHDDVDR = _AUTO
+    MEDIAHDDVDRAM = _AUTO
+    MEDIABDROM = _AUTO
+    MEDIABDR = _AUTO
+    MEDIABDRE = _AUTO
+    CLUSTEREDDRIVE = _AUTO
+    MAX_ICONS = 181
 
 
 # noinspection PyPep8Naming
 class QUERY_USER_NOTIFICATION_STATE(_IntEnum):
-    QUNS_NOT_PRESENT = 1
-    QUNS_BUSY = _AUTO
-    QUNS_RUNNING_D3D_FULL_SCREEN = _AUTO
-    QUNS_PRESENTATION_MODE = _AUTO
-    QUNS_ACCEPTS_NOTIFICATIONS = _AUTO
-    QUNS_QUIET_TIME = _AUTO
-    QUNS_APP = _AUTO
+    NOT_PRESENT = 1
+    BUSY = _AUTO
+    RUNNING_D3D_FULL_SCREEN = _AUTO
+    PRESENTATION_MODE = _AUTO
+    ACCEPTS_NOTIFICATIONS = _AUTO
+    QUIET_TIME = _AUTO
+    APP = _AUTO
 
 
 # noinspection PyPep8Naming
 class INPUT_MESSAGE_DEVICE_TYPE(_IntEnum):
-    IMDT_UNAVAILABLE = 0x00000000
-    IMDT_KEYBOARD = 0x00000001
-    IMDT_MOUSE = 0x00000002
-    IMDT_TOUCH = 0x00000004
-    IMDT_PEN = 0x00000008
-    IMDT_TOUCHPAD = 0x00000010
+    UNAVAILABLE = 0x00000000
+    KEYBOARD = 0x00000001
+    MOUSE = 0x00000002
+    TOUCH = 0x00000004
+    PEN = 0x00000008
+    TOUCHPAD = 0x00000010
 
 
 # noinspection PyPep8Naming
 class INPUT_MESSAGE_ORIGIN_ID(_IntEnum):
-    IMO_UNAVAILABLE = 0x00000000
-    IMO_HARDWARE = 0x00000001
-    IMO_INJECTED = 0x00000002
-    IMO_SYSTEM = 0x00000004
+    UNAVAILABLE = 0x00000000
+    HARDWARE = 0x00000001
+    INJECTED = 0x00000002
+    SYSTEM = 0x00000004
 
 
 # noinspection PyPep8Naming
 class AR_STATE(_IntEnum):
-    AR_ENABLED = 0x0
-    AR_DISABLED = 0x1
-    AR_SUPPRESSED = 0x2
-    AR_REMOTESESSION = 0x4
-    AR_MULTIMON = 0x8
-    AR_NOSENSOR = 0x10
-    AR_NOT_SUPPORTED = 0x20
-    AR_DOCKED = 0x40
-    AR_LAPTOP = 0x80
+    ENABLED = 0x0
+    DISABLED = 0x1
+    SUPPRESSED = 0x2
+    REMOTESESSION = 0x4
+    MULTIMON = 0x8
+    NOSENSOR = 0x10
+    NOT_SUPPORTED = 0x20
+    DOCKED = 0x40
+    LAPTOP = 0x80
 
 
 # noinspection PyPep8Naming
 class ORIENTATION_PREFERENCE(_IntEnum):
-    ORIENTATION_PREFERENCE_NONE = 0x0
-    ORIENTATION_PREFERENCE_LANDSCAPE = 0x1
-    ORIENTATION_PREFERENCE_PORTRAIT = 0x2
-    ORIENTATION_PREFERENCE_LANDSCAPE_FLIPPED = 0x4
-    ORIENTATION_PREFERENCE_PORTRAIT_FLIPPED = 0x8
+    NONE = 0x0
+    LANDSCAPE = 0x1
+    PORTRAIT = 0x2
+    LANDSCAPE_FLIPPED = 0x4
+    PORTRAIT_FLIPPED = 0x8
 
 
 class NotificationMirroring(_IntEnum):
-    NotificationMirroring_Allowed = _AUTO
-    NotificationMirroring_Disabled = _AUTO
+    Allowed = _AUTO
+    Disabled = _AUTO
 
 
 class NotificationSetting(_IntEnum):
-    NotificationSetting_Enabled = _AUTO
-    NotificationSetting_DisabledForApplication = _AUTO
-    NotificationSetting_DisabledForUser = _AUTO
-    NotificationSetting_DisabledByGroupPolicy = _AUTO
-    NotificationSetting_DisabledByManifest = _AUTO
+    Enabled = _AUTO
+    DisabledForApplication = _AUTO
+    DisabledForUser = _AUTO
+    DisabledByGroupPolicy = _AUTO
+    DisabledByManifest = _AUTO
 
 
 class InterpolationMode(_IntEnum):
-    InterpolationModeInvalid = QualityMode.QualityModeInvalid
-    InterpolationModeDefault = QualityMode.QualityModeDefault
-    InterpolationModeLowQuality = QualityMode.QualityModeLow
-    InterpolationModeHighQuality = QualityMode.QualityModeHigh
-    InterpolationModeBilinear = _AUTO
-    InterpolationModeBicubic = _AUTO
-    InterpolationModeNearestNeighbor = _AUTO
-    InterpolationModeHighQualityBilinear = _AUTO
-    InterpolationModeHighQualityBicubic = _AUTO
+    Invalid = QualityMode.Invalid
+    Default = QualityMode.Default
+    LowQuality = QualityMode.Low
+    HighQuality = QualityMode.High
+    Bilinear = _AUTO
+    Bicubic = _AUTO
+    NearestNeighbor = _AUTO
+    HighQualityBilinear = _AUTO
+    HighQualityBicubic = _AUTO
 
 
 class SmoothingMode(_IntEnum):
-    SmoothingModeInvalid = QualityMode.QualityModeInvalid
-    SmoothingModeDefault = QualityMode.QualityModeDefault
-    SmoothingModeHighSpeed = QualityMode.QualityModeLow
-    SmoothingModeHighQuality = QualityMode.QualityModeHigh
-    SmoothingModeNone = _AUTO
-    SmoothingModeAntiAlias = _AUTO
+    Invalid = QualityMode.Invalid
+    Default = QualityMode.Default
+    HighSpeed = QualityMode.Low
+    HighQuality = QualityMode.High
+    None_ = _AUTO
+    AntiAlias = _AUTO
 
 
 class CompositingQuality(_IntEnum):
-    CompositingQualityInvalid = QualityMode.QualityModeInvalid
-    CompositingQualityDefault = QualityMode.QualityModeDefault
-    CompositingQualityHighSpeed = QualityMode.QualityModeLow
-    CompositingQualityHighQuality = QualityMode.QualityModeHigh
-    CompositingQualityGammaCorrected = _AUTO
-    CompositingQualityAssumeLinear = _AUTO
+    Invalid = QualityMode.Invalid
+    Default = QualityMode.Default
+    HighSpeed = QualityMode.Low
+    HighQuality = QualityMode.High
+    GammaCorrected = _AUTO
+    AssumeLinear = _AUTO
 
 
 class PixelOffsetMode(_IntEnum):
-    PixelOffsetModeInvalid = QualityMode.QualityModeInvalid
-    PixelOffsetModeDefault = QualityMode.QualityModeDefault
-    PixelOffsetModeHighSpeed = QualityMode.QualityModeLow
-    PixelOffsetModeHighQuality = QualityMode.QualityModeHigh
-    PixelOffsetModeNone = _AUTO
-    PixelOffsetModeHalf = _AUTO
+    Invalid = QualityMode.Invalid
+    Default = QualityMode.Default
+    HighSpeed = QualityMode.Low
+    HighQuality = QualityMode.High
+    None_ = _AUTO
+    Half = _AUTO
 
 
 class EncoderParameterValueType(_IntEnum):
-    EncoderParameterValueTypeByte = 1
-    EncoderParameterValueTypeASCII = _AUTO
-    EncoderParameterValueTypeShort = _AUTO
-    EncoderParameterValueTypeLong = _AUTO
-    EncoderParameterValueTypeRational = _AUTO
-    EncoderParameterValueTypeLongRange = _AUTO
-    EncoderParameterValueTypeUndefined = _AUTO
-    EncoderParameterValueTypeRationalRange = _AUTO
-    EncoderParameterValueTypePointer = _AUTO
+    Byte = 1
+    ASCII = _AUTO
+    Short = _AUTO
+    Long = _AUTO
+    Rational = _AUTO
+    LongRange = _AUTO
+    Undefined = _AUTO
+    RationalRange = _AUTO
+    Pointer = _AUTO
 
 
 class EncoderValue(_IntEnum):
-    EncoderValueColorTypeCMYK = _AUTO
-    EncoderValueColorTypeYCCK = _AUTO
-    EncoderValueCompressionLZW = _AUTO
-    EncoderValueCompressionCCITT3 = _AUTO
-    EncoderValueCompressionCCITT4 = _AUTO
-    EncoderValueCompressionRle = _AUTO
-    EncoderValueCompressionNone = _AUTO
-    EncoderValueScanMethodInterlaced = _AUTO
-    EncoderValueScanMethodNonInterlaced = _AUTO
-    EncoderValueVersionGif87 = _AUTO
-    EncoderValueVersionGif89 = _AUTO
-    EncoderValueRenderProgressive = _AUTO
-    EncoderValueRenderNonProgressive = _AUTO
-    EncoderValueTransformRotate90 = _AUTO
-    EncoderValueTransformRotate180 = _AUTO
-    EncoderValueTransformRotate270 = _AUTO
-    EncoderValueTransformFlipHorizontal = _AUTO
-    EncoderValueTransformFlipVertical = _AUTO
-    EncoderValueMultiFrame = _AUTO
-    EncoderValueLastFrame = _AUTO
-    EncoderValueFlush = _AUTO
-    EncoderValueFrameDimensionTime = _AUTO
-    EncoderValueFrameDimensionResolution = _AUTO
-    EncoderValueFrameDimensionPage = _AUTO
-    EncoderValueColorTypeGray = _AUTO
-    EncoderValueColorTypeRGB = _AUTO
+    ColorTypeCMYK = _AUTO
+    ColorTypeYCCK = _AUTO
+    CompressionLZW = _AUTO
+    CompressionCCITT3 = _AUTO
+    CompressionCCITT4 = _AUTO
+    CompressionRle = _AUTO
+    CompressionNone = _AUTO
+    ScanMethodInterlaced = _AUTO
+    ScanMethodNonInterlaced = _AUTO
+    VersionGif87 = _AUTO
+    VersionGif89 = _AUTO
+    RenderProgressive = _AUTO
+    RenderNonProgressive = _AUTO
+    TransformRotate90 = _AUTO
+    TransformRotate180 = _AUTO
+    TransformRotate270 = _AUTO
+    TransformFlipHorizontal = _AUTO
+    TransformFlipVertical = _AUTO
+    MultiFrame = _AUTO
+    LastFrame = _AUTO
+    Flush = _AUTO
+    FrameDimensionTime = _AUTO
+    FrameDimensionResolution = _AUTO
+    FrameDimensionPage = _AUTO
+    ColorTypeGray = _AUTO
+    ColorTypeRGB = _AUTO
+
+
+class ToastDismissalReason(_IntEnum):
+    UserCanceled = _AUTO
+    ApplicationHidden = _AUTO
+    TimedOut = _AUTO
 
 
 GpMatrixOrder = MatrixOrder
@@ -1117,7 +1123,7 @@ def _get_members(enum: _IntEnum) -> dict[int, str]:
 def _init(item: str) -> type:
     _globals.check_item(item)
 
-    class Enum(_type.c_int, metaclass=_EnumMeta):
+    class Enum(_type.c_int, metaclass=_EnumMeta):  # TODO compatible with int, c_long, ...
         _name = None
         __members__: dict[str, int] = _get_members(_globals.vars_[item])
 

@@ -1,4 +1,4 @@
-__version__ = '0.2.9'
+__version__ = '0.2.10'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -86,7 +86,7 @@ def _prep_com(type_: _builtins.type[CT],
               init: bool) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
                                                    _Optional[tuple[Pointer[struct.IID], Pointer[CT]]]]]:
     lib.Ole32.CoInitializeEx(None,
-                             enum.COINIT.COINIT_MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
+                             enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
     obj = type_()
     try:
         # noinspection PyProtectedMember
@@ -117,8 +117,8 @@ def cast_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _Con
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[com.IInspectable]]]:
-    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.RO_INIT_MULTITHREADED
-                             if THREADED_COM else enum.RO_INIT_TYPE.RO_INIT_SINGLETHREADED)
+    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED
+                             if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
     base = com.IInspectable() if init else com.IActivationFactory()
     try:
         # noinspection PyProtectedMember

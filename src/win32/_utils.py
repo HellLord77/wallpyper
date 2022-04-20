@@ -7,8 +7,8 @@ import libs.ctyped as ctyped
 
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
-    ctyped.lib.Shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(folderid)),
-                                            ctyped.enum.KNOWN_FOLDER_FLAG.KF_FLAG_DEFAULT, None, ctyped.byref(buff))
+    ctyped.lib.Shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
+        folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT, None, ctyped.byref(buff))
     try:
         return buff.value
     finally:

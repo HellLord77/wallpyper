@@ -175,3 +175,14 @@ class IAsyncOperationWithProgressCompletedHandler(IUnknown):
     def Invoke(This: IAsyncOperationWithProgressCompletedHandler, asyncInfo: _com.IAsyncOperationWithProgress,
                asyncStatus: _enum.AsyncStatus) -> _type.HRESULT:
         return _const.NOERROR
+
+
+class ITypedEventHandler(IUnknown):
+    __IID__ = {_const.IID_ITypedEventHandler_IToastNotification_IToastDismissedEventArgs,
+               _const.IID_ITypedEventHandler_IToastNotification_IInspectable,
+               _const.IID_ITypedEventHandler_IToastNotification_IToastFailedEventArgs}
+
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def Invoke(This: _Pointer[ITypedEventHandler], sender: _type.c_void_p, args: _type.c_void_p) -> _type.HRESULT:
+        return _const.NOERROR

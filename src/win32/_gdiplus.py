@@ -109,7 +109,7 @@ class Graphics(_GdiplusBase):
         return int_func
 
     def set_scale(self, scale_x: float = 1, scale_y: float = 1):
-        ctyped.lib.GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.MatrixOrderPrepend)
+        ctyped.lib.GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.Prepend)
 
     def draw_image(self, src: Image, x: float = 0, y: float = 0):
         self._get_func(ctyped.lib.GdiPlus.GdipDrawImage, ctyped.lib.GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
@@ -118,7 +118,7 @@ class Graphics(_GdiplusBase):
                              src_w: Optional[float] = None, src_h: Optional[float] = None):
         self._get_func(ctyped.lib.GdiPlus.GdipDrawImagePointRect, ctyped.lib.GdiPlus.GdipDrawImagePointRectI, x, y,
                        src_x, src_y, src_w, src_h)(self, src, x, y, src_x, src_y, src.width if src_w is None else src_w,
-                                                   src.height if src_h is None else src_h, ctyped.enum.GpUnit.UnitPixel)
+                                                   src.height if src_h is None else src_h, ctyped.enum.GpUnit.Pixel)
 
     def draw_image_on_rect_from_rect(self, src: Image, x: float = 0, y: float = 0, w: Optional[float] = None,
                                      h: Optional[float] = None, src_x: float = 0, src_y: float = 0,
@@ -132,7 +132,7 @@ class Graphics(_GdiplusBase):
         self._get_func(ctyped.lib.GdiPlus.GdipDrawImageRectRect, ctyped.lib.GdiPlus.GdipDrawImageRectRectI, x, y,
                        w, h, src_x, src_y, src_w, src_h)(self, src, x, y, src_w if w is None else w,
                                                          src_h if h is None else h, src_x, src_y, src_w, src_h,
-                                                         ctyped.enum.GpUnit.UnitPixel, image_attrs, draw_abort, None)
+                                                         ctyped.enum.GpUnit.Pixel, image_attrs, draw_abort, None)
 
     def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float):
         ctyped.lib.GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
@@ -283,10 +283,9 @@ class Image(_GdiplusBase):
     def save(self, path: str, quality: int = 100) -> bool:
         if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):
             quality_ = ctyped.type.LONG(quality)
-            params = ctyped.struct.EncoderParameters(1, ctyped.array(
-                ctyped.struct.EncoderParameter(ctyped.get_guid(ctyped.const.EncoderQuality), 1,
-                                               int(ctyped.enum.EncoderParameterValueType.EncoderParameterValueTypeLong),
-                                               ctyped.cast(quality_, ctyped.type.VOID))))
+            params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(
+                ctyped.get_guid(ctyped.const.EncoderQuality), 1,
+                ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.VOID))))
             return not ctyped.lib.GdiPlus.GdipSaveImageToFile(self, path, encoder, ctyped.byref(params))
         return False
 
@@ -350,8 +349,8 @@ class ImageAttributes(_GdiplusBase):
         self = cls()
         ctyped.lib.GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
         self._valid = not ctyped.lib.GdiPlus.GdipSetImageAttributesColorMatrix(
-            self, ctyped.enum.ColorAdjustType.ColorAdjustTypeDefault, True,
-            ctyped.byref(color_matrix), None, ctyped.enum.ColorMatrixFlags.ColorMatrixFlagsDefault)
+            self, ctyped.enum.ColorAdjustType.Default, True,
+            ctyped.byref(color_matrix), None, ctyped.enum.ColorMatrixFlags.Default)
         return self
 
 
