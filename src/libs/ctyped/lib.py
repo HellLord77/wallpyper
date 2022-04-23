@@ -81,6 +81,31 @@ class Python(_PyFunc):
                            _type.c_void]
     Py_FinalizeEx: _Callable[[],
                              _type.c_int]
+    PyThread_create_key: _Callable[[],
+                                   _type.c_int]
+    PyThread_delete_key: _Callable[[_type.c_int],
+                                   _type.c_void]
+    PyThread_delete_key_value: _Callable[[_type.c_int],
+                                         _type.c_void]
+    PyThread_exit_thread: _Callable[[],
+                                    _type.c_void]
+    PyThread_get_key_value: _Callable[[_type.c_int],
+                                      _type.c_void_p]
+    PyThread_get_stacksize: _Callable[[],
+                                      _type.c_size_t]
+    PyThread_get_thread_ident: _Callable[[],
+                                         _type.c_ulong]
+    PyThread_get_thread_native_id: _Callable[[],
+                                             _type.c_ulong]
+    PyThread_init_thread: _Callable[[],
+                                    _type.c_void]
+    PyThread_set_key_value: _Callable[[_type.c_int,
+                                       _type.c_void_p],
+                                      _type.c_int]
+    PyThread_set_stacksize: _Callable[[_type.c_size_t],
+                                      _type.c_int]
+    PyThread_ReInitTLS: _Callable[[],
+                                  _type.c_void]
 
 
 class Advapi32(_WinFunc):
@@ -828,6 +853,22 @@ class Kernel32(_WinFunc):
     AreShortNamesEnabled: _Callable[[_type.HANDLE,
                                      _Pointer[_type.BOOL]],
                                     _type.BOOL]
+    CreateFileA: _Callable[[_type.LPCSTR,
+                            _type.DWORD,
+                            _type.DWORD,
+                            _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                            _type.DWORD,
+                            _type.DWORD,
+                            _Optional[_type.HANDLE]],
+                           _type.HANDLE]
+    CreateFileW: _Callable[[_type.LPCWSTR,
+                            _type.DWORD,
+                            _type.DWORD,
+                            _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
+                            _type.DWORD,
+                            _type.DWORD,
+                            _Optional[_type.HANDLE]],
+                           _type.HANDLE]
     DeleteFileA: _Callable[[_type.LPCSTR],
                            _type.BOOL]
     DeleteFileW: _Callable[[_type.LPCWSTR],
@@ -956,6 +997,12 @@ class Kernel32(_WinFunc):
                                 _type.LPWSTR,
                                 _type.DWORD],
                                _type.DWORD]
+    ReadFile: _Callable[[_type.HANDLE,
+                         _Optional[_type.LPVOID],
+                         _type.DWORD,
+                         _Optional[_Pointer[_type.DWORD]],
+                         _Optional[_Pointer[_struct.OVERLAPPED]]],
+                        _type.BOOL]
     RemoveDirectoryA: _Callable[[_type.LPCSTR],
                                 _type.BOOL]
     RemoveDirectoryW: _Callable[[_type.LPCWSTR],
@@ -980,11 +1027,141 @@ class Kernel32(_WinFunc):
     # handleapi
     CloseHandle: _Callable[[_type.HANDLE],
                            _type.BOOL]
+    # heapapi
+    GetProcessHeap: _Callable[[],
+                              _type.HANDLE]
+    GetProcessHeaps: _Callable[[_type.DWORD,
+                                _Pointer[_type.HANDLE]],
+                               _type.DWORD]
+    HeapAlloc: _Callable[[_type.HANDLE,
+                          _type.DWORD,
+                          _type.SIZE_T],
+                         _type.LPVOID]
+    HeapCompact: _Callable[[_type.HANDLE,
+                            _type.DWORD],
+                           _type.SIZE_T]
+    HeapCreate: _Callable[[_type.DWORD,
+                           _type.SIZE_T,
+                           _type.SIZE_T],
+                          _type.HANDLE]
+    HeapDestroy: _Callable[[_type.HANDLE],
+                           _type.BOOL]
+    HeapFree: _Callable[[_type.HANDLE,
+                         _type.DWORD,
+                         _Optional[_type.LPVOID]],
+                        _type.BOOL]
+    HeapLock: _Callable[[_type.HANDLE],
+                        _type.BOOL]
+    HeapQueryInformation: _Callable[[_Optional[_type.HANDLE],
+                                     _enum.HEAP_INFORMATION_CLASS,
+                                     _Optional[_type.PVOID],
+                                     _type.SIZE_T,
+                                     _Optional[_Pointer[_type.SIZE_T]]],
+                                    _type.BOOL]
+    HeapReAlloc: _Callable[[_type.HANDLE,
+                            _type.DWORD,
+                            _Optional[_type.LPVOID],
+                            _type.SIZE_T],
+                           _type.LPVOID]
+    HeapSetInformation: _Callable[[_Optional[_type.HANDLE],
+                                   _enum.HEAP_INFORMATION_CLASS,
+                                   _Optional[_type.PVOID],
+                                   _type.SIZE_T],
+                                  _type.BOOL]
+    HeapSize: _Callable[[_type.HANDLE,
+                         _type.DWORD,
+                         _type.LPCVOID],
+                        _type.SIZE_T]
+    HeapSummary: _Callable[[_type.HANDLE,
+                            _type.DWORD,
+                            _struct.HEAP_SUMMARY],
+                           _type.BOOL]
+    HeapUnlock: _Callable[[_type.HANDLE],
+                          _type.BOOL]
+    HeapValidate: _Callable[[_type.HANDLE,
+                             _type.DWORD,
+                             _Optional[_type.LPCVOID]],
+                            _type.BOOL]
+    HeapWalk: _Callable[[_type.HANDLE,
+                         _Pointer[_struct.PROCESS_HEAP_ENTRY]],
+                        _type.BOOL]
     # libloaderapi
     AddDllDirectory: _Callable[[_type.LPCWSTR],
                                _type.DLL_DIRECTORY_COOKIE]
     DisableThreadLibraryCalls: _Callable[[_type.HMODULE],
                                          _type.BOOL]
+    EnumResourceLanguagesA: _Callable[[_Optional[_type.HMODULE],
+                                       _type.LPCSTR,
+                                       _type.LPCSTR,
+                                       _type.ENUMRESLANGPROCA,
+                                       _type.LONG_PTR],
+                                      _type.BOOL]
+    EnumResourceLanguagesW: _Callable[[_Optional[_type.HMODULE],
+                                       _type.LPCWSTR,
+                                       _type.LPCWSTR,
+                                       _type.ENUMRESLANGPROCW,
+                                       _type.LONG_PTR],
+                                      _type.BOOL]
+    EnumResourceLanguagesExA: _Callable[[_Optional[_type.HMODULE],
+                                         _type.LPCSTR,
+                                         _type.LPCSTR,
+                                         _type.ENUMRESLANGPROCA,
+                                         _Optional[_type.LONG_PTR],
+                                         _type.DWORD,
+                                         _type.LANGID],
+                                        _type.BOOL]
+    EnumResourceLanguagesExW: _Callable[[_Optional[_type.HMODULE],
+                                         _type.LPCWSTR,
+                                         _type.LPCWSTR,
+                                         _type.ENUMRESLANGPROCW,
+                                         _Optional[_type.LONG_PTR],
+                                         _type.DWORD,
+                                         _type.LANGID],
+                                        _type.BOOL]
+    EnumResourceNamesA: _Callable[[_Optional[_type.HMODULE],
+                                   _type.LPCSTR,
+                                   _type.ENUMRESNAMEPROCA,
+                                   _type.LONG_PTR],
+                                  _type.BOOL]
+    EnumResourceNamesW: _Callable[[_Optional[_type.HMODULE],
+                                   _type.LPCWSTR,
+                                   _type.ENUMRESNAMEPROCW,
+                                   _type.LONG_PTR],
+                                  _type.BOOL]
+    EnumResourceNamesExA: _Callable[[_Optional[_type.HMODULE],
+                                     _type.LPCSTR,
+                                     _type.ENUMRESNAMEPROCA,
+                                     _type.LONG_PTR,
+                                     _type.DWORD,
+                                     _type.LANGID],
+                                    _type.BOOL]
+    EnumResourceNamesExW: _Callable[[_Optional[_type.HMODULE],
+                                     _type.LPCWSTR,
+                                     _type.ENUMRESNAMEPROCW,
+                                     _type.LONG_PTR,
+                                     _type.DWORD,
+                                     _type.LANGID],
+                                    _type.BOOL]
+    EnumResourceTypesA: _Callable[[_Optional[_type.HMODULE],
+                                   _type.ENUMRESTYPEPROCA,
+                                   _type.LONG_PTR],
+                                  _type.BOOL]
+    EnumResourceTypesW: _Callable[[_Optional[_type.HMODULE],
+                                   _type.ENUMRESTYPEPROCW,
+                                   _type.LONG_PTR],
+                                  _type.BOOL]
+    EnumResourceTypesExA: _Callable[[_Optional[_type.HMODULE],
+                                     _type.ENUMRESTYPEPROCA,
+                                     _type.LONG_PTR,
+                                     _type.DWORD,
+                                     _type.LANGID],
+                                    _type.BOOL]
+    EnumResourceTypesExW: _Callable[[_Optional[_type.HMODULE],
+                                     _type.ENUMRESTYPEPROCW,
+                                     _type.LONG_PTR,
+                                     _type.DWORD,
+                                     _type.LANGID],
+                                    _type.BOOL]
     FreeLibrary: _Callable[[_type.HMODULE],
                            _type.BOOL]
     FreeLibraryAndExitThread: _Callable[[_type.HMODULE,
@@ -1008,11 +1185,11 @@ class Kernel32(_WinFunc):
                                   _type.c_int,
                                   _type.BOOL],
                                  _type.c_int]
-    GetModuleFileNameA: _Callable[[_type.HMODULE,
+    GetModuleFileNameA: _Callable[[_Optional[_type.HMODULE],
                                    _type.LPSTR,
                                    _type.DWORD],
                                   _type.DWORD]
-    GetModuleFileNameW: _Callable[[_type.HMODULE,
+    GetModuleFileNameW: _Callable[[_Optional[_type.HMODULE],
                                    _type.LPWSTR,
                                    _type.DWORD],
                                   _type.DWORD]
@@ -1046,16 +1223,6 @@ class Kernel32(_WinFunc):
     LoadResource: _Callable[[_Optional[_type.HMODULE],
                              _type.HRSRC],
                             _type.HGLOBAL]
-    LoadStringA: _Callable[[_Optional[_type.HINSTANCE],
-                            _type.UINT,
-                            _type.LPSTR,
-                            _type.c_int],
-                           _type.c_int]
-    LoadStringW: _Callable[[_Optional[_type.HINSTANCE],
-                            _type.UINT,
-                            _type.LPWSTR,
-                            _type.c_int],
-                           _type.c_int]
     LockResource: _Callable[[_type.HGLOBAL],
                             _type.LPVOID]
     RemoveDllDirectory: _Callable[[_type.DLL_DIRECTORY_COOKIE],
@@ -1240,18 +1407,38 @@ class Kernel32(_WinFunc):
     ActivateActCtx: _Callable[[_Optional[_type.HANDLE],
                                _Pointer[_type.ULONG_PTR]],
                               _type.BOOL]
+    AddAtomA: _Callable[[_Optional[_type.LPCSTR]],
+                        _type.ATOM]
+    AddAtomW: _Callable[[_Optional[_type.LPCWSTR]],
+                        _type.ATOM]
     AddRefActCtx: _Callable[[_type.HANDLE],
                             _type.VOID]
     AssignProcessToJobObject: _Callable[[_type.HANDLE,
                                          _type.HANDLE],
                                         _type.BOOL]
+    BeginUpdateResourceA: _Callable[[_type.LPCSTR,
+                                     _type.BOOL],
+                                    _type.HANDLE]
+    BeginUpdateResourceW: _Callable[[_type.LPCWSTR,
+                                     _type.BOOL],
+                                    _type.HANDLE]
     CreateActCtxA: _Callable[[_Pointer[_struct.ACTCTXA]],
                              _type.HANDLE]
     CreateActCtxW: _Callable[[_Pointer[_struct.ACTCTXW]],
                              _type.HANDLE]
     DeactivateActCtx: _Callable[[_type.DWORD,
-                                 _Pointer[_type.ULONG_PTR]],
+                                 _type.ULONG_PTR],
                                 _type.BOOL]
+    EndUpdateResourceA: _Callable[[_type.HANDLE,
+                                   _type.BOOL],
+                                  _type.BOOL]
+    EndUpdateResourceW: _Callable[[_type.HANDLE,
+                                   _type.BOOL],
+                                  _type.BOOL]
+    FindAtomA: _Callable[[_Optional[_type.LPCSTR]],
+                         _type.ATOM]
+    FindAtomW: _Callable[[_Optional[_type.LPCWSTR]],
+                         _type.ATOM]
     FormatMessageA: _Callable[[_type.DWORD,
                                _Optional[_type.LPCVOID],
                                _type.DWORD,
@@ -1268,13 +1455,41 @@ class Kernel32(_WinFunc):
                                _type.DWORD,
                                _Optional[_Pointer[_type.va_list]]],
                               _type.DWORD]
+    GetBinaryTypeA: _Callable[[_type.LPCSTR,
+                               _Pointer[_type.DWORD]],
+                              _type.BOOL]
+    GetBinaryTypeW: _Callable[[_type.LPCWSTR,
+                               _Pointer[_type.DWORD]],
+                              _type.BOOL]
     GetCurrentActCtx: _Callable[[_Pointer[_type.HANDLE]],
                                 _type.BOOL]
+    GetProfileIntA: _Callable[[_type.LPCSTR,
+                               _type.LPCSTR,
+                               _type.INT],
+                              _type.UINT]
+    GetProfileIntW: _Callable[[_type.LPCWSTR,
+                               _type.LPCWSTR,
+                               _type.INT],
+                              _type.UINT]
     GetSystemPowerStatus: _Callable[[_Pointer[_struct.SYSTEM_POWER_STATUS]],
                                     _type.BOOL]
+    GlobalAddAtomA: _Callable[[_Optional[_type.LPCSTR]],
+                              _type.ATOM]
+    GlobalAddAtomW: _Callable[[_Optional[_type.LPCWSTR]],
+                              _type.ATOM]
+    GlobalAddAtomExA: _Callable[[_Optional[_type.LPCSTR],
+                                 _type.DWORD],
+                                _type.ATOM]
+    GlobalAddAtomExW: _Callable[[_Optional[_type.LPCWSTR],
+                                 _type.DWORD],
+                                _type.ATOM]
     GlobalAlloc: _Callable[[_type.UINT,
                             _type.SIZE_T],
                            _type.HGLOBAL]
+    GlobalFindAtomA: _Callable[[_Optional[_type.LPCSTR]],
+                               _type.ATOM]
+    GlobalFindAtomW: _Callable[[_Optional[_type.LPCWSTR]],
+                               _type.ATOM]
     GlobalLock: _Callable[[_type.HGLOBAL],
                           _type.LPVOID]
     GlobalUnlock: _Callable[[_type.HGLOBAL],
@@ -1295,6 +1510,22 @@ class Kernel32(_WinFunc):
                                _type.BOOL,
                                _type.LPCWSTR],
                               _type.HANDLE]
+    QueryActCtxW: _Callable[[_type.DWORD,
+                             _type.HANDLE,
+                             _Optional[_type.PVOID],
+                             _type.ULONG,
+                             _Optional[_type.PVOID],
+                             _type.SIZE_T,
+                             _Optional[_Pointer[_type.SIZE_T]]],
+                            _type.BOOL]
+    QueryActCtxSettingsW: _Callable[[_Optional[_type.DWORD],
+                                     _Optional[_type.HANDLE],
+                                     _Optional[_type.PCWSTR],
+                                     _type.PCWSTR,
+                                     _Optional[_type.PWSTR],
+                                     _type.SIZE_T,
+                                     _Optional[_Pointer[_type.SIZE_T]]],
+                                    _type.BOOL]
     ReleaseActCtx: _Callable[[_type.HANDLE],
                              _type.VOID]
     SetSystemPowerState: _Callable[[_type.BOOL,
@@ -1303,6 +1534,20 @@ class Kernel32(_WinFunc):
     TerminateJobObject: _Callable[[_type.HANDLE,
                                    _type.UINT],
                                   _type.BOOL]
+    UpdateResourceA: _Callable[[_type.HANDLE,
+                                _type.LPCSTR,
+                                _type.LPCSTR,
+                                _type.WORD,
+                                _Optional[_type.LPVOID],
+                                _type.DWORD],
+                               _type.BOOL]
+    UpdateResourceW: _Callable[[_type.HANDLE,
+                                _type.LPCWSTR,
+                                _type.LPCWSTR,
+                                _type.WORD,
+                                _Optional[_type.LPVOID],
+                                _type.DWORD],
+                               _type.BOOL]
     VerifyVersionInfoA: _Callable[[_Pointer[_struct.OSVERSIONINFOEXA],
                                    _type.DWORD,
                                    _type.DWORDLONG],
@@ -1311,6 +1556,38 @@ class Kernel32(_WinFunc):
                                    _type.DWORD,
                                    _type.DWORDLONG],
                                   _type.BOOL]
+    WritePrivateProfileSectionA: _Callable[[_Optional[_type.LPCSTR],
+                                            _Optional[_type.LPCSTR],
+                                            _Optional[_type.LPCSTR]],
+                                           _type.BOOL]
+    WritePrivateProfileSectionW: _Callable[[_Optional[_type.LPCWSTR],
+                                            _Optional[_type.LPCWSTR],
+                                            _Optional[_type.LPCWSTR]],
+                                           _type.BOOL]
+    WritePrivateProfileStringA: _Callable[[_Optional[_type.LPCSTR],
+                                           _Optional[_type.LPCSTR],
+                                           _Optional[_type.LPCSTR],
+                                           _Optional[_type.LPCSTR]],
+                                          _type.BOOL]
+    WritePrivateProfileStringW: _Callable[[_Optional[_type.LPCWSTR],
+                                           _Optional[_type.LPCWSTR],
+                                           _Optional[_type.LPCWSTR],
+                                           _Optional[_type.LPCWSTR]],
+                                          _type.BOOL]
+    WriteProfileSectionA: _Callable[[_type.LPCSTR,
+                                     _type.LPCSTR],
+                                    _type.BOOL]
+    WriteProfileSectionW: _Callable[[_type.LPCWSTR,
+                                     _type.LPCWSTR],
+                                    _type.BOOL]
+    WriteProfileStringA: _Callable[[_Optional[_type.LPCSTR],
+                                    _Optional[_type.LPCSTR],
+                                    _Optional[_type.LPCSTR]],
+                                   _type.BOOL]
+    WriteProfileStringW: _Callable[[_Optional[_type.LPCWSTR],
+                                    _Optional[_type.LPCWSTR],
+                                    _Optional[_type.LPCWSTR]],
+                                   _type.BOOL]
     ZombifyActCtx: _Callable[[_type.HANDLE],
                              _type.BOOL]
     # WinNls
@@ -2738,6 +3015,16 @@ class User32(_WinFunc):
                                  _type.HMENU]
     LoadMenuIndirectW: _Callable[[_type.MENUTEMPLATEW],
                                  _type.HMENU]
+    LoadStringA: _Callable[[_Optional[_type.HINSTANCE],
+                            _type.UINT,
+                            _type.LPSTR,
+                            _type.c_int],
+                           _type.c_int]
+    LoadStringW: _Callable[[_Optional[_type.HINSTANCE],
+                            _type.UINT,
+                            _type.LPWSTR,
+                            _type.c_int],
+                           _type.c_int]
     LockSetForegroundWindow: _Callable[[_type.UINT],
                                        _type.BOOL]
     LockWorkStation: _Callable[[],

@@ -1300,6 +1300,448 @@ class LOGBRUSH32:
     lbHatch: _type.ULONG = _EMPTY
 
 
+# noinspection PyPep8Naming
+@_struct
+class COMPATIBILITY_CONTEXT_ELEMENT:
+    Id: GUID = _EMPTY
+    Type: _enum.ACTCTX_COMPATIBILITY_ELEMENT_TYPE = _EMPTY
+    MaxVersionTested: _type.ULONGLONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION:
+    ElementCount: _type.DWORD = _EMPTY
+    # noinspection PyTypeChecker
+    Elements: COMPATIBILITY_CONTEXT_ELEMENT * 0 = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class SUPPORTED_OS_INFO:
+    MajorVersion: _type.WORD = _EMPTY
+    MinorVersion: _type.WORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class MAXVERSIONTESTED_INFO:
+    MaxVersionTested: _type.ULONGLONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ACTIVATION_CONTEXT_DETAILED_INFORMATION:
+    dwFlags: _type.DWORD = _EMPTY
+    ulFormatVersion: _type.DWORD = _EMPTY
+    ulAssemblyCount: _type.DWORD = _EMPTY
+    ulRootManifestPathType: _type.DWORD = _EMPTY
+    ulRootManifestPathChars: _type.DWORD = _EMPTY
+    ulRootConfigurationPathType: _type.DWORD = _EMPTY
+    ulRootConfigurationPathChars: _type.DWORD = _EMPTY
+    ulAppDirPathType: _type.DWORD = _EMPTY
+    ulAppDirPathChars: _type.DWORD = _EMPTY
+    lpRootManifestPath: _type.PCWSTR = _EMPTY
+    lpRootConfigurationPath: _type.PCWSTR = _EMPTY
+    lpAppDirPath: _type.PCWSTR = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class HARDWARE_COUNTER_DATA:
+    Type: _enum.HARDWARE_COUNTER_TYPE = _EMPTY
+    Reserved: _type.DWORD = _EMPTY
+    Value: _type.DWORD64 = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class PERFORMANCE_DATA:
+    Size: _type.WORD = _SIZE
+    Version: _type.BYTE = _EMPTY
+    HwCountersCount: _type.BYTE = _EMPTY
+    ContextSwitchCount: _type.DWORD = _EMPTY
+    WaitReasonBitMap: _type.DWORD64 = _EMPTY
+    CycleTime: _type.DWORD64 = _EMPTY
+    RetryCount: _type.DWORD = _EMPTY
+    Reserved: _type.DWORD = _EMPTY
+    # noinspection PyUnresolvedReferences
+    HardwareCounters: HARDWARE_COUNTER_DATA * _const.MAX_HW_COUNTERS = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION:
+    ulFlags: _type.DWORD = _EMPTY
+    ulEncodedAssemblyIdentityLength: _type.DWORD = _EMPTY
+    ulManifestPathType: _type.DWORD = _EMPTY
+    ulManifestPathLength: _type.DWORD = _EMPTY
+    liManifestLastWriteTime: LARGE_INTEGER = _EMPTY
+    ulPolicyPathType: _type.DWORD = _EMPTY
+    ulPolicyPathLength: _type.DWORD = _EMPTY
+    liPolicyLastWriteTime: LARGE_INTEGER = _EMPTY
+    ulMetadataSatelliteRosterIndex: _type.DWORD = _EMPTY
+    ulManifestVersionMajor: _type.DWORD = _EMPTY
+    ulManifestVersionMinor: _type.DWORD = _EMPTY
+    ulPolicyVersionMajor: _type.DWORD = _EMPTY
+    ulPolicyVersionMinor: _type.DWORD = _EMPTY
+    ulAssemblyDirectoryNameLength: _type.DWORD = _EMPTY
+    lpAssemblyEncodedAssemblyIdentity: _type.PCWSTR = _EMPTY
+    lpAssemblyManifestPath: _type.PCWSTR = _EMPTY
+    lpAssemblyPolicyPath: _type.PCWSTR = _EMPTY
+    lpAssemblyDirectoryName: _type.PCWSTR = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ACTIVATION_CONTEXT_RUN_LEVEL_INFORMATION:
+    ulFlags: _type.DWORD = _EMPTY
+    RunLevel: _enum.ACTCTX_REQUESTED_RUN_LEVEL = _EMPTY
+    UiAccess: _type.DWORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class ASSEMBLY_FILE_DETAILED_INFORMATION:
+    ulFlags: _type.DWORD = _EMPTY
+    ulFilenameLength: _type.DWORD = _EMPTY
+    ulPathLength: _type.DWORD = _EMPTY
+    lpFileName: _type.PCWSTR = _EMPTY
+    lpFilePath: _type.PCWSTR = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class HEAP_SUMMARY:
+    cb: _type.DWORD = _SIZE
+    cbAllocated: _type.SIZE_T = _EMPTY
+    cbCommitted: _type.SIZE_T = _EMPTY
+    cbReserved: _type.SIZE_T = _EMPTY
+    cbMaxReserve: _type.SIZE_T = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class PROCESS_HEAP_ENTRY_U_S:
+    hMem: _type.HANDLE = _EMPTY
+    dwReserved: _type.DWORD * 3 = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class PROCESS_HEAP_ENTRY_U_S2:
+    dwCommittedSize: _type.DWORD = _EMPTY
+    dwUnCommittedSize: _type.DWORD = _EMPTY
+    lpFirstBlock: _type.LPVOID = _EMPTY
+    lpLastBlock: _type.LPVOID = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class PROCESS_HEAP_ENTRY:
+    lpData: _type.PVOID = _EMPTY
+    cbData: _type.DWORD = _EMPTY
+    cbOverhead: _type.BYTE = _EMPTY
+    iRegionIndex: _type.BYTE = _EMPTY
+    wFlags: _type.WORD = _EMPTY
+    U: _union.PROCESS_HEAP_ENTRY_U = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_SECTION_HEADER:
+    Name: _type.BYTE * _const.IMAGE_SIZEOF_SHORT_NAME = _EMPTY
+    Misc: _union.IMAGE_SECTION_HEADER_U = _EMPTY
+    VirtualAddress: _type.DWORD = _EMPTY
+    SizeOfRawData: _type.DWORD = _EMPTY
+    PointerToRawData: _type.DWORD = _EMPTY
+    PointerToRelocations: _type.DWORD = _EMPTY
+    PointerToLinenumbers: _type.DWORD = _EMPTY
+    NumberOfRelocations: _type.WORD = _EMPTY
+    NumberOfLinenumbers: _type.WORD = _EMPTY
+    Characteristics: _type.DWORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_DOS_HEADER:
+    e_magic: _type.WORD = _EMPTY
+    e_cblp: _type.WORD = _EMPTY
+    e_cp: _type.WORD = _EMPTY
+    e_crlc: _type.WORD = _EMPTY
+    e_cparhdr: _type.WORD = _EMPTY
+    e_minalloc: _type.WORD = _EMPTY
+    e_maxalloc: _type.WORD = _EMPTY
+    e_ss: _type.WORD = _EMPTY
+    e_sp: _type.WORD = _EMPTY
+    e_csum: _type.WORD = _EMPTY
+    e_ip: _type.WORD = _EMPTY
+    e_cs: _type.WORD = _EMPTY
+    e_lfarlc: _type.WORD = _EMPTY
+    e_ovno: _type.WORD = _EMPTY
+    e_res: _type.WORD * 4 = _EMPTY
+    e_oemid: _type.WORD = _EMPTY
+    e_oeminfo: _type.WORD = _EMPTY
+    e_res2: _type.WORD * 10 = _EMPTY
+    e_lfanew: _type.LONG = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_OS2_HEADER:
+    ne_magic: _type.WORD = _EMPTY
+    ne_ver: _type.CHAR = _EMPTY
+    ne_rev: _type.CHAR = _EMPTY
+    ne_enttab: _type.WORD = _EMPTY
+    ne_cbenttab: _type.WORD = _EMPTY
+    ne_crc: _type.LONG = _EMPTY
+    ne_flags: _type.WORD = _EMPTY
+    ne_autodata: _type.WORD = _EMPTY
+    ne_heap: _type.WORD = _EMPTY
+    ne_stack: _type.WORD = _EMPTY
+    ne_csip: _type.LONG = _EMPTY
+    ne_sssp: _type.LONG = _EMPTY
+    ne_cseg: _type.WORD = _EMPTY
+    ne_cmod: _type.WORD = _EMPTY
+    ne_cbnrestab: _type.WORD = _EMPTY
+    ne_segtab: _type.WORD = _EMPTY
+    ne_rsrctab: _type.WORD = _EMPTY
+    ne_restab: _type.WORD = _EMPTY
+    ne_modtab: _type.WORD = _EMPTY
+    ne_imptab: _type.WORD = _EMPTY
+    ne_nrestab: _type.LONG = _EMPTY
+    ne_cmovent: _type.WORD = _EMPTY
+    ne_align: _type.WORD = _EMPTY
+    ne_cres: _type.WORD = _EMPTY
+    ne_exetyp: _type.BYTE = _EMPTY
+    ne_flagsothers: _type.BYTE = _EMPTY
+    ne_pretthunks: _type.WORD = _EMPTY
+    ne_psegrefbytes: _type.WORD = _EMPTY
+    ne_swaparea: _type.WORD = _EMPTY
+    ne_expver: _type.WORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_VXD_HEADER:
+    e32_magic: _type.WORD = _EMPTY
+    e32_border: _type.BYTE = _EMPTY
+    e32_worder: _type.BYTE = _EMPTY
+    e32_level: _type.DWORD = _EMPTY
+    e32_cpu: _type.WORD = _EMPTY
+    e32_os: _type.WORD = _EMPTY
+    e32_ver: _type.DWORD = _EMPTY
+    e32_mflags: _type.DWORD = _EMPTY
+    e32_mpages: _type.DWORD = _EMPTY
+    e32_startobj: _type.DWORD = _EMPTY
+    e32_eip: _type.DWORD = _EMPTY
+    e32_stackobj: _type.DWORD = _EMPTY
+    e32_esp: _type.DWORD = _EMPTY
+    e32_pagesize: _type.DWORD = _EMPTY
+    e32_lastpagesize: _type.DWORD = _EMPTY
+    e32_fixupsize: _type.DWORD = _EMPTY
+    e32_fixupsum: _type.DWORD = _EMPTY
+    e32_ldrsize: _type.DWORD = _EMPTY
+    e32_ldrsum: _type.DWORD = _EMPTY
+    e32_objtab: _type.DWORD = _EMPTY
+    e32_objcnt: _type.DWORD = _EMPTY
+    e32_objmap: _type.DWORD = _EMPTY
+    e32_itermap: _type.DWORD = _EMPTY
+    e32_rsrctab: _type.DWORD = _EMPTY
+    e32_rsrccnt: _type.DWORD = _EMPTY
+    e32_restab: _type.DWORD = _EMPTY
+    e32_enttab: _type.DWORD = _EMPTY
+    e32_dirtab: _type.DWORD = _EMPTY
+    e32_dircnt: _type.DWORD = _EMPTY
+    e32_fpagetab: _type.DWORD = _EMPTY
+    e32_frectab: _type.DWORD = _EMPTY
+    e32_impmod: _type.DWORD = _EMPTY
+    e32_impmodcnt: _type.DWORD = _EMPTY
+    e32_impproc: _type.DWORD = _EMPTY
+    e32_pagesum: _type.DWORD = _EMPTY
+    e32_datapage: _type.DWORD = _EMPTY
+    e32_preload: _type.DWORD = _EMPTY
+    e32_nrestab: _type.DWORD = _EMPTY
+    e32_cbnrestab: _type.DWORD = _EMPTY
+    e32_nressum: _type.DWORD = _EMPTY
+    e32_autodata: _type.DWORD = _EMPTY
+    e32_debuginfo: _type.DWORD = _EMPTY
+    e32_debuglen: _type.DWORD = _EMPTY
+    e32_instpreload: _type.DWORD = _EMPTY
+    e32_instdemand: _type.DWORD = _EMPTY
+    e32_heapsize: _type.DWORD = _EMPTY
+    e32_res3: _type.BYTE * 12 = _EMPTY
+    e32_winresoff: _type.DWORD = _EMPTY
+    e32_winreslen: _type.DWORD = _EMPTY
+    e32_devid: _type.WORD = _EMPTY
+    e32_ddkver: _type.WORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_FILE_HEADER:
+    Machine: _type.WORD = _EMPTY
+    NumberOfSections: _type.WORD = _EMPTY
+    TimeDateStamp: _type.DWORD = _EMPTY
+    PointerToSymbolTable: _type.DWORD = _EMPTY
+    NumberOfSymbols: _type.DWORD = _EMPTY
+    SizeOfOptionalHeader: _type.WORD = _EMPTY
+    Characteristics: _type.WORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_DATA_DIRECTORY:
+    VirtualAddress: _type.DWORD = _EMPTY
+    Size: _type.DWORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_OPTIONAL_HEADER32:
+    Magic: _type.WORD = _EMPTY
+    MajorLinkerVersion: _type.BYTE = _EMPTY
+    MinorLinkerVersion: _type.BYTE = _EMPTY
+    SizeOfCode: _type.DWORD = _EMPTY
+    SizeOfInitializedData: _type.DWORD = _EMPTY
+    SizeOfUninitializedData: _type.DWORD = _EMPTY
+    AddressOfEntryPoint: _type.DWORD = _EMPTY
+    BaseOfCode: _type.DWORD = _EMPTY
+    BaseOfData: _type.DWORD = _EMPTY
+    ImageBase: _type.DWORD = _EMPTY
+    SectionAlignment: _type.DWORD = _EMPTY
+    FileAlignment: _type.DWORD = _EMPTY
+    MajorOperatingSystemVersion: _type.WORD = _EMPTY
+    MinorOperatingSystemVersion: _type.WORD = _EMPTY
+    MajorImageVersion: _type.WORD = _EMPTY
+    MinorImageVersion: _type.WORD = _EMPTY
+    MajorSubsystemVersion: _type.WORD = _EMPTY
+    MinorSubsystemVersion: _type.WORD = _EMPTY
+    Win32VersionValue: _type.DWORD = _EMPTY
+    SizeOfImage: _type.DWORD = _EMPTY
+    SizeOfHeaders: _type.DWORD = _EMPTY
+    CheckSum: _type.DWORD = _EMPTY
+    Subsystem: _type.WORD = _EMPTY
+    DllCharacteristics: _type.WORD = _EMPTY
+    SizeOfStackReserve: _type.DWORD = _EMPTY
+    SizeOfStackCommit: _type.DWORD = _EMPTY
+    SizeOfHeapReserve: _type.DWORD = _EMPTY
+    SizeOfHeapCommit: _type.DWORD = _EMPTY
+    LoaderFlags: _type.DWORD = _EMPTY
+    NumberOfRvaAndSizes: _type.DWORD = _EMPTY
+    # noinspection PyUnresolvedReferences
+    DataDirectory: IMAGE_DATA_DIRECTORY * _const.IMAGE_NUMBEROF_DIRECTORY_ENTRIES = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_OPTIONAL_HEADER64:
+    Magic: _type.WORD = _EMPTY
+    MajorLinkerVersion: _type.BYTE = _EMPTY
+    MinorLinkerVersion: _type.BYTE = _EMPTY
+    SizeOfCode: _type.DWORD = _EMPTY
+    SizeOfInitializedData: _type.DWORD = _EMPTY
+    SizeOfUninitializedData: _type.DWORD = _EMPTY
+    AddressOfEntryPoint: _type.DWORD = _EMPTY
+    BaseOfCode: _type.DWORD = _EMPTY
+    ImageBase: _type.ULONGLONG = _EMPTY
+    SectionAlignment: _type.DWORD = _EMPTY
+    FileAlignment: _type.DWORD = _EMPTY
+    MajorOperatingSystemVersion: _type.WORD = _EMPTY
+    MinorOperatingSystemVersion: _type.WORD = _EMPTY
+    MajorImageVersion: _type.WORD = _EMPTY
+    MinorImageVersion: _type.WORD = _EMPTY
+    MajorSubsystemVersion: _type.WORD = _EMPTY
+    MinorSubsystemVersion: _type.WORD = _EMPTY
+    Win32VersionValue: _type.DWORD = _EMPTY
+    SizeOfImage: _type.DWORD = _EMPTY
+    SizeOfHeaders: _type.DWORD = _EMPTY
+    CheckSum: _type.DWORD = _EMPTY
+    Subsystem: _type.WORD = _EMPTY
+    DllCharacteristics: _type.WORD = _EMPTY
+    SizeOfStackReserve: _type.ULONGLONG = _EMPTY
+    SizeOfStackCommit: _type.ULONGLONG = _EMPTY
+    SizeOfHeapReserve: _type.ULONGLONG = _EMPTY
+    SizeOfHeapCommit: _type.ULONGLONG = _EMPTY
+    LoaderFlags: _type.DWORD = _EMPTY
+    NumberOfRvaAndSizes: _type.DWORD = _EMPTY
+    # noinspection PyUnresolvedReferences
+    DataDirectory: IMAGE_DATA_DIRECTORY * _const.IMAGE_NUMBEROF_DIRECTORY_ENTRIES = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_ROM_OPTIONAL_HEADER:
+    Magic: _type.WORD = _EMPTY
+    MajorLinkerVersion: _type.BYTE = _EMPTY
+    MinorLinkerVersion: _type.BYTE = _EMPTY
+    SizeOfCode: _type.DWORD = _EMPTY
+    SizeOfInitializedData: _type.DWORD = _EMPTY
+    SizeOfUninitializedData: _type.DWORD = _EMPTY
+    AddressOfEntryPoint: _type.DWORD = _EMPTY
+    BaseOfCode: _type.DWORD = _EMPTY
+    BaseOfData: _type.DWORD = _EMPTY
+    BaseOfBss: _type.DWORD = _EMPTY
+    GprMask: _type.DWORD = _EMPTY
+    CprMask: _type.DWORD * 4 = _EMPTY
+    GpValue: _type.DWORD = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_NT_HEADERS32:
+    Signature: _type.DWORD = _EMPTY
+    FileHeader: IMAGE_FILE_HEADER = _EMPTY
+    OptionalHeader: IMAGE_OPTIONAL_HEADER32 = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_NT_HEADERS64:
+    Signature: _type.DWORD = _EMPTY
+    FileHeader: IMAGE_FILE_HEADER = _EMPTY
+    OptionalHeader: IMAGE_OPTIONAL_HEADER64 = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class IMAGE_ROM_HEADERS:
+    FileHeader: IMAGE_FILE_HEADER = _EMPTY
+    OptionalHeader: IMAGE_ROM_OPTIONAL_HEADER = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class SECURITY_ATTRIBUTES:
+    nLength: _type.DWORD = _EMPTY
+    lpSecurityDescriptor: _type.LPVOID = _EMPTY
+    bInheritHandle: _type.BOOL = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class OVERLAPPED_U_S:
+    Offset: _type.DWORD = _EMPTY
+    OffsetHigh: _type.DWORD = _EMPTY
+
+
+@_struct
+class OVERLAPPED:
+    Internal: _type.ULONG_PTR = _EMPTY
+    InternalHigh: _type.ULONG_PTR = _EMPTY
+    U: _union.OVERLAPPED_U = _EMPTY
+    hEvent: _type.HANDLE = _EMPTY
+
+
+# noinspection PyPep8Naming
+@_struct
+class OVERLAPPED_ENTRY:
+    lpCompletionKey: _type.ULONG_PTR = _EMPTY
+    lpOverlapped: _Pointer[OVERLAPPED] = _EMPTY
+    Internal: _type.ULONG_PTR = _EMPTY
+    dwNumberOfBytesTransferred: _type.DWORD = _EMPTY
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

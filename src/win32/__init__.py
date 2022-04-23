@@ -318,9 +318,9 @@ def _choose_color_hook(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
     if message == ctyped.const.WM_INITDIALOG:
         ctyped.lib.User32.SetWindowPos(hwnd, ctyped.const.HWND_TOPMOST, 0, 0, 0, 0,
                                        ctyped.const.SWP_NOSIZE | ctyped.const.SWP_NOMOVE)
-        title_address = ctyped.struct.CHOOSECOLORW.from_address(lparam).lCustData
+        title_address = ctyped.from_address(lparam, ctyped.struct.CHOOSECOLORW).lCustData
         if title_address:
-            ctyped.lib.User32.SetWindowTextW(hwnd, ctyped.type.LPWSTR.from_address(title_address).value)
+            ctyped.lib.User32.SetWindowTextW(hwnd, ctyped.from_address(title_address, ctyped.type.LPWSTR))
     return 0
 
 
@@ -499,3 +499,28 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
             if ntpath.isfile(path):
                 removed = ctyped.lib.Kernel32.DeleteFileW(path) and removed
     return removed
+
+
+@ctyped.type.ENUMRESNAMEPROCW
+def _get_manifest_callback(hmodule, lptype, lpname, lparam):
+    hrsrc = ctyped.lib.Kernel32.FindResourceW(
+        hmodule, ctyped.macro.MAKEINTRESOURCEW(lpname), ctyped.macro.MAKEINTRESOURCEW(lptype))
+    string = ctyped.from_address(lparam, ctyped.struct.STRING)
+    string.Length = ctyped.lib.Kernel32.SizeofResource(hmodule, hrsrc)
+    string.Buffer = ctyped.lib.Kernel32.LockResource(ctyped.lib.Kernel32.LoadResource(hmodule, hrsrc))
+    return False
+
+
+def get_manifest(path: Optional[str] = None) -> str:
+    hmodule = ctyped.lib.Kernel32.GetModuleHandleW(
+        None) if path is None else ctyped.lib.Kernel32.LoadLibraryExW(path, 0, ctyped.const.LOAD_LIBRARY_AS_DATAFILE)
+    if hmodule:
+        manifest = ctyped.struct.STRING()
+        ctyped.lib.Kernel32.EnumResourceNamesW(hmodule, ctyped.macro.MAKEINTRESOURCEW(
+            ctyped.const.RT_MANIFEST), _get_manifest_callback, ctyped.addressof(manifest))
+        try:
+            if manifest.Length:
+                return manifest.Buffer[:manifest.Length].decode()
+        finally:
+            ctyped.lib.Kernel32.FreeLibrary(hmodule)
+    return ''

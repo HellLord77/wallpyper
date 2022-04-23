@@ -43,6 +43,11 @@ def get_loaded_path(library: lib._WinDLL) -> str:
     return ''
 
 
+# noinspection PyShadowingBuiltins,PyShadowingNames
+def from_address(address: int, type: _builtins.type[CT]) -> CT:
+    return type.from_address(address)
+
+
 @_contextlib.contextmanager
 def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
     ptr = lib.msvcrt.malloc(size)
@@ -73,6 +78,12 @@ def char_array(string='', size=None):
         size -= 1
         string = string[:size] + (b'\0' if isinstance(string, bytes) else '\0') * (size - len(string))
     return ((type.c_char if isinstance(string, bytes) else type.c_wchar) * (len(string) + 1))(*string)
+
+
+# noinspection PyShadowingNames
+def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
+    # noinspection PyProtectedMember
+    return (array._type_ * size).from_address(addressof(array))
 
 
 def get_guid(string: str) -> struct.GUID:

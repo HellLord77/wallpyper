@@ -92,10 +92,11 @@ va_list = c_char_p
 
 BOOL = c_int
 BYTE = c_uchar
-CHAR = c_char
 CCHAR = c_char
+CHAR = c_char
 DOUBLE = c_double
 DWORD = c_ulong
+DWORD64 = c_uint64
 FLOAT = c_float
 INT = c_int
 INT16 = c_short
@@ -114,6 +115,7 @@ UINT32 = c_uint
 UINT64 = c_uint64
 UINT8 = c_uchar
 ULONG = c_ulong
+ULONG64 = c_uint64
 ULONGLONG = c_uint64
 USHORT = c_ushort
 VARTYPE = c_ushort
@@ -238,13 +240,22 @@ SHSTDAPI = STDAPI
 
 PDWORD_PTR = _Pointer[DWORD_PTR]
 
+LPCSTR_PROXY = ULONG_PTR
+LPCWSTR_PROXY = ULONG_PTR
+LPSTR_PROXY = ULONG_PTR
+LPWSTR_PROXY = ULONG_PTR
+
 BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 DLGPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], INT_PTR]
 DLLGETVERSIONPROC = _Callable[[_Pointer[_struct.DLLVERSIONINFO]], HRESULT]
 DRAWSTATEPROC = _Callable[[HDC, LPARAM, WPARAM, c_int, c_int], BOOL]
-EDITWORDBREAKPROCA = _Callable[[LPSTR, c_int, c_int, c_int], c_int]
-EDITWORDBREAKPROCW = _Callable[[LPWSTR, c_int, c_int, c_int], c_int]
+ENUMRESNAMEPROCA = _Callable[[HMODULE, LPCSTR_PROXY, LPSTR_PROXY, LONG_PTR], BOOL]
+ENUMRESNAMEPROCW = _Callable[[HMODULE, LPCWSTR_PROXY, LPWSTR_PROXY, LONG_PTR], BOOL]
+ENUMRESLANGPROCA = _Callable[[HMODULE, LPCSTR_PROXY, LPCSTR_PROXY, WORD, LONG_PTR], BOOL]
+ENUMRESLANGPROCW = _Callable[[HMODULE, LPCWSTR_PROXY, LPCWSTR_PROXY, WORD, LONG_PTR], BOOL]
+ENUMRESTYPEPROCA = _Callable[[HMODULE, LPCSTR_PROXY, LONG_PTR], BOOL]
+ENUMRESTYPEPROCW = _Callable[[HMODULE, LPCWSTR_PROXY, LONG_PTR], BOOL]
 GRAYSTRINGPROC = _Callable[[HDC, LPARAM, c_int], BOOL]
 HOOKPROC = _Callable[[c_int, WPARAM, LPARAM], LRESULT]
 ImageAbort = _Callable[[PVOID], BOOL]
@@ -301,7 +312,7 @@ def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPt
     _globals.check_item(item)
     type_ = _resolve_type(_globals.vars_[item])
     if isinstance(type_, list):
-        type_ = _ctypes.WINFUNCTYPE(*type_)
+        type_ = _ctypes.CFUNCTYPE(*type_)
     for item in _MAGICS.items():
         setattr(type_, *item)
     return type_

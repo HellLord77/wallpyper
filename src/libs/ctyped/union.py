@@ -134,6 +134,27 @@ class ULARGE_INTEGER:
 
 # noinspection PyPep8Naming
 @_union
+class IMAGE_SECTION_HEADER_U:
+    PhysicalAddress: _type.DWORD
+    VirtualSize: _type.DWORD
+
+
+# noinspection PyPep8Naming
+@_union
+class PROCESS_HEAP_ENTRY_U:
+    Block: _struct.PROCESS_HEAP_ENTRY_U_S
+    Region: _struct.PROCESS_HEAP_ENTRY_U_S2
+
+
+# noinspection PyPep8Naming
+@_union
+class OVERLAPPED_U:
+    S: _struct.OVERLAPPED_U_S
+    Pointer: _type.PVOID
+
+
+# noinspection PyPep8Naming
+@_union
 class SHELLEXECUTEINFO_U:
     hIcon: _type.HANDLE
     if _const.NTDDI_VERSION >= _const.NTDDI_WIN2K:

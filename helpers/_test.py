@@ -1,18 +1,20 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.1'
+__version__ = '0.0.0'
 
 import atexit
 import collections
 import contextlib
 import io
 import itertools
+import re
 import sys
 import threading
 import time
 import tkinter.messagebox
 from typing import Any, Callable, Iterable, Mapping, Union, Sequence, Generator
 from typing import Optional
+from xml.etree import ElementTree
 
 import libs.ctyped as ctyped
 import win32
@@ -75,21 +77,14 @@ _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 
 _TID_MENU_ITEM_TOOLTIP = 0
 
-_MIM_FIELD = {
-    ctyped.const.MIM_BACKGROUND: 'hbrBack',
-    ctyped.const.MIM_HELPID: 'dwContextHelpID',
-    ctyped.const.MIM_MAXHEIGHT: 'cyMax',
-    ctyped.const.MIM_STYLE: 'dwStyle'}
-_MIIM_FIELDS = {
-    ctyped.const.MIIM_STATE: ('fState',),
-    ctyped.const.MIIM_ID: ('wID',),
-    ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_TYPE: ('hSubMenu', 'dwTypeData'),
-    ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
-    ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'),
-    ctyped.const.MIIM_DATA: ('dwItemData',),
-    ctyped.const.MIIM_STRING: ('dwTypeData', 'cch'),
-    ctyped.const.MIIM_BITMAP: ('hbmpItem',),
-    ctyped.const.MIIM_FTYPE: ('fType',)}
+_MIM_FIELD = {ctyped.const.MIM_BACKGROUND: 'hbrBack', ctyped.const.MIM_HELPID: 'dwContextHelpID',
+              ctyped.const.MIM_MAXHEIGHT: 'cyMax', ctyped.const.MIM_STYLE: 'dwStyle'}
+_MIIM_FIELDS = {ctyped.const.MIIM_STATE: ('fState',), ctyped.const.MIIM_ID: ('wID',),
+                ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_TYPE: ('hSubMenu', 'dwTypeData'),
+                ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
+                ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'), ctyped.const.MIIM_DATA: ('dwItemData',),
+                ctyped.const.MIIM_STRING: ('dwTypeData', 'cch'), ctyped.const.MIIM_BITMAP: ('hbmpItem',),
+                ctyped.const.MIIM_FTYPE: ('fType',)}
 
 
 class GuiEvent:
@@ -263,12 +258,13 @@ class Gui(_EventHandler):
                                                 hInstance=self._hinstance,
                                                 lpszClassName=f'{NAME}-{type(self).__name__}' if name is None else name)
         ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class))
-        self._hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(0, self._class.lpszClassName, None,
-                                                                          ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None,
-                                                                          None, self._hinstance, None))
-        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
-            ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
-            ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance, None))
+        self._hwnd = ctyped.handle.HWND(
+            ctyped.lib.User32.CreateWindowExW(0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED, 0, 0, 0,
+                                              0, None, None, self._hinstance, None))
+        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(
+            ctyped.lib.User32.CreateWindowExW(ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
+                                              ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance,
+                                              None))
         self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(uFlags=ctyped.const.TTF_SUBCLASS, hinst=self._hinstance)
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_ADDTOOLW,
                                                   lparam=ctyped.addressof(self._menu_item_tooltip))
@@ -287,8 +283,8 @@ class Gui(_EventHandler):
         ctyped.lib.User32.UnregisterClassW(self._class.lpszClassName, self._hinstance)
         return super().destroy()
 
-    def _wnd_proc(self, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
-                  wparam: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
+    def _wnd_proc(self, hwnd: ctyped.type.HWND, message: ctyped.type.UINT, wparam: ctyped.type.WPARAM,
+                  lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         if message == ctyped.const.WM_DESTROY:
             ctyped.lib.User32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
@@ -321,8 +317,8 @@ class Gui(_EventHandler):
                 if is_select:
                     # noinspection PyProtectedMember
                     self._menu_item_tooltip_proc = item._tooltip_proc if item._tooltip_text else None
-                    ctyped.lib.User32.TrackMouseEvent(ctyped.byref(
-                        ctyped.struct.TRACKMOUSEEVENT(dwFlags=ctyped.const.TME_LEAVE, hwndTrack=hwnd)))
+                    ctyped.lib.User32.TrackMouseEvent(
+                        ctyped.byref(ctyped.struct.TRACKMOUSEEVENT(dwFlags=ctyped.const.TME_LEAVE, hwndTrack=hwnd)))
                 if is_command and item.get_type() in (MenuItemType.CHECK, MenuItemType.RADIO):
                     item.check(not item.is_checked())
                 item.trigger(message)
@@ -386,14 +382,14 @@ class SystemTray(_Control):
     _animation_frames = None
     _animation_speed = 1
 
-    def __init__(self, icon: Union[int, str] = ctyped.const.IDI_APPLICATION,
-                 tooltip: Optional[str] = None, *, _gui: Optional[Gui] = None):
+    def __init__(self, icon: Union[int, str] = ctyped.const.IDI_APPLICATION, tooltip: Optional[str] = None, *,
+                 _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
         self._animation_proc = ctyped.type.TIMERPROC(self._set_next_frame)
         super().__init__(next(self._id_gen))
         self._data = ctyped.struct.NOTIFYICONDATAW(NOTIFYICONDATAW_V3_SIZE, self._hwnd, self._id,
-                                                   ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON |
-                                                   ctyped.const.NIF_TIP, _WM_SYS_TRAY)
+                                                   ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP,
+                                                   _WM_SYS_TRAY)
         self.set_icon(icon)
         if tooltip is not None:
             self.set_tooltip(tooltip)
@@ -412,8 +408,9 @@ class SystemTray(_Control):
         return self._animation_frames is not None
 
     def is_shown(self) -> bool:
-        return not bool(ctyped.lib.Shell32.Shell_NotifyIconGetRect(ctyped.byref(
-            ctyped.struct.NOTIFYICONIDENTIFIER(hWnd=self._hwnd, uID=self._id)), ctyped.byref(ctyped.struct.RECT())))
+        return not bool(ctyped.lib.Shell32.Shell_NotifyIconGetRect(
+            ctyped.byref(ctyped.struct.NOTIFYICONIDENTIFIER(hWnd=self._hwnd, uID=self._id)),
+            ctyped.byref(ctyped.struct.RECT())))
 
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
         self._data.hIcon = hicon
@@ -421,8 +418,9 @@ class SystemTray(_Control):
 
     def set_icon(self, res_or_path: Union[int, str]) -> bool:
         self.stop_animation()
-        self._hicon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon() if isinstance(
-            res_or_path, str) else ctyped.handle.HICON.from_idi(res_or_path)
+        self._hicon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon() if isinstance(res_or_path,
+                                                                                       str) else ctyped.handle.HICON.from_idi(
+            res_or_path)
         self._set_hicon(self._hicon)
         return bool(self._hicon)
 
@@ -468,8 +466,8 @@ class SystemTray(_Control):
         self._show = not bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._show
 
-    def show_balloon(self, title: str, text: Optional[str] = None,
-                     res_or_path: Union[int, str] = SystemTrayIcon.NONE, silent: bool = False) -> bool:
+    def show_balloon(self, title: str, text: Optional[str] = None, res_or_path: Union[int, str] = SystemTrayIcon.NONE,
+                     silent: bool = False) -> bool:
         flags = self._data.uFlags
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
@@ -537,8 +535,8 @@ class Menu(_Control):
     def get_item_count(self) -> int:
         return self._hmenu.get_item_count()
 
-    def get_item(self, id_or_pos_or_item: Union[int, _MenuItem],
-                 default: Any = None, by_pos: bool = False) -> Optional[_MenuItem]:
+    def get_item(self, id_or_pos_or_item: Union[int, _MenuItem], default: Any = None, by_pos: bool = False) -> Optional[
+        _MenuItem]:
         if by_pos:
             if id_or_pos_or_item >= 0:
                 with contextlib.suppress(IndexError):
@@ -640,8 +638,9 @@ class Menu(_Control):
         return bool(ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
 
     def set_background_color(self, color_or_rgb: Union[int, tuple[int, int, int]], recursive: bool = True) -> bool:
-        self._hbrush = ctyped.handle.HBRUSH.from_color(color_or_rgb) if isinstance(
-            color_or_rgb, int) else ctyped.handle.HBRUSH.from_rgb(*color_or_rgb)
+        self._hbrush = ctyped.handle.HBRUSH.from_color(color_or_rgb) if isinstance(color_or_rgb,
+                                                                                   int) else ctyped.handle.HBRUSH.from_rgb(
+            *color_or_rgb)
         return bool(self._hbrush) and self._set_data(ctyped.const.MIM_BACKGROUND, self._hbrush, recursive)
 
     def set_max_height(self, height: int = 0, recursive: bool = True) -> bool:
@@ -708,8 +707,8 @@ class _MenuItem(_Control):
             else:
                 pos = rect.left + int((rect.right - rect.left) / 2), rect.top + int((rect.bottom - rect.top) / 2)
             # noinspection PyProtectedMember
-            Gui.get(self._hwnd)._show_menu_item_tooltip(
-                self._tooltip_text, self._tooltip_icon, self._tooltip_title, pos)
+            Gui.get(self._hwnd)._show_menu_item_tooltip(self._tooltip_text, self._tooltip_icon, self._tooltip_title,
+                                                        pos)
 
     def get_menu(self) -> Menu:
         return self._menu
@@ -838,12 +837,12 @@ class _MenuItem(_Control):
     def _set_id(self, id: int) -> bool:
         return self._set_datas(ctyped.const.MIIM_ID, (id,))
 
-    def _set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None,
-                    check: Optional[bool] = None, default: Optional[bool] = None) -> bool:
+    def _set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None, check: Optional[bool] = None,
+                    default: Optional[bool] = None) -> bool:
         states = self.get_states()
         flags = ctyped.const.MFS_ENABLED if (states[0] if enable is None else enable) else ctyped.const.MFS_DISABLED
-        flags |= ctyped.const.MFS_HILITE if (states[1] if highlight is None else
-                                             highlight) else ctyped.const.MFS_UNHILITE
+        flags |= ctyped.const.MFS_HILITE if (
+            states[1] if highlight is None else highlight) else ctyped.const.MFS_UNHILITE
         flags |= ctyped.const.MFS_CHECKED if (states[2] if check is None else check) else ctyped.const.MFS_UNCHECKED
         if states[3] if default is None else default:
             flags |= ctyped.const.MFS_DEFAULT
@@ -865,8 +864,8 @@ class _MenuItem(_Control):
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_STRING, text))
 
     def set_image(self, res_or_path: Union[int, str]) -> bool:
-        return self._set_datas(ctyped.const.MIIM_TYPE, (
-            ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(self._prep_image(res_or_path, 0, False))))
+        return self._set_datas(ctyped.const.MIIM_TYPE,
+                               (ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(self._prep_image(res_or_path, 0, False))))
 
     def _set_separator(self) -> bool:
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_SEPARATOR,))
@@ -902,8 +901,8 @@ class _MenuItem(_Control):
     def set_tooltip(self, text: str, title: str = '', icon_res_or_path: Union[int, str] = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
         self._tooltip_title = title
-        self._tooltip_icon = _gdiplus.Bitmap.from_file(
-            icon_res_or_path).get_hicon() if isinstance(icon_res_or_path, str) else icon_res_or_path
+        self._tooltip_icon = _gdiplus.Bitmap.from_file(icon_res_or_path).get_hicon() if isinstance(icon_res_or_path,
+                                                                                                   str) else icon_res_or_path
 
 
 def _foo(e, s: SystemTray, menu: Menu, item: _MenuItem):
@@ -913,8 +912,8 @@ def _foo(e, s: SystemTray, menu: Menu, item: _MenuItem):
 
 
 def _foo2(e: int, s: SystemTray):
-    print(s.start_animation(r'D:\Projects\Wallpyper\src\resources\busy.gif'))
-    # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
+    print(s.start_animation(
+        r'D:\Projects\Wallpyper\src\resources\busy.gif'))  # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
 
 
 def foo3(e, m: SystemTray, s: SystemTray):
@@ -993,16 +992,16 @@ def _test_gui():
 
 
 def _test_settings():
-    info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open',
-                                           lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
+    info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open', lpFile='ms-settings:mobile-devices',
+                                           nShow=ctyped.const.SW_NORMAL)
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
 class ToastDismiss(ctyped.com_impl.ITypedEventHandler):
     # noinspection PyPep8Naming
     @staticmethod
-    def Invoke(This: ctyped.Pointer[ctyped.com_impl.ITypedEventHandler],
-               sender: ctyped.com.IToastNotification, args: ctyped.com.IInspectable) -> ctyped.type.HRESULT:
+    def Invoke(This: ctyped.Pointer[ctyped.com_impl.ITypedEventHandler], sender: ctyped.com.IToastNotification,
+               args: ctyped.com.IInspectable) -> ctyped.type.HRESULT:
         print('invoke', This, sender, args)
         hs = ctyped.handle.HSTRING()
         args.GetRuntimeClassName(ctyped.byref(hs))
@@ -1053,10 +1052,84 @@ def _test_winui():
                 print(source_native)
 
 
+def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
+    compatibility = ()
+    if path is None:
+        handle = ctyped.type.HANDLE()
+        ctyped.lib.Kernel32.GetCurrentActCtx(ctyped.byref(handle))
+    else:
+        ctx = ctyped.struct.ACTCTXW(lpSource=path)
+        handle = ctyped.lib.Kernel32.CreateActCtxW(ctyped.byref(ctx))
+    sz = ctyped.type.SIZE_T()
+    if not ctyped.lib.Kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None,
+                                            ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext,
+                                            None, 0, ctyped.byref(
+                sz)) and ctyped.lib.Kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
+        buff = ctyped.lib.Kernel32.HeapAlloc(ctyped.lib.Kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
+        if ctyped.lib.Kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None,
+                                            ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext,
+                                            buff, sz, ctyped.byref(sz)):
+            info = ctyped.cast(buff, ctyped.struct.ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION).contents
+            compatibility = (*ctyped.resize_array(info.Elements, info.ElementCount),)
+        if buff:
+            ctyped.lib.Kernel32.HeapFree(ctyped.lib.Kernel32.GetProcessHeap(), 0, buff)
+    ctyped.lib.Kernel32.ReleaseActCtx(handle)
+    return compatibility
+
+
+def _merge_xml(self: ElementTree.Element, other: ElementTree.Element):
+    elements = {element.tag: element for element in self}
+    for element in other:
+        if len(element) == 0:
+            try:
+                elements[element.tag].text = element.text
+            except KeyError:
+                elements[element.tag] = element
+                self.append(element)
+        else:
+            try:
+                _merge_xml(elements[element.tag], element)
+            except KeyError:
+                elements[element.tag] = element
+                self.append(element)
+
+
+def merge_xml(self: str, other: str, ns: bool = True) -> str:
+    root = ElementTree.fromstring(self)
+    _merge_xml(root, ElementTree.fromstring(other))
+    ElementTree.indent(root)
+    xml = ElementTree.tostring(root, 'unicode')
+    if not ns:
+        xml = re.sub(r':ns\d=', '=', re.sub(r'<(/?)ns\d+:', '<\\1', xml))
+    return xml
+
+
+def calc_exe_size(path: str) -> int:
+    size = 0
+    hfile = ctyped.lib.Kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, None,
+                                            ctyped.const.OPEN_EXISTING, ctyped.const.FILE_ATTRIBUTE_NORMAL, None)
+    if hfile:
+        buff = ctyped.array(type=ctyped.type.BYTE, size=4096)
+        ctyped.lib.Kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), None, None)
+        header = ctyped.cast(buff, ctyped.struct.IMAGE_DOS_HEADER).contents
+        headers = ctyped.from_address(ctyped.addressof(buff) + header.e_lfanew, ctyped.struct.IMAGE_NT_HEADERS32)
+        if headers.FileHeader.Machine == ctyped.const.IMAGE_FILE_MACHINE_AMD64:
+            headers = ctyped.cast(headers, ctyped.struct.IMAGE_NT_HEADERS64).contents
+        if header.e_magic == ctyped.const.IMAGE_DOS_SIGNATURE and headers.Signature == ctyped.const.IMAGE_NT_SIGNATURE:
+            max_ptr = 0
+            for section in ctyped.from_address(ctyped.addressof(headers) + ctyped.sizeof(headers),
+                                               ctyped.struct.IMAGE_SECTION_HEADER * headers.FileHeader.NumberOfSections):
+                if section.PointerToRawData > max_ptr:
+                    max_ptr = section.PointerToRawData
+                    size = section.PointerToRawData + section.SizeOfRawData
+        ctyped.lib.Kernel32.CloseHandle(hfile)
+    return size
+
+
 if __name__ == '__main__':
     # _test_toast()
-    _test_winui()
-    # _test_gui()
+    # _test_winui()  # TODO editing python.exe doesn't work
+    _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()

@@ -278,7 +278,7 @@ class Image(_GdiplusBase):
                     type_ = ctyped.type.c_long
                 else:
                     type_ = ctyped.type.c_void_p
-                return ctyped.pointer(type_).from_buffer(property_item.contents.value)
+                return ctyped.cast(property_item.contents.value, ctyped.pointer(type_))
 
     def save(self, path: str, quality: int = 100) -> bool:
         if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):

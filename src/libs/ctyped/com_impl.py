@@ -64,7 +64,7 @@ class IUnknown(_type.c_void_p):
         iid = _type.LPOLESTR()
         _lib.Ole32.StringFromIID(riid, _byref(iid))
         if iid.value in self.__IID__:
-            ppvObject.contents.value = _type.LPVOID.from_buffer(self).value
+            ppvObject.contents.value = self.value
             self.AddRef()
             return _const.NOERROR
         return _const.E_NOINTERFACE

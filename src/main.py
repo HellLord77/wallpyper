@@ -652,5 +652,17 @@ def main():
     sys.exit(exitcode)
 
 
+def _test():
+    from libs import ctyped
+
+    with ctyped.get_winrt(ctyped.com.IWindowsXamlManagerStatics) as manager_statics:
+        manager = ctyped.com.IWindowsXamlManager()
+        manager_statics.InitializeForCurrentThread(ctyped.byref(manager))
+        with ctyped.get_winrt(ctyped.com.IDesktopWindowXamlSource, True) as source:
+            with ctyped.cast_com(source, ctyped.com.IDesktopWindowXamlSourceNative) as source_native:
+                print(source_native)
+
+
 if __name__ == '__main__':
+    # _test()
     main()

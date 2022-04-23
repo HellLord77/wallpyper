@@ -349,9 +349,9 @@ def _spawn_workerw():
 
 @ctyped.type.WNDENUMPROC
 def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-    if ctyped.lib.User32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) is not None:
-        if (hwnd_ := ctyped.lib.User32.FindWindowExW(None, hwnd, 'WorkerW', None)) is not None:
-            ctyped.type.LPARAM.from_address(lparam).value = hwnd_
+    if ctyped.lib.User32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
+            hwnd_ := ctyped.lib.User32.FindWindowExW(None, hwnd, 'WorkerW', None)):
+        ctyped.from_address(lparam, ctyped.type.LPARAM).value = hwnd_
     return True
 
 

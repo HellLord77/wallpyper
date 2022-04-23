@@ -1093,6 +1093,51 @@ class ToastDismissalReason(_IntEnum):
     TimedOut = _AUTO
 
 
+# noinspection PyPep8Naming
+class ACTIVATION_CONTEXT_INFO_CLASS(_IntEnum):
+    ActivationContextBasicInformation = 1
+    ActivationContextDetailedInformation = _AUTO
+    AssemblyDetailedInformationInActivationContext = _AUTO
+    FileInformationInAssemblyOfAssemblyInActivationContext = _AUTO
+    RunlevelInformationInActivationContext = _AUTO
+    CompatibilityInformationInActivationContext = _AUTO
+    ActivationContextManifestResourceName = _AUTO
+    MaxActivationContextInfoClass = _AUTO
+    AssemblyDetailedInformationInActivationContxt = 3
+    FileInformationInAssemblyOfAssemblyInActivationContxt = _AUTO
+
+
+# noinspection PyPep8Naming
+class HARDWARE_COUNTER_TYPE(_IntEnum):
+    PMCCounter = _AUTO
+    MaxHardwareCounterType = _AUTO
+
+
+# noinspection PyPep8Naming
+class ACTCTX_REQUESTED_RUN_LEVEL(_IntEnum):
+    UNSPECIFIED = _AUTO
+    AS_INVOKER = _AUTO
+    HIGHEST_AVAILABLE = _AUTO
+    REQUIRE_ADMIN = _AUTO
+    NUMBERS = _AUTO
+
+
+# noinspection PyPep8Naming
+class HEAP_INFORMATION_CLASS(_IntEnum):
+    CompatibilityInformation = _AUTO
+    EnableTerminationOnCorruption = _AUTO
+    OptimizeResources = 3
+    Tag = 7
+
+
+# noinspection PyPep8Naming
+class ACTCTX_COMPATIBILITY_ELEMENT_TYPE(_IntEnum):
+    UNKNOWN = _AUTO
+    OS = _AUTO
+    MITIGATION = _AUTO
+    MAXVERSIONTESTED = _AUTO
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status

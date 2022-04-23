@@ -1,4 +1,4 @@
-$Version = "0.0.3"
+$Version = "0.0.4"
 
 <#
 .INPUTS
@@ -7,16 +7,19 @@ $Version = "0.0.3"
     $EntryPoint = "src\main.py"
     $Excludes = @()
     $Icon = ""
+    $Manifest = "" FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
     $NoConsole = $False
     $Obfuscate = $False
     $OneFile = $False
     $UPX = $False
+    $MainManifest = ""
 #>
 
 $Datas = @("libs\colors\colornames.min.json", "libs\locales\iso_639-2.json", "libs\locales\iso_3166-1.json", "resources", "win32\syspin.exe")
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True
+$MainManifest = "app.manifest"
 
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
@@ -30,6 +33,28 @@ function Get-Name
     {
         Split-Path -Path (Get-Location) -Leaf
     } ) -Leaf
+}
+
+function Start-Base64Process([String] $Base64, [String] $Args = "")
+{
+    $TempFile = New-TemporaryFile
+    [IO.File]::WriteAllBytes($TempFile,[Convert]::FromBase64String($Base64))
+    Start-Process $TempFile -ArgumentList $Args -Wait
+    $TempFile.Delete()
+}
+
+function Merge-Manifest([String]$ExePath, [String]$ManifestPath)
+{
+    $TempFile = New-TemporaryFile
+    Copy-Item $ExePath -Destination $TempFile
+    mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose # TODO undo resized
+    $TempStream = [System.IO.File]::OpenRead($TempFile)
+    $ExeStream = [System.IO.File]::OpenWrite($ExePath)
+    $TempStream.Seek($ExeStream.Seek(0, [System.IO.SeekOrigin]::End), [System.IO.SeekOrigin]::Begin)
+    $TempStream.CopyTo($ExeStream)
+    $ExeStream.Close()
+    $TempStream.Close()
+    $TempFile.Delete()
 }
 
 function Install-Dependencies
@@ -135,6 +160,11 @@ function Build-Project
         $MainArgs += "--icon=$Icon"
     }
 
+    if ($Manifest)
+    {
+        $MainArgs += "--manifest=$Manifest"
+    }
+
     $FirstLine = Get-Content $EntryPoint -TotalCount 1
     $Name = Get-Name
     $FullName = "$Name-$( if ( $FirstLine.StartsWith("__version__"))
@@ -157,10 +187,21 @@ function Build-Project
         pyinstaller $MainArgs $AddArgs
     }
 
-    if (!$OneFile)
+    $DistPath = Join-Path "dist" $FullName
+    if ($OneFile)
     {
-        $DistPath = Join-Path "dist" $FullName
-        Rename-Item (Join-Path $DistPath "$FullName.exe") "$Name.exe" -Force
+        $ExePath = "$DistPath.exe"
+    }
+    else
+    {
+        $ExePath = Join-Path $DistPath "$Name.exe"
+        Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
+    }
+
+    if ($MainManifest)
+    {
+        # Merge-Manifest $ExePath $MainManifest
+        python manifest.py $ExePath -manifest_path $MainManifest -merge
     }
 }
 

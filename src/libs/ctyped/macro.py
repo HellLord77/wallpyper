@@ -5,12 +5,6 @@ from . import com as _com, const as _const, lib as _lib, struct as _struct, type
 from ._utils import _Pointer, _byref, _cast_int
 
 
-def __uuidof(_: str) -> _Pointer[_struct.IID]:
-    iid_ref = _byref(_struct.IID())
-    _lib.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
-    return iid_ref
-
-
 # noinspection PyPep8Naming,PyShadowingBuiltins
 def FIELD_OFFSET(type: _ctypes.Structure, field: str, _: _Optional[int] = None) -> int:
     field_ = getattr(type, field)
@@ -171,6 +165,109 @@ def MAKEINTRESOURCEW(i: int) -> _type.LPWSTR:
     return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 
 
+def __uuidof(_: str) -> _Pointer[_struct.IID]:
+    iid_ref = _byref(_struct.IID())
+    _lib.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
+    return iid_ref
+
+
 # noinspection PyPep8Naming
 def IID_PPV_ARGS(ppType: _com.IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com.IUnknown]]:
     return __uuidof(type(ppType).__name__), _byref(ppType)
+
+
+# noinspection PyPep8Naming
+def IsWindowsVersionOrGreater(wMajorVersion: int, wMinorVersion: int, wServicePackMajor: int) -> bool:
+    osvi = _struct.OSVERSIONINFOEXW(
+        dwMajorVersion=wMajorVersion, dwMinorVersion=wMinorVersion, wServicePackMajor=wServicePackMajor)
+    condition = _lib.Kernel32.VerSetConditionMask(_lib.Kernel32.VerSetConditionMask(
+        _lib.Kernel32.VerSetConditionMask(0, _const.VER_MAJORVERSION, _const.VER_GREATER_EQUAL),
+        _const.VER_MINORVERSION, _const.VER_GREATER_EQUAL), _const.VER_SERVICEPACKMAJOR, _const.VER_GREATER_EQUAL)
+    return bool(_lib.Kernel32.VerifyVersionInfoW(_byref(
+        osvi), _const.VER_MAJORVERSION | _const.VER_MINORVERSION | _const.VER_SERVICEPACKMAJOR, condition))
+
+
+# noinspection PyPep8Naming
+def IsWindowsXPOrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WINXP), LOBYTE(_const._WIN32_WINNT_WINXP), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindowsXPSP1OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WINXP), LOBYTE(_const._WIN32_WINNT_WINXP), 1)
+
+
+# noinspection PyPep8Naming
+def IsWindowsXPSP2OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WINXP), LOBYTE(_const._WIN32_WINNT_WINXP), 2)
+
+
+# noinspection PyPep8Naming
+def IsWindowsXPSP3OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WINXP), LOBYTE(_const._WIN32_WINNT_WINXP), 3)
+
+
+# noinspection PyPep8Naming
+def IsWindowsVistaOrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_VISTA), LOBYTE(_const._WIN32_WINNT_VISTA), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindowsVistaSP1OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_VISTA), LOBYTE(_const._WIN32_WINNT_VISTA), 1)
+
+
+# noinspection PyPep8Naming
+def IsWindowsVistaSP2OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_VISTA), LOBYTE(_const._WIN32_WINNT_VISTA), 2)
+
+
+# noinspection PyPep8Naming
+def IsWindows7OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WIN7), LOBYTE(_const._WIN32_WINNT_WIN7), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindows7SP1OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WIN7), LOBYTE(_const._WIN32_WINNT_WIN7), 1)
+
+
+# noinspection PyPep8Naming
+def IsWindows8OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WIN8), LOBYTE(_const._WIN32_WINNT_WIN8), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindows8Point1OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WINBLUE), LOBYTE(_const._WIN32_WINNT_WINBLUE), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindowsThresholdOrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(
+        _const._WIN32_WINNT_WINTHRESHOLD), LOBYTE(_const._WIN32_WINNT_WINTHRESHOLD), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindows10OrGreater() -> bool:
+    # noinspection PyProtectedMember
+    return IsWindowsVersionOrGreater(HIBYTE(_const._WIN32_WINNT_WIN10), LOBYTE(_const._WIN32_WINNT_WIN10), 0)
+
+
+# noinspection PyPep8Naming
+def IsWindowsServer() -> bool:
+    osvi = _struct.OSVERSIONINFOEXW(wProductType=_const.VER_NT_WORKSTATION)
+    condition = _lib.Kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
+    return not bool(_lib.Kernel32.VerifyVersionInfoW(_byref(osvi), _const.VER_PRODUCT_TYPE, condition))
