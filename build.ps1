@@ -43,14 +43,41 @@ function Start-Base64Process([String] $Base64, [String] $Args = "")
     $TempFile.Delete()
 }
 
-function Merge-Manifest([String]$ExePath, [String]$ManifestPath)
+function CalculateExeSize([System.IO.FileStream] $Stream)
+{
+    $Buffer = [byte[]]::New(4096)
+    $Stream.Read($Buffer, 0, 4096) | Out-Null
+    $HeaderOffset = [System.BitConverter]::ToInt32($Buffer, 60)
+    $HeadersSize = 248
+    if ([System.BitConverter]::ToUInt16($Buffer, $HeaderOffset + 4) -eq 0x8664)
+    {
+        $HeadersSize += 16
+    }
+    $SectionCount = [System.BitConverter]::ToUInt16($Buffer, $HeaderOffset + 6)
+    $MaxPointer = 0
+    $Size = 0
+    for ($i = 0; $i -lt $SectionCount; $i++)
+    {
+        $SectionOffset = $HeaderOffset + $HeadersSize + $i * 40
+        $RawDataPointer = [System.BitConverter]::ToInt32($Buffer, $SectionOffset + 20)
+        if ($RawDataPointer -gt $MaxPointer)
+        {
+            $MaxPointer = $RawDataPointer
+            $Size = $MaxPointer + [System.BitConverter]::ToInt32($Buffer, $SectionOffset + 16)
+        }
+    }
+    return $Size
+}
+
+function MergeManifest([String]$ExePath, [String]$ManifestPath)
 {
     $TempFile = New-TemporaryFile
     Copy-Item $ExePath -Destination $TempFile
-    mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose # TODO undo resized
+    mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose
     $TempStream = [System.IO.File]::OpenRead($TempFile)
     $ExeStream = [System.IO.File]::OpenWrite($ExePath)
-    $TempStream.Seek($ExeStream.Seek(0, [System.IO.SeekOrigin]::End), [System.IO.SeekOrigin]::Begin)
+    $TempStream.Seek($( CalculateExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null
+    $ExeStream.Seek(0, [System.IO.SeekOrigin]::End) | Out-Null
     $TempStream.CopyTo($ExeStream)
     $ExeStream.Close()
     $TempStream.Close()
@@ -69,13 +96,8 @@ function Install-Dependencies
     else
     {
         pip install wheel --upgrade
-        $Exists = $True
-        while ($Exists)
-        {
-            # $Temp = Join-Path $Env:TEMP (Get-Random) FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
-            $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ".temp-$( Get-Random )"
-            $Exists = Test-Path $Temp
-        }
+        # $Temp = Join-Path $Env:TEMP (Get-Random) FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
+        $Temp = Join-Path (Split-Path (Get-Location) -Qualifier) ([System.IO.Path]::GetRandomFileName())
         New-Item $Temp -ItemType Directory
         Push-Location $Temp
         pip download pyinstaller --no-deps --no-binary pyinstaller
@@ -93,7 +115,7 @@ function Install-Dependencies
     }
 }
 
-function Build-Project
+function BuildProject
 {
     $MainArgs = @("--noconfirm")
     if ($OneFile)
@@ -200,12 +222,11 @@ function Build-Project
 
     if ($MainManifest)
     {
-        # Merge-Manifest $ExePath $MainManifest
-        python manifest.py $ExePath -manifest_path $MainManifest -merge
+        MergeManifest $ExePath $MainManifest
     }
 }
 
-function Upload-Build
+function UploadBuild
 {
     if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
     {
@@ -231,5 +252,5 @@ if ($Args)
 }
 else
 {
-    Build-Project
+    BuildProject
 }

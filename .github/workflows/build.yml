@@ -21,4 +21,4 @@ jobs:
           MEGA_USERNAME: ${{ secrets.USERNAME }}
           MEGA_PASSWORD: ${{ secrets.PASSWORD }}
           PYTHON_VERSION: ${{ matrix.python-version }}
-        run: .\build.ps1 Upload-Build
+        run: .\build.ps1 UploadBuild

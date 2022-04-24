@@ -1111,25 +1111,29 @@ def calc_exe_size(path: str) -> int:
     if hfile:
         buff = ctyped.array(type=ctyped.type.BYTE, size=4096)
         ctyped.lib.Kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), None, None)
+        ctyped.lib.Kernel32.CloseHandle(hfile)
         header = ctyped.cast(buff, ctyped.struct.IMAGE_DOS_HEADER).contents
         headers = ctyped.from_address(ctyped.addressof(buff) + header.e_lfanew, ctyped.struct.IMAGE_NT_HEADERS32)
         if headers.FileHeader.Machine == ctyped.const.IMAGE_FILE_MACHINE_AMD64:
             headers = ctyped.cast(headers, ctyped.struct.IMAGE_NT_HEADERS64).contents
         if header.e_magic == ctyped.const.IMAGE_DOS_SIGNATURE and headers.Signature == ctyped.const.IMAGE_NT_SIGNATURE:
             max_ptr = 0
-            for section in ctyped.from_address(ctyped.addressof(headers) + ctyped.sizeof(headers),
-                                               ctyped.struct.IMAGE_SECTION_HEADER * headers.FileHeader.NumberOfSections):
+            for section in ctyped.from_address(ctyped.addressof(headers) + ctyped.sizeof(
+                    headers), ctyped.struct.IMAGE_SECTION_HEADER * headers.FileHeader.NumberOfSections):
                 if section.PointerToRawData > max_ptr:
                     max_ptr = section.PointerToRawData
-                    size = section.PointerToRawData + section.SizeOfRawData
-        ctyped.lib.Kernel32.CloseHandle(hfile)
+                    size = max_ptr + section.SizeOfRawData
     return size
 
 
 if __name__ == '__main__':
+    print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_SECTION_HEADER, 'SizeOfRawData'))
+    print(ctyped.sizeof(ctyped.struct.IMAGE_NT_HEADERS32), ctyped.sizeof(ctyped.struct.IMAGE_NT_HEADERS64))
+    print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_DOS_HEADER, 'e_lfanew'))
+    print(calc_exe_size(r'D:\Apps\HxD\HxD32.exe'))
     # _test_toast()
     # _test_winui()  # TODO editing python.exe doesn't work
-    _test_gui()
+    # _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()
