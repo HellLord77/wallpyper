@@ -73,7 +73,7 @@ function MergeManifest([String]$ExePath, [String]$ManifestPath)
 {
     $TempFile = New-TemporaryFile
     Copy-Item $ExePath -Destination $TempFile
-    mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose
+    .\mt.exe -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose
     $TempStream = [System.IO.File]::OpenRead($TempFile)
     $ExeStream = [System.IO.File]::OpenWrite($ExePath)
     $TempStream.Seek($( CalculateExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null

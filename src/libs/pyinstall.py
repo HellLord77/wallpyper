@@ -1,10 +1,13 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import glob
+import importlib
 import os
+import re
 import shutil
 import sys
 import tempfile
+from xml.etree import ElementTree
 
 FROZEN = hasattr(sys, 'frozen')
 TEMP_DIR = getattr(sys, '_MEIPASS', '')
@@ -28,3 +31,43 @@ def clean_temp(remove_base: bool = False) -> bool:
         os.remove(base)
         cleaned = cleaned and not os.path.exists(base)
     return cleaned
+
+
+def _merge_xml_roots(self: ElementTree.Element, other: ElementTree.Element):
+    elements = {element.tag: element for element in self}
+    for element in other:
+        if len(element) == 0:
+            try:
+                elements[element.tag].text = element.text
+            except KeyError:
+                elements[element.tag] = element
+                self.append(element)
+        else:
+            try:
+                _merge_xml_roots(elements[element.tag], element)
+            except KeyError:
+                elements[element.tag] = element
+                self.append(element)
+
+
+def _merge_xml(self: str, other: str, ns: bool = True) -> str:
+    root = ElementTree.fromstring(self)
+    _merge_xml_roots(root, ElementTree.fromstring(other))
+    ElementTree.indent(root)
+    xml = ElementTree.tostring(root, 'unicode')
+    if not ns:
+        xml = re.sub(r':ns\d=', '=', re.sub(r'<(/?)ns\d+:', '<\\1', xml))
+    return xml
+
+
+def add_manifest(path: str, manifest: str, merge: bool = True):
+    winmanifest = importlib.import_module('PyInstaller.utils.win32.winmanifest')
+    if merge:
+        manifest = _merge_xml(winmanifest.GetManifestResources(path)[winmanifest.RT_MANIFEST][1][0].decode(), manifest)
+    with tempfile.TemporaryFile() as temp:
+        with open(path, 'rb') as file:
+            shutil.copyfileobj(file, temp)
+        winmanifest.UpdateManifestResourcesFromXML(path, manifest.encode())
+        temp.seek(os.path.getsize(path), os.SEEK_SET)  # TODO might fail if changed pe size
+        with open(path, 'ab') as file:
+            shutil.copyfileobj(temp, file)
