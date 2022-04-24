@@ -1127,13 +1127,9 @@ def calc_exe_size(path: str) -> int:
 
 
 if __name__ == '__main__':
-    print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_SECTION_HEADER, 'SizeOfRawData'))
-    print(ctyped.sizeof(ctyped.struct.IMAGE_NT_HEADERS32), ctyped.sizeof(ctyped.struct.IMAGE_NT_HEADERS64))
-    print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_DOS_HEADER, 'e_lfanew'))
-    print(calc_exe_size(r'D:\Apps\HxD\HxD32.exe'))
     # _test_toast()
     # _test_winui()  # TODO editing python.exe doesn't work
-    # _test_gui()
+    _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()
