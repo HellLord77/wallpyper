@@ -226,7 +226,7 @@ function BuildProject
     }
 }
 
-function UploadBuild
+function UploadBuildToMEGA
 {
     if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
     {

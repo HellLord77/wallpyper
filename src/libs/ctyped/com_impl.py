@@ -177,7 +177,7 @@ class IAsyncOperationWithProgressCompletedHandler(IUnknown):
         return _const.NOERROR
 
 
-class ITypedEventHandler(IUnknown):
+class ITypedEventHandler(IUnknown):  # TODO split
     __IID__ = {_const.IID_ITypedEventHandler_IToastNotification_IToastDismissedEventArgs,
                _const.IID_ITypedEventHandler_IToastNotification_IInspectable,
                _const.IID_ITypedEventHandler_IToastNotification_IToastFailedEventArgs}

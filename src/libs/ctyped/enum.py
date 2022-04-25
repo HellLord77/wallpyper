@@ -1138,6 +1138,86 @@ class ACTCTX_COMPATIBILITY_ELEMENT_TYPE(_IntEnum):
     MAXVERSIONTESTED = _AUTO
 
 
+class HorizontalAlignment(_IntEnum):
+    Left = _AUTO
+    Center = _AUTO
+    Right = _AUTO
+    Stretch = _AUTO
+
+
+class VerticalAlignment(_IntEnum):
+    Top = _AUTO
+    Center = _AUTO
+    Bottom = _AUTO
+    Stretch = _AUTO
+
+
+class Visibility(_IntEnum):
+    Visible = _AUTO
+    Collapsed = _AUTO
+
+
+class FlowDirection(_IntEnum):
+    LeftToRight = _AUTO
+    RightToLeft = _AUTO
+
+
+class Orientation(_IntEnum):
+    Vertical = _AUTO
+    Horizontal = _AUTO
+
+
+class TextWrapping(_IntEnum):
+    NoWrap = 1
+    Wrap = _AUTO
+    WrapWholeWords = _AUTO
+
+
+class TextTrimming(_IntEnum):
+    None_ = _AUTO
+    CharacterEllipsis = _AUTO
+    WordEllipsis = _AUTO
+    Clip = _AUTO
+
+
+class TextAlignment(_IntEnum):
+    Center = _AUTO
+    Left = 1
+    Start = 1
+    Right = 2
+    End = 2
+    Justify = _AUTO
+    DetectFromContent = _AUTO
+
+
+class LineStackingStrategy(_IntEnum):
+    MaxHeight = _AUTO
+    BlockLineHeight = _AUTO
+    BaselineToBaseline = _AUTO
+
+
+class FocusState(_IntEnum):
+    Unfocused = _AUTO
+    Pointer = _AUTO
+    Keyboard = _AUTO
+    Programmatic = _AUTO
+
+
+class ManipulationModes(_IntEnum):
+    None_ = 0
+    TranslateX = 0x1
+    TranslateY = 0x2
+    TranslateRailsX = 0x4
+    TranslateRailsY = 0x8
+    Rotate = 0x10
+    Scale = 0x20
+    TranslateInertia = 0x40
+    RotateInertia = 0x80
+    ScaleInertia = 0x100
+    All = 0xffff
+    System = 0x10000
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status

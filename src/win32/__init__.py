@@ -1,4 +1,4 @@
-__version__ = '0.0.20'
+__version__ = '0.0.21'
 
 import contextlib
 import ntpath
@@ -9,7 +9,7 @@ import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional, Union
 
 import libs.ctyped as ctyped
-from . import _gdiplus, _utils, clipboard, wallpaper, xml
+from . import _gdiplus, _utils, clipboard, gui, wallpaper, xml
 from ._utils import sanitize_filename
 
 _PIN_INTERVAL = 3
@@ -524,3 +524,25 @@ def get_manifest(path: Optional[str] = None) -> str:
         finally:
             ctyped.lib.Kernel32.FreeLibrary(hmodule)
     return ''
+
+
+def calc_exe_size(path: str) -> int:
+    size = 0
+    hfile = ctyped.lib.Kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, None,
+                                            ctyped.const.OPEN_EXISTING, ctyped.const.FILE_ATTRIBUTE_NORMAL, None)
+    if hfile:
+        buff = ctyped.array(type=ctyped.type.BYTE, size=4096)
+        ctyped.lib.Kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), None, None)
+        ctyped.lib.Kernel32.CloseHandle(hfile)
+        header = ctyped.cast(buff, ctyped.struct.IMAGE_DOS_HEADER).contents
+        headers = ctyped.from_address(ctyped.addressof(buff) + header.e_lfanew, ctyped.struct.IMAGE_NT_HEADERS32)
+        if headers.FileHeader.Machine == ctyped.const.IMAGE_FILE_MACHINE_AMD64:
+            headers = ctyped.cast(headers, ctyped.struct.IMAGE_NT_HEADERS64).contents
+        if header.e_magic == ctyped.const.IMAGE_DOS_SIGNATURE and headers.Signature == ctyped.const.IMAGE_NT_SIGNATURE:
+            max_ptr = 0
+            for section in ctyped.from_address(ctyped.addressof(headers) + ctyped.sizeof(
+                    headers), ctyped.struct.IMAGE_SECTION_HEADER * headers.FileHeader.NumberOfSections):
+                if section.PointerToRawData > max_ptr:
+                    max_ptr = section.PointerToRawData
+                    size = max_ptr + section.SizeOfRawData
+    return size

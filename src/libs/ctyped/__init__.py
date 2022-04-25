@@ -1,4 +1,4 @@
-__version__ = '0.2.10'
+__version__ = '0.2.11'
 
 import builtins as _builtins
 import contextlib as _contextlib

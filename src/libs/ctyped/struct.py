@@ -118,6 +118,18 @@ class WALLPAPEROPT:
 
 
 @_struct
+class POINT:
+    x: _type.LONG = _EMPTY
+    y: _type.LONG = _EMPTY
+
+
+@_struct
+class Point:
+    x: _type.FLOAT = _EMPTY
+    y: _type.FLOAT = _EMPTY
+
+
+@_struct
 class RECT:
     left: _type.LONG = _EMPTY
     top: _type.LONG = _EMPTY
@@ -126,9 +138,11 @@ class RECT:
 
 
 @_struct
-class POINT:
-    x: _type.LONG = _EMPTY
-    y: _type.LONG = _EMPTY
+class Rect:
+    X: _type.FLOAT = _EMPTY
+    Y: _type.FLOAT = _EMPTY
+    Width: _type.FLOAT = _EMPTY
+    Height: _type.FLOAT = _EMPTY
 
 
 @_struct
@@ -1740,6 +1754,14 @@ class OVERLAPPED_ENTRY:
     lpOverlapped: _Pointer[OVERLAPPED] = _EMPTY
     Internal: _type.ULONG_PTR = _EMPTY
     dwNumberOfBytesTransferred: _type.DWORD = _EMPTY
+
+
+@_struct
+class Thickness:
+    Left: _type.DOUBLE = _EMPTY
+    Top: _type.DOUBLE = _EMPTY
+    Right: _type.DOUBLE = _EMPTY
+    Bottom: _type.DOUBLE = _EMPTY
 
 
 UUID = GUID

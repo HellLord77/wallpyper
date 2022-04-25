@@ -652,5 +652,58 @@ def main():
     sys.exit(exitcode)
 
 
+def __winui():
+    from libs import ctyped
+    gui_ = win32.gui.Gui()
+    tray = win32.gui.SystemTray(win32.gui.SystemTrayIcon.APPLICATION)
+    menu = win32.gui.Menu()
+    item = menu.append_item('Exit')
+    tray.bind(win32.gui.SystemTrayEvent.RIGHT_UP, lambda *_: menu.show())
+    item.bind(win32.gui.MenuItemEvent.LEFT_UP, lambda *_: gui_.exit_mainloop())
+
+    hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
+        0, gui_._class.lpszClassName, 'Windows py Win32 Desktop App',
+        ctyped.const.WS_OVERLAPPED | ctyped.const.WS_VISIBLE, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
+        ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, None, None, gui_._hinstance, None))
+    with ctyped.get_winrt(ctyped.com.IWindowsXamlManagerStatics) as manager_statics:
+        manager = ctyped.com.IWindowsXamlManager()
+        manager_statics.InitializeForCurrentThread(ctyped.byref(manager))
+        with ctyped.get_winrt(ctyped.com.IDesktopWindowXamlSource, True) as source:
+            with ctyped.cast_com(source, ctyped.com.IDesktopWindowXamlSourceNative) as source_native:
+                source_native.AttachToWindow(hwnd)
+                hwnd_xaml = ctyped.handle.HWND()
+                source_native.get_WindowHandle(ctyped.byref(hwnd_xaml))
+                print(hwnd_xaml)
+                ctyped.lib.User32.SetWindowPos(hwnd_xaml, 0, 200, 100, 800, 200, ctyped.const.SWP_SHOWWINDOW)
+                with ctyped.get_winrt(ctyped.com.IStackPanel, True) as stack_panel:
+                    with ctyped.cast_com(stack_panel, ctyped.com.IPanel) as panel:
+                        with ctyped.get_winrt(ctyped.com.IColorsStatics) as colors_statics:
+                            color = ctyped.struct.Color()
+                            colors_statics.get_LightGray(ctyped.byref(color))
+                        with ctyped.init_com(ctyped.com.ISolidColorBrush, False) as solid_brush:
+                            with ctyped.get_winrt(ctyped.com.ISolidColorBrushFactory) as brush_factory:
+                                brush_factory.CreateInstanceWithColor(color, ctyped.byref(solid_brush))
+                            with ctyped.cast_com(solid_brush, ctyped.com.IBrush) as brush:
+                                panel.put_Background(brush)
+                    with ctyped.get_winrt(ctyped.com.ITextBlock, True) as text_block:
+                        text_block.put_Text(ctyped.handle.HSTRING.from_string('Hello World from Xaml Islands!'))
+                        with ctyped.cast_com(text_block, ctyped.com.IFrameworkElement) as text_element:
+                            text_element.put_VerticalAlignment(ctyped.enum.VerticalAlignment.Center)
+                            text_element.put_HorizontalAlignment(ctyped.enum.HorizontalAlignment.Center)
+                        text_block.put_FontSize(48)
+                        with ctyped.init_com(ctyped.com.IVector_IUIElement, False) as children:
+                            panel.get_Children(ctyped.byref(children))
+                            with ctyped.cast_com(text_block, ctyped.com.IUIElement) as text_element:
+                                children.Append(text_element)
+                        with ctyped.cast_com(stack_panel, ctyped.com.IUIElement) as panel_element:
+                            panel_element.UpdateLayout()
+                            source.put_Content(panel_element)
+                        hwnd.show(ctyped.const.SW_SHOW)
+                        hwnd.update()
+                        tray.show()
+                        gui_.mainloop()
+
+
 if __name__ == '__main__':
+    # __winui()
     main()

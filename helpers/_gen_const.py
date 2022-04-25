@@ -81,7 +81,10 @@ def _runtime_class(file: str):
             class_ = f"{groups[0]} = '{groups[1]}'"
             if class_ not in classes:
                 classes.append(class_)
-    print('\n'.join(classes))
+    for class_ in classes:
+        if len(class_) > 120:
+            class_ = class_.replace(" = '", " = ('") + ')'
+        print(class_)
 
 
 def windows_storage_streams():
@@ -100,12 +103,32 @@ def windows_system_userprofile():
     _runtime_class('windows.system.userprofile.h')
 
 
+def windows_ui():
+    _runtime_class('windows.ui.h')
+
+
+def windows_ui_xaml():
+    _runtime_class('windows.ui.xaml.h')
+
+
 def windows_ui_notifications():
     _runtime_class('windows.ui.notifications.h')
 
 
 def windows_ui_viewmanagement():
     _runtime_class('windows.ui.viewmanagement.h')
+
+
+def windows_ui_xaml_controls():
+    _runtime_class('windows.ui.xaml.controls.h')
+
+
+def windows_ui_xaml_media():
+    _runtime_class('windows.ui.xaml.media.h')
+
+
+def windows_ui_composition():
+    _runtime_class('windows.ui.composition.h')
 
 
 def windows_system():
@@ -136,4 +159,4 @@ def mscoree():
 
 
 if __name__ == '__main__':
-    windows_ui_xaml_hosting()
+    windows_ui_xaml()

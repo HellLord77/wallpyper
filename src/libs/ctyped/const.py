@@ -8070,6 +8070,135 @@ RuntimeClass_Windows_System_UserProfile_LockScreen = 'Windows.System.UserProfile
 RuntimeClass_Windows_System_UserProfile_UserInformation = 'Windows.System.UserProfile.UserInformation'
 RuntimeClass_Windows_System_UserProfile_UserProfilePersonalizationSettings = (
     'Windows.System.UserProfile.UserProfilePersonalizationSettings')
+RuntimeClass_Windows_UI_ColorHelper = 'Windows.UI.ColorHelper'
+RuntimeClass_Windows_UI_Colors = 'Windows.UI.Colors'
+RuntimeClass_Windows_UI_UIContentRoot = 'Windows.UI.UIContentRoot'
+RuntimeClass_Windows_UI_UIContext = 'Windows.UI.UIContext'
+RuntimeClass_Windows_UI_Composition_AmbientLight = 'Windows.UI.Composition.AmbientLight'
+RuntimeClass_Windows_UI_Composition_AnimationController = 'Windows.UI.Composition.AnimationController'
+RuntimeClass_Windows_UI_Composition_AnimationPropertyInfo = 'Windows.UI.Composition.AnimationPropertyInfo'
+RuntimeClass_Windows_UI_Composition_BackEasingFunction = 'Windows.UI.Composition.BackEasingFunction'
+RuntimeClass_Windows_UI_Composition_BooleanKeyFrameAnimation = 'Windows.UI.Composition.BooleanKeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_BounceEasingFunction = 'Windows.UI.Composition.BounceEasingFunction'
+RuntimeClass_Windows_UI_Composition_BounceScalarNaturalMotionAnimation = (
+    'Windows.UI.Composition.BounceScalarNaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_BounceVector2NaturalMotionAnimation = (
+    'Windows.UI.Composition.BounceVector2NaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_BounceVector3NaturalMotionAnimation = (
+    'Windows.UI.Composition.BounceVector3NaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_CircleEasingFunction = 'Windows.UI.Composition.CircleEasingFunction'
+RuntimeClass_Windows_UI_Composition_ColorKeyFrameAnimation = 'Windows.UI.Composition.ColorKeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_CompositionAnimation = 'Windows.UI.Composition.CompositionAnimation'
+RuntimeClass_Windows_UI_Composition_CompositionAnimationGroup = 'Windows.UI.Composition.CompositionAnimationGroup'
+RuntimeClass_Windows_UI_Composition_CompositionBackdropBrush = 'Windows.UI.Composition.CompositionBackdropBrush'
+RuntimeClass_Windows_UI_Composition_CompositionBatchCompletedEventArgs = (
+    'Windows.UI.Composition.CompositionBatchCompletedEventArgs')
+RuntimeClass_Windows_UI_Composition_CompositionBrush = 'Windows.UI.Composition.CompositionBrush'
+RuntimeClass_Windows_UI_Composition_CompositionCapabilities = 'Windows.UI.Composition.CompositionCapabilities'
+RuntimeClass_Windows_UI_Composition_CompositionClip = 'Windows.UI.Composition.CompositionClip'
+RuntimeClass_Windows_UI_Composition_CompositionColorBrush = 'Windows.UI.Composition.CompositionColorBrush'
+RuntimeClass_Windows_UI_Composition_CompositionColorGradientStop = 'Windows.UI.Composition.CompositionColorGradientStop'
+RuntimeClass_Windows_UI_Composition_CompositionColorGradientStopCollection = (
+    'Windows.UI.Composition.CompositionColorGradientStopCollection')
+RuntimeClass_Windows_UI_Composition_CompositionCommitBatch = 'Windows.UI.Composition.CompositionCommitBatch'
+RuntimeClass_Windows_UI_Composition_CompositionContainerShape = 'Windows.UI.Composition.CompositionContainerShape'
+RuntimeClass_Windows_UI_Composition_CompositionDrawingSurface = 'Windows.UI.Composition.CompositionDrawingSurface'
+RuntimeClass_Windows_UI_Composition_CompositionEasingFunction = 'Windows.UI.Composition.CompositionEasingFunction'
+RuntimeClass_Windows_UI_Composition_CompositionEffectBrush = 'Windows.UI.Composition.CompositionEffectBrush'
+RuntimeClass_Windows_UI_Composition_CompositionEffectFactory = 'Windows.UI.Composition.CompositionEffectFactory'
+RuntimeClass_Windows_UI_Composition_CompositionEffectSourceParameter = (
+    'Windows.UI.Composition.CompositionEffectSourceParameter')
+RuntimeClass_Windows_UI_Composition_CompositionEllipseGeometry = 'Windows.UI.Composition.CompositionEllipseGeometry'
+RuntimeClass_Windows_UI_Composition_CompositionGeometricClip = 'Windows.UI.Composition.CompositionGeometricClip'
+RuntimeClass_Windows_UI_Composition_CompositionGeometry = 'Windows.UI.Composition.CompositionGeometry'
+RuntimeClass_Windows_UI_Composition_CompositionGradientBrush = 'Windows.UI.Composition.CompositionGradientBrush'
+RuntimeClass_Windows_UI_Composition_CompositionGraphicsDevice = 'Windows.UI.Composition.CompositionGraphicsDevice'
+RuntimeClass_Windows_UI_Composition_CompositionLight = 'Windows.UI.Composition.CompositionLight'
+RuntimeClass_Windows_UI_Composition_CompositionLineGeometry = 'Windows.UI.Composition.CompositionLineGeometry'
+RuntimeClass_Windows_UI_Composition_CompositionLinearGradientBrush = (
+    'Windows.UI.Composition.CompositionLinearGradientBrush')
+RuntimeClass_Windows_UI_Composition_CompositionMaskBrush = 'Windows.UI.Composition.CompositionMaskBrush'
+RuntimeClass_Windows_UI_Composition_CompositionMipmapSurface = 'Windows.UI.Composition.CompositionMipmapSurface'
+RuntimeClass_Windows_UI_Composition_CompositionNineGridBrush = 'Windows.UI.Composition.CompositionNineGridBrush'
+RuntimeClass_Windows_UI_Composition_CompositionObject = 'Windows.UI.Composition.CompositionObject'
+RuntimeClass_Windows_UI_Composition_CompositionPath = 'Windows.UI.Composition.CompositionPath'
+RuntimeClass_Windows_UI_Composition_CompositionPathGeometry = 'Windows.UI.Composition.CompositionPathGeometry'
+RuntimeClass_Windows_UI_Composition_CompositionProjectedShadow = 'Windows.UI.Composition.CompositionProjectedShadow'
+RuntimeClass_Windows_UI_Composition_CompositionProjectedShadowCaster = (
+    'Windows.UI.Composition.CompositionProjectedShadowCaster')
+RuntimeClass_Windows_UI_Composition_CompositionProjectedShadowCasterCollection = (
+    'Windows.UI.Composition.CompositionProjectedShadowCasterCollection')
+RuntimeClass_Windows_UI_Composition_CompositionProjectedShadowReceiver = (
+    'Windows.UI.Composition.CompositionProjectedShadowReceiver')
+RuntimeClass_Windows_UI_Composition_CompositionProjectedShadowReceiverUnorderedCollection = (
+    'Windows.UI.Composition.CompositionProjectedShadowReceiverUnorderedCollection')
+RuntimeClass_Windows_UI_Composition_CompositionPropertySet = 'Windows.UI.Composition.CompositionPropertySet'
+RuntimeClass_Windows_UI_Composition_CompositionRadialGradientBrush = (
+    'Windows.UI.Composition.CompositionRadialGradientBrush')
+RuntimeClass_Windows_UI_Composition_CompositionRectangleGeometry = 'Windows.UI.Composition.CompositionRectangleGeometry'
+RuntimeClass_Windows_UI_Composition_CompositionRoundedRectangleGeometry = (
+    'Windows.UI.Composition.CompositionRoundedRectangleGeometry')
+RuntimeClass_Windows_UI_Composition_CompositionScopedBatch = 'Windows.UI.Composition.CompositionScopedBatch'
+RuntimeClass_Windows_UI_Composition_CompositionShadow = 'Windows.UI.Composition.CompositionShadow'
+RuntimeClass_Windows_UI_Composition_CompositionShape = 'Windows.UI.Composition.CompositionShape'
+RuntimeClass_Windows_UI_Composition_CompositionShapeCollection = 'Windows.UI.Composition.CompositionShapeCollection'
+RuntimeClass_Windows_UI_Composition_CompositionSpriteShape = 'Windows.UI.Composition.CompositionSpriteShape'
+RuntimeClass_Windows_UI_Composition_CompositionStrokeDashArray = 'Windows.UI.Composition.CompositionStrokeDashArray'
+RuntimeClass_Windows_UI_Composition_CompositionSurfaceBrush = 'Windows.UI.Composition.CompositionSurfaceBrush'
+RuntimeClass_Windows_UI_Composition_CompositionTarget = 'Windows.UI.Composition.CompositionTarget'
+RuntimeClass_Windows_UI_Composition_CompositionTransform = 'Windows.UI.Composition.CompositionTransform'
+RuntimeClass_Windows_UI_Composition_CompositionViewBox = 'Windows.UI.Composition.CompositionViewBox'
+RuntimeClass_Windows_UI_Composition_CompositionVirtualDrawingSurface = (
+    'Windows.UI.Composition.CompositionVirtualDrawingSurface')
+RuntimeClass_Windows_UI_Composition_CompositionVisualSurface = 'Windows.UI.Composition.CompositionVisualSurface'
+RuntimeClass_Windows_UI_Composition_Compositor = 'Windows.UI.Composition.Compositor'
+RuntimeClass_Windows_UI_Composition_ContainerVisual = 'Windows.UI.Composition.ContainerVisual'
+RuntimeClass_Windows_UI_Composition_CubicBezierEasingFunction = 'Windows.UI.Composition.CubicBezierEasingFunction'
+RuntimeClass_Windows_UI_Composition_DelegatedInkTrailVisual = 'Windows.UI.Composition.DelegatedInkTrailVisual'
+RuntimeClass_Windows_UI_Composition_DistantLight = 'Windows.UI.Composition.DistantLight'
+RuntimeClass_Windows_UI_Composition_DropShadow = 'Windows.UI.Composition.DropShadow'
+RuntimeClass_Windows_UI_Composition_ElasticEasingFunction = 'Windows.UI.Composition.ElasticEasingFunction'
+RuntimeClass_Windows_UI_Composition_ExponentialEasingFunction = 'Windows.UI.Composition.ExponentialEasingFunction'
+RuntimeClass_Windows_UI_Composition_ExpressionAnimation = 'Windows.UI.Composition.ExpressionAnimation'
+RuntimeClass_Windows_UI_Composition_ImplicitAnimationCollection = 'Windows.UI.Composition.ImplicitAnimationCollection'
+RuntimeClass_Windows_UI_Composition_InitialValueExpressionCollection = (
+    'Windows.UI.Composition.InitialValueExpressionCollection')
+RuntimeClass_Windows_UI_Composition_InsetClip = 'Windows.UI.Composition.InsetClip'
+RuntimeClass_Windows_UI_Composition_KeyFrameAnimation = 'Windows.UI.Composition.KeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_LayerVisual = 'Windows.UI.Composition.LayerVisual'
+RuntimeClass_Windows_UI_Composition_LinearEasingFunction = 'Windows.UI.Composition.LinearEasingFunction'
+RuntimeClass_Windows_UI_Composition_NaturalMotionAnimation = 'Windows.UI.Composition.NaturalMotionAnimation'
+RuntimeClass_Windows_UI_Composition_PathKeyFrameAnimation = 'Windows.UI.Composition.PathKeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_PointLight = 'Windows.UI.Composition.PointLight'
+RuntimeClass_Windows_UI_Composition_PowerEasingFunction = 'Windows.UI.Composition.PowerEasingFunction'
+RuntimeClass_Windows_UI_Composition_QuaternionKeyFrameAnimation = 'Windows.UI.Composition.QuaternionKeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_RectangleClip = 'Windows.UI.Composition.RectangleClip'
+RuntimeClass_Windows_UI_Composition_RedirectVisual = 'Windows.UI.Composition.RedirectVisual'
+RuntimeClass_Windows_UI_Composition_RenderingDeviceReplacedEventArgs = (
+    'Windows.UI.Composition.RenderingDeviceReplacedEventArgs')
+RuntimeClass_Windows_UI_Composition_ScalarKeyFrameAnimation = 'Windows.UI.Composition.ScalarKeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_ScalarNaturalMotionAnimation = 'Windows.UI.Composition.ScalarNaturalMotionAnimation'
+RuntimeClass_Windows_UI_Composition_ShapeVisual = 'Windows.UI.Composition.ShapeVisual'
+RuntimeClass_Windows_UI_Composition_SineEasingFunction = 'Windows.UI.Composition.SineEasingFunction'
+RuntimeClass_Windows_UI_Composition_SpotLight = 'Windows.UI.Composition.SpotLight'
+RuntimeClass_Windows_UI_Composition_SpringScalarNaturalMotionAnimation = (
+    'Windows.UI.Composition.SpringScalarNaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_SpringVector2NaturalMotionAnimation = (
+    'Windows.UI.Composition.SpringVector2NaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_SpringVector3NaturalMotionAnimation = (
+    'Windows.UI.Composition.SpringVector3NaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_SpriteVisual = 'Windows.UI.Composition.SpriteVisual'
+RuntimeClass_Windows_UI_Composition_StepEasingFunction = 'Windows.UI.Composition.StepEasingFunction'
+RuntimeClass_Windows_UI_Composition_Vector2KeyFrameAnimation = 'Windows.UI.Composition.Vector2KeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_Vector2NaturalMotionAnimation = (
+    'Windows.UI.Composition.Vector2NaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_Vector3KeyFrameAnimation = 'Windows.UI.Composition.Vector3KeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_Vector3NaturalMotionAnimation = (
+    'Windows.UI.Composition.Vector3NaturalMotionAnimation')
+RuntimeClass_Windows_UI_Composition_Vector4KeyFrameAnimation = 'Windows.UI.Composition.Vector4KeyFrameAnimation'
+RuntimeClass_Windows_UI_Composition_Visual = 'Windows.UI.Composition.Visual'
+RuntimeClass_Windows_UI_Composition_VisualCollection = 'Windows.UI.Composition.VisualCollection'
+RuntimeClass_Windows_UI_Composition_VisualUnorderedCollection = 'Windows.UI.Composition.VisualUnorderedCollection'
 RuntimeClass_Windows_UI_Notifications_AdaptiveNotificationText = 'Windows.UI.Notifications.AdaptiveNotificationText'
 RuntimeClass_Windows_UI_Notifications_BadgeNotification = 'Windows.UI.Notifications.BadgeNotification'
 RuntimeClass_Windows_UI_Notifications_BadgeUpdateManager = 'Windows.UI.Notifications.BadgeUpdateManager'
@@ -8140,6 +8269,454 @@ RuntimeClass_Windows_UI_ViewManagement_UISettingsMessageDurationChangedEventArgs
     'Windows.UI.ViewManagement.UISettingsMessageDurationChangedEventArgs')
 RuntimeClass_Windows_UI_ViewManagement_UIViewSettings = 'Windows.UI.ViewManagement.UIViewSettings'
 RuntimeClass_Windows_UI_ViewManagement_ViewModePreferences = 'Windows.UI.ViewManagement.ViewModePreferences'
+RuntimeClass_Windows_UI_Xaml_AdaptiveTrigger = 'Windows.UI.Xaml.AdaptiveTrigger'
+RuntimeClass_Windows_UI_Xaml_Application = 'Windows.UI.Xaml.Application'
+RuntimeClass_Windows_UI_Xaml_ApplicationInitializationCallbackParams = (
+    'Windows.UI.Xaml.ApplicationInitializationCallbackParams')
+RuntimeClass_Windows_UI_Xaml_BindingFailedEventArgs = 'Windows.UI.Xaml.BindingFailedEventArgs'
+RuntimeClass_Windows_UI_Xaml_BringIntoViewOptions = 'Windows.UI.Xaml.BringIntoViewOptions'
+RuntimeClass_Windows_UI_Xaml_BringIntoViewRequestedEventArgs = 'Windows.UI.Xaml.BringIntoViewRequestedEventArgs'
+RuntimeClass_Windows_UI_Xaml_BrushTransition = 'Windows.UI.Xaml.BrushTransition'
+RuntimeClass_Windows_UI_Xaml_ColorPaletteResources = 'Windows.UI.Xaml.ColorPaletteResources'
+RuntimeClass_Windows_UI_Xaml_CornerRadiusHelper = 'Windows.UI.Xaml.CornerRadiusHelper'
+RuntimeClass_Windows_UI_Xaml_DataContextChangedEventArgs = 'Windows.UI.Xaml.DataContextChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_DataTemplate = 'Windows.UI.Xaml.DataTemplate'
+RuntimeClass_Windows_UI_Xaml_DataTemplateKey = 'Windows.UI.Xaml.DataTemplateKey'
+RuntimeClass_Windows_UI_Xaml_DebugSettings = 'Windows.UI.Xaml.DebugSettings'
+RuntimeClass_Windows_UI_Xaml_DependencyObject = 'Windows.UI.Xaml.DependencyObject'
+RuntimeClass_Windows_UI_Xaml_DependencyObjectCollection = 'Windows.UI.Xaml.DependencyObjectCollection'
+RuntimeClass_Windows_UI_Xaml_DependencyProperty = 'Windows.UI.Xaml.DependencyProperty'
+RuntimeClass_Windows_UI_Xaml_DependencyPropertyChangedEventArgs = 'Windows.UI.Xaml.DependencyPropertyChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_DispatcherTimer = 'Windows.UI.Xaml.DispatcherTimer'
+RuntimeClass_Windows_UI_Xaml_DragEventArgs = 'Windows.UI.Xaml.DragEventArgs'
+RuntimeClass_Windows_UI_Xaml_DragOperationDeferral = 'Windows.UI.Xaml.DragOperationDeferral'
+RuntimeClass_Windows_UI_Xaml_DragStartingEventArgs = 'Windows.UI.Xaml.DragStartingEventArgs'
+RuntimeClass_Windows_UI_Xaml_DragUI = 'Windows.UI.Xaml.DragUI'
+RuntimeClass_Windows_UI_Xaml_DragUIOverride = 'Windows.UI.Xaml.DragUIOverride'
+RuntimeClass_Windows_UI_Xaml_DropCompletedEventArgs = 'Windows.UI.Xaml.DropCompletedEventArgs'
+RuntimeClass_Windows_UI_Xaml_DurationHelper = 'Windows.UI.Xaml.DurationHelper'
+RuntimeClass_Windows_UI_Xaml_EffectiveViewportChangedEventArgs = 'Windows.UI.Xaml.EffectiveViewportChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_ElementFactoryGetArgs = 'Windows.UI.Xaml.ElementFactoryGetArgs'
+RuntimeClass_Windows_UI_Xaml_ElementFactoryRecycleArgs = 'Windows.UI.Xaml.ElementFactoryRecycleArgs'
+RuntimeClass_Windows_UI_Xaml_ElementSoundPlayer = 'Windows.UI.Xaml.ElementSoundPlayer'
+RuntimeClass_Windows_UI_Xaml_EventTrigger = 'Windows.UI.Xaml.EventTrigger'
+RuntimeClass_Windows_UI_Xaml_ExceptionRoutedEventArgs = 'Windows.UI.Xaml.ExceptionRoutedEventArgs'
+RuntimeClass_Windows_UI_Xaml_FrameworkElement = 'Windows.UI.Xaml.FrameworkElement'
+RuntimeClass_Windows_UI_Xaml_FrameworkTemplate = 'Windows.UI.Xaml.FrameworkTemplate'
+RuntimeClass_Windows_UI_Xaml_FrameworkView = 'Windows.UI.Xaml.FrameworkView'
+RuntimeClass_Windows_UI_Xaml_FrameworkViewSource = 'Windows.UI.Xaml.FrameworkViewSource'
+RuntimeClass_Windows_UI_Xaml_GridLengthHelper = 'Windows.UI.Xaml.GridLengthHelper'
+RuntimeClass_Windows_UI_Xaml_MediaFailedRoutedEventArgs = 'Windows.UI.Xaml.MediaFailedRoutedEventArgs'
+RuntimeClass_Windows_UI_Xaml_PointHelper = 'Windows.UI.Xaml.PointHelper'
+RuntimeClass_Windows_UI_Xaml_PropertyMetadata = 'Windows.UI.Xaml.PropertyMetadata'
+RuntimeClass_Windows_UI_Xaml_PropertyPath = 'Windows.UI.Xaml.PropertyPath'
+RuntimeClass_Windows_UI_Xaml_RectHelper = 'Windows.UI.Xaml.RectHelper'
+RuntimeClass_Windows_UI_Xaml_ResourceDictionary = 'Windows.UI.Xaml.ResourceDictionary'
+RuntimeClass_Windows_UI_Xaml_RoutedEvent = 'Windows.UI.Xaml.RoutedEvent'
+RuntimeClass_Windows_UI_Xaml_RoutedEventArgs = 'Windows.UI.Xaml.RoutedEventArgs'
+RuntimeClass_Windows_UI_Xaml_ScalarTransition = 'Windows.UI.Xaml.ScalarTransition'
+RuntimeClass_Windows_UI_Xaml_Setter = 'Windows.UI.Xaml.Setter'
+RuntimeClass_Windows_UI_Xaml_SetterBase = 'Windows.UI.Xaml.SetterBase'
+RuntimeClass_Windows_UI_Xaml_SetterBaseCollection = 'Windows.UI.Xaml.SetterBaseCollection'
+RuntimeClass_Windows_UI_Xaml_SizeChangedEventArgs = 'Windows.UI.Xaml.SizeChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_SizeHelper = 'Windows.UI.Xaml.SizeHelper'
+RuntimeClass_Windows_UI_Xaml_StateTrigger = 'Windows.UI.Xaml.StateTrigger'
+RuntimeClass_Windows_UI_Xaml_StateTriggerBase = 'Windows.UI.Xaml.StateTriggerBase'
+RuntimeClass_Windows_UI_Xaml_Style = 'Windows.UI.Xaml.Style'
+RuntimeClass_Windows_UI_Xaml_TargetPropertyPath = 'Windows.UI.Xaml.TargetPropertyPath'
+RuntimeClass_Windows_UI_Xaml_ThicknessHelper = 'Windows.UI.Xaml.ThicknessHelper'
+RuntimeClass_Windows_UI_Xaml_TriggerAction = 'Windows.UI.Xaml.TriggerAction'
+RuntimeClass_Windows_UI_Xaml_TriggerActionCollection = 'Windows.UI.Xaml.TriggerActionCollection'
+RuntimeClass_Windows_UI_Xaml_TriggerBase = 'Windows.UI.Xaml.TriggerBase'
+RuntimeClass_Windows_UI_Xaml_TriggerCollection = 'Windows.UI.Xaml.TriggerCollection'
+RuntimeClass_Windows_UI_Xaml_UIElement = 'Windows.UI.Xaml.UIElement'
+RuntimeClass_Windows_UI_Xaml_UIElementWeakCollection = 'Windows.UI.Xaml.UIElementWeakCollection'
+RuntimeClass_Windows_UI_Xaml_UnhandledExceptionEventArgs = 'Windows.UI.Xaml.UnhandledExceptionEventArgs'
+RuntimeClass_Windows_UI_Xaml_Vector3Transition = 'Windows.UI.Xaml.Vector3Transition'
+RuntimeClass_Windows_UI_Xaml_VisualState = 'Windows.UI.Xaml.VisualState'
+RuntimeClass_Windows_UI_Xaml_VisualStateChangedEventArgs = 'Windows.UI.Xaml.VisualStateChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_VisualStateGroup = 'Windows.UI.Xaml.VisualStateGroup'
+RuntimeClass_Windows_UI_Xaml_VisualStateManager = 'Windows.UI.Xaml.VisualStateManager'
+RuntimeClass_Windows_UI_Xaml_VisualTransition = 'Windows.UI.Xaml.VisualTransition'
+RuntimeClass_Windows_UI_Xaml_Window = 'Windows.UI.Xaml.Window'
+RuntimeClass_Windows_UI_Xaml_WindowCreatedEventArgs = 'Windows.UI.Xaml.WindowCreatedEventArgs'
+RuntimeClass_Windows_UI_Xaml_XamlRoot = 'Windows.UI.Xaml.XamlRoot'
+RuntimeClass_Windows_UI_Xaml_XamlRootChangedEventArgs = 'Windows.UI.Xaml.XamlRootChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_AnchorRequestedEventArgs = 'Windows.UI.Xaml.Controls.AnchorRequestedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_AppBar = 'Windows.UI.Xaml.Controls.AppBar'
+RuntimeClass_Windows_UI_Xaml_Controls_AppBarButton = 'Windows.UI.Xaml.Controls.AppBarButton'
+RuntimeClass_Windows_UI_Xaml_Controls_AppBarElementContainer = 'Windows.UI.Xaml.Controls.AppBarElementContainer'
+RuntimeClass_Windows_UI_Xaml_Controls_AppBarSeparator = 'Windows.UI.Xaml.Controls.AppBarSeparator'
+RuntimeClass_Windows_UI_Xaml_Controls_AppBarToggleButton = 'Windows.UI.Xaml.Controls.AppBarToggleButton'
+RuntimeClass_Windows_UI_Xaml_Controls_AutoSuggestBox = 'Windows.UI.Xaml.Controls.AutoSuggestBox'
+RuntimeClass_Windows_UI_Xaml_Controls_AutoSuggestBoxQuerySubmittedEventArgs = (
+    'Windows.UI.Xaml.Controls.AutoSuggestBoxQuerySubmittedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_AutoSuggestBoxSuggestionChosenEventArgs = (
+    'Windows.UI.Xaml.Controls.AutoSuggestBoxSuggestionChosenEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_AutoSuggestBoxTextChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.AutoSuggestBoxTextChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_BackClickEventArgs = 'Windows.UI.Xaml.Controls.BackClickEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_BitmapIcon = 'Windows.UI.Xaml.Controls.BitmapIcon'
+RuntimeClass_Windows_UI_Xaml_Controls_BitmapIconSource = 'Windows.UI.Xaml.Controls.BitmapIconSource'
+RuntimeClass_Windows_UI_Xaml_Controls_Border = 'Windows.UI.Xaml.Controls.Border'
+RuntimeClass_Windows_UI_Xaml_Controls_Button = 'Windows.UI.Xaml.Controls.Button'
+RuntimeClass_Windows_UI_Xaml_Controls_CalendarDatePicker = 'Windows.UI.Xaml.Controls.CalendarDatePicker'
+RuntimeClass_Windows_UI_Xaml_Controls_CalendarDatePickerDateChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.CalendarDatePickerDateChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_CalendarView = 'Windows.UI.Xaml.Controls.CalendarView'
+RuntimeClass_Windows_UI_Xaml_Controls_CalendarViewDayItem = 'Windows.UI.Xaml.Controls.CalendarViewDayItem'
+RuntimeClass_Windows_UI_Xaml_Controls_CalendarViewDayItemChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.CalendarViewDayItemChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_CalendarViewSelectedDatesChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.CalendarViewSelectedDatesChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_CandidateWindowBoundsChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.CandidateWindowBoundsChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_Canvas = 'Windows.UI.Xaml.Controls.Canvas'
+RuntimeClass_Windows_UI_Xaml_Controls_CaptureElement = 'Windows.UI.Xaml.Controls.CaptureElement'
+RuntimeClass_Windows_UI_Xaml_Controls_CheckBox = 'Windows.UI.Xaml.Controls.CheckBox'
+RuntimeClass_Windows_UI_Xaml_Controls_ChoosingGroupHeaderContainerEventArgs = (
+    'Windows.UI.Xaml.Controls.ChoosingGroupHeaderContainerEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ChoosingItemContainerEventArgs = (
+    'Windows.UI.Xaml.Controls.ChoosingItemContainerEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_CleanUpVirtualizedItemEventArgs = (
+    'Windows.UI.Xaml.Controls.CleanUpVirtualizedItemEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ColorChangedEventArgs = 'Windows.UI.Xaml.Controls.ColorChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_ColorPicker = 'Windows.UI.Xaml.Controls.ColorPicker'
+RuntimeClass_Windows_UI_Xaml_Controls_ColumnDefinition = 'Windows.UI.Xaml.Controls.ColumnDefinition'
+RuntimeClass_Windows_UI_Xaml_Controls_ColumnDefinitionCollection = 'Windows.UI.Xaml.Controls.ColumnDefinitionCollection'
+RuntimeClass_Windows_UI_Xaml_Controls_ComboBox = 'Windows.UI.Xaml.Controls.ComboBox'
+RuntimeClass_Windows_UI_Xaml_Controls_ComboBoxItem = 'Windows.UI.Xaml.Controls.ComboBoxItem'
+RuntimeClass_Windows_UI_Xaml_Controls_ComboBoxTextSubmittedEventArgs = (
+    'Windows.UI.Xaml.Controls.ComboBoxTextSubmittedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_CommandBar = 'Windows.UI.Xaml.Controls.CommandBar'
+RuntimeClass_Windows_UI_Xaml_Controls_CommandBarFlyout = 'Windows.UI.Xaml.Controls.CommandBarFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_CommandBarOverflowPresenter = (
+    'Windows.UI.Xaml.Controls.CommandBarOverflowPresenter')
+RuntimeClass_Windows_UI_Xaml_Controls_ContainerContentChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.ContainerContentChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentControl = 'Windows.UI.Xaml.Controls.ContentControl'
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialog = 'Windows.UI.Xaml.Controls.ContentDialog'
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialogButtonClickDeferral = (
+    'Windows.UI.Xaml.Controls.ContentDialogButtonClickDeferral')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialogButtonClickEventArgs = (
+    'Windows.UI.Xaml.Controls.ContentDialogButtonClickEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialogClosedEventArgs = (
+    'Windows.UI.Xaml.Controls.ContentDialogClosedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialogClosingDeferral = (
+    'Windows.UI.Xaml.Controls.ContentDialogClosingDeferral')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialogClosingEventArgs = (
+    'Windows.UI.Xaml.Controls.ContentDialogClosingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentDialogOpenedEventArgs = (
+    'Windows.UI.Xaml.Controls.ContentDialogOpenedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentLinkChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.ContentLinkChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ContentPresenter = 'Windows.UI.Xaml.Controls.ContentPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_ContextMenuEventArgs = 'Windows.UI.Xaml.Controls.ContextMenuEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_Control = 'Windows.UI.Xaml.Controls.Control'
+RuntimeClass_Windows_UI_Xaml_Controls_ControlTemplate = 'Windows.UI.Xaml.Controls.ControlTemplate'
+RuntimeClass_Windows_UI_Xaml_Controls_DataTemplateSelector = 'Windows.UI.Xaml.Controls.DataTemplateSelector'
+RuntimeClass_Windows_UI_Xaml_Controls_DatePickedEventArgs = 'Windows.UI.Xaml.Controls.DatePickedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_DatePicker = 'Windows.UI.Xaml.Controls.DatePicker'
+RuntimeClass_Windows_UI_Xaml_Controls_DatePickerFlyout = 'Windows.UI.Xaml.Controls.DatePickerFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_DatePickerFlyoutItem = 'Windows.UI.Xaml.Controls.DatePickerFlyoutItem'
+RuntimeClass_Windows_UI_Xaml_Controls_DatePickerFlyoutPresenter = 'Windows.UI.Xaml.Controls.DatePickerFlyoutPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_DatePickerSelectedValueChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.DatePickerSelectedValueChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_DatePickerValueChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.DatePickerValueChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_DragItemsCompletedEventArgs = (
+    'Windows.UI.Xaml.Controls.DragItemsCompletedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_DragItemsStartingEventArgs = 'Windows.UI.Xaml.Controls.DragItemsStartingEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_DropDownButton = 'Windows.UI.Xaml.Controls.DropDownButton'
+RuntimeClass_Windows_UI_Xaml_Controls_DropDownButtonAutomationPeer = (
+    'Windows.UI.Xaml.Controls.DropDownButtonAutomationPeer')
+RuntimeClass_Windows_UI_Xaml_Controls_DynamicOverflowItemsChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.DynamicOverflowItemsChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_FlipView = 'Windows.UI.Xaml.Controls.FlipView'
+RuntimeClass_Windows_UI_Xaml_Controls_FlipViewItem = 'Windows.UI.Xaml.Controls.FlipViewItem'
+RuntimeClass_Windows_UI_Xaml_Controls_Flyout = 'Windows.UI.Xaml.Controls.Flyout'
+RuntimeClass_Windows_UI_Xaml_Controls_FlyoutPresenter = 'Windows.UI.Xaml.Controls.FlyoutPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_FocusDisengagedEventArgs = 'Windows.UI.Xaml.Controls.FocusDisengagedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_FocusEngagedEventArgs = 'Windows.UI.Xaml.Controls.FocusEngagedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_FontIcon = 'Windows.UI.Xaml.Controls.FontIcon'
+RuntimeClass_Windows_UI_Xaml_Controls_FontIconSource = 'Windows.UI.Xaml.Controls.FontIconSource'
+RuntimeClass_Windows_UI_Xaml_Controls_Frame = 'Windows.UI.Xaml.Controls.Frame'
+RuntimeClass_Windows_UI_Xaml_Controls_Grid = 'Windows.UI.Xaml.Controls.Grid'
+RuntimeClass_Windows_UI_Xaml_Controls_GridView = 'Windows.UI.Xaml.Controls.GridView'
+RuntimeClass_Windows_UI_Xaml_Controls_GridViewHeaderItem = 'Windows.UI.Xaml.Controls.GridViewHeaderItem'
+RuntimeClass_Windows_UI_Xaml_Controls_GridViewItem = 'Windows.UI.Xaml.Controls.GridViewItem'
+RuntimeClass_Windows_UI_Xaml_Controls_GroupItem = 'Windows.UI.Xaml.Controls.GroupItem'
+RuntimeClass_Windows_UI_Xaml_Controls_GroupStyle = 'Windows.UI.Xaml.Controls.GroupStyle'
+RuntimeClass_Windows_UI_Xaml_Controls_GroupStyleSelector = 'Windows.UI.Xaml.Controls.GroupStyleSelector'
+RuntimeClass_Windows_UI_Xaml_Controls_HandwritingPanelClosedEventArgs = (
+    'Windows.UI.Xaml.Controls.HandwritingPanelClosedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_HandwritingPanelOpenedEventArgs = (
+    'Windows.UI.Xaml.Controls.HandwritingPanelOpenedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_HandwritingView = 'Windows.UI.Xaml.Controls.HandwritingView'
+RuntimeClass_Windows_UI_Xaml_Controls_HandwritingViewCandidatesChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.HandwritingViewCandidatesChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_HandwritingViewTextSubmittedEventArgs = (
+    'Windows.UI.Xaml.Controls.HandwritingViewTextSubmittedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_Hub = 'Windows.UI.Xaml.Controls.Hub'
+RuntimeClass_Windows_UI_Xaml_Controls_HubSection = 'Windows.UI.Xaml.Controls.HubSection'
+RuntimeClass_Windows_UI_Xaml_Controls_HubSectionCollection = 'Windows.UI.Xaml.Controls.HubSectionCollection'
+RuntimeClass_Windows_UI_Xaml_Controls_HubSectionHeaderClickEventArgs = (
+    'Windows.UI.Xaml.Controls.HubSectionHeaderClickEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_HyperlinkButton = 'Windows.UI.Xaml.Controls.HyperlinkButton'
+RuntimeClass_Windows_UI_Xaml_Controls_IconElement = 'Windows.UI.Xaml.Controls.IconElement'
+RuntimeClass_Windows_UI_Xaml_Controls_IconSource = 'Windows.UI.Xaml.Controls.IconSource'
+RuntimeClass_Windows_UI_Xaml_Controls_IconSourceElement = 'Windows.UI.Xaml.Controls.IconSourceElement'
+RuntimeClass_Windows_UI_Xaml_Controls_Image = 'Windows.UI.Xaml.Controls.Image'
+RuntimeClass_Windows_UI_Xaml_Controls_InkCanvas = 'Windows.UI.Xaml.Controls.InkCanvas'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbar = 'Windows.UI.Xaml.Controls.InkToolbar'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarBallpointPenButton = (
+    'Windows.UI.Xaml.Controls.InkToolbarBallpointPenButton')
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarCustomPen = 'Windows.UI.Xaml.Controls.InkToolbarCustomPen'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarCustomPenButton = 'Windows.UI.Xaml.Controls.InkToolbarCustomPenButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarCustomToggleButton = (
+    'Windows.UI.Xaml.Controls.InkToolbarCustomToggleButton')
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarCustomToolButton = 'Windows.UI.Xaml.Controls.InkToolbarCustomToolButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarEraserButton = 'Windows.UI.Xaml.Controls.InkToolbarEraserButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarFlyoutItem = 'Windows.UI.Xaml.Controls.InkToolbarFlyoutItem'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarHighlighterButton = (
+    'Windows.UI.Xaml.Controls.InkToolbarHighlighterButton')
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarIsStencilButtonCheckedChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.InkToolbarIsStencilButtonCheckedChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarMenuButton = 'Windows.UI.Xaml.Controls.InkToolbarMenuButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarPenButton = 'Windows.UI.Xaml.Controls.InkToolbarPenButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarPenConfigurationControl = (
+    'Windows.UI.Xaml.Controls.InkToolbarPenConfigurationControl')
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarPencilButton = 'Windows.UI.Xaml.Controls.InkToolbarPencilButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarRulerButton = 'Windows.UI.Xaml.Controls.InkToolbarRulerButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarStencilButton = 'Windows.UI.Xaml.Controls.InkToolbarStencilButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarToggleButton = 'Windows.UI.Xaml.Controls.InkToolbarToggleButton'
+RuntimeClass_Windows_UI_Xaml_Controls_InkToolbarToolButton = 'Windows.UI.Xaml.Controls.InkToolbarToolButton'
+RuntimeClass_Windows_UI_Xaml_Controls_IsTextTrimmedChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.IsTextTrimmedChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ItemClickEventArgs = 'Windows.UI.Xaml.Controls.ItemClickEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemCollection = 'Windows.UI.Xaml.Controls.ItemCollection'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemContainerGenerator = 'Windows.UI.Xaml.Controls.ItemContainerGenerator'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemsControl = 'Windows.UI.Xaml.Controls.ItemsControl'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemsPanelTemplate = 'Windows.UI.Xaml.Controls.ItemsPanelTemplate'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemsPickedEventArgs = 'Windows.UI.Xaml.Controls.ItemsPickedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemsPresenter = 'Windows.UI.Xaml.Controls.ItemsPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemsStackPanel = 'Windows.UI.Xaml.Controls.ItemsStackPanel'
+RuntimeClass_Windows_UI_Xaml_Controls_ItemsWrapGrid = 'Windows.UI.Xaml.Controls.ItemsWrapGrid'
+RuntimeClass_Windows_UI_Xaml_Controls_ListBox = 'Windows.UI.Xaml.Controls.ListBox'
+RuntimeClass_Windows_UI_Xaml_Controls_ListBoxItem = 'Windows.UI.Xaml.Controls.ListBoxItem'
+RuntimeClass_Windows_UI_Xaml_Controls_ListPickerFlyout = 'Windows.UI.Xaml.Controls.ListPickerFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_ListPickerFlyoutPresenter = 'Windows.UI.Xaml.Controls.ListPickerFlyoutPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_ListView = 'Windows.UI.Xaml.Controls.ListView'
+RuntimeClass_Windows_UI_Xaml_Controls_ListViewBase = 'Windows.UI.Xaml.Controls.ListViewBase'
+RuntimeClass_Windows_UI_Xaml_Controls_ListViewBaseHeaderItem = 'Windows.UI.Xaml.Controls.ListViewBaseHeaderItem'
+RuntimeClass_Windows_UI_Xaml_Controls_ListViewHeaderItem = 'Windows.UI.Xaml.Controls.ListViewHeaderItem'
+RuntimeClass_Windows_UI_Xaml_Controls_ListViewItem = 'Windows.UI.Xaml.Controls.ListViewItem'
+RuntimeClass_Windows_UI_Xaml_Controls_ListViewPersistenceHelper = 'Windows.UI.Xaml.Controls.ListViewPersistenceHelper'
+RuntimeClass_Windows_UI_Xaml_Controls_MediaElement = 'Windows.UI.Xaml.Controls.MediaElement'
+RuntimeClass_Windows_UI_Xaml_Controls_MediaPlayerElement = 'Windows.UI.Xaml.Controls.MediaPlayerElement'
+RuntimeClass_Windows_UI_Xaml_Controls_MediaPlayerPresenter = 'Windows.UI.Xaml.Controls.MediaPlayerPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_MediaTransportControls = 'Windows.UI.Xaml.Controls.MediaTransportControls'
+RuntimeClass_Windows_UI_Xaml_Controls_MediaTransportControlsHelper = (
+    'Windows.UI.Xaml.Controls.MediaTransportControlsHelper')
+RuntimeClass_Windows_UI_Xaml_Controls_MenuBar = 'Windows.UI.Xaml.Controls.MenuBar'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuBarItem = 'Windows.UI.Xaml.Controls.MenuBarItem'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuBarItemFlyout = 'Windows.UI.Xaml.Controls.MenuBarItemFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuFlyout = 'Windows.UI.Xaml.Controls.MenuFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuFlyoutItem = 'Windows.UI.Xaml.Controls.MenuFlyoutItem'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuFlyoutItemBase = 'Windows.UI.Xaml.Controls.MenuFlyoutItemBase'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuFlyoutPresenter = 'Windows.UI.Xaml.Controls.MenuFlyoutPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuFlyoutSeparator = 'Windows.UI.Xaml.Controls.MenuFlyoutSeparator'
+RuntimeClass_Windows_UI_Xaml_Controls_MenuFlyoutSubItem = 'Windows.UI.Xaml.Controls.MenuFlyoutSubItem'
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationView = 'Windows.UI.Xaml.Controls.NavigationView'
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewBackRequestedEventArgs = (
+    'Windows.UI.Xaml.Controls.NavigationViewBackRequestedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewDisplayModeChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.NavigationViewDisplayModeChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewItem = 'Windows.UI.Xaml.Controls.NavigationViewItem'
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewItemBase = 'Windows.UI.Xaml.Controls.NavigationViewItemBase'
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewItemHeader = 'Windows.UI.Xaml.Controls.NavigationViewItemHeader'
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewItemInvokedEventArgs = (
+    'Windows.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewItemSeparator = (
+    'Windows.UI.Xaml.Controls.NavigationViewItemSeparator')
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewList = 'Windows.UI.Xaml.Controls.NavigationViewList'
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewPaneClosingEventArgs = (
+    'Windows.UI.Xaml.Controls.NavigationViewPaneClosingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewSelectionChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.NavigationViewSelectionChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_NavigationViewTemplateSettings = (
+    'Windows.UI.Xaml.Controls.NavigationViewTemplateSettings')
+RuntimeClass_Windows_UI_Xaml_Controls_NotifyEventArgs = 'Windows.UI.Xaml.Controls.NotifyEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_Page = 'Windows.UI.Xaml.Controls.Page'
+RuntimeClass_Windows_UI_Xaml_Controls_Panel = 'Windows.UI.Xaml.Controls.Panel'
+RuntimeClass_Windows_UI_Xaml_Controls_ParallaxView = 'Windows.UI.Xaml.Controls.ParallaxView'
+RuntimeClass_Windows_UI_Xaml_Controls_PasswordBox = 'Windows.UI.Xaml.Controls.PasswordBox'
+RuntimeClass_Windows_UI_Xaml_Controls_PasswordBoxPasswordChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.PasswordBoxPasswordChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_PathIcon = 'Windows.UI.Xaml.Controls.PathIcon'
+RuntimeClass_Windows_UI_Xaml_Controls_PathIconSource = 'Windows.UI.Xaml.Controls.PathIconSource'
+RuntimeClass_Windows_UI_Xaml_Controls_PersonPicture = 'Windows.UI.Xaml.Controls.PersonPicture'
+RuntimeClass_Windows_UI_Xaml_Controls_PickerConfirmedEventArgs = 'Windows.UI.Xaml.Controls.PickerConfirmedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_PickerFlyout = 'Windows.UI.Xaml.Controls.PickerFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_PickerFlyoutPresenter = 'Windows.UI.Xaml.Controls.PickerFlyoutPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_Pivot = 'Windows.UI.Xaml.Controls.Pivot'
+RuntimeClass_Windows_UI_Xaml_Controls_PivotItem = 'Windows.UI.Xaml.Controls.PivotItem'
+RuntimeClass_Windows_UI_Xaml_Controls_PivotItemEventArgs = 'Windows.UI.Xaml.Controls.PivotItemEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_ProgressBar = 'Windows.UI.Xaml.Controls.ProgressBar'
+RuntimeClass_Windows_UI_Xaml_Controls_ProgressRing = 'Windows.UI.Xaml.Controls.ProgressRing'
+RuntimeClass_Windows_UI_Xaml_Controls_RadioButton = 'Windows.UI.Xaml.Controls.RadioButton'
+RuntimeClass_Windows_UI_Xaml_Controls_RatingControl = 'Windows.UI.Xaml.Controls.RatingControl'
+RuntimeClass_Windows_UI_Xaml_Controls_RatingItemFontInfo = 'Windows.UI.Xaml.Controls.RatingItemFontInfo'
+RuntimeClass_Windows_UI_Xaml_Controls_RatingItemImageInfo = 'Windows.UI.Xaml.Controls.RatingItemImageInfo'
+RuntimeClass_Windows_UI_Xaml_Controls_RatingItemInfo = 'Windows.UI.Xaml.Controls.RatingItemInfo'
+RuntimeClass_Windows_UI_Xaml_Controls_RefreshContainer = 'Windows.UI.Xaml.Controls.RefreshContainer'
+RuntimeClass_Windows_UI_Xaml_Controls_RefreshInteractionRatioChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.RefreshInteractionRatioChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_RefreshRequestedEventArgs = 'Windows.UI.Xaml.Controls.RefreshRequestedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_RefreshStateChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.RefreshStateChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_RefreshVisualizer = 'Windows.UI.Xaml.Controls.RefreshVisualizer'
+RuntimeClass_Windows_UI_Xaml_Controls_RelativePanel = 'Windows.UI.Xaml.Controls.RelativePanel'
+RuntimeClass_Windows_UI_Xaml_Controls_RichEditBox = 'Windows.UI.Xaml.Controls.RichEditBox'
+RuntimeClass_Windows_UI_Xaml_Controls_RichEditBoxSelectionChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.RichEditBoxSelectionChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_RichEditBoxTextChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.RichEditBoxTextChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_RichTextBlock = 'Windows.UI.Xaml.Controls.RichTextBlock'
+RuntimeClass_Windows_UI_Xaml_Controls_RichTextBlockOverflow = 'Windows.UI.Xaml.Controls.RichTextBlockOverflow'
+RuntimeClass_Windows_UI_Xaml_Controls_RowDefinition = 'Windows.UI.Xaml.Controls.RowDefinition'
+RuntimeClass_Windows_UI_Xaml_Controls_RowDefinitionCollection = 'Windows.UI.Xaml.Controls.RowDefinitionCollection'
+RuntimeClass_Windows_UI_Xaml_Controls_ScrollContentPresenter = 'Windows.UI.Xaml.Controls.ScrollContentPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_ScrollViewer = 'Windows.UI.Xaml.Controls.ScrollViewer'
+RuntimeClass_Windows_UI_Xaml_Controls_ScrollViewerView = 'Windows.UI.Xaml.Controls.ScrollViewerView'
+RuntimeClass_Windows_UI_Xaml_Controls_ScrollViewerViewChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ScrollViewerViewChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.ScrollViewerViewChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SearchBox = 'Windows.UI.Xaml.Controls.SearchBox'
+RuntimeClass_Windows_UI_Xaml_Controls_SearchBoxQueryChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.SearchBoxQueryChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SearchBoxQuerySubmittedEventArgs = (
+    'Windows.UI.Xaml.Controls.SearchBoxQuerySubmittedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SearchBoxResultSuggestionChosenEventArgs = (
+    'Windows.UI.Xaml.Controls.SearchBoxResultSuggestionChosenEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SearchBoxSuggestionsRequestedEventArgs = (
+    'Windows.UI.Xaml.Controls.SearchBoxSuggestionsRequestedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SectionsInViewChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.SectionsInViewChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SelectionChangedEventArgs = 'Windows.UI.Xaml.Controls.SelectionChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_SemanticZoom = 'Windows.UI.Xaml.Controls.SemanticZoom'
+RuntimeClass_Windows_UI_Xaml_Controls_SemanticZoomLocation = 'Windows.UI.Xaml.Controls.SemanticZoomLocation'
+RuntimeClass_Windows_UI_Xaml_Controls_SemanticZoomViewChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.SemanticZoomViewChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_SettingsFlyout = 'Windows.UI.Xaml.Controls.SettingsFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_Slider = 'Windows.UI.Xaml.Controls.Slider'
+RuntimeClass_Windows_UI_Xaml_Controls_SplitButton = 'Windows.UI.Xaml.Controls.SplitButton'
+RuntimeClass_Windows_UI_Xaml_Controls_SplitButtonAutomationPeer = 'Windows.UI.Xaml.Controls.SplitButtonAutomationPeer'
+RuntimeClass_Windows_UI_Xaml_Controls_SplitButtonClickEventArgs = 'Windows.UI.Xaml.Controls.SplitButtonClickEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_SplitView = 'Windows.UI.Xaml.Controls.SplitView'
+RuntimeClass_Windows_UI_Xaml_Controls_SplitViewPaneClosingEventArgs = (
+    'Windows.UI.Xaml.Controls.SplitViewPaneClosingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_StackPanel = 'Windows.UI.Xaml.Controls.StackPanel'
+RuntimeClass_Windows_UI_Xaml_Controls_StyleSelector = 'Windows.UI.Xaml.Controls.StyleSelector'
+RuntimeClass_Windows_UI_Xaml_Controls_SwapChainBackgroundPanel = 'Windows.UI.Xaml.Controls.SwapChainBackgroundPanel'
+RuntimeClass_Windows_UI_Xaml_Controls_SwapChainPanel = 'Windows.UI.Xaml.Controls.SwapChainPanel'
+RuntimeClass_Windows_UI_Xaml_Controls_SwipeControl = 'Windows.UI.Xaml.Controls.SwipeControl'
+RuntimeClass_Windows_UI_Xaml_Controls_SwipeItem = 'Windows.UI.Xaml.Controls.SwipeItem'
+RuntimeClass_Windows_UI_Xaml_Controls_SwipeItemInvokedEventArgs = 'Windows.UI.Xaml.Controls.SwipeItemInvokedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_SwipeItems = 'Windows.UI.Xaml.Controls.SwipeItems'
+RuntimeClass_Windows_UI_Xaml_Controls_SymbolIcon = 'Windows.UI.Xaml.Controls.SymbolIcon'
+RuntimeClass_Windows_UI_Xaml_Controls_SymbolIconSource = 'Windows.UI.Xaml.Controls.SymbolIconSource'
+RuntimeClass_Windows_UI_Xaml_Controls_TextBlock = 'Windows.UI.Xaml.Controls.TextBlock'
+RuntimeClass_Windows_UI_Xaml_Controls_TextBox = 'Windows.UI.Xaml.Controls.TextBox'
+RuntimeClass_Windows_UI_Xaml_Controls_TextBoxBeforeTextChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.TextBoxBeforeTextChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextBoxSelectionChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.TextBoxSelectionChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextBoxTextChangingEventArgs = (
+    'Windows.UI.Xaml.Controls.TextBoxTextChangingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextChangedEventArgs = 'Windows.UI.Xaml.Controls.TextChangedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_TextCommandBarFlyout = 'Windows.UI.Xaml.Controls.TextCommandBarFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_TextCompositionChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.TextCompositionChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextCompositionEndedEventArgs = (
+    'Windows.UI.Xaml.Controls.TextCompositionEndedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextCompositionStartedEventArgs = (
+    'Windows.UI.Xaml.Controls.TextCompositionStartedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextControlCopyingToClipboardEventArgs = (
+    'Windows.UI.Xaml.Controls.TextControlCopyingToClipboardEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextControlCuttingToClipboardEventArgs = (
+    'Windows.UI.Xaml.Controls.TextControlCuttingToClipboardEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TextControlPasteEventArgs = 'Windows.UI.Xaml.Controls.TextControlPasteEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_TimePickedEventArgs = 'Windows.UI.Xaml.Controls.TimePickedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_TimePicker = 'Windows.UI.Xaml.Controls.TimePicker'
+RuntimeClass_Windows_UI_Xaml_Controls_TimePickerFlyout = 'Windows.UI.Xaml.Controls.TimePickerFlyout'
+RuntimeClass_Windows_UI_Xaml_Controls_TimePickerFlyoutPresenter = 'Windows.UI.Xaml.Controls.TimePickerFlyoutPresenter'
+RuntimeClass_Windows_UI_Xaml_Controls_TimePickerSelectedValueChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.TimePickerSelectedValueChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TimePickerValueChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.TimePickerValueChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ToggleMenuFlyoutItem = 'Windows.UI.Xaml.Controls.ToggleMenuFlyoutItem'
+RuntimeClass_Windows_UI_Xaml_Controls_ToggleSplitButton = 'Windows.UI.Xaml.Controls.ToggleSplitButton'
+RuntimeClass_Windows_UI_Xaml_Controls_ToggleSplitButtonAutomationPeer = (
+    'Windows.UI.Xaml.Controls.ToggleSplitButtonAutomationPeer')
+RuntimeClass_Windows_UI_Xaml_Controls_ToggleSplitButtonIsCheckedChangedEventArgs = (
+    'Windows.UI.Xaml.Controls.ToggleSplitButtonIsCheckedChangedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_ToggleSwitch = 'Windows.UI.Xaml.Controls.ToggleSwitch'
+RuntimeClass_Windows_UI_Xaml_Controls_ToolTip = 'Windows.UI.Xaml.Controls.ToolTip'
+RuntimeClass_Windows_UI_Xaml_Controls_ToolTipService = 'Windows.UI.Xaml.Controls.ToolTipService'
+RuntimeClass_Windows_UI_Xaml_Controls_TreeView = 'Windows.UI.Xaml.Controls.TreeView'
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewCollapsedEventArgs = 'Windows.UI.Xaml.Controls.TreeViewCollapsedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewDragItemsCompletedEventArgs = (
+    'Windows.UI.Xaml.Controls.TreeViewDragItemsCompletedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewDragItemsStartingEventArgs = (
+    'Windows.UI.Xaml.Controls.TreeViewDragItemsStartingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewExpandingEventArgs = 'Windows.UI.Xaml.Controls.TreeViewExpandingEventArgs'
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewItem = 'Windows.UI.Xaml.Controls.TreeViewItem'
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewItemInvokedEventArgs = (
+    'Windows.UI.Xaml.Controls.TreeViewItemInvokedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewItemTemplateSettings = (
+    'Windows.UI.Xaml.Controls.TreeViewItemTemplateSettings')
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewList = 'Windows.UI.Xaml.Controls.TreeViewList'
+RuntimeClass_Windows_UI_Xaml_Controls_TreeViewNode = 'Windows.UI.Xaml.Controls.TreeViewNode'
+RuntimeClass_Windows_UI_Xaml_Controls_TwoPaneView = 'Windows.UI.Xaml.Controls.TwoPaneView'
+RuntimeClass_Windows_UI_Xaml_Controls_UIElementCollection = 'Windows.UI.Xaml.Controls.UIElementCollection'
+RuntimeClass_Windows_UI_Xaml_Controls_UserControl = 'Windows.UI.Xaml.Controls.UserControl'
+RuntimeClass_Windows_UI_Xaml_Controls_VariableSizedWrapGrid = 'Windows.UI.Xaml.Controls.VariableSizedWrapGrid'
+RuntimeClass_Windows_UI_Xaml_Controls_Viewbox = 'Windows.UI.Xaml.Controls.Viewbox'
+RuntimeClass_Windows_UI_Xaml_Controls_VirtualizingPanel = 'Windows.UI.Xaml.Controls.VirtualizingPanel'
+RuntimeClass_Windows_UI_Xaml_Controls_VirtualizingStackPanel = 'Windows.UI.Xaml.Controls.VirtualizingStackPanel'
+RuntimeClass_Windows_UI_Xaml_Controls_WebView = 'Windows.UI.Xaml.Controls.WebView'
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewBrush = 'Windows.UI.Xaml.Controls.WebViewBrush'
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewContentLoadingEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewContentLoadingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewDOMContentLoadedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewDOMContentLoadedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewDeferredPermissionRequest = (
+    'Windows.UI.Xaml.Controls.WebViewDeferredPermissionRequest')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewLongRunningScriptDetectedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewLongRunningScriptDetectedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewNavigationCompletedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewNavigationCompletedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewNavigationFailedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewNavigationFailedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewNavigationStartingEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewNavigationStartingEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewNewWindowRequestedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewNewWindowRequestedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewPermissionRequest = 'Windows.UI.Xaml.Controls.WebViewPermissionRequest'
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewPermissionRequestedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewPermissionRequestedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewSeparateProcessLostEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewSeparateProcessLostEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewSettings = 'Windows.UI.Xaml.Controls.WebViewSettings'
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewUnsupportedUriSchemeIdentifiedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewUnsupportedUriSchemeIdentifiedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewUnviewableContentIdentifiedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewUnviewableContentIdentifiedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WebViewWebResourceRequestedEventArgs = (
+    'Windows.UI.Xaml.Controls.WebViewWebResourceRequestedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Controls_WrapGrid = 'Windows.UI.Xaml.Controls.WrapGrid'
 RuntimeClass_Windows_UI_Xaml_Hosting_DesignerAppExitedEventArgs = 'Windows.UI.Xaml.Hosting.DesignerAppExitedEventArgs'
 RuntimeClass_Windows_UI_Xaml_Hosting_DesignerAppManager = 'Windows.UI.Xaml.Hosting.DesignerAppManager'
 RuntimeClass_Windows_UI_Xaml_Hosting_DesignerAppView = 'Windows.UI.Xaml.Hosting.DesignerAppView'
@@ -8155,6 +8732,76 @@ RuntimeClass_Windows_UI_Xaml_Hosting_XamlSourceFocusNavigationRequest = (
 RuntimeClass_Windows_UI_Xaml_Hosting_XamlSourceFocusNavigationResult = (
     'Windows.UI.Xaml.Hosting.XamlSourceFocusNavigationResult')
 RuntimeClass_Windows_UI_Xaml_Hosting_XamlUIPresenter = 'Windows.UI.Xaml.Hosting.XamlUIPresenter'
+RuntimeClass_Windows_UI_Xaml_Media_AcrylicBrush = 'Windows.UI.Xaml.Media.AcrylicBrush'
+RuntimeClass_Windows_UI_Xaml_Media_ArcSegment = 'Windows.UI.Xaml.Media.ArcSegment'
+RuntimeClass_Windows_UI_Xaml_Media_BezierSegment = 'Windows.UI.Xaml.Media.BezierSegment'
+RuntimeClass_Windows_UI_Xaml_Media_BitmapCache = 'Windows.UI.Xaml.Media.BitmapCache'
+RuntimeClass_Windows_UI_Xaml_Media_Brush = 'Windows.UI.Xaml.Media.Brush'
+RuntimeClass_Windows_UI_Xaml_Media_BrushCollection = 'Windows.UI.Xaml.Media.BrushCollection'
+RuntimeClass_Windows_UI_Xaml_Media_CacheMode = 'Windows.UI.Xaml.Media.CacheMode'
+RuntimeClass_Windows_UI_Xaml_Media_CompositeTransform = 'Windows.UI.Xaml.Media.CompositeTransform'
+RuntimeClass_Windows_UI_Xaml_Media_CompositionTarget = 'Windows.UI.Xaml.Media.CompositionTarget'
+RuntimeClass_Windows_UI_Xaml_Media_DoubleCollection = 'Windows.UI.Xaml.Media.DoubleCollection'
+RuntimeClass_Windows_UI_Xaml_Media_EllipseGeometry = 'Windows.UI.Xaml.Media.EllipseGeometry'
+RuntimeClass_Windows_UI_Xaml_Media_FontFamily = 'Windows.UI.Xaml.Media.FontFamily'
+RuntimeClass_Windows_UI_Xaml_Media_GeneralTransform = 'Windows.UI.Xaml.Media.GeneralTransform'
+RuntimeClass_Windows_UI_Xaml_Media_Geometry = 'Windows.UI.Xaml.Media.Geometry'
+RuntimeClass_Windows_UI_Xaml_Media_GeometryCollection = 'Windows.UI.Xaml.Media.GeometryCollection'
+RuntimeClass_Windows_UI_Xaml_Media_GeometryGroup = 'Windows.UI.Xaml.Media.GeometryGroup'
+RuntimeClass_Windows_UI_Xaml_Media_GradientBrush = 'Windows.UI.Xaml.Media.GradientBrush'
+RuntimeClass_Windows_UI_Xaml_Media_GradientStop = 'Windows.UI.Xaml.Media.GradientStop'
+RuntimeClass_Windows_UI_Xaml_Media_GradientStopCollection = 'Windows.UI.Xaml.Media.GradientStopCollection'
+RuntimeClass_Windows_UI_Xaml_Media_ImageBrush = 'Windows.UI.Xaml.Media.ImageBrush'
+RuntimeClass_Windows_UI_Xaml_Media_ImageSource = 'Windows.UI.Xaml.Media.ImageSource'
+RuntimeClass_Windows_UI_Xaml_Media_LineGeometry = 'Windows.UI.Xaml.Media.LineGeometry'
+RuntimeClass_Windows_UI_Xaml_Media_LineSegment = 'Windows.UI.Xaml.Media.LineSegment'
+RuntimeClass_Windows_UI_Xaml_Media_LinearGradientBrush = 'Windows.UI.Xaml.Media.LinearGradientBrush'
+RuntimeClass_Windows_UI_Xaml_Media_LoadedImageSourceLoadCompletedEventArgs = (
+    'Windows.UI.Xaml.Media.LoadedImageSourceLoadCompletedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Media_LoadedImageSurface = 'Windows.UI.Xaml.Media.LoadedImageSurface'
+RuntimeClass_Windows_UI_Xaml_Media_Matrix3DProjection = 'Windows.UI.Xaml.Media.Matrix3DProjection'
+RuntimeClass_Windows_UI_Xaml_Media_MatrixHelper = 'Windows.UI.Xaml.Media.MatrixHelper'
+RuntimeClass_Windows_UI_Xaml_Media_MatrixTransform = 'Windows.UI.Xaml.Media.MatrixTransform'
+RuntimeClass_Windows_UI_Xaml_Media_MediaTransportControlsThumbnailRequestedEventArgs = (
+    'Windows.UI.Xaml.Media.MediaTransportControlsThumbnailRequestedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Media_PartialMediaFailureDetectedEventArgs = (
+    'Windows.UI.Xaml.Media.PartialMediaFailureDetectedEventArgs')
+RuntimeClass_Windows_UI_Xaml_Media_PathFigure = 'Windows.UI.Xaml.Media.PathFigure'
+RuntimeClass_Windows_UI_Xaml_Media_PathFigureCollection = 'Windows.UI.Xaml.Media.PathFigureCollection'
+RuntimeClass_Windows_UI_Xaml_Media_PathGeometry = 'Windows.UI.Xaml.Media.PathGeometry'
+RuntimeClass_Windows_UI_Xaml_Media_PathSegment = 'Windows.UI.Xaml.Media.PathSegment'
+RuntimeClass_Windows_UI_Xaml_Media_PathSegmentCollection = 'Windows.UI.Xaml.Media.PathSegmentCollection'
+RuntimeClass_Windows_UI_Xaml_Media_PlaneProjection = 'Windows.UI.Xaml.Media.PlaneProjection'
+RuntimeClass_Windows_UI_Xaml_Media_PointCollection = 'Windows.UI.Xaml.Media.PointCollection'
+RuntimeClass_Windows_UI_Xaml_Media_PolyBezierSegment = 'Windows.UI.Xaml.Media.PolyBezierSegment'
+RuntimeClass_Windows_UI_Xaml_Media_PolyLineSegment = 'Windows.UI.Xaml.Media.PolyLineSegment'
+RuntimeClass_Windows_UI_Xaml_Media_PolyQuadraticBezierSegment = 'Windows.UI.Xaml.Media.PolyQuadraticBezierSegment'
+RuntimeClass_Windows_UI_Xaml_Media_Projection = 'Windows.UI.Xaml.Media.Projection'
+RuntimeClass_Windows_UI_Xaml_Media_QuadraticBezierSegment = 'Windows.UI.Xaml.Media.QuadraticBezierSegment'
+RuntimeClass_Windows_UI_Xaml_Media_RateChangedRoutedEventArgs = 'Windows.UI.Xaml.Media.RateChangedRoutedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Media_RectangleGeometry = 'Windows.UI.Xaml.Media.RectangleGeometry'
+RuntimeClass_Windows_UI_Xaml_Media_RenderedEventArgs = 'Windows.UI.Xaml.Media.RenderedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Media_RenderingEventArgs = 'Windows.UI.Xaml.Media.RenderingEventArgs'
+RuntimeClass_Windows_UI_Xaml_Media_RevealBackgroundBrush = 'Windows.UI.Xaml.Media.RevealBackgroundBrush'
+RuntimeClass_Windows_UI_Xaml_Media_RevealBorderBrush = 'Windows.UI.Xaml.Media.RevealBorderBrush'
+RuntimeClass_Windows_UI_Xaml_Media_RevealBrush = 'Windows.UI.Xaml.Media.RevealBrush'
+RuntimeClass_Windows_UI_Xaml_Media_RotateTransform = 'Windows.UI.Xaml.Media.RotateTransform'
+RuntimeClass_Windows_UI_Xaml_Media_ScaleTransform = 'Windows.UI.Xaml.Media.ScaleTransform'
+RuntimeClass_Windows_UI_Xaml_Media_Shadow = 'Windows.UI.Xaml.Media.Shadow'
+RuntimeClass_Windows_UI_Xaml_Media_SkewTransform = 'Windows.UI.Xaml.Media.SkewTransform'
+RuntimeClass_Windows_UI_Xaml_Media_SolidColorBrush = 'Windows.UI.Xaml.Media.SolidColorBrush'
+RuntimeClass_Windows_UI_Xaml_Media_ThemeShadow = 'Windows.UI.Xaml.Media.ThemeShadow'
+RuntimeClass_Windows_UI_Xaml_Media_TileBrush = 'Windows.UI.Xaml.Media.TileBrush'
+RuntimeClass_Windows_UI_Xaml_Media_TimelineMarker = 'Windows.UI.Xaml.Media.TimelineMarker'
+RuntimeClass_Windows_UI_Xaml_Media_TimelineMarkerCollection = 'Windows.UI.Xaml.Media.TimelineMarkerCollection'
+RuntimeClass_Windows_UI_Xaml_Media_TimelineMarkerRoutedEventArgs = 'Windows.UI.Xaml.Media.TimelineMarkerRoutedEventArgs'
+RuntimeClass_Windows_UI_Xaml_Media_Transform = 'Windows.UI.Xaml.Media.Transform'
+RuntimeClass_Windows_UI_Xaml_Media_TransformCollection = 'Windows.UI.Xaml.Media.TransformCollection'
+RuntimeClass_Windows_UI_Xaml_Media_TransformGroup = 'Windows.UI.Xaml.Media.TransformGroup'
+RuntimeClass_Windows_UI_Xaml_Media_TranslateTransform = 'Windows.UI.Xaml.Media.TranslateTransform'
+RuntimeClass_Windows_UI_Xaml_Media_VisualTreeHelper = 'Windows.UI.Xaml.Media.VisualTreeHelper'
+RuntimeClass_Windows_UI_Xaml_Media_XamlCompositionBrushBase = 'Windows.UI.Xaml.Media.XamlCompositionBrushBase'
+RuntimeClass_Windows_UI_Xaml_Media_XamlLight = 'Windows.UI.Xaml.Media.XamlLight'
 ImageFormatUndefined = '{B96B3CA9-0728-11D3-9D7B-0000F81EF32E}'
 ImageFormatMemoryBMP = '{B96B3CAA-0728-11D3-9D7B-0000F81EF32E}'
 ImageFormatBMP = '{B96B3CAB-0728-11D3-9D7B-0000F81EF32E}'
@@ -8699,6 +9346,31 @@ IID_IShellItem = '{43826D1E-E718-42EE-BC55-A1E261C37BFE}'
 IID_IShellItemArray = '{B63EA76D-1F85-456F-A19C-48159EFA858B}'
 IID_IShellLinkA = '{000214EE-0000-0000-C000-000000000046}'
 IID_IShellLinkW = '{000214F9-0000-0000-C000-000000000046}'
+IID_IFrameworkElement = '{A391D09B-4A99-4B7C-9D8D-6FA5D01F6FBF}'
+IID_IColorsStatics = '{CFF52E04-CCA6-4614-A17E-754910C84A99}'
+IID_ISolidColorBrush = '{9D850850-66F3-48DF-9A8F-824BD5E070AF}'
+IID_ISolidColorBrushFactory = '{D935CE0C-86F5-4DA6-8A27-B1619EF7F92B}'
+IID_ISolidColorBrushStatics = '{E1A65EFA-2B23-41BA-B9BA-7094EC8E4E9F}'
+IID_IBrush = '{8806A321-1E06-422C-A1CC-01696559E021}'
+IID_IBrushFactory = '{399658A2-14FB-4B8F-83E6-6E3DAB12069B}'
+IID_IBrushOverrides2 = '{D092B151-D83B-5A81-A71E-A1C7F8AD6963}'
+IID_IBrushStatics = '{E70C3102-0225-47F5-B22E-0467619F6A22}'
+IID_IPanel = '{A50A4BBD-8361-469C-90DA-E9A40C7474DF}'
+IID_IPanel2 = '{709133C7-38F3-5083-A4BB-06A548A1D231}'
+IID_IPanelFactory = '{EEE68111-C7CC-433F-95CD-D630C34302DD}'
+IID_IPanelStatics = '{F23D6B5D-8330-47A6-A046-25F509B25232}'
+IID_IStackPanel = '{B8AE8FE2-D641-4FD7-80B4-7439207D2798}'
+IID_IStackPanel2 = '{36F23359-040E-48F7-9A98-F2664591959C}'
+IID_IStackPanel4 = '{43EBF7F6-3196-412E-8A95-ADD002FF43F0}'
+IID_IStackPanel5 = '{F73E3117-61A8-5A01-865E-88511C04A992}'
+IID_IStackPanelFactory = '{63D8248A-8B34-445A-808F-B6ECD62A27D9}'
+IID_IStackPanelStatics = '{F0D0CD93-4DBC-48A7-9914-954924657771}'
+IID_IStackPanelStatics2 = '{D97E6257-080D-412E-A91A-CE6E5D02AAD3}'
+IID_IStackPanelStatics4 = '{279CDD71-067B-459F-815F-ECD85C5E4843}'
+IID_IStackPanelStatics5 = '{87287490-BFF2-5347-8787-FB5AEC942878}'
+IID_ITextBlock = '{AE2D9271-3B4A-45FC-8468-F7949548F4D5}'
+IID_IUIElement = '{676D0BE9-B65C-41C6-BA40-58CF87F201C1}'
+IID_IUIElementCollection = '{D6602D54-88F6-43F6-85D8-A9D914A6DD3B}'
 IID_IStartMenuPinnedList = '{4CD19ADA-25A5-4A32-B3B7-347BEE5BE36B}'
 IID_IStorageFile = '{FA3F6186-4214-428C-A64C-14C9AC7315EA}'
 IID_IStorageFileStatics = '{5984C710-DAF2-43C8-8BB4-A4D3EACFD03F}'
@@ -8735,6 +9407,7 @@ IID_IXmlDocumentIO = '{6CD0E74E-EE65-4489-9EBF-CA43E87BA637}'
 IID_IXmlDocumentIO2 = '{5D034661-7BD8-4AD5-9EBF-81E6347263B1}'
 IID_IXmlDocumentStatics = '{5543D254-D757-4B79-9539-232B18F50BF1}'
 IID_IXmlNodeSerializer = '{5CC5B382-E6DD-4991-ABEF-06D8D2E7BD0C}'
+IID_IVector_IUIElement = '{B4C1E3AC-8768-5B9D-A661-F63330B8507B}'
 # DEVPKEY
 DEVPKEY_NAME = '{B725F130-47EF-101A-A5F1-02608C9EEBAC}', 10
 DEVPKEY_Device_DeviceDesc = '{A45C254E-DF1C-4EFD-8020-67D146A850E0}', 2

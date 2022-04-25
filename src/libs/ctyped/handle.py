@@ -202,3 +202,6 @@ class HWND(_type.HWND):
 
     def show(self, cmd: int = _const.SW_SHOW) -> bool:
         return bool(_lib.User32.ShowWindow(self, cmd))
+
+    def update(self) -> bool:
+        return bool(_lib.User32.UpdateWindow(self))

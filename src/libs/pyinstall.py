@@ -2,8 +2,8 @@ __version__ = '0.0.2'
 
 import glob
 import importlib
+import io
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -33,7 +33,7 @@ def clean_temp(remove_base: bool = False) -> bool:
     return cleaned
 
 
-def _merge_xml_roots(self: ElementTree.Element, other: ElementTree.Element):
+def _merge_xml_(self: ElementTree.Element, other: ElementTree.Element):
     elements = {element.tag: element for element in self}
     for element in other:
         if len(element) == 0:
@@ -44,20 +44,39 @@ def _merge_xml_roots(self: ElementTree.Element, other: ElementTree.Element):
                 self.append(element)
         else:
             try:
-                _merge_xml_roots(elements[element.tag], element)
+                _merge_xml_(elements[element.tag], element)
             except KeyError:
                 elements[element.tag] = element
                 self.append(element)
 
 
-def _merge_xml(self: str, other: str, ns: bool = True) -> str:
+def _merge_xml(self: str, other: str) -> str:
     root = ElementTree.fromstring(self)
-    _merge_xml_roots(root, ElementTree.fromstring(other))
+    _merge_xml_(root, ElementTree.fromstring(other))
     ElementTree.indent(root)
-    xml = ElementTree.tostring(root, 'unicode')
-    if not ns:
-        xml = re.sub(r':ns\d=', '=', re.sub(r'<(/?)ns\d+:', '<\\1', xml))
-    return xml
+    return ElementTree.tostring(root, 'unicode')
+
+
+def _calc_winpe_size(stream: io.BytesIO) -> int:
+    stream.seek(0, os.SEEK_SET)
+    buff = stream.read(4096)
+    header_offset = int.from_bytes(buff[60:64], 'little')
+    machine = int.from_bytes(buff[header_offset + 4:header_offset + 6], 'little')
+    if machine == 0x014c:
+        header_sz = 248
+    elif machine == 0x8664:
+        header_sz = 264
+    else:
+        return 0
+    max_ptr = 0
+    sz = 0
+    for index in range(int.from_bytes(buff[header_offset + 6:header_offset + 8], 'little')):
+        section_offset = header_offset + header_sz + index * 40
+        data_ptr = int.from_bytes(buff[section_offset + 20:section_offset + 24], 'little')
+        if data_ptr > max_ptr:
+            max_ptr = data_ptr
+            sz = max_ptr + int.from_bytes(buff[section_offset + 16:section_offset + 20], 'little')
+    return sz
 
 
 def add_manifest(path: str, manifest: str, merge: bool = True):
@@ -68,6 +87,6 @@ def add_manifest(path: str, manifest: str, merge: bool = True):
         with open(path, 'rb') as file:
             shutil.copyfileobj(file, temp)
         winmanifest.UpdateManifestResourcesFromXML(path, manifest.encode())
-        temp.seek(os.path.getsize(path), os.SEEK_SET)  # TODO might fail if changed pe size
+        temp.seek(_calc_winpe_size(temp), os.SEEK_SET)
         with open(path, 'ab') as file:
             shutil.copyfileobj(temp, file)

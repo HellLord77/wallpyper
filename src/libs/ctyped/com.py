@@ -1081,6 +1081,203 @@ class IToastFailedEventArgs(IInspectable):
                              _type.HRESULT]
 
 
+class IUIElement(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_UIElement
+    get_DesiredSize: _Callable[[_Pointer[_struct.Size]],
+                               _type.HRESULT]
+    get_AllowDrop: _Callable[[_Pointer[_type.boolean]],
+                             _type.HRESULT]
+    put_AllowDrop: _Callable[[_type.boolean],
+                             _type.HRESULT]
+    get_Opacity: _Callable[[_Pointer[_type.DOUBLE]],
+                           _type.HRESULT]
+    put_Opacity: _Callable[[_type.DOUBLE],
+                           _type.HRESULT]
+    get_Clip: _Callable
+    put_Clip: _Callable
+    get_RenderTransform: _Callable
+    put_RenderTransform: _Callable
+    get_Projection: _Callable
+    put_Projection: _Callable
+    get_RenderTransformOrigin: _Callable[[_Pointer[_struct.Point]],
+                                         _type.HRESULT]
+    put_RenderTransformOrigin: _Callable[[_struct.Point],
+                                         _type.HRESULT]
+    get_IsHitTestVisible: _Callable[[_Pointer[_type.boolean]],
+                                    _type.HRESULT]
+    put_IsHitTestVisible: _Callable[[_type.boolean],
+                                    _type.HRESULT]
+    get_Visibility: _Callable[[_Pointer[_enum.Visibility]],
+                              _type.HRESULT]
+    put_Visibility: _Callable[[_enum.Visibility],
+                              _type.HRESULT]
+    get_RenderSize: _Callable[[_Pointer[_struct.Size]],
+                              _type.HRESULT]
+    get_UseLayoutRounding: _Callable[[_Pointer[_type.boolean]],
+                                     _type.HRESULT]
+    put_UseLayoutRounding: _Callable[[_type.boolean],
+                                     _type.HRESULT]
+    get_Transitions: _Callable
+    put_Transitions: _Callable
+    get_CacheMode: _Callable
+    put_CacheMode: _Callable
+    get_IsTapEnabled: _Callable[[_Pointer[_type.boolean]],
+                                _type.HRESULT]
+    put_IsTapEnabled: _Callable[[_type.boolean],
+                                _type.HRESULT]
+    get_IsDoubleTapEnabled: _Callable[[_Pointer[_type.boolean]],
+                                      _type.HRESULT]
+    put_IsDoubleTapEnabled: _Callable[[_type.boolean],
+                                      _type.HRESULT]
+    get_IsRightTapEnabled: _Callable[[_Pointer[_type.boolean]],
+                                     _type.HRESULT]
+    put_IsRightTapEnabled: _Callable[[_type.boolean],
+                                     _type.HRESULT]
+    get_IsHoldingEnabled: _Callable[[_Pointer[_type.boolean]],
+                                    _type.HRESULT]
+    put_IsHoldingEnabled: _Callable[[_type.boolean],
+                                    _type.HRESULT]
+    get_ManipulationMode: _Callable[[_Pointer[_enum.ManipulationModes]],
+                                    _type.HRESULT]
+    put_ManipulationMode: _Callable[[_enum.ManipulationModes],
+                                    _type.HRESULT]
+    get_PointerCaptures: _Callable
+    add_KeyUp: _Callable
+    remove_KeyUp: _Callable[[_struct.EventRegistrationToken],
+                            _type.HRESULT]
+    add_KeyDown: _Callable
+    remove_KeyDown: _Callable[[_struct.EventRegistrationToken],
+                              _type.HRESULT]
+    add_GotFocus: _Callable
+    remove_GotFocus: _Callable[[_struct.EventRegistrationToken],
+                               _type.HRESULT]
+    add_LostFocus: _Callable
+    remove_LostFocus: _Callable[[_struct.EventRegistrationToken],
+                                _type.HRESULT]
+    add_DragEnter: _Callable
+    remove_DragEnter: _Callable[[_struct.EventRegistrationToken],
+                                _type.HRESULT]
+    add_DragLeave: _Callable
+    remove_DragLeave: _Callable[[_struct.EventRegistrationToken],
+                                _type.HRESULT]
+    add_DragOver: _Callable
+    remove_DragOver: _Callable[[_struct.EventRegistrationToken],
+                               _type.HRESULT]
+    add_Drop: _Callable
+    remove_Drop: _Callable[[_struct.EventRegistrationToken],
+                           _type.HRESULT]
+    add_PointerPressed: _Callable
+    remove_PointerPressed: _Callable[[_struct.EventRegistrationToken],
+                                     _type.HRESULT]
+    add_PointerMoved: _Callable
+    remove_PointerMoved: _Callable[[_struct.EventRegistrationToken],
+                                   _type.HRESULT]
+    add_PointerReleased: _Callable
+    remove_PointerReleased: _Callable[[_struct.EventRegistrationToken],
+                                      _type.HRESULT]
+    add_PointerEntered: _Callable
+    remove_PointerEntered: _Callable[[_struct.EventRegistrationToken],
+                                     _type.HRESULT]
+    add_PointerExited: _Callable
+    remove_PointerExited: _Callable[[_struct.EventRegistrationToken],
+                                    _type.HRESULT]
+    add_PointerCaptureLost: _Callable
+    remove_PointerCaptureLost: _Callable[[_struct.EventRegistrationToken],
+                                         _type.HRESULT]
+    add_PointerCanceled: _Callable
+    remove_PointerCanceled: _Callable[[_struct.EventRegistrationToken],
+                                      _type.HRESULT]
+    add_PointerWheelChanged: _Callable
+    remove_PointerWheelChanged: _Callable[[_struct.EventRegistrationToken],
+                                          _type.HRESULT]
+    add_Tapped: _Callable
+    remove_Tapped: _Callable[[_struct.EventRegistrationToken],
+                             _type.HRESULT]
+    add_DoubleTapped: _Callable
+    remove_DoubleTapped: _Callable[[_struct.EventRegistrationToken],
+                                   _type.HRESULT]
+    add_Holding: _Callable
+    remove_Holding: _Callable[[_struct.EventRegistrationToken],
+                              _type.HRESULT]
+    add_RightTapped: _Callable
+    remove_RightTapped: _Callable[[_struct.EventRegistrationToken],
+                                  _type.HRESULT]
+    add_ManipulationStarting: _Callable
+    remove_ManipulationStarting: _Callable[[_struct.EventRegistrationToken],
+                                           _type.HRESULT]
+    add_ManipulationInertiaStarting: _Callable
+    remove_ManipulationInertiaStarting: _Callable[[_struct.EventRegistrationToken],
+                                                  _type.HRESULT]
+    add_ManipulationStarted: _Callable
+    remove_ManipulationStarted: _Callable[[_struct.EventRegistrationToken],
+                                          _type.HRESULT]
+    add_ManipulationDelta: _Callable
+    remove_ManipulationDelta: _Callable[[_struct.EventRegistrationToken],
+                                        _type.HRESULT]
+    add_ManipulationCompleted: _Callable
+    remove_ManipulationCompleted: _Callable[[_struct.EventRegistrationToken],
+                                            _type.HRESULT]
+    Measure: _Callable[[_struct.Size],
+                       _type.HRESULT]
+    Arrange: _Callable[[_struct.Rect],
+                       _type.HRESULT]
+    CapturePointer: _Callable
+    ReleasePointerCapture: _Callable
+    ReleasePointerCaptures: _Callable[[],
+                                      _type.HRESULT]
+    AddHandler: _Callable
+    RemoveHandler: _Callable
+    TransformToVisual: _Callable
+    InvalidateMeasure: _Callable[[],
+                                 _type.HRESULT]
+    InvalidateArrange: _Callable[[],
+                                 _type.HRESULT]
+    UpdateLayout: _Callable[[],
+                            _type.HRESULT]
+
+
+class IVector_IUIElement(IInspectable):
+    GetAt: _Callable[[_type.c_uint,
+                      _Pointer[IUIElement]],
+                     _type.HRESULT]
+    get_Size: _Callable[[_Pointer[_type.c_uint]],
+                        _type.HRESULT]
+    GetView: _Callable
+    IndexOf: _Callable[[IUIElement,
+                        _Pointer[_type.c_uint],
+                        _Pointer[_type.boolean]],
+                       _type.HRESULT]
+    SetAt: _Callable[[_type.c_uint,
+                      IUIElement],
+                     _type.HRESULT]
+    InsertAt: _Callable[[_type.c_uint,
+                         IUIElement],
+                        _type.HRESULT]
+    RemoveAt: _Callable[[_type.c_uint],
+                        _type.HRESULT]
+    Append: _Callable[[IUIElement],
+                      _type.HRESULT]
+    RemoveAtEnd: _Callable[[],
+                           _type.HRESULT]
+    Clear: _Callable[[],
+                     _type.HRESULT]
+    GetMany: _Callable[[_type.c_uint,
+                        _type.c_uint,
+                        _Pointer[IUIElement],
+                        _Pointer[_type.c_uint]],
+                       _type.HRESULT]
+    ReplaceAll: _Callable[[_type.c_uint,
+                           _Pointer[IUIElement]],
+                          _type.HRESULT]
+
+
+class IUIElementCollection(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_UIElementCollection
+    Move: _Callable[[_type.UINT32,
+                     _type.UINT32],
+                    _type.HRESULT]
+
+
 class IWindowsXamlManager(IInspectable):
     _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_WindowsXamlManager
 
@@ -1093,8 +1290,10 @@ class IWindowsXamlManagerStatics(IInspectable):
 
 class IDesktopWindowXamlSource(IInspectable):
     _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_DesktopWindowXamlSource
-    get_Content: _Callable
-    put_Content: _Callable
+    get_Content: _Callable[[_Pointer[IUIElement]],
+                           _type.HRESULT]
+    put_Content: _Callable[[IUIElement],
+                           _type.HRESULT]
     get_HasFocus: _Callable[[_Pointer[_type.boolean]],
                             _type.HRESULT]
     add_TakeFocusRequested: _Callable
@@ -1112,6 +1311,524 @@ class IDesktopWindowXamlSourceFactory(IInspectable):
                                _Pointer[IInspectable],
                                _Pointer[IDesktopWindowXamlSource]],
                               _type.HRESULT]
+
+
+class IFrameworkElement(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_FrameworkElement
+    get_Triggers: _Callable
+    get_Resources: _Callable
+    put_Resources: _Callable
+    get_Tag: _Callable[[_Pointer[IInspectable]],
+                       _type.HRESULT]
+    put_Tag: _Callable[[IInspectable],
+                       _type.HRESULT]
+    get_Language: _Callable[[_Pointer[_type.HSTRING]],
+                            _type.HRESULT]
+    put_Language: _Callable[[_type.HSTRING],
+                            _type.HRESULT]
+    get_ActualWidth: _Callable[[_Pointer[_type.DOUBLE]],
+                               _type.HRESULT]
+    get_ActualHeight: _Callable[[_Pointer[_type.DOUBLE]],
+                                _type.HRESULT]
+    get_Width: _Callable[[_Pointer[_type.DOUBLE]],
+                         _type.HRESULT]
+    put_Width: _Callable[[_type.DOUBLE],
+                         _type.HRESULT]
+    get_Height: _Callable[[_Pointer[_type.DOUBLE]],
+                          _type.HRESULT]
+    put_Height: _Callable[[_type.DOUBLE],
+                          _type.HRESULT]
+    get_MinWidth: _Callable[[_Pointer[_type.DOUBLE]],
+                            _type.HRESULT]
+    put_MinWidth: _Callable[[_type.DOUBLE],
+                            _type.HRESULT]
+    get_MaxWidth: _Callable[[_Pointer[_type.DOUBLE]],
+                            _type.HRESULT]
+    put_MaxWidth: _Callable[[_type.DOUBLE],
+                            _type.HRESULT]
+    get_MinHeight: _Callable[[_Pointer[_type.DOUBLE]],
+                             _type.HRESULT]
+    put_MinHeight: _Callable[[_type.DOUBLE],
+                             _type.HRESULT]
+    get_MaxHeight: _Callable[[_Pointer[_type.DOUBLE]],
+                             _type.HRESULT]
+    put_MaxHeight: _Callable[[_type.DOUBLE],
+                             _type.HRESULT]
+    get_HorizontalAlignment: _Callable[[_Pointer[_enum.HorizontalAlignment]],
+                                       _type.HRESULT]
+    put_HorizontalAlignment: _Callable[[_enum.HorizontalAlignment],
+                                       _type.HRESULT]
+    get_VerticalAlignment: _Callable[[_Pointer[_enum.VerticalAlignment]],
+                                     _type.HRESULT]
+    put_VerticalAlignment: _Callable[[_enum.VerticalAlignment],
+                                     _type.HRESULT]
+    get_Margin: _Callable[[_Pointer[_struct.Thickness]],
+                          _type.HRESULT]
+    put_Margin: _Callable[[_struct.Thickness],
+                          _type.HRESULT]
+    get_Name: _Callable[[_Pointer[_type.HSTRING]],
+                        _type.HRESULT]
+    put_Name: _Callable[[_type.HSTRING],
+                        _type.HRESULT]
+    get_BaseUri: _Callable[[_Pointer[IUriRuntimeClass]],
+                           _type.HRESULT]
+    get_DataContext: _Callable[[_Pointer[IInspectable]],
+                               _type.HRESULT]
+    put_DataContext: _Callable[[IInspectable],
+                               _type.HRESULT]
+    get_Style: _Callable
+    put_Style: _Callable
+    get_Parent: _Callable
+    get_FlowDirection: _Callable[[_Pointer[_enum.FlowDirection]],
+                                 _type.HRESULT]
+    put_FlowDirection: _Callable[[_enum.FlowDirection],
+                                 _type.HRESULT]
+    add_Loaded: _Callable
+    remove_Loaded: _Callable[[_struct.EventRegistrationToken],
+                             _type.HRESULT]
+    add_Unloaded: _Callable
+    remove_Unloaded: _Callable[[_struct.EventRegistrationToken],
+                               _type.HRESULT]
+    add_SizeChanged: _Callable
+    remove_SizeChanged: _Callable[[_struct.EventRegistrationToken],
+                                  _type.HRESULT]
+    add_LayoutUpdated: _Callable
+    remove_LayoutUpdated: _Callable[[_struct.EventRegistrationToken],
+                                    _type.HRESULT]
+    FindName: _Callable[[_type.HSTRING,
+                         _Pointer[IInspectable]],
+                        _type.HRESULT]
+    SetBinding: _Callable
+
+
+class IColorsStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Colors
+    get_AliceBlue: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_AntiqueWhite: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_Aqua: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_Aquamarine: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Azure: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_Beige: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_Bisque: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_Black: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_BlanchedAlmond: _Callable[[_Pointer[_struct.Color]],
+                                  _type.HRESULT]
+    get_Blue: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_BlueViolet: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Brown: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_BurlyWood: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_CadetBlue: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Chartreuse: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Chocolate: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Coral: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_CornflowerBlue: _Callable[[_Pointer[_struct.Color]],
+                                  _type.HRESULT]
+    get_Cornsilk: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_Crimson: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_Cyan: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_DarkBlue: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_DarkCyan: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_DarkGoldenrod: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_DarkGray: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_DarkGreen: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_DarkKhaki: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_DarkMagenta: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_DarkOliveGreen: _Callable[[_Pointer[_struct.Color]],
+                                  _type.HRESULT]
+    get_DarkOrange: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_DarkOrchid: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_DarkRed: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_DarkSalmon: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_DarkSeaGreen: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_DarkSlateBlue: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_DarkSlateGray: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_DarkTurquoise: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_DarkViolet: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_DeepPink: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_DeepSkyBlue: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_DimGray: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_DodgerBlue: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Firebrick: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_FloralWhite: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_ForestGreen: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_Fuchsia: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_Gainsboro: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_GhostWhite: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Gold: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_Goldenrod: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Gray: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_Green: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_GreenYellow: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_Honeydew: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_HotPink: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_IndianRed: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Indigo: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_Ivory: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_Khaki: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_Lavender: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_LavenderBlush: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_LawnGreen: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_LemonChiffon: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_LightBlue: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_LightCoral: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_LightCyan: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_LightGoldenrodYellow: _Callable[[_Pointer[_struct.Color]],
+                                        _type.HRESULT]
+    get_LightGreen: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_LightGray: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_LightPink: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_LightSalmon: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_LightSeaGreen: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_LightSkyBlue: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_LightSlateGray: _Callable[[_Pointer[_struct.Color]],
+                                  _type.HRESULT]
+    get_LightSteelBlue: _Callable[[_Pointer[_struct.Color]],
+                                  _type.HRESULT]
+    get_LightYellow: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_Lime: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_LimeGreen: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Linen: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_Magenta: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_Maroon: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_MediumAquamarine: _Callable[[_Pointer[_struct.Color]],
+                                    _type.HRESULT]
+    get_MediumBlue: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_MediumOrchid: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_MediumPurple: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_MediumSeaGreen: _Callable[[_Pointer[_struct.Color]],
+                                  _type.HRESULT]
+    get_MediumSlateBlue: _Callable[[_Pointer[_struct.Color]],
+                                   _type.HRESULT]
+    get_MediumSpringGreen: _Callable[[_Pointer[_struct.Color]],
+                                     _type.HRESULT]
+    get_MediumTurquoise: _Callable[[_Pointer[_struct.Color]],
+                                   _type.HRESULT]
+    get_MediumVioletRed: _Callable[[_Pointer[_struct.Color]],
+                                   _type.HRESULT]
+    get_MidnightBlue: _Callable[[_Pointer[_struct.Color]],
+                                _type.HRESULT]
+    get_MintCream: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_MistyRose: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Moccasin: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_NavajoWhite: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_Navy: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_OldLace: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_Olive: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_OliveDrab: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Orange: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_OrangeRed: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Orchid: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_PaleGoldenrod: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_PaleGreen: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_PaleTurquoise: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_PaleVioletRed: _Callable[[_Pointer[_struct.Color]],
+                                 _type.HRESULT]
+    get_PapayaWhip: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_PeachPuff: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Peru: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_Pink: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_Plum: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_PowderBlue: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Purple: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_Red: _Callable[[_Pointer[_struct.Color]],
+                       _type.HRESULT]
+    get_RosyBrown: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_RoyalBlue: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_SaddleBrown: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_Salmon: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_SandyBrown: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_SeaGreen: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_SeaShell: _Callable[[_Pointer[_struct.Color]],
+                            _type.HRESULT]
+    get_Sienna: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_Silver: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_SkyBlue: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_SlateBlue: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_SlateGray: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Snow: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_SpringGreen: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_SteelBlue: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Tan: _Callable[[_Pointer[_struct.Color]],
+                       _type.HRESULT]
+    get_Teal: _Callable[[_Pointer[_struct.Color]],
+                        _type.HRESULT]
+    get_Thistle: _Callable[[_Pointer[_struct.Color]],
+                           _type.HRESULT]
+    get_Tomato: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_Transparent: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+    get_Turquoise: _Callable[[_Pointer[_struct.Color]],
+                             _type.HRESULT]
+    get_Violet: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_Wheat: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_White: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    get_WhiteSmoke: _Callable[[_Pointer[_struct.Color]],
+                              _type.HRESULT]
+    get_Yellow: _Callable[[_Pointer[_struct.Color]],
+                          _type.HRESULT]
+    get_YellowGreen: _Callable[[_Pointer[_struct.Color]],
+                               _type.HRESULT]
+
+
+class ISolidColorBrush(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Media_SolidColorBrush
+    get_Color: _Callable[[_Pointer[_struct.Color]],
+                         _type.HRESULT]
+    put_Color: _Callable[[_struct.Color],
+                         _type.HRESULT]
+
+
+class ISolidColorBrushFactory(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Media_SolidColorBrush
+    CreateInstanceWithColor: _Callable[[_struct.Color,
+                                        _Pointer[ISolidColorBrush]],
+                                       _type.HRESULT]
+
+
+class IBrush(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Media_Brush
+    get_Opacity: _Callable[[_Pointer[_type.DOUBLE]],
+                           _type.HRESULT]
+    put_Opacity: _Callable[[_type.DOUBLE],
+                           _type.HRESULT]
+    get_Transform: _Callable
+    put_Transform: _Callable
+    get_RelativeTransform: _Callable
+    put_RelativeTransform: _Callable
+
+
+class IPanel(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_Panel
+    get_Children: _Callable[[IVector_IUIElement],
+                            _type.HRESULT]
+    get_Background: _Callable[[_Pointer[IBrush]],
+                              _type.HRESULT]
+    put_Background: _Callable[[IBrush],
+                              _type.HRESULT]
+    get_IsItemsHost: _Callable[[_Pointer[_type.boolean]],
+                               _type.HRESULT]
+    get_ChildrenTransitions: _Callable
+    put_ChildrenTransitions: _Callable
+
+
+class IStackPanel(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_StackPanel
+    get_AreScrollSnapPointsRegular: _Callable[[_Pointer[_type.boolean]],
+                                              _type.HRESULT]
+    put_AreScrollSnapPointsRegular: _Callable[[_type.boolean],
+                                              _type.HRESULT]
+    get_Orientation: _Callable[[_Pointer[_enum.Orientation]],
+                               _type.HRESULT]
+    put_Orientation: _Callable[[_enum.Orientation],
+                               _type.HRESULT]
+
+
+class IStackPanelFactory(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_StackPanel
+    CreateInstance: _Callable[[IInspectable,
+                               _Pointer[IInspectable],
+                               _Pointer[IStackPanel]],
+                              _type.HRESULT]
+
+
+class IStackPanelStatics(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_StackPanel
+    get_AreScrollSnapPointsRegularProperty: _Callable
+    get_OrientationProperty: _Callable
+
+
+class ITextBlock(IInspectable):
+    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_TextBlock
+    get_FontSize: _Callable[[_Pointer[_type.DOUBLE]],
+                            _type.HRESULT]
+    put_FontSize: _Callable[[_type.DOUBLE],
+                            _type.HRESULT]
+    get_FontFamily: _Callable
+    put_FontFamily: _Callable
+    get_FontWeight: _Callable
+    put_FontWeight: _Callable
+    get_FontStyle: _Callable
+    put_FontStyle: _Callable
+    get_FontStretch: _Callable
+    put_FontStretch: _Callable
+    get_CharacterSpacing: _Callable[[_Pointer[_type.INT32]],
+                                    _type.HRESULT]
+    put_CharacterSpacing: _Callable[[_type.INT32],
+                                    _type.HRESULT]
+    get_Foreground: _Callable[[_Pointer[IBrush]],
+                              _type.HRESULT]
+    put_Foreground: _Callable[[IBrush],
+                              _type.HRESULT]
+    get_TextWrapping: _Callable[[_Pointer[_enum.TextWrapping]],
+                                _type.HRESULT]
+    put_TextWrapping: _Callable[[_enum.TextWrapping],
+                                _type.HRESULT]
+    get_TextTrimming: _Callable[[_Pointer[_enum.TextTrimming]],
+                                _type.HRESULT]
+    put_TextTrimming: _Callable[[_enum.TextTrimming],
+                                _type.HRESULT]
+    get_TextAlignment: _Callable[[_Pointer[_enum.TextAlignment]],
+                                 _type.HRESULT]
+    put_TextAlignment: _Callable[[_enum.TextAlignment],
+                                 _type.HRESULT]
+    get_Text: _Callable[[_Pointer[_type.HSTRING]],
+                        _type.HRESULT]
+    put_Text: _Callable[[_type.HSTRING],
+                        _type.HRESULT]
+    get_Inlines: _Callable
+    get_Padding: _Callable[[_Pointer[_struct.Thickness]],
+                           _type.HRESULT]
+    put_Padding: _Callable[[_struct.Thickness],
+                           _type.HRESULT]
+    get_LineHeight: _Callable[[_Pointer[_type.DOUBLE]],
+                              _type.HRESULT]
+    put_LineHeight: _Callable[[_type.DOUBLE],
+                              _type.HRESULT]
+    get_LineStackingStrategy: _Callable[[_Pointer[_enum.LineStackingStrategy]],
+                                        _type.HRESULT]
+    put_LineStackingStrategy: _Callable[[_enum.LineStackingStrategy],
+                                        _type.HRESULT]
+    get_IsTextSelectionEnabled: _Callable[[_Pointer[_type.boolean]],
+                                          _type.HRESULT]
+    put_IsTextSelectionEnabled: _Callable[[_type.boolean],
+                                          _type.HRESULT]
+    get_SelectedText: _Callable[[_Pointer[_type.HSTRING]],
+                                _type.HRESULT]
+    get_ContentStart: _Callable
+    get_ContentEnd: _Callable
+    get_SelectionStart: _Callable
+    get_SelectionEnd: _Callable
+    get_BaselineOffset: _Callable[[_Pointer[_type.DOUBLE]],
+                                  _type.HRESULT]
+    add_SelectionChanged: _Callable
+    remove_SelectionChanged: _Callable[[_struct.EventRegistrationToken],
+                                       _type.HRESULT]
+    add_ContextMenuOpening: _Callable
+    remove_ContextMenuOpening: _Callable[[_struct.EventRegistrationToken],
+                                         _type.HRESULT]
+    SelectAll: _Callable[[],
+                         _type.HRESULT]
+    Select: _Callable
+    Focus: _Callable[[_enum.FocusState,
+                      _Pointer[_type.boolean]],
+                     _type.HRESULT]
 
 
 def _method_type(types: _Callable) -> list:
