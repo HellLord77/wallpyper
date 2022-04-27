@@ -5,7 +5,7 @@ import types as _types
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import com as _com, const as _const, enum as _enum, lib as _lib, struct as _struct, type as _type
+from . import interface as _com, const as _const, enum as _enum, lib as _lib, struct as _struct, type as _type
 from ._utils import _addressof, _byref, _not_internal, _Pointer, _pointer, _resolve_type
 
 

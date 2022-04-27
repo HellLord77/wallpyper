@@ -178,8 +178,7 @@ def _resolve_type(type_: _Any) -> _Any:
         type_ = [_ctypes.c_void_p]
     elif isinstance(type_, _typing._CallableGenericAlias):
         types_ = _typing.get_args(type_)
-        type_ = [_resolve_type(types_[1])]
-        type_.extend(_resolve_type(type_) for type_ in types_[0])
+        type_ = [_resolve_type(types_[1]), *(_resolve_type(type_) for type_ in types_[0])]
     else:
         # noinspection PyUnresolvedReferences,PyProtectedMember
         if isinstance(type_, _typing._UnionGenericAlias):

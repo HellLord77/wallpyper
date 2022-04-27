@@ -4,7 +4,7 @@ import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import com as _com, enum as _enum, struct as _struct, type as _type, union as _union
+from . import interface as _com, enum as _enum, struct as _struct, type as _type, union as _union
 from ._utils import _get_func_doc, _format_annotations, _not_internal, _Pointer, _resolve_type
 
 

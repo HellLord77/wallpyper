@@ -64,12 +64,13 @@ def get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str
 
 
 @contextlib.contextmanager
-def open_file(path: str) -> ContextManager[Optional[ctyped.com.IStorageFile]]:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
+def open_file(path: str) -> ContextManager[Optional[ctyped.interface.Windows.Storage.IStorageFile]]:
+    with ctyped.get_winrt(ctyped.interface.Windows.Storage.IStorageFileStatics) as file_statics:
         if file_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(
-                    path), operation.get_ref())) and (file := operation.get(ctyped.com.IStorageFile)):
+            operation = ctyped.Async(ctyped.interface.IAsyncOperation)
+            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
+                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
+                    file := operation.get(ctyped.interface.Windows.Storage.IStorageFile)):
                 yield file
                 return
     yield

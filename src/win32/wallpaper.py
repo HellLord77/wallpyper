@@ -278,7 +278,7 @@ def get_monitor_count() -> int:
 
 def get_monitor_ids() -> tuple[str, ...]:
     monitors = []
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             count = ctyped.type.UINT()
             wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
@@ -295,7 +295,7 @@ def get_monitor_name(id_: str) -> Optional[str]:
 
 
 def get_style() -> Optional[int]:
-    with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
+    with ctyped.init_com(ctyped.interface.IActiveDesktop) as desktop:
         if desktop:
             opt = ctyped.struct.WALLPAPEROPT()
             if ctyped.macro.SUCCEEDED(desktop.GetWallpaperOptions(ctyped.byref(opt), 0)):
@@ -311,14 +311,14 @@ def _get_param() -> str:
 
 def _get_iactivedesktop() -> str:
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
-        with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
+        with ctyped.init_com(ctyped.interface.IActiveDesktop) as desktop:
             if desktop:
                 desktop.GetWallpaper(buff, ctyped.const.SHRT_MAX, ctyped.const.AD_GETWP_BMP)
         return buff.value
 
 
 def _get_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             with _utils.string_buffer() as buff:
                 return tuple(buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
@@ -334,7 +334,7 @@ def get(monitor: Optional[str] = None) -> str:
 
 def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
     rect = ctyped.struct.RECT()
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
                 return rect.left - ctyped.lib.User32.GetSystemMetrics(
@@ -397,7 +397,7 @@ def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdipl
     graphics = bitmap.get_graphics()
     graphics.fill_rect_with_color(color, 0, 0, width, height)
     graphics.set_scale(width / src_w, height / src_h)
-    src.set_resolution(graphics.dpi_x, graphics.dpi_y)
+    src.set_resolution(graphics.get_dpi_x(), graphics.get_dpi_y())
     graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
     bitmap.save(temp_path)
     return bitmap.get_hbitmap().get_hdc()
@@ -445,12 +445,12 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
 
 
 def _set_param(path: str) -> bool:
-    return bool(ctyped.lib.User32.SystemParametersInfoW(ctyped.const.SPI_SETDESKWALLPAPER, 0, path,
-                                                        ctyped.const.SPIF_SENDWININICHANGE))
+    return bool(ctyped.lib.User32.SystemParametersInfoW(
+        ctyped.const.SPI_SETDESKWALLPAPER, 0, path, ctyped.const.SPIF_SENDWININICHANGE))
 
 
 def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
-    with ctyped.init_com(ctyped.com.IActiveDesktop) as desktop:
+    with ctyped.init_com(ctyped.interface.IActiveDesktop) as desktop:
         if desktop:
             if fade:
                 _spawn_workerw()
@@ -461,7 +461,7 @@ def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
 
 def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ctyped.type.COLORREF] = None,
                            style: Optional[Union[int, ctyped.enum.DESKTOP_WALLPAPER_POSITION]] = None) -> bool:
-    with ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if color is not None and ctyped.macro.FAILED(wallpaper.SetBackgroundColor(color)):
                 return False
@@ -499,31 +499,36 @@ _temp_lock = functools.lru_cache(lambda _: threading.Lock())
 def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
            r: int = 0, g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
+        width = image.get_width()
+        height = image.get_height()
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
             monitor_x_y_w_h = 0, 0, ctyped.lib.User32.GetSystemMetrics(
                 ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.User32.GetSystemMetrics(
                 ctyped.const.SM_CYVIRTUALSCREEN)
             if style == Style.TILE:
-                bitmap = _gdiplus.Bitmap.from_dimension(*monitor_x_y_w_h[2:])
+                width_ = monitor_x_y_w_h[2]
+                height_ = monitor_x_y_w_h[3]
+                bitmap = _gdiplus.Bitmap.from_dimension(width_, height_)
                 graphics = bitmap.get_graphics()
-                image.set_resolution(graphics.dpi_x, graphics.dpi_y)
-                for x in range(0, bitmap.width, image.width):
-                    for y in range(0, bitmap.height, image.height):
+                image.set_resolution(graphics.get_dpi_x(), graphics.get_dpi_y())
+                for x in range(0, width_, width):
+                    for y in range(0, height_, height):
                         graphics.draw_image(image, x, y)
                 image = bitmap
+                width = width_
+                height = height_
         else:
             monitor_x_y_w_h = _get_monitor_x_y_w_h(monitor)
         os.makedirs(TEMP_DIR, exist_ok=True)
         temp_path = os.path.join(TEMP_DIR, _TEMP_FILE).format(_utils.sanitize_filename(monitor))
         with _temp_lock(temp_path):
             # noinspection PyTypeChecker
-            _draw_on_workerw(image, *monitor_x_y_w_h,
-                             *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], image.width, image.height, style),
+            _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
                              temp_path, _gdiplus.Color.from_rgba(r, g, b), transition, duration)
             try:
-                return _set_idesktopwallpaper(temp_path, monitor,
-                                              style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
+                return _set_idesktopwallpaper(
+                    temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
             finally:
                 threading.Timer(_DELETE_AFTER, ctyped.lib.Kernel32.DeleteFileW, (temp_path,)).start()
     return False
@@ -540,13 +545,13 @@ def set_multi(*wallpapers: Wallpaper):
 
 
 def set_lock(path: str) -> bool:
-    with ctyped.get_winrt(ctyped.com.IStorageFileStatics) as file_statics:
+    with ctyped.get_winrt(ctyped.interface.Windows.Storage.IStorageFileStatics) as file_statics:
         if file_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
-                    ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (
-                    file := operation.get(ctyped.com.IStorageFile)):
-                with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock:
+            operation = ctyped.Async(ctyped.interface.IAsyncOperation)
+            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(
+                    path), operation.get_ref())) and (
+                    file := operation.get(ctyped.interface.Windows.Storage.IStorageFile)):
+                with ctyped.get_winrt(ctyped.interface.Windows.System.UserProfile.ILockScreenStatics) as lock:
                     if lock:
                         action = ctyped.Async()
                         if ctyped.macro.SUCCEEDED(lock.SetImageFileAsync(file, action.get_ref())):
@@ -555,9 +560,9 @@ def set_lock(path: str) -> bool:
 
 
 def set_slideshow(*paths: str) -> bool:
-    with _utils.get_itemidlist(*paths) as pidl, ctyped.init_com(ctyped.com.IDesktopWallpaper) as wallpaper:
+    with _utils.get_itemidlist(*paths) as pidl, ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
-            with ctyped.init_com(ctyped.com.IShellItemArray, False) as shl_arr:
+            with ctyped.init_com(ctyped.interface.IShellItemArray, False) as shl_arr:
                 id_arr = ctyped.array(*pidl)
                 return ctyped.macro.SUCCEEDED(
                     ctyped.lib.Shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(
@@ -566,11 +571,12 @@ def set_slideshow(*paths: str) -> bool:
 
 
 @contextlib.contextmanager
-def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IInputStream]]:
-    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+def _get_input_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
+        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
+    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
     if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (
-            stream := operation.get(ctyped.com.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
+            stream := operation.get(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream)):
+        with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
             if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
                 yield input_stream
                 return
@@ -578,11 +584,12 @@ def _get_input_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[
 
 
 @contextlib.contextmanager
-def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional[ctyped.com.IOutputStream]]:
-    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+def _get_output_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
+        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IOutputStream]]:
+    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
     if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (
-            stream := operation.get(ctyped.com.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.com.IOutputStream, False) as output_stream:
+            stream := operation.get(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream)):
+        with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IOutputStream, False) as output_stream:
             if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
                 yield output_stream
                 return
@@ -590,26 +597,29 @@ def _get_output_stream(file: ctyped.com.IStorageFile) -> ContextManager[Optional
 
 
 @contextlib.contextmanager
-def _get_wallpaper_lock_input_stream() -> ContextManager[Optional[ctyped.com.IInputStream]]:
-    with ctyped.get_winrt(ctyped.com.ILockScreenStatics) as lock_statics:
+def _get_wallpaper_lock_input_stream() -> \
+        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
+    with ctyped.get_winrt(ctyped.interface.Windows.System.UserProfile.ILockScreenStatics) as lock_statics:
         if lock_statics:
-            with ctyped.init_com(ctyped.com.IRandomAccessStream, False) as stream:
+            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream, False) as stream:
                 if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
-                    with ctyped.init_com(ctyped.com.IInputStream, False) as input_stream:
+                    with ctyped.init_com(
+                            ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
                         if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
                             yield input_stream
                             return
     yield
 
 
-def _copy_stream(input_stream: ctyped.com.IInputStream, output_stream: ctyped.com.IOutputStream,
+def _copy_stream(input_stream: ctyped.interface.Windows.Storage.Streams.IInputStream,
+                 output_stream: ctyped.interface.Windows.Storage.Streams.IOutputStream,
                  progress_callback: Optional[Callable[[int, ...], Any]],
                  args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
-    with ctyped.get_winrt(ctyped.com.IRandomAccessStreamStatics) as stream_statics:
+    with ctyped.get_winrt(ctyped.interface.Windows.Storage.Streams.IRandomAccessStreamStatics) as stream_statics:
         if stream_statics:
-            operation = ctyped.Async(ctyped.com.IAsyncOperationWithProgress)
-            if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(input_stream, output_stream,
-                                                                       operation.get_ref())):
+            operation = ctyped.Async(ctyped.interface.IAsyncOperationWithProgress)
+            if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(
+                    input_stream, output_stream, operation.get_ref())):
                 if progress_callback is not None:
                     operation.put_progress(ctyped.type.UINT64, progress_callback, args, kwargs)
                 return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
@@ -625,16 +635,16 @@ def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] 
             with _utils.open_file(path) as file:
                 if file:
                     with _get_output_stream(file) as output_stream:
-                        return output_stream and _copy_stream(input_stream, output_stream,
-                                                              progress_callback, args, kwargs)
+                        return output_stream and _copy_stream(
+                            input_stream, output_stream, progress_callback, args, kwargs)
     return False
 
 
 def remove_from_history(*paths: str) -> bool:
     removed = True
     paths = tuple(path.casefold() for path in paths)
-    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _HISTORY_KEY,
-                        access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
+    with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, _HISTORY_KEY, access=winreg.KEY_QUERY_VALUE | winreg.KEY_SET_VALUE) as key:
         for index in range(5):
             name = f'BackgroundHistoryPath{index}'
             val, type_ = winreg.QueryValueEx(key, name)

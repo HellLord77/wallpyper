@@ -1,7 +1,7 @@
 import ctypes as _ctypes
 from typing import Optional as _Optional
 
-from . import com as _com, const as _const, lib as _lib, struct as _struct, type as _type
+from . import interface as _com, const as _const, lib as _lib, struct as _struct, type as _type
 from ._utils import _Pointer, _byref, _cast_int
 
 

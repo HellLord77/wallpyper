@@ -1258,7 +1258,7 @@ def _init(item: str) -> type:
             super().__init__(value)
 
         @property
-        def _name_(self) -> str:
+        def name(self) -> str:
             if self._name is None:
                 for name, val in self.__members__.items():
                     if self.value == val:
@@ -1267,7 +1267,7 @@ def _init(item: str) -> type:
             else:
                 return self._name
 
-        name = _name_
+        _name_ = name
 
     return _functools.update_wrapper(Enum, _globals.vars_[item], _ASSIGNED, ())
 

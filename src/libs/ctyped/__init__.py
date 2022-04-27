@@ -1,4 +1,4 @@
-__version__ = '0.2.11'
+__version__ = '0.2.12'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -8,7 +8,7 @@ import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
                     Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
-from . import com, com_impl, const, enum, handle, lib, macro, struct, type, union
+from . import const, enum, handle, interface, interface_impl, lib, macro, struct, type, union
 from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
                      _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
@@ -96,13 +96,12 @@ def get_guid(string: str) -> struct.GUID:
 def _prep_com(type_: _builtins.type[CT],
               init: bool) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
                                                    _Optional[tuple[Pointer[struct.IID], Pointer[CT]]]]]:
-    lib.Ole32.CoInitializeEx(None,
-                             enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
+    lib.Ole32.CoInitializeEx(
+        None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
     obj = type_()
     try:
         # noinspection PyProtectedMember
-        yield obj, byref(get_guid(type_._CLSID_)) if type_._CLSID_ else None, macro.IID_PPV_ARGS(
-            obj) if init else None
+        yield obj, byref(get_guid(type_._CLSID_)) if init else None, macro.IID_PPV_ARGS(obj) if init else None
     finally:
         if obj:
             obj.Release()
@@ -119,7 +118,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def cast_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _ContextManager[_Optional[CT]]:
+def cast_com(obj: interface.IUnknown, type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type, True) as (obj_, _, args):
         yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*args)) else None
 
@@ -127,10 +126,10 @@ def cast_com(obj: com.IUnknown, type: _builtins.type[CT] = com.IUnknown) -> _Con
 @_contextlib.contextmanager
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
-                                                                                Pointer[com.IInspectable]]]:
-    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED
-                             if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
-    base = com.IInspectable() if init else com.IActivationFactory()
+                                                                                Pointer[interface.IInspectable]]]:
+    lib.Combase.RoInitialize(
+        enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
+    base = interface.IInspectable() if init else interface.IActivationFactory()
     try:
         # noinspection PyProtectedMember
         yield handle.HSTRING.from_string(type_._RuntimeClass_), None if init else macro.__uuidof(type_.__name__), base
@@ -144,8 +143,8 @@ def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[
 @_contextlib.contextmanager
 def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_Optional[CT]]:
     with _prep_winrt(type, init) as (*args, base):
-        if macro.SUCCEEDED(lib.Combase.RoActivateInstance(args[0], byref(base))
-                           if init else lib.Combase.RoGetActivationFactory(*args, byref(base))):
+        if macro.SUCCEEDED(lib.Combase.RoActivateInstance(args[0], byref(
+                base)) if init else lib.Combase.RoGetActivationFactory(*args, byref(base))):
             with cast_com(base, type) as obj:
                 yield obj
         else:
@@ -157,10 +156,10 @@ class Async:
     _progress = None
     _info_ = None
 
-    class _AsyncCompletedHandler(com_impl.IAsyncActionCompletedHandler,
-                                 com_impl.IAsyncActionWithProgressCompletedHandler,
-                                 com_impl.IAsyncOperationCompletedHandler,
-                                 com_impl.IAsyncOperationWithProgressCompletedHandler):
+    class _AsyncCompletedHandler(interface_impl.IAsyncActionCompletedHandler,
+                                 interface_impl.IAsyncActionWithProgressCompletedHandler,
+                                 interface_impl.IAsyncOperationCompletedHandler,
+                                 interface_impl.IAsyncOperationWithProgressCompletedHandler):
         def __init__(self):
             super().__init__()
             self.event = _threading.Event()
@@ -169,7 +168,8 @@ class Async:
             self.event.set()
             return const.NOERROR
 
-    class _AsyncProgressHandler(com_impl.IAsyncActionProgressHandler, com_impl.IAsyncOperationProgressHandler):
+    class _AsyncProgressHandler(interface_impl.IAsyncActionProgressHandler,
+                                interface_impl.IAsyncOperationProgressHandler):
         callback = None
         args = None
         kwargs = None
@@ -188,10 +188,10 @@ class Async:
             self.callback(progress, *self.args, **self.kwargs)
             return const.NOERROR
 
-    def __init__(self, type_: _Union[_builtins.type[com.IAsyncAction],
-                                     _builtins.type[com.IAsyncActionWithProgress],
-                                     _builtins.type[com.IAsyncOperation],
-                                     _builtins.type[com.IAsyncOperationWithProgress]] = com.IAsyncAction):
+    def __init__(self, type_: _Union[_builtins.type[interface.IAsyncAction],
+                                     _builtins.type[interface.IAsyncActionWithProgress],
+                                     _builtins.type[interface.IAsyncOperation],
+                                     _builtins.type[interface.IAsyncOperationWithProgress]] = interface.IAsyncAction):
         self._async = type_()
 
     def __del__(self):
@@ -207,7 +207,7 @@ class Async:
     @property
     def _info(self):
         if self._info_ is None:
-            info = com.IAsyncInfo()
+            info = interface.IAsyncInfo()
             if macro.SUCCEEDED(self._async.QueryInterface(*macro.IID_PPV_ARGS(info))):
                 self._info_ = info
         return self._info_
@@ -217,8 +217,8 @@ class Async:
             target=put, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
                              f'({_builtins.type(self._async).__name__}.{put.__name__})', args=(handler,)).start()
 
-    def get_ref(self) -> _Union[Pointer[com.IAsyncAction], Pointer[com.IAsyncActionWithProgress],
-                                Pointer[com.IAsyncOperation], Pointer[com.IAsyncOperationWithProgress]]:
+    def get_ref(self) -> _Union[Pointer[interface.IAsyncAction], Pointer[interface.IAsyncActionWithProgress],
+                                Pointer[interface.IAsyncOperation], Pointer[interface.IAsyncOperationWithProgress]]:
         return byref(self._async)
 
     def get_status(self) -> _Optional[int]:

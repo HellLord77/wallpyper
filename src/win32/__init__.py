@@ -1,4 +1,4 @@
-__version__ = '0.0.21'
+__version__ = '0.0.22'
 
 import contextlib
 import ntpath
@@ -29,10 +29,10 @@ WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'Transc
 
 
 @contextlib.contextmanager
-def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
-               write: bool = False) -> ContextManager[Optional[ctyped.com.IPropertyStore]]:
+def _load_prop(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
+               write: bool = False) -> ContextManager[Optional[ctyped.interface.IPropertyStore]]:
     if isinstance(path_or_interface, str):
-        with ctyped.init_com(ctyped.com.IPropertyStore, False) as prop_store:
+        with ctyped.init_com(ctyped.interface.IPropertyStore, False) as prop_store:
             flag = (ctyped.enum.GETPROPERTYSTOREFLAGS.READWRITE
                     if write else ctyped.enum.GETPROPERTYSTOREFLAGS.PREFERQUERYPROPERTIES)
             if ctyped.macro.SUCCEEDED(ctyped.lib.Shell32.SHGetPropertyStoreFromParsingName(
@@ -40,13 +40,13 @@ def _load_prop(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.
                 yield prop_store
                 return
     else:
-        with ctyped.cast_com(path_or_interface, ctyped.com.IPropertyStore) as prop_store:
+        with ctyped.cast_com(path_or_interface, ctyped.interface.IPropertyStore) as prop_store:
             yield prop_store
             return
     yield
 
 
-def _get_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+def _get_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
                       *pkeys: tuple[str, int]) -> tuple[Optional[str], ...]:
     vals = []
     with _load_prop(path_or_interface) as prop_store:
@@ -55,14 +55,14 @@ def _get_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
             var_ref = ctyped.byref(var)
             for key in pkeys:
                 with contextlib.suppress(OSError):
-                    prop_store.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]),
-                                                                               key[1])), var_ref)
+                    prop_store.GetValue(ctyped.byref(
+                        ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]), key[1])), var_ref)
                 vals.append(var.U.S.U.pwszVal)
                 ctyped.lib.Ole32.PropVariantClear(var_ref)
     return tuple(vals)
 
 
-def _set_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+def _set_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
                       pkeys: Mapping[tuple[str, int], str]) -> bool:
     with _load_prop(path_or_interface, True) as prop_store:
         if prop_store:
@@ -79,12 +79,12 @@ def _set_str_ex_props(path_or_interface: Union[str, ctyped.com.IShellLinkA, ctyp
 
 
 @contextlib.contextmanager
-def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW]) -> \
-        ContextManager[ctyped.com.IShellLinkW]:
+def _load_link(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW]) -> \
+        ContextManager[ctyped.interface.IShellLinkW]:
     if isinstance(path_or_link, str):
-        with ctyped.init_com(ctyped.com.IShellLinkW) as link:
+        with ctyped.init_com(ctyped.interface.IShellLinkW) as link:
             if link:
-                with ctyped.cast_com(link, ctyped.com.IPersistFile) as file:
+                with ctyped.cast_com(link, ctyped.interface.IPersistFile) as file:
                     if file and ctyped.macro.SUCCEEDED(file.Load(path_or_link, ctyped.const.STGM_READ)):
                         yield link
                         return
@@ -93,19 +93,16 @@ def _load_link(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShel
         yield path_or_link
 
 
-def _save_link(link: ctyped.com.IShellLinkW, path: str) -> bool:
-    with ctyped.cast_com(link, ctyped.com.IPersistFile) as file:
-        try:
+def _save_link(link: ctyped.interface.IShellLinkW, path: str) -> bool:
+    with ctyped.cast_com(link, ctyped.interface.IPersistFile) as file:
+        with contextlib.suppress(OSError, PermissionError):
             file.Save(path, True)
-        except (OSError, PermissionError):
-            return False
     refresh_dir(ntpath.dirname(path))
     return ntpath.isfile(path)
 
 
-def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW]) -> tuple[str, str, str,
-                                                                                                      str, int, int,
-                                                                                                      tuple[str, int]]:
+def _get_link_data(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW]) -> \
+        tuple[str, str, str, str, int, int, tuple[str, int]]:
     data = []
     word = ctyped.type.WORD()
     c_int = ctyped.type.c_int()
@@ -129,7 +126,7 @@ def _get_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.I
     return tuple(data)
 
 
-def _set_link_data(path_or_link: Union[str, ctyped.com.IShellLinkA, ctyped.com.IShellLinkW],
+def _set_link_data(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
                    path: Optional[str] = None, desc: Optional[str] = None, work_dir: Optional[str] = None,
                    args: Optional[str] = None, hotkey: Optional[int] = None,
                    show: Optional[int] = None, icon: Optional[tuple[str, int]] = None) -> bool:
@@ -271,22 +268,23 @@ def open_file_with(path: str) -> bool:
 
 
 def open_file_with_ex(path: str) -> bool:
-    with ctyped.get_winrt(ctyped.com.ILauncherOptions, True) as options:
+    with ctyped.get_winrt(ctyped.interface.Windows.System.ILauncherOptions, True) as options:
         if options and ctyped.macro.SUCCEEDED(options.put_DisplayApplicationPicker(True)):
-            with ctyped.get_winrt(ctyped.com.ILauncherStatics) as launcher, _utils.open_file(path) as file:
+            with ctyped.get_winrt(
+                    ctyped.interface.Windows.System.ILauncherStatics) as launcher, _utils.open_file(path) as file:
                 if launcher and file:
-                    operation = ctyped.Async(ctyped.com.IAsyncOperation)
+                    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
                     if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, operation.get_ref())):
                         return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
     return False
 
 
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
-    with ctyped.init_com(ctyped.com.IFileDialog) as dialog:
+    with ctyped.init_com(ctyped.interface.IFileDialog) as dialog:
         if dialog:
             dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.PICKFOLDERS)
             if path is not None:
-                with ctyped.init_com(ctyped.com.IShellItem, False) as item:
+                with ctyped.init_com(ctyped.interface.IShellItem, False) as item:
                     try:
                         ctyped.lib.Shell32.SHCreateItemFromParsingName(path, None, *ctyped.macro.IID_PPV_ARGS(item))
                     except FileNotFoundError:
@@ -304,7 +302,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 if e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_CANCELLED):
                     return path
             else:
-                with ctyped.init_com(ctyped.com.IShellItem, False) as item:
+                with ctyped.init_com(ctyped.interface.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
                     with _utils.string_buffer() as buff:
                         item.GetDisplayName(ctyped.enum.SIGDN.DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
@@ -341,12 +339,12 @@ def choose_color(title: Optional[str] = None, color: Optional[int] = None,
 
 def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
     if hbitmap:
-        with ctyped.init_com(ctyped.com.IPicture, False) as picture:
+        with ctyped.init_com(ctyped.interface.IPicture, False) as picture:
             pict_desc = ctyped.struct.PICTDESC(picType=ctyped.const.PICTYPE_BITMAP)
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
             ctyped.lib.OleAut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
-            with ctyped.cast_com(picture, ctyped.com.IPictureDisp) as picture_disp:
+            with ctyped.cast_com(picture, ctyped.interface.IPictureDisp) as picture_disp:
                 try:
                     ctyped.lib.OleAut32.OleSavePictureFile(picture_disp, path)
                 except OSError:
@@ -359,12 +357,12 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
 def get_direct_show_devices_properties(
         clsid: str, prop_names: tuple[str] = ('DevicePath', 'FriendlyName')) -> tuple[tuple[Optional[str], ...], ...]:
     devices = []
-    with ctyped.init_com(ctyped.com.ICreateDevEnum) as dev_enum:
+    with ctyped.init_com(ctyped.interface.ICreateDevEnum) as dev_enum:
         if dev_enum:
-            with ctyped.init_com(ctyped.com.IEnumMoniker, False) as monikers:
+            with ctyped.init_com(ctyped.interface.IEnumMoniker, False) as monikers:
                 dev_enum.CreateClassEnumerator(ctyped.byref(ctyped.get_guid(clsid)), ctyped.byref(monikers), 0)
-                with ctyped.init_com(ctyped.com.IMoniker, False) as moniker:
-                    with ctyped.init_com(ctyped.com.IPropertyBag, False) as prop_bag:
+                with ctyped.init_com(ctyped.interface.IMoniker, False) as moniker:
+                    with ctyped.init_com(ctyped.interface.IPropertyBag, False) as prop_bag:
                         props = []
                         while monikers.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
                             if ctyped.macro.SUCCEEDED(moniker.BindToStorage(None, None,
@@ -424,7 +422,7 @@ def unregister_autorun(name: Optional[str] = None, uid: Optional[str] = None) ->
 def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0,
                     comment: Optional[str] = None, start_in: Optional[str] = None, show: bool = True,
                     uid: Optional[str] = None, ext: str = LINK_EXT) -> bool:
-    with ctyped.init_com(ctyped.com.IShellLinkW) as link:
+    with ctyped.init_com(ctyped.interface.IShellLinkW) as link:
         if link:
             set_ = _set_link_data(link, target, comment, ntpath.dirname(
                 target) if start_in is None else start_in, subprocess.list2cmdline(
@@ -489,9 +487,9 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
         data = _get_link_data(path)
         if target == data[0] and args == data[3]:
             if taskbar:
-                with ctyped.init_com(ctyped.com.IStartMenuPinnedList) as pinned:
+                with ctyped.init_com(ctyped.interface.IStartMenuPinnedList) as pinned:
                     if pinned:
-                        with ctyped.init_com(ctyped.com.IShellItem, False) as item:
+                        with ctyped.init_com(ctyped.interface.IShellItem, False) as item:
                             ctyped.lib.Shell32.SHCreateItemFromParsingName(path, None,
                                                                            *ctyped.macro.IID_PPV_ARGS(item))
                             if item:

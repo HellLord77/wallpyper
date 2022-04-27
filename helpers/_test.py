@@ -113,7 +113,7 @@ def _test_gui():
     # menu.set_item_submenu(item, menu2)
     item.set_submenu(menu2)
     item.set_image(p)
-    item.set_tooltip('https://www.google.com')
+    item.set_tooltip('https://www.google.interface')
     g.bind(gui.GuiEvent.DISPLAY_CHANGE, lambda *args: print('display', args))
 
     s.bind(gui.SystemTrayEvent.RIGHT_UP, _foo, (menu, item))
@@ -140,16 +140,17 @@ def _test_settings():
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
-class ToastDismiss(ctyped.com_impl.ITypedEventHandler):
+class ToastDismiss(ctyped.interface_impl.ITypedEventHandler):
     # noinspection PyPep8Naming
     @staticmethod
-    def Invoke(This: ctyped.Pointer[ctyped.com_impl.ITypedEventHandler], sender: ctyped.com.IToastNotification,
-               args: ctyped.com.IInspectable) -> ctyped.type.HRESULT:
+    def Invoke(This: ctyped.Pointer[ctyped.interface_impl.ITypedEventHandler],
+               sender: ctyped.interface.Windows.UI.Notifications.IToastNotification,
+               args: ctyped.interface.IInspectable) -> ctyped.type.HRESULT:
         print('invoke', This, sender, args)
         hs = ctyped.handle.HSTRING()
         args.GetRuntimeClassName(ctyped.byref(hs))
         print(hs.get_string())
-        with ctyped.cast_com(args, ctyped.com.IToastDismissedEventArgs) as args_:
+        with ctyped.cast_com(args, ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs) as args_:
             r = ctyped.enum.ToastDismissalReason()
             args_.get_Reason(ctyped.byref(r))
             print(r)
@@ -170,11 +171,12 @@ def _test_toast():
 </toast>'''
     on_dismissed = ToastDismiss()
 
-    with ctyped.get_winrt(ctyped.com.IToastNotificationManagerStatics) as manager:
-        with ctyped.init_com(ctyped.com.IToastNotifier, False) as notifier:
+    with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationManagerStatics) as manager:
+        with ctyped.init_com(ctyped.interface.Windows.UI.Notifications.IToastNotifier, False) as notifier:
             print(manager.CreateToastNotifierWithId(ctyped.handle.HSTRING.from_string(aumi), ctyped.byref(notifier)))
-            with ctyped.get_winrt(ctyped.com.IToastNotificationFactory) as factory, win32.xml.loads(
-                    xml_data) as xml, ctyped.init_com(ctyped.com.IToastNotification, False) as toast:
+            with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationFactory) \
+                    as factory, win32.xml.loads(xml_data) as xml, ctyped.init_com(
+                ctyped.interface.Windows.UI.Notifications.IToastNotification, False) as toast:
                 print(factory.CreateToastNotification(xml, ctyped.byref(toast)))
                 token = ctyped.struct.EventRegistrationToken()
                 threading.Thread(target=toast.add_Dismissed, args=(on_dismissed, ctyped.byref(token))).start()
@@ -212,9 +214,10 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
 
 
 if __name__ == '__main__':
+    print(ctyped.enum.ToastDismissalReason.UserCanceled.value)
     # _test_toast()
     # _test_winui()  # TODO editing python.exe doesn't work
-    _test_gui()
+    # _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()

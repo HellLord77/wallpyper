@@ -68,9 +68,9 @@ RES_ICON, RES_TRAY, RES_BUSY = (files.join(os.path.dirname(__file__), 'resources
 TEMP_DIR = win32.wallpaper.TEMP_DIR = paths.join(tempfile.gettempdir(), NAME)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, NAME, f'{NAME}.ini')
 LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
-GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
+GOOGLE_URL = request.join('https://www.google.interface', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
-BING_URL = request.join('https://www.bing.com', 'images', 'search')
+BING_URL = request.join('https://www.bing.interface', 'images', 'search')
 
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 STRINGS = langs.en
@@ -654,6 +654,8 @@ def main():
 
 def __winui():
     from libs import ctyped
+    # noinspection PyPep8Naming
+    Windows = ctyped.interface.Windows
     gui_ = win32.gui.Gui()
     tray = win32.gui.SystemTray(win32.gui.SystemTrayIcon.APPLICATION)
     menu = win32.gui.Menu()
@@ -665,43 +667,46 @@ def __winui():
         0, gui_._class.lpszClassName, 'Windows py Win32 Desktop App',
         ctyped.const.WS_OVERLAPPED | ctyped.const.WS_VISIBLE, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
         ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, None, None, gui_._hinstance, None))
-    with ctyped.get_winrt(ctyped.com.IWindowsXamlManagerStatics) as manager_statics:
-        manager = ctyped.com.IWindowsXamlManager()
+    with ctyped.get_winrt(Windows.UI.Xaml.Hosting.IWindowsXamlManagerStatics) as manager_statics, ctyped.init_com(
+            Windows.UI.Xaml.Hosting.IWindowsXamlManager, False) as manager:
         manager_statics.InitializeForCurrentThread(ctyped.byref(manager))
-        with ctyped.get_winrt(ctyped.com.IDesktopWindowXamlSource, True) as source:
-            with ctyped.cast_com(source, ctyped.com.IDesktopWindowXamlSourceNative) as source_native:
+        with ctyped.get_winrt(Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource, True) as source:
+            with ctyped.cast_com(source, ctyped.interface.IDesktopWindowXamlSourceNative) as source_native:
                 source_native.AttachToWindow(hwnd)
                 hwnd_xaml = ctyped.handle.HWND()
                 source_native.get_WindowHandle(ctyped.byref(hwnd_xaml))
                 print(hwnd_xaml)
                 ctyped.lib.User32.SetWindowPos(hwnd_xaml, 0, 200, 100, 800, 200, ctyped.const.SWP_SHOWWINDOW)
-                with ctyped.get_winrt(ctyped.com.IStackPanel, True) as stack_panel:
-                    with ctyped.cast_com(stack_panel, ctyped.com.IPanel) as panel:
-                        with ctyped.get_winrt(ctyped.com.IColorsStatics) as colors_statics:
+                with ctyped.get_winrt(Windows.UI.Xaml.Controls.IStackPanel, True) as stack_panel:
+                    with ctyped.cast_com(stack_panel, Windows.UI.Xaml.Controls.IPanel) as panel:
+                        with ctyped.get_winrt(Windows.UI.IColorsStatics) as colors_statics:
                             color = ctyped.struct.Color()
                             colors_statics.get_LightGray(ctyped.byref(color))
-                        with ctyped.init_com(ctyped.com.ISolidColorBrush, False) as solid_brush:
-                            with ctyped.get_winrt(ctyped.com.ISolidColorBrushFactory) as brush_factory:
+                        with ctyped.init_com(Windows.UI.Xaml.Media.ISolidColorBrush, False) as solid_brush:
+                            with ctyped.get_winrt(Windows.UI.Xaml.Media.ISolidColorBrushFactory) as brush_factory:
                                 brush_factory.CreateInstanceWithColor(color, ctyped.byref(solid_brush))
-                            with ctyped.cast_com(solid_brush, ctyped.com.IBrush) as brush:
+                            with ctyped.cast_com(solid_brush, Windows.UI.Xaml.Media.IBrush) as brush:
                                 panel.put_Background(brush)
-                    with ctyped.get_winrt(ctyped.com.ITextBlock, True) as text_block:
+                    with ctyped.get_winrt(Windows.UI.Xaml.Controls.ITextBlock, True) as text_block:
                         text_block.put_Text(ctyped.handle.HSTRING.from_string('Hello World from Xaml Islands!'))
-                        with ctyped.cast_com(text_block, ctyped.com.IFrameworkElement) as text_element:
+                        with ctyped.cast_com(text_block, Windows.UI.Xaml.IFrameworkElement) as text_element:
                             text_element.put_VerticalAlignment(ctyped.enum.VerticalAlignment.Center)
                             text_element.put_HorizontalAlignment(ctyped.enum.HorizontalAlignment.Center)
                         text_block.put_FontSize(48)
-                        with ctyped.init_com(ctyped.com.IVector_IUIElement, False) as children:
+                        with ctyped.init_com(Windows.Foundation.Collections.IVector_IUIElement, False) as children:
                             panel.get_Children(ctyped.byref(children))
-                            with ctyped.cast_com(text_block, ctyped.com.IUIElement) as text_element:
+                            with ctyped.cast_com(
+                                    text_block, Windows.UI.Xaml.IUIElement) as text_element:
                                 children.Append(text_element)
-                        with ctyped.cast_com(stack_panel, ctyped.com.IUIElement) as panel_element:
+                        with ctyped.cast_com(
+                                stack_panel, Windows.UI.Xaml.IUIElement) as panel_element:
                             panel_element.UpdateLayout()
                             source.put_Content(panel_element)
                         hwnd.show(ctyped.const.SW_SHOW)
                         hwnd.update()
                         tray.show()
                         gui_.mainloop()
+    sys.exit()
 
 
 if __name__ == '__main__':
