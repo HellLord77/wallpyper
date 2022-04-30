@@ -76,8 +76,7 @@ class Wallhaven(_Module):
         meta = {
             'current_page': 1,
             'last_page': 1,
-            'seed': None
-        }
+            'seed': None}
         while True:
             if not datas:
                 params['page'] = str(meta['current_page'] % meta['last_page'] + 1)

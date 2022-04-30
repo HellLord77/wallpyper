@@ -4,36 +4,34 @@ import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import interface as _com, enum as _enum, struct as _struct, type as _type, union as _union
-from ._utils import _get_func_doc, _format_annotations, _not_internal, _Pointer, _resolve_type
+from . import enum as _enum, interface as _interface, struct as _struct, type as _type, union as _union
+from ._utils import _Pointer, _format_annotations, _get_func_doc, _resolve_type
 
 
 class _CDLL(type):
     def __getattr__(self, name: str):
-        if _not_internal(name):
+        if name in self.__annotations__:
             if self._funcs is None:
+                self._annots = _typing.get_type_hints(self)
                 self._funcs = {}
-                for var in _typing.get_type_hints(self):
+                for name_ in self.__annotations__:
                     try:
-                        self._funcs[var] = vars(self)[var]
+                        self._funcs[name_] = vars(self)[name_]
                     except KeyError:
-                        self._funcs[var] = var
+                        self._funcs[name_] = name_
                     else:
-                        delattr(self, var)
+                        delattr(self, name_)
             func = None
             while func is None:
                 try:
                     func = self._lib[self._funcs[name]]
                 except KeyError:
-                    raise AttributeError(f"lib '{self.__name__}' has no function '{name}'") from None
+                    raise AttributeError(f"Lib '{self.__name__}' has no function '{name}'")
                 except TypeError:
-                    try:
-                        self._lib = _ctypes.pythonapi if self is Python else getattr(
-                            getattr(_ctypes, type(self).__name__[1:].lower()), self.__name__)
-                    except FileNotFoundError as e:
-                        raise e from None
+                    self._lib = _ctypes.pythonapi if self is Python else getattr(
+                        getattr(_ctypes, type(self).__name__[1:].lower()), self.__name__)
             annot = _format_annotations(self.__annotations__[name])
-            func.restype, *func.argtypes = _resolve_type(_typing.get_type_hints(self, globals())[name])
+            func.restype, *func.argtypes = _resolve_type(self._annots[name])
             if self._errcheck is not None:
                 func.errcheck = self._errcheck
             func.__name__ = name
@@ -270,11 +268,11 @@ class Cfgmgr32(_WinFunc):
 class Combase(_WinFunc):
     # roapi
     RoActivateInstance: _Callable[[_type.HSTRING,
-                                   _Pointer[_com.IInspectable]],
+                                   _Pointer[_interface.IInspectable]],
                                   _type.HRESULT]
     RoGetActivationFactory: _Callable[[_type.HSTRING,
                                        _Pointer[_struct.IID],
-                                       _Pointer[_com.IActivationFactory]],
+                                       _Pointer[_interface.IActivationFactory]],
                                       _type.HRESULT]
     RoGetApartmentIdentifier: _Callable[[_Pointer[_type.UINT64]],
                                         _type.HRESULT]
@@ -1759,7 +1757,7 @@ class Ole32(_WinFunc):
     CoCreateGuid: _Callable[[_Pointer[_struct.GUID]],
                             _type.HRESULT]
     CoCreateInstance: _Callable[[_Pointer[_struct.CLSID],
-                                 _Optional[_Pointer[_com.IUnknown]],
+                                 _Optional[_Pointer[_interface.IUnknown]],
                                  _type.DWORD,
                                  _Pointer[_struct.IID],
                                  _type.LPVOID],
@@ -1853,7 +1851,7 @@ class OleAut32(_WinFunc):
                                          _type.BOOL,
                                          _type.LPVOID],
                                         _type.WINOLECTLAPI]
-    OleSavePictureFile: _Callable[[_com.IPictureDisp,
+    OleSavePictureFile: _Callable[[_interface.IPictureDisp,
                                    _type.BSTR],
                                   _type.WINOLECTLAPI]
 
@@ -2002,13 +2000,13 @@ class Shell32(_WinFunc):
                                 _type.SHSTDAPI]
     # ShObjIdl_core
     SHCreateItemFromParsingName: _Callable[[_type.PCWSTR,
-                                            _Optional[_Pointer[_com.IBindCtx]],
+                                            _Optional[_Pointer[_interface.IBindCtx]],
                                             _Pointer[_struct.IID],
-                                            _Pointer[_com.IShellItem]],
+                                            _Pointer[_interface.IShellItem]],
                                            _type.SHSTDAPI]
     SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT,
                                                   _Pointer[_Pointer[_struct.ITEMIDLIST]],
-                                                  _Pointer[_com.IShellItemArray]],
+                                                  _Pointer[_interface.IShellItemArray]],
                                                  _type.SHSTDAPI]
     SHGetKnownFolderPath: _Callable[[_Pointer[_struct.KNOWNFOLDERID],
                                      _enum.KNOWN_FOLDER_FLAG,
@@ -2016,10 +2014,10 @@ class Shell32(_WinFunc):
                                      _Pointer[_type.PWSTR]],
                                     _type.HRESULT]
     SHGetPropertyStoreFromParsingName: _Callable[[_type.PCWSTR,
-                                                  _Optional[_Pointer[_com.IBindCtx]],
+                                                  _Optional[_Pointer[_interface.IBindCtx]],
                                                   _enum.GETPROPERTYSTOREFLAGS,
                                                   _Pointer[_struct.IID],
-                                                  _Pointer[_com.IPropertyStore]],
+                                                  _Pointer[_interface.IPropertyStore]],
                                                  _type.SHSTDAPI]
 
 

@@ -1,7 +1,6 @@
 from __future__ import annotations as _
 
 import enum as _enum
-import functools as _functools
 import sys as _sys
 from typing import Optional as _Optional
 
@@ -9,7 +8,6 @@ from . import type as _type
 from ._utils import _Globals
 
 _AUTO = _sys.maxsize
-_ASSIGNED = ('__str__', *(assigned for assigned in _functools.WRAPPER_ASSIGNMENTS))
 
 
 class _IntEnumMeta(_enum.EnumMeta):
@@ -1224,8 +1222,6 @@ GpStatus = Status
 
 
 class _EnumMeta(type(_type.c_uint)):
-    __members__: dict[str, int]
-
     def __getattr__(self, name: str):
         if name in self.__members__:
             # noinspection PyCallingNonCallable
@@ -1239,6 +1235,29 @@ class _EnumMeta(type(_type.c_uint)):
             yield getattr(self, name)
 
 
+class _Enum(_type.c_int, metaclass=_EnumMeta):
+    __members__: dict[str, int]
+    _name = None
+
+    def __init__(self, value: _Optional[int] = None):
+        if value is None:
+            value = next(iter(self.__members__.values()))
+        super().__init__(value)
+
+    @property
+    def name(self) -> str:
+        if self._name is None:
+            for name, val in self.__members__.items():
+                if self.value == val:
+                    return name
+            return str(self.value)
+        else:
+            return self._name
+
+    def __str__(self):
+        return f'{type(self).__name__}.{self.name}'
+
+
 def _get_members(enum: _IntEnum) -> dict[int, str]:
     last = -1
     # noinspection PyUnresolvedReferences,PyProtectedMember
@@ -1247,29 +1266,7 @@ def _get_members(enum: _IntEnum) -> dict[int, str]:
 
 def _init(item: str) -> type:
     _globals.check_item(item)
-
-    class Enum(_type.c_int, metaclass=_EnumMeta):  # TODO compatible with int, c_long, ...
-        _name = None
-        __members__: dict[str, int] = _get_members(_globals.vars_[item])
-
-        def __init__(self, value: _Optional[int] = None):
-            if value is None:
-                value = next(iter(self.__members__.values()))
-            super().__init__(value)
-
-        @property
-        def name(self) -> str:
-            if self._name is None:
-                for name, val in self.__members__.items():
-                    if self.value == val:
-                        return name
-                return str(self.value)
-            else:
-                return self._name
-
-        _name_ = name
-
-    return _functools.update_wrapper(Enum, _globals.vars_[item], _ASSIGNED, ())
+    return type(item, (_Enum,), {'__members__': _get_members(_globals.vars_[item])})
 
 
 _globals = _Globals()

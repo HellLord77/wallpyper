@@ -1,11 +1,10 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
-import functools as _functools
 from dataclasses import dataclass as _union
 
 from . import const as _const, struct as _struct, type as _type
-from ._utils import _Globals, _Pointer, _resolve_type
+from ._utils import _Globals, _Pointer, _repr, _resolve_type
 
 
 # noinspection PyPep8Naming
@@ -161,17 +160,14 @@ class SHELLEXECUTEINFO_U:
         hMonitor: _type.HANDLE
 
 
-def _init(item: str) -> type[_ctypes.Union]:
+class _Union(_ctypes.Union):
+    __repr__ = _repr
+
+
+def _init(item: str) -> type:
     _globals.check_item(item)
-
-    class Union(_ctypes.Union):
-        _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
-
-        def __repr__(self):
-            return (f'{type(self).__name__}'
-                    f'({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})')
-
-    return _functools.update_wrapper(Union, _globals.vars_[item], updated=())
+    return type(item, (_Union,), {'_fields_': tuple(
+        (name, _resolve_type(annot)) for name, annot in _globals.get_type_hints(item))})
 
 
 _globals = _Globals()

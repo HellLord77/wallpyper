@@ -64,7 +64,7 @@ class _GdiplusBase(ctyped.type.c_void_p):
     def __del__(self):
         if self:
             self._del()
-            self.value = None
+            self.value = False
 
     def __bool__(self):
         return self._valid

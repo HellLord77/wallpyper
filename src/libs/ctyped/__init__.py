@@ -1,16 +1,20 @@
-__version__ = '0.2.12'
+from __future__ import annotations as _
+
+__version__ = '0.2.13'
 
 import builtins as _builtins
 import contextlib as _contextlib
 import functools as _functools
 import threading as _threading
 import typing as _typing
-from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
-                    Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
+from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager, Generic as _Generic,
+                    Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional)
 
-from . import const, enum, handle, interface, interface_impl, lib, macro, struct, type, union
+from . import const, enum, handle, interface, lib, macro, struct, type, union
 from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
                      _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
+
+_MESSAGES = {val: name for name, val in vars(const).items() if name.startswith('WM_')}
 
 THREADED_COM = False
 
@@ -86,6 +90,10 @@ def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
     return (array._type_ * size).from_address(addressof(array))
 
 
+def get_message(message: int) -> str:
+    return _MESSAGES.get(message, f'WM_{message}')
+
+
 def get_guid(string: str) -> struct.GUID:
     guid = struct.GUID()
     lib.Shell32.GUIDFromStringW(string, byref(guid))
@@ -123,16 +131,24 @@ def cast_com(obj: interface.IUnknown, type: _builtins.type[CT] = interface.IUnkn
         yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*args)) else None
 
 
+# noinspection PyShadowingBuiltins,PyShadowingNames
+def _get_runtime_class(type: _builtins.type[CT]) -> str:
+    namespace, name = type.__qualname__.rsplit('.', 1)
+    while name[-1].isdigit():
+        name = name[:-1]
+    return f'{namespace}.{name[1:].removesuffix("Statics").removesuffix("Factory")}'
+
+
 @_contextlib.contextmanager
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[interface.IInspectable]]]:
     lib.Combase.RoInitialize(
         enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
-    base = interface.IInspectable() if init else interface.IActivationFactory()
+    base = (interface.IInspectable if init else interface.IActivationFactory)()
     try:
-        # noinspection PyProtectedMember
-        yield handle.HSTRING.from_string(type_._RuntimeClass_), None if init else macro.__uuidof(type_.__name__), base
+        yield handle.HSTRING.from_string(_get_runtime_class(
+            type_)), None if init else macro.__uuidof(type_), base
     finally:
         if base:
             base.Release()
@@ -151,114 +167,186 @@ def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_
             yield
 
 
-class Async:
+class Async(_Generic[CT]):
     _completed = None
     _progress = None
-    _info_ = None
+    _completed_callback = None
+    _completed_args = None
+    _completed_kwargs = None
+    _progress_callback = None
+    _progress_args = None
+    _progress_kwargs = None
 
-    class _AsyncCompletedHandler(interface_impl.IAsyncActionCompletedHandler,
-                                 interface_impl.IAsyncActionWithProgressCompletedHandler,
-                                 interface_impl.IAsyncOperationCompletedHandler,
-                                 interface_impl.IAsyncOperationWithProgressCompletedHandler):
-        def __init__(self):
-            super().__init__()
-            self.event = _threading.Event()
+    @staticmethod
+    @_typing.overload
+    def get_completed_handler_impl(handler: _builtins.type[interface.Windows.Foundation.IAsyncAction]) -> interface.Windows.Foundation.IAsyncActionCompletedHandler_impl:
+        pass
 
-        def Invoke(self, _: type.c_void_p, __: type.c_void_p, ___: type.c_void_p) -> type.HRESULT:
-            self.event.set()
-            return const.NOERROR
+    # noinspection PyProtectedMember
+    @staticmethod
+    @_typing.overload
+    def get_completed_handler_impl(handler: _builtins.type[interface.Windows.Foundation.IAsyncActionWithProgress[interface._TProgress]]) -> \
+            interface.Windows.Foundation.IAsyncActionWithProgressCompletedHandler_impl[interface._TProgress]:
+        pass
 
-    class _AsyncProgressHandler(interface_impl.IAsyncActionProgressHandler,
-                                interface_impl.IAsyncOperationProgressHandler):
-        callback = None
-        args = None
-        kwargs = None
+    # noinspection PyProtectedMember
+    @staticmethod
+    @_typing.overload
+    def get_completed_handler_impl(handler: _builtins.type[interface.Windows.Foundation.IAsyncOperation[interface._TResult]]) -> \
+            interface.Windows.Foundation.IAsyncOperationCompletedHandler_impl[interface._TResult]:
+        pass
 
-        @classmethod
-        def init(cls, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],
-                 args: _Iterable, kwargs: _Mapping[str, _Any]):
-            cls.Invoke.__annotations__['progress'] = type_
-            handler = cls()
-            handler.callback = callback
-            handler.args = args
-            handler.kwargs = kwargs
-            return handler
+    # noinspection PyProtectedMember
+    @staticmethod
+    @_typing.overload
+    def get_completed_handler_impl(handler: _builtins.type[interface.Windows.Foundation.IAsyncOperationWithProgress[interface._TResult, interface._TProgress]]) -> \
+            interface.Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl[interface._TResult, interface._TProgress]:
+        pass
 
-        def Invoke(self, _: type.c_void_p, __: type.c_void_p, progress: type.c_void_p) -> type.HRESULT:
-            self.callback(progress, *self.args, **self.kwargs)
-            return const.NOERROR
+    # noinspection PyProtectedMember,PyShadowingBuiltins,PyShadowingNames
+    @staticmethod
+    def get_completed_handler_impl(async_type):
+        handler = None
+        if issubclass(async_type, interface.Windows.Foundation.IAsyncAction):
+            handler = interface.Windows.Foundation.IAsyncActionCompletedHandler_impl
+        elif issubclass(async_type, interface.Windows.Foundation.IAsyncActionWithProgress):
+            handler = interface.Windows.Foundation.IAsyncActionWithProgressCompletedHandler_impl
+        elif issubclass(async_type, interface.Windows.Foundation.IAsyncOperation):
+            handler = interface.Windows.Foundation.IAsyncOperationCompletedHandler_impl
+        elif issubclass(async_type, interface.Windows.Foundation.IAsyncOperationWithProgress):
+            handler = interface.Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl
+        if getattr(async_type, '_args', None):
+            handler = handler[tuple(async_type._args.values())]
+        return handler
 
-    def __init__(self, type_: _Union[_builtins.type[interface.IAsyncAction],
-                                     _builtins.type[interface.IAsyncActionWithProgress],
-                                     _builtins.type[interface.IAsyncOperation],
-                                     _builtins.type[interface.IAsyncOperationWithProgress]] = interface.IAsyncAction):
-        self._async = type_()
+    # noinspection PyProtectedMember
+    @staticmethod
+    @_typing.overload
+    def get_progress_handler_impl(async_type: _builtins.type[interface.Windows.Foundation.IAsyncActionWithProgress[interface._TProgress]]) -> \
+            interface.Windows.Foundation.IAsyncActionProgressHandler_impl[interface._TProgress]:
+        pass
+
+    # noinspection PyProtectedMember
+    @staticmethod
+    @_typing.overload
+    def get_progress_handler_impl(async_type: _builtins.type[interface.Windows.Foundation.IAsyncOperationWithProgress[interface._TResult, interface._TProgress]]) -> \
+            interface.Windows.Foundation.IAsyncOperationProgressHandler_impl[interface._TResult, interface._TProgress]:
+        pass
+
+    @staticmethod
+    def get_progress_handler_impl(async_type):
+        handler = None
+        if issubclass(async_type, interface.Windows.Foundation.IAsyncActionWithProgress):
+            handler = interface.Windows.Foundation.IAsyncActionProgressHandler_impl
+        elif issubclass(async_type, interface.Windows.Foundation.IAsyncOperationWithProgress):
+            handler = interface.Windows.Foundation.IAsyncOperationProgressHandler_impl
+        if getattr(async_type, '_args', None):
+            # noinspection PyProtectedMember
+            handler = handler[tuple(async_type._args.values())]
+        return handler
+
+    # noinspection PyShadowingBuiltins,PyShadowingNames
+    def __init__(self, type: _builtins.type[CT] = interface.Windows.Foundation.IAsyncAction):
+        self._async: CT = type()
+        self._info = interface.IAsyncInfo()
+        self._event = _threading.Event()
 
     def __del__(self):
         if self._async:
             if self._completed:
                 self._completed.Release()
+                self._completed = None
             if self._progress:
                 self._progress.Release()
-            if self._info_:
-                self._info_.Release()
+                self._progress = None
+            if self._info:
+                self._info.Release()
+                self._info = None
             self._async.Release()
+            self._async = None
 
-    @property
-    def _info(self):
-        if self._info_ is None:
-            info = interface.IAsyncInfo()
-            if macro.SUCCEEDED(self._async.QueryInterface(*macro.IID_PPV_ARGS(info))):
-                self._info_ = info
-        return self._info_
+    def __enter__(self):
+        return self
 
-    def _put(self, put: _Callable, handler: _Union[_AsyncCompletedHandler, _AsyncProgressHandler]):
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__del__()
+
+    def _get_info(self) -> interface.IAsyncInfo:
+        if not self._info:
+            self._async.QueryInterface(*macro.IID_PPV_ARGS(self._info))
+        return self._info
+
+    def _put(self, put: _Callable, handler):
         put(handler) if THREADED_COM else _threading.Thread(
             target=put, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
                              f'({_builtins.type(self._async).__name__}.{put.__name__})', args=(handler,)).start()
 
-    def get_ref(self) -> _Union[Pointer[interface.IAsyncAction], Pointer[interface.IAsyncActionWithProgress],
-                                Pointer[interface.IAsyncOperation], Pointer[interface.IAsyncOperationWithProgress]]:
+    def get_ref(self) -> Pointer[CT]:
         return byref(self._async)
 
-    def get_status(self) -> _Optional[int]:
+    def get_status(self) -> enum.AsyncStatus:
         status = enum.AsyncStatus()
-        self._info.get_Status(byref(status))
-        return status.value
+        self._get_info().get_Status(byref(status))
+        return status
 
     def get_error_code(self) -> _Optional[int]:
         hresult = type.HRESULT()
-        self._info.get_ErrorCode(byref(hresult))
+        self._get_info().get_ErrorCode(byref(hresult))
         return hresult.value
 
     def cancel(self) -> bool:
-        return macro.SUCCEEDED(self._info.Cancel())
+        return macro.SUCCEEDED(self._get_info().Cancel())
 
     def close(self) -> bool:
-        return macro.SUCCEEDED(self._info.Close())
+        return macro.SUCCEEDED(self._get_info().Close())
 
-    def put_progress(self, type_: _builtins.type[CT], callback: _Callable[[CT, ...], _Any],
-                     args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> int:
-        self._progress = self._AsyncProgressHandler.init(type_, callback, () if args is None else args,
-                                                         {} if kwargs is None else kwargs)
+    def _completed_handler(self, _, __):
+        self._completed_callback(self.get_results(), *self._completed_args, **self._completed_kwargs)
+        return const.NOERROR
+
+    def _progress_handler(self, _, progress):
+        self._progress_callback(progress, *self._progress_args, **self._progress_kwargs)
+        return const.NOERROR
+
+    # noinspection PyProtectedMember
+    def put_completed(self, callback: _Callable[[CT[interface._TResult], ...], _Any],
+                      args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.AsyncStatus:
+        self._completed_callback = callback
+        self._completed_args = () if args is None else args
+        self._completed_kwargs = {} if kwargs is None else kwargs
+        # noinspection PyTypeChecker
+        self._completed = _builtins.type('', (self.get_completed_handler_impl(
+            _builtins.type(self._async)),), {'Invoke': self._completed_handler})()
+        self._put(self._async.put_Completed, self._completed)
+        return self.get_status()
+
+    # noinspection PyProtectedMember
+    def put_progress(self, callback: _Callable[[CT[interface._TProgress], ...], _Any],
+                     args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.AsyncStatus:
+        self._progress_callback = callback
+        self._progress_args = () if args is None else args
+        self._progress_kwargs = {} if kwargs is None else kwargs
+        # noinspection PyTypeChecker
+        self._progress = _builtins.type('', (self.get_progress_handler_impl(
+            _builtins.type(self._async)),), {'Invoke': self._progress_handler})()
         self._put(self._async.put_Progress, self._progress)
         return self.get_status()
 
-    def get_results(self, obj_ref: _Optional[Pointer[CT]] = None) -> bool:
-        try:
-            return macro.SUCCEEDED(self._async.GetResults(*() if obj_ref is None else (obj_ref,)))
-        except OSError:
-            return False
+    # noinspection PyProtectedMember
+    def get_results(self: Async[CT[interface._TResult]]) -> _Optional[interface._TResult]:
+        t_result = self._async._args.get(interface._TResult, None)
+        if t_result:
+            result = t_result()
+            self._async.GetResults(byref(result))
+            return result
 
-    def get(self, type_: _Optional[_builtins.type[CT]] = None) -> _Optional[CT]:
-        obj = None if type_ is None else type_()
+    # noinspection PyProtectedMember
+    def get(self: Async[CT[interface._TResult]]) -> _Optional[interface._TResult]:
         if enum.AsyncStatus.Completed == self.wait_for():
-            self.get_results(None if obj is None else byref(obj))
-        return obj
+            return self.get_results()
 
-    def wait_for(self, timeout: _Optional[float] = None) -> int:
-        self._completed = self._AsyncCompletedHandler()
-        self._put(self._async.put_Completed, self._completed)
-        self._completed.event.wait(timeout)
+    def wait_for(self, timeout: _Optional[float] = None) -> enum.AsyncStatus:
+        self.put_completed(lambda _: self._event.set())
+        self._event.wait(timeout)
         self.cancel()
         return self.get_status()

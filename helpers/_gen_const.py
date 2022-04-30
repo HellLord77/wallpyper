@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Union
 
 _KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
 SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22000.0')
@@ -73,10 +74,9 @@ def knownfolders():
 
 
 def _runtime_class(file: str):
-    path = os.path.join(SDK_PATH, 'winrt', file)
     classes = []
-    with open(path, 'r') as file:
-        for match in re.finditer(r'(RuntimeClass_.*)\[]\s=\sL"(.*)";', file.read()):
+    with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
+        for match in re.finditer(r'(RuntimeClass_.*)\[]\s=\sL"(.*)";', f.read()):
             groups = match.groups()
             class_ = f"{groups[0]} = '{groups[1]}'"
             if class_ not in classes:
@@ -85,58 +85,6 @@ def _runtime_class(file: str):
         if len(class_) > 120:
             class_ = class_.replace(" = '", " = ('") + ')'
         print(class_)
-
-
-def windows_storage_streams():
-    _runtime_class('windows.storage.streams.h')
-
-
-def windows_storage():
-    _runtime_class('windows.storage.h')
-
-
-def windows_data_xml_dom():
-    _runtime_class('windows.data.xml.dom.h')
-
-
-def windows_system_userprofile():
-    _runtime_class('windows.system.userprofile.h')
-
-
-def windows_ui():
-    _runtime_class('windows.ui.h')
-
-
-def windows_ui_xaml():
-    _runtime_class('windows.ui.xaml.h')
-
-
-def windows_ui_notifications():
-    _runtime_class('windows.ui.notifications.h')
-
-
-def windows_ui_viewmanagement():
-    _runtime_class('windows.ui.viewmanagement.h')
-
-
-def windows_ui_xaml_controls():
-    _runtime_class('windows.ui.xaml.controls.h')
-
-
-def windows_ui_xaml_media():
-    _runtime_class('windows.ui.xaml.media.h')
-
-
-def windows_ui_composition():
-    _runtime_class('windows.ui.composition.h')
-
-
-def windows_system():
-    _runtime_class('windows.system.h')
-
-
-def windows_ui_xaml_hosting():
-    _runtime_class('windows.ui.xaml.hosting.h')
 
 
 def winerror():
@@ -158,5 +106,84 @@ def mscoree():
                 print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
 
 
+def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], iids: dict[str, str],
+                indent: str = '    '):
+    for name in interfaces:
+        if isinstance(name, str):
+            print(f'{indent}class {name}:')
+            _print_iids(interfaces[name], iids, f'{indent}    ')
+        else:
+            print(f"{indent}IID_{name[0]} = '{{{iids[name[0]]}}}'")
+
+
+def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], indent: str = '    '):
+    for name in interfaces:
+        if isinstance(name, str):
+            print(f'{indent}class {name}:')
+            _print_interfaces(interfaces[name], f'{indent}    ')
+        else:
+            print(f'{indent}class {name[0]}({name[1]}):')
+            if interfaces[name]:
+                for func in interfaces[name]:
+                    print(f'{indent}    {func}: _Callable')
+            else:
+                print(f'{indent}    pass')
+
+
+def gen_winrt_interface(file: str):
+    with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
+        data = f.read()
+
+    re_midl = re.compile(r'MIDL_INTERFACE\(\"(.*)\"\)')
+    re_windows = re.compile('namespace Windows {')
+    re_namespace = re.compile(r'namespace (.*) {')
+    re_interface = re.compile('(I.*) : public (.*)')
+    re_func = re.compile(r'virtual HRESULT STDMETHODCALLTYPE (.*)\(')
+
+    interfaces = {}
+    iids = {}
+    lines = data.split('\n')
+    for index in range(len(lines)):
+        line = lines[index].strip()
+        if midl := re_midl.findall(line):
+            namespaces = []
+            index_ = index
+            while not re_windows.findall(line_ := lines[index_]):
+                if namespace := re_namespace.findall(line_):
+                    namespaces.append(namespace[0])
+                index_ -= 1
+            index_ = index
+            while not re_interface.findall(lines[index_]):
+                index_ += 1
+            interface, base = re_interface.findall(lines[index_])[0]
+            iids[interface] = midl[0].upper()
+            funcs = []
+            while (line_ := lines[index_]).find('};') == -1:
+                if func := re_func.findall(line_):
+                    funcs.append(func[0])
+                index_ += 1
+            dict_ = interfaces
+            for namespace in namespaces[::-1]:
+                dict_[namespace] = dict_.get(namespace, {})
+                dict_ = dict_[namespace]
+            dict_[interface, base] = funcs
+    print('class Windows:')
+    _print_iids(interfaces, iids)
+    print('class Windows:')
+    _print_interfaces(interfaces)
+
+
+def set_const():
+    path = r'D:\Projects\wallpyper\src\libs\ctyped\const.py'
+    iids = set()
+    with open(path, 'r') as file:
+        for match in re.finditer(r"IID_(.*) = '(.*)'", file.read()):
+            grp = match.groups()
+            if grp[1] in iids:
+                print(f'IID_{grp[0]}')
+            else:
+                iids.add(grp[1])
+
+
 if __name__ == '__main__':
-    windows_ui_xaml()
+    gen_winrt_interface('windows.storage.h')

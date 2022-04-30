@@ -270,12 +270,11 @@ def open_file_with(path: str) -> bool:
 def open_file_with_ex(path: str) -> bool:
     with ctyped.get_winrt(ctyped.interface.Windows.System.ILauncherOptions, True) as options:
         if options and ctyped.macro.SUCCEEDED(options.put_DisplayApplicationPicker(True)):
-            with ctyped.get_winrt(
-                    ctyped.interface.Windows.System.ILauncherStatics) as launcher, _utils.open_file(path) as file:
+            with ctyped.get_winrt(ctyped.interface.Windows.System.ILauncherStatics) as launcher, _utils.open_file(path) as file:
                 if launcher and file:
-                    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
-                    if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, operation.get_ref())):
-                        return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+                    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.type.c_bool]) as operation:
+                        if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, operation.get_ref())):
+                            return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
     return False
 
 
@@ -490,10 +489,10 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
                 with ctyped.init_com(ctyped.interface.IStartMenuPinnedList) as pinned:
                     if pinned:
                         with ctyped.init_com(ctyped.interface.IShellItem, False) as item:
-                            ctyped.lib.Shell32.SHCreateItemFromParsingName(path, None,
-                                                                           *ctyped.macro.IID_PPV_ARGS(item))
+                            ctyped.lib.Shell32.SHCreateItemFromParsingName(
+                                path, None, *ctyped.macro.IID_PPV_ARGS(item))
                             if item:
-                                removed = pinned.RemoveFromList(item) == 0 and removed
+                                removed = ctyped.macro.SUCCEEDED(pinned.RemoveFromList(item)) and removed
             if ntpath.isfile(path):
                 removed = ctyped.lib.Kernel32.DeleteFileW(path) and removed
     return removed

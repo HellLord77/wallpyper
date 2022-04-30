@@ -2,7 +2,10 @@ import ctypes as _ctypes
 import functools as _functools
 import numbers as _numbers
 import operator as _operator
+import typing as _typing
 from typing import Callable as _Callable, Union as _Union
+
+import _ctypes as __ctypes
 
 from . import const as _const, struct as _struct
 from ._utils import _Globals, _Pointer, _resolve_type
@@ -278,30 +281,27 @@ GetThumbnailImageAbort = ImageAbort
 
 
 def _set_magic(magic: str, func: _Callable):
-    magic_ = getattr(_operator, magic, None) or getattr(_operator, magic.replace(
-        'r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic)
-    _MAGICS[magic] = _functools.update_wrapper(func, magic_)
+    _MAGICS[magic] = _functools.update_wrapper(func, getattr(_operator, magic, None) or getattr(
+        _operator, magic.replace('r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic))
 
 
 def _set_magics():
-    if not _MAGICS:
-        for magic in _CT_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic: type(self)(
-                getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
-        for magic in _CT_R_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('r', '', 1): type(self)(
-                getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
-        for magic in _CT_I_BINARY:
-            _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
-                self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
-        for magic in _CT_UNARY:
-            _set_magic(magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
-        for magic in _PY_BINARY:
-            _set_magic(magic,
-                       lambda self, other, _magic=magic: getattr(self.value, _magic)(getattr(other, 'value', other)))
-        for magic in _PY_UNARY:
-            _set_magic(magic, (lambda self: complex(self.value)) if magic == '__complex__' else (
-                lambda self, _magic=magic: getattr(self.value, _magic)()))
+    for magic in _CT_BINARY:
+        _set_magic(magic, lambda self, other, *args, _magic=magic: type(self)(
+            getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
+    for magic in _CT_R_BINARY:
+        _set_magic(magic, lambda self, other, *args, _magic=magic.replace(
+            'r', '', 1): type(self)(getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
+    for magic in _CT_I_BINARY:
+        _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
+            self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
+    for magic in _CT_UNARY:
+        _set_magic(magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
+    for magic in _PY_BINARY:
+        _set_magic(magic, lambda self, other, _magic=magic: getattr(self.value, _magic)(getattr(other, 'value', other)))
+    for magic in _PY_UNARY:
+        _set_magic(magic, (lambda self: complex(
+            self.value)) if magic == '__complex__' else (lambda self, _magic=magic: getattr(self.value, _magic)()))
 
 
 _set_magics()
@@ -310,12 +310,15 @@ _set_magics()
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPtr]]:
     _globals.check_item(item)
-    type_ = _resolve_type(_globals.vars_[item])
-    if isinstance(type_, list):
+    var = _globals.vars_[item]
+    type_ = _resolve_type(var)
+    if isinstance(var, _typing._CallableGenericAlias):
         type_ = _ctypes.CFUNCTYPE(*type_)
-    for item in _MAGICS.items():
-        setattr(type_, *item)
+    for item_ in _MAGICS.items():
+        setattr(type_, *item_)
     return type_
 
 
-_globals = _Globals()
+_ctypes.cast(id(__ctypes.Array) + type(__ctypes.Array).__dictoffset__, _ctypes.POINTER(
+    _ctypes.py_object)).contents.value['__str__'] = lambda self: f'{self._type_.__name__}{self[:]}'
+_globals = _Globals(True)

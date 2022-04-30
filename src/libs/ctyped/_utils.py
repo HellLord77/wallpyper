@@ -7,8 +7,7 @@ import pkgutil as _pkgutil
 import sys as _sys
 import types as _types
 import typing as _typing
-from typing import (Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView,
-                    NoReturn as _NoReturn, Optional as _Optional, Sequence as _Sequence)
+from typing import (Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView, NoReturn as _NoReturn, Optional as _Optional, Sequence as _Sequence)
 
 _CT = _typing.TypeVar('_CT')
 
@@ -39,7 +38,7 @@ class _Globals(dict):
         self.replace_once = replace_once
         self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
         vars_ = vars(self.module)
-        self.vars_ = {var: val for var, val in vars_.items() if _not_internal(var)}
+        self.vars_ = {var: val for var, val in vars_.items() if not var.startswith('_')}
         for var in self.vars_:
             delattr(self.module, var)
         super().__init__(vars_)
@@ -84,7 +83,7 @@ class _Globals(dict):
 
     def check_item(self, item: str) -> _Optional[_NoReturn]:
         if item not in self.vars_:
-            raise AttributeError(f"module '{self.module.__name__}' has no attribute '{item}'")
+            raise AttributeError(f"Module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_type_hints(self, item: str) -> _ItemsView[str, _Any]:
         return _typing.get_type_hints(self.vars_[item], self, self).items()
@@ -128,17 +127,16 @@ def _cast_int(obj: int, type: _CT) -> int:
     return obj & (2 ** (_ctypes.sizeof(type) * 8) - 1)
 
 
-def _not_internal(name: str) -> bool:
-    return not name.startswith('_')
-
-
 def _format_annotations(annotations: str) -> tuple[str]:
-    index = annotations.rfind(']', 0, -1)
-    annotations = f'{annotations[annotations.find("[[") + 2:index]}{annotations[index + 1: - 1]}'.split(', ')
-    return tuple(annotations[annotations[0] == '':])
+    if annotations == '_Callable':
+        return '_Undefined',
+    else:
+        index = annotations.rfind(']', 0, -1)
+        annotations = f'{annotations[annotations.find("[[") + 2:index]}{annotations[index + 1: - 1]}'.split(', ')
+        return tuple(annotations[annotations[0] == '':])
 
 
-def _pretty_tuple(*itt: tuple[str, ...], name: str = '') -> str:
+def _pretty_tuples(*itt: tuple[str, ...], name: str = '') -> str:
     if lines := [[] for _ in range(len(itt))]:
         for index in range(len(itt[0]) - 1):
             sz = 0
@@ -155,8 +153,7 @@ def _pretty_tuple(*itt: tuple[str, ...], name: str = '') -> str:
 
 
 def _get_func_doc(name: str, restype: _Any, argtypes: _Sequence, annotations: tuple[str]) -> str:
-    return _pretty_tuple(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, "__name__", restype)),
-                         name=name)
+    return _pretty_tuples(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, '__name__', restype)), name=name)
 
 
 def _replace_object(old, new):
@@ -172,22 +169,30 @@ def _replace_object(old, new):
                     referrer[key] = new
 
 
-def _resolve_type(type_: _Any) -> _Any:
+def _repr(self) -> str:
+    return f'{type(self).__name__}({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
+
+
+def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
+    if args and hasattr(annot, '_args'):
+        annot = annot.__mro__[1][tuple(args.values())]
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    if isinstance(type_, _typing._CallableType):
-        type_ = [_ctypes.c_void_p]
-    elif isinstance(type_, _typing._CallableGenericAlias):
-        types_ = _typing.get_args(type_)
-        type_ = [_resolve_type(types_[1]), *(_resolve_type(type_) for type_ in types_[0])]
+    if isinstance(annot, _typing._CallableType):
+        annot = [_ctypes.c_void_p]
+    elif isinstance(annot, _typing._CallableGenericAlias):
+        types = _typing.get_args(annot)
+        annot = [_resolve_type(types[1], args), *(_resolve_type(type_, args) for type_ in types[0])]
     else:
         # noinspection PyUnresolvedReferences,PyProtectedMember
-        if isinstance(type_, _typing._UnionGenericAlias):
-            type_ = _typing.get_args(type_)[0]
-        if _typing.get_origin(type_) is type:
-            type_ = _typing.get_args(type_)[0]
-        if _typing.get_origin(type_) is _Pointer:
-            type_ = _ctypes.POINTER(_resolve_type(_typing.get_args(type_)[0]))
-    return type_
+        if isinstance(annot, _typing._UnionGenericAlias):
+            annot = _typing.get_args(annot)[0]
+        # if _typing.get_origin(annot) is type: TODO remove (?)
+        #     annot = _typing.get_args(annot)[0]
+        if _typing.get_origin(annot) is _Pointer:
+            annot = _ctypes.POINTER(_resolve_type(_typing.get_args(annot)[0], args))
+    if isinstance(annot, _typing.TypeVar):
+        annot = args.get(annot, annot)
+    return annot
 
 
 def _init():

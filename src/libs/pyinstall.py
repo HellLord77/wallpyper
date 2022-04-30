@@ -36,7 +36,7 @@ def clean_temp(remove_base: bool = False) -> bool:
 def _merge_xml_(self: ElementTree.Element, other: ElementTree.Element):
     elements = {element.tag: element for element in self}
     for element in other:
-        if len(element) == 0:
+        if not len(element):
             try:
                 elements[element.tag].text = element.text
             except KeyError:

@@ -11,11 +11,10 @@ def load(path: str) -> ContextManager[Optional[ctyped.interface.Windows.Data.Xml
         if file:
             with ctyped.get_winrt(ctyped.interface.Windows.Data.Xml.Dom.IXmlDocumentStatics) as statics:
                 if statics:
-                    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
-                    if ctyped.macro.SUCCEEDED(statics.LoadFromFileAsync(file, operation.get_ref())) and (
-                            doc := operation.get(ctyped.interface.Windows.Data.Xml.Dom.IXmlDocument)):
-                        yield doc
-                        return
+                    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Data.Xml.Dom.IXmlDocument]) as operation:
+                        if ctyped.macro.SUCCEEDED(statics.LoadFromFileAsync(file, operation.get_ref())) and (doc := operation.get()):
+                            yield doc
+                            return
     yield
 
 
@@ -36,9 +35,9 @@ def dump(xml: ctyped.interface.Windows.Data.Xml.Dom.IXmlDocument, path: str) -> 
         if file:
             with ctyped.cast_com(xml, ctyped.interface.Windows.Data.Xml.Dom.IXmlDocumentIO) as io:
                 if io:
-                    action = ctyped.Async()
-                    if ctyped.macro.SUCCEEDED(io.SaveToFileAsync(file, action.get_ref())):
-                        return ctyped.enum.AsyncStatus.Completed == action.wait_for()
+                    with ctyped.Async() as action:
+                        if ctyped.macro.SUCCEEDED(io.SaveToFileAsync(file, action.get_ref())):
+                            return ctyped.enum.AsyncStatus.Completed == action.wait_for()
     return False
 
 

@@ -1,15 +1,13 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
-import functools as _functools
 from dataclasses import dataclass as _struct
 
 from . import const as _const, enum as _enum, type as _type, union as _union
-from ._utils import _Globals, _Pointer, _resolve_type
+from ._utils import _Globals, _Pointer, _repr, _resolve_type
 
 _EMPTY = None
 _SIZE = object()
-_ASSIGNED = ('__repr__', *_functools.WRAPPER_ASSIGNMENTS)
 
 
 @_struct
@@ -1775,22 +1773,25 @@ OEM_STRING = STRING
 PATTERN = LOGBRUSH
 
 
-def _init(item: str) -> type[_ctypes.Structure]:
+class _Struct(_ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        for name, val in self._defaults[len(args):]:
+            if val is not _EMPTY and name not in kwargs:
+                kwargs[name] = val
+        super().__init__(*args, **kwargs)
+
+    __repr__ = _repr
+
+
+def _init(item: str) -> type:
     _globals.check_item(item)
-
-    class Struct(_ctypes.Structure):
-        _fields_ = tuple((name, _resolve_type(type_)) for name, type_ in _globals.get_type_hints(item))
-
-        def __init__(self, *args, **kwargs):
-            for name, val in self._defaults[len(args):]:
-                if val is not _EMPTY and name not in kwargs:
-                    kwargs[name] = val
-            super().__init__(*args, **kwargs)
-
-    # noinspection PyProtectedMember
-    Struct._defaults = tuple((field[0], _ctypes.sizeof(
-        Struct) if (val := getattr(_globals.vars_[item], field[0])) is _SIZE else val) for field in Struct._fields_)
-    return _functools.update_wrapper(Struct, _globals.vars_[item], _ASSIGNED, ())
+    fields = tuple((name, _resolve_type(annot)) for name, annot in _globals.get_type_hints(item))
+    struct = type(item, (_Struct,), {'_fields_': fields})
+    # noinspection PyTypeChecker
+    sz = _ctypes.sizeof(struct)
+    struct._defaults = tuple((field[0], sz if (val := getattr(
+        _globals.vars_[item], field[0])) is _SIZE else val) for field in fields)
+    return struct
 
 
 _globals = _Globals()

@@ -1,7 +1,7 @@
 import ctypes as _ctypes
-from typing import Optional as _Optional
+from typing import Optional as _Optional, Union as _Union
 
-from . import interface as _com, const as _const, lib as _lib, struct as _struct, type as _type
+from . import const as _const, lib as _lib, interface as _interface, struct as _struct, type as _type
 from ._utils import _Pointer, _byref, _cast_int
 
 
@@ -165,15 +165,22 @@ def MAKEINTRESOURCEW(i: int) -> _type.LPWSTR:
     return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 
 
-def __uuidof(_: str) -> _Pointer[_struct.IID]:
-    iid_ref = _byref(_struct.IID())
-    _lib.Ole32.IIDFromString(getattr(_const, f'IID_{_}'), iid_ref)
-    return iid_ref
+def __uuidof(_: _Union[_interface.IUnknown, type[_interface.IUnknown],
+                       _interface.IUnknown_impl, type[_interface.IUnknown_impl]]) -> _struct.IID:
+    if not isinstance(_, type):
+        _ = type(_)
+    *namespaces, name = _.__qualname__.split('.')
+    const = _const
+    for namespace in namespaces:
+        const = getattr(const, namespace)
+    iid = _struct.IID()
+    _lib.Ole32.IIDFromString(getattr(const, f'IID_{name.replace("_impl", "")}'), _byref(iid))
+    return iid
 
 
 # noinspection PyPep8Naming
-def IID_PPV_ARGS(ppType: _com.IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_com.IUnknown]]:
-    return __uuidof(type(ppType).__name__), _byref(ppType)
+def IID_PPV_ARGS(ppType: _interface.IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_interface.IUnknown]]:
+    return _byref(__uuidof(ppType)), _byref(ppType)
 
 
 # noinspection PyPep8Naming
@@ -271,3 +278,6 @@ def IsWindowsServer() -> bool:
     osvi = _struct.OSVERSIONINFOEXW(wProductType=_const.VER_NT_WORKSTATION)
     condition = _lib.Kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
     return not bool(_lib.Kernel32.VerifyVersionInfoW(_byref(osvi), _const.VER_PRODUCT_TYPE, condition))
+
+
+_uuidof = __uuidof

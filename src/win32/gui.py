@@ -221,10 +221,9 @@ class Gui(_EventHandler):
             lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=self._hinstance,
             lpszClassName=f'{__name__}-{type(self).__name__}' if name is None else name)
         ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class))
-        self._hwnd = ctyped.handle.HWND(
-            ctyped.lib.User32.CreateWindowExW(
-                0, self._class.lpszClassName, None,
-                ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
+        self._hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
+            0, self._class.lpszClassName, None,
+            ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
         self._menu_item_tooltip_hwnd = ctyped.handle.HWND(
             ctyped.lib.User32.CreateWindowExW(
                 ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
@@ -329,8 +328,7 @@ class _Control(_EventHandler):
         if gui is None:
             gui = Gui.get()
             if gui is None:
-                raise RuntimeError(
-                    f"Could not initialize '{type(self).__name__} (Live instance of '{Gui.__name__}' unavailable)")
+                raise RuntimeError(f"Cannot initialize '{type(self).__name__}' ('{Gui.__name__}' object unavailable)")
         # noinspection PyProtectedMember
         gui._attached.append(self)
         return gui.get_id()

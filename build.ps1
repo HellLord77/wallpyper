@@ -19,7 +19,7 @@ $Datas = @("libs\colors\colornames.min.json", "libs\locales\iso_639-2.json", "li
 $Icon = "src\resources\icon.ico"
 $NoConsole = $True
 $OneFile = $True
-$MainManifest = "app.manifest"
+$MainManifest = "manifest.xml"
 
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 

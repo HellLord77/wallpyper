@@ -547,15 +547,14 @@ def set_multi(*wallpapers: Wallpaper):
 def set_lock(path: str) -> bool:
     with ctyped.get_winrt(ctyped.interface.Windows.Storage.IStorageFileStatics) as file_statics:
         if file_statics:
-            operation = ctyped.Async(ctyped.interface.IAsyncOperation)
-            if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(ctyped.handle.HSTRING.from_string(
-                    path), operation.get_ref())) and (
-                    file := operation.get(ctyped.interface.Windows.Storage.IStorageFile)):
-                with ctyped.get_winrt(ctyped.interface.Windows.System.UserProfile.ILockScreenStatics) as lock:
-                    if lock:
-                        action = ctyped.Async()
-                        if ctyped.macro.SUCCEEDED(lock.SetImageFileAsync(file, action.get_ref())):
-                            return ctyped.enum.AsyncStatus.Completed == action.wait_for()
+            with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.IStorageFile]) as operation:
+                if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
+                        ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (file := operation.get()):
+                    with ctyped.get_winrt(ctyped.interface.Windows.System.UserProfile.ILockScreenStatics) as lock:
+                        if lock:
+                            with ctyped.Async() as action:
+                                if ctyped.macro.SUCCEEDED(lock.SetImageFileAsync(file, action.get_ref())):
+                                    return ctyped.enum.AsyncStatus.Completed == action.wait_for()
     return False
 
 
@@ -573,26 +572,24 @@ def set_slideshow(*paths: str) -> bool:
 @contextlib.contextmanager
 def _get_input_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
         ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
-    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
-    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (
-            stream := operation.get(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
-            if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                yield input_stream
-                return
+    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
+        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (stream := operation.get()):
+            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
+                if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
+                    yield input_stream
+                    return
     yield
 
 
 @contextlib.contextmanager
 def _get_output_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
         ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IOutputStream]]:
-    operation = ctyped.Async(ctyped.interface.IAsyncOperation)
-    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (
-            stream := operation.get(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream)):
-        with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IOutputStream, False) as output_stream:
-            if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
-                yield output_stream
-                return
+    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
+        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (stream := operation.get()):
+            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IOutputStream, False) as output_stream:
+                if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
+                    yield output_stream
+                    return
     yield
 
 
@@ -617,12 +614,12 @@ def _copy_stream(input_stream: ctyped.interface.Windows.Storage.Streams.IInputSt
                  args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
     with ctyped.get_winrt(ctyped.interface.Windows.Storage.Streams.IRandomAccessStreamStatics) as stream_statics:
         if stream_statics:
-            operation = ctyped.Async(ctyped.interface.IAsyncOperationWithProgress)
-            if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(
-                    input_stream, output_stream, operation.get_ref())):
-                if progress_callback is not None:
-                    operation.put_progress(ctyped.type.UINT64, progress_callback, args, kwargs)
-                return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+            with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperationWithProgress[ctyped.type.UINT64, ctyped.type.UINT64]) as operation:
+                if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(
+                        input_stream, output_stream, operation.get_ref())):
+                    if progress_callback is not None:
+                        operation.put_progress(progress_callback, args, kwargs)
+                    return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
     return False
 
 

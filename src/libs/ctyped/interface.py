@@ -1,61 +1,117 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
+import functools as _functools
 import types as _types
 import typing as _typing
-from typing import Callable as _Callable, Optional as _Optional
+from typing import Callable as _Callable, Generic as _Generic, Optional as _Optional
 
-from . import const as _const, enum as _enum, interface_impl as _interface_impl, struct as _struct, type as _type
-from ._utils import _format_annotations, _get_func_doc, _Pointer, _resolve_type
+from . import const as _const, enum as _enum, lib as _lib, macro as _macro, struct as _struct, type as _type
+from ._utils import _Pointer, _addressof, _byref, _format_annotations, _get_func_doc, _pointer, _resolve_type
+
+_T = _typing.TypeVar('_T')
+_TArgs = _typing.TypeVar('_TArgs')
+_TProgress = _typing.TypeVar('_TProgress')
+_TResult = _typing.TypeVar('_TResult')
+_TSender = _typing.TypeVar('_TSender')
 
 
-def _method_type(types: _Callable) -> list:
-    types = _resolve_type(types)
-    types.insert(1, _type.c_void_p)
-    return types
+class _Template:
+    _args = None
+    _classes = {}
+
+    def __init_subclass__(cls):
+        cls._classes = {}
+        super().__init_subclass__()
+
+    def __class_getitem__(cls, item):
+        if not isinstance(item, tuple):
+            item = item,
+        if item not in cls._classes:
+            # noinspection PyUnresolvedReferences
+            args = {generic: arg for generic, arg in zip(
+                cls.__parameters__, _typing.get_args(super().__class_getitem__(item)))}
+            qualname = f'{cls.__qualname__}_{"_".join(type_.__name__ for type_ in args.values())}'
+            cls._classes[item] = type(qualname.rsplit('.', 1)[-1], (cls,), {'__qualname__': qualname, '_args': args})
+        return cls._classes[item]
 
 
 class _Interface(_type.c_void_p):
-    _struct = _ctypes.Structure
+    _vtbl = _ctypes.Structure
+    _docs = {}
 
     def __new__(cls):
-        if cls._struct.__name__ != cls.__name__:
-            cls._struct = type(cls.__name__, (_ctypes.Structure,), {'_fields_': tuple((name, _ctypes.WINFUNCTYPE(
-                *_method_type(types))) for name, types in _typing.get_type_hints(cls).items())})
-            annots = {}
-            for base in cls.mro():
-                try:
-                    annots.update(base.__annotations__)
-                except AttributeError:
-                    break
-            # noinspection PyProtectedMember,PyUnresolvedReferences
-            cls.__doc__ = '\n\n'.join(_get_func_doc(name, types._restype_, types._argtypes_[1:], _format_annotations(
-                annots[name])) for name, types in cls._struct._fields_)
+        if cls._vtbl.__name__ != cls.__name__:
+            cls._vtbl = _get_vtbl(cls)
+            # noinspection PyProtectedMember
+            annots = {name: annot for base in cls.__mro__ for name, annot in getattr(base, '__annotations__', {}).items()}
+            # noinspection PyProtectedMember
+            cls.__doc__ = '\n\n'.join(_get_func_doc(name, types._restype_, types._argtypes_[1:], _format_annotations(annots[name])) for name, types in cls._vtbl._fields_)
+            # noinspection PyProtectedMember
+            cls._docs = {name: '\n'.join(doc for doc in cls.__doc__.split('\n') if doc.startswith(f'{name}(')) for name, _ in cls._vtbl._fields_}
         return super().__new__(cls)
 
     def __getattr__(self, name: str):
         # noinspection PyProtectedMember,PyUnresolvedReferences
-        for name_, _ in self._struct._fields_:
+        for name_, _ in self._vtbl._fields_:
             if name == name_:
-                if self.value is None:
-                    raise MemoryError(f"interface '{type(self).__name__}' has not been initialized yet")
+                if not self.value:
+                    raise RuntimeError(f"Interface object '{type(self).__name__}' partially initialized")
                 # noinspection PyUnresolvedReferences
-                funcs = self._struct.from_address(_type.c_void_p.from_address(self.value).value)
+                funcs = self._vtbl.from_address(_type.c_void_p.from_address(self.value).value)
                 # noinspection PyProtectedMember,PyUnresolvedReferences
-                for name__, types in self._struct._fields_:
+                for name__, types in self._vtbl._fields_:
                     method = getattr(funcs, name__)
                     method.__name__ = name__
-                    method.__doc__ = '\n'.join(
-                        doc for doc in self.__doc__.split('\n') if doc.startswith(f'{name__}('))
+                    method.__doc__ = self._docs[name__]
                     setattr(self, name__, _types.MethodType(method, self))
                 break
         return super().__getattribute__(name)
 
 
-class IUnknown(_Interface):
-    _CLSID_ = ''
+# noinspection PyPep8Naming
+class _Interface_impl(_type.c_void_p):  # TODO docs
+    _iid_refs = None
+    _vtbl = _ctypes.Structure
+    _refs = {}
+
+    def __hash__(self):
+        return self.value
+
+    def __init__(self):
+        # noinspection PyTypeChecker,PyProtectedMember
+        self._ptr = _pointer(self._vtbl(*(type_(_functools.wraps(func := getattr(self, name))(lambda _, *args, _func=func: _func(*args))) for name, type_ in self._vtbl._fields_)))
+        super().__init__(_addressof(self._ptr))
+        self._refs[self] = 1
+
+    def __new__(cls):
+        if cls._vtbl.__name__ != cls.__name__:
+            cls._iid_refs = set()
+            base = cls
+            for base_ in cls.__mro__[cls.__mro__.index(_Interface_impl) - 2::-1]:
+                # noinspection PyProtectedMember
+                if __name__ == base_.__module__ and not (issubclass(base_, _Template) and base_._args is None):
+                    # noinspection PyTypeChecker,PyProtectedMember
+                    cls._iid_refs.add(_byref(_macro._uuidof(base_)))
+                    base = base_
+            cls._iid_refs = frozenset(cls._iid_refs)
+            cls._vtbl = _get_vtbl(base, cls.__name__)
+        return super().__new__(cls)
+
+
+def _get_vtbl(cls: type, name: _Optional[str] = None) -> type[_ctypes.Structure]:
+    fields = []
+    for name, annot in _typing.get_type_hints(cls).items():
+        types = _resolve_type(annot, getattr(cls, '_args', None))
+        types.insert(1, _type.c_void_p)
+        fields.append((name, _ctypes.WINFUNCTYPE(*types)))
+    # noinspection PyTypeChecker
+    return type(cls.__name__ if name is None else name, (_ctypes.Structure,), {'_fields_': tuple(fields)})
+
+
+class _IUnknown:
     QueryInterface: _Callable[[_Pointer[_struct.IID],
-                               _type.c_void_p],
+                               _type.LPVOID],
                               _type.HRESULT]
     AddRef: _Callable[[],
                       _type.ULONG]
@@ -63,9 +119,44 @@ class IUnknown(_Interface):
                        _type.ULONG]
 
 
+class IUnknown(_IUnknown, _Interface):
+    _CLSID_ = ''
+
+
+# noinspection PyPep8Naming
+class IUnknown_impl(_IUnknown, _Interface_impl):
+    # noinspection PyPep8Naming
+    def QueryInterface(self, riid: _Pointer[_struct.IID], ppvObject: _type.LPVOID) -> _type.HRESULT:
+        if not ppvObject:
+            return _const.E_INVALIDARG
+        obj_ref = _type.LPVOID.from_address(ppvObject)
+        obj_ref.value = None
+        for iid_ref in self._iid_refs:
+            if _lib.Ole32.IsEqualGUID(iid_ref, riid):
+                obj_ref.value = self.value
+                self.AddRef()
+                return _const.NOERROR
+        return _const.E_NOINTERFACE
+
+    # noinspection PyPep8Naming
+    def AddRef(self) -> _type.ULONG:
+        self._refs[self] += 1
+        return self._refs[self]
+
+    # noinspection PyPep8Naming
+    def Release(self) -> _type.ULONG:
+        self._refs[self] -= 1
+        try:
+            return self._refs[self]
+        finally:
+            if not self._refs[self]:
+                del self._refs[self]
+
+
 class IInspectable(IUnknown):
-    _RuntimeClass_ = ''
-    GetIids: _Callable
+    GetIids: _Callable[[_Pointer[_type.ULONG],
+                        _Pointer[_Pointer[_struct.IID]]],
+                       _type.HRESULT]
     GetRuntimeClassName: _Callable[[_Pointer[_type.HSTRING]],
                                    _type.HRESULT]
     GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]],
@@ -274,18 +365,18 @@ class IFileOpenDialog(IFileDialog):
 
 class IUserNotification(IUnknown):
     _CLSID_ = _const.CLSID_UserNotification
-    SetBalloonInfo: _Callable[[_type.LPCWSTR,
-                               _type.LPCWSTR,
+    SetBalloonInfo: _Callable[[_Optional[_type.LPCWSTR],
+                               _Optional[_type.LPCWSTR],
                                _type.DWORD],
                               _type.HRESULT]
     SetBalloonRetry: _Callable[[_type.DWORD,
                                 _type.DWORD,
                                 _type.UINT],
                                _type.HRESULT]
-    SetIconInfo: _Callable[[_type.HICON,
+    SetIconInfo: _Callable[[_Optional[_type.HICON],
                             _type.LPCWSTR],
                            _type.HRESULT]
-    Show: _Callable[[_Optional[_interface_impl.IQueryContinue],
+    Show: _Callable[[_Optional[IQueryContinue_impl],
                      _type.DWORD],
                     _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR],
@@ -294,20 +385,20 @@ class IUserNotification(IUnknown):
 
 class IUserNotification2(IUnknown):
     _CLSID_ = _const.CLSID_UserNotification
-    SetBalloonInfo: _Callable[[_type.LPCWSTR,
-                               _type.LPCWSTR,
+    SetBalloonInfo: _Callable[[_Optional[_type.LPCWSTR],
+                               _Optional[_type.LPCWSTR],
                                _type.DWORD],
                               _type.HRESULT]
     SetBalloonRetry: _Callable[[_type.DWORD,
                                 _type.DWORD,
                                 _type.UINT],
                                _type.HRESULT]
-    SetIconInfo: _Callable[[_type.HICON,
-                            _type.LPCWSTR],
+    SetIconInfo: _Callable[[_Optional[_type.HICON],
+                            _Optional[_type.LPCWSTR]],
                            _type.HRESULT]
-    Show: _Callable[[_Optional[_Pointer[_interface_impl.IQueryContinue]],
+    Show: _Callable[[_Optional[_Pointer[IQueryContinue_impl]],
                      _type.DWORD,
-                     _Optional[_Pointer[_interface_impl.IUserNotificationCallback]]],
+                     _Optional[_Pointer[IUserNotificationCallback_impl]]],
                     _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR],
                          _type.HRESULT]
@@ -327,6 +418,34 @@ class IPropertyStore(IUnknown):
                         _type.HRESULT]
     Commit: _Callable[[],
                       _type.HRESULT]
+
+
+class _IQueryContinue:
+    QueryContinue: _Callable[[],
+                             _type.HRESULT]
+
+
+class IQueryContinue(_IQueryContinue, IUnknown):
+    pass
+
+
+# noinspection PyPep8Naming
+class IQueryContinue_impl(_IQueryContinue, IUnknown_impl):
+    pass
+
+
+class _IQueryContinueWithStatus(_IQueryContinue):
+    SetStatusMessage: _Callable[[_type.LPCWSTR],
+                                _type.HRESULT]
+
+
+class IQueryContinueWithStatus(_IQueryContinueWithStatus, IQueryContinue):
+    pass
+
+
+# noinspection PyPep8Naming
+class IQueryContinueWithStatus_impl(_IQueryContinueWithStatus, IQueryContinue_impl):
+    pass
 
 
 class ISequentialStream(IUnknown):
@@ -636,6 +755,29 @@ class IDesktopWindowXamlSourceNative2(IDesktopWindowXamlSourceNative):
                                    _type.HRESULT]
 
 
+class _IUserNotificationCallback:
+    OnBalloonUserClick: _Callable[[_Pointer[_struct.POINT]],
+                                  _type.HRESULT]
+    OnLeftClick: _Callable[[_Pointer[_struct.POINT]],
+                           _type.HRESULT]
+    OnContextMenu: _Callable[[_Pointer[_struct.POINT]],
+                             _type.HRESULT]
+
+
+class IUserNotificationCallback(_IUserNotificationCallback, IUnknown):
+    pass
+
+
+# noinspection PyPep8Naming
+class IUserNotificationCallback_impl(_IUserNotificationCallback, IUnknown_impl):
+    pass
+
+
+class IActivationFactory(IInspectable):
+    ActivateInstance: _Callable[[_Pointer[IInspectable]],
+                                _type.HRESULT]
+
+
 class IAsyncInfo(IInspectable):
     get_Id: _Callable[[_Pointer[_type.c_uint32]],
                       _type.HRESULT]
@@ -649,55 +791,11 @@ class IAsyncInfo(IInspectable):
                      _type.HRESULT]
 
 
-class IAsyncAction(IInspectable):
-    put_Completed: _Callable[[_interface_impl.IAsyncActionCompletedHandler],
-                             _type.HRESULT]
-    get_Completed: _Callable
-    GetResults: _Callable[[],
-                          _type.HRESULT]
-
-
-class IAsyncActionWithProgress(IInspectable):
-    put_Progress: _Callable[[_interface_impl.IAsyncActionProgressHandler],
-                            _type.HRESULT]
-    get_Progress: _Callable
-    put_Completed: _Callable[[_interface_impl.IAsyncActionWithProgressCompletedHandler],
-                             _type.HRESULT]
-    get_Completed: _Callable
-    GetResults: _Callable[[],
-                          _type.HRESULT]
-
-
-class IAsyncOperation(IInspectable):
-    put_Completed: _Callable[[_interface_impl.IAsyncOperationCompletedHandler],
-                             _type.HRESULT]
-    get_Completed: _Callable
-    GetResults: _Callable[[_Pointer[_type.c_void_p]],
-                          _type.HRESULT]
-
-
-class IAsyncOperationWithProgress(IInspectable):  # TODO parameterize for progress & result type / overload in child
-    put_Progress: _Callable[[_interface_impl.IAsyncOperationProgressHandler],
-                            _type.HRESULT]
-    get_Progress: _Callable
-    put_Completed: _Callable[[_interface_impl.IAsyncOperationWithProgressCompletedHandler],
-                             _type.HRESULT]
-    get_Completed: _Callable
-    GetResults: _Callable[[_Pointer[_type.c_void_p]],
-                          _type.HRESULT]
-
-
-class IActivationFactory(IInspectable):
-    ActivateInstance: _Callable[[_Pointer[IInspectable]],
-                                _type.HRESULT]
-
-
 class Windows:
     class Data:
         class Xml:
             class Dom:
                 class IXmlDocument(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_Data_Xml_Dom_XmlDocument
                     get_Doctype: _Callable
                     get_Implementation: _Callable
                     get_DocumentElement: _Callable
@@ -721,7 +819,7 @@ class Windows:
                                        _type.HRESULT]
                     LoadXmlWithSettings: _Callable
                     SaveToFileAsync: _Callable[[Windows.Storage.IStorageFile,
-                                                _Pointer[IAsyncAction]],
+                                                _Pointer[Windows.Foundation.IAsyncAction]],
                                                _type.HRESULT]
 
                 class IXmlDocumentIO2(IInspectable):
@@ -730,13 +828,12 @@ class Windows:
                     LoadXmlFromBufferWithSettings: _Callable
 
                 class IXmlDocumentStatics(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_Data_Xml_Dom_XmlDocument
                     LoadFromUriAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
-                                                 _Pointer[IAsyncOperation]],
+                                                 _Pointer[Windows.Foundation.IAsyncOperation[Windows.Data.Xml.Dom.IXmlDocument]]],
                                                 _type.HRESULT]
                     LoadFromUriWithSettingsAsync: _Callable
                     LoadFromFileAsync: _Callable[[Windows.Storage.IStorageFile,
-                                                  _Pointer[IAsyncOperation]],
+                                                  _Pointer[Windows.Foundation.IAsyncOperation[Windows.Data.Xml.Dom.IXmlDocument]]],
                                                  _type.HRESULT]
                     LoadFromFileWithSettingsAsync: _Callable
 
@@ -749,6 +846,48 @@ class Windows:
                                              _type.HRESULT]
 
     class Foundation:
+        class _IAsyncActionCompletedHandler(IUnknown):
+            Invoke: _Callable[[Windows.Foundation.IAsyncAction,
+                               _enum.AsyncStatus],
+                              _type.HRESULT]
+
+        class IAsyncActionCompletedHandler(_IAsyncActionCompletedHandler, IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class IAsyncActionCompletedHandler_impl(_IAsyncActionCompletedHandler, IUnknown_impl):
+            pass
+
+        class IDeferralCompletedHandler(IUnknown):
+            Invoke: _Callable[[],
+                              _type.HRESULT]
+
+        class IAsyncAction(IInspectable):
+            put_Completed: _Callable[[Windows.Foundation.IAsyncActionCompletedHandler_impl],
+                                     _type.HRESULT]
+            get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncActionCompletedHandler]],
+                                     _type.HRESULT]
+            GetResults: _Callable[[],
+                                  _type.HRESULT]
+
+        class IClosable(IInspectable):
+            Close: _Callable[[],
+                             _type.HRESULT]
+
+        class IDeferral(IInspectable):
+            Complete: _Callable[[],
+                                _type.HRESULT]
+
+        class IDeferralFactory(IInspectable):
+            Create: _Callable[[Windows.Foundation.IDeferralCompletedHandler,
+                               _Pointer[Windows.Foundation.IDeferral]],
+                              _type.HRESULT]
+
+        class IGetActivationFactory(IInspectable):
+            GetActivationFactory: _Callable[[_type.HSTRING,
+                                             _Pointer[IInspectable]],
+                                            _type.HRESULT]
+
         class IUriRuntimeClass(IInspectable):
             get_AbsoluteUri: _Callable[[_Pointer[_type.HSTRING]],
                                        _type.HRESULT]
@@ -779,31 +918,147 @@ class Windows:
                                 _type.HRESULT]
             get_Suspicious: _Callable[[_Pointer[_type.boolean]],
                                       _type.HRESULT]
-            Equals: _Callable
-            CombineUri: _Callable
+            Equals: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                               _Pointer[_type.boolean]],
+                              _type.HRESULT]
+            CombineUri: _Callable[[_type.HSTRING,
+                                   _Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                  _type.HRESULT]
+
+            class IUriRuntimeClassFactory(IInspectable):
+                CreateUri: _Callable[[_type.HSTRING,
+                                      _Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                     _type.HRESULT]
+                CreateWithRelativeUri: _Callable[[_type.HSTRING,
+                                                  _type.HSTRING,
+                                                  _Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                                 _type.HRESULT]
+
+        class _IAsyncOperationProgressHandler(_Template):
+            Invoke: _Callable[[Windows.Foundation.IAsyncOperationWithProgress[_TResult, _TProgress],
+                               _TProgress],
+                              _type.HRESULT]
+
+        class IAsyncOperationProgressHandler(_IAsyncOperationProgressHandler, _Generic[_TResult, _TProgress], IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class IAsyncOperationProgressHandler_impl(_IAsyncOperationProgressHandler, _Generic[_TResult, _TProgress], IUnknown_impl):
+            pass
+
+        class _IAsyncOperationWithProgressCompletedHandler(_Template):
+            Invoke: _Callable[[Windows.Foundation.IAsyncOperationWithProgress[_TResult, _TProgress],
+                               _enum.AsyncStatus],
+                              _type.HRESULT]
+
+        class IAsyncOperationWithProgressCompletedHandler(_IAsyncOperationWithProgressCompletedHandler, _Generic[_TResult, _TProgress], IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class IAsyncOperationWithProgressCompletedHandler_impl(_IAsyncOperationWithProgressCompletedHandler, _Generic[_TResult, _TProgress], IUnknown_impl):
+            pass
+
+        class _IAsyncOperationCompletedHandler(_Template):
+            Invoke: _Callable[[Windows.Foundation.IAsyncOperation[_TResult],
+                               _enum.AsyncStatus],
+                              _type.HRESULT]
+
+        class IAsyncOperationCompletedHandler(_IAsyncOperationCompletedHandler, _Generic[_TResult], IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class IAsyncOperationCompletedHandler_impl(_IAsyncOperationCompletedHandler, _Generic[_TResult], IUnknown_impl):
+            pass
+
+        class IAsyncOperationWithProgress(_Template, _Generic[_TResult, _TProgress], IInspectable):
+            put_Progress: _Callable[[Windows.Foundation.IAsyncOperationProgressHandler_impl[_TResult, _TProgress]],
+                                    _type.HRESULT]
+            get_Progress: _Callable[[_Pointer[Windows.Foundation.IAsyncOperationProgressHandler[_TResult, _TProgress]]],
+                                    _type.HRESULT]
+            put_Completed: _Callable[[Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl[_TResult, _TProgress]],
+                                     _type.HRESULT]
+            get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncOperationWithProgressCompletedHandler[_TResult, _TProgress]]],
+                                     _type.HRESULT]
+            GetResults: _Callable[[_Pointer[_TResult]],
+                                  _type.HRESULT]
+
+        class IAsyncActionWithProgress(_Template, _Generic[_TProgress], IInspectable):
+            put_Progress: _Callable[[Windows.Foundation.IAsyncActionProgressHandler_impl[_TProgress]],
+                                    _type.HRESULT]
+            get_Progress: _Callable[[_Pointer[Windows.Foundation.IAsyncActionProgressHandler[_TProgress]]],
+                                    _type.HRESULT]
+            put_Completed: _Callable[[Windows.Foundation.IAsyncActionWithProgressCompletedHandler[_TProgress]],
+                                     _type.HRESULT]
+            get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncActionWithProgressCompletedHandler_impl[_TProgress]]],
+                                     _type.HRESULT]
+            GetResults: _Callable[[],
+                                  _type.HRESULT]
+
+        class IAsyncOperation(_Template, _Generic[_TResult], IInspectable):
+            put_Completed: _Callable[[Windows.Foundation.IAsyncOperationCompletedHandler_impl[_TResult]],
+                                     _type.HRESULT]
+            get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncOperationCompletedHandler[_TResult]]],
+                                     _type.HRESULT]
+            GetResults: _Callable[[_Pointer[_TResult]],
+                                  _type.HRESULT]
+
+        class _IAsyncActionProgressHandler(_Template):
+            Invoke: _Callable[[Windows.Foundation.IAsyncActionWithProgress[_TProgress],
+                               _TResult],
+                              _type.HRESULT]
+
+        class IAsyncActionProgressHandler(_IAsyncActionProgressHandler, _Generic[_TProgress], IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class IAsyncActionProgressHandler_impl(_IAsyncActionProgressHandler, _Generic[_TProgress], IUnknown_impl):
+            pass
+
+        class _IAsyncActionWithProgressCompletedHandler(_Template):
+            Invoke: _Callable[[Windows.Foundation.IAsyncActionWithProgress[_TProgress],
+                               _enum.AsyncStatus],
+                              _type.HRESULT]
+
+        class IAsyncActionWithProgressCompletedHandler(_IAsyncActionWithProgressCompletedHandler, _Generic[_TProgress], IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class IAsyncActionWithProgressCompletedHandler_impl(_IAsyncActionWithProgressCompletedHandler, _Generic[_TProgress], IUnknown_impl):
+            pass
+
+        class _ITypedEventHandler(_Template):
+            Invoke: _Callable[[_TSender,
+                               _TArgs],
+                              _type.HRESULT]
+
+        class ITypedEventHandler(_ITypedEventHandler, _Generic[_TSender, _TArgs], IUnknown):
+            pass
+
+        # noinspection PyPep8Naming
+        class ITypedEventHandler_impl(_ITypedEventHandler, _Generic[_TSender, _TArgs], IUnknown_impl):
+            pass
 
         class Collections:
-            # noinspection PyPep8Naming
-            class IVector_IUIElement(IInspectable):
-                GetAt: _Callable[[_type.c_uint,
-                                  _Pointer[Windows.UI.Xaml.IUIElement]],
+            class IVector(_Template, _Generic[_T], IInspectable):
+                GetAt: _Callable[[_Optional[_type.c_uint],
+                                  _Pointer[_T]],
                                  _type.HRESULT]
                 get_Size: _Callable[[_Pointer[_type.c_uint]],
                                     _type.HRESULT]
                 GetView: _Callable
-                IndexOf: _Callable[[Windows.UI.Xaml.IUIElement,
+                IndexOf: _Callable[[_Optional[_T],
                                     _Pointer[_type.c_uint],
                                     _Pointer[_type.boolean]],
                                    _type.HRESULT]
                 SetAt: _Callable[[_type.c_uint,
-                                  Windows.UI.Xaml.IUIElement],
+                                  _T],
                                  _type.HRESULT]
                 InsertAt: _Callable[[_type.c_uint,
-                                     Windows.UI.Xaml.IUIElement],
+                                     _T],
                                     _type.HRESULT]
                 RemoveAt: _Callable[[_type.c_uint],
                                     _type.HRESULT]
-                Append: _Callable[[Windows.UI.Xaml.IUIElement],
+                Append: _Callable[[_Optional[_T]],
                                   _type.HRESULT]
                 RemoveAtEnd: _Callable[[],
                                        _type.HRESULT]
@@ -811,11 +1066,11 @@ class Windows:
                                  _type.HRESULT]
                 GetMany: _Callable[[_type.c_uint,
                                     _type.c_uint,
-                                    _Pointer[Windows.UI.Xaml.IUIElement],
+                                    _Pointer[_T],
                                     _Pointer[_type.c_uint]],
                                    _type.HRESULT]
                 ReplaceAll: _Callable[[_type.c_uint,
-                                       _Pointer[Windows.UI.Xaml.IUIElement]],
+                                       _Pointer[_T]],
                                       _type.HRESULT]
 
     class Storage:
@@ -825,45 +1080,43 @@ class Windows:
             get_ContentType: _Callable[[_Pointer[_type.HSTRING]],
                                        _type.HRESULT]
             OpenAsync: _Callable[[_enum.FileAccessMode,
-                                  _Pointer[IAsyncOperation]],
+                                  _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
                                  _type.HRESULT]
-            OpenTransactedWriteAsync: _Callable[[_Pointer[IAsyncOperation]],
-                                                _type.HRESULT]
+            OpenTransactedWriteAsync: _Callable
             CopyOverloadDefaultNameAndOptions: _Callable[[Windows.Storage.IStorageFolder,
-                                                          _Pointer[IAsyncOperation]],
+                                                          _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                                          _type.HRESULT]
             CopyOverloadDefaultOptions: _Callable[[Windows.Storage.IStorageFolder,
                                                    _type.HSTRING,
-                                                   _Pointer[IAsyncOperation]],
+                                                   _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                                   _type.HRESULT]
             CopyOverload: _Callable[[Windows.Storage.IStorageFolder,
                                      _type.HSTRING,
                                      _enum.NameCollisionOption,
-                                     _Pointer[IAsyncOperation]],
+                                     _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                     _type.HRESULT]
             CopyAndReplaceAsync: _Callable[[Windows.Storage.IStorageFile,
-                                            _Pointer[IAsyncAction]],
+                                            _Pointer[Windows.Foundation.IAsyncAction]],
                                            _type.HRESULT]
             MoveOverloadDefaultNameAndOptions: _Callable[[Windows.Storage.IStorageFolder,
-                                                          _Pointer[IAsyncAction]],
+                                                          _Pointer[Windows.Foundation.IAsyncAction]],
                                                          _type.HRESULT]
             MoveOverloadDefaultOptions: _Callable[[Windows.Storage.IStorageFolder,
                                                    _type.HSTRING,
-                                                   _Pointer[IAsyncAction]],
+                                                   _Pointer[Windows.Foundation.IAsyncAction]],
                                                   _type.HRESULT]
             MoveOverload: _Callable[[Windows.Storage.IStorageFolder,
                                      _type.HSTRING,
                                      _enum.NameCollisionOption,
-                                     _Pointer[IAsyncAction]],
+                                     _Pointer[Windows.Foundation.IAsyncAction]],
                                     _type.HRESULT]
             MoveAndReplaceAsync: _Callable[[Windows.Storage.IStorageFile,
-                                            _Pointer[IAsyncAction]],
+                                            _Pointer[Windows.Foundation.IAsyncAction]],
                                            _type.HRESULT]
 
         class IStorageFileStatics(IInspectable):
-            _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFile
             GetFileFromPathAsync: _Callable[[_type.HSTRING,
-                                             _Pointer[IAsyncOperation]],
+                                             _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                             _type.HRESULT]
             GetFileFromApplicationUriAsync: _Callable
             CreateStreamedFileAsync: _Callable
@@ -873,40 +1126,58 @@ class Windows:
 
         class IStorageFolder(IInspectable):
             CreateFileAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
-                                                              _Pointer[IAsyncOperation]],
+                                                              _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                                              _type.HSTRING]
             CreateFileAsync: _Callable[[_type.HSTRING,
                                         _enum.CreationCollisionOption,
-                                        _Pointer[IAsyncOperation]],
+                                        _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                        _type.HRESULT]
             CreateFolderAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
-                                                                _Pointer[IAsyncOperation]],
+                                                                _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
                                                                _type.HSTRING]
             CreateFolderAsync: _Callable[[_type.HSTRING,
                                           _enum.CreationCollisionOption,
-                                          _Pointer[IAsyncOperation]],
+                                          _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
                                          _type.HRESULT]
             GetFileAsync: _Callable[[_type.HSTRING,
-                                     _Pointer[IAsyncOperation]],
+                                     _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                     _type.HSTRING]
             GetFolderAsync: _Callable[[_type.HSTRING,
-                                       _Pointer[IAsyncOperation]],
+                                       _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
                                       _type.HSTRING]
             GetItemAsync: _Callable[[_type.HSTRING,
-                                     _Pointer[IAsyncOperation]],
+                                     _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageItem]]],
                                     _type.HSTRING]
-            GetFilesAsyncOverloadDefaultOptionsStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
-                                                                        _type.HSTRING]
-            GetFoldersAsyncOverloadDefaultOptionsStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
-                                                                          _type.HSTRING]
-            GetItemsAsyncOverloadDefaultStartAndCount: _Callable[[_Pointer[IAsyncOperation]],
-                                                                 _type.HSTRING]
+            GetFilesAsyncOverloadDefaultOptionsStartAndCount: _Callable
+            GetFoldersAsyncOverloadDefaultOptionsStartAndCount: _Callable
+            GetItemsAsyncOverloadDefaultStartAndCount: _Callable
 
         class IStorageFolderStatics(IInspectable):
-            _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_StorageFolder
             GetFolderFromPathAsync: _Callable[[_type.HSTRING,
-                                               _Pointer[IAsyncOperation]],
+                                               _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
                                               _type.HRESULT]
+
+        class IStorageItem(IInspectable):
+            RenameAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
+                                                          _Pointer[Windows.Foundation.IAsyncAction]],
+                                                         _type.HRESULT]
+            RenameAsync: _Callable[[_type.HSTRING,
+                                    _enum.NameCollisionOption,
+                                    _Pointer[Windows.Foundation.IAsyncAction]],
+                                   _type.HRESULT]
+            DeleteAsyncOverloadDefaultOptions: _Callable[[_Pointer[Windows.Foundation.IAsyncAction]],
+                                                         _type.HRESULT]
+            DeleteAsync: _Callable[[_enum.StorageDeleteOption,
+                                    _Pointer[Windows.Foundation.IAsyncAction]],
+                                   _type.HRESULT]
+            GetBasicPropertiesAsync: _Callable
+            get_Name: _Callable[[_Pointer[_type.HSTRING]],
+                                _type.HRESULT]
+            get_Path: _Callable[[_Pointer[_type.HSTRING]],
+                                _type.HRESULT]
+            get_Attributes: _Callable
+            get_DateCreated: _Callable
+            IsOfType: _Callable
 
         class Streams:
             class IBuffer(IInspectable):
@@ -921,7 +1192,7 @@ class Windows:
                 ReadAsync: _Callable[[Windows.Storage.Streams.IBuffer,
                                       _type.UINT32,
                                       _enum.InputStreamOptions,
-                                      _Pointer[IAsyncOperationWithProgress]],
+                                      _Pointer[Windows.Foundation.IAsyncOperationWithProgress[Windows.Storage.Streams.IBuffer, _type.UINT32]]],
                                      _type.HRESULT]
 
             class IOutputStream(IInspectable):
@@ -951,24 +1222,22 @@ class Windows:
                                         _type.HRESULT]
 
             class IRandomAccessStreamStatics(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_Storage_Streams_RandomAccessStream
                 CopyAsync: _Callable[[Windows.Storage.Streams.IInputStream,
                                       Windows.Storage.Streams.IOutputStream,
-                                      _Pointer[IAsyncOperationWithProgress]],
+                                      _Pointer[Windows.Foundation.IAsyncOperationWithProgress[_type.UINT64, _type.UINT64]]],
                                      _type.HRESULT]
                 CopySizeAsync: _Callable[[Windows.Storage.Streams.IInputStream,
                                           Windows.Storage.Streams.IOutputStream,
                                           _type.UINT64,
-                                          _Pointer[IAsyncOperationWithProgress]],
+                                          _Pointer[Windows.Foundation.IAsyncOperationWithProgress[_type.UINT64, _type.UINT64]]],
                                          _type.HRESULT]
                 CopyAndCloseAsync: _Callable[[Windows.Storage.Streams.IInputStream,
                                               Windows.Storage.Streams.IOutputStream,
-                                              _Pointer[IAsyncOperationWithProgress]],
+                                              _Pointer[Windows.Foundation.IAsyncOperationWithProgress[_type.UINT64, _type.UINT64]]],
                                              _type.HRESULT]
 
     class System:
         class ILauncherOptions(IInspectable):
-            _RuntimeClass_ = _const.RuntimeClass_Windows_System_LauncherOptions
             get_TreatAsUntrusted: _Callable[[_Pointer[_type.boolean]],
                                             _type.HRESULT]
             put_TreatAsUntrusted: _Callable[[_type.boolean],
@@ -996,39 +1265,36 @@ class Windows:
                                        _type.HRESULT]
 
         class ILauncherStatics(IInspectable):
-            _RuntimeClass_ = _const.RuntimeClass_Windows_System_Launcher
             LaunchFileAsync: _Callable[[Windows.Storage.IStorageFile,
-                                        _Pointer[IAsyncOperation]],
+                                        _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
                                        _type.HRESULT]
             LaunchFileWithOptionsAsync: _Callable[[Windows.Storage.IStorageFile,
                                                    Windows.System.ILauncherOptions,
-                                                   _Pointer[IAsyncOperation]],
+                                                   _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
                                                   _type.HRESULT]
             LaunchUriAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
-                                       _Pointer[IAsyncOperation]],
+                                       _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
                                       _type.HRESULT]
             LaunchUriWithOptionsAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
                                                   Windows.System.ILauncherOptions,
-                                                  _Pointer[IAsyncOperation]],
+                                                  _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
                                                  _type.HRESULT]
 
         class UserProfile:
             class ILockScreenStatics(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_System_UserProfile_LockScreen
                 get_OriginalImageFile: _Callable[[_Pointer[Windows.Foundation.IUriRuntimeClass]],
                                                  _type.HRESULT]
                 GetImageStream: _Callable[[_Pointer[Windows.Storage.Streams.IRandomAccessStream]],
                                           _type.HRESULT]
                 SetImageFileAsync: _Callable[[Windows.Storage.IStorageFile,
-                                              _Pointer[IAsyncAction]],
+                                              _Pointer[Windows.Foundation.IAsyncAction]],
                                              _type.HRESULT]
                 SetImageStreamAsync: _Callable[[Windows.Storage.Streams.IRandomAccessStream,
-                                                _Pointer[IAsyncAction]],
+                                                _Pointer[Windows.Foundation.IAsyncAction]],
                                                _type.HRESULT]
 
     class UI:
         class IColorsStatics(IInspectable):
-            _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Colors
             get_AliceBlue: _Callable[[_Pointer[_struct.Color]],
                                      _type.HRESULT]
             get_AntiqueWhite: _Callable[[_Pointer[_struct.Color]],
@@ -1314,54 +1580,47 @@ class Windows:
 
         class Notifications:
             class IToastActivatedEventArgs(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastActivatedEventArgs
                 get_Argument: _Callable[[_Pointer[_type.HSTRING]],
                                         _type.HRESULT]
 
             class IToastActivatedEventArgs2(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastActivatedEventArgs
                 get_UserInput: _Callable
 
             class IToastDismissedEventArgs(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastDismissedEventArgs
                 get_Reason: _Callable[[_Pointer[_enum.ToastDismissalReason]],
                                       _type.HRESULT]
 
             class IToastFailedEventArgs(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastFailedEventArgs
                 get_ErrorCode: _Callable[[_Pointer[_type.HRESULT]],
                                          _type.HRESULT]
 
             class IToastNotification(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotification
                 get_Content: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlDocument]],
                                        _type.HRESULT]
                 put_ExpirationTime: _Callable
                 get_ExpirationTime: _Callable
-                add_Dismissed: _Callable[[_interface_impl.ITypedEventHandler,
+                add_Dismissed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Notifications.IToastNotification, Windows.UI.Notifications.IToastDismissedEventArgs],
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_Dismissed: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_Activated: _Callable[[_interface_impl.ITypedEventHandler,
+                add_Activated: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Notifications.IToastNotification, IInspectable],
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_Activated: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_Failed: _Callable[[_interface_impl.ITypedEventHandler,
+                add_Failed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Notifications.IToastNotification, Windows.UI.Notifications.IToastFailedEventArgs],
                                        _Pointer[_struct.EventRegistrationToken]],
                                       _type.HRESULT]
                 remove_Failed: _Callable[[_struct.EventRegistrationToken],
                                          _type.HRESULT]
 
             class IToastNotificationFactory(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotification
                 CreateToastNotification: _Callable[[Windows.Data.Xml.Dom.IXmlDocument,
                                                     _Pointer[Windows.UI.Notifications.IToastNotification]],
                                                    _type.HRESULT]
 
             class IToastNotificationManagerStatics(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
                 CreateToastNotifier: _Callable[[_Pointer[Windows.UI.Notifications.IToastNotifier]],
                                                _type.HRESULT]
                 CreateToastNotifierWithId: _Callable[[_type.HSTRING,
@@ -1370,20 +1629,16 @@ class Windows:
                 GetTemplateContent: _Callable
 
             class IToastNotificationManagerStatics2(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
                 get_History: _Callable
 
             class IToastNotificationManagerStatics4(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
                 GetForUser: _Callable
                 ConfigureNotificationMirroring: _Callable
 
             class IToastNotificationManagerStatics5(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotificationManager
                 GetDefault: _Callable
 
             class IToastNotifier(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Notifications_ToastNotifier
                 Show: _Callable[[Windows.UI.Notifications.IToastNotification],
                                 _type.HRESULT]
                 Hide: _Callable[[Windows.UI.Notifications.IToastNotification],
@@ -1396,7 +1651,6 @@ class Windows:
 
         class ViewManagement:
             class IUISettings(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_ViewManagement_UISettings
                 get_HandPreference: _Callable[[_Pointer[_enum.HandPreference]],
                                               _type.HRESULT]
                 get_CursorSize: _Callable[[_Pointer[_struct.SIZE]],
@@ -1427,7 +1681,6 @@ class Windows:
 
         class Xaml:
             class IFrameworkElement(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_FrameworkElement
                 get_Triggers: _Callable
                 get_Resources: _Callable
                 put_Resources: _Callable
@@ -1514,7 +1767,6 @@ class Windows:
                 SetBinding: _Callable
 
             class IUIElement(IInspectable):
-                _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_UIElement
                 get_DesiredSize: _Callable[[_Pointer[_struct.Size]],
                                            _type.HRESULT]
                 get_AllowDrop: _Callable[[_Pointer[_type.boolean]],
@@ -1669,8 +1921,7 @@ class Windows:
 
             class Controls:
                 class IPanel(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_Panel
-                    get_Children: _Callable[[_Pointer[Windows.Foundation.Collections.IVector_IUIElement]],
+                    get_Children: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.IUIElement]]],
                                             _type.HRESULT]
                     get_Background: _Callable[[_Pointer[Windows.UI.Xaml.Media.IBrush]],
                                               _type.HRESULT]
@@ -1682,7 +1933,6 @@ class Windows:
                     put_ChildrenTransitions: _Callable
 
                 class IStackPanel(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_StackPanel
                     get_AreScrollSnapPointsRegular: _Callable[[_Pointer[_type.boolean]],
                                                               _type.HRESULT]
                     put_AreScrollSnapPointsRegular: _Callable[[_type.boolean],
@@ -1693,19 +1943,16 @@ class Windows:
                                                _type.HRESULT]
 
                 class IStackPanelFactory(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_StackPanel
                     CreateInstance: _Callable[[IInspectable,
                                                _Pointer[IInspectable],
                                                _Pointer[Windows.UI.Xaml.Controls.IStackPanel]],
                                               _type.HRESULT]
 
                 class IStackPanelStatics(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_StackPanel
                     get_AreScrollSnapPointsRegularProperty: _Callable
                     get_OrientationProperty: _Callable
 
                 class ITextBlock(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_TextBlock
                     get_FontSize: _Callable[[_Pointer[_type.DOUBLE]],
                                             _type.HRESULT]
                     put_FontSize: _Callable[[_type.DOUBLE],
@@ -1781,14 +2028,12 @@ class Windows:
                                      _type.HRESULT]
 
                 class IUIElementCollection(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Controls_UIElementCollection
                     Move: _Callable[[_type.UINT32,
                                      _type.UINT32],
                                     _type.HRESULT]
 
             class Hosting:
                 class IDesktopWindowXamlSource(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_DesktopWindowXamlSource
                     get_Content: _Callable[[_Pointer[Windows.UI.Xaml.IUIElement]],
                                            _type.HRESULT]
                     put_Content: _Callable[[Windows.UI.Xaml.IUIElement],
@@ -1804,23 +2049,20 @@ class Windows:
                     NavigateFocus: _Callable
 
                 class IDesktopWindowXamlSourceFactory(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_DesktopWindowXamlSource
                     CreateInstance: _Callable[[IInspectable,
                                                _Pointer[IInspectable],
                                                _Pointer[Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource]],
                                               _type.HRESULT]
 
                 class IWindowsXamlManager(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_WindowsXamlManager
+                    pass
 
                 class IWindowsXamlManagerStatics(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Hosting_WindowsXamlManager
                     InitializeForCurrentThread: _Callable[[_Pointer[Windows.UI.Xaml.Hosting.IWindowsXamlManager]],
                                                           _type.HRESULT]
 
             class Media:
                 class IBrush(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Media_Brush
                     get_Opacity: _Callable[[_Pointer[_type.DOUBLE]],
                                            _type.HRESULT]
                     put_Opacity: _Callable[[_type.DOUBLE],
@@ -1831,14 +2073,12 @@ class Windows:
                     put_RelativeTransform: _Callable
 
                 class ISolidColorBrush(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Media_SolidColorBrush
                     get_Color: _Callable[[_Pointer[_struct.Color]],
                                          _type.HRESULT]
                     put_Color: _Callable[[_struct.Color],
                                          _type.HRESULT]
 
                 class ISolidColorBrushFactory(IInspectable):
-                    _RuntimeClass_ = _const.RuntimeClass_Windows_UI_Xaml_Media_SolidColorBrush
                     CreateInstanceWithColor: _Callable[[_struct.Color,
                                                         _Pointer[Windows.UI.Xaml.Media.ISolidColorBrush]],
                                                        _type.HRESULT]
