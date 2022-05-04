@@ -37,7 +37,7 @@ def dump(xml: ctyped.interface.Windows.Data.Xml.Dom.IXmlDocument, path: str) -> 
                 if io:
                     with ctyped.Async() as action:
                         if ctyped.macro.SUCCEEDED(io.SaveToFileAsync(file, action.get_ref())):
-                            return ctyped.enum.AsyncStatus.Completed == action.wait_for()
+                            return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == action.wait_for()
     return False
 
 

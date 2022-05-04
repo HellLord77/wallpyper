@@ -7,9 +7,13 @@ import pkgutil as _pkgutil
 import sys as _sys
 import types as _types
 import typing as _typing
-from typing import (Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView, NoReturn as _NoReturn, Optional as _Optional, Sequence as _Sequence)
+from typing import Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView, Optional as _Optional, Sequence as _Sequence
 
 _CT = _typing.TypeVar('_CT')
+
+
+class _Namespace:  # FIXME
+    pass
 
 
 class _Pointer(_Generic[_CT], _Sequence[_CT]):
@@ -51,8 +55,12 @@ class _Globals(dict):
             try:
                 val = vars(self.module)[item]
             except KeyError:
-                # noinspection PyUnresolvedReferences,PyProtectedMember
-                val = self.module._init(item)
+                if item not in self.vars_:
+                    raise AttributeError(f"Module '{self.module.__name__}' has no attribute '{item}'")
+                val = self.vars_[item]
+                if not (isinstance(val, type) and issubclass(val, _Namespace)):
+                    # noinspection PyUnresolvedReferences,PyProtectedMember
+                    val = self.module._init(item)
             else:
                 self.vars_[item] = val
             self[item] = val
@@ -80,10 +88,6 @@ class _Globals(dict):
         for item in tuple(self.vars_):
             if item in self.vars_:
                 yield item
-
-    def check_item(self, item: str) -> _Optional[_NoReturn]:
-        if item not in self.vars_:
-            raise AttributeError(f"Module '{self.module.__name__}' has no attribute '{item}'")
 
     def get_type_hints(self, item: str) -> _ItemsView[str, _Any]:
         return _typing.get_type_hints(self.vars_[item], self, self).items()
@@ -125,6 +129,10 @@ def _cast(obj: _Any, type: type[_CT]) -> _Pointer[_CT]:
 # noinspection PyShadowingBuiltins
 def _cast_int(obj: int, type: _CT) -> int:
     return obj & (2 ** (_ctypes.sizeof(type) * 8) - 1)
+
+
+def _decorator(arg: _CT) -> _CT:
+    return arg
 
 
 def _format_annotations(annotations: str) -> tuple[str]:
@@ -169,7 +177,7 @@ def _replace_object(old, new):
                     referrer[key] = new
 
 
-def _repr(self) -> str:
+def _dataclass_repr(self) -> str:
     return f'{type(self).__name__}({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
 
 

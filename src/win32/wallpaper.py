@@ -554,7 +554,7 @@ def set_lock(path: str) -> bool:
                         if lock:
                             with ctyped.Async() as action:
                                 if ctyped.macro.SUCCEEDED(lock.SetImageFileAsync(file, action.get_ref())):
-                                    return ctyped.enum.AsyncStatus.Completed == action.wait_for()
+                                    return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == action.wait_for()
     return False
 
 
@@ -573,7 +573,7 @@ def set_slideshow(*paths: str) -> bool:
 def _get_input_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
         ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
     with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
-        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.Read, operation.get_ref())) and (stream := operation.get()):
+        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.Read, operation.get_ref())) and (stream := operation.get()):
             with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
                 if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
                     yield input_stream
@@ -585,7 +585,7 @@ def _get_input_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
 def _get_output_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
         ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IOutputStream]]:
     with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
-        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.FileAccessMode.ReadWrite, operation.get_ref())) and (stream := operation.get()):
+        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite, operation.get_ref())) and (stream := operation.get()):
             with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IOutputStream, False) as output_stream:
                 if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
                     yield output_stream
@@ -619,7 +619,7 @@ def _copy_stream(input_stream: ctyped.interface.Windows.Storage.Streams.IInputSt
                         input_stream, output_stream, operation.get_ref())):
                     if progress_callback is not None:
                         operation.put_progress(progress_callback, args, kwargs)
-                    return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+                    return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait_for()
     return False
 
 

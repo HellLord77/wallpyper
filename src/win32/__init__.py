@@ -274,7 +274,7 @@ def open_file_with_ex(path: str) -> bool:
                 if launcher and file:
                     with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.type.c_bool]) as operation:
                         if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, operation.get_ref())):
-                            return ctyped.enum.AsyncStatus.Completed == operation.wait_for()
+                            return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait_for()
     return False
 
 

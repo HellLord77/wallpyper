@@ -1,34 +1,66 @@
 from __future__ import annotations as _
 
 import enum as _enum
-import sys as _sys
 from typing import Optional as _Optional
 
 from . import type as _type
-from ._utils import _Globals
+from ._utils import _CT
 
-_AUTO = _sys.maxsize
+_AUTO = object()
+
+if None:
+    class _EnumMeta(_enum.EnumMeta):
+        # noinspection PyMethodOverriding
+        def __call__(cls: type[_CT], value: _Optional[int] = None) -> _CT:
+            pass
 
 
-class _IntEnumMeta(_enum.EnumMeta):
-    # noinspection PyMethodOverriding
-    @staticmethod
-    def __call__(value: _Optional[int] = None):
+    class _Enum(_enum.IntEnum, metaclass=_EnumMeta):
         pass
+else:
+    class _EnumMeta(type(_type.c_uint)):
+        def __getattr__(self, name: str):
+            if name in self._members:
+                # noinspection PyCallingNonCallable
+                setattr(self, name, self(self._members[name]))
+            return super().__getattribute__(name)
+
+        def __iter__(self):
+            for name in self._members:
+                yield getattr(self, name)
+
+        def __str__(self):
+            return f'{self.__name__}{str(self._members)}'.replace("'", '')
 
 
-class _IntEnum(_enum.IntEnum, metaclass=_IntEnumMeta):
-    pass
+    class _Enum(_type.c_int, metaclass=_EnumMeta):
+        _members: dict[str, int]
+
+        def __init_subclass__(cls):
+            last = -1
+            cls._members = {}
+            for name, val in tuple(vars(cls).items()):
+                if not name.startswith('_'):
+                    cls._members[name] = last = (last + 1) if val is _AUTO else val
+                    delattr(cls, name)
+
+        def __init__(self, value: _Optional[int] = None):
+            if value is None:
+                value = next(iter(self._members.values()))
+            super().__init__(value)
+
+        @property
+        def name(self) -> str:
+            for name, val in self._members.items():
+                if self.value == val:
+                    return name
+            return str(self.value)
+
+        def __str__(self):
+            return f'{type(self).__name__}.{self.name}'
 
 
-class AsyncStatus(_IntEnum):
-    Started = _AUTO
-    Completed = _AUTO
-    Canceled = _AUTO
-    Error = _AUTO
-
-
-class ColorAdjustType(_IntEnum):
+class ColorAdjustType(_Enum):
     Default = _AUTO
     Bitmap = _AUTO
     Brush = _AUTO
@@ -38,132 +70,32 @@ class ColorAdjustType(_IntEnum):
     Any = _AUTO
 
 
-class ColorMatrixFlags(_IntEnum):
+class ColorMatrixFlags(_Enum):
     Default = _AUTO
     SkipGrays = _AUTO
     AltGray = _AUTO
 
 
-class CreationCollisionOption(_IntEnum):
-    GenerateUniqueName = _AUTO
-    ReplaceExisting = _AUTO
-    FailIfExists = _AUTO
-    OpenIfExists = _AUTO
-
-
-class ApplicationDataCreateDisposition(_IntEnum):
-    Always = _AUTO
-    Existing = _AUTO
-
-
-class ApplicationDataLocality(_IntEnum):
-    Local = _AUTO
-    Roaming = _AUTO
-    Temporary = _AUTO
-    LocalCache = _AUTO
-    SharedLocal = _AUTO
-
-
-class FileAccessMode(_IntEnum):
-    Read = _AUTO
-    ReadWrite = _AUTO
-
-
-class FileAttributes(_IntEnum):
-    Normal = _AUTO
-    ReadOnly = 0x1
-    Directory = 0x10
-    Archive = 0x20
-    Temporary = 0x100
-    LocallyIncomplete = 0x200
-
-
-class KnownFolderId(_IntEnum):
-    AppCaptures = _AUTO
-    CameraRoll = _AUTO
-    DocumentsLibrary = _AUTO
-    HomeGroup = _AUTO
-    MediaServerDevices = _AUTO
-    MusicLibrary = _AUTO
-    Objects3D = _AUTO
-    PicturesLibrary = _AUTO
-    Playlists = _AUTO
-    RecordedCalls = _AUTO
-    RemovableDevices = _AUTO
-    SavedPictures = _AUTO
-    Screenshots = _AUTO
-    VideosLibrary = _AUTO
-    AllAppMods = _AUTO
-    CurrentAppMods = _AUTO
-    DownloadsFolder = _AUTO
-
-
-class KnownFoldersAccessStatus(_IntEnum):
-    DeniedBySystem = _AUTO
-    NotDeclaredByApp = _AUTO
-    DeniedByUser = _AUTO
-    UserPromptRequired = _AUTO
-    Allowed = _AUTO
-    AllowedPerAppFolder = _AUTO
-
-
-class KnownLibraryId(_IntEnum):
-    Music = _AUTO
-    Pictures = _AUTO
-    Videos = _AUTO
-    Documents = _AUTO
-
-
-class NameCollisionOption(_IntEnum):
-    GenerateUniqueName = _AUTO
-    ReplaceExisting = _AUTO
-    FailIfExists = _AUTO
-
-
-class StorageDeleteOption(_IntEnum):
-    Default = _AUTO
-    PermanentDelete = _AUTO
-
-
-class StorageLibraryChangeType(_IntEnum):
-    Created = _AUTO
-    Deleted = _AUTO
-    MovedOrRenamed = _AUTO
-    ContentsChanged = _AUTO
-    MovedOutOfLibrary = _AUTO
-    MovedIntoLibrary = _AUTO
-    ContentsReplaced = _AUTO
-    IndexingStatusChanged = _AUTO
-    EncryptionChanged = _AUTO
-    ChangeTrackingLost = _AUTO
-
-
-class StreamedFileFailureMode(_IntEnum):
-    Failed = _AUTO
-    CurrentlyUnavailable = _AUTO
-    Incomplete = _AUTO
-
-
 # noinspection PyPep8Naming
-class DESKTOP_SLIDESHOW_DIRECTION(_IntEnum):
+class DESKTOP_SLIDESHOW_DIRECTION(_Enum):
     FORWARD = _AUTO
     BACKWARD = _AUTO
 
 
 # noinspection PyPep8Naming
-class DESKTOP_SLIDESHOW_OPTIONS(_IntEnum):
+class DESKTOP_SLIDESHOW_OPTIONS(_Enum):
     SHUFFLEIMAGES = 0x1
 
 
 # noinspection PyPep8Naming
-class DESKTOP_SLIDESHOW_STATE(_IntEnum):
+class DESKTOP_SLIDESHOW_STATE(_Enum):
     ENABLED = 0x1
     SLIDESHOW = 0x2
     DISABLED_BY_REMOTE_SESSION = 0x4
 
 
 # noinspection PyPep8Naming
-class DESKTOP_WALLPAPER_POSITION(_IntEnum):
+class DESKTOP_WALLPAPER_POSITION(_Enum):
     CENTER = _AUTO
     TILE = _AUTO
     STRETCH = _AUTO
@@ -172,12 +104,12 @@ class DESKTOP_WALLPAPER_POSITION(_IntEnum):
     SPAN = _AUTO
 
 
-class DebugEventLevel(_IntEnum):
+class DebugEventLevel(_Enum):
     Fatal = _AUTO
     Warning = _AUTO
 
 
-class FILEOPENDIALOGOPTIONS(_IntEnum):
+class FILEOPENDIALOGOPTIONS(_Enum):
     OVERWRITEPROMPT = 0x2
     STRICTFILETYPES = 0x4
     NOCHANGEDIR = 0x8
@@ -203,7 +135,7 @@ class FILEOPENDIALOGOPTIONS(_IntEnum):
     SUPPORTSTREAMABLEITEMS = 0x80000000
 
 
-class GETPROPERTYSTOREFLAGS(_IntEnum):
+class GETPROPERTYSTOREFLAGS(_Enum):
     DEFAULT = _AUTO
     HANDLERPROPERTIESONLY = 0x1
     READWRITE = 0x2
@@ -221,30 +153,30 @@ class GETPROPERTYSTOREFLAGS(_IntEnum):
     MASK_VALID = 0x1fff
 
 
-class GenericFontFamily(_IntEnum):
+class GenericFontFamily(_Enum):
     Serif = _AUTO
     SansSerif = _AUTO
     Monospace = _AUTO
 
 
-class MatrixOrder(_IntEnum):
+class MatrixOrder(_Enum):
     Prepend = _AUTO
     Append = _AUTO
 
 
-class WarpMode(_IntEnum):
+class WarpMode(_Enum):
     Perspective = _AUTO
     Bilinear = _AUTO
 
 
-class LinearGradientMode(_IntEnum):
+class LinearGradientMode(_Enum):
     Horizontal = _AUTO
     Vertical = _AUTO
     ForwardDiagonal = _AUTO
     BackwardDiagonal = _AUTO
 
 
-class CombineMode(_IntEnum):
+class CombineMode(_Enum):
     Replace = _AUTO
     Intersect = _AUTO
     Union = _AUTO
@@ -253,31 +185,25 @@ class CombineMode(_IntEnum):
     Complement = _AUTO
 
 
-class QualityMode(_IntEnum):
+class QualityMode(_Enum):
     Invalid = -1
     Default = _AUTO
     Low = _AUTO
     High = _AUTO
 
 
-class CompositingMode(_IntEnum):
+class CompositingMode(_Enum):
     SourceOver = _AUTO
     SourceCopy = _AUTO
 
 
-class FillMode(_IntEnum):
+class FillMode(_Enum):
     Alternate = _AUTO
     Winding = _AUTO
 
 
-class InputStreamOptions(_IntEnum):
-    None_ = _AUTO
-    Partial = 0x1
-    ReadAhead = 0x2
-
-
 # noinspection PyPep8Naming
-class KNOWN_FOLDER_FLAG(_IntEnum):
+class KNOWN_FOLDER_FLAG(_Enum):
     DEFAULT = 0x00000000
     FORCE_APP_DATA_REDIRECTION = 0x00080000
     RETURN_FILTER_REDIRECTION_TARGET = 0x00040000
@@ -297,12 +223,12 @@ class KNOWN_FOLDER_FLAG(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class RO_INIT_TYPE(_IntEnum):
+class RO_INIT_TYPE(_Enum):
     SINGLETHREADED = _AUTO
     MULTITHREADED = _AUTO
 
 
-class SIGDN(_IntEnum):
+class SIGDN(_Enum):
     NORMALDISPLAY = _AUTO
     PARENTRELATIVEPARSING = 0x80018001
     DESKTOPABSOLUTEPARSING = 0x80028000
@@ -315,13 +241,13 @@ class SIGDN(_IntEnum):
     PARENTRELATIVEFORUI = 0x80094001
 
 
-class TrustLevel(_IntEnum):
+class TrustLevel(_Enum):
     BaseTrust = _AUTO
     PartialTrust = _AUTO
     FullTrust = _AUTO
 
 
-class Unit(_IntEnum):
+class Unit(_Enum):
     World = _AUTO
     Display = _AUTO
     Pixel = _AUTO
@@ -331,7 +257,7 @@ class Unit(_IntEnum):
     Millimeter = _AUTO
 
 
-class Status(_IntEnum):
+class Status(_Enum):
     Ok = _AUTO
     GenericError = _AUTO
     InvalidParameter = _AUTO
@@ -357,12 +283,12 @@ class Status(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class SHGFP_TYPE(_IntEnum):
+class SHGFP_TYPE(_Enum):
     CURRENT = _AUTO
     DEFAULT = _AUTO
 
 
-class VARENUM(_IntEnum):
+class VARENUM(_Enum):
     EMPTY = _AUTO
     NULL = _AUTO
     I2 = _AUTO
@@ -418,7 +344,7 @@ class VARENUM(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class SLGP_FLAGS(_IntEnum):
+class SLGP_FLAGS(_Enum):
     SHORTPATH = 0x1
     UNCPRIORITY = 0x2
     RAWPATH = 0x4
@@ -426,7 +352,7 @@ class SLGP_FLAGS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class SLR_FLAGS(_IntEnum):
+class SLR_FLAGS(_Enum):
     NONE = _AUTO
     NO_UI = 0x1
     ANY_MATCH = 0x2
@@ -444,7 +370,7 @@ class SLR_FLAGS(_IntEnum):
     NO_OBJECT_ID = 0x2000
 
 
-class RotateFlipType(_IntEnum):
+class RotateFlipType(_Enum):
     RNoneFlipNone = 0
     R90FlipNone = 1
     R180FlipNone = 2
@@ -463,11 +389,11 @@ class RotateFlipType(_IntEnum):
     R270FlipXY = R90FlipNone
 
 
-class COINITBASE(_IntEnum):
+class COINITBASE(_Enum):
     MULTITHREADED = _AUTO
 
 
-class COINIT(_IntEnum):
+class COINIT(_Enum):
     MULTITHREADED = COINITBASE.MULTITHREADED
     APARTMENTTHREADED = 0x2
     DISABLE_OLE1DDE = 0x4
@@ -475,14 +401,14 @@ class COINIT(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class PROCESS_DPI_AWARENESS(_IntEnum):
+class PROCESS_DPI_AWARENESS(_Enum):
     DPI_UNAWARE = _AUTO
     SYSTEM_DPI_AWARE = _AUTO
     PER_MONITOR_DPI_AWARE = _AUTO
 
 
 # noinspection PyPep8Naming
-class MONITOR_DPI_TYPE(_IntEnum):
+class MONITOR_DPI_TYPE(_Enum):
     EFFECTIVE_DPI = 0
     ANGULAR_DPI = _AUTO
     RAW_DPI = _AUTO
@@ -490,7 +416,7 @@ class MONITOR_DPI_TYPE(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class OPEN_AS_INFO_FLAGS(_IntEnum):
+class OPEN_AS_INFO_FLAGS(_Enum):
     ALLOW_REGISTRATION = 0x00000001
     REGISTER_EXT = 0x00000002
     EXEC = 0x00000004
@@ -500,30 +426,30 @@ class OPEN_AS_INFO_FLAGS(_IntEnum):
     FILE_IS_URI = 0x00000080
 
 
-class COINITICOR(_IntEnum):
+class COINITICOR(_Enum):
     DEFAULT = _AUTO
 
 
-class COINITIEE(_IntEnum):
+class COINITIEE(_Enum):
     DEFAULT = _AUTO
     DLL = _AUTO
     MAIN = _AUTO
 
 
-class COUNINITIEE(_IntEnum):
+class COUNINITIEE(_Enum):
     DEFAULT = _AUTO
     DLL = _AUTO
 
 
 # noinspection PyPep8Naming
-class HOST_TYPE(_IntEnum):
+class HOST_TYPE(_Enum):
     DEFAULT = _AUTO
     APPLAUNCH = _AUTO
     CORFLAG = _AUTO
 
 
 # noinspection PyPep8Naming
-class STARTUP_FLAGS(_IntEnum):
+class STARTUP_FLAGS(_Enum):
     CONCURRENT_GC = 0x1
     LOADER_OPTIMIZATION_MASK = 0x3 << 1
     LOADER_OPTIMIZATION_SINGLE_DOMAIN = 0x1 << 1
@@ -543,13 +469,13 @@ class STARTUP_FLAGS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class CLSID_RESOLUTION_FLAGS(_IntEnum):
+class CLSID_RESOLUTION_FLAGS(_Enum):
     RESOLUTION_DEFAULT = _AUTO
     RESOLUTION_REGISTERED = _AUTO
 
 
 # noinspection PyPep8Naming
-class RUNTIME_INFO_FLAGS(_IntEnum):
+class RUNTIME_INFO_FLAGS(_Enum):
     UPGRADE_VERSION = 0x1
     REQUEST_IA64 = 0x2
     REQUEST_AMD64 = 0x4
@@ -561,49 +487,15 @@ class RUNTIME_INFO_FLAGS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class APPDOMAIN_SECURITY_FLAGS(_IntEnum):
+class APPDOMAIN_SECURITY_FLAGS(_Enum):
     SECURITY_DEFAULT = _AUTO
     SECURITY_SANDBOXED = 0x1
     SECURITY_FORBID_CROSSAD_REVERSE_PINVOKE = 0x2
     FORCE_TRIVIAL_WAIT_OPERATIONS = 0x8
 
 
-class HandPreference(_IntEnum):
-    LeftHanded = _AUTO
-    RightHanded = _AUTO
-
-
-class UIElementType(_IntEnum):
-    ActiveCaption = _AUTO
-    Background = _AUTO
-    ButtonFace = _AUTO
-    ButtonText = _AUTO
-    CaptionText = _AUTO
-    GrayText = _AUTO
-    Highlight = _AUTO
-    HighlightText = _AUTO
-    Hotlight = _AUTO
-    InactiveCaption = _AUTO
-    InactiveCaptionText = _AUTO
-    Window = _AUTO
-    WindowText = _AUTO
-    AccentColor = 1000
-    TextHigh = _AUTO
-    TextMedium = _AUTO
-    TextLow = _AUTO
-    TextContrastWithHigh = _AUTO
-    NonTextHigh = _AUTO
-    NonTextMediumHigh = _AUTO
-    NonTextMedium = _AUTO
-    NonTextMediumLow = _AUTO
-    NonTextLow = _AUTO
-    PageBackground = _AUTO
-    PopupBackground = _AUTO
-    OverlayOutsidePopup = _AUTO
-
-
 # noinspection PyPep8Naming
-class URL_SCHEME(_IntEnum):
+class URL_SCHEME(_Enum):
     INVALID = -1
     UNKNOWN = _AUTO
     FTP = _AUTO
@@ -636,7 +528,7 @@ class URL_SCHEME(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class URL_PART(_IntEnum):
+class URL_PART(_Enum):
     NONE = _AUTO
     SCHEME = _AUTO
     HOSTNAME = _AUTO
@@ -646,7 +538,7 @@ class URL_PART(_IntEnum):
     QUERY = _AUTO
 
 
-class URLIS(_IntEnum):
+class URLIS(_Enum):
     URL = _AUTO
     OPAQUE = _AUTO
     NOHISTORY = _AUTO
@@ -657,7 +549,7 @@ class URLIS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class TA_PROPERTY(_IntEnum):
+class TA_PROPERTY(_Enum):
     FLAGS = _AUTO
     TRANSFORMCOUNT = _AUTO
     STAGGERDELAY = _AUTO
@@ -667,7 +559,7 @@ class TA_PROPERTY(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class TA_PROPERTY_FLAG(_IntEnum):
+class TA_PROPERTY_FLAG(_Enum):
     NONE = 0x0
     HASSTAGGER = 0x1
     ISRTLAWARE = 0x2
@@ -677,7 +569,7 @@ class TA_PROPERTY_FLAG(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class TA_TRANSFORM_TYPE(_IntEnum):
+class TA_TRANSFORM_TYPE(_Enum):
     TRANSLATE_2D = _AUTO
     SCALE_2D = _AUTO
     OPACITY = _AUTO
@@ -685,20 +577,20 @@ class TA_TRANSFORM_TYPE(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class TA_TRANSFORM_FLAG(_IntEnum):
+class TA_TRANSFORM_FLAG(_Enum):
     NONE = 0x0
     TARGETVALUES_USER = 0x1
     HASINITIALVALUES = 0x2
     HASORIGINVALUES = 0x4
 
 
-class THEMESIZE(_IntEnum):
+class THEMESIZE(_Enum):
     MIN = _AUTO
     TRUE = _AUTO
     DRAW = _AUTO
 
 
-class PROPERTYORIGIN(_IntEnum):
+class PROPERTYORIGIN(_Enum):
     STATE = _AUTO
     PART = _AUTO
     CLASS = _AUTO
@@ -706,19 +598,19 @@ class PROPERTYORIGIN(_IntEnum):
     NOTFOUND = _AUTO
 
 
-class WINDOWTHEMEATTRIBUTETYPE(_IntEnum):
+class WINDOWTHEMEATTRIBUTETYPE(_Enum):
     NONCLIENT = 1
 
 
 # noinspection PyPep8Naming
-class BP_ANIMATIONSTYLE(_IntEnum):
+class BP_ANIMATIONSTYLE(_Enum):
     NONE = _AUTO
     LINEAR = _AUTO
     CUBIC = _AUTO
     SINE = _AUTO
 
 
-class MENUSTYLEPARTS(_IntEnum):
+class MENUSTYLEPARTS(_Enum):
     MENUITEM_TMSCHEMA = 1
     MENUDROPDOWN_TMSCHEMA = _AUTO
     MENUBARITEM_TMSCHEMA = _AUTO
@@ -741,58 +633,58 @@ class MENUSTYLEPARTS(_IntEnum):
     SYSTEMRESTORE = _AUTO
 
 
-class BARBACKGROUNDSTATES(_IntEnum):
+class BARBACKGROUNDSTATES(_Enum):
     ACTIVE = 1
     INACTIVE = _AUTO
 
 
-class POPUPCHECKSTATES(_IntEnum):
+class POPUPCHECKSTATES(_Enum):
     CHECKMARKNORMAL = 1
     CHECKMARKDISABLED = _AUTO
     BULLETNORMAL = _AUTO
     BULLETDISABLED = _AUTO
 
 
-class POPUPCHECKBACKGROUNDSTATES(_IntEnum):
+class POPUPCHECKBACKGROUNDSTATES(_Enum):
     DISABLED = 1
     NORMAL = _AUTO
     BITMAP = _AUTO
 
 
-class POPUPITEMSTATES(_IntEnum):
+class POPUPITEMSTATES(_Enum):
     NORMAL = 1
     HOT = _AUTO
     DISABLED = _AUTO
     DISABLEDHOT = _AUTO
 
 
-class POPUPSUBMENUSTATES(_IntEnum):
+class POPUPSUBMENUSTATES(_Enum):
     NORMAL = 1
     DISABLED = _AUTO
 
 
-class SYSTEMCLOSESTATES(_IntEnum):
+class SYSTEMCLOSESTATES(_Enum):
     NORMAL = 1
     DISABLED = _AUTO
 
 
-class SYSTEMMAXIMIZESTATES(_IntEnum):
+class SYSTEMMAXIMIZESTATES(_Enum):
     NORMAL = 1
     DISABLED = _AUTO
 
 
-class SYSTEMMINIMIZESTATES(_IntEnum):
+class SYSTEMMINIMIZESTATES(_Enum):
     NORMAL = 1
     DISABLED = _AUTO
 
 
-class SYSTEMRESTORESTATES(_IntEnum):
+class SYSTEMRESTORESTATES(_Enum):
     NORMAL = 1
     DISABLED = _AUTO
 
 
 # noinspection PyPep8Naming
-class COMPUTER_NAME_FORMAT(_IntEnum):
+class COMPUTER_NAME_FORMAT(_Enum):
     NetBIOS = _AUTO
     DnsHostname = _AUTO
     DnsDomain = _AUTO
@@ -805,7 +697,7 @@ class COMPUTER_NAME_FORMAT(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class LOGICAL_PROCESSOR_RELATIONSHIP(_IntEnum):
+class LOGICAL_PROCESSOR_RELATIONSHIP(_Enum):
     ProcessorCore = _AUTO
     NumaNode = _AUTO
     Cache = _AUTO
@@ -818,7 +710,7 @@ class LOGICAL_PROCESSOR_RELATIONSHIP(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class PROCESSOR_CACHE_TYPE(_IntEnum):
+class PROCESSOR_CACHE_TYPE(_Enum):
     Unified = _AUTO
     Instruction = _AUTO
     Data = _AUTO
@@ -826,7 +718,7 @@ class PROCESSOR_CACHE_TYPE(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class RTL_UMS_THREAD_INFO_CLASS(_IntEnum):
+class RTL_UMS_THREAD_INFO_CLASS(_Enum):
     InvalidInfoClass = _AUTO
     UserContext = _AUTO
     Priority = _AUTO
@@ -838,13 +730,13 @@ class RTL_UMS_THREAD_INFO_CLASS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class RTL_UMS_SCHEDULER_REASON(_IntEnum):
+class RTL_UMS_SCHEDULER_REASON(_Enum):
     Startup = _AUTO
     ThreadBlocked = _AUTO
     ThreadYield = _AUTO
 
 
-class SHSTOCKICONID(_IntEnum):
+class SHSTOCKICONID(_Enum):
     DOCNOASSOC = _AUTO
     DOCASSOC = _AUTO
     APPLICATION = _AUTO
@@ -942,7 +834,7 @@ class SHSTOCKICONID(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class QUERY_USER_NOTIFICATION_STATE(_IntEnum):
+class QUERY_USER_NOTIFICATION_STATE(_Enum):
     NOT_PRESENT = 1
     BUSY = _AUTO
     RUNNING_D3D_FULL_SCREEN = _AUTO
@@ -953,7 +845,7 @@ class QUERY_USER_NOTIFICATION_STATE(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class INPUT_MESSAGE_DEVICE_TYPE(_IntEnum):
+class INPUT_MESSAGE_DEVICE_TYPE(_Enum):
     UNAVAILABLE = 0x00000000
     KEYBOARD = 0x00000001
     MOUSE = 0x00000002
@@ -963,7 +855,7 @@ class INPUT_MESSAGE_DEVICE_TYPE(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class INPUT_MESSAGE_ORIGIN_ID(_IntEnum):
+class INPUT_MESSAGE_ORIGIN_ID(_Enum):
     UNAVAILABLE = 0x00000000
     HARDWARE = 0x00000001
     INJECTED = 0x00000002
@@ -971,7 +863,7 @@ class INPUT_MESSAGE_ORIGIN_ID(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class AR_STATE(_IntEnum):
+class AR_STATE(_Enum):
     ENABLED = 0x0
     DISABLED = 0x1
     SUPPRESSED = 0x2
@@ -984,7 +876,7 @@ class AR_STATE(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class ORIENTATION_PREFERENCE(_IntEnum):
+class ORIENTATION_PREFERENCE(_Enum):
     NONE = 0x0
     LANDSCAPE = 0x1
     PORTRAIT = 0x2
@@ -992,20 +884,7 @@ class ORIENTATION_PREFERENCE(_IntEnum):
     PORTRAIT_FLIPPED = 0x8
 
 
-class NotificationMirroring(_IntEnum):
-    Allowed = _AUTO
-    Disabled = _AUTO
-
-
-class NotificationSetting(_IntEnum):
-    Enabled = _AUTO
-    DisabledForApplication = _AUTO
-    DisabledForUser = _AUTO
-    DisabledByGroupPolicy = _AUTO
-    DisabledByManifest = _AUTO
-
-
-class InterpolationMode(_IntEnum):
+class InterpolationMode(_Enum):
     Invalid = QualityMode.Invalid
     Default = QualityMode.Default
     LowQuality = QualityMode.Low
@@ -1017,7 +896,7 @@ class InterpolationMode(_IntEnum):
     HighQualityBicubic = _AUTO
 
 
-class SmoothingMode(_IntEnum):
+class SmoothingMode(_Enum):
     Invalid = QualityMode.Invalid
     Default = QualityMode.Default
     HighSpeed = QualityMode.Low
@@ -1026,7 +905,7 @@ class SmoothingMode(_IntEnum):
     AntiAlias = _AUTO
 
 
-class CompositingQuality(_IntEnum):
+class CompositingQuality(_Enum):
     Invalid = QualityMode.Invalid
     Default = QualityMode.Default
     HighSpeed = QualityMode.Low
@@ -1035,7 +914,7 @@ class CompositingQuality(_IntEnum):
     AssumeLinear = _AUTO
 
 
-class PixelOffsetMode(_IntEnum):
+class PixelOffsetMode(_Enum):
     Invalid = QualityMode.Invalid
     Default = QualityMode.Default
     HighSpeed = QualityMode.Low
@@ -1044,7 +923,7 @@ class PixelOffsetMode(_IntEnum):
     Half = _AUTO
 
 
-class EncoderParameterValueType(_IntEnum):
+class EncoderParameterValueType(_Enum):
     Byte = 1
     ASCII = _AUTO
     Short = _AUTO
@@ -1056,7 +935,7 @@ class EncoderParameterValueType(_IntEnum):
     Pointer = _AUTO
 
 
-class EncoderValue(_IntEnum):
+class EncoderValue(_Enum):
     ColorTypeCMYK = _AUTO
     ColorTypeYCCK = _AUTO
     CompressionLZW = _AUTO
@@ -1085,14 +964,8 @@ class EncoderValue(_IntEnum):
     ColorTypeRGB = _AUTO
 
 
-class ToastDismissalReason(_IntEnum):
-    UserCanceled = _AUTO
-    ApplicationHidden = _AUTO
-    TimedOut = _AUTO
-
-
 # noinspection PyPep8Naming
-class ACTIVATION_CONTEXT_INFO_CLASS(_IntEnum):
+class ACTIVATION_CONTEXT_INFO_CLASS(_Enum):
     ActivationContextBasicInformation = 1
     ActivationContextDetailedInformation = _AUTO
     AssemblyDetailedInformationInActivationContext = _AUTO
@@ -1106,13 +979,13 @@ class ACTIVATION_CONTEXT_INFO_CLASS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class HARDWARE_COUNTER_TYPE(_IntEnum):
+class HARDWARE_COUNTER_TYPE(_Enum):
     PMCCounter = _AUTO
     MaxHardwareCounterType = _AUTO
 
 
 # noinspection PyPep8Naming
-class ACTCTX_REQUESTED_RUN_LEVEL(_IntEnum):
+class ACTCTX_REQUESTED_RUN_LEVEL(_Enum):
     UNSPECIFIED = _AUTO
     AS_INVOKER = _AUTO
     HIGHEST_AVAILABLE = _AUTO
@@ -1121,7 +994,7 @@ class ACTCTX_REQUESTED_RUN_LEVEL(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class HEAP_INFORMATION_CLASS(_IntEnum):
+class HEAP_INFORMATION_CLASS(_Enum):
     CompatibilityInformation = _AUTO
     EnableTerminationOnCorruption = _AUTO
     OptimizeResources = 3
@@ -1129,91 +1002,11 @@ class HEAP_INFORMATION_CLASS(_IntEnum):
 
 
 # noinspection PyPep8Naming
-class ACTCTX_COMPATIBILITY_ELEMENT_TYPE(_IntEnum):
+class ACTCTX_COMPATIBILITY_ELEMENT_TYPE(_Enum):
     UNKNOWN = _AUTO
     OS = _AUTO
     MITIGATION = _AUTO
     MAXVERSIONTESTED = _AUTO
-
-
-class HorizontalAlignment(_IntEnum):
-    Left = _AUTO
-    Center = _AUTO
-    Right = _AUTO
-    Stretch = _AUTO
-
-
-class VerticalAlignment(_IntEnum):
-    Top = _AUTO
-    Center = _AUTO
-    Bottom = _AUTO
-    Stretch = _AUTO
-
-
-class Visibility(_IntEnum):
-    Visible = _AUTO
-    Collapsed = _AUTO
-
-
-class FlowDirection(_IntEnum):
-    LeftToRight = _AUTO
-    RightToLeft = _AUTO
-
-
-class Orientation(_IntEnum):
-    Vertical = _AUTO
-    Horizontal = _AUTO
-
-
-class TextWrapping(_IntEnum):
-    NoWrap = 1
-    Wrap = _AUTO
-    WrapWholeWords = _AUTO
-
-
-class TextTrimming(_IntEnum):
-    None_ = _AUTO
-    CharacterEllipsis = _AUTO
-    WordEllipsis = _AUTO
-    Clip = _AUTO
-
-
-class TextAlignment(_IntEnum):
-    Center = _AUTO
-    Left = 1
-    Start = 1
-    Right = 2
-    End = 2
-    Justify = _AUTO
-    DetectFromContent = _AUTO
-
-
-class LineStackingStrategy(_IntEnum):
-    MaxHeight = _AUTO
-    BlockLineHeight = _AUTO
-    BaselineToBaseline = _AUTO
-
-
-class FocusState(_IntEnum):
-    Unfocused = _AUTO
-    Pointer = _AUTO
-    Keyboard = _AUTO
-    Programmatic = _AUTO
-
-
-class ManipulationModes(_IntEnum):
-    None_ = 0
-    TranslateX = 0x1
-    TranslateY = 0x2
-    TranslateRailsX = 0x4
-    TranslateRailsY = 0x8
-    Rotate = 0x10
-    Scale = 0x20
-    TranslateInertia = 0x40
-    RotateInertia = 0x80
-    ScaleInertia = 0x100
-    All = 0xffff
-    System = 0x10000
 
 
 GpMatrixOrder = MatrixOrder
@@ -1221,52 +1014,255 @@ GpUnit = Unit
 GpStatus = Status
 
 
-class _EnumMeta(type(_type.c_uint)):
-    def __getattr__(self, name: str):
-        if name in self.__members__:
-            # noinspection PyCallingNonCallable
-            val = self(self.__members__[name])
-            val._name = name
-            setattr(self, name, val)
-        return super().__getattribute__(name)
+class Windows:
+    class Foundation:
+        class AsyncStatus(_Enum):
+            Started = _AUTO
+            Completed = _AUTO
+            Canceled = _AUTO
+            Error = _AUTO
 
-    def __iter__(self):
-        for name in self.__members__:
-            yield getattr(self, name)
+    class Storage:
+        class ApplicationDataCreateDisposition(_Enum):
+            Always = _AUTO
+            Existing = _AUTO
 
+        class ApplicationDataLocality(_Enum):
+            Local = _AUTO
+            Roaming = _AUTO
+            Temporary = _AUTO
+            LocalCache = _AUTO
+            SharedLocal = _AUTO
 
-class _Enum(_type.c_int, metaclass=_EnumMeta):
-    __members__: dict[str, int]
-    _name = None
+        class CreationCollisionOption(_Enum):
+            GenerateUniqueName = _AUTO
+            ReplaceExisting = _AUTO
+            FailIfExists = _AUTO
+            OpenIfExists = _AUTO
 
-    def __init__(self, value: _Optional[int] = None):
-        if value is None:
-            value = next(iter(self.__members__.values()))
-        super().__init__(value)
+        class FileAccessMode(_Enum):
+            Read = _AUTO
+            ReadWrite = _AUTO
 
-    @property
-    def name(self) -> str:
-        if self._name is None:
-            for name, val in self.__members__.items():
-                if self.value == val:
-                    return name
-            return str(self.value)
-        else:
-            return self._name
+        class FileAttributes(_Enum):
+            Normal = _AUTO
+            ReadOnly = 0x1
+            Directory = 0x10
+            Archive = 0x20
+            Temporary = 0x100
+            LocallyIncomplete = 0x200
 
-    def __str__(self):
-        return f'{type(self).__name__}.{self.name}'
+        class KnownFolderId(_Enum):
+            AppCaptures = _AUTO
+            CameraRoll = _AUTO
+            DocumentsLibrary = _AUTO
+            HomeGroup = _AUTO
+            MediaServerDevices = _AUTO
+            MusicLibrary = _AUTO
+            Objects3D = _AUTO
+            PicturesLibrary = _AUTO
+            Playlists = _AUTO
+            RecordedCalls = _AUTO
+            RemovableDevices = _AUTO
+            SavedPictures = _AUTO
+            Screenshots = _AUTO
+            VideosLibrary = _AUTO
+            AllAppMods = _AUTO
+            CurrentAppMods = _AUTO
+            DownloadsFolder = _AUTO
 
+        class KnownFoldersAccessStatus(_Enum):
+            DeniedBySystem = _AUTO
+            NotDeclaredByApp = _AUTO
+            DeniedByUser = _AUTO
+            UserPromptRequired = _AUTO
+            Allowed = _AUTO
+            AllowedPerAppFolder = _AUTO
 
-def _get_members(enum: _IntEnum) -> dict[int, str]:
-    last = -1
-    # noinspection PyUnresolvedReferences,PyProtectedMember
-    return {name: (last := (last + 1) if val.value == _AUTO else val.value) for name, val in enum._member_map_.items()}
+        class KnownLibraryId(_Enum):
+            Music = _AUTO
+            Pictures = _AUTO
+            Videos = _AUTO
+            Documents = _AUTO
 
+        class NameCollisionOption(_Enum):
+            GenerateUniqueName = _AUTO
+            ReplaceExisting = _AUTO
+            FailIfExists = _AUTO
 
-def _init(item: str) -> type:
-    _globals.check_item(item)
-    return type(item, (_Enum,), {'__members__': _get_members(_globals.vars_[item])})
+        class StorageDeleteOption(_Enum):
+            Default = _AUTO
+            PermanentDelete = _AUTO
 
+        class StorageItemTypes(_Enum):
+            None_ = _AUTO
+            File = _AUTO
+            Folder = _AUTO
 
-_globals = _Globals()
+        class StorageLibraryChangeType(_Enum):
+            Created = _AUTO
+            Deleted = _AUTO
+            MovedOrRenamed = _AUTO
+            ContentsChanged = _AUTO
+            MovedOutOfLibrary = _AUTO
+            MovedIntoLibrary = _AUTO
+            ContentsReplaced = _AUTO
+            IndexingStatusChanged = _AUTO
+            EncryptionChanged = _AUTO
+            ChangeTrackingLost = _AUTO
+
+        class StorageOpenOptions(_Enum):
+            None_ = _AUTO
+            AllowOnlyReaders = _AUTO
+            AllowReadersAndWriters = _AUTO
+
+        class StreamedFileFailureMode(_Enum):
+            Failed = _AUTO
+            CurrentlyUnavailable = _AUTO
+            Incomplete = _AUTO
+
+        class Streams:
+            class InputStreamOptions(_Enum):
+                None_ = _AUTO
+                Partial = 0x1
+                ReadAhead = 0x2
+
+    class UI:
+        class Notifications:
+            class NotificationMirroring(_Enum):
+                Allowed = _AUTO
+                Disabled = _AUTO
+
+            class NotificationSetting(_Enum):
+                Enabled = _AUTO
+                DisabledForApplication = _AUTO
+                DisabledForUser = _AUTO
+                DisabledByGroupPolicy = _AUTO
+                DisabledByManifest = _AUTO
+
+            class ToastDismissalReason(_Enum):
+                UserCanceled = _AUTO
+                ApplicationHidden = _AUTO
+                TimedOut = _AUTO
+
+        class ViewManagement:
+            class HandPreference(_Enum):
+                LeftHanded = _AUTO
+                RightHanded = _AUTO
+
+            class UIElementType(_Enum):
+                ActiveCaption = _AUTO
+                Background = _AUTO
+                ButtonFace = _AUTO
+                ButtonText = _AUTO
+                CaptionText = _AUTO
+                GrayText = _AUTO
+                Highlight = _AUTO
+                HighlightText = _AUTO
+                Hotlight = _AUTO
+                InactiveCaption = _AUTO
+                InactiveCaptionText = _AUTO
+                Window = _AUTO
+                WindowText = _AUTO
+                AccentColor = 1000
+                TextHigh = _AUTO
+                TextMedium = _AUTO
+                TextLow = _AUTO
+                TextContrastWithHigh = _AUTO
+                NonTextHigh = _AUTO
+                NonTextMediumHigh = _AUTO
+                NonTextMedium = _AUTO
+                NonTextMediumLow = _AUTO
+                NonTextLow = _AUTO
+                PageBackground = _AUTO
+                PopupBackground = _AUTO
+                OverlayOutsidePopup = _AUTO
+
+        class Xaml:
+            class FlowDirection(_Enum):
+                LeftToRight = _AUTO
+                RightToLeft = _AUTO
+
+            class FocusState(_Enum):
+                Unfocused = _AUTO
+                Pointer = _AUTO
+                Keyboard = _AUTO
+                Programmatic = _AUTO
+
+            class HorizontalAlignment(_Enum):
+                Left = _AUTO
+                Center = _AUTO
+                Right = _AUTO
+                Stretch = _AUTO
+
+            class LineStackingStrategy(_Enum):
+                MaxHeight = _AUTO
+                BlockLineHeight = _AUTO
+                BaselineToBaseline = _AUTO
+
+            class VerticalAlignment(_Enum):
+                Top = _AUTO
+                Center = _AUTO
+                Bottom = _AUTO
+                Stretch = _AUTO
+
+            class Visibility(_Enum):
+                Visible = _AUTO
+                Collapsed = _AUTO
+
+            class Controls:
+                class TextAlignment(_Enum):
+                    Center = _AUTO
+                    Left = 1
+                    Start = 1
+                    Right = 2
+                    End = 2
+                    Justify = _AUTO
+                    DetectFromContent = _AUTO
+
+                class TextTrimming(_Enum):
+                    None_ = _AUTO
+                    CharacterEllipsis = _AUTO
+                    WordEllipsis = _AUTO
+                    Clip = _AUTO
+
+                class TextWrapping(_Enum):
+                    NoWrap = 1
+                    Wrap = _AUTO
+                    WrapWholeWords = _AUTO
+
+                class Orientation(_Enum):
+                    Vertical = _AUTO
+                    Horizontal = _AUTO
+
+            class Hosting:
+                class XamlSourceFocusNavigationReason(_Enum):
+                    Programmatic = _AUTO
+                    Restore = _AUTO
+                    First = 3
+                    Last = _AUTO
+                    Left = 7
+                    Up = _AUTO
+                    Right = 9
+                    Down = _AUTO
+
+            class Input:
+                class ManipulationModes(_Enum):
+                    None_ = 0
+                    TranslateX = 0x1
+                    TranslateY = 0x2
+                    TranslateRailsX = 0x4
+                    TranslateRailsY = 0x8
+                    Rotate = 0x10
+                    Scale = 0x20
+                    TranslateInertia = 0x40
+                    RotateInertia = 0x80
+                    ScaleInertia = 0x100
+                    All = 0xffff
+                    System = 0x10000
+
+            class Interop:
+                class TypeKind(_Enum):
+                    Primitive = _AUTO
+                    Metadata = _AUTO
+                    Custom = _AUTO

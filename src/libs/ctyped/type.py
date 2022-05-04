@@ -309,7 +309,6 @@ _set_magics()
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPtr]]:
-    _globals.check_item(item)
     var = _globals.vars_[item]
     type_ = _resolve_type(var)
     if isinstance(var, _typing._CallableGenericAlias):

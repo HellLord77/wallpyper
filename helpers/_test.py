@@ -138,18 +138,14 @@ def _test_settings():
     print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
-class FooBar(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[
-                 ctyped.interface.Windows.UI.Notifications.IToastNotification,
-                 ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs]):
-    pass
-
-
-class ToastDismiss(FooBar):
+class ToastDismiss(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[
+                       ctyped.interface.Windows.UI.Notifications.IToastNotification,
+                       ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs]):
     # noinspection PyPep8Naming
     def Invoke(self, sender: ctyped.interface.Windows.UI.Notifications.IToastNotification,
                args: ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs) -> ctyped.type.HRESULT:
         print('invoke', self, sender, args)
-        reason = ctyped.enum.ToastDismissalReason()
+        reason = ctyped.enum.Windows.UI.Notifications.ToastDismissalReason()
         args.get_Reason(ctyped.byref(reason))
         print(reason)
         return ctyped.const.NOERROR
@@ -212,6 +208,10 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
 
 
 if __name__ == '__main__':
+    # print(ctyped.struct.ACTCTXW.__mro__)
+    # t = ctyped.interface.Windows.Foundation.IAsyncOperationWithProgress[ctyped.type.UINT64, ctyped.type.UINT64]()
+    # print(t)
+    # print(t._vtbl._fields_)
     # struct = ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS)
     # print(ctyped.sizeof(struct))
     # print(win32.wallpaper.save_lock(r'd:\test.bmp'))

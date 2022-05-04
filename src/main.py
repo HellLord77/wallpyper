@@ -682,7 +682,7 @@ def __test_winui():
                 with ctyped.get_winrt(winrt.UI.Xaml.Controls.IStackPanel, True) as stack_panel:
                     with ctyped.cast_com(stack_panel, winrt.UI.Xaml.Controls.IPanel) as panel:
                         with ctyped.get_winrt(winrt.UI.IColorsStatics) as colors_statics:
-                            color = ctyped.struct.Color()
+                            color = ctyped.struct.Windows.UI.Color()
                             colors_statics.get_LightGray(ctyped.byref(color))
                         with ctyped.init_com(winrt.UI.Xaml.Media.ISolidColorBrush, False) as solid_brush:
                             with ctyped.get_winrt(winrt.UI.Xaml.Media.ISolidColorBrushFactory) as brush_factory:
@@ -694,8 +694,8 @@ def __test_winui():
                         print('got text block')
                         text_block.put_Text(ctyped.handle.HSTRING.from_string('Hello World from Xaml Islands!'))
                         with ctyped.cast_com(text_block, winrt.UI.Xaml.IFrameworkElement) as text_element:
-                            text_element.put_VerticalAlignment(ctyped.enum.VerticalAlignment.Center)
-                            text_element.put_HorizontalAlignment(ctyped.enum.HorizontalAlignment.Center)
+                            text_element.put_VerticalAlignment(ctyped.enum.Windows.UI.Xaml.VerticalAlignment.Center)
+                            text_element.put_HorizontalAlignment(ctyped.enum.Windows.UI.Xaml.HorizontalAlignment.Center)
                         text_block.put_FontSize(48)
                         print('set font size')
                         with ctyped.init_com(winrt.Foundation.Collections.IVector[

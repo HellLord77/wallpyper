@@ -1,10 +1,14 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
-from dataclasses import dataclass as _union
 
 from . import const as _const, struct as _struct, type as _type
-from ._utils import _Globals, _Pointer, _repr, _resolve_type
+from ._utils import _Globals, _Pointer, _dataclass_repr, _resolve_type
+
+if None:
+    from dataclasses import dataclass as _union
+else:
+    from ._utils import _decorator as _union
 
 
 # noinspection PyPep8Naming
@@ -161,11 +165,10 @@ class SHELLEXECUTEINFO_U:
 
 
 class _Union(_ctypes.Union):
-    __repr__ = _repr
+    __repr__ = _dataclass_repr
 
 
 def _init(item: str) -> type:
-    _globals.check_item(item)
     return type(item, (_Union,), {'_fields_': tuple(
         (name, _resolve_type(annot)) for name, annot in _globals.get_type_hints(item))})
 

@@ -12,8 +12,7 @@ def _format(sec: str, sz: int) -> str:
 
 
 def _str(guid: list[str]) -> str:
-    return '{{{}-{}-{}-{}}}'.format(_format(guid[0], 8), "-".join(_format(guid[i], 4) for i in range(1, 3)),
-                                    "".join(_format(guid[i], 2) for i in range(3, 5)),
+    return '{{{}-{}-{}-{}}}'.format(_format(guid[0], 8), "-".join(_format(guid[i], 4) for i in range(1, 3)), "".join(_format(guid[i], 2) for i in range(3, 5)),
                                     "".join(_format(guid[i], 2) for i in range(5, 11)))
 
 
@@ -106,8 +105,7 @@ def mscoree():
                 print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
 
 
-def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], iids: dict[str, str],
-                indent: str = '    '):
+def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], iids: dict[str, str], indent: str = '    '):
     for name in interfaces:
         if isinstance(name, str):
             print(f'{indent}class {name}:')
@@ -118,16 +116,26 @@ def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[st
 
 def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], indent: str = '    '):
     for name in interfaces:
+        if not isinstance(name, str):
+            if (name[0].endswith('Handler') or name[0].endswith('Callback')) and name[1] == 'IUnknown' and len(interfaces[name]) == 1 and 'Invoke' in interfaces[name]:
+                print(f'{indent}class _{name[0]}:')
+                print(f'{indent}    Invoke: _Callable')
+                print(f'{indent}class {name[0]}(_{name[0]}, IUnknown):')
+                print(f'{indent}    pass')
+                print(f'{indent}# noinspection PyPep8Naming')
+                print(f'{indent}class {name[0]}_impl(_{name[0]}, IUnknown_impl):')
+                print(f'{indent}    pass')
+            else:
+                print(f'{indent}class {name[0]}({name[1]}):')
+                if interfaces[name]:
+                    for func in interfaces[name]:
+                        print(f'{indent}    {func}: _Callable')
+                else:
+                    print(f'{indent}    pass')
+    for name in interfaces:
         if isinstance(name, str):
             print(f'{indent}class {name}:')
             _print_interfaces(interfaces[name], f'{indent}    ')
-        else:
-            print(f'{indent}class {name[0]}({name[1]}):')
-            if interfaces[name]:
-                for func in interfaces[name]:
-                    print(f'{indent}    {func}: _Callable')
-            else:
-                print(f'{indent}    pass')
 
 
 def gen_winrt_interface(file: str):
@@ -186,4 +194,4 @@ def set_const():
 
 
 if __name__ == '__main__':
-    gen_winrt_interface('windows.storage.h')
+    gen_winrt_interface('windows.ui.xaml.Controls.Primitives.h')
