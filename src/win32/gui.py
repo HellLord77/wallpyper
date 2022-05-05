@@ -222,15 +222,12 @@ class Gui(_EventHandler):
             lpszClassName=f'{__name__}-{type(self).__name__}' if name is None else name)
         ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class))
         self._hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
-            0, self._class.lpszClassName, None,
-            ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
-        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(
-            ctyped.lib.User32.CreateWindowExW(
-                ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
-                ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance, None))
+            0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
+        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
+            ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
+            ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance, None))
         self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(uFlags=ctyped.const.TTF_SUBCLASS, hinst=self._hinstance)
-        self._menu_item_tooltip_hwnd.send_message(
-            ctyped.const.TTM_ADDTOOLW, lparam=ctyped.addressof(self._menu_item_tooltip))
+        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_ADDTOOLW, lparam=ctyped.addressof(self._menu_item_tooltip))
         self._attached: list[_Control] = []
         self._mainloop_lock = threading.Lock()
         super().__init__(self._hwnd.value)

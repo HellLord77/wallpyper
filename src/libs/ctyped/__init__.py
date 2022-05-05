@@ -88,17 +88,20 @@ def set_result_checker(library: lib._CDLL, callback: _Optional[_Callable[[_Any, 
         return res
 
     library._errcheck = errcheck
+    # noinspection PyUnresolvedReferences
     if library._funcs:
+        # noinspection PyUnresolvedReferences
         for func in set(library._funcs).intersection(dir(library)):
             getattr(library, func).errcheck = errcheck
 
 
-def get_handler_impl(handler: _Callable, impl: _builtins.type[CT], name: str = '') -> CT:
-    return _builtins.type(name, (impl,), {'Invoke': handler})()
+def create_handler_impl(handler: _Callable[[...], type.HRESULT], impl_type: _builtins.type[CT], name: _Optional[str] = None) -> CT:
+    return _builtins.type(f'{__name__}-{__version__}-{impl_type.__name__}({handler.__name__})' if name is None else name, (impl_type,), {'Invoke': handler})()
 
 
 # noinspection PyProtectedMember
 def get_loaded_path(library: lib._WinDLL) -> str:
+    # noinspection PyUnresolvedReferences
     if dll := library._lib:
         buff = type.LPWSTR('\0' * const.MAX_PATH)
         lib.Kernel32.GetModuleFileNameW(dll._handle, buff, const.MAX_PATH)
@@ -113,15 +116,12 @@ def get_guid(string: str) -> struct.GUID:
 
 
 @_contextlib.contextmanager
-def _prep_com(type_: _builtins.type[CT],
-              init: bool) -> _ContextManager[tuple[CT, _Optional[Pointer[struct.CLSID]],
-                                                   _Optional[tuple[Pointer[struct.IID], Pointer[CT]]]]]:
+def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
     lib.Ole32.CoInitializeEx(
         None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
     obj = type_()
     try:
-        # noinspection PyProtectedMember
-        yield obj, byref(get_guid(type_._CLSID_)) if init else None, macro.IID_PPV_ARGS(obj) if init else None
+        yield obj
     finally:
         if obj:
             obj.Release()
@@ -131,16 +131,21 @@ def _prep_com(type_: _builtins.type[CT],
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
 def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Optional[CT]]:
-    with _prep_com(type, init) as (obj, clsid_ref, args):
-        yield obj if not init or macro.SUCCEEDED(
-            lib.Ole32.CoCreateInstance(clsid_ref, None, const.CLSCTX_ALL, *args)) else None
+    with _prep_com(type) as obj:
+        if init:
+            # noinspection PyProtectedMember
+            if macro.FAILED(lib.Ole32.CoCreateInstance(byref(get_guid(
+                    type._CLSID_)), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
+                obj = None
+        yield obj
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
 def cast_com(obj: interface.IUnknown, type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
-    with _prep_com(type, True) as (obj_, _, args):
-        yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*args)) else None
+    with _prep_com(type) as obj_:
+        # noinspection PyTypeChecker
+        yield obj_ if macro.SUCCEEDED(obj.QueryInterface(byref(macro.__uuidof(type)), pointer(obj_))) else None
 
 
 @_contextlib.contextmanager
@@ -281,7 +286,7 @@ class Async(_Generic[CT]):
         self._completed_callback = callback
         self._completed_args = () if args is None else args
         self._completed_kwargs = {} if kwargs is None else kwargs
-        self._completed = get_handler_impl(self._completed_handler, self._get_completed_handler(_builtins.type(self._async)))
+        self._completed = create_handler_impl(self._completed_handler, self._get_completed_handler(_builtins.type(self._async)))
         self._put(self._async.put_Completed, self._completed)
         return self.get_status()
 
@@ -294,15 +299,16 @@ class Async(_Generic[CT]):
         self._progress_callback = callback
         self._progress_args = () if args is None else args
         self._progress_kwargs = {} if kwargs is None else kwargs
-        self._progress = get_handler_impl(self._progress_handler, self._get_progress_handler(_builtins.type(self._async)))
+        self._progress = create_handler_impl(self._progress_handler, self._get_progress_handler(_builtins.type(self._async)))
         self._put(self._async.put_Progress, self._progress)
         return self.get_status()
 
     # noinspection PyProtectedMember
     def get_results(self: Async[CT[interface._TResult]]) -> _Optional[interface._TResult]:
-        t_result = self._async._args.get(interface._TResult, None)
+        t_result = self._async._args.get(interface._TResult, None) if isinstance(self._async, interface._Template) else None
         if t_result:
             result = t_result()
+            # noinspection PyUnresolvedReferences
             self._async.GetResults(byref(result))
             return result
 

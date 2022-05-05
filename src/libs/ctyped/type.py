@@ -25,34 +25,37 @@ _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
 _MAGICS = {}
 
-c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
 c_char_p: type[_ctypes.c_char_p] = _Union[_ctypes.c_char_p, _Pointer, bytes]
 c_double: type[_ctypes.c_double] = _Union[_ctypes.c_double, float]
+c_longdouble: type[_ctypes.c_longdouble] = _Union[_ctypes.c_longdouble, float]
 c_float: type[_ctypes.c_float] = _Union[_ctypes.c_float, float]
 c_int: type[_ctypes.c_int] = _Union[_ctypes.c_int, int]
+c_int8: type[_ctypes.c_int8] = _Union[_ctypes.c_int8, int]
 c_int16: type[_ctypes.c_int16] = _Union[_ctypes.c_int16, int]
 c_int32: type[_ctypes.c_int32] = _Union[_ctypes.c_int32, int]
 c_int64: type[_ctypes.c_int64] = _Union[_ctypes.c_int64, int]
-c_int8: type[_ctypes.c_int8] = _Union[_ctypes.c_int8, int]
 c_long: type[_ctypes.c_long] = _Union[_ctypes.c_long, int]
-c_longdouble: type[_ctypes.c_longdouble] = _Union[_ctypes.c_longdouble, float]
+c_longlong: type[_ctypes.c_longlong] = _Union[_ctypes.c_longlong, int]
 c_short: type[_ctypes.c_short] = _Union[_ctypes.c_short, int]
 c_size_t: type[_ctypes.c_size_t] = _Union[_ctypes.c_size_t, int]
 c_ssize_t: type[_ctypes.c_ssize_t] = _Union[_ctypes.c_ssize_t, int]
 c_ubyte: type[_ctypes.c_ubyte] = _Union[_ctypes.c_ubyte, int]
 c_uint: type[_ctypes.c_uint] = _Union[_ctypes.c_uint, int]
+c_uint8: type[_ctypes.c_uint8] = _Union[_ctypes.c_uint8, int]
 c_uint16: type[_ctypes.c_uint16] = _Union[_ctypes.c_uint16, int]
 c_uint32: type[_ctypes.c_uint32] = _Union[_ctypes.c_uint32, int]
 c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
-c_uint8: type[_ctypes.c_uint8] = _Union[_ctypes.c_uint8, int]
 c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
+c_ulonglong: type[_ctypes.c_ulonglong] = _Union[_ctypes.c_ulonglong, int]
 c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
 c_void_p: type[_ctypes.c_void_p] = _Union[_ctypes.c_void_p, _ctypes.c_char_p, _ctypes.c_wchar_p, _Pointer, int, str]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
 c_wchar_p: type[_ctypes.c_wchar_p] = _Union[_ctypes.c_wchar_p, _Pointer, str]
+c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
 HRESULT: type[_ctypes.HRESULT] = _Union[_ctypes.HRESULT, int]
+py_object: type[_ctypes.py_object] = _Union[_ctypes.py_object, c_void_p, _Pointer, object]
 
 c_void = c_void_p
 c_uchar = c_ubyte
@@ -313,7 +316,7 @@ def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPt
     type_ = _resolve_type(var)
     if isinstance(var, _typing._CallableGenericAlias):
         type_ = _ctypes.CFUNCTYPE(*type_)
-    for item_ in _MAGICS.items():
+    for item_ in _MAGICS.items():  # TODO
         setattr(type_, *item_)
     return type_
 

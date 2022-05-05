@@ -1,4 +1,5 @@
 import contextlib
+import os
 from typing import ContextManager, Optional
 
 import libs.ctyped as ctyped
@@ -30,6 +31,7 @@ def loads(xml: str) -> ContextManager[Optional[ctyped.interface.Windows.Data.Xml
 
 
 def dump(xml: ctyped.interface.Windows.Data.Xml.Dom.IXmlDocument, path: str) -> bool:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     open(path, 'w').close()
     with _utils.open_file(path) as file:
         if file:

@@ -1,9 +1,10 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
+import typing as _typing
 
 from . import const as _const, struct as _struct, type as _type
-from ._utils import _Globals, _Pointer, _dataclass_repr, _resolve_type
+from ._utils import _Globals, _Pointer, _fields_repr, _resolve_type
 
 if None:
     from dataclasses import dataclass as _union
@@ -165,12 +166,12 @@ class SHELLEXECUTEINFO_U:
 
 
 class _Union(_ctypes.Union):
-    __repr__ = _dataclass_repr
+    __repr__ = _fields_repr
 
 
 def _init(item: str) -> type:
-    return type(item, (_Union,), {'_fields_': tuple(
-        (name, _resolve_type(annot)) for name, annot in _globals.get_type_hints(item))})
+    return type(item, (_Union,), {'_fields_': tuple((name, _resolve_type(
+        annot)) for name, annot in _typing.get_type_hints(_globals.vars_[item], _globals, _globals).items())})
 
 
 _globals = _Globals()

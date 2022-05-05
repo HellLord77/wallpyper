@@ -364,8 +364,8 @@ def get_direct_show_devices_properties(
                     with ctyped.init_com(ctyped.interface.IPropertyBag, False) as prop_bag:
                         props = []
                         while monikers.Next(1, ctyped.byref(moniker), 0) == ctyped.const.S_OK:
-                            if ctyped.macro.SUCCEEDED(moniker.BindToStorage(None, None,
-                                                                            *ctyped.macro.IID_PPV_ARGS(prop_bag))):
+                            if ctyped.macro.SUCCEEDED(moniker.BindToStorage(
+                                    None, None, *ctyped.macro.IID_PPV_ARGS(prop_bag))):
                                 var = ctyped.struct.VARIANT()
                                 var_ref = ctyped.byref(var)
                                 props.clear()

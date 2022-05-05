@@ -2,15 +2,15 @@ import ctypes as _ctypes
 from typing import Optional as _Optional, Union as _Union
 
 from . import const as _const, lib as _lib, interface as _interface, struct as _struct, type as _type
-from ._utils import _Pointer, _byref, _cast_int
+from ._utils import _CT, _Pointer, _byref, _cast_int
 
 
 # noinspection PyPep8Naming,PyShadowingBuiltins
-def FIELD_OFFSET(type: _ctypes.Structure, field: str, _: _Optional[int] = None) -> int:
+def FIELD_OFFSET(type: type[_ctypes.Structure], field: str, _: _Optional[int] = None) -> int:
     field_ = getattr(type, field)
     offset = field_.offset
     if _ is not None:
-        # noinspection PyProtectedMember
+        # noinspection PyUnresolvedReferences,PyProtectedMember
         offset += _ctypes.sizeof(dict(type._fields_)[field]._type_) * _
     return offset
 
@@ -179,7 +179,7 @@ def __uuidof(_: _Union[_interface.IUnknown, type[_interface.IUnknown],
 
 
 # noinspection PyPep8Naming
-def IID_PPV_ARGS(ppType: _interface.IUnknown) -> tuple[_Pointer[_struct.IID], _Pointer[_interface.IUnknown]]:
+def IID_PPV_ARGS(ppType: _CT) -> tuple[_Pointer[_struct.IID], _Pointer[_CT]]:
     return _byref(__uuidof(ppType)), _byref(ppType)
 
 

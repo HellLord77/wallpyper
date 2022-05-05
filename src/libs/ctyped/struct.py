@@ -1,9 +1,11 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
+import typing as _typing
+from typing import Optional as _Optional
 
 from . import const as _const, enum as _enum, type as _type, union as _union
-from ._utils import _Globals, _Namespace, _Pointer, _dataclass_repr, _resolve_type
+from ._utils import _Globals, _Pointer, _fields_repr, _resolve_type
 
 if None:
     from dataclasses import dataclass as _struct
@@ -1740,8 +1742,8 @@ OEM_STRING = STRING
 PATTERN = LOGBRUSH
 
 
-class Windows(_Namespace):
-    class Foundation(_Namespace):
+class Windows:
+    class Foundation:
         @_struct
         class Point:
             x: _type.FLOAT = None
@@ -1759,7 +1761,7 @@ class Windows(_Namespace):
             Width: _type.FLOAT = None
             Height: _type.FLOAT = None
 
-    class UI(_Namespace):
+    class UI:
         @_struct
         class Color:
             A: _type.BYTE = None
@@ -1767,7 +1769,7 @@ class Windows(_Namespace):
             G: _type.BYTE = None
             B: _type.BYTE = None
 
-        class Xaml(_Namespace):
+        class Xaml:
             @_struct
             class Thickness:
                 Left: _type.DOUBLE = None
@@ -1775,11 +1777,27 @@ class Windows(_Namespace):
                 Right: _type.DOUBLE = None
                 Bottom: _type.DOUBLE = None
 
-            class Interop(_Namespace):
+            class Interop:
                 @_struct
                 class TypeName:
                     Name: _type.HSTRING = None
                     Kind: _enum.Windows.UI.Xaml.Interop.TypeKind = None
+
+
+class _NamespaceMeta(type):
+    def __new__(mcs, *args, **kwargs):
+        cls = super().__new__(mcs, *args, **kwargs)
+        cls._vars = {}
+        for name, val in tuple(vars(cls).items()):
+            if not name.startswith('_'):
+                cls._vars[name] = val
+                delattr(cls, name)
+        return cls
+
+    def __getattr__(cls, name):
+        if name in cls._vars:
+            setattr(cls, name, _init(name, cls._vars[name]))
+        return super().__getattribute__(name)
 
 
 class _Struct(_ctypes.Structure):
@@ -1789,17 +1807,23 @@ class _Struct(_ctypes.Structure):
                 kwargs[name] = val
         super().__init__(*args, **kwargs)
 
-    __repr__ = _dataclass_repr
+    __repr__ = _fields_repr
 
 
-def _init(item: str) -> type:
-    fields = tuple((name, _resolve_type(annot)) for name, annot in _globals.get_type_hints(item))
-    struct = type(item, (_Struct,), {'_fields_': fields})
-    # noinspection PyTypeChecker
-    size = _ctypes.sizeof(struct)
-    struct._defaults = tuple((field[0], size if (val := getattr(
-        _globals.vars_[item], field[0])) is _SIZE else val) for field in fields)
-    return struct
+def _init(item: str, var: _Optional[type] = None) -> type:
+    if var is None:
+        var = _globals.vars_[item]
+    if hasattr(var, '__annotations__'):
+        fields = tuple((name, _resolve_type(
+            annot)) for name, annot in _typing.get_type_hints(var, _globals, _globals).items())
+        struct = type(item, (_Struct,), {'_fields_': fields})
+        # noinspection PyTypeChecker
+        size = _ctypes.sizeof(struct)
+        struct._defaults = tuple((field[0], size if (val := getattr(
+            var, field[0])) is _SIZE else val) for field in fields)
+        return struct
+    else:
+        return _NamespaceMeta(item, (), dict(vars(var)))
 
 
 _globals = _Globals()

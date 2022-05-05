@@ -194,4 +194,4 @@ def set_const():
 
 
 if __name__ == '__main__':
-    gen_winrt_interface('windows.ui.xaml.Controls.Primitives.h')
+    gen_winrt_interface('windows.ui.xaml.Media.Animation.h')

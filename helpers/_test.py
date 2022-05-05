@@ -208,16 +208,8 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
 
 
 if __name__ == '__main__':
-    # print(ctyped.struct.ACTCTXW.__mro__)
-    # t = ctyped.interface.Windows.Foundation.IAsyncOperationWithProgress[ctyped.type.UINT64, ctyped.type.UINT64]()
-    # print(t)
-    # print(t._vtbl._fields_)
-    # struct = ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS)
-    # print(ctyped.sizeof(struct))
-    # print(win32.wallpaper.save_lock(r'd:\test.bmp'))
-    # print(ctyped.enum.ToastDismissalReason.UserCanceled.value)
-    _test_toast()
-    # _test_gui()
+    # _test_toast()
+    _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()

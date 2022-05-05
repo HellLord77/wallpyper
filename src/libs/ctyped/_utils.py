@@ -7,16 +7,13 @@ import pkgutil as _pkgutil
 import sys as _sys
 import types as _types
 import typing as _typing
-from typing import Any as _Any, Generator as _Generator, Generic as _Generic, ItemsView as _ItemsView, Optional as _Optional, Sequence as _Sequence
+from typing import Any as _Any, Generator as _Generator, Generic as _Generic, Optional as _Optional, Sequence as _Sequence
 
 _CT = _typing.TypeVar('_CT')
 
 
-class _Namespace:  # FIXME
-    pass
-
-
 class _Pointer(_Generic[_CT], _Sequence[_CT]):
+    _type_: type[_CT]
     contents: _CT
     value: _CT
 
@@ -40,27 +37,23 @@ class _Module(_types.ModuleType):
 class _Globals(dict):
     def __init__(self, replace_once: bool = False):
         self.replace_once = replace_once
-        self.module = _sys.modules[_inspect.currentframe().f_back.f_globals['__name__']]
-        vars_ = vars(self.module)
-        self.vars_ = {var: val for var, val in vars_.items() if not var.startswith('_')}
+        self.locals = _inspect.currentframe().f_back.f_locals
+        self.vars_ = {var: val for var, val in self.locals.items() if not var.startswith('_')}
         for var in self.vars_:
-            delattr(self.module, var)
-        super().__init__(vars_)
-        self.module.__getattr__ = self.__getitem__
+            del self.locals[var]
+        super().__init__(self.locals)
+        self.locals['__getattr__'] = self.__getitem__
 
     def __getitem__(self, item: str):
         try:
             return super().__getitem__(item)
         except KeyError:
             try:
-                val = vars(self.module)[item]
+                val = self.locals[item]
             except KeyError:
                 if item not in self.vars_:
-                    raise AttributeError(f"Module '{self.module.__name__}' has no attribute '{item}'")
-                val = self.vars_[item]
-                if not (isinstance(val, type) and issubclass(val, _Namespace)):
-                    # noinspection PyUnresolvedReferences,PyProtectedMember
-                    val = self.module._init(item)
+                    raise AttributeError(f"Module '{self.locals['__name__']}' has no attribute '{item}'")
+                val = self.locals['_init'](item)
             else:
                 self.vars_[item] = val
             self[item] = val
@@ -80,7 +73,7 @@ class _Globals(dict):
                         self.setitem(key_, value)
 
     def setitem(self, key: str, value):
-        setattr(self.module, key, value)
+        self.locals[key] = value
         del self.vars_[key]
         super().__setitem__(key, value)
 
@@ -89,17 +82,13 @@ class _Globals(dict):
             if item in self.vars_:
                 yield item
 
-    def get_type_hints(self, item: str) -> _ItemsView[str, _Any]:
-        return _typing.get_type_hints(self.vars_[item], self, self).items()
-
 
 def _addressof(obj: _CT) -> int:
     return _ctypes.addressof(obj)
 
 
-# noinspection PyShadowingBuiltins
-def _sizeof(type: _CT) -> int:
-    return _ctypes.sizeof(type)
+def _sizeof(obj_or_type: _CT) -> int:
+    return _ctypes.sizeof(obj_or_type)
 
 
 def _byref(obj: _CT) -> _Pointer[_CT]:
@@ -107,13 +96,13 @@ def _byref(obj: _CT) -> _Pointer[_CT]:
     return _ctypes.byref(obj)
 
 
-def _pointer(obj: type[_CT]) -> type[_Pointer[_CT]]:
+def _pointer(obj_or_type: type[_CT]) -> type[_Pointer[_CT]]:
     try:
         # noinspection PyTypeChecker
-        return _ctypes.POINTER(obj)
+        return _ctypes.POINTER(obj_or_type)
     except TypeError:
         # noinspection PyTypeChecker
-        return _ctypes.pointer(obj)
+        return _ctypes.pointer(obj_or_type)
 
 
 # noinspection PyShadowingBuiltins
@@ -160,8 +149,12 @@ def _pretty_tuples(*itt: tuple[str, ...], name: str = '') -> str:
     return f'\n'.join(f'{name}({", ".join(line[:-1])}) -> {line[-1]}' for line in lines)
 
 
-def _get_func_doc(name: str, restype: _Any, argtypes: _Sequence, annotations: tuple[str]) -> str:
+def _func_doc(name: str, restype: _Any, argtypes: _Sequence, annotations: tuple[str]) -> str:
     return _pretty_tuples(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, '__name__', restype)), name=name)
+
+
+def _fields_repr(self) -> str:
+    return f'{type(self).__name__}({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
 
 
 def _replace_object(old, new):
@@ -177,10 +170,6 @@ def _replace_object(old, new):
                     referrer[key] = new
 
 
-def _dataclass_repr(self) -> str:
-    return f'{type(self).__name__}({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
-
-
 def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
     if args and hasattr(annot, '_args'):
         annot = annot.__mro__[1][tuple(args.values())]
@@ -194,8 +183,6 @@ def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
         # noinspection PyUnresolvedReferences,PyProtectedMember
         if isinstance(annot, _typing._UnionGenericAlias):
             annot = _typing.get_args(annot)[0]
-        # if _typing.get_origin(annot) is type: TODO remove (?)
-        #     annot = _typing.get_args(annot)[0]
         if _typing.get_origin(annot) is _Pointer:
             annot = _ctypes.POINTER(_resolve_type(_typing.get_args(annot)[0], args))
     if isinstance(annot, _typing.TypeVar):

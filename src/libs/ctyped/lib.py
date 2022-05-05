@@ -5,40 +5,46 @@ import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
 from . import enum as _enum, interface as _interface, struct as _struct, type as _type, union as _union
-from ._utils import _Pointer, _format_annotations, _get_func_doc, _resolve_type
+from ._utils import _Pointer, _format_annotations, _func_doc, _resolve_type
 
 
 class _CDLL(type):
-    def __getattr__(self, name: str):
-        if name in self.__annotations__:
-            if self._funcs is None:
-                self._annots = _typing.get_type_hints(self)
-                self._funcs = {}
-                for name_ in self.__annotations__:
-                    try:
-                        self._funcs[name_] = vars(self)[name_]
-                    except KeyError:
-                        self._funcs[name_] = name_
-                    else:
-                        delattr(self, name_)
-            func = None
-            while func is None:
+    pass
+
+
+def _init(self, name: str):
+    if name in self.__annotations__:
+        if self._funcs is None:
+            self._annots = _typing.get_type_hints(self)
+            self._funcs = {}
+            for name_ in self.__annotations__:
                 try:
-                    func = self._lib[self._funcs[name]]
+                    self._funcs[name_] = vars(self)[name_]
                 except KeyError:
-                    raise AttributeError(f"Lib '{self.__name__}' has no function '{name}'")
-                except TypeError:
-                    self._lib = _ctypes.pythonapi if self is Python else getattr(
-                        getattr(_ctypes, type(self).__name__[1:].lower()), self.__name__)
-            annot = _format_annotations(self.__annotations__[name])
-            func.restype, *func.argtypes = _resolve_type(self._annots[name])
-            if self._errcheck is not None:
-                func.errcheck = self._errcheck
-            func.__name__ = name
-            func.__doc__ = _get_func_doc(name, func.restype, func.argtypes, annot)
-            setattr(self, name, func)
-            return func
-        return super().__getattribute__(name)
+                    self._funcs[name_] = name_
+                else:
+                    delattr(self, name_)
+        func = None
+        while func is None:
+            try:
+                func = self._lib[self._funcs[name]]
+            except KeyError:
+                raise AttributeError(f"Lib '{self.__name__}' has no function '{name}'")
+            except TypeError:
+                self._lib = _ctypes.pythonapi if self is Python else getattr(
+                    getattr(_ctypes, type(self).__name__[1:].lower()), self.__name__)
+        annot = _format_annotations(self.__annotations__[name])
+        func.restype, *func.argtypes = _resolve_type(self._annots[name])
+        if self._errcheck is not None:
+            func.errcheck = self._errcheck
+        func.__name__ = name
+        func.__doc__ = _func_doc(name, func.restype, func.argtypes, annot)
+        setattr(self, name, func)
+        return func
+    return super(type(self), self).__getattribute__(name)
+
+
+_CDLL.__getattr__ = _init
 
 
 class _OleDLL(_CDLL):
@@ -79,6 +85,7 @@ class Python(_PyFunc):
                            _type.c_void]
     Py_FinalizeEx: _Callable[[],
                              _type.c_int]
+    # pythread
     PyThread_create_key: _Callable[[],
                                    _type.c_int]
     PyThread_delete_key: _Callable[[_type.c_int],
