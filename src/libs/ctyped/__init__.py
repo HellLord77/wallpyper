@@ -117,8 +117,7 @@ def get_guid(string: str) -> struct.GUID:
 
 @_contextlib.contextmanager
 def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    lib.Ole32.CoInitializeEx(
-        None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
+    lib.Ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
     obj = type_()
     try:
         yield obj

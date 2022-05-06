@@ -1731,6 +1731,22 @@ class OVERLAPPED_ENTRY:
     dwNumberOfBytesTransferred: _type.DWORD = None
 
 
+@_struct
+class COLORADJUSTMENT:
+    caSize: _type.WORD = _SIZE
+    caFlags: _type.WORD = None
+    caIlluminantIndex: _type.WORD = None
+    caRedGamma: _type.WORD = None
+    caGreenGamma: _type.WORD = None
+    caBlueGamma: _type.WORD = None
+    caReferenceBlack: _type.WORD = None
+    caReferenceWhite: _type.WORD = None
+    caContrast: _type.SHORT = None
+    caBrightness: _type.SHORT = None
+    caColorfulness: _type.SHORT = None
+    caRedGreenTint: _type.SHORT = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
@@ -1744,6 +1760,10 @@ PATTERN = LOGBRUSH
 
 class Windows:
     class Foundation:
+        @_struct
+        class DateTime:
+            UniversalTime: _type.INT64 = None
+
         @_struct
         class Point:
             x: _type.FLOAT = None
@@ -1761,6 +1781,10 @@ class Windows:
             Width: _type.FLOAT = None
             Height: _type.FLOAT = None
 
+        @_struct
+        class TimeSpan:
+            Duration: _type.INT64 = None
+
     class UI:
         @_struct
         class Color:
@@ -1769,7 +1793,19 @@ class Windows:
             G: _type.BYTE = None
             B: _type.BYTE = None
 
+        class Text:
+            @_struct
+            class FontWeight:
+                Weight: _type.UINT16 = None
+
         class Xaml:
+            @_struct
+            class CornerRadius:
+                TopLeft: _type.DOUBLE = None
+                TopRight: _type.DOUBLE = None
+                BottomRight: _type.DOUBLE = None
+                BottomLeft: _type.DOUBLE = None
+
             @_struct
             class Thickness:
                 Left: _type.DOUBLE = None
@@ -1782,6 +1818,18 @@ class Windows:
                 class TypeName:
                     Name: _type.HSTRING = None
                     Kind: _enum.Windows.UI.Xaml.Interop.TypeKind = None
+
+            class Markup:
+                @_struct
+                class XamlBinaryWriterErrorInformation:
+                    InputStreamIndex: _type.UINT32 = None
+                    LineNumber: _type.UINT32 = None
+                    LinePosition: _type.UINT32 = None
+
+                @_struct
+                class XmlnsDefinition:
+                    XmlNamespace: _type.HSTRING = None
+                    Namespace: _type.HSTRING = None
 
 
 class _NamespaceMeta(type):

@@ -167,9 +167,8 @@ def _test_toast():
     with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationManagerStatics) as manager:
         with ctyped.init_com(ctyped.interface.Windows.UI.Notifications.IToastNotifier, False) as notifier:
             print(manager.CreateToastNotifierWithId(ctyped.handle.HSTRING.from_string(aumi), ctyped.byref(notifier)))
-            with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationFactory) \
-                    as factory, win32.xml.loads(xml_data) as xml, ctyped.init_com(
-                ctyped.interface.Windows.UI.Notifications.IToastNotification, False) as toast:
+            with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationFactory) as factory, win32.xml.loads(
+                    xml_data) as xml, ctyped.init_com(ctyped.interface.Windows.UI.Notifications.IToastNotification, False) as toast:
                 print(factory.CreateToastNotification(xml, ctyped.byref(toast)))
                 with ctyped.init_com(ToastDismiss, False) as on_dismissed:
                     token = ctyped.struct.EventRegistrationToken()

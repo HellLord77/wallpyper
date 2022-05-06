@@ -12,8 +12,7 @@ def _format(sec: str, sz: int) -> str:
 
 
 def _str(guid: list[str]) -> str:
-    return '{{{}-{}-{}-{}}}'.format(_format(guid[0], 8), "-".join(_format(guid[i], 4) for i in range(1, 3)), "".join(_format(guid[i], 2) for i in range(3, 5)),
-                                    "".join(_format(guid[i], 2) for i in range(5, 11)))
+    return '{{{}-{}-{}-{}}}'.format(_format(guid[0], 8), "-".join(_format(guid[i], 4) for i in range(1, 3)), "".join(_format(guid[i], 2) for i in range(3, 5)), "".join(_format(guid[i], 2) for i in range(5, 11)))
 
 
 def propkey():
@@ -114,10 +113,13 @@ def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[st
             print(f"{indent}IID_{name[0]} = '{{{iids[name[0]]}}}'")
 
 
+_Namespace = ['Windows']
+
+
 def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], indent: str = '    '):
     for name in interfaces:
         if not isinstance(name, str):
-            if (name[0].endswith('Handler') or name[0].endswith('Callback')) and name[1] == 'IUnknown' and len(interfaces[name]) == 1 and 'Invoke' in interfaces[name]:
+            if (name[0].endswith('Handler') or name[0].endswith('Callback')) and name[1] == 'IUnknown' and len(interfaces[name]) == 1 and 'Invoke' == interfaces[name][0]:
                 print(f'{indent}class _{name[0]}:')
                 print(f'{indent}    Invoke: _Callable')
                 print(f'{indent}class {name[0]}(_{name[0]}, IUnknown):')
@@ -127,15 +129,30 @@ def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], l
                 print(f'{indent}    pass')
             else:
                 print(f'{indent}class {name[0]}({name[1]}):')
-                if interfaces[name]:
+                if name[0].endswith('Factory') and len(interfaces[name]) == 1 and 'CreateInstance' == interfaces[name][0]:
+                    print(f'{indent}    CreateInstance: _Callable[[IInspectable,')
+                    print(f'_Pointer[IInspectable],')
+                    print(f'_Pointer[{".".join(_Namespace)}.{name[0][:-7]}]],')
+                    print('_type.HRESULT]')
+                elif interfaces[name]:
+                    trunc_name = name[0]
+                    while trunc_name[-1].isdigit():
+                        trunc_name = trunc_name[:-1]
+                    is_static = trunc_name.endswith('Statics')
                     for func in interfaces[name]:
-                        print(f'{indent}    {func}: _Callable')
+                        if is_static and func.startswith('get_') and func.endswith('Property'):
+                            print(f'{indent}    {func}: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],')
+                            print('_type.HRESULT]')
+                        else:
+                            print(f'{indent}    {func}: _Callable')
                 else:
                     print(f'{indent}    pass')
     for name in interfaces:
         if isinstance(name, str):
             print(f'{indent}class {name}:')
+            _Namespace.append(name)
             _print_interfaces(interfaces[name], f'{indent}    ')
+            _Namespace.pop()
 
 
 def gen_winrt_interface(file: str):
@@ -194,4 +211,4 @@ def set_const():
 
 
 if __name__ == '__main__':
-    gen_winrt_interface('windows.ui.xaml.Media.Animation.h')
+    gen_winrt_interface('windows.ui.composition.h')

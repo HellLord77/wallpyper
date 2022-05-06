@@ -1145,6 +1145,48 @@ class Windows:
                 ApplicationHidden = _AUTO
                 TimedOut = _AUTO
 
+        class Text:
+            class CaretType(_Enum):
+                Normal = _AUTO
+                Null = _AUTO
+
+            class FindOptions(_Enum):
+                None_ = _AUTO
+                Word = 0x2
+                Case = 0x4
+
+            class FontStretch(_Enum):
+                Undefined = _AUTO
+                UltraCondensed = _AUTO
+                ExtraCondensed = _AUTO
+                Condensed = _AUTO
+                SemiCondensed = _AUTO
+                Normal = _AUTO
+                SemiExpanded = _AUTO
+                Expanded = _AUTO
+                ExtraExpanded = _AUTO
+                UltraExpanded = _AUTO
+
+            class FontStyle(_Enum):
+                Normal = _AUTO
+                Oblique = _AUTO
+                Italic = _AUTO
+
+            class FormatEffect(_Enum):
+                Off = _AUTO
+                On = _AUTO
+                Toggle = _AUTO
+                Undefined = _AUTO
+
+            class HorizontalCHaracterAlignment(_Enum):
+                Left = _AUTO
+                Right = _AUTO
+                Center = _AUTO
+
+            class LetterCase(_Enum):
+                Lower = _AUTO
+                Upper = _AUTO
+
         class ViewManagement:
             class HandPreference(_Enum):
                 LeftHanded = _AUTO
@@ -1179,6 +1221,94 @@ class Windows:
                 OverlayOutsidePopup = _AUTO
 
         class Xaml:
+            class ApplicationHighContrastAdjustment(_Enum):
+                None_ = _AUTO
+                Auto = 0xffffffff
+
+            class ApplicationRequiresPointerMode(_Enum):
+                Auto = _AUTO
+                WhenRequested = _AUTO
+
+            class ApplicationTheme(_Enum):
+                Light = _AUTO
+                Dark = _AUTO
+
+            class AutomationTextAttributesEnum(_Enum):
+                AnimationStyleAttribute = 40000
+                BackgroundColorAttribute = _AUTO
+                BulletStyleAttribute = _AUTO
+                CapStyleAttribute = _AUTO
+                CultureAttribute = _AUTO
+                FontNameAttribute = _AUTO
+                FontSizeAttribute = _AUTO
+                FontWeightAttribute = _AUTO
+                ForegroundColorAttribute = _AUTO
+                HorizontalTextAlignmentAttribute = _AUTO
+                IndentationFirstLineAttribute = _AUTO
+                IndentationLeadingAttribute = _AUTO
+                IndentationTrailingAttribute = _AUTO
+                IsHiddenAttribute = _AUTO
+                IsItalicAttribute = _AUTO
+                IsReadOnlyAttribute = _AUTO
+                IsSubscriptAttribute = _AUTO
+                IsSuperscriptAttribute = _AUTO
+                MarginBottomAttribute = _AUTO
+                MarginLeadingAttribute = _AUTO
+                MarginTopAttribute = _AUTO
+                MarginTrailingAttribute = _AUTO
+                OutlineStylesAttribute = _AUTO
+                OverlineColorAttribute = _AUTO
+                OverlineStyleAttribute = _AUTO
+                StrikethroughColorAttribute = _AUTO
+                StrikethroughStyleAttribute = _AUTO
+                TabsAttribute = _AUTO
+                TextFlowDirectionsAttribute = _AUTO
+                UnderlineColorAttribute = _AUTO
+                UnderlineStyleAttribute = _AUTO
+                AnnotationTypesAttribute = _AUTO
+                AnnotationObjectsAttribute = _AUTO
+                StyleNameAttribute = _AUTO
+                StyleIdAttribute = _AUTO
+                LinkAttribute = _AUTO
+                IsActiveAttribute = _AUTO
+                SelectionActiveEndAttribute = _AUTO
+                CaretPositionAttribute = _AUTO
+                CaretBidiModeAttribute = _AUTO
+
+            class DurationType(_Enum):
+                Automatic = _AUTO
+                TimeSpan = _AUTO
+                Forever = _AUTO
+
+            class ElementSoundKind(_Enum):
+                Focus = _AUTO
+                Invoke = _AUTO
+                Show = _AUTO
+                Hide = _AUTO
+                MovePrevious = _AUTO
+                MoveNext = _AUTO
+                GoBack = _AUTO
+
+            class ElementSoundMode(_Enum):
+                Default = _AUTO
+                FocusOnly = _AUTO
+                Off = _AUTO
+
+            class ElementSoundPlayerState(_Enum):
+                Auto = _AUTO
+                Off = _AUTO
+                On = _AUTO
+
+            class ElementSpatialAudioMode(_Enum):
+                Auto = _AUTO
+                Off = _AUTO
+                On = _AUTO
+
+            class ElementTheme(_Enum):
+                Default = _AUTO
+                Light = _AUTO
+                Dark = _AUTO
+
             class FlowDirection(_Enum):
                 LeftToRight = _AUTO
                 RightToLeft = _AUTO
@@ -1188,6 +1318,68 @@ class Windows:
                 Pointer = _AUTO
                 Keyboard = _AUTO
                 Programmatic = _AUTO
+
+            class FocusVisualKind(_Enum):
+                DottedLine = _AUTO
+                HighVisibility = _AUTO
+                Reveal = _AUTO
+
+            class FontCapitals(_Enum):
+                Normal = _AUTO
+                AllSmallCaps = _AUTO
+                SmallCaps = _AUTO
+                AllPetiteCaps = _AUTO
+                PetiteCaps = _AUTO
+                Unicase = _AUTO
+                Titling = _AUTO
+
+            class FontEastAsianLanguage(_Enum):
+                Normal = _AUTO
+                HojoKanji = _AUTO
+                Jis04 = _AUTO
+                Jis78 = _AUTO
+                Jis83 = _AUTO
+                Jis90 = _AUTO
+                NlcKanji = _AUTO
+                Simplified = _AUTO
+                Traditional = _AUTO
+                TraditionalNames = _AUTO
+
+            class FontEastAsianWidths(_Enum):
+                Normal = _AUTO
+                Full = _AUTO
+                Half = _AUTO
+                Proportional = _AUTO
+                Quarter = _AUTO
+                Third = _AUTO
+
+            class FontFraction(_Enum):
+                Normal = _AUTO
+                Stacked = _AUTO
+                Slashed = _AUTO
+
+            class FontNumeralAlignment(_Enum):
+                Normal = _AUTO
+                Proportional = _AUTO
+                Tabular = _AUTO
+
+            class FontNumeralStyle(_Enum):
+                Normal = _AUTO
+                Lining = _AUTO
+                OldStyle = _AUTO
+
+            class FontVariants(_Enum):
+                Normal = _AUTO
+                Superscript = _AUTO
+                Subscript = _AUTO
+                Ordinal = _AUTO
+                Inferior = _AUTO
+                Ruby = _AUTO
+
+            class GridUnitType(_Enum):
+                Auto = _AUTO
+                Pixel = _AUTO
+                Star = _AUTO
 
             class HorizontalAlignment(_Enum):
                 Left = _AUTO
@@ -1199,6 +1391,41 @@ class Windows:
                 MaxHeight = _AUTO
                 BlockLineHeight = _AUTO
                 BaselineToBaseline = _AUTO
+
+            class OpticalMarginAlignment(_Enum):
+                None_ = _AUTO
+                TrimSideBearings = _AUTO
+
+            class TextAlignment(_Enum):
+                Center = _AUTO
+                Left = _AUTO
+                Start = 1
+                Right = _AUTO
+                End = 2
+                Justify = _AUTO
+                DetectFromContent = _AUTO
+
+            class TextLineBounds(_Enum):
+                Full = _AUTO
+                TrimToCapHeight = _AUTO
+                TrimToBaseline = _AUTO
+                Tight = _AUTO
+
+            class TextReadingOrder(_Enum):
+                Default = _AUTO
+                UseFlowDirection = 0
+                DetectFromContent = _AUTO
+
+            class TextTrimming(_Enum):
+                None_ = _AUTO
+                CharacterEllipsis = _AUTO
+                WordEllipsis = _AUTO
+                Clip = _AUTO
+
+            class TextWrapping(_Enum):
+                NoWrap = 1
+                Wrap = _AUTO
+                WrapWithOverflow = _AUTO
 
             class VerticalAlignment(_Enum):
                 Top = _AUTO
@@ -1231,9 +1458,84 @@ class Windows:
                     Wrap = _AUTO
                     WrapWholeWords = _AUTO
 
+                class BackgroundSizing(_Enum):
+                    InnerBorderEdge = _AUTO
+                    OuterBorderEdge = _AUTO
+
+                class ClickMode(_Enum):
+                    Release = _AUTO
+                    Press = _AUTO
+                    Hover = _AUTO
+
+                class LightDismissOverlayMode(_Enum):
+                    Auto = _AUTO
+                    On = _AUTO
+                    Off = _AUTO
+
                 class Orientation(_Enum):
                     Vertical = _AUTO
                     Horizontal = _AUTO
+
+                class Primitives:
+                    class FlyoutPlacementMode(_Enum):
+                        Top = _AUTO
+                        Bottom = _AUTO
+                        Left = _AUTO
+                        Right = _AUTO
+                        Full = _AUTO
+                        TopEdgeAlignedLeft = _AUTO
+                        TopEdgeAlignedRight = _AUTO
+                        BottomEdgeAlignedLeft = _AUTO
+                        BottomEdgeAlignedRight = _AUTO
+                        LeftEdgeAlignedTop = _AUTO
+                        LeftEdgeAlignedBottom = _AUTO
+                        RightEdgeAlignedTop = _AUTO
+                        RightEdgeAlignedBottom = _AUTO
+                        Auto = _AUTO
+
+                    class FlyoutShowMode(_Enum):
+                        Auto = _AUTO
+                        Standard = _AUTO
+                        Transient = _AUTO
+                        TransientWithDismissOnPointerMoveAway = _AUTO
+
+                    class PlacementMode(_Enum):
+                        Bottom = 2
+                        Left = 9
+                        Mouse = 7
+                        Right = 4
+                        Top = 10
+
+                    class PopupPlacementMode(_Enum):
+                        Auto = _AUTO
+                        Top = _AUTO
+                        Bottom = _AUTO
+                        Left = _AUTO
+                        Right = _AUTO
+                        TopEdgeAlignedLeft = _AUTO
+                        TopEdgeAlignedRight = _AUTO
+                        BottomEdgeAlignedLeft = _AUTO
+                        BottomEdgeAlignedRight = _AUTO
+                        LeftEdgeAlignedTop = _AUTO
+                        LeftEdgeAlignedBottom = _AUTO
+                        RightEdgeAlignedTop = _AUTO
+                        RightEdgeAlignedBottom = _AUTO
+
+                    class ScrollEventType(_Enum):
+                        SmallDecrement = _AUTO
+                        SmallIncrement = _AUTO
+                        LargeDecrement = _AUTO
+                        LargeIncrement = _AUTO
+                        ThumbPosition = _AUTO
+                        ThumbTrack = _AUTO
+                        First = _AUTO
+                        Last = _AUTO
+                        EndScroll = _AUTO
+
+                    class ScrollingIndicatorMode(_Enum):
+                        None_ = _AUTO
+                        TouchIndicator = _AUTO
+                        MouseIndicator = _AUTO
 
             class Hosting:
                 class XamlSourceFocusNavigationReason(_Enum):

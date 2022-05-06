@@ -220,7 +220,8 @@ class Gui(_EventHandler):
         self._class = ctyped.struct.WNDCLASSEXW(
             lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=self._hinstance,
             lpszClassName=f'{__name__}-{type(self).__name__}' if name is None else name)
-        ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class))
+        if not ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class)):
+            raise RuntimeError(f'Cannot initialize {type(self).__name__}')
         self._hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
             0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
         self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
@@ -462,8 +463,9 @@ class Menu(_Control):
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
         self._hmenu = ctyped.handle.HMENU.from_type()
-        ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(
-            ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS)))
+        if not ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(
+                ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
+            raise RuntimeError(f'Cannot initialize {type(self).__name__}')
         self._hmenu.set_hwnd(self._hwnd)
         self._items: list[_MenuItem] = []
         super().__init__(self._hmenu.value)

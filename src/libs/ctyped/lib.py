@@ -366,6 +366,22 @@ class ComputeCore(_WinFunc):
 
 class Gdi32(_WinFunc):
     # wingdi
+    AbortDoc: _Callable[[_type.HDC],
+                        _type.c_int]
+    AbortPath: _Callable[[_type.HDC],
+                         _type.BOOL]
+    ArcTo: _Callable[[_type.HDC,
+                      _type.c_int,
+                      _type.c_int,
+                      _type.c_int,
+                      _type.c_int,
+                      _type.c_int,
+                      _type.c_int,
+                      _type.c_int,
+                      _type.c_int],
+                     _type.BOOL]
+    BeginPath: _Callable[[_type.HDC],
+                         _type.BOOL]
     BitBlt: _Callable[[_type.HDC,
                        _type.c_int,
                        _type.c_int,
@@ -376,6 +392,8 @@ class Gdi32(_WinFunc):
                        _type.c_int,
                        _type.DWORD],
                       _type.BOOL]
+    CloseFigure: _Callable[[_type.HDC],
+                           _type.BOOL]
     CreateBitmap: _Callable[[_type.c_int,
                              _type.c_int,
                              _type.UINT,
@@ -406,6 +424,8 @@ class Gdi32(_WinFunc):
                                         _type.c_int,
                                         _type.c_int],
                                        _type.HBITMAP]
+    CreateHalftonePalette: _Callable[[_type.HDC],
+                                     _type.HPALETTE]
     CreateSolidBrush: _Callable[[_type.COLORREF],
                                 _type.HBRUSH]
     DeleteDC: _Callable[[_type.HDC],
@@ -414,6 +434,24 @@ class Gdi32(_WinFunc):
                               _type.BOOL]
     DeleteObject: _Callable[[_type.HGDIOBJ],
                             _type.BOOL]
+    EndDoc: _Callable[[_type.HDC],
+                      _type.c_int]
+    EndPath: _Callable[[_type.HDC],
+                       _type.BOOL]
+    EndPage: _Callable[[_type.HDC],
+                       _type.c_int]
+    ExtCreatePen: _Callable[[_type.DWORD,
+                             _type.DWORD,
+                             _Pointer[_struct.LOGBRUSH],
+                             _type.DWORD,
+                             _Optional[_Pointer[_type.DWORD]]],
+                            _type.HPEN]
+    FillPath: _Callable[[_type.HDC],
+                        _type.BOOL]
+    FlattenPath: _Callable[[_type.HDC],
+                           _type.BOOL]
+    GetArcDirection: _Callable[[_type.HDC],
+                               _type.c_int]
     GetBitmapDimensionEx: _Callable[[_type.HBITMAP,
                                      _Pointer[_struct.SIZE]],
                                     _type.BOOL]
@@ -424,6 +462,9 @@ class Gdi32(_WinFunc):
     GetClipBox: _Callable[[_type.HDC,
                            _Pointer[_struct.RECT]],
                           _type.c_int]
+    GetColorAdjustment: _Callable[[_type.HDC,
+                                   _Pointer[_struct.COLORADJUSTMENT]],
+                                  _type.BOOL]
     GetDCBrushColor: _Callable[[_type.HDC],
                                _type.COLORREF]
     GetDCPenColor: _Callable[[_type.HDC],
@@ -436,6 +477,8 @@ class Gdi32(_WinFunc):
                           _Pointer[_struct.BITMAPINFO],
                           _type.UINT],
                          _type.c_int]
+    GdiFlush: _Callable[[],
+                        _type.BOOL]
     GetGraphicsMode: _Callable[[_type.HDC],
                                _type.c_int]
     GetMapMode: _Callable[[_type.HDC],
@@ -444,6 +487,9 @@ class Gdi32(_WinFunc):
                             _type.HMETAFILE]
     GetMetaFileW: _Callable[[_type.LPCWSTR],
                             _type.HMETAFILE]
+    GetMiterLimit: _Callable[[_type.HDC,
+                              _Pointer[_type.FLOAT]],
+                             _type.BOOL]
     GetObjectA: _Callable[[_type.HANDLE,
                            _type.c_int,
                            _type.LPVOID],
@@ -454,6 +500,11 @@ class Gdi32(_WinFunc):
                           _type.c_int]
     GetObjectType: _Callable[[_type.HGDIOBJ],
                              _type.DWORD]
+    GetPath: _Callable[[_type.HDC,
+                        _Pointer[_struct.POINT],
+                        _Pointer[_type.BYTE],
+                        _type.c_int],
+                       _type.c_int]
     GetPixel: _Callable[[_type.HDC,
                          _type.c_int,
                          _type.c_int],
@@ -475,21 +526,55 @@ class Gdi32(_WinFunc):
                               _type.HGDIOBJ]
     GetStretchBltMode: _Callable[[_type.HDC],
                                  _type.c_int]
+    GdiGetBatchLimit: _Callable[[],
+                                _type.DWORD]
+    GdiSetBatchLimit: _Callable[[_type.DWORD],
+                                _type.DWORD]
+    MoveToEx: _Callable[[_type.HDC,
+                         _type.c_int,
+                         _type.c_int,
+                         _Pointer[_struct.POINT]],
+                        _type.BOOL]
+    PathToRegion: _Callable[[_type.HDC],
+                            _type.HRGN]
+    PolyDraw: _Callable[[_type.HDC,
+                         _Pointer[_struct.POINT],
+                         _Pointer[_type.BYTE],
+                         _type.c_int],
+                        _type.BOOL]
+    SelectClipPath: _Callable[[_type.HDC,
+                               _type.c_int],
+                              _type.BOOL]
     SelectObject: _Callable[[_type.HDC,
                              _type.HGDIOBJ],
                             _type.HGDIOBJ]
+    SetAbortProc: _Callable[[_type.HDC,
+                             _type.ABORTPROC],
+                            _type.c_int]
+    SetArcDirection: _Callable[[_type.HDC,
+                                _type.c_int],
+                               _type.c_int]
     SetBkColor: _Callable[[_type.HDC,
                            _type.COLORREF],
                           _type.COLORREF]
+    SetColorAdjustment: _Callable[[_type.HDC,
+                                   _Pointer[_struct.COLORADJUSTMENT]],
+                                  _type.BOOL]
     SetDCBrushColor: _Callable[[_type.HDC,
                                 _type.COLORREF],
                                _type.COLORREF]
     SetDCPenColor: _Callable[[_type.HDC,
                               _type.COLORREF],
                              _type.COLORREF]
+    SetMiterLimit: _Callable[[_type.HDC,
+                              _type.FLOAT,
+                              _Optional[_Pointer[_type.FLOAT]]],
+                             _type.BOOL]
     SetStretchBltMode: _Callable[[_type.HDC,
                                   _type.c_int],
                                  _type.c_int]
+    StartPage: _Callable[[_type.HDC],
+                         _type.c_int]
     StretchBlt: _Callable[[_type.HDC,
                            _type.c_int,
                            _type.c_int,
@@ -502,6 +587,24 @@ class Gdi32(_WinFunc):
                            _type.c_int,
                            _type.DWORD],
                           _type.BOOL]
+    StrokeAndFillPath: _Callable[[_type.HDC],
+                                 _type.BOOL]
+    StrokePath: _Callable[[_type.HDC],
+                          _type.BOOL]
+    WidenPath: _Callable[[_type.HDC],
+                         _type.BOOL]
+    TextOutA: _Callable[[_type.HDC,
+                         _type.c_int,
+                         _type.c_int,
+                         _type.LPCSTR,
+                         _type.c_int],
+                        _type.BOOL]
+    TextOutW: _Callable[[_type.HDC,
+                         _type.c_int,
+                         _type.c_int,
+                         _type.LPCWSTR,
+                         _type.c_int],
+                        _type.BOOL]
     TransparentBlt: _Callable[[_type.HDC,
                                _type.c_int,
                                _type.c_int,
