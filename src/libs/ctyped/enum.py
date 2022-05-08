@@ -1009,6 +1009,55 @@ class ACTCTX_COMPATIBILITY_ELEMENT_TYPE(_Enum):
     MAXVERSIONTESTED = _AUTO
 
 
+class DWMWINDOWATTRIBUTE(_Enum):
+    NCRENDERING_ENABLED = 1
+    NCRENDERING_POLICY = _AUTO
+    TRANSITIONS_FORCEDISABLED = _AUTO
+    ALLOW_NCPAINT = _AUTO
+    CAPTION_BUTTON_BOUNDS = _AUTO
+    NONCLIENT_RTL_LAYOUT = _AUTO
+    FORCE_ICONIC_REPRESENTATION = _AUTO
+    FLIP3D_POLICY = _AUTO
+    EXTENDED_FRAME_BOUNDS = _AUTO
+    HAS_ICONIC_BITMAP = _AUTO
+    DISALLOW_PEEK = _AUTO
+    EXCLUDED_FROM_PEEK = _AUTO
+    CLOAK = _AUTO
+    CLOAKED = _AUTO
+    FREEZE_REPRESENTATION = _AUTO
+    PASSIVE_UPDATE_MODE = _AUTO
+    USE_HOSTBACKDROPBRUSH = _AUTO
+    USE_IMMERSIVE_DARK_MODE = 20
+    WINDOW_CORNER_PREFERENCE = 33
+    BORDER_COLOR = _AUTO
+    CAPTION_COLOR = _AUTO
+    TEXT_COLOR = _AUTO
+    VISIBLE_FRAME_BORDER_THICKNESS = _AUTO
+    LAST = _AUTO
+
+
+# noinspection PyPep8Naming
+class DWM_WINDOW_CORNER_PREFERENCE(_Enum):
+    DEFAULT = _AUTO
+    DONOTROUND = _AUTO
+    ROUND = _AUTO
+    ROUNDSMALL = _AUTO
+
+
+class DWMNCRENDERINGPOLICY(_Enum):
+    USEWINDOWSTYLE = _AUTO
+    DISABLED = _AUTO
+    ENABLED = _AUTO
+    LAST = _AUTO
+
+
+class DWMFLIP3DWINDOWPOLICY(_Enum):
+    DEFAULT = _AUTO
+    EXCLUDEBELOW = _AUTO
+    EXCLUDEABOVE = _AUTO
+    LAST = _AUTO
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status
@@ -1021,6 +1070,49 @@ class Windows:
             Completed = _AUTO
             Canceled = _AUTO
             Error = _AUTO
+
+        class PropertyType(_Enum):
+            Empty = _AUTO
+            UInt8 = _AUTO
+            Int16 = _AUTO
+            UInt16 = _AUTO
+            Int32 = _AUTO
+            UInt32 = _AUTO
+            Int64 = _AUTO
+            UInt64 = _AUTO
+            Single = _AUTO
+            Double = _AUTO
+            Char16 = _AUTO
+            Boolean = _AUTO
+            String = _AUTO
+            Inspectable = _AUTO
+            DateTime = _AUTO
+            TimeSpan = _AUTO
+            Guid = _AUTO
+            Point = _AUTO
+            Size = _AUTO
+            Rect = _AUTO
+            OtherType = _AUTO
+            UInt8Array = 1025
+            Int16Array = _AUTO
+            UInt16Array = _AUTO
+            Int32Array = _AUTO
+            UInt32Array = _AUTO
+            Int64Array = _AUTO
+            UInt64Array = _AUTO
+            SingleArray = _AUTO
+            DoubleArray = _AUTO
+            Char16Array = _AUTO
+            BooleanArray = _AUTO
+            StringArray = _AUTO
+            InspectableArray = _AUTO
+            DateTimeArray = _AUTO
+            TimeSpanArray = _AUTO
+            GuidArray = _AUTO
+            PointArray = _AUTO
+            SizeArray = _AUTO
+            RectArray = _AUTO
+            OtherTypeArray = _AUTO
 
     class Storage:
         class ApplicationDataCreateDisposition(_Enum):
@@ -1188,9 +1280,50 @@ class Windows:
                 Upper = _AUTO
 
         class ViewManagement:
+            class ApplicationViewBoundsMode(_Enum):
+                UseVisible = _AUTO
+                UseCoreWindow = _AUTO
+
+            class ApplicationViewMode(_Enum):
+                Default = _AUTO
+                CompactOverlay = _AUTO
+
+            class ApplicationViewOrientation(_Enum):
+                Landscape = _AUTO
+                Portrait = _AUTO
+
+            class ApplicationViewState(_Enum):
+                FullScreenLandscape = _AUTO
+                Filled = _AUTO
+                Snapped = _AUTO
+                FullScreenPortrait = _AUTO
+
+            class ApplicationViewWindowingMode(_Enum):
+                Auto = _AUTO
+                PreferredLaunchViewSize = _AUTO
+                FullScreen = _AUTO
+                CompactOverlay = _AUTO
+                Maximized = _AUTO
+
+            class FullScreenSystemOverlayMode(_Enum):
+                Standard = _AUTO
+                Minimal = _AUTO
+
             class HandPreference(_Enum):
                 LeftHanded = _AUTO
                 RightHanded = _AUTO
+
+            class UIColorType(_Enum):
+                Background = _AUTO
+                Foreground = _AUTO
+                AccentDark3 = _AUTO
+                AccentDark2 = _AUTO
+                AccentDark1 = _AUTO
+                Accent = _AUTO
+                AccentLight1 = _AUTO
+                AccentLight2 = _AUTO
+                AccentLight3 = _AUTO
+                Complement = _AUTO
 
             class UIElementType(_Enum):
                 ActiveCaption = _AUTO
@@ -1219,6 +1352,19 @@ class Windows:
                 PageBackground = _AUTO
                 PopupBackground = _AUTO
                 OverlayOutsidePopup = _AUTO
+
+            class UserInteractionMode(_Enum):
+                Mouse = _AUTO
+                Touch = _AUTO
+
+            class ViewSizePreference(_Enum):
+                Default = _AUTO
+                UseLess = _AUTO
+                UseHalf = _AUTO
+                UseMore = _AUTO
+                UseMinimum = _AUTO
+                UseNone = _AUTO
+                Custom = _AUTO
 
         class Xaml:
             class ApplicationHighContrastAdjustment(_Enum):
@@ -1467,6 +1613,26 @@ class Windows:
                     Press = _AUTO
                     Hover = _AUTO
 
+                class ContentDialogButton(_Enum):
+                    None_ = _AUTO
+                    Primary = _AUTO
+                    Secondary = _AUTO
+                    Close = _AUTO
+
+                class ContentDialogPlacement(_Enum):
+                    Popup = _AUTO
+                    InPlace = _AUTO
+
+                class ContentDialogResult(_Enum):
+                    None_ = _AUTO
+                    Primary = _AUTO
+                    Secondary = _AUTO
+
+                class ContentLinkChangeKind(_Enum):
+                    Inserted = _AUTO
+                    Removed = _AUTO
+                    Edited = _AUTO
+
                 class LightDismissOverlayMode(_Enum):
                     Auto = _AUTO
                     On = _AUTO
@@ -1475,6 +1641,205 @@ class Windows:
                 class Orientation(_Enum):
                     Vertical = _AUTO
                     Horizontal = _AUTO
+
+                class Symbol(_Enum):
+                    Previous = 57600
+                    Next = _AUTO
+                    Play = _AUTO
+                    Pause = _AUTO
+                    Edit = _AUTO
+                    Save = _AUTO
+                    Clear = _AUTO
+                    Delete = _AUTO
+                    Remove = _AUTO
+                    Add = _AUTO
+                    Cancel = _AUTO
+                    Accept = _AUTO
+                    More = _AUTO
+                    Redo = _AUTO
+                    Undo = _AUTO
+                    Home = _AUTO
+                    Up = _AUTO
+                    Forward = _AUTO
+                    Back = _AUTO
+                    Favorite = _AUTO
+                    Camera = _AUTO
+                    Setting = _AUTO
+                    Video = _AUTO
+                    Sync = _AUTO
+                    Download = _AUTO
+                    Mail = _AUTO
+                    Find = _AUTO
+                    Help = _AUTO
+                    Upload = _AUTO
+                    Emoji = _AUTO
+                    TwoPage = _AUTO
+                    LeaveChat = _AUTO
+                    MailForward = _AUTO
+                    Clock = _AUTO
+                    Send = _AUTO
+                    Crop = _AUTO
+                    RotateCamera = _AUTO
+                    People = _AUTO
+                    OpenPane = _AUTO
+                    ClosePane = _AUTO
+                    World = _AUTO
+                    Flag = _AUTO
+                    PreviewLink = _AUTO
+                    Globe = _AUTO
+                    Trim = _AUTO
+                    AttachCamera = _AUTO
+                    ZoomIn = _AUTO
+                    Bookmarks = _AUTO
+                    Document = _AUTO
+                    ProtectedDocument = _AUTO
+                    Page = _AUTO
+                    Bullets = _AUTO
+                    Comment = _AUTO
+                    MailFilled = _AUTO
+                    ContactInfo = _AUTO
+                    HangUp = _AUTO
+                    ViewAll = _AUTO
+                    MapPin = _AUTO
+                    Phone = _AUTO
+                    VideoChat = _AUTO
+                    Switch = _AUTO
+                    Contact = _AUTO
+                    Rename = _AUTO
+                    Pin = 57665
+                    MusicInfo = _AUTO
+                    Go = _AUTO
+                    Keyboard = _AUTO
+                    DockLeft = _AUTO
+                    DockRight = _AUTO
+                    DockBottom = _AUTO
+                    Remote = _AUTO
+                    Refresh = _AUTO
+                    Rotate = _AUTO
+                    Shuffle = _AUTO
+                    List = _AUTO
+                    Shop = _AUTO
+                    SelectAll = _AUTO
+                    Orientation = _AUTO
+                    Import = _AUTO
+                    ImportAll = _AUTO
+                    BrowsePhotos = 57685
+                    WebCam = _AUTO
+                    Pictures = 57688
+                    SaveLocal = _AUTO
+                    Caption = _AUTO
+                    Stop = _AUTO
+                    ShowResults = _AUTO
+                    Volume = _AUTO
+                    Repair = _AUTO
+                    Message = _AUTO
+                    Page2 = _AUTO
+                    CalendarDay = _AUTO
+                    CalendarWeek = _AUTO
+                    Calendar = _AUTO
+                    Character = _AUTO
+                    MailReplyAll = _AUTO
+                    Read = _AUTO
+                    Link = _AUTO
+                    Account = _AUTO
+                    ShowBcc = _AUTO
+                    HideBcc = _AUTO
+                    Cut = _AUTO
+                    Attach = _AUTO
+                    Paste = _AUTO
+                    Filter = _AUTO
+                    Copy = _AUTO
+                    Emoji2 = _AUTO
+                    Important = _AUTO
+                    MailReply = _AUTO
+                    SlideShow = _AUTO
+                    Sort = _AUTO
+                    Manage = 57720
+                    AllApps = _AUTO
+                    DisconnectDrive = _AUTO
+                    MapDrive = _AUTO
+                    NewWindow = _AUTO
+                    OpenWith = _AUTO
+                    ContactPresence = 57729
+                    Priority = _AUTO
+                    GoToToday = 57732
+                    Font = _AUTO
+                    FontColor = _AUTO
+                    Contact2 = _AUTO
+                    Folder = _AUTO
+                    Audio = _AUTO
+                    Placeholder = _AUTO
+                    View = _AUTO
+                    SetLockScreen = _AUTO
+                    SetTile = _AUTO
+                    ClosedCaption = 57744
+                    StopSlideShow = _AUTO
+                    Permissions = _AUTO
+                    Highlight = _AUTO
+                    DisableUpdates = _AUTO
+                    UnFavorite = _AUTO
+                    UnPin = _AUTO
+                    OpenLocal = _AUTO
+                    Mute = _AUTO
+                    Italic = _AUTO
+                    Underline = _AUTO
+                    Bold = _AUTO
+                    MoveToFolder = _AUTO
+                    LikeDislike = _AUTO
+                    Dislike = _AUTO
+                    Like = _AUTO
+                    AlignRight = _AUTO
+                    AlignCenter = _AUTO
+                    AlignLeft = _AUTO
+                    Zoom = _AUTO
+                    ZoomOut = _AUTO
+                    OpenFile = _AUTO
+                    OtherUser = _AUTO
+                    Admin = _AUTO
+                    Street = 57795
+                    Map = _AUTO
+                    ClearSelection = _AUTO
+                    FontDecrease = _AUTO
+                    FontIncrease = _AUTO
+                    FontSize = _AUTO
+                    CellPhone = _AUTO
+                    ReShare = _AUTO
+                    Tag = _AUTO
+                    RepeatOne = _AUTO
+                    RepeatAll = _AUTO
+                    OutlineStar = _AUTO
+                    SolidStar = _AUTO
+                    Calculator = _AUTO
+                    Directions = _AUTO
+                    Target = _AUTO
+                    Library = _AUTO
+                    PhoneBook = _AUTO
+                    Memo = _AUTO
+                    Microphone = _AUTO
+                    PostUpdate = _AUTO
+                    BackToWindow = _AUTO
+                    FullScreen = _AUTO
+                    NewFolder = _AUTO
+                    CalendarReply = _AUTO
+                    UnSyncFolder = 57821
+                    ReportHacked = _AUTO
+                    SyncFolder = _AUTO
+                    BlockContact = _AUTO
+                    SwitchApps = _AUTO
+                    AddFriend = _AUTO
+                    TouchPointer = _AUTO
+                    GoToStart = _AUTO
+                    ZeroBars = _AUTO
+                    OneBar = _AUTO
+                    TwoBars = _AUTO
+                    ThreeBars = _AUTO
+                    FourBars = _AUTO
+                    Scan = 58004
+                    Preview = _AUTO
+                    GlobalNavigationButton = 59136
+                    Share = 59181
+                    Print = 59209
+                    XboxOneConsole = 59792
 
                 class Primitives:
                     class FlyoutPlacementMode(_Enum):
@@ -1568,3 +1933,8 @@ class Windows:
                     Primitive = _AUTO
                     Metadata = _AUTO
                     Custom = _AUTO
+
+            class Media:
+                class AcrylicBackgroundSource(_Enum):
+                    HostBackdrop = _AUTO
+                    Backdrop = _AUTO

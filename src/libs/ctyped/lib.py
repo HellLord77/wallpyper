@@ -364,6 +364,35 @@ class ComputeCore(_WinFunc):
                                       _type.HRESULT]
 
 
+class Dwmapi(_WinFunc):
+    # dwmapi
+    DwmEnableComposition: _Callable[[_type.UINT],
+                                    _type.HRESULT]
+    DwmEnableMMCSS: _Callable[[_type.BOOL],
+                              _type.HRESULT]
+    DwmGetColorizationColor: _Callable[[_Pointer[_type.DWORD],
+                                        _Pointer[_type.BOOL]],
+                                       _type.HRESULT]
+    DwmModifyPreviousDxFrameDuration: _Callable[[_type.HWND,
+                                                 _type.INT,
+                                                 _type.BOOL],
+                                                _type.HRESULT]
+    DwmRegisterThumbnail: _Callable[[_type.HWND,
+                                     _type.HWND,
+                                     _Pointer[_type.HTHUMBNAIL]],
+                                    _type.HRESULT]
+    DwmSetDxFrameDuration: _Callable[[_type.HWND,
+                                      _type.INT],
+                                     _type.HRESULT]
+    DwmSetWindowAttribute: _Callable[[_type.HWND,
+                                      _type.DWORD,
+                                      _type.LPCVOID,
+                                      _type.DWORD],
+                                     _type.HRESULT]
+    DwmUnregisterThumbnail: _Callable[[_type.HTHUMBNAIL],
+                                      _type.HRESULT]
+
+
 class Gdi32(_WinFunc):
     # wingdi
     AbortDoc: _Callable[[_type.HDC],

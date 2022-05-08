@@ -174,7 +174,7 @@ def __uuidof(_: _Union[_interface.IUnknown, type[_interface.IUnknown],
     for namespace in namespaces:
         const = getattr(const, namespace)
     iid = _struct.IID()
-    _lib.Ole32.IIDFromString(getattr(const, f'IID_{name.replace("_impl", "")}'), _byref(iid))
+    _lib.Ole32.IIDFromString(getattr(const, f'IID_{name.removesuffix("_impl")}'), _byref(iid))
     return iid
 
 

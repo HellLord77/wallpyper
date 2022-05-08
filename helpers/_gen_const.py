@@ -129,12 +129,7 @@ def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], l
                 print(f'{indent}    pass')
             else:
                 print(f'{indent}class {name[0]}({name[1]}):')
-                if name[0].endswith('Factory') and len(interfaces[name]) == 1 and 'CreateInstance' == interfaces[name][0]:
-                    print(f'{indent}    CreateInstance: _Callable[[IInspectable,')
-                    print(f'_Pointer[IInspectable],')
-                    print(f'_Pointer[{".".join(_Namespace)}.{name[0][:-7]}]],')
-                    print('_type.HRESULT]')
-                elif interfaces[name]:
+                if interfaces[name]:
                     trunc_name = name[0]
                     while trunc_name[-1].isdigit():
                         trunc_name = trunc_name[:-1]
@@ -211,4 +206,4 @@ def set_const():
 
 
 if __name__ == '__main__':
-    gen_winrt_interface('windows.ui.composition.h')
+    gen_winrt_interface('windows.ui.xaml.media.animation.h')

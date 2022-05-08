@@ -207,8 +207,10 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
 
 
 if __name__ == '__main__':
+    print(ctyped.get_winrt_class_name(ctyped.interface.Windows.Foundation.IAsyncActionProgressHandler_impl))
+    # print(win32.wallpaper.save_lock(r'd:\lock.jpg'))
     # _test_toast()
-    _test_gui()
+    # _test_gui()
     # _test_settings()
     # _wait()
     sys.exit()

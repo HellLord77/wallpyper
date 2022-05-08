@@ -28,6 +28,8 @@ def wnd_proc(hwnd, msg, wparam, lparam):
 def main():
     global HWND
     class_name = "test_winui"
+    with open(r'..\helpers\xaml.xml', 'r') as file:
+        xaml_data = file.read()
 
     hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
     wnd_class = ctyped.struct.WNDCLASSW(lpfnWndProc=ctyped.type.WNDPROC(wnd_proc), hInstance=hinstance, lpszClassName=class_name)
@@ -36,6 +38,8 @@ def main():
     hwnd = ctyped.handle.HWND(
         ctyped.lib.User32.CreateWindowExW(0, class_name, "Windows python Win32 Desktop App", ctyped.const.WS_OVERLAPPEDWINDOW | ctyped.const.WS_VISIBLE, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
                                           ctyped.const.CW_USEDEFAULT, None, None, hinstance, None))
+    # value = ctyped.type.BOOL(True)
+    # ctyped.lib.Dwmapi.DwmSetWindowAttribute(hwnd, ctyped.enum.DWMWINDOWATTRIBUTE.USE_IMMERSIVE_DARK_MODE, ctyped.byref(value), ctyped.sizeof(value))
     HWND = hwnd
 
     with ctyped.get_winrt(winrt.UI.Xaml.Hosting.IWindowsXamlManagerStatics) as manager_statics, ctyped.init_com(winrt.UI.Xaml.Hosting.IWindowsXamlManager, False) as manager:
@@ -52,15 +56,6 @@ def main():
             with ctyped.cast_com(xaml_container, ctyped.interface.Windows.UI.Xaml.IFrameworkElement2) as xaml_element:
                 xaml_element.put_RequestedTheme(ctyped.enum.Windows.UI.Xaml.ElementTheme.Dark)
             with ctyped.cast_com(xaml_container, winrt.UI.Xaml.Controls.IPanel) as panel:
-                # with ctyped.get_winrt(winrt.UI.IColorsStatics) as colors_statics:
-                #     color = ctyped.struct.Windows.UI.Color()
-                #     colors_statics.get_Lime(ctyped.byref(color))
-                #     with ctyped.init_com(winrt.UI.Xaml.Media.ISolidColorBrush, False) as solid_brush:
-                #         with ctyped.get_winrt(winrt.UI.Xaml.Media.ISolidColorBrushFactory) as brush_factory:
-                #             brush_factory.CreateInstanceWithColor(color, ctyped.byref(solid_brush))
-                #         with ctyped.cast_com(solid_brush, winrt.UI.Xaml.Media.IBrush) as brush:
-                #             panel.put_Background(brush)
-                #     print('set background')
                 with ctyped.get_winrt(winrt.UI.Xaml.Controls.ITextBlock, True) as text_block:
                     text_block.put_Text(ctyped.handle.HSTRING.from_string('Hello World from Xaml Islands!'))
                     with ctyped.cast_com(text_block, winrt.UI.Xaml.IFrameworkElement) as text_element:
@@ -68,6 +63,14 @@ def main():
                         text_element.put_HorizontalAlignment(ctyped.enum.Windows.UI.Xaml.HorizontalAlignment.Center)
                     text_block.put_FontSize(24)
                     print('created text block')
+                    with ctyped.get_winrt(winrt.UI.Xaml.Markup.IXamlReaderStatics) as reader_statics:
+                        with ctyped.init_com(winrt.UI.Xaml.IUIElement, False) as xaml_element:
+                            reader_statics.Load(ctyped.handle.HSTRING.from_string(xaml_data), ctyped.byref(xaml_element))
+                            print('loaded xaml')
+                            with ctyped.init_com(winrt.Foundation.Collections.IVector[ctyped.interface.Windows.UI.Xaml.IUIElement], False) as children:
+                                panel.get_Children(ctyped.byref(children))
+                                children.Append(xaml_element)
+
                     with ctyped.get_winrt(winrt.UI.Xaml.Controls.IButton, True) as button:
                         with ctyped.cast_com(button, winrt.UI.Xaml.Controls.IControl) as button_control:
                             with ctyped.get_winrt(winrt.UI.IColorsStatics) as colors_statics:

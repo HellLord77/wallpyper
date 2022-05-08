@@ -16,6 +16,7 @@ _TArgs = _typing.TypeVar('_TArgs')
 _TProgress = _typing.TypeVar('_TProgress')
 _TResult = _typing.TypeVar('_TResult')
 _TSender = _typing.TypeVar('_TSender')
+_CArgObject = type(_ctypes.byref(_ctypes.c_void_p()))
 
 
 class _Template:
@@ -33,7 +34,7 @@ class _Template:
             # noinspection PyUnresolvedReferences
             args = {generic: arg for generic, arg in zip(
                 cls.__parameters__, _typing.get_args(super().__class_getitem__(item)))}
-            qualname = f'{cls.__qualname__}_{"_".join(type_.__name__ for type_ in args.values())}'
+            qualname = f'{cls.__qualname__.removesuffix("_impl")}_{"_".join(type_.__name__ for type_ in args.values())}{"_impl" * cls.__qualname__.endswith("_impl")}'
             cls._classes[item] = type(qualname.rsplit('.', 1)[-1], (cls,), {'__qualname__': qualname, '_args': args})
         return cls._classes[item]
 
@@ -132,7 +133,8 @@ class IUnknown_impl(_IUnknown, _Interface_impl):
     def QueryInterface(self, riid: _Pointer[_struct.IID], ppvObject: _type.LPVOID) -> _type.HRESULT:
         if not ppvObject:
             return _const.E_INVALIDARG
-        obj_ref = _type.LPVOID.from_address(ppvObject) if isinstance(ppvObject, int) else ppvObject.contents
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        obj_ref = ppvObject._obj if isinstance(ppvObject, _CArgObject) else _type.LPVOID.from_address(ppvObject)
         obj_ref.value = None
         for iid_ref in self._iid_refs:
             if _lib.Ole32.IsEqualGUID(iid_ref, riid):
@@ -1326,109 +1328,280 @@ class Windows:
                                             _type.HRESULT]
 
         class IGuidHelperStatics(IInspectable):
-            CreateNewGuid: _Callable
-            get_Empty: _Callable
-            Equals: _Callable
+            CreateNewGuid: _Callable[[_Pointer[_struct.GUID]],
+                                     _type.HRESULT]
+            get_Empty: _Callable[[_Pointer[_struct.GUID]],
+                                 _type.HRESULT]
+            Equals: _Callable[[_Pointer[_struct.GUID],
+                               _Pointer[_struct.GUID],
+                               _Pointer[_type.boolean]],
+                              _type.HRESULT]
 
         class IMemoryBuffer(IInspectable):
-            CreateReference: _Callable
+            CreateReference: _Callable[[_Pointer[Windows.Foundation.IMemoryBufferReference]],
+                                       _type.HRESULT]
 
         class IMemoryBufferFactory(IInspectable):
-            Create: _Callable
+            Create: _Callable[[_type.UINT32,
+                               _Pointer[Windows.Foundation.IMemoryBuffer]],
+                              _type.HRESULT]
 
         class IMemoryBufferReference(IInspectable):
-            get_Capacity: _Callable
-            add_Closed: _Callable
-            remove_Closed: _Callable
+            get_Capacity: _Callable[[_Pointer[_type.UINT32]],
+                                    _type.HRESULT]
+            add_Closed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.Foundation.IMemoryBufferReference, IInspectable],
+                                   _Pointer[_struct.EventRegistrationToken]],
+                                  _type.HRESULT]
+            remove_Closed: _Callable[[_struct.EventRegistrationToken],
+                                     _type.HRESULT]
 
         class IPropertyValue(IInspectable):
-            get_Type: _Callable
-            get_IsNumericScalar: _Callable
-            GetUInt8: _Callable
-            GetInt16: _Callable
-            GetUInt16: _Callable
-            GetInt32: _Callable
-            GetUInt32: _Callable
-            GetInt64: _Callable
-            GetUInt64: _Callable
-            GetSingle: _Callable
-            GetDouble: _Callable
-            GetChar16: _Callable
-            GetBoolean: _Callable
-            GetString: _Callable
-            GetGuid: _Callable
-            GetDateTime: _Callable
-            GetTimeSpan: _Callable
-            GetPoint: _Callable
-            GetSize: _Callable
-            GetRect: _Callable
-            GetUInt8Array: _Callable
-            GetInt16Array: _Callable
-            GetUInt16Array: _Callable
-            GetInt32Array: _Callable
-            GetUInt32Array: _Callable
-            GetInt64Array: _Callable
-            GetUInt64Array: _Callable
-            GetSingleArray: _Callable
-            GetDoubleArray: _Callable
-            GetChar16Array: _Callable
-            GetBooleanArray: _Callable
-            GetStringArray: _Callable
-            GetInspectableArray: _Callable
-            GetGuidArray: _Callable
-            GetDateTimeArray: _Callable
-            GetTimeSpanArray: _Callable
-            GetPointArray: _Callable
-            GetSizeArray: _Callable
-            GetRectArray: _Callable
+            get_Type: _Callable[[_Pointer[_enum.Windows.Foundation.PropertyType]],
+                                _type.HRESULT]
+            get_IsNumericScalar: _Callable[[_Pointer[_type.boolean]],
+                                           _type.HRESULT]
+            GetUInt8: _Callable[[_Pointer[_type.BYTE]],
+                                _type.HRESULT]
+            GetInt16: _Callable[[_Pointer[_type.INT16]],
+                                _type.HRESULT]
+            GetUInt16: _Callable[[_Pointer[_type.UINT16]],
+                                 _type.HRESULT]
+            GetInt32: _Callable[[_Pointer[_type.INT32]],
+                                _type.HRESULT]
+            GetUInt32: _Callable[[_Pointer[_type.UINT32]],
+                                 _type.HRESULT]
+            GetInt64: _Callable[[_Pointer[_type.INT64]],
+                                _type.HRESULT]
+            GetUInt64: _Callable[[_Pointer[_type.UINT64]],
+                                 _type.HRESULT]
+            GetSingle: _Callable[[_Pointer[_type.FLOAT]],
+                                 _type.HRESULT]
+            GetDouble: _Callable[[_Pointer[_type.DOUBLE]],
+                                 _type.HRESULT]
+            GetChar16: _Callable[[_Pointer[_type.WCHAR]],
+                                 _type.HRESULT]
+            GetBoolean: _Callable[[_Pointer[_type.boolean]],
+                                  _type.HRESULT]
+            GetString: _Callable[[_Pointer[_type.HSTRING]],
+                                 _type.HRESULT]
+            GetGuid: _Callable[[_Pointer[_struct.GUID]],
+                               _type.HRESULT]
+            GetDateTime: _Callable[[_Pointer[_struct.Windows.Foundation.DateTime]],
+                                   _type.HRESULT]
+            GetTimeSpan: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                   _type.HRESULT]
+            GetPoint: _Callable[[_Pointer[_struct.Windows.Foundation.Point]],
+                                _type.HRESULT]
+            GetSize: _Callable[[_Pointer[_struct.Windows.Foundation.Size]],
+                               _type.HRESULT]
+            GetRect: _Callable[[_Pointer[_struct.Windows.Foundation.Rect]],
+                               _type.HRESULT]
+            GetUInt8Array: _Callable[[_Pointer[_type.UINT32],
+                                      _Pointer[_Pointer[_type.BYTE]]],
+                                     _type.HRESULT]
+            GetInt16Array: _Callable[[_Pointer[_type.UINT32],
+                                      _Pointer[_Pointer[_type.INT16]]],
+                                     _type.HRESULT]
+            GetUInt16Array: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.UINT16]]],
+                                      _type.HRESULT]
+            GetInt32Array: _Callable[[_Pointer[_type.UINT32],
+                                      _Pointer[_Pointer[_type.INT32]]],
+                                     _type.HRESULT]
+            GetUInt32Array: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.UINT32]]],
+                                      _type.HRESULT]
+            GetInt64Array: _Callable[[_Pointer[_type.UINT32],
+                                      _Pointer[_Pointer[_type.INT64]]],
+                                     _type.HRESULT]
+            GetUInt64Array: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.UINT64]]],
+                                      _type.HRESULT]
+            GetSingleArray: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.FLOAT]]],
+                                      _type.HRESULT]
+            GetDoubleArray: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.DOUBLE]]],
+                                      _type.HRESULT]
+            GetChar16Array: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.WCHAR]]],
+                                      _type.HRESULT]
+            GetBooleanArray: _Callable[[_Pointer[_type.UINT32],
+                                        _Pointer[_Pointer[_type.boolean]]],
+                                       _type.HRESULT]
+            GetStringArray: _Callable[[_Pointer[_type.UINT32],
+                                       _Pointer[_Pointer[_type.HSTRING]]],
+                                      _type.HRESULT]
+            GetInspectableArray: _Callable[[_Pointer[_type.UINT32],
+                                            _Pointer[_Pointer[IInspectable]]],
+                                           _type.HRESULT]
+            GetGuidArray: _Callable[[_Pointer[_type.UINT32],
+                                     _Pointer[_Pointer[_struct.GUID]]],
+                                    _type.HRESULT]
+            GetDateTimeArray: _Callable[[_Pointer[_type.UINT32],
+                                         _Pointer[_Pointer[_struct.Windows.Foundation.DateTime]]],
+                                        _type.HRESULT]
+            GetTimeSpanArray: _Callable[[_Pointer[_type.UINT32],
+                                         _Pointer[_Pointer[_struct.Windows.Foundation.TimeSpan]]],
+                                        _type.HRESULT]
+            GetPointArray: _Callable[[_Pointer[_type.UINT32],
+                                      _Pointer[_Pointer[_struct.Windows.Foundation.Point]]],
+                                     _type.HRESULT]
+            GetSizeArray: _Callable[[_Pointer[_type.UINT32],
+                                     _Pointer[_Pointer[_struct.Windows.Foundation.Size]]],
+                                    _type.HRESULT]
+            GetRectArray: _Callable[[_Pointer[_type.UINT32],
+                                     _Pointer[_Pointer[_struct.Windows.Foundation.Rect]]],
+                                    _type.HRESULT]
 
         class IPropertyValueStatics(IInspectable):
-            CreateEmpty: _Callable
-            CreateUInt8: _Callable
-            CreateInt16: _Callable
-            CreateUInt16: _Callable
-            CreateInt32: _Callable
-            CreateUInt32: _Callable
-            CreateInt64: _Callable
-            CreateUInt64: _Callable
-            CreateSingle: _Callable
-            CreateDouble: _Callable
-            CreateChar16: _Callable
-            CreateBoolean: _Callable
-            CreateString: _Callable
-            CreateInspectable: _Callable
-            CreateGuid: _Callable
-            CreateDateTime: _Callable
-            CreateTimeSpan: _Callable
-            CreatePoint: _Callable
-            CreateSize: _Callable
-            CreateRect: _Callable
-            CreateUInt8Array: _Callable
-            CreateInt16Array: _Callable
-            CreateUInt16Array: _Callable
-            CreateInt32Array: _Callable
-            CreateUInt32Array: _Callable
-            CreateInt64Array: _Callable
-            CreateUInt64Array: _Callable
-            CreateSingleArray: _Callable
-            CreateDoubleArray: _Callable
-            CreateChar16Array: _Callable
-            CreateBooleanArray: _Callable
-            CreateStringArray: _Callable
-            CreateInspectableArray: _Callable
-            CreateGuidArray: _Callable
-            CreateDateTimeArray: _Callable
-            CreateTimeSpanArray: _Callable
-            CreatePointArray: _Callable
-            CreateSizeArray: _Callable
-            CreateRectArray: _Callable
+            CreateEmpty: _Callable[[_Pointer[IInspectable]],
+                                   _type.HRESULT]
+            CreateUInt8: _Callable[[_type.BYTE,
+                                    _Pointer[IInspectable]],
+                                   _type.HRESULT]
+            CreateInt16: _Callable[[_type.INT16,
+                                    _Pointer[IInspectable]],
+                                   _type.HRESULT]
+            CreateUInt16: _Callable[[_type.UINT16,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateInt32: _Callable[[_type.INT32,
+                                    _Pointer[IInspectable]],
+                                   _type.HRESULT]
+            CreateUInt32: _Callable[[_type.UINT32,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateInt64: _Callable[[_type.INT64,
+                                    _Pointer[IInspectable]],
+                                   _type.HRESULT]
+            CreateUInt64: _Callable[[_type.UINT64,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateSingle: _Callable[[_type.FLOAT,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateDouble: _Callable[[_type.DOUBLE,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateChar16: _Callable[[_type.WCHAR,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateBoolean: _Callable[[_type.boolean,
+                                      _Pointer[IInspectable]],
+                                     _type.HRESULT]
+            CreateString: _Callable[[_type.HSTRING,
+                                     _Pointer[IInspectable]],
+                                    _type.HRESULT]
+            CreateInspectable: _Callable[[IInspectable,
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateGuid: _Callable[[_struct.GUID,
+                                   _Pointer[IInspectable]],
+                                  _type.HRESULT]
+            CreateDateTime: _Callable[[_struct.Windows.Foundation.DateTime,
+                                       _Pointer[IInspectable]],
+                                      _type.HRESULT]
+            CreateTimeSpan: _Callable[[_struct.Windows.Foundation.TimeSpan,
+                                       _Pointer[IInspectable]],
+                                      _type.HRESULT]
+            CreatePoint: _Callable[[_struct.Windows.Foundation.Point,
+                                    _Pointer[IInspectable]],
+                                   _type.HRESULT]
+            CreateSize: _Callable[[_struct.Windows.Foundation.Size,
+                                   _Pointer[IInspectable]],
+                                  _type.HRESULT]
+            CreateRect: _Callable[[_struct.Windows.Foundation.Rect,
+                                   _Pointer[IInspectable]],
+                                  _type.HRESULT]
+            CreateUInt8Array: _Callable[[_type.UINT32,
+                                         _Pointer[_type.BYTE],
+                                         _Pointer[IInspectable]],
+                                        _type.HRESULT]
+            CreateInt16Array: _Callable[[_type.UINT32,
+                                         _Pointer[_type.INT16],
+                                         _Pointer[IInspectable]],
+                                        _type.HRESULT]
+            CreateUInt16Array: _Callable[[_type.UINT32,
+                                          _Pointer[_type.UINT16],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateInt32Array: _Callable[[_type.UINT32,
+                                         _Pointer[_type.INT32],
+                                         _Pointer[IInspectable]],
+                                        _type.HRESULT]
+            CreateUInt32Array: _Callable[[_type.UINT32,
+                                          _Pointer[_type.UINT32],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateInt64Array: _Callable[[_type.UINT32,
+                                         _Pointer[_type.INT64],
+                                         _Pointer[IInspectable]],
+                                        _type.HRESULT]
+            CreateUInt64Array: _Callable[[_type.UINT32,
+                                          _Pointer[_type.UINT64],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateSingleArray: _Callable[[_type.UINT32,
+                                          _Pointer[_type.FLOAT],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateDoubleArray: _Callable[[_type.UINT32,
+                                          _Pointer[_type.DOUBLE],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateChar16Array: _Callable[[_type.UINT32,
+                                          _Pointer[_type.WCHAR],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateBooleanArray: _Callable[[_type.UINT32,
+                                           _Pointer[_type.boolean],
+                                           _Pointer[IInspectable]],
+                                          _type.HRESULT]
+            CreateStringArray: _Callable[[_type.UINT32,
+                                          _Pointer[_type.HSTRING],
+                                          _Pointer[IInspectable]],
+                                         _type.HRESULT]
+            CreateInspectableArray: _Callable[[_type.UINT32,
+                                               _Pointer[IInspectable],
+                                               _Pointer[IInspectable]],
+                                              _type.HRESULT]
+            CreateGuidArray: _Callable[[_type.UINT32,
+                                        _Pointer[_struct.GUID],
+                                        _Pointer[IInspectable]],
+                                       _type.HRESULT]
+            CreateDateTimeArray: _Callable[[_type.UINT32,
+                                            _Pointer[_struct.Windows.Foundation.DateTime],
+                                            _Pointer[IInspectable]],
+                                           _type.HRESULT]
+            CreateTimeSpanArray: _Callable[[_type.UINT32,
+                                            _Pointer[_struct.Windows.Foundation.TimeSpan],
+                                            _Pointer[IInspectable]],
+                                           _type.HRESULT]
+            CreatePointArray: _Callable[[_type.UINT32,
+                                         _Pointer[_struct.Windows.Foundation.Point],
+                                         _Pointer[IInspectable]],
+                                        _type.HRESULT]
+            CreateSizeArray: _Callable[[_type.UINT32,
+                                        _Pointer[_struct.Windows.Foundation.Size],
+                                        _Pointer[IInspectable]],
+                                       _type.HRESULT]
+            CreateRectArray: _Callable[[_type.UINT32,
+                                        _Pointer[_struct.Windows.Foundation.Rect],
+                                        _Pointer[IInspectable]],
+                                       _type.HRESULT]
 
         class IStringable(IInspectable):
-            ToString: _Callable
+            ToString: _Callable[[_Pointer[_type.HSTRING]],
+                                _type.HRESULT]
 
         class IUriEscapeStatics(IInspectable):
-            UnescapeComponent: _Callable
-            EscapeComponent: _Callable
+            UnescapeComponent: _Callable[[_type.HSTRING,
+                                          _Pointer[_type.HSTRING]],
+                                         _type.HRESULT]
+            EscapeComponent: _Callable[[_type.HSTRING,
+                                        _Pointer[_type.HSTRING]],
+                                       _type.HRESULT]
 
         class IUriRuntimeClass(IInspectable):
             get_AbsoluteUri: _Callable[[_Pointer[_type.HSTRING]],
@@ -1477,22 +1650,35 @@ class Windows:
                                                  _type.HRESULT]
 
         class IUriRuntimeClassFactory(IInspectable):
-            CreateUri: _Callable
-            CreateWithRelativeUri: _Callable
+            CreateUri: _Callable[[_type.HSTRING,
+                                  _Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                 _type.HRESULT]
+            CreateWithRelativeUri: _Callable[[_type.HSTRING,
+                                              _type.HSTRING,
+                                              _Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                             _type.HRESULT]
 
         class IUriRuntimeClassWithAbsoluteCanonicalUri(IInspectable):
-            get_AbsoluteCanonicalUri: _Callable
-            get_DisplayIri: _Callable
+            get_AbsoluteCanonicalUri: _Callable[[_Pointer[_type.HSTRING]],
+                                                _type.HRESULT]
+            get_DisplayIri: _Callable[[_Pointer[_type.HSTRING]],
+                                      _type.HRESULT]
 
         class IWwwFormUrlDecoderEntry(IInspectable):
-            get_Name: _Callable
-            get_Value: _Callable
+            get_Name: _Callable[[_Pointer[_type.HSTRING]],
+                                _type.HRESULT]
+            get_Value: _Callable[[_Pointer[_type.HSTRING]],
+                                 _type.HRESULT]
 
         class IWwwFormUrlDecoderRuntimeClass(IInspectable):
-            GetFirstValueByName: _Callable
+            GetFirstValueByName: _Callable[[_type.HSTRING,
+                                            _Pointer[_type.HSTRING]],
+                                           _type.HRESULT]
 
         class IWwwFormUrlDecoderRuntimeClassFactory(IInspectable):
-            CreateWwwFormUrlDecoder: _Callable
+            CreateWwwFormUrlDecoder: _Callable[[_type.HSTRING,
+                                                _Pointer[Windows.Foundation.IWwwFormUrlDecoderRuntimeClass]],
+                                               _type.HRESULT]
 
         class _IAsyncOperationProgressHandler(_Template):
             Invoke: _Callable[[Windows.Foundation.IAsyncOperationWithProgress[_TResult, _TProgress],
@@ -1718,6 +1904,40 @@ class Windows:
                                   _type.HRESULT]
                 Clear: _Callable[[],
                                  _type.HRESULT]
+
+    class Gaming:
+        class UI:
+            class IGameBarStatics(IInspectable):
+                add_VisibilityChanged: _Callable
+                remove_VisibilityChanged: _Callable
+                add_IsInputRedirectedChanged: _Callable
+                remove_IsInputRedirectedChanged: _Callable
+                get_Visible: _Callable
+                get_IsInputRedirected: _Callable
+
+            class IGameChatMessageReceivedEventArgs(IInspectable):
+                get_AppId: _Callable
+                get_AppDisplayName: _Callable
+                get_SenderName: _Callable
+                get_Message: _Callable
+                get_Origin: _Callable
+
+            class IGameChatOverlay(IInspectable):
+                get_DesiredPosition: _Callable
+                put_DesiredPosition: _Callable
+                AddMessage: _Callable
+
+            class IGameChatOverlayMessageSource(IInspectable):
+                add_MessageReceived: _Callable
+                remove_MessageReceived: _Callable
+                SetDelayBeforeClosingAfterMessageReceived: _Callable
+
+            class IGameChatOverlayStatics(IInspectable):
+                GetDefault: _Callable
+
+            class IGameUIProviderActivatedEventArgs(IInspectable):
+                get_GameUIArgs: _Callable
+                ReportCompleted: _Callable
 
     class Storage:
         class _IApplicationDataSetVersionHandler:
@@ -3227,6 +3447,125 @@ class Windows:
 
         class IUIContext(IInspectable):
             pass
+
+        class Accessibility:
+            class IScreenReaderPositionChangedEventArgs(IInspectable):
+                get_ScreenPositionInRawPixels: _Callable
+                get_IsReadingText: _Callable
+
+            class IScreenReaderService(IInspectable):
+                get_CurrentScreenReaderPosition: _Callable
+                add_ScreenReaderPositionChanged: _Callable
+                remove_ScreenReaderPositionChanged: _Callable
+
+        class ApplicationSettings:
+            class _ICredentialCommandCredentialDeletedHandler:
+                Invoke: _Callable
+
+            class ICredentialCommandCredentialDeletedHandler(_ICredentialCommandCredentialDeletedHandler, IUnknown):
+                pass
+
+            # noinspection PyPep8Naming
+            class ICredentialCommandCredentialDeletedHandler_impl(_ICredentialCommandCredentialDeletedHandler, IUnknown_impl):
+                pass
+
+            class _IWebAccountCommandInvokedHandler:
+                Invoke: _Callable
+
+            class IWebAccountCommandInvokedHandler(_IWebAccountCommandInvokedHandler, IUnknown):
+                pass
+
+            # noinspection PyPep8Naming
+            class IWebAccountCommandInvokedHandler_impl(_IWebAccountCommandInvokedHandler, IUnknown_impl):
+                pass
+
+            class _IWebAccountProviderCommandInvokedHandler:
+                Invoke: _Callable
+
+            class IWebAccountProviderCommandInvokedHandler(_IWebAccountProviderCommandInvokedHandler, IUnknown):
+                pass
+
+            # noinspection PyPep8Naming
+            class IWebAccountProviderCommandInvokedHandler_impl(_IWebAccountProviderCommandInvokedHandler, IUnknown_impl):
+                pass
+
+            class IAccountsSettingsPane(IInspectable):
+                add_AccountCommandsRequested: _Callable
+                remove_AccountCommandsRequested: _Callable
+
+            class IAccountsSettingsPaneCommandsRequestedEventArgs(IInspectable):
+                get_WebAccountProviderCommands: _Callable
+                get_WebAccountCommands: _Callable
+                get_CredentialCommands: _Callable
+                get_Commands: _Callable
+                get_HeaderText: _Callable
+                put_HeaderText: _Callable
+                GetDeferral: _Callable
+
+            class IAccountsSettingsPaneCommandsRequestedEventArgs2(IInspectable):
+                get_User: _Callable
+
+            class IAccountsSettingsPaneEventDeferral(IInspectable):
+                Complete: _Callable
+
+            class IAccountsSettingsPaneStatics(IInspectable):
+                GetForCurrentView: _Callable
+                Show: _Callable
+
+            class IAccountsSettingsPaneStatics2(IInspectable):
+                ShowManageAccountsAsync: _Callable
+                ShowAddAccountAsync: _Callable
+
+            class IAccountsSettingsPaneStatics3(IInspectable):
+                ShowManageAccountsForUserAsync: _Callable
+                ShowAddAccountForUserAsync: _Callable
+
+            class ICredentialCommand(IInspectable):
+                get_PasswordCredential: _Callable
+                get_CredentialDeleted: _Callable
+
+            class ICredentialCommandFactory(IInspectable):
+                CreateCredentialCommand: _Callable
+                CreateCredentialCommandWithHandler: _Callable
+
+            class ISettingsCommandFactory(IInspectable):
+                CreateSettingsCommand: _Callable
+
+            class ISettingsCommandStatics(IInspectable):
+                get_AccountsCommand: _Callable
+
+            class ISettingsPane(IInspectable):
+                add_CommandsRequested: _Callable
+                remove_CommandsRequested: _Callable
+
+            class ISettingsPaneCommandsRequest(IInspectable):
+                get_ApplicationCommands: _Callable
+
+            class ISettingsPaneCommandsRequestedEventArgs(IInspectable):
+                get_Request: _Callable
+
+            class ISettingsPaneStatics(IInspectable):
+                GetForCurrentView: _Callable
+                Show: _Callable
+                get_Edge: _Callable
+
+            class IWebAccountCommand(IInspectable):
+                get_WebAccount: _Callable
+                get_Invoked: _Callable
+                get_Actions: _Callable
+
+            class IWebAccountCommandFactory(IInspectable):
+                CreateWebAccountCommand: _Callable
+
+            class IWebAccountInvokedArgs(IInspectable):
+                get_Action: _Callable
+
+            class IWebAccountProviderCommand(IInspectable):
+                get_WebAccountProvider: _Callable
+                get_Invoked: _Callable
+
+            class IWebAccountProviderCommandFactory(IInspectable):
+                CreateWebAccountProviderCommand: _Callable
 
         class Composition:
             class IAmbientLight(IInspectable):
@@ -5070,6 +5409,206 @@ class Windows:
                 get_ChangeKind: _Callable
                 get_UserNotificationId: _Callable
 
+        class Shell:
+            class IAdaptiveCard(IInspectable):
+                ToJson: _Callable
+
+            class IAdaptiveCardBuilderStatics(IInspectable):
+                CreateAdaptiveCardFromJson: _Callable
+
+            class ISecurityAppManager(IInspectable):
+                Register: _Callable
+                Unregister: _Callable
+                UpdateState: _Callable
+
+            class IShareWindowCommandEventArgs(IInspectable):
+                get_WindowId: _Callable
+                get_Command: _Callable
+                put_Command: _Callable
+
+            class IShareWindowCommandSource(IInspectable):
+                Start: _Callable
+                Stop: _Callable
+                ReportCommandChanged: _Callable
+                add_CommandRequested: _Callable
+                remove_CommandRequested: _Callable
+                add_CommandInvoked: _Callable
+                remove_CommandInvoked: _Callable
+
+            class IShareWindowCommandSourceStatics(IInspectable):
+                GetForCurrentView: _Callable
+
+            class ITaskbarManager(IInspectable):
+                get_IsSupported: _Callable
+                get_IsPinningAllowed: _Callable
+                IsCurrentAppPinnedAsync: _Callable
+                IsAppListEntryPinnedAsync: _Callable
+                RequestPinCurrentAppAsync: _Callable
+                RequestPinAppListEntryAsync: _Callable
+
+            class ITaskbarManager2(IInspectable):
+                IsSecondaryTilePinnedAsync: _Callable
+                RequestPinSecondaryTileAsync: _Callable
+                TryUnpinSecondaryTileAsync: _Callable
+
+            class ITaskbarManagerStatics(IInspectable):
+                GetDefault: _Callable
+
+        class StartScreen:
+            class IJumpList(IInspectable):
+                get_Items: _Callable
+                get_SystemGroupKind: _Callable
+                put_SystemGroupKind: _Callable
+                SaveAsync: _Callable
+
+            class IJumpListItem(IInspectable):
+                get_Kind: _Callable
+                get_Arguments: _Callable
+                get_RemovedByUser: _Callable
+                get_Description: _Callable
+                put_Description: _Callable
+                get_DisplayName: _Callable
+                put_DisplayName: _Callable
+                get_GroupName: _Callable
+                put_GroupName: _Callable
+                get_Logo: _Callable
+                put_Logo: _Callable
+
+            class IJumpListItemStatics(IInspectable):
+                CreateWithArguments: _Callable
+                CreateSeparator: _Callable
+
+            class IJumpListStatics(IInspectable):
+                LoadCurrentAsync: _Callable
+                IsSupported: _Callable
+
+            class ISecondaryTile(IInspectable):
+                put_TileId: _Callable
+                get_TileId: _Callable
+                put_Arguments: _Callable
+                get_Arguments: _Callable
+                put_ShortName: _Callable
+                get_ShortName: _Callable
+                put_DisplayName: _Callable
+                get_DisplayName: _Callable
+                put_Logo: _Callable
+                get_Logo: _Callable
+                put_SmallLogo: _Callable
+                get_SmallLogo: _Callable
+                put_WideLogo: _Callable
+                get_WideLogo: _Callable
+                put_LockScreenBadgeLogo: _Callable
+                get_LockScreenBadgeLogo: _Callable
+                put_LockScreenDisplayBadgeAndTileText: _Callable
+                get_LockScreenDisplayBadgeAndTileText: _Callable
+                put_TileOptions: _Callable
+                get_TileOptions: _Callable
+                put_ForegroundText: _Callable
+                get_ForegroundText: _Callable
+                put_BackgroundColor: _Callable
+                get_BackgroundColor: _Callable
+                RequestCreateAsync: _Callable
+                RequestCreateAsyncWithPoint: _Callable
+                RequestCreateAsyncWithRect: _Callable
+                RequestCreateAsyncWithRectAndPlacement: _Callable
+                RequestDeleteAsync: _Callable
+                RequestDeleteAsyncWithPoint: _Callable
+                RequestDeleteAsyncWithRect: _Callable
+                RequestDeleteAsyncWithRectAndPlacement: _Callable
+                UpdateAsync: _Callable
+
+            class ISecondaryTile2(IInspectable):
+                put_PhoneticName: _Callable
+                get_PhoneticName: _Callable
+                get_VisualElements: _Callable
+                put_RoamingEnabled: _Callable
+                get_RoamingEnabled: _Callable
+                add_VisualElementsRequested: _Callable
+                remove_VisualElementsRequested: _Callable
+
+            class ISecondaryTileFactory(IInspectable):
+                CreateTile: _Callable
+                CreateWideTile: _Callable
+                CreateWithId: _Callable
+
+            class ISecondaryTileFactory2(IInspectable):
+                CreateMinimalTile: _Callable
+
+            class ISecondaryTileStatics(IInspectable):
+                Exists: _Callable
+                FindAllAsync: _Callable
+                FindAllForApplicationAsync: _Callable
+                FindAllForPackageAsync: _Callable
+
+            class ISecondaryTileVisualElements(IInspectable):
+                put_Square30x30Logo: _Callable
+                get_Square30x30Logo: _Callable
+                put_Square70x70Logo: _Callable
+                get_Square70x70Logo: _Callable
+                put_Square150x150Logo: _Callable
+                get_Square150x150Logo: _Callable
+                put_Wide310x150Logo: _Callable
+                get_Wide310x150Logo: _Callable
+                put_Square310x310Logo: _Callable
+                get_Square310x310Logo: _Callable
+                put_ForegroundText: _Callable
+                get_ForegroundText: _Callable
+                put_BackgroundColor: _Callable
+                get_BackgroundColor: _Callable
+                put_ShowNameOnSquare150x150Logo: _Callable
+                get_ShowNameOnSquare150x150Logo: _Callable
+                put_ShowNameOnWide310x150Logo: _Callable
+                get_ShowNameOnWide310x150Logo: _Callable
+                put_ShowNameOnSquare310x310Logo: _Callable
+                get_ShowNameOnSquare310x310Logo: _Callable
+
+            class ISecondaryTileVisualElements2(IInspectable):
+                put_Square71x71Logo: _Callable
+                get_Square71x71Logo: _Callable
+
+            class ISecondaryTileVisualElements3(IInspectable):
+                put_Square44x44Logo: _Callable
+                get_Square44x44Logo: _Callable
+
+            class ISecondaryTileVisualElements4(IInspectable):
+                get_MixedRealityModel: _Callable
+
+            class IStartScreenManager(IInspectable):
+                get_User: _Callable
+                SupportsAppListEntry: _Callable
+                ContainsAppListEntryAsync: _Callable
+                RequestAddAppListEntryAsync: _Callable
+
+            class IStartScreenManager2(IInspectable):
+                ContainsSecondaryTileAsync: _Callable
+                TryRemoveSecondaryTileAsync: _Callable
+
+            class IStartScreenManagerStatics(IInspectable):
+                GetDefault: _Callable
+                GetForUser: _Callable
+
+            class ITileMixedRealityModel(IInspectable):
+                put_Uri: _Callable
+                get_Uri: _Callable
+                put_BoundingBox: _Callable
+                get_BoundingBox: _Callable
+
+            class ITileMixedRealityModel2(IInspectable):
+                put_ActivationBehavior: _Callable
+                get_ActivationBehavior: _Callable
+
+            class IVisualElementsRequest(IInspectable):
+                get_VisualElements: _Callable
+                get_AlternateVisualElements: _Callable
+                get_Deadline: _Callable
+                GetDeferral: _Callable
+
+            class IVisualElementsRequestDeferral(IInspectable):
+                Complete: _Callable
+
+            class IVisualElementsRequestedEventArgs(IInspectable):
+                get_Request: _Callable
+
         class Text:
             class IContentLinkInfo(IInspectable):
                 get_Id: _Callable
@@ -5324,6 +5863,54 @@ class Windows:
                 MoveUp: _Callable
                 TypeText: _Callable
 
+        class Popups:
+            class _IUICommandInvokedHandler:
+                Invoke: _Callable
+
+            class IUICommandInvokedHandler(_IUICommandInvokedHandler, IUnknown):
+                pass
+
+            # noinspection PyPep8Naming
+            class IUICommandInvokedHandler_impl(_IUICommandInvokedHandler, IUnknown_impl):
+                pass
+
+            class IMessageDialog(IInspectable):
+                get_Title: _Callable
+                put_Title: _Callable
+                get_Commands: _Callable
+                get_DefaultCommandIndex: _Callable
+                put_DefaultCommandIndex: _Callable
+                get_CancelCommandIndex: _Callable
+                put_CancelCommandIndex: _Callable
+                get_Content: _Callable
+                put_Content: _Callable
+                ShowAsync: _Callable
+                get_Options: _Callable
+                put_Options: _Callable
+
+            class IMessageDialogFactory(IInspectable):
+                Create: _Callable
+                CreateWithTitle: _Callable
+
+            class IPopupMenu(IInspectable):
+                get_Commands: _Callable
+                ShowAsync: _Callable
+                ShowAsyncWithRect: _Callable
+                ShowAsyncWithRectAndPlacement: _Callable
+
+            class IUICommand(IInspectable):
+                get_Label: _Callable
+                put_Label: _Callable
+                get_Invoked: _Callable
+                put_Invoked: _Callable
+                get_Id: _Callable
+                put_Id: _Callable
+
+            class IUICommandFactory(IInspectable):
+                Create: _Callable
+                CreateWithHandler: _Callable
+                CreateWithHandlerAndId: _Callable
+
         class ViewManagement:
             class IAccessibilitySettings(IInspectable):
                 get_HighContrast: _Callable
@@ -5573,30 +6160,53 @@ class Windows:
                                           _type.HRESULT]
 
             class IUISettings2(IInspectable):
-                get_TextScaleFactor: _Callable
-                add_TextScaleFactorChanged: _Callable
-                remove_TextScaleFactorChanged: _Callable
+                get_TextScaleFactor: _Callable[[_Pointer[_type.DOUBLE]],
+                                               _type.HRESULT]
+                add_TextScaleFactorChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, IInspectable],
+                                                       _Pointer[_struct.EventRegistrationToken]],
+                                                      _type.HRESULT]
+                remove_TextScaleFactorChanged: _Callable[[_struct.EventRegistrationToken],
+                                                         _type.HRESULT]
 
             class IUISettings3(IInspectable):
-                GetColorValue: _Callable
-                add_ColorValuesChanged: _Callable
-                remove_ColorValuesChanged: _Callable
+                GetColorValue: _Callable[[_enum.Windows.UI.ViewManagement.UIColorType,
+                                          _Pointer[_struct.Windows.UI.Color]],
+                                         _type.HRESULT]
+                add_ColorValuesChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, IInspectable],
+                                                   _Pointer[_struct.EventRegistrationToken]],
+                                                  _type.HRESULT]
+                remove_ColorValuesChanged: _Callable[[_struct.EventRegistrationToken],
+                                                     _type.HRESULT]
 
             class IUISettings4(IInspectable):
-                get_AdvancedEffectsEnabled: _Callable
-                add_AdvancedEffectsEnabledChanged: _Callable
-                remove_AdvancedEffectsEnabledChanged: _Callable
+                get_AdvancedEffectsEnabled: _Callable[[_Pointer[_type.boolean]],
+                                                      _type.HRESULT]
+                add_AdvancedEffectsEnabledChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, IInspectable],
+                                                              _Pointer[_struct.EventRegistrationToken]],
+                                                             _type.HRESULT]
+                remove_AdvancedEffectsEnabledChanged: _Callable[[_struct.EventRegistrationToken],
+                                                                _type.HRESULT]
 
             class IUISettings5(IInspectable):
-                get_AutoHideScrollBars: _Callable
-                add_AutoHideScrollBarsChanged: _Callable
-                remove_AutoHideScrollBarsChanged: _Callable
+                get_AutoHideScrollBars: _Callable[[_Pointer[_type.boolean]],
+                                                  _type.HRESULT]
+                add_AutoHideScrollBarsChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsAutoHideScrollBarsChangedEventArgs],
+                                                          _Pointer[_struct.EventRegistrationToken]],
+                                                         _type.HRESULT]
+                remove_AutoHideScrollBarsChanged: _Callable[[_struct.EventRegistrationToken],
+                                                            _type.HRESULT]
 
             class IUISettings6(IInspectable):
-                add_AnimationsEnabledChanged: _Callable
-                remove_AnimationsEnabledChanged: _Callable
-                add_MessageDurationChanged: _Callable
-                remove_MessageDurationChanged: _Callable
+                add_AnimationsEnabledChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsAnimationsEnabledChangedEventArgs],
+                                                         _Pointer[_struct.EventRegistrationToken]],
+                                                        _type.HRESULT]
+                remove_AnimationsEnabledChanged: _Callable[[_struct.EventRegistrationToken],
+                                                           _type.HRESULT]
+                add_MessageDurationChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsMessageDurationChangedEventArgs],
+                                                       _Pointer[_struct.EventRegistrationToken]],
+                                                      _type.HRESULT]
+                remove_MessageDurationChanged: _Callable[[_struct.EventRegistrationToken],
+                                                         _type.HRESULT]
 
             class IUISettingsAnimationsEnabledChangedEventArgs(IInspectable):
                 pass
@@ -5608,19 +6218,27 @@ class Windows:
                 pass
 
             class IUIViewSettings(IInspectable):
-                get_UserInteractionMode: _Callable
+                get_UserInteractionMode: _Callable[[_Pointer[_enum.Windows.UI.ViewManagement.UserInteractionMode]],
+                                                   _type.HRESULT]
 
             class IUIViewSettingsStatics(IInspectable):
-                GetForCurrentView: _Callable
+                GetForCurrentView: _Callable[[_Pointer[Windows.UI.ViewManagement.IUIViewSettings]],
+                                             _type.HRESULT]
 
             class IViewModePreferences(IInspectable):
-                get_ViewSizePreference: _Callable
-                put_ViewSizePreference: _Callable
-                get_CustomSize: _Callable
-                put_CustomSize: _Callable
+                get_ViewSizePreference: _Callable[[_Pointer[_enum.Windows.UI.ViewManagement.ViewSizePreference]],
+                                                  _type.HRESULT]
+                put_ViewSizePreference: _Callable[[_enum.Windows.UI.ViewManagement.ViewSizePreference],
+                                                  _type.HRESULT]
+                get_CustomSize: _Callable[[_Pointer[_struct.Windows.Foundation.Size]],
+                                          _type.HRESULT]
+                put_CustomSize: _Callable[[_struct.Windows.Foundation.Size],
+                                          _type.HRESULT]
 
             class IViewModePreferencesStatics(IInspectable):
-                CreateDefault: _Callable
+                CreateDefault: _Callable[[_enum.Windows.UI.ViewManagement.ApplicationViewMode,
+                                          _Pointer[Windows.UI.ViewManagement.IViewModePreferences]],
+                                         _type.HRESULT]
 
         class Xaml:
             class _IApplicationInitializationCallback:
@@ -7288,49 +7906,85 @@ class Windows:
                 put_Storyboard: _Callable
 
             class IVisualTransitionFactory(IInspectable):
-                CreateInstance: _Callable
+                CreateInstance: _Callable[[IInspectable,
+                                           _Pointer[IInspectable],
+                                           _Pointer[Windows.UI.Xaml.IVisualTransition]],
+                                          _type.HRESULT]
 
             class IWindow(IInspectable):
-                get_Bounds: _Callable
-                get_Visible: _Callable
-                get_Content: _Callable
-                put_Content: _Callable
-                get_CoreWindow: _Callable
-                get_Dispatcher: _Callable
-                add_Activated: _Callable
-                remove_Activated: _Callable
-                add_Closed: _Callable
-                remove_Closed: _Callable
-                add_SizeChanged: _Callable
-                remove_SizeChanged: _Callable
-                add_VisibilityChanged: _Callable
-                remove_VisibilityChanged: _Callable
-                Activate: _Callable
-                Close: _Callable
+                get_Bounds: _Callable[[_Pointer[_struct.Windows.Foundation.Rect]],
+                                      _type.HRESULT]
+                get_Visible: _Callable[[_Pointer[_type.boolean]],
+                                       _type.HRESULT]
+                get_Content: _Callable[[_Pointer[Windows.UI.Xaml.IUIElement]],
+                                       _type.HRESULT]
+                put_Content: _Callable[[Windows.UI.Xaml.IUIElement],
+                                       _type.HRESULT]
+                get_CoreWindow: _Callable[[_Pointer[Windows.UI.Core.ICoreWindow]],
+                                          _type.HRESULT]
+                get_Dispatcher: _Callable[[_Pointer[Windows.UI.Core.ICoreDispatcher]],
+                                          _type.HRESULT]
+                add_Activated: _Callable[[Windows.UI.Xaml.IWindowActivatedEventHandler_impl,
+                                          _Pointer[_struct.EventRegistrationToken]],
+                                         _type.HRESULT]
+                remove_Activated: _Callable[[_struct.EventRegistrationToken],
+                                            _type.HRESULT]
+                add_Closed: _Callable[[Windows.UI.Xaml.IWindowClosedEventHandler_impl,
+                                       _Pointer[_struct.EventRegistrationToken]],
+                                      _type.HRESULT]
+                remove_Closed: _Callable[[_struct.EventRegistrationToken],
+                                         _type.HRESULT]
+                add_SizeChanged: _Callable[[Windows.UI.Xaml.IWindowSizeChangedEventHandler_impl,
+                                            _Pointer[_struct.EventRegistrationToken]],
+                                           _type.HRESULT]
+                remove_SizeChanged: _Callable[[_struct.EventRegistrationToken],
+                                              _type.HRESULT]
+                add_VisibilityChanged: _Callable[[Windows.UI.Xaml.IWindowVisibilityChangedEventHandler_impl,
+                                                  _Pointer[_struct.EventRegistrationToken]],
+                                                 _type.HRESULT]
+                remove_VisibilityChanged: _Callable[[_struct.EventRegistrationToken],
+                                                    _type.HRESULT]
+                Activate: _Callable[[],
+                                    _type.HRESULT]
+                Close: _Callable[[],
+                                 _type.HRESULT]
 
             class IWindow2(IInspectable):
-                SetTitleBar: _Callable
+                SetTitleBar: _Callable[[Windows.UI.Xaml.IUIElement],
+                                       _type.HRESULT]
 
             class IWindow3(IInspectable):
-                get_Compositor: _Callable
+                get_Compositor: _Callable[[_Pointer[Windows.UI.Composition.ICompositor]],
+                                          _type.HRESULT]
 
             class IWindow4(IInspectable):
-                get_UIContext: _Callable
+                get_UIContext: _Callable[[_Pointer[Windows.UI.IUIContext]],
+                                         _type.HRESULT]
 
             class IWindowCreatedEventArgs(IInspectable):
-                get_Window: _Callable
+                get_Window: _Callable[[_Pointer[Windows.UI.Xaml.IWindow]],
+                                      _type.HRESULT]
 
             class IWindowStatics(IInspectable):
-                get_Current: _Callable
+                get_Current: _Callable[[_Pointer[Windows.UI.Xaml.IWindow]],
+                                       _type.HRESULT]
 
             class IXamlRoot(IInspectable):
-                get_Content: _Callable
-                get_Size: _Callable
-                get_RasterizationScale: _Callable
-                get_IsHostVisible: _Callable
-                get_UIContext: _Callable
-                add_Changed: _Callable
-                remove_Changed: _Callable
+                get_Content: _Callable[[_Pointer[Windows.UI.Xaml.IUIElement]],
+                                       _type.HRESULT]
+                get_Size: _Callable[[_Pointer[_struct.Windows.Foundation.Size]],
+                                    _type.HRESULT]
+                get_RasterizationScale: _Callable[[_Pointer[_type.DOUBLE]],
+                                                  _type.HRESULT]
+                get_IsHostVisible: _Callable[[_Pointer[_type.boolean]],
+                                             _type.HRESULT]
+                get_UIContext: _Callable[[_Pointer[Windows.UI.IUIContext]],
+                                         _type.HRESULT]
+                add_Changed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IXamlRoot, Windows.UI.Xaml.IXamlRootChangedEventArgs],
+                                        _Pointer[_struct.EventRegistrationToken]],
+                                       _type.HRESULT]
+                remove_Changed: _Callable[[_struct.EventRegistrationToken],
+                                          _type.HRESULT]
 
             class IXamlRootChangedEventArgs(IInspectable):
                 pass
@@ -7799,7 +8453,8 @@ class Windows:
                         pass
 
                     class IMenuBarAutomationPeerFactory(IInspectable):
-                        CreateInstance: _Callable[[IInspectable,
+                        CreateInstance: _Callable[[Windows.UI.Xaml.Controls.IMenuBar,
+                                                   IInspectable,
                                                    _Pointer[IInspectable],
                                                    _Pointer[Windows.UI.Xaml.Automation.Peers.IMenuBarAutomationPeer]],
                                                   _type.HRESULT]
@@ -7808,7 +8463,8 @@ class Windows:
                         pass
 
                     class IMenuBarItemAutomationPeerFactory(IInspectable):
-                        CreateInstance: _Callable[[IInspectable,
+                        CreateInstance: _Callable[[Windows.UI.Xaml.Controls.IMenuBarItem,
+                                                   IInspectable,
                                                    _Pointer[IInspectable],
                                                    _Pointer[Windows.UI.Xaml.Automation.Peers.IMenuBarItemAutomationPeer]],
                                                   _type.HRESULT]
@@ -8403,34 +9059,52 @@ class Windows:
                     put_Handled: _Callable
 
                 class IBitmapIcon(IInspectable):
-                    get_UriSource: _Callable
-                    put_UriSource: _Callable
+                    get_UriSource: _Callable[[_Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                             _type.HRESULT]
+                    put_UriSource: _Callable[[Windows.Foundation.IUriRuntimeClass],
+                                             _type.HRESULT]
 
                 class IBitmapIcon2(IInspectable):
-                    get_ShowAsMonochrome: _Callable
-                    put_ShowAsMonochrome: _Callable
+                    get_ShowAsMonochrome: _Callable[[_Pointer[_type.boolean]],
+                                                    _type.HRESULT]
+                    put_ShowAsMonochrome: _Callable[[_type.boolean],
+                                                    _type.HRESULT]
 
                 class IBitmapIconFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IBitmapIcon]],
+                                              _type.HRESULT]
 
                 class IBitmapIconSource(IInspectable):
-                    get_UriSource: _Callable
-                    put_UriSource: _Callable
-                    get_ShowAsMonochrome: _Callable
-                    put_ShowAsMonochrome: _Callable
+                    get_UriSource: _Callable[[_Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                             _type.HRESULT]
+                    put_UriSource: _Callable[[Windows.Foundation.IUriRuntimeClass],
+                                             _type.HRESULT]
+                    get_ShowAsMonochrome: _Callable[[_Pointer[_type.boolean]],
+                                                    _type.HRESULT]
+                    put_ShowAsMonochrome: _Callable[[_type.boolean],
+                                                    _type.HRESULT]
 
                 class IBitmapIconSourceFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IBitmapIconSource]],
+                                              _type.HRESULT]
 
                 class IBitmapIconSourceStatics(IInspectable):
-                    get_UriSourceProperty: _Callable
-                    get_ShowAsMonochromeProperty: _Callable
+                    get_UriSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_ShowAsMonochromeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
 
                 class IBitmapIconStatics(IInspectable):
-                    get_UriSourceProperty: _Callable
+                    get_UriSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class IBitmapIconStatics2(IInspectable):
-                    get_ShowAsMonochromeProperty: _Callable
+                    get_ShowAsMonochromeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
 
                 class IBorder(IInspectable):
                     get_BorderBrush: _Callable
@@ -9173,109 +9847,198 @@ class Windows:
                                                               _type.HRESULT]
 
                 class IContentDialog(IInspectable):
-                    get_Title: _Callable
-                    put_Title: _Callable
-                    get_TitleTemplate: _Callable
-                    put_TitleTemplate: _Callable
-                    get_FullSizeDesired: _Callable
-                    put_FullSizeDesired: _Callable
-                    get_PrimaryButtonText: _Callable
-                    put_PrimaryButtonText: _Callable
-                    get_SecondaryButtonText: _Callable
-                    put_SecondaryButtonText: _Callable
-                    get_PrimaryButtonCommand: _Callable
-                    put_PrimaryButtonCommand: _Callable
-                    get_SecondaryButtonCommand: _Callable
-                    put_SecondaryButtonCommand: _Callable
-                    get_PrimaryButtonCommandParameter: _Callable
-                    put_PrimaryButtonCommandParameter: _Callable
-                    get_SecondaryButtonCommandParameter: _Callable
-                    put_SecondaryButtonCommandParameter: _Callable
-                    get_IsPrimaryButtonEnabled: _Callable
-                    put_IsPrimaryButtonEnabled: _Callable
-                    get_IsSecondaryButtonEnabled: _Callable
-                    put_IsSecondaryButtonEnabled: _Callable
-                    add_Closing: _Callable
-                    remove_Closing: _Callable
-                    add_Closed: _Callable
-                    remove_Closed: _Callable
-                    add_Opened: _Callable
-                    remove_Opened: _Callable
-                    add_PrimaryButtonClick: _Callable
-                    remove_PrimaryButtonClick: _Callable
-                    add_SecondaryButtonClick: _Callable
-                    remove_SecondaryButtonClick: _Callable
-                    Hide: _Callable
-                    ShowAsync: _Callable
+                    get_Title: _Callable[[_Pointer[IInspectable]],
+                                         _type.HRESULT]
+                    put_Title: _Callable[[IInspectable],
+                                         _type.HRESULT]
+                    get_TitleTemplate: _Callable[[_Pointer[Windows.UI.Xaml.IDataTemplate]],
+                                                 _type.HRESULT]
+                    put_TitleTemplate: _Callable[[Windows.UI.Xaml.IDataTemplate],
+                                                 _type.HRESULT]
+                    get_FullSizeDesired: _Callable[[_Pointer[_type.boolean]],
+                                                   _type.HRESULT]
+                    put_FullSizeDesired: _Callable[[_type.boolean],
+                                                   _type.HRESULT]
+                    get_PrimaryButtonText: _Callable[[_Pointer[_type.HSTRING]],
+                                                     _type.HRESULT]
+                    put_PrimaryButtonText: _Callable[[_type.HSTRING],
+                                                     _type.HRESULT]
+                    get_SecondaryButtonText: _Callable[[_Pointer[_type.HSTRING]],
+                                                       _type.HRESULT]
+                    put_SecondaryButtonText: _Callable[[_type.HSTRING],
+                                                       _type.HRESULT]
+                    get_PrimaryButtonCommand: _Callable[[_Pointer[Windows.UI.Xaml.Input.ICommand]],
+                                                        _type.HRESULT]
+                    put_PrimaryButtonCommand: _Callable[[Windows.UI.Xaml.Input.ICommand],
+                                                        _type.HRESULT]
+                    get_SecondaryButtonCommand: _Callable[[_Pointer[Windows.UI.Xaml.Input.ICommand]],
+                                                          _type.HRESULT]
+                    put_SecondaryButtonCommand: _Callable[[Windows.UI.Xaml.Input.ICommand],
+                                                          _type.HRESULT]
+                    get_PrimaryButtonCommandParameter: _Callable[[_Pointer[IInspectable]],
+                                                                 _type.HRESULT]
+                    put_PrimaryButtonCommandParameter: _Callable[[IInspectable],
+                                                                 _type.HRESULT]
+                    get_SecondaryButtonCommandParameter: _Callable[[_Pointer[IInspectable]],
+                                                                   _type.HRESULT]
+                    put_SecondaryButtonCommandParameter: _Callable[[IInspectable],
+                                                                   _type.HRESULT]
+                    get_IsPrimaryButtonEnabled: _Callable[[_Pointer[_type.boolean]],
+                                                          _type.HRESULT]
+                    put_IsPrimaryButtonEnabled: _Callable[[_type.boolean],
+                                                          _type.HRESULT]
+                    get_IsSecondaryButtonEnabled: _Callable[[_Pointer[_type.boolean]],
+                                                            _type.HRESULT]
+                    put_IsSecondaryButtonEnabled: _Callable[[_type.boolean],
+                                                            _type.HRESULT]
+                    add_Closing: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogClosingEventArgs],
+                                            _Pointer[_struct.EventRegistrationToken]],
+                                           _type.HRESULT]
+                    remove_Closing: _Callable[[_struct.EventRegistrationToken],
+                                              _type.HRESULT]
+                    add_Closed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogClosedEventArgs],
+                                           _Pointer[_struct.EventRegistrationToken]],
+                                          _type.HRESULT]
+                    remove_Closed: _Callable[[_struct.EventRegistrationToken],
+                                             _type.HRESULT]
+                    add_Opened: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogOpenedEventArgs],
+                                           _Pointer[_struct.EventRegistrationToken]],
+                                          _type.HRESULT]
+                    remove_Opened: _Callable[[_struct.EventRegistrationToken],
+                                             _type.HRESULT]
+                    add_PrimaryButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
+                                                       _Pointer[_struct.EventRegistrationToken]],
+                                                      _type.HRESULT]
+                    remove_PrimaryButtonClick: _Callable[[_struct.EventRegistrationToken],
+                                                         _type.HRESULT]
+                    add_SecondaryButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
+                                                         _Pointer[_struct.EventRegistrationToken]],
+                                                        _type.HRESULT]
+                    remove_SecondaryButtonClick: _Callable[[_struct.EventRegistrationToken],
+                                                           _type.HRESULT]
+                    Hide: _Callable[[],
+                                    _type.HRESULT]
+                    ShowAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.UI.Xaml.Controls.ContentDialogResult]]],
+                                         _type.HRESULT]
 
                 class IContentDialog2(IInspectable):
-                    get_CloseButtonText: _Callable
-                    put_CloseButtonText: _Callable
-                    get_CloseButtonCommand: _Callable
-                    put_CloseButtonCommand: _Callable
-                    get_CloseButtonCommandParameter: _Callable
-                    put_CloseButtonCommandParameter: _Callable
-                    get_PrimaryButtonStyle: _Callable
-                    put_PrimaryButtonStyle: _Callable
-                    get_SecondaryButtonStyle: _Callable
-                    put_SecondaryButtonStyle: _Callable
-                    get_CloseButtonStyle: _Callable
-                    put_CloseButtonStyle: _Callable
-                    get_DefaultButton: _Callable
-                    put_DefaultButton: _Callable
-                    add_CloseButtonClick: _Callable
-                    remove_CloseButtonClick: _Callable
+                    get_CloseButtonText: _Callable[[_Pointer[_type.HSTRING]],
+                                                   _type.HRESULT]
+                    put_CloseButtonText: _Callable[[_type.HSTRING],
+                                                   _type.HRESULT]
+                    get_CloseButtonCommand: _Callable[[_Pointer[Windows.UI.Xaml.Input.ICommand]],
+                                                      _type.HRESULT]
+                    put_CloseButtonCommand: _Callable[[Windows.UI.Xaml.Input.ICommand],
+                                                      _type.HRESULT]
+                    get_CloseButtonCommandParameter: _Callable[[_Pointer[IInspectable]],
+                                                               _type.HRESULT]
+                    put_CloseButtonCommandParameter: _Callable[[IInspectable],
+                                                               _type.HRESULT]
+                    get_PrimaryButtonStyle: _Callable[[_Pointer[Windows.UI.Xaml.IStyle]],
+                                                      _type.HRESULT]
+                    put_PrimaryButtonStyle: _Callable[[Windows.UI.Xaml.IStyle],
+                                                      _type.HRESULT]
+                    get_SecondaryButtonStyle: _Callable[[_Pointer[Windows.UI.Xaml.IStyle]],
+                                                        _type.HRESULT]
+                    put_SecondaryButtonStyle: _Callable[[Windows.UI.Xaml.IStyle],
+                                                        _type.HRESULT]
+                    get_CloseButtonStyle: _Callable[[_Pointer[Windows.UI.Xaml.IStyle]],
+                                                    _type.HRESULT]
+                    put_CloseButtonStyle: _Callable[[Windows.UI.Xaml.IStyle],
+                                                    _type.HRESULT]
+                    get_DefaultButton: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.ContentDialogButton]],
+                                                 _type.HRESULT]
+                    put_DefaultButton: _Callable[[_enum.Windows.UI.Xaml.Controls.ContentDialogButton],
+                                                 _type.HRESULT]
+                    add_CloseButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
+                                                     _Pointer[_struct.EventRegistrationToken]],
+                                                    _type.HRESULT]
+                    remove_CloseButtonClick: _Callable[[_struct.EventRegistrationToken],
+                                                       _type.HRESULT]
 
                 class IContentDialog3(IInspectable):
-                    ShowAsyncWithPlacement: _Callable
+                    ShowAsyncWithPlacement: _Callable[[_enum.Windows.UI.Xaml.Controls.ContentDialogPlacement,
+                                                       _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.UI.Xaml.Controls.ContentDialogResult]]],
+                                                      _type.HRESULT]
 
                 class IContentDialogButtonClickDeferral(IInspectable):
-                    Complete: _Callable
+                    Complete: _Callable[[],
+                                        _type.HRESULT]
 
                 class IContentDialogButtonClickEventArgs(IInspectable):
-                    get_Cancel: _Callable
-                    put_Cancel: _Callable
-                    GetDeferral: _Callable
+                    get_Cancel: _Callable[[_Pointer[_type.boolean]],
+                                          _type.HRESULT]
+                    put_Cancel: _Callable[[_type.boolean],
+                                          _type.HRESULT]
+                    GetDeferral: _Callable[[_Pointer[Windows.UI.Xaml.Controls.IContentDialogButtonClickDeferral]],
+                                           _type.HRESULT]
 
                 class IContentDialogClosedEventArgs(IInspectable):
-                    get_Result: _Callable
+                    get_Result: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.ContentDialogResult]],
+                                          _type.HRESULT]
 
                 class IContentDialogClosingDeferral(IInspectable):
-                    Complete: _Callable
+                    Complete: _Callable[[],
+                                        _type.HRESULT]
 
                 class IContentDialogClosingEventArgs(IInspectable):
-                    get_Result: _Callable
-                    get_Cancel: _Callable
-                    put_Cancel: _Callable
-                    GetDeferral: _Callable
+                    get_Result: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.ContentDialogResult]],
+                                          _type.HRESULT]
+                    get_Cancel: _Callable[[_Pointer[_type.boolean]],
+                                          _type.HRESULT]
+                    put_Cancel: _Callable[[_type.boolean],
+                                          _type.HRESULT]
+                    GetDeferral: _Callable[[_Pointer[Windows.UI.Xaml.Controls.IContentDialogClosingDeferral]],
+                                           _type.HRESULT]
 
                 class IContentDialogFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IContentDialog]],
+                                              _type.HRESULT]
 
                 class IContentDialogOpenedEventArgs(IInspectable):
                     pass
 
                 class IContentDialogStatics(IInspectable):
-                    get_TitleProperty: _Callable
-                    get_TitleTemplateProperty: _Callable
-                    get_FullSizeDesiredProperty: _Callable
-                    get_PrimaryButtonTextProperty: _Callable
-                    get_SecondaryButtonTextProperty: _Callable
-                    get_PrimaryButtonCommandProperty: _Callable
-                    get_SecondaryButtonCommandProperty: _Callable
-                    get_PrimaryButtonCommandParameterProperty: _Callable
-                    get_SecondaryButtonCommandParameterProperty: _Callable
-                    get_IsPrimaryButtonEnabledProperty: _Callable
-                    get_IsSecondaryButtonEnabledProperty: _Callable
+                    get_TitleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_TitleTemplateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_FullSizeDesiredProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_PrimaryButtonTextProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_SecondaryButtonTextProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                    get_PrimaryButtonCommandProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+                    get_SecondaryButtonCommandProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                    get_PrimaryButtonCommandParameterProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                    get_SecondaryButtonCommandParameterProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                           _type.HRESULT]
+                    get_IsPrimaryButtonEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                    get_IsSecondaryButtonEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
 
                 class IContentDialogStatics2(IInspectable):
-                    get_CloseButtonTextProperty: _Callable
-                    get_CloseButtonCommandProperty: _Callable
-                    get_CloseButtonCommandParameterProperty: _Callable
-                    get_PrimaryButtonStyleProperty: _Callable
-                    get_SecondaryButtonStyleProperty: _Callable
-                    get_CloseButtonStyleProperty: _Callable
-                    get_DefaultButtonProperty: _Callable
+                    get_CloseButtonTextProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_CloseButtonCommandProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                    get_CloseButtonCommandParameterProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                       _type.HRESULT]
+                    get_PrimaryButtonStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                    get_SecondaryButtonStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+                    get_CloseButtonStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_DefaultButtonProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
 
                 class IContentLinkChangedEventArgs(IInspectable):
                     get_ChangeKind: _Callable
@@ -11899,24 +12662,36 @@ class Windows:
                     get_DescriptionProperty: _Callable
 
                 class IPathIcon(IInspectable):
-                    get_Data: _Callable
-                    put_Data: _Callable
+                    get_Data: _Callable[[_Pointer[Windows.UI.Xaml.Media.IGeometry]],
+                                        _type.HRESULT]
+                    put_Data: _Callable[[Windows.UI.Xaml.Media.IGeometry],
+                                        _type.HRESULT]
 
                 class IPathIconFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IPathIcon]],
+                                              _type.HRESULT]
 
                 class IPathIconSource(IInspectable):
-                    get_Data: _Callable
-                    put_Data: _Callable
+                    get_Data: _Callable[[_Pointer[Windows.UI.Xaml.Media.IGeometry]],
+                                        _type.HRESULT]
+                    put_Data: _Callable[[Windows.UI.Xaml.Media.IGeometry],
+                                        _type.HRESULT]
 
                 class IPathIconSourceFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IPathIconSource]],
+                                              _type.HRESULT]
 
                 class IPathIconSourceStatics(IInspectable):
-                    get_DataProperty: _Callable
+                    get_DataProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
 
                 class IPathIconStatics(IInspectable):
-                    get_DataProperty: _Callable
+                    get_DataProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
 
                 class IPersonPicture(IInspectable):
                     get_BadgeNumber: _Callable
@@ -13279,24 +14054,35 @@ class Windows:
                     get_ModeProperty: _Callable
 
                 class ISymbolIcon(IInspectable):
-                    get_Symbol: _Callable
-                    put_Symbol: _Callable
+                    get_Symbol: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.Symbol]],
+                                          _type.HRESULT]
+                    put_Symbol: _Callable[[_enum.Windows.UI.Xaml.Controls.Symbol],
+                                          _type.HRESULT]
 
                 class ISymbolIconFactory(IInspectable):
-                    CreateInstanceWithSymbol: _Callable
+                    CreateInstanceWithSymbol: _Callable[[_enum.Windows.UI.Xaml.Controls.Symbol,
+                                                         _Pointer[Windows.UI.Xaml.Controls.ISymbolIcon]],
+                                                        _type.HRESULT]
 
                 class ISymbolIconSource(IInspectable):
-                    get_Symbol: _Callable
-                    put_Symbol: _Callable
+                    get_Symbol: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.Symbol]],
+                                          _type.HRESULT]
+                    put_Symbol: _Callable[[_enum.Windows.UI.Xaml.Controls.Symbol],
+                                          _type.HRESULT]
 
                 class ISymbolIconSourceFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.ISymbolIconSource]],
+                                              _type.HRESULT]
 
                 class ISymbolIconSourceStatics(IInspectable):
-                    get_SymbolProperty: _Callable
+                    get_SymbolProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class ISymbolIconStatics(IInspectable):
-                    get_SymbolProperty: _Callable
+                    get_SymbolProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class ITextBlock(IInspectable):
                     get_FontSize: _Callable[[_Pointer[_type.DOUBLE]],
@@ -14408,6 +15194,914 @@ class Windows:
                     get_HorizontalChildrenAlignmentProperty: _Callable
                     get_VerticalChildrenAlignmentProperty: _Callable
                     get_MaximumRowsOrColumnsProperty: _Callable
+
+                    class Maps:
+                        class ICustomMapTileDataSource(IInspectable):
+                            add_BitmapRequested: _Callable
+                            remove_BitmapRequested: _Callable
+
+                        class ICustomMapTileDataSourceFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IHttpMapTileDataSource(IInspectable):
+                            get_UriFormatString: _Callable
+                            put_UriFormatString: _Callable
+                            get_AdditionalRequestHeaders: _Callable
+                            get_AllowCaching: _Callable
+                            put_AllowCaching: _Callable
+                            add_UriRequested: _Callable
+                            remove_UriRequested: _Callable
+
+                        class IHttpMapTileDataSourceFactory(IInspectable):
+                            CreateInstance: _Callable
+                            CreateInstanceWithUriFormatString: _Callable
+
+                        class ILocalMapTileDataSource(IInspectable):
+                            get_UriFormatString: _Callable
+                            put_UriFormatString: _Callable
+                            add_UriRequested: _Callable
+                            remove_UriRequested: _Callable
+
+                        class ILocalMapTileDataSourceFactory(IInspectable):
+                            CreateInstance: _Callable
+                            CreateInstanceWithUriFormatString: _Callable
+
+                        class IMapActualCameraChangedEventArgs(IInspectable):
+                            get_Camera: _Callable
+
+                        class IMapActualCameraChangedEventArgs2(IInspectable):
+                            get_ChangeReason: _Callable
+
+                        class IMapActualCameraChangingEventArgs(IInspectable):
+                            get_Camera: _Callable
+
+                        class IMapActualCameraChangingEventArgs2(IInspectable):
+                            get_ChangeReason: _Callable
+
+                        class IMapBillboard(IInspectable):
+                            get_Location: _Callable
+                            put_Location: _Callable
+                            get_NormalizedAnchorPoint: _Callable
+                            put_NormalizedAnchorPoint: _Callable
+                            get_Image: _Callable
+                            put_Image: _Callable
+                            get_CollisionBehaviorDesired: _Callable
+                            put_CollisionBehaviorDesired: _Callable
+                            get_ReferenceCamera: _Callable
+
+                        class IMapBillboardFactory(IInspectable):
+                            CreateInstanceFromCamera: _Callable
+
+                        class IMapBillboardStatics(IInspectable):
+                            get_LocationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                            get_NormalizedAnchorPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                            get_CollisionBehaviorDesiredProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                            _type.HRESULT]
+
+                        class IMapCamera(IInspectable):
+                            get_Location: _Callable
+                            put_Location: _Callable
+                            get_Heading: _Callable
+                            put_Heading: _Callable
+                            get_Pitch: _Callable
+                            put_Pitch: _Callable
+                            get_Roll: _Callable
+                            put_Roll: _Callable
+                            get_FieldOfView: _Callable
+                            put_FieldOfView: _Callable
+
+                        class IMapCameraFactory(IInspectable):
+                            CreateInstanceWithLocation: _Callable
+                            CreateInstanceWithLocationAndHeading: _Callable
+                            CreateInstanceWithLocationHeadingAndPitch: _Callable
+                            CreateInstanceWithLocationHeadingPitchRollAndFieldOfView: _Callable
+
+                        class IMapContextRequestedEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElements: _Callable
+
+                        class IMapControl(IInspectable):
+                            get_Center: _Callable
+                            put_Center: _Callable
+                            get_Children: _Callable
+                            get_ColorScheme: _Callable
+                            put_ColorScheme: _Callable
+                            get_DesiredPitch: _Callable
+                            put_DesiredPitch: _Callable
+                            get_Heading: _Callable
+                            put_Heading: _Callable
+                            get_LandmarksVisible: _Callable
+                            put_LandmarksVisible: _Callable
+                            get_LoadingStatus: _Callable
+                            get_MapServiceToken: _Callable
+                            put_MapServiceToken: _Callable
+                            get_MaxZoomLevel: _Callable
+                            get_MinZoomLevel: _Callable
+                            get_PedestrianFeaturesVisible: _Callable
+                            put_PedestrianFeaturesVisible: _Callable
+                            get_Pitch: _Callable
+                            get_Style: _Callable
+                            put_Style: _Callable
+                            get_TrafficFlowVisible: _Callable
+                            put_TrafficFlowVisible: _Callable
+                            get_TransformOrigin: _Callable
+                            put_TransformOrigin: _Callable
+                            get_WatermarkMode: _Callable
+                            put_WatermarkMode: _Callable
+                            get_ZoomLevel: _Callable
+                            put_ZoomLevel: _Callable
+                            get_MapElements: _Callable
+                            get_Routes: _Callable
+                            get_TileSources: _Callable
+                            add_CenterChanged: _Callable
+                            remove_CenterChanged: _Callable
+                            add_HeadingChanged: _Callable
+                            remove_HeadingChanged: _Callable
+                            add_LoadingStatusChanged: _Callable
+                            remove_LoadingStatusChanged: _Callable
+                            add_MapDoubleTapped: _Callable
+                            remove_MapDoubleTapped: _Callable
+                            add_MapHolding: _Callable
+                            remove_MapHolding: _Callable
+                            add_MapTapped: _Callable
+                            remove_MapTapped: _Callable
+                            add_PitchChanged: _Callable
+                            remove_PitchChanged: _Callable
+                            add_TransformOriginChanged: _Callable
+                            remove_TransformOriginChanged: _Callable
+                            add_ZoomLevelChanged: _Callable
+                            remove_ZoomLevelChanged: _Callable
+                            FindMapElementsAtOffset: _Callable
+                            GetLocationFromOffset: _Callable
+                            GetOffsetFromLocation: _Callable
+                            IsLocationInView: _Callable
+                            TrySetViewBoundsAsync: _Callable
+                            TrySetViewWithCenterAsync: _Callable
+                            TrySetViewWithCenterAndZoomAsync: _Callable
+                            TrySetViewWithCenterZoomHeadingAndPitchAsync: _Callable
+                            TrySetViewWithCenterZoomHeadingPitchAndAnimationAsync: _Callable
+
+                        class IMapControl2(IInspectable):
+                            get_BusinessLandmarksVisible: _Callable
+                            put_BusinessLandmarksVisible: _Callable
+                            get_TransitFeaturesVisible: _Callable
+                            put_TransitFeaturesVisible: _Callable
+                            get_PanInteractionMode: _Callable
+                            put_PanInteractionMode: _Callable
+                            get_RotateInteractionMode: _Callable
+                            put_RotateInteractionMode: _Callable
+                            get_TiltInteractionMode: _Callable
+                            put_TiltInteractionMode: _Callable
+                            get_ZoomInteractionMode: _Callable
+                            put_ZoomInteractionMode: _Callable
+                            get_Is3DSupported: _Callable
+                            get_IsStreetsideSupported: _Callable
+                            get_Scene: _Callable
+                            put_Scene: _Callable
+                            get_ActualCamera: _Callable
+                            get_TargetCamera: _Callable
+                            get_CustomExperience: _Callable
+                            put_CustomExperience: _Callable
+                            add_MapElementClick: _Callable
+                            remove_MapElementClick: _Callable
+                            add_MapElementPointerEntered: _Callable
+                            remove_MapElementPointerEntered: _Callable
+                            add_MapElementPointerExited: _Callable
+                            remove_MapElementPointerExited: _Callable
+                            add_ActualCameraChanged: _Callable
+                            remove_ActualCameraChanged: _Callable
+                            add_ActualCameraChanging: _Callable
+                            remove_ActualCameraChanging: _Callable
+                            add_TargetCameraChanged: _Callable
+                            remove_TargetCameraChanged: _Callable
+                            add_CustomExperienceChanged: _Callable
+                            remove_CustomExperienceChanged: _Callable
+                            StartContinuousRotate: _Callable
+                            StopContinuousRotate: _Callable
+                            StartContinuousTilt: _Callable
+                            StopContinuousTilt: _Callable
+                            StartContinuousZoom: _Callable
+                            StopContinuousZoom: _Callable
+                            TryRotateAsync: _Callable
+                            TryRotateToAsync: _Callable
+                            TryTiltAsync: _Callable
+                            TryTiltToAsync: _Callable
+                            TryZoomInAsync: _Callable
+                            TryZoomOutAsync: _Callable
+                            TryZoomToAsync: _Callable
+                            TrySetSceneAsync: _Callable
+                            TrySetSceneWithAnimationAsync: _Callable
+
+                        class IMapControl3(IInspectable):
+                            add_MapRightTapped: _Callable
+                            remove_MapRightTapped: _Callable
+
+                        class IMapControl4(IInspectable):
+                            get_BusinessLandmarksEnabled: _Callable
+                            put_BusinessLandmarksEnabled: _Callable
+                            get_TransitFeaturesEnabled: _Callable
+                            put_TransitFeaturesEnabled: _Callable
+                            GetVisibleRegion: _Callable
+
+                        class IMapControl5(IInspectable):
+                            get_MapProjection: _Callable
+                            put_MapProjection: _Callable
+                            get_StyleSheet: _Callable
+                            put_StyleSheet: _Callable
+                            get_ViewPadding: _Callable
+                            put_ViewPadding: _Callable
+                            add_MapContextRequested: _Callable
+                            remove_MapContextRequested: _Callable
+                            FindMapElementsAtOffsetWithRadius: _Callable
+                            GetLocationFromOffsetWithReferenceSystem: _Callable
+                            StartContinuousPan: _Callable
+                            StopContinuousPan: _Callable
+                            TryPanAsync: _Callable
+                            TryPanToAsync: _Callable
+
+                        class IMapControl6(IInspectable):
+                            get_Layers: _Callable
+                            put_Layers: _Callable
+                            TryGetLocationFromOffset: _Callable
+                            TryGetLocationFromOffsetWithReferenceSystem: _Callable
+
+                        class IMapControl7(IInspectable):
+                            get_Region: _Callable
+                            put_Region: _Callable
+
+                        class IMapControl8(IInspectable):
+                            get_CanTiltDown: _Callable
+                            get_CanTiltUp: _Callable
+                            get_CanZoomIn: _Callable
+                            get_CanZoomOut: _Callable
+
+                        class IMapControlBusinessLandmarkClickEventArgs(IInspectable):
+                            get_LocalLocations: _Callable
+
+                        class IMapControlBusinessLandmarkPointerEnteredEventArgs(IInspectable):
+                            get_LocalLocations: _Callable
+
+                        class IMapControlBusinessLandmarkPointerExitedEventArgs(IInspectable):
+                            get_LocalLocations: _Callable
+
+                        class IMapControlBusinessLandmarkRightTappedEventArgs(IInspectable):
+                            get_LocalLocations: _Callable
+
+                        class IMapControlDataHelper(IInspectable):
+                            add_BusinessLandmarkClick: _Callable
+                            remove_BusinessLandmarkClick: _Callable
+                            add_TransitFeatureClick: _Callable
+                            remove_TransitFeatureClick: _Callable
+                            add_BusinessLandmarkRightTapped: _Callable
+                            remove_BusinessLandmarkRightTapped: _Callable
+                            add_TransitFeatureRightTapped: _Callable
+                            remove_TransitFeatureRightTapped: _Callable
+
+                        class IMapControlDataHelper2(IInspectable):
+                            add_BusinessLandmarkPointerEntered: _Callable
+                            remove_BusinessLandmarkPointerEntered: _Callable
+                            add_TransitFeaturePointerEntered: _Callable
+                            remove_TransitFeaturePointerEntered: _Callable
+                            add_BusinessLandmarkPointerExited: _Callable
+                            remove_BusinessLandmarkPointerExited: _Callable
+                            add_TransitFeaturePointerExited: _Callable
+                            remove_TransitFeaturePointerExited: _Callable
+
+                        class IMapControlDataHelperFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IMapControlDataHelperStatics(IInspectable):
+                            CreateMapControl: _Callable
+
+                        class IMapControlStatics(IInspectable):
+                            get_CenterProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                            get_ChildrenProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                            get_ColorSchemeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                            get_DesiredPitchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+                            get_HeadingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                            get_LandmarksVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
+                            get_LoadingStatusProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                            get_MapServiceTokenProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                   _type.HRESULT]
+                            get_PedestrianFeaturesVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                             _type.HRESULT]
+                            get_PitchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                            get_StyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                            get_TrafficFlowVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                      _type.HRESULT]
+                            get_TransformOriginProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                   _type.HRESULT]
+                            get_WatermarkModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                            get_ZoomLevelProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                            get_MapElementsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                            get_RoutesProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                            get_TileSourcesProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                            get_LocationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                            GetLocation: _Callable
+                            SetLocation: _Callable
+                            get_NormalizedAnchorPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                            GetNormalizedAnchorPoint: _Callable
+                            SetNormalizedAnchorPoint: _Callable
+
+                        class IMapControlStatics2(IInspectable):
+                            get_BusinessLandmarksVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                            _type.HRESULT]
+                            get_TransitFeaturesVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                          _type.HRESULT]
+                            get_PanInteractionModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                      _type.HRESULT]
+                            get_RotateInteractionModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                            get_TiltInteractionModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                       _type.HRESULT]
+                            get_ZoomInteractionModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                       _type.HRESULT]
+                            get_Is3DSupportedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                            get_IsStreetsideSupportedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                            get_SceneProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+
+                        class IMapControlStatics4(IInspectable):
+                            get_BusinessLandmarksEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                            _type.HRESULT]
+                            get_TransitFeaturesEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                          _type.HRESULT]
+
+                        class IMapControlStatics5(IInspectable):
+                            get_MapProjectionProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                            get_StyleSheetProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                            get_ViewPaddingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+
+                        class IMapControlStatics6(IInspectable):
+                            get_LayersProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+
+                        class IMapControlStatics7(IInspectable):
+                            get_RegionProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+
+                        class IMapControlStatics8(IInspectable):
+                            get_CanTiltDownProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                            get_CanTiltUpProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                            get_CanZoomInProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                            get_CanZoomOutProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+
+                        class IMapControlTransitFeatureClickEventArgs(IInspectable):
+                            get_DisplayName: _Callable
+                            get_Location: _Callable
+                            get_TransitProperties: _Callable
+
+                        class IMapControlTransitFeaturePointerEnteredEventArgs(IInspectable):
+                            get_DisplayName: _Callable
+                            get_Location: _Callable
+                            get_TransitProperties: _Callable
+
+                        class IMapControlTransitFeaturePointerExitedEventArgs(IInspectable):
+                            get_DisplayName: _Callable
+                            get_Location: _Callable
+                            get_TransitProperties: _Callable
+
+                        class IMapControlTransitFeatureRightTappedEventArgs(IInspectable):
+                            get_DisplayName: _Callable
+                            get_Location: _Callable
+                            get_TransitProperties: _Callable
+
+                        class IMapCustomExperience(IInspectable):
+                            pass
+
+                        class IMapCustomExperienceChangedEventArgs(IInspectable):
+                            pass
+
+                        class IMapCustomExperienceFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IMapElement(IInspectable):
+                            get_ZIndex: _Callable
+                            put_ZIndex: _Callable
+                            get_Visible: _Callable
+                            put_Visible: _Callable
+
+                        class IMapElement2(IInspectable):
+                            get_MapTabIndex: _Callable
+                            put_MapTabIndex: _Callable
+
+                        class IMapElement3(IInspectable):
+                            get_MapStyleSheetEntry: _Callable
+                            put_MapStyleSheetEntry: _Callable
+                            get_MapStyleSheetEntryState: _Callable
+                            put_MapStyleSheetEntryState: _Callable
+                            get_Tag: _Callable
+                            put_Tag: _Callable
+
+                        class IMapElement3D(IInspectable):
+                            get_Location: _Callable
+                            put_Location: _Callable
+                            get_Model: _Callable
+                            put_Model: _Callable
+                            get_Heading: _Callable
+                            put_Heading: _Callable
+                            get_Pitch: _Callable
+                            put_Pitch: _Callable
+                            get_Roll: _Callable
+                            put_Roll: _Callable
+                            get_Scale: _Callable
+                            put_Scale: _Callable
+
+                        class IMapElement3DStatics(IInspectable):
+                            get_LocationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                            get_HeadingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                            get_PitchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                            get_RollProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                            get_ScaleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+
+                        class IMapElement4(IInspectable):
+                            get_IsEnabled: _Callable
+                            put_IsEnabled: _Callable
+
+                        class IMapElementClickEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElements: _Callable
+
+                        class IMapElementFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IMapElementPointerEnteredEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElement: _Callable
+
+                        class IMapElementPointerExitedEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElement: _Callable
+
+                        class IMapElementStatics(IInspectable):
+                            get_ZIndexProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                            get_VisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+
+                        class IMapElementStatics2(IInspectable):
+                            get_MapTabIndexProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+
+                        class IMapElementStatics3(IInspectable):
+                            get_MapStyleSheetEntryProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                      _type.HRESULT]
+                            get_MapStyleSheetEntryStateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                           _type.HRESULT]
+                            get_TagProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+
+                        class IMapElementStatics4(IInspectable):
+                            get_IsEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+
+                        class IMapElementsLayer(IInspectable):
+                            get_MapElements: _Callable
+                            put_MapElements: _Callable
+                            add_MapElementClick: _Callable
+                            remove_MapElementClick: _Callable
+                            add_MapElementPointerEntered: _Callable
+                            remove_MapElementPointerEntered: _Callable
+                            add_MapElementPointerExited: _Callable
+                            remove_MapElementPointerExited: _Callable
+                            add_MapContextRequested: _Callable
+                            remove_MapContextRequested: _Callable
+
+                        class IMapElementsLayerClickEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElements: _Callable
+
+                        class IMapElementsLayerContextRequestedEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElements: _Callable
+
+                        class IMapElementsLayerPointerEnteredEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElement: _Callable
+
+                        class IMapElementsLayerPointerExitedEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+                            get_MapElement: _Callable
+
+                        class IMapElementsLayerStatics(IInspectable):
+                            get_MapElementsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+
+                        class IMapIcon(IInspectable):
+                            get_Location: _Callable
+                            put_Location: _Callable
+                            get_Title: _Callable
+                            put_Title: _Callable
+                            get_NormalizedAnchorPoint: _Callable
+                            put_NormalizedAnchorPoint: _Callable
+                            get_Image: _Callable
+                            put_Image: _Callable
+
+                        class IMapIcon2(IInspectable):
+                            get_CollisionBehaviorDesired: _Callable
+                            put_CollisionBehaviorDesired: _Callable
+
+                        class IMapIconStatics(IInspectable):
+                            get_LocationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                            get_TitleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                            get_NormalizedAnchorPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+
+                        class IMapIconStatics2(IInspectable):
+                            get_CollisionBehaviorDesiredProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                            _type.HRESULT]
+
+                        class IMapInputEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+
+                        class IMapItemsControl(IInspectable):
+                            get_ItemsSource: _Callable
+                            put_ItemsSource: _Callable
+                            get_Items: _Callable
+                            get_ItemTemplate: _Callable
+                            put_ItemTemplate: _Callable
+
+                        class IMapItemsControlStatics(IInspectable):
+                            get_ItemsSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                            get_ItemsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                            get_ItemTemplateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+
+                        class IMapLayer(IInspectable):
+                            get_MapTabIndex: _Callable
+                            put_MapTabIndex: _Callable
+                            get_Visible: _Callable
+                            put_Visible: _Callable
+                            get_ZIndex: _Callable
+                            put_ZIndex: _Callable
+
+                        class IMapLayerFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IMapLayerStatics(IInspectable):
+                            get_MapTabIndexProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                            get_VisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                            get_ZIndexProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+
+                        class IMapModel3D(IInspectable):
+                            pass
+
+                        class IMapModel3DFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IMapModel3DStatics(IInspectable):
+                            CreateFrom3MFAsync: _Callable
+                            CreateFrom3MFWithShadingOptionAsync: _Callable
+
+                        class IMapPolygon(IInspectable):
+                            get_Path: _Callable
+                            put_Path: _Callable
+                            get_StrokeColor: _Callable
+                            put_StrokeColor: _Callable
+                            get_StrokeThickness: _Callable
+                            put_StrokeThickness: _Callable
+                            get_StrokeDashed: _Callable
+                            put_StrokeDashed: _Callable
+                            get_FillColor: _Callable
+                            put_FillColor: _Callable
+
+                        class IMapPolygon2(IInspectable):
+                            get_Paths: _Callable
+
+                        class IMapPolygonStatics(IInspectable):
+                            get_PathProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                            get_StrokeThicknessProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                   _type.HRESULT]
+                            get_StrokeDashedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+
+                        class IMapPolyline(IInspectable):
+                            get_Path: _Callable
+                            put_Path: _Callable
+                            get_StrokeColor: _Callable
+                            put_StrokeColor: _Callable
+                            get_StrokeThickness: _Callable
+                            put_StrokeThickness: _Callable
+                            get_StrokeDashed: _Callable
+                            put_StrokeDashed: _Callable
+
+                        class IMapPolylineStatics(IInspectable):
+                            get_PathProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                            get_StrokeDashedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+
+                        class IMapRightTappedEventArgs(IInspectable):
+                            get_Position: _Callable
+                            get_Location: _Callable
+
+                        class IMapRouteView(IInspectable):
+                            get_RouteColor: _Callable
+                            put_RouteColor: _Callable
+                            get_OutlineColor: _Callable
+                            put_OutlineColor: _Callable
+                            get_Route: _Callable
+
+                        class IMapRouteViewFactory(IInspectable):
+                            CreateInstanceWithMapRoute: _Callable
+
+                        class IMapScene(IInspectable):
+                            get_TargetCamera: _Callable
+                            add_TargetCameraChanged: _Callable
+                            remove_TargetCameraChanged: _Callable
+
+                        class IMapSceneStatics(IInspectable):
+                            CreateFromBoundingBox: _Callable
+                            CreateFromBoundingBoxWithHeadingAndPitch: _Callable
+                            CreateFromCamera: _Callable
+                            CreateFromLocation: _Callable
+                            CreateFromLocationWithHeadingAndPitch: _Callable
+                            CreateFromLocationAndRadius: _Callable
+                            CreateFromLocationAndRadiusWithHeadingAndPitch: _Callable
+                            CreateFromLocations: _Callable
+                            CreateFromLocationsWithHeadingAndPitch: _Callable
+
+                        class IMapStyleSheet(IInspectable):
+                            pass
+
+                        class IMapStyleSheetEntriesStatics(IInspectable):
+                            get_Area: _Callable
+                            get_Airport: _Callable
+                            get_Cemetery: _Callable
+                            get_Continent: _Callable
+                            get_Education: _Callable
+                            get_IndigenousPeoplesReserve: _Callable
+                            get_Island: _Callable
+                            get_Medical: _Callable
+                            get_Military: _Callable
+                            get_Nautical: _Callable
+                            get_Neighborhood: _Callable
+                            get_Runway: _Callable
+                            get_Sand: _Callable
+                            get_ShoppingCenter: _Callable
+                            get_Stadium: _Callable
+                            get_Vegetation: _Callable
+                            get_Forest: _Callable
+                            get_GolfCourse: _Callable
+                            get_Park: _Callable
+                            get_PlayingField: _Callable
+                            get_Reserve: _Callable
+                            get_Point: _Callable
+                            get_NaturalPoint: _Callable
+                            get_Peak: _Callable
+                            get_VolcanicPeak: _Callable
+                            get_WaterPoint: _Callable
+                            get_PointOfInterest: _Callable
+                            get_Business: _Callable
+                            get_FoodPoint: _Callable
+                            get_PopulatedPlace: _Callable
+                            get_Capital: _Callable
+                            get_AdminDistrictCapital: _Callable
+                            get_CountryRegionCapital: _Callable
+                            get_RoadShield: _Callable
+                            get_RoadExit: _Callable
+                            get_Transit: _Callable
+                            get_Political: _Callable
+                            get_CountryRegion: _Callable
+                            get_AdminDistrict: _Callable
+                            get_District: _Callable
+                            get_Structure: _Callable
+                            get_Building: _Callable
+                            get_EducationBuilding: _Callable
+                            get_MedicalBuilding: _Callable
+                            get_TransitBuilding: _Callable
+                            get_Transportation: _Callable
+                            get_Road: _Callable
+                            get_ControlledAccessHighway: _Callable
+                            get_HighSpeedRamp: _Callable
+                            get_Highway: _Callable
+                            get_MajorRoad: _Callable
+                            get_ArterialRoad: _Callable
+                            get_Street: _Callable
+                            get_Ramp: _Callable
+                            get_UnpavedStreet: _Callable
+                            get_TollRoad: _Callable
+                            get_Railway: _Callable
+                            get_Trail: _Callable
+                            get_WaterRoute: _Callable
+                            get_Water: _Callable
+                            get_River: _Callable
+                            get_RouteLine: _Callable
+                            get_WalkingRoute: _Callable
+                            get_DrivingRoute: _Callable
+
+                        class IMapStyleSheetEntryStatesStatics(IInspectable):
+                            get_Disabled: _Callable
+                            get_Hover: _Callable
+                            get_Selected: _Callable
+
+                        class IMapStyleSheetStatics(IInspectable):
+                            Aerial: _Callable
+                            AerialWithOverlay: _Callable
+                            RoadLight: _Callable
+                            RoadDark: _Callable
+                            RoadHighContrastLight: _Callable
+                            RoadHighContrastDark: _Callable
+                            Combine: _Callable
+                            ParseFromJson: _Callable
+                            TryParseFromJson: _Callable
+
+                        class IMapTargetCameraChangedEventArgs(IInspectable):
+                            get_Camera: _Callable
+
+                        class IMapTargetCameraChangedEventArgs2(IInspectable):
+                            get_ChangeReason: _Callable
+
+                        class IMapTileBitmapRequest(IInspectable):
+                            get_PixelData: _Callable
+                            put_PixelData: _Callable
+                            GetDeferral: _Callable
+
+                        class IMapTileBitmapRequestDeferral(IInspectable):
+                            Complete: _Callable
+
+                        class IMapTileBitmapRequestedEventArgs(IInspectable):
+                            get_X: _Callable
+                            get_Y: _Callable
+                            get_ZoomLevel: _Callable
+                            get_Request: _Callable
+
+                        class IMapTileBitmapRequestedEventArgs2(IInspectable):
+                            get_FrameIndex: _Callable
+
+                        class IMapTileDataSource(IInspectable):
+                            pass
+
+                        class IMapTileDataSourceFactory(IInspectable):
+                            CreateInstance: _Callable
+
+                        class IMapTileSource(IInspectable):
+                            get_DataSource: _Callable
+                            put_DataSource: _Callable
+                            get_Layer: _Callable
+                            put_Layer: _Callable
+                            get_ZoomLevelRange: _Callable
+                            put_ZoomLevelRange: _Callable
+                            get_Bounds: _Callable
+                            put_Bounds: _Callable
+                            get_AllowOverstretch: _Callable
+                            put_AllowOverstretch: _Callable
+                            get_IsFadingEnabled: _Callable
+                            put_IsFadingEnabled: _Callable
+                            get_IsTransparencyEnabled: _Callable
+                            put_IsTransparencyEnabled: _Callable
+                            get_IsRetryEnabled: _Callable
+                            put_IsRetryEnabled: _Callable
+                            get_ZIndex: _Callable
+                            put_ZIndex: _Callable
+                            get_TilePixelSize: _Callable
+                            put_TilePixelSize: _Callable
+                            get_Visible: _Callable
+                            put_Visible: _Callable
+
+                        class IMapTileSource2(IInspectable):
+                            get_AnimationState: _Callable
+                            get_AutoPlay: _Callable
+                            put_AutoPlay: _Callable
+                            get_FrameCount: _Callable
+                            put_FrameCount: _Callable
+                            get_FrameDuration: _Callable
+                            put_FrameDuration: _Callable
+                            Pause: _Callable
+                            Play: _Callable
+                            Stop: _Callable
+
+                        class IMapTileSourceFactory(IInspectable):
+                            CreateInstance: _Callable
+                            CreateInstanceWithDataSource: _Callable
+                            CreateInstanceWithDataSourceAndZoomRange: _Callable
+                            CreateInstanceWithDataSourceZoomRangeAndBounds: _Callable
+                            CreateInstanceWithDataSourceZoomRangeBoundsAndTileSize: _Callable
+
+                        class IMapTileSourceStatics(IInspectable):
+                            get_DataSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                            get_LayerProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                            get_ZoomLevelRangeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                            get_BoundsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                            get_AllowOverstretchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
+                            get_IsFadingEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                   _type.HRESULT]
+                            get_IsTransparencyEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                            get_IsRetryEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                            get_ZIndexProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                            get_TilePixelSizeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                            get_VisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+
+                        class IMapTileSourceStatics2(IInspectable):
+                            get_AnimationStateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                            get_AutoPlayProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                            get_FrameCountProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                            get_FrameDurationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+
+                        class IMapTileUriRequest(IInspectable):
+                            get_Uri: _Callable
+                            put_Uri: _Callable
+                            GetDeferral: _Callable
+
+                        class IMapTileUriRequestDeferral(IInspectable):
+                            Complete: _Callable
+
+                        class IMapTileUriRequestedEventArgs(IInspectable):
+                            get_X: _Callable
+                            get_Y: _Callable
+                            get_ZoomLevel: _Callable
+                            get_Request: _Callable
+
+                        class IMapTileUriRequestedEventArgs2(IInspectable):
+                            get_FrameIndex: _Callable
+
+                        class IStreetsideExperience(IInspectable):
+                            get_AddressTextVisible: _Callable
+                            put_AddressTextVisible: _Callable
+                            get_CursorVisible: _Callable
+                            put_CursorVisible: _Callable
+                            get_OverviewMapVisible: _Callable
+                            put_OverviewMapVisible: _Callable
+                            get_StreetLabelsVisible: _Callable
+                            put_StreetLabelsVisible: _Callable
+                            get_ExitButtonVisible: _Callable
+                            put_ExitButtonVisible: _Callable
+                            get_ZoomButtonsVisible: _Callable
+                            put_ZoomButtonsVisible: _Callable
+
+                        class IStreetsideExperienceFactory(IInspectable):
+                            CreateInstanceWithPanorama: _Callable
+                            CreateInstanceWithPanoramaHeadingPitchAndFieldOfView: _Callable
+
+                        class IStreetsidePanorama(IInspectable):
+                            get_Location: _Callable
+
+                        class IStreetsidePanoramaStatics(IInspectable):
+                            FindNearbyWithLocationAsync: _Callable
+                            FindNearbyWithLocationAndRadiusAsync: _Callable
 
                 class Primitives:
                     class _IDragCompletedEventHandler:
@@ -16364,34 +18058,68 @@ class Windows:
                     CreateInstance: _Callable
 
                 class IXamlUIPresenter(IInspectable):
-                    get_RootElement: _Callable
-                    put_RootElement: _Callable
-                    get_ThemeKey: _Callable
-                    put_ThemeKey: _Callable
-                    get_ThemeResourcesXaml: _Callable
-                    put_ThemeResourcesXaml: _Callable
-                    SetSize: _Callable
-                    Render: _Callable
-                    Present: _Callable
+                    get_RootElement: _Callable[[_Pointer[Windows.UI.Xaml.IUIElement]],
+                                               _type.HRESULT]
+                    put_RootElement: _Callable[[_Pointer[Windows.UI.Xaml.IUIElement]],
+                                               _type.HRESULT]
+                    get_ThemeKey: _Callable[[_Pointer[_type.HSTRING]],
+                                            _type.HRESULT]
+                    put_ThemeKey: _Callable[[_type.HSTRING],
+                                            _type.HRESULT]
+                    get_ThemeResourcesXaml: _Callable[[_Pointer[_type.HSTRING]],
+                                                      _type.HRESULT]
+                    put_ThemeResourcesXaml: _Callable[[_type.HSTRING],
+                                                      _type.HRESULT]
+                    SetSize: _Callable[[_type.INT32,
+                                        _type.INT32],
+                                       _type.HSTRING]
+                    Render: _Callable[[],
+                                      _type.HRESULT]
+                    Present: _Callable[[],
+                                       _type.HRESULT]
 
                 class IXamlUIPresenterHost(IInspectable):
-                    ResolveFileResource: _Callable
+                    ResolveFileResource: _Callable[[_type.HSTRING,
+                                                    _Pointer[_type.HSTRING]],
+                                                   _type.HRESULT]
 
                 class IXamlUIPresenterHost2(IInspectable):
-                    GetGenericXamlFilePath: _Callable
+                    GetGenericXamlFilePath: _Callable[[_Pointer[_type.HSTRING]],
+                                                      _type.HRESULT]
 
                 class IXamlUIPresenterHost3(IInspectable):
-                    ResolveDictionaryResource: _Callable
+                    ResolveDictionaryResource: _Callable[[Windows.UI.Xaml.IResourceDictionary,
+                                                          IInspectable,
+                                                          IInspectable,
+                                                          _Pointer[IInspectable]],
+                                                         _type.HRESULT]
 
                 class IXamlUIPresenterStatics(IInspectable):
-                    get_CompleteTimelinesAutomatically: _Callable
-                    put_CompleteTimelinesAutomatically: _Callable
-                    SetHost: _Callable
-                    NotifyWindowSizeChanged: _Callable
+                    get_CompleteTimelinesAutomatically: _Callable[[_Pointer[_type.boolean]],
+                                                                  _type.HRESULT]
+                    put_CompleteTimelinesAutomatically: _Callable[[_type.boolean],
+                                                                  _type.HRESULT]
+                    SetHost: _Callable[[Windows.UI.Xaml.Hosting.IXamlUIPresenterHost],
+                                       _type.HRESULT]
+                    NotifyWindowSizeChanged: _Callable[[],
+                                                       _type.HRESULT]
 
                 class IXamlUIPresenterStatics2(IInspectable):
-                    GetFlyoutPlacementTargetInfo: _Callable
-                    GetFlyoutPlacement: _Callable
+                    GetFlyoutPlacementTargetInfo: _Callable[[Windows.UI.Xaml.IFrameworkElement,
+                                                             _enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode,
+                                                             _Pointer[_enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode],
+                                                             _Pointer[_type.boolean],
+                                                             _Pointer[_struct.Windows.Foundation.Rect]],
+                                                            _type.HRESULT]
+                    GetFlyoutPlacement: _Callable[[_struct.Windows.Foundation.Rect,
+                                                   _struct.Windows.Foundation.Size,
+                                                   _struct.Windows.Foundation.Size,
+                                                   _struct.Windows.Foundation.Rect,
+                                                   _enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode,
+                                                   _type.boolean,
+                                                   _Pointer[_enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode],
+                                                   _Pointer[_struct.Windows.Foundation.Rect]],
+                                                  _type.HRESULT]
 
             class Markup:
                 class IComponentConnector(IInspectable):
@@ -16651,33 +18379,54 @@ class Windows:
                     pass
 
                 class IAcrylicBrush(IInspectable):
-                    get_BackgroundSource: _Callable
-                    put_BackgroundSource: _Callable
-                    get_TintColor: _Callable
-                    put_TintColor: _Callable
-                    get_TintOpacity: _Callable
-                    put_TintOpacity: _Callable
-                    get_TintTransitionDuration: _Callable
-                    put_TintTransitionDuration: _Callable
-                    get_AlwaysUseFallback: _Callable
-                    put_AlwaysUseFallback: _Callable
+                    get_BackgroundSource: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Media.AcrylicBackgroundSource]],
+                                                    _type.HRESULT]
+                    put_BackgroundSource: _Callable[[_enum.Windows.UI.Xaml.Media.AcrylicBackgroundSource],
+                                                    _type.HRESULT]
+                    get_TintColor: _Callable[[_Pointer[_struct.Windows.UI.Color]],
+                                             _type.HRESULT]
+                    put_TintColor: _Callable[[_Pointer[_struct.Windows.UI.Color]],
+                                             _type.HRESULT]
+                    get_TintOpacity: _Callable[[_Pointer[_type.DOUBLE]],
+                                               _type.HRESULT]
+                    put_TintOpacity: _Callable[[_type.DOUBLE],
+                                               _type.HRESULT]
+                    get_TintTransitionDuration: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                                          _type.HRESULT]
+                    put_TintTransitionDuration: _Callable[[_struct.Windows.Foundation.TimeSpan],
+                                                          _type.HRESULT]
+                    get_AlwaysUseFallback: _Callable[[_Pointer[_type.boolean]],
+                                                     _type.HRESULT]
+                    put_AlwaysUseFallback: _Callable[[_Pointer[_type.boolean]],
+                                                     _type.HRESULT]
 
                 class IAcrylicBrush2(IInspectable):
-                    get_TintLuminosityOpacity: _Callable
-                    put_TintLuminosityOpacity: _Callable
+                    get_TintLuminosityOpacity: _Callable[[_Pointer[Windows.Foundation.IReference[_type.DOUBLE]]],
+                                                         _type.HRESULT]
+                    put_TintLuminosityOpacity: _Callable[[Windows.Foundation.IReference[_type.DOUBLE]],
+                                                         _type.HRESULT]
 
                 class IAcrylicBrushFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.IAcrylicBrush]],
+                                              _type.HRESULT]
 
                 class IAcrylicBrushStatics(IInspectable):
-                    get_BackgroundSourceProperty: _Callable
-                    get_TintColorProperty: _Callable
-                    get_TintOpacityProperty: _Callable
-                    get_TintTransitionDurationProperty: _Callable
-                    get_AlwaysUseFallbackProperty: _Callable
+                    get_BackgroundSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_TintColorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_TintOpacityProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_TintTransitionDurationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                    get_AlwaysUseFallbackProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
 
                 class IAcrylicBrushStatics2(IInspectable):
-                    get_TintLuminosityOpacityProperty: _Callable
+                    get_TintLuminosityOpacityProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
 
                 class IArcSegment(IInspectable):
                     get_Point: _Callable
@@ -18078,3 +19827,135 @@ class Windows:
 
                     class ITransitionFactory(IInspectable):
                         pass
+
+            class Shapes:
+                class IEllipse(IInspectable):
+                    pass
+
+                class ILine(IInspectable):
+                    get_X1: _Callable
+                    put_X1: _Callable
+                    get_Y1: _Callable
+                    put_Y1: _Callable
+                    get_X2: _Callable
+                    put_X2: _Callable
+                    get_Y2: _Callable
+                    put_Y2: _Callable
+
+                class ILineStatics(IInspectable):
+                    get_X1Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                              _type.HRESULT]
+                    get_Y1Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                              _type.HRESULT]
+                    get_X2Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                              _type.HRESULT]
+                    get_Y2Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                              _type.HRESULT]
+
+                class IPath(IInspectable):
+                    get_Data: _Callable
+                    put_Data: _Callable
+
+                class IPathFactory(IInspectable):
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Shapes.IPath]],
+                                              _type.HRESULT]
+
+                class IPathStatics(IInspectable):
+                    get_DataProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
+
+                class IPolygon(IInspectable):
+                    get_FillRule: _Callable
+                    put_FillRule: _Callable
+                    get_Points: _Callable
+                    put_Points: _Callable
+
+                class IPolygonStatics(IInspectable):
+                    get_FillRuleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_PointsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+
+                class IPolyline(IInspectable):
+                    get_FillRule: _Callable
+                    put_FillRule: _Callable
+                    get_Points: _Callable
+                    put_Points: _Callable
+
+                class IPolylineStatics(IInspectable):
+                    get_FillRuleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_PointsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+
+                class IRectangle(IInspectable):
+                    get_RadiusX: _Callable
+                    put_RadiusX: _Callable
+                    get_RadiusY: _Callable
+                    put_RadiusY: _Callable
+
+                class IRectangleStatics(IInspectable):
+                    get_RadiusXProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_RadiusYProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+
+                class IShape(IInspectable):
+                    get_Fill: _Callable
+                    put_Fill: _Callable
+                    get_Stroke: _Callable
+                    put_Stroke: _Callable
+                    get_StrokeMiterLimit: _Callable
+                    put_StrokeMiterLimit: _Callable
+                    get_StrokeThickness: _Callable
+                    put_StrokeThickness: _Callable
+                    get_StrokeStartLineCap: _Callable
+                    put_StrokeStartLineCap: _Callable
+                    get_StrokeEndLineCap: _Callable
+                    put_StrokeEndLineCap: _Callable
+                    get_StrokeLineJoin: _Callable
+                    put_StrokeLineJoin: _Callable
+                    get_StrokeDashOffset: _Callable
+                    put_StrokeDashOffset: _Callable
+                    get_StrokeDashCap: _Callable
+                    put_StrokeDashCap: _Callable
+                    get_StrokeDashArray: _Callable
+                    put_StrokeDashArray: _Callable
+                    get_Stretch: _Callable
+                    put_Stretch: _Callable
+                    get_GeometryTransform: _Callable
+
+                class IShape2(IInspectable):
+                    GetAlphaMask: _Callable
+
+                class IShapeFactory(IInspectable):
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Shapes.IShape]],
+                                              _type.HRESULT]
+
+                class IShapeStatics(IInspectable):
+                    get_FillProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
+                    get_StrokeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+                    get_StrokeMiterLimitProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_StrokeThicknessProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_StrokeStartLineCapProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                    get_StrokeEndLineCapProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_StrokeLineJoinProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_StrokeDashOffsetProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_StrokeDashCapProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_StrokeDashArrayProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_StretchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]

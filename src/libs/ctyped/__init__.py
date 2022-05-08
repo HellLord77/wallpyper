@@ -69,6 +69,7 @@ def get_message(message: int) -> str:
 # noinspection PyShadowingBuiltins,PyShadowingNames
 def get_winrt_class_name(type: _builtins.type[CT]) -> str:
     namespace, name = type.__qualname__.rsplit('.', 1)
+    name = name.removesuffix('_impl')
     while name[-1].isdigit():
         name = name[:-1]
     return f'{namespace}.{name[1:].removesuffix("Statics").removesuffix("Factory")}'
@@ -143,8 +144,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
 @_contextlib.contextmanager
 def cast_com(obj: interface.IUnknown, type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type) as obj_:
-        # noinspection PyTypeChecker
-        yield obj_ if macro.SUCCEEDED(obj.QueryInterface(byref(macro.__uuidof(type)), pointer(obj_))) else None
+        yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*macro.IID_PPV_ARGS(obj_))) else None
 
 
 @_contextlib.contextmanager

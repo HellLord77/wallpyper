@@ -1747,6 +1747,15 @@ class COLORADJUSTMENT:
     caRedGreenTint: _type.SHORT = None
 
 
+# noinspection PyPep8Naming
+@_struct
+class DWM_BLURBEHIND:
+    dwFlags: _type.DWORD = None
+    fEnable: _type.BOOL = None
+    hRgnBlur: _type.HRGN = None
+    fTransitionOnMaximized: _type.BOOL = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID
