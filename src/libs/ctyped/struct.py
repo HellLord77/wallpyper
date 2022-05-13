@@ -1794,6 +1794,70 @@ class Windows:
         class TimeSpan:
             Duration: _type.INT64 = None
 
+        class Numerics:
+            @_struct
+            class Matrix3x2:
+                M11: _type.FLOAT = None
+                M12: _type.FLOAT = None
+                M21: _type.FLOAT = None
+                M22: _type.FLOAT = None
+                M31: _type.FLOAT = None
+                M32: _type.FLOAT = None
+
+            @_struct
+            class Matrix4x4:
+                M11: _type.FLOAT = None
+                M12: _type.FLOAT = None
+                M13: _type.FLOAT = None
+                M14: _type.FLOAT = None
+                M21: _type.FLOAT = None
+                M22: _type.FLOAT = None
+                M23: _type.FLOAT = None
+                M24: _type.FLOAT = None
+                M31: _type.FLOAT = None
+                M32: _type.FLOAT = None
+                M33: _type.FLOAT = None
+                M34: _type.FLOAT = None
+                M41: _type.FLOAT = None
+                M42: _type.FLOAT = None
+                M43: _type.FLOAT = None
+                M44: _type.FLOAT = None
+
+            @_struct
+            class Vector3:
+                X: _type.FLOAT = None
+                Y: _type.FLOAT = None
+                Z: _type.FLOAT = None
+
+            @_struct
+            class Plane:
+                Normal: Windows.Foundation.Numerics.Vector3 = None
+                D: _type.FLOAT = None
+
+            @_struct
+            class Quaternion:
+                X: _type.FLOAT = None
+                Y: _type.FLOAT = None
+                Z: _type.FLOAT = None
+                W: _type.FLOAT = None
+
+            @_struct
+            class Rational:
+                Numerator: _type.UINT32 = None
+                Denominator: _type.UINT32 = None
+
+            @_struct
+            class Vector2:
+                X: _type.FLOAT = None
+                Y: _type.FLOAT = None
+
+            @_struct
+            class Vector4:
+                X: _type.FLOAT = None
+                Y: _type.FLOAT = None
+                Z: _type.FLOAT = None
+                W: _type.FLOAT = None
+
     class UI:
         @_struct
         class Color:
@@ -1801,6 +1865,21 @@ class Windows:
             R: _type.BYTE = None
             G: _type.BYTE = None
             B: _type.BYTE = None
+
+        class Core:
+            @_struct
+            class CorePhysicalKeyStatus:
+                RepeatCount: _type.UINT32 = None
+                ScanCode: _type.UINT32 = None
+                IsExtendedKey: _type.boolean = None
+                IsMenuKeyDown: _type.boolean = None
+                WasKeyDown: _type.boolean = None
+                IsKeyReleased: _type.boolean = None
+
+            @_struct
+            class CoreProximityEvaluation:
+                Score: _type.INT32 = None
+                AdjustedScore: Windows.Foundation.Point = None
 
         class Text:
             @_struct
@@ -1822,6 +1901,13 @@ class Windows:
                 Right: _type.DOUBLE = None
                 Bottom: _type.DOUBLE = None
 
+            class Controls:
+                class Primitives:
+                    @_struct
+                    class GeneratorPosition:
+                        Index: _type.INT32 = None
+                        Offset: _type.INT32 = None
+
             class Interop:
                 @_struct
                 class TypeName:
@@ -1839,6 +1925,16 @@ class Windows:
                 class XmlnsDefinition:
                     XmlNamespace: _type.HSTRING = None
                     Namespace: _type.HSTRING = None
+
+            class Media:
+                @_struct
+                class Matrix:
+                    M11: _type.DOUBLE = None
+                    M12: _type.DOUBLE = None
+                    M21: _type.DOUBLE = None
+                    M22: _type.DOUBLE = None
+                    OffsetX: _type.DOUBLE = None
+                    OffsetY: _type.DOUBLE = None
 
 
 class _NamespaceMeta(type):

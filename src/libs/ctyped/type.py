@@ -318,8 +318,10 @@ def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPt
     type_ = _resolve_type(var)
     if isinstance(var, _typing._CallableGenericAlias):
         type_ = _ctypes.CFUNCTYPE(*type_)
-    for item_ in _MAGICS.items():  # TODO
+    for item_ in _MAGICS.items():  # TODO subclass
         setattr(type_, *item_)
+    if item != type_.__name__:
+        type_ = type(item, type_.__bases__, dict(vars(type_)))
     return type_
 
 

@@ -1064,6 +1064,29 @@ GpStatus = Status
 
 
 class Windows:
+    class ApplicationModel:
+        class DataTransfer:
+            class ClipboardHistoryItemsResultStatus(_Enum):
+                Success = _AUTO
+                AccessDenied = _AUTO
+                ClipboardHistoryDisabled = _AUTO
+
+            class DataPackageOperation(_Enum):
+                None_ = _AUTO
+                Copy = 0x1
+                Move = 0x2
+                Link = 0x4
+
+            class SetHistoryItemAsContentStatus(_Enum):
+                Success = _AUTO
+                AccessDenied = _AUTO
+                ItemDeleted = _AUTO
+
+            class ShareUITheme(_Enum):
+                Default = _AUTO
+                Light = _AUTO
+                Dark = _AUTO
+
     class Foundation:
         class AsyncStatus(_Enum):
             Started = _AUTO
@@ -1113,6 +1136,13 @@ class Windows:
             SizeArray = _AUTO
             RectArray = _AUTO
             OtherTypeArray = _AUTO
+
+        class Collections:
+            class CollectionChange(_Enum):
+                Reset = _AUTO
+                ItemInserted = _AUTO
+                ItemRemoved = _AUTO
+                ItemChanged = _AUTO
 
     class Storage:
         class ApplicationDataCreateDisposition(_Enum):
@@ -1220,6 +1250,98 @@ class Windows:
                 ReadAhead = 0x2
 
     class UI:
+        class Composition:
+            class AnimationPropertyAccessMode(_Enum):
+                None_ = _AUTO
+                ReadOnly = _AUTO
+                WriteOnly = _AUTO
+                ReadWrite = _AUTO
+
+        class Core:
+            class AppViewBackButtonVisibility(_Enum):
+                Visible = _AUTO
+                Collapsed = _AUTO
+                Disabled = _AUTO
+
+            class CoreAcceleratorKeyEventType(_Enum):
+                Character = 2
+                DeadCharacter = _AUTO
+                KeyDown = 0
+                KeyUp = _AUTO
+                SystemCharacter = 6
+                SystemDeadCharacter = _AUTO
+                SystemKeyDown = 4
+                SystemKeyUp = _AUTO
+                UnicodeCharacter = 8
+
+            class CoreCursorType(_Enum):
+                Arrow = _AUTO
+                Cross = _AUTO
+                Custom = _AUTO
+                Hand = _AUTO
+                Help = _AUTO
+                IBeam = _AUTO
+                SizeAll = _AUTO
+                SizeNortheastSouthwest = _AUTO
+                SizeNorthSouth = _AUTO
+                SizeNorthwestSoutheast = _AUTO
+                SizeWestEast = _AUTO
+                UniversalNo = _AUTO
+                UpArrow = _AUTO
+                Wait = _AUTO
+                Pin = _AUTO
+                Person = _AUTO
+
+            class CoreDispatcherPriority(_Enum):
+                Idle = -2
+                Low = _AUTO
+                Normal = _AUTO
+                High = _AUTO
+
+            class CoreIndependentInputFilters(_Enum):
+                None_ = _AUTO
+                MouseButton = 0x1
+                MouseWheel = 0x2
+                MouseHover = 0x4
+                PenWithBarrel = 0x8
+                PenInverted = 0x10
+
+            class CoreInputDeviceTypes(_Enum):
+                None_ = _AUTO
+                Touch = 0x1
+                Pen = 0x2
+                Mouse = 0x4
+
+            class CoreProcessEventsOption(_Enum):
+                ProcessOneAndAllPending = _AUTO
+                ProcessOneIfPresent = _AUTO
+                ProcessUntilQuit = _AUTO
+                ProcessAllIfPresent = _AUTO
+
+            class CoreProximityEvaluationScore(_Enum):
+                Closest = _AUTO
+                Farthest = 2147483647
+
+            class CoreVirtualKeyStates(_Enum):
+                None_ = _AUTO
+                Down = 0x1
+                Locked = 0x2
+
+            class CoreWindowActivationMode(_Enum):
+                None_ = _AUTO
+                Deactivated = _AUTO
+                ActivatedNotForeground = _AUTO
+                ActivatedInForeground = _AUTO
+
+            class CoreWindowActivationState(_Enum):
+                CodeActivated = _AUTO
+                Deactivated = _AUTO
+                PointerActivated = _AUTO
+
+            class CoreWindowFlowDirection(_Enum):
+                LeftToRight = _AUTO
+                RightToLeft = _AUTO
+
         class Notifications:
             class NotificationMirroring(_Enum):
                 Allowed = _AUTO
@@ -1278,6 +1400,11 @@ class Windows:
             class LetterCase(_Enum):
                 Lower = _AUTO
                 Upper = _AUTO
+
+            class TextDecorations(_Enum):
+                None_ = _AUTO
+                Underline = 0x1
+                Strikethrough = 0x2
 
         class ViewManagement:
             class ApplicationViewBoundsMode(_Enum):
@@ -1608,6 +1735,15 @@ class Windows:
                     InnerBorderEdge = _AUTO
                     OuterBorderEdge = _AUTO
 
+                class CandidateWindowAlignment(_Enum):
+                    Default = _AUTO
+                    BottomEdge = _AUTO
+
+                class CharacterCasing(_Enum):
+                    Normal = _AUTO
+                    Lower = _AUTO
+                    Upper = _AUTO
+
                 class ClickMode(_Enum):
                     Release = _AUTO
                     Press = _AUTO
@@ -1641,6 +1777,109 @@ class Windows:
                 class Orientation(_Enum):
                     Vertical = _AUTO
                     Horizontal = _AUTO
+
+                class PanelScrollingDirection(_Enum):
+                    None_ = _AUTO
+                    Forward = _AUTO
+                    Backward = _AUTO
+
+                class ParallaxSourceOffsetKind(_Enum):
+                    Absolute = _AUTO
+                    Relative = _AUTO
+
+                class PasswordRevealMode(_Enum):
+                    Peek = _AUTO
+                    Hidden = _AUTO
+                    Visible = _AUTO
+
+                class PivotHeaderFocusVisualPlacement(_Enum):
+                    ItemHeaders = _AUTO
+                    SelectedItemHeader = _AUTO
+
+                class PivotSlideInAnimationGroup(_Enum):
+                    Default = _AUTO
+                    GroupOne = _AUTO
+                    GroupTwo = _AUTO
+                    GroupThree = _AUTO
+
+                class RefreshPullDirection(_Enum):
+                    LeftToRight = _AUTO
+                    TopToBottom = _AUTO
+                    RightToLeft = _AUTO
+                    BottomToTop = _AUTO
+
+                class RefreshVisualizerOrientation(_Enum):
+                    Auto = _AUTO
+                    Normal = _AUTO
+                    Rotate90DegreesCounterclockwise = _AUTO
+                    Rotate270DegreesCounterclockwise = _AUTO
+
+                class RefreshVisualizerState(_Enum):
+                    Idle = _AUTO
+                    Peeking = _AUTO
+                    Interacting = _AUTO
+                    Pending = _AUTO
+                    Refreshing = _AUTO
+
+                class RequiresPointer(_Enum):
+                    Never = _AUTO
+                    WhenEngaged = _AUTO
+                    WhenFocused = _AUTO
+
+                class RichEditClipboardFormat(_Enum):
+                    AllFormats = _AUTO
+                    PlainText = _AUTO
+
+                class ScrollBarVisibility(_Enum):
+                    Disabled = _AUTO
+                    Auto = _AUTO
+                    Hidden = _AUTO
+                    Visible = _AUTO
+
+                class ScrollIntoViewAlignment(_Enum):
+                    Default = _AUTO
+                    Leading = _AUTO
+
+                class ScrollMode(_Enum):
+                    Disabled = _AUTO
+                    Enabled = _AUTO
+                    Auto = _AUTO
+
+                class SelectionMode(_Enum):
+                    Single = _AUTO
+                    Multiple = _AUTO
+                    Extended = _AUTO
+
+                class SnapPointsType(_Enum):
+                    None_ = _AUTO
+                    Optional = _AUTO
+                    Mandatory = _AUTO
+                    OptionalSingle = _AUTO
+                    MandatorySingle = _AUTO
+
+                class SplitViewDisplayMode(_Enum):
+                    Overlay = _AUTO
+                    Inline = _AUTO
+                    CompactOverlay = _AUTO
+                    CompactInline = _AUTO
+
+                class SplitViewPanePlacement(_Enum):
+                    Left = _AUTO
+                    Right = _AUTO
+
+                class StretchDirection(_Enum):
+                    UpOnly = _AUTO
+                    DownOnly = _AUTO
+                    Both = _AUTO
+
+                class SwipeBehaviorOnInvoked(_Enum):
+                    Auto = _AUTO
+                    Close = _AUTO
+                    RemainOpen = _AUTO
+
+                class SwipeMode(_Enum):
+                    Reveal = _AUTO
+                    Execute = _AUTO
 
                 class Symbol(_Enum):
                     Previous = 57600
@@ -1841,6 +2080,58 @@ class Windows:
                     Print = 59209
                     XboxOneConsole = 59792
 
+                class TreeViewSelectionMode(_Enum):
+                    None_ = _AUTO
+                    Single = _AUTO
+                    Multiple = _AUTO
+
+                class TwoPaneViewMode(_Enum):
+                    SinglePane = _AUTO
+                    Wide = _AUTO
+                    Tall = _AUTO
+
+                class TwoPaneViewPriority(_Enum):
+                    Pane1 = _AUTO
+                    Pane2 = _AUTO
+
+                class TwoPaneViewTallModeConfiguration(_Enum):
+                    SinglePane = _AUTO
+                    TopBottom = _AUTO
+                    BottomTop = _AUTO
+
+                class TwoPaneViewWideModeConfiguration(_Enum):
+                    SinglePane = _AUTO
+                    LeftRight = _AUTO
+                    RightLeft = _AUTO
+
+                class VirtualizationMode(_Enum):
+                    Standard = _AUTO
+                    Recycling = _AUTO
+
+                class WebViewExecutionMode(_Enum):
+                    SameThread = _AUTO
+                    SeparateThread = _AUTO
+                    SeparateProcess = _AUTO
+
+                class WebViewPermissionState(_Enum):
+                    Unknown = _AUTO
+                    Defer = _AUTO
+                    Allow = _AUTO
+                    Deny = _AUTO
+
+                class WebViewPermissionType(_Enum):
+                    Geolocation = _AUTO
+                    UnlimitedIndexedDBQuota = _AUTO
+                    Media = _AUTO
+                    PointerLock = _AUTO
+                    WebNotifications = _AUTO
+                    Screen = _AUTO
+                    ImmersiveView = _AUTO
+
+                class ZoomMode(_Enum):
+                    Disabled = _AUTO
+                    Enabled = _AUTO
+
                 class Primitives:
                     class FlyoutPlacementMode(_Enum):
                         Top = _AUTO
@@ -1902,6 +2193,18 @@ class Windows:
                         TouchIndicator = _AUTO
                         MouseIndicator = _AUTO
 
+                    class SnapPointsAlignment(_Enum):
+                        Near = _AUTO
+                        Center = _AUTO
+                        Far = _AUTO
+
+                    class TickPlacement(_Enum):
+                        None_ = _AUTO
+                        TopLeft = _AUTO
+                        BottomRight = _AUTO
+                        Outside = _AUTO
+                        Inline = _AUTO
+
             class Hosting:
                 class XamlSourceFocusNavigationReason(_Enum):
                     Programmatic = _AUTO
@@ -1914,8 +2217,88 @@ class Windows:
                     Down = _AUTO
 
             class Input:
+                class FocusInputDeviceKind(_Enum):
+                    None_ = _AUTO
+                    Mouse = _AUTO
+                    Touch = _AUTO
+                    Pen = _AUTO
+                    Keyboard = _AUTO
+                    GameController = _AUTO
+
+                class FocusNavigationDirection(_Enum):
+                    Next = _AUTO
+                    Previous = _AUTO
+                    Up = _AUTO
+                    Down = _AUTO
+                    Left = _AUTO
+                    Right = _AUTO
+                    None_ = _AUTO
+
+                class InputScopeNameValue(_Enum):
+                    Default = _AUTO
+                    Url = _AUTO
+                    EmailSmtpAddress = 5
+                    PersonalFullName = 7
+                    CurrencyAmountAndSymbol = 20
+                    CurrencyAmount = _AUTO
+                    DateMonthNumber = 23
+                    DateDayNumber = _AUTO
+                    DateYear = _AUTO
+                    Digits = 28
+                    Number = _AUTO
+                    Password = 31
+                    TelephoneNumber = _AUTO
+                    TelephoneCountryCode = _AUTO
+                    TelephoneAreaCode = _AUTO
+                    TelephoneLocalNumber = _AUTO
+                    TimeHour = 37
+                    TimeMinutesOrSeconds = _AUTO
+                    NumberFullWidth = _AUTO
+                    AlphanumericHalfWidth = _AUTO
+                    AlphanumericFullWidth = _AUTO
+                    Hiragana = 44
+                    KatakanaHalfWidth = _AUTO
+                    KatakanaFullWidth = _AUTO
+                    Hanja = _AUTO
+                    HangulHalfWidth = _AUTO
+                    HangulFullWidth = _AUTO
+                    Search = _AUTO
+                    Formula = _AUTO
+                    SearchIncremental = _AUTO
+                    ChineseHalfWidth = _AUTO
+                    ChineseFullWidth = _AUTO
+                    NativeScript = _AUTO
+                    Text = 57
+                    Chat = _AUTO
+                    NameOrPhoneNumber = _AUTO
+                    Private = _AUTO
+                    Maps = _AUTO
+                    NumericPassword = _AUTO
+                    NumericPin = _AUTO
+                    AlphanumericPin = _AUTO
+                    FormulaNumber = 67
+                    ChatWithoutEmoji = _AUTO
+
+                class KeyTipPlacementMode(_Enum):
+                    Auto = _AUTO
+                    Bottom = _AUTO
+                    Top = _AUTO
+                    Left = _AUTO
+                    Right = _AUTO
+                    Center = _AUTO
+                    Hidden = _AUTO
+
+                class KeyboardAcceleratorPlacementMode(_Enum):
+                    Auto = _AUTO
+                    Manual = _AUTO
+
+                class KeyboardNavigationMode(_Enum):
+                    Local = _AUTO
+                    Cycle = _AUTO
+                    Once = _AUTO
+
                 class ManipulationModes(_Enum):
-                    None_ = 0
+                    None_ = _AUTO
                     TranslateX = 0x1
                     TranslateY = 0x2
                     TranslateRailsX = 0x4
@@ -1928,6 +2311,42 @@ class Windows:
                     All = 0xffff
                     System = 0x10000
 
+                class StandardUICommandKind(_Enum):
+                    None_ = _AUTO
+                    Cut = _AUTO
+                    Copy = _AUTO
+                    Paste = _AUTO
+                    SelectAll = _AUTO
+                    Delete = _AUTO
+                    Share = _AUTO
+                    Save = _AUTO
+                    Close = _AUTO
+                    Pause = _AUTO
+                    Play = _AUTO
+                    Stop = _AUTO
+                    Forward = _AUTO
+                    Backward = _AUTO
+                    Undo = _AUTO
+                    Redo = _AUTO
+
+                class XYFocusKeyboardNavigationMode(_Enum):
+                    Auto = _AUTO
+                    Enabled = _AUTO
+                    Disabled = _AUTO
+
+                class XYFocusNavigationStrategy(_Enum):
+                    Auto = _AUTO
+                    Projection = _AUTO
+                    NavigationDirectionDistance = _AUTO
+                    RectilinearDistance = _AUTO
+
+                class XYFocusNavigationStrategyOverride(_Enum):
+                    None_ = _AUTO
+                    Auto = _AUTO
+                    Projection = _AUTO
+                    NavigationDirectionDistance = _AUTO
+                    RectilinearDistance = _AUTO
+
             class Interop:
                 class TypeKind(_Enum):
                     Primitive = _AUTO
@@ -1938,3 +2357,119 @@ class Windows:
                 class AcrylicBackgroundSource(_Enum):
                     HostBackdrop = _AUTO
                     Backdrop = _AUTO
+
+                class AlignmentX(_Enum):
+                    Left = _AUTO
+                    Center = _AUTO
+                    Right = _AUTO
+
+                class AlignmentY(_Enum):
+                    Top = _AUTO
+                    Center = _AUTO
+                    Bottom = _AUTO
+
+                class AudioCategory(_Enum):
+                    Other = _AUTO
+                    ForegroundOnlyMedia = _AUTO
+                    BackgroundCapableMedia = _AUTO
+                    Communications = _AUTO
+                    Alerts = _AUTO
+                    SoundEffects = _AUTO
+                    GameEffects = _AUTO
+                    GameMedia = _AUTO
+                    GameChat = _AUTO
+                    Speech = _AUTO
+                    Movie = _AUTO
+                    Media = _AUTO
+
+                class AudioDeviceType(_Enum):
+                    Console = _AUTO
+                    Multimedia = _AUTO
+                    Communications = _AUTO
+
+                class BrushMappingMode(_Enum):
+                    Absolute = _AUTO
+                    RelativeToBoundingBox = _AUTO
+
+                class ColorInterpolationMode(_Enum):
+                    ScRgbLinearInterpolation = _AUTO
+                    SRgbLinearInterpolation = _AUTO
+
+                class ElementCompositeMode(_Enum):
+                    Inherit = _AUTO
+                    SourceOver = _AUTO
+                    MinBlend = _AUTO
+
+                class FastPlayFallbackBehaviour(_Enum):
+                    Skip = _AUTO
+                    Hide = _AUTO
+                    Disable = _AUTO
+
+                class FillRule(_Enum):
+                    EvenOdd = _AUTO
+                    Nonzero = _AUTO
+
+                class GradientSpreadMethod(_Enum):
+                    Pad = _AUTO
+                    Reflect = _AUTO
+                    Repeat = _AUTO
+
+                class LoadedImageSourceLoadStatus(_Enum):
+                    Success = _AUTO
+                    NetworkError = _AUTO
+                    InvalidFormat = _AUTO
+                    Other = _AUTO
+
+                class MediaCanPlayResponse(_Enum):
+                    NotSupported = _AUTO
+                    Maybe = _AUTO
+                    Probably = _AUTO
+
+                class MediaElementState(_Enum):
+                    Closed = _AUTO
+                    Opening = _AUTO
+                    Buffering = _AUTO
+                    Playing = _AUTO
+                    Paused = _AUTO
+                    Stopped = _AUTO
+
+                class PenLineCapStyle(_Enum):
+                    Flat = _AUTO
+                    Square = _AUTO
+                    Round = _AUTO
+                    Triangle = _AUTO
+
+                class PenLineJoinStyle(_Enum):
+                    Miter = _AUTO
+                    Bevel = _AUTO
+                    Round = _AUTO
+
+                class RevealBrushState(_Enum):
+                    Normal = _AUTO
+                    PointerOver = _AUTO
+                    Pressed = _AUTO
+
+                class Stereo3DVideoPackingMode(_Enum):
+                    None_ = _AUTO
+                    SideBySide = _AUTO
+                    TopBottom = _AUTO
+
+                class Stereo3DVideoRenderMode(_Enum):
+                    Mono = _AUTO
+                    Stereo = _AUTO
+
+                class Stretch(_Enum):
+                    None_ = _AUTO
+                    Fill = _AUTO
+                    Uniform = _AUTO
+                    UniformToFill = _AUTO
+
+                class StyleSimulations(_Enum):
+                    None_ = _AUTO
+                    BoldSimulation = _AUTO
+                    ItalicSimulation = _AUTO
+                    BoldItalicSimulation = _AUTO
+
+                class SweepDirection(_Enum):
+                    Counterclockwise = _AUTO
+                    Clockwise = _AUTO

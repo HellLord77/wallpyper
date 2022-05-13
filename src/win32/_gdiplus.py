@@ -54,9 +54,7 @@ class _GdiplusToken(ctyped.type.ULONG_PTR):
             _GdiPlus.GdiplusShutdown(self)
 
 
-class _GdiplusBase(ctyped.type.c_void_p):
-    _valid = False
-
+class _GdiplusBase:
     # noinspection PyMissingConstructor
     def __init__(self):
         self._token = _GdiplusToken()
@@ -64,10 +62,8 @@ class _GdiplusBase(ctyped.type.c_void_p):
     def __del__(self):
         if self:
             self._del()
-            self.value = False
-
-    def __bool__(self):
-        return self._valid
+            self.value = None
+            self._token = None
 
     def __hash__(self):
         return id(self)
@@ -82,20 +78,20 @@ class _GdiplusBase(ctyped.type.c_void_p):
         raise NotImplementedError
 
 
-class Graphics(_GdiplusBase):
+class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
     def _del(self):
         _GdiPlus.GdipDeleteGraphics(self)
 
     @classmethod
     def from_hdc(cls, hdc: ctyped.type.HDC) -> Graphics:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(self))
+        _GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(self))
         return self
 
     @classmethod
     def from_image(cls, image: ctyped.type.GpImage) -> Graphics:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
+        _GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
         return self
 
     @staticmethod
@@ -150,12 +146,12 @@ class Graphics(_GdiplusBase):
         self.fill_rect(SolidFill.from_color(color), x, y, width, height)
 
 
-class Brush(_GdiplusBase):
+class Brush(_GdiplusBase, ctyped.type.GpBrush):
     def _del(self):
         _GdiPlus.GdipDeleteBrush(self)
 
 
-class Pen(_GdiplusBase):
+class Pen(_GdiplusBase, ctyped.type.GpPen):
     def _del(self):
         _GdiPlus.GdipDeletePen(self)
 
@@ -176,11 +172,11 @@ class Pen(_GdiplusBase):
         _GdiPlus.GdipSetPenWidth(self, width)
 
 
-class SolidFill(Brush):
+class SolidFill(Brush, ctyped.type.GpSolidFill):
     @classmethod
     def from_color(cls, color: ctyped.type.ARGB) -> SolidFill:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
+        _GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
         return self
 
     def get_color(self) -> ctyped.type.ARGB:
@@ -192,14 +188,14 @@ class SolidFill(Brush):
         _GdiPlus.GdipSetSolidFillColor(self, color)
 
 
-class Image(_GdiplusBase):
+class Image(_GdiplusBase, ctyped.type.GpImage):
     def _del(self):
         _GdiPlus.GdipDisposeImage(self)
 
     @classmethod
     def from_file(cls, path: str) -> Image:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(self))
+        _GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(self))
         return self
 
     @staticmethod
@@ -285,30 +281,30 @@ class Image(_GdiplusBase):
             quality_ = ctyped.type.LONG(quality)
             params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(
                 ctyped.get_guid(ctyped.const.EncoderQuality), 1,
-                ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.VOID))))
+                ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.PVOID))))
             return _GpStatus.Ok == _GdiPlus.GdipSaveImageToFile(self, path, encoder, ctyped.byref(params))
         return False
 
 
-class Bitmap(Image):
+class Bitmap(Image, ctyped.type.GpBitmap):
     @classmethod
     def from_dimension(cls, width: int, height: int,
                        pixel_format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipCreateBitmapFromScan0(
+        _GdiPlus.GdipCreateBitmapFromScan0(
             width, height, 0, pixel_format, None, ctyped.byref(self))
         return self
 
     @classmethod
     def from_file(cls, path: str) -> Bitmap:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(self))
+        _GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(self))
         return self
 
     @classmethod
     def from_graphics(cls, width: int, height: int, graphics: ctyped.type.GpGraphics) -> Bitmap:
         self = cls()
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipCreateBitmapFromGraphics(width, height, graphics, ctyped.byref(self))
+        _GdiPlus.GdipCreateBitmapFromGraphics(width, height, graphics, ctyped.byref(self))
         return self
 
     def get_hicon(self) -> ctyped.handle.HICON:
@@ -343,7 +339,7 @@ class Bitmap(Image):
         return _GpStatus.Ok == _GdiPlus.GdipBitmapSetResolution(self, dpi_x, dpi_y)
 
 
-class ImageAttributes(_GdiplusBase):
+class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
     def _del(self):
         _GdiPlus.GdipDisposeImageAttributes(self)
 
@@ -351,7 +347,7 @@ class ImageAttributes(_GdiplusBase):
     def from_color_matrix(cls, color_matrix: ctyped.struct.ColorMatrix) -> ImageAttributes:
         self = cls()
         _GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
-        self._valid = _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorMatrix(
+        _GdiPlus.GdipSetImageAttributesColorMatrix(
             self, ctyped.enum.ColorAdjustType.Default, True,
             ctyped.byref(color_matrix), None, ctyped.enum.ColorMatrixFlags.Default)
         return self

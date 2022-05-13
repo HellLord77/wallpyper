@@ -54,10 +54,10 @@ def copy_text(text: str, quote: Optional[str] = None) -> bool:
 def copy_image(path: str) -> bool:
     hbitmap = _gdiplus.Bitmap.from_file(path).get_hbitmap()
     bmp = ctyped.struct.BITMAP()
-    if (sz_bmp := ctyped.sizeof(ctyped.struct.BITMAP)) == ctyped.lib.Gdi32.GetObjectW(
-            hbitmap, sz_bmp, ctyped.byref(bmp)):
-        header = ctyped.struct.BITMAPINFOHEADER(biWidth=bmp.bmWidth, biHeight=bmp.bmHeight,
-                                                biBitCount=bmp.bmBitsPixel, biCompression=ctyped.const.BI_RGB)
+    if (sz_bmp := ctyped.sizeof(
+            ctyped.struct.BITMAP)) == ctyped.lib.Gdi32.GetObjectW(hbitmap.value, sz_bmp, ctyped.byref(bmp)):
+        header = ctyped.struct.BITMAPINFOHEADER(
+            biWidth=bmp.bmWidth, biHeight=bmp.bmHeight, biBitCount=bmp.bmBitsPixel, biCompression=ctyped.const.BI_RGB)
         sz = bmp.bmWidthBytes * bmp.bmHeight
         data = ctyped.array(type=ctyped.type.BYTE, size=sz)
         hdc = ctyped.handle.HDC.from_hwnd()

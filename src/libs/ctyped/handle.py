@@ -58,7 +58,7 @@ class HDC(_type.HDC):
     @classmethod
     def from_hbitmap(cls, hbitmap: _type.HBITMAP) -> HDC:
         self = cls(_lib.Gdi32.CreateCompatibleDC(None))
-        self._selected = _lib.Gdi32.SelectObject(self, hbitmap)
+        self._selected = _lib.Gdi32.SelectObject(self, hbitmap.value)
         return self
 
 
@@ -85,7 +85,7 @@ class HBITMAP(_type.HBITMAP):
     _height = None
 
     def __del__(self):
-        _lib.Gdi32.DeleteObject(self)
+        _lib.Gdi32.DeleteObject(self.value)
 
     @property
     def width(self) -> int:

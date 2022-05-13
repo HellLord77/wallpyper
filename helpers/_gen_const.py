@@ -2,6 +2,8 @@ import os
 import re
 from typing import Union
 
+from helpers import _test_winui
+
 _KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
 SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22000.0')
 NET_PATH = os.path.join(_KITS, 'NETFXSDK', '4.8', 'Include', 'um')
@@ -150,6 +152,21 @@ def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], l
             _Namespace.pop()
 
 
+def gen_winrt_impl_iid(file: str):
+    with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
+        data = f.read()
+
+    re_iid = re.compile(r'struct __declspec\(uuid\("(.*)"\)\)')
+    re_interface = re.compile(r'(I.*)<(ABI::.*::(.*)\*, )?.*::(.*)\*> :')
+
+    lines = data.split('\n')
+    for index in range(len(lines)):
+        if iid := re_iid.fullmatch(lines[index]):
+            if interface := re_interface.match(lines[index + 1]):
+                groups = interface.groups()
+                print(f'IID_{groups[0]}{f"_I{groups[2]}" if groups[2] else ""}_I{groups[3]} = \'{{{iid.groups()[0].upper()}}}\'')
+
+
 def gen_winrt_interface(file: str):
     with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
         data = f.read()
@@ -205,5 +222,29 @@ def set_const():
                 iids.add(grp[1])
 
 
+def underscore(word: str) -> str:
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
+    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
+    word = word.replace("-", "_")
+    return word.lower()
+
+
+def gen_properties(tp):
+    template = '''
+        @classmethod
+        @property
+        def {}(cls) -> DependencyProperty:
+            with ctyped.init_com(ctyped.interface.Windows.UI.Xaml.IDependencyProperty, False) as obj:
+                cls[ctyped.interface.{}].{}(ctyped.byref(obj))
+                return DependencyProperty(obj)'''
+    for static in tp._statics:
+        if static not in tp.__base__._statics:
+            for annot in static.__annotations__:
+                if annot.startswith('get_') and annot.endswith('Property'):
+                    print(template.format(underscore(annot[4:]), static.__qualname__, annot))
+
+
 if __name__ == '__main__':
-    gen_winrt_interface('windows.ui.xaml.media.animation.h')
+    # gen_winrt_impl_iid('windows.ui.xaml.h')
+    # gen_winrt_interface('Windows.ApplicationModel.DataTransfer.h')
+    gen_properties(_test_winui.SolidColorBrush)
