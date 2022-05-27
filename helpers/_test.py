@@ -9,9 +9,9 @@ from typing import Callable
 from typing import Optional
 
 import libs.ctyped as ctyped
-import win32
 import win32._gdiplus as _gdiplus
 import win32.gui as gui
+from libs.ctyped import winrt
 
 
 def exception_handler(excepthook: Callable, *args, **kwargs):
@@ -151,33 +151,58 @@ class ToastDismiss(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[
         return ctyped.const.NOERROR
 
 
+def hand_dismissed(sender: winrt.Windows.UI.Notifications.ToastNotification, args: winrt.Windows.UI.Notifications.ToastDismissedEventArgs):
+    print(args.reason)
+    return ctyped.const.NOERROR
+
+
+def activ(sender: winrt.Windows.UI.Notifications.ToastNotification, a):
+    print(winrt.Windows.UI.Notifications.ToastActivatedEventArgs(a).argument, a)
+    return 0
+
+
 def _test_toast():
     ctyped.THREADED_COM = True
     aumi = 'HellLord.Wallpyper'
     xml_data = '''
-<toast>
-    <visual>
-        <binding template="ToastGeneric">
-            <text>Sample toast</text>
-            <text>Sample content</text>
-        </binding>
-    </visual>
+<toast launch="action=viewDownload&amp;downloadId=9438108">
+  
+  <visual>
+    <binding template="ToastGeneric">
+      <text>Downloading this week's new music...</text>
+      <progress
+        title="{progressTitle}"
+        value="{progressValue}"
+        valueStringOverride="{progressValueString}"
+        status="{progressStatus}"/>
+    </binding>
+  </visual>
+
+  <actions>
+
+    <action
+      activationType="background"
+      arguments="action=pauseDownload&amp;downloadId=9438108"
+      content="Pause"/>
+
+    <action
+      activationType="background"
+      arguments="action=cancelDownload&amp;downloadId=9438108"
+      content="Cancel"/>
+    
+  </actions>
+  
 </toast>'''
 
-    with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationManagerStatics) as manager:
-        with ctyped.init_com(ctyped.interface.Windows.UI.Notifications.IToastNotifier, False) as notifier:
-            print(manager.CreateToastNotifierWithId(ctyped.handle.HSTRING.from_string(aumi), ctyped.byref(notifier)))
-            with ctyped.get_winrt(ctyped.interface.Windows.UI.Notifications.IToastNotificationFactory) as factory, win32.xml.loads(
-                    xml_data) as xml, ctyped.init_com(ctyped.interface.Windows.UI.Notifications.IToastNotification, False) as toast:
-                print(factory.CreateToastNotification(xml, ctyped.byref(toast)))
-                with ctyped.init_com(ToastDismiss, False) as on_dismissed:
-                    token = ctyped.struct.EventRegistrationToken()
-                    threading.Thread(target=toast.add_Dismissed, args=(on_dismissed, ctyped.byref(token))).start()
-                    notifier.Show(toast)
-                    print('wait')
-                    _wait()
-                    if token:
-                        toast.remove_Dismissed(token)
+    notifier = winrt.Windows.UI.Notifications.ToastNotificationManager.create_toast_notifier_with_id(aumi)
+    xml = winrt.Windows.Data.Xml.Dom.XmlDocument()
+    xml.load_xml(xml_data)
+    toast = winrt.Windows.UI.Notifications.ToastNotification.create_toast_notification(xml)
+    toast.activated += winrt.Windows.Foundation.TypedEventHandlerToastNotificationInspectable.create_instance(activ)
+    toast.dismissed += winrt.Windows.Foundation.TypedEventHandlerToastNotificationToastDismissedEventArgs.create_instance(hand_dismissed)
+    notifier.show(toast)
+    print('wait')
+    _wait()
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -206,8 +231,71 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
     return compatibility
 
 
+class C1:
+    pass
+
+
+class ProxyC1(type(C1)):
+    def __eq__(self, other):
+        return other in (C1, C2)
+
+    def __hash__(self):
+        return hash(C1)
+
+
+class C2(metaclass=ProxyC1):
+    pass
+
+
 if __name__ == '__main__':
-    print(ctyped.get_winrt_class_name(ctyped.interface.Windows.Foundation.IAsyncActionProgressHandler_impl))
+    d = {C1: 67}
+    print(hash(C1))
+    print(hash(C2))
+    print(d[C2])
+
+    path = r'D:\MMDs\洛天依  -  倾杯.mp4'
+    path2 = r'D:\test.mp4'
+    op = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path, ctyped.enum.Windows.Storage.FileAccessMode.Read)
+    event = threading.Event()
+
+
+    def handle(*_):
+        event.set()
+        print(*_)
+        return 0
+
+
+    op.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handle)
+    event.wait()
+    in_stream = op.get_results()
+    print(in_stream.size)
+
+    open(path2, 'w').close()
+    op_out = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path2, ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite)
+    event.clear()
+    op_out.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handle)
+    event.wait()
+    out_stream = op_out.get_results()
+
+
+    def progress(*_):
+        print(*_)
+        return 0
+
+
+    op_copy = winrt.Windows.Storage.Streams.RandomAccessStream.copy_async(in_stream, out_stream)
+    event.clear()
+    op_copy.progress = winrt.Windows.Foundation.AsyncOperationProgressHandlerUINT64UINT64.create_instance(progress)
+    op_copy.completed = winrt.Windows.Foundation.AsyncOperationWithProgressCompletedHandlerUINT64UINT64.create_instance(handle)
+    event.wait()
+
+    in_stream.close()
+    out_stream.close()
+
+    # print(ctyped.get_winrt_class_name(ctyped.interface.Windows.Foundation.Collections.IMap[ctyped.type.HSTRING, ctyped.type.HSTRING]))
+    # map_hs = winrt.Windows.Foundation.Collections.MapHSTRINGHSTRING()
+    # print(map_hs.size)
+    # print(ctyped.get_winrt_class_name(ctyped.interface.Windows.Foundation.IAsyncActionProgressHandler_impl))
     # print(win32.wallpaper.save_lock(r'd:\lock.jpg'))
     # _test_toast()
     # _test_gui()

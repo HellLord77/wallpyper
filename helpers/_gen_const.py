@@ -2,8 +2,6 @@ import os
 import re
 from typing import Union
 
-from helpers import _test_winui
-
 _KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
 SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22000.0')
 NET_PATH = os.path.join(_KITS, 'NETFXSDK', '4.8', 'Include', 'um')
@@ -152,7 +150,7 @@ def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], l
             _Namespace.pop()
 
 
-def gen_winrt_impl_iid(file: str):
+def gen_template_iid(file: str):
     with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
         data = f.read()
 
@@ -234,9 +232,9 @@ def gen_properties(tp):
         @classmethod
         @property
         def {}(cls) -> DependencyProperty:
-            with ctyped.init_com(ctyped.interface.Windows.UI.Xaml.IDependencyProperty, False) as obj:
-                cls[ctyped.interface.{}].{}(ctyped.byref(obj))
-                return DependencyProperty(obj)'''
+            obj = interface.Windows.UI.Xaml.IDependencyProperty()
+            cls[interface.{}].{}(byref(obj))
+            return DependencyProperty(obj)'''
     for static in tp._statics:
         if static not in tp.__base__._statics:
             for annot in static.__annotations__:
@@ -244,7 +242,33 @@ def gen_properties(tp):
                     print(template.format(underscore(annot[4:]), static.__qualname__, annot))
 
 
+def _print_generated_files_iid(iids: dict[str, Union[str, dict]], intend: str = ''):
+    for name in iids:
+        if isinstance(iids[name], str):
+            print(f"{intend}IID_{name} = '{{{iids[name]}}}'")
+        else:
+            print(f'{intend}class {name}:')
+            _print_generated_files_iid(iids[name], f'{intend}    ')
+
+
+def gen_generated_files_iid(base: str):
+    iid = {}
+    for file in os.listdir(base):
+        if file.endswith('.h'):
+            with open(os.path.join(base, file), 'r') as f:
+                for match in re.finditer(r'\s\s\s\stemplate <> inline constexpr guid guid_v<winrt::(.*)>{ .*// (.*)', f.read()):
+                    groups = match.groups()
+                    dct = iid
+                    namespaces = groups[0].split('::')
+                    for namespace in namespaces[:-1]:
+                        dct[namespace] = dct.get(namespace, {})
+                        dct = dct[namespace]
+                    dct[namespaces[-1]] = groups[1]
+    _print_generated_files_iid(iid)
+
+
 if __name__ == '__main__':
-    # gen_winrt_impl_iid('windows.ui.xaml.h')
-    # gen_winrt_interface('Windows.ApplicationModel.DataTransfer.h')
-    gen_properties(_test_winui.SolidColorBrush)
+    gen_template_iid('windows.web.http.h')
+    # gen_winrt_interface('Windows.storage.FileProperties.h')
+    # gen_properties(winrt.Windows.UI.Xaml.Controls.ToolTipService)
+    # gen_generated_files_iid(r'D:\Projects\MyDesktopWin32App\x64\Debug\Generated Files\winrt\impl')

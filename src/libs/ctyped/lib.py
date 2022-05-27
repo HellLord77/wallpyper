@@ -4,7 +4,7 @@ import ctypes as _ctypes
 import typing as _typing
 from typing import Callable as _Callable, Optional as _Optional
 
-from . import enum as _enum, interface as _interface, struct as _struct, type as _type, union as _union
+from . import const as _const, enum as _enum, interface as _interface, struct as _struct, type as _type, union as _union
 from ._utils import _Pointer, _format_annotations, _func_doc, _resolve_type
 
 
@@ -29,10 +29,17 @@ def _init(self, name: str):
             try:
                 func = self._lib[self._funcs[name]]
             except KeyError:
-                raise AttributeError(f"Lib '{self.__name__}' has no function '{name}'")
+                raise AttributeError(f"Lib '{self.__qualname__}' has no function '{name}'")
             except TypeError:
-                self._lib = _ctypes.pythonapi if self is Python else getattr(
-                    getattr(_ctypes, type(self).__name__[1:].lower()), self.__name__)
+                if self is Python:
+                    self._lib = _ctypes.pythonapi
+                else:
+                    name_ = self.__qualname__
+                    mode = _ctypes.DEFAULT_MODE
+                    if isinstance(self, _WinDLL):
+                        name_ = f'{name_}.dll'
+                        mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+                    self._lib = getattr(_ctypes, type(self).__name__[1:])(name_, mode)
         annot = _format_annotations(self.__annotations__[name])
         func.restype, *func.argtypes = _resolve_type(self._annots[name])
         if self._errcheck is not None:
@@ -366,12 +373,28 @@ class ComputeCore(_WinFunc):
 
 class Dwmapi(_WinFunc):
     # dwmapi
+    DwmDefWindowProc: _Callable[[_type.HWND,
+                                 _type.UINT,
+                                 _type.WPARAM,
+                                 _type.LPARAM,
+                                 _Pointer[_type.LRESULT]],
+                                _type.BOOL]
     DwmEnableComposition: _Callable[[_type.UINT],
                                     _type.HRESULT]
     DwmEnableMMCSS: _Callable[[_type.BOOL],
                               _type.HRESULT]
+    DwmExtendFrameIntoClientArea: _Callable[[_type.HWND,
+                                             _Pointer[_struct.MARGINS]],
+                                            _type.HRESULT]
     DwmGetColorizationColor: _Callable[[_Pointer[_type.DWORD],
                                         _Pointer[_type.BOOL]],
+                                       _type.HRESULT]
+    DwmGetWindowAttribute: _Callable[[_type.HWND,
+                                      _type.DWORD,
+                                      _type.PVOID,
+                                      _type.DWORD],
+                                     _type.HRESULT]
+    DwmIsCompositionEnabled: _Callable[[_Pointer[_type.BOOL]],
                                        _type.HRESULT]
     DwmModifyPreviousDxFrameDuration: _Callable[[_type.HWND,
                                                  _type.INT,
@@ -1665,6 +1688,10 @@ class Kernel32(_WinFunc):
                                     _type.BOOL]
     ReleaseActCtx: _Callable[[_type.HANDLE],
                              _type.VOID]
+    SetDllDirectoryA: _Callable[[_Optional[_type.LPCSTR]],
+                                _type.BOOL]
+    SetDllDirectoryW: _Callable[[_Optional[_type.LPCWSTR]],
+                                _type.BOOL]
     SetSystemPowerState: _Callable[[_type.BOOL,
                                     _type.BOOL],
                                    _type.BOOL]
@@ -3835,3 +3862,20 @@ class UxTheme(_WinFunc):
                                       _type.LONG,
                                       _type.BOOL],
                                      _type.BOOL]
+
+
+class Microsoft:
+    class UI:
+        class Xaml(_WinFunc):
+            DllGetActivationFactory: _Callable[[_type.HSTRING,
+                                                _Pointer[_interface.IActivationFactory]],
+                                               _type.HRESULT]
+
+    class WindowsAppRuntime:
+        class Bootstrap(_WinFunc):
+            MddBootstrapInitialize: _Callable[[_type.UINT32,
+                                               _type.PCWSTR,
+                                               _struct.PACKAGE_VERSION],
+                                              _type.HRESULT]
+            MddBootstrapShutdown: _Callable[[],
+                                            _type.c_void]

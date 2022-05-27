@@ -157,6 +157,15 @@ def _fields_repr(self) -> str:
     return f'{type(self).__name__}({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
 
 
+# noinspection PyShadowingBuiltins
+def _get_namespace(type: type, base: _Optional[_types.ModuleType] = None):
+    if base is None:
+        base = _inspect.getmodule(type)
+    for namespace in type.__qualname__.split('.')[:-1]:
+        base = getattr(base, namespace)
+    return base
+
+
 def _replace_object(old, new):
     _gc.collect()
     for referrer in _gc.get_referrers(old):

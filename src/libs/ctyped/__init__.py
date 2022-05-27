@@ -1,17 +1,18 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.14'
+__version__ = '0.2.15'
 
 import builtins as _builtins
 import contextlib as _contextlib
 import functools as _functools
 import threading as _threading
+import types as _types
 import typing as _typing
-from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
-                    Generic as _Generic, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional)
+from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager, Generic as _Generic,
+                    Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
 from . import const, enum, handle, interface, lib, macro, struct, type, union
-from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
+from ._utils import (_get_namespace, _CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
                      _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
 _MESSAGES = {val: name for name, val in vars(const).items() if name.startswith('WM_')}
@@ -66,17 +67,31 @@ def get_message(message: int) -> str:
     return _MESSAGES.get(message, f'WM_{message}')
 
 
+def get_interface_name(iid: str, base: _Union[type, _types.ModuleType] = const) -> _Optional[str]:
+    for var, val in vars(base).items():
+        if isinstance(val, _builtins.type):
+            if name := get_interface_name(iid, val):
+                return name
+        elif iid == val:
+            return var.removeprefix('IID_')
+
+
 # noinspection PyShadowingBuiltins,PyShadowingNames
 def get_winrt_class_name(type: _builtins.type[CT]) -> str:
     namespace, name = type.__qualname__.rsplit('.', 1)
-    name = name.removesuffix('_impl')
+    name = name.removeprefix('I').removesuffix('_impl')
     while name[-1].isdigit():
         name = name[:-1]
-    return f'{namespace}.{name[1:].removesuffix("Statics").removesuffix("Factory")}'
+    name_ = ''
+    while name != name_:
+        name_ = name
+        for suffix in ('Factory', 'RuntimeClass', 'Statics', 'WithFlyout'):
+            name = name.removesuffix(suffix)
+    return f'{namespace}.{name}'
 
 
-# noinspection PyProtectedMember
-def set_result_checker(library: lib._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
+# noinspection PyProtectedMember,PyShadowingNames
+def set_result_checker(lib: lib._CDLL, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
                        args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None):
     if args is None:
         args = ()
@@ -88,16 +103,24 @@ def set_result_checker(library: lib._CDLL, callback: _Optional[_Callable[[_Any, 
         callback(res, *args_, *args, **kwargs)
         return res
 
-    library._errcheck = errcheck
+    lib._errcheck = errcheck
     # noinspection PyUnresolvedReferences
-    if library._funcs:
+    if lib._funcs:
         # noinspection PyUnresolvedReferences
-        for func in set(library._funcs).intersection(dir(library)):
-            getattr(library, func).errcheck = errcheck
+        for func in set(lib._funcs).intersection(dir(lib)):
+            getattr(lib, func).errcheck = errcheck
 
 
-def create_handler_impl(handler: _Callable[[...], type.HRESULT], impl_type: _builtins.type[CT], name: _Optional[str] = None) -> CT:
-    return _builtins.type(f'{__name__}-{__version__}-{impl_type.__name__}({handler.__name__})' if name is None else name, (impl_type,), {'Invoke': handler})()
+# noinspection PyShadowingBuiltins,PyShadowingNames
+def create_handler(handler: _Callable[[...], type.HRESULT], type: _builtins.type[CT], name: _Optional[str] = None) -> CT:
+    args = getattr(type, '_args', None)
+    impl_name = type.__name__
+    if args is not None:
+        impl_name = f'{impl_name.split("_", 1)[0]}_impl'
+    impl = getattr(_get_namespace(type), impl_name)
+    if args is not None:
+        impl = impl[tuple(args.values())]
+    return cast(_builtins.type(f'{__name__}-{__version__}-{type.__name__}({handler.__name__})' if name is None else name, (impl,), {'Invoke': handler})(), type)
 
 
 # noinspection PyProtectedMember
@@ -190,13 +213,13 @@ class Async(_Generic[CT]):
     def _get_completed_handler(async_type):
         handler = None
         if issubclass(async_type, interface.Windows.Foundation.IAsyncAction):
-            handler = interface.Windows.Foundation.IAsyncActionCompletedHandler_impl
+            handler = interface.Windows.Foundation.IAsyncActionCompletedHandler
         elif issubclass(async_type, interface.Windows.Foundation.IAsyncActionWithProgress):
-            handler = interface.Windows.Foundation.IAsyncActionWithProgressCompletedHandler_impl
+            handler = interface.Windows.Foundation.IAsyncActionWithProgressCompletedHandler
         elif issubclass(async_type, interface.Windows.Foundation.IAsyncOperation):
-            handler = interface.Windows.Foundation.IAsyncOperationCompletedHandler_impl
+            handler = interface.Windows.Foundation.IAsyncOperationCompletedHandler
         elif issubclass(async_type, interface.Windows.Foundation.IAsyncOperationWithProgress):
-            handler = interface.Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl
+            handler = interface.Windows.Foundation.IAsyncOperationWithProgressCompletedHandler
         if getattr(async_type, '_args', None):
             handler = handler[tuple(async_type._args.values())]
         return handler
@@ -205,9 +228,9 @@ class Async(_Generic[CT]):
     def _get_progress_handler(async_type):
         handler = None
         if issubclass(async_type, interface.Windows.Foundation.IAsyncActionWithProgress):
-            handler = interface.Windows.Foundation.IAsyncActionProgressHandler_impl
+            handler = interface.Windows.Foundation.IAsyncActionProgressHandler
         elif issubclass(async_type, interface.Windows.Foundation.IAsyncOperationWithProgress):
-            handler = interface.Windows.Foundation.IAsyncOperationProgressHandler_impl
+            handler = interface.Windows.Foundation.IAsyncOperationProgressHandler
         if getattr(async_type, '_args', None):
             # noinspection PyProtectedMember
             handler = handler[tuple(async_type._args.values())]
@@ -285,7 +308,7 @@ class Async(_Generic[CT]):
         self._completed_callback = callback
         self._completed_args = () if args is None else args
         self._completed_kwargs = {} if kwargs is None else kwargs
-        self._completed = create_handler_impl(self._completed_handler, self._get_completed_handler(_builtins.type(self._async)))
+        self._completed = create_handler(self._completed_handler, self._get_completed_handler(_builtins.type(self._async)))
         self._put(self._async.put_Completed, self._completed)
         return self.get_status()
 
@@ -298,7 +321,7 @@ class Async(_Generic[CT]):
         self._progress_callback = callback
         self._progress_args = () if args is None else args
         self._progress_kwargs = {} if kwargs is None else kwargs
-        self._progress = create_handler_impl(self._progress_handler, self._get_progress_handler(_builtins.type(self._async)))
+        self._progress = create_handler(self._progress_handler, self._get_progress_handler(_builtins.type(self._async)))
         self._put(self._async.put_Progress, self._progress)
         return self.get_status()
 

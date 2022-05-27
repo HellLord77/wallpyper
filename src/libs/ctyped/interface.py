@@ -33,7 +33,7 @@ class _Template:
         if item not in cls._classes:
             # noinspection PyUnresolvedReferences
             args = dict(zip(cls.__parameters__, _typing.get_args(super().__class_getitem__(item))))
-            qualname = f'{cls.__qualname__.removesuffix("_impl")}_{"_".join(getattr(type_, "_name", type_.__name__) for type_ in args.values())}{"_impl" * cls.__qualname__.endswith("_impl")}'
+            qualname = f'{cls.__qualname__.removesuffix("_impl")}_{"_".join(type_.__name__ for type_ in args.values())}{"_impl" * cls.__qualname__.endswith("_impl")}'
             cls._classes[item] = type(qualname.rsplit('.', 1)[-1], (cls,), {'__qualname__': qualname, '_args': args})
         return cls._classes[item]
 
@@ -380,7 +380,7 @@ class IUserNotification(IUnknown):
     SetIconInfo: _Callable[[_Optional[_type.HICON],
                             _type.LPCWSTR],
                            _type.HRESULT]
-    Show: _Callable[[_Optional[IQueryContinue_impl],
+    Show: _Callable[[_Optional[IQueryContinue],
                      _type.DWORD],
                     _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR],
@@ -400,9 +400,9 @@ class IUserNotification2(IUnknown):
     SetIconInfo: _Callable[[_Optional[_type.HICON],
                             _Optional[_type.LPCWSTR]],
                            _type.HRESULT]
-    Show: _Callable[[_Optional[_Pointer[IQueryContinue_impl]],
+    Show: _Callable[[_Optional[_Pointer[IQueryContinue]],
                      _type.DWORD,
-                     _Optional[_Pointer[IUserNotificationCallback_impl]]],
+                     _Optional[_Pointer[IUserNotificationCallback]]],
                     _type.HRESULT]
     PlaySound: _Callable[[_type.LPCWSTR],
                          _type.HRESULT]
@@ -746,6 +746,11 @@ class ICLRRuntimeHost(IUnknown):
                                          _type.HRESULT]
 
 
+class ISupportErrorInfo(IUnknown):
+    InterfaceSupportsErrorInfo: _Callable[[_Pointer[_struct.IID]],
+                                          _type.HRESULT]
+
+
 class IDesktopWindowXamlSourceNative(IUnknown):
     AttachToWindow: _Callable[[_type.HWND],
                               _type.HRESULT]
@@ -775,6 +780,92 @@ class IUserNotificationCallback(_IUserNotificationCallback, IUnknown):
 # noinspection PyPep8Naming
 class IUserNotificationCallback_impl(_IUserNotificationCallback, IUnknown_impl):
     pass
+
+
+class IReferenceTrackerTarget(IUnknown):
+    AddRefFromReferenceTracker: _Callable[[],
+                                          _type.HRESULT]
+    ReleaseFromReferenceTracker: _Callable[[],
+                                           _type.HRESULT]
+    Peg: _Callable[[],
+                   _type.HRESULT]
+    Unpeg: _Callable[[],
+                     _type.HRESULT]
+
+
+class IReferenceTracker(IUnknown):
+    ConnectFromTrackerSource: _Callable[[],
+                                        _type.HRESULT]
+    DisconnectFromTrackerSource: _Callable[[],
+                                           _type.HRESULT]
+    FindTrackerTargets: _Callable[[IFindReferenceTargetsCallback],
+                                  _type.HRESULT]
+    GetReferenceTrackerManager: _Callable[[_Pointer[IReferenceTrackerManager]],
+                                          _type.HRESULT]
+    AddRefFromTrackerSource: _Callable[[],
+                                       _type.HRESULT]
+    ReleaseFromTrackerSource: _Callable[[],
+                                        _type.HRESULT]
+    PegFromTrackerSource: _Callable[[],
+                                    _type.HRESULT]
+
+
+class IReferenceTrackerManager(IUnknown):
+    ReferenceTrackingStarted: _Callable[[],
+                                        _type.HRESULT]
+    FindTrackerTargetsCompleted: _Callable[[_type.boolean],
+                                           _type.HRESULT]
+    ReferenceTrackingCompleted: _Callable[[],
+                                          _type.HRESULT]
+    SetReferenceTrackerHost: _Callable[[IReferenceTrackerHost],
+                                       _type.HRESULT]
+
+
+class _IFindReferenceTargetsCallback:
+    FoundTrackerTarget: _Callable[[IReferenceTrackerTarget],
+                                  _type.HRESULT]
+
+
+class IFindReferenceTargetsCallback(_IFindReferenceTargetsCallback, IUnknown):
+    pass
+
+
+# noinspection PyPep8Naming
+class IFindReferenceTargetsCallback_imp(_IFindReferenceTargetsCallback, IUnknown_impl):
+    pass
+
+
+class IReferenceTrackerHost(IUnknown):
+    DisconnectUnusedReferenceSources: _Callable[[_enum.XAML_REFERENCETRACKER_DISCONNECT],
+                                                _type.HRESULT]
+    ReleaseDisconnectedReferenceSources: _Callable[[],
+                                                   _type.HRESULT]
+    NotifyEndOfReferenceTrackingOnThread: _Callable[[],
+                                                    _type.HRESULT]
+    GetTrackerTarget: _Callable[[IUnknown,
+                                 _Pointer[IReferenceTrackerTarget]],
+                                _type.HRESULT]
+    AddMemoryPressure: _Callable[[_type.UINT64],
+                                 _type.HRESULT]
+    RemoveMemoryPressure: _Callable[[_type.UINT64],
+                                    _type.HRESULT]
+
+
+class IReferenceTrackerExtension(IUnknown):
+    pass
+
+
+class ITrackerOwner(IUnknown):
+    CreateTrackerHandle: _Callable[[_Pointer[_struct.TrackerHandle]],
+                                   _type.HRESULT]
+    DeleteTrackerHandle: _Callable[[_struct.TrackerHandle],
+                                   _type.HRESULT]
+    SetTrackerValue: _Callable[[_struct.TrackerHandle,
+                                IUnknown],
+                               _type.HRESULT]
+    TryGetSafeTrackerValue: _Callable[[_struct.TrackerHandle,
+                                       _Pointer[IUnknown]],
+                                      _type.HRESULT]
 
 
 class IActivationFactory(IInspectable):
@@ -1424,23 +1515,56 @@ class Windows:
                     pass
 
                 class IXmlDocument(IInspectable):
-                    get_Doctype: _Callable
-                    get_Implementation: _Callable
-                    get_DocumentElement: _Callable
-                    CreateElement: _Callable
-                    CreateDocumentFragment: _Callable
-                    CreateTextNode: _Callable
-                    CreateComment: _Callable
-                    CreateProcessingInstruction: _Callable
-                    CreateAttribute: _Callable
-                    CreateEntityReference: _Callable
-                    GetElementsByTagName: _Callable
-                    CreateCDataSection: _Callable
-                    get_DocumentUri: _Callable
-                    CreateAttributeNS: _Callable
-                    CreateElementNS: _Callable
-                    GetElementById: _Callable
-                    ImportNode: _Callable
+                    get_Doctype: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlDocumentType]],
+                                           _type.HRESULT]
+                    get_Implementation: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlDomImplementation]],
+                                                  _type.HRESULT]
+                    get_DocumentElement: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlElement]],
+                                                   _type.HRESULT]
+                    CreateElement: _Callable[[_type.HSTRING,
+                                              _Pointer[Windows.Data.Xml.Dom.IXmlElement]],
+                                             _type.HRESULT]
+                    CreateDocumentFragment: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlDocumentFragment]],
+                                                      _type.HRESULT]
+                    CreateTextNode: _Callable[[_type.HSTRING,
+                                               _Pointer[Windows.Data.Xml.Dom.IXmlText]],
+                                              _type.HRESULT]
+                    CreateComment: _Callable[[_type.HSTRING,
+                                              _Pointer[Windows.Data.Xml.Dom.IXmlComment]],
+                                             _type.HRESULT]
+                    CreateProcessingInstruction: _Callable[[_type.HSTRING,
+                                                            _type.HSTRING,
+                                                            _Pointer[Windows.Data.Xml.Dom.IXmlProcessingInstruction]],
+                                                           _type.HRESULT]
+                    CreateAttribute: _Callable[[_type.HSTRING,
+                                                _Pointer[Windows.Data.Xml.Dom.IXmlAttribute]],
+                                               _type.HRESULT]
+                    CreateEntityReference: _Callable[[_type.HSTRING,
+                                                      _Pointer[Windows.Data.Xml.Dom.IXmlEntityReference]],
+                                                     _type.HRESULT]
+                    GetElementsByTagName: _Callable[[_type.HSTRING,
+                                                     _Pointer[Windows.Data.Xml.Dom.IXmlNodeList]],
+                                                    _type.HRESULT]
+                    CreateCDataSection: _Callable[[_type.HSTRING,
+                                                   _Pointer[Windows.Data.Xml.Dom.IXmlCDataSection]],
+                                                  _type.HRESULT]
+                    get_DocumentUri: _Callable[[_Pointer[_type.HSTRING]],
+                                               _type.HRESULT]
+                    CreateAttributeNS: _Callable[[IInspectable,
+                                                  _type.HSTRING,
+                                                  _Pointer[Windows.Data.Xml.Dom.IXmlElement]],
+                                                 _type.HRESULT]
+                    CreateElementNS: _Callable[[IInspectable,
+                                                _type.HSTRING,
+                                                _Pointer[Windows.Data.Xml.Dom.IXmlElement]],
+                                               _type.HRESULT]
+                    GetElementById: _Callable[[_type.HSTRING,
+                                               _Pointer[Windows.Data.Xml.Dom.IXmlElement]],
+                                              _type.HRESULT]
+                    ImportNode: _Callable[[Windows.Data.Xml.Dom.IXmlNode,
+                                           _type.boolean,
+                                           _Pointer[Windows.Data.Xml.Dom.IXmlNode]],
+                                          _type.HRESULT]
 
                 class IXmlDocumentFragment(IInspectable):
                     pass
@@ -1448,7 +1572,9 @@ class Windows:
                 class IXmlDocumentIO(IInspectable):
                     LoadXml: _Callable[[_type.HSTRING],
                                        _type.HRESULT]
-                    LoadXmlWithSettings: _Callable
+                    LoadXmlWithSettings: _Callable[[_type.HSTRING,
+                                                    Windows.Data.Xml.Dom.IXmlLoadSettings],
+                                                   _type.HRESULT]
                     SaveToFileAsync: _Callable[[Windows.Storage.IStorageFile,
                                                 _Pointer[Windows.Foundation.IAsyncAction]],
                                                _type.HRESULT]
@@ -1456,17 +1582,25 @@ class Windows:
                 class IXmlDocumentIO2(IInspectable):
                     LoadXmlFromBuffer: _Callable[[Windows.Storage.Streams.IBuffer],
                                                  _type.HRESULT]
-                    LoadXmlFromBufferWithSettings: _Callable
+                    LoadXmlFromBufferWithSettings: _Callable[[Windows.Storage.Streams.IBuffer,
+                                                              Windows.Data.Xml.Dom.IXmlLoadSettings],
+                                                             _type.HRESULT]
 
                 class IXmlDocumentStatics(IInspectable):
                     LoadFromUriAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
                                                  _Pointer[Windows.Foundation.IAsyncOperation[Windows.Data.Xml.Dom.IXmlDocument]]],
                                                 _type.HRESULT]
-                    LoadFromUriWithSettingsAsync: _Callable
+                    LoadFromUriWithSettingsAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                             Windows.Data.Xml.Dom.IXmlLoadSettings,
+                                                             _Pointer[Windows.Foundation.IAsyncOperation[Windows.Data.Xml.Dom.IXmlDocument]]],
+                                                            _type.HRESULT]
                     LoadFromFileAsync: _Callable[[Windows.Storage.IStorageFile,
                                                   _Pointer[Windows.Foundation.IAsyncOperation[Windows.Data.Xml.Dom.IXmlDocument]]],
                                                  _type.HRESULT]
-                    LoadFromFileWithSettingsAsync: _Callable
+                    LoadFromFileWithSettingsAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                              Windows.Data.Xml.Dom.IXmlLoadSettings,
+                                                              _Pointer[Windows.Foundation.IAsyncOperation[Windows.Data.Xml.Dom.IXmlDocument]]],
+                                                             _type.HRESULT]
 
                 class IXmlDocumentType(IInspectable):
                     get_Name: _Callable
@@ -1592,7 +1726,7 @@ class Windows:
             pass
 
         class IAsyncAction(IInspectable):
-            put_Completed: _Callable[[Windows.Foundation.IAsyncActionCompletedHandler_impl],
+            put_Completed: _Callable[[Windows.Foundation.IAsyncActionCompletedHandler],
                                      _type.HRESULT]
             get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncActionCompletedHandler]],
                                      _type.HRESULT]
@@ -1637,7 +1771,7 @@ class Windows:
         class IMemoryBufferReference(IInspectable):
             get_Capacity: _Callable[[_Pointer[_type.UINT32]],
                                     _type.HRESULT]
-            add_Closed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.Foundation.IMemoryBufferReference, IInspectable],
+            add_Closed: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.Foundation.IMemoryBufferReference, IInspectable],
                                    _Pointer[_struct.EventRegistrationToken]],
                                   _type.HRESULT]
             remove_Closed: _Callable[[_struct.EventRegistrationToken],
@@ -1910,7 +2044,8 @@ class Windows:
                                 _type.HRESULT]
             get_Query: _Callable[[_Pointer[_type.HSTRING]],
                                  _type.HRESULT]
-            get_QueryParsed: _Callable
+            get_QueryParsed: _Callable[[_Pointer[Windows.Foundation.IWwwFormUrlDecoderRuntimeClass]],
+                                       _type.HRESULT]
             get_RawUri: _Callable[[_Pointer[_type.HSTRING]],
                                   _type.HRESULT]
             get_SchemeName: _Callable[[_Pointer[_type.HSTRING]],
@@ -1927,15 +2062,6 @@ class Windows:
             CombineUri: _Callable[[_type.HSTRING,
                                    _Pointer[Windows.Foundation.IUriRuntimeClass]],
                                   _type.HRESULT]
-
-            class IUriRuntimeClassFactory(IInspectable):
-                CreateUri: _Callable[[_type.HSTRING,
-                                      _Pointer[Windows.Foundation.IUriRuntimeClass]],
-                                     _type.HRESULT]
-                CreateWithRelativeUri: _Callable[[_type.HSTRING,
-                                                  _type.HSTRING,
-                                                  _Pointer[Windows.Foundation.IUriRuntimeClass]],
-                                                 _type.HRESULT]
 
         class IUriRuntimeClassFactory(IInspectable):
             CreateUri: _Callable[[_type.HSTRING,
@@ -2005,11 +2131,11 @@ class Windows:
             pass
 
         class IAsyncOperationWithProgress(_Template, _Generic[_TResult, _TProgress], IInspectable):
-            put_Progress: _Callable[[Windows.Foundation.IAsyncOperationProgressHandler_impl[_TResult, _TProgress]],
+            put_Progress: _Callable[[Windows.Foundation.IAsyncOperationProgressHandler[_TResult, _TProgress]],
                                     _type.HRESULT]
             get_Progress: _Callable[[_Pointer[Windows.Foundation.IAsyncOperationProgressHandler[_TResult, _TProgress]]],
                                     _type.HRESULT]
-            put_Completed: _Callable[[Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl[_TResult, _TProgress]],
+            put_Completed: _Callable[[Windows.Foundation.IAsyncOperationWithProgressCompletedHandler[_TResult, _TProgress]],
                                      _type.HRESULT]
             get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncOperationWithProgressCompletedHandler[_TResult, _TProgress]]],
                                      _type.HRESULT]
@@ -2017,19 +2143,19 @@ class Windows:
                                   _type.HRESULT]
 
         class IAsyncActionWithProgress(_Template, _Generic[_TProgress], IInspectable):
-            put_Progress: _Callable[[Windows.Foundation.IAsyncActionProgressHandler_impl[_TProgress]],
+            put_Progress: _Callable[[Windows.Foundation.IAsyncActionProgressHandler[_TProgress]],
                                     _type.HRESULT]
             get_Progress: _Callable[[_Pointer[Windows.Foundation.IAsyncActionProgressHandler[_TProgress]]],
                                     _type.HRESULT]
             put_Completed: _Callable[[Windows.Foundation.IAsyncActionWithProgressCompletedHandler[_TProgress]],
                                      _type.HRESULT]
-            get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncActionWithProgressCompletedHandler_impl[_TProgress]]],
+            get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncActionWithProgressCompletedHandler[_TProgress]]],
                                      _type.HRESULT]
             GetResults: _Callable[[],
                                   _type.HRESULT]
 
         class IAsyncOperation(_Template, _Generic[_TResult], IInspectable):
-            put_Completed: _Callable[[Windows.Foundation.IAsyncOperationCompletedHandler_impl[_TResult]],
+            put_Completed: _Callable[[Windows.Foundation.IAsyncOperationCompletedHandler[_TResult]],
                                      _type.HRESULT]
             get_Completed: _Callable[[_Pointer[Windows.Foundation.IAsyncOperationCompletedHandler[_TResult]]],
                                      _type.HRESULT]
@@ -2222,7 +2348,7 @@ class Windows:
                 pass
 
             class IObservableVector(_Template, _Generic[_T], IInspectable):
-                add_VectorChanged: _Callable[[Windows.Foundation.Collections.IVectorChangedEventHandler_impl[_T],
+                add_VectorChanged: _Callable[[Windows.Foundation.Collections.IVectorChangedEventHandler[_T],
                                               _Pointer[_struct.EventRegistrationToken]],
                                              _type.HRESULT]
                 remove_VectorChanged: _Callable[[_struct.EventRegistrationToken],
@@ -2247,7 +2373,7 @@ class Windows:
                 pass
 
             class IObservableMap(_Template, _Generic[_K, _V], IInspectable):
-                add_MapChanged: _Callable[[Windows.Foundation.Collections.IMapChangedEventHandler_impl[_K, _V],
+                add_MapChanged: _Callable[[Windows.Foundation.Collections.IMapChangedEventHandler[_K, _V],
                                            _Pointer[_struct.EventRegistrationToken]],
                                           _type.HRESULT]
                 remove_MapChanged: _Callable[[_struct.EventRegistrationToken],
@@ -2286,6 +2412,194 @@ class Windows:
             class IGameUIProviderActivatedEventArgs(IInspectable):
                 get_GameUIArgs: _Callable
                 ReportCompleted: _Callable
+
+    class Media:
+        class Casting:
+            class ICastingConnection(IInspectable):
+                get_State: _Callable
+                get_Device: _Callable
+                get_Source: _Callable
+                put_Source: _Callable
+                add_StateChanged: _Callable
+                remove_StateChanged: _Callable
+                add_ErrorOccurred: _Callable
+                remove_ErrorOccurred: _Callable
+                RequestStartCastingAsync: _Callable
+                DisconnectAsync: _Callable
+
+            class ICastingConnectionErrorOccurredEventArgs(IInspectable):
+                get_ErrorStatus: _Callable
+                get_Message: _Callable
+
+            class ICastingDevice(IInspectable):
+                get_Id: _Callable
+                get_FriendlyName: _Callable
+                get_Icon: _Callable
+                GetSupportedCastingPlaybackTypesAsync: _Callable
+                CreateCastingConnection: _Callable
+
+            class ICastingDevicePicker(IInspectable):
+                get_Filter: _Callable
+                get_Appearance: _Callable
+                add_CastingDeviceSelected: _Callable
+                remove_CastingDeviceSelected: _Callable
+                add_CastingDevicePickerDismissed: _Callable
+                remove_CastingDevicePickerDismissed: _Callable
+                Show: _Callable
+                ShowWithPlacement: _Callable
+                Hide: _Callable
+
+            class ICastingDevicePickerFilter(IInspectable):
+                get_SupportsAudio: _Callable
+                put_SupportsAudio: _Callable
+                get_SupportsVideo: _Callable
+                put_SupportsVideo: _Callable
+                get_SupportsPictures: _Callable
+                put_SupportsPictures: _Callable
+                get_SupportedCastingSources: _Callable
+
+            class ICastingDeviceSelectedEventArgs(IInspectable):
+                get_SelectedCastingDevice: _Callable
+
+            class ICastingDeviceStatics(IInspectable):
+                GetDeviceSelector: _Callable
+                GetDeviceSelectorFromCastingSourceAsync: _Callable
+                FromIdAsync: _Callable
+                DeviceInfoSupportsCastingAsync: _Callable
+
+            class ICastingSource(IInspectable):
+                get_PreferredSourceUri: _Callable
+                put_PreferredSourceUri: _Callable
+
+        class PlayTo:
+            class ICurrentTimeChangeRequestedEventArgs(IInspectable):
+                get_Time: _Callable
+
+            class IMuteChangeRequestedEventArgs(IInspectable):
+                get_Mute: _Callable
+
+            class IPlayToConnection(IInspectable):
+                get_State: _Callable
+                add_StateChanged: _Callable
+                remove_StateChanged: _Callable
+                add_Transferred: _Callable
+                remove_Transferred: _Callable
+                add_Error: _Callable
+                remove_Error: _Callable
+
+            class IPlayToConnectionErrorEventArgs(IInspectable):
+                get_Code: _Callable
+                get_Message: _Callable
+
+            class IPlayToConnectionStateChangedEventArgs(IInspectable):
+                get_PreviousState: _Callable
+                get_CurrentState: _Callable
+
+            class IPlayToConnectionTransferredEventArgs(IInspectable):
+                get_PreviousSource: _Callable
+                get_CurrentSource: _Callable
+
+            class IPlayToManager(IInspectable):
+                add_SourceRequested: _Callable
+                remove_SourceRequested: _Callable
+                add_SourceSelected: _Callable
+                remove_SourceSelected: _Callable
+                put_DefaultSourceSelection: _Callable
+                get_DefaultSourceSelection: _Callable
+
+            class IPlayToManagerStatics(IInspectable):
+                GetForCurrentView: _Callable
+                ShowPlayToUI: _Callable
+
+            class IPlayToReceiver(IInspectable):
+                add_PlayRequested: _Callable
+                remove_PlayRequested: _Callable
+                add_PauseRequested: _Callable
+                remove_PauseRequested: _Callable
+                add_SourceChangeRequested: _Callable
+                remove_SourceChangeRequested: _Callable
+                add_PlaybackRateChangeRequested: _Callable
+                remove_PlaybackRateChangeRequested: _Callable
+                add_CurrentTimeChangeRequested: _Callable
+                remove_CurrentTimeChangeRequested: _Callable
+                add_MuteChangeRequested: _Callable
+                remove_MuteChangeRequested: _Callable
+                add_VolumeChangeRequested: _Callable
+                remove_VolumeChangeRequested: _Callable
+                add_TimeUpdateRequested: _Callable
+                remove_TimeUpdateRequested: _Callable
+                add_StopRequested: _Callable
+                remove_StopRequested: _Callable
+                NotifyVolumeChange: _Callable
+                NotifyRateChange: _Callable
+                NotifyLoadedMetadata: _Callable
+                NotifyTimeUpdate: _Callable
+                NotifyDurationChange: _Callable
+                NotifySeeking: _Callable
+                NotifySeeked: _Callable
+                NotifyPaused: _Callable
+                NotifyPlaying: _Callable
+                NotifyEnded: _Callable
+                NotifyError: _Callable
+                NotifyStopped: _Callable
+                get_FriendlyName: _Callable
+                put_FriendlyName: _Callable
+                put_SupportsImage: _Callable
+                get_SupportsImage: _Callable
+                put_SupportsAudio: _Callable
+                get_SupportsAudio: _Callable
+                put_SupportsVideo: _Callable
+                get_SupportsVideo: _Callable
+                get_Properties: _Callable
+                StartAsync: _Callable
+                StopAsync: _Callable
+
+            class IPlayToSource(IInspectable):
+                get_Connection: _Callable
+                get_Next: _Callable
+                put_Next: _Callable
+                PlayNext: _Callable
+
+            class IPlayToSourceDeferral(IInspectable):
+                Complete: _Callable
+
+            class IPlayToSourceRequest(IInspectable):
+                get_Deadline: _Callable
+                DisplayErrorString: _Callable
+                GetDeferral: _Callable
+                SetSource: _Callable
+
+            class IPlayToSourceRequestedEventArgs(IInspectable):
+                get_SourceRequest: _Callable
+
+            class IPlayToSourceSelectedEventArgs(IInspectable):
+                get_FriendlyName: _Callable
+                get_Icon: _Callable
+                get_SupportsImage: _Callable
+                get_SupportsAudio: _Callable
+                get_SupportsVideo: _Callable
+
+            class IPlayToSourceWithPreferredSourceUri(IInspectable):
+                get_PreferredSourceUri: _Callable
+                put_PreferredSourceUri: _Callable
+
+            class IPlaybackRateChangeRequestedEventArgs(IInspectable):
+                get_Rate: _Callable
+
+            class ISourceChangeRequestedEventArgs(IInspectable):
+                get_Stream: _Callable
+                get_Title: _Callable
+                get_Author: _Callable
+                get_Album: _Callable
+                get_Genre: _Callable
+                get_Description: _Callable
+                get_Date: _Callable
+                get_Thumbnail: _Callable
+                get_Rating: _Callable
+                get_Properties: _Callable
+
+            class IVolumeChangeRequestedEventArgs(IInspectable):
+                get_Volume: _Callable
 
     class Storage:
         class _IApplicationDataSetVersionHandler:
@@ -2459,7 +2773,8 @@ class Windows:
             OpenAsync: _Callable[[_enum.Windows.Storage.FileAccessMode,
                                   _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
                                  _type.HRESULT]
-            OpenTransactedWriteAsync: _Callable
+            OpenTransactedWriteAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageStreamTransaction]]],
+                                                _type.HRESULT]
             CopyOverloadDefaultNameAndOptions: _Callable[[Windows.Storage.IStorageFolder,
                                                           _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                                          _type.HRESULT]
@@ -2492,24 +2807,51 @@ class Windows:
                                            _type.HRESULT]
 
         class IStorageFile2(IInspectable):
-            OpenWithOptionsAsync: _Callable
-            OpenTransactedWriteWithOptionsAsync: _Callable
+            OpenWithOptionsAsync: _Callable[[_enum.Windows.Storage.FileAccessMode,
+                                             _enum.Windows.Storage.StorageOpenOptions,
+                                             _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
+                                            _type.HRESULT]
+            OpenTransactedWriteWithOptionsAsync: _Callable[[_enum.Windows.Storage.StorageOpenOptions,
+                                                            _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageStreamTransaction]]],
+                                                           _type.HRESULT]
 
         class IStorageFilePropertiesWithAvailability(IInspectable):
-            get_IsAvailable: _Callable
+            get_IsAvailable: _Callable[[_Pointer[_type.boolean]],
+                                       _type.HRESULT]
 
         class IStorageFileStatics(IInspectable):
             GetFileFromPathAsync: _Callable[[_type.HSTRING,
                                              _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
                                             _type.HRESULT]
-            GetFileFromApplicationUriAsync: _Callable
-            CreateStreamedFileAsync: _Callable
-            ReplaceWithStreamedFileAsync: _Callable
-            CreateStreamedFileFromUriAsync: _Callable
-            ReplaceWithStreamedFileFromUriAsync: _Callable
+            GetFileFromApplicationUriAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                       _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                                      _type.HRESULT]
+            CreateStreamedFileAsync: _Callable[[_type.HSTRING,
+                                                Windows.Storage.IStreamedFileDataRequestedHandler,
+                                                Windows.Storage.Streams.IRandomAccessStreamReference,
+                                                _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                               _type.HRESULT]
+            ReplaceWithStreamedFileAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                     Windows.Storage.IStreamedFileDataRequestedHandler,
+                                                     Windows.Storage.Streams.IRandomAccessStreamReference,
+                                                     _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                                    _type.HRESULT]
+            CreateStreamedFileFromUriAsync: _Callable[[_type.HSTRING,
+                                                       Windows.Foundation.IUriRuntimeClass,
+                                                       Windows.Storage.Streams.IRandomAccessStreamReference,
+                                                       _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                                      _type.HRESULT]
+            ReplaceWithStreamedFileFromUriAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                            Windows.Foundation.IUriRuntimeClass,
+                                                            Windows.Storage.Streams.IRandomAccessStreamReference,
+                                                            _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                                           _type.HRESULT]
 
         class IStorageFileStatics2(IInspectable):
-            GetFileFromPathForUserAsync: _Callable
+            GetFileFromPathForUserAsync: _Callable[[Windows.System.IUser,
+                                                    _type.HSTRING,
+                                                    _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                                   _type.HRESULT]
 
         class IStorageFolder(IInspectable):
             CreateFileAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
@@ -2535,15 +2877,21 @@ class Windows:
             GetItemAsync: _Callable[[_type.HSTRING,
                                      _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageItem]]],
                                     _type.HSTRING]
-            GetFilesAsyncOverloadDefaultOptionsStartAndCount: _Callable
-            GetFoldersAsyncOverloadDefaultOptionsStartAndCount: _Callable
-            GetItemsAsyncOverloadDefaultStartAndCount: _Callable
+            GetFilesAsyncOverloadDefaultOptionsStartAndCount: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFile]]],
+                                                                        _type.HRESULT]
+            GetFoldersAsyncOverloadDefaultOptionsStartAndCount: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
+                                                                          _type.HRESULT]
+            GetItemsAsyncOverloadDefaultStartAndCount: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageItem]]],
+                                                                 _type.HRESULT]
 
         class IStorageFolder2(IInspectable):
-            TryGetItemAsync: _Callable
+            TryGetItemAsync: _Callable[[_type.HSTRING,
+                                        _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageItem]]],
+                                       _type.HSTRING]
 
         class IStorageFolder3(IInspectable):
-            TryGetChangeTracker: _Callable
+            TryGetChangeTracker: _Callable[[_Pointer[Windows.Storage.IStorageLibraryChangeTracker]],
+                                           _type.HRESULT]
 
         class IStorageFolderStatics(IInspectable):
             GetFolderFromPathAsync: _Callable[[_type.HSTRING,
@@ -2551,7 +2899,10 @@ class Windows:
                                               _type.HRESULT]
 
         class IStorageFolderStatics2(IInspectable):
-            GetFolderFromPathForUserAsync: _Callable
+            GetFolderFromPathForUserAsync: _Callable[[Windows.System.IUser,
+                                                      _type.HSTRING,
+                                                      _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
+                                                     _type.HRESULT]
 
         class IStorageItem(IInspectable):
             RenameAsyncOverloadDefaultOptions: _Callable[[_type.HSTRING,
@@ -2566,18 +2917,26 @@ class Windows:
             DeleteAsync: _Callable[[_enum.Windows.Storage.StorageDeleteOption,
                                     _Pointer[Windows.Foundation.IAsyncAction]],
                                    _type.HRESULT]
-            GetBasicPropertiesAsync: _Callable
+            GetBasicPropertiesAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.FileProperties.IBasicProperties]]],
+                                               _type.HRESULT]
             get_Name: _Callable[[_Pointer[_type.HSTRING]],
                                 _type.HRESULT]
             get_Path: _Callable[[_Pointer[_type.HSTRING]],
                                 _type.HRESULT]
-            get_Attributes: _Callable
-            get_DateCreated: _Callable
-            IsOfType: _Callable
+            get_Attributes: _Callable[[_Pointer[_enum.Windows.Storage.FileAttributes]],
+                                      _type.HRESULT]
+            get_DateCreated: _Callable[[_Pointer[_struct.Windows.Foundation.DateTime]],
+                                       _type.HRESULT]
+            IsOfType: _Callable[[_enum.Windows.Storage.StorageItemTypes,
+                                 _Pointer[_type.boolean]],
+                                _type.HRESULT]
 
         class IStorageItem2(IInspectable):
-            GetParentAsync: _Callable
-            IsEqual: _Callable
+            GetParentAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageFolder]]],
+                                      _type.HRESULT]
+            IsEqual: _Callable[[Windows.Storage.IStorageItem,
+                                _Pointer[_type.boolean]],
+                               _type.HRESULT]
 
         class IStorageItemProperties(IInspectable):
             GetThumbnailAsyncOverloadDefaultSizeDefaultOptions: _Callable
@@ -2767,6 +3126,233 @@ class Windows:
             GetForUser: _Callable
             GetDefault: _Callable
 
+        class FileProperties:
+            class IBasicProperties(IInspectable):
+                get_Size: _Callable
+                get_DateModified: _Callable
+                get_ItemDate: _Callable
+
+            class IDocumentProperties(IInspectable):
+                get_Author: _Callable
+                get_Title: _Callable
+                put_Title: _Callable
+                get_Keywords: _Callable
+                get_Comment: _Callable
+                put_Comment: _Callable
+
+            class IGeotagHelperStatics(IInspectable):
+                GetGeotagAsync: _Callable
+                SetGeotagFromGeolocatorAsync: _Callable
+                SetGeotagAsync: _Callable
+
+            class IImageProperties(IInspectable):
+                get_Rating: _Callable
+                put_Rating: _Callable
+                get_Keywords: _Callable
+                get_DateTaken: _Callable
+                put_DateTaken: _Callable
+                get_Width: _Callable
+                get_Height: _Callable
+                get_Title: _Callable
+                put_Title: _Callable
+                get_Latitude: _Callable
+                get_Longitude: _Callable
+                get_CameraManufacturer: _Callable
+                put_CameraManufacturer: _Callable
+                get_CameraModel: _Callable
+                put_CameraModel: _Callable
+                get_Orientation: _Callable
+                get_PeopleNames: _Callable
+
+            class IMusicProperties(IInspectable):
+                get_Album: _Callable
+                put_Album: _Callable
+                get_Artist: _Callable
+                put_Artist: _Callable
+                get_Genre: _Callable
+                get_TrackNumber: _Callable
+                put_TrackNumber: _Callable
+                get_Title: _Callable
+                put_Title: _Callable
+                get_Rating: _Callable
+                put_Rating: _Callable
+                get_Duration: _Callable
+                get_Bitrate: _Callable
+                get_AlbumArtist: _Callable
+                put_AlbumArtist: _Callable
+                get_Composers: _Callable
+                get_Conductors: _Callable
+                get_Subtitle: _Callable
+                put_Subtitle: _Callable
+                get_Producers: _Callable
+                get_Publisher: _Callable
+                put_Publisher: _Callable
+                get_Writers: _Callable
+                get_Year: _Callable
+                put_Year: _Callable
+
+            class IStorageItemContentProperties(IInspectable):
+                GetMusicPropertiesAsync: _Callable
+                GetVideoPropertiesAsync: _Callable
+                GetImagePropertiesAsync: _Callable
+                GetDocumentPropertiesAsync: _Callable
+
+            class IStorageItemExtraProperties(IInspectable):
+                RetrievePropertiesAsync: _Callable
+                SavePropertiesAsync: _Callable
+                SavePropertiesAsyncOverloadDefault: _Callable
+
+            class IThumbnailProperties(IInspectable):
+                get_OriginalWidth: _Callable
+                get_OriginalHeight: _Callable
+                get_ReturnedSmallerCachedSize: _Callable
+                get_Type: _Callable
+
+            class IVideoProperties(IInspectable):
+                get_Rating: _Callable
+                put_Rating: _Callable
+                get_Keywords: _Callable
+                get_Width: _Callable
+                get_Height: _Callable
+                get_Duration: _Callable
+                get_Latitude: _Callable
+                get_Longitude: _Callable
+                get_Title: _Callable
+                put_Title: _Callable
+                get_Subtitle: _Callable
+                put_Subtitle: _Callable
+                get_Producers: _Callable
+                get_Publisher: _Callable
+                put_Publisher: _Callable
+                get_Writers: _Callable
+                get_Year: _Callable
+                put_Year: _Callable
+                get_Bitrate: _Callable
+                get_Directors: _Callable
+                get_Orientation: _Callable
+
+        class Search:
+            class IContentIndexer(IInspectable):
+                AddAsync: _Callable
+                UpdateAsync: _Callable
+                DeleteAsync: _Callable
+                DeleteMultipleAsync: _Callable
+                DeleteAllAsync: _Callable
+                RetrievePropertiesAsync: _Callable
+                get_Revision: _Callable
+
+            class IContentIndexerQuery(IInspectable):
+                GetCountAsync: _Callable
+                GetPropertiesAsync: _Callable
+                GetPropertiesRangeAsync: _Callable
+                GetAsync: _Callable
+                GetRangeAsync: _Callable
+                get_QueryFolder: _Callable
+
+            class IContentIndexerQueryOperations(IInspectable):
+                CreateQueryWithSortOrderAndLanguage: _Callable
+                CreateQueryWithSortOrder: _Callable
+                CreateQuery: _Callable
+
+            class IContentIndexerStatics(IInspectable):
+                GetIndexerWithName: _Callable
+                GetIndexer: _Callable
+
+            class IIndexableContent(IInspectable):
+                get_Id: _Callable
+                put_Id: _Callable
+                get_Properties: _Callable
+                get_Stream: _Callable
+                put_Stream: _Callable
+                get_StreamContentType: _Callable
+                put_StreamContentType: _Callable
+
+            class IQueryOptions(IInspectable):
+                get_FileTypeFilter: _Callable
+                get_FolderDepth: _Callable
+                put_FolderDepth: _Callable
+                get_ApplicationSearchFilter: _Callable
+                put_ApplicationSearchFilter: _Callable
+                get_UserSearchFilter: _Callable
+                put_UserSearchFilter: _Callable
+                get_Language: _Callable
+                put_Language: _Callable
+                get_IndexerOption: _Callable
+                put_IndexerOption: _Callable
+                get_SortOrder: _Callable
+                get_GroupPropertyName: _Callable
+                get_DateStackOption: _Callable
+                SaveToString: _Callable
+                LoadFromString: _Callable
+                SetThumbnailPrefetch: _Callable
+                SetPropertyPrefetch: _Callable
+
+            class IQueryOptionsFactory(IInspectable):
+                CreateCommonFileQuery: _Callable
+                CreateCommonFolderQuery: _Callable
+
+            class IQueryOptionsWithProviderFilter(IInspectable):
+                get_StorageProviderIdFilter: _Callable
+
+            class IStorageFileQueryResult(IInspectable):
+                GetFilesAsync: _Callable
+                GetFilesAsyncDefaultStartAndCount: _Callable
+
+            class IStorageFileQueryResult2(IInspectable):
+                GetMatchingPropertiesWithRanges: _Callable
+
+            class IStorageFolderQueryOperations(IInspectable):
+                GetIndexedStateAsync: _Callable
+                CreateFileQueryOverloadDefault: _Callable
+                CreateFileQuery: _Callable
+                CreateFileQueryWithOptions: _Callable
+                CreateFolderQueryOverloadDefault: _Callable
+                CreateFolderQuery: _Callable
+                CreateFolderQueryWithOptions: _Callable
+                CreateItemQuery: _Callable
+                CreateItemQueryWithOptions: _Callable
+                GetFilesAsync: _Callable
+                GetFilesAsyncOverloadDefaultStartAndCount: _Callable
+                GetFoldersAsync: _Callable
+                GetFoldersAsyncOverloadDefaultStartAndCount: _Callable
+                GetItemsAsync: _Callable
+                AreQueryOptionsSupported: _Callable
+                IsCommonFolderQuerySupported: _Callable
+                IsCommonFileQuerySupported: _Callable
+
+            class IStorageFolderQueryResult(IInspectable):
+                GetFoldersAsync: _Callable
+                GetFoldersAsyncDefaultStartAndCount: _Callable
+
+            class IStorageItemQueryResult(IInspectable):
+                GetItemsAsync: _Callable
+                GetItemsAsyncDefaultStartAndCount: _Callable
+
+            class IStorageLibraryChangeTrackerTriggerDetails(IInspectable):
+                get_Folder: _Callable
+                get_ChangeTracker: _Callable
+
+            class IStorageLibraryContentChangedTriggerDetails(IInspectable):
+                get_Folder: _Callable
+                CreateModifiedSinceQuery: _Callable
+
+            class IStorageQueryResultBase(IInspectable):
+                GetItemCountAsync: _Callable
+                get_Folder: _Callable
+                add_ContentsChanged: _Callable
+                remove_ContentsChanged: _Callable
+                add_OptionsChanged: _Callable
+                remove_OptionsChanged: _Callable
+                FindStartIndexAsync: _Callable
+                GetCurrentQueryOptions: _Callable
+                ApplyNewQueryOptions: _Callable
+
+            class IValueAndLanguage(IInspectable):
+                get_Language: _Callable
+                put_Language: _Callable
+                get_Value: _Callable
+                put_Value: _Callable
+
         class Streams:
             class IBuffer(IInspectable):
                 get_Capacity: _Callable[[_Pointer[_type.UINT32]],
@@ -2777,14 +3363,21 @@ class Windows:
                                       _type.HRESULT]
 
             class IBufferFactory(IInspectable):
-                Create: _Callable
+                Create: _Callable[[_type.UINT32,
+                                   _Pointer[Windows.Storage.Streams.IBuffer]],
+                                  _type.HRESULT]
 
             class IBufferStatics(IInspectable):
-                CreateCopyFromMemoryBuffer: _Callable
-                CreateMemoryBufferOverIBuffer: _Callable
+                CreateCopyFromMemoryBuffer: _Callable[[Windows.Foundation.IMemoryBuffer,
+                                                       _Pointer[Windows.Storage.Streams.IBuffer]],
+                                                      _type.HRESULT]
+                CreateMemoryBufferOverIBuffer: _Callable[[Windows.Storage.Streams.IBuffer,
+                                                          _Pointer[Windows.Foundation.IMemoryBuffer]],
+                                                         _type.HRESULT]
 
             class IContentTypeProvider(IInspectable):
-                get_ContentType: _Callable
+                get_ContentType: _Callable[[_Pointer[_type.HSTRING]],
+                                           _type.HRESULT]
 
             class IDataReader(IInspectable):
                 get_UnconsumedBufferLength: _Callable
@@ -2815,10 +3408,14 @@ class Windows:
                 DetachStream: _Callable
 
             class IDataReaderFactory(IInspectable):
-                CreateDataReader: _Callable
+                CreateDataReader: _Callable[[Windows.Storage.Streams.IInputStream,
+                                             _Pointer[Windows.Storage.Streams.IDataReader]],
+                                            _type.HRESULT]
 
             class IDataReaderStatics(IInspectable):
-                FromBuffer: _Callable
+                FromBuffer: _Callable[[Windows.Storage.Streams.IBuffer,
+                                       _Pointer[Windows.Storage.Streams.IDataReader]],
+                                      _type.HRESULT]
 
             class IDataWriter(IInspectable):
                 get_UnstoredBufferLength: _Callable
@@ -2850,17 +3447,51 @@ class Windows:
                 DetachStream: _Callable
 
             class IDataWriterFactory(IInspectable):
-                CreateDataWriter: _Callable
+                CreateDataWriter: _Callable[[Windows.Storage.Streams.IOutputStream,
+                                             _Pointer[Windows.Storage.Streams.IDataWriter]],
+                                            _type.HRESULT]
 
             class IFileRandomAccessStreamStatics(IInspectable):
-                OpenAsync: _Callable
-                OpenWithOptionsAsync: _Callable
-                OpenTransactedWriteAsync: _Callable
-                OpenTransactedWriteWithOptionsAsync: _Callable
-                OpenForUserAsync: _Callable
-                OpenForUserWithOptionsAsync: _Callable
-                OpenTransactedWriteForUserAsync: _Callable
-                OpenTransactedWriteForUserWithOptionsAsync: _Callable
+                OpenAsync: _Callable[[_type.HSTRING,
+                                      _enum.Windows.Storage.FileAccessMode,
+                                      _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
+                                     _type.HRESULT]
+                OpenWithOptionsAsync: _Callable[[_type.HSTRING,
+                                                 _enum.Windows.Storage.FileAccessMode,
+                                                 _enum.Windows.Storage.StorageOpenOptions,
+                                                 _enum.Windows.Storage.Streams.FileOpenDisposition,
+                                                 _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
+                                                _type.HRESULT]
+                OpenTransactedWriteAsync: _Callable[[_type.HSTRING,
+                                                     _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageStreamTransaction]]],
+                                                    _type.HRESULT]
+                OpenTransactedWriteWithOptionsAsync: _Callable[[_type.HSTRING,
+                                                                _enum.Windows.Storage.StorageOpenOptions,
+                                                                _enum.Windows.Storage.Streams.FileOpenDisposition,
+                                                                _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageStreamTransaction]]],
+                                                               _type.HRESULT]
+                OpenForUserAsync: _Callable[[Windows.System.IUser,
+                                             _type.HSTRING,
+                                             _enum.Windows.Storage.FileAccessMode,
+                                             _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
+                                            _type.HRESULT]
+                OpenForUserWithOptionsAsync: _Callable[[Windows.System.IUser,
+                                                        _type.HSTRING,
+                                                        _enum.Windows.Storage.FileAccessMode,
+                                                        _enum.Windows.Storage.StorageOpenOptions,
+                                                        _enum.Windows.Storage.Streams.FileOpenDisposition,
+                                                        _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStream]]],
+                                                       _type.HRESULT]
+                OpenTransactedWriteForUserAsync: _Callable[[Windows.System.IUser,
+                                                            _type.HSTRING,
+                                                            _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageStreamTransaction]]],
+                                                           _type.HRESULT]
+                OpenTransactedWriteForUserWithOptionsAsync: _Callable[[Windows.System.IUser,
+                                                                       _type.HSTRING,
+                                                                       _enum.Windows.Storage.StorageOpenOptions,
+                                                                       _enum.Windows.Storage.Streams.FileOpenDisposition,
+                                                                       _Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.IStorageStreamTransaction]]],
+                                                                      _type.HRESULT]
 
             class IInputStream(IInspectable):
                 ReadAsync: _Callable[[Windows.Storage.Streams.IBuffer,
@@ -2870,11 +3501,15 @@ class Windows:
                                      _type.HRESULT]
 
             class IInputStreamReference(IInspectable):
-                OpenSequentialReadAsync: _Callable
+                OpenSequentialReadAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IInputStream]]],
+                                                   _type.HRESULT]
 
             class IOutputStream(IInspectable):
-                WriteAsync: _Callable
-                FlushAsync: _Callable
+                WriteAsync: _Callable[[Windows.Storage.Streams.IBuffer,
+                                       _Pointer[Windows.Foundation.IAsyncOperationWithProgress[_type.UINT32, _type.UINT32]]],
+                                      _type.HRESULT]
+                FlushAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                      _type.HRESULT]
 
             class IPropertySetSerializer(IInspectable):
                 Serialize: _Callable
@@ -2903,12 +3538,19 @@ class Windows:
                                         _type.HRESULT]
 
             class IRandomAccessStreamReference(IInspectable):
-                OpenReadAsync: _Callable
+                OpenReadAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Storage.Streams.IRandomAccessStreamWithContentType]]],
+                                         _type.HRESULT]
 
             class IRandomAccessStreamReferenceStatics(IInspectable):
-                CreateFromFile: _Callable
-                CreateFromUri: _Callable
-                CreateFromStream: _Callable
+                CreateFromFile: _Callable[[Windows.Storage.IStorageFile,
+                                           _Pointer[Windows.Storage.Streams.IRandomAccessStreamReference]],
+                                          _type.HRESULT]
+                CreateFromUri: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                          _Pointer[Windows.Storage.Streams.IRandomAccessStreamReference]],
+                                         _type.HRESULT]
+                CreateFromStream: _Callable[[Windows.Storage.Streams.IRandomAccessStream,
+                                             _Pointer[Windows.Storage.Streams.IRandomAccessStreamReference]],
+                                            _type.HRESULT]
 
             class IRandomAccessStreamStatics(IInspectable):
                 CopyAsync: _Callable[[Windows.Storage.Streams.IInputStream,
@@ -3057,7 +3699,9 @@ class Windows:
             put_IsEnabled: _Callable
 
         class IAppUriHandlerHostFactory(IInspectable):
-            CreateInstance: _Callable
+            CreateInstance: _Callable[[_type.HSTRING,
+                                       _Pointer[Windows.System.IAppUriHandlerHost]],
+                                      _type.HRESULT]
 
         class IAppUriHandlerRegistration(IInspectable):
             get_Name: _Callable
@@ -3142,8 +3786,10 @@ class Windows:
             get_AgeEnforcementRegion: _Callable
 
         class ILaunchUriResult(IInspectable):
-            get_Status: _Callable
-            get_Result: _Callable
+            get_Status: _Callable[[_Pointer[_enum.Windows.System.LaunchUriStatus]],
+                                  _type.HRESULT]
+            get_Result: _Callable[[_Pointer[Windows.Foundation.Collections.IPropertySet]],
+                                  _type.HRESULT]
 
         class ILauncherOptions(IInspectable):
             get_TreatAsUntrusted: _Callable[[_Pointer[_type.boolean]],
@@ -3154,7 +3800,8 @@ class Windows:
                                                     _type.HRESULT]
             put_DisplayApplicationPicker: _Callable[[_type.boolean],
                                                     _type.HRESULT]
-            get_UI: _Callable
+            get_UI: _Callable[[_Pointer[Windows.System.ILauncherUIOptions]],
+                              _type.HRESULT]
             get_PreferredApplicationPackageFamilyName: _Callable[[_Pointer[_type.HSTRING]],
                                                                  _type.HRESULT]
             put_PreferredApplicationPackageFamilyName: _Callable[[_type.HSTRING],
@@ -3173,78 +3820,169 @@ class Windows:
                                        _type.HRESULT]
 
         class ILauncherOptions2(IInspectable):
-            get_TargetApplicationPackageFamilyName: _Callable
-            put_TargetApplicationPackageFamilyName: _Callable
-            get_NeighboringFilesQuery: _Callable
-            put_NeighboringFilesQuery: _Callable
+            get_TargetApplicationPackageFamilyName: _Callable[[_Pointer[_type.HSTRING]],
+                                                              _type.HRESULT]
+            put_TargetApplicationPackageFamilyName: _Callable[[_Pointer[_type.HSTRING]],
+                                                              _type.HRESULT]
+            get_NeighboringFilesQuery: _Callable[[_Pointer[Windows.Storage.Search.IStorageFileQueryResult]],
+                                                 _type.HRESULT]
+            put_NeighboringFilesQuery: _Callable[[Windows.Storage.Search.IStorageFileQueryResult],
+                                                 _type.HRESULT]
 
         class ILauncherOptions3(IInspectable):
-            get_IgnoreAppUriHandlers: _Callable
-            put_IgnoreAppUriHandlers: _Callable
+            get_IgnoreAppUriHandlers: _Callable[[_Pointer[_type.boolean]],
+                                                _type.HRESULT]
+            put_IgnoreAppUriHandlers: _Callable[[_type.boolean],
+                                                _type.HRESULT]
 
         class ILauncherOptions4(IInspectable):
-            get_LimitPickerToCurrentAppAndAppUriHandlers: _Callable
-            put_LimitPickerToCurrentAppAndAppUriHandlers: _Callable
+            get_LimitPickerToCurrentAppAndAppUriHandlers: _Callable[[_Pointer[_type.boolean]],
+                                                                    _type.HRESULT]
+            put_LimitPickerToCurrentAppAndAppUriHandlers: _Callable[[_type.boolean],
+                                                                    _type.HRESULT]
 
         class ILauncherStatics(IInspectable):
             LaunchFileAsync: _Callable[[Windows.Storage.IStorageFile,
-                                        _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
+                                        _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
                                        _type.HRESULT]
             LaunchFileWithOptionsAsync: _Callable[[Windows.Storage.IStorageFile,
                                                    Windows.System.ILauncherOptions,
-                                                   _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
+                                                   _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
                                                   _type.HRESULT]
             LaunchUriAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
-                                       _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
+                                       _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
                                       _type.HRESULT]
             LaunchUriWithOptionsAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
                                                   Windows.System.ILauncherOptions,
-                                                  _Pointer[Windows.Foundation.IAsyncOperation[_type.c_bool]]],
+                                                  _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
                                                  _type.HRESULT]
 
         class ILauncherStatics2(IInspectable):
-            LaunchUriForResultsAsync: _Callable
-            LaunchUriForResultsWithDataAsync: _Callable
-            LaunchUriWithDataAsync: _Callable
-            QueryUriSupportAsync: _Callable
-            QueryUriSupportWithPackageFamilyNameAsync: _Callable
-            QueryFileSupportAsync: _Callable
-            QueryFileSupportWithPackageFamilyNameAsync: _Callable
-            FindUriSchemeHandlersAsync: _Callable
-            FindUriSchemeHandlersWithLaunchUriTypeAsync: _Callable
-            FindFileHandlersAsync: _Callable
+            LaunchUriForResultsAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                 Windows.System.ILauncherOptions,
+                                                 _Pointer[Windows.Foundation.IAsyncOperation[Windows.System.ILaunchUriResult]]],
+                                                _type.HRESULT]
+            LaunchUriForResultsWithDataAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                         Windows.System.ILauncherOptions,
+                                                         Windows.Foundation.Collections.IPropertySet,
+                                                         _Pointer[Windows.Foundation.IAsyncOperation[Windows.System.ILaunchUriResult]]],
+                                                        _type.HRESULT]
+            LaunchUriWithDataAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                               Windows.System.ILauncherOptions,
+                                               Windows.Foundation.Collections.IPropertySet,
+                                               _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                              _type.HRESULT]
+            QueryUriSupportAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                             _enum.Windows.System.LaunchQuerySupportType,
+                                             _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportType]]],
+                                            _type.HRESULT]
+            QueryUriSupportWithPackageFamilyNameAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                                  _enum.Windows.System.LaunchQuerySupportType,
+                                                                  _type.HSTRING,
+                                                                  _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportType]]],
+                                                                 _type.HRESULT]
+            QueryFileSupportAsync: _Callable[[Windows.Storage.IStorageFile,
+                                              _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportType]]],
+                                             _type.HRESULT]
+            QueryFileSupportWithPackageFamilyNameAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                                   _type.HSTRING,
+                                                                   _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportType]]],
+                                                                  _type.HRESULT]
+            FindUriSchemeHandlersAsync: _Callable[[_type.HSTRING,
+                                                   _Pointer[Windows.Foundation.IAsyncOperation[Windows.Foundation.Collections.IVectorView[Windows.ApplicationModel.IAppInfo]]]],
+                                                  _type.HRESULT]
+            FindUriSchemeHandlersWithLaunchUriTypeAsync: _Callable[[_type.HSTRING,
+                                                                    _enum.Windows.System.LaunchQuerySupportType,
+                                                                    _Pointer[Windows.Foundation.IAsyncOperation[Windows.Foundation.Collections.IVectorView[Windows.ApplicationModel.IAppInfo]]]],
+                                                                   _type.HRESULT]
+            FindFileHandlersAsync: _Callable[[_type.HSTRING,
+                                              _Pointer[Windows.Foundation.IAsyncOperation[Windows.Foundation.Collections.IVectorView[Windows.ApplicationModel.IAppInfo]]]],
+                                             _type.HRESULT]
 
         class ILauncherStatics3(IInspectable):
-            LaunchFolderAsync: _Callable
-            LaunchFolderWithOptionsAsync: _Callable
+            LaunchFolderAsync: _Callable[[Windows.Storage.IStorageFolder,
+                                          _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                         _type.HRESULT]
+            LaunchFolderWithOptionsAsync: _Callable[[Windows.Storage.IStorageFolder,
+                                                     Windows.System.IFolderLauncherOptions,
+                                                     _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                                    _type.HRESULT]
 
         class ILauncherStatics4(IInspectable):
-            QueryAppUriSupportAsync: _Callable
-            QueryAppUriSupportWithPackageFamilyNameAsync: _Callable
-            FindAppUriHandlersAsync: _Callable
-            LaunchUriForUserAsync: _Callable
-            LaunchUriWithOptionsForUserAsync: _Callable
-            LaunchUriWithDataForUserAsync: _Callable
-            LaunchUriForResultsForUserAsync: _Callable
-            LaunchUriForResultsWithDataForUserAsync: _Callable
+            QueryAppUriSupportAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportStatus]]],
+                                               _type.HRESULT]
+            QueryAppUriSupportWithPackageFamilyNameAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                                     _type.HSTRING,
+                                                                     _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportStatus]]],
+                                                                    _type.HRESULT]
+            FindAppUriHandlersAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                _Pointer[Windows.Foundation.IAsyncOperation[Windows.ApplicationModel.IAppInfo]]],
+                                               _type.HRESULT]
+            LaunchUriForUserAsync: _Callable[[Windows.System.IUser,
+                                              Windows.Foundation.IUriRuntimeClass,
+                                              _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchUriStatus]]],
+                                             _type.HRESULT]
+            LaunchUriWithOptionsForUserAsync: _Callable[[Windows.System.IUser,
+                                                         Windows.Foundation.IUriRuntimeClass,
+                                                         Windows.System.IFolderLauncherOptions,
+                                                         _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchUriStatus]]],
+                                                        _type.HRESULT]
+            LaunchUriWithDataForUserAsync: _Callable[[Windows.System.IUser,
+                                                      Windows.Foundation.IUriRuntimeClass,
+                                                      Windows.System.IFolderLauncherOptions,
+                                                      Windows.Foundation.Collections.IPropertySet,
+                                                      _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.LaunchUriStatus]]],
+                                                     _type.HRESULT]
+            LaunchUriForResultsForUserAsync: _Callable[[Windows.System.IUser,
+                                                        Windows.Foundation.IUriRuntimeClass,
+                                                        Windows.System.IFolderLauncherOptions,
+                                                        _Pointer[Windows.Foundation.IAsyncOperation[Windows.System.ILaunchUriResult]]],
+                                                       _type.HRESULT]
+            LaunchUriForResultsWithDataForUserAsync: _Callable[[Windows.System.IUser,
+                                                                Windows.Foundation.IUriRuntimeClass,
+                                                                Windows.System.IFolderLauncherOptions,
+                                                                Windows.Foundation.Collections.IPropertySet,
+                                                                _Pointer[Windows.Foundation.IAsyncOperation[Windows.System.ILaunchUriResult]]],
+                                                               _type.HRESULT]
 
         class ILauncherStatics5(IInspectable):
-            LaunchFolderPathAsync: _Callable
-            LaunchFolderPathWithOptionsAsync: _Callable
-            LaunchFolderPathForUserAsync: _Callable
-            LaunchFolderPathWithOptionsForUserAsync: _Callable
+            LaunchFolderPathAsync: _Callable[[_type.HSTRING,
+                                              _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                             _type.HRESULT]
+            LaunchFolderPathWithOptionsAsync: _Callable[[_type.HSTRING,
+                                                         Windows.System.IFolderLauncherOptions,
+                                                         _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                                        _type.HRESULT]
+            LaunchFolderPathForUserAsync: _Callable[[Windows.System.IUser,
+                                                     _type.HSTRING,
+                                                     _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                                    _type.HRESULT]
+            LaunchFolderPathWithOptionsForUserAsync: _Callable[[Windows.System.IUser,
+                                                                _type.HSTRING,
+                                                                Windows.System.IFolderLauncherOptions,
+                                                                _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                                               _type.HRESULT]
 
         class ILauncherUIOptions(IInspectable):
-            get_InvocationPoint: _Callable
-            put_InvocationPoint: _Callable
-            get_SelectionRect: _Callable
-            put_SelectionRect: _Callable
-            get_PreferredPlacement: _Callable
-            put_PreferredPlacement: _Callable
+            get_InvocationPoint: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.Rect]]],
+                                           _type.HRESULT]
+            put_InvocationPoint: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.Rect]],
+                                           _type.HRESULT]
+            get_SelectionRect: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.Rect]]],
+                                         _type.HRESULT]
+            put_SelectionRect: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.Rect]],
+                                         _type.HRESULT]
+            get_PreferredPlacement: _Callable[[_Pointer[_enum.Windows.UI.Popups.Placement]],
+                                              _type.HRESULT]
+            put_PreferredPlacement: _Callable[[_enum.Windows.UI.Popups.Placement],
+                                              _type.HRESULT]
 
         class ILauncherViewOptions(IInspectable):
-            get_DesiredRemainingView: _Callable
-            put_DesiredRemainingView: _Callable
+            get_DesiredRemainingView: _Callable[[_Pointer[_enum.Windows.UI.ViewManagement.ViewSizePreference]],
+                                                _type.HRESULT]
+            put_DesiredRemainingView: _Callable[[_enum.Windows.UI.ViewManagement.ViewSizePreference],
+                                                _type.HRESULT]
 
         class IMemoryManagerStatics(IInspectable):
             get_AppMemoryUsage: _Callable
@@ -3453,8 +4191,11 @@ class Windows:
                 GetForUser: _Callable
 
             class ILockScreenImageFeedStatics(IInspectable):
-                RequestSetImageFeedAsync: _Callable
-                TryRemoveImageFeed: _Callable
+                RequestSetImageFeedAsync: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                     _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.UserProfile.SetImageFeedResult]]],
+                                                    _type.HRESULT]
+                TryRemoveImageFeed: _Callable[[_Pointer[_type.boolean]],
+                                              _type.HRESULT]
 
             class ILockScreenStatics(IInspectable):
                 get_OriginalImageFile: _Callable[[_Pointer[Windows.Foundation.IUriRuntimeClass]],
@@ -3469,29 +4210,60 @@ class Windows:
                                                _type.HRESULT]
 
             class IUserInformationStatics(IInspectable):
-                get_AccountPictureChangeEnabled: _Callable
-                get_NameAccessAllowed: _Callable
-                GetAccountPicture: _Callable
-                SetAccountPictureAsync: _Callable
-                SetAccountPicturesAsync: _Callable
-                SetAccountPictureFromStreamAsync: _Callable
-                SetAccountPicturesFromStreamsAsync: _Callable
-                add_AccountPictureChanged: _Callable
-                remove_AccountPictureChanged: _Callable
-                GetDisplayNameAsync: _Callable
-                GetFirstNameAsync: _Callable
-                GetLastNameAsync: _Callable
-                GetPrincipalNameAsync: _Callable
-                GetSessionInitiationProtocolUriAsync: _Callable
-                GetDomainNameAsync: _Callable
+                get_AccountPictureChangeEnabled: _Callable[[_Pointer[_type.boolean]],
+                                                           _type.HRESULT]
+                get_NameAccessAllowed: _Callable[[_Pointer[_type.boolean]],
+                                                 _type.HRESULT]
+                GetAccountPicture: _Callable[[_enum.Windows.System.UserProfile.AccountPictureKind,
+                                              _Pointer[Windows.Storage.IStorageFile]],
+                                             _type.HRESULT]
+                SetAccountPictureAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                   _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.UserProfile.SetAccountPictureResult]]],
+                                                  _type.HRESULT]
+                SetAccountPicturesAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                    Windows.Storage.IStorageFile,
+                                                    Windows.Storage.IStorageFile,
+                                                    _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.UserProfile.SetAccountPictureResult]]],
+                                                   _type.HRESULT]
+                SetAccountPictureFromStreamAsync: _Callable[[Windows.Storage.Streams.IRandomAccessStream,
+                                                             _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.UserProfile.SetAccountPictureResult]]],
+                                                            _type.HRESULT]
+                SetAccountPicturesFromStreamsAsync: _Callable[[Windows.Storage.Streams.IRandomAccessStream,
+                                                               Windows.Storage.Streams.IRandomAccessStream,
+                                                               Windows.Storage.Streams.IRandomAccessStream,
+                                                               _Pointer[Windows.Foundation.IAsyncOperation[_enum.Windows.System.UserProfile.SetAccountPictureResult]]],
+                                                              _type.HRESULT]
+                add_AccountPictureChanged: _Callable[[Windows.Foundation.ITypedEventHandler[IInspectable],
+                                                      _Pointer[_struct.EventRegistrationToken]],
+                                                     _type.HRESULT]
+                remove_AccountPictureChanged: _Callable[[_struct.EventRegistrationToken],
+                                                        _type.HRESULT]
+                GetDisplayNameAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_type.HSTRING]]],
+                                               _type.HRESULT]
+                GetFirstNameAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_type.HSTRING]]],
+                                             _type.HRESULT]
+                GetLastNameAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_type.HSTRING]]],
+                                            _type.HRESULT]
+                GetPrincipalNameAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_type.HSTRING]]],
+                                                 _type.HRESULT]
+                GetSessionInitiationProtocolUriAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Foundation.IUriRuntimeClass]]],
+                                                                _type.HRESULT]
+                GetDomainNameAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[_type.HSTRING]]],
+                                              _type.HRESULT]
 
             class IUserProfilePersonalizationSettings(IInspectable):
-                TrySetLockScreenImageAsync: _Callable
-                TrySetWallpaperImageAsync: _Callable
+                TrySetLockScreenImageAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                       _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                                      _type.HRESULT]
+                TrySetWallpaperImageAsync: _Callable[[Windows.Storage.IStorageFile,
+                                                      _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
+                                                     _type.HRESULT]
 
             class IUserProfilePersonalizationSettingsStatics(IInspectable):
-                get_Current: _Callable
-                IsSupported: _Callable
+                get_Current: _Callable[[_Pointer[Windows.System.UserProfile.IUserProfilePersonalizationSettings]],
+                                       _type.HRESULT]
+                IsSupported: _Callable[[_Pointer[_type.boolean]],
+                                       _type.HRESULT]
 
     class UI:
         class IColorHelper(IInspectable):
@@ -5115,19 +5887,19 @@ class Windows:
                 ProcessEvents: _Callable[[_enum.Windows.UI.Core.CoreProcessEventsOption],
                                          _type.HRESULT]
                 RunAsync: _Callable[[_enum.Windows.UI.Core.CoreDispatcherPriority,
-                                     Windows.UI.Core.IDispatchedHandler_impl,
+                                     Windows.UI.Core.IDispatchedHandler,
                                      _Pointer[Windows.Foundation.IAsyncAction]],
                                     _type.HRESULT]
-                RunIdleAsync: _Callable[[Windows.UI.Core.IDispatchedHandler_impl,
+                RunIdleAsync: _Callable[[Windows.UI.Core.IDispatchedHandler,
                                          _Pointer[Windows.Foundation.IAsyncAction]],
                                         _type.HRESULT]
 
             class ICoreDispatcher2(IInspectable):
                 TryRunAsync: _Callable[[_enum.Windows.UI.Core.CoreDispatcherPriority,
-                                        Windows.UI.Core.IDispatchedHandler_impl,
+                                        Windows.UI.Core.IDispatchedHandler,
                                         _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
                                        _type.HRESULT]
-                TryRunIdleAsync: _Callable[[Windows.UI.Core.IDispatchedHandler_impl,
+                TryRunIdleAsync: _Callable[[Windows.UI.Core.IDispatchedHandler,
                                             _Pointer[Windows.Foundation.IAsyncOperation[_type.boolean]]],
                                            _type.HRESULT]
 
@@ -5821,76 +6593,136 @@ class Windows:
 
         class Notifications:
             class IAdaptiveNotificationContent(IInspectable):
-                get_Kind: _Callable
-                get_Hints: _Callable
+                get_Kind: _Callable[[_Pointer[_enum.Windows.UI.Notifications.AdaptiveNotificationContentKind]],
+                                    _type.HRESULT]
+                get_Hints: _Callable[[_Pointer[Windows.Foundation.Collections.IMap[_type.HSTRING, _type.HSTRING]]],
+                                     _type.HRESULT]
 
             class IAdaptiveNotificationText(IInspectable):
-                get_Text: _Callable
-                put_Text: _Callable
-                get_Language: _Callable
-                put_Language: _Callable
+                get_Text: _Callable[[_Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+                put_Text: _Callable[[_type.HSTRING],
+                                    _type.HRESULT]
+                get_Language: _Callable[[_Pointer[_type.HSTRING]],
+                                        _type.HRESULT]
+                put_Language: _Callable[[_type.HSTRING],
+                                        _type.HRESULT]
 
             class IBadgeNotification(IInspectable):
-                get_Content: _Callable
-                put_ExpirationTime: _Callable
-                get_ExpirationTime: _Callable
+                get_Content: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlDocument]],
+                                       _type.HRESULT]
+                put_ExpirationTime: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.DateTime]],
+                                              _type.HRESULT]
+                get_ExpirationTime: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.DateTime]]],
+                                              _type.HRESULT]
 
             class IBadgeNotificationFactory(IInspectable):
-                CreateBadgeNotification: _Callable
+                CreateBadgeNotification: _Callable[[Windows.Data.Xml.Dom.IXmlDocument,
+                                                    _Pointer[Windows.UI.Notifications.IBadgeNotification]],
+                                                   _type.HRESULT]
 
             class IBadgeUpdateManagerForUser(IInspectable):
-                CreateBadgeUpdaterForApplication: _Callable
-                CreateBadgeUpdaterForApplicationWithId: _Callable
-                CreateBadgeUpdaterForSecondaryTile: _Callable
-                get_User: _Callable
+                CreateBadgeUpdaterForApplication: _Callable[[_Pointer[Windows.UI.Notifications.IBadgeUpdater]],
+                                                            _type.HRESULT]
+                CreateBadgeUpdaterForApplicationWithId: _Callable[[_type.HSTRING,
+                                                                   _Pointer[Windows.UI.Notifications.IBadgeUpdater]],
+                                                                  _type.HRESULT]
+                CreateBadgeUpdaterForSecondaryTile: _Callable[[_type.HSTRING,
+                                                               _Pointer[Windows.UI.Notifications.IBadgeUpdater]],
+                                                              _type.HRESULT]
+                get_User: _Callable[[_Pointer[Windows.System.IUser]],
+                                    _type.HRESULT]
 
             class IBadgeUpdateManagerStatics(IInspectable):
-                CreateBadgeUpdaterForApplication: _Callable
-                CreateBadgeUpdaterForApplicationWithId: _Callable
-                CreateBadgeUpdaterForSecondaryTile: _Callable
-                GetTemplateContent: _Callable
+                CreateBadgeUpdaterForApplication: _Callable[[_Pointer[Windows.UI.Notifications.IBadgeUpdater]],
+                                                            _type.HRESULT]
+                CreateBadgeUpdaterForApplicationWithId: _Callable[[_type.HSTRING,
+                                                                   _Pointer[Windows.UI.Notifications.IBadgeUpdater]],
+                                                                  _type.HRESULT]
+                CreateBadgeUpdaterForSecondaryTile: _Callable[[_type.HSTRING,
+                                                               _Pointer[Windows.UI.Notifications.IBadgeUpdater]],
+                                                              _type.HRESULT]
+                GetTemplateContent: _Callable[[_enum.Windows.UI.Notifications.BadgeTemplateType,
+                                               _Pointer[Windows.Data.Xml.Dom.IXmlDocument]],
+                                              _type.HRESULT]
 
             class IBadgeUpdateManagerStatics2(IInspectable):
-                GetForUser: _Callable
+                GetForUser: _Callable[[Windows.System.IUser,
+                                       _Pointer[Windows.UI.Notifications.IBadgeUpdateManagerForUser]],
+                                      _type.HRESULT]
 
             class IBadgeUpdater(IInspectable):
-                Update: _Callable
-                Clear: _Callable
-                StartPeriodicUpdate: _Callable
-                StartPeriodicUpdateAtTime: _Callable
-                StopPeriodicUpdate: _Callable
+                Update: _Callable[[Windows.UI.Notifications.IBadgeNotification],
+                                  _type.HRESULT]
+                Clear: _Callable[[],
+                                 _type.HRESULT]
+                StartPeriodicUpdate: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                _enum.Windows.UI.Notifications.PeriodicUpdateRecurrence],
+                                               _type.HRESULT]
+                StartPeriodicUpdateAtTime: _Callable[[Windows.Foundation.IUriRuntimeClass,
+                                                      _struct.Windows.Foundation.DateTime,
+                                                      _enum.Windows.UI.Notifications.PeriodicUpdateRecurrence],
+                                                     _type.HRESULT]
+                StopPeriodicUpdate: _Callable[[],
+                                              _type.HRESULT]
 
             class IKnownAdaptiveNotificationHintsStatics(IInspectable):
-                get_Style: _Callable
-                get_Wrap: _Callable
-                get_MaxLines: _Callable
-                get_MinLines: _Callable
-                get_TextStacking: _Callable
-                get_Align: _Callable
+                get_Style: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
+                get_Wrap: _Callable[[_Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+                get_MaxLines: _Callable[[_Pointer[_type.HSTRING]],
+                                        _type.HRESULT]
+                get_MinLines: _Callable[[_Pointer[_type.HSTRING]],
+                                        _type.HRESULT]
+                get_TextStacking: _Callable[[_Pointer[_type.HSTRING]],
+                                            _type.HRESULT]
+                get_Align: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
 
             class IKnownAdaptiveNotificationTextStylesStatics(IInspectable):
-                get_Caption: _Callable
-                get_Body: _Callable
-                get_Base: _Callable
-                get_Subtitle: _Callable
-                get_Title: _Callable
-                get_Subheader: _Callable
-                get_Header: _Callable
-                get_TitleNumeral: _Callable
-                get_SubheaderNumeral: _Callable
-                get_HeaderNumeral: _Callable
-                get_CaptionSubtle: _Callable
-                get_BodySubtle: _Callable
-                get_BaseSubtle: _Callable
-                get_SubtitleSubtle: _Callable
-                get_TitleSubtle: _Callable
-                get_SubheaderSubtle: _Callable
-                get_SubheaderNumeralSubtle: _Callable
-                get_HeaderSubtle: _Callable
-                get_HeaderNumeralSubtle: _Callable
+                get_Caption: _Callable[[_Pointer[_type.HSTRING]],
+                                       _type.HRESULT]
+                get_Body: _Callable[[_Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+                get_Base: _Callable[[_Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+                get_Subtitle: _Callable[[_Pointer[_type.HSTRING]],
+                                        _type.HRESULT]
+                get_Title: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
+                get_Subheader: _Callable[[_Pointer[_type.HSTRING]],
+                                         _type.HRESULT]
+                get_Header: _Callable[[_Pointer[_type.HSTRING]],
+                                      _type.HRESULT]
+                get_TitleNumeral: _Callable[[_Pointer[_type.HSTRING]],
+                                            _type.HRESULT]
+                get_SubheaderNumeral: _Callable[[_Pointer[_type.HSTRING]],
+                                                _type.HRESULT]
+                get_HeaderNumeral: _Callable[[_Pointer[_type.HSTRING]],
+                                             _type.HRESULT]
+                get_CaptionSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                             _type.HRESULT]
+                get_BodySubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                          _type.HRESULT]
+                get_BaseSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                          _type.HRESULT]
+                get_SubtitleSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                              _type.HRESULT]
+                get_TitleSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                           _type.HRESULT]
+                get_SubheaderSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                               _type.HRESULT]
+                get_SubheaderNumeralSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                                      _type.HRESULT]
+                get_HeaderSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                            _type.HRESULT]
+                get_HeaderNumeralSubtle: _Callable[[_Pointer[_type.HSTRING]],
+                                                   _type.HRESULT]
 
             class IKnownNotificationBindingsStatics(IInspectable):
-                get_ToastGeneric: _Callable
+                get_ToastGeneric: _Callable[[_Pointer[_type.HSTRING]],
+                                            _type.HRESULT]
 
             class INotification(IInspectable):
                 get_ExpirationTime: _Callable
@@ -5907,13 +6739,21 @@ class Windows:
                 GetTextElements: _Callable
 
             class INotificationData(IInspectable):
-                get_Values: _Callable
-                get_SequenceNumber: _Callable
-                put_SequenceNumber: _Callable
+                get_Values: _Callable[[_Pointer[Windows.Foundation.Collections.IMap[_type.HSTRING, _type.HSTRING]]],
+                                      _type.HRESULT]
+                get_SequenceNumber: _Callable[[_Pointer[_type.UINT32]],
+                                              _type.HRESULT]
+                put_SequenceNumber: _Callable[[_type.UINT32],
+                                              _type.HRESULT]
 
             class INotificationDataFactory(IInspectable):
-                CreateNotificationDataWithValuesAndSequenceNumber: _Callable
-                CreateNotificationDataWithValues: _Callable
+                CreateNotificationDataWithValuesAndSequenceNumber: _Callable[[Windows.Foundation.Collections.IIterable[Windows.Foundation.Collections.IKeyValuePair[_type.HSTRING, _type.HSTRING]],
+                                                                              _type.UINT32,
+                                                                              _Pointer[Windows.UI.Notifications.INotificationData]],
+                                                                             _type.HRESULT]
+                CreateNotificationDataWithValues: _Callable[[Windows.Foundation.Collections.IIterable[Windows.Foundation.Collections.IKeyValuePair[_type.HSTRING, _type.HSTRING]],
+                                                             _Pointer[Windows.UI.Notifications.INotificationData]],
+                                                            _type.HRESULT]
 
             class INotificationVisual(IInspectable):
                 get_Language: _Callable
@@ -6044,28 +6884,51 @@ class Windows:
                                         _type.HRESULT]
 
             class IToastActivatedEventArgs2(IInspectable):
-                get_UserInput: _Callable
+                get_UserInput: _Callable[[_Pointer[Windows.Foundation.Collections.IPropertySet]],
+                                         _type.HRESULT]
 
             class IToastCollection(IInspectable):
-                get_Id: _Callable
-                get_DisplayName: _Callable
-                put_DisplayName: _Callable
-                get_LaunchArgs: _Callable
-                put_LaunchArgs: _Callable
-                get_Icon: _Callable
-                put_Icon: _Callable
+                get_Id: _Callable[[_Pointer[_type.HSTRING]],
+                                  _type.HRESULT]
+                get_DisplayName: _Callable[[_Pointer[_type.HSTRING]],
+                                           _type.HRESULT]
+                put_DisplayName: _Callable[[_type.HSTRING],
+                                           _type.HRESULT]
+                get_LaunchArgs: _Callable[[_Pointer[_type.HSTRING]],
+                                          _type.HRESULT]
+                put_LaunchArgs: _Callable[[_type.HSTRING],
+                                          _type.HRESULT]
+                get_Icon: _Callable[[_Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                    _type.HRESULT]
+                put_Icon: _Callable[[Windows.Foundation.IUriRuntimeClass],
+                                    _type.HRESULT]
 
             class IToastCollectionFactory(IInspectable):
-                CreateInstance: _Callable
+                CreateInstance: _Callable[[_type.HSTRING,
+                                           _type.HSTRING,
+                                           _type.HSTRING,
+                                           Windows.Foundation.IUriRuntimeClass,
+                                           _Pointer[Windows.UI.Notifications.IToastCollection]],
+                                          _type.HRESULT]
 
             class IToastCollectionManager(IInspectable):
-                SaveToastCollectionAsync: _Callable
-                FindAllToastCollectionsAsync: _Callable
-                GetToastCollectionAsync: _Callable
-                RemoveToastCollectionAsync: _Callable
-                RemoveAllToastCollectionsAsync: _Callable
-                get_User: _Callable
-                get_AppId: _Callable
+                SaveToastCollectionAsync: _Callable[[Windows.UI.Notifications.IToastCollection,
+                                                     _Pointer[Windows.Foundation.IAsyncAction]],
+                                                    _type.HRESULT]
+                FindAllToastCollectionsAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.Foundation.Collections.IVectorView[Windows.UI.Notifications.IToastCollection]]]],
+                                                        _type.HRESULT]
+                GetToastCollectionAsync: _Callable[[_type.HSTRING,
+                                                    _Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Notifications.IToastCollection]]],
+                                                   _type.HSTRING]
+                RemoveToastCollectionAsync: _Callable[[_type.HSTRING,
+                                                       _Pointer[Windows.Foundation.IAsyncAction]],
+                                                      _type.HRESULT]
+                RemoveAllToastCollectionsAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncAction]],
+                                                          _type.HRESULT]
+                get_User: _Callable[[_Pointer[Windows.System.IUser]],
+                                    _type.HRESULT]
+                get_AppId: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
 
             class IToastDismissedEventArgs(IInspectable):
                 get_Reason: _Callable[[_Pointer[_enum.Windows.UI.Notifications.ToastDismissalReason]],
@@ -6078,51 +6941,71 @@ class Windows:
             class IToastNotification(IInspectable):
                 get_Content: _Callable[[_Pointer[Windows.Data.Xml.Dom.IXmlDocument]],
                                        _type.HRESULT]
-                put_ExpirationTime: _Callable
-                get_ExpirationTime: _Callable
-                add_Dismissed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Notifications.IToastNotification, Windows.UI.Notifications.IToastDismissedEventArgs],
+                put_ExpirationTime: _Callable[[_struct.Windows.Foundation.DateTime],
+                                              _type.HRESULT]
+                get_ExpirationTime: _Callable[[_Pointer[_struct.Windows.Foundation.DateTime]],
+                                              _type.HRESULT]
+                add_Dismissed: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Notifications.IToastNotification, Windows.UI.Notifications.IToastDismissedEventArgs],
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_Dismissed: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_Activated: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Notifications.IToastNotification, IInspectable],
+                add_Activated: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Notifications.IToastNotification, IInspectable],
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_Activated: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_Failed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Notifications.IToastNotification, Windows.UI.Notifications.IToastFailedEventArgs],
+                add_Failed: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Notifications.IToastNotification, Windows.UI.Notifications.IToastFailedEventArgs],
                                        _Pointer[_struct.EventRegistrationToken]],
                                       _type.HRESULT]
                 remove_Failed: _Callable[[_struct.EventRegistrationToken],
                                          _type.HRESULT]
 
             class IToastNotification2(IInspectable):
-                put_Tag: _Callable
-                get_Tag: _Callable
-                put_Group: _Callable
-                get_Group: _Callable
-                put_SuppressPopup: _Callable
-                get_SuppressPopup: _Callable
+                put_Tag: _Callable[[_type.HSTRING],
+                                   _type.HRESULT]
+                get_Tag: _Callable[[_Pointer[_type.HSTRING]],
+                                   _type.HRESULT]
+                put_Group: _Callable[[_type.HSTRING],
+                                     _type.HRESULT]
+                get_Group: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
+                put_SuppressPopup: _Callable[[_type.boolean],
+                                             _type.HRESULT]
+                get_SuppressPopup: _Callable[[_Pointer[_type.boolean]],
+                                             _type.HRESULT]
 
             class IToastNotification3(IInspectable):
-                get_NotificationMirroring: _Callable
-                put_NotificationMirroring: _Callable
-                get_RemoteId: _Callable
-                put_RemoteId: _Callable
+                get_NotificationMirroring: _Callable[[_Pointer[_enum.Windows.UI.Notifications.NotificationMirroring]],
+                                                     _type.HRESULT]
+                put_NotificationMirroring: _Callable[[_enum.Windows.UI.Notifications.NotificationMirroring],
+                                                     _type.HRESULT]
+                get_RemoteId: _Callable[[_Pointer[_type.HSTRING]],
+                                        _type.HRESULT]
+                put_RemoteId: _Callable[[_type.HSTRING],
+                                        _type.HRESULT]
 
             class IToastNotification4(IInspectable):
-                get_Data: _Callable
-                put_Data: _Callable
-                get_Priority: _Callable
-                put_Priority: _Callable
+                get_Data: _Callable[[_Pointer[Windows.UI.Notifications.INotificationData]],
+                                    _type.HRESULT]
+                put_Data: _Callable[[Windows.UI.Notifications.INotificationData],
+                                    _type.HRESULT]
+                get_Priority: _Callable[[_Pointer[_enum.Windows.UI.Notifications.ToastNotificationPriority]],
+                                        _type.HRESULT]
+                put_Priority: _Callable[[_enum.Windows.UI.Notifications.ToastNotificationPriority],
+                                        _type.HRESULT]
 
             class IToastNotification6(IInspectable):
-                get_ExpiresOnReboot: _Callable
-                put_ExpiresOnReboot: _Callable
+                get_ExpiresOnReboot: _Callable[[_Pointer[_type.boolean]],
+                                               _type.HRESULT]
+                put_ExpiresOnReboot: _Callable[[_type.boolean],
+                                               _type.HRESULT]
 
             class IToastNotificationActionTriggerDetail(IInspectable):
-                get_Argument: _Callable
-                get_UserInput: _Callable
+                get_Argument: _Callable[[_Pointer[_type.HSTRING]],
+                                        _type.HRESULT]
+                get_UserInput: _Callable[[_Pointer[Windows.Foundation.Collections.IPropertySet]],
+                                         _type.HRESULT]
 
             class IToastNotificationFactory(IInspectable):
                 CreateToastNotification: _Callable[[Windows.Data.Xml.Dom.IXmlDocument,
@@ -6130,35 +7013,63 @@ class Windows:
                                                    _type.HRESULT]
 
             class IToastNotificationHistory(IInspectable):
-                RemoveGroup: _Callable
-                RemoveGroupWithId: _Callable
-                RemoveGroupedTagWithId: _Callable
-                RemoveGroupedTag: _Callable
-                Remove: _Callable
-                Clear: _Callable
-                ClearWithId: _Callable
+                RemoveGroup: _Callable[[_type.HSTRING],
+                                       _type.HRESULT]
+                RemoveGroupWithId: _Callable[[_type.HSTRING,
+                                              _type.HSTRING],
+                                             _type.HRESULT]
+                RemoveGroupedTagWithId: _Callable[[_type.HSTRING,
+                                                   _type.HSTRING,
+                                                   _type.HSTRING],
+                                                  _type.HRESULT]
+                RemoveGroupedTag: _Callable[[_type.HSTRING,
+                                             _type.HSTRING],
+                                            _type.HRESULT]
+                Remove: _Callable[[_type.HSTRING],
+                                  _type.HRESULT]
+                Clear: _Callable[[],
+                                 _type.HRESULT]
+                ClearWithId: _Callable[[_type.HSTRING],
+                                       _type.HRESULT]
 
             class IToastNotificationHistory2(IInspectable):
-                GetHistory: _Callable
-                GetHistoryWithId: _Callable
+                GetHistory: _Callable[[_Pointer[Windows.Foundation.Collections.IVectorView[Windows.UI.Notifications.IToastNotification]]],
+                                      _type.HRESULT]
+                GetHistoryWithId: _Callable[[_type.HSTRING,
+                                             _Pointer[Windows.Foundation.Collections.IVectorView[Windows.UI.Notifications.IToastNotification]]],
+                                            _type.HRESULT]
 
             class IToastNotificationHistoryChangedTriggerDetail(IInspectable):
-                get_ChangeType: _Callable
+                get_ChangeType: _Callable[[_Pointer[_enum.Windows.UI.Notifications.ToastHistoryChangedType]],
+                                          _type.HRESULT]
 
             class IToastNotificationHistoryChangedTriggerDetail2(IInspectable):
-                get_CollectionId: _Callable
+                get_CollectionId: _Callable[[_Pointer[_type.HSTRING]],
+                                            _type.HRESULT]
 
             class IToastNotificationManagerForUser(IInspectable):
-                CreateToastNotifier: _Callable
-                CreateToastNotifierWithId: _Callable
-                get_History: _Callable
-                get_User: _Callable
+                CreateToastNotifier: _Callable[[_Pointer[Windows.UI.Notifications.IToastNotifier]],
+                                               _type.HRESULT]
+                CreateToastNotifierWithId: _Callable[[_type.HSTRING,
+                                                      _Pointer[Windows.UI.Notifications.IToastNotifier]],
+                                                     _type.HRESULT]
+                get_History: _Callable[[_Pointer[Windows.UI.Notifications.IToastNotificationHistory]],
+                                       _type.HRESULT]
+                get_User: _Callable[[_Pointer[Windows.System.IUser]],
+                                    _type.HRESULT]
 
             class IToastNotificationManagerForUser2(IInspectable):
-                GetToastNotifierForToastCollectionIdAsync: _Callable
-                GetHistoryForToastCollectionIdAsync: _Callable
-                GetToastCollectionManager: _Callable
-                GetToastCollectionManagerWithAppId: _Callable
+                GetToastNotifierForToastCollectionIdAsync: _Callable[[_type.HSTRING,
+                                                                      _Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Notifications.IToastNotifier]]],
+                                                                     _type.HRESULT]
+                GetHistoryForToastCollectionIdAsync: _Callable[[_type.HSTRING,
+                                                                _Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Notifications.IToastNotificationHistory]]],
+                                                               _type.HRESULT]
+                GetToastCollectionManager: _Callable[[_Pointer[Windows.UI.Notifications.IToastCollectionManager]],
+                                                     _type.HRESULT]
+                GetToastCollectionManagerWithAppId: _Callable[[_type.HSTRING,
+                                                               _Pointer[Windows.UI.Notifications.IToastCollectionManager]],
+                                                              _type.HRESULT]
 
             class IToastNotificationManagerStatics(IInspectable):
                 CreateToastNotifier: _Callable[[_Pointer[Windows.UI.Notifications.IToastNotifier]],
@@ -6166,17 +7077,24 @@ class Windows:
                 CreateToastNotifierWithId: _Callable[[_type.HSTRING,
                                                       _Pointer[Windows.UI.Notifications.IToastNotifier]],
                                                      _type.HRESULT]
-                GetTemplateContent: _Callable
+                GetTemplateContent: _Callable[[_enum.Windows.UI.Notifications.ToastTemplateType,
+                                               _Pointer[Windows.Data.Xml.Dom.IXmlDocument]],
+                                              _type.HRESULT]
 
             class IToastNotificationManagerStatics2(IInspectable):
-                get_History: _Callable
+                get_History: _Callable[[_Pointer[Windows.UI.Notifications.IToastNotificationHistory]],
+                                       _type.HRESULT]
 
             class IToastNotificationManagerStatics4(IInspectable):
-                GetForUser: _Callable
-                ConfigureNotificationMirroring: _Callable
+                GetForUser: _Callable[[Windows.System.IUser,
+                                       _Pointer[Windows.UI.Notifications.IToastNotificationManagerForUser]],
+                                      _type.HRESULT]
+                ConfigureNotificationMirroring: _Callable[[_enum.Windows.UI.Notifications.NotificationMirroring],
+                                                          _type.HRESULT]
 
             class IToastNotificationManagerStatics5(IInspectable):
-                GetDefault: _Callable
+                GetDefault: _Callable[[_Pointer[Windows.UI.Notifications.IToastNotificationManagerForUser]],
+                                      _type.HRESULT]
 
             class IToastNotifier(IInspectable):
                 Show: _Callable[[Windows.UI.Notifications.IToastNotification],
@@ -6185,27 +7103,46 @@ class Windows:
                                 _type.HRESULT]
                 get_Setting: _Callable[[_Pointer[_enum.Windows.UI.Notifications.NotificationSetting]],
                                        _type.HRESULT]
-                AddToSchedule: _Callable
-                RemoveFromSchedule: _Callable
-                GetScheduledToastNotifications: _Callable
+                AddToSchedule: _Callable[[Windows.UI.Notifications.IScheduledToastNotification],
+                                         _type.HRESULT]
+                RemoveFromSchedule: _Callable[[Windows.UI.Notifications.IScheduledToastNotification],
+                                              _type.HRESULT]
+                GetScheduledToastNotifications: _Callable[[_Pointer[Windows.Foundation.Collections.IVectorView[Windows.UI.Notifications.IScheduledToastNotification]]],
+                                                          _type.HRESULT]
 
             class IToastNotifier2(IInspectable):
-                UpdateWithTagAndGroup: _Callable
-                UpdateWithTag: _Callable
+                UpdateWithTagAndGroup: _Callable[[Windows.UI.Notifications.INotificationData,
+                                                  _type.HSTRING,
+                                                  _type.HSTRING,
+                                                  _Pointer[_enum.Windows.UI.Notifications.NotificationUpdateResult]],
+                                                 _type.HRESULT]
+                UpdateWithTag: _Callable[[Windows.UI.Notifications.INotificationData,
+                                          _type.HSTRING,
+                                          _Pointer[_enum.Windows.UI.Notifications.NotificationUpdateResult]],
+                                         _type.HRESULT]
 
             class IToastNotifier3(IInspectable):
-                add_ScheduledToastNotificationShowing: _Callable
-                remove_ScheduledToastNotificationShowing: _Callable
+                add_ScheduledToastNotificationShowing: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Notifications.IToastNotifier, Windows.UI.Notifications.IScheduledToastNotificationShowingEventArgs],
+                                                                  _Pointer[_struct.EventRegistrationToken]],
+                                                                 _type.HRESULT]
+                remove_ScheduledToastNotificationShowing: _Callable[[_struct.EventRegistrationToken],
+                                                                    _type.HRESULT]
 
             class IUserNotification(IInspectable):
-                get_Notification: _Callable
-                get_AppInfo: _Callable
-                get_Id: _Callable
-                get_CreationTime: _Callable
+                get_Notification: _Callable[[_Pointer[Windows.UI.Notifications.INotification]],
+                                            _type.HRESULT]
+                get_AppInfo: _Callable[[_Pointer[Windows.ApplicationModel.IAppInfo]],
+                                       _type.HRESULT]
+                get_Id: _Callable[[_Pointer[_type.UINT32]],
+                                  _type.HRESULT]
+                get_CreationTime: _Callable[[_Pointer[_struct.Windows.Foundation.DateTime]],
+                                            _type.HRESULT]
 
             class IUserNotificationChangedEventArgs(IInspectable):
-                get_ChangeKind: _Callable
-                get_UserNotificationId: _Callable
+                get_ChangeKind: _Callable[[_Pointer[_enum.Windows.UI.Notifications.UserNotificationChangedKind]],
+                                          _type.HRESULT]
+                get_UserNotificationId: _Callable[[_Pointer[_type.UINT32]],
+                                                  _type.HRESULT]
 
         class Shell:
             class IAdaptiveCard(IInspectable):
@@ -6663,7 +7600,8 @@ class Windows:
 
         class Popups:
             class _IUICommandInvokedHandler:
-                Invoke: _Callable
+                Invoke: _Callable[[Windows.UI.Popups.IUICommand],
+                                  _type.HRESULT]
 
             class IUICommandInvokedHandler(_IUICommandInvokedHandler, IUnknown):
                 pass
@@ -6673,41 +7611,81 @@ class Windows:
                 pass
 
             class IMessageDialog(IInspectable):
-                get_Title: _Callable
-                put_Title: _Callable
-                get_Commands: _Callable
-                get_DefaultCommandIndex: _Callable
-                put_DefaultCommandIndex: _Callable
-                get_CancelCommandIndex: _Callable
-                put_CancelCommandIndex: _Callable
-                get_Content: _Callable
-                put_Content: _Callable
-                ShowAsync: _Callable
-                get_Options: _Callable
-                put_Options: _Callable
+                get_Title: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
+                put_Title: _Callable[[_type.HSTRING],
+                                     _type.HRESULT]
+                get_Commands: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Popups.IUICommand]]],
+                                        _type.HRESULT]
+                get_DefaultCommandIndex: _Callable[[_Pointer[_type.UINT32]],
+                                                   _type.HRESULT]
+                put_DefaultCommandIndex: _Callable[[_type.UINT32],
+                                                   _type.HRESULT]
+                get_CancelCommandIndex: _Callable[[_Pointer[_type.UINT32]],
+                                                  _type.HRESULT]
+                put_CancelCommandIndex: _Callable[[_type.UINT32],
+                                                  _type.HRESULT]
+                get_Content: _Callable[[_Pointer[_type.HSTRING]],
+                                       _type.HRESULT]
+                put_Content: _Callable[[_type.HSTRING],
+                                       _type.HRESULT]
+                ShowAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Popups.IUICommand]]],
+                                     _type.HRESULT]
+                get_Options: _Callable[[_Pointer[_enum.Windows.UI.Popups.MessageDialogOptions]],
+                                       _type.HRESULT]
+                put_Options: _Callable[[_enum.Windows.UI.Popups.MessageDialogOptions],
+                                       _type.HRESULT]
 
             class IMessageDialogFactory(IInspectable):
-                Create: _Callable
-                CreateWithTitle: _Callable
+                Create: _Callable[[_type.HSTRING,
+                                   _Pointer[Windows.UI.Popups.IMessageDialog]],
+                                  _type.HRESULT]
+                CreateWithTitle: _Callable[[_type.HSTRING,
+                                            _type.HSTRING,
+                                            _Pointer[Windows.UI.Popups.IMessageDialog]],
+                                           _type.HRESULT]
 
             class IPopupMenu(IInspectable):
-                get_Commands: _Callable
-                ShowAsync: _Callable
-                ShowAsyncWithRect: _Callable
-                ShowAsyncWithRectAndPlacement: _Callable
+                get_Commands: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Popups.IUICommand]]],
+                                        _type.HRESULT]
+                ShowAsync: _Callable[[_struct.Windows.Foundation.Point,
+                                      _Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Popups.IUICommand]]],
+                                     _type.HRESULT]
+                ShowAsyncWithRect: _Callable[[_struct.Windows.Foundation.Rect,
+                                              _Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Popups.IUICommand]]],
+                                             _type.HRESULT]
+                ShowAsyncWithRectAndPlacement: _Callable[[_struct.Windows.Foundation.Rect,
+                                                          _enum.Windows.UI.Popups.Placement,
+                                                          _Pointer[Windows.Foundation.IAsyncOperation[Windows.UI.Popups.IUICommand]]],
+                                                         _type.HRESULT]
 
             class IUICommand(IInspectable):
-                get_Label: _Callable
-                put_Label: _Callable
-                get_Invoked: _Callable
-                put_Invoked: _Callable
-                get_Id: _Callable
-                put_Id: _Callable
+                get_Label: _Callable[[_Pointer[_type.HSTRING]],
+                                     _type.HRESULT]
+                put_Label: _Callable[[_type.HSTRING],
+                                     _type.HRESULT]
+                get_Invoked: _Callable[[_Pointer[Windows.UI.Popups.IUICommandInvokedHandler]],
+                                       _type.HRESULT]
+                put_Invoked: _Callable[[Windows.UI.Popups.IUICommandInvokedHandler],
+                                       _type.HRESULT]
+                get_Id: _Callable[[_Pointer[IInspectable]],
+                                  _type.HRESULT]
+                put_Id: _Callable[[IInspectable],
+                                  _type.HRESULT]
 
             class IUICommandFactory(IInspectable):
-                Create: _Callable
-                CreateWithHandler: _Callable
-                CreateWithHandlerAndId: _Callable
+                Create: _Callable[[_type.HSTRING,
+                                   _Pointer[Windows.UI.Popups.IUICommand]],
+                                  _type.HRESULT]
+                CreateWithHandler: _Callable[[_type.HSTRING,
+                                              Windows.UI.Popups.IUICommandInvokedHandler,
+                                              _Pointer[Windows.UI.Popups.IUICommand]],
+                                             _type.HRESULT]
+                CreateWithHandlerAndId: _Callable[[_type.HSTRING,
+                                                   Windows.UI.Popups.IUICommandInvokedHandler,
+                                                   IInspectable,
+                                                   _Pointer[Windows.UI.Popups.IUICommand]],
+                                                  _type.HRESULT]
 
         class ViewManagement:
             class IAccessibilitySettings(IInspectable):
@@ -6960,7 +7938,7 @@ class Windows:
             class IUISettings2(IInspectable):
                 get_TextScaleFactor: _Callable[[_Pointer[_type.DOUBLE]],
                                                _type.HRESULT]
-                add_TextScaleFactorChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, IInspectable],
+                add_TextScaleFactorChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.ViewManagement.IUISettings, IInspectable],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                 remove_TextScaleFactorChanged: _Callable[[_struct.EventRegistrationToken],
@@ -6970,7 +7948,7 @@ class Windows:
                 GetColorValue: _Callable[[_enum.Windows.UI.ViewManagement.UIColorType,
                                           _Pointer[_struct.Windows.UI.Color]],
                                          _type.HRESULT]
-                add_ColorValuesChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, IInspectable],
+                add_ColorValuesChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.ViewManagement.IUISettings, IInspectable],
                                                    _Pointer[_struct.EventRegistrationToken]],
                                                   _type.HRESULT]
                 remove_ColorValuesChanged: _Callable[[_struct.EventRegistrationToken],
@@ -6979,7 +7957,7 @@ class Windows:
             class IUISettings4(IInspectable):
                 get_AdvancedEffectsEnabled: _Callable[[_Pointer[_type.boolean]],
                                                       _type.HRESULT]
-                add_AdvancedEffectsEnabledChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, IInspectable],
+                add_AdvancedEffectsEnabledChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.ViewManagement.IUISettings, IInspectable],
                                                               _Pointer[_struct.EventRegistrationToken]],
                                                              _type.HRESULT]
                 remove_AdvancedEffectsEnabledChanged: _Callable[[_struct.EventRegistrationToken],
@@ -6988,19 +7966,19 @@ class Windows:
             class IUISettings5(IInspectable):
                 get_AutoHideScrollBars: _Callable[[_Pointer[_type.boolean]],
                                                   _type.HRESULT]
-                add_AutoHideScrollBarsChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsAutoHideScrollBarsChangedEventArgs],
+                add_AutoHideScrollBarsChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsAutoHideScrollBarsChangedEventArgs],
                                                           _Pointer[_struct.EventRegistrationToken]],
                                                          _type.HRESULT]
                 remove_AutoHideScrollBarsChanged: _Callable[[_struct.EventRegistrationToken],
                                                             _type.HRESULT]
 
             class IUISettings6(IInspectable):
-                add_AnimationsEnabledChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsAnimationsEnabledChangedEventArgs],
+                add_AnimationsEnabledChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsAnimationsEnabledChangedEventArgs],
                                                          _Pointer[_struct.EventRegistrationToken]],
                                                         _type.HRESULT]
                 remove_AnimationsEnabledChanged: _Callable[[_struct.EventRegistrationToken],
                                                            _type.HRESULT]
-                add_MessageDurationChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsMessageDurationChangedEventArgs],
+                add_MessageDurationChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.ViewManagement.IUISettings, Windows.UI.ViewManagement.IUISettingsMessageDurationChangedEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                 remove_MessageDurationChanged: _Callable[[_struct.EventRegistrationToken],
@@ -7511,7 +8489,7 @@ class Windows:
 
             class IDependencyObject2(IInspectable):
                 RegisterPropertyChangedCallback: _Callable[[Windows.UI.Xaml.IDependencyProperty,
-                                                            Windows.UI.Xaml.IDependencyPropertyChangedCallback_impl,
+                                                            Windows.UI.Xaml.IDependencyPropertyChangedCallback,
                                                             _Pointer[_type.INT64]],
                                                            _type.HRESULT]
                 UnregisterPropertyChangedCallback: _Callable[[Windows.UI.Xaml.IDependencyProperty,
@@ -7531,7 +8509,7 @@ class Windows:
                                           _type.HRESULT]
 
             class IDependencyProperty(IInspectable):
-                GetMetadata: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Interop.TypeName],
+                GetMetadata: _Callable[[_struct.Windows.UI.Xaml.Interop.TypeName,
                                         _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
                                        _type.HRESULT]
 
@@ -7770,22 +8748,22 @@ class Windows:
                                              _type.HRESULT]
                 put_FlowDirection: _Callable[[_enum.Windows.UI.Xaml.FlowDirection],
                                              _type.HRESULT]
-                add_Loaded: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                add_Loaded: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                        _Pointer[_struct.EventRegistrationToken]],
                                       _type.HRESULT]
                 remove_Loaded: _Callable[[_struct.EventRegistrationToken],
                                          _type.HRESULT]
-                add_Unloaded: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                add_Unloaded: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                          _Pointer[_struct.EventRegistrationToken]],
                                         _type.HRESULT]
                 remove_Unloaded: _Callable[[_struct.EventRegistrationToken],
                                            _type.HRESULT]
-                add_SizeChanged: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                add_SizeChanged: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                             _Pointer[_struct.EventRegistrationToken]],
                                            _type.HRESULT]
                 remove_SizeChanged: _Callable[[_struct.EventRegistrationToken],
                                               _type.HRESULT]
-                add_LayoutUpdated: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                add_LayoutUpdated: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                               _Pointer[_struct.EventRegistrationToken]],
                                              _type.HRESULT]
                 remove_LayoutUpdated: _Callable[[_struct.EventRegistrationToken],
@@ -7802,7 +8780,7 @@ class Windows:
                                               _type.HRESULT]
                 put_RequestedTheme: _Callable[[_enum.Windows.UI.Xaml.ElementTheme],
                                               _type.HRESULT]
-                add_DataContextChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IFrameworkElement, Windows.UI.Xaml.IDataContextChangedEventArgs],
+                add_DataContextChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IFrameworkElement, Windows.UI.Xaml.IDataContextChangedEventArgs],
                                                    _Pointer[_struct.EventRegistrationToken]],
                                                   _type.HRESULT]
                 remove_DataContextChanged: _Callable[[_struct.EventRegistrationToken],
@@ -7812,7 +8790,7 @@ class Windows:
                                                 _type.HRESULT]
 
             class IFrameworkElement3(IInspectable):
-                add_Loading: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IFrameworkElement, IInspectable],
+                add_Loading: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IFrameworkElement, IInspectable],
                                         _Pointer[_struct.EventRegistrationToken]],
                                        _type.HRESULT]
                 remove_Loading: _Callable[[_struct.EventRegistrationToken],
@@ -7851,7 +8829,7 @@ class Windows:
             class IFrameworkElement6(IInspectable):
                 get_ActualTheme: _Callable[[_Pointer[_enum.Windows.UI.Xaml.ElementTheme]],
                                            _type.HRESULT]
-                add_ActualThemeChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IFrameworkElement, IInspectable],
+                add_ActualThemeChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IFrameworkElement, IInspectable],
                                                    _Pointer[_struct.EventRegistrationToken]],
                                                   _type.HRESULT]
                 remove_ActualThemeChanged: _Callable[[_struct.EventRegistrationToken],
@@ -7860,7 +8838,7 @@ class Windows:
             class IFrameworkElement7(IInspectable):
                 get_IsLoaded: _Callable[[_Pointer[_type.boolean]],
                                         _type.HRESULT]
-                add_EffectiveViewportChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IFrameworkElement, Windows.UI.Xaml.IEffectiveViewportChangedEventArgs],
+                add_EffectiveViewportChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IFrameworkElement, Windows.UI.Xaml.IEffectiveViewportChangedEventArgs],
                                                          _Pointer[_struct.EventRegistrationToken]],
                                                         _type.HRESULT]
                 remove_EffectiveViewportChanged: _Callable[[_struct.EventRegistrationToken],
@@ -7996,14 +8974,33 @@ class Windows:
                                                           _type.HRESULT]
 
             class IPropertyMetadataFactory(IInspectable):
-                CreateInstanceWithDefaultValue: _Callable
-                CreateInstanceWithDefaultValueAndCallback: _Callable
+                CreateInstanceWithDefaultValue: _Callable[[IInspectable,
+                                                           IInspectable,
+                                                           _Pointer[IInspectable],
+                                                           _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
+                                                          _type.HRESULT]
+                CreateInstanceWithDefaultValueAndCallback: _Callable[[IInspectable,
+                                                                      Windows.UI.Xaml.IPropertyChangedCallback,
+                                                                      IInspectable,
+                                                                      _Pointer[IInspectable],
+                                                                      _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
+                                                                     _type.HRESULT]
 
             class IPropertyMetadataStatics(IInspectable):
-                CreateWithDefaultValue: _Callable
-                CreateWithDefaultValueAndCallback: _Callable
-                CreateWithFactory: _Callable
-                CreateWithFactoryAndCallback: _Callable
+                CreateWithDefaultValue: _Callable[[IInspectable,
+                                                   _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
+                                                  _type.HRESULT]
+                CreateWithDefaultValueAndCallback: _Callable[[IInspectable,
+                                                              Windows.UI.Xaml.IPropertyChangedCallback,
+                                                              _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
+                                                             _type.HRESULT]
+                CreateWithFactory: _Callable[[Windows.UI.Xaml.ICreateDefaultValueCallback,
+                                              _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
+                                             _type.HRESULT]
+                CreateWithFactoryAndCallback: _Callable[[Windows.UI.Xaml.ICreateDefaultValueCallback,
+                                                         Windows.UI.Xaml.IPropertyChangedCallback,
+                                                         _Pointer[Windows.UI.Xaml.IPropertyMetadata]],
+                                                        _type.HRESULT]
 
             class IPropertyPath(IInspectable):
                 get_Path: _Callable[[_Pointer[_type.HSTRING]],
@@ -8252,127 +9249,127 @@ class Windows:
                                                 _type.HRESULT]
                 get_PointerCaptures: _Callable[[_Pointer[Windows.Foundation.Collections.IVectorView[Windows.UI.Xaml.Input.IPointer]]],
                                                _type.HRESULT]
-                add_KeyUp: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler_impl,
+                add_KeyUp: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler,
                                       _Pointer[_struct.EventRegistrationToken]],
                                      _type.HRESULT]
                 remove_KeyUp: _Callable[[_struct.EventRegistrationToken],
                                         _type.HRESULT]
-                add_KeyDown: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler_impl,
+                add_KeyDown: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler,
                                         _Pointer[_struct.EventRegistrationToken]],
                                        _type.HRESULT]
                 remove_KeyDown: _Callable[[_struct.EventRegistrationToken],
                                           _type.HRESULT]
-                add_GotFocus: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                add_GotFocus: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                          _Pointer[_struct.EventRegistrationToken]],
                                         _type.HRESULT]
                 remove_GotFocus: _Callable[[_struct.EventRegistrationToken],
                                            _type.HRESULT]
-                add_LostFocus: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                add_LostFocus: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_LostFocus: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_DragEnter: _Callable[[Windows.UI.Xaml.IDragEventHandler_impl,
+                add_DragEnter: _Callable[[Windows.UI.Xaml.IDragEventHandler,
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_DragEnter: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_DragLeave: _Callable[[Windows.UI.Xaml.IDragEventHandler_impl,
+                add_DragLeave: _Callable[[Windows.UI.Xaml.IDragEventHandler,
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_DragLeave: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_DragOver: _Callable[[Windows.UI.Xaml.IDragEventHandler_impl,
+                add_DragOver: _Callable[[Windows.UI.Xaml.IDragEventHandler,
                                          _Pointer[_struct.EventRegistrationToken]],
                                         _type.HRESULT]
                 remove_DragOver: _Callable[[_struct.EventRegistrationToken],
                                            _type.HRESULT]
-                add_Drop: _Callable[[Windows.UI.Xaml.IDragEventHandler_impl,
+                add_Drop: _Callable[[Windows.UI.Xaml.IDragEventHandler,
                                      _Pointer[_struct.EventRegistrationToken]],
                                     _type.HRESULT]
                 remove_Drop: _Callable[[_struct.EventRegistrationToken],
                                        _type.HRESULT]
-                add_PointerPressed: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerPressed: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                 remove_PointerPressed: _Callable[[_struct.EventRegistrationToken],
                                                  _type.HRESULT]
-                add_PointerMoved: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerMoved: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                              _Pointer[_struct.EventRegistrationToken]],
                                             _type.HRESULT]
                 remove_PointerMoved: _Callable[[_struct.EventRegistrationToken],
                                                _type.HRESULT]
-                add_PointerReleased: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerReleased: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                                 _Pointer[_struct.EventRegistrationToken]],
                                                _type.HRESULT]
                 remove_PointerReleased: _Callable[[_struct.EventRegistrationToken],
                                                   _type.HRESULT]
-                add_PointerEntered: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerEntered: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                 remove_PointerEntered: _Callable[[_struct.EventRegistrationToken],
                                                  _type.HRESULT]
-                add_PointerExited: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerExited: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                               _Pointer[_struct.EventRegistrationToken]],
                                              _type.HRESULT]
                 remove_PointerExited: _Callable[[_struct.EventRegistrationToken],
                                                 _type.HRESULT]
-                add_PointerCaptureLost: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerCaptureLost: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                                    _Pointer[_struct.EventRegistrationToken]],
                                                   _type.HRESULT]
                 remove_PointerCaptureLost: _Callable[[_struct.EventRegistrationToken],
                                                      _type.HRESULT]
-                add_PointerCanceled: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerCanceled: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                                 _Pointer[_struct.EventRegistrationToken]],
                                                _type.HRESULT]
                 remove_PointerCanceled: _Callable[[_struct.EventRegistrationToken],
                                                   _type.HRESULT]
-                add_PointerWheelChanged: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler_impl,
+                add_PointerWheelChanged: _Callable[[Windows.UI.Xaml.Input.IPointerEventHandler,
                                                     _Pointer[_struct.EventRegistrationToken]],
                                                    _type.HRESULT]
                 remove_PointerWheelChanged: _Callable[[_struct.EventRegistrationToken],
                                                       _type.HRESULT]
-                add_Tapped: _Callable[[Windows.UI.Xaml.Input.ITappedEventHandler_impl,
+                add_Tapped: _Callable[[Windows.UI.Xaml.Input.ITappedEventHandler,
                                        _Pointer[_struct.EventRegistrationToken]],
                                       _type.HRESULT]
                 remove_Tapped: _Callable[[_struct.EventRegistrationToken],
                                          _type.HRESULT]
-                add_DoubleTapped: _Callable[[Windows.UI.Xaml.Input.IDoubleTappedEventHandler_impl,
+                add_DoubleTapped: _Callable[[Windows.UI.Xaml.Input.IDoubleTappedEventHandler,
                                              _Pointer[_struct.EventRegistrationToken]],
                                             _type.HRESULT]
                 remove_DoubleTapped: _Callable[[_struct.EventRegistrationToken],
                                                _type.HRESULT]
-                add_Holding: _Callable[[Windows.UI.Xaml.Input.IHoldingEventHandler_impl,
+                add_Holding: _Callable[[Windows.UI.Xaml.Input.IHoldingEventHandler,
                                         _Pointer[_struct.EventRegistrationToken]],
                                        _type.HRESULT]
                 remove_Holding: _Callable[[_struct.EventRegistrationToken],
                                           _type.HRESULT]
-                add_RightTapped: _Callable[[Windows.UI.Xaml.Input.IRightTappedEventHandler_impl,
+                add_RightTapped: _Callable[[Windows.UI.Xaml.Input.IRightTappedEventHandler,
                                             _Pointer[_struct.EventRegistrationToken]],
                                            _type.HRESULT]
                 remove_RightTapped: _Callable[[_struct.EventRegistrationToken],
                                               _type.HRESULT]
-                add_ManipulationStarting: _Callable[[Windows.UI.Xaml.Input.IManipulationStartingEventHandler_impl,
+                add_ManipulationStarting: _Callable[[Windows.UI.Xaml.Input.IManipulationStartingEventHandler,
                                                      _Pointer[_struct.EventRegistrationToken]],
                                                     _type.HRESULT]
                 remove_ManipulationStarting: _Callable[[_struct.EventRegistrationToken],
                                                        _type.HRESULT]
-                add_ManipulationInertiaStarting: _Callable[[Windows.UI.Xaml.Input.IManipulationInertiaStartingEventHandler_impl,
+                add_ManipulationInertiaStarting: _Callable[[Windows.UI.Xaml.Input.IManipulationInertiaStartingEventHandler,
                                                             _Pointer[_struct.EventRegistrationToken]],
                                                            _type.HRESULT]
                 remove_ManipulationInertiaStarting: _Callable[[_struct.EventRegistrationToken],
                                                               _type.HRESULT]
-                add_ManipulationStarted: _Callable[[Windows.UI.Xaml.Input.IManipulationStartedEventHandler_impl,
+                add_ManipulationStarted: _Callable[[Windows.UI.Xaml.Input.IManipulationStartedEventHandler,
                                                     _Pointer[_struct.EventRegistrationToken]],
                                                    _type.HRESULT]
                 remove_ManipulationStarted: _Callable[[_struct.EventRegistrationToken],
                                                       _type.HRESULT]
-                add_ManipulationDelta: _Callable[[Windows.UI.Xaml.Input.IManipulationDeltaEventHandler_impl,
+                add_ManipulationDelta: _Callable[[Windows.UI.Xaml.Input.IManipulationDeltaEventHandler,
                                                   _Pointer[_struct.EventRegistrationToken]],
                                                  _type.HRESULT]
                 remove_ManipulationDelta: _Callable[[_struct.EventRegistrationToken],
                                                     _type.HRESULT]
-                add_ManipulationCompleted: _Callable[[Windows.UI.Xaml.Input.IManipulationCompletedEventHandler_impl,
+                add_ManipulationCompleted: _Callable[[Windows.UI.Xaml.Input.IManipulationCompletedEventHandler,
                                                       _Pointer[_struct.EventRegistrationToken]],
                                                      _type.HRESULT]
                 remove_ManipulationCompleted: _Callable[[_struct.EventRegistrationToken],
@@ -8438,12 +9435,12 @@ class Windows:
                                        _type.HRESULT]
                 put_CanDrag: _Callable[[_type.boolean],
                                        _type.HRESULT]
-                add_DragStarting: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IDragStartingEventArgs],
+                add_DragStarting: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IDragStartingEventArgs],
                                              _Pointer[_struct.EventRegistrationToken]],
                                             _type.HRESULT]
                 remove_DragStarting: _Callable[[_struct.EventRegistrationToken],
                                                _type.HRESULT]
-                add_DropCompleted: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IDragStartingEventArgs],
+                add_DropCompleted: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IDragStartingEventArgs],
                                               _Pointer[_struct.EventRegistrationToken]],
                                              _type.HRESULT]
                 remove_DropCompleted: _Callable[[_struct.EventRegistrationToken],
@@ -8473,27 +9470,27 @@ class Windows:
                                          _type.HRESULT]
                 put_AccessKey: _Callable[[_type.HSTRING],
                                          _type.HRESULT]
-                add_ContextRequested: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IContextRequestedEventArgs],
+                add_ContextRequested: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IContextRequestedEventArgs],
                                                  _Pointer[_struct.EventRegistrationToken]],
                                                 _type.HRESULT]
                 remove_ContextRequested: _Callable[[_struct.EventRegistrationToken],
                                                    _type.HRESULT]
-                add_ContextCanceled: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IRoutedEventArgs],
+                add_ContextCanceled: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IRoutedEventArgs],
                                                 _Pointer[_struct.EventRegistrationToken]],
                                                _type.HRESULT]
                 remove_ContextCanceled: _Callable[[_struct.EventRegistrationToken],
                                                   _type.HRESULT]
-                add_AccessKeyDisplayRequested: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IAccessKeyDisplayRequestedEventArgs],
+                add_AccessKeyDisplayRequested: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IAccessKeyDisplayRequestedEventArgs],
                                                           _Pointer[_struct.EventRegistrationToken]],
                                                          _type.HRESULT]
                 remove_AccessKeyDisplayRequested: _Callable[[_struct.EventRegistrationToken],
                                                             _type.HRESULT]
-                add_AccessKeyDisplayDismissed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IAccessKeyDisplayDismissedEventArgs],
+                add_AccessKeyDisplayDismissed: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IAccessKeyDisplayDismissedEventArgs],
                                                           _Pointer[_struct.EventRegistrationToken]],
                                                          _type.HRESULT]
                 remove_AccessKeyDisplayDismissed: _Callable[[_struct.EventRegistrationToken],
                                                             _type.HRESULT]
-                add_AccessKeyInvoked: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IAccessKeyInvokedEventArgs],
+                add_AccessKeyInvoked: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IAccessKeyInvokedEventArgs],
                                                  _Pointer[_struct.EventRegistrationToken]],
                                                 _type.HRESULT]
                 remove_AccessKeyInvoked: _Callable[[_struct.EventRegistrationToken],
@@ -8540,17 +9537,17 @@ class Windows:
                                                   _type.HRESULT]
                 put_TabFocusNavigation: _Callable[[_enum.Windows.UI.Xaml.Input.KeyboardNavigationMode],
                                                   _type.HRESULT]
-                add_GettingFocus: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IGettingFocusEventArgs],
+                add_GettingFocus: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IGettingFocusEventArgs],
                                              _Pointer[_struct.EventRegistrationToken]],
                                             _type.HRESULT]
                 remove_GettingFocus: _Callable[[_struct.EventRegistrationToken],
                                                _type.HRESULT]
-                add_LosingFocus: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.ILosingFocusEventArgs],
+                add_LosingFocus: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.ILosingFocusEventArgs],
                                             _Pointer[_struct.EventRegistrationToken]],
                                            _type.HRESULT]
                 remove_LosingFocus: _Callable[[_struct.EventRegistrationToken],
                                               _type.HRESULT]
-                add_NoFocusCandidateFound: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.INoFocusCandidateFoundEventArgs],
+                add_NoFocusCandidateFound: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.INoFocusCandidateFoundEventArgs],
                                                       _Pointer[_struct.EventRegistrationToken]],
                                                      _type.HRESULT]
                 remove_NoFocusCandidateFound: _Callable[[_struct.EventRegistrationToken],
@@ -8563,22 +9560,22 @@ class Windows:
             class IUIElement7(IInspectable):
                 get_KeyboardAccelerators: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.Input.IKeyboardAccelerator]]],
                                                     _type.HRESULT]
-                add_CharacterReceived: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.ICharacterReceivedRoutedEventArgs],
+                add_CharacterReceived: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.ICharacterReceivedRoutedEventArgs],
                                                   _Pointer[_struct.EventRegistrationToken]],
                                                  _type.HRESULT]
                 remove_CharacterReceived: _Callable[[_struct.EventRegistrationToken],
                                                     _type.HRESULT]
-                add_ProcessKeyboardAccelerators: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IProcessKeyboardAcceleratorEventArgs],
+                add_ProcessKeyboardAccelerators: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.Input.IProcessKeyboardAcceleratorEventArgs],
                                                             _Pointer[_struct.EventRegistrationToken]],
                                                            _type.HRESULT]
                 remove_ProcessKeyboardAccelerators: _Callable[[_struct.EventRegistrationToken],
                                                               _type.HRESULT]
-                add_PreviewKeyDown: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler_impl,
+                add_PreviewKeyDown: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler,
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                 remove_PreviewKeyDown: _Callable[[_struct.EventRegistrationToken],
                                                  _type.HRESULT]
-                add_PreviewKeyUp: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler_impl,
+                add_PreviewKeyUp: _Callable[[Windows.UI.Xaml.Input.IKeyEventHandler,
                                              _Pointer[_struct.EventRegistrationToken]],
                                             _type.HRESULT]
                 remove_PreviewKeyUp: _Callable[[_struct.EventRegistrationToken],
@@ -8599,7 +9596,7 @@ class Windows:
                                                                 _type.HRESULT]
                 put_KeyboardAcceleratorPlacementMode: _Callable[[_enum.Windows.UI.Xaml.Input.KeyboardAcceleratorPlacementMode],
                                                                 _type.HRESULT]
-                add_BringIntoViewRequested: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IBringIntoViewRequestedEventArgs],
+                add_BringIntoViewRequested: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IUIElement, Windows.UI.Xaml.IBringIntoViewRequestedEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                 remove_BringIntoViewRequested: _Callable[[_struct.EventRegistrationToken],
@@ -8949,22 +9946,22 @@ class Windows:
                                           _type.HRESULT]
                 get_Dispatcher: _Callable[[_Pointer[Windows.UI.Core.ICoreDispatcher]],
                                           _type.HRESULT]
-                add_Activated: _Callable[[Windows.UI.Xaml.IWindowActivatedEventHandler_impl,
+                add_Activated: _Callable[[Windows.UI.Xaml.IWindowActivatedEventHandler,
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                 remove_Activated: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
-                add_Closed: _Callable[[Windows.UI.Xaml.IWindowClosedEventHandler_impl,
+                add_Closed: _Callable[[Windows.UI.Xaml.IWindowClosedEventHandler,
                                        _Pointer[_struct.EventRegistrationToken]],
                                       _type.HRESULT]
                 remove_Closed: _Callable[[_struct.EventRegistrationToken],
                                          _type.HRESULT]
-                add_SizeChanged: _Callable[[Windows.UI.Xaml.IWindowSizeChangedEventHandler_impl,
+                add_SizeChanged: _Callable[[Windows.UI.Xaml.IWindowSizeChangedEventHandler,
                                             _Pointer[_struct.EventRegistrationToken]],
                                            _type.HRESULT]
                 remove_SizeChanged: _Callable[[_struct.EventRegistrationToken],
                                               _type.HRESULT]
-                add_VisibilityChanged: _Callable[[Windows.UI.Xaml.IWindowVisibilityChangedEventHandler_impl,
+                add_VisibilityChanged: _Callable[[Windows.UI.Xaml.IWindowVisibilityChangedEventHandler,
                                                   _Pointer[_struct.EventRegistrationToken]],
                                                  _type.HRESULT]
                 remove_VisibilityChanged: _Callable[[_struct.EventRegistrationToken],
@@ -9005,7 +10002,7 @@ class Windows:
                                              _type.HRESULT]
                 get_UIContext: _Callable[[_Pointer[Windows.UI.IUIContext]],
                                          _type.HRESULT]
-                add_Changed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.IXamlRoot, Windows.UI.Xaml.IXamlRootChangedEventArgs],
+                add_Changed: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.IXamlRoot, Windows.UI.Xaml.IXamlRootChangedEventArgs],
                                         _Pointer[_struct.EventRegistrationToken]],
                                        _type.HRESULT]
                 remove_Changed: _Callable[[_struct.EventRegistrationToken],
@@ -9896,37 +10893,56 @@ class Windows:
                     put_LightDismissOverlayMode: _Callable
 
                 class IAppBarButton(IInspectable):
-                    get_Label: _Callable
-                    put_Label: _Callable
-                    get_Icon: _Callable
-                    put_Icon: _Callable
+                    get_Label: _Callable[[_Pointer[_type.HSTRING]],
+                                         _type.HRESULT]
+                    put_Label: _Callable[[_type.HSTRING],
+                                         _type.HRESULT]
+                    get_Icon: _Callable[[_Pointer[Windows.UI.Xaml.Controls.IIconElement]],
+                                        _type.HRESULT]
+                    put_Icon: _Callable[[Windows.UI.Xaml.Controls.IIconElement],
+                                        _type.HRESULT]
 
                 class IAppBarButton3(IInspectable):
-                    get_LabelPosition: _Callable
-                    put_LabelPosition: _Callable
+                    get_LabelPosition: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.CommandBarLabelPosition]],
+                                                 _type.HRESULT]
+                    put_LabelPosition: _Callable[[_enum.Windows.UI.Xaml.Controls.CommandBarLabelPosition],
+                                                 _type.HRESULT]
 
                 class IAppBarButton4(IInspectable):
-                    get_KeyboardAcceleratorTextOverride: _Callable
-                    put_KeyboardAcceleratorTextOverride: _Callable
+                    get_KeyboardAcceleratorTextOverride: _Callable[[_Pointer[_type.HSTRING]],
+                                                                   _type.HRESULT]
+                    put_KeyboardAcceleratorTextOverride: _Callable[[_type.HSTRING],
+                                                                   _type.HRESULT]
 
                 class IAppBarButton5(IInspectable):
-                    get_TemplateSettings: _Callable
+                    get_TemplateSettings: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IAppBarTemplateSettings]],
+                                                    _type.HRESULT]
 
                 class IAppBarButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IAppBarButton]],
+                                              _type.HRESULT]
 
                 class IAppBarButtonStatics(IInspectable):
-                    get_LabelProperty: _Callable
-                    get_IconProperty: _Callable
-                    get_IsCompactProperty: _Callable
+                    get_LabelProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_IconProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
+                    get_IsCompactProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class IAppBarButtonStatics3(IInspectable):
-                    get_LabelPositionProperty: _Callable
-                    get_IsInOverflowProperty: _Callable
-                    get_DynamicOverflowOrderProperty: _Callable
+                    get_LabelPositionProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_IsInOverflowProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_DynamicOverflowOrderProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
 
                 class IAppBarButtonStatics4(IInspectable):
-                    get_KeyboardAcceleratorTextOverrideProperty: _Callable
+                    get_KeyboardAcceleratorTextOverrideProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                           _type.HRESULT]
 
                 class IAppBarElementContainer(IInspectable):
                     pass
@@ -9974,37 +10990,56 @@ class Windows:
                     get_LightDismissOverlayModeProperty: _Callable
 
                 class IAppBarToggleButton(IInspectable):
-                    get_Label: _Callable
-                    put_Label: _Callable
-                    get_Icon: _Callable
-                    put_Icon: _Callable
+                    get_Label: _Callable[[_Pointer[_type.HSTRING]],
+                                         _type.HRESULT]
+                    put_Label: _Callable[[_type.HSTRING],
+                                         _type.HRESULT]
+                    get_Icon: _Callable[[_Pointer[Windows.UI.Xaml.Controls.IIconElement]],
+                                        _type.HRESULT]
+                    put_Icon: _Callable[[Windows.UI.Xaml.Controls.IIconElement],
+                                        _type.HRESULT]
 
                 class IAppBarToggleButton3(IInspectable):
-                    get_LabelPosition: _Callable
-                    put_LabelPosition: _Callable
+                    get_LabelPosition: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.CommandBarLabelPosition]],
+                                                 _type.HRESULT]
+                    put_LabelPosition: _Callable[[_enum.Windows.UI.Xaml.Controls.CommandBarLabelPosition],
+                                                 _type.HRESULT]
 
                 class IAppBarToggleButton4(IInspectable):
-                    get_KeyboardAcceleratorTextOverride: _Callable
-                    put_KeyboardAcceleratorTextOverride: _Callable
+                    get_KeyboardAcceleratorTextOverride: _Callable[[_Pointer[_type.HSTRING]],
+                                                                   _type.HRESULT]
+                    put_KeyboardAcceleratorTextOverride: _Callable[[_Pointer[_type.HSTRING]],
+                                                                   _type.HRESULT]
 
                 class IAppBarToggleButton5(IInspectable):
-                    get_TemplateSettings: _Callable
+                    get_TemplateSettings: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IAppBarToggleButtonTemplateSettings]],
+                                                    _type.HRESULT]
 
                 class IAppBarToggleButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IAppBarToggleButton]],
+                                              _type.HRESULT]
 
                 class IAppBarToggleButtonStatics(IInspectable):
-                    get_LabelProperty: _Callable
-                    get_IconProperty: _Callable
-                    get_IsCompactProperty: _Callable
+                    get_LabelProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_IconProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
+                    get_IsCompactProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class IAppBarToggleButtonStatics3(IInspectable):
-                    get_LabelPositionProperty: _Callable
-                    get_IsInOverflowProperty: _Callable
-                    get_DynamicOverflowOrderProperty: _Callable
+                    get_LabelPositionProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_IsInOverflowProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_DynamicOverflowOrderProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
 
                 class IAppBarToggleButtonStatics4(IInspectable):
-                    get_KeyboardAcceleratorTextOverrideProperty: _Callable
+                    get_KeyboardAcceleratorTextOverrideProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                           _type.HRESULT]
 
                 class IAutoSuggestBox(IInspectable):
                     get_MaxSuggestionListHeight: _Callable
@@ -10168,14 +11203,20 @@ class Windows:
                     pass
 
                 class IButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IButton]],
+                                              _type.HRESULT]
 
                 class IButtonStaticsWithFlyout(IInspectable):
-                    get_FlyoutProperty: _Callable
+                    get_FlyoutProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class IButtonWithFlyout(IInspectable):
-                    get_Flyout: _Callable
-                    put_Flyout: _Callable
+                    get_Flyout: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IFlyoutBase]],
+                                          _type.HRESULT]
+                    put_Flyout: _Callable[[Windows.UI.Xaml.Controls.Primitives.IFlyoutBase],
+                                          _type.HRESULT]
 
                 class ICalendarDatePicker(IInspectable):
                     get_Date: _Callable
@@ -10775,41 +11816,63 @@ class Windows:
                     remove_DynamicOverflowItemsChanging: _Callable
 
                 class ICommandBarElement(IInspectable):
-                    get_IsCompact: _Callable
-                    put_IsCompact: _Callable
+                    get_IsCompact: _Callable[[_Pointer[_type.boolean]],
+                                             _type.HRESULT]
+                    put_IsCompact: _Callable[[_type.boolean],
+                                             _type.HRESULT]
 
                 class ICommandBarElement2(IInspectable):
-                    get_IsInOverflow: _Callable
-                    get_DynamicOverflowOrder: _Callable
-                    put_DynamicOverflowOrder: _Callable
+                    get_IsInOverflow: _Callable[[_Pointer[_type.boolean]],
+                                                _type.HRESULT]
+                    get_DynamicOverflowOrder: _Callable[[_Pointer[_type.INT32]],
+                                                        _type.HRESULT]
+                    put_DynamicOverflowOrder: _Callable[[_type.INT32],
+                                                        _type.HRESULT]
 
                 class ICommandBarFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.ICommandBar]],
+                                              _type.HRESULT]
 
                 class ICommandBarFlyout(IInspectable):
-                    get_PrimaryCommands: _Callable
-                    get_SecondaryCommands: _Callable
+                    get_PrimaryCommands: _Callable[[_Pointer[Windows.Foundation.Collections.IObservableVector[Windows.UI.Xaml.Controls.ICommandBarElement]]],
+                                                   _type.HRESULT]
+                    get_SecondaryCommands: _Callable[[Windows.Foundation.Collections.IObservableVector[Windows.UI.Xaml.Controls.ICommandBarElement]],
+                                                     _type.HRESULT]
 
                 class ICommandBarFlyoutFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.ICommandBarFlyout]],
+                                              _type.HRESULT]
 
                 class ICommandBarOverflowPresenter(IInspectable):
                     pass
 
                 class ICommandBarOverflowPresenterFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.ICommandBarOverflowPresenter]],
+                                              _type.HRESULT]
 
                 class ICommandBarStatics(IInspectable):
-                    get_PrimaryCommandsProperty: _Callable
-                    get_SecondaryCommandsProperty: _Callable
+                    get_PrimaryCommandsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_SecondaryCommandsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
 
                 class ICommandBarStatics2(IInspectable):
-                    get_CommandBarOverflowPresenterStyleProperty: _Callable
+                    get_CommandBarOverflowPresenterStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                            _type.HRESULT]
 
                 class ICommandBarStatics3(IInspectable):
-                    get_DefaultLabelPositionProperty: _Callable
-                    get_OverflowButtonVisibilityProperty: _Callable
-                    get_IsDynamicOverflowEnabledProperty: _Callable
+                    get_DefaultLabelPositionProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+                    get_OverflowButtonVisibilityProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
+                    get_IsDynamicOverflowEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
 
                 class IContainerContentChangingEventArgs(IInspectable):
                     get_ItemContainer: _Callable
@@ -10916,27 +11979,27 @@ class Windows:
                                                             _type.HRESULT]
                     put_IsSecondaryButtonEnabled: _Callable[[_type.boolean],
                                                             _type.HRESULT]
-                    add_Closing: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogClosingEventArgs],
+                    add_Closing: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogClosingEventArgs],
                                             _Pointer[_struct.EventRegistrationToken]],
                                            _type.HRESULT]
                     remove_Closing: _Callable[[_struct.EventRegistrationToken],
                                               _type.HRESULT]
-                    add_Closed: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogClosedEventArgs],
+                    add_Closed: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogClosedEventArgs],
                                            _Pointer[_struct.EventRegistrationToken]],
                                           _type.HRESULT]
                     remove_Closed: _Callable[[_struct.EventRegistrationToken],
                                              _type.HRESULT]
-                    add_Opened: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogOpenedEventArgs],
+                    add_Opened: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogOpenedEventArgs],
                                            _Pointer[_struct.EventRegistrationToken]],
                                           _type.HRESULT]
                     remove_Opened: _Callable[[_struct.EventRegistrationToken],
                                              _type.HRESULT]
-                    add_PrimaryButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
+                    add_PrimaryButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_PrimaryButtonClick: _Callable[[_struct.EventRegistrationToken],
                                                          _type.HRESULT]
-                    add_SecondaryButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
+                    add_SecondaryButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
                                                          _Pointer[_struct.EventRegistrationToken]],
                                                         _type.HRESULT]
                     remove_SecondaryButtonClick: _Callable[[_struct.EventRegistrationToken],
@@ -10975,7 +12038,7 @@ class Windows:
                                                  _type.HRESULT]
                     put_DefaultButton: _Callable[[_enum.Windows.UI.Xaml.Controls.ContentDialogButton],
                                                  _type.HRESULT]
-                    add_CloseButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
+                    add_CloseButtonClick: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IContentDialog, Windows.UI.Xaml.Controls.IContentDialogButtonClickEventArgs],
                                                      _Pointer[_struct.EventRegistrationToken]],
                                                     _type.HRESULT]
                     remove_CloseButtonClick: _Callable[[_struct.EventRegistrationToken],
@@ -11142,40 +12205,66 @@ class Windows:
                     OnContentTemplateSelectorChanged: _Callable
 
                 class IContentPresenterStatics(IInspectable):
-                    get_ContentProperty: _Callable
-                    get_ContentTemplateProperty: _Callable
-                    get_ContentTemplateSelectorProperty: _Callable
-                    get_ContentTransitionsProperty: _Callable
-                    get_FontSizeProperty: _Callable
-                    get_FontFamilyProperty: _Callable
-                    get_FontWeightProperty: _Callable
-                    get_FontStyleProperty: _Callable
-                    get_FontStretchProperty: _Callable
-                    get_CharacterSpacingProperty: _Callable
-                    get_ForegroundProperty: _Callable
+                    get_ContentProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_ContentTemplateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_ContentTemplateSelectorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                   _type.HRESULT]
+                    get_ContentTransitionsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                    get_FontSizeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_FontFamilyProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_FontWeightProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_FontStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_FontStretchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_CharacterSpacingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_ForegroundProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IContentPresenterStatics2(IInspectable):
-                    get_OpticalMarginAlignmentProperty: _Callable
-                    get_TextLineBoundsProperty: _Callable
+                    get_OpticalMarginAlignmentProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                    get_TextLineBoundsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
 
                 class IContentPresenterStatics3(IInspectable):
-                    get_IsTextScaleFactorEnabledProperty: _Callable
+                    get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
 
                 class IContentPresenterStatics4(IInspectable):
-                    get_TextWrappingProperty: _Callable
-                    get_MaxLinesProperty: _Callable
-                    get_LineStackingStrategyProperty: _Callable
-                    get_LineHeightProperty: _Callable
-                    get_BorderBrushProperty: _Callable
-                    get_BorderThicknessProperty: _Callable
-                    get_CornerRadiusProperty: _Callable
-                    get_PaddingProperty: _Callable
-                    get_BackgroundProperty: _Callable
-                    get_HorizontalContentAlignmentProperty: _Callable
-                    get_VerticalContentAlignmentProperty: _Callable
+                    get_TextWrappingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_MaxLinesProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_LineStackingStrategyProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                _type.HRESULT]
+                    get_LineHeightProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_BorderBrushProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_BorderThicknessProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_CornerRadiusProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_PaddingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_BackgroundProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_HorizontalContentAlignmentProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                      _type.HRESULT]
+                    get_VerticalContentAlignmentProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
 
                 class IContentPresenterStatics5(IInspectable):
-                    get_BackgroundSizingProperty: _Callable
+                    get_BackgroundSizingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
 
                 class IContextMenuEventArgs(IInspectable):
                     get_Handled: _Callable
@@ -11258,7 +12347,7 @@ class Windows:
                                                _type.HRESULT]
                     get_FocusState: _Callable[[_Pointer[_enum.Windows.UI.Xaml.FocusState]],
                                               _type.HRESULT]
-                    add_IsEnabledChanged: _Callable[[Windows.UI.Xaml.IDependencyPropertyChangedEventHandler_impl,
+                    add_IsEnabledChanged: _Callable[[Windows.UI.Xaml.IDependencyPropertyChangedEventHandler,
                                                      _Pointer[_struct.EventRegistrationToken]],
                                                     _type.HRESULT]
                     remove_IsEnabledChanged: _Callable[[_struct.EventRegistrationToken],
@@ -11314,12 +12403,12 @@ class Windows:
                                                     _type.HRESULT]
                     put_ElementSoundMode: _Callable[[_enum.Windows.UI.Xaml.ElementSoundMode],
                                                     _type.HRESULT]
-                    add_FocusEngaged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IControl, Windows.UI.Xaml.Controls.IFocusEngagedEventArgs],
+                    add_FocusEngaged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IControl, Windows.UI.Xaml.Controls.IFocusEngagedEventArgs],
                                                  _Pointer[_struct.EventRegistrationToken]],
                                                 _type.HRESULT]
                     remove_FocusEngaged: _Callable[[_struct.EventRegistrationToken],
                                                    _type.HRESULT]
-                    add_FocusDisengaged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.IControl, Windows.UI.Xaml.Controls.IFocusDisengagedEventArgs],
+                    add_FocusDisengaged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IControl, Windows.UI.Xaml.Controls.IFocusDisengagedEventArgs],
                                                     _Pointer[_struct.EventRegistrationToken]],
                                                    _type.HRESULT]
                     remove_FocusDisengaged: _Callable[[_struct.EventRegistrationToken],
@@ -11600,43 +12689,68 @@ class Windows:
                     get_IsDefaultShadowEnabledProperty: _Callable
 
                 class IDatePickerFlyoutStatics(IInspectable):
-                    get_CalendarIdentifierProperty: _Callable
-                    get_DateProperty: _Callable
-                    get_DayVisibleProperty: _Callable
-                    get_MonthVisibleProperty: _Callable
-                    get_YearVisibleProperty: _Callable
-                    get_MinYearProperty: _Callable
-                    get_MaxYearProperty: _Callable
+                    get_CalendarIdentifierProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                    get_DateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
+                    get_DayVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_MonthVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_YearVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_MinYearProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_MaxYearProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
 
                 class IDatePickerFlyoutStatics2(IInspectable):
-                    get_DayFormatProperty: _Callable
-                    get_MonthFormatProperty: _Callable
-                    get_YearFormatProperty: _Callable
+                    get_DayFormatProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_MonthFormatProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_YearFormatProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IDatePickerSelectedValueChangedEventArgs(IInspectable):
                     get_OldDate: _Callable
                     get_NewDate: _Callable
 
                 class IDatePickerStatics(IInspectable):
-                    get_HeaderProperty: _Callable
-                    get_HeaderTemplateProperty: _Callable
-                    get_CalendarIdentifierProperty: _Callable
-                    get_DateProperty: _Callable
-                    get_DayVisibleProperty: _Callable
-                    get_MonthVisibleProperty: _Callable
-                    get_YearVisibleProperty: _Callable
-                    get_DayFormatProperty: _Callable
-                    get_MonthFormatProperty: _Callable
-                    get_YearFormatProperty: _Callable
-                    get_MinYearProperty: _Callable
-                    get_MaxYearProperty: _Callable
-                    get_OrientationProperty: _Callable
+                    get_HeaderProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+                    get_HeaderTemplateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_CalendarIdentifierProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                              _type.HRESULT]
+                    get_DateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
+                    get_DayVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_MonthVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_YearVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_DayFormatProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_MonthFormatProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_YearFormatProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_MinYearProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_MaxYearProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_OrientationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
 
                 class IDatePickerStatics2(IInspectable):
-                    get_LightDismissOverlayModeProperty: _Callable
+                    get_LightDismissOverlayModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                   _type.HRESULT]
 
                 class IDatePickerStatics3(IInspectable):
-                    get_SelectedDateProperty: _Callable
+                    get_SelectedDateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
 
                 class IDatePickerValueChangedEventArgs(IInspectable):
                     get_OldDate: _Callable
@@ -11659,10 +12773,17 @@ class Windows:
                     pass
 
                 class IDropDownButtonAutomationPeerFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[Windows.UI.Xaml.Controls.IDropDownButton,
+                                               IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IDropDownButtonAutomationPeer]],
+                                              _type.HRESULT]
 
                 class IDropDownButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IDropDownButton]],
+                                              _type.HRESULT]
 
                 class IDynamicOverflowItemsChangingEventArgs(IInspectable):
                     get_Action: _Callable
@@ -11684,7 +12805,8 @@ class Windows:
                     CreateInstance: _Callable
 
                 class IFlipViewStatics2(IInspectable):
-                    get_UseTouchAnimationsForAllNavigationProperty: _Callable
+                    get_UseTouchAnimationsForAllNavigationProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                              _type.HRESULT]
 
                 class IFlyout(IInspectable):
                     get_Content: _Callable[[_Pointer[Windows.UI.Xaml.IUIElement]],
@@ -12121,14 +13243,20 @@ class Windows:
                     get_IsZoomedInViewProperty: _Callable
 
                 class IHyperlinkButton(IInspectable):
-                    get_NavigateUri: _Callable
-                    put_NavigateUri: _Callable
+                    get_NavigateUri: _Callable[[_Pointer[Windows.Foundation.IUriRuntimeClass]],
+                                               _type.HRESULT]
+                    put_NavigateUri: _Callable[[Windows.Foundation.IUriRuntimeClass],
+                                               _type.HRESULT]
 
                 class IHyperlinkButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IHyperlinkButton]],
+                                              _type.HRESULT]
 
                 class IHyperlinkButtonStatics(IInspectable):
-                    get_NavigateUriProperty: _Callable
+                    get_NavigateUriProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
 
                 class IIconElement(IInspectable):
                     get_Foreground: _Callable[[_Pointer[Windows.UI.Xaml.Media.IBrush]],
@@ -12144,49 +13272,77 @@ class Windows:
                                                       _type.HRESULT]
 
                 class IIconSource(IInspectable):
-                    get_Foreground: _Callable
-                    put_Foreground: _Callable
+                    get_Foreground: _Callable[[_Pointer[Windows.UI.Xaml.Media.IBrush]],
+                                              _type.HRESULT]
+                    put_Foreground: _Callable[[Windows.UI.Xaml.Media.IBrush],
+                                              _type.HRESULT]
 
                 class IIconSourceElement(IInspectable):
-                    get_IconSource: _Callable
-                    put_IconSource: _Callable
+                    get_IconSource: _Callable[[_Pointer[Windows.UI.Xaml.Controls.IIconSource]],
+                                              _type.HRESULT]
+                    put_IconSource: _Callable[[Windows.UI.Xaml.Controls.IIconSource],
+                                              _type.HRESULT]
 
                 class IIconSourceElementFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IIconSourceElement]],
+                                              _type.HRESULT]
 
                 class IIconSourceElementStatics(IInspectable):
-                    get_IconSourceProperty: _Callable
+                    get_IconSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IIconSourceFactory(IInspectable):
                     pass
 
                 class IIconSourceStatics(IInspectable):
-                    get_ForegroundProperty: _Callable
+                    get_ForegroundProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IImage(IInspectable):
-                    get_Source: _Callable
-                    put_Source: _Callable
-                    get_Stretch: _Callable
-                    put_Stretch: _Callable
-                    get_NineGrid: _Callable
-                    put_NineGrid: _Callable
-                    get_PlayToSource: _Callable
-                    add_ImageFailed: _Callable
-                    remove_ImageFailed: _Callable
-                    add_ImageOpened: _Callable
-                    remove_ImageOpened: _Callable
+                    get_Source: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                          _type.HRESULT]
+                    put_Source: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                          _type.HRESULT]
+                    get_Stretch: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Media.Stretch]],
+                                           _type.HRESULT]
+                    put_Stretch: _Callable[[_enum.Windows.UI.Xaml.Media.Stretch],
+                                           _type.HRESULT]
+                    get_NineGrid: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Thickness]],
+                                            _type.HRESULT]
+                    put_NineGrid: _Callable[[_struct.Windows.UI.Xaml.Thickness],
+                                            _type.HRESULT]
+                    get_PlayToSource: _Callable[[_Pointer[Windows.Media.PlayTo.IPlayToSource]],
+                                                _type.HRESULT]
+                    add_ImageFailed: _Callable[[Windows.UI.Xaml.IExceptionRoutedEventHandler,
+                                                _Pointer[_struct.EventRegistrationToken]],
+                                               _type.HRESULT]
+                    remove_ImageFailed: _Callable[[_struct.EventRegistrationToken],
+                                                  _type.HRESULT]
+                    add_ImageOpened: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
+                                                _Pointer[_struct.EventRegistrationToken]],
+                                               _type.HRESULT]
+                    remove_ImageOpened: _Callable[[_struct.EventRegistrationToken],
+                                                  _type.HRESULT]
 
                 class IImage2(IInspectable):
-                    GetAsCastingSource: _Callable
+                    GetAsCastingSource: _Callable[[_Pointer[Windows.Media.Casting.ICastingSource]],
+                                                  _type.HRESULT]
 
                 class IImage3(IInspectable):
-                    GetAlphaMask: _Callable
+                    GetAlphaMask: _Callable[[_Pointer[Windows.UI.Composition.ICompositionBrush]],
+                                            _type.HRESULT]
 
                 class IImageStatics(IInspectable):
-                    get_SourceProperty: _Callable
-                    get_StretchProperty: _Callable
-                    get_NineGridProperty: _Callable
-                    get_PlayToSourceProperty: _Callable
+                    get_SourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+                    get_StretchProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_NineGridProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_PlayToSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
 
                 class IInkCanvas(IInspectable):
                     get_InkPresenter: _Callable
@@ -13233,7 +14389,7 @@ class Windows:
                                                     _type.HRESULT]
                     put_CommandParameter: _Callable[[IInspectable],
                                                     _type.HRESULT]
-                    add_Click: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                    add_Click: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                     remove_Click: _Callable[[_struct.EventRegistrationToken],
@@ -13503,44 +14659,78 @@ class Windows:
                     get_RecommendedNavigationTransitionInfo: _Callable
 
                 class INavigationViewStatics(IInspectable):
-                    get_IsPaneOpenProperty: _Callable
-                    get_CompactModeThresholdWidthProperty: _Callable
-                    get_ExpandedModeThresholdWidthProperty: _Callable
-                    get_PaneFooterProperty: _Callable
-                    get_HeaderProperty: _Callable
-                    get_HeaderTemplateProperty: _Callable
-                    get_DisplayModeProperty: _Callable
-                    get_IsSettingsVisibleProperty: _Callable
-                    get_IsPaneToggleButtonVisibleProperty: _Callable
-                    get_AlwaysShowHeaderProperty: _Callable
-                    get_CompactPaneLengthProperty: _Callable
-                    get_OpenPaneLengthProperty: _Callable
-                    get_PaneToggleButtonStyleProperty: _Callable
-                    get_MenuItemsProperty: _Callable
-                    get_MenuItemsSourceProperty: _Callable
-                    get_SelectedItemProperty: _Callable
-                    get_SettingsItemProperty: _Callable
-                    get_AutoSuggestBoxProperty: _Callable
-                    get_MenuItemTemplateProperty: _Callable
-                    get_MenuItemTemplateSelectorProperty: _Callable
-                    get_MenuItemContainerStyleProperty: _Callable
-                    get_MenuItemContainerStyleSelectorProperty: _Callable
+                    get_IsPaneOpenProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_CompactModeThresholdWidthProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                     _type.HRESULT]
+                    get_ExpandedModeThresholdWidthProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                      _type.HRESULT]
+                    get_PaneFooterProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_HeaderProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+                    get_HeaderTemplateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_DisplayModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_IsSettingsVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_IsPaneToggleButtonVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                     _type.HRESULT]
+                    get_AlwaysShowHeaderProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_CompactPaneLengthProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_OpenPaneLengthProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_PaneToggleButtonStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                    get_MenuItemsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_MenuItemsSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_SelectedItemProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_SettingsItemProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_AutoSuggestBoxProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_MenuItemTemplateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_MenuItemTemplateSelectorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                    _type.HRESULT]
+                    get_MenuItemContainerStyleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                    get_MenuItemContainerStyleSelectorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                          _type.HRESULT]
 
                 class INavigationViewStatics2(IInspectable):
-                    get_IsBackButtonVisibleProperty: _Callable
-                    get_IsBackEnabledProperty: _Callable
-                    get_PaneTitleProperty: _Callable
+                    get_IsBackButtonVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
+                    get_IsBackEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_PaneTitleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class INavigationViewStatics3(IInspectable):
-                    get_PaneDisplayModeProperty: _Callable
-                    get_PaneHeaderProperty: _Callable
-                    get_PaneCustomContentProperty: _Callable
-                    get_ContentOverlayProperty: _Callable
-                    get_IsPaneVisibleProperty: _Callable
-                    get_SelectionFollowsFocusProperty: _Callable
-                    get_TemplateSettingsProperty: _Callable
-                    get_ShoulderNavigationEnabledProperty: _Callable
-                    get_OverflowLabelModeProperty: _Callable
+                    get_PaneDisplayModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_PaneHeaderProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_PaneCustomContentProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_ContentOverlayProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_IsPaneVisibleProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_SelectionFollowsFocusProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                 _type.HRESULT]
+                    get_TemplateSettingsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_ShoulderNavigationEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                     _type.HRESULT]
+                    get_OverflowLabelModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
 
                 class INavigationViewTemplateSettings(IInspectable):
                     get_TopPadding: _Callable
@@ -13587,9 +14777,12 @@ class Windows:
                     OnNavigatingFrom: _Callable
 
                 class IPageStatics(IInspectable):
-                    get_FrameProperty: _Callable
-                    get_TopAppBarProperty: _Callable
-                    get_BottomAppBarProperty: _Callable
+                    get_FrameProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_TopAppBarProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_BottomAppBarProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
 
                 class IPanel(IInspectable):
                     get_Children: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.IUIElement]]],
@@ -13611,9 +14804,12 @@ class Windows:
                     CreateInstance: _Callable
 
                 class IPanelStatics(IInspectable):
-                    get_BackgroundProperty: _Callable
-                    get_IsItemsHostProperty: _Callable
-                    get_ChildrenTransitionsProperty: _Callable
+                    get_BackgroundProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_IsItemsHostProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_ChildrenTransitionsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                               _type.HRESULT]
 
                 class IParallaxView(IInspectable):
                     get_Child: _Callable
@@ -13719,10 +14915,14 @@ class Windows:
                     get_IsContentChanging: _Callable
 
                 class IPasswordBoxStatics(IInspectable):
-                    get_PasswordProperty: _Callable
-                    get_PasswordCharProperty: _Callable
-                    get_IsPasswordRevealButtonEnabledProperty: _Callable
-                    get_MaxLengthProperty: _Callable
+                    get_PasswordProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_PasswordCharProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_IsPasswordRevealButtonEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                         _type.HRESULT]
+                    get_MaxLengthProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class IPasswordBoxStatics2(IInspectable):
                     get_HeaderProperty: _Callable
@@ -13908,128 +15108,226 @@ class Windows:
                     get_IsHeaderItemsCarouselEnabledProperty: _Callable
 
                 class IProgressBar(IInspectable):
-                    get_IsIndeterminate: _Callable
-                    put_IsIndeterminate: _Callable
-                    get_ShowError: _Callable
-                    put_ShowError: _Callable
-                    get_ShowPaused: _Callable
-                    put_ShowPaused: _Callable
-                    get_TemplateSettings: _Callable
+                    get_IsIndeterminate: _Callable[[_Pointer[_type.boolean]],
+                                                   _type.HRESULT]
+                    put_IsIndeterminate: _Callable[[_type.boolean],
+                                                   _type.HRESULT]
+                    get_ShowError: _Callable[[_Pointer[_type.boolean]],
+                                             _type.HRESULT]
+                    put_ShowError: _Callable[[_type.boolean],
+                                             _type.HRESULT]
+                    get_ShowPaused: _Callable[[_Pointer[_type.boolean]],
+                                              _type.HRESULT]
+                    put_ShowPaused: _Callable[[_type.boolean],
+                                              _type.HRESULT]
+                    get_TemplateSettings: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IProgressBarTemplateSettings]],
+                                                    _type.HRESULT]
 
                 class IProgressBarFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IProgressBar]],
+                                              _type.HRESULT]
 
                 class IProgressBarStatics(IInspectable):
-                    get_IsIndeterminateProperty: _Callable
-                    get_ShowErrorProperty: _Callable
-                    get_ShowPausedProperty: _Callable
+                    get_IsIndeterminateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_ShowErrorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_ShowPausedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IProgressRing(IInspectable):
-                    get_IsActive: _Callable
-                    put_IsActive: _Callable
-                    get_TemplateSettings: _Callable
+                    get_IsActive: _Callable[[_Pointer[_type.boolean]],
+                                            _type.HRESULT]
+                    put_IsActive: _Callable[[_type.boolean],
+                                            _type.HRESULT]
+                    get_TemplateSettings: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IProgressRingTemplateSettings]],
+                                                    _type.HRESULT]
 
                 class IProgressRingStatics(IInspectable):
-                    get_IsActiveProperty: _Callable
+                    get_IsActiveProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
 
                 class IRadioButton(IInspectable):
-                    get_GroupName: _Callable
-                    put_GroupName: _Callable
+                    get_GroupName: _Callable[[_Pointer[_type.HSTRING]],
+                                             _type.HRESULT]
+                    put_GroupName: _Callable[[_type.HSTRING],
+                                             _type.HRESULT]
 
                 class IRadioButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IRadioButton]],
+                                              _type.HRESULT]
 
                 class IRadioButtonStatics(IInspectable):
-                    get_GroupNameProperty: _Callable
+                    get_GroupNameProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class IRatingControl(IInspectable):
-                    get_Caption: _Callable
-                    put_Caption: _Callable
-                    get_InitialSetValue: _Callable
-                    put_InitialSetValue: _Callable
-                    get_IsClearEnabled: _Callable
-                    put_IsClearEnabled: _Callable
-                    get_IsReadOnly: _Callable
-                    put_IsReadOnly: _Callable
-                    get_MaxRating: _Callable
-                    put_MaxRating: _Callable
-                    get_PlaceholderValue: _Callable
-                    put_PlaceholderValue: _Callable
-                    get_ItemInfo: _Callable
-                    put_ItemInfo: _Callable
-                    get_Value: _Callable
-                    put_Value: _Callable
-                    add_ValueChanged: _Callable
-                    remove_ValueChanged: _Callable
+                    get_Caption: _Callable[[_Pointer[_type.HSTRING]],
+                                           _type.HRESULT]
+                    put_Caption: _Callable[[_type.HSTRING],
+                                           _type.HRESULT]
+                    get_InitialSetValue: _Callable[[_Pointer[_type.INT32]],
+                                                   _type.HRESULT]
+                    put_InitialSetValue: _Callable[[_type.INT32],
+                                                   _type.HRESULT]
+                    get_IsClearEnabled: _Callable[[_Pointer[_type.boolean]],
+                                                  _type.HRESULT]
+                    put_IsClearEnabled: _Callable[[_type.boolean],
+                                                  _type.HRESULT]
+                    get_IsReadOnly: _Callable[[_Pointer[_type.boolean]],
+                                              _type.HRESULT]
+                    put_IsReadOnly: _Callable[[_type.boolean],
+                                              _type.HRESULT]
+                    get_MaxRating: _Callable[[_Pointer[_type.INT32]],
+                                             _type.HRESULT]
+                    put_MaxRating: _Callable[[_type.INT32],
+                                             _type.HRESULT]
+                    get_PlaceholderValue: _Callable[[_Pointer[_type.DOUBLE]],
+                                                    _type.HRESULT]
+                    put_PlaceholderValue: _Callable[[_type.DOUBLE],
+                                                    _type.HRESULT]
+                    get_ItemInfo: _Callable[[_Pointer[Windows.UI.Xaml.Controls.IRatingItemInfo]],
+                                            _type.HRESULT]
+                    put_ItemInfo: _Callable[[Windows.UI.Xaml.Controls.IRatingItemInfo],
+                                            _type.HRESULT]
+                    get_Value: _Callable[[_Pointer[_type.DOUBLE]],
+                                         _type.HRESULT]
+                    put_Value: _Callable[[_type.DOUBLE],
+                                         _type.HRESULT]
+                    add_ValueChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IRatingControl, IInspectable],
+                                                 _Pointer[_struct.EventRegistrationToken]],
+                                                _type.HRESULT]
+                    remove_ValueChanged: _Callable[[_struct.EventRegistrationToken],
+                                                   _type.HRESULT]
 
                 class IRatingControlFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IRatingControl]],
+                                              _type.HRESULT]
 
                 class IRatingControlStatics(IInspectable):
-                    get_CaptionProperty: _Callable
-                    get_InitialSetValueProperty: _Callable
-                    get_IsClearEnabledProperty: _Callable
-                    get_IsReadOnlyProperty: _Callable
-                    get_MaxRatingProperty: _Callable
-                    get_PlaceholderValueProperty: _Callable
-                    get_ItemInfoProperty: _Callable
-                    get_ValueProperty: _Callable
+                    get_CaptionProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_InitialSetValueProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                           _type.HRESULT]
+                    get_IsClearEnabledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                          _type.HRESULT]
+                    get_IsReadOnlyProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_MaxRatingProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_PlaceholderValueProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_ItemInfoProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_ValueProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
 
                 class IRatingItemFontInfo(IInspectable):
-                    get_DisabledGlyph: _Callable
-                    put_DisabledGlyph: _Callable
-                    get_Glyph: _Callable
-                    put_Glyph: _Callable
-                    get_PointerOverGlyph: _Callable
-                    put_PointerOverGlyph: _Callable
-                    get_PointerOverPlaceholderGlyph: _Callable
-                    put_PointerOverPlaceholderGlyph: _Callable
-                    get_PlaceholderGlyph: _Callable
-                    put_PlaceholderGlyph: _Callable
-                    get_UnsetGlyph: _Callable
-                    put_UnsetGlyph: _Callable
+                    get_DisabledGlyph: _Callable[[_Pointer[_type.HSTRING]],
+                                                 _type.HRESULT]
+                    put_DisabledGlyph: _Callable[[_type.HSTRING],
+                                                 _type.HRESULT]
+                    get_Glyph: _Callable[[_Pointer[_type.HSTRING]],
+                                         _type.HRESULT]
+                    put_Glyph: _Callable[[_type.HSTRING],
+                                         _type.HRESULT]
+                    get_PointerOverGlyph: _Callable[[_Pointer[_type.HSTRING]],
+                                                    _type.HRESULT]
+                    put_PointerOverGlyph: _Callable[[_type.HSTRING],
+                                                    _type.HRESULT]
+                    get_PointerOverPlaceholderGlyph: _Callable[[_Pointer[_type.HSTRING]],
+                                                               _type.HRESULT]
+                    put_PointerOverPlaceholderGlyph: _Callable[[_type.HSTRING],
+                                                               _type.HRESULT]
+                    get_PlaceholderGlyph: _Callable[[_Pointer[_type.HSTRING]],
+                                                    _type.HRESULT]
+                    put_PlaceholderGlyph: _Callable[[_type.HSTRING],
+                                                    _type.HRESULT]
+                    get_UnsetGlyph: _Callable[[_Pointer[_type.HSTRING]],
+                                              _type.HRESULT]
+                    put_UnsetGlyph: _Callable[[_type.HSTRING],
+                                              _type.HRESULT]
 
                 class IRatingItemFontInfoFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IRatingItemFontInfo]],
+                                              _type.HRESULT]
 
                 class IRatingItemFontInfoStatics(IInspectable):
-                    get_DisabledGlyphProperty: _Callable
-                    get_GlyphProperty: _Callable
-                    get_PlaceholderGlyphProperty: _Callable
-                    get_PointerOverGlyphProperty: _Callable
-                    get_PointerOverPlaceholderGlyphProperty: _Callable
-                    get_UnsetGlyphProperty: _Callable
+                    get_DisabledGlyphProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_GlyphProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_PlaceholderGlyphProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_PointerOverGlyphProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_PointerOverPlaceholderGlyphProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                       _type.HRESULT]
+                    get_UnsetGlyphProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IRatingItemImageInfo(IInspectable):
-                    get_DisabledImage: _Callable
-                    put_DisabledImage: _Callable
-                    get_Image: _Callable
-                    put_Image: _Callable
-                    get_PlaceholderImage: _Callable
-                    put_PlaceholderImage: _Callable
-                    get_PointerOverImage: _Callable
-                    put_PointerOverImage: _Callable
-                    get_PointerOverPlaceholderImage: _Callable
-                    put_PointerOverPlaceholderImage: _Callable
-                    get_UnsetImage: _Callable
-                    put_UnsetImage: _Callable
+                    get_DisabledImage: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                                 _type.HRESULT]
+                    put_DisabledImage: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                                 _type.HRESULT]
+                    get_Image: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                         _type.HRESULT]
+                    put_Image: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                         _type.HRESULT]
+                    get_PlaceholderImage: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                                    _type.HRESULT]
+                    put_PlaceholderImage: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                                    _type.HRESULT]
+                    get_PointerOverImage: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                                    _type.HRESULT]
+                    put_PointerOverImage: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                                    _type.HRESULT]
+                    get_PointerOverPlaceholderImage: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                                               _type.HRESULT]
+                    put_PointerOverPlaceholderImage: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                                               _type.HRESULT]
+                    get_UnsetImage: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                              _type.HRESULT]
+                    put_UnsetImage: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                              _type.HRESULT]
 
                 class IRatingItemImageInfoFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IRatingItemImageInfo]],
+                                              _type.HRESULT]
 
                 class IRatingItemImageInfoStatics(IInspectable):
-                    get_DisabledImageProperty: _Callable
-                    get_ImageProperty: _Callable
-                    get_PlaceholderImageProperty: _Callable
-                    get_PointerOverImageProperty: _Callable
-                    get_PointerOverPlaceholderImageProperty: _Callable
-                    get_UnsetImageProperty: _Callable
+                    get_DisabledImageProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_ImageProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_PlaceholderImageProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_PointerOverImageProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
+                    get_PointerOverPlaceholderImageProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                       _type.HRESULT]
+                    get_UnsetImageProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
 
                 class IRatingItemInfo(IInspectable):
                     pass
 
                 class IRatingItemInfoFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IRatingItemInfo]],
+                                              _type.HRESULT]
 
                 class IRefreshContainer(IInspectable):
                     get_Visualizer: _Callable
@@ -15018,26 +16316,42 @@ class Windows:
                     get_HeaderTemplateProperty: _Callable
 
                 class ISplitButton(IInspectable):
-                    get_Flyout: _Callable
-                    put_Flyout: _Callable
-                    get_Command: _Callable
-                    put_Command: _Callable
-                    get_CommandParameter: _Callable
-                    put_CommandParameter: _Callable
-                    add_Click: _Callable
-                    remove_Click: _Callable
+                    get_Flyout: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IFlyoutBase]],
+                                          _type.HRESULT]
+                    put_Flyout: _Callable[[Windows.UI.Xaml.Controls.Primitives.IFlyoutBase],
+                                          _type.HRESULT]
+                    get_Command: _Callable[[_Pointer[Windows.UI.Xaml.Input.ICommand]],
+                                           _type.HRESULT]
+                    put_Command: _Callable[[Windows.UI.Xaml.Input.ICommand],
+                                           _type.HRESULT]
+                    get_CommandParameter: _Callable[[_Pointer[IInspectable]],
+                                                    _type.HRESULT]
+                    put_CommandParameter: _Callable[[IInspectable],
+                                                    _type.HRESULT]
+                    add_Click: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ISplitButton, Windows.UI.Xaml.Controls.ISplitButtonClickEventArgs],
+                                          _Pointer[_struct.EventRegistrationToken]],
+                                         _type.HRESULT]
+                    remove_Click: _Callable[[_struct.EventRegistrationToken],
+                                            _type.HRESULT]
 
                 class ISplitButtonAutomationPeer(IInspectable):
                     pass
 
                 class ISplitButtonAutomationPeerFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[Windows.UI.Xaml.Controls.ISplitButton,
+                                               IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.ISplitButtonAutomationPeer]],
+                                              _type.HRESULT]
 
                 class ISplitButtonClickEventArgs(IInspectable):
                     pass
 
                 class ISplitButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.ISplitButton]],
+                                              _type.HRESULT]
 
                 class ISplitButtonStatics(IInspectable):
                     get_FlyoutProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
@@ -15384,12 +16698,12 @@ class Windows:
                                                 _type.HRESULT]
                     get_BaselineOffset: _Callable[[_Pointer[_type.DOUBLE]],
                                                   _type.HRESULT]
-                    add_SelectionChanged: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                    add_SelectionChanged: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                                      _Pointer[_struct.EventRegistrationToken]],
                                                     _type.HRESULT]
                     remove_SelectionChanged: _Callable[[_struct.EventRegistrationToken],
                                                        _type.HRESULT]
-                    add_ContextMenuOpening: _Callable[[Windows.UI.Xaml.Controls.IContextMenuOpeningEventHandler_impl,
+                    add_ContextMenuOpening: _Callable[[Windows.UI.Xaml.Controls.IContextMenuOpeningEventHandler,
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_ContextMenuOpening: _Callable[[_struct.EventRegistrationToken],
@@ -15454,7 +16768,7 @@ class Windows:
                                                            _type.HRESULT]
                     get_TextHighlighters: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.Documents.ITextHighlighter]]],
                                                     _type.HRESULT]
-                    add_IsTextTrimmedChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBlock, Windows.UI.Xaml.Controls.IIsTextTrimmedChangedEventArgs],
+                    add_IsTextTrimmedChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBlock, Windows.UI.Xaml.Controls.IIsTextTrimmedChangedEventArgs],
                                                          _Pointer[_struct.EventRegistrationToken]],
                                                         _type.HRESULT]
                     remove_IsTextTrimmedChanged: _Callable[[_struct.EventRegistrationToken],
@@ -15583,17 +16897,17 @@ class Windows:
                                               _type.HRESULT]
                     put_InputScope: _Callable[[Windows.UI.Xaml.Input.IInputScope],
                                               _type.HRESULT]
-                    add_TextChanged: _Callable[[Windows.UI.Xaml.Controls.ITextChangedEventHandler_impl,
+                    add_TextChanged: _Callable[[Windows.UI.Xaml.Controls.ITextChangedEventHandler,
                                                 _Pointer[_struct.EventRegistrationToken]],
                                                _type.HRESULT]
                     remove_TextChanged: _Callable[[_struct.EventRegistrationToken],
                                                   _type.HRESULT]
-                    add_SelectionChanged: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                    add_SelectionChanged: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                                      _Pointer[_struct.EventRegistrationToken]],
                                                     _type.HRESULT]
                     remove_SelectionChanged: _Callable[[_struct.EventRegistrationToken],
                                                        _type.HRESULT]
-                    add_ContextMenuOpening: _Callable[[Windows.UI.Xaml.Controls.IContextMenuOpeningEventHandler_impl,
+                    add_ContextMenuOpening: _Callable[[Windows.UI.Xaml.Controls.IContextMenuOpeningEventHandler,
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_ContextMenuOpening: _Callable[[_struct.EventRegistrationToken],
@@ -15633,24 +16947,24 @@ class Windows:
                                                       _type.HRESULT]
                     put_IsColorFontEnabled: _Callable[[_type.boolean],
                                                       _type.HRESULT]
-                    add_Paste: _Callable[[Windows.UI.Xaml.Controls.ITextControlPasteEventHandler_impl,
+                    add_Paste: _Callable[[Windows.UI.Xaml.Controls.ITextControlPasteEventHandler,
                                           _Pointer[_struct.EventRegistrationToken]],
                                          _type.HRESULT]
                     remove_Paste: _Callable[[_struct.EventRegistrationToken],
                                             _type.HRESULT]
 
                 class ITextBox3(IInspectable):
-                    add_TextCompositionStarted: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextCompositionStartedEventArgs],
+                    add_TextCompositionStarted: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextCompositionStartedEventArgs],
                                                            _Pointer[_struct.EventRegistrationToken]],
                                                           _type.HRESULT]
                     remove_TextCompositionStarted: _Callable[[_struct.EventRegistrationToken],
                                                              _type.HRESULT]
-                    add_TextCompositionChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextCompositionChangedEventArgs],
+                    add_TextCompositionChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextCompositionChangedEventArgs],
                                                            _Pointer[_struct.EventRegistrationToken]],
                                                           _type.HRESULT]
                     remove_TextCompositionChanged: _Callable[[_struct.EventRegistrationToken],
                                                              _type.HRESULT]
-                    add_TextCompositionEnded: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextCompositionEndedEventArgs],
+                    add_TextCompositionEnded: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextCompositionEndedEventArgs],
                                                          _Pointer[_struct.EventRegistrationToken]],
                                                         _type.HRESULT]
                     remove_TextCompositionEnded: _Callable[[_struct.EventRegistrationToken],
@@ -15663,12 +16977,12 @@ class Windows:
                                                                    _type.HRESULT]
                     put_DesiredCandidateWindowAlignment: _Callable[[_enum.Windows.UI.Xaml.Controls.CandidateWindowAlignment],
                                                                    _type.HRESULT]
-                    add_CandidateWindowBoundsChanged: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ICandidateWindowBoundsChangedEventArgs],
+                    add_CandidateWindowBoundsChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ICandidateWindowBoundsChangedEventArgs],
                                                                  _Pointer[_struct.EventRegistrationToken]],
                                                                 _type.HRESULT]
                     remove_CandidateWindowBoundsChanged: _Callable[[_struct.EventRegistrationToken],
                                                                    _type.HRESULT]
-                    add_TextChanging: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextBoxTextChangingEventArgs],
+                    add_TextChanging: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextBoxTextChangingEventArgs],
                                                  _Pointer[_struct.EventRegistrationToken]],
                                                 _type.HRESULT]
                     remove_TextChanging: _Callable[[_struct.EventRegistrationToken],
@@ -15697,17 +17011,17 @@ class Windows:
                                                          _type.HRESULT]
                     put_PlaceholderForeground: _Callable[[Windows.UI.Xaml.Media.IBrush],
                                                          _type.HRESULT]
-                    add_CopyingToClipboard: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextControlCopyingToClipboardEventArgs],
+                    add_CopyingToClipboard: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextControlCopyingToClipboardEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_CopyingToClipboard: _Callable[[_struct.EventRegistrationToken],
                                                          _type.HRESULT]
-                    add_CuttingToClipboard: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextControlCuttingToClipboardEventArgs],
+                    add_CuttingToClipboard: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextControlCuttingToClipboardEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_CuttingToClipboard: _Callable[[_struct.EventRegistrationToken],
                                                          _type.HRESULT]
-                    add_BeforeTextChanging: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextBoxBeforeTextChangingEventArgs],
+                    add_BeforeTextChanging: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextBoxBeforeTextChangingEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_BeforeTextChanging: _Callable[[_struct.EventRegistrationToken],
@@ -15740,7 +17054,7 @@ class Windows:
                                                _type.HRESULT]
                     put_Description: _Callable[[IInspectable],
                                                _type.HRESULT]
-                    add_SelectionChanging: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextBoxSelectionChangingEventArgs],
+                    add_SelectionChanging: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.ITextBox, Windows.UI.Xaml.Controls.ITextBoxSelectionChangingEventArgs],
                                                       _Pointer[_struct.EventRegistrationToken]],
                                                      _type.HRESULT]
                     remove_SelectionChanging: _Callable[[_struct.EventRegistrationToken],
@@ -15984,29 +17298,47 @@ class Windows:
                     get_NewTime: _Callable
 
                 class IToggleMenuFlyoutItem(IInspectable):
-                    get_IsChecked: _Callable
-                    put_IsChecked: _Callable
+                    get_IsChecked: _Callable[[_Pointer[_type.boolean]],
+                                             _type.HRESULT]
+                    put_IsChecked: _Callable[[_type.boolean],
+                                             _type.HRESULT]
 
                 class IToggleMenuFlyoutItemFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IToggleMenuFlyoutItem]],
+                                              _type.HRESULT]
 
                 class IToggleMenuFlyoutItemStatics(IInspectable):
-                    get_IsCheckedProperty: _Callable
+                    get_IsCheckedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
 
                 class IToggleSplitButton(IInspectable):
-                    get_IsChecked: _Callable
-                    put_IsChecked: _Callable
-                    add_IsCheckedChanged: _Callable
-                    remove_IsCheckedChanged: _Callable
+                    get_IsChecked: _Callable[[_Pointer[_type.boolean]],
+                                             _type.HRESULT]
+                    put_IsChecked: _Callable[[_type.boolean],
+                                             _type.HRESULT]
+                    add_IsCheckedChanged: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.IToggleSplitButton, Windows.UI.Xaml.Controls.IToggleSplitButtonIsCheckedChangedEventArgs],
+                                                     _Pointer[_struct.EventRegistrationToken]],
+                                                    _type.HRESULT]
+                    remove_IsCheckedChanged: _Callable[[_struct.EventRegistrationToken],
+                                                       _type.HRESULT]
 
                 class IToggleSplitButtonAutomationPeer(IInspectable):
                     pass
 
                 class IToggleSplitButtonAutomationPeerFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[Windows.UI.Xaml.Controls.IToggleSplitButton,
+                                               IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IToggleSplitButtonAutomationPeer]],
+                                              _type.HRESULT]
 
                 class IToggleSplitButtonFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Controls.IToggleSplitButton]],
+                                              _type.HRESULT]
 
                 class IToggleSplitButtonIsCheckedChangedEventArgs(IInspectable):
                     pass
@@ -16068,12 +17400,12 @@ class Windows:
                                                   _type.HRESULT]
                     get_TemplateSettings: _Callable[[_Pointer[Windows.UI.Xaml.Controls.Primitives.IToolTipTemplateSettings]],
                                                     _type.HRESULT]
-                    add_Closed: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                    add_Closed: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                            _Pointer[_struct.EventRegistrationToken]],
                                           _type.HRESULT]
                     remove_Closed: _Callable[[_struct.EventRegistrationToken],
                                              _type.HRESULT]
-                    add_Opened: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                    add_Opened: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                            _Pointer[_struct.EventRegistrationToken]],
                                           _type.HRESULT]
                     remove_Opened: _Callable[[_struct.EventRegistrationToken],
@@ -17704,7 +19036,7 @@ class Windows:
                                                         _type.HRESULT]
                         put_CommandParameter: _Callable[[IInspectable],
                                                         _type.HRESULT]
-                        add_Click: _Callable[[Windows.UI.Xaml.IRoutedEventHandler_impl,
+                        add_Click: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
                                               _Pointer[_struct.EventRegistrationToken]],
                                              _type.HRESULT]
                         remove_Click: _Callable[[_struct.EventRegistrationToken],
@@ -17924,17 +19256,17 @@ class Windows:
                                                  _type.HRESULT]
                         put_Placement: _Callable[[_enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode],
                                                  _type.HRESULT]
-                        add_Opened: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_Opened: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                         remove_Opened: _Callable[[_struct.EventRegistrationToken],
                                                  _type.HRESULT]
-                        add_Closed: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_Closed: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                         remove_Closed: _Callable[[_struct.EventRegistrationToken],
                                                  _type.HRESULT]
-                        add_Opening: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_Opening: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                 _Pointer[_struct.EventRegistrationToken]],
                                                _type.HRESULT]
                         remove_Opening: _Callable[[_struct.EventRegistrationToken],
@@ -17963,7 +19295,7 @@ class Windows:
                                                         _type.HRESULT]
                         put_ElementSoundMode: _Callable[[_enum.Windows.UI.Xaml.ElementSoundMode],
                                                         _type.HRESULT]
-                        add_Closing: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Controls.Primitives.IFlyoutBase, Windows.UI.Xaml.Controls.Primitives.IFlyoutBaseClosingEventArgs],
+                        add_Closing: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Controls.Primitives.IFlyoutBase, Windows.UI.Xaml.Controls.Primitives.IFlyoutBaseClosingEventArgs],
                                                 _Pointer[_struct.EventRegistrationToken]],
                                                _type.HRESULT]
                         remove_Closing: _Callable[[_struct.EventRegistrationToken],
@@ -18643,12 +19975,12 @@ class Windows:
                                                              _type.HRESULT]
                         put_IsLightDismissEnabled: _Callable[[_type.boolean],
                                                              _type.HRESULT]
-                        add_Opened: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_Opened: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                         remove_Opened: _Callable[[_struct.EventRegistrationToken],
                                                  _type.HRESULT]
-                        add_Closed: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_Closed: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                _Pointer[_struct.EventRegistrationToken]],
                                               _type.HRESULT]
                         remove_Closed: _Callable[[_struct.EventRegistrationToken],
@@ -18679,7 +20011,7 @@ class Windows:
                                                         _type.HRESULT]
                         get_ActualPlacement: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.Primitives.PopupPlacementMode]],
                                                        _type.HRESULT]
-                        add_ActualPlacementChanged: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_ActualPlacementChanged: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                                _Pointer[_struct.EventRegistrationToken]],
                                                               _type.HRESULT]
                         remove_ActualPlacementChanged: _Callable[[_struct.EventRegistrationToken],
@@ -18766,10 +20098,14 @@ class Windows:
                         get_NewValue: _Callable
 
                     class IRepeatButton(IInspectable):
-                        get_Delay: _Callable
-                        put_Delay: _Callable
-                        get_Interval: _Callable
-                        put_Interval: _Callable
+                        get_Delay: _Callable[[_Pointer[_type.INT32]],
+                                             _type.HRESULT]
+                        put_Delay: _Callable[[_type.INT32],
+                                             _type.HRESULT]
+                        get_Interval: _Callable[[_Pointer[_type.INT32]],
+                                                _type.HRESULT]
+                        put_Interval: _Callable[[_type.INT32],
+                                                _type.HRESULT]
 
                     class IRepeatButtonStatics(IInspectable):
                         get_DelayProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
@@ -18804,12 +20140,12 @@ class Windows:
                                                                       _type.HRESULT]
                         get_AreVerticalSnapPointsRegular: _Callable[[_Pointer[_type.boolean]],
                                                                     _type.HRESULT]
-                        add_HorizontalSnapPointsChanged: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_HorizontalSnapPointsChanged: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                                     _Pointer[_struct.EventRegistrationToken]],
                                                                    _type.HRESULT]
                         remove_HorizontalSnapPointsChanged: _Callable[[_struct.EventRegistrationToken],
                                                                       _type.HRESULT]
-                        add_VerticalSnapPointsChanged: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                        add_VerticalSnapPointsChanged: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                                   _Pointer[_struct.EventRegistrationToken]],
                                                                  _type.HRESULT]
                         remove_VerticalSnapPointsChanged: _Callable[[_struct.EventRegistrationToken],
@@ -18906,22 +20242,39 @@ class Windows:
                                                     _type.HRESULT]
 
                     class IToggleButton(IInspectable):
-                        get_IsChecked: _Callable
-                        put_IsChecked: _Callable
-                        get_IsThreeState: _Callable
-                        put_IsThreeState: _Callable
-                        add_Checked: _Callable
-                        remove_Checked: _Callable
-                        add_Unchecked: _Callable
-                        remove_Unchecked: _Callable
-                        add_Indeterminate: _Callable
-                        remove_Indeterminate: _Callable
+                        get_IsChecked: _Callable[[_Pointer[Windows.Foundation.IReference[_type.boolean]]],
+                                                 _type.HRESULT]
+                        put_IsChecked: _Callable[[Windows.Foundation.IReference[_type.boolean]],
+                                                 _type.HRESULT]
+                        get_IsThreeState: _Callable[[_Pointer[_type.boolean]],
+                                                    _type.HRESULT]
+                        put_IsThreeState: _Callable[[_type.boolean],
+                                                    _type.HRESULT]
+                        add_Checked: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
+                                                _Pointer[_struct.EventRegistrationToken]],
+                                               _type.HRESULT]
+                        remove_Checked: _Callable[[_struct.EventRegistrationToken],
+                                                  _type.HRESULT]
+                        add_Unchecked: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
+                                                  _Pointer[_struct.EventRegistrationToken]],
+                                                 _type.HRESULT]
+                        remove_Unchecked: _Callable[[_struct.EventRegistrationToken],
+                                                    _type.HRESULT]
+                        add_Indeterminate: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
+                                                      _Pointer[_struct.EventRegistrationToken]],
+                                                     _type.HRESULT]
+                        remove_Indeterminate: _Callable[[_struct.EventRegistrationToken],
+                                                        _type.HRESULT]
 
                     class IToggleButtonFactory(IInspectable):
-                        CreateInstance: _Callable
+                        CreateInstance: _Callable[[IInspectable,
+                                                   _Pointer[IInspectable],
+                                                   _Pointer[Windows.UI.Xaml.Controls.Primitives.IToggleButton]],
+                                                  _type.HRESULT]
 
                     class IToggleButtonOverrides(IInspectable):
-                        OnToggle: _Callable
+                        OnToggle: _Callable[[],
+                                            _type.HRESULT]
 
                     class IToggleButtonStatics(IInspectable):
                         get_IsCheckedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
@@ -19913,7 +21266,7 @@ class Windows:
                     put_Handled: _Callable
 
                 class ICommand(IInspectable):
-                    add_CanExecuteChanged: _Callable[[Windows.Foundation.IEventHandler_impl[IInspectable],
+                    add_CanExecuteChanged: _Callable[[Windows.Foundation.IEventHandler[IInspectable],
                                                       _Pointer[_struct.EventRegistrationToken]],
                                                      _type.HRESULT]
                     remove_CanExecuteChanged: _Callable[[_struct.EventRegistrationToken],
@@ -20262,6 +21615,118 @@ class Windows:
                     get_DescriptionProperty: _Callable
                     get_CommandProperty: _Callable
 
+            class Interop:
+                class _IBindableVectorChangedEventHandler:
+                    Invoke: _Callable[[Windows.UI.Xaml.Interop.IBindableObservableVector,
+                                       IInspectable],
+                                      _type.HRESULT]
+
+                class IBindableVectorChangedEventHandler(_IBindableVectorChangedEventHandler, IUnknown):
+                    pass
+
+                # noinspection PyPep8Naming
+                class IBindableVectorChangedEventHandler_impl(_IBindableVectorChangedEventHandler, IUnknown_impl):
+                    pass
+
+                class _INotifyCollectionChangedEventHandler:
+                    Invoke: _Callable[[IInspectable,
+                                       Windows.UI.Xaml.Interop.INotifyCollectionChangedEventArgs],
+                                      _type.HRESULT]
+
+                class INotifyCollectionChangedEventHandler(_INotifyCollectionChangedEventHandler, IUnknown):
+                    pass
+
+                # noinspection PyPep8Naming
+                class INotifyCollectionChangedEventHandler_impl(_INotifyCollectionChangedEventHandler, IUnknown_impl):
+                    pass
+
+                class IBindableIterable(IInspectable):
+                    First: _Callable[[_Pointer[Windows.UI.Xaml.Interop.IBindableIterator]],
+                                     _type.HRESULT]
+
+                class IBindableIterator(IInspectable):
+                    get_Current: _Callable[[_Pointer[IInspectable]],
+                                           _type.HRESULT]
+                    get_HasCurrent: _Callable[[_Pointer[_type.boolean]],
+                                              _type.HRESULT]
+                    MoveNext: _Callable[[_type.boolean],
+                                        _type.HRESULT]
+
+                class IBindableObservableVector(IInspectable):
+                    add_VectorChanged: _Callable[[Windows.UI.Xaml.Interop.IBindableVectorChangedEventHandler,
+                                                  _Pointer[_struct.EventRegistrationToken]],
+                                                 _type.HRESULT]
+                    remove_VectorChanged: _Callable[[_struct.EventRegistrationToken],
+                                                    _type.HRESULT]
+
+                class IBindableVector(IInspectable):
+                    GetAt: _Callable[[_type.UINT32,
+                                      _Pointer[IInspectable]],
+                                     _type.HRESULT]
+                    get_Size: _Callable[[_Pointer[_type.UINT32]],
+                                        _type.HRESULT]
+                    GetView: _Callable[[_Pointer[Windows.UI.Xaml.Interop.IBindableVectorView]],
+                                       _type.HRESULT]
+                    IndexOf: _Callable[[IInspectable,
+                                        _Pointer[_type.UINT32],
+                                        _Pointer[_type.boolean]],
+                                       _type.HRESULT]
+                    SetAt: _Callable[[_type.UINT32,
+                                      IInspectable],
+                                     _type.HRESULT]
+                    InsertAt: _Callable[[_type.UINT32,
+                                         IInspectable],
+                                        _type.HRESULT]
+                    RemoveAt: _Callable[[_type.UINT32],
+                                        _type.HRESULT]
+                    Append: _Callable[[IInspectable],
+                                      _type.HRESULT]
+                    RemoveAtEnd: _Callable[[],
+                                           _type.HRESULT]
+                    Clear: _Callable[[],
+                                     _type.HRESULT]
+
+                class IBindableVectorView(IInspectable):
+                    GetAt: _Callable[[_type.UINT32,
+                                      _Pointer[IInspectable]],
+                                     _type.HRESULT]
+                    get_Size: _Callable[[_Pointer[_type.UINT32]],
+                                        _type.HRESULT]
+                    IndexOf: _Callable[[IInspectable,
+                                        _Pointer[_type.UINT32],
+                                        _Pointer[_type.boolean]],
+                                       _type.HRESULT]
+
+                class INotifyCollectionChanged(IInspectable):
+                    add_CollectionChanged: _Callable[[Windows.UI.Xaml.Interop.INotifyCollectionChangedEventHandler,
+                                                      _Pointer[_struct.EventRegistrationToken]],
+                                                     _type.HRESULT]
+                    remove_CollectionChanged: _Callable[[_struct.EventRegistrationToken],
+                                                        _type.HRESULT]
+
+                class INotifyCollectionChangedEventArgs(IInspectable):
+                    get_Action: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Interop.NotifyCollectionChangedAction]],
+                                          _type.HRESULT]
+                    get_NewItems: _Callable[[_Pointer[Windows.UI.Xaml.Interop.IBindableVector]],
+                                            _type.HRESULT]
+                    get_OldItems: _Callable[[_Pointer[Windows.UI.Xaml.Interop.IBindableVector]],
+                                            _type.HRESULT]
+                    get_NewStartingIndex: _Callable[[_Pointer[_type.INT32]],
+                                                    _type.HRESULT]
+                    get_OldStartingIndex: _Callable[[_Pointer[_type.INT32]],
+                                                    _type.HRESULT]
+
+                class INotifyCollectionChangedEventArgsFactory(IInspectable):
+                    CreateInstanceWithAllParameters: _Callable[[_enum.Windows.UI.Xaml.Interop.NotifyCollectionChangedAction,
+                                                                Windows.UI.Xaml.Interop.IBindableVector,
+                                                                Windows.UI.Xaml.Interop.IBindableVector,
+                                                                _type.INT32,
+                                                                _type.INT32,
+                                                                IInspectable,
+                                                                _Pointer[IInspectable],
+                                                                _Pointer[Windows.UI.Xaml.Interop.INotifyCollectionChangedEventArgs]],
+                                                               _type.HRESULT]
+
             class Hosting:
                 class IDesignerAppExitedEventArgs(IInspectable):
                     get_ExitCode: _Callable
@@ -20290,12 +21755,12 @@ class Windows:
                                            _type.HRESULT]
                     get_HasFocus: _Callable[[_Pointer[_type.boolean]],
                                             _type.HRESULT]
-                    add_TakeFocusRequested: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource, Windows.UI.Xaml.Hosting.IDesktopWindowXamlSourceTakeFocusRequestedEventArgs],
+                    add_TakeFocusRequested: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource, Windows.UI.Xaml.Hosting.IDesktopWindowXamlSourceTakeFocusRequestedEventArgs],
                                                        _Pointer[_struct.EventRegistrationToken]],
                                                       _type.HRESULT]
                     remove_TakeFocusRequested: _Callable[[_struct.EventRegistrationToken],
                                                          _type.HRESULT]
-                    add_GotFocus: _Callable[[Windows.Foundation.ITypedEventHandler_impl[Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource, Windows.UI.Xaml.Hosting.IDesktopWindowXamlSourceGotFocusEventArgs],
+                    add_GotFocus: _Callable[[Windows.Foundation.ITypedEventHandler[Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource, Windows.UI.Xaml.Hosting.IDesktopWindowXamlSourceGotFocusEventArgs],
                                              _Pointer[_struct.EventRegistrationToken]],
                                             _type.HRESULT]
                     remove_GotFocus: _Callable[[_struct.EventRegistrationToken],

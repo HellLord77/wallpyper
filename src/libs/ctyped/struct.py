@@ -1756,6 +1756,46 @@ class DWM_BLURBEHIND:
     fTransitionOnMaximized: _type.BOOL = None
 
 
+# noinspection PyPep8Naming
+@_struct
+class PACKAGE_VERSION_U_S:
+    Revision: _type.USHORT = None
+    Build: _type.USHORT = None
+    Minor: _type.USHORT = None
+    Major: _type.USHORT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class PACKAGE_VERSION:
+    U: _union.PACKAGE_VERSION_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class PACKAGE_ID:
+    reserved: _type.UINT32 = None
+    processorArchitecture: _type.UINT32 = None
+    version: PACKAGE_VERSION = None
+    name: _type.PWSTR = None
+    publisher: _type.PWSTR = None
+    resourceId: _type.PWSTR = None
+    publisherId: _type.PWSTR = None
+
+
+@_struct
+class MARGINS:
+    cxLeftWidth: _type.c_int = None
+    cxRightWidth: _type.c_int = None
+    cyTopHeight: _type.c_int = None
+    cyBottomHeight: _type.c_int = None
+
+
+@_struct
+class TrackerHandle:
+    unused: _type.c_int = None
+
+
 UUID = GUID
 IID = GUID
 CLSID = GUID

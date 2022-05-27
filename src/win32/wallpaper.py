@@ -364,14 +364,14 @@ def _get_workerw_hwnd() -> Optional[int]:
 
 
 def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
-            by_h: bool = True, div: int = 2) -> tuple[int, int, int, int]:
+            by_h: bool = True) -> tuple[int, int, int, int]:
     ratio = to_w / to_h
     if by_h:
         w = from_h * ratio
-        return round((from_w - w) / div), 0, int(w), from_h
+        return round((from_w - w) / 2), 0, int(w), from_h
     else:
         h = from_w / ratio
-        return 0, round((from_h - h) / div), from_w, int(h)
+        return 0, round((from_h - h) / 2), from_w, int(h)
 
 
 def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
@@ -384,9 +384,7 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
         return 0, 0, src_w, src_h
     elif style == Style.FIT:
         return _fit_by(src_w, src_h, w, h, w / src_w > h / src_h)
-    elif style == Style.FILL:
-        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h, 3)
-    elif style == Style.SPAN:
+    elif style in (Style.FILL, Style.SPAN):
         return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h)
     return 0, 0, 0, 0
 

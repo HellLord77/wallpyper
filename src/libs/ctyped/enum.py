@@ -1058,6 +1058,12 @@ class DWMFLIP3DWINDOWPOLICY(_Enum):
     LAST = _AUTO
 
 
+# noinspection PyPep8Naming
+class XAML_REFERENCETRACKER_DISCONNECT(_Enum):
+    DEFAULT = _AUTO
+    SUSPEND = _AUTO
+
+
 GpMatrixOrder = MatrixOrder
 GpUnit = Unit
 GpStatus = Status
@@ -1244,10 +1250,370 @@ class Windows:
             Incomplete = _AUTO
 
         class Streams:
+            class ByteOrder(_Enum):
+                LittleEndian = _AUTO
+                BigEndian = _AUTO
+
+            class FileOpenDisposition(_Enum):
+                OpenExisting = _AUTO
+                OpenAlways = _AUTO
+                CreateNew = _AUTO
+                CreateAlways = _AUTO
+                TruncateExisting = _AUTO
+
             class InputStreamOptions(_Enum):
                 None_ = _AUTO
                 Partial = 0x1
                 ReadAhead = 0x2
+
+            class UnicodeEncoding(_Enum):
+                Utf8 = _AUTO
+                Utf16LE = _AUTO
+                Utf16BE = _AUTO
+
+    class System:
+        class AppDiagnosticInfoWatcherStatus(_Enum):
+            Created = _AUTO
+            Started = _AUTO
+            EnumerationCompleted = _AUTO
+            Stopping = _AUTO
+            Stopped = _AUTO
+            Aborted = _AUTO
+
+        class AppMemoryUsageLevel(_Enum):
+            Low = _AUTO
+            Medium = _AUTO
+            High = _AUTO
+            OverLimit = _AUTO
+
+        class AppResourceGroupEnergyQuotaState(_Enum):
+            Unknown = _AUTO
+            Over = _AUTO
+            Under = _AUTO
+
+        class AppResourceGroupExecutionState(_Enum):
+            Unknown = _AUTO
+            Running = _AUTO
+            Suspending = _AUTO
+            Suspended = _AUTO
+            NotRunning = _AUTO
+
+        class AppResourceGroupInfoWatcherStatus(_Enum):
+            Created = _AUTO
+            Started = _AUTO
+            EnumerationCompleted = _AUTO
+            Stopping = _AUTO
+            Stopped = _AUTO
+            Aborted = _AUTO
+
+        class AutoUpdateTimeZoneStatus(_Enum):
+            Attempted = _AUTO
+            TimedOut = _AUTO
+            Failed = _AUTO
+
+        class DiagnosticAccessStatus(_Enum):
+            Unspecified = _AUTO
+            Denied = _AUTO
+            Limited = _AUTO
+            Allowed = _AUTO
+
+        class DispatcherQueuePriority(_Enum):
+            Low = -10
+            Normal = 0
+            High = 10
+
+        class LaunchFileStatus(_Enum):
+            Success = _AUTO
+            AppUnavailable = _AUTO
+            DeniedByPolicy = _AUTO
+            FileTypeNotSupported = _AUTO
+            Unknown = _AUTO
+
+        class LaunchQuerySupportStatus(_Enum):
+            Available = _AUTO
+            AppNotInstalled = _AUTO
+            AppUnavailable = _AUTO
+            NotSupported = _AUTO
+            Unknown = _AUTO
+
+        class LaunchQuerySupportType(_Enum):
+            Uri = _AUTO
+            UriForResults = _AUTO
+
+        class LaunchUriStatus(_Enum):
+            Success = _AUTO
+            AppUnavailable = _AUTO
+            ProtocolUnavailable = _AUTO
+            Unknown = _AUTO
+
+        class PowerState(_Enum):
+            ConnectedStandby = _AUTO
+            SleepS3 = _AUTO
+
+        class ProcessorArchitecture(_Enum):
+            X86 = _AUTO
+            Arm = 5
+            X64 = 9
+            Neutral = 11
+            Arm64 = _AUTO
+            X86OnArm64 = 14
+            Unknown = 65535
+
+        class RemoteLaunchUriStatus(_Enum):
+            Unknown = _AUTO
+            Success = _AUTO
+            AppUnavailable = _AUTO
+            ProtocolUnavailable = _AUTO
+            RemoteSystemUnavailable = _AUTO
+            ValueSetTooLarge = _AUTO
+            DeniedByLocalSystem = _AUTO
+            DeniedByRemoteSystem = _AUTO
+
+        class ShutdownKind(_Enum):
+            Shutdown = _AUTO
+            Restart = _AUTO
+
+        class UserAgeConsentGroup(_Enum):
+            Child = _AUTO
+            Minor = _AUTO
+            Adult = _AUTO
+
+        class UserAgeConsentResult(_Enum):
+            NotEnforced = _AUTO
+            Included = _AUTO
+            NotIncluded = _AUTO
+            Unknown = _AUTO
+            Ambiguous = _AUTO
+
+        class UserAuthenticationStatus(_Enum):
+            Unauthenticated = _AUTO
+            LocallyAuthenticated = _AUTO
+            RemotelyAuthenticated = _AUTO
+
+        class UserPictureSize(_Enum):
+            Size64x64 = _AUTO
+            Size208x208 = _AUTO
+            Size424x424 = _AUTO
+            Size1080x1080 = _AUTO
+
+        class UserType(_Enum):
+            LocalUser = _AUTO
+            RemoteUser = _AUTO
+            LocalGuest = _AUTO
+            RemoteGuest = _AUTO
+            SystemManaged = _AUTO
+
+        class UserWatcherStatus(_Enum):
+            Created = _AUTO
+            Started = _AUTO
+            EnumerationCompleted = _AUTO
+            Stopping = _AUTO
+            Stopped = _AUTO
+            Aborted = _AUTO
+
+        class UserWatcherUpdateKind(_Enum):
+            Properties = _AUTO
+            Picture = _AUTO
+
+        class VirtualKey(_Enum):
+            None_ = _AUTO
+            LeftButton = _AUTO
+            RightButton = _AUTO
+            Cancel = _AUTO
+            MiddleButton = _AUTO
+            XButton1 = _AUTO
+            XButton2 = _AUTO
+            Back = 8
+            Tab = _AUTO
+            Clear = 12
+            Enter = _AUTO
+            Shift = 16
+            Control = _AUTO
+            Menu = _AUTO
+            Pause = _AUTO
+            CapitalLock = _AUTO
+            Kana = _AUTO
+            Hangul = 21
+            ImeOn = _AUTO
+            Junja = _AUTO
+            Final = _AUTO
+            Hanja = _AUTO
+            Kanji = _AUTO
+            ImeOff = _AUTO
+            Escape = _AUTO
+            Convert = _AUTO
+            NonConvert = _AUTO
+            Accept = _AUTO
+            ModeChange = _AUTO
+            Space = _AUTO
+            PageUp = _AUTO
+            PageDown = _AUTO
+            End = _AUTO
+            Home = _AUTO
+            Left = _AUTO
+            Up = _AUTO
+            Right = _AUTO
+            Down = _AUTO
+            Select = _AUTO
+            Print = _AUTO
+            Execute = _AUTO
+            Snapshot = _AUTO
+            Insert = _AUTO
+            Delete = _AUTO
+            Help = _AUTO
+            Number0 = _AUTO
+            Number1 = _AUTO
+            Number2 = _AUTO
+            Number3 = _AUTO
+            Number4 = _AUTO
+            Number5 = _AUTO
+            Number6 = _AUTO
+            Number7 = _AUTO
+            Number8 = _AUTO
+            Number9 = _AUTO
+            A = 65
+            B = _AUTO
+            C = _AUTO
+            D = _AUTO
+            E = _AUTO
+            F = _AUTO
+            G = _AUTO
+            H = _AUTO
+            I = _AUTO
+            J = _AUTO
+            K = _AUTO
+            L = _AUTO
+            M = _AUTO
+            N = _AUTO
+            O = _AUTO
+            P = _AUTO
+            Q = _AUTO
+            R = _AUTO
+            S = _AUTO
+            T = _AUTO
+            U = _AUTO
+            V = _AUTO
+            W = _AUTO
+            X = _AUTO
+            Y = _AUTO
+            Z = _AUTO
+            LeftWindows = _AUTO
+            RightWindows = _AUTO
+            Application = _AUTO
+            Sleep = 95
+            NumberPad0 = _AUTO
+            NumberPad1 = _AUTO
+            NumberPad2 = _AUTO
+            NumberPad3 = _AUTO
+            NumberPad4 = _AUTO
+            NumberPad5 = _AUTO
+            NumberPad6 = _AUTO
+            NumberPad7 = _AUTO
+            NumberPad8 = _AUTO
+            NumberPad9 = _AUTO
+            Multiply = _AUTO
+            Add = _AUTO
+            Separator = _AUTO
+            Subtract = _AUTO
+            Decimal = _AUTO
+            Divide = _AUTO
+            F1 = _AUTO
+            F2 = _AUTO
+            F3 = _AUTO
+            F4 = _AUTO
+            F5 = _AUTO
+            F6 = _AUTO
+            F7 = _AUTO
+            F8 = _AUTO
+            F9 = _AUTO
+            F10 = _AUTO
+            F11 = _AUTO
+            F12 = _AUTO
+            F13 = _AUTO
+            F14 = _AUTO
+            F15 = _AUTO
+            F16 = _AUTO
+            F17 = _AUTO
+            F18 = _AUTO
+            F19 = _AUTO
+            F20 = _AUTO
+            F21 = _AUTO
+            F22 = _AUTO
+            F23 = _AUTO
+            F24 = _AUTO
+            NavigationView = _AUTO
+            NavigationMenu = _AUTO
+            NavigationUp = _AUTO
+            NavigationDown = _AUTO
+            NavigationLeft = _AUTO
+            NavigationRight = _AUTO
+            NavigationAccept = _AUTO
+            NavigationCancel = _AUTO
+            NumberKeyLock = _AUTO
+            Scroll = _AUTO
+            LeftShift = 160
+            RightShift = _AUTO
+            LeftControl = _AUTO
+            RightControl = _AUTO
+            LeftMenu = _AUTO
+            RightMenu = _AUTO
+            GoBack = _AUTO
+            GoForward = _AUTO
+            Refresh = _AUTO
+            Stop = _AUTO
+            Search = _AUTO
+            Favorites = _AUTO
+            GoHome = _AUTO
+            GamepadA = 195
+            GamepadB = _AUTO
+            GamepadX = _AUTO
+            GamepadY = _AUTO
+            GamepadRightShoulder = _AUTO
+            GamepadLeftShoulder = _AUTO
+            GamepadLeftTrigger = _AUTO
+            GamepadRightTrigger = _AUTO
+            GamepadDPadUp = _AUTO
+            GamepadDPadDown = _AUTO
+            GamepadDPadLeft = _AUTO
+            GamepadDPadRight = _AUTO
+            GamepadMenu = _AUTO
+            GamepadView = _AUTO
+            GamepadLeftThumbstickButton = _AUTO
+            GamepadRightThumbstickButton = _AUTO
+            GamepadLeftThumbstickUp = _AUTO
+            GamepadLeftThumbstickDown = _AUTO
+            GamepadLeftThumbstickRight = _AUTO
+            GamepadLeftThumbstickLeft = _AUTO
+            GamepadRightThumbstickUp = _AUTO
+            GamepadRightThumbstickDown = _AUTO
+            GamepadRightThumbstickRight = _AUTO
+            GamepadRightThumbstickLeft = _AUTO
+
+        class VirtualKeyModifiers(_Enum):
+            None_ = _AUTO
+            Control = 0x1
+            Menu = 0x2
+            Shift = 0x4
+            Windows = 0x8
+
+        class UserProfile:
+            class AccountPictureKind(_Enum):
+                SmallImage = _AUTO
+                LargeImage = _AUTO
+                Video = _AUTO
+
+            class SetAccountPictureResult(_Enum):
+                Success = _AUTO
+                ChangeDisabled = _AUTO
+                LargeOrDynamicError = _AUTO
+                VideoFrameSizeError = _AUTO
+                FileSizeError = _AUTO
+                Failure = _AUTO
+
+            class SetImageFeedResult(_Enum):
+                Success = _AUTO
+                ChangeDisabled = _AUTO
+                UserCanceled = _AUTO
 
     class UI:
         class Composition:
@@ -1343,6 +1709,17 @@ class Windows:
                 RightToLeft = _AUTO
 
         class Notifications:
+            class AdaptiveNotificationContentKind(_Enum):
+                Text = _AUTO
+
+            class BadgeTemplateType(_Enum):
+                BadgeGlyph = _AUTO
+                BadgeNumber = _AUTO
+
+            class NotificationKinds(_Enum):
+                Unknown = _AUTO
+                Toast = 0x1
+
             class NotificationMirroring(_Enum):
                 Allowed = _AUTO
                 Disabled = _AUTO
@@ -1354,10 +1731,189 @@ class Windows:
                 DisabledByGroupPolicy = _AUTO
                 DisabledByManifest = _AUTO
 
+            class NotificationUpdateResult(_Enum):
+                Succeeded = _AUTO
+                Failed = _AUTO
+                NotificationNotFound = _AUTO
+
+            class PeriodicUpdateRecurrence(_Enum):
+                HalfHour = _AUTO
+                Hour = _AUTO
+                SixHours = _AUTO
+                TwelveHours = _AUTO
+                Daily = _AUTO
+
+            class TileFlyoutTemplateType(_Enum):
+                TileFlyoutTemplate01 = _AUTO
+
+            class TileTemplateType(_Enum):
+                TileSquareImage = _AUTO
+                TileSquareBlock = _AUTO
+                TileSquareText01 = _AUTO
+                TileSquareText02 = _AUTO
+                TileSquareText03 = _AUTO
+                TileSquareText04 = _AUTO
+                TileSquarePeekImageAndText01 = _AUTO
+                TileSquarePeekImageAndText02 = _AUTO
+                TileSquarePeekImageAndText03 = _AUTO
+                TileSquarePeekImageAndText04 = _AUTO
+                TileWideImage = _AUTO
+                TileWideImageCollection = _AUTO
+                TileWideImageAndText01 = _AUTO
+                TileWideImageAndText02 = _AUTO
+                TileWideBlockAndText01 = _AUTO
+                TileWideBlockAndText02 = _AUTO
+                TileWidePeekImageCollection01 = _AUTO
+                TileWidePeekImageCollection02 = _AUTO
+                TileWidePeekImageCollection03 = _AUTO
+                TileWidePeekImageCollection04 = _AUTO
+                TileWidePeekImageCollection05 = _AUTO
+                TileWidePeekImageCollection06 = _AUTO
+                TileWidePeekImageAndText01 = _AUTO
+                TileWidePeekImageAndText02 = _AUTO
+                TileWidePeekImage01 = _AUTO
+                TileWidePeekImage02 = _AUTO
+                TileWidePeekImage03 = _AUTO
+                TileWidePeekImage04 = _AUTO
+                TileWidePeekImage05 = _AUTO
+                TileWidePeekImage06 = _AUTO
+                TileWideSmallImageAndText01 = _AUTO
+                TileWideSmallImageAndText02 = _AUTO
+                TileWideSmallImageAndText03 = _AUTO
+                TileWideSmallImageAndText04 = _AUTO
+                TileWideSmallImageAndText05 = _AUTO
+                TileWideText01 = _AUTO
+                TileWideText02 = _AUTO
+                TileWideText03 = _AUTO
+                TileWideText04 = _AUTO
+                TileWideText05 = _AUTO
+                TileWideText06 = _AUTO
+                TileWideText07 = _AUTO
+                TileWideText08 = _AUTO
+                TileWideText09 = _AUTO
+                TileWideText10 = _AUTO
+                TileWideText11 = _AUTO
+                TileSquare150x150Image = 0
+                TileSquare150x150Block = _AUTO
+                TileSquare150x150Text01 = _AUTO
+                TileSquare150x150Text02 = _AUTO
+                TileSquare150x150Text03 = _AUTO
+                TileSquare150x150Text04 = _AUTO
+                TileSquare150x150PeekImageAndText01 = _AUTO
+                TileSquare150x150PeekImageAndText02 = _AUTO
+                TileSquare150x150PeekImageAndText03 = _AUTO
+                TileSquare150x150PeekImageAndText04 = _AUTO
+                TileWide310x150Image = _AUTO
+                TileWide310x150ImageCollection = _AUTO
+                TileWide310x150ImageAndText01 = _AUTO
+                TileWide310x150ImageAndText02 = _AUTO
+                TileWide310x150BlockAndText01 = _AUTO
+                TileWide310x150BlockAndText02 = _AUTO
+                TileWide310x150PeekImageCollection01 = _AUTO
+                TileWide310x150PeekImageCollection02 = _AUTO
+                TileWide310x150PeekImageCollection03 = _AUTO
+                TileWide310x150PeekImageCollection04 = _AUTO
+                TileWide310x150PeekImageCollection05 = _AUTO
+                TileWide310x150PeekImageCollection06 = _AUTO
+                TileWide310x150PeekImageAndText01 = _AUTO
+                TileWide310x150PeekImageAndText02 = _AUTO
+                TileWide310x150PeekImage01 = _AUTO
+                TileWide310x150PeekImage02 = _AUTO
+                TileWide310x150PeekImage03 = _AUTO
+                TileWide310x150PeekImage04 = _AUTO
+                TileWide310x150PeekImage05 = _AUTO
+                TileWide310x150PeekImage06 = _AUTO
+                TileWide310x150SmallImageAndText01 = _AUTO
+                TileWide310x150SmallImageAndText02 = _AUTO
+                TileWide310x150SmallImageAndText03 = _AUTO
+                TileWide310x150SmallImageAndText04 = _AUTO
+                TileWide310x150SmallImageAndText05 = _AUTO
+                TileWide310x150Text01 = _AUTO
+                TileWide310x150Text02 = _AUTO
+                TileWide310x150Text03 = _AUTO
+                TileWide310x150Text04 = _AUTO
+                TileWide310x150Text05 = _AUTO
+                TileWide310x150Text06 = _AUTO
+                TileWide310x150Text07 = _AUTO
+                TileWide310x150Text08 = _AUTO
+                TileWide310x150Text09 = _AUTO
+                TileWide310x150Text10 = _AUTO
+                TileWide310x150Text11 = _AUTO
+                TileSquare310x310BlockAndText01 = _AUTO
+                TileSquare310x310BlockAndText02 = _AUTO
+                TileSquare310x310Image = _AUTO
+                TileSquare310x310ImageAndText01 = _AUTO
+                TileSquare310x310ImageAndText02 = _AUTO
+                TileSquare310x310ImageAndTextOverlay01 = _AUTO
+                TileSquare310x310ImageAndTextOverlay02 = _AUTO
+                TileSquare310x310ImageAndTextOverlay03 = _AUTO
+                TileSquare310x310ImageCollectionAndText01 = _AUTO
+                TileSquare310x310ImageCollectionAndText02 = _AUTO
+                TileSquare310x310ImageCollection = _AUTO
+                TileSquare310x310SmallImagesAndTextList01 = _AUTO
+                TileSquare310x310SmallImagesAndTextList02 = _AUTO
+                TileSquare310x310SmallImagesAndTextList03 = _AUTO
+                TileSquare310x310SmallImagesAndTextList04 = _AUTO
+                TileSquare310x310Text01 = _AUTO
+                TileSquare310x310Text02 = _AUTO
+                TileSquare310x310Text03 = _AUTO
+                TileSquare310x310Text04 = _AUTO
+                TileSquare310x310Text05 = _AUTO
+                TileSquare310x310Text06 = _AUTO
+                TileSquare310x310Text07 = _AUTO
+                TileSquare310x310Text08 = _AUTO
+                TileSquare310x310TextList01 = _AUTO
+                TileSquare310x310TextList02 = _AUTO
+                TileSquare310x310TextList03 = _AUTO
+                TileSquare310x310SmallImageAndText01 = _AUTO
+                TileSquare310x310SmallImagesAndTextList05 = _AUTO
+                TileSquare310x310Text09 = _AUTO
+                TileSquare71x71IconWithBadge = _AUTO
+                TileSquare150x150IconWithBadge = _AUTO
+                TileWide310x150IconWithBadgeAndText = _AUTO
+                TileSquare71x71Image = _AUTO
+                TileTall150x310Image = _AUTO
+
             class ToastDismissalReason(_Enum):
                 UserCanceled = _AUTO
                 ApplicationHidden = _AUTO
                 TimedOut = _AUTO
+
+            class ToastHistoryChangedType(_Enum):
+                Cleared = _AUTO
+                Removed = _AUTO
+                Expired = _AUTO
+                Added = _AUTO
+
+            class ToastNotificationPriority(_Enum):
+                Default = _AUTO
+                High = _AUTO
+
+            class ToastTemplateType(_Enum):
+                ToastImageAndText01 = _AUTO
+                ToastImageAndText02 = _AUTO
+                ToastImageAndText03 = _AUTO
+                ToastImageAndText04 = _AUTO
+                ToastText01 = _AUTO
+                ToastText02 = _AUTO
+                ToastText03 = _AUTO
+                ToastText04 = _AUTO
+
+            class UserNotificationChangedKind(_Enum):
+                Added = _AUTO
+                Removed = _AUTO
+
+        class Popups:
+            class MessageDialogOptions(_Enum):
+                None_ = _AUTO
+                AcceptUserInputAfterDelay = 0x1
+
+            class Placement(_Enum):
+                Default = _AUTO
+                Above = _AUTO
+                Below = _AUTO
+                Left = _AUTO
+                Right = _AUTO
 
         class Text:
             class CaretType(_Enum):
@@ -1748,6 +2304,46 @@ class Windows:
                     Release = _AUTO
                     Press = _AUTO
                     Hover = _AUTO
+
+                class ColorPickerHsvChannel(_Enum):
+                    Hue = _AUTO
+                    Saturation = _AUTO
+                    Value = _AUTO
+                    Alpha = _AUTO
+
+                class ColorSpectrumComponents(_Enum):
+                    HueValue = _AUTO
+                    ValueHue = _AUTO
+                    HueSaturation = _AUTO
+                    SaturationHue = _AUTO
+                    SaturationValue = _AUTO
+                    ValueSaturation = _AUTO
+
+                class ColorSpectrumShape(_Enum):
+                    Box = _AUTO
+                    Ring = _AUTO
+
+                class ComboBoxSelectionChangedTrigger(_Enum):
+                    Committed = _AUTO
+                    Always = _AUTO
+
+                class CommandBarDefaultLabelPosition(_Enum):
+                    Bottom = _AUTO
+                    Right = _AUTO
+                    Collapsed = _AUTO
+
+                class CommandBarDynamicOverflowAction(_Enum):
+                    AddingToOverflow = _AUTO
+                    RemovingFromOverflow = _AUTO
+
+                class CommandBarLabelPosition(_Enum):
+                    Default = _AUTO
+                    Collapsed = _AUTO
+
+                class CommandBarOverflowButtonVisibility(_Enum):
+                    Auto = _AUTO
+                    Visible = _AUTO
+                    Collapsed = _AUTO
 
                 class ContentDialogButton(_Enum):
                     None_ = _AUTO
@@ -2348,6 +2944,13 @@ class Windows:
                     RectilinearDistance = _AUTO
 
             class Interop:
+                class NotifyCollectionChangedAction(_Enum):
+                    Add = _AUTO
+                    Remove = _AUTO
+                    Replace = _AUTO
+                    Move = _AUTO
+                    Reset = _AUTO
+
                 class TypeKind(_Enum):
                     Primitive = _AUTO
                     Metadata = _AUTO

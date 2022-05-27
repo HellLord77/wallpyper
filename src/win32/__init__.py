@@ -9,7 +9,7 @@ import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional, Union
 
 import libs.ctyped as ctyped
-from . import _gdiplus, _utils, clipboard, gui, wallpaper, xml
+from . import _gdiplus, _utils, clipboard, gui, wallpaper
 from ._utils import sanitize_filename
 
 _PIN_INTERVAL = 3
@@ -272,7 +272,7 @@ def open_file_with_ex(path: str) -> bool:
         if options and ctyped.macro.SUCCEEDED(options.put_DisplayApplicationPicker(True)):
             with ctyped.get_winrt(ctyped.interface.Windows.System.ILauncherStatics) as launcher, _utils.open_file(path) as file:
                 if launcher and file:
-                    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.type.c_bool]) as operation:
+                    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.type.boolean]) as operation:
                         if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, operation.get_ref())):
                             return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait_for()
     return False

@@ -2,7 +2,7 @@ import ctypes as _ctypes
 from typing import Optional as _Optional, Union as _Union
 
 from . import const as _const, lib as _lib, interface as _interface, struct as _struct, type as _type
-from ._utils import _CT, _Pointer, _byref, _cast_int
+from ._utils import _CT, _Pointer, _byref, _cast_int, _get_namespace
 
 
 # noinspection PyPep8Naming,PyShadowingBuiltins
@@ -169,12 +169,8 @@ def __uuidof(_: _Union[_interface.IUnknown, type[_interface.IUnknown],
                        _interface.IUnknown_impl, type[_interface.IUnknown_impl]]) -> _struct.IID:
     if not isinstance(_, type):
         _ = type(_)
-    *namespaces, name = _.__qualname__.split('.')
-    const = _const
-    for namespace in namespaces:
-        const = getattr(const, namespace)
     iid = _struct.IID()
-    _lib.Ole32.IIDFromString(getattr(const, f'IID_{name.removesuffix("_impl")}'), _byref(iid))
+    _lib.Ole32.IIDFromString(getattr(_get_namespace(_, _const), f'IID_{_.__name__.removesuffix("_impl")}'), _byref(iid))
     return iid
 
 

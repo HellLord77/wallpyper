@@ -165,6 +165,13 @@ class SHELLEXECUTEINFO_U:
         hMonitor: _type.HANDLE
 
 
+# noinspection PyPep8Naming
+@_union
+class PACKAGE_VERSION_U:
+    Version: _type.UINT64
+    S: _struct.PACKAGE_VERSION_U_S
+
+
 class _Union(_ctypes.Union):
     __repr__ = _fields_repr
 
