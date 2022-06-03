@@ -3,7 +3,7 @@ import re
 from typing import Union
 
 _KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
-SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22000.0')
+SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22621.0')
 NET_PATH = os.path.join(_KITS, 'NETFXSDK', '4.8', 'Include', 'um')
 
 
@@ -268,7 +268,10 @@ def gen_generated_files_iid(base: str):
 
 
 if __name__ == '__main__':
-    gen_template_iid('windows.web.http.h')
-    # gen_winrt_interface('Windows.storage.FileProperties.h')
-    # gen_properties(winrt.Windows.UI.Xaml.Controls.ToolTipService)
+    # noinspection PyUnresolvedReferences
+    from libs.ctyped import winrt
+
+    # gen_template_iid('Windows.ui.composition.h')
+    gen_winrt_interface('Windows.devices.input.h')
+    # gen_properties(winrt._utils.LinearGradientBrush)
     # gen_generated_files_iid(r'D:\Projects\MyDesktopWin32App\x64\Debug\Generated Files\winrt\impl')

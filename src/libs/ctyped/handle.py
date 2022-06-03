@@ -1,9 +1,9 @@
 from __future__ import annotations as _
 
+import ctypes as _ctypes
 from typing import Optional as _Optional
 
 from . import const as _const, lib as _lib, macro as _macro, struct as _struct, type as _type
-from ._utils import _byref, _sizeof
 
 _HMENU_MF = _const.MF_BYCOMMAND, _const.MF_BYPOSITION
 
@@ -15,7 +15,8 @@ class HSTRING(_type.HSTRING):
     @classmethod
     def from_string(cls, string: str = ''):
         self = cls()
-        _lib.Combase.WindowsCreateString(string, len(string), _byref(self))
+        # noinspection PyTypeChecker
+        _lib.Combase.WindowsCreateString(string, len(string), _ctypes.byref(self))
         return self
 
     def get_string(self) -> str:
@@ -37,7 +38,8 @@ class HBRUSH(_type.HBRUSH):
 
     def get_rgb(self) -> _Optional[tuple[int, int, int]]:
         brush = _struct.LOGBRUSH()
-        if _lib.Gdi32.GetObjectW(self, _sizeof(brush), _byref(brush)):
+        # noinspection PyTypeChecker
+        if _lib.Gdi32.GetObjectW(self, _ctypes.sizeof(brush), _ctypes.byref(brush)):
             return _macro.GetRValue(brush.lbColor), _macro.GetGValue(brush.lbColor), _macro.GetBValue(brush.lbColor)
 
 
@@ -105,7 +107,8 @@ class HBITMAP(_type.HBITMAP):
 
     def _fill_dimensions(self):
         bitmap = _struct.BITMAP()
-        if not _lib.Gdi32.GetObjectW(self, _sizeof(_struct.BITMAP), _byref(bitmap)):
+        # noinspection PyTypeChecker
+        if not _lib.Gdi32.GetObjectW(self, _ctypes.sizeof(_struct.BITMAP), _ctypes.byref(bitmap)):
             self._width = bitmap.bmWidth
             self._height = bitmap.bmHeight
 

@@ -22,21 +22,21 @@
         </MenuFlyout>
     </DropDownButton.Flyout>
 </DropDownButton>
-<!--
-<DropDownButton AutomationProperties.Name="Email" Style="{StaticResource AccentButtonStyle}"
-                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
-    <DropDownButton.Content>
-        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE715;"/>
-    </DropDownButton.Content>
-    <DropDownButton.Flyout>
-        <MenuFlyout>
-            <MenuFlyoutSubItem Text="View">
-                <muxc:RadioMenuFlyoutItem Text="Small icons" GroupName="ViewGroup"/>
-                <muxc:RadioMenuFlyoutItem Text="Medium icons" GroupName="ViewGroup" IsChecked="True"/>
-                <muxc:RadioMenuFlyoutItem Text="Large icons" GroupName="ViewGroup"/>
-            </MenuFlyoutSubItem>
-        </MenuFlyout>
-    </DropDownButton.Flyout>
-</DropDownButton>
--->
+        <!--
+        <DropDownButton AutomationProperties.Name="Email" Style="{StaticResource AccentButtonStyle}"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
+            <DropDownButton.Content>
+                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE715;"/>
+            </DropDownButton.Content>
+            <DropDownButton.Flyout>
+                <MenuFlyout>
+                    <MenuFlyoutSubItem Text="View">
+                        <muxc:RadioMenuFlyoutItem Text="Small icons" GroupName="ViewGroup"/>
+                        <muxc:RadioMenuFlyoutItem Text="Medium icons" GroupName="ViewGroup" IsChecked="True"/>
+                        <muxc:RadioMenuFlyoutItem Text="Large icons" GroupName="ViewGroup"/>
+                    </MenuFlyoutSubItem>
+                </MenuFlyout>
+            </DropDownButton.Flyout>
+        </DropDownButton>
+        -->

@@ -68,7 +68,7 @@ def box_value(value: _Optional = None, type: _Optional[type[ctyped.CT]] = None) 
 @_contextlib.contextmanager
 def xaml_typename(type: type[ctyped.CT]) -> _ContextManager[ctyped.struct.Windows.UI.Xaml.Interop.TypeName]:  # TODO
     try:
-        typename = ctyped.get_winrt_class_name(type)
+        typename = ctyped._get_winrt_class_name(type)
     except ValueError:
         typename = type.__name__
     name = ctyped.handle.HSTRING.from_string(typename)
@@ -97,7 +97,7 @@ def repeat_button_handler(arg2, args: winrt.Windows.UI.Xaml.RoutedEventArgs) -> 
 
 def toggle_button_handler(arg2, args: winrt.Windows.UI.Xaml.RoutedEventArgs) -> int:
     button = winrt.Windows.UI.Xaml.Controls.Primitives.ToggleButton(args.original_source)
-    button.content = winrt.Windows.Foundation.PropertyValue.create_string(f'ToggleButton {{{button.is_checked.value}}}')
+    button.content = winrt.Windows.Foundation.PropertyValue.create_string(f'ToggleButton {{{button.is_checked}}}')
     return ctyped.const.NOERROR
 
 
@@ -128,6 +128,22 @@ def wnd_proc(hwnd, msg, wparam, lparam):
         return ctyped.lib.User32.DefWindowProcW(hwnd, msg, wparam, lparam)
     return 0
 
+
+SPRING_ANIM: winrt.Windows.UI.Composition.SpringVector3NaturalMotionAnimation = None
+
+
+def pointer_enter(sender, arg):
+    ele = winrt.Windows.UI.Xaml.FrameworkElement(sender)
+    ele.center_point = ctyped.struct.Windows.Foundation.Numerics.Vector3(ele.actual_width / 2, ele.actual_height / 2, 1)
+    SPRING_ANIM.final_value = ctyped.struct.Windows.Foundation.Numerics.Vector3(1.25, 1.25, 1.25)
+    ele.start_animation(SPRING_ANIM)
+    return ctyped.const.NOERROR
+
+
+def pointer_exit(sender, arg):
+    SPRING_ANIM.final_value = ctyped.struct.Windows.Foundation.Numerics.Vector3(1.0, 1.0, 1.0)
+    winrt.Windows.UI.Xaml.UIElement(sender).start_animation(SPRING_ANIM)
+    return ctyped.const.NOERROR
 
 
 def main():
@@ -205,17 +221,18 @@ def main():
     items.append(item3)
     print(items.size)
 
-    for iid in style.setters.get_iids():
-        print(f'{iid}: {ctyped.get_interface_name(iid)}')
+    # for iid in style.setters.get_iids(): TODO IVector
+    #     print(f'{iid}: {ctyped.get_interface_name(iid)}')
 
-    brush = winrt.Windows.UI.Xaml.Media.SolidColorBrush.create_instance_with_color(winrt.Windows.UI.Colors.chocolate)
-    button.background = brush
+    # brush = winrt.Windows.UI.Xaml.Media.SolidColorBrush.create_instance_with_color(winrt.Windows.UI.Colors.chocolate)
+    # button.background = brush
     button.content = text_block
     container.children.append(button)
 
     button_toggle = winrt.Windows.UI.Xaml.Controls.Primitives.ToggleButton()
     button_toggle.corner_radius = corner_radius
     button_toggle.horizontal_alignment = ctyped.enum.Windows.UI.Xaml.HorizontalAlignment.Center
+    button_toggle.is_checked = True
     button_toggle.content = winrt.Windows.Foundation.PropertyValue.create_string('ToggleButton')
     button_toggle.click += winrt.Windows.UI.Xaml.RoutedEventHandler.create_instance(toggle_button_handler)
     container.children.append(button_toggle)
@@ -246,9 +263,34 @@ def main():
     app_bar_button.click += winrt.Windows.UI.Xaml.RoutedEventHandler.create_instance(app_bar_button_handler)
     container.children.append(app_bar_button)
 
+    brush = winrt.Windows.UI.Xaml.Media.LinearGradientBrush()
+    stop1 = winrt.Windows.UI.Xaml.Media.GradientStop()
+    stop1.color = winrt.Windows.UI.Colors.yellow
+    stop1.offset = 0
+    brush.gradient_stops.append(stop1)
+    stop2 = winrt.Windows.UI.Xaml.Media.GradientStop()
+    stop2.color = winrt.Windows.UI.Colors.red
+    stop2.offset = 0.25
+    brush.gradient_stops.append(stop2)
+    stop3 = winrt.Windows.UI.Xaml.Media.GradientStop()
+    stop3.color = winrt.Windows.UI.Colors.blue
+    stop3.offset = 0.5
+    brush.gradient_stops.append(stop3)
+    stop4 = winrt.Windows.UI.Xaml.Media.GradientStop()
+    stop4.color = winrt.Windows.UI.Colors.lime_green
+    stop4.offset = 0.75
+    brush.gradient_stops.append(stop4)
+    button.background = brush
+
+    global SPRING_ANIM
+    wnd: winrt.Windows.UI.Xaml.Window = winrt.Windows.UI.Xaml.Window.current
+    SPRING_ANIM = wnd.compositor.create_spring_vector3_animation()
+    SPRING_ANIM.target = 'Scale'
+    button.pointer_entered += winrt.Windows.UI.Xaml.Input.PointerEventHandler.create_instance(pointer_enter)
+    button.pointer_exited += winrt.Windows.UI.Xaml.Input.PointerEventHandler.create_instance(pointer_exit)
+
     container.update_layout()
     source.content = container
-    print('created xaml')
 
     hwnd.show()
     hwnd.update()

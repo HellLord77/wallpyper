@@ -8,6 +8,8 @@ class Windows:
                 XmlDocument = _utils.XmlDocument
 
     class Foundation:
+        AsyncActionCompletedHandler = _utils.AsyncActionCompletedHandler
+        AsyncAction = _utils.AsyncAction
         PropertyValue = _utils.PropertyValue
         Uri = _utils.Uri
         WwwFormUrlDecoder = _utils.WwwFormUrlDecoder
@@ -22,8 +24,6 @@ class Windows:
 
         AsyncOperationRandomAccessStream = _utils.AsyncOperationRandomAccessStream
 
-        ReferenceBoolean = _utils.ReferenceBoolean
-
         TypedEventHandlerToastNotificationInspectable = _utils.TypedEventHandlerToastNotificationInspectable
         TypedEventHandlerToastNotificationToastDismissedEventArgs = _utils.TypedEventHandlerToastNotificationToastDismissedEventArgs
         TypedEventHandlerToastNotificationToastFailedEventArgs = _utils.TypedEventHandlerToastNotificationToastFailedEventArgs
@@ -33,6 +33,7 @@ class Windows:
 
             IteratorSetterBase = _utils.IteratorSetterBase
 
+            VectorGradientStop = _utils.VectorGradientStop
             VectorMenuFlyoutItemBase = _utils.VectorMenuFlyoutItemBase
             VectorSetterBase = _utils.VectorSetterBase
             VectorUIElement = _utils.VectorUIElement
@@ -48,8 +49,21 @@ class Windows:
             FileRandomAccessStream = _utils.FileRandomAccessStream
             RandomAccessStream = _utils.RandomAccessStream
 
+    class System:
+        class UserProfile:
+            LockScreen = _utils.LockScreen
+            UserInformation = _utils.UserInformation
+
     class UI:
         Colors = _utils.Colors
+
+        class Composition:
+            SpringVector3NaturalMotionAnimation = _utils.SpringVector3NaturalMotionAnimation
+            Vector3NaturalMotionAnimation = _utils.Vector3NaturalMotionAnimation
+            NaturalMotionAnimation = _utils.NaturalMotionAnimation
+            CompositionAnimation = _utils.CompositionAnimation
+            CompositionObject = _utils.CompositionObject
+            Compositor = _utils.Compositor
 
         class Core:
             CoreDispatcher = _utils.CoreDispatcher
@@ -71,10 +85,12 @@ class Windows:
             PropertyMetadata = _utils.PropertyMetadata
             RoutedEventArgs = _utils.RoutedEventArgs
             Setter = _utils.Setter
+            ScalarTransition = _utils.ScalarTransition
             SetterBase = _utils.SetterBase
             SetterBaseCollection = _utils.SetterBaseCollection
             Style = _utils.Style
             UIElement = _utils.UIElement
+            Window = _utils.Window
 
             class Controls:
                 AppBarButton = _utils.AppBarButton
@@ -108,9 +124,15 @@ class Windows:
                 DesktopWindowXamlSource = _utils.DesktopWindowXamlSource
                 WindowsXamlManager = _utils.WindowsXamlManager
 
+            class Input:
+                PointerEventHandler = _utils.PointerEventHandler
+
             class Markup:
                 XamlReader = _utils.XamlReader
 
             class Media:
                 Brush = _utils.Brush
+                GradientStop = _utils.GradientStop
+                GradientBrush = _utils.GradientBrush
+                LinearGradientBrush = _utils.LinearGradientBrush
                 SolidColorBrush = _utils.SolidColorBrush

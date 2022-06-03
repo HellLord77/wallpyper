@@ -1808,6 +1808,24 @@ PATTERN = LOGBRUSH
 
 
 class Windows:
+    class Devices:
+        class Input:
+            @_struct
+            class MouseDelta:
+                X: _type.INT32 = None
+                Y: _type.INT32 = None
+
+            @_struct
+            class PointerDeviceUsage:
+                UsagePage: _type.UINT32 = None
+                Usage: _type.UINT32 = None
+                MinLogical: _type.INT32 = None
+                MaxLogical: _type.INT32 = None
+                MinPhysical: _type.INT32 = None
+                MaxPhysical: _type.INT32 = None
+                Unit: _type.UINT32 = None
+                PhysicalMultiplier: _type.FLOAT = None
+
     class Foundation:
         @_struct
         class DateTime:
@@ -1905,6 +1923,12 @@ class Windows:
             R: _type.BYTE = None
             G: _type.BYTE = None
             B: _type.BYTE = None
+
+        class Composition:
+            @_struct
+            class InkTrailPoint:
+                Point: Windows.Foundation.Point = None
+                Radius: _type.FLOAT = None
 
         class Core:
             @_struct

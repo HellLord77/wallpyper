@@ -2,7 +2,7 @@ import ctypes as _ctypes
 from typing import Optional as _Optional, Union as _Union
 
 from . import const as _const, lib as _lib, interface as _interface, struct as _struct, type as _type
-from ._utils import _CT, _Pointer, _byref, _cast_int, _get_namespace
+from ._utils import _CT, _Pointer, _cast_int, _get_namespace
 
 
 # noinspection PyPep8Naming,PyShadowingBuiltins
@@ -170,13 +170,15 @@ def __uuidof(_: _Union[_interface.IUnknown, type[_interface.IUnknown],
     if not isinstance(_, type):
         _ = type(_)
     iid = _struct.IID()
-    _lib.Ole32.IIDFromString(getattr(_get_namespace(_, _const), f'IID_{_.__name__.removesuffix("_impl")}'), _byref(iid))
+    # noinspection PyTypeChecker
+    _lib.Ole32.IIDFromString(getattr(_get_namespace(_, _const), f'IID_{_.__name__.removesuffix("_impl")}'), _ctypes.byref(iid))
     return iid
 
 
 # noinspection PyPep8Naming
 def IID_PPV_ARGS(ppType: _CT) -> tuple[_Pointer[_struct.IID], _Pointer[_CT]]:
-    return _byref(__uuidof(ppType)), _byref(ppType)
+    # noinspection PyTypeChecker
+    return _ctypes.byref(__uuidof(ppType)), _ctypes.byref(ppType)
 
 
 # noinspection PyPep8Naming
@@ -186,7 +188,8 @@ def IsWindowsVersionOrGreater(wMajorVersion: int, wMinorVersion: int, wServicePa
     condition = _lib.Kernel32.VerSetConditionMask(_lib.Kernel32.VerSetConditionMask(
         _lib.Kernel32.VerSetConditionMask(0, _const.VER_MAJORVERSION, _const.VER_GREATER_EQUAL),
         _const.VER_MINORVERSION, _const.VER_GREATER_EQUAL), _const.VER_SERVICEPACKMAJOR, _const.VER_GREATER_EQUAL)
-    return bool(_lib.Kernel32.VerifyVersionInfoW(_byref(
+    # noinspection PyTypeChecker
+    return bool(_lib.Kernel32.VerifyVersionInfoW(_ctypes.byref(
         osvi), _const.VER_MAJORVERSION | _const.VER_MINORVERSION | _const.VER_SERVICEPACKMAJOR, condition))
 
 
@@ -273,7 +276,8 @@ def IsWindows10OrGreater() -> bool:
 def IsWindowsServer() -> bool:
     osvi = _struct.OSVERSIONINFOEXW(wProductType=_const.VER_NT_WORKSTATION)
     condition = _lib.Kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
-    return not bool(_lib.Kernel32.VerifyVersionInfoW(_byref(osvi), _const.VER_PRODUCT_TYPE, condition))
+    # noinspection PyTypeChecker
+    return not bool(_lib.Kernel32.VerifyVersionInfoW(_ctypes.byref(osvi), _const.VER_PRODUCT_TYPE, condition))
 
 
 _uuidof = __uuidof

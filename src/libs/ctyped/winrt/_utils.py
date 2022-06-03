@@ -2,6 +2,7 @@ from __future__ import annotations as _
 
 import atexit
 import builtins
+import datetime
 from typing import Any
 from typing import Callable
 from typing import Iterable
@@ -10,10 +11,10 @@ from typing import Optional
 from typing import TypeVar
 from typing import Union
 
+from .. import _get_winrt_class_name
 from .. import byref
 from .. import enum
 from .. import get_winrt
-from .. import get_winrt_class_name
 from .. import handle
 from .. import interface
 from .. import lib
@@ -22,17 +23,20 @@ from .. import pointer
 from .. import struct
 from .. import type
 
+_T = TypeVar('_T')
 _TUnknown = TypeVar('_TUnknown', bound=interface.IUnknown)
 
 
-# noinspection PyPep8Naming
-class boolean(type.boolean):
-    @property
-    def value(self) -> bool:
-        return bool(super().value)
-
-
 class HSTRING(handle.HSTRING):
+    def __new__(cls, string: Optional[str] = None):
+        if string is not None:
+            return cls.from_string(string)
+        return super().__new__(cls)
+
+    # noinspection PyMissingConstructor,PyUnusedLocal
+    def __init__(self, string: Optional[str] = None):
+        pass
+
     def __str__(self):
         return self.get_string()
 
@@ -40,10 +44,6 @@ class HSTRING(handle.HSTRING):
         if isinstance(self, item):
             return self
         raise KeyError
-
-    @property
-    def value(self) -> str:
-        return self.get_string()
 
 
 class _Interface(builtins.type):
@@ -89,8 +89,7 @@ class _Unknown(metaclass=_Interface):
             obj = obj._self  # TODO obj.AddRef()
         if obj is None:
             obj = interface.IInspectable()
-            lib.Combase.RoActivateInstance(HSTRING.from_string(
-                get_winrt_class_name(next(iter(self._interfaces)))), byref(obj))
+            lib.Combase.RoActivateInstance(HSTRING(_get_winrt_class_name(next(iter(self._interfaces)))), byref(obj))
             self._release = True
         self._self = obj
         self._interfaces = self._interfaces.copy()
@@ -140,7 +139,7 @@ class _Inspectable(_Unknown):
     def get_runtime_class_name(self) -> str:
         value = HSTRING()
         self[interface.IInspectable].GetRuntimeClassName(byref(value))
-        return value.value
+        return str(value)
 
     def get_trust_level(self) -> enum.TrustLevel:
         value = enum.TrustLevel()
@@ -169,15 +168,15 @@ class _ScrollSnapPointsInfo(_Inspectable):
 
     @property
     def are_horizontal_snap_points_regular(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IScrollSnapPointsInfo].get_AreHorizontalSnapPointsRegular(byref(value))
-        return value.value
+        return bool(value)
 
     @property
     def are_vertical_snap_points_regular(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IScrollSnapPointsInfo].get_AreVerticalSnapPointsRegular(byref(value))
-        return value.value
+        return bool(value)
 
 
 class _InsertionPanel(_Inspectable):
@@ -194,7 +193,7 @@ class RoutedEventArgs(_Inspectable):
         return _Inspectable(obj)
 
 
-class _IRoutedEventHandler(interface.Windows.UI.Xaml.IRoutedEventHandler_impl):
+class _RoutedEventHandler(interface.Windows.UI.Xaml.IRoutedEventHandler_impl):
     function: Callable
     args: Iterable
     kwargs: Mapping[str, Any]
@@ -209,7 +208,7 @@ class RoutedEventHandler(_Unknown):  # TODO not releasing
 
     @classmethod
     def create_instance(cls, function: Callable[[_Inspectable, RoutedEventArgs, ...], type.HRESULT], args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> RoutedEventHandler:
-        obj = _IRoutedEventHandler()
+        obj = _RoutedEventHandler()
         obj.function = function
         obj.args = () if args is None else args
         obj.kwargs = {} if kwargs is None else kwargs
@@ -217,6 +216,193 @@ class RoutedEventHandler(_Unknown):  # TODO not releasing
 
     def __call__(self, sender: _Inspectable, e: RoutedEventArgs) -> type.HRESULT:
         return self[interface.Windows.UI.Xaml.IRoutedEventHandler].Invoke(sender[interface.IInspectable], e[interface.Windows.UI.Xaml.IRoutedEventArgs])
+
+
+class PointerRoutedEventArgs(_Inspectable):
+    _interfaces = (interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs,)
+
+    @property
+    def key_modifiers(self) -> enum.Windows.System.VirtualKeyModifiers:
+        value = enum.Windows.System.VirtualKeyModifiers()
+        self[interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs].get_KeyModifiers(byref(value))
+        return value
+
+    @property
+    def handled(self) -> bool:
+        value = type.boolean()
+        self[interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs].get_Handled(byref(value))
+        return bool(value)
+
+    @handled.setter
+    def handled(self, value: bool):
+        self[interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs].put_Handled(value)
+
+
+class _PointerEventHandler(interface.Windows.UI.Xaml.Input.IPointerEventHandler_impl):
+    function: Callable
+    args: Iterable
+    kwargs: Mapping[str, Any]
+
+    # noinspection PyPep8Naming
+    def Invoke(self, sender: interface.IInspectable, e: interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs) -> type.HRESULT:
+        return self.function(_Inspectable(sender), PointerRoutedEventArgs(e), *self.args, **self.kwargs)
+
+
+class PointerEventHandler(_Unknown):
+    _interfaces = (interface.Windows.UI.Xaml.Input.IPointerEventHandler,)
+
+    @classmethod
+    def create_instance(cls, function: Callable[[_Inspectable, PointerRoutedEventArgs, ...], type.HRESULT], args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> PointerEventHandler:
+        obj = _PointerEventHandler()
+        obj.function = function
+        obj.args = () if args is None else args
+        obj.kwargs = {} if kwargs is None else kwargs
+        return PointerEventHandler(obj)
+
+    def __call__(self, sender: _Inspectable, e: PointerRoutedEventArgs) -> type.HRESULT:
+        return self[interface.Windows.UI.Xaml.Input.IPointerEventHandler].Invoke(sender[interface.IInspectable], e[interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs])
+
+
+class _ICompositorWithProjectedShadow(_Inspectable):
+    _interfaces = (interface.Windows.UI.Composition.ICompositorWithProjectedShadow,)
+
+
+class _ICompositorWithRadialGradient(_Inspectable):
+    _interfaces = (interface.Windows.UI.Composition.ICompositorWithRadialGradient,)
+
+
+class _ICompositorWithVisualSurface(_Inspectable):
+    _interfaces = (interface.Windows.UI.Composition.ICompositorWithVisualSurface,)
+
+
+class _ICompositorWithBlurredWallpaperBackdropBrush(_Inspectable):
+    _interfaces = (interface.Windows.UI.Composition.ICompositorWithBlurredWallpaperBackdropBrush,)
+
+
+class CompositionObject(_AnimationObject, _Closable):
+    _statics = (interface.Windows.UI.Composition.ICompositionObjectFactory,
+                interface.Windows.UI.Composition.ICompositionObjectStatics)
+    _interfaces = (interface.Windows.UI.Composition.ICompositionObject,
+                   interface.Windows.UI.Composition.ICompositionObject2,
+                   interface.Windows.UI.Composition.ICompositionObject3,
+                   interface.Windows.UI.Composition.ICompositionObject4)
+
+
+class _ICompositionAnimationBase(_Inspectable):
+    _interfaces = (interface.Windows.UI.Composition.ICompositionAnimationBase,)
+
+
+class CompositionAnimation(_ICompositionAnimationBase, CompositionObject):
+    _statics = (interface.Windows.UI.Composition.ICompositionAnimationFactory,)
+    _interfaces = (interface.Windows.UI.Composition.ICompositionAnimation,
+                   interface.Windows.UI.Composition.ICompositionAnimation2,
+                   interface.Windows.UI.Composition.ICompositionAnimation3,
+                   interface.Windows.UI.Composition.ICompositionAnimation4)
+
+    def set_boolean_parameter(self, key: str, value: bool) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Composition.ICompositionAnimation2].SetBooleanParameter(HSTRING(key), value))
+
+    @property
+    def target(self) -> str:
+        value = HSTRING()
+        self[interface.Windows.UI.Composition.ICompositionAnimation2].get_Target(byref(value))
+        return str(value)
+
+    @target.setter
+    def target(self, value: str):
+        self[interface.Windows.UI.Composition.ICompositionAnimation2].put_Target(HSTRING(value))
+
+
+class ExpressionAnimation(CompositionAnimation):
+    _interfaces = (interface.Windows.UI.Composition.IExpressionAnimation,)
+
+    @property
+    def expression(self) -> str:
+        value = HSTRING()
+        self[interface.Windows.UI.Composition.IExpressionAnimation].get_Expression(byref(value))
+        return str(value)
+
+    @expression.setter
+    def expression(self, value: str):
+        self[interface.Windows.UI.Composition.IExpressionAnimation].put_Expression(HSTRING(value))
+
+
+class NaturalMotionAnimation(CompositionAnimation):
+    _statics = (interface.Windows.UI.Composition.INaturalMotionAnimationFactory,)
+    _interfaces = (interface.Windows.UI.Composition.INaturalMotionAnimation,)
+
+
+class Vector3NaturalMotionAnimation(NaturalMotionAnimation):
+    _statics = (interface.Windows.UI.Composition.IVector3NaturalMotionAnimationFactory,)
+    _interfaces = (interface.Windows.UI.Composition.IVector3NaturalMotionAnimation,)
+
+    @property
+    def final_value(self) -> Optional[struct.Windows.Foundation.Numerics.Vector3]:
+        obj = interface.Windows.Foundation.IReference[struct.Windows.Foundation.Numerics.Vector3]()
+        self[interface.Windows.UI.Composition.IVector3NaturalMotionAnimation].get_FinalValue(byref(obj))
+        if obj:
+            return _ReferenceVector3(obj).value
+
+    @final_value.setter
+    def final_value(self, value: Optional[struct.Windows.Foundation.Numerics.Vector3]):
+        self[interface.Windows.UI.Composition.IVector3NaturalMotionAnimation].put_FinalValue(_ReferenceVector3(
+            interface.Windows.Foundation.IReference_impl[struct.Windows.Foundation.Numerics.Vector3].make(value))[interface.Windows.Foundation.IReference[struct.Windows.Foundation.Numerics.Vector3]])
+
+    @property
+    def initial_value(self) -> Optional[struct.Windows.Foundation.Numerics.Vector3]:
+        obj = interface.Windows.Foundation.IReference[struct.Windows.Foundation.Numerics.Vector3]()
+        self[interface.Windows.UI.Composition.IVector3NaturalMotionAnimation].get_InitialValue(byref(obj))
+        if obj:
+            return _ReferenceVector3(obj).value
+
+    @initial_value.setter
+    def initial_value(self, value: Optional[struct.Windows.Foundation.Numerics.Vector3]):
+        self[interface.Windows.UI.Composition.IVector3NaturalMotionAnimation].put_InitialValue(_ReferenceVector3(
+            interface.Windows.Foundation.IReference_impl[struct.Windows.Foundation.Numerics.Vector3].make(value))[interface.Windows.Foundation.IReference[struct.Windows.Foundation.Numerics.Vector3]])
+
+    @property
+    def initial_velocity(self) -> struct.Windows.Foundation.Numerics.Vector3:
+        value = struct.Windows.Foundation.Numerics.Vector3()
+        self[interface.Windows.UI.Composition.IVector3NaturalMotionAnimation].get_InitialVelocity(byref(value))
+        return value
+
+    @initial_velocity.setter
+    def initial_velocity(self, value: struct.Windows.Foundation.Numerics.Vector3):
+        self[interface.Windows.UI.Composition.IVector3NaturalMotionAnimation].put_InitialVelocity(value)
+
+
+class SpringVector3NaturalMotionAnimation(Vector3NaturalMotionAnimation):
+    _interfaces = (interface.Windows.UI.Composition.ISpringVector3NaturalMotionAnimation,)
+
+
+class Compositor(_ICompositorWithProjectedShadow, _ICompositorWithRadialGradient, _ICompositorWithVisualSurface, _ICompositorWithBlurredWallpaperBackdropBrush, _Closable):
+    _statics = (interface.Windows.UI.Composition.ICompositorStatics,)
+    _interfaces = (interface.Windows.UI.Composition.ICompositor,
+                   interface.Windows.UI.Composition.ICompositor2,
+                   interface.Windows.UI.Composition.ICompositor3,
+                   interface.Windows.UI.Composition.ICompositor4,
+                   interface.Windows.UI.Composition.ICompositor5,
+                   interface.Windows.UI.Composition.ICompositor6,
+                   interface.Windows.UI.Composition.ICompositor7)
+
+    @classmethod
+    @property
+    def max_global_playback_rate(cls) -> float:
+        value = type.FLOAT()
+        cls[interface.Windows.UI.Composition.ICompositorStatics].get_MaxGlobalPlaybackRate(byref(value))
+        return value.value
+
+    @classmethod
+    @property
+    def min_global_playback_rate(cls) -> float:
+        value = type.FLOAT()
+        cls[interface.Windows.UI.Composition.ICompositorStatics].get_MinGlobalPlaybackRate(byref(value))
+        return value.value
+
+    def create_spring_vector3_animation(self) -> SpringVector3NaturalMotionAnimation:
+        obj = interface.Windows.UI.Composition.ISpringVector3NaturalMotionAnimation()
+        self[interface.Windows.UI.Composition.ICompositor4].CreateSpringVector3Animation(byref(obj))
+        return SpringVector3NaturalMotionAnimation(obj)
 
 
 class CoreDispatcher(_Inspectable):
@@ -239,9 +425,9 @@ class DesktopWindowXamlSource(_Closable):
 
     @property
     def has_focus(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource].get_HasFocus(byref(value))
-        return value.value
+        return bool(value)
 
 
 class WindowsXamlManager(_Closable):
@@ -253,6 +439,98 @@ class WindowsXamlManager(_Closable):
         obj = interface.Windows.UI.Xaml.Hosting.IWindowsXamlManager()
         cls[interface.Windows.UI.Xaml.Hosting.IWindowsXamlManagerStatics].InitializeForCurrentThread(byref(obj))
         return WindowsXamlManager(obj)
+
+
+class Window(_Inspectable):
+    _statics = (interface.Windows.UI.Xaml.IWindowStatics,)
+    _interfaces = (interface.Windows.UI.Xaml.IWindow,
+                   interface.Windows.UI.Xaml.IWindow2,
+                   interface.Windows.UI.Xaml.IWindow3,
+                   interface.Windows.UI.Xaml.IWindow4)
+
+    @classmethod
+    @property
+    def current(cls) -> Window:
+        obj = interface.Windows.UI.Xaml.IWindow()
+        cls[interface.Windows.UI.Xaml.IWindowStatics].get_Current(byref(obj))
+        return Window(obj)
+
+    @property
+    def bounds(self) -> struct.Windows.Foundation.Rect:
+        value = struct.Windows.Foundation.Rect()
+        self[interface.Windows.UI.Xaml.IWindow].get_Bounds(byref(value))
+        return value
+
+    @property
+    def visible(self) -> bool:
+        value = type.boolean()
+        self[interface.Windows.UI.Xaml.IWindow].get_Visible(byref(value))
+        return bool(value)
+
+    @property
+    def content(self) -> UIElement:
+        obj = interface.Windows.UI.Xaml.IUIElement()
+        self[interface.Windows.UI.Xaml.IWindow].get_Content(byref(obj))
+        return UIElement(obj)
+
+    @content.setter
+    def content(self, value: UIElement):
+        self[interface.Windows.UI.Xaml.IWindow].put_Content(value[interface.Windows.UI.Xaml.IUIElement])
+
+    def activate(self) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IWindow].Activate())
+
+    def close(self) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IWindow].Close())
+
+    def set_title_bar(self, value: UIElement) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IWindow2].SetTitleBar(value[interface.Windows.UI.Xaml.IUIElement]))
+
+    @property
+    def compositor(self) -> Compositor:
+        obj = interface.Windows.UI.Composition.ICompositor()
+        self[interface.Windows.UI.Xaml.IWindow3].get_Compositor(byref(obj))
+        return Compositor(obj)
+
+
+class ScalarTransition(_Inspectable):
+    _statics = (interface.Windows.UI.Xaml.IScalarTransitionFactory,)
+    _interfaces = (interface.Windows.UI.Xaml.IScalarTransition,)
+
+    @property
+    def duration(self) -> datetime.timedelta:
+        value = struct.Windows.Foundation.TimeSpan()
+        self[interface.Windows.UI.Xaml.IScalarTransition].get_Duration(byref(value))
+        return datetime.timedelta(microseconds=value.Duration / 10)
+
+    @duration.setter
+    def duration(self, value: datetime.timedelta):
+        self[interface.Windows.UI.Xaml.IScalarTransition].put_Duration(struct.Windows.Foundation.TimeSpan(int(value.microseconds * 10)))
+
+
+class Vector3Transition(_Inspectable):
+    _statics = (interface.Windows.UI.Xaml.IVector3TransitionFactory,)
+    _interfaces = (interface.Windows.UI.Xaml.IVector3Transition,)
+
+    @property
+    def duration(self) -> datetime.timedelta:
+        value = struct.Windows.Foundation.TimeSpan()
+        self[interface.Windows.UI.Xaml.IVector3Transition].get_Duration(byref(value))
+        return datetime.timedelta(microseconds=value.Duration / 10)
+
+    @duration.setter
+    def duration(self, value: datetime.timedelta):
+        self[interface.Windows.UI.Xaml.IVector3Transition].put_Duration(struct.Windows.Foundation.TimeSpan(int(value.microseconds * 10)))
+
+    @property
+    def components(self) -> enum.Windows.UI.Xaml.Vector3TransitionComponents:
+        value = enum.Windows.UI.Xaml.Vector3TransitionComponents()
+        self[interface.Windows.UI.Xaml.IVector3Transition].get_Components(byref(value))
+        return value
+
+    @components.setter
+    def components(self, value: enum.Windows.UI.Xaml.Vector3TransitionComponents):
+        self[interface.Windows.UI.Xaml.IVector3Transition].put_Components(value)
 
 
 class DependencyObject(_Inspectable):
@@ -581,9 +859,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def allow_drop(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement].get_AllowDrop(byref(value))
-        return value.value
+        return bool(value)
 
     @allow_drop.setter
     def allow_drop(self, value: bool):
@@ -617,9 +895,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def use_layout_rendering(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement].get_UseLayoutRounding(byref(value))
-        return value.value
+        return bool(value)
 
     @use_layout_rendering.setter
     def use_layout_rendering(self, value: bool):
@@ -627,9 +905,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def is_tap_enabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement].get_IsTapEnabled(byref(value))
-        return value.value
+        return bool(value)
 
     @is_tap_enabled.setter
     def is_tap_enabled(self, value: bool):
@@ -637,9 +915,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def is_double_tap_enabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement].get_IsDoubleTapEnabled(byref(value))
-        return value.value
+        return bool(value)
 
     @is_double_tap_enabled.setter
     def is_double_tap_enabled(self, value: bool):
@@ -647,9 +925,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def is_right_tap_enabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement].get_IsRightTapEnabled(byref(value))
-        return value.value
+        return bool(value)
 
     @is_right_tap_enabled.setter
     def is_right_tap_enabled(self, value: bool):
@@ -657,9 +935,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def is_holding_enabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement].get_IsHoldingEnabled(byref(value))
-        return value.value
+        return bool(value)
 
     @is_holding_enabled.setter
     def is_holding_enabled(self, value: bool):
@@ -674,6 +952,70 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
     @manipulation_mode.setter
     def manipulation_mode(self, value: enum.Windows.UI.Xaml.Input.ManipulationModes):
         self[interface.Windows.UI.Xaml.IUIElement].put_ManipulationMode(value)
+
+    @property
+    def pointer_pressed(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerPressed')
+
+    @pointer_pressed.setter
+    def pointer_pressed(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_moved(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerMoved')
+
+    @pointer_moved.setter
+    def pointer_moved(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_released(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerReleased')
+
+    @pointer_released.setter
+    def pointer_released(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_entered(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerEntered')
+
+    @pointer_entered.setter
+    def pointer_entered(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_exited(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerExited')
+
+    @pointer_exited.setter
+    def pointer_exited(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_capture_lost(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerCaptureLost')
+
+    @pointer_capture_lost.setter
+    def pointer_capture_lost(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_canceled(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerCanceled')
+
+    @pointer_canceled.setter
+    def pointer_canceled(self, value: _PointerEvent):
+        pass
+
+    @property
+    def pointer_wheel_changed(self) -> _PointerEvent:
+        return _PointerEvent(self[interface.Windows.UI.Xaml.IUIElement], 'PointerWheelChanged')
+
+    @pointer_wheel_changed.setter
+    def pointer_wheel_changed(self, value: _PointerEvent):
+        pass
 
     def measure(self, available_size: struct.Windows.Foundation.Size) -> bool:
         return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IUIElement].Measure(available_size))
@@ -692,9 +1034,9 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
 
     @property
     def can_drag(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement3].get_CanDrag(byref(value))
-        return value.value
+        return bool(value)
 
     @can_drag.setter
     def can_drag(self, value: bool):
@@ -704,31 +1046,127 @@ class UIElement(_AnimationObject, _VisualElement, DependencyObject):
     def access_key(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.IUIElement4].get_AccessKey(byref(value))
-        return value.value
+        return str(value)
 
     @access_key.setter
     def access_key(self, value: str):
-        self[interface.Windows.UI.Xaml.IUIElement4].put_AccessKey(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.IUIElement4].put_AccessKey(HSTRING(value))
 
     @property
     def can_be_scroll_anchor(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IUIElement9].get_CanBeScrollAnchor(byref(value))
-        return value.value
+        return bool(value)
 
     @can_be_scroll_anchor.setter
     def can_be_scroll_anchor(self, value: bool):
         self[interface.Windows.UI.Xaml.IUIElement9].put_CanBeScrollAnchor(value)
 
     @property
+    def opacity_transition(self) -> ScalarTransition:
+        obj = interface.Windows.UI.Xaml.IScalarTransition()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_OpacityTransition(byref(obj))
+        return ScalarTransition(obj)
+
+    @opacity_transition.setter
+    def opacity_transition(self, value: ScalarTransition):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_OpacityTransition(value[interface.Windows.UI.Xaml.IScalarTransition])
+
+    @property
+    def translation(self) -> struct.Windows.Foundation.Numerics.Vector3:
+        value = struct.Windows.Foundation.Numerics.Vector3()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_Translation(byref(value))
+        return value
+
+    @translation.setter
+    def translation(self, value: struct.Windows.Foundation.Numerics.Vector3):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_Translation(value)
+
+    @property
+    def translation_transition(self) -> Vector3Transition:
+        obj = interface.Windows.UI.Xaml.IVector3Transition()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_TranslationTransition(byref(obj))
+        return Vector3Transition(obj)
+
+    @translation_transition.setter
+    def translation_transition(self, value: Vector3Transition):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_TranslationTransition(value[interface.Windows.UI.Xaml.IVector3Transition])
+
+    @property
     def rotation(self) -> float:
         value = type.FLOAT()
-        self[interface.Windows.UI.Xaml.IUIElement5].get_Rotation(byref(value))
+        self[interface.Windows.UI.Xaml.IUIElement9].get_Rotation(byref(value))
         return value.value
 
     @rotation.setter
     def rotation(self, value: float):
-        self[interface.Windows.UI.Xaml.IUIElement5].put_Rotation(value)
+        self[interface.Windows.UI.Xaml.IUIElement9].put_Rotation(value)
+
+    @property
+    def rotation_transition(self) -> ScalarTransition:
+        obj = interface.Windows.UI.Xaml.IScalarTransition()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_RotationTransition(byref(obj))
+        return ScalarTransition(obj)
+
+    @rotation_transition.setter
+    def rotation_transition(self, value: ScalarTransition):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_RotationTransition(value[interface.Windows.UI.Xaml.IScalarTransition])
+
+    @property
+    def scale(self) -> struct.Windows.Foundation.Numerics.Vector3:
+        value = struct.Windows.Foundation.Numerics.Vector3()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_Scale(byref(value))
+        return value
+
+    @scale.setter
+    def scale(self, value: struct.Windows.Foundation.Numerics.Vector3):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_Scale(value)
+
+    @property
+    def scale_transition(self) -> Vector3Transition:
+        obj = interface.Windows.UI.Xaml.IVector3Transition()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_ScaleTransition(byref(obj))
+        return Vector3Transition(obj)
+
+    @scale_transition.setter
+    def scale_transition(self, value: Vector3Transition):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_ScaleTransition(value[interface.Windows.UI.Xaml.IVector3Transition])
+
+    @property
+    def transform_matrix(self) -> struct.Windows.Foundation.Numerics.Matrix4x4:
+        value = struct.Windows.Foundation.Numerics.Matrix4x4()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_TransformMatrix(byref(value))
+        return value
+
+    @transform_matrix.setter
+    def transform_matrix(self, value: struct.Windows.Foundation.Numerics.Matrix4x4):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_TransformMatrix(value)
+
+    @property
+    def center_point(self) -> struct.Windows.Foundation.Numerics.Vector3:
+        value = struct.Windows.Foundation.Numerics.Vector3()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_CenterPoint(byref(value))
+        return value
+
+    @center_point.setter
+    def center_point(self, value: struct.Windows.Foundation.Numerics.Vector3):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_CenterPoint(value)
+
+    @property
+    def rotation_axis(self) -> struct.Windows.Foundation.Numerics.Vector3:
+        value = struct.Windows.Foundation.Numerics.Vector3()
+        self[interface.Windows.UI.Xaml.IUIElement9].get_RotationAxis(byref(value))
+        return value
+
+    @rotation_axis.setter
+    def rotation_axis(self, value: struct.Windows.Foundation.Numerics.Vector3):
+        self[interface.Windows.UI.Xaml.IUIElement9].put_RotationAxis(value)
+
+    def start_animation(self, animation: _ICompositionAnimationBase) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IUIElement9].StartAnimation(animation[interface.Windows.UI.Composition.ICompositionAnimationBase]))
+
+    def stop_animation(self, animation: _ICompositionAnimationBase) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IUIElement9].StopAnimation(animation[interface.Windows.UI.Composition.ICompositionAnimationBase]))
 
 
 class FrameworkElement(UIElement):
@@ -943,11 +1381,11 @@ class FrameworkElement(UIElement):
     def language(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.IFrameworkElement].get_Language(byref(value))
-        return value.value
+        return str(value)
 
     @language.setter
     def language(self, value: str):
-        self[interface.Windows.UI.Xaml.IFrameworkElement].put_Language(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.IFrameworkElement].put_Language(HSTRING(value))
 
     @property
     def actual_width(self) -> float:
@@ -1045,11 +1483,11 @@ class FrameworkElement(UIElement):
     def name(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.IFrameworkElement].get_Name(byref(value))
-        return value.value
+        return str(value)
 
     @name.setter
     def name(self, value: str):
-        self[interface.Windows.UI.Xaml.IFrameworkElement].put_Name(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.IFrameworkElement].put_Name(HSTRING(value))
 
     @property
     def base_uri(self) -> Uri:
@@ -1085,7 +1523,7 @@ class FrameworkElement(UIElement):
 
     def find_name(self, name: str) -> _Inspectable:
         obj = interface.IInspectable()
-        self[interface.Windows.UI.Xaml.IFrameworkElement].FindName(HSTRING.from_string(name), byref(obj))
+        self[interface.Windows.UI.Xaml.IFrameworkElement].FindName(HSTRING(name), byref(obj))
         return _Inspectable(obj)
 
     @property
@@ -1100,9 +1538,9 @@ class FrameworkElement(UIElement):
 
     @property
     def allow_focus_on_interaction(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IFrameworkElement4].get_AllowFocusOnInteraction(byref(value))
-        return value.value
+        return bool(value)
 
     @allow_focus_on_interaction.setter
     def allow_focus_on_interaction(self, value: bool):
@@ -1130,9 +1568,9 @@ class FrameworkElement(UIElement):
 
     @property
     def allow_focus_when_disabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IFrameworkElement4].get_AllowFocusWhenDisabled(byref(value))
-        return value.value
+        return bool(value)
 
     @allow_focus_when_disabled.setter
     def allow_focus_when_disabled(self, value: bool):
@@ -1146,9 +1584,9 @@ class FrameworkElement(UIElement):
 
     @property
     def is_loaded(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IFrameworkElement7].get_IsLoaded(byref(value))
-        return value.value
+        return bool(value)
 
 
 class Control(FrameworkElement):
@@ -1587,21 +2025,112 @@ class RepeatButton(ButtonBase):
         self[interface.Windows.UI.Xaml.Controls.Primitives.IRepeatButton].put_Interval(value)
 
 
-class _IReference(_Inspectable):
+class PropertyValue(_Inspectable):
+    _statics = (interface.Windows.Foundation.IPropertyValueStatics,)
+    _interfaces = (interface.Windows.Foundation.IPropertyValue,)
+
+    @classmethod
+    def create_empty(cls: builtins.type[_T]) -> _T:
+        obj = interface.Windows.Foundation.IPropertyValue()
+        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateEmpty(byref(obj))
+        return cls(obj)
+
+    @classmethod
+    def create_uint8(cls: builtins.type[_T], value: int) -> _T:
+        obj = interface.Windows.Foundation.IPropertyValue()
+        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateUInt8(value, byref(obj))
+        return cls(obj)
+
+    @classmethod
+    def create_int16(cls: builtins.type[_T], value: int) -> _T:
+        obj = interface.Windows.Foundation.IPropertyValue()
+        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateInt16(value, byref(obj))
+        return cls(obj)
+
+    @classmethod
+    def create_boolean(cls: builtins.type[_T], value: bool) -> _T:
+        obj = interface.Windows.Foundation.IPropertyValue()
+        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateBoolean(value, byref(obj))
+        return cls(obj)
+
+    @classmethod
+    def create_string(cls: builtins.type[_T], value: str) -> _T:
+        obj = interface.IInspectable()
+        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateString(HSTRING(value), byref(obj))
+        return cls(obj)
+
+    @property
+    def type(self) -> enum.Windows.Foundation.PropertyType:
+        value = enum.Windows.Foundation.PropertyType()
+        self[interface.Windows.Foundation.IPropertyValue].get_Type(byref(value))
+        return value
+
+    @property
+    def is_numeric_scalar(self) -> bool:
+        value = type.boolean()
+        self[interface.Windows.Foundation.IPropertyValue].get_IsNumericScalar(byref(value))
+        return bool(value)
+
+    def get_int16(self) -> int:
+        value = type.INT16()
+        self[interface.Windows.Foundation.IPropertyValue].GetInt16(byref(value))
+        return value.value
+
+    def get_uint16(self) -> int:
+        value = type.UINT16()
+        self[interface.Windows.Foundation.IPropertyValue].GetUInt16(byref(value))
+        return value.value
+
+    def get_int32(self) -> int:
+        value = type.INT32()
+        self[interface.Windows.Foundation.IPropertyValue].GetInt32(byref(value))
+        return value.value
+
+    def get_uint32(self) -> int:
+        value = type.UINT32()
+        self[interface.Windows.Foundation.IPropertyValue].GetUInt32(byref(value))
+        return value.value
+
+    def get_int64(self) -> int:
+        value = type.INT64()
+        self[interface.Windows.Foundation.IPropertyValue].GetInt64(byref(value))
+        return value.value
+
+    def get_uint64(self) -> int:
+        value = type.UINT64()
+        self[interface.Windows.Foundation.IPropertyValue].GetUInt64(byref(value))
+        return value.value
+
+    def get_boolean(self) -> bool:
+        value = type.boolean()
+        self[interface.Windows.Foundation.IPropertyValue].GetBoolean(byref(value))
+        return bool(value)
+
+
+class _IReference(PropertyValue):
     _t_reference: tuple
 
     @property
     def value(self):
         obj = self._t_reference[0]()
         self[interface.Windows.Foundation.IReference[self._t_reference[0]]].get_Value(byref(obj))
-        return self._t_reference[1](obj)
+        return obj if self._t_reference[1] is None else self._t_reference[1](obj)
 
 
-class ReferenceBoolean(_IReference):
+class _ReferenceBoolean(_IReference):
     _t_reference = (type.boolean, bool)
     _interfaces = (interface.Windows.Foundation.IReference[type.boolean],)
 
+    create_instance: Callable[[bool], _ReferenceBoolean]
     value: bool
+
+
+class _ReferenceVector3(_IReference):
+    _t_reference = (struct.Windows.Foundation.Numerics.Vector3, None)
+    _interfaces = (interface.Windows.Foundation.IReference[struct.Windows.Foundation.Numerics.Vector3],)
+
+    create_instance: Callable[[struct.Windows.Foundation.Numerics.Vector3], _ReferenceVector3]
+    value: struct.Windows.Foundation.Numerics.Vector3
 
 
 class ToggleButton(ButtonBase):
@@ -1625,20 +2154,21 @@ class ToggleButton(ButtonBase):
         return DependencyProperty(obj)
 
     @property
-    def is_checked(self) -> ReferenceBoolean:
+    def is_checked(self) -> Optional[bool]:
         obj = interface.Windows.Foundation.IReference[type.boolean]()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IToggleButton].get_IsChecked(byref(obj))
-        return ReferenceBoolean(obj)
+        if obj:
+            return _ReferenceBoolean(obj).value
 
     @is_checked.setter
-    def is_checked(self, value: ReferenceBoolean):  # TODO
-        self[interface.Windows.UI.Xaml.Controls.Primitives.IToggleButton].put_IsChecked(value[interface.Windows.Foundation.IReference[type.boolean]])
+    def is_checked(self, value: bool):
+        self[interface.Windows.UI.Xaml.Controls.Primitives.IToggleButton].put_IsChecked(_ReferenceBoolean.create_boolean(value)[interface.Windows.Foundation.IReference[type.boolean]])
 
     @property
     def is_three_state(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IToggleButton].get_IsThreeState(byref(value))
-        return value.value
+        return bool(value)
 
     @is_three_state.setter
     def is_three_state(self, value: bool):
@@ -1704,6 +2234,127 @@ class Brush(_AnimationObject, DependencyObject):
                    interface.Windows.UI.Xaml.Media.IBrushOverrides2)
 
 
+class GradientBrush(Brush):
+    _statics = (interface.Windows.UI.Xaml.Media.IGradientBrushFactory,
+                interface.Windows.UI.Xaml.Media.IGradientBrushStatics)
+    _interfaces = (interface.Windows.UI.Xaml.Media.IGradientBrush,)
+
+    @classmethod
+    @property
+    def spread_method_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.IGradientBrushStatics].get_SpreadMethodProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @classmethod
+    @property
+    def mapping_mode_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.IGradientBrushStatics].get_MappingModeProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @classmethod
+    @property
+    def color_interpolation_mode_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.IGradientBrushStatics].get_ColorInterpolationModeProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @classmethod
+    @property
+    def gradient_stops_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.IGradientBrushStatics].get_GradientStopsProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @property
+    def spread_mode(self) -> enum.Windows.UI.Xaml.Media.GradientSpreadMethod:
+        value = enum.Windows.UI.Xaml.Media.GradientSpreadMethod()
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].get_SpreadMethod(byref(value))
+        return value
+
+    @spread_mode.setter
+    def spread_mode(self, value: enum.Windows.UI.Xaml.Media.GradientSpreadMethod):
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].put_SpreadMethod(value)
+
+    @property
+    def mapping_mode(self) -> enum.Windows.UI.Xaml.Media.BrushMappingMode:
+        value = enum.Windows.UI.Xaml.Media.BrushMappingMode()
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].get_MappingMode(byref(value))
+        return value
+
+    @mapping_mode.setter
+    def mapping_mode(self, value: enum.Windows.UI.Xaml.Media.BrushMappingMode):
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].put_MappingMode(value)
+
+    @property
+    def color_interpolation_mode(self) -> enum.Windows.UI.Xaml.Media.ColorInterpolationMode:
+        value = enum.Windows.UI.Xaml.Media.ColorInterpolationMode()
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].get_ColorInterpolationMode(byref(value))
+        return value
+
+    @color_interpolation_mode.setter
+    def color_interpolation_mode(self, value: enum.Windows.UI.Xaml.Media.ColorInterpolationMode):
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].put_ColorInterpolationMode(value)
+
+    @property
+    def gradient_stops(self) -> GradientStopCollection:
+        value = interface.Windows.Foundation.Collections.IVector[interface.Windows.UI.Xaml.Media.IGradientStop]()
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].get_GradientStops(byref(value))
+        return GradientStopCollection(value)
+
+    @gradient_stops.setter
+    def gradient_stops(self, value: GradientStopCollection):
+        self[interface.Windows.UI.Xaml.Media.IGradientBrush].put_GradientStops(value[interface.Windows.Foundation.Collections.IVector[interface.Windows.UI.Xaml.Media.IGradientStop]])
+
+
+class LinearGradientBrush(GradientBrush):
+    _statics = (interface.Windows.UI.Xaml.Media.ILinearGradientBrushFactory,
+                interface.Windows.UI.Xaml.Media.ILinearGradientBrushStatics)
+    _interfaces = (interface.Windows.UI.Xaml.Media.ILinearGradientBrush,)
+
+    @classmethod
+    def create_instance_with_gradient_stop_collection_and_angle(cls, gradient_stop_collection: GradientStopCollection, angle: float) -> LinearGradientBrush:
+        obj = interface.Windows.UI.Xaml.Media.ILinearGradientBrush()
+        cls[interface.Windows.UI.Xaml.Media.ILinearGradientBrushFactory].CreateInstanceWithGradientStopCollectionAndAngle(
+            gradient_stop_collection[interface.Windows.Foundation.Collections.IVector[interface.Windows.UI.Xaml.Media.IGradientStop]], angle, byref(obj))
+        return LinearGradientBrush(obj)
+
+    @classmethod
+    @property
+    def start_point_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.ILinearGradientBrushStatics].get_StartPointProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @classmethod
+    @property
+    def end_point_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.ILinearGradientBrushStatics].get_EndPointProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @property
+    def start_point(self) -> struct.Windows.Foundation.Point:
+        value = struct.Windows.Foundation.Point()
+        self[interface.Windows.UI.Xaml.Media.ILinearGradientBrush].get_StartPoint(byref(value))
+        return value
+
+    @start_point.setter
+    def start_point(self, value: struct.Windows.Foundation.Point):
+        self[interface.Windows.UI.Xaml.Media.ILinearGradientBrush].put_StartPoint(value)
+
+    @property
+    def end_point(self) -> struct.Windows.Foundation.Point:
+        value = struct.Windows.Foundation.Point()
+        self[interface.Windows.UI.Xaml.Media.ILinearGradientBrush].get_EndPoint(byref(value))
+        return value
+
+    @end_point.setter
+    def end_point(self, value: struct.Windows.Foundation.Point):
+        self[interface.Windows.UI.Xaml.Media.ILinearGradientBrush].put_EndPoint(value)
+
+
 class SolidColorBrush(Brush):
     _statics = (interface.Windows.UI.Xaml.Media.ISolidColorBrushFactory,
                 interface.Windows.UI.Xaml.Media.ISolidColorBrushStatics,)
@@ -1731,6 +2382,45 @@ class SolidColorBrush(Brush):
     @color.setter
     def color(self, value: struct.Windows.UI.Color):
         self[interface.Windows.UI.Xaml.Media.ISolidColorBrush].put_Color(value)
+
+
+class GradientStop(DependencyObject):
+    _statics = (interface.Windows.UI.Xaml.Media.IGradientStopStatics,)
+    _interfaces = (interface.Windows.UI.Xaml.Media.IGradientStop,)
+
+    @classmethod
+    @property
+    def color_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.IGradientStopStatics].get_ColorProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @classmethod
+    @property
+    def offset_property(cls) -> DependencyProperty:
+        obj = interface.Windows.UI.Xaml.IDependencyProperty()
+        cls[interface.Windows.UI.Xaml.Media.IGradientStopStatics].get_OffsetProperty(byref(obj))
+        return DependencyProperty(obj)
+
+    @property
+    def color(self) -> struct.Windows.UI.Color:
+        value = struct.Windows.UI.Color()
+        self[interface.Windows.UI.Xaml.Media.IGradientStop].get_Color(byref(value))
+        return value
+
+    @color.setter
+    def color(self, value: struct.Windows.UI.Color):
+        self[interface.Windows.UI.Xaml.Media.IGradientStop].put_Color(value)
+
+    @property
+    def offset(self) -> float:
+        value = type.DOUBLE()
+        self[interface.Windows.UI.Xaml.Media.IGradientStop].get_Offset(byref(value))
+        return value.value
+
+    @offset.setter
+    def offset(self, value: float):
+        self[interface.Windows.UI.Xaml.Media.IGradientStop].put_Offset(value)
 
 
 class Panel(FrameworkElement):
@@ -1785,46 +2475,11 @@ class TextBlock(FrameworkElement):
     def text(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.Controls.ITextBlock].get_Text(byref(value))
-        return value.value
+        return str(value)
 
     @text.setter
     def text(self, value: str):
-        self[interface.Windows.UI.Xaml.Controls.ITextBlock].put_Text(HSTRING.from_string(value))
-
-
-class PropertyValue(_Inspectable):
-    _statics = (interface.Windows.Foundation.IPropertyValueStatics,)
-    _interfaces = (interface.Windows.Foundation.IPropertyValue,)
-
-    @classmethod
-    def create_empty(cls) -> PropertyValue:
-        obj = interface.Windows.Foundation.IPropertyValue()
-        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateEmpty(byref(obj))
-        return PropertyValue(obj)
-
-    @classmethod
-    def create_uint8(cls, value: int) -> PropertyValue:
-        obj = interface.Windows.Foundation.IPropertyValue()
-        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateUInt8(value, byref(obj))
-        return PropertyValue(obj)
-
-    @classmethod
-    def create_int16(cls, value: int) -> PropertyValue:
-        obj = interface.Windows.Foundation.IPropertyValue()
-        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateInt16(value, byref(obj))
-        return PropertyValue(obj)
-
-    @classmethod
-    def create_boolean(cls, value: bool) -> PropertyValue:
-        obj = interface.Windows.Foundation.IPropertyValue()
-        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateBoolean(value, byref(obj))
-        return PropertyValue(obj)
-
-    @classmethod
-    def create_string(cls, value: str) -> PropertyValue:
-        obj = interface.IInspectable()
-        cls[interface.Windows.Foundation.IPropertyValueStatics].CreateString(HSTRING.from_string(value), byref(obj))
-        return PropertyValue(obj)
+        self[interface.Windows.UI.Xaml.Controls.ITextBlock].put_Text(HSTRING(value))
 
 
 class Colors(_Inspectable):
@@ -2825,13 +3480,13 @@ class XamlReader(_Inspectable):
     @classmethod
     def load(cls, xaml: str) -> _Inspectable:
         obj = interface.IInspectable()
-        cls[interface.Windows.UI.Xaml.Markup.IXamlReaderStatics].Load(HSTRING.from_string(xaml), byref(obj))
+        cls[interface.Windows.UI.Xaml.Markup.IXamlReaderStatics].Load(HSTRING(xaml), byref(obj))
         return _Inspectable(obj)
 
     @classmethod
     def load_with_initial_template_validation(cls, xaml: str) -> _Inspectable:
         obj = interface.IInspectable()
-        cls[interface.Windows.UI.Xaml.Markup.IXamlReaderStatics].LoadWithInitialTemplateValidation(HSTRING.from_string(xaml), byref(obj))
+        cls[interface.Windows.UI.Xaml.Markup.IXamlReaderStatics].LoadWithInitialTemplateValidation(HSTRING(xaml), byref(obj))
         return _Inspectable(obj)
 
 
@@ -2841,9 +3496,9 @@ class SetterBase(DependencyObject):
 
     @property
     def is_sealed(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.ISetterBase].get_IsSealed(byref(value))
-        return value.value
+        return bool(value)
 
 
 class _IIterator(_Inspectable):
@@ -2857,14 +3512,14 @@ class _IIterator(_Inspectable):
 
     @property
     def has_current(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.Foundation.Collections.IIterator[self._t_iterator[0]]].get_HasCurrent(byref(value))
-        return value.value
+        return bool(value)
 
     def move_next(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.Foundation.Collections.IIterator[self._t_iterator[0]]].MoveNext(byref(value))
-        return value.value
+        return bool(value)
 
 
 class IteratorSetterBase(_IIterator):
@@ -2965,14 +3620,14 @@ class _IMap(_Inspectable):
         return value.value
 
     def has_key(self, key) -> bool:
-        found = boolean()
+        found = type.boolean()
         self[interface.Windows.Foundation.Collections.IMap[self._k_map[0], self._v_map[0]]].HasKey(key if self._k_map[1] is None else key[self._k_map[0]], byref(found))
-        return found.value
+        return bool(found)
 
     def insert(self, key, value) -> bool:
-        replaced = boolean()
+        replaced = type.boolean()
         self[interface.Windows.Foundation.Collections.IMap[self._k_map[0], self._v_map[0]]].Insert(key if self._k_map[1] is None else key[self._k_map[0]], value if self._v_map[1] is None else value[self._v_map[0]], byref(replaced))
-        return replaced.value
+        return bool(replaced)
 
     def remove(self, key) -> bool:
         return macro.SUCCEEDED(self[interface.Windows.Foundation.Collections.IMap[self._k_map[0], self._v_map[0]]].Remove(key if self._k_map[1] is None else key[self._k_map[0]]))
@@ -3066,6 +3721,16 @@ class VectorSetterBase(_IVector):
     append: Callable[[SetterBase], bool]
 
 
+class VectorGradientStop(_IVector):
+    _t_vector = interface.Windows.UI.Xaml.Media.IGradientStop, GradientStop
+    _interfaces = (interface.Windows.Foundation.Collections.IVector[interface.Windows.UI.Xaml.Media.IGradientStop],)
+
+    get_at: Callable[[int], GradientStop]
+    set_at: Callable[[int, GradientStop], bool]
+    insert_at: Callable[[int, GradientStop], bool]
+    append: Callable[[GradientStop], bool]
+
+
 class VectorMenuFlyoutItemBase(_IVector):
     _t_vector = interface.Windows.UI.Xaml.Controls.IMenuFlyoutItemBase, MenuFlyoutItemBase
     _interfaces = (interface.Windows.Foundation.Collections.IVector[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItemBase],)
@@ -3074,6 +3739,10 @@ class VectorMenuFlyoutItemBase(_IVector):
     set_at: Callable[[int, MenuFlyoutItemBase], bool]
     insert_at: Callable[[int, MenuFlyoutItemBase], bool]
     append: Callable[[MenuFlyoutItemBase], bool]
+
+
+class GradientStopCollection(VectorGradientStop):
+    pass
 
 
 class UIElementCollection(VectorUIElement):
@@ -3085,9 +3754,9 @@ class SetterBaseCollection(IterableSetterBase, VectorSetterBase):
 
     @property
     def is_sealed(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.ISetterBase].get_IsSealed(byref(value))
-        return value.value
+        return bool(value)
 
 
 class FlyoutBase(DependencyObject):
@@ -3235,9 +3904,9 @@ class FlyoutBase(DependencyObject):
 
     @property
     def allow_focus_on_interaction(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase2].get_AllowFocusOnInteraction(byref(value))
-        return value.value
+        return bool(value)
 
     @allow_focus_on_interaction.setter
     def allow_focus_on_interaction(self, value: bool):
@@ -3255,9 +3924,9 @@ class FlyoutBase(DependencyObject):
 
     @property
     def allow_focus_when_disabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase2].get_AllowFocusWhenDisabled(byref(value))
-        return value.value
+        return bool(value)
 
     @allow_focus_when_disabled.setter
     def allow_focus_when_disabled(self, value: bool):
@@ -3295,15 +3964,15 @@ class FlyoutBase(DependencyObject):
 
     @property
     def input_device_prefers_primary_commands(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase5].get_InputDevicePrefersPrimaryCommands(byref(value))
-        return value.value
+        return bool(value)
 
     @property
     def are_open_close_animations_enabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase5].get_AreOpenCloseAnimationsEnabled(byref(value))
-        return value.value
+        return bool(value)
 
     @are_open_close_animations_enabled.setter
     def are_open_close_animations_enabled(self, value: bool):
@@ -3311,9 +3980,9 @@ class FlyoutBase(DependencyObject):
 
     @property
     def is_open(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase5].get_IsOpen(byref(value))
-        return value.value
+        return bool(value)
 
     def show_at_(self, placement_target: DependencyObject, show_options: FlyoutShowOptions) -> bool:
         return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase5].ShowAt(
@@ -3321,9 +3990,9 @@ class FlyoutBase(DependencyObject):
 
     @property
     def should_constrain_to_root_bounds(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase6].get_ShouldConstrainToRootBounds(byref(value))
-        return value.value
+        return bool(value)
 
     @should_constrain_to_root_bounds.setter
     def should_constrain_to_root_bounds(self, value: bool):
@@ -3331,9 +4000,9 @@ class FlyoutBase(DependencyObject):
 
     @property
     def is_constrained_to_root_bounds(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.Primitives.IFlyoutBase6].get_IsConstrainedToRootBounds(byref(value))
-        return value.value
+        return bool(value)
 
 
 class FlyoutShowOptions(_Inspectable):
@@ -3459,9 +4128,9 @@ class MenuFlyoutPresenter(ItemsControl):
 
     @property
     def is_default_shadow_enabled(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutPresenter3].get_IsDefaultShadowEnabled(byref(value))
-        return value.value
+        return bool(value)
 
     @is_default_shadow_enabled.setter
     def is_default_shadow_enabled(self, value: bool):
@@ -3541,21 +4210,21 @@ class MenuFlyoutItem(MenuFlyoutItemBase):
     def text(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItem].get_Text(byref(value))
-        return value.value
+        return str(value)
 
     @text.setter
     def text(self, value: str):
-        self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItem].put_Text(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItem].put_Text(HSTRING(value))
 
     @property
     def keyboard_accelerator_text_override(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItem3].get_KeyboardAcceleratorTextOverride(byref(value))
-        return value.value
+        return str(value)
 
     @keyboard_accelerator_text_override.setter
     def keyboard_accelerator_text_override(self, value: str):
-        self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItem3].put_KeyboardAcceleratorTextOverride(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.Controls.IMenuFlyoutItem3].put_KeyboardAcceleratorTextOverride(HSTRING(value))
 
 
 class Style(DependencyObject):
@@ -3570,9 +4239,9 @@ class Style(DependencyObject):
 
     @property
     def is_sealed(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.IStyle].get_IsSealed(byref(value))
-        return value.value
+        return bool(value)
 
     @property
     def setters(self) -> SetterBaseCollection:
@@ -3622,7 +4291,7 @@ class _Stringable(_Inspectable):
     def to_string(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IStringable].ToString(byref(value))
-        return value.value
+        return str(value)
 
 
 class _UriRuntimeClassWithAbsoluteCanonicalUri(_Inspectable):
@@ -3632,13 +4301,13 @@ class _UriRuntimeClassWithAbsoluteCanonicalUri(_Inspectable):
     def absolute_canonical_uri(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClassWithAbsoluteCanonicalUri].get_AbsoluteCanonicalUri(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def display_uri(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClassWithAbsoluteCanonicalUri].get_DisplayUri(byref(value))
-        return value.value
+        return str(value)
 
 
 class WwwFormUrlDecoder(_Inspectable):
@@ -3648,13 +4317,13 @@ class WwwFormUrlDecoder(_Inspectable):
     @classmethod
     def create_www_form_url_decoder(cls, query: str) -> WwwFormUrlDecoder:
         obj = interface.Windows.Foundation.IWwwFormUrlDecoderRuntimeClass()
-        cls[interface.Windows.Foundation.IWwwFormUrlDecoderRuntimeClassFactory].CreateWwwFormUrlDecoder(HSTRING.from_string(query), byref(obj))
+        cls[interface.Windows.Foundation.IWwwFormUrlDecoderRuntimeClassFactory].CreateWwwFormUrlDecoder(HSTRING(query), byref(obj))
         return WwwFormUrlDecoder(obj)
 
     def get_first_value_by_name(self, name: str) -> str:
         value = HSTRING()
-        self[interface.Windows.Foundation.IWwwFormUrlDecoderRuntimeClass].GetFirstValueByName(HSTRING.from_string(name), byref(value))
-        return value.value
+        self[interface.Windows.Foundation.IWwwFormUrlDecoderRuntimeClass].GetFirstValueByName(HSTRING(name), byref(value))
+        return str(value)
 
 
 class Uri(_UriRuntimeClassWithAbsoluteCanonicalUri, _Stringable):
@@ -3664,68 +4333,68 @@ class Uri(_UriRuntimeClassWithAbsoluteCanonicalUri, _Stringable):
     @classmethod
     def create_uri(cls, uri: str) -> Uri:
         obj = interface.Windows.Foundation.IUriRuntimeClass()
-        cls[interface.Windows.Foundation.IUriRuntimeClassFactory].CreateUri(HSTRING.from_string(uri), byref(obj))
+        cls[interface.Windows.Foundation.IUriRuntimeClassFactory].CreateUri(HSTRING(uri), byref(obj))
         return Uri(obj)
 
     @classmethod
     def create_with_relative_uri(cls, base_uri: str, relative_uri: str) -> Uri:
         obj = interface.Windows.Foundation.IUriRuntimeClass()
-        cls[interface.Windows.Foundation.IUriRuntimeClassFactory].CreateWithRelativeUri(HSTRING.from_string(base_uri), HSTRING.from_string(relative_uri), byref(obj))
+        cls[interface.Windows.Foundation.IUriRuntimeClassFactory].CreateWithRelativeUri(HSTRING(base_uri), HSTRING(relative_uri), byref(obj))
         return Uri(obj)
 
     @property
     def absolute_uri(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_AbsoluteUri(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def display_uri(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_DisplayUri(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def domain(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Domain(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def extension(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Extension(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def fragment(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Fragment(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def host(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Host(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def password(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Password(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def path(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Path(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def query(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Query(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def query_parsed(self) -> WwwFormUrlDecoder:
@@ -3737,19 +4406,19 @@ class Uri(_UriRuntimeClassWithAbsoluteCanonicalUri, _Stringable):
     def raw_uri(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_RawUri(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def scheme_name(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_SchemeName(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def user_name(self) -> str:
         value = HSTRING()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_UserName(byref(value))
-        return value.value
+        return str(value)
 
     @property
     def port(self) -> int:
@@ -3759,18 +4428,18 @@ class Uri(_UriRuntimeClassWithAbsoluteCanonicalUri, _Stringable):
 
     @property
     def suspicious(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.Foundation.IUriRuntimeClass].get_Suspicious(byref(value))
-        return value.value
+        return bool(value)
 
     def equals(self, uri: Uri) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.Foundation.IUriRuntimeClass].Equals(uri[interface.Windows.Foundation.IUriRuntimeClass], byref(value))
-        return value.value
+        return bool(value)
 
     def combine_uri(self, relative_uri: str) -> Uri:
         obj = interface.Windows.Foundation.IUriRuntimeClass()
-        self[interface.Windows.Foundation.IUriRuntimeClass].CombineUri(HSTRING.from_string(relative_uri), byref(obj))
+        self[interface.Windows.Foundation.IUriRuntimeClass].CombineUri(HSTRING(relative_uri), byref(obj))
         return Uri(obj)
 
 
@@ -3855,9 +4524,9 @@ class _CommandBarElement(_Inspectable):
 
     @property
     def is_compact(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.ICommandBarElement].get_IsCompact(byref(value))
-        return value.value
+        return bool(value)
 
     @is_compact.setter
     def is_compact(self, value: bool):
@@ -3865,9 +4534,9 @@ class _CommandBarElement(_Inspectable):
 
     @property
     def is_in_overflow(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.ICommandBarElement].get_IsInOverflow(byref(value))
-        return value.value
+        return bool(value)
 
     @property
     def dynamic_overflow_order(self) -> int:
@@ -3943,11 +4612,11 @@ class AppBarButton(_CommandBarElement, _ButtonWithFlyout, ButtonBase):
     def label(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.Controls.IAppBarButton].get_Label(byref(value))
-        return value.value
+        return str(value)
 
     @label.setter
     def label(self, value: str):
-        self[interface.Windows.UI.Xaml.Controls.IAppBarButton].put_Label(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.Controls.IAppBarButton].put_Label(HSTRING(value))
 
     @property
     def icon(self) -> IconElement:
@@ -3973,11 +4642,11 @@ class AppBarButton(_CommandBarElement, _ButtonWithFlyout, ButtonBase):
     def keyboard_accelerator_text_override(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Xaml.Controls.IAppBarButton4].get_KeyboardAcceleratorTextOverride(byref(value))
-        return value.value
+        return str(value)
 
     @keyboard_accelerator_text_override.setter
     def keyboard_accelerator_text_override(self, value: str):
-        self[interface.Windows.UI.Xaml.Controls.IAppBarButton4].put_KeyboardAcceleratorTextOverride(HSTRING.from_string(value))
+        self[interface.Windows.UI.Xaml.Controls.IAppBarButton4].put_KeyboardAcceleratorTextOverride(HSTRING(value))
 
 
 class ToolTip(ContentControl):
@@ -4041,9 +4710,9 @@ class ToolTip(ContentControl):
 
     @property
     def is_open(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Xaml.Controls.IToolTip].get_IsOpen(byref(value))
-        return value.value
+        return bool(value)
 
     @is_open.setter
     def is_open(self, value: bool):
@@ -4141,7 +4810,7 @@ class _XmlDocumentIO(_Inspectable):
                    interface.Windows.Data.Xml.Dom.IXmlDocumentIO2)
 
     def load_xml(self, xml: str) -> bool:
-        return macro.SUCCEEDED(self[interface.Windows.Data.Xml.Dom.IXmlDocumentIO].LoadXml(HSTRING.from_string(xml)))
+        return macro.SUCCEEDED(self[interface.Windows.Data.Xml.Dom.IXmlDocumentIO].LoadXml(HSTRING(xml)))
 
 
 class XmlDocument(_XmlDocumentIO):
@@ -4152,7 +4821,7 @@ class XmlDocument(_XmlDocumentIO):
     def document_uri(self) -> str:
         value = HSTRING()
         self[interface.Windows.Data.Xml.Dom.IXmlDocument].get_DocumentUri(byref(value))
-        return value.value
+        return str(value)
 
 
 class ToastNotificationManager(_Inspectable):
@@ -4170,7 +4839,7 @@ class ToastNotificationManager(_Inspectable):
     @classmethod
     def create_toast_notifier_with_id(cls, application_id: str) -> ToastNotifier:
         obj = interface.Windows.UI.Notifications.IToastNotifier()
-        cls[interface.Windows.UI.Notifications.IToastNotificationManagerStatics].CreateToastNotifierWithId(HSTRING.from_string(application_id), byref(obj))
+        cls[interface.Windows.UI.Notifications.IToastNotificationManagerStatics].CreateToastNotifierWithId(HSTRING(application_id), byref(obj))
         return ToastNotifier(obj)
 
     # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -4251,7 +4920,7 @@ class ToastNotification(_Inspectable):
     def tag(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Notifications.IToastNotification2].get_Tag(byref(value))
-        return value.value
+        return str(value)
 
     @tag.setter
     def tag(self, value: str):
@@ -4261,7 +4930,7 @@ class ToastNotification(_Inspectable):
     def group(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Notifications.IToastNotification2].get_Group(byref(value))
-        return value.value
+        return str(value)
 
     @group.setter
     def group(self, value: str):
@@ -4269,9 +4938,9 @@ class ToastNotification(_Inspectable):
 
     @property
     def suppress_popup(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Notifications.IToastNotification2].get_SuppressPopup(byref(value))
-        return value.value
+        return bool(value)
 
     @suppress_popup.setter
     def suppress_popup(self, value: bool):
@@ -4291,7 +4960,7 @@ class ToastNotification(_Inspectable):
     def remote_id(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Notifications.IToastNotification3].get_RemoteId(byref(value))
-        return value.value
+        return str(value)
 
     @remote_id.setter
     def remote_id(self, value: str):
@@ -4309,9 +4978,9 @@ class ToastNotification(_Inspectable):
 
     @property
     def expires_on_reboot(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.UI.Notifications.IToastNotification6].get_ExpiresOnReboot(byref(value))
-        return value.value
+        return bool(value)
 
     @expires_on_reboot.setter
     def expires_on_reboot(self, value: bool):
@@ -4336,7 +5005,7 @@ class ToastActivatedEventArgs(_Inspectable):
     def argument(self) -> str:
         value = HSTRING()
         self[interface.Windows.UI.Notifications.IToastActivatedEventArgs].get_Argument(byref(value))
-        return value.value
+        return str(value)
 
 
 class ToastFailedEventArgs(_Inspectable):
@@ -4349,6 +5018,48 @@ class ToastFailedEventArgs(_Inspectable):
         return value.value
 
 
+class _AsyncActionCompletedHandler(interface.Windows.Foundation.IAsyncActionCompletedHandler_impl):
+    function: Callable
+    args: Iterable
+    kwargs: Mapping[str, Any]
+
+    # noinspection PyPep8Naming
+    def Invoke(self, async_info: interface.Windows.Foundation.IAsyncAction, async_status: enum.Windows.Foundation.AsyncStatus) -> type.HRESULT:
+        return self.function(AsyncAction(async_info), async_status, *self.args, **self.kwargs)
+
+
+class AsyncActionCompletedHandler(_Unknown):
+    _interfaces = (interface.Windows.Foundation.IAsyncActionCompletedHandler,)
+
+    @classmethod
+    def create_instance(cls, function: Callable[[AsyncAction, enum.Windows.Foundation.AsyncStatus, ...], type.HRESULT], args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> AsyncActionCompletedHandler:
+        obj = _AsyncActionCompletedHandler()
+        obj.function = function
+        obj.args = () if args is None else args
+        obj.kwargs = {} if kwargs is None else kwargs
+        return AsyncActionCompletedHandler(obj)
+
+    def __call__(self, async_info: AsyncAction, async_status: enum.Windows.Foundation.AsyncStatus) -> type.HRESULT:
+        return self[interface.Windows.Foundation.IAsyncActionCompletedHandler].Invoke(async_info[interface.Windows.Foundation.IAsyncAction], async_status)
+
+
+class AsyncAction(_Inspectable):
+    _interfaces = (interface.Windows.Foundation.IAsyncAction,)
+
+    @property
+    def completed(self) -> AsyncActionCompletedHandler:
+        obj = interface.Windows.Foundation.IAsyncActionCompletedHandler()
+        self[interface.Windows.Foundation.IAsyncAction].get_Completed(byref(obj))
+        return AsyncActionCompletedHandler(obj)
+
+    @completed.setter
+    def completed(self, value: AsyncActionCompletedHandler):
+        self[interface.Windows.Foundation.IAsyncAction].put_Completed(value[interface.Windows.Foundation.IAsyncActionCompletedHandler])
+
+    def get_results(self) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.Foundation.IAsyncAction].GetResults())
+
+
 class _ITypedEventHandler(_Unknown):
     _tsender_typed_event_handler: tuple
     _targs_typed_event_handler: tuple
@@ -4356,9 +5067,9 @@ class _ITypedEventHandler(_Unknown):
 
     @classmethod
     def create_instance(cls, function: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
-        handler = cls._tsender_typed_event_handler[0], cls._targs_typed_event_handler[0]
-        if handler not in cls._handlers:
-            class TypedEventHandler(interface.Windows.Foundation.ITypedEventHandler_impl[handler]):
+        types = cls._tsender_typed_event_handler[0], cls._targs_typed_event_handler[0]
+        if types not in cls._handlers:
+            class _TypedEventHandler(interface.Windows.Foundation.ITypedEventHandler_impl[types]):
                 function: Callable
                 args: Iterable
                 kwargs: Mapping[str, Any]
@@ -4367,8 +5078,8 @@ class _ITypedEventHandler(_Unknown):
                 def Invoke(self, sender, args) -> type.HRESULT:
                     return self.function(cls._tsender_typed_event_handler[1](sender), cls._targs_typed_event_handler[1](args), *self.args, **self.kwargs)
 
-            cls._handlers[handler] = TypedEventHandler
-        obj = cls._handlers[handler]()
+            cls._handlers[types] = _TypedEventHandler
+        obj = cls._handlers[types]()
         obj.function = function
         obj.args = () if args is None else args
         obj.kwargs = {} if kwargs is None else kwargs
@@ -4404,6 +5115,47 @@ class TypedEventHandlerToastNotificationToastFailedEventArgs(_ITypedEventHandler
 
     create_instance: Callable[[Callable[[ToastNotification, ToastFailedEventArgs, ...], type.HRESULT], Optional[Iterable], Optional[Mapping[str, Any]]], TypedEventHandlerToastNotificationToastFailedEventArgs]
     __call__: Callable[[ToastNotification, ToastFailedEventArgs], type.HRESULT]
+
+
+class LockScreen(_Inspectable):
+    _statics = (interface.Windows.System.UserProfile.ILockScreenStatics,)
+
+    @classmethod
+    @property
+    def original_image_file(cls) -> Uri:
+        value = interface.Windows.Foundation.IUriRuntimeClass()
+        cls[interface.Windows.System.UserProfile.ILockScreenStatics].get_OriginalImageFile(byref(value))
+        return Uri(value)
+
+    @classmethod
+    def get_image_stream(cls) -> RandomAccessStream:
+        value = interface.Windows.Storage.Streams.IRandomAccessStream()
+        cls[interface.Windows.System.UserProfile.ILockScreenStatics].GetImageStream(byref(value))
+        return RandomAccessStream(value)
+
+    @classmethod
+    def set_image_stream_async(cls, value: RandomAccessStream) -> AsyncAction:
+        obj = interface.Windows.Foundation.IAsyncAction()
+        cls[interface.Windows.System.UserProfile.ILockScreenStatics].SetImageStreamAsync(value[interface.Windows.Storage.Streams.IRandomAccessStream], byref(obj))
+        return AsyncAction(obj)
+
+
+class UserInformation(_Inspectable):
+    _statics = (interface.Windows.System.UserProfile.IUserInformationStatics,)
+
+    @classmethod
+    @property
+    def account_picture_change_enabled(cls) -> bool:
+        value = type.boolean()
+        cls[interface.Windows.System.UserProfile.IUserInformationStatics].get_AccountPictureChangeEnabled(byref(value))
+        return bool(value)
+
+    @classmethod
+    @property
+    def name_access_allowed(cls) -> bool:
+        value = type.boolean()
+        cls[interface.Windows.System.UserProfile.IUserInformationStatics].get_NameAccessAllowed(byref(value))
+        return bool(value)
 
 
 class _InputStream(_Closable):
@@ -4475,15 +5227,15 @@ class RandomAccessStream(_InputStream, _OutputStream):
 
     @property
     def can_read(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.Storage.Streams.IRandomAccessStream].get_CanRead(byref(value))
-        return value.value
+        return bool(value)
 
     @property
     def can_write(self) -> bool:
-        value = boolean()
+        value = type.boolean()
         self[interface.Windows.Storage.Streams.IRandomAccessStream].get_CanWrite(byref(value))
-        return value.value
+        return bool(value)
 
 
 class FileRandomAccessStream(RandomAccessStream):
@@ -4492,14 +5244,14 @@ class FileRandomAccessStream(RandomAccessStream):
     @classmethod
     def open_async(cls, file_path: str, access_mode: enum.Windows.Storage.FileAccessMode) -> AsyncOperationRandomAccessStream:
         value = interface.Windows.Foundation.IAsyncOperation[interface.Windows.Storage.Streams.IRandomAccessStream]()
-        cls[interface.Windows.Storage.Streams.IFileRandomAccessStreamStatics].OpenAsync(HSTRING.from_string(file_path), access_mode, byref(value))
+        cls[interface.Windows.Storage.Streams.IFileRandomAccessStreamStatics].OpenAsync(HSTRING(file_path), access_mode, byref(value))
         return AsyncOperationRandomAccessStream(value)
 
     @classmethod
     def open_with_options_async(cls, file_path: str, access_mode: enum.Windows.Storage.FileAccessMode, sharing_options: enum.Windows.Storage.StorageOpenOptions,
                                 open_disposition: enum.Windows.Storage.Streams.FileOpenDisposition) -> AsyncOperationRandomAccessStream:
         value = interface.Windows.Foundation.IAsyncOperation[interface.Windows.Storage.Streams.IRandomAccessStream]()
-        cls[interface.Windows.Storage.Streams.IFileRandomAccessStreamStatics].OpenWithOptionsAsync(HSTRING.from_string(file_path), access_mode, sharing_options, open_disposition, byref(value))
+        cls[interface.Windows.Storage.Streams.IFileRandomAccessStreamStatics].OpenWithOptionsAsync(HSTRING(file_path), access_mode, sharing_options, open_disposition, byref(value))
         return AsyncOperationRandomAccessStream(value)
 
 
@@ -4512,7 +5264,7 @@ class _IAsyncOperationProgressHandler(_Unknown):
         # noinspection PyProtectedMember
         types = tuple(cls._tasync_info_async_operation_progress_handler[0]._args.values())
         if types not in cls._handlers:
-            class AsyncOperationProgressHandler(interface.Windows.Foundation.IAsyncOperationProgressHandler_impl[types]):
+            class _AsyncOperationProgressHandler(interface.Windows.Foundation.IAsyncOperationProgressHandler_impl[types]):
                 function: Callable
                 args: Iterable
                 kwargs: Mapping[str, Any]
@@ -4523,7 +5275,7 @@ class _IAsyncOperationProgressHandler(_Unknown):
                     return self.function(cls._tasync_info_async_operation_progress_handler[1](
                         async_info), cls._tasync_info_async_operation_progress_handler[1]._tprogress_async_operation_with_progress[1](progress_info), *self.args, **self.kwargs)
 
-            cls._handlers[types] = AsyncOperationProgressHandler
+            cls._handlers[types] = _AsyncOperationProgressHandler
         obj = cls._handlers[types]()
         obj.function = function
         obj.args = () if args is None else args
@@ -4545,7 +5297,7 @@ class _IAsyncOperationWithProgressCompletedHandler(_Unknown):
         # noinspection PyProtectedMember
         types = tuple(cls._tasync_info_async_operation_with_progress_completed_handler[0]._args.values())
         if types not in cls._handlers:
-            class AsyncOperationWithProgressCompletedHandler(interface.Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl[types]):
+            class _AsyncOperationWithProgressCompletedHandler(interface.Windows.Foundation.IAsyncOperationWithProgressCompletedHandler_impl[types]):
                 function: Callable
                 args: Iterable
                 kwargs: Mapping[str, Any]
@@ -4554,7 +5306,7 @@ class _IAsyncOperationWithProgressCompletedHandler(_Unknown):
                 def Invoke(self, async_info, status: enum.Windows.Foundation.AsyncStatus) -> type.HRESULT:
                     return self.function(cls._tasync_info_async_operation_with_progress_completed_handler[1](async_info), status, *self.args, **self.kwargs)
 
-            cls._handlers[types] = AsyncOperationWithProgressCompletedHandler
+            cls._handlers[types] = _AsyncOperationWithProgressCompletedHandler
         obj = cls._handlers[types]()
         obj.function = function
         obj.args = () if args is None else args
@@ -4643,7 +5395,7 @@ class _IAsyncOperationCompletedHandler(_Unknown):
         # noinspection PyProtectedMember
         types = tuple(cls._tasync_info_async_operation_completed_handler[0]._args.values())
         if types not in cls._handlers:
-            class AsyncOperationCompletedHandler(interface.Windows.Foundation.IAsyncOperationCompletedHandler_impl[types]):
+            class _AsyncOperationCompletedHandler(interface.Windows.Foundation.IAsyncOperationCompletedHandler_impl[types]):
                 function: Callable
                 args: Iterable
                 kwargs: Mapping[str, Any]
@@ -4652,7 +5404,7 @@ class _IAsyncOperationCompletedHandler(_Unknown):
                 def Invoke(self, async_info, status: enum.Windows.Foundation.AsyncStatus) -> type.HRESULT:
                     return self.function(cls._tasync_info_async_operation_completed_handler[1](async_info), status, *self.args, **self.kwargs)
 
-            cls._handlers[types] = AsyncOperationCompletedHandler
+            cls._handlers[types] = _AsyncOperationCompletedHandler
         obj = cls._handlers[types]()
         obj.function = function
         obj.args = () if args is None else args
@@ -4729,6 +5481,13 @@ class _RoutedEvent(_Event):
 
     __iadd__: Callable[[RoutedEventHandler], _RoutedEvent]
     __isub__: Callable[[RoutedEventHandler], _RoutedEvent]
+
+
+class _PointerEvent(_Event):
+    _interface = interface.Windows.UI.Xaml.Input.IPointerEventHandler
+
+    __iadd__: Callable[[PointerEventHandler], _PointerEvent]
+    __isub__: Callable[[PointerEventHandler], _PointerEvent]
 
 
 class _TypedEventToastNotificationToastDismissedEventArgs(_Event):

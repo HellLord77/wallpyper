@@ -199,6 +199,20 @@ def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
     return annot
 
 
+# noinspection PyShadowingBuiltins
+def _get_winrt_class_name(type: type[_CT]) -> str:
+    namespace, name = type.__qualname__.rsplit('.', 1)
+    name = name.removeprefix('I').removesuffix('_impl')
+    while name[-1].isdigit():
+        name = name[:-1]
+    name_ = ''
+    while name != name_:
+        name_ = name
+        for suffix in ('Factory', 'RuntimeClass', 'Statics', 'WithFlyout'):
+            name = name.removesuffix(suffix)
+    return f'{namespace}.{name}'
+
+
 def _init():
     for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
         _sys.modules[module.name] = _sys.modules.get(module.name, _Module(module.name))

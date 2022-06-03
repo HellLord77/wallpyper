@@ -18,7 +18,7 @@ if None:
     class _Enum(_enum.IntEnum, metaclass=_EnumMeta):
         pass
 else:
-    class _EnumMeta(type(_type.c_uint)):
+    class _EnumMeta(type(_type.c_int)):
         def __getattr__(self, name: str):
             if name in self._members:
                 # noinspection PyCallingNonCallable
@@ -1093,6 +1093,13 @@ class Windows:
                 Light = _AUTO
                 Dark = _AUTO
 
+    class Devices:
+        class Input:
+            class PointerDeviceType(_Enum):
+                Touch = _AUTO
+                Pen = _AUTO
+                Mouse = _AUTO
+
     class Foundation:
         class AsyncStatus(_Enum):
             Started = _AUTO
@@ -1617,11 +1624,123 @@ class Windows:
 
     class UI:
         class Composition:
+            class AnimationControllerProgressBehavior(_Enum):
+                Default = _AUTO
+                IncludeDelayTime = _AUTO
+
+            class AnimationDelayBehavior(_Enum):
+                SetInitialValueAfterDelay = _AUTO
+                SetInitialValueBeforeDelay = _AUTO
+
+            class AnimationDirection(_Enum):
+                Normal = _AUTO
+                Reverse = _AUTO
+                Alternate = _AUTO
+                AlternateReverse = _AUTO
+
+            class AnimationIterationBehavior(_Enum):
+                Count = _AUTO
+                Forever = _AUTO
+
             class AnimationPropertyAccessMode(_Enum):
                 None_ = _AUTO
                 ReadOnly = _AUTO
                 WriteOnly = _AUTO
                 ReadWrite = _AUTO
+
+            class AnimationStopBehavior(_Enum):
+                LeaveCurrentValue = _AUTO
+                SetToInitialValue = _AUTO
+                SetToFinalValue = _AUTO
+
+            class CompositionBackfaceVisibility(_Enum):
+                Inherit = _AUTO
+                Visible = _AUTO
+                Hidden = _AUTO
+
+            class CompositionBatchTypes(_Enum):
+                None_ = _AUTO
+                Animation = 0x1
+                Effect = 0x2
+                InfiniteAnimation = 0x4
+                AllAnimations = 0x5
+
+            class CompositionBitmapInterpolationMode(_Enum):
+                NearestNeighbor = _AUTO
+                Linear = _AUTO
+                MagLinearMinLinearMipLinear = _AUTO
+                MagLinearMinLinearMipNearest = _AUTO
+                MagLinearMinNearestMipLinear = _AUTO
+                MagLinearMinNearestMipNearest = _AUTO
+                MagNearestMinLinearMipLinear = _AUTO
+                MagNearestMinLinearMipNearest = _AUTO
+                MagNearestMinNearestMipLinear = _AUTO
+                MagNearestMinNearestMipNearest = _AUTO
+
+            class CompositionBorderMode(_Enum):
+                None_ = _AUTO
+                Soft = _AUTO
+                Hard = _AUTO
+
+            class CompositionColorSpace(_Enum):
+                Auto = _AUTO
+                Hsl = _AUTO
+                Rgb = _AUTO
+                HslLinear = _AUTO
+                RgbLinear = _AUTO
+
+            class CompositionCompositeMode(_Enum):
+                Inherit = _AUTO
+                SourceOver = _AUTO
+                DestinationInvert = _AUTO
+                MinBlend = _AUTO
+
+            class CompositionDropShadowSourcePolicy(_Enum):
+                Default = _AUTO
+                InheritFromVisualContent = _AUTO
+
+            class CompositionEasingFunctionMode(_Enum):
+                In = _AUTO
+                Out = _AUTO
+                InOut = _AUTO
+
+            class CompositionEffectFactoryLoadStatus(_Enum):
+                Success = _AUTO
+                EffectTooComplex = _AUTO
+                Pending = _AUTO
+                Other = -1
+
+            class CompositionGetValueStatus(_Enum):
+                Succeeded = _AUTO
+                TypeMismatch = _AUTO
+                NotFound = _AUTO
+
+            class CompositionGradientExtendMode(_Enum):
+                Clamp = _AUTO
+                Wrap = _AUTO
+                Mirror = _AUTO
+
+            class CompositionMappingMode(_Enum):
+                Absolute = _AUTO
+                Relative = _AUTO
+
+            class CompositionStretch(_Enum):
+                None_ = _AUTO
+                Fill = _AUTO
+                Uniform = _AUTO
+                UniformToFill = _AUTO
+
+            class CompositionStrokeCap(_Enum):
+                Flat = _AUTO
+                Square = _AUTO
+                Round = _AUTO
+                Triangle = _AUTO
+
+            class CompositionStrokeLineJoin(_Enum):
+                Miter = _AUTO
+                Bevel = _AUTO
+                Round = _AUTO
+                MiterOrBevel = _AUTO
 
         class Core:
             class AppViewBackButtonVisibility(_Enum):
@@ -2255,6 +2374,11 @@ class Windows:
                 NoWrap = 1
                 Wrap = _AUTO
                 WrapWithOverflow = _AUTO
+
+            class Vector3TransitionComponents(_Enum):
+                X = 0x1
+                Y = 0x2
+                Z = 0x4
 
             class VerticalAlignment(_Enum):
                 Top = _AUTO

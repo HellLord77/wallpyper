@@ -7,7 +7,7 @@ import typing as _typing
 from typing import Callable as _Callable, Generic as _Generic, Optional as _Optional
 
 from . import const as _const, enum as _enum, lib as _lib, macro as _macro, struct as _struct, type as _type
-from ._utils import _Pointer, _addressof, _byref, _format_annotations, _func_doc, _pointer, _resolve_type
+from ._utils import _Pointer, _format_annotations, _func_doc, _get_winrt_class_name, _resolve_type
 
 _K = _typing.TypeVar('_K')
 _V = _typing.TypeVar('_V')
@@ -16,7 +16,7 @@ _TArgs = _typing.TypeVar('_TArgs')
 _TProgress = _typing.TypeVar('_TProgress')
 _TResult = _typing.TypeVar('_TResult')
 _TSender = _typing.TypeVar('_TSender')
-_CArgObject = type(_ctypes.byref(_ctypes.c_void_p()))
+_CArgObject = type(_ctypes.byref(_type.c_void_p()))
 
 
 class _Template:
@@ -75,31 +75,31 @@ class _Interface(_type.c_void_p):
 class _Interface_impl(_type.c_void_p):  # TODO docs
     _iid_refs = None
     _vtbl = _ctypes.Structure
-    _refs = {}
+    _c_refs = {}
 
     def __hash__(self):
         return self.value
 
-    def __init__(self):
-        # noinspection PyTypeChecker,PyProtectedMember
-        self._ptr = _pointer(self._vtbl(*(type_(_functools.wraps(func := getattr(self, name))(lambda _, *args, _func=func: _func(*args))) for name, type_ in self._vtbl._fields_)))
-        super().__init__(_addressof(self._ptr))
-        self._refs[self] = 1
-
     def __new__(cls):
         if cls._vtbl.__name__ != cls.__name__:
-            cls._iid_refs = []
+            iid_refs = []
             base = cls
             for base_ in cls.__mro__[cls.__mro__.index(_Interface_impl)::-1]:
                 # noinspection PyProtectedMember
                 if __name__ == base_.__module__ and not base_.__name__.startswith(
                         '_') and not (issubclass(base_, _Template) and base_._args is None):
                     # noinspection PyTypeChecker,PyProtectedMember
-                    cls._iid_refs.append(_byref(_macro._uuidof(base_)))
+                    iid_refs.append(_ctypes.byref(_macro._uuidof(base_)))
                     base = base_
-            cls._iid_refs = tuple(cls._iid_refs)
+            cls._iid_refs = tuple(iid_refs)
             cls._vtbl = _get_vtbl(base, cls.__name__)
         return super().__new__(cls)
+
+    def __init__(self):
+        # noinspection PyProtectedMember,PyTypeChecker
+        self._ptr = _ctypes.pointer(self._vtbl(*(type_(_functools.wraps(func := getattr(self, name))(lambda _, *args, _func=func: _func(*args))) for name, type_ in self._vtbl._fields_)))
+        super().__init__(_ctypes.addressof(self._ptr))
+        self._c_refs[self] = 1
 
 
 def _get_vtbl(cls: type, name: _Optional[str] = None) -> type[_ctypes.Structure]:
@@ -133,9 +133,10 @@ class IUnknown_impl(_IUnknown, _Interface_impl):
         if not ppvObject:
             return _const.E_INVALIDARG
         # noinspection PyUnresolvedReferences,PyProtectedMember
-        obj_ref = ppvObject._obj if isinstance(ppvObject, _CArgObject) else _type.LPVOID.from_address(int(ppvObject))
+        obj_ref = ppvObject._obj if isinstance(ppvObject, _CArgObject) else _type.LPVOID.from_address(ppvObject)  # TODO int(ppvObject)
         obj_ref.value = None
         for iid_ref in self._iid_refs:
+            # noinspection PyTypeChecker
             if _lib.Ole32.IsEqualGUID(iid_ref, riid):
                 obj_ref.value = self.value
                 self.AddRef()
@@ -144,20 +145,19 @@ class IUnknown_impl(_IUnknown, _Interface_impl):
 
     # noinspection PyPep8Naming
     def AddRef(self) -> _type.ULONG:
-        self._refs[self] += 1
-        return self._refs[self]
+        self._c_refs[self] += 1
+        return self._c_refs[self]
 
     # noinspection PyPep8Naming
     def Release(self) -> _type.ULONG:
-        self._refs[self] -= 1
-        try:
-            return self._refs[self]
-        finally:
-            if not self._refs[self]:
-                del self._refs[self]
+        self._c_refs[self] -= 1
+        c_ref = self._c_refs[self]
+        if not c_ref:
+            del self._c_refs[self]
+        return c_ref
 
 
-class IInspectable(IUnknown):
+class _IInspectable:
     GetIids: _Callable[[_Pointer[_type.ULONG],
                         _Pointer[_Pointer[_struct.IID]]],
                        _type.HRESULT]
@@ -165,6 +165,33 @@ class IInspectable(IUnknown):
                                    _type.HRESULT]
     GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]],
                              _type.HRESULT]
+
+
+class IInspectable(_IInspectable, IUnknown):
+    pass
+
+
+# noinspection PyPep8Naming
+class IInspectable_impl(_IInspectable, IUnknown_impl):
+    # noinspection PyPep8Naming,PyUnusedLocal
+    @staticmethod
+    def GetIids(iidCount: _Pointer[_type.ULONG], iids: _Pointer[_Pointer[_struct.IID]]) -> _type.HRESULT:
+        return _const.E_NOTIMPL
+
+    # noinspection PyPep8Naming
+    @classmethod
+    def GetRuntimeClassName(cls, className: _Pointer[_type.HSTRING]) -> _type.HRESULT:
+        name = _get_winrt_class_name(cls)
+        return _lib.Combase.WindowsCreateString(name, len(name), className)
+
+    # noinspection PyPep8Naming
+    @staticmethod
+    def GetTrustLevel(trustLevel: _Pointer[_enum.TrustLevel]) -> _type.HRESULT:
+        if not trustLevel:
+            return _const.E_INVALIDARG
+        # noinspection PyTypeChecker
+        _lib.msvcrt.memcpy(trustLevel, _ctypes.byref(_enum.TrustLevel.BaseTrust), _ctypes.sizeof(_enum.TrustLevel.BaseTrust))
+        return _const.NOERROR
 
 
 class IShellItem(IUnknown):
@@ -1701,6 +1728,97 @@ class Windows:
                 class IXmlText(IInspectable):
                     SplitText: _Callable
 
+    class Devices:
+        class Input:
+            class IKeyboardCapabilities(IInspectable):
+                get_KeyboardPresent: _Callable
+
+            class IMouseCapabilities(IInspectable):
+                get_MousePresent: _Callable
+                get_VerticalWheelPresent: _Callable
+                get_HorizontalWheelPresent: _Callable
+                get_SwapButtons: _Callable
+                get_NumberOfButtons: _Callable
+
+            class IMouseDevice(IInspectable):
+                add_MouseMoved: _Callable
+                remove_MouseMoved: _Callable
+
+            class IMouseDeviceStatics(IInspectable):
+                GetForCurrentView: _Callable
+
+            class IMouseEventArgs(IInspectable):
+                get_MouseDelta: _Callable
+
+            class IPenButtonListener(IInspectable):
+                IsSupported: _Callable
+                add_IsSupportedChanged: _Callable
+                remove_IsSupportedChanged: _Callable
+                add_TailButtonClicked: _Callable
+                remove_TailButtonClicked: _Callable
+                add_TailButtonDoubleClicked: _Callable
+                remove_TailButtonDoubleClicked: _Callable
+                add_TailButtonLongPressed: _Callable
+                remove_TailButtonLongPressed: _Callable
+
+            class IPenButtonListenerStatics(IInspectable):
+                GetDefault: _Callable
+
+            class IPenDevice(IInspectable):
+                get_PenId: _Callable
+
+            class IPenDevice2(IInspectable):
+                get_SimpleHapticsController: _Callable
+
+            class IPenDeviceStatics(IInspectable):
+                GetFromPointerId: _Callable
+
+            class IPenDockListener(IInspectable):
+                IsSupported: _Callable
+                add_IsSupportedChanged: _Callable
+                remove_IsSupportedChanged: _Callable
+                add_Docked: _Callable
+                remove_Docked: _Callable
+                add_Undocked: _Callable
+                remove_Undocked: _Callable
+
+            class IPenDockListenerStatics(IInspectable):
+                GetDefault: _Callable
+
+            class IPenDockedEventArgs(IInspectable):
+                pass
+
+            class IPenTailButtonClickedEventArgs(IInspectable):
+                pass
+
+            class IPenTailButtonDoubleClickedEventArgs(IInspectable):
+                pass
+
+            class IPenTailButtonLongPressedEventArgs(IInspectable):
+                pass
+
+            class IPenUndockedEventArgs(IInspectable):
+                pass
+
+            class IPointerDevice(IInspectable):
+                get_PointerDeviceType: _Callable
+                get_IsIntegrated: _Callable
+                get_MaxContacts: _Callable
+                get_PhysicalDeviceRect: _Callable
+                get_ScreenRect: _Callable
+                get_SupportedUsages: _Callable
+
+            class IPointerDevice2(IInspectable):
+                get_MaxPointersWithZDistance: _Callable
+
+            class IPointerDeviceStatics(IInspectable):
+                GetPointerDevice: _Callable
+                GetPointerDevices: _Callable
+
+            class ITouchCapabilities(IInspectable):
+                get_TouchPresent: _Callable
+                get_Contacts: _Callable
+
     class Foundation:
         class _IAsyncActionCompletedHandler:
             Invoke: _Callable[[Windows.Foundation.IAsyncAction,
@@ -2186,9 +2304,27 @@ class Windows:
         class IAsyncActionWithProgressCompletedHandler_impl(_IAsyncActionWithProgressCompletedHandler, _Generic[_TProgress], IUnknown_impl):
             pass
 
-        class IReference(_Template, _Generic[_T], IInspectable):
+        class _IReference(_Template):
             get_Value: _Callable[[_Pointer[_T]],
                                  _type.HRESULT]
+
+        class IReference(_IReference, _Generic[_T], IInspectable):
+            pass
+
+        # noinspection PyPep8Naming
+        class IReference_impl(_IReference, _Generic[_T], IInspectable_impl):
+            @classmethod
+            def make(cls, value: _T):
+                self = cls()
+                self._m_value = value if isinstance(value, self._args[_T]) else self._args[_T](value)
+                return self
+
+            def get_Value(self, value: _Pointer[_T]) -> _type.HRESULT:
+                if not value:
+                    return _const.E_INVALIDARG
+                # noinspection PyTypeChecker
+                _lib.msvcrt.memcpy(value, _ctypes.byref(self._m_value), _ctypes.sizeof(self._m_value))
+                return _const.NOERROR
 
         class IReferenceArray(_Template, _Generic[_T], IInspectable):
             get_Value: _Callable[[_Pointer[_type.UINT32],
@@ -2412,6 +2548,20 @@ class Windows:
             class IGameUIProviderActivatedEventArgs(IInspectable):
                 get_GameUIArgs: _Callable
                 ReportCompleted: _Callable
+
+    class Graphics:
+        class IGeometrySource2D(IInspectable):
+            pass
+
+        class Effects:
+            class IGraphicsEffect(IInspectable):
+                get_Name: _Callable[[_Pointer[_type.HSTRING]],
+                                    _type.HRESULT]
+                put_Name: _Callable[[_type.HSTRING],
+                                    _type.HRESULT]
+
+            class IGraphicsEffectSource(IInspectable):
+                pass
 
     class Media:
         class Casting:
@@ -4780,9 +4930,13 @@ class Windows:
                 SetVector4Parameter: _Callable
 
             class ICompositionAnimation2(IInspectable):
-                SetBooleanParameter: _Callable
-                get_Target: _Callable
-                put_Target: _Callable
+                SetBooleanParameter: _Callable[[_type.HSTRING,
+                                                _type.boolean],
+                                               _type.HRESULT]
+                get_Target: _Callable[[_Pointer[_type.HSTRING]],
+                                      _type.HRESULT]
+                put_Target: _Callable[[_type.HSTRING],
+                                      _type.HRESULT]
 
             class ICompositionAnimation3(IInspectable):
                 get_InitialValueExpressions: _Callable
@@ -5309,110 +5463,225 @@ class Windows:
                 put_SourceSize: _Callable
 
             class ICompositor(IInspectable):
-                CreateColorKeyFrameAnimation: _Callable
-                CreateColorBrush: _Callable
-                CreateColorBrushWithColor: _Callable
-                CreateContainerVisual: _Callable
-                CreateCubicBezierEasingFunction: _Callable
-                CreateEffectFactory: _Callable
-                CreateEffectFactoryWithProperties: _Callable
-                CreateExpressionAnimation: _Callable
-                CreateExpressionAnimationWithExpression: _Callable
-                CreateInsetClip: _Callable
-                CreateInsetClipWithInsets: _Callable
-                CreateLinearEasingFunction: _Callable
-                CreatePropertySet: _Callable
-                CreateQuaternionKeyFrameAnimation: _Callable
-                CreateScalarKeyFrameAnimation: _Callable
-                CreateScopedBatch: _Callable
-                CreateSpriteVisual: _Callable
-                CreateSurfaceBrush: _Callable
-                CreateSurfaceBrushWithSurface: _Callable
-                CreateTargetForCurrentView: _Callable
-                CreateVector2KeyFrameAnimation: _Callable
-                CreateVector3KeyFrameAnimation: _Callable
-                CreateVector4KeyFrameAnimation: _Callable
-                GetCommitBatch: _Callable
+                CreateColorKeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IColorKeyFrameAnimation]],
+                                                        _type.HRESULT]
+                CreateColorBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionColorBrush]],
+                                            _type.HRESULT]
+                CreateColorBrushWithColor: _Callable[[_struct.Windows.UI.Color,
+                                                      _Pointer[Windows.UI.Composition.ICompositionColorBrush]],
+                                                     _type.HRESULT]
+                CreateContainerVisual: _Callable[[_Pointer[Windows.UI.Composition.IContainerVisual]],
+                                                 _type.HRESULT]
+                CreateCubicBezierEasingFunction: _Callable[[_struct.Windows.Foundation.Numerics.Vector2,
+                                                            _struct.Windows.Foundation.Numerics.Vector2,
+                                                            _Pointer[Windows.UI.Composition.ICubicBezierEasingFunction]],
+                                                           _type.HRESULT]
+                CreateEffectFactory: _Callable[[Windows.Graphics.Effects.IGraphicsEffect,
+                                                _Pointer[Windows.UI.Composition.ICubicBezierEasingFunction]],
+                                               _type.HRESULT]
+                CreateEffectFactoryWithProperties: _Callable[[Windows.Graphics.Effects.IGraphicsEffect,
+                                                              Windows.Foundation.Collections.IIterable[_type.HSTRING],
+                                                              _Pointer[Windows.UI.Composition.ICubicBezierEasingFunction]],
+                                                             _type.HRESULT]
+                CreateExpressionAnimation: _Callable[[_Pointer[Windows.UI.Composition.IExpressionAnimation]],
+                                                     _type.HRESULT]
+                CreateExpressionAnimationWithExpression: _Callable[[_type.HSTRING,
+                                                                    _Pointer[Windows.UI.Composition.IExpressionAnimation]],
+                                                                   _type.HRESULT]
+                CreateInsetClip: _Callable[[_Pointer[Windows.UI.Composition.IInsetClip]],
+                                           _type.HRESULT]
+                CreateInsetClipWithInsets: _Callable[[_type.FLOAT,
+                                                      _type.FLOAT,
+                                                      _type.FLOAT,
+                                                      _type.FLOAT,
+                                                      _Pointer[Windows.UI.Composition.IInsetClip]],
+                                                     _type.HRESULT]
+                CreateLinearEasingFunction: _Callable[[_Pointer[Windows.UI.Composition.ILinearEasingFunction]],
+                                                      _type.HRESULT]
+                CreatePropertySet: _Callable[[_Pointer[Windows.UI.Composition.ICompositionPropertySet]],
+                                             _type.HRESULT]
+                CreateQuaternionKeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IQuaternionKeyFrameAnimation]],
+                                                             _type.HRESULT]
+                CreateScalarKeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IScalarKeyFrameAnimation]],
+                                                         _type.HRESULT]
+                CreateScopedBatch: _Callable[[_enum.Windows.UI.Composition.CompositionBatchTypes,
+                                              _Pointer[Windows.UI.Composition.ICompositionScopedBatch]],
+                                             _type.HRESULT]
+                CreateSpriteVisual: _Callable[[_Pointer[Windows.UI.Composition.ISpriteVisual]],
+                                              _type.HRESULT]
+                CreateSurfaceBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionSurfaceBrush]],
+                                              _type.HRESULT]
+                CreateSurfaceBrushWithSurface: _Callable[[Windows.UI.Composition.ICompositionSurface,
+                                                          _Pointer[Windows.UI.Composition.ICompositionSurfaceBrush]],
+                                                         _type.HRESULT]
+                CreateTargetForCurrentView: _Callable[[_Pointer[Windows.UI.Composition.ICompositionTarget]],
+                                                      _type.HRESULT]
+                CreateVector2KeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IVector2KeyFrameAnimation]],
+                                                          _type.HRESULT]
+                CreateVector3KeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IVector3KeyFrameAnimation]],
+                                                          _type.HRESULT]
+                CreateVector4KeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IVector4KeyFrameAnimation]],
+                                                          _type.HRESULT]
+                GetCommitBatch: _Callable[[_enum.Windows.UI.Composition.CompositionBatchTypes,
+                                           _Pointer[Windows.UI.Composition.ICompositionCommitBatch]],
+                                          _type.HRESULT]
 
             class ICompositor2(IInspectable):
-                CreateAmbientLight: _Callable
-                CreateAnimationGroup: _Callable
-                CreateBackdropBrush: _Callable
-                CreateDistantLight: _Callable
-                CreateDropShadow: _Callable
-                CreateImplicitAnimationCollection: _Callable
-                CreateLayerVisual: _Callable
-                CreateMaskBrush: _Callable
-                CreateNineGridBrush: _Callable
-                CreatePointLight: _Callable
-                CreateSpotLight: _Callable
-                CreateStepEasingFunction: _Callable
-                CreateStepEasingFunctionWithStepCount: _Callable
+                CreateAmbientLight: _Callable[[_Pointer[Windows.UI.Composition.IAmbientLight]],
+                                              _type.HRESULT]
+                CreateAnimationGroup: _Callable[[_Pointer[Windows.UI.Composition.ICompositionAnimationGroup]],
+                                                _type.HRESULT]
+                CreateBackdropBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionBackdropBrush]],
+                                               _type.HRESULT]
+                CreateDistantLight: _Callable[[_Pointer[Windows.UI.Composition.IDistantLight]],
+                                              _type.HRESULT]
+                CreateDropShadow: _Callable[[_Pointer[Windows.UI.Composition.IDropShadow]],
+                                            _type.HRESULT]
+                CreateImplicitAnimationCollection: _Callable[[_Pointer[Windows.UI.Composition.IImplicitAnimationCollection]],
+                                                             _type.HRESULT]
+                CreateLayerVisual: _Callable[[_Pointer[Windows.UI.Composition.ILayerVisual]],
+                                             _type.HRESULT]
+                CreateMaskBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionMaskBrush]],
+                                           _type.HRESULT]
+                CreateNineGridBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionNineGridBrush]],
+                                               _type.HRESULT]
+                CreatePointLight: _Callable[[_Pointer[Windows.UI.Composition.IPointLight]],
+                                            _type.HRESULT]
+                CreateSpotLight: _Callable[[_Pointer[Windows.UI.Composition.ISpotLight]],
+                                           _type.HRESULT]
+                CreateStepEasingFunction: _Callable[[_Pointer[Windows.UI.Composition.IStepEasingFunction]],
+                                                    _type.HRESULT]
+                CreateStepEasingFunctionWithStepCount: _Callable[[_type.INT32,
+                                                                  _Pointer[Windows.UI.Composition.IStepEasingFunction]],
+                                                                 _type.HRESULT]
 
             class ICompositor3(IInspectable):
-                CreateHostBackdropBrush: _Callable
+                CreateHostBackdropBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionBackdropBrush]],
+                                                   _type.HRESULT]
 
             class ICompositor4(IInspectable):
-                CreateColorGradientStop: _Callable
-                CreateColorGradientStopWithOffsetAndColor: _Callable
-                CreateLinearGradientBrush: _Callable
-                CreateSpringScalarAnimation: _Callable
-                CreateSpringVector2Animation: _Callable
-                CreateSpringVector3Animation: _Callable
+                CreateColorGradientStop: _Callable[[_Pointer[Windows.UI.Composition.ICompositionColorGradientStop]],
+                                                   _type.HRESULT]
+                CreateColorGradientStopWithOffsetAndColor: _Callable[[_type.FLOAT,
+                                                                      _struct.Windows.UI.Color,
+                                                                      _Pointer[Windows.UI.Composition.ICompositionColorGradientStop]],
+                                                                     _type.HRESULT]
+                CreateLinearGradientBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionLinearGradientBrush]],
+                                                     _type.HRESULT]
+                CreateSpringScalarAnimation: _Callable[[_Pointer[Windows.UI.Composition.ISpringScalarNaturalMotionAnimation]],
+                                                       _type.HRESULT]
+                CreateSpringVector2Animation: _Callable[[_Pointer[Windows.UI.Composition.ISpringVector2NaturalMotionAnimation]],
+                                                        _type.HRESULT]
+                CreateSpringVector3Animation: _Callable[[_Pointer[Windows.UI.Composition.ISpringVector3NaturalMotionAnimation]],
+                                                        _type.HRESULT]
 
             class ICompositor5(IInspectable):
-                get_Comment: _Callable
-                put_Comment: _Callable
-                get_GlobalPlaybackRate: _Callable
-                put_GlobalPlaybackRate: _Callable
-                CreateBounceScalarAnimation: _Callable
-                CreateBounceVector2Animation: _Callable
-                CreateBounceVector3Animation: _Callable
-                CreateContainerShape: _Callable
-                CreateEllipseGeometry: _Callable
-                CreateLineGeometry: _Callable
-                CreatePathGeometry: _Callable
-                CreatePathGeometryWithPath: _Callable
-                CreatePathKeyFrameAnimation: _Callable
-                CreateRectangleGeometry: _Callable
-                CreateRoundedRectangleGeometry: _Callable
-                CreateShapeVisual: _Callable
-                CreateSpriteShape: _Callable
-                CreateSpriteShapeWithGeometry: _Callable
-                CreateViewBox: _Callable
-                RequestCommitAsync: _Callable
+                get_Comment: _Callable[[_Pointer[_type.HSTRING]],
+                                       _type.HRESULT]
+                put_Comment: _Callable[[_type.HSTRING],
+                                       _type.HRESULT]
+                get_GlobalPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],
+                                                  _type.HRESULT]
+                put_GlobalPlaybackRate: _Callable[[_type.FLOAT],
+                                                  _type.HRESULT]
+                CreateBounceScalarAnimation: _Callable[[_Pointer[Windows.UI.Composition.IBounceScalarNaturalMotionAnimation]],
+                                                       _type.HRESULT]
+                CreateBounceVector2Animation: _Callable[[_Pointer[Windows.UI.Composition.IBounceVector2NaturalMotionAnimation]],
+                                                        _type.HRESULT]
+                CreateBounceVector3Animation: _Callable[[_Pointer[Windows.UI.Composition.IBounceVector3NaturalMotionAnimation]],
+                                                        _type.HRESULT]
+                CreateContainerShape: _Callable[[_Pointer[Windows.UI.Composition.ICompositionContainerShape]],
+                                                _type.HRESULT]
+                CreateEllipseGeometry: _Callable[[_Pointer[Windows.UI.Composition.ICompositionEllipseGeometry]],
+                                                 _type.HRESULT]
+                CreateLineGeometry: _Callable[[_Pointer[Windows.UI.Composition.ICompositionLineGeometry]],
+                                              _type.HRESULT]
+                CreatePathGeometry: _Callable[[_Pointer[Windows.UI.Composition.ICompositionPathGeometry]],
+                                              _type.HRESULT]
+                CreatePathGeometryWithPath: _Callable[[Windows.UI.Composition.ICompositionPath,
+                                                       _Pointer[Windows.UI.Composition.ICompositionPathGeometry]],
+                                                      _type.HRESULT]
+                CreatePathKeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IPathKeyFrameAnimation]],
+                                                       _type.HRESULT]
+                CreateRectangleGeometry: _Callable[[_Pointer[Windows.UI.Composition.ICompositionRectangleGeometry]],
+                                                   _type.HRESULT]
+                CreateRoundedRectangleGeometry: _Callable[[_Pointer[Windows.UI.Composition.ICompositionRoundedRectangleGeometry]],
+                                                          _type.HRESULT]
+                CreateShapeVisual: _Callable[[_Pointer[Windows.UI.Composition.IShapeVisual]],
+                                             _type.HRESULT]
+                CreateSpriteShape: _Callable[[_Pointer[Windows.UI.Composition.ICompositionSpriteShape]],
+                                             _type.HRESULT]
+                CreateSpriteShapeWithGeometry: _Callable[[Windows.UI.Composition.ICompositionGeometry,
+                                                          _Pointer[Windows.UI.Composition.ICompositionSpriteShape]],
+                                                         _type.HRESULT]
+                CreateViewBox: _Callable[[_Pointer[Windows.UI.Composition.ICompositionViewBox]],
+                                         _type.HRESULT]
+                RequestCommitAsync: _Callable[[_Pointer[Windows.Foundation.IAsyncAction]],
+                                              _type.HRESULT]
 
             class ICompositor6(IInspectable):
-                CreateGeometricClip: _Callable
-                CreateGeometricClipWithGeometry: _Callable
-                CreateRedirectVisual: _Callable
-                CreateRedirectVisualWithSourceVisual: _Callable
-                CreateBooleanKeyFrameAnimation: _Callable
+                CreateGeometricClip: _Callable[[_Pointer[Windows.UI.Composition.ICompositionGeometricClip]],
+                                               _type.HRESULT]
+                CreateGeometricClipWithGeometry: _Callable[[Windows.UI.Composition.ICompositionGeometry,
+                                                            _Pointer[Windows.UI.Composition.ICompositionGeometricClip]],
+                                                           _type.HRESULT]
+                CreateRedirectVisual: _Callable[[_Pointer[Windows.UI.Composition.IRedirectVisual]],
+                                                _type.HRESULT]
+                CreateRedirectVisualWithSourceVisual: _Callable[[Windows.UI.Composition.IVisual,
+                                                                 _Pointer[Windows.UI.Composition.IRedirectVisual]],
+                                                                _type.HRESULT]
+                CreateBooleanKeyFrameAnimation: _Callable[[_Pointer[Windows.UI.Composition.IBooleanKeyFrameAnimation]],
+                                                          _type.HRESULT]
 
             class ICompositor7(IInspectable):
-                get_DispatcherQueue: _Callable
-                CreateAnimationPropertyInfo: _Callable
-                CreateRectangleClip: _Callable
-                CreateRectangleClipWithSides: _Callable
-                CreateRectangleClipWithSidesAndRadius: _Callable
+                get_DispatcherQueue: _Callable[[_Pointer[Windows.System.IDispatcherQueue]],
+                                               _type.HRESULT]
+                CreateAnimationPropertyInfo: _Callable[[_Pointer[Windows.UI.Composition.IAnimationPropertyInfo]],
+                                                       _type.HRESULT]
+                CreateRectangleClip: _Callable[[_Pointer[Windows.UI.Composition.IRectangleClip]],
+                                               _type.HRESULT]
+                CreateRectangleClipWithSides: _Callable[[_type.FLOAT,
+                                                         _type.FLOAT,
+                                                         _type.FLOAT,
+                                                         _type.FLOAT,
+                                                         _Pointer[Windows.UI.Composition.IRectangleClip]],
+                                                        _type.HRESULT]
+                CreateRectangleClipWithSidesAndRadius: _Callable[[_type.FLOAT,
+                                                                  _type.FLOAT,
+                                                                  _type.FLOAT,
+                                                                  _type.FLOAT,
+                                                                  _struct.Windows.Foundation.Numerics.Vector2,
+                                                                  _struct.Windows.Foundation.Numerics.Vector2,
+                                                                  _struct.Windows.Foundation.Numerics.Vector2,
+                                                                  _struct.Windows.Foundation.Numerics.Vector2,
+                                                                  _Pointer[Windows.UI.Composition.IRectangleClip]],
+                                                                 _type.HRESULT]
 
             class ICompositorStatics(IInspectable):
-                get_MaxGlobalPlaybackRate: _Callable
-                get_MinGlobalPlaybackRate: _Callable
+                get_MaxGlobalPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],
+                                                     _type.HRESULT]
+                get_MinGlobalPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],
+                                                     _type.HRESULT]
 
             class ICompositorWithBlurredWallpaperBackdropBrush(IInspectable):
-                TryCreateBlurredWallpaperBackdropBrush: _Callable
+                TryCreateBlurredWallpaperBackdropBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionBackdropBrush]],
+                                                                  _type.HRESULT]
 
             class ICompositorWithProjectedShadow(IInspectable):
-                CreateProjectedShadowCaster: _Callable
-                CreateProjectedShadow: _Callable
-                CreateProjectedShadowReceiver: _Callable
+                CreateProjectedShadowCaster: _Callable[[_Pointer[Windows.UI.Composition.ICompositionProjectedShadowCaster]],
+                                                       _type.HRESULT]
+                CreateProjectedShadow: _Callable[[_Pointer[Windows.UI.Composition.ICompositionProjectedShadow]],
+                                                 _type.HRESULT]
+                CreateProjectedShadowReceiver: _Callable[[_Pointer[Windows.UI.Composition.ICompositionProjectedShadowReceiver]],
+                                                         _type.HRESULT]
 
             class ICompositorWithRadialGradient(IInspectable):
-                CreateRadialGradientBrush: _Callable
+                CreateRadialGradientBrush: _Callable[[_Pointer[Windows.UI.Composition.ICompositionRadialGradientBrush]],
+                                                     _type.HRESULT]
 
             class ICompositorWithVisualSurface(IInspectable):
-                CreateVisualSurface: _Callable
+                CreateVisualSurface: _Callable[[_Pointer[Windows.UI.Composition.ICompositionVisualSurface]],
+                                               _type.HRESULT]
 
             class IContainerVisual(IInspectable):
                 get_Children: _Callable
@@ -5472,8 +5741,10 @@ class Windows:
                 get_Exponent: _Callable
 
             class IExpressionAnimation(IInspectable):
-                get_Expression: _Callable
-                put_Expression: _Callable
+                get_Expression: _Callable[[_Pointer[_type.HSTRING]],
+                                          _type.HRESULT]
+                put_Expression: _Callable[[_type.HSTRING],
+                                          _type.HRESULT]
 
             class IImplicitAnimationCollection(IInspectable):
                 pass
@@ -5647,34 +5918,54 @@ class Windows:
                 put_QuadraticAttenuation: _Callable
 
             class ISpotLight2(IInspectable):
-                get_InnerConeIntensity: _Callable
-                put_InnerConeIntensity: _Callable
-                get_OuterConeIntensity: _Callable
-                put_OuterConeIntensity: _Callable
+                get_InnerConeIntensity: _Callable[[_Pointer[_type.FLOAT]],
+                                                  _type.HRESULT]
+                put_InnerConeIntensity: _Callable[[_type.FLOAT],
+                                                  _type.HRESULT]
+                get_OuterConeIntensity: _Callable[[_Pointer[_type.FLOAT]],
+                                                  _type.HRESULT]
+                put_OuterConeIntensity: _Callable[[_type.FLOAT],
+                                                  _type.HRESULT]
 
             class ISpotLight3(IInspectable):
-                get_MinAttenuationCutoff: _Callable
-                put_MinAttenuationCutoff: _Callable
-                get_MaxAttenuationCutoff: _Callable
-                put_MaxAttenuationCutoff: _Callable
+                get_MinAttenuationCutoff: _Callable[[_Pointer[_type.FLOAT]],
+                                                    _type.HRESULT]
+                put_MinAttenuationCutoff: _Callable[[_type.FLOAT],
+                                                    _type.HRESULT]
+                get_MaxAttenuationCutoff: _Callable[[_Pointer[_type.FLOAT]],
+                                                    _type.HRESULT]
+                put_MaxAttenuationCutoff: _Callable[[_type.FLOAT],
+                                                    _type.HRESULT]
 
             class ISpringScalarNaturalMotionAnimation(IInspectable):
-                get_DampingRatio: _Callable
-                put_DampingRatio: _Callable
-                get_Period: _Callable
-                put_Period: _Callable
+                get_DampingRatio: _Callable[[_Pointer[_type.FLOAT]],
+                                            _type.HRESULT]
+                put_DampingRatio: _Callable[[_type.FLOAT],
+                                            _type.HRESULT]
+                get_Period: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                      _type.HRESULT]
+                put_Period: _Callable[[_struct.Windows.Foundation.TimeSpan],
+                                      _type.HRESULT]
 
             class ISpringVector2NaturalMotionAnimation(IInspectable):
-                get_DampingRatio: _Callable
-                put_DampingRatio: _Callable
-                get_Period: _Callable
-                put_Period: _Callable
+                get_DampingRatio: _Callable[[_Pointer[_type.FLOAT]],
+                                            _type.HRESULT]
+                put_DampingRatio: _Callable[[_type.FLOAT],
+                                            _type.HRESULT]
+                get_Period: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                      _type.HRESULT]
+                put_Period: _Callable[[_struct.Windows.Foundation.TimeSpan],
+                                      _type.HRESULT]
 
             class ISpringVector3NaturalMotionAnimation(IInspectable):
-                get_DampingRatio: _Callable
-                put_DampingRatio: _Callable
-                get_Period: _Callable
-                put_Period: _Callable
+                get_DampingRatio: _Callable[[_Pointer[_type.FLOAT]],
+                                            _type.HRESULT]
+                put_DampingRatio: _Callable[[_type.FLOAT],
+                                            _type.HRESULT]
+                get_Period: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                      _type.HRESULT]
+                put_Period: _Callable[[_struct.Windows.Foundation.TimeSpan],
+                                      _type.HRESULT]
 
             class ISpriteVisual(IInspectable):
                 get_Brush: _Callable
@@ -5697,38 +5988,65 @@ class Windows:
                 put_StepCount: _Callable
 
             class IVector2KeyFrameAnimation(IInspectable):
-                InsertKeyFrame: _Callable
-                InsertKeyFrameWithEasingFunction: _Callable
+                InsertKeyFrame: _Callable[[_type.FLOAT,
+                                           _struct.Windows.Foundation.Numerics.Vector2],
+                                          _type.HRESULT]
+                InsertKeyFrameWithEasingFunction: _Callable[[_type.FLOAT,
+                                                             _struct.Windows.Foundation.Numerics.Vector2,
+                                                             Windows.UI.Composition.ICompositionEasingFunction],
+                                                            _type.HRESULT]
 
             class IVector2NaturalMotionAnimation(IInspectable):
-                get_FinalValue: _Callable
-                put_FinalValue: _Callable
-                get_InitialValue: _Callable
-                put_InitialValue: _Callable
-                get_InitialVelocity: _Callable
-                put_InitialVelocity: _Callable
+                get_FinalValue: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector2]]],
+                                          _type.HRESULT]
+                put_FinalValue: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector2]],
+                                          _type.HRESULT]
+                get_InitialValue: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector2]]],
+                                            _type.HRESULT]
+                put_InitialValue: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector2]],
+                                            _type.HRESULT]
+                get_InitialVelocity: _Callable[[_Pointer[_struct.Windows.Foundation.Numerics.Vector2]],
+                                               _type.HRESULT]
+                put_InitialVelocity: _Callable[[_struct.Windows.Foundation.Numerics.Vector2],
+                                               _type.HRESULT]
 
             class IVector2NaturalMotionAnimationFactory(IInspectable):
                 pass
 
             class IVector3KeyFrameAnimation(IInspectable):
-                InsertKeyFrame: _Callable
-                InsertKeyFrameWithEasingFunction: _Callable
+                InsertKeyFrame: _Callable[[_type.FLOAT,
+                                           _struct.Windows.Foundation.Numerics.Vector3],
+                                          _type.HRESULT]
+                InsertKeyFrameWithEasingFunction: _Callable[[_type.FLOAT,
+                                                             _struct.Windows.Foundation.Numerics.Vector3,
+                                                             Windows.UI.Composition.ICompositionEasingFunction],
+                                                            _type.HRESULT]
 
             class IVector3NaturalMotionAnimation(IInspectable):
-                get_FinalValue: _Callable
-                put_FinalValue: _Callable
-                get_InitialValue: _Callable
-                put_InitialValue: _Callable
-                get_InitialVelocity: _Callable
-                put_InitialVelocity: _Callable
+                get_FinalValue: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector3]]],
+                                          _type.HRESULT]
+                put_FinalValue: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector3]],
+                                          _type.HRESULT]
+                get_InitialValue: _Callable[[_Pointer[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector3]]],
+                                            _type.HRESULT]
+                put_InitialValue: _Callable[[Windows.Foundation.IReference[_struct.Windows.Foundation.Numerics.Vector3]],
+                                            _type.HRESULT]
+                get_InitialVelocity: _Callable[[_Pointer[_struct.Windows.Foundation.Numerics.Vector3]],
+                                               _type.HRESULT]
+                put_InitialVelocity: _Callable[[_struct.Windows.Foundation.Numerics.Vector3],
+                                               _type.HRESULT]
 
             class IVector3NaturalMotionAnimationFactory(IInspectable):
                 pass
 
             class IVector4KeyFrameAnimation(IInspectable):
-                InsertKeyFrame: _Callable
-                InsertKeyFrameWithEasingFunction: _Callable
+                InsertKeyFrame: _Callable[[_type.FLOAT,
+                                           _struct.Windows.Foundation.Numerics.Vector4],
+                                          _type.HRESULT]
+                InsertKeyFrameWithEasingFunction: _Callable[[_type.FLOAT,
+                                                             _struct.Windows.Foundation.Numerics.Vector4,
+                                                             Windows.UI.Composition.ICompositionEasingFunction],
+                                                            _type.HRESULT]
 
             class IVisual(IInspectable):
                 get_AnchorPoint: _Callable
@@ -9053,11 +9371,16 @@ class Windows:
                                           _type.HRESULT]
 
             class IScalarTransition(IInspectable):
-                get_Duration: _Callable
-                put_Duration: _Callable
+                get_Duration: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                        _type.HRESULT]
+                put_Duration: _Callable[[_struct.Windows.Foundation.TimeSpan],
+                                        _type.HRESULT]
 
             class IScalarTransitionFactory(IInspectable):
-                CreateInstance: _Callable
+                CreateInstance: _Callable[[IInspectable,
+                                           _Pointer[IInspectable],
+                                           _Pointer[Windows.UI.Xaml.IScalarTransition]],
+                                          _type.HRESULT]
 
             class ISetter(IInspectable):
                 get_Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
@@ -9860,13 +10183,20 @@ class Windows:
                                        _type.HRESULT]
 
             class IVector3Transition(IInspectable):
-                get_Duration: _Callable
-                put_Duration: _Callable
-                get_Components: _Callable
-                put_Components: _Callable
+                get_Duration: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],
+                                        _type.HRESULT]
+                put_Duration: _Callable[[_struct.Windows.Foundation.TimeSpan],
+                                        _type.HRESULT]
+                get_Components: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Vector3TransitionComponents]],
+                                          _type.HRESULT]
+                put_Components: _Callable[[_enum.Windows.UI.Xaml.Vector3TransitionComponents],
+                                          _type.HRESULT]
 
             class IVector3TransitionFactory(IInspectable):
-                CreateInstance: _Callable
+                CreateInstance: _Callable[[IInspectable,
+                                           _Pointer[IInspectable],
+                                           _Pointer[Windows.UI.Xaml.IVector3Transition]],
+                                          _type.HRESULT]
 
             class IVisualState(IInspectable):
                 get_Name: _Callable
@@ -21539,18 +21869,30 @@ class Windows:
                     get_InputDevice: _Callable
 
                 class IPointer(IInspectable):
-                    get_PointerId: _Callable
-                    get_PointerDeviceType: _Callable
-                    get_IsInContact: _Callable
-                    get_IsInRange: _Callable
+                    get_PointerId: _Callable[[_Pointer[_type.UINT32]],
+                                             _type.HRESULT]
+                    get_PointerDeviceType: _Callable[[_Pointer[_enum.Windows.Devices.Input.PointerDeviceType]],
+                                                     _type.HRESULT]
+                    get_IsInContact: _Callable[[_Pointer[_type.boolean]],
+                                               _type.HRESULT]
+                    get_IsInRange: _Callable[[_type.boolean],
+                                             _type.HRESULT]
 
                 class IPointerRoutedEventArgs(IInspectable):
-                    get_Pointer: _Callable
-                    get_KeyModifiers: _Callable
-                    get_Handled: _Callable
-                    put_Handled: _Callable
-                    GetCurrentPoint: _Callable
-                    GetIntermediatePoints: _Callable
+                    get_Pointer: _Callable[[_Pointer[Windows.UI.Xaml.Input.IPointer]],
+                                           _type.HRESULT]
+                    get_KeyModifiers: _Callable[[_Pointer[_enum.Windows.System.VirtualKeyModifiers]],
+                                                _type.HRESULT]
+                    get_Handled: _Callable[[_Pointer[_type.boolean]],
+                                           _type.HRESULT]
+                    put_Handled: _Callable[[_type.boolean],
+                                           _type.HRESULT]
+                    GetCurrentPoint: _Callable[[Windows.UI.Xaml.IUIElement,
+                                                _Pointer[Windows.UI.Input.IPointerPoint]],
+                                               _type.HRESULT]
+                    GetIntermediatePoints: _Callable[[Windows.UI.Xaml.IUIElement,
+                                                      _Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Input.IPointerPoint]]],
+                                                     _type.HRESULT]
 
                 class IPointerRoutedEventArgs2(IInspectable):
                     get_IsGenerated: _Callable
@@ -22238,27 +22580,42 @@ class Windows:
                                            _type.HRESULT]
                     put_Opacity: _Callable[[_type.DOUBLE],
                                            _type.HRESULT]
-                    get_Transform: _Callable
-                    put_Transform: _Callable
-                    get_RelativeTransform: _Callable
-                    put_RelativeTransform: _Callable
+                    get_Transform: _Callable[[_Pointer[Windows.UI.Xaml.Media.ITransform]],
+                                             _type.HRESULT]
+                    put_Transform: _Callable[[Windows.UI.Xaml.Media.ITransform],
+                                             _type.HRESULT]
+                    get_RelativeTransform: _Callable[[_Pointer[Windows.UI.Xaml.Media.ITransform]],
+                                                     _type.HRESULT]
+                    put_RelativeTransform: _Callable[[Windows.UI.Xaml.Media.ITransform],
+                                                     _type.HRESULT]
 
                 class IBrushFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.IBrush]],
+                                              _type.HRESULT]
 
                 class IBrushOverrides2(IInspectable):
-                    PopulatePropertyInfoOverride: _Callable
+                    PopulatePropertyInfoOverride: _Callable[[_type.HSTRING,
+                                                             _Pointer[Windows.UI.Composition.IAnimationPropertyInfo]],
+                                                            _type.HRESULT]
 
                 class IBrushStatics(IInspectable):
-                    get_OpacityProperty: _Callable
-                    get_TransformProperty: _Callable
-                    get_RelativeTransformProperty: _Callable
+                    get_OpacityProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                   _type.HRESULT]
+                    get_TransformProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_RelativeTransformProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
 
                 class ICacheMode(IInspectable):
                     pass
 
                 class ICacheModeFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.ICacheMode]],
+                                              _type.HRESULT]
 
                 class ICompositeTransform(IInspectable):
                     get_CenterX: _Callable
@@ -22364,44 +22721,74 @@ class Windows:
                     get_TransformProperty: _Callable
 
                 class IGradientBrush(IInspectable):
-                    get_SpreadMethod: _Callable
-                    put_SpreadMethod: _Callable
-                    get_MappingMode: _Callable
-                    put_MappingMode: _Callable
-                    get_ColorInterpolationMode: _Callable
-                    put_ColorInterpolationMode: _Callable
-                    get_GradientStops: _Callable
-                    put_GradientStops: _Callable
+                    get_SpreadMethod: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Media.GradientSpreadMethod]],
+                                                _type.HRESULT]
+                    put_SpreadMethod: _Callable[[_enum.Windows.UI.Xaml.Media.GradientSpreadMethod],
+                                                _type.HRESULT]
+                    get_MappingMode: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Media.BrushMappingMode]],
+                                               _type.HRESULT]
+                    put_MappingMode: _Callable[[_enum.Windows.UI.Xaml.Media.BrushMappingMode],
+                                               _type.HRESULT]
+                    get_ColorInterpolationMode: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Media.ColorInterpolationMode]],
+                                                          _type.HRESULT]
+                    put_ColorInterpolationMode: _Callable[[_enum.Windows.UI.Xaml.Media.ColorInterpolationMode],
+                                                          _type.HRESULT]
+                    get_GradientStops: _Callable[[_Pointer[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.Media.IGradientStop]]],
+                                                 _type.HRESULT]
+                    put_GradientStops: _Callable[[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.Media.IGradientStop]],
+                                                 _type.HRESULT]
 
                 class IGradientBrushFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.IGradientBrush]],
+                                              _type.HRESULT]
 
                 class IGradientBrushStatics(IInspectable):
-                    get_SpreadMethodProperty: _Callable
-                    get_MappingModeProperty: _Callable
-                    get_ColorInterpolationModeProperty: _Callable
-                    get_GradientStopsProperty: _Callable
+                    get_SpreadMethodProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_MappingModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_ColorInterpolationModeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                                  _type.HRESULT]
+                    get_GradientStopsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
 
                 class IGradientStop(IInspectable):
-                    get_Color: _Callable
-                    put_Color: _Callable
-                    get_Offset: _Callable
-                    put_Offset: _Callable
+                    get_Color: _Callable[[_Pointer[_struct.Windows.UI.Color]],
+                                         _type.HRESULT]
+                    put_Color: _Callable[[_struct.Windows.UI.Color],
+                                         _type.HRESULT]
+                    get_Offset: _Callable[[_Pointer[_type.DOUBLE]],
+                                          _type.HRESULT]
+                    put_Offset: _Callable[[_type.DOUBLE],
+                                          _type.HRESULT]
 
                 class IGradientStopStatics(IInspectable):
-                    get_ColorProperty: _Callable
-                    get_OffsetProperty: _Callable
+                    get_ColorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_OffsetProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class IImageBrush(IInspectable):
-                    get_ImageSource: _Callable
-                    put_ImageSource: _Callable
-                    add_ImageFailed: _Callable
-                    remove_ImageFailed: _Callable
-                    add_ImageOpened: _Callable
-                    remove_ImageOpened: _Callable
+                    get_ImageSource: _Callable[[_Pointer[Windows.UI.Xaml.Media.IImageSource]],
+                                               _type.HRESULT]
+                    put_ImageSource: _Callable[[Windows.UI.Xaml.Media.IImageSource],
+                                               _type.HRESULT]
+                    add_ImageFailed: _Callable[[Windows.UI.Xaml.IExceptionRoutedEventHandler,
+                                                _Pointer[_struct.EventRegistrationToken]],
+                                               _type.HRESULT]
+                    remove_ImageFailed: _Callable[[_struct.EventRegistrationToken],
+                                                  _type.HRESULT]
+                    add_ImageOpened: _Callable[[Windows.UI.Xaml.IRoutedEventHandler,
+                                                _Pointer[_struct.EventRegistrationToken]],
+                                               _type.HRESULT]
+                    remove_ImageOpened: _Callable[[_struct.EventRegistrationToken],
+                                                  _type.HRESULT]
 
                 class IImageBrushStatics(IInspectable):
-                    get_ImageSourceProperty: _Callable
+                    get_ImageSourceProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
 
                 class IImageSource(IInspectable):
                     pass
@@ -22416,28 +22803,40 @@ class Windows:
                     put_EndPoint: _Callable
 
                 class ILineGeometryStatics(IInspectable):
-                    get_StartPointProperty: _Callable
-                    get_EndPointProperty: _Callable
+                    get_StartPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_EndPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
 
                 class ILineSegment(IInspectable):
                     get_Point: _Callable
                     put_Point: _Callable
 
                 class ILineSegmentStatics(IInspectable):
-                    get_PointProperty: _Callable
+                    get_PointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
 
                 class ILinearGradientBrush(IInspectable):
-                    get_StartPoint: _Callable
-                    put_StartPoint: _Callable
-                    get_EndPoint: _Callable
-                    put_EndPoint: _Callable
+                    get_StartPoint: _Callable[[_Pointer[_struct.Windows.Foundation.Point]],
+                                              _type.HRESULT]
+                    put_StartPoint: _Callable[[_struct.Windows.Foundation.Point],
+                                              _type.HRESULT]
+                    get_EndPoint: _Callable[[_Pointer[_struct.Windows.Foundation.Point]],
+                                            _type.HRESULT]
+                    put_EndPoint: _Callable[[_struct.Windows.Foundation.Point],
+                                            _type.HRESULT]
 
                 class ILinearGradientBrushFactory(IInspectable):
-                    CreateInstanceWithGradientStopCollectionAndAngle: _Callable
+                    CreateInstanceWithGradientStopCollectionAndAngle: _Callable[[Windows.Foundation.Collections.IVector[Windows.UI.Xaml.Media.IGradientStop],
+                                                                                 _type.DOUBLE,
+                                                                                 _Pointer[Windows.UI.Xaml.Media.ILinearGradientBrush]],
+                                                                                _type.HRESULT]
 
                 class ILinearGradientBrushStatics(IInspectable):
-                    get_StartPointProperty: _Callable
-                    get_EndPointProperty: _Callable
+                    get_StartPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_EndPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
 
                 class ILoadedImageSourceLoadCompletedEventArgs(IInspectable):
                     get_Status: _Callable
@@ -22460,7 +22859,8 @@ class Windows:
                     put_ProjectionMatrix: _Callable
 
                 class IMatrix3DProjectionStatics(IInspectable):
-                    get_ProjectionMatrixProperty: _Callable
+                    get_ProjectionMatrixProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
 
                 class IMatrixHelper(IInspectable):
                     pass
@@ -22476,7 +22876,8 @@ class Windows:
                     put_Matrix: _Callable
 
                 class IMatrixTransformStatics(IInspectable):
-                    get_MatrixProperty: _Callable
+                    get_MatrixProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class IMediaTransportControlsThumbnailRequestedEventArgs(IInspectable):
                     SetThumbnailImage: _Callable
@@ -22499,10 +22900,14 @@ class Windows:
                     put_IsFilled: _Callable
 
                 class IPathFigureStatics(IInspectable):
-                    get_SegmentsProperty: _Callable
-                    get_StartPointProperty: _Callable
-                    get_IsClosedProperty: _Callable
-                    get_IsFilledProperty: _Callable
+                    get_SegmentsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_StartPointProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                      _type.HRESULT]
+                    get_IsClosedProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
+                    get_IsFilledProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                    _type.HRESULT]
 
                 class IPathGeometry(IInspectable):
                     get_FillRule: _Callable
@@ -22548,33 +22953,48 @@ class Windows:
                     get_ProjectionMatrix: _Callable
 
                 class IPlaneProjectionStatics(IInspectable):
-                    get_LocalOffsetXProperty: _Callable
-                    get_LocalOffsetYProperty: _Callable
-                    get_LocalOffsetZProperty: _Callable
-                    get_RotationXProperty: _Callable
-                    get_RotationYProperty: _Callable
-                    get_RotationZProperty: _Callable
-                    get_CenterOfRotationXProperty: _Callable
-                    get_CenterOfRotationYProperty: _Callable
-                    get_CenterOfRotationZProperty: _Callable
-                    get_GlobalOffsetXProperty: _Callable
-                    get_GlobalOffsetYProperty: _Callable
-                    get_GlobalOffsetZProperty: _Callable
-                    get_ProjectionMatrixProperty: _Callable
+                    get_LocalOffsetXProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_LocalOffsetYProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_LocalOffsetZProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                        _type.HRESULT]
+                    get_RotationXProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_RotationYProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_RotationZProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                     _type.HRESULT]
+                    get_CenterOfRotationXProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_CenterOfRotationYProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_CenterOfRotationZProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_GlobalOffsetXProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_GlobalOffsetYProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_GlobalOffsetZProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                         _type.HRESULT]
+                    get_ProjectionMatrixProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                            _type.HRESULT]
 
                 class IPolyBezierSegment(IInspectable):
                     get_Points: _Callable
                     put_Points: _Callable
 
                 class IPolyBezierSegmentStatics(IInspectable):
-                    get_PointsProperty: _Callable
+                    get_PointsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class IPolyLineSegment(IInspectable):
                     get_Points: _Callable
                     put_Points: _Callable
 
                 class IPolyLineSegmentStatics(IInspectable):
-                    get_PointsProperty: _Callable
+                    get_PointsProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class IPolyQuadraticBezierSegment(IInspectable):
                     get_Points: _Callable
@@ -22596,8 +23016,10 @@ class Windows:
                     put_Point2: _Callable
 
                 class IQuadraticBezierSegmentStatics(IInspectable):
-                    get_Point1Property: _Callable
-                    get_Point2Property: _Callable
+                    get_Point1Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
+                    get_Point2Property: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                  _type.HRESULT]
 
                 class IRateChangedRoutedEventArgs(IInspectable):
                     pass
@@ -22607,7 +23029,8 @@ class Windows:
                     put_Rect: _Callable
 
                 class IRectangleGeometryStatics(IInspectable):
-                    get_RectProperty: _Callable
+                    get_RectProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                _type.HRESULT]
 
                 class IRenderedEventArgs(IInspectable):
                     get_FrameDuration: _Callable
@@ -22619,30 +23042,49 @@ class Windows:
                     pass
 
                 class IRevealBackgroundBrushFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.IRevealBackgroundBrush]],
+                                              _type.HRESULT]
 
                 class IRevealBorderBrush(IInspectable):
                     pass
 
                 class IRevealBorderBrushFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.IRevealBorderBrush]],
+                                              _type.HRESULT]
 
                 class IRevealBrush(IInspectable):
-                    get_Color: _Callable
-                    put_Color: _Callable
-                    get_TargetTheme: _Callable
-                    put_TargetTheme: _Callable
-                    get_AlwaysUseFallback: _Callable
-                    put_AlwaysUseFallback: _Callable
+                    get_Color: _Callable[[_Pointer[_struct.Windows.UI.Color]],
+                                         _type.HRESULT]
+                    put_Color: _Callable[[_struct.Windows.UI.Color],
+                                         _type.HRESULT]
+                    get_TargetTheme: _Callable[[_Pointer[_enum.Windows.UI.Xaml.ApplicationTheme]],
+                                               _type.HRESULT]
+                    put_TargetTheme: _Callable[[_enum.Windows.UI.Xaml.ApplicationTheme],
+                                               _type.HRESULT]
+                    get_AlwaysUseFallback: _Callable[[_Pointer[_type.boolean]],
+                                                     _type.HRESULT]
+                    put_AlwaysUseFallback: _Callable[[_type.boolean],
+                                                     _type.HRESULT]
 
                 class IRevealBrushFactory(IInspectable):
-                    CreateInstance: _Callable
+                    CreateInstance: _Callable[[IInspectable,
+                                               _Pointer[IInspectable],
+                                               _Pointer[Windows.UI.Xaml.Media.IRevealBrush]],
+                                              _type.HRESULT]
 
                 class IRevealBrushStatics(IInspectable):
-                    get_ColorProperty: _Callable
-                    get_TargetThemeProperty: _Callable
-                    get_AlwaysUseFallbackProperty: _Callable
-                    get_StateProperty: _Callable
+                    get_ColorProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
+                    get_TargetThemeProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                       _type.HRESULT]
+                    get_AlwaysUseFallbackProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                             _type.HRESULT]
+                    get_StateProperty: _Callable[[_Pointer[Windows.UI.Xaml.IDependencyProperty]],
+                                                 _type.HRESULT]
                     SetState: _Callable
                     GetState: _Callable
 

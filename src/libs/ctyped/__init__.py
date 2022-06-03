@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.15'
+__version__ = '0.2.16'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -12,8 +12,8 @@ from typing import (Any as _Any, Callable as _Callable, ContextManager as _Conte
                     Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
 
 from . import const, enum, handle, interface, lib, macro, struct, type, union
-from ._utils import (_get_namespace, _CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
-                     _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
+from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
+                     _byref as byref, _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
 _MESSAGES = {val: name for name, val in vars(const).items() if name.startswith('WM_')}
 
@@ -74,20 +74,6 @@ def get_interface_name(iid: str, base: _Union[type, _types.ModuleType] = const) 
                 return name
         elif iid == val:
             return var.removeprefix('IID_')
-
-
-# noinspection PyShadowingBuiltins,PyShadowingNames
-def get_winrt_class_name(type: _builtins.type[CT]) -> str:
-    namespace, name = type.__qualname__.rsplit('.', 1)
-    name = name.removeprefix('I').removesuffix('_impl')
-    while name[-1].isdigit():
-        name = name[:-1]
-    name_ = ''
-    while name != name_:
-        name_ = name
-        for suffix in ('Factory', 'RuntimeClass', 'Statics', 'WithFlyout'):
-            name = name.removesuffix(suffix)
-    return f'{namespace}.{name}'
 
 
 # noinspection PyProtectedMember,PyShadowingNames
@@ -165,7 +151,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def cast_com(obj: interface.IUnknown, type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
+def cast_com(obj: _Union[interface.IUnknown, interface.IUnknown_impl], type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type) as obj_:
         yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*macro.IID_PPV_ARGS(obj_))) else None
 
@@ -174,12 +160,10 @@ def cast_com(obj: interface.IUnknown, type: _builtins.type[CT] = interface.IUnkn
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[interface.IInspectable]]]:
-    lib.Combase.RoInitialize(
-        enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
+    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
     base = (interface.IInspectable if init else interface.IActivationFactory)()
     try:
-        yield handle.HSTRING.from_string(get_winrt_class_name(
-            type_)), None if init else macro.__uuidof(type_), base
+        yield handle.HSTRING.from_string(_get_winrt_class_name(type_)), None if init else macro.__uuidof(type_), base
     finally:
         if base:
             base.Release()

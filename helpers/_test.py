@@ -247,11 +247,31 @@ class C2(metaclass=ProxyC1):
     pass
 
 
+def set_lock():
+    path_lock = r'C:\Users\ratul\AppData\Local\Temp\Wallpyper\wallhaven-z87rqj.jpg'
+    op_lock = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path_lock, ctyped.enum.Windows.Storage.FileAccessMode.Read)
+    event2 = threading.Event()
+
+    def handle_lock(*_):
+        event2.set()
+        print(*_)
+        return 0
+
+    op_lock.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handle_lock)
+    event2.wait()
+    in_stream_lock = op_lock.get_results()
+    ac = winrt.Windows.System.UserProfile.LockScreen.set_image_stream_async(in_stream_lock)
+    event2.clear()
+    ac.completed = winrt.Windows.Foundation.AsyncActionCompletedHandler.create_instance(handle_lock)
+    event2.wait()
+    print(ac.get_results())
+
+
 if __name__ == '__main__':
-    d = {C1: 67}
-    print(hash(C1))
-    print(hash(C2))
-    print(d[C2])
+    ctyped.THREADED_COM = True
+    hs = winrt._utils.HSTRING('text')
+    print(hs, str(hs))
+    exit()
 
     path = r'D:\MMDs\洛天依  -  倾杯.mp4'
     path2 = r'D:\test.mp4'
