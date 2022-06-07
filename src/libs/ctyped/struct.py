@@ -1808,7 +1808,73 @@ PATTERN = LOGBRUSH
 
 
 class Windows:
+    class ApplicationModel:
+        @_struct
+        class PackageInstallProgress:
+            PercentComplete: _type.UINT32 = None
+
+        @_struct
+        class PackageVersion:
+            Major: _type.UINT16 = None
+            Minor: _type.UINT16 = None
+            Build: _type.UINT16 = None
+            Revision: _type.UINT16 = None
+
+        class Resources:
+            class Core:
+                @_struct
+                class ResourceLayoutInfo:
+                    MajorVersion: _type.UINT32 = None
+                    MinorVersion: _type.UINT32 = None
+                    ResourceSubtreeCount: _type.UINT32 = None
+                    NamedResourceCount: _type.UINT32 = None
+                    Checksum: _type.INT32 = None
+
+    class Data:
+        class Text:
+            @_struct
+            class TextSegment:
+                StartPosition: _type.UINT32 = None
+                Length: _type.UINT32 = None
+
     class Devices:
+        class Display:
+            class Core:
+                @_struct
+                class DisplayPresentationRate:
+                    VerticalSyncRate: Windows.Foundation.Numerics.Rational = None
+                    VerticalSyncsPerPresentation: _type.INT32 = None
+
+        class Geolocation:
+            @_struct
+            class BasicGeoposition:
+                Latitude: _type.DOUBLE = None
+                Longitude: _type.DOUBLE = None
+                Altitude: _type.DOUBLE = None
+
+        class Gpio:
+            @_struct
+            class GpioChangeCount:
+                Count: _type.UINT64 = None
+                RelativeTime: Windows.Foundation.TimeSpan = None
+
+            @_struct
+            class GpioChangeRecord:
+                RelativeTime: Windows.Foundation.TimeSpan = None
+                Edge: _enum.Windows.Devices.Gpio.GpioPinEdge = None
+
+        class I2c:
+            @_struct
+            class I2cTransferResult:
+                Status: _enum.Windows.Devices.I2c.I2cTransferStatus = None
+                BytesTransferred: _type.UINT32 = None
+
+            class Provider:
+                @_struct
+                class ProviderI2cTransferResult:
+                    Status: _enum.Windows.Devices.I2c.Provider.ProviderI2cTransferStatus = None
+                    BytesTransferred: _type.UINT32 = None
+
         class Input:
             @_struct
             class MouseDelta:
@@ -1826,6 +1892,27 @@ class Windows:
                 Unit: _type.UINT32 = None
                 PhysicalMultiplier: _type.FLOAT = None
 
+        class PointOfService:
+            @_struct
+            class SizeUInt32:
+                Width: _type.UINT32 = None
+                Height: _type.UINT32 = None
+
+        class Scanners:
+            @_struct
+            class ImageScannerResolution:
+                DpiX: _type.FLOAT = None
+                DpiY: _type.FLOAT = None
+
+        class Sms:
+            @_struct
+            class SmsEncodedLength:
+                SegmentCount: _type.UINT32 = None
+                CharacterCountLastSegment: _type.UINT32 = None
+                CharactersPerSegment: _type.UINT32 = None
+                ByteCountLastSegment: _type.UINT32 = None
+                BytesPerSegment: _type.UINT32 = None
+
     class Foundation:
         @_struct
         class DateTime:
@@ -1833,8 +1920,8 @@ class Windows:
 
         @_struct
         class Point:
-            x: _type.FLOAT = None
-            y: _type.FLOAT = None
+            X: _type.FLOAT = None
+            Y: _type.FLOAT = None
 
         @_struct
         class Rect:
@@ -1916,6 +2003,407 @@ class Windows:
                 Z: _type.FLOAT = None
                 W: _type.FLOAT = None
 
+    class Gaming:
+        class Input:
+            @_struct
+            class ArcadeStickReading:
+                Timestamp: _type.UINT64 = None
+                Buttons: _enum.Windows.Gaming.Input.ArcadeStickButtons = None
+
+            @_struct
+            class FlightStickReading:
+                Timestamp: _type.UINT64 = None
+                Buttons: _enum.Windows.Gaming.Input.FlightStickButtons = None
+                HatSwitch: _enum.Windows.Gaming.Input.GameControllerSwitchPosition = None
+                Roll: _type.DOUBLE = None
+                Pitch: _type.DOUBLE = None
+                Yaw: _type.DOUBLE = None
+                Throttle: _type.DOUBLE = None
+
+            @_struct
+            class GamepadReading:
+                Timestamp: _type.UINT64 = None
+                Buttons: _enum.Windows.Gaming.Input.GamepadButtons = None
+                LeftTrigger: _type.DOUBLE = None
+                RightTrigger: _type.DOUBLE = None
+                LeftThumbstickX: _type.DOUBLE = None
+                LeftThumbstickY: _type.DOUBLE = None
+                RightThumbstickX: _type.DOUBLE = None
+                RightThumbstickY: _type.DOUBLE = None
+
+            @_struct
+            class GamepadVibration:
+                LeftMotor: _type.DOUBLE = None
+                RightMotor: _type.DOUBLE = None
+                LeftTrigger: _type.DOUBLE = None
+                RightTrigger: _type.DOUBLE = None
+
+            @_struct
+            class RacingWheelReading:
+                Timestamp: _type.UINT64 = None
+                Buttons: _enum.Windows.Gaming.Input.RacingWheelButtons = None
+                PatternShifterGear: _type.INT32 = None
+                Wheel: _type.DOUBLE = None
+                Throttle: _type.DOUBLE = None
+                Brake: _type.DOUBLE = None
+                Clutch: _type.DOUBLE = None
+                Handbrake: _type.DOUBLE = None
+
+            @_struct
+            class UINavigationReading:
+                Timestamp: _type.UINT64 = None
+                RequiredButtons: _enum.Windows.Gaming.Input.RequiredUINavigationButtons = None
+                OptionalButtons: _enum.Windows.Gaming.Input.OptionalUINavigationButtons = None
+
+            class Custom:
+                @_struct
+                class GameControllerVersionInfo:
+                    Major: _type.UINT16 = None
+                    Minor: _type.UINT16 = None
+                    Build: _type.UINT16 = None
+                    Revision: _type.UINT16 = None
+
+                @_struct
+                class GipFirmwareUpdateProgress:
+                    PercentCompleted: _type.DOUBLE = None
+                    CurrentComponentId: _type.UINT32 = None
+
+    class Graphics:
+        @_struct
+        class DisplayAdapterId:
+            LowPart: _type.UINT32 = None
+            HighPart: _type.INT32 = None
+
+        @_struct
+        class DisplayId:
+            Value: _type.UINT64 = None
+
+        @_struct
+        class PointInt32:
+            X: _type.INT32 = None
+            Y: _type.INT32 = None
+
+        @_struct
+        class RectInt32:
+            X: _type.INT32 = None
+            Y: _type.INT32 = None
+            Width: _type.INT32 = None
+            Height: _type.INT32 = None
+
+        @_struct
+        class SizeInt32:
+            Width: _type.INT32 = None
+            Height: _type.INT32 = None
+
+        class DirectX:
+            class Direct3D11:
+                @_struct
+                class Direct3DMultisampleDescription:
+                    Count: _type.INT32 = None
+                    Quality: _type.INT32 = None
+
+                @_struct
+                class Direct3DSurfaceDescription:
+                    Width: _type.INT32 = None
+                    Height: _type.INT32 = None
+                    Format: _enum.Windows.Graphics.DirectX.DirectXPixelFormat = None
+                    MultisampleDescription: Windows.Graphics.DirectX.Direct3D11.Direct3DMultisampleDescription = None
+
+        class Display:
+            @_struct
+            class NitRange:
+                MinNits: _type.FLOAT = None
+                MaxNits: _type.FLOAT = None
+                StepSizeNits: _type.FLOAT = None
+
+            class Core:
+                @_struct
+                class HdmiDisplayHdr2086Metadata:
+                    RedPrimaryX: _type.UINT16 = None
+                    RedPrimaryY: _type.UINT16 = None
+                    GreenPrimaryX: _type.UINT16 = None
+                    GreenPrimaryY: _type.UINT16 = None
+                    BluePrimaryX: _type.UINT16 = None
+                    BluePrimaryY: _type.UINT16 = None
+                    WhitePointX: _type.UINT16 = None
+                    WhitePointY: _type.UINT16 = None
+                    MaxMasteringLuminance: _type.UINT16 = None
+                    MinMasteringLuminance: _type.UINT16 = None
+                    MaxContentLightLevel: _type.UINT16 = None
+                    MaxFrameAverageLightLevel: _type.UINT16 = None
+
+        class Holographic:
+            @_struct
+            class HolographicAdapterId:
+                LowPart: _type.UINT32 = None
+                HighPart: _type.INT32 = None
+
+            @_struct
+            class HolographicFrameId:
+                Value: _type.UINT64 = None
+
+            @_struct
+            class HolographicStereoTransform:
+                Left: Windows.Foundation.Numerics.Matrix4x4 = None
+                Right: Windows.Foundation.Numerics.Matrix4x4 = None
+
+        class Imaging:
+            @_struct
+            class BitmapBounds:
+                X: _type.UINT32 = None
+                Y: _type.UINT32 = None
+                Width: _type.UINT32 = None
+                Height: _type.UINT32 = None
+
+            @_struct
+            class BitmapPlaneDescription:
+                StartIndex: _type.INT32 = None
+                Width: _type.INT32 = None
+                Height: _type.INT32 = None
+                Stride: _type.INT32 = None
+
+            @_struct
+            class BitmapSize:
+                Width: _type.UINT32 = None
+                Height: _type.UINT32 = None
+
+        class Printing:
+            @_struct
+            class PrintPageDescription:
+                PageSize: Windows.Foundation.Size = None
+                ImageableRect: Windows.Foundation.Rect = None
+                DpiX: _type.UINT32 = None
+                DpiY: _type.UINT32 = None
+
+        class Printing3D:
+            @_struct
+            class Printing3DBufferDescription:
+                Format: _enum.Windows.Graphics.Printing3D.Printing3DBufferFormat = None
+                Stride: _type.UINT32 = None
+
+    class Management:
+        class Deployment:
+            @_struct
+            class DeploymentProgress:
+                state: _enum.Windows.Management.Deployment.DeploymentProgressState = None
+                percentage: _type.UINT32 = None
+
+    class Media:
+        @_struct
+        class MediaTimeRange:
+            Start: Windows.Foundation.TimeSpan = None
+            End: Windows.Foundation.TimeSpan = None
+
+        class Capture:
+            @_struct
+            class WhiteBalanceGain:
+                R: _type.DOUBLE = None
+                G: _type.DOUBLE = None
+                B: _type.DOUBLE = None
+
+        class Core:
+            @_struct
+            class MseTimeRange:
+                Start: Windows.Foundation.TimeSpan = None
+                End: Windows.Foundation.TimeSpan = None
+
+            @_struct
+            class TimedTextDouble:
+                Value: _type.DOUBLE = None
+                Unit: _enum.Windows.Media.Core.TimedTextUnit = None
+
+            @_struct
+            class TimedTextPadding:
+                Before: _type.DOUBLE = None
+                After: _type.DOUBLE = None
+                Start: _type.DOUBLE = None
+                End: _type.DOUBLE = None
+                Unit: _enum.Windows.Media.Core.TimedTextUnit = None
+
+            @_struct
+            class TimedTextPoint:
+                X: _type.DOUBLE = None
+                Y: _type.DOUBLE = None
+                Unit: _enum.Windows.Media.Core.TimedTextUnit = None
+
+            @_struct
+            class TimedTextSize:
+                Height: _type.DOUBLE = None
+                Width: _type.DOUBLE = None
+                Unit: _enum.Windows.Media.Core.TimedTextUnit = None
+
+        class Import:
+            @_struct
+            class PhotoImportProgress:
+                ItemsImported: _type.UINT32 = None
+                TotalItemsToImport: _type.UINT32 = None
+                BytesImported: _type.UINT64 = None
+                TotalBytesToImport: _type.UINT64 = None
+                ImportProgress: _type.DOUBLE = None
+
+        class Streaming:
+            @_struct
+            class PlaySpeed:
+                Numerator: _type.INT32 = None
+                Denominator: _type.UINT32 = None
+
+            @_struct
+            class TrackInformation:
+                Track: _type.UINT32 = None
+                TrackId: _type.UINT32 = None
+                TrackDuration: Windows.Foundation.TimeSpan = None
+
+            @_struct
+            class PositionInformation:
+                trackInformation: Windows.Media.Streaming.TrackInformation = None
+                relativeTime: Windows.Foundation.TimeSpan = None
+
+            @_struct
+            class RenderingParameters:
+                volume: _type.UINT32 = None
+                mute: _type.boolean = None
+
+            @_struct
+            class TransportInformation:
+                CurrentTransportState: _enum.Windows.Media.Streaming.TransportState = None
+                CurrentTransportStatus: _enum.Windows.Media.Streaming.TransportStatus = None
+                CurrentSpeed: Windows.Media.Streaming.PlaySpeed = None
+
+    class Networking:
+        class BackgroundTransfer:
+            @_struct
+            class BackgroundDownloadProgress:
+                BytesReceived: _type.UINT64 = None
+                TotalBytesToReceive: _type.UINT64 = None
+                Status: _enum.Windows.Networking.BackgroundTransfer.BackgroundTransferStatus = None
+                HasResponseChanged: _type.boolean = None
+                HasRestarted: _type.boolean = None
+
+            @_struct
+            class BackgroundTransferFileRange:
+                Offset: _type.UINT64 = None
+                Length: _type.UINT64 = None
+
+            @_struct
+            class BackgroundUploadProgress:
+                BytesReceived: _type.UINT64 = None
+                BytesSent: _type.UINT64 = None
+                TotalBytesToReceive: _type.UINT64 = None
+                TotalBytesToSend: _type.UINT64 = None
+                Status: _enum.Windows.Networking.BackgroundTransfer.BackgroundTransferStatus = None
+                HasResponseChanged: _type.boolean = None
+                HasRestarted: _type.boolean = None
+
+        class Connectivity:
+            @_struct
+            class NetworkUsageStates:
+                Roaming: _enum.Windows.Networking.Connectivity.TriStates = None
+                Shared: _enum.Windows.Networking.Connectivity.TriStates = None
+
+        class NetworkOperators:
+            @_struct
+            class ESimProfileInstallProgress:
+                TotalSizeInBytes: _type.INT32 = None
+                InstalledSizeInBytes: _type.INT32 = None
+
+            @_struct
+            class ProfileUsage:
+                UsageInMegabytes: _type.UINT32 = None
+                LastSyncTime: Windows.Foundation.DateTime = None
+
+        class Sockets:
+            @_struct
+            class BandwidthStatistics:
+                OutboundBitsPerSecond: _type.UINT64 = None
+                InboundBitsPerSecond: _type.UINT64 = None
+                OutboundBitsPerSecondInstability: _type.UINT64 = None
+                InboundBitsPerSecondInstability: _type.UINT64 = None
+                OutboundBandwidthPeaked: _type.boolean = None
+                InboundBandwidthPeaked: _type.boolean = None
+
+            @_struct
+            class RoundTripTimeStatistics:
+                Variance: _type.UINT32 = None
+                Max: _type.UINT32 = None
+                Min: _type.UINT32 = None
+                Sum: _type.UINT32 = None
+
+    class Perception:
+        class People:
+            @_struct
+            class HandMeshVertex:
+                Position: Windows.Foundation.Numerics.Vector3 = None
+                Normal: Windows.Foundation.Numerics.Vector3 = None
+
+            @_struct
+            class JointPose:
+                Orientation: Windows.Foundation.Numerics.Quaternion = None
+                Position: Windows.Foundation.Numerics.Vector3 = None
+                Radius: _type.FLOAT = None
+                Accuracy: _enum.Windows.Perception.People.JointPoseAccuracy = None
+
+        class Spatial:
+            @_struct
+            class SpatialBoundingBox:
+                Center: Windows.Foundation.Numerics.Vector3 = None
+                Extents: Windows.Foundation.Numerics.Vector3 = None
+
+            @_struct
+            class SpatialBoundingFrustum:
+                Near: Windows.Foundation.Numerics.Plane = None
+                Far: Windows.Foundation.Numerics.Plane = None
+                Right: Windows.Foundation.Numerics.Plane = None
+                Left: Windows.Foundation.Numerics.Plane = None
+                Top: Windows.Foundation.Numerics.Plane = None
+                Bottom: Windows.Foundation.Numerics.Plane = None
+
+            @_struct
+            class SpatialBoundingOrientedBox:
+                Center: Windows.Foundation.Numerics.Vector3 = None
+                Extents: Windows.Foundation.Numerics.Vector3 = None
+                Orientation: Windows.Foundation.Numerics.Quaternion = None
+
+            @_struct
+            class SpatialBoundingSphere:
+                Center: Windows.Foundation.Numerics.Vector3 = None
+                Radius: _type.FLOAT = None
+
+            @_struct
+            class SpatialRay:
+                Origin: Windows.Foundation.Numerics.Vector3 = None
+                Direction: Windows.Foundation.Numerics.Vector3 = None
+
+    class Security:
+        class Isolation:
+            @_struct
+            class IsolatedWindowsEnvironmentCreateProgress:
+                State: _enum.Windows.Security.Isolation.IsolatedWindowsEnvironmentProgressState = None
+                PercentComplete: _type.UINT32 = None
+
+    class Services:
+        class Store:
+            @_struct
+            class StorePackageUpdateStatus:
+                PackageFamilyName: _type.HSTRING = None
+                PackageDownloadSizeInBytes: _type.UINT64 = None
+                PackageBytesDownloaded: _type.UINT64 = None
+                PackageDownloadProgress: _type.DOUBLE = None
+                TotalDownloadProgress: _type.DOUBLE = None
+                PackageUpdateState: _enum.Windows.Services.Store.StorePackageUpdateState = None
+
+    class Storage:
+        class AccessCache:
+            @_struct
+            class AccessListEntry:
+                Token: _type.HSTRING = None
+                Metadata: _type.HSTRING = None
+
+        class Search:
+            @_struct
+            class SortEntry:
+                PropertyName: _type.HSTRING = None
+                AscendingOrder: _type.boolean = None
+
     class UI:
         @_struct
         class Color:
@@ -1923,6 +2411,10 @@ class Windows:
             R: _type.BYTE = None
             G: _type.BYTE = None
             B: _type.BYTE = None
+
+        @_struct
+        class WindowId:
+            Value: _type.UINT64 = None
 
         class Composition:
             @_struct
@@ -1943,12 +2435,71 @@ class Windows:
             @_struct
             class CoreProximityEvaluation:
                 Score: _type.INT32 = None
-                AdjustedScore: Windows.Foundation.Point = None
+                AdjustedPoint: Windows.Foundation.Point = None
+
+        class Input:
+            @_struct
+            class CrossSlideThresholds:
+                SelectionStart: _type.FLOAT = None
+                SpeedBumpStart: _type.FLOAT = None
+                SpeedBumpEnd: _type.FLOAT = None
+                RearrangeStart: _type.FLOAT = None
+
+            @_struct
+            class ManipulationDelta:
+                Translation: Windows.Foundation.Point = None
+                Scale: _type.FLOAT = None
+                Rotation: _type.FLOAT = None
+                Expansion: _type.FLOAT = None
+
+            @_struct
+            class ManipulationVelocities:
+                Linear: Windows.Foundation.Point = None
+                Angular: _type.FLOAT = None
+                Expansion: _type.FLOAT = None
+
+            class Preview:
+                class Injection:
+                    @_struct
+                    class InjectedInputPoint:
+                        PositionX: _type.INT32 = None
+                        PositionY: _type.INT32 = None
+
+                    @_struct
+                    class InjectedInputPointerInfo:
+                        PointerId: _type.UINT32 = None
+                        PointerOptions: _enum.Windows.UI.Input.Preview.Injection.InjectedInputPointerOptions = None
+                        PixelLocation: Windows.UI.Input.Preview.Injection.InjectedInputPoint = None
+                        TimeOffsetInMilliseconds: _type.UINT32 = None
+                        PerformanceCount: _type.UINT64 = None
+
+                    @_struct
+                    class InjectedInputRectangle:
+                        Left: _type.INT32 = None
+                        Top: _type.INT32 = None
+                        Bottom: _type.INT32 = None
+                        Right: _type.INT32 = None
 
         class Text:
             @_struct
             class FontWeight:
                 Weight: _type.UINT16 = None
+
+            class Core:
+                @_struct
+                class CoreTextRange:
+                    StartCaretPosition: _type.INT32 = None
+                    EndCaretPosition: _type.INT32 = None
+
+        class UIAutomation:
+            class Core:
+                @_struct
+                class AutomationAnnotationTypeRegistration:
+                    LocalId: _type.INT32 = None
+
+                @_struct
+                class AutomationRemoteOperationOperandId:
+                    Value: _type.INT32 = None
 
         class Xaml:
             @_struct
@@ -1959,18 +2510,52 @@ class Windows:
                 BottomLeft: _type.DOUBLE = None
 
             @_struct
+            class Duration:
+                TimeSpan: Windows.Foundation.TimeSpan = None
+                Type: _enum.Windows.UI.Xaml.DurationType = None
+
+            @_struct
+            class GridLength:
+                Value: _type.DOUBLE = None
+                GridUnitType: _enum.Windows.UI.Xaml.GridUnitType = None
+
+            @_struct
             class Thickness:
                 Left: _type.DOUBLE = None
                 Top: _type.DOUBLE = None
                 Right: _type.DOUBLE = None
                 Bottom: _type.DOUBLE = None
 
+            class Automation:
+                class Peers:
+                    @_struct
+                    class RawElementProviderRuntimeId:
+                        Part1: _type.UINT32 = None
+                        Part2: _type.UINT32 = None
+
             class Controls:
+                class Maps:
+                    @_struct
+                    class MapZoomLevelRange:
+                        Min: _type.DOUBLE = None
+                        Max: _type.DOUBLE = None
+
                 class Primitives:
                     @_struct
                     class GeneratorPosition:
                         Index: _type.INT32 = None
                         Offset: _type.INT32 = None
+
+            class Data:
+                @_struct
+                class LoadMoreItemsResult:
+                    Count: _type.UINT32 = None
+
+            class Documents:
+                @_struct
+                class TextRange:
+                    StartIndex: _type.INT32 = None
+                    Length: _type.INT32 = None
 
             class Interop:
                 @_struct
@@ -1999,6 +2584,61 @@ class Windows:
                     M22: _type.DOUBLE = None
                     OffsetX: _type.DOUBLE = None
                     OffsetY: _type.DOUBLE = None
+
+                class Animation:
+                    @_struct
+                    class KeyTime:
+                        TimeSpan: Windows.Foundation.TimeSpan = None
+
+                    @_struct
+                    class RepeatBehavior:
+                        Count: _type.DOUBLE = None
+                        Duration: Windows.Foundation.TimeSpan = None
+                        Type: _enum.Windows.UI.Xaml.Media.Animation.RepeatBehaviorType = None
+
+                class Media3D:
+                    @_struct
+                    class Matrix3D:
+                        M11: _type.DOUBLE = None
+                        M12: _type.DOUBLE = None
+                        M13: _type.DOUBLE = None
+                        M14: _type.DOUBLE = None
+                        M21: _type.DOUBLE = None
+                        M22: _type.DOUBLE = None
+                        M23: _type.DOUBLE = None
+                        M24: _type.DOUBLE = None
+                        M31: _type.DOUBLE = None
+                        M32: _type.DOUBLE = None
+                        M33: _type.DOUBLE = None
+                        M34: _type.DOUBLE = None
+                        OffsetX: _type.DOUBLE = None
+                        OffsetY: _type.DOUBLE = None
+                        OffsetZ: _type.DOUBLE = None
+                        M44: _type.DOUBLE = None
+
+    class Web:
+        class Http:
+            @_struct
+            class HttpProgress:  # TODO
+                Stage: _enum.Windows.Web.Http.HttpProgressStage = None
+                BytesSent: _type.UINT64 = None
+                ...  # TotalBytesToSend: _interface.Windows.Foundation.IReference[_type.UINT64] = None
+                BytesReceived: _type.UINT64 = None
+                ...  # TotalBytesToReceive: _interface.Windows.Foundation.IReference[_type.UINT64] = None
+                Retries: _type.UINT32 = None
+
+        class Syndication:
+            @_struct
+            class RetrievalProgress:
+                BytesRetrieved: _type.UINT32 = None
+                TotalBytesToRetrieve: _type.UINT32 = None
+
+            @_struct
+            class TransferProgress:
+                BytesSent: _type.UINT32 = None
+                TotalBytesToSend: _type.UINT32 = None
+                BytesRetrieved: _type.UINT32 = None
+                TotalBytesToRetrieve: _type.UINT32 = None
 
 
 class _NamespaceMeta(type):

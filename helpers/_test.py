@@ -269,9 +269,6 @@ def set_lock():
 
 if __name__ == '__main__':
     ctyped.THREADED_COM = True
-    hs = winrt._utils.HSTRING('text')
-    print(hs, str(hs))
-    exit()
 
     path = r'D:\MMDs\洛天依  -  倾杯.mp4'
     path2 = r'D:\test.mp4'

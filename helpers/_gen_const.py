@@ -1,6 +1,10 @@
+import glob
 import os
 import re
-from typing import Union
+import sys
+from typing import Union, Optional
+
+from libs import ctyped
 
 _KITS = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits')
 SDK_PATH = os.path.join(_KITS, '10', 'Include', '10.0.22621.0')
@@ -165,9 +169,11 @@ def gen_template_iid(file: str):
                 print(f'IID_{groups[0]}{f"_I{groups[2]}" if groups[2] else ""}_I{groups[3]} = \'{{{iid.groups()[0].upper()}}}\'')
 
 
-def gen_winrt_interface(file: str):
-    with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
-        data = f.read()
+def gen_winrt_interface(pattern: str = '*.h'):
+    data = ''
+    for file in glob.glob(os.path.join(SDK_PATH, 'winrt', pattern)):
+        with open(file, 'r') as stream:
+            data += stream.read()
 
     re_midl = re.compile(r'MIDL_INTERFACE\(\"(.*)\"\)')
     re_windows = re.compile('namespace Windows {')
@@ -267,11 +273,353 @@ def gen_generated_files_iid(base: str):
     _print_generated_files_iid(iid)
 
 
+def get_datas(datas: dict, namespaces: list[str]) -> dict:
+    for namespace in namespaces:
+        try:
+            datas = datas[namespace]
+        except KeyError:
+            datas[namespace] = datas = {}
+    return datas
+
+
+def find_end(lines: list[str], line_num: int) -> int:
+    if lines[line_num + 1].strip().startswith('{'):
+        while not lines[line_num].strip().startswith('}'):
+            line_num += 1
+    else:
+        line_num = 0
+    return line_num
+
+
+def sort_enum_struct(datas: dict):
+    pops = []
+    for name, value in datas.items():
+        if isinstance(next(iter(value.values())), dict):
+            pops.append(name)
+            sort_enum_struct(value)
+    pops.sort()
+    for name in pops:
+        datas[name] = datas.pop(name)
+
+
+def sort_iids(datas: dict):
+    pops = []
+    for name, data in datas.items():
+        if isinstance(data, dict):
+            pops.append(name)
+            sort_iids(data)
+    pops.sort()
+    for name in pops:
+        datas[name] = datas.pop(name)
+
+
+def sort_interface(datas: dict):
+    pops = []
+    for name, data in datas.items():
+        if isinstance(name, str):
+            pops.append(name)
+            sort_interface(data)
+    pops.sort()
+    for name in pops:
+        datas[name] = datas.pop(name)
+
+
+def add_ptr(type_: str, count: int) -> str:
+    for _ in range(count):
+        type_ = f'_Pointer[{type_}]'
+    return type_
+
+
+def resolve_type(type_: str, this: str = '', interfaces: Optional[dict] = None, runtimeclasses: Optional[dict] = None, re_bracket=re.compile('<(.*)>')) -> str:
+    names = 'type', 'enum', 'struct'
+    ptr_c = 0
+    while type_.endswith('*'):
+        ptr_c += 1
+        type_ = type_[:-1]
+    if type_ == 'AsyncStatus':
+        return add_ptr(f'{"_enum." * (this != "enum")}Windows.Foundation.AsyncStatus', ptr_c)
+    elif type_ == 'IInspectable' or type_ == 'IUnknown':
+        return add_ptr(f'{"_interface." * (this != "interface")}{type_}', ptr_c - 1)
+    elif type_ == 'Windows.Foundation.Collections.IVectorChangedEventArgs':
+        return add_ptr(type_, ptr_c - 1)
+    if runtimeclasses:
+        *namespaces, name = type_.split('.')
+        base = runtimeclasses
+        for namespace in namespaces:
+            try:
+                base = base[namespace]
+            except KeyError:
+                break
+        try:
+            type_ = base[name][0]
+        except KeyError:
+            pass
+    for name in names:
+        if name != this:
+            types = getattr(ctyped, name)
+            try:
+                for type__ in type_.split('.'):
+                    types = getattr(types, type__)
+            except AttributeError:
+                continue
+            else:
+                return add_ptr(f'_{name}.{type_}', ptr_c)
+    if this == 'interface':
+        if match := re_bracket.search(type_):
+            *namespaces, name = type_[:match.start()].split('.')
+            return add_ptr(f'{".".join(namespaces)}.{"I" * (1 - name.startswith("I"))}{name}{[resolve_type(type__, this, interfaces, runtimeclasses) for type__ in get_params(match.groups()[0])]}'.replace("'", ''), ptr_c - 1)
+        else:
+            *namespaces, name = type_.split('.')
+            for namespace in namespaces:
+                try:
+                    interfaces = interfaces[namespace]
+                except KeyError:
+                    break
+            i_type = None
+            for key in interfaces:
+                if key[0] == name:
+                    i_type = type_
+                elif key[0] == f'I{name}':
+                    i_type = f'{".".join(namespaces)}.I{name}'
+                if i_type:
+                    return add_ptr(i_type, ptr_c - 1)
+    print(f'# TODO {type_}')
+    return type_
+
+
+def get_params(line: str) -> list[str]:
+    params = []
+    start = 0
+    bracket = 0
+    for index in range(len(line)):
+        char = line[index]
+        if char == '<':
+            bracket += 1
+        elif char == '>':
+            bracket -= 1
+        elif char == ',' and not bracket:
+            params.append(line[start:index])
+            start = index + 2
+    params.append(line[start:])
+    if params[0] == '':
+        params.clear()
+    return params
+
+
+def get_args(line: str, re_bracket=re.compile(r'\[.*?]')) -> dict[str, str]:
+    args = {}
+    params = get_params(' '.join(re_bracket.sub('', line).split()))
+    for param in params:
+        *type_, name = param.removeprefix('const ').rsplit(maxsplit=1)
+        args[name] = ''.join(type_)
+    return args
+
+
+def print_enum(enums: dict, intend: str = ''):
+    sort_enum_struct(enums)
+    for name, value in enums.items():
+        if isinstance(next(iter(value.values())), str):
+            print(f'{intend}class {name}(_Enum):')
+            for name_, value_ in value.items():
+                print(f'{intend}    {"None_" if name_ == "None" else name_} = {value_}')
+        else:
+            print(f'{intend}class {name}:')
+            print_enum(value, f'{intend}    ')
+
+
+def print_struct(structs: dict, indent: str = ''):
+    sort_enum_struct(structs)
+    for name, value in structs.items():
+        if isinstance(next(iter(value.values())), str):
+            print(f'{indent}@_struct')
+            print(f'{indent}class {name}:')
+            for name_, value_ in value.items():
+                print(f'{indent}    {name_}: {resolve_type(value_, "struct")} = None')
+        else:
+            print(f'{indent}class {name}:')
+            print_struct(value, f'{indent}    ')
+
+
+def print_iid(iids: dict, indent: str = ''):
+    sort_iids(iids)
+    for name, value in iids.items():
+        if isinstance(value, dict):
+            print(f'{indent}class {name}:')
+            print_iid(value, f'{indent}    ')
+        else:
+            print(f'{indent}IID_{name} = \'{{{value}}}\'')
+
+
+def print_interface(interfaces: dict, runtimeclasses: dict, indent: str = '', __interfaces=None):
+    sort_interface(interfaces)
+    if __interfaces is None:
+        __interfaces = interfaces
+    for name, value in interfaces.items():
+        if isinstance(name, tuple):
+            is_delegate = name[1] == 'IUnknown' and len(value) == 1 and 'Invoke' in value
+            print(f'{indent}class {"_" * is_delegate}{name[0]}{f"({name[1]})" * (not is_delegate)}:')
+            if value:
+                for func, (args, res) in value.items():
+                    q_final = f'{indent}    {func}: _Callable[[' + f',\n{indent}        '.join(resolve_type(val, "interface", __interfaces, runtimeclasses) for val in args.values()) + '],'
+                    s_final = ''
+                    if args:
+                        for line, kwarg in zip(q_final.splitlines(), args):
+                            s_final += line + f'  # {kwarg}\n'
+                    else:
+                        s_final += q_final + '\n'
+                    print(f'{s_final}{indent}        {resolve_type(res, "interface", __interfaces, runtimeclasses)}]')
+            else:
+                print(f'{indent}    pass')
+            if is_delegate:
+                print(f'{indent}class {name[0]}(_{name[0]}, {name[1]}):')
+                print(f'{indent}    pass')
+                print(f'{indent}# noinspection PyPep8Naming')
+                print(f'{indent}class {name[0]}_impl(_{name[0]}, {name[1]}_impl):')
+                print(f'{indent}    pass')
+        else:
+            print(f'{indent}class {name}:')
+            print_interface(value, runtimeclasses, f'{indent}    ', __interfaces)
+
+
+def gen_winrt(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False, p_iid: bool = False, p_interface: bool = False):
+    data = ''
+    assert pattern.endswith('.idl')
+    for file in glob.glob(os.path.join(SDK_PATH, 'winrt', pattern)):
+        if '.' in os.path.splitext(os.path.basename(file))[0]:
+            with open(file, 'r') as stream:
+                data += stream.read()
+
+    re_namespace = re.compile(r'namespace (\S+)')
+    re_enum = re.compile(r'enum (\S+)')
+    re_enum_ = re.compile(r'(\S+)(\s*)=\s((0x)?\d*),?')
+    re_struct = re.compile(r'struct (\S+)')
+    re_struct_ = re.compile(r'(\S+)\s(.*);')
+    re_iid = re.compile(r'\[uuid\(([\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{4}-[\dA-F]{12})\)]')
+    re_delegate = re.compile(r'delegate')
+    re_interface = re.compile(r'interface (\S+) : (\S+)')
+    re_func = re.compile(r'(\S+) (\S+?)\((.*)\);')
+    re_template = re.compile(r'declare')
+    re_runtimeclass = re.compile(r'runtimeclass (\S+)')
+    re_runtimeclass_interface = re.compile(r'interface (.*);')
+    re_attribute = re.compile(r'attribute (\S+)')
+    re_contract = re.compile(r'apicontract (\S+)')
+
+    lines = data.split('\n')
+    namespaces = []
+    enums = {}
+    structs = {}
+    iids = {}
+    interfaces = {}
+    runtimeclasses = {}
+    line_num = 0
+    while line_num < len(lines):
+        line = lines[line_num].strip()
+        if match := re_namespace.fullmatch(line):
+            namespaces.append(match.groups()[0])
+            line_num += 1
+        elif match := re_enum.fullmatch(line):
+            enum = {}
+            if end := find_end(lines, line_num):
+                start = line_num + 2
+                line_num = end
+                for line_ in lines[start:end]:
+                    if match_ := re_enum_.fullmatch(line_.strip()):
+                        enum[match_.groups()[0]] = match_.groups()[2]
+                get_datas(enums, namespaces)[match.groups()[0]] = enum
+        elif match := re_struct.fullmatch(line):
+            struct = {}
+            if end := find_end(lines, line_num):
+                start = line_num + 2
+                line_num = end
+                for line_ in lines[start:end]:
+                    if match_ := re_struct_.fullmatch(line_.strip()):
+                        struct[match_.groups()[1]] = match_.groups()[0]
+                get_datas(structs, namespaces)[match.groups()[0]] = struct
+        elif re_delegate.fullmatch(line):
+            line_ = lines[line_num + 1].strip()
+            match_ = re_func.fullmatch(line_[line_.find('HRESULT'):])
+            func = f'I{match_.groups()[1]}'
+            get_datas(iids, namespaces)[func] = re_iid.fullmatch(lines[line_num - 1].strip()).groups()[0]
+            get_datas(interfaces, namespaces)[(func, 'IUnknown')] = {'Invoke': (get_args(match_.groups()[2]), match_.groups()[0])}
+        elif match := re_interface.fullmatch(line):
+            get_datas(iids, namespaces)[match.groups()[0]] = re_iid.fullmatch(lines[line_num - 1].strip()).groups()[0]
+            interface = {}
+            while not lines[line_num].strip().startswith('{'):
+                line_num += 1
+            line_num_ = line_num + 1
+            while not lines[line_num].strip().startswith('}'):
+                line_num += 1
+            for line_ in lines[line_num_:line_num]:
+                line_ = line_.strip()
+                match_ = re_func.fullmatch(line_[line_.find('HRESULT'):])
+                func = match_.groups()[1]
+                if line_.startswith('[propget]'):
+                    func = 'get_' + func
+                elif line_.startswith('[propput]'):
+                    func = 'put_' + func
+                elif line_.startswith('[eventadd]'):
+                    func = 'add_' + func
+                elif line_.startswith('[eventremove]'):
+                    func = 'remove_' + func
+                interface[func] = get_args(match_.groups()[2]), match_.groups()[0]
+            get_datas(interfaces, namespaces)[match.groups()] = interface
+        elif re_template.fullmatch(line):
+            if end := find_end(lines, line_num):
+                start = line_num + 2
+                line_num = end
+        elif match := re_runtimeclass.search(line):
+            if not line.endswith(';'):
+                runtimeclass = []
+                if end := find_end(lines, line_num):
+                    start = line_num + 2
+                    line_num = end
+                    default_index = None
+                    for line_ in lines[start:end]:
+                        if match_ := re_runtimeclass_interface.search(line_):
+                            runtimeclass.append(match_.groups()[0])
+                            if line_.find('[default]') != -1:
+                                default_index = len(runtimeclass) - 1
+                    if default_index is not None:
+                        runtimeclass.insert(0, runtimeclass.pop(default_index))
+                    get_datas(runtimeclasses, namespaces)[match.groups()[0]] = tuple(runtimeclass)
+        elif re_contract.fullmatch(line):
+            if end := find_end(lines, line_num):
+                start = line_num + 2
+                line_num = end
+        elif re_attribute.fullmatch(line):
+            if end := find_end(lines, line_num):
+                start = line_num + 2
+                line_num = end
+        elif line.startswith('}'):
+            # print(namespaces, line_num + 1)
+            try:
+                namespaces.pop()
+            except IndexError:
+                print(*lines[line_num - 5:line_num], sep='\n')
+                raise
+        line_num += 1
+    assert not namespaces
+    if p_enum:
+        print_enum(enums)
+    if p_struct:
+        print_struct(structs)
+    if p_iid:
+        print_iid(iids)
+    if p_interface:
+        print_interface(interfaces, runtimeclasses)
+    # pprint.pprint(runtimeclasses, width=1, sort_dicts=False)
+
+
 if __name__ == '__main__':
     # noinspection PyUnresolvedReferences
     from libs.ctyped import winrt
 
+    f = open('gen.py', 'w')
+    sys.stdout = f
+    gen_winrt(p_interface=True)
+    f.close()
     # gen_template_iid('Windows.ui.composition.h')
-    gen_winrt_interface('Windows.devices.input.h')
+    # gen_winrt_interface('Windows.foundation.h')
     # gen_properties(winrt._utils.LinearGradientBrush)
     # gen_generated_files_iid(r'D:\Projects\MyDesktopWin32App\x64\Debug\Generated Files\winrt\impl')
+    exit()
