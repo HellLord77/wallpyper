@@ -9,8 +9,8 @@ import sys
 import time
 from typing import Any, Callable, Generator, IO, Iterable, Mapping, Optional
 
-DELAY = 0.01
 CHUNK = 1024 * 1024
+POLL_INTERVAL = 0.1
 
 
 class File:
@@ -143,5 +143,5 @@ def remove(path: str, recursive: bool = False, timeout: Optional[float] = None) 
             except (FileNotFoundError, NotADirectoryError):
                 break
         tried = True
-        time.sleep(DELAY)
+        time.sleep(POLL_INTERVAL)
     return not os.path.exists(path)

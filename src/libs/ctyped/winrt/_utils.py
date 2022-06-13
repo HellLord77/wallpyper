@@ -1,6 +1,5 @@
 from __future__ import annotations as _
 
-import atexit
 import builtins
 import datetime
 from typing import Any
@@ -49,8 +48,9 @@ class HSTRING(handle.HSTRING):
 class _Interface(builtins.type):
     _interfaces: dict[builtins.type[_TUnknown], Optional[_TUnknown]]
     _statics: dict[builtins.type[_TUnknown], Optional[_TUnknown]]
-    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED)
-    atexit.register(lib.Combase.RoUninitialize)
+
+    # lib.Combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED) TODO
+    # atexit.register(lib.Combase.RoUninitialize)
 
     def __del__(self):  # TODO
         if isinstance(self._statics, dict):
@@ -183,6 +183,31 @@ class _InsertionPanel(_Inspectable):
     _interfaces = (interface.Windows.UI.Xaml.Controls.IInsertionPanel,)
 
 
+class _DispatchedHandler(interface.Windows.UI.Core.IDispatchedHandler_impl):
+    function: Callable
+    args: Iterable
+    kwargs: Mapping[str, Any]
+
+    # noinspection PyPep8Naming
+    def Invoke(self) -> type.HRESULT:
+        return self.function(*self.args, **self.kwargs)
+
+
+class DispatchedHandler(_Unknown):
+    _interfaces = (interface.Windows.UI.Core.IDispatchedHandler,)
+
+    @classmethod
+    def create_instance(cls, function: Callable[[...], type.HRESULT], args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> DispatchedHandler:
+        obj = _DispatchedHandler()
+        obj.function = function
+        obj.args = () if args is None else args
+        obj.kwargs = {} if kwargs is None else kwargs
+        return DispatchedHandler(obj)
+
+    def __call__(self) -> type.HRESULT:
+        return self[interface.Windows.UI.Core.IDispatchedHandler].Invoke()
+
+
 class RoutedEventArgs(_Inspectable):
     _interfaces = (interface.Windows.UI.Xaml.IRoutedEventArgs,)
 
@@ -261,6 +286,35 @@ class PointerEventHandler(_Unknown):
 
     def __call__(self, sender: _Inspectable, e: PointerRoutedEventArgs) -> type.HRESULT:
         return self[interface.Windows.UI.Xaml.Input.IPointerEventHandler].Invoke(sender[interface.IInspectable], e[interface.Windows.UI.Xaml.Input.IPointerRoutedEventArgs])
+
+
+class ApplicationInitializationCallbackParams(_Inspectable):
+    _interfaces = (interface.Windows.UI.Xaml.IApplicationInitializationCallbackParams,)
+
+
+class _ApplicationInitializationCallback(interface.Windows.UI.Xaml.IApplicationInitializationCallback_impl):
+    function: Callable
+    args: Iterable
+    kwargs: Mapping[str, Any]
+
+    # noinspection PyPep8Naming
+    def Invoke(self, p: interface.Windows.UI.Xaml.IApplicationInitializationCallbackParams) -> type.HRESULT:
+        return self.function(ApplicationInitializationCallbackParams(p), *self.args, **self.kwargs)
+
+
+class ApplicationInitializationCallback(_Unknown):
+    _interfaces = (interface.Windows.UI.Xaml.IApplicationInitializationCallback,)
+
+    @classmethod
+    def create_instance(cls, function: Callable[[ApplicationInitializationCallbackParams, ...], type.HRESULT], args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> ApplicationInitializationCallback:
+        obj = _ApplicationInitializationCallback()
+        obj.function = function
+        obj.args = () if args is None else args
+        obj.kwargs = {} if kwargs is None else kwargs
+        return ApplicationInitializationCallback(obj)
+
+    def __call__(self, p: ApplicationInitializationCallbackParams) -> type.HRESULT:
+        return self[interface.Windows.UI.Xaml.IApplicationInitializationCallback].Invoke(p[interface.Windows.UI.Xaml.IApplicationInitializationCallbackParams])
 
 
 class _ICompositorWithProjectedShadow(_Inspectable):
@@ -409,6 +463,107 @@ class CoreDispatcher(_Inspectable):
     _interfaces = (interface.Windows.UI.Core.ICoreDispatcher,
                    interface.Windows.UI.Core.ICoreDispatcher2)
 
+    @property
+    def has_thread_access(self) -> bool:
+        value = type.boolean()
+        self[interface.Windows.UI.Core.ICoreDispatcher].get_HasThreadAccess(byref(value))
+        return bool(value)
+
+    def process_events(self, options: enum.Windows.UI.Core.CoreProcessEventsOption) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Core.ICoreDispatcher].ProcessEvents(options))
+
+    def run_async(self, priority: enum.Windows.UI.Core.CoreDispatcherPriority, agile_callback: DispatchedHandler) -> AsyncAction:
+        obj = interface.Windows.Foundation.IAsyncAction()
+        self[interface.Windows.UI.Core.ICoreDispatcher].RunAsync(priority, agile_callback[interface.Windows.UI.Core.IDispatchedHandler], byref(obj))
+        return AsyncAction(obj)
+
+    def run_idle_async(self, agile_callback: DispatchedHandler) -> AsyncAction:
+        obj = interface.Windows.Foundation.IAsyncAction()
+        self[interface.Windows.UI.Core.ICoreDispatcher].RunIdleAsync(agile_callback[interface.Windows.UI.Core.IDispatchedHandler], byref(obj))
+        return AsyncAction(obj)
+
+    def try_run_async(self, priority: enum.Windows.UI.Core.CoreDispatcherPriority, agile_callback: DispatchedHandler) -> AsyncOperationBoolean:
+        obj = interface.Windows.Foundation.IAsyncOperation[type.boolean]()
+        self[interface.Windows.UI.Core.ICoreDispatcher2].TryRunAsync(priority, agile_callback[interface.Windows.UI.Core.IDispatchedHandler], byref(obj))
+        return AsyncOperationBoolean(obj)
+
+    def try_run_idle_async(self, agile_callback: DispatchedHandler) -> AsyncOperationBoolean:
+        obj = interface.Windows.Foundation.IAsyncOperation[type.boolean]()
+        self[interface.Windows.UI.Core.ICoreDispatcher2].TryRunIdleAsync(agile_callback[interface.Windows.UI.Core.IDispatchedHandler], byref(obj))
+        return AsyncOperationBoolean(obj)
+
+
+class Application(_Inspectable):
+    _statics = (interface.Windows.UI.Xaml.IApplicationFactory,
+                interface.Windows.UI.Xaml.IApplicationStatics)
+    _interfaces = (interface.Windows.UI.Xaml.IApplication,
+                   interface.Windows.UI.Xaml.IApplication2,
+                   interface.Windows.UI.Xaml.IApplication3,
+                   interface.Windows.UI.Xaml.IApplicationOverrides,
+                   interface.Windows.UI.Xaml.IApplicationOverrides2)
+
+    @classmethod
+    @property
+    def current(cls) -> Application:
+        obj = interface.Windows.UI.Xaml.IApplication()
+        cls[interface.Windows.UI.Xaml.IApplicationStatics].get_Current(byref(obj))
+        return Application(obj)
+
+    @classmethod
+    def start(cls, callback: ApplicationInitializationCallback) -> bool:
+        return macro.SUCCEEDED(cls[interface.Windows.UI.Xaml.IApplicationStatics].Start(callback[interface.Windows.UI.Xaml.IApplicationInitializationCallback]))
+
+    @classmethod
+    def load_component(cls, component: _Inspectable, resource_locator: Uri) -> bool:
+        return macro.SUCCEEDED(cls[interface.Windows.UI.Xaml.IApplicationStatics].LoadComponent(component[interface.IInspectable], resource_locator[interface.Windows.Foundation.IUriRuntimeClass]))
+
+    @classmethod
+    def load_component_with_resource_location(cls, component: _Inspectable, resource_locator: Uri, component_resource_location: enum.Windows.UI.Xaml.Controls.Primitives.ComponentResourceLocation) -> bool:
+        return macro.SUCCEEDED(cls[interface.Windows.UI.Xaml.IApplicationStatics].LoadComponentWithResourceLocation(component[interface.IInspectable], resource_locator[interface.Windows.Foundation.IUriRuntimeClass], component_resource_location))
+
+    @property
+    def requested_theme(self) -> enum.Windows.UI.Xaml.ApplicationTheme:
+        value = enum.Windows.UI.Xaml.ApplicationTheme()
+        self[interface.Windows.UI.Xaml.IApplication].get_RequestedTheme(byref(value))
+        return value
+
+    @requested_theme.setter
+    def requested_theme(self, value: enum.Windows.UI.Xaml.ApplicationTheme):
+        self[interface.Windows.UI.Xaml.IApplication].put_RequestedTheme(value)
+
+    def exit(self) -> bool:
+        return macro.SUCCEEDED(self[interface.Windows.UI.Xaml.IApplication].Exit())
+
+    @property
+    def focus_visual_kind(self) -> enum.Windows.UI.Xaml.FocusVisualKind:
+        value = enum.Windows.UI.Xaml.FocusVisualKind()
+        self[interface.Windows.UI.Xaml.IApplication].get_FocusVisualKind(byref(value))
+        return value
+
+    @focus_visual_kind.setter
+    def focus_visual_kind(self, value: enum.Windows.UI.Xaml.FocusVisualKind):
+        self[interface.Windows.UI.Xaml.IApplication].put_FocusVisualKind(value)
+
+    @property
+    def requires_pointer_mode(self) -> enum.Windows.UI.Xaml.ApplicationRequiresPointerMode:
+        value = enum.Windows.UI.Xaml.ApplicationRequiresPointerMode()
+        self[interface.Windows.UI.Xaml.IApplication2].get_RequiresPointerMode(byref(value))
+        return value
+
+    @requires_pointer_mode.setter
+    def requires_pointer_mode(self, value: enum.Windows.UI.Xaml.ApplicationRequiresPointerMode):
+        self[interface.Windows.UI.Xaml.IApplication2].put_RequiresPointerMode(value)
+
+    @property
+    def high_contrast_adjustment(self) -> enum.Windows.UI.Xaml.ApplicationHighContrastAdjustment:
+        value = enum.Windows.UI.Xaml.ApplicationHighContrastAdjustment()
+        self[interface.Windows.UI.Xaml.IApplication3].get_HighContrastAdjustment(byref(value))
+        return value
+
+    @high_contrast_adjustment.setter
+    def high_contrast_adjustment(self, value: enum.Windows.UI.Xaml.ApplicationHighContrastAdjustment):
+        self[interface.Windows.UI.Xaml.IApplication3].put_HighContrastAdjustment(value)
+
 
 class DesktopWindowXamlSource(_Closable):
     _interfaces = (interface.Windows.UI.Xaml.Hosting.IDesktopWindowXamlSource,)
@@ -537,6 +692,35 @@ class DependencyObject(_Inspectable):
     _statics = (interface.Windows.UI.Xaml.IDependencyObjectFactory,)
     _interfaces = (interface.Windows.UI.Xaml.IDependencyObject,
                    interface.Windows.UI.Xaml.IDependencyObject2)
+
+
+class VisualTreeHelper(_Inspectable):
+    _statics = (interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics,
+                interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics2,
+                interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics3)
+    _interfaces = (interface.Windows.UI.Xaml.Media.IVisualTreeHelper,)
+
+    @classmethod
+    def get_child(cls, reference: DependencyObject, child_index: int) -> DependencyObject:
+        obj = interface.Windows.UI.Xaml.IDependencyObject()
+        cls[interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics].GetChild(reference[interface.Windows.UI.Xaml.IDependencyObject], child_index, byref(obj))
+        return DependencyObject(obj)
+
+    @classmethod
+    def get_children_count(cls, reference: DependencyObject) -> int:
+        value = type.INT32()
+        cls[interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics].GetChildrenCount(reference[interface.Windows.UI.Xaml.IDependencyObject], byref(value))
+        return value.value
+
+    @classmethod
+    def get_parent(cls, reference: DependencyObject) -> DependencyObject:
+        obj = interface.Windows.UI.Xaml.IDependencyObject()
+        cls[interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics].GetParent(reference[interface.Windows.UI.Xaml.IDependencyObject], byref(obj))
+        return DependencyObject(obj)
+
+    @classmethod
+    def disconnect_children_recursive(cls, reference: UIElement) -> bool:
+        return macro.SUCCEEDED(cls[interface.Windows.UI.Xaml.Media.IVisualTreeHelperStatics].DisconnectChildrenRecursive(reference[interface.Windows.UI.Xaml.IUIElement]))
 
 
 class UIElement(_AnimationObject, _VisualElement, DependencyObject):
@@ -5435,6 +5619,25 @@ class _IAsyncOperation(_Inspectable):
         obj = self._tresult_async_operation[0]()
         self[interface.Windows.Foundation.IAsyncOperation[self._tresult_async_operation[0]]].GetResults(byref(obj))
         return obj if self._tresult_async_operation[1] is None else self._tresult_async_operation[1](obj)
+
+
+class AsyncOperationBoolean(_IAsyncOperation):
+    _tresult_async_operation = type.boolean, bool
+    _interfaces = (interface.Windows.Foundation.IAsyncOperation[type.boolean],)
+
+    completed: AsyncOperationCompletedHandlerBoolean
+    get_results: Callable[[], bool]
+
+
+class AsyncOperationCompletedHandlerBoolean(_IAsyncOperationCompletedHandler):
+    _tasync_info_async_operation_completed_handler = interface.Windows.Foundation.IAsyncOperation[type.boolean], AsyncOperationBoolean
+    _interfaces = (interface.Windows.Foundation.IAsyncOperationCompletedHandler[type.boolean],)
+
+    create_instance: Callable[[Callable[[AsyncOperationBoolean, enum.Windows.Foundation.AsyncStatus, ...], type.HRESULT], Optional[Iterable], Optional[Mapping[str, Any]]], AsyncOperationCompletedHandlerBoolean]
+    __call__: Callable[[AsyncOperationBoolean, enum.Windows.Foundation.AsyncStatus], type.HRESULT]
+
+
+AsyncOperationBoolean._tcompleted_async_operation_completed = interface.Windows.Foundation.IAsyncOperationCompletedHandler[type.boolean], AsyncOperationCompletedHandlerBoolean
 
 
 class AsyncOperationRandomAccessStream(_IAsyncOperation):

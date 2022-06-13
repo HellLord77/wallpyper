@@ -67,6 +67,7 @@ class Windows:
 
         class Core:
             CoreDispatcher = _utils.CoreDispatcher
+            DispatchedHandler = _utils.DispatchedHandler
 
         class Notifications:
             ToastActivatedEventArgs = _utils.ToastActivatedEventArgs
@@ -79,6 +80,9 @@ class Windows:
         class Xaml:
             RoutedEventHandler = _utils.RoutedEventHandler
 
+            ApplicationInitializationCallback = _utils.ApplicationInitializationCallback
+            ApplicationInitializationCallbackParams = _utils.ApplicationInitializationCallbackParams
+            Application = _utils.Application
             DependencyObject = _utils.DependencyObject
             DependencyProperty = _utils.DependencyProperty
             FrameworkElement = _utils.FrameworkElement
@@ -136,3 +140,4 @@ class Windows:
                 GradientBrush = _utils.GradientBrush
                 LinearGradientBrush = _utils.LinearGradientBrush
                 SolidColorBrush = _utils.SolidColorBrush
+                VisualTreeHelper = _utils.VisualTreeHelper

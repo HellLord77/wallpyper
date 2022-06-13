@@ -111,7 +111,7 @@ def _test_gui():
     # menu.set_item_submenu(item, menu2)
     item.set_submenu(menu2)
     item.set_image(p)
-    item.set_tooltip('https://www.google.interface')
+    item.set_tooltip('https://www.google.com')
     g.bind(gui.GuiEvent.DISPLAY_CHANGE, lambda *args: print('display', args))
 
     s.bind(gui.SystemTrayEvent.RIGHT_UP, _foo, (menu, item))
@@ -229,22 +229,6 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
             ctyped.lib.Kernel32.HeapFree(ctyped.lib.Kernel32.GetProcessHeap(), 0, buff)
     ctyped.lib.Kernel32.ReleaseActCtx(handle)
     return compatibility
-
-
-class C1:
-    pass
-
-
-class ProxyC1(type(C1)):
-    def __eq__(self, other):
-        return other in (C1, C2)
-
-    def __hash__(self):
-        return hash(C1)
-
-
-class C2(metaclass=ProxyC1):
-    pass
 
 
 def set_lock():

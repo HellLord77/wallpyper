@@ -3,6 +3,7 @@ from __future__ import annotations as _
 import builtins as _builtins
 import contextlib as _contextlib
 import itertools
+import sys
 from typing import Optional as _Optional, ContextManager as _ContextManager
 
 from libs import ctyped
@@ -146,19 +147,31 @@ def pointer_exit(sender, arg):
     return ctyped.const.NOERROR
 
 
+def find_child(parent: winrt.Windows.UI.Xaml.DependencyObject, name: str = '') -> _Optional[winrt.Windows.UI.Xaml.DependencyObject]:
+    for index in range(winrt.Windows.UI.Xaml.Media.VisualTreeHelper.get_children_count(parent)):
+        child = winrt.Windows.UI.Xaml.Media.VisualTreeHelper.get_child(parent, index)
+        if name == winrt.Windows.UI.Xaml.FrameworkElement(child).name:
+            return child
+        else:
+            child = find_child(child, name)
+            if child is not None:
+                return child
+
+
 def main():
     global _HWND
     class_name = "test_winui"
     with open(r'xaml.xml', 'r') as file:
         xaml_data = file.read()
+    corner_radius = ctyped.struct.Windows.UI.Xaml.CornerRadius(4, 4, 4, 4)
 
     hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
     wnd_class = ctyped.struct.WNDCLASSW(lpfnWndProc=ctyped.type.WNDPROC(wnd_proc), hInstance=hinstance, lpszClassName=class_name)
     ctyped.lib.User32.RegisterClassW(ctyped.byref(wnd_class))
 
-    hwnd = ctyped.handle.HWND(
-        ctyped.lib.User32.CreateWindowExW(0, class_name, "Windows python Win32 Desktop App", ctyped.const.WS_OVERLAPPEDWINDOW | ctyped.const.WS_VISIBLE, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
-                                          ctyped.const.CW_USEDEFAULT, None, None, hinstance, None))
+    hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
+        0, class_name, "Windows python Win32 Desktop App", ctyped.const.WS_OVERLAPPEDWINDOW | ctyped.const.WS_VISIBLE, ctyped.const.CW_USEDEFAULT,
+        ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, None, None, hinstance, None))
     # value = ctyped.type.BOOL(True)
     # ctyped.lib.Dwmapi.DwmSetWindowAttribute(hwnd, ctyped.enum.DWMWINDOWATTRIBUTE.USE_IMMERSIVE_DARK_MODE, ctyped.byref(value), ctyped.sizeof(value))
 
@@ -179,11 +192,15 @@ def main():
     text_block.HorizontalAlignment = ctyped.enum.Windows.UI.Xaml.HorizontalAlignment.Center
     text_block.VerticalAlignment = ctyped.enum.Windows.UI.Xaml.VerticalAlignment.Center
     print('created text block')
+
     element = winrt.Windows.UI.Xaml.Controls.DropDownButton(winrt.Windows.UI.Xaml.Markup.XamlReader.load_with_initial_template_validation(xaml_data))
-    corner_radius = ctyped.struct.Windows.UI.Xaml.CornerRadius(4, 4, 4, 4)
     element.corner_radius = corner_radius
     container.children.append(element)
-    print(container.children.get_at(0).opacity)
+
+    print(element.find_name('FlyoutItem'))
+    fly = winrt.Windows.UI.Xaml.Controls.Primitives.FlyoutBase.get_attached_flyout(element)
+    print(fly, bool(fly))
+
     button = winrt.Windows.UI.Xaml.Controls.Button()
     button.corner_radius = corner_radius
     button.horizontal_alignment = ctyped.enum.Windows.UI.Xaml.HorizontalAlignment.Center
@@ -301,6 +318,31 @@ def main():
         ctyped.lib.User32.DispatchMessageW(ctyped.byref(msg))
 
     source.close()
+
+
+def foo(p: winrt.Windows.UI.Xaml.ApplicationInitializationCallbackParams):
+    print(p)
+    return ctyped.const.NOERROR
+
+
+def disp():
+    print('disp')
+    return ctyped.const.NOERROR
+
+
+def application():
+    ctyped.lib.Combase.RoInitialize(ctyped.enum.RO_INIT_TYPE.SINGLETHREADED)
+    app = winrt.Windows.UI.Xaml.Application()
+    # dh = winrt.Windows.UI.Core.DispatchedHandler.create_instance(disp)
+    # patcher = winrt.Windows.UI.Core.CoreDispatcher()
+    # res = winrt.Windows.Foundation.Uri.create_uri('file://D:/Projects/wallpyper/helpers/app.xml')
+    # winrt.Windows.UI.Xaml.Application.load_component(app, res)
+    bar = winrt.Windows.UI.Xaml.ApplicationInitializationCallback.create_instance(foo)
+    winrt.Windows.UI.Xaml.Application.start(bar)
+    window = winrt.Windows.UI.Xaml.Window.current
+    print(bool(window), window)
+    app.exit()
+    sys.exit(69)
 
 
 if __name__ == '__main__':

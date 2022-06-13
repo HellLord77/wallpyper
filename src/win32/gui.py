@@ -463,8 +463,8 @@ class Menu(_Control):
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
         self._hmenu = ctyped.handle.HMENU.from_type()
-        if not ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(
-                ctyped.struct.MENUINFO(fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
+        if not ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
+                fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
         self._hmenu.set_hwnd(self._hwnd)
         self._items: list[_MenuItem] = []

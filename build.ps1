@@ -1,27 +1,17 @@
-$Version = "0.0.4"
-
-<#
-.INPUTS
-    $Datas = @()
-    $Debug = $False
-    $EntryPoint = "src\main.py"
-    $Excludes = @()
-    $Icon = ""
-    $Manifest = "" FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
-    $NoConsole = $False
-    $Obfuscate = $False
-    $OneFile = $False
-    $UPX = $False
-    $MainManifest = ""
-#>
+$Version = "0.0.5"
+$MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $Datas = @("libs\colors\colornames.min.json", "libs\locales\iso_639-2.json", "libs\locales\iso_3166-1.json", "resources", "win32\syspin.exe")
+$Excludes = @()
+$Debug = $False
+$EntryPoint = "src\init.py"
 $Icon = "src\resources\icon.ico"
+$Manifest = "" # FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $NoConsole = $True
+$Obfuscate = $False
 $OneFile = $True
+$UPX = $False
 $MainManifest = "manifest.xml"
-
-$MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 function Get-Name
 {
@@ -133,11 +123,6 @@ function BuildProject
     else
     {
         $MainArgs += "--noupx"
-    }
-
-    if (!$EntryPoint)
-    {
-        $EntryPoint = Join-Path "src" "main.py"
     }
 
     $SrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf

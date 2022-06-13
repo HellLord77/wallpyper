@@ -9,7 +9,7 @@
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE725;"/>
                 </MenuFlyoutItem.Icon>
             </MenuFlyoutItem>
-            <MenuFlyoutItem Text="Reply">
+            <MenuFlyoutItem Text="Reply" Name="FlyoutItem">
                 <MenuFlyoutItem.Icon>
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8CA;"/>
                 </MenuFlyoutItem.Icon>

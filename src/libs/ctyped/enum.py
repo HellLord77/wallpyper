@@ -10161,13 +10161,13 @@ class Windows:
             F = 70
             G = 71
             H = 72
-            I = 73
+            I = 73  # noqa
             J = 74
             K = 75
             L = 76
             M = 77
             N = 78
-            O = 79
+            O = 79  # noqa
             P = 80
             Q = 81
             R = 82

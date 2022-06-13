@@ -13,7 +13,7 @@ from . import _gdiplus, _utils, clipboard, gui, wallpaper
 from ._utils import sanitize_filename
 
 _PIN_INTERVAL = 3
-_POLL_INTERVAL = 0.01
+_POLL_INTERVAL = 0.1
 _APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
 _STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
 _TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
