@@ -33,7 +33,7 @@ class _ISO(metaclass=_ISOMeta):
         fields = cls._BASE_._fields
         kwargs.update(zip(fields, args))
         for key in fields:
-            if (val := kwargs[key]) is not None:
+            if val := kwargs.get(key):
                 for index, item in enumerate(cls._items):
                     if isinstance(item, dict):
                         if item.get(key, '') == val:

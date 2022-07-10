@@ -169,13 +169,16 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
 
 def get_next_wallpaper() -> Optional[files.File]:
     module = modules.MODULES[CONFIG[consts.CONFIG_MODULE]]
-    config = {key: str(val) for key, val in module.CONFIG.items() if not key.startswith('_')}
-    got_wallpapers = set()
-    while (next_wallpaper := next(module.get_next_wallpaper(
-            **config))) and CONFIG[consts.CONFIG_SKIP] and next_wallpaper in RECENT and next_wallpaper not in got_wallpapers:
-        got_wallpapers.add(next_wallpaper)
-    if next_wallpaper not in got_wallpapers:
-        return next_wallpaper
+    config = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
+    first_wallpaper = None
+    while True:
+        next_wallpaper = next(module.get_next_wallpaper(**config))
+        if not CONFIG[consts.CONFIG_SKIP] or next_wallpaper not in RECENT:
+            if first_wallpaper != next_wallpaper:
+                return next_wallpaper
+            break
+        if first_wallpaper is None:
+            first_wallpaper = next_wallpaper
 
 
 @utils.singleton_run

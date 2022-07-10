@@ -248,12 +248,17 @@ SPOTLIGHT_MENU_ORIENTATION = 'Orientation'
 SPOTLIGHT_ORIENTATION_landscape = 'Landscape'
 SPOTLIGHT_ORIENTATION_portrait = 'Portrait'
 
+UNSPLASH_LABEL_EDITORIAL = 'Editorial'
+
+UNSPLASH_MENU_SEARCH = 'Search Filters'
 UNSPLASH_MENU_ORDER = 'Sort by'
 UNSPLASH_MENU_FILTER = 'Filter Level'
 UNSPLASH_MENU_COLOR = 'Color'
 UNSPLASH_MENU_ORIENTATION = 'Orientation'
 
 UNSPLASH_ORDER_latest = 'Newest'
+UNSPLASH_ORDER_oldest = 'Earliest'
+UNSPLASH_ORDER_popular = 'Popularity'
 UNSPLASH_ORDER_relevant = 'Relevance'
 
 UNSPLASH_FILTER_low = 'Low'

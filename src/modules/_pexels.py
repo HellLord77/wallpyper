@@ -1,7 +1,7 @@
 __version__ = '0.0.2'  # https://www.pexels.com/api/documentation
 
 import os
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 
 from libs import files, gui, locales, request
 from .module import _Module
@@ -53,7 +53,7 @@ class Pexels(_Module):
         cls._fix_config(CONFIG_LOCALE, LOCALES)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: Union[bool, str]) -> Generator[Optional[files.File], None, None]:
         photos: Optional[list] = None
         key = params.pop(CONFIG_KEY)
         if params.pop(CONFIG_CURATED):
@@ -67,7 +67,7 @@ class Pexels(_Module):
             if not photos:
                 response = request.open(query_url, params, headers={'Authorization': key})
                 if not response:
-                    print(response.get_content())
+                    print(response.get_content())  # TODO
                 if response:
                     json = response.get_json()
                     photos = json.get('photos')
