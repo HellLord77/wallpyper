@@ -7,8 +7,8 @@ from libs import files, gui, locales, request
 from .module import _Module
 
 BASE_URL = request.join('https://api.pexels.com', 'v1')
-SEARCH_URL = request.join(BASE_URL, 'search')
 CURATED_URL = request.join(BASE_URL, 'curated')
+SEARCH_URL = request.join(BASE_URL, 'search')
 
 CONFIG_KEY = 'key'
 CONFIG_CURATED = 'curated'
@@ -81,6 +81,8 @@ class Pexels(_Module):
     @classmethod
     def create_menu(cls):
         menu_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CONFIG[CONFIG_CURATED])
+        gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
+                                 on_click=on_curated, args=(menu_search,), position=0)
         with gui.set_main_menu(menu_search):
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
@@ -92,5 +94,3 @@ class Pexels(_Module):
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: locales.Country.get(
                 locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
                                                                     for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
-        gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
-                                 on_click=on_curated, args=(menu_search,))

@@ -251,7 +251,16 @@ def set_lock():
     print(ac.get_results())
 
 
+def _test():
+    from libs import locales
+    for lang in locales.Language:
+        print(locales.Language.get(lang))
+
+
 if __name__ == '__main__':
+    _test()
+    exit()
+
     ctyped.THREADED_COM = True
 
     path = r'D:\MMDs\洛天依  -  倾杯.mp4'

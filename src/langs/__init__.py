@@ -5,10 +5,10 @@ import types
 from typing import Optional
 
 import libs.locales as locales
-from . import bn
-from . import en
+from . import ben
+from . import eng
 
-DEFAULT = en
+DEFAULT = eng
 
 
 def _getattr(name: str) -> str:

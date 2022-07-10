@@ -106,18 +106,18 @@ def encode(url: str, params: Optional[Mapping[str, Union[str, Iterable[str]]]] =
     parts = urllib.parse.urlparse(url)
     query_ = urllib.parse.parse_qs(parts.query)
     for key, val in params.items():
-        if key not in query_:
-            query_[key] = []
-        if isinstance(val, str):
-            query_[key].append(val)
-        else:
-            query_[key].extend(val)
+        if val:  # TODO test
+            if key not in query_:
+                query_[key] = []
+            if isinstance(val, str):
+                query_[key].append(val)
+            else:
+                query_[key].extend(val)
     return urllib.parse.urlunparse(parts._replace(query=urllib.parse.urlencode(query_, True)))
 
 
 # noinspection PyShadowingBuiltins
-def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None,
-         headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> _Response:
+def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None, headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> _Response:
     try:
         request = urllib.request.Request(encode(url, params), data)
     except ValueError as e:
@@ -147,18 +147,15 @@ def _get_hash(path: str, type_: str = 'md5') -> bytes:
     return hash_.digest()
 
 
-def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None,
-             sha256: Optional[bytes] = None, chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
-             query_callback: Optional[Callable[[int, ...], bool]] = None, args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None, sha256: Optional[bytes] = None, chunk_size: Optional[int] = None, chunk_count: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
+             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if args is None:
         args = ()
     if kwargs is None:
         kwargs = {}
     response = open(url)
     if os.path.exists(path):
-        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path)) or (
-                sha256 and _get_hash(path, 'sha256'))):
+        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path)) or (sha256 and _get_hash(path, 'sha256'))):
             if query_callback:
                 query_callback(100, *args, **kwargs)
             return True
@@ -167,8 +164,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
     else:
         os.makedirs(os.path.dirname(path), exist_ok=True)
     if response:
-        size = size or int(response.getheader(Header.CONTENT_LENGTH, str(os.path.getsize(
-            response.response.fp.name) if response.file else sys.maxsize)))
+        size = size or int(response.getheader(Header.CONTENT_LENGTH, str(os.path.getsize(response.response.fp.name) if response.file else sys.maxsize)))
         if os.path.isfile(path):
             if size == os.path.getsize(path):
                 if query_callback:
@@ -195,8 +191,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
     return False
 
 
-def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None,
-           files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO chunked upload
+def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None, files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO chunked upload
            headers: Optional[Mapping[str, str]] = None, redirect: bool = True) -> _Response:
     boundary = uuid.uuid4().hex
     prefix = f'--{boundary}{_CRLF}{Header.CONTENT_DISPOSITION}: form-data; name='

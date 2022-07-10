@@ -8,7 +8,7 @@ from libs import colors, files, gui, request
 from .module import _Module
 
 BASE_URL = request.join('https://wallhaven.cc', 'api', 'v1')
-SEARCH_URl = request.join(BASE_URL, 'search')
+SEARCH_URL = request.join(BASE_URL, 'search')
 SETTINGS_URL = request.join(BASE_URL, 'settings')
 
 CONFIG_KEY = 'apikey'
@@ -81,7 +81,7 @@ class Wallhaven(_Module):
             if not datas:
                 params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
                 params['seed'] = meta['seed'] or ''
-                response = request.open(SEARCH_URl, params)
+                response = request.open(SEARCH_URL, params)
                 if response:
                     json = response.get_json()
                     datas = json['data']
