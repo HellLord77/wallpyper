@@ -2776,6 +2776,10 @@ class User32(_WinFunc):
                                 _type.BOOL]
     DispatchMessageW: _Callable[[_Pointer[_struct.MSG]],
                                 _type.BOOL]
+    DisplayConfigGetDeviceInfo: _Callable[[_Pointer[_struct.DISPLAYCONFIG_DEVICE_INFO_HEADER]],
+                                          _type.LONG]
+    DisplayConfigSetDeviceInfo: _Callable[[_Pointer[_struct.DISPLAYCONFIG_DEVICE_INFO_HEADER]],
+                                          _type.LONG]
     DragDetect: _Callable[[_type.HWND,
                            _struct.POINT],
                           _type.BOOL]
@@ -2907,6 +2911,10 @@ class User32(_WinFunc):
                                             _type.BOOL]
     GetCursorPos: _Callable[[_Pointer[_struct.POINT]],
                             _type.BOOL]
+    GetDisplayConfigBufferSizes: _Callable[[_type.UINT32,
+                                            _Pointer[_type.UINT32],
+                                            _Pointer[_type.UINT32]],
+                                           _type.LONG]
     GetDesktopWindow: _Callable[[],
                                 _type.HWND]
     GetDC: _Callable[[_Optional[_type.HWND]],
@@ -3136,6 +3144,13 @@ class User32(_WinFunc):
                         _type.BOOL]
     IsWow64Message: _Callable[[],
                               _type.BOOL]
+    QueryDisplayConfig: _Callable[[_type.UINT32,
+                                   _Pointer[_type.UINT32],
+                                   _Pointer[_struct.DISPLAYCONFIG_PATH_INFO],
+                                   _Pointer[_type.UINT32],
+                                   _Pointer[_struct.DISPLAYCONFIG_MODE_INFO],
+                                   _Optional[_Pointer[_enum.DISPLAYCONFIG_TOPOLOGY_ID]]],
+                                  _type.LONG]
     KillTimer: _Callable[[_type.HWND,
                           _type.UINT_PTR],
                          _type.BOOL]
@@ -3388,6 +3403,12 @@ class User32(_WinFunc):
                          _type.HCURSOR]
     SetDisplayAutoRotationPreferences: _Callable[[_enum.ORIENTATION_PREFERENCE],
                                                  _type.BOOL]
+    SetDisplayConfig: _Callable[[_type.UINT32,
+                                 _Pointer[_struct.DISPLAYCONFIG_PATH_INFO],
+                                 _type.UINT32,
+                                 _Pointer[_struct.DISPLAYCONFIG_MODE_INFO],
+                                 _type.UINT32],
+                                _type.LONG]
     SetDlgItemInt: _Callable[[_type.HWND,
                               _type.c_int,
                               _type.UINT,

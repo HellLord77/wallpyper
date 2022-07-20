@@ -289,9 +289,30 @@ def get_monitor_ids() -> tuple[str, ...]:
     return tuple(monitors)
 
 
-def get_monitor_name(id_: str) -> Optional[str]:
-    dev_id = _utils.get_str_dev_id_prop(id_, ctyped.const.DEVPKEY_Device_InstanceId)
+# noinspection PyShadowingBuiltins
+def get_monitor_name(id: str) -> Optional[str]:
+    dev_id = _utils.get_str_dev_id_prop(id, ctyped.const.DEVPKEY_Device_InstanceId)
     return _utils.get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else None
+
+
+def get_monitor_ids_names() -> dict[str, str]:
+    monitors = {}
+    path_count = ctyped.type.UINT32()
+    mode_count = ctyped.type.UINT32()
+    if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.GetDisplayConfigBufferSizes(
+            ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(path_count), ctyped.byref(mode_count)):
+        modes = ctyped.array(type=ctyped.struct.DISPLAYCONFIG_MODE_INFO, size=mode_count.value)
+        if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
+                path_count), ctyped.array(type=ctyped.struct.DISPLAYCONFIG_PATH_INFO, size=path_count.value), ctyped.byref(mode_count), modes, None):
+            name = ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME(ctyped.struct.DISPLAYCONFIG_DEVICE_INFO_HEADER(
+                ctyped.enum.DISPLAYCONFIG_DEVICE_INFO_TYPE.GET_TARGET_NAME, ctyped.sizeof(ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME)))
+            for mode in modes:
+                if mode.infoType == ctyped.enum.DISPLAYCONFIG_MODE_INFO_TYPE.TARGET:
+                    name.header.adapterId = mode.adapterId
+                    name.header.id = mode.id
+                    if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
+                        monitors[name.monitorDevicePath] = name.monitorFriendlyDeviceName
+    return monitors
 
 
 def get_style() -> Optional[int]:

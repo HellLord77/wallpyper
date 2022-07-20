@@ -12,6 +12,15 @@ from libs.ctyped import winrt
 _HWND: int = None
 
 
+def except_handlwer(except_hook, *args, **kwargs):
+    print(args, kwargs)
+    return except_hook(*args, **kwargs)
+
+
+# sys.excepthook = types.MethodType(except_handlwer, sys.excepthook)
+# threading.excepthook = types.MethodType(except_handlwer, threading.excepthook)
+
+
 # noinspection PyShadowingBuiltins
 @_contextlib.contextmanager  # TODO Array
 def box_value(value: _Optional = None, type: _Optional[type[ctyped.CT]] = None) -> _ContextManager[_Optional[ctyped.interface.IInspectable]]:
@@ -245,6 +254,41 @@ def main():
     # button.background = brush
     button.content = text_block
     container.children.append(button)
+
+    class OverrideTest(ctyped.interface.Windows.UI.Xaml.Controls.Primitives.IToggleButtonOverrides_impl):
+        inner_interface = None
+
+        def GetIids(self, iidCount: ctyped.Pointer[ctyped.type.ULONG],
+                    iids: ctyped.Pointer[ctyped.Pointer[ctyped.struct.IID]]) -> ctyped.type.HRESULT:
+            print('GetIids')
+            return self.inner_interface.GetIids(iidCount, iids)
+
+        def QueryInterface(self, riid: ctyped.Pointer[ctyped.struct.IID], ppvObject: ctyped.type.LPVOID) -> ctyped.type.HRESULT:
+            val = ctyped.type.LPOLESTR()
+            ctyped.lib.Ole32.StringFromIID(riid, ctyped.byref(val))
+            print(val.value, ctyped.get_interface_name(val.value))
+            if val.value == '{D20E4C28-F18B-491A-9A45-F1A04A9369A4}':
+                return super().QueryInterface(riid, ppvObject)
+            else:
+                return self.inner_interface.QueryInterface(riid, ppvObject)
+
+        def OnToggle(self):
+            print('OnToggle')
+            with ctyped.cast_com(self.inner_interface, ctyped.interface.Windows.UI.Xaml.Controls.Primitives.IToggleButtonOverrides) as overrides:
+                return overrides.OnToggle()
+
+    with ctyped.get_winrt(ctyped.interface.Windows.UI.Xaml.Controls.Primitives.IToggleButtonFactory) as button_factory:
+        base_interface = OverrideTest()
+        inner_interface = ctyped.interface.IInspectable()
+        value = ctyped.interface.Windows.UI.Xaml.Controls.Primitives.IToggleButton()
+        button_factory.CreateInstance(ctyped.cast(base_interface, ctyped.interface.IInspectable),
+                                      ctyped.byref(inner_interface), ctyped.byref(value))
+    base_interface.inner_interface = inner_interface
+    button_toggle = winrt.Windows.UI.Xaml.Controls.Primitives.ToggleButton(value)
+    button_toggle.corner_radius = corner_radius
+    button_toggle.horizontal_alignment = ctyped.enum.Windows.UI.Xaml.HorizontalAlignment.Center
+    button_toggle.content = winrt.Windows.Foundation.PropertyValue.create_string('OverrideToggleButton')
+    container.children.append(button_toggle)
 
     button_toggle = winrt.Windows.UI.Xaml.Controls.Primitives.ToggleButton()
     button_toggle.corner_radius = corner_radius

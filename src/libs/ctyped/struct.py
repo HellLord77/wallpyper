@@ -5,14 +5,25 @@ import typing as _typing
 from typing import Optional as _Optional
 
 from . import const as _const, enum as _enum, type as _type, union as _union
-from ._utils import _Globals, _Pointer, _fields_repr, _resolve_type
+from ._utils import _CT, _Globals, _Pointer, _fields_repr, _resolve_type
 
 if None:
     from dataclasses import dataclass as _struct
 else:
     from ._utils import _decorator as _struct
 
+_CACHE = {}  # FIXME https://github.com/python/mypy/issues/5107
 _SIZE = object()
+
+
+def _bitfield(type_: type[_CT], size: int) -> type[_CT]:
+    try:
+        return _CACHE[type_, size]
+    except KeyError:
+        bitfield = type(type_.__name__, (type_,), {'_bitfield': size})
+        _CACHE[type_, size] = bitfield
+        # noinspection PyTypeChecker
+        return bitfield
 
 
 @_struct
@@ -57,7 +68,7 @@ class BITMAPINFOHEADER:
 class BITMAPINFO:
     bmiHeader: BITMAPINFOHEADER = None
     # noinspection PyTypeChecker
-    bmiColors: RGBQUAD * 1 = None
+    bmiColors: RGBQUAD * 1 = None  # TODO _array (type hint)
 
 
 @_struct
@@ -1796,6 +1807,194 @@ class TrackerHandle:
     unused: _type.c_int = None
 
 
+@_struct
+class LUID:
+    LowPart: _type.DWORD = None
+    HighPart: _type.LONG = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_RATIONAL:
+    Numerator: _type.DWORD = None
+    Denominator: _type.DWORD = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_2DREGION:
+    cx: _type.DWORD = None
+    cy: _type.DWORD = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_PATH_SOURCE_INFO_U_S:
+    cloneGroupId: _bitfield(_type.UINT32, 16) = None
+    sourceModeInfoIdx: _bitfield(_type.UINT32, 16) = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_PATH_SOURCE_INFO:
+    adapterId: LUID = None
+    id: _type.UINT32 = None
+    U: _union.DISPLAYCONFIG_PATH_SOURCE_INFO_U = None
+    statusFlags: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_PATH_TARGET_INFO_U_S:
+    desktopModeInfoIdx: _bitfield(_type.UINT32, 16) = None
+    targetModeInfoIdx: _bitfield(_type.UINT32, 16) = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_PATH_TARGET_INFO:
+    adapterId: LUID = None
+    id: _type.UINT32 = None
+    U: _union.DISPLAYCONFIG_PATH_TARGET_INFO_U = None
+    outputTechnology: _enum.DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY = None
+    rotation: _enum.DISPLAYCONFIG_ROTATION = None
+    scaling: _enum.DISPLAYCONFIG_SCALING = None
+    refreshRate: DISPLAYCONFIG_RATIONAL = None
+    scanLineOrdering: _enum.DISPLAYCONFIG_SCANLINE_ORDERING = None
+    targetAvailable: _type.BOOL = None
+    statusFlags: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_PATH_INFO:
+    sourceInfo: DISPLAYCONFIG_PATH_SOURCE_INFO = None
+    targetInfo: DISPLAYCONFIG_PATH_TARGET_INFO = None
+    flags: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_SOURCE_MODE:
+    width: _type.UINT32 = None
+    height: _type.UINT32 = None
+    pixelFormat: _enum.DISPLAYCONFIG_PIXELFORMAT = None
+    position: POINTL = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_VIDEO_SIGNAL_INFO_U_S:
+    videoStandard: _bitfield(_type.UINT32, 16) = None
+    vSyncFreqDivider: _bitfield(_type.UINT32, 6) = None
+    reserved: _bitfield(_type.UINT32, 10) = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_VIDEO_SIGNAL_INFO:
+    pixelRate: _type.UINT64 = None
+    hSyncFreq: DISPLAYCONFIG_RATIONAL = None
+    vSyncFreq: DISPLAYCONFIG_RATIONAL = None
+    activeSize: DISPLAYCONFIG_2DREGION = None
+    totalSize: DISPLAYCONFIG_2DREGION = None
+    U: _union.DISPLAYCONFIG_VIDEO_SIGNAL_INFO_U = None
+    scanLineOrdering: _enum.DISPLAYCONFIG_SCANLINE_ORDERING = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_TARGET_MODE:
+    targetVideoSignalInfo: DISPLAYCONFIG_VIDEO_SIGNAL_INFO = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_DESKTOP_IMAGE_INFO:
+    PathSourceSize: POINTL = None
+    DesktopImageRegion: RECTL = None
+    DesktopImageClip: RECTL = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_MODE_INFO:
+    infoType: _enum.DISPLAYCONFIG_MODE_INFO_TYPE = None
+    id: _type.UINT32 = None
+    adapterId: LUID = None
+    U: _union.DISPLAYCONFIG_MODE_INFO_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_DEVICE_INFO_HEADER:
+    type: _enum.DISPLAYCONFIG_DEVICE_INFO_TYPE = None
+    size: _type.UINT32 = None
+    adapterId: LUID = None
+    id: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_SOURCE_DEVICE_NAME:
+    header: DISPLAYCONFIG_DEVICE_INFO_HEADER = None
+    viewGdiDeviceName: _type.WCHAR * _const.CCHDEVICENAME = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS_U_S:
+    friendlyNameFromEdid: _bitfield(_type.UINT32, 1) = None
+    friendlyNameForced: _bitfield(_type.UINT32, 1) = None
+    edidIdsValid: _bitfield(_type.UINT32, 1) = None
+    reserved: _bitfield(_type.UINT32, 29) = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS:
+    U: _union.DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_TARGET_DEVICE_NAME:
+    header: DISPLAYCONFIG_DEVICE_INFO_HEADER = None
+    flags: DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS = None
+    outputTechnology: _enum.DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY = None
+    edidManufactureId: _type.UINT16 = None
+    edidProductCodeId: _type.UINT16 = None
+    connectorInstance: _type.UINT32 = None
+    monitorFriendlyDeviceName: _type.WCHAR * 64 = None
+    monitorDevicePath: _type.WCHAR * 128 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_TARGET_PREFERRED_MODE:
+    header: DISPLAYCONFIG_DEVICE_INFO_HEADER = None
+    width: _type.UINT32 = None
+    height: _type.UINT32 = None
+    targetMode: DISPLAYCONFIG_TARGET_MODE = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_ADAPTER_NAME:
+    header: DISPLAYCONFIG_DEVICE_INFO_HEADER = None
+    adapterDevicePath: _type.WCHAR * 128 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DISPLAYCONFIG_TARGET_BASE_TYPE:
+    header: DISPLAYCONFIG_DEVICE_INFO_HEADER = None
+    baseOutputTechnology: _enum.DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY = None
+
+
+POINTL = POINT
+RECTL = RECT
+SIZEL = SIZE
 UUID = GUID
 IID = GUID
 CLSID = GUID
@@ -2673,7 +2872,9 @@ def _init(item: str, var: _Optional[type] = None) -> type:
     if hasattr(var, '__annotations__'):
         fields = tuple((name, _resolve_type(
             annot)) for name, annot in _typing.get_type_hints(var, _globals, _globals).items())
-        struct = type(item, (_Struct,), {'_fields_': fields})
+        # noinspection PyProtectedMember
+        struct = type(item, (_Struct,), {'_fields_': tuple((*field, field[1]._bitfield) if hasattr(
+            field[1], '_bitfield') else field for field in fields)})
         # noinspection PyTypeChecker
         size = _ctypes.sizeof(struct)
         struct._defaults = tuple((field[0], size if (val := getattr(

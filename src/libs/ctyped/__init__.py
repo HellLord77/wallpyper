@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.16'
+__version__ = '0.2.17'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -9,7 +9,7 @@ import threading as _threading
 import types as _types
 import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager, Generic as _Generic,
-                    Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union)
+                    Iterable as _Iterable, Mapping as _Mapping, MutableSequence as _MutableSequence, Optional as _Optional, Union as _Union)
 
 from . import const, enum, handle, interface, lib, macro, struct, type, union
 from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
@@ -35,7 +35,7 @@ def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
-def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None, size: _Optional[int] = None) -> Pointer[CT]:
+def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None, size: _Optional[int] = None) -> _Union[_MutableSequence[CT], Pointer[CT]]:
     return ((_builtins.type(elements[0]) if type is None else type) * (
         len(elements) if size is None else size))(*elements)
 

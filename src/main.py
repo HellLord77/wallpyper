@@ -362,8 +362,9 @@ def on_update_display(menu, update: bool = True):
                           gui.Item.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
                           uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
                           menu_args=(gui.Property.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
+        monitors = win32.wallpaper.get_monitor_ids_names()
         gui.add_mapped_submenu(menu, {
-            id_: f'{langs.to_str(index, STRINGS)}. {win32.wallpaper.get_monitor_name(id_) or STRINGS.DISPLAY}'
+            id_: f'{langs.to_str(index, STRINGS)}. {monitors.get(id_) or win32.wallpaper.get_monitor_name(id_) or STRINGS.DISPLAY}'
             for index, id_ in enumerate(DISPLAYS, 1)}, CONFIG, consts.CONFIG_DISPLAY)
         if consts.FEATURE_UPDATE_DISPLAY:
             gui.add_separator()
@@ -548,17 +549,17 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
             gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save)
-        gui.add_mapped_submenu(STRINGS.MENU_STYLE,
-                               {style: getattr(STRINGS, f'STYLE_{style}') for style in win32.wallpaper.Style},
-                               CONFIG, consts.CONFIG_STYLE)
         gui.add_mapped_submenu(STRINGS.MENU_TRANSITION,
                                {transition: getattr(STRINGS, f'TRANSITION_{transition}') for transition in
                                 win32.wallpaper.Transition}, CONFIG, consts.CONFIG_TRANSITION)
-        menu_display = gui.add_submenu(STRINGS.MENU_DISPLAY)
-        on_update_display(menu_display, False)
+        gui.add_mapped_submenu(STRINGS.MENU_STYLE,
+                               {style: getattr(STRINGS, f'STYLE_{style}') for style in win32.wallpaper.Style},
+                               CONFIG, consts.CONFIG_STYLE)
         gui.add_mapped_submenu(STRINGS.MENU_MODULE,
                                {name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()},
                                CONFIG, consts.CONFIG_MODULE, on_click=on_module, args=(menu_module,))
+        menu_display = gui.add_submenu(STRINGS.MENU_DISPLAY)
+        on_update_display(menu_display, False)
         gui.add_separator()
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, consts.CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, consts.CONFIG_NOTIFY)

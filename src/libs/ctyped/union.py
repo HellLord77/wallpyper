@@ -172,6 +172,42 @@ class PACKAGE_VERSION_U:
     S: _struct.PACKAGE_VERSION_U_S
 
 
+# noinspection PyPep8Naming
+@_union
+class DISPLAYCONFIG_PATH_SOURCE_INFO_U:
+    modeInfoIdx: _type.UINT32
+    S: _struct.DISPLAYCONFIG_PATH_SOURCE_INFO_U_S
+
+
+# noinspection PyPep8Naming
+@_union
+class DISPLAYCONFIG_PATH_TARGET_INFO_U:
+    modeInfoIdx: _type.UINT32
+    S: _struct.DISPLAYCONFIG_PATH_TARGET_INFO_U_S
+
+
+# noinspection PyPep8Naming
+@_union
+class DISPLAYCONFIG_VIDEO_SIGNAL_INFO_U:
+    AdditionalSignalInfo: _struct.DISPLAYCONFIG_VIDEO_SIGNAL_INFO_U_S
+    videoStandard: _type.UINT32
+
+
+# noinspection PyPep8Naming
+@_union
+class DISPLAYCONFIG_MODE_INFO_U:
+    targetMode: _struct.DISPLAYCONFIG_TARGET_MODE
+    sourceMode: _struct.DISPLAYCONFIG_SOURCE_MODE
+    desktopImageInfo: _struct.DISPLAYCONFIG_DESKTOP_IMAGE_INFO
+
+
+# noinspection PyPep8Naming
+@_union
+class DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS_U:
+    S: _struct.DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS_U_S
+    value: _type.UINT32
+
+
 class _Union(_ctypes.Union):
     __repr__ = _fields_repr
 

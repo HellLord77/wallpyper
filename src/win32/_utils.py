@@ -54,11 +54,11 @@ def get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str
     for devpkey in devpkeys:
         prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
         ctyped.lib.Cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
-        ctyped.lib.Cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(type_),
-                                                     None, ctyped.byref(sz), 0)
+        ctyped.lib.Cfgmgr32.CM_Get_DevNode_PropertyW(
+            dev_int, prop_key_ref, ctyped.byref(type_), None, ctyped.byref(sz), 0)
         with string_buffer(sz.value) as buff:
-            ctyped.lib.Cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(type_),
-                                                         ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
+            ctyped.lib.Cfgmgr32.CM_Get_DevNode_PropertyW(
+                dev_int, prop_key_ref, ctyped.byref(type_), ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
             props.append(buff.value)
     return tuple(props)
 

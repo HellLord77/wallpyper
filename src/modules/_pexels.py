@@ -66,8 +66,6 @@ class Pexels(_Module):
         while True:
             if not photos:
                 response = request.open(query_url, params, headers={'Authorization': key})
-                if not response:
-                    print(response.get_content())  # TODO
                 if response:
                     json = response.get_json()
                     photos = json.get('photos')
