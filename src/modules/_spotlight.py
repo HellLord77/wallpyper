@@ -5,7 +5,7 @@ import json
 import os.path
 from typing import Generator, Optional
 
-from libs import files, gui, locales, request
+from libs import files, gui, iso, request
 from .module import _Module
 
 BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
@@ -51,7 +51,7 @@ class Spotlight(_Module):
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: locales.Country.get(
+        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: iso.ISO31661.get(
             locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
         gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
             cls.STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},

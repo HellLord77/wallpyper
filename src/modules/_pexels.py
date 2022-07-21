@@ -3,7 +3,7 @@ __version__ = '0.0.2'  # https://www.pexels.com/api/documentation
 import os
 from typing import Generator, Optional, Union
 
-from libs import files, gui, locales, request
+from libs import files, gui, iso, request
 from .module import _Module
 
 BASE_URL = request.join('https://api.pexels.com', 'v1')
@@ -89,6 +89,6 @@ class Pexels(_Module):
                 cls.STRINGS, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_COLOR, {color: getattr(
                 cls.STRINGS, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: locales.Country.get(
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: iso.ISO31661.get(
                 locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
                                                                     for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)

@@ -4,7 +4,7 @@ import os.path
 import re
 from typing import Generator, Optional
 
-from libs import files, gui, locales, request
+from libs import files, gui, iso, request
 from .module import _Module
 
 BASE_URL = 'https://pixabay.com/api'
@@ -87,7 +87,7 @@ class Pixabay(_Module):
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_LANG, {lang: re.split('[,;]', locales.Language.get(
+        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_LANG, {lang: re.split('[,;]', iso.ISO6392.get(
             alpha_2=lang).name)[0] for lang in LANGS}, cls.CONFIG, CONFIG_LANG)
         gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_TYPE, {type_: getattr(
             cls.STRINGS, f'PIXABAY_TYPE_{type_}') for type_ in TYPES}, cls.CONFIG, CONFIG_TYPE)

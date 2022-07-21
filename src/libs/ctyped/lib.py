@@ -72,15 +72,7 @@ class _Func:
     _funcs = None
 
 
-class _PyFunc(_Func, metaclass=_PyDLL):
-    pass
-
-
-class _WinFunc(_Func, metaclass=_WinDLL):
-    pass
-
-
-class Python(_PyFunc):
+class Python(_Func, metaclass=_PyDLL):
     # pylifecycle
     Py_Initialize: _Callable[[],
                              _type.c_void]
@@ -120,7 +112,7 @@ class Python(_PyFunc):
                                   _type.c_void]
 
 
-class Advapi32(_WinFunc):
+class Advapi32(_Func, metaclass=_WinDLL):
     # winreg
     AbortSystemShutdownA: _Callable[[_type.LPSTR],
                                     _type.BOOL]
@@ -253,7 +245,7 @@ class Advapi32(_WinFunc):
                              _type.LSTATUS]
 
 
-class Cfgmgr32(_WinFunc):
+class Cfgmgr32(_Func, metaclass=_WinDLL):
     # Cfgmgr32
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
                                          _Pointer[_struct.DEVPROPKEY],
@@ -279,7 +271,7 @@ class Cfgmgr32(_WinFunc):
                                   _type.CONFIGRET]
 
 
-class Combase(_WinFunc):
+class Combase(_Func, metaclass=_WinDLL):
     # roapi
     RoActivateInstance: _Callable[[_type.HSTRING,
                                    _Pointer[_interface.IInspectable]],
@@ -327,7 +319,7 @@ class Combase(_WinFunc):
                                       _type.HRESULT]
 
 
-class Comctl32(_WinFunc):
+class Comctl32(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     # CommCtrl
@@ -337,7 +329,7 @@ class Comctl32(_WinFunc):
                                     _type.BOOL]
 
 
-class Comdlg32(_WinFunc):
+class Comdlg32(_Func, metaclass=_WinDLL):
     # commdlg
     ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
                             _type.BOOL]
@@ -345,7 +337,7 @@ class Comdlg32(_WinFunc):
                             _type.BOOL]
 
 
-class ComputeCore(_WinFunc):
+class ComputeCore(_Func, metaclass=_WinDLL):
     # computecore
     HcsGetServiceProperties: _Callable[[_Optional[_type.PCWSTR],
                                         _Pointer[_type.PWSTR]],
@@ -371,7 +363,7 @@ class ComputeCore(_WinFunc):
                                       _type.HRESULT]
 
 
-class Dwmapi(_WinFunc):
+class Dwmapi(_Func, metaclass=_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
                                  _type.UINT,
@@ -416,7 +408,7 @@ class Dwmapi(_WinFunc):
                                       _type.HRESULT]
 
 
-class Gdi32(_WinFunc):
+class Gdi32(_Func, metaclass=_WinDLL):
     # wingdi
     AbortDoc: _Callable[[_type.HDC],
                         _type.c_int]
@@ -671,7 +663,7 @@ class Gdi32(_WinFunc):
                               _type.BOOL]
 
 
-class GdiPlus(_WinFunc):
+class GdiPlus(_Func, metaclass=_WinDLL):
     # gdiplusflat
     GdipBitmapGetPixel: _Callable[[_type.GpBitmap,
                                    _type.INT,
@@ -980,7 +972,7 @@ class GdiPlus(_WinFunc):
                               _enum.Status]
 
 
-class Kernel32(_WinFunc):
+class Kernel32(_Func, metaclass=_WinDLL):
     # consoleapi
     AllocConsole: _Callable[[],
                             _type.BOOL]
@@ -1788,7 +1780,7 @@ class Kernel32(_WinFunc):
                                    _type.ULONGLONG]
 
 
-class MSCorEE(_WinFunc):
+class MSCorEE(_Func, metaclass=_WinDLL):
     # cor
     CoEEShutDownCOM: _Callable[[],
                                _type.c_void]
@@ -1815,7 +1807,7 @@ class MSCorEE(_WinFunc):
                                   _type.HRESULT]
 
 
-class Msimg32(_WinFunc):
+class Msimg32(_Func, metaclass=_WinDLL):
     # wingdi
     AlphaBlend: _Callable[[_type.HDC,
                            _type.c_int,
@@ -1832,7 +1824,7 @@ class Msimg32(_WinFunc):
 
 
 # noinspection PyPep8Naming
-class msvcrt(_WinFunc):
+class msvcrt(_Func, metaclass=_WinDLL):
     # corecrt_malloc
     calloc: _Callable[[_type.c_size_t,
                        _type.c_size_t],
@@ -1876,7 +1868,7 @@ class msvcrt(_WinFunc):
 
 
 # noinspection PyPep8Naming
-class ntdll(_WinFunc):
+class ntdll(_Func, metaclass=_WinDLL):
     RtlAreLongPathsEnabled: _Callable[[],
                                       _type.c_ubyte]
     # winternl
@@ -1915,7 +1907,7 @@ class ntdll(_WinFunc):
                                            _type.NTSTATUS]
 
 
-class Ole32(_WinFunc):
+class Ole32(_Func, metaclass=_WinDLL):
     # combaseapi
     CLSIDFromString: _Callable[[_type.LPCOLESTR,
                                 _Pointer[_struct.CLSID]],
@@ -1966,7 +1958,7 @@ class Ole32(_WinFunc):
                                _type.HRESULT]
 
 
-class Oleacc(_WinFunc):
+class Oleacc(_Func, metaclass=_WinDLL):
     GetProcessHandleFromHwnd: _Callable[[_type.HWND],
                                         _type.HANDLE]
     # oleacc
@@ -1988,7 +1980,7 @@ class Oleacc(_WinFunc):
                              _type.UINT]
 
 
-class OleAut32(_WinFunc):
+class OleAut32(_Func, metaclass=_WinDLL):
     # oleauto
     VariantChangeType: _Callable[[_Pointer[_struct.VARIANTARG],
                                   _Pointer[_struct.VARIANTARG],
@@ -2022,7 +2014,7 @@ class OleAut32(_WinFunc):
                                   _type.WINOLECTLAPI]
 
 
-class Shell32(_WinFunc):
+class Shell32(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     GUIDFromStringA: _Callable[[_type.LPCSTR,
@@ -2187,7 +2179,7 @@ class Shell32(_WinFunc):
                                                  _type.SHSTDAPI]
 
 
-class Setupapi(_WinFunc):
+class Setupapi(_Func, metaclass=_WinDLL):
     # SetupAPI
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
                                               _Pointer[_struct.SP_DEVINFO_DATA],
@@ -2266,7 +2258,7 @@ class Setupapi(_WinFunc):
                                                  _type.BOOL]
 
 
-class Shcore(_WinFunc):
+class Shcore(_Func, metaclass=_WinDLL):
     # ShellScalingApi
     GetDpiForMonitor: _Callable[[_type.HMONITOR,
                                  _enum.MONITOR_DPI_TYPE,
@@ -2280,12 +2272,12 @@ class Shcore(_WinFunc):
                                       _type.HRESULT]
 
 
-class Shdocvw(_WinFunc):
+class Shdocvw(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
 
 
-class Shlwapi(_WinFunc):
+class Shlwapi(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     GUIDFromStringA: _Callable[[_type.LPCSTR,
@@ -2535,7 +2527,7 @@ class Shlwapi(_WinFunc):
                                _type.BOOL]
 
 
-class User32(_WinFunc):
+class User32(_Func, metaclass=_WinDLL):
     # WinUser
     wvsprintfA: _Callable[[_type.LPSTR,
                            _type.LPCSTR,
@@ -3600,7 +3592,7 @@ class User32(_WinFunc):
                             _type.HWND]
 
 
-class UxTheme(_WinFunc):
+class UxTheme(_Func, metaclass=_WinDLL):
     # Uxtheme
     BeginPanningFeedback: _Callable[[_type.HWND],
                                     _type.BOOL]
@@ -3887,13 +3879,13 @@ class UxTheme(_WinFunc):
 
 class Microsoft:
     class UI:
-        class Xaml(_WinFunc):
+        class Xaml(_Func, metaclass=_WinDLL):
             DllGetActivationFactory: _Callable[[_type.HSTRING,
                                                 _Pointer[_interface.IActivationFactory]],
                                                _type.HRESULT]
 
     class WindowsAppRuntime:
-        class Bootstrap(_WinFunc):
+        class Bootstrap(_Func, metaclass=_WinDLL):
             MddBootstrapInitialize: _Callable[[_type.UINT32,
                                                _type.PCWSTR,
                                                _struct.PACKAGE_VERSION],

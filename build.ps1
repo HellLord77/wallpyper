@@ -1,7 +1,8 @@
 $Version = "0.0.5"
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
-$Datas = @("libs\colors\colornames.min.json", "libs\locales\iso_639-2.json", "libs\locales\iso_3166-1.json", "resources", "win32\syspin.exe")
+$Datas = @("libs\colors\colornames.min.json", "libs\iso\iso_639-2.json", "libs\iso\iso_639-3.json", "libs\iso\iso_639-5.json", "libs\iso\iso_3166-1.json",
+"libs\iso\iso_3166-2.json", "libs\iso\iso_3166-3.json", "libs\iso\iso_4217.json", "libs\iso\iso_15924.json", "resources", "win32\syspin.exe")
 $Excludes = @()
 $Debug = $False
 $EntryPoint = "src\init.py"
