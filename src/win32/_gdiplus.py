@@ -276,6 +276,10 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
                     type_ = ctyped.type.c_void_p
                 return ctyped.cast(property_item.contents.value, ctyped.pointer(type_))
 
+    # noinspection PyShadowingBuiltins
+    def rotate_flip(self, type: ctyped.enum.RotateFlipType) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipImageRotateFlip(self, type)
+
     def save(self, path: str, quality: int = 100) -> bool:
         if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):
             quality_ = ctyped.type.LONG(quality)

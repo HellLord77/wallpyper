@@ -69,6 +69,20 @@ class Style(metaclass=_IntEnum):
     SPAN = ctyped.const.WPSTYLE_SPAN
 
 
+class Rotate(metaclass=_IntEnum):
+    NONE = 0
+    RIGHT = 1
+    LEFT = 2
+    FLIP = 3
+
+
+class Flip(metaclass=_IntEnum):
+    NONE = 0
+    HORIZONTAL = 1
+    VERTICAL = 2
+    BOTH = 3
+
+
 class Transition(metaclass=_IntEnum):
     DISABLED = -2
     RANDOM = -1
@@ -295,7 +309,7 @@ def get_monitor_name(id: str) -> Optional[str]:
     return _utils.get_str_dev_node_props(dev_id, ctyped.const.DEVPKEY_NAME)[0] if dev_id else None
 
 
-def get_monitor_ids_names() -> dict[str, str]:
+def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
     monitors = {}
     path_count = ctyped.type.UINT32()
     mode_count = ctyped.type.UINT32()
@@ -311,8 +325,14 @@ def get_monitor_ids_names() -> dict[str, str]:
                     name.header.adapterId = mode.adapterId
                     name.header.id = mode.id
                     if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
-                        monitors[name.monitorDevicePath] = name.monitorFriendlyDeviceName
+                        monitors[name.monitorDevicePath] = name.monitorFriendlyDeviceName, (
+                            mode.U.targetMode.targetVideoSignalInfo.activeSize.cx, mode.U.targetMode.targetVideoSignalInfo.activeSize.cy)
     return monitors
+
+
+def get_screen_size() -> tuple[int, int]:
+    return ctyped.lib.User32.GetSystemMetrics(
+        ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.User32.GetSystemMetrics(ctyped.const.SM_CYVIRTUALSCREEN)
 
 
 def get_style() -> Optional[int]:
@@ -356,11 +376,10 @@ def get(monitor: Optional[str] = None) -> str:
 def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
     rect = ctyped.struct.RECT()
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
-        if wallpaper:
-            if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
-                return rect.left - ctyped.lib.User32.GetSystemMetrics(
-                    ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.User32.GetSystemMetrics(
-                    ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
+        if wallpaper and ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
+            return rect.left - ctyped.lib.User32.GetSystemMetrics(
+                ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.User32.GetSystemMetrics(
+                ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
     return 0, 0, 0, 0
 
 
@@ -515,16 +534,31 @@ def set(path: str, *monitors: str, fade: bool = True):
 _temp_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
-           r: int = 0, g: int = 0, b: int = 0, transition: int = Transition.FADE, duration: int = 1) -> bool:
+def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL, r: int = 0, g: int = 0, b: int = 0,
+           rotate: int = Rotate.NONE, flip: int = Flip.NONE, transition: int = Transition.FADE, duration: int = 1) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
         width = image.get_width()
         height = image.get_height()
+        if rotate or flip:
+            rotate_flip = ctyped.enum.RotateFlipType.RotateNoneFlipNone
+            if (rotate == Rotate.RIGHT and flip == Flip.NONE) or (rotate == Rotate.LEFT and flip == Flip.BOTH):
+                rotate_flip = ctyped.enum.RotateFlipType.Rotate90FlipNone
+            elif (rotate == Rotate.FLIP and flip == Flip.NONE) or (rotate == Rotate.NONE and flip == Flip.BOTH):
+                rotate_flip = ctyped.enum.RotateFlipType.Rotate180FlipNone
+            elif (rotate == Rotate.LEFT and flip == Flip.NONE) or (rotate == Rotate.RIGHT and flip == Flip.BOTH):
+                rotate_flip = ctyped.enum.RotateFlipType.Rotate270FlipNone
+            elif (rotate == Rotate.NONE and flip == Flip.HORIZONTAL) or (rotate == Rotate.FLIP and flip == Flip.VERTICAL):
+                rotate_flip = ctyped.enum.RotateFlipType.RotateNoneFlipX
+            elif (rotate == Rotate.RIGHT and flip == Flip.HORIZONTAL) or (rotate == Rotate.LEFT and flip == Flip.VERTICAL):
+                rotate_flip = ctyped.enum.RotateFlipType.Rotate90FlipX
+            elif (rotate == Rotate.FLIP and flip == Flip.HORIZONTAL) or (rotate == Rotate.NONE and flip == Flip.VERTICAL):
+                rotate_flip = ctyped.enum.RotateFlipType.Rotate180FlipX
+            elif (rotate == Rotate.LEFT and flip == Flip.HORIZONTAL) or (rotate == Rotate.RIGHT and flip == Flip.VERTICAL):
+                rotate_flip = ctyped.enum.RotateFlipType.Rotate270FlipX
+            image.rotate_flip(rotate_flip)
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
-            monitor_x_y_w_h = 0, 0, ctyped.lib.User32.GetSystemMetrics(
-                ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.User32.GetSystemMetrics(
-                ctyped.const.SM_CYVIRTUALSCREEN)
+            monitor_x_y_w_h = 0, 0, *get_screen_size()
             if style == Style.TILE:
                 width_ = monitor_x_y_w_h[2]
                 height_ = monitor_x_y_w_h[3]
@@ -553,8 +587,8 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
     return False
 
 
-Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'transition', 'duration'),
-                                   defaults=(Style.FILL, 0, 0, 0, Transition.FADE, 1))
+Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'rotate', 'flip', 'transition', 'duration'),
+                                   defaults=(Style.FILL, 0, 0, 0, Rotate.NONE, Flip.NONE, Transition.FADE, 1))
 
 
 def set_multi(*wallpapers: Wallpaper):

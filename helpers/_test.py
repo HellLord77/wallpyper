@@ -252,6 +252,8 @@ def set_lock():
 
 
 def _test():
+    var = ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS_U_S().reserved
+    print(var)
     from libs import locales
     for lang in locales.Language:
         print(locales.Language.get(lang))

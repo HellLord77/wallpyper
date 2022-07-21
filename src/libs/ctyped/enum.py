@@ -371,22 +371,22 @@ class SLR_FLAGS(_Enum):
 
 
 class RotateFlipType(_Enum):
-    RNoneFlipNone = 0
-    R90FlipNone = 1
-    R180FlipNone = 2
-    R270FlipNone = 3
-    RNoneFlipX = 4
-    R90FlipX = 5
-    R180FlipX = 6
-    R270FlipX = 7
-    RNoneFlipY = R180FlipX
-    R90FlipY = R270FlipX
-    R180FlipY = RNoneFlipX
-    R270FlipY = R90FlipX
-    RNoneFlipXY = R180FlipNone
-    R90FlipXY = R270FlipNone
-    R180FlipXY = RNoneFlipNone
-    R270FlipXY = R90FlipNone
+    RotateNoneFlipNone = 0
+    Rotate90FlipNone = 1
+    Rotate180FlipNone = 2
+    Rotate270FlipNone = 3
+    RotateNoneFlipX = 4
+    Rotate90FlipX = 5
+    Rotate180FlipX = 6
+    Rotate270FlipX = 7
+    RotateNoneFlipY = Rotate180FlipX
+    Rotate90FlipY = Rotate270FlipX
+    Rotate180FlipY = RotateNoneFlipX
+    Rotate270FlipY = Rotate90FlipX
+    RotateNoneFlipXY = Rotate180FlipNone
+    Rotate90FlipXY = Rotate270FlipNone
+    Rotate180FlipXY = RotateNoneFlipNone
+    Rotate270FlipXY = Rotate90FlipNone
 
 
 class COINITBASE(_Enum):
