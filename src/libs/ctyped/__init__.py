@@ -15,7 +15,7 @@ from . import const, enum, handle, interface, lib, macro, struct, type, union
 from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
                      _byref as byref, _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
-_MESSAGES = {val: name for name, val in vars(const).items() if name.startswith('WM_')}
+_MESSAGES = {}
 
 THREADED_COM = False
 
@@ -64,7 +64,14 @@ def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
 
 
 def get_message(message: int) -> str:
-    return _MESSAGES.get(message, f'WM_{message}')
+    if _MESSAGES:
+        for name, val in vars(const).items():
+            if name.startswith('WM_'):
+                _MESSAGES[val] = name
+    try:
+        return _MESSAGES[message]
+    except KeyError:
+        return f'WM_{message}'
 
 
 def get_interface_name(iid: str, base: _Union[type, _types.ModuleType] = const) -> _Optional[str]:

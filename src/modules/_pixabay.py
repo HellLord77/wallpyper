@@ -39,6 +39,7 @@ def _authenticate(key: str) -> bool:
 
 
 class Pixabay(_Module):
+    ICON = 'Pixabay.png'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',

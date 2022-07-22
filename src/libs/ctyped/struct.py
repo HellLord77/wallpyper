@@ -854,6 +854,131 @@ class UNICODE_STRING:
 
 
 @_struct
+class ACCEL:
+    # noinspection PyProtectedMember
+    if not _const._MAC:
+        fVirt: _type.BYTE = None
+        key: _type.WORD = None
+        cmd: _type.WORD = None
+    else:
+        fVirt: _type.WORD = None
+        key: _type.WORD = None
+        cmd: _type.DWORD = None
+
+
+@_struct
+class PAINTSTRUCT:
+    hdc: _type.HDC = None
+    fErase: _type.BOOL = None
+    rcPaint: RECT = None
+    fRestore: _type.BOOL = None
+    fIncUpdate: _type.BOOL = None
+    rgbReserved: _type.BYTE * 32 = None
+
+
+@_struct
+class CREATESTRUCTA:
+    lpCreateParams: _type.LPVOID = None
+    hInstance: _type.HINSTANCE = None
+    hMenu: _type.HMENU = None
+    hwndParent: _type.HWND = None
+    cy: _type.c_int = None
+    cx: _type.c_int = None
+    y: _type.c_int = None
+    x: _type.c_int = None
+    style: _type.LONG = None
+    lpszName: _type.LPCSTR = None
+    lpszClass: _type.LPCSTR = None
+    dwExStyle: _type.DWORD = None
+
+
+@_struct
+class CREATESTRUCTW:
+    lpCreateParams: _type.LPVOID = None
+    hInstance: _type.HINSTANCE = None
+    hMenu: _type.HMENU = None
+    hwndParent: _type.HWND = None
+    cy: _type.c_int = None
+    cx: _type.c_int = None
+    y: _type.c_int = None
+    x: _type.c_int = None
+    style: _type.LONG = None
+    lpszName: _type.LPCWSTR = None
+    lpszClass: _type.LPCWSTR = None
+    dwExStyle: _type.DWORD = None
+
+
+@_struct
+class WINDOWPLACEMENT:
+    length: _type.UINT = _SIZE
+    flags: _type.UINT = None
+    showCmd: _type.UINT = None
+    ptMinPosition: POINT = None
+    ptMaxPosition: POINT = None
+    rcNormalPosition: RECT = None
+    # noinspection PyProtectedMember
+    if _const._MAC:
+        rcDevice: RECT = None
+
+
+@_struct
+class NMHDR:
+    hwndFrom: _type.HWND = None
+    idFrom: _type.UINT_PTR = None
+    code: _type.UINT = None
+
+
+@_struct
+class STYLESTRUCT:
+    styleOld: _type.DWORD = None
+    styleNew: _type.DWORD = None
+
+
+@_struct
+class MEASUREITEMSTRUCT:
+    CtlType: _type.UINT = None
+    CtlID: _type.UINT = None
+    itemID: _type.UINT = None
+    itemWidth: _type.UINT = None
+    itemHeight: _type.UINT = None
+    itemData: _type.ULONG_PTR = None
+
+
+@_struct
+class DRAWITEMSTRUCT:
+    CtlType: _type.UINT = None
+    CtlID: _type.UINT = None
+    itemID: _type.UINT = None
+    itemAction: _type.UINT = None
+    itemState: _type.UINT = None
+    hwndItem: _type.HWND = None
+    hDC: _type.HDC = None
+    rcItem: RECT = None
+    itemData: _type.ULONG_PTR = None
+
+
+@_struct
+class DELETEITEMSTRUCT:
+    CtlType: _type.UINT = None
+    CtlID: _type.UINT = None
+    itemID: _type.UINT = None
+    hwndItem: _type.HWND = None
+    itemData: _type.ULONG_PTR = None
+
+
+@_struct
+class COMPAREITEMSTRUCT:
+    CtlType: _type.UINT = None
+    CtlID: _type.UINT = None
+    hwndItem: _type.HWND = None
+    itemID1: _type.UINT = None
+    itemData1: _type.ULONG_PTR = None
+    itemID2: _type.UINT = None
+    itemData2: _type.ULONG_PTR = None
+    dwLocaleId: _type.DWORD = None
+
+
+@_struct
 class INITCOMMONCONTROLSEX:
     dwSize: _type.DWORD = _SIZE
     dwICC: _type.DWORD = None
@@ -1000,6 +1125,16 @@ class DLGTEMPLATE:
     y: _type.c_short = None
     cx: _type.c_short = None
     cy: _type.c_short = None
+
+
+@_struct
+class DLGITEMTEMPLATE:
+    style: _type.DWORD = None
+    dwExtendedStyle: _type.DWORD = None
+    x: _type.c_short = None
+    y: _type.c_short = None
+    cx: _type.c_short = None
+    id: _type.WORD = None
 
 
 @_struct
@@ -2870,15 +3005,12 @@ def _init(item: str, var: _Optional[type] = None) -> type:
     if var is None:
         var = _globals.vars_[item]
     if hasattr(var, '__annotations__'):
-        fields = tuple((name, _resolve_type(
-            annot)) for name, annot in _typing.get_type_hints(var, _globals, _globals).items())
+        fields = tuple((name, _resolve_type(annot)) for name, annot in _typing.get_type_hints(var, _globals, _globals).items())
         # noinspection PyProtectedMember
-        struct = type(item, (_Struct,), {'_fields_': tuple((*field, field[1]._bitfield) if hasattr(
-            field[1], '_bitfield') else field for field in fields)})
+        struct = type(item, (_Struct,), {'_fields_': tuple((*field, field[1]._bitfield) if hasattr(field[1], '_bitfield') else field for field in fields)})
         # noinspection PyTypeChecker
         size = _ctypes.sizeof(struct)
-        struct._defaults = tuple((field[0], size if (val := getattr(
-            var, field[0])) is _SIZE else val) for field in fields)
+        struct._defaults = tuple((field[0], size if (val := getattr(var, field[0])) is _SIZE else val) for field in fields)
         return struct
     else:
         return _NamespaceMeta(item, (), dict(vars(var)))

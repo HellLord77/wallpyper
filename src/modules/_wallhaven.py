@@ -4,7 +4,7 @@ import os.path
 import re
 from typing import Callable, Generator, Optional
 
-from libs import colors, files, gui, request
+from libs import colornames, files, gui, request
 from .module import _Module
 
 BASE_URL = request.join('https://wallhaven.cc', 'api', 'v1')
@@ -122,7 +122,7 @@ class Wallhaven(_Module):
             gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.Item.CHECK, ratio in ratios,
                               uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
         gui.add_separator(6, menu_ratio)
-        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colors.get_name(
+        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colornames.get_name(
             color) if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}, cls.CONFIG, CONFIG_COLORS)
 
     @classmethod

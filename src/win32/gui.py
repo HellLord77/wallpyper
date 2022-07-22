@@ -39,7 +39,9 @@ _MIIM_FIELDS = {
     ctyped.const.MIIM_BITMAP: ('hbmpItem',),
     ctyped.const.MIIM_FTYPE: ('fType',)}
 
-MENU_ITEM_TOOLTIP_DELAY = ctyped.lib.User32.GetDoubleClickTime() * 3
+_MENU_ITEM_AUTOMATIC = 500
+MENU_ITEM_TOOLTIP_INITIAL = _MENU_ITEM_AUTOMATIC * 1
+MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_AUTOMATIC // 5
 
 
 class GuiEvent:
@@ -260,8 +262,10 @@ class Gui(_EventHandler):
                 self._menu_item_tooltip_hwnd.show(ctyped.const.SW_HIDE)
         elif message == ctyped.const.WM_ENTERIDLE:
             ctyped.lib.User32.KillTimer(hwnd, _TID_MENU_ITEM_TOOLTIP)
-            if wparam == ctyped.const.MSGF_MENU and (proc := self._menu_item_tooltip_proc) is not None:
-                ctyped.lib.User32.SetTimer(hwnd, _TID_MENU_ITEM_TOOLTIP, MENU_ITEM_TOOLTIP_DELAY, proc)
+            if wparam == ctyped.const.MSGF_MENU and self._menu_item_tooltip_proc:
+                ctyped.lib.User32.SetTimer(
+                    hwnd, _TID_MENU_ITEM_TOOLTIP, MENU_ITEM_TOOLTIP_RESHOW if self._menu_item_tooltip_hwnd.is_visible() else
+                    MENU_ITEM_TOOLTIP_INITIAL, self._menu_item_tooltip_proc)
         elif message == ctyped.const.WM_DISPLAYCHANGE:
             self.trigger(message)
         elif message == _WM_SYS_TRAY:
@@ -269,6 +273,7 @@ class Gui(_EventHandler):
         elif message in (ctyped.const.WM_INITMENUPOPUP, ctyped.const.WM_UNINITMENUPOPUP):
             Menu.get(wparam).trigger(message)
         elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND, ctyped.const.WM_MENURBUTTONUP):
+            # FIXME WM_MENUSELECT is triggered again after auto closing a submenu (seq: select, close, select)
             is_command = message == ctyped.const.WM_MENUCOMMAND
             self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, is_command)
             if lparam:
@@ -678,7 +683,7 @@ class _MenuItem(_Control):
         return self._type
 
     def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
-        if isinstance(res_or_path, str):
+        if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
             res_or_path = _gdiplus.Bitmap.from_file(res_or_path)
             if resize:
                 res_or_path = res_or_path.get_resized(16, 16)

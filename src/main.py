@@ -152,7 +152,7 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 @timer.on_thread
 def first_run():  # FIXME my icon
     if CONFIG[consts.CONFIG_FIRST]:
-        CONFIG[consts.CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST, gui.Icon.INFORMATION)
+        CONFIG[consts.CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, gui.Icon.INFORMATION)
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -539,7 +539,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     _update_recent(menu_recent)
     gui.set_on_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
     gui.add_separator()
-    menu_module = gui.add_submenu(UUID)
+    menu_module = gui.add_submenu('_')
     on_module(CONFIG[consts.CONFIG_MODULE], menu_module)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS)):
@@ -589,6 +589,7 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_mapped_submenu(STRINGS.MENU_MODULE,
                                {name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()},
                                CONFIG, consts.CONFIG_MODULE, on_click=on_module, args=(menu_module,))
+        print(*(module.ICON for module in modules.MODULES.values()), sep='\n')  # TODO
         menu_display = gui.add_submenu(STRINGS.MENU_DISPLAY)
         on_update_display(menu_display, False)
         gui.add_separator()

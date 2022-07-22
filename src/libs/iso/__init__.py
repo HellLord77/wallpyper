@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.3'
+__version__ = '0.0.3'  # https://salsa.debian.org/iso-codes-team/iso-codes
 
 import collections
 import json
@@ -16,21 +16,17 @@ class _ISOMeta(type):
 
     def __iter__(cls):
         if cls._items is None:
-            cls._load()
+            iso = cls._iso or f'{cls.__name__[3:-1]}-{cls.__name__[-1]}'
+            with open(os.path.join(os.path.dirname(__file__), f'iso_{iso}.json'), 'r', encoding='utf-8') as file:
+                cls._items = json.load(file)[iso]
         # noinspection PyProtectedMember
         return (item[cls._BASE_._fields[0]] for item in cls._items)
 
     def __getitem__(cls, key: str):
         return cls.get(key)
 
-    def _load(cls):
-        iso = cls._iso or f'{cls.__name__[3:-1]}-{cls.__name__[-1]}'
-        with open(os.path.join(os.path.dirname(__file__), f'iso_{iso}.json'), 'r', encoding='utf-8') as file:
-            cls._items = json.load(file)[iso]
-
     def get(cls, *args, **kwargs):
-        if cls._items is None:
-            cls._load()
+        iter(cls)
         # noinspection PyProtectedMember
         fields = cls._BASE_._fields
         kwargs.update(zip(fields, args))
@@ -49,7 +45,8 @@ class _ISOMeta(type):
 
 
 class ISO6392(metaclass=_ISOMeta):
-    _BASE_ = collections.namedtuple('ISO_639_2', ('alpha_3', 'name', 'alpha_2', 'bibliographic', 'common_name'), defaults=('', '', ''))
+    _BASE_ = collections.namedtuple('ISO_639_2', ('alpha_3', 'name', 'alpha_2',
+                                                  'bibliographic', 'common_name'), defaults=('', '', ''))
 
     @classmethod
     def get(cls, alpha_3: Optional[str] = None, name: Optional[str] = None, alpha_2: Optional[str] = None,
@@ -89,8 +86,9 @@ class ISO31661(metaclass=_ISOMeta):
                                                    'official_name', 'common_name'), defaults=('', ''))
 
     @classmethod
-    def get(cls, alpha_2: Optional[str] = None, alpha_3: Optional[str] = None, flag: Optional[str] = None, name: Optional[str] = None,
-            numeric: Optional[str] = None, official_name: Optional[str] = None, common_name: Optional[str] = None) -> _BASE_:
+    def get(cls, alpha_2: Optional[str] = None, alpha_3: Optional[str] = None,
+            flag: Optional[str] = None, name: Optional[str] = None, numeric: Optional[str] = None,
+            official_name: Optional[str] = None, common_name: Optional[str] = None) -> _BASE_:
         pass
 
     del get
@@ -112,8 +110,9 @@ class ISO31663(metaclass=_ISOMeta):
                                                    'numeric', 'comment', 'withdrawal_date'), defaults=('', '', ''))
 
     @classmethod
-    def get(cls, alpha_2: Optional[str] = None, alpha_3: Optional[str] = None, alpha_4: Optional[str] = None, name: Optional[str] = None,
-            numeric: Optional[str] = None, comment: Optional[str] = None, withdrawal_date: Optional[str] = None) -> _BASE_:
+    def get(cls, alpha_2: Optional[str] = None, alpha_3: Optional[str] = None,
+            alpha_4: Optional[str] = None, name: Optional[str] = None, numeric: Optional[str] = None,
+            comment: Optional[str] = None, withdrawal_date: Optional[str] = None) -> _BASE_:
         pass
 
     del get
@@ -146,7 +145,8 @@ class __Locale:
 
     # noinspection PyProtectedMember
     @classmethod
-    def get(cls, language: Optional[Union[str, ISO6392._BASE_]] = None, country: Optional[Union[str, ISO31661._BASE_]] = None) -> _BASE_:
+    def get(cls, language: Optional[Union[str, ISO6392._BASE_]] = None,
+            country: Optional[Union[str, ISO31661._BASE_]] = None) -> _BASE_:
         if not isinstance(language, ISO6392._BASE_):
             language = ISO6392.get(alpha_2=language)
         if not isinstance(country, ISO31661._BASE_):

@@ -33,7 +33,7 @@ def exception_handler(excepthook: Callable, *args, **kwargs):
 # threading.excepthook = types.MethodType(exception_handler, threading.excepthook)
 
 
-def _fill_empty_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
+def fill_surrounding_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
     graphics = _gdiplus.Graphics.from_hdc(hdc)
     brush = _gdiplus.SolidFill.from_color(argb)
     if out_x < in_x:
@@ -78,7 +78,6 @@ def _test_gui():
     not_hidden = menu.append_item('tray icon shown')
     not_hidden.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: print(s.is_shown()))
     it = menu.append_item('stop animate\tright')
-    print(it.is_enabled())
     it.bind(gui.MenuItemEvent.LEFT_UP, foo3, (s,))
     it.set_tooltip('important long text tip', 'tip title', p)
     menu.append_item(type=gui.MenuItemType.SEPARATOR)
@@ -95,9 +94,9 @@ def _test_gui():
     menu2.append_item('gg', type=gui.MenuItemType.CHECK)
     it_ck = menu.append_item('check', type=gui.MenuItemType.CHECK)
     it_ck.check()
-    # it_ck.set_image(p)  # TODO do not die after click
     menu3 = gui.Menu()
-    menu.append_item('rad test', submenu=menu3)
+    submenu_item = menu.append_item('rad test', submenu=menu3)
+    submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\Wallhaven.ico')
     # menu.set_max_height(100)
     # print(menu.get_max_height())
     for i in range(6):
@@ -258,7 +257,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    _test()
+    _test_gui()
     exit()
 
     ctyped.THREADED_COM = True

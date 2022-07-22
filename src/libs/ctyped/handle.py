@@ -200,6 +200,9 @@ class HWND(_type.HWND):
     def get_menu(self) -> HMENU:
         return HMENU.from_hwnd(self)
 
+    def is_visible(self) -> bool:
+        return bool(_lib.User32.IsWindowVisible(self))
+
     def send_message(self, msg: int, wparam: int = 0, lparam: int = 0, wait: bool = True) -> int:
         return (_lib.User32.SendMessageW if wait else _lib.User32.PostMessageW)(self, msg, wparam, lparam)
 

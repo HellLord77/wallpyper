@@ -2552,6 +2552,8 @@ class User32(_Func, metaclass=_WinDLL):
                               _type.DWORD,
                               _type.DWORD],
                              _type.BOOL]
+    AnyPopup: _Callable[[],
+                        _type.BOOL]
     AppendMenuA: _Callable[[_type.HMENU,
                             _type.UINT,
                             _type.UINT_PTR,
@@ -2566,11 +2568,15 @@ class User32(_Func, metaclass=_WinDLL):
                                   _type.DWORD,
                                   _type.BOOL],
                                  _type.BOOL]
+    BeginDeferWindowPos: _Callable[[_type.c_int],
+                                   _type.BOOL]
     BeginPaint: _Callable[[_type.HWND,
                            _Pointer[_struct.PAINTSTRUCT]],
                           _type.HDC]
     BlockInput: _Callable[[_type.BOOL],
                           _type.BOOL]
+    BringWindowToTop: _Callable[[_type.HWND],
+                                _type.BOOL]
     BroadcastSystemMessageA: _Callable[[_type.DWORD,
                                         _Optional[_Pointer[_type.DWORD]],
                                         _type.UINT,
@@ -2708,6 +2714,15 @@ class User32(_Func, metaclass=_WinDLL):
                                 _Optional[_type.HINSTANCE],
                                 _Optional[_type.LPVOID]],
                                _type.HWND]
+    DeferWindowPos: _Callable[[_type.HDWP,
+                               _type.HWND,
+                               _Optional[_type.HWND],
+                               _type.c_int,
+                               _type.c_int,
+                               _type.c_int,
+                               _type.c_int,
+                               _type.UINT],
+                              _type.HDWP]
     DefDlgProcA: _Callable[[_type.HWND,
                             _type.UINT,
                             _type.WPARAM,
@@ -2796,6 +2811,8 @@ class User32(_Func, metaclass=_WinDLL):
                               _type.BOOL]
     EnableNonClientDpiScaling: _Callable[[_type.HWND],
                                          _type.BOOL]
+    EndDeferWindowPos: _Callable[[_type.HDWP],
+                                 _type.BOOL]
     EndDialog: _Callable[[_type.HWND,
                           _type.INT_PTR],
                          _type.BOOL]
@@ -3068,6 +3085,12 @@ class User32(_Func, metaclass=_WinDLL):
                          _type.HWND]
     GetWindowDC: _Callable[[_Optional[_type.HWND]],
                            _type.HDC]
+    GetWindowDisplayAffinity: _Callable[[_type.HWND,
+                                         _Pointer[_type.DWORD]],
+                                        _type.BOOL]
+    GetWindowPlacement: _Callable[[_type.HWND,
+                                   _Pointer[_struct.WINDOWPLACEMENT]],
+                                  _type.BOOL]
     GetWindowRect: _Callable[[_type.HWND,
                               _Pointer[_struct.RECT]],
                              _type.BOOL]
@@ -3124,6 +3147,8 @@ class User32(_Func, metaclass=_WinDLL):
                                   _type.UINT]
     IsGUIThread: _Callable[[_type.BOOL],
                            _type.BOOL]
+    IsIconic: _Callable[[_type.HWND],
+                        _type.BOOL]
     IsImmersiveProcess: _Callable[[_type.HANDLE],
                                   _type.BOOL]
     IsMenu: _Callable[[_type.HMENU],
@@ -3134,8 +3159,12 @@ class User32(_Func, metaclass=_WinDLL):
                            _type.BOOL]
     IsWindow: _Callable[[_type.HWND],
                         _type.BOOL]
+    IsWindowVisible: _Callable[[_type.HWND],
+                               _type.BOOL]
     IsWow64Message: _Callable[[],
                               _type.BOOL]
+    IsZoomed: _Callable[[_type.HWND],
+                        _type.BOOL]
     QueryDisplayConfig: _Callable[[_type.UINT32,
                                    _Pointer[_type.UINT32],
                                    _Pointer[_struct.DISPLAYCONFIG_PATH_INFO],
@@ -3476,6 +3505,12 @@ class User32(_Func, metaclass=_WinDLL):
                                 _type.DWORD,
                                 _type.DWORD],
                                _type.HWINEVENTHOOK]
+    SetWindowDisplayAffinity: _Callable[[_type.HWND,
+                                         _type.DWORD],
+                                        _type.BOOL]
+    SetWindowPlacement: _Callable[[_type.HWND,
+                                   _Pointer[_struct.WINDOWPLACEMENT]],
+                                  _type.BOOL]
     SetWindowPos: _Callable[[_type.HWND,
                              _Optional[_type.HWND],
                              _type.c_int,
