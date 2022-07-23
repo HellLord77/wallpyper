@@ -35,7 +35,7 @@ class DECIMAL_U2:
 
 # noinspection PyPep8Naming
 @_union
-class PROPVARIANT_U_S_U:  # TODO
+class PROPVARIANT_U_S_U:
     cVal: _type.CHAR
     bVal: _type.UCHAR
     iVal: _type.SHORT
@@ -81,7 +81,7 @@ class PICTDESC_U:
 
 # noinspection PyPep8Naming
 @_union
-class VARIANT_U_S_U:  # TODO
+class VARIANT_U_S_U:
     llVal: _type.LONGLONG
     lVal: _type.LONG
     bVal: _type.BYTE
@@ -125,14 +125,14 @@ class VARIANT_U:
 # noinspection PyPep8Naming
 @_union
 class LARGE_INTEGER:
-    S: _struct.LARGE_INTEGER_S
+    u: _struct.LARGE_INTEGER_S
     QuadPart: _type.LONGLONG
 
 
 # noinspection PyPep8Naming
 @_union
 class ULARGE_INTEGER:
-    S: _struct.ULARGE_INTEGER_S
+    u: _struct.ULARGE_INTEGER_S
     QuadPart: _type.ULONGLONG
 
 

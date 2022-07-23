@@ -193,9 +193,19 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
         _GdiPlus.GdipDisposeImage(self)
 
     @classmethod
-    def from_file(cls, path: str) -> Image:
+    def from_file(cls, path: str, embedded_color_management: bool = False) -> Image:
         self = cls()
-        _GdiPlus.GdipLoadImageFromFile(path, ctyped.byref(self))
+        (_GdiPlus.GdipLoadImageFromFileICM if embedded_color_management else _GdiPlus.GdipLoadImageFromFile)(
+            path, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Image:
+        self = cls()
+        if stream := ctyped.lib.Shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
+            (_GdiPlus.GdipLoadImageFromStreamICM if embedded_color_management else _GdiPlus.GdipLoadImageFromStream)(
+                stream, ctyped.byref(self))
+            stream.Release()
         return self
 
     @staticmethod
@@ -295,14 +305,23 @@ class Bitmap(Image, ctyped.type.GpBitmap):
     def from_dimension(cls, width: int, height: int,
                        pixel_format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
         self = cls()
-        _GdiPlus.GdipCreateBitmapFromScan0(
-            width, height, 0, pixel_format, None, ctyped.byref(self))
+        _GdiPlus.GdipCreateBitmapFromScan0(width, height, 0, pixel_format, None, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_file(cls, path: str) -> Bitmap:
+    def from_file(cls, path: str, embedded_color_management: bool = False) -> Bitmap:
         self = cls()
-        _GdiPlus.GdipCreateBitmapFromFile(path, ctyped.byref(self))
+        (_GdiPlus.GdipCreateBitmapFromFileICM if embedded_color_management else _GdiPlus.GdipCreateBitmapFromFile)(
+            path, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Bitmap:
+        self = cls()
+        if stream := ctyped.lib.Shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
+            (_GdiPlus.GdipCreateBitmapFromStreamICM if embedded_color_management else _GdiPlus.GdipCreateBitmapFromStream)(
+                stream, ctyped.byref(self))
+            stream.Release()
         return self
 
     @classmethod

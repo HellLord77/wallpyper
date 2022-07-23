@@ -1138,6 +1138,21 @@ class DLGITEMTEMPLATE:
 
 
 @_struct
+class STATSTG:
+    pwcsName: _type.LPOLESTR = None
+    type: _type.DWORD = None
+    cbSize: _union.ULARGE_INTEGER = None
+    mtime: FILETIME = None
+    ctime: FILETIME = None
+    atime: FILETIME = None
+    grfMode: _type.DWORD = None
+    grfLocksSupported: _type.DWORD = None
+    clsid: CLSID = None
+    grfStateBits: _type.DWORD = None
+    reserved: _type.DWORD = None
+
+
+@_struct
 class TTTOOLINFOA:
     cbSize: _type.UINT = _SIZE
     uFlags: _type.UINT = None
@@ -1306,21 +1321,9 @@ class SHSTOCKICONINFO:
 
 # noinspection PyPep8Naming
 @_struct
-class LARGE_INTEGER:
-    QuadPart: _type.LONGLONG = None
-
-
-# noinspection PyPep8Naming
-@_struct
 class LARGE_INTEGER_S:
     LowPart: _type.DWORD = None
     HighPart: _type.LONG = None
-
-
-# noinspection PyPep8Naming
-@_struct
-class ULARGE_INTEGER:
-    QuadPart: _type.LONGLONG = None
 
 
 # noinspection PyPep8Naming
@@ -1511,10 +1514,10 @@ class ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION:
     ulEncodedAssemblyIdentityLength: _type.DWORD = None
     ulManifestPathType: _type.DWORD = None
     ulManifestPathLength: _type.DWORD = None
-    liManifestLastWriteTime: LARGE_INTEGER = None
+    liManifestLastWriteTime: _union.LARGE_INTEGER = None
     ulPolicyPathType: _type.DWORD = None
     ulPolicyPathLength: _type.DWORD = None
-    liPolicyLastWriteTime: LARGE_INTEGER = None
+    liPolicyLastWriteTime: _union.LARGE_INTEGER = None
     ulMetadataSatelliteRosterIndex: _type.DWORD = None
     ulManifestVersionMajor: _type.DWORD = None
     ulManifestVersionMinor: _type.DWORD = None

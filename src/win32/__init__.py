@@ -9,7 +9,7 @@ import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional, Union
 
 import libs.ctyped as ctyped
-from . import _gdiplus, _utils, clipboard, gui, wallpaper
+from . import _utils, clipboard, gui, wallpaper
 from ._utils import sanitize_filename
 
 _PIN_INTERVAL = 3

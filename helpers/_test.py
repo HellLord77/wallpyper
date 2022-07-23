@@ -251,9 +251,7 @@ def set_lock():
 
 
 def _test():
-    from libs import iso
-    c = iso.ISO31661['US']
-    print(c)
+    pass
 
 
 if __name__ == '__main__':

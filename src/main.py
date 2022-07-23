@@ -186,8 +186,7 @@ def get_next_wallpaper() -> Optional[files.File]:
 
 
 @utils.singleton_run
-def change_wallpaper(wallpaper: Optional[files.File] = None,
-                     query_callback: Optional[Callable[[int, ...], bool]] = None,
+def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
     if query_callback:
@@ -577,10 +576,10 @@ def create_menu():  # TODO slideshow (smaller timer)
                                {rotate: getattr(STRINGS, f'ROTATE_{rotate}') for rotate in
                                 win32.wallpaper.Rotate}, CONFIG, consts.CONFIG_ROTATE)
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_FLIP)):
-            item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.Item.CHECK, CONFIG[consts.CONFIG_FLIP] in (
-                win32.wallpaper.Flip.VERTICAL, win32.wallpaper.Flip.BOTH), uid=win32.wallpaper.Flip[win32.wallpaper.Flip.VERTICAL])
-            item_horizontal = gui.add_menu_item(STRINGS.FLIP_HORIZONTAL, gui.Item.CHECK, CONFIG[consts.CONFIG_FLIP] in (
-                win32.wallpaper.Flip.HORIZONTAL, win32.wallpaper.Flip.BOTH), uid=win32.wallpaper.Flip[win32.wallpaper.Flip.HORIZONTAL])
+            item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.Item.CHECK, getattr(
+                win32.wallpaper.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.wallpaper.Flip.VERTICAL, win32.wallpaper.Flip.BOTH))
+            item_horizontal = gui.add_menu_item(STRINGS.FLIP_HORIZONTAL, gui.Item.CHECK, getattr(
+                win32.wallpaper.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.wallpaper.Flip.HORIZONTAL, win32.wallpaper.Flip.BOTH))
             gui.set_on_click(item_vertical, on_flip, args=(item_vertical, item_horizontal))
             gui.set_on_click(item_horizontal, on_flip, args=(item_vertical, item_horizontal))
         gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT,

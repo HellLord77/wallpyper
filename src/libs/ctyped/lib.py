@@ -363,6 +363,38 @@ class ComputeCore(_Func, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
+class Crypt32(_Func, metaclass=_WinDLL):
+    # wincrypt
+    CryptBinaryToStringA: _Callable[[_Pointer[_type.BYTE],
+                                     _type.DWORD,
+                                     _type.DWORD,
+                                     _Optional[_Pointer[_type.LPSTR]],
+                                     _Pointer[_type.DWORD]],
+                                    _type.BOOL]
+    CryptBinaryToStringW: _Callable[[_Pointer[_type.BYTE],
+                                     _type.DWORD,
+                                     _type.DWORD,
+                                     _Optional[_Pointer[_type.LPWSTR]],
+                                     _Pointer[_type.DWORD]],
+                                    _type.BOOL]
+    CryptStringToBinaryA: _Callable[[_type.LPCSTR,
+                                     _type.DWORD,
+                                     _type.DWORD,
+                                     _Pointer[_type.BYTE],
+                                     _Pointer[_type.DWORD],
+                                     _Optional[_Pointer[_type.DWORD]],
+                                     _Optional[_Pointer[_type.DWORD]]],
+                                    _type.BOOL]
+    CryptStringToBinaryW: _Callable[[_type.LPCWSTR,
+                                     _type.DWORD,
+                                     _type.DWORD,
+                                     _Pointer[_type.BYTE],
+                                     _Pointer[_type.DWORD],
+                                     _Optional[_Pointer[_type.DWORD]],
+                                     _Optional[_Pointer[_type.DWORD]]],
+                                    _type.BOOL]
+
+
 class Dwmapi(_Func, metaclass=_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
@@ -685,11 +717,42 @@ class GdiPlus(_Func, metaclass=_WinDLL):
     GdipCreateBitmapFromFile: _Callable[[_type.LPWSTR,
                                          _Pointer[_type.GpBitmap]],
                                         _enum.GpStatus]
+    GdipCreateBitmapFromFileICM: _Callable[[_type.LPWSTR,
+                                            _Pointer[_type.GpBitmap]],
+                                           _enum.GpStatus]
+    GdipCreateBitmapFromGdiDib: _Callable[[_Pointer[_struct.BITMAPINFO],
+                                           _type.VOID,
+                                           _Pointer[_type.GpBitmap]],
+                                          _enum.GpStatus]
     GdipCreateBitmapFromGraphics: _Callable[[_type.INT,
                                              _type.INT,
                                              _type.GpGraphics,
                                              _Pointer[_type.GpBitmap]],
                                             _enum.GpStatus]
+    GdipCreateBitmapFromHBITMAP: _Callable[[_type.HBITMAP,
+                                            _type.HPALETTE,
+                                            _Pointer[_type.GpBitmap]],
+                                           _enum.GpStatus]
+    GdipCreateBitmapFromHICON: _Callable[[_type.HICON,
+                                          _Pointer[_type.GpBitmap]],
+                                         _enum.GpStatus]
+    GdipCreateBitmapFromResource: _Callable[[_type.HINSTANCE,
+                                             _type.LPWSTR,
+                                             _Pointer[_type.GpBitmap]],
+                                            _enum.GpStatus]
+    GdipCreateBitmapFromScan0: _Callable[[_type.INT,
+                                          _type.INT,
+                                          _type.INT,
+                                          _type.PixelFormat,
+                                          _Optional[_Pointer[_type.BYTE]],
+                                          _Pointer[_type.GpBitmap]],
+                                         _enum.GpStatus]
+    GdipCreateBitmapFromStream: _Callable[[_interface.IStream,
+                                           _Pointer[_type.GpBitmap]],
+                                          _enum.GpStatus]
+    GdipCreateBitmapFromStreamICM: _Callable[[_interface.IStream,
+                                              _Pointer[_type.GpBitmap]],
+                                             _enum.GpStatus]
     GdipCreateCachedBitmap: _Callable[[_type.GpBitmap,
                                        _type.GpGraphics,
                                        _Pointer[_type.GpCachedBitmap]],
@@ -704,13 +767,6 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                             _Pointer[_type.HBITMAP],
                                             _type.ARGB],
                                            _enum.GpStatus]
-    GdipCreateBitmapFromScan0: _Callable[[_type.INT,
-                                          _type.INT,
-                                          _type.INT,
-                                          _type.PixelFormat,
-                                          _Optional[_Pointer[_type.BYTE]],
-                                          _Pointer[_type.GpBitmap]],
-                                         _enum.GpStatus]
     GdipCreateHICONFromBitmap: _Callable[[_type.GpBitmap,
                                           _Pointer[_type.HICON]],
                                          _enum.GpStatus]
@@ -909,6 +965,15 @@ class GdiPlus(_Func, metaclass=_WinDLL):
     GdipLoadImageFromFile: _Callable[[_type.LPWSTR,
                                       _Pointer[_type.GpImage]],
                                      _enum.GpStatus]
+    GdipLoadImageFromFileICM: _Callable[[_type.LPWSTR,
+                                         _Pointer[_type.GpImage]],
+                                        _enum.GpStatus]
+    GdipLoadImageFromStream: _Callable[[_interface.IStream,
+                                        _Pointer[_type.GpImage]],
+                                       _enum.GpStatus]
+    GdipLoadImageFromStreamICM: _Callable[[_interface.IStream,
+                                           _Pointer[_type.GpImage]],
+                                          _enum.GpStatus]
     GdipSaveImageToFile: _Callable[[_type.GpImage,
                                     _type.LPWSTR,
                                     _Pointer[_struct.CLSID],
@@ -2289,6 +2354,49 @@ class Shlwapi(_Func, metaclass=_WinDLL):
     # Shlwapi
     IsInternetESCEnabled: _Callable[[],
                                     _type.BOOL]
+    IStream_Copy: _Callable[[_interface.IStream,
+                             _interface.IStream,
+                             _type.DWORD],
+                            _type.HRESULT]
+    IStream_Read: _Callable[[_interface.IStream,
+                             _type.c_void_p,
+                             _type.ULONG],
+                            _type.HRESULT]
+    IStream_ReadStr: _Callable[[_interface.IStream,
+                                _Pointer[_type.PCWSTR]],
+                               _type.HRESULT]
+    IStream_Reset: _Callable[[_interface.IStream],
+                             _type.HRESULT]
+    IStream_Size: _Callable[[_interface.IStream,
+                             _Pointer[_union.ULARGE_INTEGER]],
+                            _type.HRESULT]
+    IStream_Write: _Callable[[_interface.IStream,
+                              _type.c_void_p,
+                              _type.ULONG],
+                             _type.HRESULT]
+    IStream_WriteStr: _Callable[[_interface.IStream,
+                                 _Pointer[_type.PCWSTR]],
+                                _type.HRESULT]
+    IUnknown_AtomicRelease: _Callable[[_type.c_void_p],
+                                      _type.HRESULT]
+    IUnknown_GetSite: _Callable[[_interface.IUnknown,
+                                 _Pointer[_struct.IID],
+                                 _type.c_void_p],
+                                _type.HRESULT]
+    IUnknown_GetWindow: _Callable[[_interface.IUnknown,
+                                   _Pointer[_type.HWND]],
+                                  _type.HRESULT]
+    IUnknown_QueryService: _Callable[[_interface.IUnknown,
+                                      _Pointer[_struct.GUID],
+                                      _Pointer[_struct.IID],
+                                      _type.c_void_p],
+                                     _type.HRESULT]
+    IUnknown_Set: _Callable[[_Pointer[_interface.IUnknown],
+                             _Optional[_interface.IUnknown]],
+                            _type.HRESULT]
+    IUnknown_SetSite: _Callable[[_interface.IUnknown,
+                                 _Optional[_interface.IUnknown]],
+                                _type.HRESULT]
     PathAddBackslashA: _Callable[[_type.LPSTR],
                                  _type.LPSTR]
     PathAddBackslashW: _Callable[[_type.LPWSTR],
@@ -2507,6 +2615,46 @@ class Shlwapi(_Func, metaclass=_WinDLL):
                                   _type.BOOL]
     PathUnquoteSpacesW: _Callable[[_type.LPCWSTR],
                                   _type.BOOL]
+    SHCreateMemStream: _Callable[[_Pointer[_type.BYTE],
+                                  _type.UINT],
+                                 _interface.IStream]
+    SHCreateStreamOnFileA: _Callable[[_type.LPCSTR,
+                                      _type.DWORD,
+                                      _type.DWORD,
+                                      _Pointer[_interface.IStream]],
+                                     _type.HRESULT]
+    SHCreateStreamOnFileW: _Callable[[_type.LPCWSTR,
+                                      _type.DWORD,
+                                      _type.DWORD,
+                                      _Pointer[_interface.IStream]],
+                                     _type.HRESULT]
+    SHCreateStreamOnFileEx: _Callable[[_type.LPCWSTR,
+                                       _type.DWORD,
+                                       _type.DWORD,
+                                       _type.BOOL,
+                                       _Optional[_interface.IStream],
+                                       _Pointer[_interface.IStream]],
+                                      _type.HRESULT]
+    SHOpenRegStreamA: _Callable[[_type.HKEY,
+                                 _Optional[_type.LPCSTR],
+                                 _Optional[_type.LPCSTR],
+                                 _type.DWORD],
+                                _interface.IStream]
+    SHOpenRegStreamW: _Callable[[_type.HKEY,
+                                 _Optional[_type.LPCWSTR],
+                                 _Optional[_type.LPCWSTR],
+                                 _type.DWORD],
+                                _interface.IStream]
+    SHOpenRegStream2A: _Callable[[_type.HKEY,
+                                  _Optional[_type.LPCSTR],
+                                  _Optional[_type.LPCSTR],
+                                  _type.DWORD],
+                                 _interface.IStream]
+    SHOpenRegStream2W: _Callable[[_type.HKEY,
+                                  _Optional[_type.LPCWSTR],
+                                  _Optional[_type.LPCWSTR],
+                                  _type.DWORD],
+                                 _interface.IStream]
     UrlGetLocationA: _Callable[[_type.PCSTR],
                                _type.LPCSTR]
     UrlGetLocationW: _Callable[[_type.PCWSTR],
