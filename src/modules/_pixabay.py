@@ -4,7 +4,8 @@ import os.path
 import re
 from typing import Generator, Optional
 
-from libs import files, gui, iso, request
+import gui
+from libs import files, iso, request
 from .module import _Module
 
 BASE_URL = 'https://pixabay.com/api'
@@ -98,9 +99,9 @@ class Pixabay(_Module):
         gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_CATEGORY, {category: getattr(
             cls.STRINGS, f'PIXABAY_CATEGORY_{category}') for category in CATEGORIES}, cls.CONFIG, CONFIG_CATEGORY)
         colors = cls.CONFIG[CONFIG_COLORS].split(',')
-        menu_color = gui.add_submenu(cls.STRINGS.PIXABAY_MENU_COLORS)
+        menu_color = gui.add_submenu(cls.STRINGS.PIXABAY_MENU_COLORS).get_submenu()
         for color in COLORS:
-            gui.add_menu_item(getattr(cls.STRINGS, f'PIXABAY_COLOR_{color}'), gui.Item.CHECK, color in colors,
+            gui.add_menu_item(getattr(cls.STRINGS, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
                               uid=color, on_click=cls._on_color, args=(menu_color,), menu=menu_color)
         gui.add_separator(2, menu_color)
         cls._on_color(menu_color)
@@ -110,6 +111,6 @@ class Pixabay(_Module):
             cls.STRINGS, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CONFIG, CONFIG_ORDER)
 
     @classmethod
-    def _on_color(cls, menu):
+    def _on_color(cls, menu: gui.Menu):
         cls.CONFIG[CONFIG_COLORS] = ','.join(
-            color for color, item in gui.get_menu_items(menu).items() if item.IsChecked())
+            color for color, item in gui.get_menu_items(menu).items() if item.is_checked())

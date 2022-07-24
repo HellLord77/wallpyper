@@ -1,12 +1,16 @@
 $Version = "0.0.5"
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
-$Datas = @("libs\colornames\colornames.min.json", "libs\iso\iso_639-2.json", "libs\iso\iso_639-3.json", "libs\iso\iso_639-5.json", "libs\iso\iso_3166-1.json",
-"libs\iso\iso_3166-2.json", "libs\iso\iso_3166-3.json", "libs\iso\iso_4217.json", "libs\iso\iso_15924.json", "resources", "win32\syspin.exe")
+$Datas = @(
+"libs\colornames\res",
+"libs\iso\res",
+"modules\res",
+"res",
+"win32\syspin.exe")
 $Excludes = @()
 $Debug = $False
 $EntryPoint = "src\init.py"
-$Icon = "src\resources\icon.ico"
+$Icon = "src\res\icon.ico"
 $Manifest = "" # FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $NoConsole = $True
 $Obfuscate = $False
@@ -47,8 +51,7 @@ function CalculateExeSize([System.IO.FileStream] $Stream)
     $SectionCount = [System.BitConverter]::ToUInt16($Buffer, $HeaderOffset + 6)
     $MaxPointer = 0
     $Size = 0
-    for ($i = 0; $i -lt $SectionCount; $i++)
-    {
+    for ($i = 0; $i -lt $SectionCount; $i++) {
         $SectionOffset = $HeaderOffset + $HeadersSize + $i * 40
         $RawDataPointer = [System.BitConverter]::ToInt32($Buffer, $SectionOffset + 20)
         if ($RawDataPointer -gt $MaxPointer)
@@ -78,6 +81,7 @@ function MergeManifest([String]$ExePath, [String]$ManifestPath)
 function Install-Dependencies
 {
     python -m pip install pip --upgrade
+    python -m pip install setuptools --upgrade
 
     if ($Obfuscate)
     {

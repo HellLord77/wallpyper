@@ -4,7 +4,8 @@ import os.path
 import re
 from typing import Callable, Generator, Optional
 
-from libs import colornames, files, gui, request
+import gui
+from libs import colornames, files, request
 from .module import _Module
 
 BASE_URL = request.join('https://wallhaven.cc', 'api', 'v1')
@@ -95,59 +96,59 @@ class Wallhaven(_Module):
 
     @classmethod
     def create_menu(cls):
-        menu_category = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_CATEGORY)
+        menu_category = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_CATEGORY).get_submenu()
         for index, category in enumerate(CATEGORIES):
             gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_CATEGORY_{category}'),
-                              gui.Item.CHECK, cls.CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
+                              gui.MenuItemType.CHECK, cls.CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
                               on_click=cls._on_category, args=(menu_category,), menu=menu_category)
         cls._on_category(menu_category)
-        menu_purity = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY)
+        menu_purity = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY).get_submenu()
         for index, purity in enumerate(PURITIES):
             gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_PURITY_{purity}'),
-                              gui.Item.CHECK, cls.CONFIG[CONFIG_PURITY][index] == '1', uid=purity,
+                              gui.MenuItemType.CHECK, cls.CONFIG[CONFIG_PURITY][index] == '1', uid=purity,
                               on_click=cls._on_purity, args=(menu_purity,), menu=menu_purity)
         cls._on_purity(menu_purity)
-        menu_sorting = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_SORTING)
+        item_sorting = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_SORTING)
         gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_ORDER, {order: getattr(
             cls.STRINGS, f'WALLHAVEN_ORDER_{order}') for order in ORDERS}, cls.CONFIG, CONFIG_ORDER)
-        menu_range = gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_RANGE, {range_: getattr(
+        item_range = gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_RANGE, {range_: getattr(
             cls.STRINGS, f'WALLHAVEN_RANGE_{range_}') for range_ in RANGES}, cls.CONFIG, CONFIG_RANGE)
-        gui.add_mapped_submenu(menu_sorting, {sorting: getattr(
+        gui.add_mapped_submenu(item_sorting, {sorting: getattr(
             cls.STRINGS, f'WALLHAVEN_SORTING_{sorting}') for sorting in SORTINGS}, cls.CONFIG, CONFIG_SORTING,
-                               on_click=cls._on_sorting, args=(menu_range.Enable,))
-        cls._on_sorting(None, menu_range.Enable)
+                               on_click=cls._on_sorting, args=(item_range.enable,))
+        cls._on_sorting(None, item_range.enable)
         ratios = cls.CONFIG[CONFIG_RATIO].split(',')
-        menu_ratio = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_RATIO)
+        menu_ratio = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_RATIO).get_submenu()
         for ratio in RATIOS:
-            gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.Item.CHECK, ratio in ratios,
+            gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
                               uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
         gui.add_separator(6, menu_ratio)
         gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colornames.get_name(
             color) if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}, cls.CONFIG, CONFIG_COLORS)
 
     @classmethod
-    def _on_category(cls, menu):
-        cls.CONFIG[CONFIG_CATEGORY] = ''.join(str(int(item.IsChecked())) for item in gui.get_menu_items(menu).values())
+    def _on_category(cls, menu: gui.Menu):
+        cls.CONFIG[CONFIG_CATEGORY] = ''.join(str(int(item.is_checked())) for item in gui.get_menu_items(menu).values())
         disable = cls.CONFIG[CONFIG_CATEGORY].count('1') == 1
         for item in gui.get_menu_items(menu).values():
-            item.Enable(not disable or not item.IsChecked())
+            item.enable(not disable or not item.is_checked())
 
     @classmethod
-    def _on_purity(cls, menu):
-        cls.CONFIG[CONFIG_PURITY] = ''.join(str(int(item.IsChecked())) for item in gui.get_menu_items(menu).values())
+    def _on_purity(cls, menu: gui.Menu):
+        cls.CONFIG[CONFIG_PURITY] = ''.join(str(int(item.is_checked())) for item in gui.get_menu_items(menu).values())
         disable = cls.CONFIG[CONFIG_PURITY].count('1') == 1
         for index, item in enumerate(gui.get_menu_items(menu).values()):
-            item.Enable((not disable or not item.IsChecked()) and (index != 2 or bool(cls.CONFIG[CONFIG_KEY])))
+            item.enable((not disable or not item.is_checked()) and (index != 2 or bool(cls.CONFIG[CONFIG_KEY])))
 
     @classmethod
-    def _on_ratio(cls, menu):
+    def _on_ratio(cls, menu: gui.Menu):
         ratios = []
         for ratio, item in gui.get_menu_items(menu).items():
-            item.Enable()
-            if item.IsChecked():
+            item.enable()
+            if item.is_checked():
                 ratios.append(ratio)
         if len(ratios) == 1:
-            gui.get_menu_item_by_uid(ratios[0], menu=menu).Enable(False)
+            gui.get_menu_item_by_uid(ratios[0], menu=menu).enable(False)
         cls.CONFIG[CONFIG_RATIO] = ','.join(ratios)
 
     @classmethod

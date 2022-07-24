@@ -9,7 +9,7 @@ from ._utils import _Globals, _Pointer, _fields_repr, _resolve_type
 if None:
     from dataclasses import dataclass as _union
 else:
-    from ._utils import _decorator as _union
+    from ._utils import _dummy as _union
 
 
 # noinspection PyPep8Naming

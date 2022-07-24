@@ -31,7 +31,7 @@ _MIM_FIELD = {
 _MIIM_FIELDS = {
     ctyped.const.MIIM_STATE: ('fState',),
     ctyped.const.MIIM_ID: ('wID',),
-    ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_TYPE: ('hSubMenu', 'dwTypeData'),
+    ctyped.const.MIIM_SUBMENU: ('hSubMenu',),
     ctyped.const.MIIM_CHECKMARKS: ('hbmpChecked', 'hbmpUnchecked'),
     ctyped.const.MIIM_TYPE: ('fType', 'dwTypeData'),
     ctyped.const.MIIM_DATA: ('dwItemData',),
@@ -39,13 +39,22 @@ _MIIM_FIELDS = {
     ctyped.const.MIIM_BITMAP: ('hbmpItem',),
     ctyped.const.MIIM_FTYPE: ('fType',)}
 
+_MENU_ITEM_IMAGE_SIZE = 16
 _MENU_ITEM_AUTOMATIC = 500
 MENU_ITEM_TOOLTIP_INITIAL = _MENU_ITEM_AUTOMATIC * 1
 MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_AUTOMATIC // 5
 
 
 class GuiEvent:
+    QUERY_END = ctyped.const.WM_QUERYENDSESSION
+    END = ctyped.const.WM_ENDSESSION
     DISPLAY_CHANGE = ctyped.const.WM_DISPLAYCHANGE
+
+
+class EndingReason:
+    UNKNOWN = 0
+    CRITICAL = ctyped.const.ENDSESSION_CRITICAL
+    LOGOFF = ctyped.const.ENDSESSION_LOGOFF
 
 
 class SystemTrayIcon:
@@ -105,6 +114,7 @@ class MenuItemType:
 
 
 class MenuItemImage:
+    NONE = 0
     CLOSE = ctyped.const.HBMMENU_POPUP_CLOSE
     RESTORE = ctyped.const.HBMMENU_POPUP_RESTORE
     MINIMIZE = ctyped.const.HBMMENU_POPUP_MINIMIZE
@@ -217,6 +227,7 @@ class Gui(_EventHandler):
     _mainloop_thread = 0
     _menu_item_tooltip_proc = None
     _menu_item_tooltip_title = None
+    _end_lparam = ~(ctyped.const.ENDSESSION_CRITICAL | ctyped.const.ENDSESSION_LOGOFF)
 
     def __init__(self, name: Optional[str] = None):
         self._class = ctyped.struct.WNDCLASSEXW(
@@ -252,8 +263,10 @@ class Gui(_EventHandler):
             ctyped.lib.User32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
             ctyped.lib.User32.DestroyWindow(hwnd)
-        elif message == ctyped.const.WM_QUERYENDSESSION:
-            ...
+        elif message in (ctyped.const.WM_QUERYENDSESSION, ctyped.const.WM_ENDSESSION):
+            self._end_lparam = lparam
+            self.trigger(message)
+            return (message == ctyped.const.WM_QUERYENDSESSION) * (1 - self.is_blocking_end())
         elif message == _WM_TASKBARCREATED:
             SystemTray.update()
         elif message in (_WM_MENU_ITEM_TOOLTIP_HIDE, ctyped.const.WM_MOUSELEAVE):
@@ -306,18 +319,44 @@ class Gui(_EventHandler):
             ctyped.lib.User32.SetWindowPos(
                 self._menu_item_tooltip_hwnd, None, *pos, 0, 0, ctyped.const.SWP_NOACTIVATE | ctyped.const.SWP_NOSIZE)
 
+    def get_name(self) -> str:
+        return self._class.lpszClassName
+
     def is_mainloop_running(self) -> bool:
         return self._mainloop_lock.locked()
 
     def is_mainloop_thread(self) -> bool:
         return self.is_mainloop_running() and self._mainloop_thread == threading.get_native_id()
 
+    def get_ending_reason(self) -> int:
+        return ctyped.const.ENDSESSION_CRITICAL & self._end_lparam or ctyped.const.ENDSESSION_LOGOFF & self._end_lparam
+
+    def _is_blocking_end(self) -> tuple[int, ctyped.type.DWORD]:
+        sz = ctyped.type.DWORD()
+        return ctyped.lib.User32.ShutdownBlockReasonQuery(self._hwnd, None, ctyped.byref(sz)), sz
+
+    def is_blocking_end(self) -> bool:
+        return bool(self._is_blocking_end()[0])
+
+    def get_blocking_end_reason(self) -> Optional[str]:
+        is_blocking, sz = self._is_blocking_end()
+        if is_blocking:
+            with _utils.string_buffer(sz.value) as buff:
+                if ctyped.lib.User32.ShutdownBlockReasonQuery(self._hwnd, buff, ctyped.byref(sz)):
+                    return buff.value
+
+    def block_end(self, reason: str) -> bool:
+        return bool(ctyped.lib.User32.ShutdownBlockReasonCreate(self._hwnd, reason))
+
+    def unblock_end(self) -> bool:
+        return bool(ctyped.lib.User32.ShutdownBlockReasonDestroy(self._hwnd))
+
     def mainloop(self) -> Optional[int]:
         with self._mainloop_lock:
             self._mainloop_thread = threading.get_native_id()
             msg = ctyped.struct.MSG()
             msg_ref = ctyped.byref(msg)
-            while ctyped.lib.User32.GetMessageW(msg_ref, self._hwnd, 0, 0) > 0:
+            while ctyped.lib.User32.GetMessageW(msg_ref, self._hwnd, 0, 0) > 0:  # TODO -1
                 ctyped.lib.User32.TranslateMessage(msg_ref)
                 ctyped.lib.User32.DispatchMessageW(msg_ref)
             return msg.wParam
@@ -472,20 +511,20 @@ class Menu(_Control):
                 fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
         self._hmenu.set_hwnd(self._hwnd)
-        self._items: list[_MenuItem] = []
+        self._items: list[MenuItem] = []
         super().__init__(self._hmenu.value)
 
-    def __contains__(self, id_or_item: Union[int, _MenuItem]):
+    def __contains__(self, id_or_item: Union[int, MenuItem]):
         return self.get_item(id_or_item) is not None
 
     def __len__(self):
         return len(self._items)
 
-    def __getitem__(self, pos: Union[int, slice]) -> Union[_MenuItem, tuple[_MenuItem]]:
+    def __getitem__(self, pos: Union[int, slice]) -> Union[MenuItem, tuple[MenuItem]]:
         items = self._items[pos]
         return tuple(items) if isinstance(pos, slice) else items
 
-    def __delitem__(self, pos_or_item: Union[int, slice, _MenuItem]) -> bool:
+    def __delitem__(self, pos_or_item: Union[int, slice, MenuItem]) -> bool:
         if isinstance(pos_or_item, slice):
             deleted = True
             for item in self[pos_or_item]:
@@ -494,7 +533,7 @@ class Menu(_Control):
         else:
             return self.remove_item(pos_or_item, True)
 
-    def __iter__(self) -> _MenuItem:
+    def __iter__(self) -> MenuItem:
         yield from self._items
 
     def destroy(self) -> bool:
@@ -505,15 +544,15 @@ class Menu(_Control):
     def get_item_count(self) -> int:
         return self._hmenu.get_item_count()
 
-    def get_item(self, id_or_pos_or_item: Union[int, _MenuItem],
-                 default: Any = None, by_pos: bool = False) -> Optional[_MenuItem]:
+    def get_item(self, id_or_pos_or_item: Union[int, MenuItem],
+                 default: Any = None, by_pos: bool = False) -> Optional[MenuItem]:
         if by_pos:
             if id_or_pos_or_item >= 0:
                 with contextlib.suppress(IndexError):
                     return self._items[id_or_pos_or_item]
         else:
             if isinstance(id_or_pos_or_item, int):
-                id_or_pos_or_item = _MenuItem.get(id_or_pos_or_item)
+                id_or_pos_or_item = MenuItem.get(id_or_pos_or_item)
             if id_or_pos_or_item and self is id_or_pos_or_item.get_menu():
                 return id_or_pos_or_item
         return default
@@ -521,14 +560,14 @@ class Menu(_Control):
     # noinspection PyShadowingBuiltins
     def append_item(self, text: Optional[str] = None, image_res_or_path: Optional[Union[str, None]] = None,
                     submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
-                    type: int = MenuItemType.NORMAL) -> Optional[_MenuItem]:
+                    type: int = MenuItemType.NORMAL) -> Optional[MenuItem]:
         return self.insert_item(self.get_item_count(), text, image_res_or_path, submenu, enable, check, type)
 
     # noinspection PyShadowingBuiltins
     def insert_item(self, pos: int, text: Optional[str] = None, image_res_or_path: Optional[Union[int, str]] = None,
                     submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
-                    type: int = MenuItemType.NORMAL) -> Optional[_MenuItem]:
-        item = _MenuItem(self, type, gui=Gui.get(self._hwnd))
+                    type: int = MenuItemType.NORMAL) -> Optional[MenuItem]:
+        item = MenuItem(self, type, gui=Gui.get(self._hwnd))
         if ctyped.lib.User32.InsertMenuW(self._hmenu, pos, ctyped.const.MF_BYPOSITION, item.get_id(), None):
             self._items.insert(pos, item)
             if type == MenuItemType.SEPARATOR:
@@ -544,20 +583,27 @@ class Menu(_Control):
                 if type == MenuItemType.RADIO:
                     # noinspection PyProtectedMember
                     item._set_radio()
+                if type in (MenuItemType.CHECK, MenuItemType.RADIO):
                     if check is None:
                         check = True
                     item.check(check)
                 item.enable(enable)
             return item
 
-    def remove_item(self, id_or_pos_or_item: Union[int, _MenuItem], by_pos: bool = False) -> bool:
-        if isinstance(id_or_pos_or_item, _MenuItem):
+    def remove_item(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> bool:
+        if isinstance(id_or_pos_or_item, MenuItem):
             id_or_pos_or_item = id_or_pos_or_item.get_id()
             by_pos = False
         removed = self._hmenu.remove_item(id_or_pos_or_item, by_pos)
         if removed:
             self._items.remove(self.get_item(id_or_pos_or_item, by_pos))
         return removed
+
+    def clear_items(self) -> int:
+        count = 0
+        for item in tuple(self):
+            count += self.remove_item(item)
+        return count
 
     def show(self, pos: Optional[Sequence[int, int]] = None, timeout: Optional[float] = None) -> bool:
         if pos is None:
@@ -641,13 +687,14 @@ class Menu(_Control):
         return self._set_styles(no_check=no_check, recursive=recursive)
 
 
-class _MenuItem(_Control):
-    _selves: dict[int, _MenuItem]
+class MenuItem(_Control):
+    _selves: dict[int, MenuItem]
     _id_gen = _IDGenerator()
 
     _tooltip_text: str = ''
     _tooltip_icon: int = MenuItemTooltipIcon.NONE
     _tooltip_title: str = ''
+    _uid: str = ''
 
     def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
         self._hwnd = self._attach(gui)
@@ -685,8 +732,8 @@ class _MenuItem(_Control):
     def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
         if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
             res_or_path = _gdiplus.Bitmap.from_file(res_or_path)
-            if resize:
-                res_or_path = res_or_path.get_resized(16, 16)
+            if resize and not (res_or_path.get_width() == res_or_path.get_height() == _MENU_ITEM_IMAGE_SIZE):
+                res_or_path = res_or_path.get_resized(_MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
             res_or_path = res_or_path.get_hbitmap()
             self._hbmps[index] = res_or_path
             return res_or_path.value
@@ -756,7 +803,7 @@ class _MenuItem(_Control):
         return ''
 
     def get_submenu(self) -> Optional[Menu]:
-        if datas := self._get_datas(ctyped.const.MIIM_SUBMENU):
+        if (datas := self._get_datas(ctyped.const.MIIM_SUBMENU)) and datas[0]:
             return Menu.get(datas[0])
 
     def _set_datas(self, miim: int, datas: Iterable) -> bool:
@@ -806,13 +853,15 @@ class _MenuItem(_Control):
     def _set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None, check: Optional[bool] = None,
                     default: Optional[bool] = None) -> bool:
         states = self.get_states()
-        flags = ctyped.const.MFS_ENABLED if (states[0] if enable is None else enable) else ctyped.const.MFS_DISABLED
-        flags |= ctyped.const.MFS_HILITE if (
-            states[1] if highlight is None else highlight) else ctyped.const.MFS_UNHILITE
-        flags |= ctyped.const.MFS_CHECKED if (states[2] if check is None else check) else ctyped.const.MFS_UNCHECKED
-        if states[3] if default is None else default:
-            flags |= ctyped.const.MFS_DEFAULT
-        return self._set_datas(ctyped.const.MIIM_STATE, (flags,))
+        if states is not None:
+            flags = ctyped.const.MFS_ENABLED if (states[0] if enable is None else enable) else ctyped.const.MFS_DISABLED
+            flags |= ctyped.const.MFS_HILITE if (
+                states[1] if highlight is None else highlight) else ctyped.const.MFS_UNHILITE
+            flags |= ctyped.const.MFS_CHECKED if (states[2] if check is None else check) else ctyped.const.MFS_UNCHECKED
+            if states[3] if default is None else default:
+                flags |= ctyped.const.MFS_DEFAULT
+            return self._set_datas(ctyped.const.MIIM_STATE, (flags,))
+        return False
 
     def enable(self, enable: bool = True) -> bool:
         return self._set_states(enable)
@@ -836,9 +885,8 @@ class _MenuItem(_Control):
     def _set_separator(self) -> bool:
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_SEPARATOR,))
 
-    def set_submenu(self, submenu: Menu, text: Optional[str] = None) -> bool:  # TODO image submenu
-        return self._set_datas(ctyped.const.MIIM_SUBMENU | ctyped.const.MIIM_TYPE, (
-            submenu.get_id(), self.get_text() if text is None else text))
+    def set_submenu(self, submenu: Menu) -> bool:
+        return self._set_datas(ctyped.const.MIIM_SUBMENU, (submenu.get_id(),))
 
     def get_pos(self) -> int:
         for pos, item in enumerate(self._menu):
@@ -869,3 +917,9 @@ class _MenuItem(_Control):
         self._tooltip_title = title
         self._tooltip_icon = _gdiplus.Bitmap.from_file(
             icon_res_or_path).get_hicon() if isinstance(icon_res_or_path, str) else icon_res_or_path
+
+    def set_uid(self, uid: str):
+        self._uid = uid
+
+    def get_uid(self):
+        return self._uid

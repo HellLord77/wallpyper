@@ -5,7 +5,8 @@ import json
 import os.path
 from typing import Generator, Optional
 
-from libs import files, gui, iso, request
+import gui
+from libs import files, iso, request
 from .module import _Module
 
 BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')

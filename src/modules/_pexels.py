@@ -3,7 +3,8 @@ __version__ = '0.0.2'  # https://www.pexels.com/api/documentation
 import os
 from typing import Generator, Optional, Union
 
-from libs import files, gui, iso, request
+import gui
+from libs import files, iso, request
 from .module import _Module
 
 BASE_URL = request.join('https://api.pexels.com', 'v1')
@@ -27,8 +28,8 @@ LOCALES = (
     'cs-CZ', 'da-DK', 'fi-FI', 'uk-UA', 'el-GR', 'ro-RO', 'nb-NO', 'sk-SK', 'tr-TR', 'ru-RU')
 
 
-def on_curated(curated: bool, menu):
-    menu.Enable(not curated)
+def on_curated(curated: bool, menu: gui.MenuItem):
+    menu.enable(not curated)
 
 
 def _authenticate(key: str) -> bool:
@@ -78,10 +79,10 @@ class Pexels(_Module):
 
     @classmethod
     def create_menu(cls):
-        menu_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CONFIG[CONFIG_CURATED])
+        item_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CONFIG[CONFIG_CURATED])
         gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
-                                 on_click=on_curated, args=(menu_search,), position=0)
-        with gui.set_main_menu(menu_search):
+                                 on_click=on_curated, args=(item_search,), position=0)
+        with gui.set_main_menu(item_search):
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
                                     for orientation in ORIENTATIONS}, cls.CONFIG, CONFIG_ORIENTATION)

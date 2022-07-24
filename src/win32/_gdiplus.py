@@ -111,39 +111,42 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
         if _GpStatus.Ok == _GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y)):
             return dpi_y.value
 
-    def set_scale(self, scale_x: float = 1, scale_y: float = 1):
-        _GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.Prepend)
+    def set_scale(self, scale_x: float = 1, scale_y: float = 1) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.Prepend)
 
-    def draw_image(self, src: Image, x: float = 0, y: float = 0):
-        self._get_func(_GdiPlus.GdipDrawImage, _GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
+    def set_interpolation(self, mode: ctyped.enum.InterpolationMode = ctyped.enum.InterpolationMode.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetInterpolationMode(self, mode)
+
+    def set_pixel_offset(self, mode: ctyped.enum.PixelOffsetMode = ctyped.enum.PixelOffsetMode.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPixelOffsetMode(self, mode)
+
+    def draw_image(self, src: Image, x: float = 0, y: float = 0) -> bool:
+        return _GpStatus.Ok == self._get_func(_GdiPlus.GdipDrawImage, _GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
 
     def draw_image_from_rect(self, src: Image, x: float = 0, y: float = 0, src_x: float = 0, src_y: float = 0,
                              src_w: Optional[float] = None, src_h: Optional[float] = None):
-        self._get_func(_GdiPlus.GdipDrawImagePointRect, _GdiPlus.GdipDrawImagePointRectI, x, y,
-                       src_x, src_y, src_w, src_h)(self, src, x, y, src_x, src_y,
-                                                   src.get_width() if src_w is None else src_w,
-                                                   src.get_height() if src_h is None else src_h,
-                                                   ctyped.enum.GpUnit.Pixel)
+        return _GpStatus.Ok == self._get_func(_GdiPlus.GdipDrawImagePointRect, _GdiPlus.GdipDrawImagePointRectI, x, y, src_x, src_y, src_w, src_h)(
+            self, src, x, y, src_x, src_y, src.get_width() if src_w is None else src_w, src.get_height() if src_h is None else src_h, ctyped.enum.GpUnit.Pixel)
 
     def draw_image_on_rect_from_rect(self, src: Image, x: float = 0, y: float = 0, w: Optional[float] = None,
                                      h: Optional[float] = None, src_x: float = 0, src_y: float = 0,
-                                     src_w: Optional[float] = None, src_h: Optional[float] = None, alpha: float = 1):
+                                     src_w: Optional[float] = None, src_h: Optional[float] = None, alpha: float = 1) -> bool:
         if src_w is None:
             src_w = src.get_width()
         if src_h is None:
             src_h = src.get_height()
         image_attrs = ImageAttributes.from_color_matrix(color_matrix_from_alpha(alpha))
         draw_abort = ctyped.type.DrawImageAbort()
-        self._get_func(_GdiPlus.GdipDrawImageRectRect, _GdiPlus.GdipDrawImageRectRectI, x, y,
-                       w, h, src_x, src_y, src_w, src_h)(
+        return _GpStatus.Ok == self._get_func(_GdiPlus.GdipDrawImageRectRect, _GdiPlus.GdipDrawImageRectRectI, x, y,
+                                              w, h, src_x, src_y, src_w, src_h)(
             self, src, x, y, src_w if w is None else w, src_h if h is None else h,
             src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel, image_attrs, draw_abort, None)
 
-    def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float):
-        _GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
+    def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
 
-    def fill_rect_with_color(self, color: ctyped.type.ARGB, x: float, y: float, width: float, height: float):
-        self.fill_rect(SolidFill.from_color(color), x, y, width, height)
+    def fill_rect_with_color(self, color: ctyped.type.ARGB, x: float, y: float, width: float, height: float) -> bool:
+        return self.fill_rect(SolidFill.from_color(color), x, y, width, height)
 
 
 class Brush(_GdiplusBase, ctyped.type.GpBrush):

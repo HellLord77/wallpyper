@@ -1630,6 +1630,10 @@ class Kernel32(_Func, metaclass=_WinDLL):
                         _type.ATOM]
     AddRefActCtx: _Callable[[_type.HANDLE],
                             _type.VOID]
+    ApplicationRecoveryFinished: _Callable[[_type.BOOL],
+                                           _type.VOID]
+    ApplicationRecoveryInProgress: _Callable[[_Pointer[_type.BOOL]],
+                                             _type.HRESULT]
     AssignProcessToJobObject: _Callable[[_type.HANDLE,
                                          _type.HANDLE],
                                         _type.BOOL]
@@ -1743,6 +1747,14 @@ class Kernel32(_Func, metaclass=_WinDLL):
                                      _type.SIZE_T,
                                      _Optional[_Pointer[_type.SIZE_T]]],
                                     _type.BOOL]
+    RegisterApplicationRecoveryCallback: _Callable[[_type.APPLICATION_RECOVERY_CALLBACK,
+                                                    _Optional[_type.PVOID],
+                                                    _type.DWORD,
+                                                    _type.DWORD],
+                                                   _type.HRESULT]
+    RegisterApplicationRestart: _Callable[[_Optional[_type.PCWSTR],
+                                           _type.DWORD],
+                                          _type.HRESULT]
     ReleaseActCtx: _Callable[[_type.HANDLE],
                              _type.VOID]
     SetDllDirectoryA: _Callable[[_Optional[_type.LPCSTR]],
@@ -1755,6 +1767,10 @@ class Kernel32(_Func, metaclass=_WinDLL):
     TerminateJobObject: _Callable[[_type.HANDLE,
                                    _type.UINT],
                                   _type.BOOL]
+    UnregisterApplicationRecoveryCallback: _Callable[[],
+                                                     _type.HRESULT]
+    UnregisterApplicationRestart: _Callable[[],
+                                            _type.HRESULT]
     UpdateResourceA: _Callable[[_type.HANDLE,
                                 _type.LPCSTR,
                                 _type.LPCSTR,

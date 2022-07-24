@@ -29,7 +29,7 @@ class _Module(_types.ModuleType):
     def __getattr__(self, name: str):
         if self._module is None:
             del _sys.modules[self._name]
-            self._module = _importlib.import_module(*_os.path.splitext(self._name)[::-1])
+            self._module = _importlib.import_module(*reversed(_os.path.splitext(self._name)))
         _replace_object(self, self._module)
         return getattr(self._module, name)
 
@@ -120,7 +120,7 @@ def _cast_int(obj: int, type: _CT) -> int:
     return obj & (2 ** (_ctypes.sizeof(type) * 8) - 1)
 
 
-def _decorator(arg: _CT) -> _CT:
+def _dummy(arg: _CT) -> _CT:
     return arg
 
 

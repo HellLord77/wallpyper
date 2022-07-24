@@ -64,7 +64,7 @@ def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
 
 
 def get_message(message: int) -> str:
-    if _MESSAGES:
+    if not _MESSAGES:
         for name, val in vars(const).items():
             if name.startswith('WM_'):
                 _MESSAGES[val] = name

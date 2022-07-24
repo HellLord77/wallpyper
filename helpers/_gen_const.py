@@ -204,7 +204,7 @@ def gen_winrt_interface(pattern: str = '*.h'):
                     funcs.append(func[0])
                 index_ += 1
             dict_ = interfaces
-            for namespace in namespaces[::-1]:
+            for namespace in reversed(namespaces):
                 dict_[namespace] = dict_.get(namespace, {})
                 dict_ = dict_[namespace]
             dict_[interface, base] = funcs

@@ -7,7 +7,7 @@ POLL_INTERVAL = 0.01
 FEATURE_PIN_PYTHON = False
 FEATURE_OPEN_WITH = True
 FEATURE_GOOGLE_SEARCH = False
-FEATURE_UPDATE_DISPLAY = True
+FEATURE_UPDATE_DISPLAY = False
 
 AUTHOR = 'HellLord'
 NAME = 'Wallpyper'
@@ -34,3 +34,12 @@ CONFIG_SKIP = 'skip_recent'
 CONFIG_START = 'auto_start'
 CONFIG_STYLE = 'wallpaper_fit'
 CONFIG_TRANSITION = 'wallpaper_transition'
+
+RES_BUSY = 'busy.gif'
+RES_TRAY = 'tray.png'
+RES_ICON = 'icon.ico'
+RES_SETTINGS = 'settings.png'
+RES_CHANGE = 'change.png'
+RES_ACTIONS = 'actions.png'
+RES_QUIT = 'quit.png'
+RES_RECENT = 'recent.png'

@@ -169,6 +169,14 @@ class WarpMode(_Enum):
     Bilinear = _AUTO
 
 
+class WrapMode(_Enum):
+    Tile = _AUTO
+    TileFlipX = _AUTO
+    TileFlipY = _AUTO
+    TileFlipXY = _AUTO
+    Clamp = _AUTO
+
+
 class LinearGradientMode(_Enum):
     Horizontal = _AUTO
     Vertical = _AUTO

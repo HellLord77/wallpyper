@@ -16,7 +16,7 @@ class _ModuleMeta(type):
         if not _self.__name__.startswith('_'):
             _self.NAME = getattr(_self, 'NAME', _self.__name__)
             _self.VERSION = inspect.currentframe().f_back.f_globals.get('__version__', 'X.Y.Z')
-            _self.ICON = os.path.join(os.path.dirname(__file__), getattr(_self, 'ICON', f'{_self.__name__}.ico'))
+            _self.ICON = os.path.join(os.path.dirname(__file__), 'res', getattr(_self, 'ICON', f'{_self.__name__}.ico'))
             _self.DEFAULT_CONFIG = getattr(_self, 'DEFAULT_CONFIG', {})
             _self.CONFIG = {}
             _self.get_next_wallpaper = utils.one_cache(_self.get_next_wallpaper)

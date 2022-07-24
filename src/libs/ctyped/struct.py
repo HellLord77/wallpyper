@@ -10,7 +10,7 @@ from ._utils import _CT, _Globals, _Pointer, _fields_repr, _resolve_type
 if None:
     from dataclasses import dataclass as _struct
 else:
-    from ._utils import _decorator as _struct
+    from ._utils import _dummy as _struct
 
 _CACHE = {}  # FIXME https://github.com/python/mypy/issues/5107
 _SIZE = object()
@@ -3007,7 +3007,7 @@ class _Struct(_ctypes.Structure):
 def _init(item: str, var: _Optional[type] = None) -> type:
     if var is None:
         var = _globals.vars_[item]
-    if hasattr(var, '__annotations__'):
+    if getattr(var, '__annotations__', {}):
         fields = tuple((name, _resolve_type(annot)) for name, annot in _typing.get_type_hints(var, _globals, _globals).items())
         # noinspection PyProtectedMember
         struct = type(item, (_Struct,), {'_fields_': tuple((*field, field[1]._bitfield) if hasattr(field[1], '_bitfield') else field for field in fields)})

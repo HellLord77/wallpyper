@@ -3,7 +3,8 @@ __version__ = '0.0.2'  # https://unsplash.com/documentation
 import sys
 from typing import Generator, Optional, Union
 
-from libs import files, gui, request
+import gui
+from libs import files, request
 from .module import _Module
 
 BASE_URL = 'https://api.unsplash.com'
@@ -74,12 +75,12 @@ class Unsplash(_Module):
     @classmethod
     def create_menu(cls):
         menu_order = gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_}, cls.CONFIG, CONFIG_ORDER)
-        menu_search = gui.add_submenu(cls.STRINGS.UNSPLASH_MENU_SEARCH, not cls.CONFIG[CONFIG_EDITORIAL])
+            cls.STRINGS, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_}, cls.CONFIG, CONFIG_ORDER).get_submenu()
+        item_search = gui.add_submenu(cls.STRINGS.UNSPLASH_MENU_SEARCH, not cls.CONFIG[CONFIG_EDITORIAL])
         gui.add_mapped_menu_item(cls.STRINGS.UNSPLASH_LABEL_EDITORIAL, cls.CONFIG, CONFIG_EDITORIAL,
-                                 on_click=cls._on_editorial, args=(menu_search, menu_order), position=0)
-        cls._on_editorial(cls.CONFIG[CONFIG_EDITORIAL], menu_search, menu_order)
-        with gui.set_main_menu(menu_search):
+                                 on_click=cls._on_editorial, args=(item_search, menu_order), position=0)
+        cls._on_editorial(cls.CONFIG[CONFIG_EDITORIAL], item_search, menu_order)
+        with gui.set_main_menu(item_search):
             gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_FILTER, {filter_: getattr(
                 cls.STRINGS, f'UNSPLASH_FILTER_{filter_}') for filter_ in FILTERS}, cls.CONFIG, CONFIG_FILTER)
             gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_COLOR, {color: getattr(
@@ -93,9 +94,9 @@ class Unsplash(_Module):
             cls.CONFIG[CONFIG_ORDER] = ORDERS[0] if cls.CONFIG[CONFIG_EDITORIAL] else ORDERS_[1]
 
     @classmethod
-    def _on_editorial(cls, editorial: bool, menu_search, menu_order):
-        menu_search.Enable(not editorial)
+    def _on_editorial(cls, editorial: bool, item_search: gui.MenuItem, menu_order: gui.Menu):
+        item_search.enable(not editorial)
         cls._fix_order()
         for order, item in gui.get_menu_items(menu_order).items():
-            item.Check(cls.CONFIG[CONFIG_ORDER] == order)
-            item.Enable(order in (ORDERS if editorial else ORDERS_))
+            item.check(cls.CONFIG[CONFIG_ORDER] == order)
+            item.enable(order in (ORDERS if editorial else ORDERS_))

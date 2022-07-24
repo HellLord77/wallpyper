@@ -3,7 +3,8 @@ __version__ = '0.0.1'  # https://github.com/timothymctim/Bing-wallpapers
 import os.path
 from typing import Generator, Optional
 
-from libs import files, gui, iso, request
+import gui
+from libs import files, iso, request
 from .module import _Module
 
 BASE_URL = 'https://www.bing.com'

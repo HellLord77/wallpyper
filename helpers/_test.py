@@ -1,5 +1,6 @@
 __version__ = '0.0.0'
 
+import atexit
 import io
 import sys
 import threading
@@ -46,7 +47,7 @@ def fill_surrounding_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_
         graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
 
 
-def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui._MenuItem):
+def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui.MenuItem):
     # s.show_balloon('very busy', 'mini text', Icon.TRAY)
     menu.show()
     return 0
@@ -54,7 +55,7 @@ def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui._MenuItem):
 
 def _foo2(e: int, s: gui.SystemTray):
     print(s.start_animation(
-        r'D:\Projects\Wallpyper\src\resources\busy.gif'))  # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
+        r'D:\Projects\Wallpyper\src\res\busy.gif'))  # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
 
 
 def foo3(e, m: gui.SystemTray, s: gui.SystemTray):
@@ -69,8 +70,18 @@ def _wait():
         pass
 
 
+def write(s):
+    with open(r'D:\stdout.txt', 'a') as f:
+        f.write(s)
+
+
+def write2(s):
+    with open(r'D:\stderr.txt', 'a') as f:
+        f.write(s)
+
+
 def _test_gui():
-    p = r'D:\Projects\wallpyper\src\resources\tray.png'
+    p = r'D:\Projects\wallpyper\src\res\tray.png'
     # bind(EVENT_CLOSE, lambda *args: print(6969))
     g = gui.Gui()
     s = gui.SystemTray(p, 'tip')
@@ -85,7 +96,7 @@ def _test_gui():
     ball.set_tooltip('another tip')
     ball.bind(gui.MenuItemEvent.RIGHT_UP, lambda *args: print('balloon button right up'))
     ball.bind(gui.MenuItemEvent.LEFT_UP,
-              lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\resources\icon.ico'))
+              lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\res\icon.ico'))
     # print(menu.set_item_image(it, p))
     # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
     item = menu.append_item('text')
@@ -96,7 +107,12 @@ def _test_gui():
     it_ck.check()
     menu3 = gui.Menu()
     submenu_item = menu.append_item('rad test', submenu=menu3)
+    # submenu_item.get_submenu()
     submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\Wallhaven.ico')
+    print('set_icon')
+    submenu_item.set_submenu(menu3)
+    item_icon = menu.append_item('test icon')
+    item_icon.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\Pexels.ico'))
     # menu.set_max_height(100)
     # print(menu.get_max_height())
     for i in range(6):
@@ -106,7 +122,7 @@ def _test_gui():
     menu2.append_item('new')
     ex = menu.append_item('exit', gui.MenuItemImage.CLOSE)
     ex.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: g.exit_mainloop())
-    # print(item.set_image(r'D:\Projects\wallpyper\src\resources\tray.png', True))
+    # print(item.set_image(r'D:\Projects\wallpyper\src\res\tray.png', True))
     # menu.set_item_submenu(item, menu2)
     item.set_submenu(menu2)
     item.set_image(p)
@@ -121,14 +137,38 @@ def _test_gui():
     s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
     s.show()
 
-    # s2 = SysTray(r'D:\Projects\wallpyper\src\resources\tray.png', 'tip2')
+    # s2 = gui.SystemTray(r'D:\Projects\wallpyper\src\res\tray.png', 'tip2')
     # s2.set_animation_speed(5)
-    # s2.start_animation(r'D:\Projects\wallpyper\src\resources\busy.gif')
+    # s2.start_animation(r'D:\Projects\wallpyper\src\res\busy.gif')
     # s2.show()
 
+    def on_exit(*_):
+        print('at_exit')
+
+    def on_thread(*_):
+        print('thread')
+        time.sleep(7)
+        print('job_done')
+
+    def end(*_):
+        print('end')
+        g.exit_mainloop()
+
+    def query_end(*_):
+        print('query_end')
+        print(hex(g.get_ending_reason()))
+        g.exit_mainloop()
+        threading.Thread(target=on_thread).start()
+
+    # sys.stdout.write = write
+    # sys.stderr.write = write2
+    atexit.register(on_exit)
+    g.block_end('doing sexy job...')
+    g.bind(gui.GuiEvent.QUERY_END, query_end)
+    # g.bind(gui.GuiEvent.END, end)
+    print(g.get_name())
     g.mainloop()
-    g.destroy()
-    print('exit')
+    print('exit_mainloop')
 
 
 def _test_settings():
@@ -256,7 +296,7 @@ def _test():
 
 if __name__ == '__main__':
     _test_gui()
-    exit()
+    sys.exit()
 
     ctyped.THREADED_COM = True
 

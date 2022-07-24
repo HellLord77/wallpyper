@@ -253,6 +253,7 @@ LPSTR_PROXY = ULONG_PTR
 LPWSTR_PROXY = ULONG_PTR
 
 ABORTPROC = _Callable[[HDC, c_int], BOOL]
+APPLICATION_RECOVERY_CALLBACK = _Callable[[PVOID], DWORD]
 BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
 DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
 DLGPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], INT_PTR]
@@ -320,8 +321,8 @@ def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPt
         type_ = _ctypes.CFUNCTYPE(*type_)
     for item_ in _MAGICS.items():  # TODO subclass
         setattr(type_, *item_)
-    if item != type_.__name__:
-        type_ = type(item, type_.__bases__, dict(vars(type_)))
+    # if item != type_.__name__:
+    #     type_ = type(item, type_.__bases__, dict(vars(type_)))
     return type_
 
 

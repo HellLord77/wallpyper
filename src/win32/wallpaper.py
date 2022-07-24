@@ -507,21 +507,15 @@ def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ct
                 try:
                     if ctyped.macro.FAILED(wallpaper.SetPosition(style)):
                         return False
-                except OSError as e:
-                    if e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
-                        return False
-                    else:
-                        raise e
+                except OSError:
+                    return False
             if style in (Style.SPAN, Style.TILE):
                 return _set_param(path)
             else:
                 try:
                     return ctyped.macro.SUCCEEDED(wallpaper.SetWallpaper(monitor, path))
-                except OSError as e:
-                    if e.winerror == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.ERROR_INVALID_PARAMETER):
-                        return False
-                    else:
-                        raise e
+                except OSError:
+                    return False
     return False
 
 
