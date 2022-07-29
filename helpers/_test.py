@@ -370,7 +370,7 @@ def _open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> ContextM
 
 
 if __name__ == '__main__':
-    # _test_gui()
+    _test_gui()
     # bmp = open_svg(r'D:\Downloads\svg.svg')
     # if bmp:
     #     bmp.save(r'D:\svg.png')
