@@ -164,7 +164,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
     temp_path = files.join(TEMP_DIR, wallpaper.name)
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
-                            chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
+                            chunk_count=20, query_callback=query_callback, args=args, kwargs=kwargs):
             return temp_path
 
 
@@ -274,8 +274,10 @@ def on_click(callback: utils.SingletonCallable[[str], bool], wallpaper: files.Fi
     except AttributeError:
         running = False
     if not running and (path := download_wallpaper(wallpaper)):
-        with contextlib.suppress(BaseException):
+        try:
             success = callback(path)
+        except BaseException as e:
+            print(e)
     if not success:
         notify(title, text)
     return success

@@ -875,7 +875,7 @@ class MenuItem(_Control):
     def set_default(self, default: bool = True) -> bool:
         return self._set_states(default=default)
 
-    def set_text(self, text: str) -> bool:
+    def set_text(self, text: str) -> bool:  # TODO removes icon (?)
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_STRING, text))
 
     def set_image(self, res_or_path: Union[int, str]) -> bool:

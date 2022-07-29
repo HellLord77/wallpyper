@@ -156,6 +156,21 @@ def MAKEDLLVERULL(major: int, minor: int, build: int, qfe: int) -> int:
 
 
 # noinspection PyPep8Naming
+def GDIP_WMF_RECORD_TO_EMFPLUS(n: int) -> int:
+    return n | _const.GDIP_WMF_RECORD_BASE
+
+
+# noinspection PyPep8Naming
+def GDIP_EMFPLUS_RECORD_TO_WMF(n: int) -> int:
+    return n & ~_const.GDIP_WMF_RECORD_BASE
+
+
+# noinspection PyPep8Naming
+def GDIP_IS_WMF_RECORDTYPE(n: int) -> bool:
+    return bool(n & _const.GDIP_WMF_RECORD_BASE)
+
+
+# noinspection PyPep8Naming
 def MAKEINTRESOURCEA(i: int) -> _type.LPSTR:
     return _type.LPSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 

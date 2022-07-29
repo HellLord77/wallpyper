@@ -1,7 +1,7 @@
 import glob
+import io
 import os
 import re
-import sys
 from typing import Union, Optional
 
 from libs import ctyped
@@ -17,6 +17,14 @@ def _format(sec: str, sz: int) -> str:
 
 def _str(guid: list[str]) -> str:
     return '{{{}-{}-{}-{}}}'.format(_format(guid[0], 8), "-".join(_format(guid[i], 4) for i in range(1, 3)), "".join(_format(guid[i], 2) for i in range(3, 5)), "".join(_format(guid[i], 2) for i in range(5, 11)))
+
+
+def d2d1():
+    path = os.path.join(SDK_PATH, 'um', 'd2d1.h')
+    with open(path, 'r') as file:
+        for match in re.finditer(r'interface DX_DECLARE_INTERFACE\("(.*)"\) (\w*)', file.read()):
+            groups = match.groups()
+            print(f"IID_{groups[1]} = '{{{groups[0].upper()}}}'")
 
 
 def propkey():
@@ -41,6 +49,25 @@ def _guid(path: str, prefix: str = 'GUID'):
             guid = match.groups()[0].replace(',', ' ').split()
             guid[1] = guid[1].replace('L', '')
             print(f"{guid[0]} = '{_str(guid[1:12])}'")
+
+
+def ddraw():
+    _guid(os.path.join(SDK_PATH, 'um', f'ddraw.h'), 'CLSID')
+    _guid(os.path.join(SDK_PATH, 'um', f'ddraw.h'), 'IID')
+
+
+def d3d11():
+    files = 'd3d11', 'd3d11_1', 'd3d11_2', 'd3d11_3', 'd3d11_4'
+    for file in files:
+        print(f'# {file}')
+        _guid(os.path.join(SDK_PATH, 'um', f'{file}.h'), 'IID')
+
+
+def dxgi():
+    files = 'dxgi', 'dxgi1_2', 'dxgi1_3', 'dxgi1_4', 'dxgi1_5', 'dxgi1_6'
+    for file in files:
+        print(f'# {file}')
+        _guid(os.path.join(SDK_PATH, 'shared', f'{file}.h'), 'IID')
 
 
 def devguid():
@@ -610,14 +637,105 @@ def gen_winrt(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = Fal
     # pprint.pprint(runtimeclasses, width=1, sort_dicts=False)
 
 
-if __name__ == '__main__':
-    # noinspection PyUnresolvedReferences
-    from libs.ctyped import winrt
+def clean_and_wrap(typ: str, count: int = 0) -> str:
+    typ = typ.replace('const ', '')
+    for i in range(count):
+        typ = f'_Pointer[{typ}]'
+    return typ
 
-    f = open('gen.py', 'w')
-    sys.stdout = f
-    gen_winrt(p_interface=True)
-    f.close()
+
+class GdiPlus:
+    _data = None
+
+    def __init__(self, path: Optional[str] = None):
+        if path is None:
+            path = os.path.join(SDK_PATH, 'um', 'gdiplusflat.h')
+        self._path = path
+
+    def __str__(self):
+        if self._data is None:
+            self._data = self.generate()
+        return self._data
+
+    @staticmethod
+    def _resolve_type(type_: str) -> str:
+        ptr = 0
+        while type_.endswith('*'):
+            ptr += 1
+            type_ = type_[:-1]
+        names = 'type', 'enum', 'struct', 'interface'
+        for name in names:
+            try:
+                getattr(getattr(ctyped, name), type_)
+            except AttributeError:
+                pass
+            else:
+                type_ = f'_{name}.{type_}'
+                break
+        if type_ == 'void' and ptr == 1:
+            type_ = '_type.c_void_p'
+        if '.' not in type_:
+            type_ = f'# TODO {type_}'
+        for i in range(ptr - (type_.startswith('_type.Gp') or type_.startswith('_interface.'))):
+            type_ = f'_Pointer[{type_}]'
+        return type_
+
+    def generate(self) -> str:
+        re_comment = re.compile(r'//.*')
+        re_func = re.compile(r'(.*?)\((.*)\);')
+        re_star = re.compile(r'\*([^*])')
+        file = io.StringIO()
+
+        with open(self._path, 'r') as f:
+            lines = f.read().split('\n')
+        line_num = 0
+        while line_num < len(lines):
+            line = lines[line_num]
+            if line.startswith('GpStatus WINGDIPAPI'):
+                if lines[line_num].endswith(');'):
+                    buff = lines[line_num]
+                else:
+                    buff = ''
+                    while not (line := re_comment.sub('', lines[line_num])).endswith(');'):
+                        buff += line
+                        line_num += 1
+                    buff += line
+                func = re_star.sub(r'* \g<1>', ' '.join(buff.split()).removeprefix(
+                    'GpStatus WINGDIPAPI').replace('* ', '*').replace(' *', '*').replace(' &', '*').strip())
+                groups = re_func.match(func).groups()
+                args = groups[1].split(',')
+                params = []
+                for arg in args:
+                    param = arg.split()[-2:]
+                    params.append((self._resolve_type(param[0]), param[-1]))
+                print(f'{groups[0]}: _Callable[[', file=file, end='')
+                first = True
+                for param in params[:-1]:
+                    if not first:
+                        print(f'\n{" " * (len(groups[0]) + 13)}', file=file, end='')
+                    print(f'{param[0]},  # {param[-1]}', file=file, end='')
+                    first = False
+                if params:
+                    param = params[-1]
+                    if len(params) > 1:
+                        print(f'\n{" " * (len(groups[0]) + 13)}', file=file, end='')
+                    print(f'{param[0]}],  # {param[-1]}', file=file)
+                print(f'{" " * (len(groups[0]) + 12)}{self._resolve_type("GpStatus")}]', file=file)
+            line_num += 1
+
+        file.seek(0)
+        return file.read()
+
+
+if __name__ == '__main__':
+    print(GdiPlus())
+    # noinspection PyUnresolvedReferences
+    # from libs.ctyped import winrt
+    #
+    # f = open('gen.py', 'w')
+    # sys.stdout = f
+    # gen_winrt(p_interface=True)
+    # f.close()
     # gen_template_iid('Windows.ui.composition.h')
     # gen_winrt_interface('Windows.foundation.h')
     # gen_properties(winrt._utils.LinearGradientBrush)

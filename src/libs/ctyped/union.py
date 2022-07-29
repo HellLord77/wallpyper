@@ -208,6 +208,42 @@ class DISPLAYCONFIG_TARGET_DEVICE_NAME_FLAGS_U:
     value: _type.UINT32
 
 
+# noinspection PyPep8Naming
+@_union
+class MetafileHeader_U:
+    WmfHeader: _struct.METAHEADER
+    EmfHeader: _struct.ENHMETAHEADER3
+
+
+# noinspection PyPep8Naming
+@_union
+class D2D_MATRIX_3X2_F_U:
+    S: _struct.D2D_MATRIX_3X2_F_U_S
+    S2: _struct.D2D_MATRIX_3X2_F_U_S2
+    m: (_type.FLOAT * 2) * 3
+
+
+# noinspection PyPep8Naming
+@_union
+class D2D_MATRIX_4X3_F_U:
+    S: _struct.D2D_MATRIX_4X3_F_U_S
+    m: (_type.FLOAT * 3) * 4
+
+
+# noinspection PyPep8Naming
+@_union
+class D2D_MATRIX_4X4_F_U:
+    S: _struct.D2D_MATRIX_4X4_F_U_S
+    m: (_type.FLOAT * 4) * 4
+
+
+# noinspection PyPep8Naming
+@_union
+class D2D_MATRIX_5X4_F_U:
+    S: _struct.D2D_MATRIX_5X4_F_U_S
+    m: (_type.FLOAT * 4) * 5
+
+
 class _Union(_ctypes.Union):
     __repr__ = _fields_repr
 

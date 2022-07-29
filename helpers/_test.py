@@ -1,16 +1,17 @@
 __version__ = '0.0.0'
 
 import atexit
+import contextlib
 import io
 import sys
 import threading
 import time
 import tkinter.messagebox
-from typing import Callable
+from typing import Callable, ContextManager
 from typing import Optional
 
 import libs.ctyped as ctyped
-import win32._gdiplus as _gdiplus
+import win32._gdiplus as gdiplus
 import win32.gui as gui
 from libs.ctyped import winrt
 
@@ -35,8 +36,8 @@ def exception_handler(excepthook: Callable, *args, **kwargs):
 
 
 def fill_surrounding_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
-    graphics = _gdiplus.Graphics.from_hdc(hdc)
-    brush = _gdiplus.SolidFill.from_color(argb)
+    graphics = gdiplus.Graphics.from_hdc(hdc)
+    brush = gdiplus.SolidFill.from_color(argb)
     if out_x < in_x:
         graphics.fill_rect(brush, out_x, out_y, in_x - out_x, out_h)
     if out_y < in_y:
@@ -108,7 +109,7 @@ def _test_gui():
     menu3 = gui.Menu()
     submenu_item = menu.append_item('rad test', submenu=menu3)
     # submenu_item.get_submenu()
-    submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\Wallhaven.ico')
+    submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\res\Wallhaven.ico')
     print('set_icon')
     submenu_item.set_submenu(menu3)
     item_icon = menu.append_item('test icon')
@@ -290,13 +291,90 @@ def set_lock():
     print(ac.get_results())
 
 
-def _test():
-    pass
+@contextlib.contextmanager
+def _get_d2d1_dc_render_target() -> ContextManager[Optional[ctyped.interface.ID2D1DCRenderTarget]]:
+    with ctyped.init_com(ctyped.interface.ID2D1Factory, False) as factory, ctyped.init_com(
+            ctyped.interface.ID2D1DCRenderTarget, False) as target:
+        p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
+        if ctyped.macro.SUCCEEDED(ctyped.lib.D2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
+                factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
+                    ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
+            yield target
+            return
+    yield
+
+
+def _set_svg_doc_viewport(svg: ctyped.interface.ID2D1SvgDocument) -> bool:
+    with ctyped.init_com(ctyped.interface.ID2D1SvgElement, False) as root:
+        if ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
+            view_box = ctyped.struct.D2D1_SVG_VIEWBOX()
+            if root.IsAttributeSpecified('viewBox', None):
+                root.GetAttributeValue_('viewBox', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.VIEWBOX,
+                                        ctyped.byref(view_box), ctyped.sizeof(view_box))
+            elif root.IsAttributeSpecified('width', None) and root.IsAttributeSpecified('height', None):
+                buff = ctyped.type.FLOAT()
+                if ctyped.macro.SUCCEEDED(root.GetAttributeValue_('width', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT,
+                                                                  ctyped.byref(buff), ctyped.sizeof(buff))):
+                    view_box.width = buff.value
+                if ctyped.macro.SUCCEEDED(root.GetAttributeValue_('height', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT,
+                                                                  ctyped.byref(buff), ctyped.sizeof(buff))):
+                    view_box.height = buff.value
+            if view_box.width and view_box.width:
+                return ctyped.macro.SUCCEEDED(svg.SetViewportSize(ctyped.struct.D2D_SIZE_F(view_box.width, view_box.height)))
+    return False
+
+
+def _set_svg_doc_dimension(svg: ctyped.interface.ID2D1SvgDocument, width: float = 0, height: float = 0) -> bool:
+    with ctyped.init_com(ctyped.interface.ID2D1SvgElement, False) as root:
+        if set_ := ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
+            buff = ctyped.type.FLOAT()
+            ref = ctyped.byref(buff)
+            sz = ctyped.sizeof(buff)
+            if width:
+                buff.value = width
+                set_ = ctyped.macro.SUCCEEDED(root.SetAttributeValue_('width', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT, ref, sz))
+            if height:
+                buff.value = height
+                set_ = ctyped.macro.SUCCEEDED(root.SetAttributeValue_('height', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT, ref, sz)) and set_
+    return set_
+
+
+def open_svg(path: str, width: int = 512, height: int = 512) -> Optional[gdiplus.Bitmap]:
+    with _get_d2d1_dc_render_target() as target:
+        if target:
+            with _open_file_stream(path) as stream, ctyped.cast_com(
+                    target, ctyped.interface.ID2D1DeviceContext5) as context:
+                if stream and context:
+                    with ctyped.init_com(ctyped.interface.ID2D1SvgDocument, False) as svg:
+                        if ctyped.macro.SUCCEEDED(context.CreateSvgDocument(
+                                stream, ctyped.struct.D2D_SIZE_F(width, height), ctyped.byref(svg))):
+                            _set_svg_doc_viewport(svg)
+                            _set_svg_doc_dimension(svg, width, height)
+                            bitmap = gdiplus.Bitmap.from_dimension(width, height, ctyped.const.PixelFormat32bppARGB)
+                            with bitmap.get_graphics().get_hdc() as hdc:
+                                if ctyped.macro.SUCCEEDED(target.BindDC(hdc, ctyped.byref(
+                                        ctyped.struct.RECT(right=width, bottom=height)))):
+                                    target.BeginDraw()
+                                    context.DrawSvgDocument(svg)
+                                    if ctyped.macro.SUCCEEDED(target.EndDraw(None, None)):
+                                        return bitmap
+
+
+@contextlib.contextmanager
+def _open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> ContextManager[Optional[ctyped.interface.IStream]]:
+    with ctyped.init_com(ctyped.interface.IStream, False) as stream:
+        if ctyped.macro.SUCCEEDED(ctyped.lib.Shlwapi.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
+            yield stream
+            return
+    yield
 
 
 if __name__ == '__main__':
-    _test_gui()
-    sys.exit()
+    # _test_gui()
+    # bmp = open_svg(r'D:\Downloads\svg.svg')
+    # if bmp:
+    #     bmp.save(r'D:\svg.png')
+    exit()
 
     ctyped.THREADED_COM = True
 

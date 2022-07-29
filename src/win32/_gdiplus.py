@@ -1,43 +1,13 @@
 from __future__ import annotations as _
 
+import contextlib
 import os
-from typing import Callable, Generator, Optional
+from typing import Callable, ContextManager, Generator, Optional
 
 import libs.ctyped as ctyped
 
 _GdiPlus = ctyped.lib.GdiPlus
 _GpStatus = ctyped.enum.GpStatus
-
-
-class Color(int):
-    def __str__(self):
-        return f'#{self.get_red():02x}{self.get_green():02x}{self.get_blue():02x}{self.get_alpha():02x}'
-
-    @classmethod
-    def from_rgba(cls, r: int, g: int, b: int, a: int = 255) -> Color:
-        return Color(ctyped.cast_int(b << ctyped.const.BlueShift, ctyped.type.ARGB) |
-                     ctyped.cast_int(g << ctyped.const.GreenShift, ctyped.type.ARGB) |
-                     ctyped.cast_int(r << ctyped.const.RedShift, ctyped.type.ARGB) |
-                     ctyped.cast_int(a << ctyped.const.AlphaShift, ctyped.type.ARGB))
-
-    @classmethod
-    def from_colorref(cls, bgr: ctyped.type.COLORREF) -> Color:
-        return cls.from_rgba(ctyped.macro.GetRValue(bgr), ctyped.macro.GetGValue(bgr), ctyped.macro.GetBValue(bgr))
-
-    def get_alpha(self) -> int:
-        return ctyped.cast_int(self >> ctyped.const.AlphaShift, ctyped.type.BYTE)
-
-    def get_red(self) -> int:
-        return ctyped.cast_int(self >> ctyped.const.RedShift, ctyped.type.BYTE)
-
-    def get_green(self) -> int:
-        return ctyped.cast_int(self >> ctyped.const.GreenShift, ctyped.type.BYTE)
-
-    def get_blue(self) -> int:
-        return ctyped.cast_int(self >> ctyped.const.BlueShift, ctyped.type.BYTE)
-
-    def get_colorref(self) -> int:
-        return ctyped.macro.RGB(self.get_red(), self.get_green(), self.get_blue())
 
 
 class _GdiplusToken(ctyped.type.ULONG_PTR):
@@ -111,6 +81,15 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
         if _GpStatus.Ok == _GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y)):
             return dpi_y.value
 
+    @contextlib.contextmanager
+    def get_hdc(self) -> ContextManager[ctyped.type.HDC]:
+        hdc = ctyped.type.HDC()
+        _GdiPlus.GdipGetDC(self, ctyped.byref(hdc))
+        try:
+            yield hdc
+        finally:
+            _GdiPlus.GdipReleaseDC(self, hdc)
+
     def set_scale(self, scale_x: float = 1, scale_y: float = 1) -> bool:
         return _GpStatus.Ok == _GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.Prepend)
 
@@ -153,26 +132,15 @@ class Brush(_GdiplusBase, ctyped.type.GpBrush):
     def _del(self):
         _GdiPlus.GdipDeleteBrush(self)
 
+    def clone(self) -> Brush:
+        self_ = type(self)()
+        _GdiPlus.GdipCloneBrush(self, ctyped.byref(self_))
+        return self_
 
-class Pen(_GdiplusBase, ctyped.type.GpPen):
-    def _del(self):
-        _GdiPlus.GdipDeletePen(self)
-
-    def get_color(self) -> ctyped.type.ARGB:
-        color = ctyped.type.ARGB()
-        _GdiPlus.GdipGetPenColor(self, ctyped.byref(color))
-        return color.value
-
-    def get_width(self) -> float:
-        width = ctyped.type.REAL()
-        _GdiPlus.GdipGetPenWidth(self, ctyped.byref(width))
-        return width.value
-
-    def set_color(self, color: ctyped.type.ARGB):
-        _GdiPlus.GdipSetPenColor(self, color)
-
-    def set_width(self, width: float):
-        _GdiPlus.GdipSetPenWidth(self, width)
+    def get_type(self) -> ctyped.enum.GpBrushType:
+        brush_type = ctyped.enum.GpBrushType()
+        _GdiPlus.GdipGetBrushType(self, ctyped.byref(brush_type))
+        return brush_type
 
 
 class SolidFill(Brush, ctyped.type.GpSolidFill):
@@ -189,6 +157,32 @@ class SolidFill(Brush, ctyped.type.GpSolidFill):
 
     def set_color(self, color: ctyped.type.ARGB):
         _GdiPlus.GdipSetSolidFillColor(self, color)
+
+
+class Pen(_GdiplusBase, ctyped.type.GpPen):
+    def _del(self):
+        _GdiPlus.GdipDeletePen(self)
+
+    def clone(self) -> Pen:
+        self_ = type(self)()
+        _GdiPlus.GdipClonePen(self, ctyped.byref(self_))
+        return self_
+
+    def get_color(self) -> ctyped.type.ARGB:
+        color = ctyped.type.ARGB()
+        _GdiPlus.GdipGetPenColor(self, ctyped.byref(color))
+        return color.value
+
+    def get_width(self) -> float:
+        width = ctyped.type.REAL()
+        _GdiPlus.GdipGetPenWidth(self, ctyped.byref(width))
+        return width.value
+
+    def set_color(self, color: ctyped.type.ARGB):
+        _GdiPlus.GdipSetPenColor(self, color)
+
+    def set_width(self, width: float):
+        _GdiPlus.GdipSetPenWidth(self, width)
 
 
 class Image(_GdiplusBase, ctyped.type.GpImage):
@@ -223,7 +217,6 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
                 for index in range(number.value):
                     if ext in codec_info[index].FilenameExtension:
                         return ctyped.byref(codec_info[index].Clsid)
-        return None
 
     def _get_dimension_id(self) -> ctyped.Pointer[ctyped.struct.GUID]:
         count = ctyped.type.UINT()
@@ -296,9 +289,8 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
     def save(self, path: str, quality: int = 100) -> bool:
         if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):
             quality_ = ctyped.type.LONG(quality)
-            params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(
-                ctyped.get_guid(ctyped.const.EncoderQuality), 1,
-                ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.PVOID))))
+            params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
+                ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.PVOID))))
             return _GpStatus.Ok == _GdiPlus.GdipSaveImageToFile(self, path, encoder, ctyped.byref(params))
         return False
 
@@ -377,6 +369,47 @@ class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
             self, ctyped.enum.ColorAdjustType.Default, True,
             ctyped.byref(color_matrix), None, ctyped.enum.ColorMatrixFlags.Default)
         return self
+
+
+class Font(_GdiplusBase, ctyped.type.GpFont):
+    def _del(self):
+        _GdiPlus.GdipDeleteFont(self)
+
+    def clone(self) -> Font:
+        self_ = type(self)()
+        _GdiPlus.GdipCloneFont(self, ctyped.byref(self_))
+        return self_
+
+
+class Color(int):
+    def __str__(self):
+        return f'#{self.get_red():02x}{self.get_green():02x}{self.get_blue():02x}{self.get_alpha():02x}'
+
+    @classmethod
+    def from_rgba(cls, r: int, g: int, b: int, a: int = 255) -> Color:
+        return Color(ctyped.cast_int(b << ctyped.const.BlueShift, ctyped.type.ARGB) |
+                     ctyped.cast_int(g << ctyped.const.GreenShift, ctyped.type.ARGB) |
+                     ctyped.cast_int(r << ctyped.const.RedShift, ctyped.type.ARGB) |
+                     ctyped.cast_int(a << ctyped.const.AlphaShift, ctyped.type.ARGB))
+
+    @classmethod
+    def from_colorref(cls, bgr: ctyped.type.COLORREF) -> Color:
+        return cls.from_rgba(ctyped.macro.GetRValue(bgr), ctyped.macro.GetGValue(bgr), ctyped.macro.GetBValue(bgr))
+
+    def get_alpha(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.AlphaShift, ctyped.type.BYTE)
+
+    def get_red(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.RedShift, ctyped.type.BYTE)
+
+    def get_green(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.GreenShift, ctyped.type.BYTE)
+
+    def get_blue(self) -> int:
+        return ctyped.cast_int(self >> ctyped.const.BlueShift, ctyped.type.BYTE)
+
+    def get_colorref(self) -> int:
+        return ctyped.macro.RGB(self.get_red(), self.get_green(), self.get_blue())
 
 
 def color_matrix_from_alpha(alpha: float = 1) -> ctyped.struct.ColorMatrix:

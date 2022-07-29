@@ -3,7 +3,7 @@ from __future__ import annotations as _
 import enum as _enum
 from typing import Optional as _Optional
 
-from . import type as _type
+from . import const as _const, type as _type
 from ._utils import _CT
 
 _AUTO = object()
@@ -58,22 +58,6 @@ else:
 
         def __str__(self):
             return f'{type(self).__name__}.{self.name}'
-
-
-class ColorAdjustType(_Enum):
-    Default = _AUTO
-    Bitmap = _AUTO
-    Brush = _AUTO
-    Pen = _AUTO
-    Text = _AUTO
-    Count = _AUTO
-    Any = _AUTO
-
-
-class ColorMatrixFlags(_Enum):
-    Default = _AUTO
-    SkipGrays = _AUTO
-    AltGray = _AUTO
 
 
 # noinspection PyPep8Naming
@@ -159,57 +143,6 @@ class GenericFontFamily(_Enum):
     Monospace = _AUTO
 
 
-class MatrixOrder(_Enum):
-    Prepend = _AUTO
-    Append = _AUTO
-
-
-class WarpMode(_Enum):
-    Perspective = _AUTO
-    Bilinear = _AUTO
-
-
-class WrapMode(_Enum):
-    Tile = _AUTO
-    TileFlipX = _AUTO
-    TileFlipY = _AUTO
-    TileFlipXY = _AUTO
-    Clamp = _AUTO
-
-
-class LinearGradientMode(_Enum):
-    Horizontal = _AUTO
-    Vertical = _AUTO
-    ForwardDiagonal = _AUTO
-    BackwardDiagonal = _AUTO
-
-
-class CombineMode(_Enum):
-    Replace = _AUTO
-    Intersect = _AUTO
-    Union = _AUTO
-    Xor = _AUTO
-    Exclude = _AUTO
-    Complement = _AUTO
-
-
-class QualityMode(_Enum):
-    Invalid = -1
-    Default = _AUTO
-    Low = _AUTO
-    High = _AUTO
-
-
-class CompositingMode(_Enum):
-    SourceOver = _AUTO
-    SourceCopy = _AUTO
-
-
-class FillMode(_Enum):
-    Alternate = _AUTO
-    Winding = _AUTO
-
-
 # noinspection PyPep8Naming
 class KNOWN_FOLDER_FLAG(_Enum):
     DEFAULT = 0x00000000
@@ -253,41 +186,6 @@ class TrustLevel(_Enum):
     BaseTrust = _AUTO
     PartialTrust = _AUTO
     FullTrust = _AUTO
-
-
-class Unit(_Enum):
-    World = _AUTO
-    Display = _AUTO
-    Pixel = _AUTO
-    Point = _AUTO
-    Inch = _AUTO
-    Document = _AUTO
-    Millimeter = _AUTO
-
-
-class Status(_Enum):
-    Ok = _AUTO
-    GenericError = _AUTO
-    InvalidParameter = _AUTO
-    OutOfMemory = _AUTO
-    ObjectBusy = _AUTO
-    InsufficientBuffer = _AUTO
-    NotImplemented = _AUTO
-    Win32Error = _AUTO
-    WrongState = _AUTO
-    Aborted = _AUTO
-    FileNotFound = _AUTO
-    ValueOverflow = _AUTO
-    AccessDenied = _AUTO
-    UnknownImageFormat = _AUTO
-    FontFamilyNotFound = _AUTO
-    FontStyleNotFound = _AUTO
-    NotTrueTypeFont = _AUTO
-    UnsupportedGdiplusVersion = _AUTO
-    GdiplusNotInitialized = _AUTO
-    PropertyNotFound = _AUTO
-    PropertyNotSupported = _AUTO
-    ProfileNotFound = _AUTO
 
 
 # noinspection PyPep8Naming
@@ -376,25 +274,6 @@ class SLR_FLAGS(_Enum):
     MACHINE_IN_LOCAL_TARGET = 0x800
     UPDATE_MACHINE_AND_SID = 0x1000
     NO_OBJECT_ID = 0x2000
-
-
-class RotateFlipType(_Enum):
-    RotateNoneFlipNone = 0
-    Rotate90FlipNone = 1
-    Rotate180FlipNone = 2
-    Rotate270FlipNone = 3
-    RotateNoneFlipX = 4
-    Rotate90FlipX = 5
-    Rotate180FlipX = 6
-    Rotate270FlipX = 7
-    RotateNoneFlipY = Rotate180FlipX
-    Rotate90FlipY = Rotate270FlipX
-    Rotate180FlipY = RotateNoneFlipX
-    Rotate270FlipY = Rotate90FlipX
-    RotateNoneFlipXY = Rotate180FlipNone
-    Rotate90FlipXY = Rotate270FlipNone
-    Rotate180FlipXY = RotateNoneFlipNone
-    Rotate270FlipXY = Rotate90FlipNone
 
 
 class COINITBASE(_Enum):
@@ -892,86 +771,6 @@ class ORIENTATION_PREFERENCE(_Enum):
     PORTRAIT_FLIPPED = 0x8
 
 
-class InterpolationMode(_Enum):
-    Invalid = QualityMode.Invalid
-    Default = QualityMode.Default
-    LowQuality = QualityMode.Low
-    HighQuality = QualityMode.High
-    Bilinear = _AUTO
-    Bicubic = _AUTO
-    NearestNeighbor = _AUTO
-    HighQualityBilinear = _AUTO
-    HighQualityBicubic = _AUTO
-
-
-class SmoothingMode(_Enum):
-    Invalid = QualityMode.Invalid
-    Default = QualityMode.Default
-    HighSpeed = QualityMode.Low
-    HighQuality = QualityMode.High
-    None_ = _AUTO
-    AntiAlias = _AUTO
-
-
-class CompositingQuality(_Enum):
-    Invalid = QualityMode.Invalid
-    Default = QualityMode.Default
-    HighSpeed = QualityMode.Low
-    HighQuality = QualityMode.High
-    GammaCorrected = _AUTO
-    AssumeLinear = _AUTO
-
-
-class PixelOffsetMode(_Enum):
-    Invalid = QualityMode.Invalid
-    Default = QualityMode.Default
-    HighSpeed = QualityMode.Low
-    HighQuality = QualityMode.High
-    None_ = _AUTO
-    Half = _AUTO
-
-
-class EncoderParameterValueType(_Enum):
-    Byte = 1
-    ASCII = _AUTO
-    Short = _AUTO
-    Long = _AUTO
-    Rational = _AUTO
-    LongRange = _AUTO
-    Undefined = _AUTO
-    RationalRange = _AUTO
-    Pointer = _AUTO
-
-
-class EncoderValue(_Enum):
-    ColorTypeCMYK = _AUTO
-    ColorTypeYCCK = _AUTO
-    CompressionLZW = _AUTO
-    CompressionCCITT3 = _AUTO
-    CompressionCCITT4 = _AUTO
-    CompressionRle = _AUTO
-    CompressionNone = _AUTO
-    ScanMethodInterlaced = _AUTO
-    ScanMethodNonInterlaced = _AUTO
-    VersionGif87 = _AUTO
-    VersionGif89 = _AUTO
-    RenderProgressive = _AUTO
-    RenderNonProgressive = _AUTO
-    TransformRotate90 = _AUTO
-    TransformRotate180 = _AUTO
-    TransformRotate270 = _AUTO
-    TransformFlipHorizontal = _AUTO
-    TransformFlipVertical = _AUTO
-    MultiFrame = _AUTO
-    LastFrame = _AUTO
-    Flush = _AUTO
-    FrameDimensionTime = _AUTO
-    FrameDimensionResolution = _AUTO
-    FrameDimensionPage = _AUTO
-    ColorTypeGray = _AUTO
-    ColorTypeRGB = _AUTO
-
-
 # noinspection PyPep8Naming
 class ACTIVATION_CONTEXT_INFO_CLASS(_Enum):
     ActivationContextBasicInformation = 1
@@ -1172,9 +971,1620 @@ class DISPLAYCONFIG_DEVICE_INFO_TYPE(_Enum):
     FORCE_UINT32 = 0xFFFFFFFF
 
 
-GpMatrixOrder = MatrixOrder
-GpUnit = Unit
+class BrushType(_Enum):
+    SolidColor = 0
+    HatchFill = 1
+    TextureFill = 2
+    PathGradient = 3
+    LinearGradient = 4
+
+
+class CombineMode(_Enum):
+    Replace = 0
+    Intersect = 1
+    Union = 2
+    Xor = 3
+    Exclude = 4
+    Complement = 5
+
+
+class CompositingMode(_Enum):
+    SourceOver = 0
+    SourceCopy = 1
+
+
+class CompositingQuality(_Enum):
+    Default = 0
+    HighSpeed = 1
+    HighQuality = 2
+    GammaCorrected = 3
+    AssumeLinear = 4
+
+
+class CoordinateSpace(_Enum):
+    World = 0
+    Page = 1
+    Device = 2
+
+
+class CustomLineCapType(_Enum):
+    Default = 0
+    AdjustableArrow = 1
+
+
+class DashCap(_Enum):
+    Flat = 0
+    Round = 2
+    Triangle = 3
+
+
+class DashStyle(_Enum):
+    Solid = 0
+    Dash = 1
+    Dot = 2
+    DashDot = 3
+    DashDotDot = 4
+    Custom = 5
+
+
+class DitherType(_Enum):
+    None_ = 0
+    Solid = 1
+    Ordered4x4 = 2
+    Ordered8x8 = 3
+    Ordered16x16 = 4
+    Ordered91x91 = 5
+    Spiral4x4 = 6
+    Spiral8x8 = 7
+    DualSpiral4x4 = 8
+    DualSpiral8x8 = 9
+    ErrorDiffusion = 10
+
+
+class DriverStringOptions(_Enum):
+    CmapLookup = 1
+    Vertical = 2
+    RealizedAdvance = 4
+    LimitSubpixel = 8
+
+
+class EmfToWmfBitsFlags(_Enum):
+    Default = 0
+    EmbedEmf = 1
+    IncludePlaceable = 2
+    NoXORClip = 4
+
+
+class EmfType(_Enum):
+    EmfOnly = 3
+    EmfPlusOnly = 4
+    EmfPlusDual = 5
+
+
+class EncoderParameterValueType(_Enum):
+    Byte = 1
+    ASCII = 2
+    Short = 3
+    Long = 4
+    Rational = 5
+    LongRange = 6
+    Undefined = 7
+    RationalRange = 8
+    Pointer = 9
+
+
+class EncoderValue(_Enum):
+    ColorTypeCMYK = 0
+    ColorTypeYCCK = 1
+    CompressionLZW = 2
+    CompressionCCITT3 = 3
+    CompressionCCITT4 = 4
+    CompressionRle = 5
+    CompressionNone = 6
+    ScanMethodInterlaced = 7
+    ScanMethodNonInterlaced = 8
+    VersionGif87 = 9
+    VersionGif89 = 10
+    RenderProgressive = 11
+    RenderNonProgressive = 12
+    TransformRotate90 = 13
+    TransformRotate180 = 14
+    TransformRotate270 = 15
+    TransformFlipHorizontal = 16
+    TransformFlipVertical = 17
+    MultiFrame = 18
+    LastFrame = 19
+    Flush = 20
+    FrameDimensionTime = 21
+    FrameDimensionResolution = 22
+    FrameDimensionPage = 23
+
+
+class FillMode(_Enum):
+    Alternate = 0
+    Winding = 1
+
+
+class FlushIntention(_Enum):
+    Flush = 0
+    Sync = 1
+
+
+class FontStyle(_Enum):
+    Regular = 0
+    Bold = 1
+    Italic = 2
+    BoldItalic = 3
+    Underline = 4
+    Strikeout = 8
+
+
+class HatchStyle(_Enum):
+    HS_Horizontal = 0
+    HS_Vertical = 1
+    HS_ForwardDiagonal = 2
+    HS_BackwardDiagonal = 3
+    HS_Cross = 4
+    HS_LargeGrid = 4
+    HS_DiagonalCross = 5
+    HS_05Percent = 6
+    HS_10Percent = 7
+    HS_20Percent = 8
+    HS_25Percent = 9
+    HS_30Percent = 10
+    HS_40Percent = 11
+    HS_50Percent = 12
+    HS_60Percent = 13
+    HS_70Percent = 14
+    HS_75Percent = 15
+    HS_80Percent = 16
+    HS_90Percent = 17
+    HS_LightDownwardDiagonal = 18
+    HS_LightUpwardDiagonal = 19
+    HS_DarkDownwardDiagonal = 20
+    HS_DarkUpwardDiagonal = 21
+    HS_WideDownwardDiagonal = 22
+    HS_WideUpwardDiagonal = 23
+    HS_LightVertical = 24
+    HS_LightHorizontal = 25
+    HS_NarrowVertical = 26
+    HS_NarrowHorizontal = 27
+    HS_DarkVertical = 28
+    HS_DarkHorizontal = 29
+    HS_DashedDownwardDiagonal = 30
+    HS_DashedUpwardDiagonal = 31
+    HS_DashedHorizontal = 32
+    HS_DashedVertical = 33
+    HS_SmallConfetti = 34
+    HS_LargeConfetti = 35
+    HS_ZigZag = 36
+    HS_Wave = 37
+    HS_DiagonalBrick = 38
+    HS_HorizontalBrick = 39
+    HS_Weave = 40
+    HS_Plaid = 41
+    HS_Divot = 42
+    HS_DottedGrid = 43
+    HS_DottedDiamond = 44
+    HS_Shingle = 45
+    HS_Trellis = 46
+    HS_Sphere = 47
+    HS_SmallGrid = 48
+    HS_SmallCheckerBoard = 49
+    HS_LargeCheckerBoard = 50
+    HS_OutlinedDiamond = 51
+    HS_SolidDiamond = 52
+    HS_Total = 53
+    HS_Min = 0
+    HS_Max = 52
+
+
+class HotkeyPrefix(_Enum):
+    None_ = 0
+    Show = 1
+    Hide = 2
+
+
+class ImageType(_Enum):
+    Unknown = 0
+    Bitmap = 1
+    Metafile = 2
+
+
+class InterpolationMode(_Enum):
+    Invalid = -1
+    Default = 0
+    LowQuality = 1
+    HighQuality = 2
+    Bilinear = 3
+    Bicubic = 4
+    NearestNeighbor = 5
+    HighQualityBilinear = 6
+    HighQualityBicubic = 7
+
+
+class LinearGradientMode(_Enum):
+    Horizontal = 0
+    Vertical = 1
+    ForwardDiagonal = 2
+    BackwardDiagonal = 3
+
+
+class LineCap(_Enum):
+    Flat = 0
+    Square = 1
+    Round = 2
+    Triangle = 3
+    NoAnchor = 16
+    SquareAnchor = 17
+    RoundAnchor = 18
+    DiamondAnchor = 19
+    ArrowAnchor = 20
+    Custom = 255
+
+
+class LineJoin(_Enum):
+    Miter = 0
+    Bevel = 1
+    Round = 2
+    MiterClipped = 3
+
+
+class MatrixOrder(_Enum):
+    Prepend = 0
+    Append = 1
+
+
+class MetafileFrameUnit(_Enum):
+    Pixel = 2
+    Point = 3
+    Inch = 4
+    Document = 5
+    Millimeter = 6
+    Gdi = 7
+
+
+class MetafileType(_Enum):
+    Invalid = 0
+    Wmf = 1
+    WmfPlaceable = 2
+    Emf = 3
+    EmfPlusOnly = 4
+    EmfPlusDual = 5
+
+
+class ObjectType(_Enum):
+    Invalid = 0
+    Brush = 1
+    Pen = 2
+    Path = 3
+    Region = 4
+    Font = 5
+    StringFormat = 6
+    ImageAttributes = 7
+    CustomLineCap = 8
+    Graphics = 9
+    Min = 1
+    Max = 9
+
+
+class EmfPlusRecordType(_Enum):  # TODO
+    WmfRecordTypeSetBkColor = _const.META_SETBKCOLOR | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetBkMode = _const.META_SETBKMODE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetMapMode = _const.META_SETMAPMODE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetROP2 = _const.META_SETROP2 | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetRelAbs = _const.META_SETRELABS | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetPolyFillMode = _const.META_SETPOLYFILLMODE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetStretchBltMode = _const.META_SETSTRETCHBLTMODE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetTextCharExtra = _const.META_SETTEXTCHAREXTRA | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetTextColor = _const.META_SETTEXTCOLOR | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetTextJustification = _const.META_SETTEXTJUSTIFICATION | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetWindowOrg = _const.META_SETWINDOWORG | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetWindowExt = _const.META_SETWINDOWEXT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetViewportOrg = _const.META_SETVIEWPORTORG | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetViewportExt = _const.META_SETVIEWPORTEXT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeOffsetWindowOrg = _const.META_OFFSETWINDOWORG | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeScaleWindowExt = _const.META_SCALEWINDOWEXT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeOffsetViewportOrg = _const.META_OFFSETVIEWPORTORG | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeScaleViewportExt = _const.META_SCALEVIEWPORTEXT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeLineTo = _const.META_LINETO | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeMoveTo = _const.META_MOVETO | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeExcludeClipRect = _const.META_EXCLUDECLIPRECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeIntersectClipRect = _const.META_INTERSECTCLIPRECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeArc = _const.META_ARC | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeEllipse = _const.META_ELLIPSE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeFloodFill = _const.META_FLOODFILL | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypePie = _const.META_PIE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeRectangle = _const.META_RECTANGLE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeRoundRect = _const.META_ROUNDRECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypePatBlt = _const.META_PATBLT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSaveDC = _const.META_SAVEDC | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetPixel = _const.META_SETPIXEL | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeOffsetClipRgn = _const.META_OFFSETCLIPRGN | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeTextOut = _const.META_TEXTOUT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeBitBlt = _const.META_BITBLT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeStretchBlt = _const.META_STRETCHBLT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypePolygon = _const.META_POLYGON | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypePolyline = _const.META_POLYLINE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeEscape = _const.META_ESCAPE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeRestoreDC = _const.META_RESTOREDC | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeFillRegion = _const.META_FILLREGION | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeFrameRegion = _const.META_FRAMEREGION | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeInvertRegion = _const.META_INVERTREGION | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypePaintRegion = _const.META_PAINTREGION | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSelectClipRegion = _const.META_SELECTCLIPREGION | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSelectObject = _const.META_SELECTOBJECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetTextAlign = _const.META_SETTEXTALIGN | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeDrawText = 0x062F | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeChord = _const.META_CHORD | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetMapperFlags = _const.META_SETMAPPERFLAGS | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeExtTextOut = _const.META_EXTTEXTOUT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetDIBToDev = _const.META_SETDIBTODEV | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSelectPalette = _const.META_SELECTPALETTE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeRealizePalette = _const.META_REALIZEPALETTE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeAnimatePalette = _const.META_ANIMATEPALETTE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetPalEntries = _const.META_SETPALENTRIES | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypePolyPolygon = _const.META_POLYPOLYGON | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeResizePalette = _const.META_RESIZEPALETTE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeDIBBitBlt = _const.META_DIBBITBLT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeDIBStretchBlt = _const.META_DIBSTRETCHBLT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeDIBCreatePatternBrush = _const.META_DIBCREATEPATTERNBRUSH | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeStretchDIB = _const.META_STRETCHDIB | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeExtFloodFill = _const.META_EXTFLOODFILL | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeSetLayout = 0x0149 | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeResetDC = 0x014C | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeStartDoc = 0x014D | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeStartPage = 0x004F | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeEndPage = 0x0050 | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeAbortDoc = 0x0052 | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeEndDoc = 0x005E | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeDeleteObject = _const.META_DELETEOBJECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreatePalette = _const.META_CREATEPALETTE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreateBrush = 0x00F8 | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreatePatternBrush = _const.META_CREATEPATTERNBRUSH | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreatePenIndirect = _const.META_CREATEPENINDIRECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreateFontIndirect = _const.META_CREATEFONTINDIRECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreateBrushIndirect = _const.META_CREATEBRUSHINDIRECT | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreateBitmapIndirect = 0x02FD | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreateBitmap = 0x06FE | _const.GDIP_WMF_RECORD_BASE
+    WmfRecordTypeCreateRegion = _const.META_CREATEREGION | _const.GDIP_WMF_RECORD_BASE
+    EmfRecordTypeHeader = _const.EMR_HEADER
+    EmfRecordTypePolyBezier = _const.EMR_POLYBEZIER
+    EmfRecordTypePolygon = _const.EMR_POLYGON
+    EmfRecordTypePolyline = _const.EMR_POLYLINE
+    EmfRecordTypePolyBezierTo = _const.EMR_POLYBEZIERTO
+    EmfRecordTypePolyLineTo = _const.EMR_POLYLINETO
+    EmfRecordTypePolyPolyline = _const.EMR_POLYPOLYLINE
+    EmfRecordTypePolyPolygon = _const.EMR_POLYPOLYGON
+    EmfRecordTypeSetWindowExtEx = _const.EMR_SETWINDOWEXTEX
+    EmfRecordTypeSetWindowOrgEx = _const.EMR_SETWINDOWORGEX
+    EmfRecordTypeSetViewportExtEx = _const.EMR_SETVIEWPORTEXTEX
+    EmfRecordTypeSetViewportOrgEx = _const.EMR_SETVIEWPORTORGEX
+    EmfRecordTypeSetBrushOrgEx = _const.EMR_SETBRUSHORGEX
+    EmfRecordTypeEOF = _const.EMR_EOF
+    EmfRecordTypeSetPixelV = _const.EMR_SETPIXELV
+    EmfRecordTypeSetMapperFlags = _const.EMR_SETMAPPERFLAGS
+    EmfRecordTypeSetMapMode = _const.EMR_SETMAPMODE
+    EmfRecordTypeSetBkMode = _const.EMR_SETBKMODE
+    EmfRecordTypeSetPolyFillMode = _const.EMR_SETPOLYFILLMODE
+    EmfRecordTypeSetROP2 = _const.EMR_SETROP2
+    EmfRecordTypeSetStretchBltMode = _const.EMR_SETSTRETCHBLTMODE
+    EmfRecordTypeSetTextAlign = _const.EMR_SETTEXTALIGN
+    EmfRecordTypeSetColorAdjustment = _const.EMR_SETCOLORADJUSTMENT
+    EmfRecordTypeSetTextColor = _const.EMR_SETTEXTCOLOR
+    EmfRecordTypeSetBkColor = _const.EMR_SETBKCOLOR
+    EmfRecordTypeOffsetClipRgn = _const.EMR_OFFSETCLIPRGN
+    EmfRecordTypeMoveToEx = _const.EMR_MOVETOEX
+    EmfRecordTypeSetMetaRgn = _const.EMR_SETMETARGN
+    EmfRecordTypeExcludeClipRect = _const.EMR_EXCLUDECLIPRECT
+    EmfRecordTypeIntersectClipRect = _const.EMR_INTERSECTCLIPRECT
+    EmfRecordTypeScaleViewportExtEx = _const.EMR_SCALEVIEWPORTEXTEX
+    EmfRecordTypeScaleWindowExtEx = _const.EMR_SCALEWINDOWEXTEX
+    EmfRecordTypeSaveDC = _const.EMR_SAVEDC
+    EmfRecordTypeRestoreDC = _const.EMR_RESTOREDC
+    EmfRecordTypeSetWorldTransform = _const.EMR_SETWORLDTRANSFORM
+    EmfRecordTypeModifyWorldTransform = _const.EMR_MODIFYWORLDTRANSFORM
+    EmfRecordTypeSelectObject = _const.EMR_SELECTOBJECT
+    EmfRecordTypeCreatePen = _const.EMR_CREATEPEN
+    EmfRecordTypeCreateBrushIndirect = _const.EMR_CREATEBRUSHINDIRECT
+    EmfRecordTypeDeleteObject = _const.EMR_DELETEOBJECT
+    EmfRecordTypeAngleArc = _const.EMR_ANGLEARC
+    EmfRecordTypeEllipse = _const.EMR_ELLIPSE
+    EmfRecordTypeRectangle = _const.EMR_RECTANGLE
+    EmfRecordTypeRoundRect = _const.EMR_ROUNDRECT
+    EmfRecordTypeArc = _const.EMR_ARC
+    EmfRecordTypeChord = _const.EMR_CHORD
+    EmfRecordTypePie = _const.EMR_PIE
+    EmfRecordTypeSelectPalette = _const.EMR_SELECTPALETTE
+    EmfRecordTypeCreatePalette = _const.EMR_CREATEPALETTE
+    EmfRecordTypeSetPaletteEntries = _const.EMR_SETPALETTEENTRIES
+    EmfRecordTypeResizePalette = _const.EMR_RESIZEPALETTE
+    EmfRecordTypeRealizePalette = _const.EMR_REALIZEPALETTE
+    EmfRecordTypeExtFloodFill = _const.EMR_EXTFLOODFILL
+    EmfRecordTypeLineTo = _const.EMR_LINETO
+    EmfRecordTypeArcTo = _const.EMR_ARCTO
+    EmfRecordTypePolyDraw = _const.EMR_POLYDRAW
+    EmfRecordTypeSetArcDirection = _const.EMR_SETARCDIRECTION
+    EmfRecordTypeSetMiterLimit = _const.EMR_SETMITERLIMIT
+    EmfRecordTypeBeginPath = _const.EMR_BEGINPATH
+    EmfRecordTypeEndPath = _const.EMR_ENDPATH
+    EmfRecordTypeCloseFigure = _const.EMR_CLOSEFIGURE
+    EmfRecordTypeFillPath = _const.EMR_FILLPATH
+    EmfRecordTypeStrokeAndFillPath = _const.EMR_STROKEANDFILLPATH
+    EmfRecordTypeStrokePath = _const.EMR_STROKEPATH
+    EmfRecordTypeFlattenPath = _const.EMR_FLATTENPATH
+    EmfRecordTypeWidenPath = _const.EMR_WIDENPATH
+    EmfRecordTypeSelectClipPath = _const.EMR_SELECTCLIPPATH
+    EmfRecordTypeAbortPath = _const.EMR_ABORTPATH
+    EmfRecordTypeReserved_069 = 69
+    EmfRecordTypeGdiComment = _const.EMR_GDICOMMENT
+    EmfRecordTypeFillRgn = _const.EMR_FILLRGN
+    EmfRecordTypeFrameRgn = _const.EMR_FRAMERGN
+    EmfRecordTypeInvertRgn = _const.EMR_INVERTRGN
+    EmfRecordTypePaintRgn = _const.EMR_PAINTRGN
+    EmfRecordTypeExtSelectClipRgn = _const.EMR_EXTSELECTCLIPRGN
+    EmfRecordTypeBitBlt = _const.EMR_BITBLT
+    EmfRecordTypeStretchBlt = _const.EMR_STRETCHBLT
+    EmfRecordTypeMaskBlt = _const.EMR_MASKBLT
+    EmfRecordTypePlgBlt = _const.EMR_PLGBLT
+    EmfRecordTypeSetDIBitsToDevice = _const.EMR_SETDIBITSTODEVICE
+    EmfRecordTypeStretchDIBits = _const.EMR_STRETCHDIBITS
+    EmfRecordTypeExtCreateFontIndirect = _const.EMR_EXTCREATEFONTINDIRECTW
+    EmfRecordTypeExtTextOutA = _const.EMR_EXTTEXTOUTA
+    EmfRecordTypeExtTextOutW = _const.EMR_EXTTEXTOUTW
+    EmfRecordTypePolyBezier16 = _const.EMR_POLYBEZIER16
+    EmfRecordTypePolygon16 = _const.EMR_POLYGON16
+    EmfRecordTypePolyline16 = _const.EMR_POLYLINE16
+    EmfRecordTypePolyBezierTo16 = _const.EMR_POLYBEZIERTO16
+    EmfRecordTypePolylineTo16 = _const.EMR_POLYLINETO16
+    EmfRecordTypePolyPolyline16 = _const.EMR_POLYPOLYLINE16
+    EmfRecordTypePolyPolygon16 = _const.EMR_POLYPOLYGON16
+    EmfRecordTypePolyDraw16 = _const.EMR_POLYDRAW16
+    EmfRecordTypeCreateMonoBrush = _const.EMR_CREATEMONOBRUSH
+    EmfRecordTypeCreateDIBPatternBrushPt = _const.EMR_CREATEDIBPATTERNBRUSHPT
+    EmfRecordTypeExtCreatePen = _const.EMR_EXTCREATEPEN
+    EmfRecordTypePolyTextOutA = _const.EMR_POLYTEXTOUTA
+    EmfRecordTypePolyTextOutW = _const.EMR_POLYTEXTOUTW
+    EmfRecordTypeSetICMMode = 98
+    EmfRecordTypeCreateColorSpace = 99
+    EmfRecordTypeSetColorSpace = 100
+    EmfRecordTypeDeleteColorSpace = 101
+    EmfRecordTypeGLSRecord = 102
+    EmfRecordTypeGLSBoundedRecord = 103
+    EmfRecordTypePixelFormat = 104
+    EmfRecordTypeDrawEscape = 105
+    EmfRecordTypeExtEscape = 106
+    EmfRecordTypeStartDoc = 107
+    EmfRecordTypeSmallTextOut = 108
+    EmfRecordTypeForceUFIMapping = 109
+    EmfRecordTypeNamedEscape = 110
+    EmfRecordTypeColorCorrectPalette = 111
+    EmfRecordTypeSetICMProfileA = 112
+    EmfRecordTypeSetICMProfileW = 113
+    EmfRecordTypeAlphaBlend = 114
+    EmfRecordTypeSetLayout = 115
+    EmfRecordTypeTransparentBlt = 116
+    EmfRecordTypeReserved_117 = 117
+    EmfRecordTypeGradientFill = 118
+    EmfRecordTypeSetLinkedUFIs = 119
+    EmfRecordTypeSetTextJustification = 120
+    EmfRecordTypeColorMatchToTargetW = 121
+    EmfRecordTypeCreateColorSpaceW = 122
+    EmfRecordTypeMax = 122
+    EmfRecordTypeMin = 1
+    EmfPlusRecordTypeInvalid = _const.GDIP_EMFPLUS_RECORD_BASE
+    EmfPlusRecordTypeHeader = _AUTO
+    EmfPlusRecordTypeEndOfFile = _AUTO
+    EmfPlusRecordTypeComment = _AUTO
+    EmfPlusRecordTypeGetDC = _AUTO
+    EmfPlusRecordTypeMultiFormatStart = _AUTO
+    EmfPlusRecordTypeMultiFormatSection = _AUTO
+    EmfPlusRecordTypeMultiFormatEnd = _AUTO
+    EmfPlusRecordTypeObject = _AUTO
+    EmfPlusRecordTypeClear = _AUTO
+    EmfPlusRecordTypeFillRects = _AUTO
+    EmfPlusRecordTypeDrawRects = _AUTO
+    EmfPlusRecordTypeFillPolygon = _AUTO
+    EmfPlusRecordTypeDrawLines = _AUTO
+    EmfPlusRecordTypeFillEllipse = _AUTO
+    EmfPlusRecordTypeDrawEllipse = _AUTO
+    EmfPlusRecordTypeFillPie = _AUTO
+    EmfPlusRecordTypeDrawPie = _AUTO
+    EmfPlusRecordTypeDrawArc = _AUTO
+    EmfPlusRecordTypeFillRegion = _AUTO
+    EmfPlusRecordTypeFillPath = _AUTO
+    EmfPlusRecordTypeDrawPath = _AUTO
+    EmfPlusRecordTypeFillClosedCurve = _AUTO
+    EmfPlusRecordTypeDrawClosedCurve = _AUTO
+    EmfPlusRecordTypeDrawCurve = _AUTO
+    EmfPlusRecordTypeDrawBeziers = _AUTO
+    EmfPlusRecordTypeDrawImage = _AUTO
+    EmfPlusRecordTypeDrawImagePoints = _AUTO
+    EmfPlusRecordTypeDrawString = _AUTO
+    EmfPlusRecordTypeSetRenderingOrigin = _AUTO
+    EmfPlusRecordTypeSetAntiAliasMode = _AUTO
+    EmfPlusRecordTypeSetTextRenderingHint = _AUTO
+    EmfPlusRecordTypeSetTextContrast = _AUTO
+    EmfPlusRecordTypeSetInterpolationMode = _AUTO
+    EmfPlusRecordTypeSetPixelOffsetMode = _AUTO
+    EmfPlusRecordTypeSetCompositingMode = _AUTO
+    EmfPlusRecordTypeSetCompositingQuality = _AUTO
+    EmfPlusRecordTypeSave = _AUTO
+    EmfPlusRecordTypeRestore = _AUTO
+    EmfPlusRecordTypeBeginContainer = _AUTO
+    EmfPlusRecordTypeBeginContainerNoParams = _AUTO
+    EmfPlusRecordTypeEndContainer = _AUTO
+    EmfPlusRecordTypeSetWorldTransform = _AUTO
+    EmfPlusRecordTypeResetWorldTransform = _AUTO
+    EmfPlusRecordTypeMultiplyWorldTransform = _AUTO
+    EmfPlusRecordTypeTranslateWorldTransform = _AUTO
+    EmfPlusRecordTypeScaleWorldTransform = _AUTO
+    EmfPlusRecordTypeRotateWorldTransform = _AUTO
+    EmfPlusRecordTypeSetPageTransform = _AUTO
+    EmfPlusRecordTypeResetClip = _AUTO
+    EmfPlusRecordTypeSetClipRect = _AUTO
+    EmfPlusRecordTypeSetClipPath = _AUTO
+    EmfPlusRecordTypeSetClipRegion = _AUTO
+    EmfPlusRecordTypeOffsetClip = _AUTO
+    EmfPlusRecordTypeDrawDriverString = _AUTO
+    if _const.GDIPVER >= 0x0110:
+        EmfPlusRecordTypeStrokeFillPath = _AUTO
+        EmfPlusRecordTypeSerializableObject = _AUTO
+        EmfPlusRecordTypeSetTSGraphics = _AUTO
+        EmfPlusRecordTypeSetTSClip = _AUTO
+    EmfPlusRecordTotal = _AUTO
+    # EmfPlusRecordTypeMax = EmfPlusRecordTotal - 1
+    EmfPlusRecordTypeMin = EmfPlusRecordTypeHeader
+
+
+class PathPointType(_Enum):
+    Start = 0
+    Line = 1
+    Bezier = 3
+    Bezier3 = 3
+    PathTypeMask = 7
+    PathDashMode = 16
+    PathMarker = 32
+    CloseSubpath = 128
+
+
+class PenAlignment(_Enum):
+    Center = 0
+    Inset = 1
+
+
+class PenType(_Enum):
+    Unknown = -1
+    SolidColor = 0
+    HatchFill = 1
+    TextureFill = 2
+    PathGradient = 3
+    LinearGradient = 4
+
+
+class PixelOffsetMode(_Enum):
+    Invalid = -1
+    Default = 0
+    HighSpeed = 1
+    HighQuality = 2
+    None_ = 3
+    Half = 4
+
+
+class QualityMode(_Enum):
+    Invalid = -1
+    Default = 0
+    Low = 1
+    High = 2
+
+
+class SmoothingMode(_Enum):
+    Invalid = -1
+    Default = 0
+    HighSpeed = 1
+    HighQuality = 2
+    None_ = 3
+    AntiAlias8x4 = 4
+    AntiAlias = 4
+    AntiAlias8x8 = 5
+
+
+class StringAlignment(_Enum):
+    Near = 0
+    Center = 1
+    Far = 2
+
+
+class StringDigitSubstitute(_Enum):
+    User = 0
+    None_ = 1
+    National = 2
+    Traditional = 3
+
+
+class StringFormatFlags(_Enum):
+    DirectionRightToLeft = 1
+    DirectionVertical = 2
+    NoFitBlackBox = 4
+    DisplayFormatControl = 32
+    NoFontFallback = 1024
+    MeasureTrailingSpaces = 2048
+    NoWrap = 4096
+    LineLimit = 8192
+    NoClip = 16384
+
+
+class StringTrimming(_Enum):
+    None_ = 0
+    Character = 1
+    Word = 2
+    EllipsisCharacter = 3
+    EllipsisWord = 4
+    EllipsisPath = 5
+
+
+class TextRenderingHint(_Enum):
+    SystemDefault = 0
+    SingleBitPerPixelGridFit = 1
+    SingleBitPerPixel = 2
+    AntiAliasGridFit = 3
+    AntiAlias = 4
+    ClearTypeGridFit = 5
+
+
+class Unit(_Enum):
+    World = 0
+    Display = 1
+    Pixel = 2
+    Point = 3
+    Inch = 4
+    Document = 5
+    Millimeter = 6
+
+
+class WarpMode(_Enum):
+    Perspective = 0
+    Bilinear = 1
+
+
+class WrapMode(_Enum):
+    Tile = 0
+    TileFlipX = 1
+    TileFlipY = 2
+    TileFlipXY = 3
+    Clamp = 4
+
+
+class GpTestControlEnum(_Enum):
+    TestControlForceBilinear = 0
+    TestControlForceNoICM = 1
+    TestControlGetBuildNumber = 2
+
+
+class Status(_Enum):
+    Ok = 0
+    GenericError = 1
+    InvalidParameter = 2
+    OutOfMemory = 3
+    ObjectBusy = 4
+    InsufficientBuffer = 5
+    NotImplemented = 6
+    Win32Error = 7
+    WrongState = 8
+    Aborted = 9
+    FileNotFound = 10
+    ValueOverflow = 11
+    AccessDenied = 12
+    UnknownImageFormat = 13
+    FontFamilyNotFound = 14
+    FontStyleNotFound = 15
+    NotTrueTypeFont = 16
+    UnsupportedGdiplusVersion = 17
+    GdiplusNotInitialized = 18
+    PropertyNotFound = 19
+    PropertyNotSupported = 20
+    ProfileNotFound = 21
+
+
+class ImageCodecFlags(_Enum):
+    Encoder = 1
+    Decoder = 2
+    SupportBitmap = 4
+    SupportVector = 8
+    SeekableEncode = 16
+    BlockingDecode = 32
+    Builtin = 65536
+    System = 131072
+    User = 262144
+
+
+class ImageFlags(_Enum):
+    None_ = 0
+    Scalable = 1
+    HasAlpha = 2
+    HasTranslucent = 4
+    PartiallyScalable = 8
+    ColorSpaceRGB = 16
+    ColorSpaceCMYK = 32
+    ColorSpaceGRAY = 64
+    ColorSpaceYCBCR = 128
+    ColorSpaceYCCK = 256
+    HasRealDPI = 4096
+    HasRealPixelSize = 8192
+    ReadOnly = 65536
+    Caching = 131072
+
+
+class ImageLockMode(_Enum):
+    Read = 1
+    Write = 2
+    UserInputBuf = 4
+
+
+class ItemDataPosition(_Enum):
+    AfterHeader = 0
+    AfterPalette = 1
+    AfterBits = 2
+
+
+class RotateFlipType(_Enum):
+    RotateNoneFlipNone = 0
+    Rotate90FlipNone = 1
+    Rotate180FlipNone = 2
+    Rotate270FlipNone = 3
+    RotateNoneFlipX = 4
+    Rotate90FlipX = 5
+    Rotate180FlipX = 6
+    Rotate270FlipX = 7
+    Rotate180FlipXY = 0
+    Rotate270FlipXY = 1
+    RotateNoneFlipXY = 2
+    Rotate90FlipXY = 3
+    Rotate180FlipY = 4
+    Rotate270FlipY = 5
+    RotateNoneFlipY = 6
+    Rotate90FlipY = 7
+
+
+class PaletteFlags(_Enum):
+    HasAlpha = 1
+    GrayScale = 2
+    Halftone = 4
+
+
+class PaletteType(_Enum):
+    Custom = 0
+    Optimal = 1
+    FixedBW = 2
+    FixedHalftone8 = 3
+    FixedHalftone27 = 4
+    FixedHalftone64 = 5
+    FixedHalftone125 = 6
+    FixedHalftone216 = 7
+    FixedHalftone252 = 8
+    FixedHalftone256 = 9
+
+
+class ColorChannelFlags(_Enum):
+    C = 0
+    M = 1
+    Y = 2
+    K = 3
+    Last = 4
+
+
+class ColorAdjustType(_Enum):
+    Default = 0
+    Bitmap = 1
+    Brush = 2
+    Pen = 3
+    Text = 4
+    Count = 5
+    Any = 6
+
+
+class ColorMatrixFlags(_Enum):
+    Default = 0
+    SkipGrays = 1
+    AltGray = 2
+
+
+class HistogramFormat(_Enum):
+    ARGB = 0
+    PARGB = 1
+    RGB = 2
+    Gray = 3
+    B = 4
+    G = 5
+    R = 6
+    A = 7
+
+
+class CurveAdjustments(_Enum):
+    Exposure = 0
+    Density = 1
+    Contrast = 2
+    Highlight = 3
+    Shadow = 4
+    Midtone = 5
+    WhiteSaturation = 6
+    BlackSaturation = 7
+
+
+class CurveChannel(_Enum):
+    All = 0
+    Red = 1
+    Green = 2
+    Blue = 3
+
+
+# noinspection PyPep8Naming
+class DXGI_FORMAT(_Enum):
+    DF_UNKNOWN = _AUTO
+    DF_R32G32B32A32_TYPELESS = _AUTO
+    DF_R32G32B32A32_FLOAT = _AUTO
+    DF_R32G32B32A32_UINT = _AUTO
+    DF_R32G32B32A32_SINT = _AUTO
+    DF_R32G32B32_TYPELESS = _AUTO
+    DF_R32G32B32_FLOAT = _AUTO
+    DF_R32G32B32_UINT = _AUTO
+    DF_R32G32B32_SINT = _AUTO
+    DF_R16G16B16A16_TYPELESS = _AUTO
+    DF_R16G16B16A16_FLOAT = _AUTO
+    DF_R16G16B16A16_UNORM = _AUTO
+    DF_R16G16B16A16_UINT = _AUTO
+    DF_R16G16B16A16_SNORM = _AUTO
+    DF_R16G16B16A16_SINT = _AUTO
+    DF_R32G32_TYPELESS = _AUTO
+    DF_R32G32_FLOAT = _AUTO
+    DF_R32G32_UINT = _AUTO
+    DF_R32G32_SINT = _AUTO
+    DF_R32G8X24_TYPELESS = _AUTO
+    DF_D32_FLOAT_S8X24_UINT = _AUTO
+    DF_R32_FLOAT_X8X24_TYPELESS = _AUTO
+    DF_X32_TYPELESS_G8X24_UINT = _AUTO
+    DF_R10G10B10A2_TYPELESS = _AUTO
+    DF_R10G10B10A2_UNORM = _AUTO
+    DF_R10G10B10A2_UINT = _AUTO
+    DF_R11G11B10_FLOAT = _AUTO
+    DF_R8G8B8A8_TYPELESS = _AUTO
+    DF_R8G8B8A8_UNORM = _AUTO
+    DF_R8G8B8A8_UNORM_SRGB = _AUTO
+    DF_R8G8B8A8_UINT = _AUTO
+    DF_R8G8B8A8_SNORM = _AUTO
+    DF_R8G8B8A8_SINT = _AUTO
+    DF_R16G16_TYPELESS = _AUTO
+    DF_R16G16_FLOAT = _AUTO
+    DF_R16G16_UNORM = _AUTO
+    DF_R16G16_UINT = _AUTO
+    DF_R16G16_SNORM = _AUTO
+    DF_R16G16_SINT = _AUTO
+    DF_R32_TYPELESS = _AUTO
+    DF_D32_FLOAT = _AUTO
+    DF_R32_FLOAT = _AUTO
+    DF_R32_UINT = _AUTO
+    DF_R32_SINT = _AUTO
+    DF_R24G8_TYPELESS = _AUTO
+    DF_D24_UNORM_S8_UINT = _AUTO
+    DF_R24_UNORM_X8_TYPELESS = _AUTO
+    DF_X24_TYPELESS_G8_UINT = _AUTO
+    DF_R8G8_TYPELESS = _AUTO
+    DF_R8G8_UNORM = _AUTO
+    DF_R8G8_UINT = _AUTO
+    DF_R8G8_SNORM = _AUTO
+    DF_R8G8_SINT = _AUTO
+    DF_R16_TYPELESS = _AUTO
+    DF_R16_FLOAT = _AUTO
+    DF_D16_UNORM = _AUTO
+    DF_R16_UNORM = _AUTO
+    DF_R16_UINT = _AUTO
+    DF_R16_SNORM = _AUTO
+    DF_R16_SINT = _AUTO
+    DF_R8_TYPELESS = _AUTO
+    DF_R8_UNORM = _AUTO
+    DF_R8_UINT = _AUTO
+    DF_R8_SNORM = _AUTO
+    DF_R8_SINT = _AUTO
+    DF_A8_UNORM = _AUTO
+    DF_R1_UNORM = _AUTO
+    DF_R9G9B9E5_SHAREDEXP = _AUTO
+    DF_R8G8_B8G8_UNORM = _AUTO
+    DF_G8R8_G8B8_UNORM = _AUTO
+    DF_BC1_TYPELESS = _AUTO
+    DF_BC1_UNORM = _AUTO
+    DF_BC1_UNORM_SRGB = _AUTO
+    DF_BC2_TYPELESS = _AUTO
+    DF_BC2_UNORM = _AUTO
+    DF_BC2_UNORM_SRGB = _AUTO
+    DF_BC3_TYPELESS = _AUTO
+    DF_BC3_UNORM = _AUTO
+    DF_BC3_UNORM_SRGB = _AUTO
+    DF_BC4_TYPELESS = _AUTO
+    DF_BC4_UNORM = _AUTO
+    DF_BC4_SNORM = _AUTO
+    DF_BC5_TYPELESS = _AUTO
+    DF_BC5_UNORM = _AUTO
+    DF_BC5_SNORM = _AUTO
+    DF_B5G6R5_UNORM = _AUTO
+    DF_B5G5R5A1_UNORM = _AUTO
+    DF_B8G8R8A8_UNORM = _AUTO
+    DF_B8G8R8X8_UNORM = _AUTO
+    DF_R10G10B10_XR_BIAS_A2_UNORM = _AUTO
+    DF_B8G8R8A8_TYPELESS = _AUTO
+    DF_B8G8R8A8_UNORM_SRGB = _AUTO
+    DF_B8G8R8X8_TYPELESS = _AUTO
+    DF_B8G8R8X8_UNORM_SRGB = _AUTO
+    DF_BC6H_TYPELESS = _AUTO
+    DF_BC6H_UF16 = _AUTO
+    DF_BC6H_SF16 = _AUTO
+    DF_BC7_TYPELESS = _AUTO
+    DF_BC7_UNORM = _AUTO
+    DF_BC7_UNORM_SRGB = _AUTO
+    DF_AYUV = _AUTO
+    DF_Y410 = _AUTO
+    DF_Y416 = _AUTO
+    DF_NV12 = _AUTO
+    DF_P010 = _AUTO
+    DF_P016 = _AUTO
+    DF_420_OPAQUE = _AUTO
+    DF_YUY2 = _AUTO
+    DF_Y210 = _AUTO
+    DF_Y216 = _AUTO
+    DF_NV11 = _AUTO
+    DF_AI44 = _AUTO
+    DF_IA44 = _AUTO
+    DF_P8 = _AUTO
+    DF_A8P8 = _AUTO
+    DF_B4G4R4A4_UNORM = _AUTO
+    DF_P208 = 130
+    DF_V208 = _AUTO
+    DF_V408 = _AUTO
+    DF_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE = 189
+    DF_SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE = _AUTO
+    DF_FORCE_UINT = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class DXGI_MODE_SCANLINE_ORDER(_Enum):
+    UNSPECIFIED = _AUTO
+    PROGRESSIVE = _AUTO
+    UPPER_FIELD_FIRST = _AUTO
+    LOWER_FIELD_FIRST = _AUTO
+
+
+# noinspection PyPep8Naming
+class DXGI_MODE_SCALING(_Enum):
+    UNSPECIFIED = _AUTO
+    CENTERED = _AUTO
+    STRETCHED = _AUTO
+
+
+# noinspection PyPep8Naming
+class DXGI_MODE_ROTATION(_Enum):
+    UNSPECIFIED = _AUTO
+    IDENTITY = _AUTO
+    ROTATE90 = _AUTO
+    ROTATE180 = _AUTO
+    ROTATE270 = _AUTO
+
+
+# noinspection PyPep8Naming
+class DXGI_COLOR_SPACE_TYPE(_Enum):
+    RGB_FULL_G22_NONE_P709 = _AUTO
+    RGB_FULL_G10_NONE_P709 = _AUTO
+    RGB_STUDIO_G22_NONE_P709 = _AUTO
+    RGB_STUDIO_G22_NONE_P2020 = _AUTO
+    RESERVED = _AUTO
+    YCBCR_FULL_G22_NONE_P709_X601 = _AUTO
+    YCBCR_STUDIO_G22_LEFT_P601 = _AUTO
+    YCBCR_FULL_G22_LEFT_P601 = _AUTO
+    YCBCR_STUDIO_G22_LEFT_P709 = _AUTO
+    YCBCR_FULL_G22_LEFT_P709 = _AUTO
+    YCBCR_STUDIO_G22_LEFT_P2020 = _AUTO
+    YCBCR_FULL_G22_LEFT_P2020 = _AUTO
+    RGB_FULL_G2084_NONE_P2020 = _AUTO
+    YCBCR_STUDIO_G2084_LEFT_P2020 = _AUTO
+    RGB_STUDIO_G2084_NONE_P2020 = _AUTO
+    YCBCR_STUDIO_G22_TOPLEFT_P2020 = _AUTO
+    YCBCR_STUDIO_G2084_TOPLEFT_P2020 = _AUTO
+    RGB_FULL_G22_NONE_P2020 = _AUTO
+    YCBCR_STUDIO_GHLG_TOPLEFT_P2020 = _AUTO
+    YCBCR_FULL_GHLG_TOPLEFT_P2020 = _AUTO
+    RGB_STUDIO_G24_NONE_P709 = _AUTO
+    RGB_STUDIO_G24_NONE_P2020 = _AUTO
+    YCBCR_STUDIO_G24_LEFT_P709 = _AUTO
+    YCBCR_STUDIO_G24_LEFT_P2020 = _AUTO
+    YCBCR_STUDIO_G24_TOPLEFT_P2020 = _AUTO
+    CUSTOM = 0xFFFFFFFF
+
+
+# noinspection PyPep8Naming
+class DWRITE_MEASURING_MODE(_Enum):
+    NATURAL = _AUTO
+    GDI_CLASSIC = _AUTO
+    GDI_NATURAL = _AUTO
+
+
+# noinspection PyPep8Naming
+class DWRITE_GLYPH_IMAGE_FORMATS(_Enum):
+    NONE = 0x00000000
+    TRUETYPE = 0x00000001
+    CFF = 0x00000002
+    COLR = 0x00000004
+    SVG = 0x00000008
+    PNG = 0x00000010
+    JPEG = 0x00000020
+    TIFF = 0x00000040
+    PREMULTIPLIED_B8G8R8A8 = 0x00000080
+
+
+# noinspection PyPep8Naming
+class D2D1_ALPHA_MODE(_Enum):
+    UNKNOWN = _AUTO
+    PREMULTIPLIED = _AUTO
+    STRAIGHT = _AUTO
+    IGNORE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_INTERPOLATION_MODE_DEFINITION(_Enum):
+    NEAREST_NEIGHBOR = _AUTO
+    LINEAR = _AUTO
+    CUBIC = _AUTO
+    MULTI_SAMPLE_LINEAR = _AUTO
+    ANISOTROPIC = _AUTO
+    HIGH_QUALITY_CUBIC = _AUTO
+    FANT = _AUTO
+    MIPMAP_LINEAR = _AUTO
+
+
+# noinspection PyPep8Naming
+class D2D1_GAMMA(_Enum):
+    DG_2_2 = _AUTO
+    DG_1_0 = _AUTO
+    DG_FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_OPACITY_MASK_CONTENT(_Enum):
+    GRAPHICS = _AUTO
+    TEXT_NATURAL = _AUTO
+    TEXT_GDI_COMPATIBLE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_EXTEND_MODE(_Enum):
+    CLAMP = _AUTO
+    WRAP = _AUTO
+    MIRROR = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_ANTIALIAS_MODE(_Enum):
+    PER_PRIMITIVE = _AUTO
+    ALIASED = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_TEXT_ANTIALIAS_MODE(_Enum):
+    DEFAULT = _AUTO
+    CLEARTYPE = _AUTO
+    GRAYSCALE = _AUTO
+    ALIASED = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_BITMAP_INTERPOLATION_MODE(_Enum):
+    NEAREST_NEIGHBOR = D2D1_INTERPOLATION_MODE_DEFINITION.NEAREST_NEIGHBOR
+    LINEAR = D2D1_INTERPOLATION_MODE_DEFINITION.LINEAR
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_DRAW_TEXT_OPTIONS(_Enum):
+    NO_SNAP = 0x00000001
+    CLIP = 0x00000002
+    ENABLE_COLOR_FONT = 0x00000004
+    DISABLE_COLOR_BITMAP_SNAPPIING = 0x00000008
+    NONE = 0x00000000
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_DC_INITIALIZE_MODE(_Enum):
+    COPY = _AUTO
+    CLEAR = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_DEBUG_LEVEL(_Enum):
+    NONE = _AUTO
+    ERROR = _AUTO
+    WARNING = _AUTO
+    INFORMATION = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_FACTORY_TYPE(_Enum):
+    SINGLE_THREADED = _AUTO
+    MULTI_THREADED = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D3D_DRIVER_TYPE(_Enum):
+    UNKNOWN = _AUTO
+    HARDWARE = _AUTO
+    REFERENCE = _AUTO
+    NULL = _AUTO
+    SOFTWARE = _AUTO
+    WARP = _AUTO
+
+
+# noinspection PyPep8Naming
+class D3D_FEATURE_LEVEL(_Enum):
+    DFL_1_0_CORE = 0x1000
+    DFL_9_1 = 0x9100
+    DFL_9_2 = 0x9200
+    DFL_9_3 = 0x9300
+    DEF_10_0 = 0xa000
+    DEF_10_1 = 0xa100
+    DEF_11_0 = 0xb000
+    DEF_11_1 = 0xb100
+    DEF_12_0 = 0xc000
+    DEF_12_1 = 0xc100
+    DEF_12_2 = 0xc200
+
+
+# noinspection PyPep8Naming
+class D2D1_WINDOW_STATE(_Enum):
+    NONE = 0x0000000
+    OCCLUDED = 0x0000001
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_RENDER_TARGET_TYPE(_Enum):
+    DEFAULT = _AUTO
+    SOFTWARE = _AUTO
+    HARDWARE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_FEATURE_LEVEL(_Enum):
+    DEFL_DEFAULT = _AUTO
+    DFL_9 = D3D_FEATURE_LEVEL.DFL_9_1
+    DFL_10 = D3D_FEATURE_LEVEL.DEF_10_0
+    DFL_FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_RENDER_TARGET_USAGE(_Enum):
+    NONE = 0x00000000
+    FORCE_BITMAP_REMOTING = 0x00000001
+    GDI_COMPATIBLE = 0x00000002
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_PRESENT_OPTIONS(_Enum):
+    NONE = 0x00000000
+    RETAIN_CONTENTS = 0x00000001
+    IMMEDIATELY = 0x00000002
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_PROPERTY_TYPE(_Enum):
+    UNKNOWN = _AUTO
+    STRING = _AUTO
+    BOOL = _AUTO
+    UINT32 = _AUTO
+    INT32 = _AUTO
+    FLOAT = _AUTO
+    VECTOR2 = _AUTO
+    VECTOR3 = _AUTO
+    VECTOR4 = _AUTO
+    BLOB = _AUTO
+    IUNKNOWN = _AUTO
+    ENUM = _AUTO
+    ARRAY = _AUTO
+    CLSID = _AUTO
+    MATRIX_3X2 = _AUTO
+    MATRIX_4X3 = _AUTO
+    MATRIX_4X4 = _AUTO
+    MATRIX_5X4 = _AUTO
+    COLOR_CONTEXT = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_PROPERTY(_Enum):
+    CLSID = 0x80000000
+    DISPLAYNAME = 0x80000001
+    AUTHOR = 0x80000002
+    CATEGORY = 0x80000003
+    DESCRIPTION = 0x80000004
+    INPUTS = 0x80000005
+    CACHED = 0x80000006
+    PRECISION = 0x80000007
+    MIN_INPUTS = 0x80000008
+    MAX_INPUTS = 0x80000009
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SUBPROPERTY(_Enum):
+    DISPLAYNAME = 0x80000000
+    ISREADONLY = 0x80000001
+    MIN = 0x80000002
+    MAX = 0x80000003
+    DEFAULT = 0x80000004
+    FIELDS = 0x80000005
+    INDEX = 0x80000006
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_BITMAP_OPTIONS(_Enum):
+    NONE = 0x00000000
+    TARGET = 0x00000001
+    CANNOT_DRAW = 0x00000002
+    CPU_READ = 0x00000004
+    GDI_COMPATIBLE = 0x00000008
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_COMPOSITE_MODE(_Enum):
+    SOURCE_OVER = _AUTO
+    DESTINATION_OVER = _AUTO
+    SOURCE_IN = _AUTO
+    DESTINATION_IN = _AUTO
+    SOURCE_OUT = _AUTO
+    DESTINATION_OUT = _AUTO
+    SOURCE_ATOP = _AUTO
+    DESTINATION_ATOP = _AUTO
+    XOR = _AUTO
+    PLUS = _AUTO
+    SOURCE_COPY = _AUTO
+    BOUNDED_SOURCE_COPY = _AUTO
+    MASK_INVERT = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_BUFFER_PRECISION(_Enum):
+    DBP_UNKNOWN = _AUTO
+    DBP_8BPC_UNORM = _AUTO
+    DBP_8BPC_UNORM_SRGB = _AUTO
+    DBP_16BPC_UNORM = _AUTO
+    DBP_16BPC_FLOAT = _AUTO
+    DBP_32BPC_FLOAT = _AUTO
+    DBP_FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_MAP_OPTIONS(_Enum):
+    NONE = _AUTO
+    READ = _AUTO
+    WRITE = _AUTO
+    DISCARD = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_INTERPOLATION_MODE(_Enum):
+    NEAREST_NEIGHBOR = D2D1_INTERPOLATION_MODE_DEFINITION.NEAREST_NEIGHBOR
+    LINEAR = D2D1_INTERPOLATION_MODE_DEFINITION.LINEAR
+    CUBIC = D2D1_INTERPOLATION_MODE_DEFINITION.CUBIC
+    MULTI_SAMPLE_LINEAR = D2D1_INTERPOLATION_MODE_DEFINITION.MULTI_SAMPLE_LINEAR
+    ANISOTROPIC = D2D1_INTERPOLATION_MODE_DEFINITION.ANISOTROPIC
+    HIGH_QUALITY_CUBIC = D2D1_INTERPOLATION_MODE_DEFINITION.HIGH_QUALITY_CUBIC
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_UNIT_MODE(_Enum):
+    DIPS = _AUTO
+    PIXELS = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_COLOR_SPACE(_Enum):
+    CUSTOM = _AUTO
+    SRGB = _AUTO
+    SCRGB = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_DEVICE_CONTEXT_OPTIONS(_Enum):
+    NONE = _AUTO
+    ENNABLE_MULTITHREADED_OPTIMIZATIONS = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_STROKE_TRANSFORM_TYPE(_Enum):
+    NORMAL = _AUTO
+    TYPE_FIXED = _AUTO
+    HAIRLINE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_PRIMITIVE_BLEND(_Enum):
+    SOURCE_OVER = _AUTO
+    COPY = _AUTO
+    MIN = _AUTO
+    ADD = _AUTO
+    MAX = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_THREADING_MODE(_Enum):
+    SINGLE_THREADED = D2D1_FACTORY_TYPE.SINGLE_THREADED
+    MULTI_THREADED = D2D1_FACTORY_TYPE.MULTI_THREADED
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_COLOR_INTERPOLATION_MODE(_Enum):
+    STRAIGHT = _AUTO
+    PREMULTIPLIED = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_ARC_SIZE(_Enum):
+    SMALL = _AUTO
+    LARGE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_CAP_STYLE(_Enum):
+    FLAT = _AUTO
+    SQUARE = _AUTO
+    ROUND = _AUTO
+    TRIANGLE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_DASH_STYLE(_Enum):
+    SOLID = _AUTO
+    DASH = _AUTO
+    DOT = _AUTO
+    DASH_DOT = _AUTO
+    DASH_DOT_DOT = _AUTO
+    CUSTOM = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_LINE_JOIN(_Enum):
+    MITER = _AUTO
+    BEVEL = _AUTO
+    ROUND = _AUTO
+    MITER_OR_BEVEL = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_COMBINE_MODE(_Enum):
+    UNION = _AUTO
+    INTERSECT = _AUTO
+    XOR = _AUTO
+    EXCLUDE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_GEOMETRY_RELATION(_Enum):
+    UNKNOWN = _AUTO
+    DISJOINT = _AUTO
+    IS_CONTAINED = _AUTO
+    CONTAINS = _AUTO
+    OVERLAP = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_GEOMETRY_SIMPLIFICATION_OPTION(_Enum):
+    CUBICS_AND_LINES = _AUTO
+    LINES = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_FIGURE_BEGIN(_Enum):
+    FILLED = _AUTO
+    HOLLOW = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_FIGURE_END(_Enum):
+    OPEN = _AUTO
+    CLOSED = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D3D11_CREATE_DEVICE_FLAG(_Enum):
+    SINGLETHREADED = 0x1
+    DEBUG = 0x2
+    SWITCH_TO_REF = 0x4
+    PREVENT_INTERNAL_THREADING_OPTIMIZATIONS = 0x8
+    BGRA_SUPPORT = 0x20
+    DEBUGGABLE = 0x40
+    PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY = 0x80
+    DISABLE_GPU_TIMEOUT = 0x100
+    VIDEO_SUPPORT = 0x800
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_PAINT_TYPE(_Enum):
+    NONE = _AUTO
+    COLOR = _AUTO
+    CURRENT_COLOR = _AUTO
+    URI = _AUTO
+    URI_NONE = _AUTO
+    URI_COLOR = _AUTO
+    URI_CURRENT_COLOR = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_LENGTH_UNITS(_Enum):
+    NUMBER = _AUTO
+    PERCENTAGE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_DISPLAY(_Enum):
+    INLINE = _AUTO
+    NONE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_VISIBILITY(_Enum):
+    VISIBLE = _AUTO
+    HIDDEN = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_OVERFLOW(_Enum):
+    VISIBLE = _AUTO
+    HIDDEN = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_LINE_CAP(_Enum):
+    BUTT = D2D1_CAP_STYLE.FLAT
+    SQUARE = D2D1_CAP_STYLE.SQUARE
+    ROUND = D2D1_CAP_STYLE.ROUND
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_LINE_JOIN(_Enum):
+    BEVEL = D2D1_LINE_JOIN.BEVEL
+    MITER = D2D1_LINE_JOIN.MITER_OR_BEVEL
+    ROUND = D2D1_LINE_JOIN.ROUND
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_ASPECT_ALIGN(_Enum):
+    NONE = _AUTO
+    X_MIN_Y_MIN = _AUTO
+    X_MID_Y_MIN = _AUTO
+    X_MAX_Y_MIN = _AUTO
+    X_MIN_Y_MID = _AUTO
+    X_MID_Y_MID = _AUTO
+    X_MAX_Y_MID = _AUTO
+    X_MIN_Y_MAX = _AUTO
+    X_MID_Y_MAX = _AUTO
+    X_MAX_Y_MAX = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_ASPECT_SCALING(_Enum):
+    MEET = _AUTO
+    SLICE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_PATH_COMMAND(_Enum):
+    COLSE_PATH = _AUTO
+    MOVE_ABSOLUTE = _AUTO
+    MOVE_RELATIVE = _AUTO
+    LINE_ABSOLUTE = _AUTO
+    LINE_RELATIVE = _AUTO
+    CUBIC_ABSOLUTE = _AUTO
+    CUBIC_RELATIVE = _AUTO
+    QUADRATIC_ABSOLUTE = _AUTO
+    QUADRATIC_RELATIVE = _AUTO
+    ARC_ABSOLUTE = _AUTO
+    ARC_RELATIVE = _AUTO
+    HORIZONTAL_ABSOLUTE = _AUTO
+    HORIZONTAL_RELATIVE = _AUTO
+    VERTICAL_ABSOLUTE = _AUTO
+    VERTICAL_RELATIVE = _AUTO
+    CUBIC_SMOOTH_ABSOLUTE = _AUTO
+    CUBIC_SMOOTH_RELATIVE = _AUTO
+    QUADRATIC_SMOOTH_ABSOLUTE = _AUTO
+    QUADRATIC_SMOOTH_RELATIVE = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_UNIT_TYPE(_Enum):
+    USER_SPACE_ON_USE = _AUTO
+    BOUNDING_BOX = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_ATTRIBUTE_STRING_TYPE(_Enum):
+    SVG = _AUTO
+    ID = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class D2D1_SVG_ATTRIBUTE_POD_TYPE(_Enum):
+    FLOAT = _AUTO
+    COLOR = _AUTO
+    FILL_MODE = _AUTO
+    DISPLAY = _AUTO
+    OVERFLOW = _AUTO
+    LINE_CAP = _AUTO
+    LINE_JOIN = _AUTO
+    VISIBILITY = _AUTO
+    MATRIX = _AUTO
+    UNIT_TYPE = _AUTO
+    EXTEND_MODE = _AUTO
+    PRESERVE_ASPECT_RATIO = _AUTO
+    VIEWBOX = _AUTO
+    LENGTH = _AUTO
+    FORCE_DWORD = 0xffffffff
+
+
 GpStatus = Status
+GpFillMode = FillMode
+GpWrapMode = WrapMode
+GpUnit = Unit
+GpCoordinateSpace = CoordinateSpace
+GpHatchStyle = HatchStyle
+GpDashStyle = DashStyle
+GpLineCap = LineCap
+GpDashCap = DashCap
+GpPenAlignment = PenAlignment
+GpLineJoin = LineJoin
+GpPenType = PenType
+GpBrushType = BrushType
+GpMatrixOrder = MatrixOrder
+GpFlushIntention = FlushIntention
 
 
 class Windows:

@@ -345,14 +345,6 @@ class MSG:
 
 
 @_struct
-class PropertyItem:
-    id: _type.PROPID = None
-    length: _type.ULONG = None
-    type: _type.WORD = None
-    value: _Pointer[_type.VOID] = None
-
-
-@_struct
 class FILETIME:
     dwLowDateTime: _type.DWORD = None
     dwHighDateTime: _type.DWORD = None
@@ -653,12 +645,6 @@ class BLENDFUNCTION:
 
 
 @_struct
-class ColorMap:
-    oldColor: _type.Color = None
-    newColor: _type.Color = None
-
-
-@_struct
 class ColorMatrix:
     m: _type.REAL * 5 * 5 = None
 
@@ -672,38 +658,6 @@ class EventRegistrationToken:
 class Rational:
     Numerator: _type.UINT32 = None
     Denominator: _type.UINT32 = None
-
-
-@_struct
-class EncoderParameter:
-    Guid: GUID = None
-    NumberOfValues: _type.ULONG = None
-    Type: _type.ULONG = None
-    Value: _type.PVOID = None
-
-
-@_struct
-class EncoderParameters:
-    Count: _type.UINT = None
-    # noinspection PyTypeChecker
-    Parameter: EncoderParameter * 1 = None
-
-
-@_struct
-class ImageCodecInfo:
-    Clsid: CLSID = None
-    FormatID: GUID = None
-    CodecName: _type.LPWSTR = None
-    DllName: _type.LPWSTR = None
-    FormatDescription: _type.LPWSTR = None
-    FilenameExtension: _type.LPWSTR = None
-    MimeType: _type.LPWSTR = None
-    Flags: _type.DWORD = None
-    Version: _type.DWORD = None
-    SigCount: _type.DWORD = None
-    SigSize: _type.DWORD = None
-    SigPattern: _Pointer[_type.BYTE] = None
-    SigMask: _Pointer[_type.BYTE] = None
 
 
 @_struct
@@ -2130,6 +2084,578 @@ class DISPLAYCONFIG_TARGET_BASE_TYPE:
     baseOutputTechnology: _enum.DISPLAYCONFIG_VIDEO_OUTPUT_TECHNOLOGY = None
 
 
+# noinspection PyPep8Naming
+@_struct
+class D2D1_PIXEL_FORMAT:
+    format: _enum.DXGI_FORMAT = None
+    alphaMode: _enum.D2D1_ALPHA_MODE = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_POINT_2U:
+    x: _type.UINT32 = None
+    y: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_POINT_2F:
+    x: _type.FLOAT = None
+    y: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_VECTOR_2F:
+    x: _type.FLOAT = None
+    y: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_VECTOR_3F:
+    x: _type.FLOAT = None
+    y: _type.FLOAT = None
+    z: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_VECTOR_4F:
+    x: _type.FLOAT = None
+    y: _type.FLOAT = None
+    z: _type.FLOAT = None
+    w: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_RECT_F:
+    left: _type.FLOAT = None
+    top: _type.FLOAT = None
+    right: _type.FLOAT = None
+    bottom: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_RECT_U:
+    left: _type.UINT32 = None
+    top: _type.UINT32 = None
+    right: _type.UINT32 = None
+    bottom: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_SIZE_F:
+    width: _type.FLOAT = None
+    height: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_SIZE_U:
+    width: _type.UINT32 = None
+    height: _type.UINT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_3X2_F_U_S:
+    m11: _type.FLOAT = None
+    m12: _type.FLOAT = None
+    m21: _type.FLOAT = None
+    m22: _type.FLOAT = None
+    dx: _type.FLOAT = None
+    dy: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_3X2_F_U_S2:
+    _11: _type.FLOAT = None
+    _12: _type.FLOAT = None
+    _21: _type.FLOAT = None
+    _22: _type.FLOAT = None
+    _31: _type.FLOAT = None
+    _32: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_3X2_F:
+    U: _union.D2D_MATRIX_3X2_F_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_4X3_F_U_S:
+    _11: _type.FLOAT = None
+    _12: _type.FLOAT = None
+    _13: _type.FLOAT = None
+    _21: _type.FLOAT = None
+    _22: _type.FLOAT = None
+    _23: _type.FLOAT = None
+    _31: _type.FLOAT = None
+    _32: _type.FLOAT = None
+    _33: _type.FLOAT = None
+    _41: _type.FLOAT = None
+    _42: _type.FLOAT = None
+    _43: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_4X3_F:
+    U: _union.D2D_MATRIX_4X3_F_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_4X4_F_U_S:
+    _11: _type.FLOAT = None
+    _12: _type.FLOAT = None
+    _13: _type.FLOAT = None
+    _14: _type.FLOAT = None
+    _21: _type.FLOAT = None
+    _22: _type.FLOAT = None
+    _23: _type.FLOAT = None
+    _24: _type.FLOAT = None
+    _31: _type.FLOAT = None
+    _32: _type.FLOAT = None
+    _33: _type.FLOAT = None
+    _34: _type.FLOAT = None
+    _41: _type.FLOAT = None
+    _42: _type.FLOAT = None
+    _43: _type.FLOAT = None
+    _44: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_4X4_F:
+    U: _union.D2D_MATRIX_4X4_F_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_5X4_F_U_S:
+    _11: _type.FLOAT = None
+    _12: _type.FLOAT = None
+    _13: _type.FLOAT = None
+    _14: _type.FLOAT = None
+    _21: _type.FLOAT = None
+    _22: _type.FLOAT = None
+    _23: _type.FLOAT = None
+    _24: _type.FLOAT = None
+    _31: _type.FLOAT = None
+    _32: _type.FLOAT = None
+    _33: _type.FLOAT = None
+    _34: _type.FLOAT = None
+    _41: _type.FLOAT = None
+    _42: _type.FLOAT = None
+    _43: _type.FLOAT = None
+    _44: _type.FLOAT = None
+    _51: _type.FLOAT = None
+    _52: _type.FLOAT = None
+    _53: _type.FLOAT = None
+    _54: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_RATIONAL:
+    Numerator: _type.UINT = None
+    Denominator: _type.UINT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_SAMPLE_DESC:
+    Count: _type.UINT = None
+    Quality: _type.UINT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D_MATRIX_5X4_F:
+    U: _union.D2D_MATRIX_5X4_F_U = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_RGB:
+    Red: _type.c_float = None
+    Green: _type.c_float = None
+    Blue: _type.c_float = None
+
+
+@_struct
+class D3DCOLORVALUE:
+    r: _type.c_float = None
+    g: _type.c_float = None
+    b: _type.c_float = None
+    a: _type.c_float = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_GAMMA_CONTROL:
+    Scale: DXGI_RGB = None
+    Offset: DXGI_RGB = None
+    # noinspection PyTypeChecker
+    GammaCurve: DXGI_RGB * 1025 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_MODE_DESC:
+    Width: _type.UINT = None
+    Height: _type.UINT = None
+    RefreshRate: DXGI_RATIONAL = None
+    Format: _enum.DXGI_FORMAT = None
+    ScanlineOrdering: _enum.DXGI_MODE_SCANLINE_ORDER = None
+    Scaling: _enum.DXGI_MODE_SCALING = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_JPEG_DC_HUFFMAN_TABLE:
+    CodeCounts: _type.BYTE * 12 = None
+    CodeValues: _type.BYTE * 12 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_JPEG_AC_HUFFMAN_TABLE:
+    CodeCounts: _type.BYTE * 16 = None
+    CodeValues: _type.BYTE * 162 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_JPEG_QUANTIZATION_TABLE:
+    Elements: _type.BYTE * 64 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DXGI_GAMMA_CONTROL_CAPABILITIES:
+    ScaleAndOffsetSupported: _type.BOOL = None
+    MaxConvertedValue: _type.c_float = None
+    MinConvertedValue: _type.c_float = None
+    NumGammaControlPoints: _type.UINT = None
+    ControlPointPositions: _type.c_float * 1025 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_BITMAP_PROPERTIES:
+    pixelFormat: D2D1_PIXEL_FORMAT = None
+    dpiX: _type.FLOAT = None
+    dpiY: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_GRADIENT_STOP:
+    position: _type.FLOAT = None
+    color: D2D1_COLOR_F = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_BRUSH_PROPERTIES:
+    opacity: _type.FLOAT = None
+    transform: D2D1_MATRIX_3X2_F = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_BITMAP_BRUSH_PROPERTIES:
+    extendModeX: _enum.D2D1_EXTEND_MODE = None
+    extendModeY: _enum.D2D1_EXTEND_MODE = None
+    interpolationMode: _enum.D2D1_BITMAP_INTERPOLATION_MODE = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES:
+    startPoint: D2D1_POINT_2F = None
+    endPoint: D2D1_POINT_2F = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES:
+    center: D2D1_POINT_2F = None
+    gradientOriginOffset: D2D1_POINT_2F = None
+    radiusX: _type.FLOAT = None
+    radiusY: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_FACTORY_OPTIONS:
+    debugLevel: _enum.D2D1_DEBUG_LEVEL = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_RENDER_TARGET_PROPERTIES:
+    type: _enum.D2D1_RENDER_TARGET_TYPE = None
+    pixelFormat: D2D1_PIXEL_FORMAT = None
+    dpiX: _type.FLOAT = None
+    dpiY: _type.FLOAT = None
+    usage: _enum.D2D1_RENDER_TARGET_USAGE = None
+    minLevel: _enum.D2D1_FEATURE_LEVEL = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_HWND_RENDER_TARGET_PROPERTIES:
+    hwnd: _type.HWND = None
+    pixelSize: D2D1_SIZE_U = None
+    presentOptions: _enum.D2D1_PRESENT_OPTIONS = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_CREATION_PROPERTIES:
+    threadingMode: _enum.D2D1_THREADING_MODE = None
+    debugLevel: _enum.D2D1_DEBUG_LEVEL = None
+    options: _enum.D2D1_DEVICE_CONTEXT_OPTIONS = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class D2D1_SVG_VIEWBOX:
+    x: _type.FLOAT = None
+    y: _type.FLOAT = None
+    width: _type.FLOAT = None
+    height: _type.FLOAT = None
+
+
+@_struct
+class PointF:
+    X: _type.REAL = None
+    Y: _type.REAL = None
+
+
+@_struct
+class Point:
+    X: _type.INT = None
+    Y: _type.INT = None
+
+
+@_struct
+class RectF:
+    X: _type.REAL = None
+    Y: _type.REAL = None
+    Width: _type.REAL = None
+    Height: _type.REAL = None
+
+
+@_struct
+class Rect:
+    X: _type.INT = None
+    Y: _type.INT = None
+    Width: _type.INT = None
+    Height: _type.INT = None
+
+
+@_struct
+class SizeF:
+    Width: _type.REAL = None
+    Height: _type.REAL = None
+
+
+@_struct
+class Size:
+    Width: _type.INT = None
+    Height: _type.INT = None
+
+
+@_struct
+class PathData:
+    Count: _type.INT = None
+    Points: _Pointer[PointF] = None
+    Types: _Pointer[_type.BYTE] = None
+
+
+@_struct
+class CharacterRange:
+    First: _type.INT = None
+    Length: _type.INT = None
+
+
+@_struct
+class Color:
+    Value: _type.ARGB = None
+
+
+@_struct
+class ColorMap:
+    oldColor: Color = None
+    newColor: Color = None
+
+
+@_struct
+class ColorPalette:
+    Flags: _type.UINT = None
+    Count: _type.UINT = None
+    Entries: _type.ARGB * 1 = None
+
+
+@_struct
+class BitmapData:
+    Width: _type.UINT = None
+    Height: _type.UINT = None
+    Stride: _type.INT = None
+    PixelFormat: _type.INT = None
+    Scan0: _type.PVOID = None
+    Reserved: _type.UINT_PTR = None
+
+
+@_struct
+class EncoderParameter:
+    Guid: GUID = None
+    NumberOfValues: _type.ULONG = None
+    Type: _type.ULONG = None
+    Value: _type.PVOID = None
+
+
+@_struct
+class EncoderParameters:
+    Count: _type.UINT = None
+    # noinspection PyTypeChecker
+    Parameter: EncoderParameter * 1 = None
+
+
+@_struct
+class ImageCodecInfo:
+    Clsid: CLSID = None
+    FormatID: GUID = None
+    CodecName: _type.LPWSTR = None
+    DllName: _type.LPWSTR = None
+    FormatDescription: _type.LPWSTR = None
+    FilenameExtension: _type.LPWSTR = None
+    MimeType: _type.LPWSTR = None
+    Flags: _type.DWORD = None
+    Version: _type.DWORD = None
+    SigCount: _type.DWORD = None
+    SigSize: _type.DWORD = None
+    SigPattern: _Pointer[_type.BYTE] = None
+    SigMask: _Pointer[_type.BYTE] = None
+
+
+@_struct
+class PropertyItem:
+    id: _type.PROPID = None
+    length: _type.ULONG = None
+    type: _type.WORD = None
+    value: _type.PVOID = None
+
+
+@_struct
+class ImageItemData:
+    Size: _type.UINT = None
+    Position: _type.UINT = None
+    Desc: _type.PVOID = None
+    DescSize: _type.UINT = None
+    Data: _Pointer[_type.UINT] = None
+    DataSize: _type.UINT = None
+    Cookie: _type.UINT = None
+
+
+@_struct
+class METAHEADER:
+    mtType: _type.WORD = None
+    mtHeaderSize: _type.WORD = None
+    mtVersion: _type.WORD = None
+    mtSize: _type.DWORD = None
+    mtNoObjects: _type.WORD = None
+    mtMaxRecord: _type.DWORD = None
+    mtNoParameters: _type.WORD = None
+
+
+@_struct
+class ENHMETAHEADER3:
+    iType: _type.DWORD = None
+    nSize: _type.DWORD = None
+    rclBounds: RECTL = None
+    rclFrame: RECTL = None
+    dSignature: _type.DWORD = None
+    nVersion: _type.DWORD = None
+    nBytes: _type.DWORD = None
+    nRecords: _type.DWORD = None
+    nHandles: _type.WORD = None
+    sReserved: _type.WORD = None
+    nDescription: _type.DWORD = None
+    offDescription: _type.DWORD = None
+    nPalEntries: _type.DWORD = None
+    szlDevice: SIZEL = None
+    szlMillimeters: SIZEL = None
+
+
+@_struct
+class PWMFRect16:
+    Left: _type.INT16 = None
+    Top: _type.INT16 = None
+    Right: _type.INT16 = None
+    Bottom: _type.INT16 = None
+
+
+@_struct
+class WmfPlaceableFileHeader:
+    Key: _type.UINT32 = None
+    Hmf: _type.UINT32 = None
+    BoundingBox: PWMFRect16 = None
+    Inch: _type.INT16 = None
+    Reserved: _type.UINT32 = None
+    Checksum: _type.INT16 = None
+
+
+@_struct
+class MetafileHeader:
+    Type: _enum.MetafileType = None
+    Size: _type.UINT = None
+    Version: _type.UINT = None
+    EmfPlusFlags: _type.UINT = None
+    DpiX: _type.REAL = None
+    DpiY: _type.REAL = None
+    X: _type.INT = None
+    Y: _type.INT = None
+    Width: _type.INT = None
+    Height: _type.INT = None
+    U: _union.MetafileHeader_U = None
+    EmfPlusHeaderSize: _type.INT = None
+    LogicalDpiX: _type.INT = None
+    LogicalDpiY: _type.INT = None
+
+
+GpPointF = PointF
+GpPoint = Point
+GpRectF = RectF
+GpRect = Rect
+GpSizeF = SizeF
+GpSize = Size
+GpPathData = PathData
+D2D_POINT_2L = POINT
+D2D_RECT_L = RECT
+D2D1_POINT_2F = D2D_POINT_2F
+D2D1_POINT_2U = D2D_POINT_2U
+D2D1_POINT_2L = D2D_POINT_2L
+D2D1_RECT_F = D2D_RECT_F
+D2D1_RECT_U = D2D_RECT_U
+D2D1_RECT_L = D2D_RECT_L
+D2D1_SIZE_F = D2D_SIZE_F
+D2D1_SIZE_U = D2D_SIZE_U
+D2D1_MATRIX_3X2_F = D2D_MATRIX_3X2_F
+D2D_COLOR_F = D3DCOLORVALUE
+D2D1_COLOR_F = D2D_COLOR_F
 POINTL = POINT
 RECTL = RECT
 SIZEL = SIZE
