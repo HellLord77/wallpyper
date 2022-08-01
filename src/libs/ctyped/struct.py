@@ -2438,6 +2438,53 @@ class D2D1_SVG_VIEWBOX:
     height: _type.FLOAT = None
 
 
+# noinspection PyPep8Naming
+@_struct
+class DWRITE_FONT_METRICS:
+    designUnitsPerEm: _type.UINT16 = None
+    ascent: _type.UINT16 = None
+    descent: _type.UINT16 = None
+    lineGap: _type.INT16 = None
+    capHeight: _type.UINT16 = None
+    xHeight: _type.UINT16 = None
+    underlinePosition: _type.INT16 = None
+    underlineThickness: _type.UINT16 = None
+    strikethroughPosition: _type.INT16 = None
+    strikethroughThickness: _type.UINT16 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DWRITE_GLYPH_METRICS:
+    leftSideBearing: _type.INT32 = None
+    advanceWidth: _type.UINT32 = None
+    rightSideBearing: _type.INT32 = None
+    topSideBearing: _type.INT32 = None
+    advanceHeight: _type.UINT32 = None
+    bottomSideBearing: _type.INT32 = None
+    verticalOriginY: _type.INT32 = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DWRITE_GLYPH_OFFSET:
+    advanceOffset: _type.FLOAT = None
+    ascenderOffset: _type.FLOAT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class DWRITE_GLYPH_RUN:
+    fontFace: _type.IDWriteFontFace = None
+    fontEmSize: _type.FLOAT = None
+    glyphCount: _type.UINT32 = None
+    glyphIndices: _Pointer[_type.UINT16] = None
+    glyphAdvances: _Pointer[_type.FLOAT] = None
+    glyphOffsets: _Pointer[DWRITE_GLYPH_OFFSET] = None
+    isSideways: _type.BOOL = None
+    bidiLevel: _type.UINT32 = None
+
+
 @_struct
 class PointF:
     X: _type.REAL = None

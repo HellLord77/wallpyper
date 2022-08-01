@@ -4,6 +4,7 @@ __version__ = '0.2.18'
 
 import builtins as _builtins
 import contextlib as _contextlib
+import ctypes
 import functools as _functools
 import threading as _threading
 import types as _types
@@ -29,7 +30,7 @@ def from_address(address: int, type: _builtins.type[CT]) -> CT:
 def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
     ptr = lib.msvcrt.malloc(size)
     try:
-        yield ptr if ptr else None
+        yield ptr or None
     finally:
         lib.msvcrt.free(ptr)
 
@@ -117,13 +118,16 @@ def create_handler(handler: _Callable[[...], type.HRESULT], type: _builtins.type
 
 
 # noinspection PyProtectedMember
-def get_loaded_path(library: lib._WinDLL) -> str:
+def get_lib_path(library: lib._OleDLL | lib._PyDLL | lib._WinDLL) -> str:
+    lib._load(library)
+    buff = type.LPWSTR('\0' * const.MAX_PATH)
     # noinspection PyUnresolvedReferences
-    if dll := library._lib:
-        buff = type.LPWSTR('\0' * const.MAX_PATH)
-        lib.Kernel32.GetModuleFileNameW(dll._handle, buff, const.MAX_PATH)
-        return buff.value
-    return ''
+    lib.Kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
+    return buff.value
+
+
+def addressof_func(func) -> int:
+    return ctypes.cast(func, ctypes.c_void_p).value
 
 
 def get_guid(string: str) -> struct.GUID:

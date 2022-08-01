@@ -3,7 +3,9 @@ from __future__ import annotations as _
 import atexit
 import collections
 import contextlib
+import functools
 import itertools
+import os.path
 import threading
 from typing import Any, Callable, Iterable, Mapping, Optional, Union, Sequence, Generator
 
@@ -22,6 +24,8 @@ _WM_SYS_TRAY = ctyped.const.WM_APP
 _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 
 _TID_MENU_ITEM_TOOLTIP = 0
+_MENU_ITEM_IMAGE_SIZE = 16
+_MENU_ITEM_AUTOMATIC = 500
 
 _MIM_FIELD = {
     ctyped.const.MIM_BACKGROUND: 'hbrBack',
@@ -38,11 +42,26 @@ _MIIM_FIELDS = {
     ctyped.const.MIIM_STRING: ('dwTypeData', 'cch'),
     ctyped.const.MIIM_BITMAP: ('hbmpItem',),
     ctyped.const.MIIM_FTYPE: ('fType',)}
+_BITMAP_CACHE = {}
 
-_MENU_ITEM_IMAGE_SIZE = 16
-_MENU_ITEM_AUTOMATIC = 500
+MAX_BITMAP_CACHE_SIZE = 64
 MENU_ITEM_TOOLTIP_INITIAL = _MENU_ITEM_AUTOMATIC * 1
 MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_AUTOMATIC // 5
+
+
+def _bitmap_from_file(path: str) -> _gdiplus.Bitmap:
+    try:
+        bitmap = _BITMAP_CACHE[path]
+    except KeyError:
+        bitmap = _gdiplus.Bitmap.from_file(path)
+    if bitmap:
+        _BITMAP_CACHE[path] = bitmap
+    if len(_BITMAP_CACHE) > MAX_BITMAP_CACHE_SIZE:
+        try:
+            del _BITMAP_CACHE[next(iter(_BITMAP_CACHE))]
+        except StopIteration:
+            pass
+    return bitmap
 
 
 class GuiEvent:
@@ -377,7 +396,7 @@ class _Control(_EventHandler):
 
 
 def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
-    bitmap = _gdiplus.Bitmap.from_file(path)
+    bitmap = _bitmap_from_file(path)
     delays: ctyped.Pointer[ctyped.type.c_long] = bitmap.get_property(ctyped.const.PropertyTagFrameDelay)
     for index in bitmap.iter_frames():
         yield delays[index] * 10, bitmap.get_hicon()
@@ -428,7 +447,7 @@ class SystemTray(_Control):
 
     def set_icon(self, res_or_path: Union[int, str]) -> bool:
         self.stop_animation()
-        self._hicon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon() if isinstance(
+        self._hicon = _bitmap_from_file(res_or_path).get_hicon() if isinstance(
             res_or_path, str) else ctyped.handle.HICON.from_idi(res_or_path)
         self._set_hicon(self._hicon)
         return bool(self._hicon)
@@ -487,7 +506,7 @@ class SystemTray(_Control):
         self._data.szInfo = text
         self._data.szInfoTitle = title
         if isinstance(res_or_path, str):
-            self._balloon_hicon = self._data.hBalloonIcon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon()
+            self._balloon_hicon = self._data.hBalloonIcon = _bitmap_from_file(res_or_path).get_hicon()
             res_or_path = ctyped.const.NIIF_USER
         self._data.dwInfoFlags = res_or_path | ctyped.const.NIIF_RESPECT_QUIET_TIME
         if silent:
@@ -729,12 +748,20 @@ class MenuItem(_Control):
     def get_type(self) -> int:
         return self._type
 
-    def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
-        if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
-            res_or_path = _gdiplus.Bitmap.from_file(res_or_path)
+    @staticmethod
+    @functools.lru_cache
+    def _load_image(path: str, resize: bool) -> _gdiplus.Bitmap:
+        if os.path.splitext(path)[1].lower() == '.svg':
+            res_or_path = _gdiplus.bitmap_from_svg(path, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
+        else:
+            res_or_path = _gdiplus.Bitmap.from_file(path)
             if resize and not (res_or_path.get_width() == res_or_path.get_height() == _MENU_ITEM_IMAGE_SIZE):
                 res_or_path = res_or_path.get_resized(_MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
-            res_or_path = res_or_path.get_hbitmap()
+        return res_or_path
+
+    def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
+        if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
+            res_or_path = self._load_image(res_or_path, resize).get_hbitmap()
             self._hbmps[index] = res_or_path
             return res_or_path.value
         return res_or_path
@@ -850,8 +877,8 @@ class MenuItem(_Control):
     def _set_id(self, id: int) -> bool:
         return self._set_datas(ctyped.const.MIIM_ID, (id,))
 
-    def _set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None, check: Optional[bool] = None,
-                    default: Optional[bool] = None) -> bool:
+    def _set_states(self, enable: Optional[bool] = None, highlight: Optional[bool] = None,
+                    check: Optional[bool] = None, default: Optional[bool] = None) -> bool:
         states = self.get_states()
         if states is not None:
             flags = ctyped.const.MFS_ENABLED if (states[0] if enable is None else enable) else ctyped.const.MFS_DISABLED
@@ -915,8 +942,8 @@ class MenuItem(_Control):
     def set_tooltip(self, text: str, title: str = '', icon_res_or_path: Union[int, str] = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
         self._tooltip_title = title
-        self._tooltip_icon = _gdiplus.Bitmap.from_file(
-            icon_res_or_path).get_hicon() if isinstance(icon_res_or_path, str) else icon_res_or_path
+        self._tooltip_icon = (_bitmap_from_file(
+            icon_res_or_path).get_hicon() or MenuItemTooltipIcon.NONE) if isinstance(icon_res_or_path, str) else icon_res_or_path
 
     def set_uid(self, uid: str):
         self._uid = uid

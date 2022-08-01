@@ -1,6 +1,5 @@
 import collections
 import concurrent.futures
-import contextlib
 import functools
 import ntpath
 import operator
@@ -11,7 +10,7 @@ import threading
 import time
 import typing
 import winreg
-from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional, Union
+from typing import Any, Callable, Iterable, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
 from . import _utils, _gdiplus
@@ -432,9 +431,9 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
 def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
                    src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> ctyped.handle.HDC:
     bitmap = _gdiplus.Bitmap.from_dimension(width, height)
-    graphics = bitmap.get_graphics()
-    graphics.fill_rect_with_color(color, 0, 0, width, height)
-    graphics.set_scale(width / src_w, height / src_h)
+    graphics = _gdiplus.Graphics.from_image(bitmap)
+    graphics.fill_rectangle(_gdiplus.SolidBrush.from_color(color), 0, 0, width, height)
+    graphics.scale_transform(width / src_w, height / src_h)
     src.set_resolution(graphics.get_dpi_x(), graphics.get_dpi_y())
     graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
     bitmap.save(temp_path)
@@ -557,7 +556,7 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL, r:
                 width_ = monitor_x_y_w_h[2]
                 height_ = monitor_x_y_w_h[3]
                 bitmap = _gdiplus.Bitmap.from_dimension(width_, height_)
-                graphics = bitmap.get_graphics()
+                graphics = _gdiplus.Graphics.from_image(bitmap)
                 image.set_resolution(graphics.get_dpi_x(), graphics.get_dpi_y())
                 for x in range(0, width_, width):
                     for y in range(0, height_, height):
@@ -616,70 +615,16 @@ def set_slideshow(*paths: str) -> bool:
     return False
 
 
-@contextlib.contextmanager
-def _get_input_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
-        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
-    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
-        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.Read, operation.get_ref())) and (stream := operation.get()):
-            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
-                if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                    yield input_stream
-                    return
-    yield
-
-
-@contextlib.contextmanager
-def _get_output_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
-        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IOutputStream]]:
-    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
-        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite, operation.get_ref())) and (stream := operation.get()):
-            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IOutputStream, False) as output_stream:
-                if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
-                    yield output_stream
-                    return
-    yield
-
-
-@contextlib.contextmanager
-def _get_wallpaper_lock_input_stream() -> \
-        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
-    with ctyped.get_winrt(ctyped.interface.Windows.System.UserProfile.ILockScreenStatics) as lock_statics:
-        if lock_statics:
-            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream, False) as stream:
-                if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
-                    with ctyped.init_com(
-                            ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
-                        if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                            yield input_stream
-                            return
-    yield
-
-
-def _copy_stream(input_stream: ctyped.interface.Windows.Storage.Streams.IInputStream,
-                 output_stream: ctyped.interface.Windows.Storage.Streams.IOutputStream,
-                 progress_callback: Optional[Callable[[int, ...], Any]],
-                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
-    with ctyped.get_winrt(ctyped.interface.Windows.Storage.Streams.IRandomAccessStreamStatics) as stream_statics:
-        if stream_statics:
-            with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperationWithProgress[ctyped.type.UINT64, ctyped.type.UINT64]) as operation:
-                if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(
-                        input_stream, output_stream, operation.get_ref())):
-                    if progress_callback is not None:
-                        operation.put_progress(progress_callback, args, kwargs)
-                    return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait_for()
-    return False
-
-
 def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] = None,
               args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    with _get_wallpaper_lock_input_stream() as input_stream:
+    with _utils.get_wallpaper_lock_input_stream() as input_stream:
         if input_stream:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             open(path, 'w').close()
             with _utils.open_file(path) as file:
                 if file:
-                    with _get_output_stream(file) as output_stream:
-                        return output_stream and _copy_stream(
+                    with _utils.get_output_stream(file) as output_stream:
+                        return output_stream and _utils.copy_stream(
                             input_stream, output_stream, progress_callback, args, kwargs)
     return False
 

@@ -12,6 +12,19 @@ class _CDLL(type):
     pass
 
 
+def _load(self: _CDLL):
+    if self._lib is None:
+        if isinstance(self, _PyDLL):
+            self._lib = _ctypes.pythonapi
+        else:
+            name_ = self.__qualname__
+            mode = _ctypes.DEFAULT_MODE
+            if isinstance(self, _WinDLL):
+                name_ = f'{name_}.dll'
+                mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+            self._lib = getattr(_ctypes, type(self).__name__[1:])(name_, mode)
+
+
 def _init(self, name: str):
     if name in self.__annotations__:
         if self._funcs is None:
@@ -31,15 +44,7 @@ def _init(self, name: str):
             except KeyError:
                 raise AttributeError(f"Lib '{self.__qualname__}' has no function '{name}'")
             except TypeError:
-                if self is Python:
-                    self._lib = _ctypes.pythonapi
-                else:
-                    name_ = self.__qualname__
-                    mode = _ctypes.DEFAULT_MODE
-                    if isinstance(self, _WinDLL):
-                        name_ = f'{name_}.dll'
-                        mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
-                    self._lib = getattr(_ctypes, type(self).__name__[1:])(name_, mode)
+                _load(self)
         annot = _format_annotations(self.__annotations__[name])
         func.restype, *func.argtypes = _resolve_type(self._annots[name])
         if self._errcheck is not None:
@@ -73,43 +78,137 @@ class _Func:
 
 
 class Python(_Func, metaclass=_PyDLL):
+    # ceval
+    Py_MakePendingCalls: _Callable[[],
+                                   _type.c_int]
+    Py_SetRecursionLimit: _Callable[[_type.c_int],
+                                    _type.c_void]
+    Py_GetRecursionLimit: _Callable[[],
+                                    _type.c_int]
+    Py_EnterRecursiveCall: _Callable[[_type.c_char_p],  # where
+                                     _type.c_int]
+    Py_LeaveRecursiveCall: _Callable[[],
+                                     _type.c_void]
+    PyEval_ThreadsInitialized: _Callable[[],
+                                         _type.c_int]
+    PyEval_InitThreads: _Callable[[],
+                                  _type.c_void]
+    PyEval_AcquireLock: _Callable[[],
+                                  _type.c_void]
+    PyEval_ReleaseLock: _Callable[[],
+                                  _type.c_void]
+    # import
+    PyImport_GetMagicNumber: _Callable[[],
+                                       _type.c_long]
+    PyImport_GetMagicTag: _Callable[[],
+                                    _type.c_char_p]
     # pylifecycle
     Py_Initialize: _Callable[[],
                              _type.c_void]
     Py_InitializeEx: _Callable[[_type.c_int],
                                _type.c_void]
-    Py_IsInitialized: _Callable[[],
-                                _type.c_int]
     Py_Finalize: _Callable[[],
                            _type.c_void]
     Py_FinalizeEx: _Callable[[],
                              _type.c_int]
+    Py_IsInitialized: _Callable[[],
+                                _type.c_int]
+    Py_Exit: _Callable[[_type.c_int],
+                       _type.c_void]
+    Py_Main: _Callable[[_type.c_int,  # argc
+                        _Pointer[_type.c_wchar_p]],  # argv
+                       _type.c_int]
+    Py_FrozenMain: _Callable[[_type.c_int,  # argc
+                              _Pointer[_type.c_char_p]],  # argv
+                             _type.c_int]
+    Py_BytesMain: _Callable[[_type.c_int,  # argc
+                             _Pointer[_type.c_char_p]],  # argv
+                            _type.c_int]
+    Py_GetProgramName: _Callable[[],
+                                 _type.c_wchar_p]
+    Py_SetPythonHome: _Callable[[_type.c_wchar_p],
+                                _type.c_void]
+    Py_GetPythonHome: _Callable[[],
+                                _type.c_wchar_p]
+    Py_GetProgramFullPath: _Callable[[],
+                                     _type.c_wchar_p]
+    Py_GetPrefix: _Callable[[],
+                            _type.c_wchar_p]
+    Py_GetExecPrefix: _Callable[[],
+                                _type.c_wchar_p]
+    Py_GetPath: _Callable[[],
+                          _type.c_wchar_p]
+    Py_SetPath: _Callable[[_type.c_wchar_p],
+                          _type.c_void]
+    Py_GetVersion: _Callable[[],
+                             _type.c_char_p]
+    Py_GetPlatform: _Callable[[],
+                              _type.c_char_p]
+    Py_GetCopyright: _Callable[[],
+                               _type.c_char_p]
+    Py_GetCompiler: _Callable[[],
+                              _type.c_char_p]
+    Py_GetBuildInfo: _Callable[[],
+                               _type.c_char_p]
+    # pymem
+    PyMem_Malloc: _Callable[[_type.c_size_t],  # size
+                            _type.c_void_p]
+    PyMem_Realloc: _Callable[[_type.c_void_p,  # ptr
+                              _type.c_size_t],  # size
+                             _type.c_void_p]
+    PyMem_Free: _Callable[[_type.c_void_p],  # ptr
+                          _type.c_void]
+    # pythonrun
+    PyErr_Print: _Callable[[],
+                           _type.c_void]
+    PyErr_PrintEx: _Callable[[_type.c_int],
+                             _type.c_void]
+    PyRun_SimpleString: _Callable[[_type.c_char_p],  # s
+                                  _type.c_int]
     # pythread
-    PyThread_create_key: _Callable[[],
-                                   _type.c_int]
-    PyThread_delete_key: _Callable[[_type.c_int],
-                                   _type.c_void]
-    PyThread_delete_key_value: _Callable[[_type.c_int],
-                                         _type.c_void]
+    PyThread_init_thread: _Callable[[],
+                                    _type.c_void]
     PyThread_exit_thread: _Callable[[],
                                     _type.c_void]
-    PyThread_get_key_value: _Callable[[_type.c_int],
-                                      _type.c_void_p]
-    PyThread_get_stacksize: _Callable[[],
-                                      _type.c_size_t]
     PyThread_get_thread_ident: _Callable[[],
                                          _type.c_ulong]
     PyThread_get_thread_native_id: _Callable[[],
                                              _type.c_ulong]
-    PyThread_init_thread: _Callable[[],
-                                    _type.c_void]
-    PyThread_set_key_value: _Callable[[_type.c_int,
-                                       _type.c_void_p],
-                                      _type.c_int]
+    PyThread_get_stacksize: _Callable[[],
+                                      _type.c_size_t]
     PyThread_set_stacksize: _Callable[[_type.c_size_t],
                                       _type.c_int]
+    PyThread_create_key: _Callable[[],
+                                   _type.c_int]
+    PyThread_delete_key: _Callable[[_type.c_int],  # key
+                                   _type.c_void]
+    PyThread_set_key_value: _Callable[[_type.c_int,  # key
+                                       _type.c_void_p],  # value
+                                      _type.c_int]
+    PyThread_get_key_value: _Callable[[_type.c_int],  # key
+                                      _type.c_void_p]
+    PyThread_delete_key_value: _Callable[[_type.c_int],  # key
+                                         _type.c_void]
     PyThread_ReInitTLS: _Callable[[],
                                   _type.c_void]
+    # sysmodule
+    PySys_SetArgv: _Callable[[_type.c_int,
+                              _Pointer[_type.c_wchar_p]],
+                             _type.c_void]
+    PySys_SetArgvEx: _Callable[[_type.c_int,
+                                _Pointer[_type.c_wchar_p],
+                                _type.c_int],
+                               _type.c_void]
+    PySys_SetPath: _Callable[[_type.c_wchar_p],
+                             _type.c_void]
+    PySys_ResetWarnOptions: _Callable[[],
+                                      _type.c_void]
+    PySys_AddWarnOption: _Callable[[_type.c_wchar_p],
+                                   _type.c_void]
+    PySys_HasWarnOptions: _Callable[[],
+                                    _type.c_int]
+    PySys_AddXOption: _Callable[[_type.c_wchar_p],
+                                _type.c_void]
 
 
 class Advapi32(_Func, metaclass=_WinDLL):
@@ -447,6 +546,14 @@ class D3d11(_Func, metaclass=_WinDLL):
                                  _type.HRESULT]
 
 
+class DWrite(_Func, metaclass=_WinDLL):
+    # dwrite
+    DWriteCreateFactory: _Callable[[_enum.DWRITE_FACTORY_TYPE,  # factoryType
+                                    _Pointer[_struct.IID],  # iid
+                                    _Pointer[_interface.IUnknown]],  # factory
+                                   _type.HRESULT]
+
+
 class Dwmapi(_Func, metaclass=_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
@@ -748,6 +855,23 @@ class Gdi32(_Func, metaclass=_WinDLL):
 
 
 class GdiPlus(_Func, metaclass=_WinDLL):
+    # gdipluseffects
+    GdipCreateEffect: _Callable[[_struct.GUID,  # guid
+                                 _Pointer[_type.CGpEffect]],  # effect
+                                _enum.Status]
+    GdipDeleteEffect: _Callable[[_type.CGpEffect],  # effect
+                                _enum.Status]
+    GdipGetEffectParameterSize: _Callable[[_type.CGpEffect,  # effect
+                                           _Pointer[_type.UINT]],  # size
+                                          _enum.Status]
+    GdipSetEffectParameters: _Callable[[_type.CGpEffect,  # effect
+                                        _type.PVOID,  # params
+                                        _type.UINT],  # size
+                                       _enum.Status]
+    GdipGetEffectParameters: _Callable[[_type.CGpEffect,  # effect
+                                        _type.UINT,  # size
+                                        _type.PVOID],  # params
+                                       _enum.Status]
     # gdiplusflat
     GdipCreatePath: _Callable[[_enum.GpFillMode,  # brushMode
                                _Pointer[_type.GpPath]],  # path
@@ -2241,7 +2365,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
     GdipSetImageAttributesColorMatrix: _Callable[[_type.GpImageAttributes,  # imageattr
                                                   _enum.ColorAdjustType,  # type
                                                   _type.BOOL,  # enableFlag
-                                                  _Pointer[_struct.ColorMatrix],  # colorMatrix
+                                                  _Optional[_Pointer[_struct.ColorMatrix]],  # colorMatrix
                                                   _Optional[_Pointer[_struct.ColorMatrix]],  # grayMatrix
                                                   _enum.ColorMatrixFlags],  # flags
                                                  _enum.GpStatus]
@@ -2273,13 +2397,13 @@ class GdiPlus(_Func, metaclass=_WinDLL):
     GdipSetImageAttributesOutputChannelColorProfile: _Callable[[_type.GpImageAttributes,  # imageattr
                                                                 _enum.ColorAdjustType,  # type
                                                                 _type.BOOL,  # enableFlag
-                                                                _Pointer[_type.WCHAR]],  # colorProfileFilename
+                                                                _Optional[_type.LPWSTR]],  # colorProfileFilename
                                                                _enum.GpStatus]
     GdipSetImageAttributesRemapTable: _Callable[[_type.GpImageAttributes,  # imageattr
                                                  _enum.ColorAdjustType,  # type
                                                  _type.BOOL,  # enableFlag
                                                  _type.UINT,  # mapSize
-                                                 _Pointer[_struct.ColorMap]],  # map
+                                                 _Optional[_Pointer[_struct.ColorMap]]],  # map
                                                 _enum.GpStatus]
     GdipSetImageAttributesWrapMode: _Callable[[_type.GpImageAttributes,  # imageAttr
                                                _enum.WrapMode,  # wrap
@@ -2355,6 +2479,12 @@ class GdiPlus(_Func, metaclass=_WinDLL):
     GdipGetTextRenderingHint: _Callable[[_type.GpGraphics,  # graphics
                                          _Pointer[_enum.TextRenderingHint]],  # mode
                                         _enum.GpStatus]
+    GdipSetTextContrast: _Callable[[_type.GpGraphics,  # graphics
+                                    _type.UINT],  # contrast
+                                   _enum.GpStatus]
+    GdipGetTextContrast: _Callable[[_type.GpGraphics,  # graphics
+                                    _Pointer[_type.UINT]],  # contrast
+                                   _enum.GpStatus]
     GdipSetInterpolationMode: _Callable[[_type.GpGraphics,  # graphics
                                          _enum.InterpolationMode],  # interpolationMode
                                         _enum.GpStatus]
@@ -2805,7 +2935,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                       _type.REAL,  # srcheight
                                       _enum.GpUnit,  # srcUnit
                                       _Optional[_type.GpImageAttributes],  # imageAttributes
-                                      _type.DrawImageAbort,  # callback  TODO _Optional
+                                      _type.DrawImageAbort,  # callback  TODO _Optional _FuncPtr
                                       _Optional[_Pointer[_type.VOID]]],  # callbackData
                                      _enum.GpStatus]
     GdipDrawImageRectRectI: _Callable[[_type.GpGraphics,  # graphics
@@ -3158,7 +3288,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                             _Pointer[_type.BYTE]],  # data
                            _enum.GpStatus]
     GdipCreateFontFamilyFromName: _Callable[[_type.LPWSTR,  # name
-                                             _type.GpFontCollection,  # fontCollection
+                                             _Optional[_type.GpFontCollection],  # fontCollection
                                              _Pointer[_type.GpFontFamily]],  # fontFamily
                                             _enum.GpStatus]
     GdipDeleteFontFamily: _Callable[[_type.GpFontFamily],  # fontFamily
@@ -3176,6 +3306,10 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                   _type.LPWSTR,  # name
                                   _type.LANGID],  # language
                                  _enum.GpStatus]
+    GdipIsStyleAvailable: _Callable[[_type.GpFontFamily,  # family
+                                     _type.INT,  # style
+                                     _Pointer[_type.BOOL]],  # isStyleAvailable
+                                    _enum.GpStatus]
     GdipFontCollectionEnumerable: _Callable[[_type.GpFontCollection,  # fontCollection
                                              _type.GpGraphics,  # graphics
                                              _Pointer[_type.INT]],  # numFound
@@ -3267,10 +3401,10 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                                 _Pointer[_type.INT]],  # numFound
                                                _enum.GpStatus]
     GdipPrivateAddFontFile: _Callable[[_type.GpFontCollection,  # fontCollection
-                                       _Pointer[_type.WCHAR]],  # filename
+                                       _type.LPWSTR],  # filename
                                       _enum.GpStatus]
     GdipPrivateAddMemoryFont: _Callable[[_type.GpFontCollection,  # fontCollection
-                                         _Pointer[_type.c_void_p],  # memory
+                                         _type.c_void_p,  # memory
                                          _type.INT],  # length
                                         _enum.GpStatus]
     GdipDrawString: _Callable[[_type.GpGraphics,  # graphics
@@ -3278,7 +3412,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                _type.INT,  # length
                                _type.GpFont,  # font
                                _Pointer[_struct.RectF],  # layoutRect
-                               _type.GpStringFormat,  # stringFormat
+                               _Optional[_type.GpStringFormat],  # stringFormat
                                _type.GpBrush],  # brush
                               _enum.GpStatus]
     GdipMeasureString: _Callable[[_type.GpGraphics,  # graphics
@@ -3286,11 +3420,20 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                   _type.INT,  # length
                                   _type.GpFont,  # font
                                   _Pointer[_struct.RectF],  # layoutRect
-                                  _type.GpStringFormat,  # stringFormat
+                                  _Optional[_type.GpStringFormat],  # stringFormat
                                   _Pointer[_struct.RectF],  # boundingBox
-                                  _Pointer[_type.INT],  # codepointsFitted
-                                  _Pointer[_type.INT]],  # linesFilled
+                                  _Optional[_Pointer[_type.INT]],  # codepointsFitted
+                                  _Optional[_Pointer[_type.INT]]],  # linesFilled
                                  _enum.GpStatus]
+    GdipMeasureCharacterRanges: _Callable[[_type.GpGraphics,  # graphics
+                                           _type.LPWSTR,  # string
+                                           _type.INT,  # length
+                                           _type.GpFont,  # font
+                                           _Pointer[_struct.RectF],  # layoutRect
+                                           _type.GpStringFormat,  # stringFormat
+                                           _type.INT,  # regionCount
+                                           _Pointer[_type.GpRegion]],  # regions
+                                          _enum.GpStatus]
     GdipDrawDriverString: _Callable[[_type.GpGraphics,  # graphics
                                      _Pointer[_type.UINT16],  # text
                                      _type.INT,  # length
@@ -3401,7 +3544,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                                        _type.BOOL],  # enableFlag
                                                       _enum.GpStatus]
     GdipTestControl: _Callable[[_enum.GpTestControlEnum,  # control
-                                _Pointer[_type.c_void_p]],  # param
+                                _type.c_void_p],  # param
                                _enum.GpStatus]
     GdiplusNotificationHook: _Callable[[_Pointer[_type.ULONG_PTR]],  # token
                                        _enum.GpStatus]
@@ -3851,141 +3994,290 @@ class Kernel32(_Func, metaclass=_WinDLL):
     SizeofResource: _Callable[[_Optional[_type.HMODULE],
                                _type.HRSRC],
                               _type.DWORD]
+    # memoryapi
+    VirtualFree: _Callable[[_type.LPVOID,  # lpAddress
+                            _type.SIZE_T,  # dwSize
+                            _type.DWORD],  # dwFreeType
+                           _type.BOOL]
+    VirtualAllocEx: _Callable[[_type.HANDLE,  # hProcess
+                               _Optional[_type.LPVOID],  # lpAddress
+                               _type.SIZE_T,  # dwSize
+                               _type.DWORD,  # flAllocationType
+                               _type.DWORD],  # flProtect
+                              _type.LPVOID]
+    VirtualProtectEx: _Callable[[_type.HANDLE,  # hProcess
+                                 _type.LPVOID,  # lpAddress
+                                 _type.SIZE_T,  # dwSize
+                                 _type.DWORD,  # flNewProtect
+                                 _Pointer[_type.DWORD]],  # lpflOldProtect
+                                _type.BOOL]
+    ReadProcessMemory: _Callable[[_type.HANDLE,  # hProcess
+                                  _type.LPCVOID,  # lpBaseAddress
+                                  _type.LPVOID,  # lpBuffer
+                                  _type.SIZE_T,  # nSize
+                                  _Optional[_Pointer[_type.SIZE_T]]],  # lpNumberOfBytesRead
+                                 _type.BOOL]
+    WriteProcessMemory: _Callable[[_type.HANDLE,  # hProcess
+                                   _type.LPVOID,  # lpBaseAddress
+                                   _type.LPCVOID,  # lpBuffer
+                                   _type.SIZE_T,  # nSize
+                                   _Optional[_Pointer[_type.SIZE_T]]],  # lpNumberOfBytesWritten
+                                  _type.BOOL]
+    OpenFileMappingW: _Callable[[_type.DWORD,  # dwDesiredAccess
+                                 _type.BOOL,  # bInheritHandle
+                                 _type.LPCWSTR],  # lpName
+                                _type.HANDLE]
+    MapViewOfFile: _Callable[[_type.HANDLE,  # hFileMappingObject
+                              _type.DWORD,  # dwDesiredAccess
+                              _type.DWORD,  # dwFileOffsetHigh
+                              _type.DWORD,  # dwFileOffsetLow
+                              _type.SIZE_T],  # dwNumberOfBytesToMap
+                             _type.LPVOID]
+    MapViewOfFileEx: _Callable[[_type.HANDLE,  # hFileMappingObject
+                                _type.DWORD,  # dwDesiredAccess
+                                _type.DWORD,  # dwFileOffsetHigh
+                                _type.DWORD,  # dwFileOffsetLow
+                                _type.SIZE_T,  # dwNumberOfBytesToMap
+                                _Optional[_type.LPVOID]],  # lpBaseAddress
+                               _type.LPVOID]
+    VirtualFreeEx: _Callable[[_type.HANDLE,  # hProcess
+                              _type.LPVOID,  # lpAddress
+                              _type.SIZE_T,  # dwSize
+                              _type.DWORD],  # dwFreeType
+                             _type.BOOL]
+    FlushViewOfFile: _Callable[[_type.LPCVOID,  # lpBaseAddress
+                                _type.SIZE_T],  # dwNumberOfBytesToFlush
+                               _type.BOOL]
+    UnmapViewOfFile: _Callable[[_type.LPCVOID],  # lpBaseAddress
+                               _type.BOOL]
+    GetLargePageMinimum: _Callable[[],
+                                   _type.SIZE_T]
+    VirtualLock: _Callable[[_type.LPVOID,  # lpAddress
+                            _type.SIZE_T],  # dwSize
+                           _type.BOOL]
+    VirtualUnlock: _Callable[[_type.LPVOID,  # lpAddress
+                              _type.SIZE_T],  # dwSize
+                             _type.BOOL]
+    ResetWriteWatch: _Callable[[_type.LPVOID,  # lpBaseAddress
+                                _type.SIZE_T],  # dwRegionSize
+                               _type.UINT]
+    QueryMemoryResourceNotification: _Callable[[_type.HANDLE,  # ResourceNotificationHandle
+                                                _Pointer[_type.BOOL]],  # ResourceState
+                                               _type.BOOL]
     # processthreadsapi
-    ExitProcess: _Callable[[_type.UINT],
-                           _type.VOID]
     GetCurrentProcess: _Callable[[],
                                  _type.HANDLE]
     GetCurrentProcessId: _Callable[[],
                                    _type.DWORD]
-    GetExitCodeProcess: _Callable[[_type.HANDLE,
-                                   _Pointer[_type.DWORD]],
+    ExitProcess: _Callable[[_type.UINT],  # uExitCode
+                           _type.VOID]
+    TerminateProcess: _Callable[[_type.HANDLE,  # hProcess
+                                 _type.UINT],  # uExitCode
+                                _type.BOOL]
+    GetExitCodeProcess: _Callable[[_type.HANDLE,  # hProcess
+                                   _Pointer[_type.DWORD]],  # lpExitCode
                                   _type.BOOL]
     SwitchToThread: _Callable[[],
                               _type.BOOL]
-    TerminateProcess: _Callable[[_type.HANDLE,
-                                 _type.UINT],
-                                _type.BOOL]
-    # profileapi
-    QueryPerformanceCounter: _Callable[[_Pointer[_union.LARGE_INTEGER]],
+    CreateThread: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpThreadAttributes
+                             _type.SIZE_T,  # dwStackSize
+                             _type.LPTHREAD_START_ROUTINE,  # lpStartAddress
+                             _Optional[_type.LPVOID],  # lpParameter
+                             _type.DWORD,  # dwCreationFlags
+                             _Optional[_Pointer[_type.DWORD]]],  # lpThreadId
+                            _type.HANDLE]
+    CreateRemoteThread: _Callable[[_type.HANDLE,  # hProcess
+                                   _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpThreadAttributes
+                                   _type.SIZE_T,  # dwStackSize
+                                   _type.LPTHREAD_START_ROUTINE,  # lpStartAddress
+                                   _Optional[_type.LPVOID],  # lpParameter
+                                   _type.DWORD,  # dwCreationFlags
+                                   _Optional[_Pointer[_type.DWORD]]],  # lpThreadId
+                                  _type.HANDLE]
+    GetCurrentThread: _Callable[[],
+                                _type.HANDLE]
+    GetCurrentThreadId: _Callable[[],
+                                  _type.DWORD]
+    OpenThread: _Callable[[_type.DWORD,  # dwDesiredAccess
+                           _type.BOOL,  # bInheritHandle
+                           _type.DWORD],  # dwThreadId
+                          _type.HANDLE]
+    SetThreadPriority: _Callable[[_type.HANDLE,  # hThread
+                                  _type.c_int],  # nPriority
+                                 _type.BOOL]
+    SetThreadPriorityBoost: _Callable[[_type.HANDLE,  # hThread
+                                       _type.BOOL],  # DisablePriorityBoost
+                                      _type.BOOL]
+    GetThreadPriorityBoost: _Callable[[_type.HANDLE,  # hThread
+                                       _Pointer[_type.BOOL]],  # pDisablePriorityBoost
+                                      _type.BOOL]
+    GetThreadPriority: _Callable[[_type.HANDLE],  # hThread
+                                 _type.c_int]
+    ExitThread: _Callable[[_type.DWORD],  # dwExitCode
+                          _type.VOID]
+    TerminateThread: _Callable[[_type.HANDLE,  # hThread
+                                _type.DWORD],  # dwExitCode
+                               _type.BOOL]
+    GetExitCodeThread: _Callable[[_type.HANDLE,  # hThread
+                                  _Pointer[_type.DWORD]],  # lpExitCode
+                                 _type.BOOL]
+    SuspendThread: _Callable[[_type.HANDLE],  # hThread
+                             _type.DWORD]
+    ResumeThread: _Callable[[_type.HANDLE],  # hThread
+                            _type.DWORD]
+    TlsAlloc: _Callable[[],
+                        _type.DWORD]
+    TlsGetValue: _Callable[[_type.DWORD],  # dwTlsIndex
+                           _type.LPVOID]
+    TlsSetValue: _Callable[[_type.DWORD,  # dwTlsIndex
+                            _Optional[_type.LPVOID]],  # lpTlsValue
+                           _type.BOOL]
+    OpenProcess: _Callable[[_type.DWORD,  # dwDesiredAccess
+                            _type.BOOL,  # bInheritHandle
+                            _type.DWORD],  # dwProcessId
+                           _type.HANDLE]
+    IsProcessorFeaturePresent: _Callable[[_type.DWORD],  # ProcessorFeature
+                                         _type.BOOL]
+    GetProcessHandleCount: _Callable[[_type.HANDLE,  # hProcess
+                                      _Pointer[_type.DWORD]],  # pdwHandleCount
+                                     _type.BOOL]
+    GetCurrentProcessorNumber: _Callable[[],
+                                         _type.DWORD]
+    GetProcessPriorityBoost: _Callable[[_type.HANDLE,  # hProcess
+                                        _Pointer[_type.BOOL]],  # pDisablePriorityBoost
                                        _type.BOOL]
-    QueryPerformanceFrequency: _Callable[[_Pointer[_union.LARGE_INTEGER]],
+    SetProcessPriorityBoost: _Callable[[_type.HANDLE,  # hProcess
+                                        _type.BOOL],  # bDisablePriorityBoost
+                                       _type.BOOL]
+    # profileapi
+    QueryPerformanceCounter: _Callable[[_Pointer[_union.LARGE_INTEGER]],  # lpPerformanceCount
+                                       _type.BOOL]
+    QueryPerformanceFrequency: _Callable[[_Pointer[_union.LARGE_INTEGER]],  # lpFrequency
                                          _type.BOOL]
     # synchapi
-    CancelWaitableTimer: _Callable[[_type.HANDLE],
-                                   _type.BOOL]
-    CreateEventA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                             _type.BOOL,
-                             _type.BOOL,
-                             _Optional[_type.LPCSTR]],
-                            _type.HANDLE]
-    CreateEventW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                             _type.BOOL,
-                             _type.BOOL,
-                             _Optional[_type.LPCWSTR]],
-                            _type.HANDLE]
-    CreateEventExA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                               _Optional[_type.LPCSTR],
-                               _type.DWORD,
-                               _type.DWORD],
-                              _type.HANDLE]
-    CreateEventExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                               _Optional[_type.LPCWSTR],
-                               _type.DWORD,
-                               _type.DWORD],
-                              _type.HANDLE]
-    CreateMutexA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                             _type.BOOL,
-                             _Optional[_type.LPCSTR]],
-                            _type.HANDLE]
-    CreateMutexW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                             _type.BOOL,
-                             _Optional[_type.LPCWSTR]],
-                            _type.HANDLE]
-    CreateMutexExA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                               _Optional[_type.LPCSTR],
-                               _type.DWORD,
-                               _type.DWORD],
-                              _type.HANDLE]
-    CreateMutexExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                               _Optional[_type.LPCWSTR],
-                               _type.DWORD,
-                               _type.DWORD],
-                              _type.HANDLE]
-    CreateSemaphoreW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                                 _type.LONG,
-                                 _type.LONG,
-                                 _Optional[_type.LPCWSTR]],
-                                _type.HANDLE]
-    CreateSemaphoreExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                                   _type.LONG,
-                                   _type.LONG,
-                                   _Optional[_type.LPCWSTR],
-                                   _type.DWORD,
-                                   _type.DWORD],
-                                  _type.HANDLE]
-    CreateWaitableTimerW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                                     _type.BOOL,
-                                     _Optional[_type.LPCWSTR]],
-                                    _type.HANDLE]
-    CreateWaitableTimerExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                                       _Optional[_type.LPCWSTR],
-                                       _type.DWORD,
-                                       _type.DWORD],
-                                      _type.HANDLE]
-    OpenEventA: _Callable[[_type.DWORD,
-                           _type.BOOL,
-                           _type.LPCSTR],
-                          _type.HANDLE]
-    OpenEventW: _Callable[[_type.DWORD,
-                           _type.BOOL,
-                           _type.LPCWSTR],
-                          _type.HANDLE]
-    OpenMutexA: _Callable[[_type.DWORD,
-                           _type.BOOL,
-                           _type.LPCSTR],
-                          _type.HANDLE]
-    OpenMutexW: _Callable[[_type.DWORD,
-                           _type.BOOL,
-                           _type.LPCWSTR],
-                          _type.HANDLE]
-    OpenSemaphoreW: _Callable[[_type.DWORD,
-                               _type.BOOL,
-                               _type.LPCWSTR],
-                              _type.HANDLE]
-    OpenWaitableTimerW: _Callable[[_type.DWORD,
-                                   _type.BOOL,
-                                   _type.LPCWSTR],
-                                  _type.HANDLE]
-    ResetEvent: _Callable[[_type.HANDLE],
-                          _type.BOOL]
-    ReleaseMutex: _Callable[[_type.HANDLE],
-                            _type.BOOL]
-    ReleaseSemaphore: _Callable[[_type.HANDLE,
-                                 _type.LONG,
-                                 _Optional[_Pointer[_type.LONG]]],
-                                _type.BOOL]
-    SetEvent: _Callable[[_type.HANDLE],
+    SetEvent: _Callable[[_type.HANDLE],  # hEvent
                         _type.BOOL]
-    SignalObjectAndWait: _Callable[[_type.HANDLE,
-                                    _type.HANDLE,
-                                    _type.DWORD,
-                                    _type.BOOL],
+    ResetEvent: _Callable[[_type.HANDLE],  # hEvent
+                          _type.BOOL]
+    ReleaseSemaphore: _Callable[[_type.HANDLE,  # hSemaphore
+                                 _type.LONG,  # lReleaseCount
+                                 _Optional[_Pointer[_type.LONG]]],  # lpPreviousCount
+                                _type.BOOL]
+    ReleaseMutex: _Callable[[_type.HANDLE],  # hMutex
+                            _type.BOOL]
+    WaitForSingleObject: _Callable[[_type.HANDLE,  # hHandle,
+                                    _type.DWORD],  # dwMilliseconds
                                    _type.DWORD]
-    Sleep: _Callable[[_type.DWORD],
-                     _type.VOID]
-    SleepEx: _Callable[[_type.DWORD,
-                        _type.BOOL],
+    SleepEx: _Callable[[_type.DWORD,  # dwMilliseconds
+                        _type.BOOL],  # bAlertable
                        _type.DWORD]
-    WaitForMultipleObjects: _Callable[[_type.DWORD,
-                                       _Pointer[_type.HANDLE],
-                                       _type.BOOL,
-                                       _type.DWORD],
-                                      _type.DWORD]
-    WakeByAddressAll: _Callable[[_type.PVOID],
-                                _type.VOID]
-    WakeByAddressSingle: _Callable[[_type.PVOID],
+    WaitForSingleObjectEx: _Callable[[_type.HANDLE,  # hHandle,
+                                      _type.DWORD,  # dwMilliseconds
+                                      _type.BOOL],  # bAlertable
+                                     _type.DWORD]
+    WaitForMultipleObjectsEx: _Callable[[_type.BOOL,  # nCount
+                                         _Pointer[_type.HANDLE],  # lpHandles,
+                                         _type.BOOL,  # bWaitAll
+                                         _type.DWORD,  # dwMilliseconds
+                                         _type.BOOL],  # bAlertable
+                                        _type.DWORD]
+    CreateMutexA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpMutexAttributes
+                             _type.BOOL,  # bInitialOwner
+                             _Optional[_type.LPCSTR]],  # lpName
+                            _type.HANDLE]
+    CreateMutexW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpMutexAttributes
+                             _type.BOOL,  # bInitialOwner
+                             _Optional[_type.LPCWSTR]],  # lpName
+                            _type.HANDLE]
+    CreateEventA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpEventAttributes
+                             _type.BOOL,  # bManualReset
+                             _type.BOOL,  # bInitialState
+                             _Optional[_type.LPCSTR]],  # lpName
+                            _type.HANDLE]
+    CreateEventW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpEventAttributes
+                             _type.BOOL,  # bManualReset
+                             _type.BOOL,  # bInitialState
+                             _Optional[_type.LPCWSTR]],  # lpName
+                            _type.HANDLE]
+    OpenMutexW: _Callable[[_type.DWORD,  # dwDesiredAccess
+                           _type.BOOL,  # bInheritHandle
+                           _type.LPCWSTR],  # lpName
+                          _type.HANDLE]
+    OpenEventA: _Callable[[_type.DWORD,  # dwDesiredAccess
+                           _type.BOOL,  # bInheritHandle
+                           _type.LPCSTR],  # lpName
+                          _type.HANDLE]
+    OpenEventW: _Callable[[_type.DWORD,  # dwDesiredAccess
+                           _type.BOOL,  # bInheritHandle
+                           _type.LPCWSTR],  # lpName
+                          _type.HANDLE]
+    OpenSemaphoreW: _Callable[[_type.DWORD,  # dwDesiredAccess
+                               _type.BOOL,  # bInheritHandle
+                               _type.LPCWSTR],  # lpName
+                              _type.HANDLE]
+    OpenWaitableTimerW: _Callable[[_type.DWORD,  # dwDesiredAccess
+                                   _type.BOOL,  # bInheritHandle
+                                   _type.LPCWSTR],  # lpTimerName
+                                  _type.HANDLE]
+    CancelWaitableTimer: _Callable[[_type.HANDLE],  # hTimer
+                                   _type.BOOL]
+    CreateMutexExA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpMutexAttributes
+                               _Optional[_type.LPCSTR],  # lpName
+                               _type.DWORD,  #
+                               _type.DWORD],  # dwDesiredAccess
+                              _type.HANDLE]
+    CreateMutexExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpMutexAttributes
+                               _Optional[_type.LPCWSTR],  # lpName
+                               _type.DWORD,  # dwFlags
+                               _type.DWORD],  # dwDesiredAccess
+                              _type.HANDLE]
+    CreateEventExA: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpEventAttributes
+                               _Optional[_type.LPCSTR],  # lpName
+                               _type.DWORD,  # dwFlags
+                               _type.DWORD],  # dwDesiredAccess
+                              _type.HANDLE]
+    CreateEventExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpEventAttributes
+                               _Optional[_type.LPCWSTR],  # lpName
+                               _type.DWORD,  # dwFlags
+                               _type.DWORD],  # dwDesiredAccess
+                              _type.HANDLE]
+    CreateSemaphoreExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpSemaphoreAttributes
+                                   _type.LONG,  # lInitialCount
+                                   _type.LONG,  # lMaximumCount
+                                   _Optional[_type.LPCWSTR],  # lpName
+                                   _type.DWORD,  # dwFlags
+                                   _type.DWORD],  # dwDesiredAccess
+                                  _type.HANDLE]
+    CreateWaitableTimerExW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpTimerAttributes
+                                       _Optional[_type.LPCWSTR],  # lpTimerName
+                                       _type.DWORD,  # dwFlags
+                                       _type.DWORD],  # dwDesiredAccess
+                                      _type.HANDLE]
+    Sleep: _Callable[[_type.DWORD],  # dwMilliseconds
+                     _type.VOID]
+    WakeByAddressSingle: _Callable[[_type.PVOID],  # Address
                                    _type.VOID]
+    WakeByAddressAll: _Callable[[_type.PVOID],  # Address
+                                _type.VOID]
+    SignalObjectAndWait: _Callable[[_type.HANDLE,  # hObjectToSignal
+                                    _type.HANDLE,  # hObjectToWaitOn
+                                    _type.DWORD,  # dwMilliseconds
+                                    _type.BOOL],  # bAlertable
+                                   _type.DWORD]
+    WaitForMultipleObjects: _Callable[[_type.DWORD,  # nCount
+                                       _Pointer[_type.HANDLE],  # lpHandles
+                                       _type.BOOL,  # bWaitAll
+                                       _type.DWORD],  # dwMilliseconds
+                                      _type.DWORD]
+    CreateSemaphoreW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpSemaphoreAttributes
+                                 _type.LONG,  # lInitialCount
+                                 _type.LONG,  # lMaximumCount
+                                 _Optional[_type.LPCWSTR]],  # lpName
+                                _type.HANDLE]
+    CreateWaitableTimerW: _Callable[[_Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpTimerAttributes
+                                     _type.BOOL,  # bManualReset
+                                     _Optional[_type.LPCWSTR]],  # lpTimerName
+                                    _type.HANDLE]
     # sysinfoapi
     GetComputerNameExA: _Callable[[_enum.COMPUTER_NAME_FORMAT,
                                    _Optional[_type.LPSTR],
@@ -4022,6 +4314,10 @@ class Kernel32(_Func, metaclass=_WinDLL):
                                   _type.BOOL]
     SetSystemTime: _Callable[[_Pointer[_struct.SYSTEMTIME]],
                              _type.BOOL]
+    # utilapiset
+    Beep: _Callable[[_type.DWORD,  # dwFreq
+                     _type.DWORD],  # dwDuration
+                    _type.BOOL]
     # WinBase
     ActivateActCtx: _Callable[[_Optional[_type.HANDLE],
                                _Pointer[_type.ULONG_PTR]],
@@ -4133,6 +4429,10 @@ class Kernel32(_Func, metaclass=_WinDLL):
                                _type.BOOL,
                                _type.LPCWSTR],
                               _type.HANDLE]
+    OpenMutexA: _Callable[[_type.DWORD,
+                           _type.BOOL,
+                           _type.LPCSTR],
+                          _type.HANDLE]
     QueryActCtxW: _Callable[[_type.DWORD,
                              _type.HANDLE,
                              _Optional[_type.PVOID],
@@ -4307,47 +4607,115 @@ class Msimg32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class msvcrt(_Func, metaclass=_WinDLL):
+class msvcrt(_Func, metaclass=_CDLL):
     # corecrt_malloc
-    calloc: _Callable[[_type.c_size_t,
-                       _type.c_size_t],
+    calloc: _Callable[[_type.c_size_t,  # _Count
+                       _type.c_size_t],  # _Size
                       _type.c_void_p]
-    free: _Callable[[_type.c_void_p],
+    free: _Callable[[_type.c_void_p],  # _Block
                     _type.c_void]
-    malloc: _Callable[[_type.c_size_t],
+    malloc: _Callable[[_type.c_size_t],  # _Size
                       _type.c_void_p]
-    realloc: _Callable[[_type.c_void_p,
-                        _type.c_size_t],
+    realloc: _Callable[[_type.c_void_p,  # _Block
+                        _type.c_size_t],  # _Size
                        _type.c_void_p]
     # corecrt_wstring
-    wcscspn: _Callable[[_type.c_wchar_p,
-                        _type.c_wchar_p],
-                       _type.c_size_t]
-    wcscmp: _Callable[[_type.c_wchar_p,
-                       _type.c_wchar_p],
+    wcscmp: _Callable[[_type.c_wchar_p,  # _String1
+                       _type.c_wchar_p],  # _String2
                       _type.c_int]
-    wcslen: _Callable[[_type.c_wchar_p],
+    wcscspn: _Callable[[_type.c_wchar_p,  # _String
+                        _type.c_wchar_p],  # _Control
+                       _type.c_size_t]
+    wcslen: _Callable[[_type.c_wchar_p],  # _String
                       _type.c_size_t]
-    wcsncmp: _Callable[[_type.c_wchar_p,
-                        _type.c_wchar_p,
-                        _type.c_size_t],
+    wcsnlen: _Callable[[_type.c_wchar_p,  # _Source
+                        _type.c_size_t],  # _MaxCount
+                       _type.c_size_t]
+    wcsncmp: _Callable[[_type.c_wchar_p,  # _String1
+                        _type.c_wchar_p,  # _String2
+                        _type.c_size_t],  # _MaxCount
                        _type.c_int]
-    wcsnlen: _Callable[[_type.c_wchar_p,
-                        _type.c_size_t],
+    # string
+    strcpy_s: _Callable[[_type.c_char_p,  # _Destination
+                         _type.rsize_t,  # _SizeInBytes
+                         _type.c_char_p],  # _Source
+                        _type.errno_t]
+    strcat_s: _Callable[[_type.c_char_p,  # _Destination
+                         _type.rsize_t,  # _SizeInBytes
+                         _type.c_char_p],  # _Source
+                        _type.errno_t]
+    strerror_s: _Callable[[_type.c_char_p,  # _Buffer
+                           _type.rsize_t,  # _SizeInBytes
+                           _type.c_int],  # _ErrorNumber
+                          _type.errno_t]
+    strncat_s: _Callable[[_type.c_char_p,  # _Destination
+                          _type.rsize_t,  # _SizeInBytes
+                          _type.c_char_p,  # _Source
+                          _type.rsize_t],  # _MaxCount
+                         _type.errno_t]
+    strncpy_s: _Callable[[_type.c_char_p,  # _Destination
+                          _type.rsize_t,  # _SizeInBytes
+                          _type.c_char_p,  # _Source
+                          _type.rsize_t],  # _MaxCount
+                         _type.errno_t]
+    strtok_s: _Callable[[_type.c_char_p,  # _String
+                         _type.c_char_p,  # _Delimiters
+                         _Pointer[_type.c_char_p]],  # _Context
+                        _type.c_char_p]
+    strcat: _Callable[[_type.c_char_p,  # _Destination
+                       _type.c_char_p],  # _Source
+                      _type.c_char_p]
+    strcmp: _Callable[[_type.c_char_p,  # _Str1
+                       _type.c_char_p],  # _Str2
+                      _type.c_int]
+    strcoll: _Callable[[_type.c_char_p,  # _String1
+                        _type.c_char_p],  # _String2
+                       _type.c_int]
+    strcpy: _Callable[[_type.c_char_p,  # _Destination
+                       _type.c_char_p],  # _Source
+                      _type.c_char_p]
+    strcspn: _Callable[[_type.c_char_p,  # _Str
+                        _type.c_char_p],  # _Control
                        _type.c_size_t]
     # vcruntime_string
-    memcpy: _Callable[[_type.c_void_p,
-                       _type.c_void_p,
-                       _type.c_size_t],
+    memchr: _Callable[[_type.c_void_p,  # _Buf
+                       _type.c_int,  # _Val
+                       _type.c_size_t],  # _MaxCount
                       _type.c_void_p]
-    memmove: _Callable[[_type.c_void_p,
-                        _type.c_void_p,
-                        _type.c_size_t],
+    memcmp: _Callable[[_type.c_void_p,  # _Buf1
+                       _type.c_void_p,  # _Buf2
+                       _type.c_size_t],  # _Size
+                      _type.c_int]
+    memcpy: _Callable[[_type.c_void_p,  # _Dst
+                       _type.c_void_p,  # _Src
+                       _type.c_size_t],  # _Size
+                      _type.c_void_p]
+    memmove: _Callable[[_type.c_void_p,  # _Dst
+                        _type.c_void_p,  # _Src
+                        _type.c_size_t],  # _Size
                        _type.c_void_p]
-    memset: _Callable[[_type.c_void_p,
-                       _type.c_int,
-                       _type.c_size_t],
+    memset: _Callable[[_type.c_void_p,  # _Dst
+                       _type.c_int,  # _Val
+                       _type.c_size_t],  # _Size
                       _type.c_void_p]
+    strchr: _Callable[[_type.c_char_p,  # _Str
+                       _type.c_int],  # _Val
+                      _type.c_char_p]
+    strrchr: _Callable[[_type.c_char_p,  # _Str
+                        _type.c_int],  # _Ch
+                       _type.c_char_p]
+    strstr: _Callable[[_type.c_char_p,  # _Str
+                       _type.c_char_p],  # _SubStr
+                      _type.c_char_p]
+    wcschr: _Callable[[_type.c_wchar_p,  # _Str
+                       _type.c_wchar_t],  # _Ch
+                      _type.c_wchar_p]
+    wcsrchr: _Callable[[_type.c_wchar_p,  # _Str
+                        _type.c_wchar_t],  # _Ch
+                       _type.c_wchar_p]
+    wcsstr: _Callable[[_type.c_wchar_p,  # _Str
+                       _type.c_wchar_p],  # _SubStr
+                      _type.c_wchar_p]
 
 
 # noinspection PyPep8Naming

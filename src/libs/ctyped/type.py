@@ -1,5 +1,6 @@
 import ctypes as _ctypes
 import functools as _functools
+import itertools as _itertools
 import numbers as _numbers
 import operator as _operator
 import typing as _typing
@@ -50,7 +51,7 @@ c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
 c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
 c_ulonglong: type[_ctypes.c_ulonglong] = _Union[_ctypes.c_ulonglong, int]
 c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
-c_void_p: type[_ctypes.c_void_p] = _Union[_ctypes.c_void_p, _ctypes.c_char_p, _ctypes.c_wchar_p, _Pointer, int, str]
+c_void_p: type[_ctypes.c_void_p] = _Union[_ctypes.c_void_p, _ctypes.c_char_p, _ctypes.c_wchar_p, _Pointer, bytes, int, str]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
 c_wchar_p: type[_ctypes.c_wchar_p] = _Union[_ctypes.c_wchar_p, _Pointer, str]
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
@@ -95,11 +96,13 @@ PZZSTR = c_char_p
 VOID = c_void
 rsize_t = c_size_t
 va_list = c_char_p
+errno_t = c_int
 
 BOOL = c_int
 BYTE = c_uchar
 CCHAR = c_char
 CHAR = c_char
+DATE = c_double
 DOUBLE = c_double
 DWORD = c_ulong
 DWORD64 = c_uint64
@@ -124,6 +127,7 @@ ULONG = c_ulong
 ULONG64 = c_uint64
 ULONGLONG = c_uint64
 USHORT = c_ushort
+VARIANT_BOOL = c_short
 VARTYPE = c_ushort
 WCHAR = c_wchar_t
 WORD = c_ushort
@@ -132,7 +136,6 @@ byte = c_uchar
 cs_byte = byte
 
 _obj_p = c_void_p
-GpMatrix = _obj_p
 GpGraphics = _obj_p
 GpBrush = _obj_p
 GpTexture = GpBrush
@@ -157,11 +160,15 @@ GpFontCollection = _obj_p
 GpInstalledFontCollection = GpFontCollection
 GpPrivateFontCollection = GpFontCollection
 GpCachedBitmap = _obj_p
+GpMatrix = _obj_p
 CGpEffect = _obj_p
 
 _enum = c_uint
 DebugEventLevel = _enum
 EmfPlusRecordType = _enum
+
+_interface = c_void_p
+IDWriteFontFace = _interface
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -290,6 +297,8 @@ GRAYSTRINGPROC = _Callable[[HDC, LPARAM, c_int], BOOL]
 HOOKPROC = _Callable[[c_int, WPARAM, LPARAM], LRESULT]
 ImageAbort = _Callable[[PVOID], BOOL]
 LPCCHOOKPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], UINT_PTR]
+LPENCLAVE_ROUTINE = _Callable[[LPVOID], LPVOID]
+LPTHREAD_START_ROUTINE = _Callable[[LPVOID], DWORD]
 MONITORENUMPROC = _Callable[[HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]
 PHANDLER_ROUTINE = _Callable[[DWORD], BOOL]
 PROPENUMPROCA = _Callable[[HWND, LPCSTR, HANDLE], BOOL]
@@ -349,6 +358,6 @@ def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPt
     return type_
 
 
-_ctypes.cast(id(__ctypes.Array) + type(__ctypes.Array).__dictoffset__, _ctypes.POINTER(
-    _ctypes.py_object)).contents.value['__str__'] = lambda self: f'{self._type_.__name__}{self[:]}'
+_ctypes.cast(id(__ctypes.Array) + type(__ctypes.Array).__dictoffset__, _ctypes.POINTER(_ctypes.py_object)).contents.value[
+    '__str__'] = lambda self: f'{self._type_.__name__}[{self._length_}]{{{", ".join(str(_) for _ in _itertools.islice(self, None))}}}'
 _globals = _Globals(True)

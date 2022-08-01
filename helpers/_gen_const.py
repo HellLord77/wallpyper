@@ -19,12 +19,25 @@ def _str(guid: list[str]) -> str:
     return '{{{}-{}-{}-{}}}'.format(_format(guid[0], 8), "-".join(_format(guid[i], 4) for i in range(1, 3)), "".join(_format(guid[i], 2) for i in range(3, 5)), "".join(_format(guid[i], 2) for i in range(5, 11)))
 
 
-def d2d1():
-    path = os.path.join(SDK_PATH, 'um', 'd2d1.h')
+def _guid_direct(path: str, macro: str):
     with open(path, 'r') as file:
-        for match in re.finditer(r'interface DX_DECLARE_INTERFACE\("(.*)"\) (\w*)', file.read()):
+        for match in re.finditer(rf'interface {macro}\("(.*)"\) (\w*)', file.read()):
             groups = match.groups()
             print(f"IID_{groups[1]} = '{{{groups[0].upper()}}}'")
+
+
+def d2d1():
+    files = 'd2d1', 'd2d1_1', 'd2d1_2', 'd2d1_3'
+    for file in files:
+        print(f'# {file}')
+        _guid_direct(os.path.join(SDK_PATH, 'um', f'{file}.h'), 'DX_DECLARE_INTERFACE')
+
+
+def dwrite():
+    files = 'dwrite', 'dwrite_1', 'dwrite_2', 'dwrite_3'
+    for file in files:
+        print(f'# {file}')
+        _guid_direct(os.path.join(SDK_PATH, 'um', f'{file}.h'), 'DWRITE_DECLARE_INTERFACE')
 
 
 def propkey():
@@ -74,12 +87,8 @@ def devguid():
     _guid(os.path.join(SDK_PATH, 'shared', 'devguid.h'))
 
 
-def wincodec():
-    _guid(os.path.join(SDK_PATH, 'um', 'wincodec.h'), 'CLSID')
-    _guid(os.path.join(SDK_PATH, 'um', 'wincodec.h'))
-
-
 def gdiplusimaging():
+    print('# gdiplusimaging')
     with open(os.path.join(SDK_PATH, 'um', 'gdiplusimaging.h'), 'r') as file:
         for match in re.finditer(r'DEFINE_GUID\((.*)\);', file.read()):
             guid = match.groups()[0].replace(',', ' ').split()
@@ -125,6 +134,7 @@ def winerror():
 
 
 def mscoree():
+    print('# mscoree')
     path = os.path.join(NET_PATH, 'mscoree.h')
     with open(path, 'r') as file:
         for line in file.readlines():
@@ -133,6 +143,107 @@ def mscoree():
                 guid = line.split(',')[1:]
                 guid[-1] = guid[-1][:-3]
                 print(f"{line[12:line.find(',')]} = '{_str(guid)}'")
+
+
+def _clsid_iid(path: str):
+    with open(path, 'r') as file:
+        data = file.read()
+    name = ''
+    re_name = re.compile(r'EXTERN_C\sconst\s(CLSID|IID)\s((CLSID|IID)_.*);')
+    re_iid = re.compile(r'.*(DECLSPEC_UUID|MIDL_INTERFACE)\("(.*)"\)')
+    for line in data.splitlines():
+        if match := re_name.match(line):
+            name = match.groups()[1]
+        elif match := re_iid.match(line):
+            print(f"{name} = '{{{match.groups()[1].upper()}}}'")
+
+
+def wincodec():
+    print('# wincodec')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'wincodec.h'))
+
+
+def wincodec_codecs():
+    print('# wincodec')
+    with open(os.path.join(SDK_PATH, 'um', 'wincodec.h'), 'r') as file:
+        for match in re.finditer(r'DEFINE_GUID\((\w*),\s*(0x.*)\);', file.read()):
+            print(f"{match.groups()[0]} = '{_str(match.groups()[1].split(', '))}'")
+
+
+def credentialprovider():
+    print('# credentialprovider')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'credentialprovider.h'))
+
+
+def propsys():
+    print('# propsys')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'propsys.h'))
+
+
+def _iid_shlobj(path: str):
+    with open(path, 'r') as file:
+        for match in re.finditer(r'DECLARE_INTERFACE_IID_?\((\w*),.*\s"(.*)"\)', file.read()):
+            groups = match.groups()
+            print(f"IID_{groups[0]} = '{{{groups[1].upper()}}}'")
+
+
+def shlobj():
+    files = 'ShlObj', 'ShlObj_core'
+    for file in files:
+        print(f'# {file}')
+        _iid_shlobj(os.path.join(SDK_PATH, 'um', f'{file}.h'))
+
+
+def shlobjidl():
+    files = 'ShObjIdl', 'ShObjIdl_core'
+    for file in files:
+        print(f'# {file}')
+        _clsid_iid(os.path.join(SDK_PATH, 'um', f'{file}.h'))
+
+
+def oaidl():
+    print('# oaidl')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'oaidl.h'))
+
+
+def objidl():
+    print('# objidl')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'objidl.h'))
+
+
+def ocidl():
+    print('# ocidl')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'ocidl.h'))
+
+
+def shldisp():
+    print('# ShlDisp')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'shldisp.h'))
+
+
+def unknwnbase():
+    print('# Unknwnbase')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'unknwnbase.h'))
+
+
+def asyncinfo():
+    print('# asyncinfo')
+    _clsid_iid(os.path.join(SDK_PATH, 'winrt', 'asyncinfo.h'))
+
+
+def weakreference():
+    print('# WeakReference')
+    _clsid_iid(os.path.join(SDK_PATH, 'winrt', 'weakreference.h'))
+
+
+def desktopwindowxamlhost():
+    print('# windows.ui.xaml.hosting.desktopwindowxamlsource')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'windows.ui.xaml.hosting.desktopwindowxamlsource.h'))
+
+
+def referencetracker():
+    print('# windows.ui.xaml.hosting.referencetracker')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'windows.ui.xaml.hosting.referencetracker.h'))
 
 
 def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], iids: dict[str, str], indent: str = '    '):
@@ -188,7 +299,7 @@ def gen_template_iid(file: str):
     re_iid = re.compile(r'struct __declspec\(uuid\("(.*)"\)\)')
     re_interface = re.compile(r'(I.*)<(ABI::.*::(.*)\*, )?.*::(.*)\*> :')
 
-    lines = data.split('\n')
+    lines = data.splitlines()
     for index in range(len(lines)):
         if iid := re_iid.fullmatch(lines[index]):
             if interface := re_interface.match(lines[index + 1]):
@@ -210,7 +321,7 @@ def gen_winrt_interface(pattern: str = '*.h'):
 
     interfaces = {}
     iids = {}
-    lines = data.split('\n')
+    lines = data.splitlines()
     for index in range(len(lines)):
         line = lines[index].strip()
         if midl := re_midl.findall(line):
@@ -531,7 +642,7 @@ def gen_winrt(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = Fal
     re_attribute = re.compile(r'attribute (\S+)')
     re_contract = re.compile(r'apicontract (\S+)')
 
-    lines = data.split('\n')
+    lines = data.splitlines()
     namespaces = []
     enums = {}
     structs = {}
@@ -687,7 +798,7 @@ class GdiPlus:
         file = io.StringIO()
 
         with open(self._path, 'r') as f:
-            lines = f.read().split('\n')
+            lines = f.read().splitlines()
         line_num = 0
         while line_num < len(lines):
             line = lines[line_num]
@@ -728,7 +839,8 @@ class GdiPlus:
 
 
 if __name__ == '__main__':
-    print(GdiPlus())
+    # TODO cl /d1 reportAllClassLayout testVS.cpp
+    shldisp()
     # noinspection PyUnresolvedReferences
     # from libs.ctyped import winrt
     #

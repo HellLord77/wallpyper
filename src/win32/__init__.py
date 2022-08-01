@@ -458,8 +458,7 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
             name_ = ntpath.splitext(ntpath.basename(target))[0]
             if taskbar:
                 path_ = ntpath.join(
-                    _TASKBAR_DIR,
-                    f'{_get_str_ex_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
+                    _TASKBAR_DIR, f'{_get_str_ex_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
                 path = ntpath.join(_TASKBAR_DIR, f'{name}{LINK_EXT}')
             else:
                 path_ = ntpath.join(START_DIR, f'{name_}{LINK_EXT}')

@@ -1,17 +1,19 @@
+from __future__ import annotations as _
+
 __version__ = '0.0.0'
 
 import atexit
-import contextlib
 import io
 import sys
 import threading
 import time
 import tkinter.messagebox
-from typing import Callable, ContextManager
+from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
 import win32._gdiplus as gdiplus
+import win32._utils as utils
 import win32.gui as gui
 from libs.ctyped import winrt
 
@@ -37,15 +39,15 @@ def exception_handler(excepthook: Callable, *args, **kwargs):
 
 def fill_surrounding_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
     graphics = gdiplus.Graphics.from_hdc(hdc)
-    brush = gdiplus.SolidFill.from_color(argb)
+    brush = gdiplus.SolidBrush.from_color(argb)
     if out_x < in_x:
-        graphics.fill_rect(brush, out_x, out_y, in_x - out_x, out_h)
+        graphics.fill_rectangle(brush, out_x, out_y, in_x - out_x, out_h)
     if out_y < in_y:
-        graphics.fill_rect(brush, out_x, out_y, out_w, in_y - out_y)
+        graphics.fill_rectangle(brush, out_x, out_y, out_w, in_y - out_y)
     if in_x + in_w < out_x + out_w:
-        graphics.fill_rect(brush, in_x + in_w, out_y, out_x + out_w - (in_x + in_w), out_h)
+        graphics.fill_rectangle(brush, in_x + in_w, out_y, out_x + out_w - (in_x + in_w), out_h)
     if in_y + in_h < out_y + out_h:
-        graphics.fill_rect(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
+        graphics.fill_rectangle(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
 
 
 def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui.MenuItem):
@@ -291,106 +293,218 @@ def set_lock():
     print(ac.get_results())
 
 
-@contextlib.contextmanager
-def _get_d2d1_dc_render_target() -> ContextManager[Optional[ctyped.interface.ID2D1DCRenderTarget]]:
-    with ctyped.init_com(ctyped.interface.ID2D1Factory, False) as factory, ctyped.init_com(
-            ctyped.interface.ID2D1DCRenderTarget, False) as target:
-        p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
-        if ctyped.macro.SUCCEEDED(ctyped.lib.D2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
-                factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
-                    ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
-            yield target
-            return
-    yield
+def _dwrite_font():
+    bitmap = gdiplus.Bitmap.from_dimension(100, 100)
+    with utils.get_d2d1_dc_render_target() as target, ctyped.init_com(
+            ctyped.interface.IDWriteFactory, False) as factory, ctyped.init_com(
+        ctyped.interface.IDWriteTextFormat, False) as text_format, ctyped.init_com(
+        ctyped.interface.ID2D1SolidColorBrush, False) as brush, gdiplus.Graphics.from_image(bitmap).get_managed_hdc() as hdc:
+        if target and ctyped.macro.SUCCEEDED(ctyped.lib.DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(
+                ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
+            factory.CreateTextFormat("Wingdings", None, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL,
+                                     ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
+            print(text_format.GetFontSize())
+            col = ctyped.struct.D3DCOLORVALUE(1, 0, 0, 1)
+            print(target.CreateSolidColorBrush(ctyped.byref(col), None, ctyped.byref(brush)))
+            rect2 = ctyped.struct.RECT(0, 0, 100, 100)
+            rect = ctyped.struct.D2D_RECT_F(0, 0, 100, 100)
+            target.BindDC(hdc, ctyped.byref(rect2))
+            text = 'Hello World \u0028'
+            target.BeginDraw()
+            target.DrawText(text, len(text), text_format, ctyped.byref(
+                rect), brush, ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
+            target.EndDraw(None, None)
+    bitmap.save('d:\\test.png')
 
 
-def _set_svg_doc_viewport(svg: ctyped.interface.ID2D1SvgDocument) -> bool:
-    with ctyped.init_com(ctyped.interface.ID2D1SvgElement, False) as root:
-        if ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
-            view_box = ctyped.struct.D2D1_SVG_VIEWBOX()
-            if root.IsAttributeSpecified('viewBox', None):
-                root.GetAttributeValue_('viewBox', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.VIEWBOX,
-                                        ctyped.byref(view_box), ctyped.sizeof(view_box))
-            elif root.IsAttributeSpecified('width', None) and root.IsAttributeSpecified('height', None):
-                buff = ctyped.type.FLOAT()
-                if ctyped.macro.SUCCEEDED(root.GetAttributeValue_('width', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT,
-                                                                  ctyped.byref(buff), ctyped.sizeof(buff))):
-                    view_box.width = buff.value
-                if ctyped.macro.SUCCEEDED(root.GetAttributeValue_('height', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT,
-                                                                  ctyped.byref(buff), ctyped.sizeof(buff))):
-                    view_box.height = buff.value
-            if view_box.width and view_box.width:
-                return ctyped.macro.SUCCEEDED(svg.SetViewportSize(ctyped.struct.D2D_SIZE_F(view_box.width, view_box.height)))
-    return False
+PageAddress = TypeVar('PageAddress', bound=int)
+ThreadID = TypeVar('ThreadID', bound=int)
+FunctionAddress = TypeVar('FunctionAddress', bound=int)
 
 
-def _set_svg_doc_dimension(svg: ctyped.interface.ID2D1SvgDocument, width: float = 0, height: float = 0) -> bool:
-    with ctyped.init_com(ctyped.interface.ID2D1SvgElement, False) as root:
-        if set_ := ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
-            buff = ctyped.type.FLOAT()
-            ref = ctyped.byref(buff)
-            sz = ctyped.sizeof(buff)
-            if width:
-                buff.value = width
-                set_ = ctyped.macro.SUCCEEDED(root.SetAttributeValue_('width', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT, ref, sz))
-            if height:
-                buff.value = height
-                set_ = ctyped.macro.SUCCEEDED(root.SetAttributeValue_('height', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT, ref, sz)) and set_
-    return set_
+class Thread(ctyped.type.HANDLE):
+    @classmethod
+    def create_remote(cls, proc, target: FunctionAddress, arg: Optional[int] = None, suspended: bool = False) -> Thread:
+        return cls(ctyped.lib.Kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(
+            target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
+
+    def set_priority(self, priority: int) -> bool:
+        return bool(ctyped.lib.Kernel32.SetThreadPriority(self, priority))
+
+    def set_priority_boost(self, boost: bool = True) -> bool:
+        return bool(ctyped.lib.Kernel32.SetThreadPriorityBoost(self, not boost))
+
+    def get_priority_boost(self) -> Optional[bool]:
+        boost = ctyped.type.BOOL()
+        if ctyped.lib.Kernel32.GetThreadPriorityBoost(self, ctyped.byref(boost)):
+            return not boost.value
+
+    def get_priority(self) -> int:
+        return ctyped.lib.Kernel32.GetThreadPriority(self)
+
+    def terminate(self, exit_code: int) -> bool:
+        return bool(ctyped.lib.Kernel32.TerminateThread(self, exit_code))
+
+    def get_exit_code(self) -> Optional[int]:
+        exit_code = ctyped.type.DWORD()
+        if ctyped.lib.Kernel32.GetExitCodeThread(self, ctyped.byref(exit_code)):
+            return exit_code.value
+
+    def suspend(self) -> bool:
+        return ctyped.lib.Kernel32.SuspendThread(self) != -1
+
+    def resume(self) -> bool:
+        return ctyped.lib.Kernel32.ResumeThread(self) != -1
+
+    def join(self, timeout: int = ctyped.const.INFINITE) -> bool:
+        return ctyped.const.WAIT_OBJECT_0 == ctyped.lib.Kernel32.WaitForSingleObject(self, timeout)
 
 
-def open_svg(path: str, width: int = 512, height: int = 512) -> Optional[gdiplus.Bitmap]:
-    with _get_d2d1_dc_render_target() as target:
-        if target:
-            with _open_file_stream(path) as stream, ctyped.cast_com(
-                    target, ctyped.interface.ID2D1DeviceContext5) as context:
-                if stream and context:
-                    with ctyped.init_com(ctyped.interface.ID2D1SvgDocument, False) as svg:
-                        if ctyped.macro.SUCCEEDED(context.CreateSvgDocument(
-                                stream, ctyped.struct.D2D_SIZE_F(width, height), ctyped.byref(svg))):
-                            _set_svg_doc_viewport(svg)
-                            _set_svg_doc_dimension(svg, width, height)
-                            bitmap = gdiplus.Bitmap.from_dimension(width, height, ctyped.const.PixelFormat32bppARGB)
-                            with bitmap.get_graphics().get_hdc() as hdc:
-                                if ctyped.macro.SUCCEEDED(target.BindDC(hdc, ctyped.byref(
-                                        ctyped.struct.RECT(right=width, bottom=height)))):
-                                    target.BeginDraw()
-                                    context.DrawSvgDocument(svg)
-                                    if ctyped.macro.SUCCEEDED(target.EndDraw(None, None)):
-                                        return bitmap
+class RemoteProcess:
+    def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
+        self._handle = ctyped.lib.Kernel32.OpenProcess(access, False, pid)
+        self._libs_remote = {}
+        self._libs_local = {}
+
+    def alloc_mem(self, size: int, permission: int = ctyped.const.PAGE_READONLY) -> PageAddress:
+        return ctyped.lib.Kernel32.VirtualAllocEx(self._handle, None, size, ctyped.const.MEM_COMMIT, permission)
+
+    def free_mem(self, addr: PageAddress) -> bool:
+        return bool(ctyped.lib.Kernel32.VirtualFreeEx(self._handle, addr, 0, ctyped.const.MEM_RELEASE))
+
+    def read_mem(self, addr: PageAddress, size: int):
+        buff = (ctyped.type.c_byte * size)()
+        if ctyped.lib.Kernel32.ReadProcessMemory(self._handle, addr, ctyped.addressof(buff), size, None):
+            return buff
+
+    def write_mem(self, addr: PageAddress, data: bytes | str, size: Optional[int] = None) -> bool:
+        if size is None:
+            size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(data, (
+                str)) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
+        return bool(ctyped.lib.Kernel32.WriteProcessMemory(self._handle, addr, data, size, None))
+
+    def load_lib(self, lib) -> bool:
+        lib_path = ctyped.get_lib_path(lib).encode() + b'\0'
+        arg_addr = self.alloc_mem(len(lib_path), ctyped.const.PAGE_EXECUTE_READWRITE)
+        if arg_addr:
+            if self.write_mem(arg_addr, lib_path) and (thread := Thread.create_remote(
+                    self._handle, ctyped.addressof_func(ctyped.lib.Kernel32.LoadLibraryA), arg_addr)):
+                # print(ctyped.cast(self.read_mem(arg_addr, len(lib_path)), ctyped.type.LPSTR).value)
+                thread.join()
+                if lib_remote := thread.get_exit_code():
+                    self._libs_remote[lib] = lib_remote
+                    self._libs_local[lib] = ctyped.lib.Kernel32.GetModuleHandleA(lib_path)
+            self.free_mem(arg_addr)
+        return bool(self._libs_remote.get(lib) and self._libs_local.get(lib))
+
+    def unload_lib(self, lib) -> bool:
+        if (lib_remote := self._libs_remote.get(lib)) and ctyped.lib.Kernel32.FreeLibrary(lib_remote):
+            del self._libs_remote[lib]
+            return True
+        return False
+
+    def get_remote_func(self, func: Callable, lib) -> FunctionAddress:
+        lib_local = self._libs_local[lib]
+        return self._libs_remote[lib] + ctyped.lib.Kernel32.GetProcAddress(
+            lib_local, func.__name__.encode()) - lib_local
+
+    def call_func(self, func: FunctionAddress, arg: Optional[int] = None, wait: bool = True) -> Thread:
+        thread = Thread.create_remote(self._handle, func, arg)
+        if wait:
+            thread.join()
+        return thread
 
 
-@contextlib.contextmanager
-def _open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> ContextManager[Optional[ctyped.interface.IStream]]:
-    with ctyped.init_com(ctyped.interface.IStream, False) as stream:
-        if ctyped.macro.SUCCEEDED(ctyped.lib.Shlwapi.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
-            yield stream
-            return
-    yield
+code = r'''import ctypes
+import sys
+pid = ctypes.windll.kernel32.GetCurrentProcessId()
+ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})\n{sys.path}', 'Hello from Python', 0x1000)'''
+sys_path = ';'.join(sys.path)
+
+
+def _test():
+    # ctyped.lib.Python.PyRun_SimpleString(code.encode())
+    name = 'Progman'
+
+    # hwnd = ctyped.lib.User32.FindWindowW(name, None)
+    pid = ctyped.type.DWORD(43820)
+    # ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
+    print(pid)
+    proc = RemoteProcess(pid.value)
+    print(proc.load_lib(ctyped.lib.Python))
+
+    # multi args doesn't work [only first arg is loaded in register]
+    # proc.load_lib(ctyped.lib.Kernel32)
+    # class Args(ctypes.Structure):
+    #     _pack_ = 1
+    #     _fields_ = (('dwFreq', ctyped.type.DWORD),
+    #                 ('dwDuration', ctyped.type.DWORD))
+    # args = Args()
+    # args.dwFreq = 750
+    # args.dwDuration = 300
+    # arg_addr = proc.alloc_mem(ctyped.sizeof(Args), ctyped.const.PAGE_EXECUTE_READWRITE)
+    # if arg_addr:
+    #     print(ctyped.lib.Kernel32.WriteProcessMemory(proc._handle, arg_addr, ctyped.addressof(args), ctyped.sizeof(args), None))
+    #     obj = ctyped.cast(proc.read_mem(arg_addr, ctyped.sizeof(Args)), Args).contents
+    #     print(obj.dwFreq, obj.dwDuration)
+    #     # proc.write_mem(arg_addr, b_sys_path)
+    #     func_addr = proc.get_remote_func(ctyped.lib.Kernel32.Beep, ctyped.lib.Kernel32)
+    #     print(proc.call_func(func_addr, arg_addr).get_exit_code())
+    #     proc.free_mem(arg_addr)
+
+    print(sys_path)
+    arg_addr = proc.alloc_mem(len(sys_path) * 2, ctyped.const.PAGE_EXECUTE_READWRITE)
+    if arg_addr:
+        proc.write_mem(arg_addr, sys_path)
+        func_addr = proc.get_remote_func(ctyped.lib.Python.Py_SetPath, ctyped.lib.Python)
+        proc.call_func(func_addr, arg_addr)
+        proc.free_mem(arg_addr)
+
+    func_addr = proc.get_remote_func(ctyped.lib.Python.Py_InitializeEx, ctyped.lib.Python)
+    proc.call_func(func_addr, 0)
+
+    print(code)
+    b_code = code.encode() + b'\0'
+    arg_addr = proc.alloc_mem(len(b_code), ctyped.const.PAGE_EXECUTE_READWRITE)
+    if arg_addr:
+        proc.write_mem(arg_addr, b_code)
+        func_addr = proc.get_remote_func(ctyped.lib.Python.PyRun_SimpleString, ctyped.lib.Python)
+        print(proc.call_func(func_addr, arg_addr).get_exit_code())
+        proc.free_mem(arg_addr)
+
+    func_addr = proc.get_remote_func(ctyped.lib.Python.Py_FinalizeEx, ctyped.lib.Python)
+    print(proc.call_func(func_addr).get_exit_code())
+    proc.unload_lib(ctyped.lib.Python)
 
 
 if __name__ == '__main__':
-    _test_gui()
-    # bmp = open_svg(r'D:\Downloads\svg.svg')
-    # if bmp:
-    #     bmp.save(r'D:\svg.png')
+    _test()
+
+    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS32, 'OptionalHeader'))
+    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER32, 'SizeOfImage'))
+    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER32, 'DataDirectory'))
+    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS64, 'OptionalHeader'))
+    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER64, 'SizeOfImage'))
+    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER64, 'DataDirectory'))
+
+    # _test_gui()
     exit()
 
     ctyped.THREADED_COM = True
 
-    path = r'D:\MMDs\洛天依  -  倾杯.mp4'
+    path_ = r'D:\MMDs\洛天依  -  倾杯.mp4'
     path2 = r'D:\test.mp4'
-    op = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path, ctyped.enum.Windows.Storage.FileAccessMode.Read)
+    op = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path_, ctyped.enum.Windows.Storage.FileAccessMode.Read)
     event = threading.Event()
 
 
-    def handle(*_):
+    def handler(*_):
         event.set()
         print(*_)
         return 0
 
 
-    op.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handle)
+    op.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handler)
     event.wait()
     in_stream = op.get_results()
     print(in_stream.size)
@@ -398,7 +512,7 @@ if __name__ == '__main__':
     open(path2, 'w').close()
     op_out = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path2, ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite)
     event.clear()
-    op_out.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handle)
+    op_out.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handler)
     event.wait()
     out_stream = op_out.get_results()
 
@@ -411,7 +525,7 @@ if __name__ == '__main__':
     op_copy = winrt.Windows.Storage.Streams.RandomAccessStream.copy_async(in_stream, out_stream)
     event.clear()
     op_copy.progress = winrt.Windows.Foundation.AsyncOperationProgressHandlerUINT64UINT64.create_instance(progress)
-    op_copy.completed = winrt.Windows.Foundation.AsyncOperationWithProgressCompletedHandlerUINT64UINT64.create_instance(handle)
+    op_copy.completed = winrt.Windows.Foundation.AsyncOperationWithProgressCompletedHandlerUINT64UINT64.create_instance(handler)
     event.wait()
 
     in_stream.close()

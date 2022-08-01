@@ -1603,15 +1603,16 @@ class StringDigitSubstitute(_Enum):
 
 
 class StringFormatFlags(_Enum):
-    DirectionRightToLeft = 1
-    DirectionVertical = 2
-    NoFitBlackBox = 4
-    DisplayFormatControl = 32
-    NoFontFallback = 1024
-    MeasureTrailingSpaces = 2048
-    NoWrap = 4096
-    LineLimit = 8192
-    NoClip = 16384
+    DirectionRightToLeft = 0x00000001
+    DirectionVertical = 0x00000002
+    NoFitBlackBox = 0x00000004
+    DisplayFormatControl = 0x00000020
+    NoFontFallback = 0x00000400
+    MeasureTrailingSpaces = 0x00000800
+    NoWrap = 0x00001000
+    LineLimit = 0x00002000
+    NoClip = 0x00004000
+    BypassGDI = 0x80000000
 
 
 class StringTrimming(_Enum):
@@ -1996,26 +1997,6 @@ class DXGI_COLOR_SPACE_TYPE(_Enum):
     YCBCR_STUDIO_G24_LEFT_P2020 = _AUTO
     YCBCR_STUDIO_G24_TOPLEFT_P2020 = _AUTO
     CUSTOM = 0xFFFFFFFF
-
-
-# noinspection PyPep8Naming
-class DWRITE_MEASURING_MODE(_Enum):
-    NATURAL = _AUTO
-    GDI_CLASSIC = _AUTO
-    GDI_NATURAL = _AUTO
-
-
-# noinspection PyPep8Naming
-class DWRITE_GLYPH_IMAGE_FORMATS(_Enum):
-    NONE = 0x00000000
-    TRUETYPE = 0x00000001
-    CFF = 0x00000002
-    COLR = 0x00000004
-    SVG = 0x00000008
-    PNG = 0x00000010
-    JPEG = 0x00000020
-    TIFF = 0x00000040
-    PREMULTIPLIED_B8G8R8A8 = 0x00000080
 
 
 # noinspection PyPep8Naming
@@ -2568,6 +2549,136 @@ class D2D1_SVG_ATTRIBUTE_POD_TYPE(_Enum):
     VIEWBOX = _AUTO
     LENGTH = _AUTO
     FORCE_DWORD = 0xffffffff
+
+
+# noinspection PyPep8Naming
+class DWRITE_FACTORY_TYPE(_Enum):
+    SHARED = _AUTO
+    ISOLATED = _AUTO
+
+
+# noinspection PyPep8Naming
+class DWRITE_MEASURING_MODE(_Enum):
+    NATURAL = _AUTO
+    GDI_CLASSIC = _AUTO
+    GDI_NATURAL = _AUTO
+
+
+# noinspection PyPep8Naming
+class DWRITE_GLYPH_IMAGE_FORMATS(_Enum):
+    NONE = 0x00000000
+    TRUETYPE = 0x00000001
+    CFF = 0x00000002
+    COLR = 0x00000004
+    SVG = 0x00000008
+    PNG = 0x00000010
+    JPEG = 0x00000020
+    TIFF = 0x00000040
+    PREMULTIPLIED_B8G8R8A8 = 0x00000080
+
+
+# noinspection PyPep8Naming
+class DWRITE_FONT_FILE_TYPE(_Enum):
+    UNKNOWN = _AUTO
+    CFF = _AUTO
+    TRUETYPE = _AUTO
+    OPENTYPE_COLLECTION = 3
+    TYPE1_PFM = _AUTO
+    TYPE1_PFB = _AUTO
+    VECTOR = _AUTO
+    BITMAP = _AUTO
+    TRUETYPE_COLLECTION = OPENTYPE_COLLECTION
+
+
+# noinspection PyPep8Naming
+class DWRITE_FONT_FACE_TYPE(_Enum):
+    CFF = _AUTO
+    TRUETYPE = _AUTO
+    OPENTYPE_COLLECTION = 2
+    TYPE1 = _AUTO
+    VECTOR = _AUTO
+    BITMAP = _AUTO
+    UNKNOWN = _AUTO
+    RAW_CFF = _AUTO
+    TRUETYPE_COLLECTION = OPENTYPE_COLLECTION
+
+
+# noinspection PyPep8Naming
+class DWRITE_FONT_SIMULATIONS(_Enum):
+    NONE = 0x0000
+    BOLD = 0x0001
+    OBLIQUE = 0x0002
+
+
+# noinspection PyPep8Naming
+class DWRITE_FONT_WEIGHT(_Enum):
+    THIN = 100
+    EXTRA_LIGHT = 200
+    ULTRA_LIGHT = 200
+    LIGHT = 300
+    SEMI_LIGHT = 350
+    NORMAL = 400
+    REGULAR = 400
+    MEDIUM = 500
+    DEMI_BOLD = 600
+    SEMI_BOLD = 600
+    BOLD = 700
+    EXTRA_BOLD = 800
+    ULTRA_BOLD = 800
+    BLACK = 900
+    HEAVY = 900
+    EXTRA_BLACK = 950
+    ULTRA_BLACK = 950
+
+
+# noinspection PyPep8Naming
+class DWRITE_FONT_STRETCH(_Enum):
+    UNDEFINED = _AUTO
+    ULTRA_CONDENSED = _AUTO
+    EXTRA_CONDENSED = _AUTO
+    CONDENSED = _AUTO
+    NORMAL = _AUTO
+    MEDIUM = 5
+    SEMI_EXPANDED = _AUTO
+    STRETCH_EXPANDED = _AUTO
+    EXTRA_EXPANDED = _AUTO
+    ULTRA_EXPANDED = _AUTO
+
+
+# noinspection PyPep8Naming
+class DWRITE_FONT_STYLE(_Enum):
+    NORMAL = _AUTO
+    OBLIQUE = _AUTO
+    ITALIC = _AUTO
+
+
+# noinspection PyPep8Naming
+class DWRITE_INFORMATIONAL_STRING_ID(_Enum):
+    NONE = _AUTO
+    COPYRIGHT_NOTICE = _AUTO
+    VERSION_STRINGS = _AUTO
+    TRADEMARK = _AUTO
+    MANUFACTURER = _AUTO
+    DESIGNER = _AUTO
+    DESIGNER_URL = _AUTO
+    DESCRIPTION = _AUTO
+    FONT_VENDOR_URL = _AUTO
+    LICENSE_DESCRIPTION = _AUTO
+    LICENSE_INFO_URL = _AUTO
+    WIN32_FAMILY_NAMES = _AUTO
+    WIN32_SUBFAMILY_NAMES = _AUTO
+    WIN32_TYPOGRAPHIC_FAMILY_NAMES = 13
+    WIN32_TYPOGRAPHIC_SUBFAMILY_NAMES = 14
+    SAMPLE_TEXT = _AUTO
+    FULL_NAME = _AUTO
+    POSTSCRIPT_NAME = _AUTO
+    POSTSCRIPT_CID_NAME = _AUTO
+    WEIGHT_STRETCH_STYLE_FAMILY_NAME = 19
+    DESIGN_SCRIPT_LANGUAGE_TAG = _AUTO
+    SUPPORTED_SCRIPT_LANGUAGE_TAGS = _AUTO
+    PREFERRED_FAMILY_NAMES = WIN32_TYPOGRAPHIC_FAMILY_NAMES
+    PREFERRED_SUBFAMILY_NAMES = WIN32_TYPOGRAPHIC_SUBFAMILY_NAMES
+    WWS_FAMILY_NAME = WEIGHT_STRETCH_STYLE_FAMILY_NAME
 
 
 GpStatus = Status

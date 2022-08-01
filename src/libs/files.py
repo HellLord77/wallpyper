@@ -1,4 +1,4 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import contextlib
 import filecmp
@@ -14,8 +14,8 @@ POLL_INTERVAL = 0.1
 
 
 class File:
-    def __init__(self, url: str, name: str, size: Optional[int] = None, md5: Optional[bytes] = None,
-                 sha256: Optional[bytes] = None):
+    def __init__(self, url: str, name: str, size: Optional[int] = None,
+                 md5: Optional[bytes] = None, sha256: Optional[bytes] = None):
         self.url = url
         self.name = name
         self.size = size
@@ -33,10 +33,6 @@ class File:
 
     def __hash__(self):
         return hash(str(self))
-
-
-def join(base: str, *children: str) -> str:
-    return os.path.realpath(os.path.join(base, *children))
 
 
 def replace_ext(path: str, ext: str) -> str:
@@ -63,35 +59,31 @@ def get_size(path: str) -> int:
     return size
 
 
-def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
-                callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
-                kwargs: Optional[Mapping[str, Any]] = None):
-    read = src.read
-    write = dst.write
+def copyfileobj(src: IO, dst: IO, size: Optional[int] = None,
+                chunk_size: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
+                args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
     size = size or sys.maxsize
     chunk_size = chunk_size or CHUNK
     args = () if args is None else args
     kwargs = {} if kwargs is None else kwargs
     ratio = 0
-    chunk = read(chunk_size)
-    while chunk:
-        write(chunk)
+    while chunk := src.read(chunk_size):
+        dst.write(chunk)
         ratio += len(chunk) / size
-        if callback:
-            callback(round(ratio * 100), *args, **kwargs)
-        chunk = read(chunk_size)
+        if query_callback and not query_callback(round(ratio * 100), *args, **kwargs):
+            break
 
 
-def copy(src_path: str, dst_path: str, chunk_size: Optional[int] = None,
-         callback: Optional[Callable[[int, ...], Any]] = None, args: Optional[Iterable] = None,
-         kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def copy(src_path: str, dst_path: str,
+         chunk_size: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
+         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if os.path.exists(src_path):
         if not os.path.exists(dst_path):
             with contextlib.suppress(PermissionError):
                 with open(src_path, 'rb') as src:
                     os.makedirs(os.path.dirname(dst_path), exist_ok=True)
                     with open(dst_path, 'wb') as dst:
-                        copyfileobj(src, dst, os.path.getsize(src_path), chunk_size, callback, args, kwargs)
+                        copyfileobj(src, dst, os.path.getsize(src_path), chunk_size, query_callback, args, kwargs)
         return os.path.exists(dst_path) and filecmp.cmp(src_path, dst_path)
     return False
 
@@ -119,7 +111,10 @@ def is_empty_dir(path: str, recursive: bool = False) -> bool:
 def trim_dir(path: str, target: int) -> bool:
     trimmed = False
     paths = glob.glob(os.path.join(path, '**'), recursive=True)
-    paths.sort(key=os.path.getctime, reverse=True)
+    try:
+        paths.sort(key=os.path.getctime, reverse=True)
+    except FileNotFoundError:
+        return False
     itt = iter_files(paths)
     size = 0
     for path in itt:

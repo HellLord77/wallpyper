@@ -29,8 +29,8 @@ import win32
 
 ALL_DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
-RES_TEMPLATE = files.join(os.path.dirname(__file__), 'res', '{}')
-TEMP_DIR = win32.wallpaper.TEMP_DIR = paths.join(tempfile.gettempdir(), consts.NAME)
+RES_TEMPLATE = os.path.realpath(os.path.join(os.path.dirname(__file__), 'res', '{}'))
+TEMP_DIR = win32.wallpaper.TEMP_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, consts.NAME, f'{consts.NAME}.ini')
 LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
@@ -58,7 +58,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_SAVE: False,
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
-    consts.CONFIG_DIR: files.join(win32.PICTURES_DIR, consts.NAME),
+    consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_STYLE: win32.wallpaper.Style[win32.wallpaper.Style.FILL],
     consts.CONFIG_ROTATE: win32.wallpaper.Rotate[win32.wallpaper.Rotate.NONE],
     consts.CONFIG_FLIP: win32.wallpaper.Flip[win32.wallpaper.Flip.NONE],
@@ -161,7 +161,7 @@ _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[int, ...], bool]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
-    temp_path = files.join(TEMP_DIR, wallpaper.name)
+    temp_path = os.path.join(TEMP_DIR, wallpaper.name)
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
                             chunk_count=20, query_callback=query_callback, args=args, kwargs=kwargs):
@@ -208,7 +208,7 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
 
 @utils.singleton_run
 def save_wallpaper(path: str) -> bool:
-    return files.copy(path, files.join(CONFIG[consts.CONFIG_DIR], os.path.basename(path)))
+    return files.copy(path, os.path.join(CONFIG[consts.CONFIG_DIR], os.path.basename(path)))
 
 
 @utils.singleton_run
@@ -301,33 +301,48 @@ def _update_recent(item: win32.gui.MenuItem):
             else:
                 with gui.set_main_menu(gui.Menu()) as submenu:
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
-                                      on_thread=False, change_state=False)
+                                      on_thread=False, change_state=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
-                        win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK))
-                    gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click,
-                                      args=(save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE))
+                        win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_SET_LOCK))
+                    gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click, args=(
+                        save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_SAVE))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
-                        win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN))
+                        win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_OPEN))
                     if consts.FEATURE_OPEN_WITH:
                         gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
-                            win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH))
+                            win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH)).set_icon(
+                            RES_TEMPLATE.format(consts.RES_OPEN_WITH))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
-                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,))
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,))
+                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click, args=(
-                        win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH))
+                        win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_COPY_PATH))
                     gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_click, args=(
-                        win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY))
-                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,))
+                        win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_COPY))
+                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,)).set_icon(
+                        RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
-                    gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(wallpaper.url,))
-                    gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(wallpaper.url,))
+                    gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(
+                        wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
+                    gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(
+                        wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_BING))
                     if consts.FEATURE_GOOGLE_SEARCH:
                         gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click, args=(
-                            search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,))
-            menu.insert_item(index, label, submenu=submenu).set_uid(wallpaper.url)
+                            search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,)).set_icon(
+                            RES_TEMPLATE.format(consts.RES_SEARCH))
+            item_ = menu.insert_item(index, label, submenu=submenu)
+            item_.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
+                TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_IMAGE else gui.MenuItemTooltipIcon.NONE)
+            item_.set_uid(wallpaper.url)
     for uid, item_ in items.items():
         if uid and uid not in RECENT:
             menu.remove_item(item_)
@@ -401,7 +416,7 @@ def _get_launch_args() -> list[str]:
 
 
 def _create_shortcut(dir_: str) -> bool:
-    return files.make_dir(dir_) and win32.create_shortcut(files.join(
+    return files.make_dir(dir_) and win32.create_shortcut(os.path.join(
         dir_, consts.NAME), *_get_launch_args(), icon_path=RES_TEMPLATE.format(consts.RES_ICON) * (
         not pyinstall.FROZEN), comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
 
@@ -419,7 +434,7 @@ def on_remove_shortcuts() -> bool:
 
 
 def on_start_shortcut() -> bool:
-    if not (created := _create_shortcut(files.join(win32.START_DIR, consts.NAME))):
+    if not (created := _create_shortcut(os.path.join(win32.START_DIR, consts.NAME))):
         notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
     return created
 
@@ -510,20 +525,16 @@ def apply_save_config(save: bool) -> bool:
     return save_config() if save else files.remove(CONFIG_PATH)
 
 
-def _is_running() -> bool:
-    return (change_wallpaper.is_running() or save_wallpaper.is_running() or
-            search_wallpaper.is_running() or pin_to_start.is_running())
-
-
 @timer.on_thread
 def on_quit():
     TIMER.stop()
     gui.disable_events()
-    if _is_running():
+    max_threads = 1 + (threading.current_thread() is not threading.main_thread())
+    if threading.active_count() > max_threads:
         gui.animate(STRINGS.STATUS_QUIT).__enter__()
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + win32.get_max_shutdown_time()
-        while end_time > time.time() and _is_running():
+        while end_time > time.time() and threading.active_count() > max_threads:
             time.sleep(consts.POLL_INTERVAL)
     gui.stop_loop()
 
@@ -542,7 +553,8 @@ def create_menu():  # TODO slideshow (smaller timer)
 
     TIMER.__init__(0, on_change, (item_change.enable, item_recent, query_callback))
     gui.add_separator(menu=item_recent)
-    gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(item_recent.enable,), menu=item_recent)
+    gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
+        item_recent.enable,), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
     _update_recent(item_recent)
     gui.set_on_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
     gui.add_separator()
@@ -550,25 +562,39 @@ def create_menu():  # TODO slideshow (smaller timer)
     on_module(CONFIG[consts.CONFIG_MODULE], item_module)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS, icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
-        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_LINKS)):
-            gui.add_menu_item(STRINGS.LABEL_DESKTOP, on_click=on_shortcut)
-            gui.add_menu_item(STRINGS.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts)
+        item_links = gui.add_submenu(STRINGS.MENU_LINKS)
+        item_links.set_icon(RES_TEMPLATE.format(consts.RES_LINKS))
+        with gui.set_main_menu(item_links):
+            gui.add_menu_item(STRINGS.LABEL_DESKTOP, on_click=on_shortcut).set_icon(
+                RES_TEMPLATE.format(consts.RES_LINK))
+            gui.add_menu_item(STRINGS.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts).set_icon(
+                RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
-            gui.add_menu_item(STRINGS.LABEL_START_MENU, on_click=on_start_shortcut)
-            gui.add_menu_item(STRINGS.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts)
+            gui.add_menu_item(STRINGS.LABEL_START_MENU, on_click=on_start_shortcut).set_icon(
+                RES_TEMPLATE.format(consts.RES_LINK))
+            gui.add_menu_item(STRINGS.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts).set_icon(
+                RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
-            gui.add_menu_item(STRINGS.LABEL_PIN, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_pin)
-            gui.add_menu_item(STRINGS.LABEL_UNPIN, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_unpin)
+            gui.add_menu_item(
+                STRINGS.LABEL_PIN, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_pin).set_icon(
+                RES_TEMPLATE.format(consts.RES_PIN))
+            gui.add_menu_item(
+                STRINGS.LABEL_UNPIN, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_unpin).set_icon(
+                RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_separator()
-            unpin_enable = gui.add_menu_item(STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON,
-                                             on_click=on_unpin_start).enable
-            gui.add_menu_item(STRINGS.LABEL_PIN_START, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON,
-                              on_click=on_pin_start, menu_args=(gui.Method.ENABLE,),
-                              args=(unpin_enable,), change_state=False, position=9)
-        gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache)
-        gui.add_menu_item(STRINGS.LABEL_RESET, on_click=on_reset)
-        gui.add_menu_item(STRINGS.LABEL_RESTART, enable=bool(multiprocessing.parent_process()), on_click=on_restart)
-        gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about)
+            item_unpin_start = gui.add_menu_item(
+                STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_unpin_start)
+            item_unpin_start.set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
+            gui.add_menu_item(
+                STRINGS.LABEL_PIN_START, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_pin_start,
+                menu_args=(gui.Method.ENABLE,), args=(item_unpin_start.enable,), change_state=False, position=9).set_icon(
+                RES_TEMPLATE.format(consts.RES_PIN))
+        gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
+            RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
+        gui.add_menu_item(STRINGS.LABEL_RESET, on_click=on_reset).set_icon(RES_TEMPLATE.format(consts.RES_RESET))
+        gui.add_menu_item(STRINGS.LABEL_RESTART, enable=bool(
+            multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
+        gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_AUTO)):
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE,
@@ -647,8 +673,10 @@ def stop():
 
 
 def main() -> NoReturn:
+    print('Start')
     start()
     stop()
+    print('Stop')
     sys.exit(consts.EX_TEMPFAIL * RESTART.is_set())
 
 

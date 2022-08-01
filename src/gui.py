@@ -20,6 +20,7 @@ GuiEvent = win32.gui.GuiEvent
 SystemTrayIcon = win32.gui.SystemTrayIcon
 MenuItemType = win32.gui.MenuItemType
 MenuItemImage = win32.gui.MenuItemImage
+MenuItemTooltipIcon = win32.gui.MenuItemTooltipIcon
 Gui = win32.gui.Gui
 SystemTray = win32.gui.SystemTray
 Menu = win32.gui.Menu

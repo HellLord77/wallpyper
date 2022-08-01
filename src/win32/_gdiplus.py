@@ -1,13 +1,23 @@
 from __future__ import annotations as _
 
 import contextlib
+import math
 import os
+import string as _string
 from typing import Callable, ContextManager, Generator, Optional
 
 import libs.ctyped as ctyped
+from . import _utils
 
 _GdiPlus = ctyped.lib.GdiPlus
 _GpStatus = ctyped.enum.GpStatus
+
+
+def _get_obj(float_obj: Callable, int_obj: Callable, *numbers: Optional[float]) -> Callable:
+    for number in numbers:
+        if isinstance(number, float):
+            return float_obj
+    return int_obj
 
 
 class _GdiplusToken(ctyped.type.ULONG_PTR):
@@ -49,9 +59,6 @@ class _GdiplusBase:
 
 
 class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
-    def _del(self):
-        _GdiPlus.GdipDeleteGraphics(self)
-
     @classmethod
     def from_hdc(cls, hdc: ctyped.type.HDC) -> Graphics:
         self = cls()
@@ -64,47 +71,224 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
         _GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
         return self
 
-    @staticmethod
-    def _get_func(float_func: Callable, int_func: Callable, *numbers: Optional[float]) -> Callable:
-        for number in numbers:
-            if isinstance(number, float):
-                return float_func
-        return int_func
+    def flush(self, intention: ctyped.enum.FlushIntention = ctyped.enum.FlushIntention.Flush) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipFlush(self, intention)
+
+    def get_hdc(self) -> Optional[ctyped.type.HDC]:
+        hdc = ctyped.type.HDC()
+        if _GpStatus.Ok == _GdiPlus.GdipGetDC(self, ctyped.byref(hdc)):
+            return hdc
+
+    def release_hdc(self, hdc: ctyped.type.HDC) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipReleaseDC(self, hdc)
+
+    def set_rendering_origin(self, x: int, y: int) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetRenderingOrigin(self, x, y)
+
+    def get_rendering_origin(self) -> Optional[tuple[int, int]]:
+        x = ctyped.type.INT()
+        y = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetRenderingOrigin(self, ctyped.byref(x), ctyped.byref(y)):
+            return x.value, y.value
+
+    def set_composting_mode(self, mode: ctyped.enum.CompositingMode) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetCompositingMode(self, mode)
+
+    def get_composting_mode(self) -> Optional[ctyped.enum.CompositingMode]:
+        mode = ctyped.enum.CompositingMode()
+        if _GpStatus.Ok == _GdiPlus.GdipGetCompositingMode(self, ctyped.byref(mode)):
+            return mode
+
+    def set_compositing_quality(self, quality: ctyped.enum.CompositingQuality) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetCompositingQuality(self, quality)
+
+    def get_compositing_quality(self) -> Optional[ctyped.enum.CompositingQuality]:
+        quality = ctyped.enum.CompositingQuality()
+        if _GpStatus.Ok == _GdiPlus.GdipGetCompositingQuality(self, ctyped.byref(quality)):
+            return quality
+
+    def set_text_rendering_hint(self, mode: ctyped.enum.TextRenderingHint) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetTextRenderingHint(self, mode)
+
+    def get_text_rendering_hint(self) -> Optional[ctyped.enum.TextRenderingHint]:
+        mode = ctyped.enum.TextRenderingHint()
+        if _GpStatus.Ok == _GdiPlus.GdipGetTextRenderingHint(self, ctyped.byref(mode)):
+            return mode
+
+    def set_text_contrast(self, contrast: int) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetTextContrast(self, contrast)
+
+    def get_text_contrast(self) -> Optional[int]:
+        contrast = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetTextContrast(self, ctyped.byref(contrast)):
+            return contrast.value
+
+    def get_interpolation_mode(self) -> Optional[ctyped.enum.InterpolationMode]:
+        mode = ctyped.enum.InterpolationMode()
+        if _GpStatus.Ok == _GdiPlus.GdipGetInterpolationMode(self, ctyped.byref(mode)):
+            return mode
+
+    def set_interpolation_mode(self, mode: ctyped.enum.InterpolationMode) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetInterpolationMode(self, mode)
+
+    def get_smoothing_mode(self) -> Optional[ctyped.enum.SmoothingMode]:
+        mode = ctyped.enum.SmoothingMode()
+        if _GpStatus.Ok == _GdiPlus.GdipGetSmoothingMode(self, ctyped.byref(mode)):
+            return mode
+
+    def set_smoothing_mode(self, mode: ctyped.enum.SmoothingMode) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetSmoothingMode(self, mode)
+
+    def get_pixel_offset_mode(self) -> Optional[ctyped.enum.PixelOffsetMode]:
+        mode = ctyped.enum.PixelOffsetMode()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPixelOffsetMode(self, ctyped.byref(mode)):
+            return mode
+
+    def set_pixel_offset_mode(self, mode: ctyped.enum.PixelOffsetMode) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPixelOffsetMode(self, mode)
+
+    def set_transform(self, matrix: ctyped.type.GpMatrix) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetWorldTransform(self, matrix)
+
+    def reset_transform(self) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipResetWorldTransform(self)
+
+    def multiply_transform(self, matrix: ctyped.type.GpMatrix,
+                           order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipMultiplyWorldTransform(self, matrix, order)
+
+    def translate_transform(self, dx: float, dy: float,
+                            order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipTranslateWorldTransform(self, dx, dy, order)
+
+    def scale_transform(self, sx: float, sy: float,
+                        order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipScaleWorldTransform(self, sx, sy, order)
+
+    def rotate_transform(self, angle: float,
+                         order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipRotateWorldTransform(self, angle, order)
+
+    def set_page_unit(self, unit: ctyped.enum.Unit) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPageUnit(self, unit)
+
+    def set_page_scale(self, scale: float) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPageScale(self, scale)
+
+    def get_page_unit(self) -> Optional[ctyped.enum.Unit]:
+        unit = ctyped.enum.Unit()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPageUnit(self, ctyped.byref(unit)):
+            return unit
+
+    def get_page_scale(self) -> Optional[float]:
+        scale = ctyped.type.FLOAT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPageScale(self, ctyped.byref(scale)):
+            return scale.value
 
     def get_dpi_x(self) -> Optional[float]:
-        dpi_x = ctyped.type.REAL()
-        if _GpStatus.Ok == _GdiPlus.GdipGetDpiX(self, ctyped.byref(dpi_x)):
-            return dpi_x.value
+        dpi = ctyped.type.FLOAT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetDpiX(self, ctyped.byref(dpi)):
+            return dpi.value
 
     def get_dpi_y(self) -> Optional[float]:
-        dpi_y = ctyped.type.REAL()
-        if _GpStatus.Ok == _GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi_y)):
-            return dpi_y.value
+        dpi = ctyped.type.FLOAT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetDpiY(self, ctyped.byref(dpi)):
+            return dpi.value
+
+    def get_nearest_color(self, color: ctyped.type.ARGB) -> Optional[Color]:
+        argb = ctyped.type.ARGB(color)
+        if _GpStatus.Ok == _GdiPlus.GdipGetNearestColor(self, ctyped.byref(argb)):
+            return Color(argb.value)
+
+    def draw_line(self, pen: ctyped.type.GpPen, x1: float, y1: float, x2: float, y2: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipDrawLine, _GdiPlus.GdipDrawLineI, x1, y1, x2, y2)(self, pen, x1, y1, x2, y2)
+
+    def draw_arc(self, pen: ctyped.type.GpPen, x: float, y: float, width: float, height: float,
+                 start_angle: float, sweep_angle: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawArc, _GdiPlus.GdipDrawArcI, x, y, width, height)(
+            self, pen, x, y, width, height, start_angle, sweep_angle)
+
+    def draw_bezier(self, pen: ctyped.type.GpPen, x1: float, y1: float, x2: float, y2: float,
+                    x3: float, y3: float, x4: float, y4: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipDrawBezier, _GdiPlus.GdipDrawBezierI, x1, y1, x2, y2, x3, y3, x4, y4)(
+            self, pen, x1, y1, x2, y2, x3, y3, x4, y4)
+
+    def draw_rectangle(self, pen: ctyped.type.GpPen, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawRectangle, _GdiPlus.GdipDrawRectangleI, x, y, width, height)(
+            self, pen, x, y, width, height)
+
+    def draw_ellipse(self, pen: ctyped.type.GpPen, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawEllipse, _GdiPlus.GdipDrawEllipseI, x, y, width, height)(
+            self, pen, x, y, width, height)
+
+    def draw_pie(self, pen: ctyped.type.GpPen, x: float, y: float, width: float, height: float,
+                 start_angle: float, sweep_angle: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawPie, _GdiPlus.GdipDrawPieI, x, y, width, height)(
+            self, pen, x, y, width, height, start_angle, sweep_angle)
+
+    def clear(self, color: ctyped.type.ARGB) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipGraphicsClear(self, color)
+
+    def fill_rectangle(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipFillRectangle, _GdiPlus.GdipFillRectangleI, x, y, width, height)(
+            self, brush, x, y, width, height)
+
+    def fill_ellipse(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipFillEllipse, _GdiPlus.GdipFillEllipseI, x, y, width, height)(
+            self, brush, x, y, width, height)
+
+    def fill_pie(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float,
+                 start_angle: float, sweep_angle: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipFillPie, _GdiPlus.GdipFillPieI, x, y, width, height)(
+            self, brush, x, y, width, height, start_angle, sweep_angle)
+
+    # noinspection PyShadowingBuiltins
+    def draw_string(self, string: str, font: ctyped.type.GpFont, brush: ctyped.type.GpBrush,
+                    x: float = 0, y: float = 0, width: float = 0, height: float = 0,
+                    format: Optional[ctyped.type.GpStringFormat] = None) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipDrawString(self, string, -1, font, ctyped.byref(
+            ctyped.struct.RectF(x, y, width, height)), format, brush)
+
+    # noinspection PyShadowingBuiltins
+    def measure_string(self, string: str, font: ctyped.type.GpFont, x: float = 0, y: float = 0, width: float = 0, height: float = 0,
+                       format: Optional[ctyped.type.GpStringFormat] = None) -> Optional[tuple[tuple[float, float, float, float], int, int]]:
+        rect = ctyped.struct.RectF()
+        codepoints = ctyped.type.INT()
+        lines = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipMeasureString(self, string, -1, font, ctyped.byref(ctyped.struct.RectF(
+                x, y, width, height)), format, ctyped.byref(rect), ctyped.byref(codepoints), ctyped.byref(lines)):
+            return (rect.X, rect.Y, rect.Width, rect.Height), codepoints.value, lines.value
+
+    # noinspection PyShadowingBuiltins
+    def measure_character_ranges(self, string: str, font: ctyped.type.GpFont, count: int, x: float = 0, y: float = 0,
+                                 width: float = ctyped.const.FLT_MAX, height: float = ctyped.const.FLT_MAX,
+                                 format: Optional[ctyped.type.GpStringFormat] = None) -> Optional[tuple[Region]]:
+        regions = tuple(Region.from_empty() for _ in range(count))
+        rect = ctyped.struct.RectF(x, y, width, height)
+        if _GpStatus.Ok == _GdiPlus.GdipMeasureCharacterRanges(
+                self, string, -1, font, ctyped.byref(rect), format, count, ctyped.array(*regions)):
+            return regions
+
+    def _del(self):
+        _GdiPlus.GdipDeleteGraphics(self)
 
     @contextlib.contextmanager
-    def get_hdc(self) -> ContextManager[ctyped.type.HDC]:
-        hdc = ctyped.type.HDC()
-        _GdiPlus.GdipGetDC(self, ctyped.byref(hdc))
+    def get_managed_hdc(self) -> ContextManager[ctyped.type.HDC]:
+        hdc = self.get_hdc()
         try:
             yield hdc
         finally:
-            _GdiPlus.GdipReleaseDC(self, hdc)
-
-    def set_scale(self, scale_x: float = 1, scale_y: float = 1) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipScaleWorldTransform(self, scale_x, scale_y, ctyped.enum.MatrixOrder.Prepend)
-
-    def set_interpolation(self, mode: ctyped.enum.InterpolationMode = ctyped.enum.InterpolationMode.Default) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipSetInterpolationMode(self, mode)
-
-    def set_pixel_offset(self, mode: ctyped.enum.PixelOffsetMode = ctyped.enum.PixelOffsetMode.Default) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipSetPixelOffsetMode(self, mode)
+            if hdc:
+                self.release_hdc(hdc)
 
     def draw_image(self, src: Image, x: float = 0, y: float = 0) -> bool:
-        return _GpStatus.Ok == self._get_func(_GdiPlus.GdipDrawImage, _GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawImage, _GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
 
     def draw_image_from_rect(self, src: Image, x: float = 0, y: float = 0, src_x: float = 0, src_y: float = 0,
                              src_w: Optional[float] = None, src_h: Optional[float] = None):
-        return _GpStatus.Ok == self._get_func(_GdiPlus.GdipDrawImagePointRect, _GdiPlus.GdipDrawImagePointRectI, x, y, src_x, src_y, src_w, src_h)(
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawImagePointRect, _GdiPlus.GdipDrawImagePointRectI, x, y, src_x, src_y, src_w, src_h)(
             self, src, x, y, src_x, src_y, src.get_width() if src_w is None else src_w, src.get_height() if src_h is None else src_h, ctyped.enum.GpUnit.Pixel)
 
     def draw_image_on_rect_from_rect(self, src: Image, x: float = 0, y: float = 0, w: Optional[float] = None,
@@ -114,81 +298,199 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
             src_w = src.get_width()
         if src_h is None:
             src_h = src.get_height()
-        image_attrs = ImageAttributes.from_color_matrix(color_matrix_from_alpha(alpha))
+        image_attrs = image_attributes_from_alpha(alpha)
         draw_abort = ctyped.type.DrawImageAbort()
-        return _GpStatus.Ok == self._get_func(_GdiPlus.GdipDrawImageRectRect, _GdiPlus.GdipDrawImageRectRectI, x, y,
-                                              w, h, src_x, src_y, src_w, src_h)(
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawImageRectRect, _GdiPlus.GdipDrawImageRectRectI, x, y,
+                                        w, h, src_x, src_y, src_w, src_h)(
             self, src, x, y, src_w if w is None else w, src_h if h is None else h,
             src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel, image_attrs, draw_abort, None)
 
-    def fill_rect(self, brush: ctyped.type.GpBrush, x: float, y: float, width: float, height: float) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipFillRectangle(self, brush, x, y, width, height)
-
-    def fill_rect_with_color(self, color: ctyped.type.ARGB, x: float, y: float, width: float, height: float) -> bool:
-        return self.fill_rect(SolidFill.from_color(color), x, y, width, height)
-
 
 class Brush(_GdiplusBase, ctyped.type.GpBrush):
+    @classmethod
+    def from_brush(cls, brush: ctyped.type.GpBrush) -> Brush:
+        self = cls()
+        _GdiPlus.GdipCloneBrush(brush, ctyped.byref(self))
+        return self
+
+    def get_type(self) -> Optional[ctyped.enum.BrushType]:
+        brush_type = ctyped.enum.BrushType()
+        if _GpStatus.Ok == _GdiPlus.GdipGetBrushType(self, ctyped.byref(brush_type)):
+            return brush_type
+
     def _del(self):
         _GdiPlus.GdipDeleteBrush(self)
 
-    def clone(self) -> Brush:
-        self_ = type(self)()
-        _GdiPlus.GdipCloneBrush(self, ctyped.byref(self_))
-        return self_
 
-    def get_type(self) -> ctyped.enum.GpBrushType:
-        brush_type = ctyped.enum.GpBrushType()
-        _GdiPlus.GdipGetBrushType(self, ctyped.byref(brush_type))
-        return brush_type
-
-
-class SolidFill(Brush, ctyped.type.GpSolidFill):
+class SolidBrush(Brush, ctyped.type.GpSolidFill):
     @classmethod
-    def from_color(cls, color: ctyped.type.ARGB) -> SolidFill:
+    def from_color(cls, color: ctyped.type.ARGB) -> SolidBrush:
         self = cls()
         _GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
         return self
 
-    def get_color(self) -> ctyped.type.ARGB:
-        color = ctyped.type.ARGB()
-        _GdiPlus.GdipGetSolidFillColor(self, ctyped.byref(color))
-        return color.value
+    def get_color(self) -> Optional[Color]:
+        argb = ctyped.type.ARGB()
+        if _GpStatus.Ok == _GdiPlus.GdipGetSolidFillColor(self, ctyped.byref(argb)):
+            return Color(argb.value)
 
-    def set_color(self, color: ctyped.type.ARGB):
-        _GdiPlus.GdipSetSolidFillColor(self, color)
+    def set_color(self, color: ctyped.type.ARGB) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetSolidFillColor(self, color)
 
 
 class Pen(_GdiplusBase, ctyped.type.GpPen):
+    @classmethod
+    def from_color(cls, color: ctyped.type.ARGB, width: float = 1, unit: ctyped.enum.GpUnit = ctyped.enum.GpUnit.Pixel) -> Pen:
+        self = cls()
+        _GdiPlus.GdipCreatePen1(color, width, unit, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_brush(cls, brush: ctyped.type.GpBrush, width: float = 1, unit: ctyped.enum.Unit = ctyped.enum.Unit.World) -> Pen:
+        self = cls()
+        _GdiPlus.GdipCreatePen2(brush, width, unit, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_pen(cls, pen: ctyped.type.GpPen) -> Pen:
+        self = cls()
+        _GdiPlus.GdipClonePen(pen, ctyped.byref(self))
+        return self
+
+    def set_width(self, width: float) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenWidth(self, width)
+
+    def get_width(self) -> Optional[float]:
+        width = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenWidth(self, ctyped.byref(width)):
+            return width.value
+
+    def set_line_cap(self, start_cap: ctyped.enum.LineCap, end_cap: ctyped.enum.LineCap, dash_cap: ctyped.enum.DashCap) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenLineCap197819(self, start_cap, end_cap, dash_cap)
+
+    def set_start_cap(self, cap: ctyped.enum.LineCap) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenStartCap(self, cap)
+
+    def set_end_cap(self, cap: ctyped.enum.LineCap) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenEndCap(self, cap)
+
+    def set_dash_cap(self, cap: ctyped.enum.DashCap) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenDashCap197819(self, cap)
+
+    def get_start_cap(self) -> Optional[ctyped.enum.LineCap]:
+        start_cap = ctyped.enum.LineCap()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenStartCap(self, ctyped.byref(start_cap)):
+            return start_cap
+
+    def get_end_cap(self) -> Optional[ctyped.enum.LineCap]:
+        end_cap = ctyped.enum.LineCap()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenEndCap(self, ctyped.byref(end_cap)):
+            return end_cap
+
+    def get_dash_cap(self) -> Optional[ctyped.enum.DashCap]:
+        dash_cap = ctyped.enum.DashCap()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenDashCap197819(self, ctyped.byref(dash_cap)):
+            return dash_cap
+
+    def set_line_join(self, join: ctyped.enum.LineJoin) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenLineJoin(self, join)
+
+    def get_line_join(self) -> Optional[ctyped.enum.LineJoin]:
+        line_join = ctyped.enum.LineJoin()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenLineJoin(self, ctyped.byref(line_join)):
+            return line_join
+
+    def set_custom_start_cap(self, cap: ctyped.type.GpCustomLineCap):
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenCustomStartCap(self, cap)
+
+    def set_custom_end_cap(self, cap: ctyped.type.GpCustomLineCap):
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenCustomEndCap(self, cap)
+
+    def set_miter_limit(self, limit: float) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenMiterLimit(self, limit)
+
+    def get_miter_limit(self) -> Optional[float]:
+        miter_limit = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenMiterLimit(self, ctyped.byref(miter_limit)):
+            return miter_limit.value
+
+    def set_alignment(self, align: ctyped.enum.PenAlignment) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenMode(self, align)
+
+    def get_alignment(self) -> Optional[ctyped.enum.PenAlignment]:
+        pen_alignment = ctyped.enum.PenAlignment()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenMode(self, ctyped.byref(pen_alignment)):
+            return pen_alignment
+
+    def set_transform(self, matrix: ctyped.type.GpMatrix) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenTransform(self, matrix)
+
+    def reset_transform(self) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipResetPenTransform(self)
+
+    def multiply_transform(self, matrix: ctyped.type.GpMatrix,
+                           order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipMultiplyPenTransform(self, matrix, order)
+
+    def translate_transform(self, dx: float, dy: float,
+                            order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipTranslatePenTransform(self, dx, dy, order)
+
+    def scale_transform(self, sx: float, sy: float,
+                        order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipScalePenTransform(self, sx, sy, order)
+
+    def rotate_transform(self, angle: float,
+                         order: ctyped.enum.MatrixOrder = ctyped.enum.MatrixOrder.Prepend) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipRotatePenTransform(self, angle, order)
+
+    def get_pen_type(self) -> Optional[ctyped.enum.PenType]:
+        pen_type = ctyped.enum.PenType()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenFillType(self, ctyped.byref(pen_type)):
+            return pen_type
+
+    def set_color(self, color: ctyped.type.ARGB) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenColor(self, color)
+
+    def set_brush(self, brush: ctyped.type.GpBrush) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenBrushFill(self, brush)
+
+    def get_color(self) -> Optional[Color]:
+        color = ctyped.type.ARGB()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenColor(self, ctyped.byref(color)):
+            return Color(color.value)
+
+    def get_dash_style(self) -> Optional[ctyped.enum.DashStyle]:
+        dash_style = ctyped.enum.DashStyle()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenDashStyle(self, ctyped.byref(dash_style)):
+            return dash_style
+
+    def set_dash_style(self, style: ctyped.enum.DashStyle) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenDashStyle(self, style)
+
+    def get_dash_offset(self) -> Optional[float]:
+        dash_offset = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenDashOffset(self, ctyped.byref(dash_offset)):
+            return dash_offset.value
+
+    def set_dash_offset(self, offset: float) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetPenDashOffset(self, offset)
+
+    def get_dash_pattern_count(self) -> Optional[int]:
+        dash_pattern_count = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenDashCount(self, ctyped.byref(dash_pattern_count)):
+            return dash_pattern_count.value
+
+    def get_compound_array_count(self) -> Optional[int]:
+        compound_array_count = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPenCompoundCount(self, ctyped.byref(compound_array_count)):
+            return compound_array_count.value
+
     def _del(self):
         _GdiPlus.GdipDeletePen(self)
 
-    def clone(self) -> Pen:
-        self_ = type(self)()
-        _GdiPlus.GdipClonePen(self, ctyped.byref(self_))
-        return self_
-
-    def get_color(self) -> ctyped.type.ARGB:
-        color = ctyped.type.ARGB()
-        _GdiPlus.GdipGetPenColor(self, ctyped.byref(color))
-        return color.value
-
-    def get_width(self) -> float:
-        width = ctyped.type.REAL()
-        _GdiPlus.GdipGetPenWidth(self, ctyped.byref(width))
-        return width.value
-
-    def set_color(self, color: ctyped.type.ARGB):
-        _GdiPlus.GdipSetPenColor(self, color)
-
-    def set_width(self, width: float):
-        _GdiPlus.GdipSetPenWidth(self, width)
-
 
 class Image(_GdiplusBase, ctyped.type.GpImage):
-    def _del(self):
-        _GdiPlus.GdipDisposeImage(self)
-
     @classmethod
     def from_file(cls, path: str, embedded_color_management: bool = False) -> Image:
         self = cls()
@@ -205,28 +507,28 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
             stream.Release()
         return self
 
-    @staticmethod
-    def _get_encoder_clsid(ext: str) -> Optional[ctyped.Pointer[ctyped.struct.CLSID]]:
-        number = ctyped.type.UINT()
-        size = ctyped.type.UINT()
-        _GdiPlus.GdipGetImageEncodersSize(ctyped.byref(number), ctyped.byref(size))
-        with ctyped.buffer(size.value) as buff:
-            if buff:
-                codec_info = ctyped.cast(buff, ctyped.struct.ImageCodecInfo)
-                _GdiPlus.GdipGetImageEncoders(number, size, codec_info)
-                for index in range(number.value):
-                    if ext in codec_info[index].FilenameExtension:
-                        return ctyped.byref(codec_info[index].Clsid)
+    @classmethod
+    def from_image(cls, image: ctyped.type.GpImage) -> Image:
+        self = cls()
+        _GdiPlus.GdipCloneImage(image, ctyped.byref(self))
+        return self
 
-    def _get_dimension_id(self) -> ctyped.Pointer[ctyped.struct.GUID]:
-        count = ctyped.type.UINT()
-        guid_ref = ctyped.byref(ctyped.struct.GUID())
-        _GdiPlus.GdipImageGetFrameDimensionsCount(self, ctyped.byref(count))
-        _GdiPlus.GdipImageGetFrameDimensionsList(self, guid_ref, count)
-        return guid_ref
+    def get_type(self) -> Optional[ctyped.enum.ImageType]:
+        image_type = ctyped.enum.ImageType()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageType(self, ctyped.byref(image_type)):
+            return image_type
 
-    def get_graphics(self) -> Graphics:
-        return Graphics.from_image(self)
+    def get_physical_dimension(self) -> Optional[tuple[float, float]]:
+        width = ctyped.type.REAL()
+        height = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageDimension(self, ctyped.byref(width), ctyped.byref(height)):
+            return width.value, height.value
+
+    def get_bounds(self) -> Optional[tuple[tuple[float, float, float, float], ctyped.enum.Unit]]:
+        rect = ctyped.struct.RectF()
+        unit = ctyped.enum.Unit()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageBounds(self, ctyped.byref(rect), ctyped.byref(unit)):
+            return (rect.X, rect.Y, rect.Width, rect.Height), unit
 
     def get_width(self) -> Optional[int]:
         width = ctyped.type.UINT()
@@ -238,16 +540,76 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
         if _GpStatus.Ok == _GdiPlus.GdipGetImageHeight(self, ctyped.byref(height)):
             return height.value
 
+    def get_horizontal_resolution(self) -> Optional[float]:
+        resolution = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageHorizontalResolution(self, ctyped.byref(resolution)):
+            return resolution.value
+
+    def get_vertical_resolution(self) -> Optional[float]:
+        resolution = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageVerticalResolution(self, ctyped.byref(resolution)):
+            return resolution.value
+
+    def get_flags(self) -> Optional[int]:
+        flags = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageFlags(self, ctyped.byref(flags)):
+            return flags.value
+
+    def get_pixel_format(self) -> Optional[int]:
+        pixel_format = ctyped.type.PixelFormat()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImagePixelFormat(self, ctyped.byref(pixel_format)):
+            return pixel_format.value
+
+    def get_palette_size(self) -> Optional[int]:
+        palette_size = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImagePaletteSize(self, ctyped.byref(palette_size)):
+            return palette_size.value
+
+    def get_palette(self, size: int) -> Optional[ctyped.struct.ColorPalette]:
+        palette = ctyped.struct.ColorPalette()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImagePalette(self, ctyped.byref(palette), size):
+            return palette
+
+    def set_palette(self, palette: ctyped.struct.ColorPalette) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImagePalette(self, ctyped.byref(palette))
+
+    def get_frame_dimensions_count(self) -> Optional[int]:
+        count = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipImageGetFrameDimensionsCount(self, ctyped.byref(count)):
+            return count.value
+
+    # noinspection PyShadowingBuiltins
+    def rotate_flip(self, type: ctyped.enum.RotateFlipType) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipImageRotateFlip(self, type)
+
+    def get_property_count(self) -> Optional[int]:
+        count = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPropertyCount(self, ctyped.byref(count)):
+            return count.value
+
+    # noinspection PyShadowingBuiltins
+    def get_property_item_size(self, id: ctyped.type.PROPID) -> Optional[int]:
+        size = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPropertyItemSize(self, id, ctyped.byref(size)):
+            return size.value
+
+    # noinspection PyShadowingBuiltins
+    def remove_property_item(self, id: ctyped.type.PROPID) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipRemovePropertyItem(self, id)
+
+    def _del(self):
+        _GdiPlus.GdipDisposeImage(self)
+
+    def _get_dimension_id(self) -> ctyped.Pointer[ctyped.struct.GUID]:
+        guid_ref = ctyped.byref(ctyped.struct.GUID())
+        _GdiPlus.GdipImageGetFrameDimensionsList(self, guid_ref, self.get_frame_dimensions_count())
+        return guid_ref
+
     def get_frame_count(self, dimension_id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> int:
         count = ctyped.type.UINT()
         _GdiPlus.GdipImageGetFrameCount(
             self, self._get_dimension_id() if dimension_id is None else dimension_id, ctyped.byref(count))
         return count.value
-
-    def get_pixel_format(self) -> int:
-        pixel_format = ctyped.type.PixelFormat()
-        _GdiPlus.GdipGetImagePixelFormat(self, ctyped.byref(pixel_format))
-        return pixel_format.value
 
     def select_frame(self, index: int = 0, dimension_id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> bool:
         return _GpStatus.Ok == _GdiPlus.GdipImageSelectActiveFrame(
@@ -260,9 +622,8 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
             yield index
 
     def get_property(self, tag: int) -> Optional[ctyped.Pointer]:
-        size = ctyped.type.UINT()
-        _GdiPlus.GdipGetPropertyItemSize(self, tag, ctyped.byref(size))
-        with ctyped.buffer(size.value) as buff:
+        size = self.get_property_item_size(tag)
+        with ctyped.buffer(size) as buff:
             if buff:
                 property_item = ctyped.cast(buff, ctyped.struct.PropertyItem)
                 _GdiPlus.GdipGetPropertyItem(self, tag, size, property_item)
@@ -282,27 +643,20 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
                     type_ = ctyped.type.c_void_p
                 return ctyped.cast(property_item.contents.value, ctyped.pointer(type_))
 
-    # noinspection PyShadowingBuiltins
-    def rotate_flip(self, type: ctyped.enum.RotateFlipType) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipImageRotateFlip(self, type)
-
     def save(self, path: str, quality: int = 100) -> bool:
-        if encoder := self._get_encoder_clsid(os.path.splitext(path)[1].upper()):
-            quality_ = ctyped.type.LONG(quality)
-            params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
-                ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.PVOID))))
-            return _GpStatus.Ok == _GdiPlus.GdipSaveImageToFile(self, path, encoder, ctyped.byref(params))
+        ext = os.path.splitext(path)[1].upper()
+        with ImageCodec.get_encoders() as encoders:
+            if encoders:
+                for encoder in encoders:
+                    if ext in encoder.FilenameExtension:
+                        quality_ = ctyped.type.LONG(quality)
+                        params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
+                            ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.PVOID))))
+                        return _GpStatus.Ok == _GdiPlus.GdipSaveImageToFile(self, path, ctyped.byref(encoder.Clsid), ctyped.byref(params))
         return False
 
 
 class Bitmap(Image, ctyped.type.GpBitmap):
-    @classmethod
-    def from_dimension(cls, width: int, height: int,
-                       pixel_format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
-        self = cls()
-        _GdiPlus.GdipCreateBitmapFromScan0(width, height, 0, pixel_format, None, ctyped.byref(self))
-        return self
-
     @classmethod
     def from_file(cls, path: str, embedded_color_management: bool = False) -> Bitmap:
         self = cls()
@@ -319,66 +673,536 @@ class Bitmap(Image, ctyped.type.GpBitmap):
             stream.Release()
         return self
 
+    # noinspection PyShadowingBuiltins
+    @classmethod
+    def from_dimension(cls, width: int, height: int,
+                       format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
+        self = cls()
+        _GdiPlus.GdipCreateBitmapFromScan0(width, height, 0, format, None, ctyped.byref(self))
+        return self
+
     @classmethod
     def from_graphics(cls, width: int, height: int, graphics: ctyped.type.GpGraphics) -> Bitmap:
         self = cls()
         _GdiPlus.GdipCreateBitmapFromGraphics(width, height, graphics, ctyped.byref(self))
         return self
 
-    def get_hicon(self) -> ctyped.handle.HICON:
-        hicon = ctyped.handle.HICON()
-        _GdiPlus.GdipCreateHICONFromBitmap(self, ctyped.byref(hicon))
-        return hicon
+    @classmethod
+    def from_hicon(cls, hicon: ctyped.type.HICON) -> Bitmap:
+        self = cls()
+        _GdiPlus.GdipCreateBitmapFromHICON(hicon, ctyped.byref(self))
+        return self
 
-    def get_hbitmap(self) -> ctyped.handle.HBITMAP:
-        hbitmap = ctyped.handle.HBITMAP()
-        _GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0)
-        return hbitmap
+    # noinspection PyShadowingBuiltins
+    @classmethod
+    def from_bitmap(cls, bitmap: ctyped.type.GpBitmap, x: float = 0, y: float = 0,
+                    width: Optional[float] = None, height: Optional[float] = None,
+                    format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
+        if width is None:
+            width = Image.get_width(bitmap)
+        if height is None:
+            height = Image.get_height(bitmap)
+        self = cls()
+        _get_obj(_GdiPlus.GdipCloneBitmapArea, _GdiPlus.GdipCloneBitmapAreaI, x, y, width, height)(
+            x, y, width, height, format, bitmap, ctyped.byref(self))
+        return self
+
+    def get_hbitmap(self) -> Optional[ctyped.handle.HBITMAP]:
+        hbitmap = ctyped.type.HBITMAP()
+        if _GpStatus.Ok == _GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0):
+            return ctyped.handle.HBITMAP(hbitmap.value)
+
+    def get_hicon(self) -> Optional[ctyped.handle.HICON]:
+        hicon = ctyped.type.HICON()
+        if _GpStatus.Ok == _GdiPlus.GdipCreateHICONFromBitmap(self, ctyped.byref(hicon)):
+            return ctyped.handle.HICON(hicon.value)
+
+    def get_pixel(self, x: int, y: int) -> Optional[Color]:
+        argb = ctyped.type.ARGB()
+        if _GpStatus.Ok == _GdiPlus.GdipBitmapGetPixel(self, x, y, ctyped.byref(argb)):
+            return Color(argb.value)
+
+    def set_pixel(self, x: int, y: int, color: ctyped.type.ARGB) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipBitmapSetPixel(self, x, y, color.value)
+
+    def set_resolution(self, x_dpi: float, y_dpi: float) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipBitmapSetResolution(self, x_dpi, y_dpi)
 
     def get_resized(self, width: Optional[int] = None, height: Optional[int] = None) -> Bitmap:
         width_ = self.get_width()
         height_ = self.get_height()
         bitmap = self.from_dimension(
             width_ if width is None else width, height_ if height is None else height, self.get_pixel_format())
-        graphics = bitmap.get_graphics()
-        graphics.set_scale(width / width_, height / height_)
+        graphics = Graphics.from_image(bitmap)
+        graphics.scale_transform(width / width_, height / height_)
         graphics.draw_image_from_rect(self)
         return bitmap
 
-    def get_pixel(self, x: int, y: int) -> Optional[int]:
-        argb = ctyped.type.ARGB()
-        if _GpStatus.Ok == _GdiPlus.GdipBitmapGetPixel(self, x, y, ctyped.byref(argb)):
-            return argb.value
-
-    def set_pixel(self, x: int, y: int, argb: int) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipBitmapSetPixel(self, x, y, argb)
-
-    def set_resolution(self, dpi_x: float, dpi_y: float) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipBitmapSetResolution(self, dpi_x, dpi_y)
-
 
 class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
+    @classmethod
+    def from_empty(cls) -> ImageAttributes:
+        self = cls()
+        _GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_image_attributes(cls, attr: ctyped.type.GpImageAttributes) -> ImageAttributes:
+        self = cls()
+        _GdiPlus.GdipCloneImageAttributes(attr, ctyped.byref(self))
+        return self
+
+    # noinspection PyShadowingBuiltins
+    def set_to_identity(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesToIdentity(self, type)
+
+    # noinspection PyShadowingBuiltins
+    def reset(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipResetImageAttributes(self, type)
+
+    # noinspection PyShadowingBuiltins
+    def set_color_matrix(self, matrix: ctyped.struct.ColorMatrix,
+                         mode: ctyped.enum.ColorMatrixFlags = ctyped.enum.ColorMatrixFlags.Default,
+                         type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorMatrix(
+            self, type, True, ctyped.byref(matrix), None, mode)
+
+    # noinspection PyShadowingBuiltins
+    def clear_color_matrix(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorMatrix(
+            self, type, False, None, None, ctyped.enum.ColorMatrixFlags.Default)
+
+    # noinspection PyShadowingBuiltins
+    def set_color_matrices(self, matrix: ctyped.struct.ColorMatrix, gray_matrix: ctyped.struct.ColorMatrix,
+                           mode: ctyped.enum.ColorMatrixFlags = ctyped.enum.ColorMatrixFlags.Default,
+                           type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorMatrix(
+            self, type, True, ctyped.byref(matrix), ctyped.byref(gray_matrix), mode)
+
+    # noinspection PyShadowingBuiltins
+    def clear_color_matrices(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorMatrix(
+            self, type, False, None, None, ctyped.enum.ColorMatrixFlags.Default)
+
+    # noinspection PyShadowingBuiltins
+    def set_threshold(self, threshold: float, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesThreshold(self, type, True, threshold)
+
+    # noinspection PyShadowingBuiltins
+    def clear_threshold(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesThreshold(self, type, False, 0)
+
+    # noinspection PyShadowingBuiltins
+    def set_gamma(self, gamma: float, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesGamma(self, type, True, gamma)
+
+    # noinspection PyShadowingBuiltins
+    def clear_gamma(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesGamma(self, type, False, 0)
+
+    # noinspection PyShadowingBuiltins
+    def set_noop(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesNoOp(self, type, True)
+
+    # noinspection PyShadowingBuiltins
+    def clear_noop(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesNoOp(self, type, False)
+
+    # noinspection PyShadowingBuiltins
+    def set_color_key(self, low: ctyped.type.ARGB, high: ctyped.type.ARGB,
+                      type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorKeys(self, type, True, low, high)
+
+    # noinspection PyShadowingBuiltins
+    def clear_color_key(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesColorKeys(self, type, False, 0, 0)
+
+    # noinspection PyShadowingBuiltins
+    def set_output_channel(self, flags: ctyped.enum.ColorChannelFlags,
+                           type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesOutputChannel(self, type, True, flags)
+
+    # noinspection PyShadowingBuiltins
+    def clear_output_channel(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesOutputChannel(
+            self, type, False, ctyped.enum.ColorChannelFlags.Last)
+
+    # noinspection PyShadowingBuiltins
+    def set_output_channel_color_profile(self, path: str, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesOutputChannelColorProfile(self, type, True, path)
+
+    # noinspection PyShadowingBuiltins
+    def clear_output_channel_color_profile(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesOutputChannelColorProfile(self, type, False, None)
+
+    # noinspection PyShadowingBuiltins
+    def clear_remap_table(self, type: ctyped.enum.ColorAdjustType = ctyped.enum.ColorAdjustType.Default) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesRemapTable(self, type, False, 0, None)
+
+    def clear_brush_remap_table(self) -> bool:
+        return self.clear_remap_table(ctyped.enum.ColorAdjustType.Brush)
+
+    def set_wrap_mode(self, mode: ctyped.enum.WrapMode, color: ctyped.type.ARGB = ctyped.const.Black, clamp: bool = False) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetImageAttributesWrapMode(self, mode, color, clamp)
+
     def _del(self):
         _GdiPlus.GdipDisposeImageAttributes(self)
 
+
+class Region(_GdiplusBase, ctyped.type.GpRegion):
     @classmethod
-    def from_color_matrix(cls, color_matrix: ctyped.struct.ColorMatrix) -> ImageAttributes:
+    def from_empty(cls) -> Region:
         self = cls()
-        _GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
-        _GdiPlus.GdipSetImageAttributesColorMatrix(
-            self, ctyped.enum.ColorAdjustType.Default, True,
-            ctyped.byref(color_matrix), None, ctyped.enum.ColorMatrixFlags.Default)
+        _GdiPlus.GdipCreateRegion(ctyped.byref(self))
         return self
+
+    @classmethod
+    def from_rect(cls, x: float, y: float, width: float, height: float) -> Region:
+        self = cls()
+        _get_obj(_GdiPlus.GdipCreateRegionRect, _GdiPlus.GdipCreateRegionRectI, x, y, width, height)(
+            ctyped.byref(self), ctyped.byref(_get_obj(
+                ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(x, y, width, height)))
+        return self
+
+    @classmethod
+    def from_hrgn(cls, hrgn: ctyped.type.HRGN) -> Region:
+        self = cls()
+        _GdiPlus.GdipCreateRegionHrgn(ctyped.byref(self), hrgn)
+        return self
+
+    @classmethod
+    def from_region(cls, region: Region) -> Region:
+        self = cls()
+        _GdiPlus.GdipCloneRegion(region, ctyped.byref(self))
+        return self
+
+    def make_infinite(self) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetInfinite(self)
+
+    def make_empty(self) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetEmpty(self)
+
+    def intersect_rect(self, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipCombineRegionRect, _GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
+            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+                x, y, width, height)), ctyped.enum.CombineMode.Intersect)
+
+    def intersect_region(self, region: Region) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Intersect)
+
+    def union_rect(self, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipCombineRegionRect, _GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
+            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+                x, y, width, height)), ctyped.enum.CombineMode.Union)
+
+    def union_region(self, region: Region) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Union)
+
+    def xor_rect(self, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipCombineRegionRect, _GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
+            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+                x, y, width, height)), ctyped.enum.CombineMode.Xor)
+
+    def xor_region(self, region: Region) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Xor)
+
+    def exclude_rect(self, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipCombineRegionRect, _GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
+            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+                x, y, width, height)), ctyped.enum.CombineMode.Exclude)
+
+    def exclude_region(self, region: Region) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Exclude)
+
+    def complement_rect(self, x: float, y: float, width: float, height: float) -> bool:
+        return _GpStatus.Ok == _get_obj(
+            _GdiPlus.GdipCombineRegionRect, _GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
+            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+                x, y, width, height)), ctyped.enum.CombineMode.Complement)
+
+    def complement_region(self, region: Region) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Complement)
+
+    def translate(self, x: float, y: float) -> bool:
+        return _GpStatus.Ok == _get_obj(_GdiPlus.GdipTranslateRegion, _GdiPlus.GdipTranslateRegionI, x, y)(self, x, y)
+
+    def get_bounds(self, graphics: ctyped.type.GpGraphics) -> Optional[tuple[float, float, float, float]]:
+        rect = ctyped.struct.RectF()
+        if _GpStatus.Ok == _GdiPlus.GdipGetRegionBounds(self, graphics, ctyped.byref(rect)):
+            return rect.X, rect.Y, rect.Width, rect.Height
+
+    def get_hrgn(self, graphics: ctyped.type.GpGraphics) -> Optional[ctyped.type.HRGN]:
+        hrgn = ctyped.type.HRGN()
+        if _GpStatus.Ok == _GdiPlus.GdipGetRegionHRgn(self, graphics, ctyped.byref(hrgn)):
+            return hrgn
+
+    def is_empty(self, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
+        empty = ctyped.type.BOOL()
+        if _GpStatus.Ok == _GdiPlus.GdipIsEmptyRegion(self, graphics, ctyped.byref(empty)):
+            return bool(empty.value)
+
+    def is_infinite(self, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
+        infinite = ctyped.type.BOOL()
+        if _GpStatus.Ok == _GdiPlus.GdipIsInfiniteRegion(self, graphics, ctyped.byref(infinite)):
+            return bool(infinite.value)
+
+    def equals(self, region: Region, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
+        equal = ctyped.type.BOOL()
+        if _GpStatus.Ok == _GdiPlus.GdipIsEqualRegion(self, region, graphics, ctyped.byref(equal)):
+            return bool(equal.value)
+
+    def get_data_size(self) -> Optional[int]:
+        size = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetRegionDataSize(self, ctyped.byref(size)):
+            return size.value
+
+    def is_visible_point(self, x: float, y: float, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
+        visible = ctyped.type.BOOL()
+        if _GpStatus.Ok == _get_obj(_GdiPlus.GdipIsVisibleRegionPoint, _GdiPlus.GdipIsVisibleRegionPoint)(
+                self, x, y, graphics, ctyped.byref(visible)):
+            return bool(visible.value)
+
+    def is_visible_rect(self, x: float, y: float, width: float,
+                        height: float, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
+        visible = ctyped.type.BOOL()
+        if _GpStatus.Ok == _get_obj(_GdiPlus.GdipIsVisibleRegionRect, _GdiPlus.GdipIsVisibleRegionRectI)(
+                self, x, y, width, height, graphics, ctyped.byref(visible)):
+            return bool(visible.value)
+
+    def _del(self):
+        _GdiPlus.GdipDeleteRegion(self)
+
+
+class FontFamily(_GdiplusBase, ctyped.type.GpFontFamily):
+    @classmethod
+    def from_name(cls, name: str, collection: Optional[FontCollection] = None) -> FontFamily:
+        self = cls()
+        _GdiPlus.GdipCreateFontFamilyFromName(name, collection, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_font_family(cls, family: ctyped.type.GpFontFamily) -> FontFamily:
+        self = cls()
+        _GdiPlus.GdipCloneFontFamily(family, ctyped.byref(self))
+        return self
+
+    def get_height(self, style: ctyped.enum.FontStyle) -> Optional[int]:
+        height = ctyped.type.UINT16()
+        if _GpStatus.Ok == _GdiPlus.GdipGetEmHeight(self, style.value, ctyped.byref(height)):
+            return height.value
+
+    def get_ascent(self, style: ctyped.enum.FontStyle) -> Optional[int]:
+        ascent = ctyped.type.UINT16()
+        if _GpStatus.Ok == _GdiPlus.GdipGetCellAscent(self, style.value, ctyped.byref(ascent)):
+            return ascent.value
+
+    def get_descent(self, style: ctyped.enum.FontStyle) -> Optional[int]:
+        descent = ctyped.type.UINT16()
+        if _GpStatus.Ok == _GdiPlus.GdipGetCellDescent(self, style.value, ctyped.byref(descent)):
+            return descent.value
+
+    def get_line_spacing(self, style: ctyped.enum.FontStyle) -> Optional[int]:
+        line_spacing = ctyped.type.UINT16()
+        if _GpStatus.Ok == _GdiPlus.GdipGetLineSpacing(self, style.value, ctyped.byref(line_spacing)):
+            return line_spacing.value
+
+    def get_name(self, language: int = ctyped.const.LANG_NEUTRAL) -> Optional[str]:
+        name = ctyped.char_array(size=ctyped.const.LF_FACESIZE)
+        if _GpStatus.Ok == _GdiPlus.GdipGetFamilyName(self, name, language):
+            return name.value
+
+    def has_style(self, style: ctyped.enum.FontStyle) -> Optional[bool]:
+        has = ctyped.type.BOOL()
+        if _GpStatus.Ok == _GdiPlus.GdipIsStyleAvailable(self, style.value, ctyped.byref(has)):
+            return bool(has.value)
+
+    def _del(self):
+        _GdiPlus.GdipDeleteFontFamily(self)
 
 
 class Font(_GdiplusBase, ctyped.type.GpFont):
+    @classmethod
+    def from_hdc(cls, hdc: ctyped.type.HDC) -> Font:
+        self = cls()
+        _GdiPlus.GdipCreateFontFromDC(hdc, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_font_family(cls, family: ctyped.type.GpFontFamily, size: float = 16,
+                         style: ctyped.enum.FontStyle = ctyped.enum.FontStyle.Regular,
+                         unit: ctyped.enum.Unit = ctyped.enum.Unit.Pixel) -> Font:
+        self = cls()
+        _GdiPlus.GdipCreateFont(family, size, style.value, unit, ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_font(cls, font: ctyped.type.GpFont) -> Font:
+        self = cls()
+        _GdiPlus.GdipCloneFont(font, ctyped.byref(self))
+        return self
+
+    def get_font_family(self) -> FontFamily:
+        family = ctyped.type.GpFontFamily()
+        _GdiPlus.GdipGetFamily(self, ctyped.byref(family))
+        return FontFamily.from_font_family(family)
+
+    def get_style(self) -> Optional[ctyped.enum.FontStyle]:
+        style = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetFontStyle(self, ctyped.byref(style)):
+            return ctyped.enum.FontStyle(style.value)
+
+    def get_size(self) -> Optional[float]:
+        size = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetFontSize(self, ctyped.byref(size)):
+            return size.value
+
+    def get_unit(self) -> Optional[ctyped.enum.Unit]:
+        unit = ctyped.enum.Unit()
+        if _GpStatus.Ok == _GdiPlus.GdipGetFontUnit(self, ctyped.byref(unit)):
+            return unit
+
+    def get_height_graphics(self, graphics: Graphics) -> Optional[float]:
+        height = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetFontHeight(self, graphics, ctyped.byref(height)):
+            return height.value
+
+    def get_height_dpi(self, dpi: int) -> Optional[float]:
+        height = ctyped.type.REAL()
+        if _GpStatus.Ok == _GdiPlus.GdipGetFontHeightGivenDPI(self, dpi, ctyped.byref(height)):
+            return height.value
+
     def _del(self):
         _GdiPlus.GdipDeleteFont(self)
 
-    def clone(self) -> Font:
-        self_ = type(self)()
-        _GdiPlus.GdipCloneFont(self, ctyped.byref(self_))
-        return self_
+
+class StringFormat(_GdiplusBase, ctyped.type.GpStringFormat):
+    @classmethod
+    def from_default(cls) -> StringFormat:
+        self = cls()
+        _GdiPlus.GdipStringFormatGetGenericDefault(ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_typographic(cls) -> StringFormat:
+        self = cls()
+        _GdiPlus.GdipStringFormatGetGenericTypographic(ctyped.byref(self))
+        return self
+
+    @classmethod
+    def from_flags(cls, flags: int = 0, language: int = ctyped.const.LANG_NEUTRAL) -> StringFormat:
+        self = cls()
+        _GdiPlus.GdipCreateStringFormat(flags, language, ctyped.byref(self))
+        return self
+
+    # noinspection PyShadowingBuiltins
+    @classmethod
+    def from_string_format(cls, format: StringFormat) -> StringFormat:
+        self = cls()
+        _GdiPlus.GdipCloneStringFormat(format, ctyped.byref(self))
+        return self
+
+    def set_flags(self, flags: int) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetStringFormatFlags(self, flags)
+
+    def get_flags(self) -> Optional[int]:
+        flags = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatFlags(self, ctyped.byref(flags)):
+            return flags.value
+
+    def set_alignment(self, align: ctyped.enum.StringAlignment) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetStringFormatAlign(self, align)
+
+    def get_alignment(self) -> Optional[ctyped.enum.StringAlignment]:
+        alignment = ctyped.enum.StringAlignment()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatAlign(self, ctyped.byref(alignment)):
+            return alignment
+
+    def set_line_alignment(self, align: ctyped.enum.StringAlignment) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetStringFormatLineAlign(self, align)
+
+    def get_line_alignment(self) -> Optional[ctyped.enum.StringAlignment]:
+        alignment = ctyped.enum.StringAlignment()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatLineAlign(self, ctyped.byref(alignment)):
+            return alignment
+
+    def set_hotkey_prefix(self, prefix: ctyped.enum.HotkeyPrefix) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetStringFormatHotkeyPrefix(self, prefix.value)
+
+    def get_hotkey_prefix(self) -> Optional[ctyped.enum.HotkeyPrefix]:
+        hotkey_prefix = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatHotkeyPrefix(self, ctyped.byref(hotkey_prefix)):
+            return ctyped.enum.HotkeyPrefix(hotkey_prefix.value)
+
+    def get_tab_stop_count(self) -> Optional[int]:
+        count = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatTabStopCount(self, ctyped.byref(count)):
+            return count.value
+
+    def set_trimming(self, trimming: ctyped.enum.StringTrimming) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetStringFormatTrimming(self, trimming)
+
+    def get_trimming(self) -> Optional[ctyped.enum.StringTrimming]:
+        trimming = ctyped.enum.StringTrimming()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatTrimming(self, ctyped.byref(trimming)):
+            return trimming
+
+    def set_measurable_character_ranges(self, *ranges: tuple[int, int]) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSetStringFormatMeasurableCharacterRanges(self, len(
+            ranges), ctyped.array(*(ctyped.struct.CharacterRange(first, length) for first, length in ranges)))
+
+    def get_measurable_character_range_count(self) -> Optional[int]:
+        count = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetStringFormatMeasurableCharacterRangeCount(self, ctyped.byref(count)):
+            return count.value
+
+    def _del(self):
+        _GdiPlus.GdipDeleteStringFormat(self)
+
+
+class FontCollection(_GdiplusBase, ctyped.type.GpFontCollection):
+    def get_family_count(self) -> Optional[int]:
+        count = ctyped.type.INT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetFontCollectionFamilyCount(self, ctyped.byref(count)):
+            return count.value
+
+    def get_font_families(self, count: Optional[int] = None) -> Optional[tuple[FontFamily]]:
+        if count is None:
+            count = self.get_family_count()
+        if count is not None:
+            families = ctyped.array(type=ctyped.type.GpFontFamily, size=count)
+            found = ctyped.type.INT()
+            if _GpStatus.Ok == _GdiPlus.GdipGetFontCollectionFamilyList(
+                    self, count, ctyped.byref(families), ctyped.byref(found)):
+                return tuple(FontFamily.from_font_family(families[index]) for index in range(found.value))
+
+    def _del(self):
+        pass
+
+
+class InstalledFontCollection(FontCollection, ctyped.type.GpInstalledFontCollection):
+    @classmethod
+    def from_installed(cls) -> InstalledFontCollection:
+        self = cls()
+        _GdiPlus.GdipNewInstalledFontCollection(ctyped.byref(self))
+        return self
+
+
+class PrivateFontCollection(FontCollection, ctyped.type.GpPrivateFontCollection):
+    @classmethod
+    def from_empty(cls) -> PrivateFontCollection:
+        self = cls()
+        _GdiPlus.GdipNewPrivateFontCollection(ctyped.byref(self))
+        return self
+
+    def add_new_font(self, path: str):
+        return _GpStatus.Ok == _GdiPlus.GdipPrivateAddFontFile(self, path)
+
+    def _del(self):
+        _GdiPlus.GdipDeletePrivateFontCollection(ctyped.byref(self))
 
 
 class Color(int):
@@ -412,9 +1236,100 @@ class Color(int):
         return ctyped.macro.RGB(self.get_red(), self.get_green(), self.get_blue())
 
 
-def color_matrix_from_alpha(alpha: float = 1) -> ctyped.struct.ColorMatrix:
-    self = ctyped.struct.ColorMatrix()
+class ImageCodec:
+    @staticmethod
+    def get_decoders_count_size() -> Optional[tuple[int, int]]:
+        count = ctyped.type.UINT()
+        size = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageDecodersSize(ctyped.byref(count), ctyped.byref(size)):
+            return count.value, size.value
+
+    @classmethod
+    @contextlib.contextmanager
+    def get_decoders(cls, count: Optional[int] = None,
+                     size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
+        if count is None or size is None:
+            count, size = cls.get_decoders_count_size()
+        with ctyped.buffer(size) as buffer:
+            if buffer:
+                codecs = ctyped.cast(buffer, ctyped.struct.ImageCodecInfo)
+                if _GpStatus.Ok == _GdiPlus.GdipGetImageDecoders(count, size, codecs):
+                    yield tuple(codecs[index] for index in range(count))
+                    return
+        yield
+
+    @staticmethod
+    def get_encoders_count_size() -> Optional[tuple[int, int]]:
+        count = ctyped.type.UINT()
+        size = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageEncodersSize(ctyped.byref(count), ctyped.byref(size)):
+            return count.value, size.value
+
+    @classmethod
+    @contextlib.contextmanager
+    def get_encoders(cls, count: Optional[int] = None,
+                     size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
+        if count is None or size is None:
+            count, size = cls.get_encoders_count_size()
+        with ctyped.buffer(size) as buffer:
+            if buffer:
+                codecs = ctyped.cast(buffer, ctyped.struct.ImageCodecInfo)
+                if _GpStatus.Ok == _GdiPlus.GdipGetImageEncoders(count, size, codecs):
+                    yield tuple(codecs[index] for index in range(count))
+                    return
+        yield
+
+
+def image_attributes_from_alpha(alpha: float = 1) -> ImageAttributes:
+    matrix = ctyped.struct.ColorMatrix()
     for index in range(5):
-        self.m[index][index] = 1
-    self.m[3][3] = alpha
+        matrix.m[index][index] = 1
+    matrix.m[3][3] = alpha
+    self = ImageAttributes.from_empty()
+    self.set_color_matrix(matrix)
     return self
+
+
+def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[Bitmap]:
+    with _utils.get_d2d1_dc_render_target() as target:
+        if target:
+            with _utils.open_file_stream(path) as stream, ctyped.cast_com(
+                    target, ctyped.interface.ID2D1DeviceContext5) as context:
+                if stream and context:
+                    with ctyped.init_com(ctyped.interface.ID2D1SvgDocument, False) as svg:
+                        if ctyped.macro.SUCCEEDED(context.CreateSvgDocument(
+                                stream, ctyped.struct.D2D_SIZE_F(width, height), ctyped.byref(svg))):
+                            _utils.set_svg_doc_viewport(svg)
+                            _utils.set_svg_doc_dimension(svg, width, height)
+                            bitmap = Bitmap.from_dimension(width, height, ctyped.const.PixelFormat32bppARGB)
+                            with Graphics.from_image(bitmap).get_managed_hdc() as hdc:
+                                if ctyped.macro.SUCCEEDED(target.BindDC(hdc, ctyped.byref(
+                                        ctyped.struct.RECT(right=width, bottom=height)))):
+                                    target.BeginDraw()
+                                    context.DrawSvgDocument(svg)
+                                    if ctyped.macro.SUCCEEDED(target.EndDraw(None, None)):
+                                        return bitmap
+
+
+def bitmap_from_string(string: str = _string.printable[:-len(_string.whitespace)], size: int = 1024,
+                       r: int = 0, g: int = 0, b: int = 0, font_name_or_path: str = 'Segoe UI') -> Bitmap:
+    if os.path.isfile(font_name_or_path):
+        collection = PrivateFontCollection.from_empty()
+        collection.add_new_font(font_name_or_path)
+        font = Font.from_font_family(collection.get_font_families()[0], size)
+    else:
+        for family in InstalledFontCollection.from_installed().get_font_families():
+            if font_name_or_path == family.get_name():
+                font = Font.from_font_family(family, size)
+                break
+        else:
+            return Bitmap()
+    format_ = StringFormat.from_typographic()
+    format_.set_flags(ctyped.enum.StringFormatFlags.NoFontFallback | ctyped.enum.StringFormatFlags.NoWrap)
+    format_.set_measurable_character_ranges((0, len(string)))
+    graphics = Graphics.from_image(Bitmap.from_dimension(1, 1, ctyped.const.PixelFormat32bppARGB))
+    bounds = graphics.measure_character_ranges(string, font, 1, format=format_)[0].get_bounds(graphics)
+    bitmap = Bitmap.from_dimension(math.ceil(bounds[2]), math.ceil(bounds[3]), ctyped.const.PixelFormat32bppARGB)
+    graphics = Graphics.from_image(bitmap)
+    graphics.draw_string(string, font, SolidBrush.from_color(Color.from_rgba(r, g, b)), format=format_)
+    return bitmap

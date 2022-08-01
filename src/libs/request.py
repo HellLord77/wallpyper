@@ -117,7 +117,8 @@ def encode(url: str, params: Optional[Mapping[str, Union[str, Iterable[str]]]] =
 
 
 # noinspection PyShadowingBuiltins
-def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None, headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> _Response:
+def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None,
+         headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> _Response:
     try:
         request = urllib.request.Request(encode(url, params), data)
     except ValueError as e:
@@ -147,7 +148,9 @@ def _get_hash(path: str, type_: str = 'md5') -> bytes:
     return hash_.digest()
 
 
-def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None, sha256: Optional[bytes] = None, chunk_size: Optional[int] = None, chunk_count: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
+def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None,
+             sha256: Optional[bytes] = None, chunk_size: Optional[int] = None,
+             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if args is None:
         args = ()
@@ -191,7 +194,8 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
     return False
 
 
-def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None, files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO chunked upload
+def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optional[Mapping[str, str]] = None,
+           files: Optional[Mapping[str, tuple[Optional[str], str]]] = None,  # TODO chunked upload
            headers: Optional[Mapping[str, str]] = None, redirect: bool = True) -> _Response:
     boundary = uuid.uuid4().hex
     prefix = f'--{boundary}{_CRLF}{Header.CONTENT_DISPOSITION}: form-data; name='
