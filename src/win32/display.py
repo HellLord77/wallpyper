@@ -10,17 +10,16 @@ import threading
 import time
 import typing
 import winreg
-from typing import Any, Callable, Iterable, Mapping, Optional, Union
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union
 
 import libs.ctyped as ctyped
 from . import _utils, _gdiplus
 
 _HWND_RETRY = 5
 _DELETE_AFTER = 0.5
-_TEMP_FILE = '{}.jpg'
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 
-TEMP_DIR = tempfile.gettempdir()
+TEMP_WALLPAPER_DIR = tempfile.gettempdir()
 
 
 class _IntEnum(type):
@@ -32,7 +31,7 @@ class _IntEnum(type):
     def __contains__(cls, item):
         return item in cls._vars
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self._vars)
 
     @typing.overload
@@ -117,9 +116,9 @@ class Transition(metaclass=_IntEnum):
     def _fade(factor: float, dst_w: int, dst_h: int, dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC,
               blend: ctyped.struct.BLENDFUNCTION, dst_bk: ctyped.type.HDC, tmp_dst: ctyped.type.HDC):
         blend.SourceConstantAlpha = int(255 * factor)
-        ctyped.lib.Gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
-        ctyped.lib.Msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
-        ctyped.lib.Gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
+        ctyped.lib.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
         return
         # noinspection PyUnreachableCode
         yield
@@ -285,7 +284,7 @@ class Transition(metaclass=_IntEnum):
 
 def get_monitor_count() -> int:
     num = ctyped.type.c_int()
-    ctyped.lib.User32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
+    ctyped.lib.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
     return num.value
 
 
@@ -312,10 +311,10 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
     monitors = {}
     path_count = ctyped.type.UINT32()
     mode_count = ctyped.type.UINT32()
-    if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.GetDisplayConfigBufferSizes(
+    if ctyped.const.ERROR_SUCCESS == ctyped.lib.user32.GetDisplayConfigBufferSizes(
             ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(path_count), ctyped.byref(mode_count)):
         modes = ctyped.array(type=ctyped.struct.DISPLAYCONFIG_MODE_INFO, size=mode_count.value)
-        if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
+        if ctyped.const.ERROR_SUCCESS == ctyped.lib.user32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
                 path_count), ctyped.array(type=ctyped.struct.DISPLAYCONFIG_PATH_INFO, size=path_count.value), ctyped.byref(mode_count), modes, None):
             name = ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME(ctyped.struct.DISPLAYCONFIG_DEVICE_INFO_HEADER(
                 ctyped.enum.DISPLAYCONFIG_DEVICE_INFO_TYPE.GET_TARGET_NAME, ctyped.sizeof(ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME)))
@@ -323,15 +322,15 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
                 if mode.infoType == ctyped.enum.DISPLAYCONFIG_MODE_INFO_TYPE.TARGET:
                     name.header.adapterId = mode.adapterId
                     name.header.id = mode.id
-                    if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
+                    if ctyped.const.ERROR_SUCCESS == ctyped.lib.user32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
                         monitors[name.monitorDevicePath] = name.monitorFriendlyDeviceName, (
                             mode.U.targetMode.targetVideoSignalInfo.activeSize.cx, mode.U.targetMode.targetVideoSignalInfo.activeSize.cy)
     return monitors
 
 
 def get_screen_size() -> tuple[int, int]:
-    return ctyped.lib.User32.GetSystemMetrics(
-        ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.User32.GetSystemMetrics(ctyped.const.SM_CYVIRTUALSCREEN)
+    return ctyped.lib.user32.GetSystemMetrics(
+        ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.user32.GetSystemMetrics(ctyped.const.SM_CYVIRTUALSCREEN)
 
 
 def get_style() -> Optional[int]:
@@ -343,13 +342,13 @@ def get_style() -> Optional[int]:
     return None
 
 
-def _get_param() -> str:
+def _get_wallpaper_param() -> str:
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
-        ctyped.lib.User32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
+        ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
         return buff.value
 
 
-def _get_iactivedesktop() -> str:
+def _get_wallpaper_iactivedesktop() -> str:
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
         with ctyped.init_com(ctyped.interface.IActiveDesktop) as desktop:
             if desktop:
@@ -357,7 +356,7 @@ def _get_iactivedesktop() -> str:
         return buff.value
 
 
-def _get_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
+def _get_wallpaper_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             with _utils.string_buffer() as buff:
@@ -367,29 +366,48 @@ def _get_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
             return ()
 
 
-def get(monitor: Optional[str] = None) -> str:
-    return ((_get_param() or _get_iactivedesktop())
-            if monitor is None else _get_idesktopwallpaper(monitor)[0])
+def get_wallpaper(monitor: Optional[str] = None) -> str:
+    return ((_get_wallpaper_param() or _get_wallpaper_iactivedesktop())
+            if monitor is None else _get_wallpaper_idesktopwallpaper(monitor)[0])
+
+
+def _get_rotate_flip(rotate: int, flip: int) -> ctyped.enum.RotateFlipType:
+    if (rotate == Rotate.RIGHT and flip == Flip.NONE) or (rotate == Rotate.LEFT and flip == Flip.BOTH):
+        return ctyped.enum.RotateFlipType.Rotate90FlipNone
+    elif (rotate == Rotate.FLIP and flip == Flip.NONE) or (rotate == Rotate.NONE and flip == Flip.BOTH):
+        return ctyped.enum.RotateFlipType.Rotate180FlipNone
+    elif (rotate == Rotate.LEFT and flip == Flip.NONE) or (rotate == Rotate.RIGHT and flip == Flip.BOTH):
+        return ctyped.enum.RotateFlipType.Rotate270FlipNone
+    elif (rotate == Rotate.NONE and flip == Flip.HORIZONTAL) or (rotate == Rotate.FLIP and flip == Flip.VERTICAL):
+        return ctyped.enum.RotateFlipType.RotateNoneFlipX
+    elif (rotate == Rotate.RIGHT and flip == Flip.HORIZONTAL) or (rotate == Rotate.LEFT and flip == Flip.VERTICAL):
+        return ctyped.enum.RotateFlipType.Rotate90FlipX
+    elif (rotate == Rotate.FLIP and flip == Flip.HORIZONTAL) or (rotate == Rotate.NONE and flip == Flip.VERTICAL):
+        return ctyped.enum.RotateFlipType.Rotate180FlipX
+    elif (rotate == Rotate.LEFT and flip == Flip.HORIZONTAL) or (rotate == Rotate.RIGHT and flip == Flip.VERTICAL):
+        return ctyped.enum.RotateFlipType.Rotate270FlipX
+    else:
+        return ctyped.enum.RotateFlipType.RotateNoneFlipNone
 
 
 def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
     rect = ctyped.struct.RECT()
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper and ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
-            return rect.left - ctyped.lib.User32.GetSystemMetrics(
-                ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.User32.GetSystemMetrics(
+            return rect.left - ctyped.lib.user32.GetSystemMetrics(
+                ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.user32.GetSystemMetrics(
                 ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
     return 0, 0, 0, 0
 
 
 def _spawn_workerw():
-    ctyped.lib.User32.SendMessageW(ctyped.lib.User32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
+    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
 
 
 @ctyped.type.WNDENUMPROC
 def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-    if ctyped.lib.User32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
-            hwnd_ := ctyped.lib.User32.FindWindowExW(None, hwnd, 'WorkerW', None)):
+    if ctyped.lib.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
+            hwnd_ := ctyped.lib.user32.FindWindowExW(None, hwnd, 'WorkerW', None)):
         ctyped.from_address(lparam, ctyped.type.LPARAM).value = hwnd_
     return True
 
@@ -398,7 +416,7 @@ def _get_workerw_hwnd() -> Optional[int]:
     hwnd = ctyped.type.LPARAM()
     for _ in range(_HWND_RETRY):
         _spawn_workerw()
-        if ctyped.lib.User32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd)) and hwnd.value:
+        if ctyped.lib.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd)) and hwnd.value:
             return hwnd.value
 
 
@@ -407,10 +425,10 @@ def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
     ratio = to_w / to_h
     if by_h:
         w = from_h * ratio
-        return round((from_w - w) / 2), 0, int(w), from_h
+        return int((from_w - w) / 2), 0, int(w), from_h
     else:
         h = from_w / ratio
-        return 0, round((from_h - h) / 2), from_w, int(h)
+        return 0, int((from_h - h) / 2), from_w, int(h)
 
 
 def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
@@ -428,13 +446,13 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
     return 0, 0, 0, 0
 
 
-def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
+def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,  # TODO remove [get_resized]
                    src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> ctyped.handle.HDC:
     bitmap = _gdiplus.Bitmap.from_dimension(width, height)
+    bitmap.set_resolution(src.get_horizontal_resolution(), src.get_vertical_resolution())
     graphics = _gdiplus.Graphics.from_image(bitmap)
     graphics.fill_rectangle(_gdiplus.SolidBrush.from_color(color), 0, 0, width, height)
     graphics.scale_transform(width / src_w, height / src_h)
-    src.set_resolution(graphics.get_dpi_x(), graphics.get_dpi_y())
     graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
     bitmap.save(temp_path)
     return bitmap.get_hbitmap().get_hdc()
@@ -442,11 +460,11 @@ def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdipl
 
 def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
     rect = ctyped.struct.RECT()
-    fore_hwnd = ctyped.lib.User32.GetForegroundWindow()
-    if (fore_hwnd and ctyped.lib.User32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
-            ctyped.lib.User32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
+    fore_hwnd = ctyped.lib.user32.GetForegroundWindow()
+    if (fore_hwnd and ctyped.lib.user32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
+            ctyped.lib.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
         rect_ = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
-        return bool(ctyped.lib.User32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
+        return bool(ctyped.lib.user32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
     return True
 
 
@@ -462,7 +480,7 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
             args = []
             if transition == Transition.FADE:
                 dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
-                ctyped.lib.Gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
+                ctyped.lib.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
                 args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
                              dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
             if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
@@ -476,17 +494,17 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                 # noinspection PyProtectedMember
                 for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
                         passed / duration, dst_w, dst_h, *args):
-                    ctyped.lib.Gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
+                    ctyped.lib.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
-        ctyped.lib.Gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 
-def _set_param(path: str) -> bool:
-    return bool(ctyped.lib.User32.SystemParametersInfoW(
+def _set_wallpaper_param(path: str) -> bool:
+    return bool(ctyped.lib.user32.SystemParametersInfoW(
         ctyped.const.SPI_SETDESKWALLPAPER, 0, path, ctyped.const.SPIF_SENDWININICHANGE))
 
 
-def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
+def _set_wallpaper_iactivedesktop(path: str, fade: bool = True) -> bool:
     with ctyped.init_com(ctyped.interface.IActiveDesktop) as desktop:
         if desktop:
             if fade:
@@ -496,8 +514,8 @@ def _set_iactivedesktop(path: str, fade: bool = True) -> bool:
     return False
 
 
-def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ctyped.type.COLORREF] = None,
-                           style: Optional[Union[int, ctyped.enum.DESKTOP_WALLPAPER_POSITION]] = None) -> bool:
+def _set_wallpaper_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ctyped.type.COLORREF] = None,
+                                     style: Optional[Union[int, ctyped.enum.DESKTOP_WALLPAPER_POSITION]] = None) -> bool:
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if color is not None and ctyped.macro.FAILED(wallpaper.SetBackgroundColor(color)):
@@ -509,7 +527,7 @@ def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ct
                 except OSError:
                     return False
             if style in (Style.SPAN, Style.TILE):
-                return _set_param(path)
+                return _set_wallpaper_param(path)
             else:
                 try:
                     return ctyped.macro.SUCCEEDED(wallpaper.SetWallpaper(monitor, path))
@@ -518,37 +536,21 @@ def _set_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ct
     return False
 
 
-# noinspection PyShadowingBuiltins
-def set(path: str, *monitors: str, fade: bool = True):
-    return _set_idesktopwallpaper(path, *monitors) if monitors else _set_iactivedesktop(
-        path, fade) if fade else _set_param(path)
+def set_wallpaper(path: str, *monitors: str, fade: bool = True):
+    return _set_wallpaper_idesktopwallpaper(path, *monitors) if monitors else _set_wallpaper_iactivedesktop(
+        path, fade) if fade else _set_wallpaper_param(path)
 
 
 _temp_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL, r: int = 0, g: int = 0, b: int = 0,
-           rotate: int = Rotate.NONE, flip: int = Flip.NONE, transition: int = Transition.FADE, duration: int = 1) -> bool:
+def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL, r: int = 0, g: int = 0, b: int = 0,
+                     rotate: int = Rotate.NONE, flip: int = Flip.NONE, transition: int = Transition.FADE, duration: int = 1) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
         width = image.get_width()
         height = image.get_height()
         if rotate or flip:
-            rotate_flip = ctyped.enum.RotateFlipType.RotateNoneFlipNone
-            if (rotate == Rotate.RIGHT and flip == Flip.NONE) or (rotate == Rotate.LEFT and flip == Flip.BOTH):
-                rotate_flip = ctyped.enum.RotateFlipType.Rotate90FlipNone
-            elif (rotate == Rotate.FLIP and flip == Flip.NONE) or (rotate == Rotate.NONE and flip == Flip.BOTH):
-                rotate_flip = ctyped.enum.RotateFlipType.Rotate180FlipNone
-            elif (rotate == Rotate.LEFT and flip == Flip.NONE) or (rotate == Rotate.RIGHT and flip == Flip.BOTH):
-                rotate_flip = ctyped.enum.RotateFlipType.Rotate270FlipNone
-            elif (rotate == Rotate.NONE and flip == Flip.HORIZONTAL) or (rotate == Rotate.FLIP and flip == Flip.VERTICAL):
-                rotate_flip = ctyped.enum.RotateFlipType.RotateNoneFlipX
-            elif (rotate == Rotate.RIGHT and flip == Flip.HORIZONTAL) or (rotate == Rotate.LEFT and flip == Flip.VERTICAL):
-                rotate_flip = ctyped.enum.RotateFlipType.Rotate90FlipX
-            elif (rotate == Rotate.FLIP and flip == Flip.HORIZONTAL) or (rotate == Rotate.NONE and flip == Flip.VERTICAL):
-                rotate_flip = ctyped.enum.RotateFlipType.Rotate180FlipX
-            elif (rotate == Rotate.LEFT and flip == Flip.HORIZONTAL) or (rotate == Rotate.RIGHT and flip == Flip.VERTICAL):
-                rotate_flip = ctyped.enum.RotateFlipType.Rotate270FlipX
-            image.rotate_flip(rotate_flip)
+            image.rotate_flip(_get_rotate_flip(rotate, flip))
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
             monitor_x_y_w_h = 0, 0, *get_screen_size()
@@ -566,17 +568,17 @@ def set_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL, r:
                 height = height_
         else:
             monitor_x_y_w_h = _get_monitor_x_y_w_h(monitor)
-        os.makedirs(TEMP_DIR, exist_ok=True)
-        temp_path = os.path.join(TEMP_DIR, _TEMP_FILE).format(_utils.sanitize_filename(monitor))
+        os.makedirs(TEMP_WALLPAPER_DIR, exist_ok=True)
+        temp_path = os.path.join(TEMP_WALLPAPER_DIR, f'{_utils.sanitize_filename(monitor)}.jpg')
         with _temp_lock(temp_path):
             # noinspection PyTypeChecker
             _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
                              temp_path, _gdiplus.Color.from_rgba(r, g, b), transition, duration)
             try:
-                return _set_idesktopwallpaper(
+                return _set_wallpaper_idesktopwallpaper(
                     temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
             finally:
-                threading.Timer(_DELETE_AFTER, ctyped.lib.Kernel32.DeleteFileW, (temp_path,)).start()
+                threading.Timer(_DELETE_AFTER, ctyped.lib.kernel32.DeleteFileW, (temp_path,)).start()
     return False
 
 
@@ -584,9 +586,9 @@ Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r'
                                    defaults=(Style.FILL, 0, 0, 0, Rotate.NONE, Flip.NONE, Transition.FADE, 1))
 
 
-def set_multi(*wallpapers: Wallpaper):
+def set_wallpapers_ex(*wallpapers: Wallpaper):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = tuple(executor.submit(set_ex, *wallpaper) for wallpaper in wallpapers)
+        futures = tuple(executor.submit(set_wallpaper_ex, *wallpaper) for wallpaper in wallpapers)
     return all(future.result() for future in futures)
 
 
@@ -610,7 +612,7 @@ def set_slideshow(*paths: str) -> bool:
             with ctyped.init_com(ctyped.interface.IShellItemArray, False) as shl_arr:
                 id_arr = ctyped.array(*pidl)
                 return ctyped.macro.SUCCEEDED(
-                    ctyped.lib.Shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(
+                    ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(
                         id_arr[0]), ctyped.byref(shl_arr))) and ctyped.macro.SUCCEEDED(wallpaper.SetSlideshow(shl_arr))
     return False
 

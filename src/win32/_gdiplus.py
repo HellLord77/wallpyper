@@ -20,6 +20,17 @@ def _get_obj(float_obj: Callable, int_obj: Callable, *numbers: Optional[float]) 
     return int_obj
 
 
+def _calc_src_x_y_w_h(from_w: int, from_h: int, to_w: int, to_h: int,
+                      by_h: bool = True) -> tuple[float, float, float, float]:
+    ratio = to_w / to_h
+    if by_h:
+        w = from_h * ratio
+        return (from_w - w) / 2, 0, w, from_h
+    else:
+        h = from_w / ratio
+        return 0, (from_h - h) / 2, from_w, h
+
+
 class _GdiplusToken(ctyped.type.ULONG_PTR):
     count = 0
 
@@ -287,9 +298,13 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
         return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawImage, _GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
 
     def draw_image_from_rect(self, src: Image, x: float = 0, y: float = 0, src_x: float = 0, src_y: float = 0,
-                             src_w: Optional[float] = None, src_h: Optional[float] = None):
+                             src_w: Optional[float] = None, src_h: Optional[float] = None) -> bool:
+        if src_w is None:
+            src_w = src.get_width()
+        if src_h is None:
+            src_h = src.get_height()
         return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawImagePointRect, _GdiPlus.GdipDrawImagePointRectI, x, y, src_x, src_y, src_w, src_h)(
-            self, src, x, y, src_x, src_y, src.get_width() if src_w is None else src_w, src.get_height() if src_h is None else src_h, ctyped.enum.GpUnit.Pixel)
+            self, src, x, y, src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel)
 
     def draw_image_on_rect_from_rect(self, src: Image, x: float = 0, y: float = 0, w: Optional[float] = None,
                                      h: Optional[float] = None, src_x: float = 0, src_y: float = 0,
@@ -298,12 +313,15 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
             src_w = src.get_width()
         if src_h is None:
             src_h = src.get_height()
+        if w is None:
+            w = src_w
+        if h is None:
+            h = src_h
         image_attrs = image_attributes_from_alpha(alpha)
         draw_abort = ctyped.type.DrawImageAbort()
         return _GpStatus.Ok == _get_obj(_GdiPlus.GdipDrawImageRectRect, _GdiPlus.GdipDrawImageRectRectI, x, y,
                                         w, h, src_x, src_y, src_w, src_h)(
-            self, src, x, y, src_w if w is None else w, src_h if h is None else h,
-            src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel, image_attrs, draw_abort, None)
+            self, src, x, y, w, h, src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel, image_attrs, draw_abort, None)
 
 
 class Brush(_GdiplusBase, ctyped.type.GpBrush):
@@ -501,7 +519,7 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
     @classmethod
     def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Image:
         self = cls()
-        if stream := ctyped.lib.Shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
+        if stream := ctyped.lib.shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
             (_GdiPlus.GdipLoadImageFromStreamICM if embedded_color_management else _GdiPlus.GdipLoadImageFromStream)(
                 stream, ctyped.byref(self))
             stream.Release()
@@ -597,6 +615,9 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
     def remove_property_item(self, id: ctyped.type.PROPID) -> bool:
         return _GpStatus.Ok == _GdiPlus.GdipRemovePropertyItem(self, id)
 
+    def force_validation(self) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipImageForceValidation(self)
+
     def _del(self):
         _GdiPlus.GdipDisposeImage(self)
 
@@ -667,7 +688,7 @@ class Bitmap(Image, ctyped.type.GpBitmap):
     @classmethod
     def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Bitmap:
         self = cls()
-        if stream := ctyped.lib.Shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
+        if stream := ctyped.lib.shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
             (_GdiPlus.GdipCreateBitmapFromStreamICM if embedded_color_management else _GdiPlus.GdipCreateBitmapFromStream)(
                 stream, ctyped.byref(self))
             stream.Release()
@@ -728,14 +749,20 @@ class Bitmap(Image, ctyped.type.GpBitmap):
     def set_resolution(self, x_dpi: float, y_dpi: float) -> bool:
         return _GpStatus.Ok == _GdiPlus.GdipBitmapSetResolution(self, x_dpi, y_dpi)
 
-    def get_resized(self, width: Optional[int] = None, height: Optional[int] = None) -> Bitmap:
-        width_ = self.get_width()
-        height_ = self.get_height()
-        bitmap = self.from_dimension(
-            width_ if width is None else width, height_ if height is None else height, self.get_pixel_format())
+    def get_resized(self, width: int, height: int, fit: bool = False, crop_to_fit: bool = False) -> Bitmap:
+        src_w = self.get_width()
+        src_h = self.get_height()
+        bitmap = self.from_dimension(width, height, self.get_pixel_format())
+        bitmap.set_resolution(self.get_horizontal_resolution(), self.get_vertical_resolution())
         graphics = Graphics.from_image(bitmap)
-        graphics.scale_transform(width / width_, height / height_)
-        graphics.draw_image_from_rect(self)
+        if fit:
+            x, y, w, h = _calc_src_x_y_w_h(
+                src_w, src_h, width, height, crop_to_fit ^ (width / src_w > height / src_h))
+            graphics.scale_transform(width / w, height / h)
+            graphics.draw_image_from_rect(self, -min(0.0, x), -min(0.0, y), max(0.0, x), max(0.0, y))
+        else:
+            graphics.scale_transform(width / src_w, height / src_h)
+            graphics.draw_image(self)
         return bitmap
 
 
@@ -1311,7 +1338,7 @@ def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[
                                         return bitmap
 
 
-def bitmap_from_string(string: str = _string.printable[:-len(_string.whitespace)], size: int = 1024,
+def bitmap_from_string(string: str = _string.printable.replace(_string.whitespace, '', 1), size: int = 1024,
                        r: int = 0, g: int = 0, b: int = 0, font_name_or_path: str = 'Segoe UI') -> Bitmap:
     if os.path.isfile(font_name_or_path):
         collection = PrivateFontCollection.from_empty()

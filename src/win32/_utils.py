@@ -7,12 +7,12 @@ import libs.ctyped as ctyped
 
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
-    ctyped.lib.Shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
+    ctyped.lib.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
         folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT, None, ctyped.byref(buff))
     try:
         return buff.value
     finally:
-        ctyped.lib.Ole32.CoTaskMemFree(buff)
+        ctyped.lib.ole32.CoTaskMemFree(buff)
 
 
 @contextlib.contextmanager
@@ -22,26 +22,26 @@ def string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWS
         yield ptr
     finally:
         if size is None and ptr:
-            ctyped.lib.Kernel32.LocalFree(ptr)
+            ctyped.lib.kernel32.LocalFree(ptr)
 
 
 @contextlib.contextmanager
 def get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.lib.Shell32.ILCreateFromPath(path) for path in paths)
+    ids = tuple(ctyped.lib.shell32.ILCreateFromPath(path) for path in paths)
     try:
         yield ids
     finally:
         for id_ in ids:
-            ctyped.lib.Shell32.ILFree(id_)
+            ctyped.lib.shell32.ILFree(id_)
 
 
 def get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
     sz = ctyped.type.ULONG()
     type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
     prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-    ctyped.lib.Cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
+    ctyped.lib.cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
     with string_buffer(sz.value) as buff:
-        ctyped.lib.Cfgmgr32.CM_Get_Device_Interface_PropertyW(
+        ctyped.lib.cfgmgr32.CM_Get_Device_Interface_PropertyW(
             dev_path, prop_key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
         return buff.value
 
@@ -53,11 +53,11 @@ def get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str
     type_ = ctyped.type.DEVPROPTYPE()
     for devpkey in devpkeys:
         prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-        ctyped.lib.Cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
-        ctyped.lib.Cfgmgr32.CM_Get_DevNode_PropertyW(
+        ctyped.lib.cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
+        ctyped.lib.cfgmgr32.CM_Get_DevNode_PropertyW(
             dev_int, prop_key_ref, ctyped.byref(type_), None, ctyped.byref(sz), 0)
         with string_buffer(sz.value) as buff:
-            ctyped.lib.Cfgmgr32.CM_Get_DevNode_PropertyW(
+            ctyped.lib.cfgmgr32.CM_Get_DevNode_PropertyW(
                 dev_int, prop_key_ref, ctyped.byref(type_), ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
             props.append(buff.value)
     return tuple(props)
@@ -74,7 +74,7 @@ def delete_key(key: winreg.HKEYType, name: str) -> bool:
 
 def sanitize_filename(name: str) -> Optional[str]:
     buff = ctyped.type.PWSTR(name)
-    if ctyped.lib.Shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
+    if ctyped.lib.shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
         return buff.value
 
 
@@ -93,7 +93,7 @@ def open_file(path: str) -> ContextManager[Optional[ctyped.interface.Windows.Sto
 @contextlib.contextmanager
 def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> ContextManager[Optional[ctyped.interface.IStream]]:
     with ctyped.init_com(ctyped.interface.IStream, False) as stream:
-        if ctyped.macro.SUCCEEDED(ctyped.lib.Shlwapi.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
+        if ctyped.macro.SUCCEEDED(ctyped.lib.shlwapi.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
             yield stream
             return
     yield
@@ -158,7 +158,7 @@ def get_d2d1_dc_render_target() -> ContextManager[Optional[ctyped.interface.ID2D
     with ctyped.init_com(ctyped.interface.ID2D1Factory, False) as factory, ctyped.init_com(
             ctyped.interface.ID2D1DCRenderTarget, False) as target:
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
-        if ctyped.macro.SUCCEEDED(ctyped.lib.D2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
+        if ctyped.macro.SUCCEEDED(ctyped.lib.d2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
                 factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
                     ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
             yield target
