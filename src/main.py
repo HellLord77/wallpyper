@@ -30,13 +30,15 @@ import win32
 ALL_DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.realpath(os.path.join(os.path.dirname(__file__), 'res', '{}'))
-TEMP_DIR = win32.wallpaper.TEMP_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
+gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
+TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, consts.NAME, f'{consts.NAME}.ini')
 LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
+win32.gui.FEATURE_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 STRINGS = langs.eng
 DISPLAYS: list[str] = []
@@ -51,6 +53,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_FIRST: True,
     consts.CONFIG_AUTOSAVE: False,
     consts.CONFIG_SKIP: False,
+    consts.CONFIG_REAPPLY: True,
     consts.CONFIG_NOTIFY: True,
     consts.CONFIG_ANIMATE: True,
     consts.CONFIG_CACHE: False,
@@ -59,16 +62,21 @@ DEFAULT_CONFIG = {
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
-    consts.CONFIG_STYLE: win32.wallpaper.Style[win32.wallpaper.Style.FILL],
-    consts.CONFIG_ROTATE: win32.wallpaper.Rotate[win32.wallpaper.Rotate.NONE],
-    consts.CONFIG_FLIP: win32.wallpaper.Flip[win32.wallpaper.Flip.NONE],
-    consts.CONFIG_TRANSITION: win32.wallpaper.Transition[win32.wallpaper.Transition.RANDOM]}
+    consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
+    consts.CONFIG_ROTATE: win32.display.Rotate[win32.display.Rotate.NONE],
+    consts.CONFIG_FLIP: win32.display.Flip[win32.display.Flip.NONE],
+    consts.CONFIG_TRANSITION: win32.display.Transition[win32.display.Transition.FADE]}
 CONFIG = {}
 
 
 def notify(title: str, text: str):
     if CONFIG[consts.CONFIG_NOTIFY]:
         gui.show_balloon(title, text)
+
+
+def reapply_wallpaper(_):
+    if CONFIG[consts.CONFIG_REAPPLY] and RECENT:
+        on_change(*TIMER.args, RECENT[0], False)
 
 
 def _fix_config(key: str, itt: Iterable):
@@ -84,10 +92,10 @@ def _fix_config(key: str, itt: Iterable):
 
 
 def fix_config(loaded: bool = True):
-    _fix_config(consts.CONFIG_STYLE, win32.wallpaper.Style)
-    _fix_config(consts.CONFIG_ROTATE, win32.wallpaper.Rotate)
-    _fix_config(consts.CONFIG_FLIP, win32.wallpaper.Flip)
-    _fix_config(consts.CONFIG_TRANSITION, win32.wallpaper.Transition)
+    _fix_config(consts.CONFIG_STYLE, win32.display.Style)
+    _fix_config(consts.CONFIG_ROTATE, win32.display.Rotate)
+    _fix_config(consts.CONFIG_FLIP, win32.display.Flip)
+    _fix_config(consts.CONFIG_TRANSITION, win32.display.Transition)
     if loaded:
         CONFIG[consts.CONFIG_RECENT] = f'\n{utils.encrypt(RECENT, True)}'
     _fix_config(consts.CONFIG_DISPLAY, DISPLAYS)
@@ -197,11 +205,11 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
         wallpaper.name = win32.sanitize_filename(wallpaper.name)
         if path := download_wallpaper(wallpaper, query_callback, args, kwargs):
             # noinspection PyArgumentList
-            changed = win32.wallpaper.set_multi(*(win32.wallpaper.Wallpaper(
-                path, display, getattr(win32.wallpaper.Style, CONFIG[consts.CONFIG_STYLE]), rotate=getattr(
-                    win32.wallpaper.Rotate, CONFIG[consts.CONFIG_ROTATE]), flip=getattr(
-                    win32.wallpaper.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
-                    win32.wallpaper.Transition, CONFIG[consts.CONFIG_TRANSITION]))
+            changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
+                path, display, getattr(win32.display.Style, CONFIG[consts.CONFIG_STYLE]), rotate=getattr(
+                    win32.display.Rotate, CONFIG[consts.CONFIG_ROTATE]), flip=getattr(
+                    win32.display.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
+                    win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION]))
                 for display in (DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],))))
     return changed
 
@@ -235,14 +243,14 @@ def on_copy_url(url: str) -> bool:
 
 def on_google(url: str) -> bool:
     if not (opened := webbrowser.open(request.encode(GOOGLE_URL, {'image_url': url}))):
-        notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
+        notify(STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH)
     return opened
 
 
 def on_bing(url: str) -> bool:
     if not (opened := webbrowser.open(request.encode(
             BING_URL, {'view': 'detailv2', 'iss': 'sbi', 'q': f'imgurl:{url}'}))):
-        notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
+        notify(STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH)
     return opened
 
 
@@ -303,7 +311,7 @@ def _update_recent(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
                                       on_thread=False, change_state=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
-                        win32.wallpaper.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
+                        win32.display.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
                         RES_TEMPLATE.format(consts.RES_SET_LOCK))
                     gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click, args=(
                         save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)).set_icon(
@@ -335,13 +343,13 @@ def _update_recent(item: win32.gui.MenuItem):
                         wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
                     gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(
                         wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_BING))
-                    if consts.FEATURE_GOOGLE_SEARCH:
-                        gui.add_menu_item(STRINGS.LABEL_SEARCH, on_click=on_click, args=(
-                            search_wallpaper, wallpaper, STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH,)).set_icon(
-                            RES_TEMPLATE.format(consts.RES_SEARCH))
+                    if consts.FEATURE_LENS_UPLOAD:
+                        gui.add_menu_item(STRINGS.LABEL_LENS, on_click=on_click, args=(
+                            search_wallpaper, wallpaper, STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH,)).set_icon(
+                            RES_TEMPLATE.format(consts.RES_LENS))
             item_ = menu.insert_item(index, label, submenu=submenu)
             item_.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
-                TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_IMAGE else gui.MenuItemTooltipIcon.NONE)
+                TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_.set_uid(wallpaper.url)
     for uid, item_ in items.items():
         if uid and uid not in RECENT:
@@ -349,9 +357,7 @@ def _update_recent(item: win32.gui.MenuItem):
     item.enable(bool(RECENT))
 
 
-def on_auto_change(interval: Union[int, str], after: Optional[float] = None):
-    if isinstance(interval, str):
-        interval = int(interval)
+def on_auto_change(interval: int, after: Optional[float] = None):
     CONFIG[consts.CONFIG_INTERVAL] = interval
     if interval:
         TIMER.set_next_interval(interval)
@@ -372,18 +378,19 @@ def on_flip(vertical: win32.gui.MenuItem, horizontal: win32.gui.MenuItem):
     vertical_checked = vertical.is_checked()
     horizontal_checked = horizontal.is_checked()
     if vertical_checked and horizontal_checked:
-        CONFIG[consts.CONFIG_FLIP] = win32.wallpaper.Flip[win32.wallpaper.Flip.BOTH]
+        CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.BOTH]
     elif vertical_checked:
-        CONFIG[consts.CONFIG_FLIP] = win32.wallpaper.Flip[win32.wallpaper.Flip.VERTICAL]
+        CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.VERTICAL]
     elif horizontal_checked:
-        CONFIG[consts.CONFIG_FLIP] = win32.wallpaper.Flip[win32.wallpaper.Flip.HORIZONTAL]
+        CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.HORIZONTAL]
     else:
-        CONFIG[consts.CONFIG_FLIP] = win32.wallpaper.Flip[win32.wallpaper.Flip.NONE]
+        CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.NONE]
+    reapply_wallpaper(None)
 
 
 def _update_display():
     DISPLAYS.clear()
-    DISPLAYS.extend(win32.wallpaper.get_monitor_ids())
+    DISPLAYS.extend(win32.display.get_monitor_ids())
 
 
 def on_display_change(update: int, __: Optional[gui.Gui], item: win32.gui.MenuItem):
@@ -392,14 +399,14 @@ def on_display_change(update: int, __: Optional[gui.Gui], item: win32.gui.MenuIt
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_main_menu(submenu):
-        size = win32.wallpaper.get_screen_size()
+        size = win32.display.get_screen_size()
         gui.add_menu_item(f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}',
                           gui.MenuItemType.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
                           uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
                           menu_args=(gui.Property.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
-        monitors = win32.wallpaper.get_monitors()
+        monitors = win32.display.get_monitors()
         gui.add_mapped_submenu(item, {
-            id_: f'{langs.to_str(index, STRINGS)}. {monitors[id_][0] or win32.wallpaper.get_monitor_name(id_) or STRINGS.DISPLAY}'
+            id_: f'{langs.to_str(index, STRINGS)}. {monitors[id_][0] or win32.display.get_monitor_name(id_) or STRINGS.DISPLAY}'
                  f'\t{langs.to_str(monitors[id_][1][0], STRINGS)} × {monitors[id_][1][1]}'
             for index, id_ in enumerate(DISPLAYS, 1) if id_ in monitors}, CONFIG, consts.CONFIG_DISPLAY)
         if consts.FEATURE_UPDATE_DISPLAY:
@@ -597,28 +604,28 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_AUTO)):
-            gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE,
-                                   {str(interval): getattr(STRINGS, f'TIME_{interval}') for interval in INTERVALS},
+            gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
+                STRINGS, f'TIME_{interval}') for interval in INTERVALS},
                                    CONFIG, consts.CONFIG_INTERVAL, on_click=on_auto_change)
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
             gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save)
-        gui.add_mapped_submenu(STRINGS.MENU_TRANSITION,
-                               {transition: getattr(STRINGS, f'TRANSITION_{transition}') for transition in
-                                win32.wallpaper.Transition}, CONFIG, consts.CONFIG_TRANSITION)
-        gui.add_mapped_submenu(STRINGS.MENU_ROTATE,
-                               {rotate: getattr(STRINGS, f'ROTATE_{rotate}') for rotate in
-                                win32.wallpaper.Rotate}, CONFIG, consts.CONFIG_ROTATE)
+        gui.add_mapped_submenu(STRINGS.MENU_TRANSITION, {transition: getattr(
+            STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CONFIG, consts.CONFIG_TRANSITION)
+        if consts.FEATURE_ROTATE_IMAGE:
+            gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
+                STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate},
+                                   CONFIG, consts.CONFIG_ROTATE, on_click=reapply_wallpaper)
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_FLIP)):
             item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.MenuItemType.CHECK, getattr(
-                win32.wallpaper.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.wallpaper.Flip.VERTICAL, win32.wallpaper.Flip.BOTH))
+                win32.display.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.display.Flip.VERTICAL, win32.display.Flip.BOTH))
             item_horizontal = gui.add_menu_item(STRINGS.FLIP_HORIZONTAL, gui.MenuItemType.CHECK, getattr(
-                win32.wallpaper.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.wallpaper.Flip.HORIZONTAL, win32.wallpaper.Flip.BOTH))
+                win32.display.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.display.Flip.HORIZONTAL, win32.display.Flip.BOTH))
             gui.set_on_click(item_vertical, on_flip, args=(item_vertical, item_horizontal))
             gui.set_on_click(item_horizontal, on_flip, args=(item_vertical, item_horizontal))
-        gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT,
-                               {style: getattr(STRINGS, f'ALIGNMENT_{style}') for style in win32.wallpaper.Style},
-                               CONFIG, consts.CONFIG_STYLE)
+        gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style: getattr(
+            STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style},
+                               CONFIG, consts.CONFIG_STYLE, on_click=reapply_wallpaper)
         gui.add_mapped_submenu(STRINGS.MENU_MODULE,
                                {name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()},
                                CONFIG, consts.CONFIG_MODULE, on_click=on_module, args=(item_module,))
@@ -629,6 +636,7 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, consts.CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, consts.CONFIG_NOTIFY)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, consts.CONFIG_SKIP)
+        gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CONFIG, consts.CONFIG_REAPPLY)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CONFIG, consts.CONFIG_CACHE)
         gui.add_mapped_menu_item(STRINGS.LABEL_START, CONFIG, consts.CONFIG_START)
         gui.add_mapped_menu_item(STRINGS.LABEL_CONFIG, CONFIG, consts.CONFIG_SAVE)
@@ -654,12 +662,11 @@ def start():  # TODO dark theme
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE])
     apply_auto_start(CONFIG[consts.CONFIG_START])
     apply_save_config(CONFIG[consts.CONFIG_SAVE])
-    after = CONFIG[consts.CONFIG_INTERVAL] + CONFIG[consts.CONFIG_LAST] - time.time()
-    if consts.ARG_CHANGE in sys.argv or (CONFIG[consts.CONFIG_INTERVAL] and after <= 0):
-        on_change(*TIMER.args, auto_change=False)
-    on_auto_change(CONFIG[consts.CONFIG_INTERVAL], None if after <= 0 else after)
     first_run()
-    gui.set_animation(RES_TEMPLATE.format(consts.RES_BUSY))
+    change_after = CONFIG[consts.CONFIG_INTERVAL] + CONFIG[consts.CONFIG_LAST] - time.time()
+    if consts.ARG_CHANGE in sys.argv or (CONFIG[consts.CONFIG_INTERVAL] and change_after <= 0):
+        on_change(*TIMER.args, auto_change=False)
+    on_auto_change(CONFIG[consts.CONFIG_INTERVAL], None if change_after <= 0 else change_after)
     gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME, on_change, TIMER.args)
 
 

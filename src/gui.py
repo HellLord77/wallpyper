@@ -6,12 +6,12 @@ from typing import Any, Callable, ContextManager, Iterable, Mapping, MutableMapp
 
 import win32
 
+ANIMATION_PATH = ''
 GUI = win32.gui.Gui.__new__(win32.gui.Gui)
 SYSTEM_TRAY = win32.gui.SystemTray.__new__(win32.gui.SystemTray)
 MENU = win32.gui.Menu.__new__(win32.gui.Menu)
 
 _ENABLE_ANIMATION = True
-_GIF_PATH = ''
 _TOOLTIPS: collections.deque[str] = collections.deque()
 _ANIMATIONS: collections.deque[tuple[str, str]] = collections.deque()
 _MAIN_MENU = [MENU]
@@ -237,7 +237,7 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
 
         SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.LEFT_DOUBLE, wrapper)
     SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.RIGHT_DOWN, lambda _, __: MENU.show())
-    GUI.bind(win32.gui.GuiEvent.QUERY_END, stop_loop)  # TODO
+    GUI.bind(win32.gui.GuiEvent.QUERY_END, stop_loop)  # TODO fix shutdown
     SYSTEM_TRAY.show()
     GUI.mainloop()
 
@@ -256,11 +256,6 @@ def disable_events():
     GUI.unbind(win32.gui.GuiEvent.DISPLAY_CHANGE)
 
 
-def set_animation(path: str):
-    global _GIF_PATH
-    _GIF_PATH = path
-
-
 def _animate():
     animate_ = False
     try:
@@ -272,7 +267,7 @@ def _animate():
     SYSTEM_TRAY.set_tooltip(tooltip)
     if animate_ and _ENABLE_ANIMATION:
         if not SYSTEM_TRAY.is_animated():
-            SYSTEM_TRAY.start_animation(_GIF_PATH)
+            SYSTEM_TRAY.start_animation(ANIMATION_PATH)
     else:
         SYSTEM_TRAY.stop_animation()
 

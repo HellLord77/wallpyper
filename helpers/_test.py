@@ -177,7 +177,7 @@ def _test_gui():
 def _test_settings():
     info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open', lpFile='ms-settings:mobile-devices',
                                            nShow=ctyped.const.SW_NORMAL)
-    print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
+    print(ctyped.lib.shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
 class ToastDismiss(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[
@@ -251,25 +251,25 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
     compatibility = ()
     if path is None:
         handle = ctyped.type.HANDLE()
-        ctyped.lib.Kernel32.GetCurrentActCtx(ctyped.byref(handle))
+        ctyped.lib.kernel32.GetCurrentActCtx(ctyped.byref(handle))
     else:
         ctx = ctyped.struct.ACTCTXW(lpSource=path)
-        handle = ctyped.lib.Kernel32.CreateActCtxW(ctyped.byref(ctx))
+        handle = ctyped.lib.kernel32.CreateActCtxW(ctyped.byref(ctx))
     sz = ctyped.type.SIZE_T()
-    if not ctyped.lib.Kernel32.QueryActCtxW(
+    if not ctyped.lib.kernel32.QueryActCtxW(
             ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None,
             ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, None, 0,
-            ctyped.byref(sz)) and ctyped.lib.Kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
-        buff = ctyped.lib.Kernel32.HeapAlloc(ctyped.lib.Kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
-        if ctyped.lib.Kernel32.QueryActCtxW(
+            ctyped.byref(sz)) and ctyped.lib.kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
+        buff = ctyped.lib.kernel32.HeapAlloc(ctyped.lib.kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
+        if ctyped.lib.kernel32.QueryActCtxW(
                 ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None,
                 ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext,
                 buff, sz, ctyped.byref(sz)):
             info = ctyped.cast(buff, ctyped.struct.ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION).contents
             compatibility = (*ctyped.resize_array(info.Elements, info.ElementCount),)
         if buff:
-            ctyped.lib.Kernel32.HeapFree(ctyped.lib.Kernel32.GetProcessHeap(), 0, buff)
-    ctyped.lib.Kernel32.ReleaseActCtx(handle)
+            ctyped.lib.kernel32.HeapFree(ctyped.lib.kernel32.GetProcessHeap(), 0, buff)
+    ctyped.lib.kernel32.ReleaseActCtx(handle)
     return compatibility
 
 
@@ -325,87 +325,87 @@ FunctionAddress = TypeVar('FunctionAddress', bound=int)
 class Thread(ctyped.type.HANDLE):
     @classmethod
     def create_remote(cls, proc, target: FunctionAddress, arg: Optional[int] = None, suspended: bool = False) -> Thread:
-        return cls(ctyped.lib.Kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(
+        return cls(ctyped.lib.kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(
             target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
 
     def set_priority(self, priority: int) -> bool:
-        return bool(ctyped.lib.Kernel32.SetThreadPriority(self, priority))
+        return bool(ctyped.lib.kernel32.SetThreadPriority(self, priority))
 
     def set_priority_boost(self, boost: bool = True) -> bool:
-        return bool(ctyped.lib.Kernel32.SetThreadPriorityBoost(self, not boost))
+        return bool(ctyped.lib.kernel32.SetThreadPriorityBoost(self, not boost))
 
     def get_priority_boost(self) -> Optional[bool]:
         boost = ctyped.type.BOOL()
-        if ctyped.lib.Kernel32.GetThreadPriorityBoost(self, ctyped.byref(boost)):
+        if ctyped.lib.kernel32.GetThreadPriorityBoost(self, ctyped.byref(boost)):
             return not boost.value
 
     def get_priority(self) -> int:
-        return ctyped.lib.Kernel32.GetThreadPriority(self)
+        return ctyped.lib.kernel32.GetThreadPriority(self)
 
     def terminate(self, exit_code: int) -> bool:
-        return bool(ctyped.lib.Kernel32.TerminateThread(self, exit_code))
+        return bool(ctyped.lib.kernel32.TerminateThread(self, exit_code))
 
     def get_exit_code(self) -> Optional[int]:
         exit_code = ctyped.type.DWORD()
-        if ctyped.lib.Kernel32.GetExitCodeThread(self, ctyped.byref(exit_code)):
+        if ctyped.lib.kernel32.GetExitCodeThread(self, ctyped.byref(exit_code)):
             return exit_code.value
 
     def suspend(self) -> bool:
-        return ctyped.lib.Kernel32.SuspendThread(self) != -1
+        return ctyped.lib.kernel32.SuspendThread(self) != -1
 
     def resume(self) -> bool:
-        return ctyped.lib.Kernel32.ResumeThread(self) != -1
+        return ctyped.lib.kernel32.ResumeThread(self) != -1
 
     def join(self, timeout: int = ctyped.const.INFINITE) -> bool:
-        return ctyped.const.WAIT_OBJECT_0 == ctyped.lib.Kernel32.WaitForSingleObject(self, timeout)
+        return ctyped.const.WAIT_OBJECT_0 == ctyped.lib.kernel32.WaitForSingleObject(self, timeout)
 
 
 class RemoteProcess:
     def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
-        self._handle = ctyped.lib.Kernel32.OpenProcess(access, False, pid)
+        self._handle = ctyped.lib.kernel32.OpenProcess(access, False, pid)
         self._libs_remote = {}
         self._libs_local = {}
 
     def alloc_mem(self, size: int, permission: int = ctyped.const.PAGE_READONLY) -> PageAddress:
-        return ctyped.lib.Kernel32.VirtualAllocEx(self._handle, None, size, ctyped.const.MEM_COMMIT, permission)
+        return ctyped.lib.kernel32.VirtualAllocEx(self._handle, None, size, ctyped.const.MEM_COMMIT, permission)
 
     def free_mem(self, addr: PageAddress) -> bool:
-        return bool(ctyped.lib.Kernel32.VirtualFreeEx(self._handle, addr, 0, ctyped.const.MEM_RELEASE))
+        return bool(ctyped.lib.kernel32.VirtualFreeEx(self._handle, addr, 0, ctyped.const.MEM_RELEASE))
 
     def read_mem(self, addr: PageAddress, size: int):
         buff = (ctyped.type.c_byte * size)()
-        if ctyped.lib.Kernel32.ReadProcessMemory(self._handle, addr, ctyped.addressof(buff), size, None):
+        if ctyped.lib.kernel32.ReadProcessMemory(self._handle, addr, ctyped.addressof(buff), size, None):
             return buff
 
     def write_mem(self, addr: PageAddress, data: bytes | str, size: Optional[int] = None) -> bool:
         if size is None:
             size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(data, (
                 str)) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
-        return bool(ctyped.lib.Kernel32.WriteProcessMemory(self._handle, addr, data, size, None))
+        return bool(ctyped.lib.kernel32.WriteProcessMemory(self._handle, addr, data, size, None))
 
     def load_lib(self, lib) -> bool:
         lib_path = ctyped.get_lib_path(lib).encode() + b'\0'
         arg_addr = self.alloc_mem(len(lib_path), ctyped.const.PAGE_EXECUTE_READWRITE)
         if arg_addr:
             if self.write_mem(arg_addr, lib_path) and (thread := Thread.create_remote(
-                    self._handle, ctyped.addressof_func(ctyped.lib.Kernel32.LoadLibraryA), arg_addr)):
+                    self._handle, ctyped.addressof_func(ctyped.lib.kernel32.LoadLibraryA), arg_addr)):
                 # print(ctyped.cast(self.read_mem(arg_addr, len(lib_path)), ctyped.type.LPSTR).value)
                 thread.join()
                 if lib_remote := thread.get_exit_code():
                     self._libs_remote[lib] = lib_remote
-                    self._libs_local[lib] = ctyped.lib.Kernel32.GetModuleHandleA(lib_path)
+                    self._libs_local[lib] = ctyped.lib.kernel32.GetModuleHandleA(lib_path)
             self.free_mem(arg_addr)
         return bool(self._libs_remote.get(lib) and self._libs_local.get(lib))
 
     def unload_lib(self, lib) -> bool:
-        if (lib_remote := self._libs_remote.get(lib)) and ctyped.lib.Kernel32.FreeLibrary(lib_remote):
+        if (lib_remote := self._libs_remote.get(lib)) and ctyped.lib.kernel32.FreeLibrary(lib_remote):
             del self._libs_remote[lib]
             return True
         return False
 
     def get_remote_func(self, func: Callable, lib) -> FunctionAddress:
         lib_local = self._libs_local[lib]
-        return self._libs_remote[lib] + ctyped.lib.Kernel32.GetProcAddress(
+        return self._libs_remote[lib] + ctyped.lib.kernel32.GetProcAddress(
             lib_local, func.__name__.encode()) - lib_local
 
     def call_func(self, func: FunctionAddress, arg: Optional[int] = None, wait: bool = True) -> Thread:
@@ -417,6 +417,7 @@ class RemoteProcess:
 
 code = r'''import ctypes
 import sys
+# import libs.ctyped as ctyped
 pid = ctypes.windll.kernel32.GetCurrentProcessId()
 ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})\n{sys.path}', 'Hello from Python', 0x1000)'''
 sys_path = ';'.join(sys.path)
@@ -427,11 +428,11 @@ def _test():
     name = 'Progman'
 
     # hwnd = ctyped.lib.User32.FindWindowW(name, None)
-    pid = ctyped.type.DWORD(43820)
+    pid = ctyped.type.DWORD(21112)
     # ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
     print(pid)
     proc = RemoteProcess(pid.value)
-    print(proc.load_lib(ctyped.lib.Python))
+    print(proc.load_lib(ctyped.lib.python))
 
     # multi args doesn't work [only first arg is loaded in register]
     # proc.load_lib(ctyped.lib.Kernel32)
@@ -456,11 +457,11 @@ def _test():
     arg_addr = proc.alloc_mem(len(sys_path) * 2, ctyped.const.PAGE_EXECUTE_READWRITE)
     if arg_addr:
         proc.write_mem(arg_addr, sys_path)
-        func_addr = proc.get_remote_func(ctyped.lib.Python.Py_SetPath, ctyped.lib.Python)
+        func_addr = proc.get_remote_func(ctyped.lib.python.Py_SetPath, ctyped.lib.python)
         proc.call_func(func_addr, arg_addr)
         proc.free_mem(arg_addr)
 
-    func_addr = proc.get_remote_func(ctyped.lib.Python.Py_InitializeEx, ctyped.lib.Python)
+    func_addr = proc.get_remote_func(ctyped.lib.python.Py_InitializeEx, ctyped.lib.python)
     proc.call_func(func_addr, 0)
 
     print(code)
@@ -468,17 +469,21 @@ def _test():
     arg_addr = proc.alloc_mem(len(b_code), ctyped.const.PAGE_EXECUTE_READWRITE)
     if arg_addr:
         proc.write_mem(arg_addr, b_code)
-        func_addr = proc.get_remote_func(ctyped.lib.Python.PyRun_SimpleString, ctyped.lib.Python)
+        func_addr = proc.get_remote_func(ctyped.lib.python.PyRun_SimpleString, ctyped.lib.python)
         print(proc.call_func(func_addr, arg_addr).get_exit_code())
         proc.free_mem(arg_addr)
 
-    func_addr = proc.get_remote_func(ctyped.lib.Python.Py_FinalizeEx, ctyped.lib.Python)
+    func_addr = proc.get_remote_func(ctyped.lib.python.Py_FinalizeEx, ctyped.lib.python)
     print(proc.call_func(func_addr).get_exit_code())
-    proc.unload_lib(ctyped.lib.Python)
+    proc.unload_lib(ctyped.lib.python)
 
 
 if __name__ == '__main__':
-    _test()
+    buff = ctyped.char_array(' ' * ctyped.const.MAX_PATH)
+    ctyped.lib.user32.LoadStringW(ctyped.lib.kernel32.GetModuleHandleW('shell32.dll'), 5387, buff, ctyped.const.MAX_PATH)
+    print(buff.value)
+
+    # _test()
 
     # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS32, 'OptionalHeader'))
     # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER32, 'SizeOfImage'))

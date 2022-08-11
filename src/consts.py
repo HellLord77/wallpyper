@@ -6,9 +6,10 @@ POLL_INTERVAL = 0.01
 
 FEATURE_PIN_PYTHON = False
 FEATURE_OPEN_WITH = True
-FEATURE_GOOGLE_SEARCH = True
+FEATURE_LENS_UPLOAD = False
 FEATURE_UPDATE_DISPLAY = False
-FEATURE_TOOLTIP_IMAGE = False
+FEATURE_TOOLTIP_ICON = False
+FEATURE_ROTATE_IMAGE = False
 
 AUTHOR = 'HellLord'
 NAME = 'Wallpyper'
@@ -35,6 +36,7 @@ CONFIG_SKIP = 'skip_recent'
 CONFIG_START = 'auto_start'
 CONFIG_STYLE = 'wallpaper_fit'
 CONFIG_TRANSITION = 'wallpaper_transition'
+CONFIG_REAPPLY = 'reapply_wallpaper'
 
 RES_BUSY = 'busy.gif'
 RES_TRAY = 'tray.png'
@@ -59,7 +61,7 @@ RES_SET_LOCK = 'mdi\\image-lock.png'
 RES_SAVE = 'mdi\\content-save.png'
 RES_GOOGLE = 'mdi\\google.png'
 RES_BING = 'mdi\\microsoft-bing.png'
-RES_SEARCH = 'mdi\\google-lens.png'
+RES_LENS = 'mdi\\google-lens.png'
 RES_COPY_PATH = 'mdi\\clipboard-text.png'
 RES_COPY_URL = 'mdi\\clipboard-arrow-down.png'
 RES_COPY = 'mdi\\clipboard-file.png'
