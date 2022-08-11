@@ -1,4 +1,4 @@
-$Version = "0.0.5"
+$Version = "0.0.7"
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $Datas = @(
@@ -15,6 +15,7 @@ $Manifest = "" # FIXME https://stackoverflow.com/questions/13964909/setting-uac-
 $NoConsole = $True
 $Obfuscate = $False
 $OneFile = $True
+$OptimizationLevel = 2
 $UPX = $False
 $MainManifest = "manifest.xml"
 
@@ -177,11 +178,11 @@ function BuildProject
         $MainArgs += "--manifest=$Manifest"
     }
 
-    $FirstLine = Get-Content $EntryPoint -TotalCount 1
     $Name = Get-Name
-    $FullName = "$Name-$( if ( $FirstLine.StartsWith("__version__"))
+    $VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
+    $FullName = "$Name-$( if ($VersionLine)
     {
-        ($FirstLine -split { $_ -eq '''' -or $_ -eq '"' })[1]
+        ($VersionLine -split { $_ -eq '''' -or $_ -eq '"' })[1]
     }
     else
     {
@@ -236,6 +237,7 @@ function UploadBuildToMEGA
 }
 
 $ErrorActionPreference = "Stop"
+$env:PYTHONOPTIMIZE = $OptimizationLevel
 if ($Args)
 {
     Invoke-Expression $Args[0]
