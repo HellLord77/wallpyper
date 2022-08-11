@@ -77,7 +77,152 @@ class _Func:
     _funcs = None
 
 
-class Python(_Func, metaclass=_PyDLL):
+# noinspection PyPep8Naming
+class msvcrt(_Func, metaclass=_CDLL):
+    # corecrt_io
+    _access: _Callable[[_type.c_char_p,  # _FileName
+                        _type.c_int],  # _AccessMode
+                       _type.c_int]
+    _access_s: _Callable[[_type.c_char_p,  # _FileName
+                          _type.c_int],  # _AccessMode
+                         _type.errno_t]
+    _chmod: _Callable[[_type.c_char_p,  # _FileName
+                       _type.c_int],  # _Mode
+                      _type.c_int]
+    _chsize: _Callable[[_type.c_int,  # _FileHandle
+                        _type.c_long],  # _Size
+                       _type.c_int]
+    _chsize_s: _Callable[[_type.c_int,  # _FileHandle
+                          _type.c_int64],  # _Size
+                         _type.errno_t]
+    _close: _Callable[[_type.c_int],  # _FileHandle
+                      _type.c_int]
+    _commit: _Callable[[_type.c_int],  # _FileHandle
+                       _type.c_int]
+    # corecrt_malloc
+    calloc: _Callable[[_type.c_size_t,  # _Count
+                       _type.c_size_t],  # _Size
+                      _type.c_void_p]
+    free: _Callable[[_type.c_void_p],  # _Block
+                    _type.c_void]
+    malloc: _Callable[[_type.c_size_t],  # _Size
+                      _type.c_void_p]
+    realloc: _Callable[[_type.c_void_p,  # _Block
+                        _type.c_size_t],  # _Size
+                       _type.c_void_p]
+    # corecrt_wstring
+    wcscmp: _Callable[[_type.c_wchar_p,  # _String1
+                       _type.c_wchar_p],  # _String2
+                      _type.c_int]
+    wcscspn: _Callable[[_type.c_wchar_p,  # _String
+                        _type.c_wchar_p],  # _Control
+                       _type.c_size_t]
+    wcslen: _Callable[[_type.c_wchar_p],  # _String
+                      _type.c_size_t]
+    wcsnlen: _Callable[[_type.c_wchar_p,  # _Source
+                        _type.c_size_t],  # _MaxCount
+                       _type.c_size_t]
+    wcsncmp: _Callable[[_type.c_wchar_p,  # _String1
+                        _type.c_wchar_p,  # _String2
+                        _type.c_size_t],  # _MaxCount
+                       _type.c_int]
+    # stdlib
+    getenv: _Callable[[_type.c_char_p],  # _VarName
+                      _type.c_char_p]
+    system: _Callable[[_Optional[_type.c_char_p]],  # _Command
+                      _type.c_int]
+    _seterrormode: _Callable[[_type.c_int],  # _Mode
+                             _type.c_void]
+    _beep: _Callable[[_type.c_uint,  # _Frequency
+                      _type.c_uint],  # _Duration
+                     _type.c_void]
+    _sleep: _Callable[[_type.c_ulong],  # _Duration
+                      _type.c_void]
+    # string
+    strcpy_s: _Callable[[_type.c_char_p,  # _Destination
+                         _type.rsize_t,  # _SizeInBytes
+                         _type.c_char_p],  # _Source
+                        _type.errno_t]
+    strcat_s: _Callable[[_type.c_char_p,  # _Destination
+                         _type.rsize_t,  # _SizeInBytes
+                         _type.c_char_p],  # _Source
+                        _type.errno_t]
+    strerror_s: _Callable[[_type.c_char_p,  # _Buffer
+                           _type.rsize_t,  # _SizeInBytes
+                           _type.c_int],  # _ErrorNumber
+                          _type.errno_t]
+    strncat_s: _Callable[[_type.c_char_p,  # _Destination
+                          _type.rsize_t,  # _SizeInBytes
+                          _type.c_char_p,  # _Source
+                          _type.rsize_t],  # _MaxCount
+                         _type.errno_t]
+    strncpy_s: _Callable[[_type.c_char_p,  # _Destination
+                          _type.rsize_t,  # _SizeInBytes
+                          _type.c_char_p,  # _Source
+                          _type.rsize_t],  # _MaxCount
+                         _type.errno_t]
+    strtok_s: _Callable[[_type.c_char_p,  # _String
+                         _type.c_char_p,  # _Delimiters
+                         _Pointer[_type.c_char_p]],  # _Context
+                        _type.c_char_p]
+    strcat: _Callable[[_type.c_char_p,  # _Destination
+                       _type.c_char_p],  # _Source
+                      _type.c_char_p]
+    strcmp: _Callable[[_type.c_char_p,  # _Str1
+                       _type.c_char_p],  # _Str2
+                      _type.c_int]
+    strcoll: _Callable[[_type.c_char_p,  # _String1
+                        _type.c_char_p],  # _String2
+                       _type.c_int]
+    strcpy: _Callable[[_type.c_char_p,  # _Destination
+                       _type.c_char_p],  # _Source
+                      _type.c_char_p]
+    strcspn: _Callable[[_type.c_char_p,  # _Str
+                        _type.c_char_p],  # _Control
+                       _type.c_size_t]
+    # vcruntime_string
+    memchr: _Callable[[_type.c_void_p,  # _Buf
+                       _type.c_int,  # _Val
+                       _type.c_size_t],  # _MaxCount
+                      _type.c_void_p]
+    memcmp: _Callable[[_type.c_void_p,  # _Buf1
+                       _type.c_void_p,  # _Buf2
+                       _type.c_size_t],  # _Size
+                      _type.c_int]
+    memcpy: _Callable[[_type.c_void_p,  # _Dst
+                       _type.c_void_p,  # _Src
+                       _type.c_size_t],  # _Size
+                      _type.c_void_p]
+    memmove: _Callable[[_type.c_void_p,  # _Dst
+                        _type.c_void_p,  # _Src
+                        _type.c_size_t],  # _Size
+                       _type.c_void_p]
+    memset: _Callable[[_type.c_void_p,  # _Dst
+                       _type.c_int,  # _Val
+                       _type.c_size_t],  # _Size
+                      _type.c_void_p]
+    strchr: _Callable[[_type.c_char_p,  # _Str
+                       _type.c_int],  # _Val
+                      _type.c_char_p]
+    strrchr: _Callable[[_type.c_char_p,  # _Str
+                        _type.c_int],  # _Ch
+                       _type.c_char_p]
+    strstr: _Callable[[_type.c_char_p,  # _Str
+                       _type.c_char_p],  # _SubStr
+                      _type.c_char_p]
+    wcschr: _Callable[[_type.c_wchar_p,  # _Str
+                       _type.c_wchar_t],  # _Ch
+                      _type.c_wchar_p]
+    wcsrchr: _Callable[[_type.c_wchar_p,  # _Str
+                        _type.c_wchar_t],  # _Ch
+                       _type.c_wchar_p]
+    wcsstr: _Callable[[_type.c_wchar_p,  # _Str
+                       _type.c_wchar_p],  # _SubStr
+                      _type.c_wchar_p]
+
+
+# noinspection PyPep8Naming
+class python(_Func, metaclass=_PyDLL):
     # ceval
     Py_MakePendingCalls: _Callable[[],
                                    _type.c_int]
@@ -211,7 +356,8 @@ class Python(_Func, metaclass=_PyDLL):
                                 _type.c_void]
 
 
-class Advapi32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class advapi32(_Func, metaclass=_WinDLL):
     # winreg
     AbortSystemShutdownA: _Callable[[_type.LPSTR],
                                     _type.BOOL]
@@ -344,7 +490,8 @@ class Advapi32(_Func, metaclass=_WinDLL):
                              _type.LSTATUS]
 
 
-class Cfgmgr32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class cfgmgr32(_Func, metaclass=_WinDLL):
     # Cfgmgr32
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
                                          _Pointer[_struct.DEVPROPKEY],
@@ -370,7 +517,8 @@ class Cfgmgr32(_Func, metaclass=_WinDLL):
                                   _type.CONFIGRET]
 
 
-class Combase(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class combase(_Func, metaclass=_WinDLL):
     # roapi
     RoActivateInstance: _Callable[[_type.HSTRING,
                                    _Pointer[_interface.IInspectable]],
@@ -418,7 +566,8 @@ class Combase(_Func, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-class Comctl32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class comctl32(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     # CommCtrl
@@ -428,7 +577,8 @@ class Comctl32(_Func, metaclass=_WinDLL):
                                     _type.BOOL]
 
 
-class Comdlg32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class comdlg32(_Func, metaclass=_WinDLL):
     # commdlg
     ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
                             _type.BOOL]
@@ -436,7 +586,8 @@ class Comdlg32(_Func, metaclass=_WinDLL):
                             _type.BOOL]
 
 
-class ComputeCore(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class computecore(_Func, metaclass=_WinDLL):
     # computecore
     HcsGetServiceProperties: _Callable[[_Optional[_type.PCWSTR],
                                         _Pointer[_type.PWSTR]],
@@ -462,7 +613,8 @@ class ComputeCore(_Func, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-class Crypt32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class crypt32(_Func, metaclass=_WinDLL):
     # wincrypt
     CryptBinaryToStringA: _Callable[[_Pointer[_type.BYTE],
                                      _type.DWORD,
@@ -494,7 +646,8 @@ class Crypt32(_Func, metaclass=_WinDLL):
                                     _type.BOOL]
 
 
-class D2d1(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class d2d1(_Func, metaclass=_WinDLL):
     # d2d1
     D2D1CreateFactory: _Callable[[_enum.D2D1_FACTORY_TYPE,  # factoryType
                                   _Pointer[_struct.IID],  # riid
@@ -531,7 +684,8 @@ class D2d1(_Func, metaclass=_WinDLL):
                               _type.FLOAT]
 
 
-class D3d11(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class d3d11(_Func, metaclass=_WinDLL):
     # d3d11
     D3D11CreateDevice: _Callable[[_Optional[_interface.IDXGIAdapter],  # pAdapter
                                   _enum.D3D_DRIVER_TYPE,  # DriverType
@@ -554,7 +708,8 @@ class DWrite(_Func, metaclass=_WinDLL):
                                    _type.HRESULT]
 
 
-class Dwmapi(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class dwmapi(_Func, metaclass=_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
                                  _type.UINT,
@@ -599,7 +754,8 @@ class Dwmapi(_Func, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-class Gdi32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class gdi32(_Func, metaclass=_WinDLL):
     # wingdi
     AbortDoc: _Callable[[_type.HDC],
                         _type.c_int]
@@ -3582,7 +3738,8 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                _type.VOID]
 
 
-class Kernel32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class kernel32(_Func, metaclass=_WinDLL):
     # consoleapi
     AllocConsole: _Callable[[],
                             _type.BOOL]
@@ -3609,8 +3766,31 @@ class Kernel32(_Func, metaclass=_WinDLL):
     # errhandlingapi
     GetLastError: _Callable[[],
                             _type.DWORD]
-    SetLastError: _Callable[[_type.DWORD],
+    SetLastError: _Callable[[_type.DWORD],  # dwErrCode
                             _type.VOID]
+    GetErrorMode: _Callable[[],
+                            _type.UINT]
+    SetErrorMode: _Callable[[_type.UINT],  # uMode
+                            _type.UINT]
+    RemoveVectoredExceptionHandler: _Callable[[_type.PVOID],  # Handle
+                                              _type.ULONG]
+    RemoveVectoredContinueHandler: _Callable[[_type.PVOID],  # Handle
+                                             _type.ULONG]
+    RestoreLastError: _Callable[[_type.DWORD],  # dwErrCode
+                                _type.VOID]
+    FatalAppExitA: _Callable[[_type.UINT,  # uAction
+                              _type.LPCSTR],  # lpMessageText
+                             _type.VOID]
+    FatalAppExitW: _Callable[[_type.UINT,  # uAction
+                              _type.LPCWSTR],  # lpMessageText
+                             _type.VOID]
+    GetThreadErrorMode: _Callable[[],
+                                  _type.DWORD]
+    SetThreadErrorMode: _Callable[[_type.DWORD,  # dwNewMode
+                                   _Optional[_Pointer[_type.DWORD]]],  # lpOldMode
+                                  _type.BOOL]
+    TerminateProcessOnMemoryExhaustion: _Callable[[_type.SIZE_T],  # FailedAllocationSize
+                                                  _type.VOID]
     # fileapi
     AreShortNamesEnabled: _Callable[[_type.HANDLE,
                                      _Pointer[_type.BOOL]],
@@ -4563,7 +4743,8 @@ class Kernel32(_Func, metaclass=_WinDLL):
                                    _type.ULONGLONG]
 
 
-class MSCorEE(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class mscoree(_Func, metaclass=_WinDLL):
     # cor
     CoEEShutDownCOM: _Callable[[],
                                _type.c_void]
@@ -4590,7 +4771,8 @@ class MSCorEE(_Func, metaclass=_WinDLL):
                                   _type.HRESULT]
 
 
-class Msimg32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class msimg32(_Func, metaclass=_WinDLL):
     # wingdi
     AlphaBlend: _Callable[[_type.HDC,
                            _type.c_int,
@@ -4604,118 +4786,6 @@ class Msimg32(_Func, metaclass=_WinDLL):
                            _type.c_int,
                            _struct.BLENDFUNCTION],
                           _type.BOOL]
-
-
-# noinspection PyPep8Naming
-class msvcrt(_Func, metaclass=_CDLL):
-    # corecrt_malloc
-    calloc: _Callable[[_type.c_size_t,  # _Count
-                       _type.c_size_t],  # _Size
-                      _type.c_void_p]
-    free: _Callable[[_type.c_void_p],  # _Block
-                    _type.c_void]
-    malloc: _Callable[[_type.c_size_t],  # _Size
-                      _type.c_void_p]
-    realloc: _Callable[[_type.c_void_p,  # _Block
-                        _type.c_size_t],  # _Size
-                       _type.c_void_p]
-    # corecrt_wstring
-    wcscmp: _Callable[[_type.c_wchar_p,  # _String1
-                       _type.c_wchar_p],  # _String2
-                      _type.c_int]
-    wcscspn: _Callable[[_type.c_wchar_p,  # _String
-                        _type.c_wchar_p],  # _Control
-                       _type.c_size_t]
-    wcslen: _Callable[[_type.c_wchar_p],  # _String
-                      _type.c_size_t]
-    wcsnlen: _Callable[[_type.c_wchar_p,  # _Source
-                        _type.c_size_t],  # _MaxCount
-                       _type.c_size_t]
-    wcsncmp: _Callable[[_type.c_wchar_p,  # _String1
-                        _type.c_wchar_p,  # _String2
-                        _type.c_size_t],  # _MaxCount
-                       _type.c_int]
-    # string
-    strcpy_s: _Callable[[_type.c_char_p,  # _Destination
-                         _type.rsize_t,  # _SizeInBytes
-                         _type.c_char_p],  # _Source
-                        _type.errno_t]
-    strcat_s: _Callable[[_type.c_char_p,  # _Destination
-                         _type.rsize_t,  # _SizeInBytes
-                         _type.c_char_p],  # _Source
-                        _type.errno_t]
-    strerror_s: _Callable[[_type.c_char_p,  # _Buffer
-                           _type.rsize_t,  # _SizeInBytes
-                           _type.c_int],  # _ErrorNumber
-                          _type.errno_t]
-    strncat_s: _Callable[[_type.c_char_p,  # _Destination
-                          _type.rsize_t,  # _SizeInBytes
-                          _type.c_char_p,  # _Source
-                          _type.rsize_t],  # _MaxCount
-                         _type.errno_t]
-    strncpy_s: _Callable[[_type.c_char_p,  # _Destination
-                          _type.rsize_t,  # _SizeInBytes
-                          _type.c_char_p,  # _Source
-                          _type.rsize_t],  # _MaxCount
-                         _type.errno_t]
-    strtok_s: _Callable[[_type.c_char_p,  # _String
-                         _type.c_char_p,  # _Delimiters
-                         _Pointer[_type.c_char_p]],  # _Context
-                        _type.c_char_p]
-    strcat: _Callable[[_type.c_char_p,  # _Destination
-                       _type.c_char_p],  # _Source
-                      _type.c_char_p]
-    strcmp: _Callable[[_type.c_char_p,  # _Str1
-                       _type.c_char_p],  # _Str2
-                      _type.c_int]
-    strcoll: _Callable[[_type.c_char_p,  # _String1
-                        _type.c_char_p],  # _String2
-                       _type.c_int]
-    strcpy: _Callable[[_type.c_char_p,  # _Destination
-                       _type.c_char_p],  # _Source
-                      _type.c_char_p]
-    strcspn: _Callable[[_type.c_char_p,  # _Str
-                        _type.c_char_p],  # _Control
-                       _type.c_size_t]
-    # vcruntime_string
-    memchr: _Callable[[_type.c_void_p,  # _Buf
-                       _type.c_int,  # _Val
-                       _type.c_size_t],  # _MaxCount
-                      _type.c_void_p]
-    memcmp: _Callable[[_type.c_void_p,  # _Buf1
-                       _type.c_void_p,  # _Buf2
-                       _type.c_size_t],  # _Size
-                      _type.c_int]
-    memcpy: _Callable[[_type.c_void_p,  # _Dst
-                       _type.c_void_p,  # _Src
-                       _type.c_size_t],  # _Size
-                      _type.c_void_p]
-    memmove: _Callable[[_type.c_void_p,  # _Dst
-                        _type.c_void_p,  # _Src
-                        _type.c_size_t],  # _Size
-                       _type.c_void_p]
-    memset: _Callable[[_type.c_void_p,  # _Dst
-                       _type.c_int,  # _Val
-                       _type.c_size_t],  # _Size
-                      _type.c_void_p]
-    strchr: _Callable[[_type.c_char_p,  # _Str
-                       _type.c_int],  # _Val
-                      _type.c_char_p]
-    strrchr: _Callable[[_type.c_char_p,  # _Str
-                        _type.c_int],  # _Ch
-                       _type.c_char_p]
-    strstr: _Callable[[_type.c_char_p,  # _Str
-                       _type.c_char_p],  # _SubStr
-                      _type.c_char_p]
-    wcschr: _Callable[[_type.c_wchar_p,  # _Str
-                       _type.c_wchar_t],  # _Ch
-                      _type.c_wchar_p]
-    wcsrchr: _Callable[[_type.c_wchar_p,  # _Str
-                        _type.c_wchar_t],  # _Ch
-                       _type.c_wchar_p]
-    wcsstr: _Callable[[_type.c_wchar_p,  # _Str
-                       _type.c_wchar_p],  # _SubStr
-                      _type.c_wchar_p]
 
 
 # noinspection PyPep8Naming
@@ -4758,7 +4828,8 @@ class ntdll(_Func, metaclass=_WinDLL):
                                            _type.NTSTATUS]
 
 
-class Ole32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class ole32(_Func, metaclass=_WinDLL):
     # combaseapi
     CLSIDFromString: _Callable[[_type.LPCOLESTR,
                                 _Pointer[_struct.CLSID]],
@@ -4809,7 +4880,8 @@ class Ole32(_Func, metaclass=_WinDLL):
                                _type.HRESULT]
 
 
-class Oleacc(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class oleacc(_Func, metaclass=_WinDLL):
     GetProcessHandleFromHwnd: _Callable[[_type.HWND],
                                         _type.HANDLE]
     # oleacc
@@ -4831,7 +4903,8 @@ class Oleacc(_Func, metaclass=_WinDLL):
                              _type.UINT]
 
 
-class OleAut32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class oleaut32(_Func, metaclass=_WinDLL):
     # oleauto
     VariantChangeType: _Callable[[_Pointer[_struct.VARIANTARG],
                                   _Pointer[_struct.VARIANTARG],
@@ -4865,7 +4938,108 @@ class OleAut32(_Func, metaclass=_WinDLL):
                                   _type.WINOLECTLAPI]
 
 
-class Shell32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class setupapi(_Func, metaclass=_WinDLL):
+    # SetupAPI
+    SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
+                                              _Pointer[_struct.SP_DEVINFO_DATA],
+                                              _Pointer[_struct.GUID],
+                                              _Optional[_type.PCSTR],
+                                              _type.DWORD,
+                                              _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DATA]]],
+                                             _type.BOOL]
+    SetupDiCreateDeviceInterfaceW: _Callable[[_type.HDEVINFO,
+                                              _Pointer[_struct.SP_DEVINFO_DATA],
+                                              _Pointer[_struct.GUID],
+                                              _Optional[_type.PCWSTR],
+                                              _type.DWORD,
+                                              _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DATA]]],
+                                             _type.BOOL]
+    SetupDiDestroyDeviceInfoList: _Callable[[_type.HDEVINFO],
+                                            _type.BOOL]
+    SetupDiEnumDeviceInfo: _Callable[[_type.HDEVINFO,
+                                      _type.DWORD,
+                                      _Pointer[_struct.SP_DEVINFO_DATA]],
+                                     _type.BOOL]
+    SetupDiEnumDeviceInterfaces: _Callable[[_type.HDEVINFO,
+                                            _Pointer[_struct.SP_DEVINFO_DATA],
+                                            _Optional[_Pointer[_struct.GUID]],
+                                            _type.DWORD,
+                                            _Pointer[_struct.SP_DEVICE_INTERFACE_DATA]],
+                                           _type.BOOL]
+    SetupDiGetClassDevsA: _Callable[[_Optional[_Pointer[_struct.GUID]],
+                                     _Optional[_type.PCSTR],
+                                     _Optional[_type.HWND],
+                                     _type.DWORD],
+                                    _type.HDEVINFO]
+    SetupDiGetClassDevsW: _Callable[[_Optional[_Pointer[_struct.GUID]],
+                                     _Optional[_type.PCWSTR],
+                                     _Optional[_type.HWND],
+                                     _type.DWORD],
+                                    _type.HDEVINFO]
+    SetupDiGetDeviceInterfaceDetailA: _Callable[[_type.HDEVINFO,
+                                                 _Pointer[_struct.SP_DEVICE_INTERFACE_DATA],
+                                                 _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DETAIL_DATA_A]],
+                                                 _type.DWORD,
+                                                 _Optional[_Pointer[_type.DWORD]],
+                                                 _Optional[_Pointer[_struct.SP_DEVINFO_DATA]]],
+                                                _type.BOOL]
+    SetupDiGetDeviceInterfaceDetailW: _Callable[[_type.HDEVINFO,
+                                                 _Pointer[_struct.SP_DEVICE_INTERFACE_DATA],
+                                                 _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DETAIL_DATA_W]],
+                                                 _type.DWORD,
+                                                 _Optional[_Pointer[_type.DWORD]],
+                                                 _Optional[_Pointer[_struct.SP_DEVINFO_DATA]]],
+                                                _type.BOOL]
+    SetupDiGetDevicePropertyW: _Callable[[_type.HDEVINFO,
+                                          _Pointer[_struct.SP_DEVINFO_DATA],
+                                          _Pointer[_struct.DEVPROPKEY],
+                                          _Pointer[_type.DEVPROPTYPE],
+                                          _Optional[_type.PBYTE],
+                                          _type.DWORD,
+                                          _Optional[_Pointer[_type.DWORD]],
+                                          _type.DWORD],
+                                         _type.BOOL]
+    SetupDiGetDeviceRegistryPropertyA: _Callable[[_type.HDEVINFO,
+                                                  _Pointer[_struct.SP_DEVINFO_DATA],
+                                                  _type.DWORD,
+                                                  _Optional[_Pointer[_type.DWORD]],
+                                                  _Optional[_type.PBYTE],
+                                                  _type.DWORD,
+                                                  _Optional[_Pointer[_type.DWORD]]],
+                                                 _type.BOOL]
+    SetupDiGetDeviceRegistryPropertyW: _Callable[[_type.HDEVINFO,
+                                                  _Pointer[_struct.SP_DEVINFO_DATA],
+                                                  _type.DWORD,
+                                                  _Optional[_Pointer[_type.DWORD]],
+                                                  _Optional[_type.PBYTE],
+                                                  _type.DWORD,
+                                                  _Optional[_Pointer[_type.DWORD]]],
+                                                 _type.BOOL]
+
+
+class SHCore(_Func, metaclass=_WinDLL):
+    # ShellScalingApi
+    GetDpiForMonitor: _Callable[[_type.HMONITOR,
+                                 _enum.MONITOR_DPI_TYPE,
+                                 _Pointer[_type.UINT],
+                                 _Pointer[_type.UINT]],
+                                _type.HRESULT]
+    GetProcessDpiAwareness: _Callable[[_type.HANDLE,
+                                       _Pointer[_enum.PROCESS_DPI_AWARENESS]],
+                                      _type.HRESULT]
+    SetProcessDpiAwareness: _Callable[[_enum.PROCESS_DPI_AWARENESS],
+                                      _type.HRESULT]
+
+
+# noinspection PyPep8Naming
+class shdocvw(_Func, metaclass=_WinDLL):
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
+
+
+# noinspection PyPep8Naming
+class shell32(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     GUIDFromStringA: _Callable[[_type.LPCSTR,
@@ -5030,105 +5204,8 @@ class Shell32(_Func, metaclass=_WinDLL):
                                                  _type.SHSTDAPI]
 
 
-class Setupapi(_Func, metaclass=_WinDLL):
-    # SetupAPI
-    SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
-                                              _Pointer[_struct.SP_DEVINFO_DATA],
-                                              _Pointer[_struct.GUID],
-                                              _Optional[_type.PCSTR],
-                                              _type.DWORD,
-                                              _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DATA]]],
-                                             _type.BOOL]
-    SetupDiCreateDeviceInterfaceW: _Callable[[_type.HDEVINFO,
-                                              _Pointer[_struct.SP_DEVINFO_DATA],
-                                              _Pointer[_struct.GUID],
-                                              _Optional[_type.PCWSTR],
-                                              _type.DWORD,
-                                              _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DATA]]],
-                                             _type.BOOL]
-    SetupDiDestroyDeviceInfoList: _Callable[[_type.HDEVINFO],
-                                            _type.BOOL]
-    SetupDiEnumDeviceInfo: _Callable[[_type.HDEVINFO,
-                                      _type.DWORD,
-                                      _Pointer[_struct.SP_DEVINFO_DATA]],
-                                     _type.BOOL]
-    SetupDiEnumDeviceInterfaces: _Callable[[_type.HDEVINFO,
-                                            _Pointer[_struct.SP_DEVINFO_DATA],
-                                            _Optional[_Pointer[_struct.GUID]],
-                                            _type.DWORD,
-                                            _Pointer[_struct.SP_DEVICE_INTERFACE_DATA]],
-                                           _type.BOOL]
-    SetupDiGetClassDevsA: _Callable[[_Optional[_Pointer[_struct.GUID]],
-                                     _Optional[_type.PCSTR],
-                                     _Optional[_type.HWND],
-                                     _type.DWORD],
-                                    _type.HDEVINFO]
-    SetupDiGetClassDevsW: _Callable[[_Optional[_Pointer[_struct.GUID]],
-                                     _Optional[_type.PCWSTR],
-                                     _Optional[_type.HWND],
-                                     _type.DWORD],
-                                    _type.HDEVINFO]
-    SetupDiGetDeviceInterfaceDetailA: _Callable[[_type.HDEVINFO,
-                                                 _Pointer[_struct.SP_DEVICE_INTERFACE_DATA],
-                                                 _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DETAIL_DATA_A]],
-                                                 _type.DWORD,
-                                                 _Optional[_Pointer[_type.DWORD]],
-                                                 _Optional[_Pointer[_struct.SP_DEVINFO_DATA]]],
-                                                _type.BOOL]
-    SetupDiGetDeviceInterfaceDetailW: _Callable[[_type.HDEVINFO,
-                                                 _Pointer[_struct.SP_DEVICE_INTERFACE_DATA],
-                                                 _Optional[_Pointer[_struct.SP_DEVICE_INTERFACE_DETAIL_DATA_W]],
-                                                 _type.DWORD,
-                                                 _Optional[_Pointer[_type.DWORD]],
-                                                 _Optional[_Pointer[_struct.SP_DEVINFO_DATA]]],
-                                                _type.BOOL]
-    SetupDiGetDevicePropertyW: _Callable[[_type.HDEVINFO,
-                                          _Pointer[_struct.SP_DEVINFO_DATA],
-                                          _Pointer[_struct.DEVPROPKEY],
-                                          _Pointer[_type.DEVPROPTYPE],
-                                          _Optional[_type.PBYTE],
-                                          _type.DWORD,
-                                          _Optional[_Pointer[_type.DWORD]],
-                                          _type.DWORD],
-                                         _type.BOOL]
-    SetupDiGetDeviceRegistryPropertyA: _Callable[[_type.HDEVINFO,
-                                                  _Pointer[_struct.SP_DEVINFO_DATA],
-                                                  _type.DWORD,
-                                                  _Optional[_Pointer[_type.DWORD]],
-                                                  _Optional[_type.PBYTE],
-                                                  _type.DWORD,
-                                                  _Optional[_Pointer[_type.DWORD]]],
-                                                 _type.BOOL]
-    SetupDiGetDeviceRegistryPropertyW: _Callable[[_type.HDEVINFO,
-                                                  _Pointer[_struct.SP_DEVINFO_DATA],
-                                                  _type.DWORD,
-                                                  _Optional[_Pointer[_type.DWORD]],
-                                                  _Optional[_type.PBYTE],
-                                                  _type.DWORD,
-                                                  _Optional[_Pointer[_type.DWORD]]],
-                                                 _type.BOOL]
-
-
-class Shcore(_Func, metaclass=_WinDLL):
-    # ShellScalingApi
-    GetDpiForMonitor: _Callable[[_type.HMONITOR,
-                                 _enum.MONITOR_DPI_TYPE,
-                                 _Pointer[_type.UINT],
-                                 _Pointer[_type.UINT]],
-                                _type.HRESULT]
-    GetProcessDpiAwareness: _Callable[[_type.HANDLE,
-                                       _Pointer[_enum.PROCESS_DPI_AWARENESS]],
-                                      _type.HRESULT]
-    SetProcessDpiAwareness: _Callable[[_enum.PROCESS_DPI_AWARENESS],
-                                      _type.HRESULT]
-
-
-class Shdocvw(_Func, metaclass=_WinDLL):
-    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
-                             _type.HRESULT]
-
-
-class Shlwapi(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class shlwapi(_Func, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     GUIDFromStringA: _Callable[[_type.LPCSTR,
@@ -5459,7 +5536,8 @@ class Shlwapi(_Func, metaclass=_WinDLL):
                                _type.BOOL]
 
 
-class User32(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class user32(_Func, metaclass=_WinDLL):
     # WinUser
     wvsprintfA: _Callable[[_type.LPSTR,
                            _type.LPCSTR,
@@ -6559,7 +6637,8 @@ class User32(_Func, metaclass=_WinDLL):
                             _type.HWND]
 
 
-class UxTheme(_Func, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class uxtheme(_Func, metaclass=_WinDLL):
     # Uxtheme
     BeginPanningFeedback: _Callable[[_type.HWND],
                                     _type.BOOL]

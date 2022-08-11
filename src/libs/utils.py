@@ -148,10 +148,10 @@ class PackedFunction:
 class TimeDeltaEx(datetime.timedelta):
     _match = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit in
                        ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
-    _match = re.compile(f'^(?i) *{_match} *$').match
+    _match = re.compile(f'^ *{_match} *$', re.RegexFlag.IGNORECASE).match
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    _units = tuple(inspect._signature_fromstr(inspect.Signature, None,
-                                              inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
+    _units = tuple(inspect._signature_fromstr(
+        inspect.Signature, None, inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
 
     def __new__(cls, string: str):
         matched = cls._match(string)

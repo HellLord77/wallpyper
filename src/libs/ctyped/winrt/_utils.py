@@ -89,7 +89,7 @@ class _Unknown(metaclass=_Interface):
             obj = obj._self  # TODO obj.AddRef()
         if obj is None:
             obj = interface.IInspectable()
-            lib.Combase.RoActivateInstance(HSTRING(_get_winrt_class_name(next(iter(self._interfaces)))), byref(obj))
+            lib.combase.RoActivateInstance(HSTRING(_get_winrt_class_name(next(iter(self._interfaces)))), byref(obj))
             self._release = True
         self._self = obj
         self._interfaces = self._interfaces.copy()
@@ -134,7 +134,7 @@ class _Inspectable(_Unknown):
         if macro.SUCCEEDED(self[interface.IInspectable].GetIids(byref(count), byref(values))):
             # noinspection PyTypeChecker
             return tuple(value.value for index in range(count.value) if macro.SUCCEEDED(
-                lib.Ole32.StringFromIID(values[index], byref(value))))
+                lib.ole32.StringFromIID(values[index], byref(value))))
 
     def get_runtime_class_name(self) -> str:
         value = HSTRING()

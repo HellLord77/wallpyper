@@ -122,7 +122,7 @@ def get_lib_path(library: lib._OleDLL | lib._PyDLL | lib._WinDLL) -> str:
     lib._load(library)
     buff = type.LPWSTR('\0' * const.MAX_PATH)
     # noinspection PyUnresolvedReferences
-    lib.Kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
+    lib.kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
     return buff.value
 
 
@@ -132,20 +132,20 @@ def addressof_func(func) -> int:
 
 def get_guid(string: str) -> struct.GUID:
     guid = struct.GUID()
-    lib.Shell32.GUIDFromStringW(string, byref(guid))
+    lib.shell32.GUIDFromStringW(string, byref(guid))
     return guid
 
 
 @_contextlib.contextmanager
 def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    lib.Ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.Ole32.CoInitialize(None)
+    lib.ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.ole32.CoInitialize(None)
     obj = type_()
     try:
         yield obj
     finally:
         if obj:
             obj.Release()
-        lib.Ole32.CoUninitialize()
+        lib.ole32.CoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -154,7 +154,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
     with _prep_com(type) as obj:
         if init:
             # noinspection PyProtectedMember
-            if macro.FAILED(lib.Ole32.CoCreateInstance(byref(get_guid(
+            if macro.FAILED(lib.ole32.CoCreateInstance(byref(get_guid(
                     type._CLSID_)), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
                 obj = None
         yield obj
@@ -171,22 +171,22 @@ def cast_com(obj: _Union[interface.IUnknown, interface.IUnknown_impl], type: _bu
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[interface.IInspectable]]]:
-    lib.Combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
+    lib.combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
     base = (interface.IInspectable if init else interface.IActivationFactory)()
     try:
         yield handle.HSTRING.from_string(_get_winrt_class_name(type_)), None if init else macro.__uuidof(type_), base
     finally:
         if base:
             base.Release()
-        lib.Combase.RoUninitialize()
+        lib.combase.RoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
 def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_Optional[CT]]:
     with _prep_winrt(type, init) as (*args, base):
-        if macro.SUCCEEDED(lib.Combase.RoActivateInstance(args[0], byref(
-                base)) if init else lib.Combase.RoGetActivationFactory(*args, byref(base))):
+        if macro.SUCCEEDED(lib.combase.RoActivateInstance(args[0], byref(
+                base)) if init else lib.combase.RoGetActivationFactory(*args, byref(base))):
             with cast_com(base, type) as obj:
                 yield obj
         else:
