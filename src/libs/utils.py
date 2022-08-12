@@ -1,4 +1,4 @@
-__version__ = '0.0.16'
+__version__ = '0.0.17'
 
 import ast
 import binascii
@@ -24,9 +24,23 @@ import uuid
 import zlib
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional, Protocol
 
+T = typing.TypeVar('T')
 DEFAULT = object()
 ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-T = typing.TypeVar('T')
+
+
+class ProgressBar:
+    BLOCK_VERTICAL = ' ▁▂▃▄▅▆▇█'
+    BLOCK_HORIZONTAL = ' ▏▎▍▌▋▊▉▉'
+    BLOCK_SHADE = ' ░▒▓█'
+    ROD_VERTICAL = ' 𝍩𝍪𝍫𝍬𝍭'
+    ROD_HORIZONTAL = ' 𝍠𝍡𝍢𝍣𝍤'
+    TALLY = ' 𝍲𝍳𝍴𝍵𝍶'
+    OGHAM_LINE = ' ᚋᚌᚍᚎᚏ'
+    OGHAM_DOT = ' ᚐᚑᚒᚓᚔ'
+    MOON = '🌕🌔🌓🌒🌑'
+    MOON_REVERSE = '🌕🌖🌗🌘🌑'
+    CLOCK = '🌕🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛'
 
 
 class _Mutable:
@@ -190,6 +204,18 @@ def to_dict(string: str) -> dict:
     return _to_type(string, dict)
 
 
+def get_progress(current: float = 0, total: float = 100,
+                 width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
+    if current < 0:
+        current = 0
+    elif current > total:
+        current = total
+    each = total / width
+    filled = int(current / each)
+    index = int((len(bars) - 1) / each * (current - filled * each))
+    return f'{bars[-1] * filled}{bars[index] * bool(index)}{bars[0] * (width - filled - bool(index))}'
+
+
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
            kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
@@ -201,8 +227,8 @@ def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
 
 def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
              kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None) -> Generator:
-    for func, args_, kwargs_ in itertools.zip_longest(funcs, () if args is None else args,
-                                                      {} if kwargs is None else kwargs):
+    for func, args_, kwargs_ in itertools.zip_longest(
+            funcs, () if args is None else args, {} if kwargs is None else kwargs):
         if not func:
             break
         yield func(*args_ or (), **kwargs_ or {})
@@ -276,8 +302,8 @@ def sleep_ex(secs: Optional[float] = None):
 def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
            kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
            excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
-    for func, args_, kwargs_, excs_ in itertools.zip_longest(funcs, () if args is None else args,
-                                                             {} if kwargs is None else kwargs, excs or ()):
+    for func, args_, kwargs_, excs_ in itertools.zip_longest(
+            funcs, () if args is None else args, {} if kwargs is None else kwargs, excs or ()):
         if not func:
             break
         with contextlib.suppress(*excs_ or ()):
@@ -324,8 +350,8 @@ def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:
     return re.escape(os.sep if sep is None else sep).join((base,) + child)
 
 
-def return_any(func: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
-               max_try: Optional[int] = None) -> Any:
+def return_any(func: Callable, args: Optional[Iterable] = None,
+               kwargs: Optional[Mapping[str, Any]] = None, max_try: Optional[int] = None) -> Any:
     args = () if args is None else args
     kwargs = {} if kwargs is None else kwargs
     for _ in (range if max_try else itertools.repeat)(max_try):
@@ -359,9 +385,8 @@ def encrypt(obj, split: bool = False) -> str:
         pickled = pickle.dumps(obj)
     except TypeError:
         return ''
-    base64 = binascii.b2a_base64(
-        zlib.compress(hashlib.blake2b(pickled, key=str(uuid.getnode()).encode()).digest() + pickled),
-        newline=False).decode()
+    base64 = binascii.b2a_base64(zlib.compress(hashlib.blake2b(pickled, key=str(
+        uuid.getnode()).encode()).digest() + pickled), newline=False).decode()
     return '\n'.join(split_ex(base64)) if split else base64
 
 
@@ -371,8 +396,8 @@ def decrypt(data: str, default: Any = None, key: Optional[int] = None) -> Any:
     except (binascii.Error, zlib.error):
         return default
     size = hashlib.blake2b().digest_size
-    if decoded[:size] == hashlib.blake2b(decoded[size:],
-                                         key=str(uuid.getnode() if key is None else key).encode()).digest():
+    if decoded[:size] == hashlib.blake2b(decoded[size:], key=str(
+            uuid.getnode() if key is None else key).encode()).digest():
         try:
             return pickle.loads(decoded[size:])
         except AttributeError:
@@ -489,8 +514,8 @@ def queue_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]], running: threading.Event,
-                  wrapper: Callable) -> NoReturn:
+def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]],
+                  running: threading.Event, wrapper: Callable) -> NoReturn:
     while True:
         work = works.get()
         running.set()
@@ -555,8 +580,8 @@ def threaded_run(func: Callable) -> Callable:
     return wrapper
 
 
-def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res: Any, res_as_arg: bool,
-          unpack_res: bool) -> Any:
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any],
+          res: Any, res_as_arg: bool, unpack_res: bool) -> Any:
     if res_as_arg:
         if unpack_res:
             if isinstance(res, Iterable):

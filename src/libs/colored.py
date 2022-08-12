@@ -10,10 +10,11 @@ _SUPPORTED = getattr(sys.stdout, 'isatty', lambda: False)()
 
 class _Code:
     def __init_subclass__(cls):
-        for var, code in vars(cls).items():
+        for var, n in vars(cls).items():
             if not var.startswith('_'):
-                setattr(cls, var, f'{_CSI}{code}m' if _SUPPORTED else '')
-                _CODES.add(getattr(cls, var))
+                code = f'{_CSI}{n}m' if _SUPPORTED else ''
+                setattr(cls, var, code)
+                _CODES.add(code)
 
 
 class FontStyle(_Code):

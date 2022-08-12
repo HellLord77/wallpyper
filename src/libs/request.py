@@ -150,7 +150,7 @@ def _get_hash(path: str, type_: str = 'md5') -> bytes:
 
 def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None,
              sha256: Optional[bytes] = None, chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
+             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if args is None:
         args = ()
@@ -158,20 +158,22 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
         kwargs = {}
     response = open(url)
     if os.path.exists(path):
-        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (md5 and md5 == _get_hash(path)) or (sha256 and _get_hash(path, 'sha256'))):
+        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (
+                md5 and md5 == _get_hash(path)) or (sha256 and _get_hash(path, 'sha256'))):
             if query_callback:
-                query_callback(100, *args, **kwargs)
+                query_callback(1, *args, **kwargs)
             return True
         elif os.path.isdir(path):
             return False
     else:
         os.makedirs(os.path.dirname(path), exist_ok=True)
     if response:
-        size = size or int(response.getheader(Header.CONTENT_LENGTH, str(os.path.getsize(response.response.fp.name) if response.file else sys.maxsize)))
+        size = size or int(response.getheader(Header.CONTENT_LENGTH, str(
+            os.path.getsize(response.response.fp.name) if response.file else sys.maxsize)))
         if os.path.isfile(path):
             if size == os.path.getsize(path):
                 if query_callback:
-                    query_callback(100, *args, **kwargs)
+                    query_callback(1, *args, **kwargs)
                 return True
             else:
                 os.remove(path)
@@ -181,7 +183,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
                 ratio = 0
                 for chunk in response:
                     ratio += file.write(chunk) / size
-                    if query_callback and not query_callback(round(ratio * 100), *args, **kwargs):
+                    if query_callback and not query_callback(ratio, *args, **kwargs):
                         file.close()
                         os.remove(path)
                         break
@@ -189,7 +191,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
             return False
         if os.path.isfile(path) and size == os.path.getsize(path):
             if query_callback:
-                query_callback(100, *args, **kwargs)
+                query_callback(1, *args, **kwargs)
             return True
     return False
 

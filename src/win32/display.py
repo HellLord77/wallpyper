@@ -401,7 +401,7 @@ def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
 
 
 def _spawn_workerw():
-    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', 'Program Manager'), 0x52C, 0, 0)
+    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', None), 0x52C, 0, 0)
 
 
 @ctyped.type.WNDENUMPROC
@@ -569,7 +569,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
         else:
             monitor_x_y_w_h = _get_monitor_x_y_w_h(monitor)
         os.makedirs(TEMP_WALLPAPER_DIR, exist_ok=True)
-        temp_path = os.path.join(TEMP_WALLPAPER_DIR, f'{_utils.sanitize_filename(monitor)}.jpg')
+        temp_path = ntpath.join(TEMP_WALLPAPER_DIR, f'{_utils.sanitize_filename(monitor)}.jpg')
         with _temp_lock(temp_path):
             # noinspection PyTypeChecker
             _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
@@ -621,7 +621,7 @@ def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] 
               args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     with _utils.get_wallpaper_lock_input_stream() as input_stream:
         if input_stream:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
+            os.makedirs(ntpath.dirname(path), exist_ok=True)
             open(path, 'w').close()
             with _utils.open_file(path) as file:
                 if file:

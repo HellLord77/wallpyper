@@ -5,7 +5,7 @@ import collections
 import contextlib
 import functools
 import itertools
-import os.path
+import ntpath
 import threading
 from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union, Sequence, Generator
 
@@ -290,6 +290,7 @@ class Gui(_EventHandler):
         elif message == _WM_SYS_TRAY:
             SystemTray.get(wparam).trigger(lparam)
         elif message in (ctyped.const.WM_INITMENUPOPUP, ctyped.const.WM_UNINITMENUPOPUP):
+            self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, 1)
             Menu.get(wparam).trigger(message)
         elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND, ctyped.const.WM_MENURBUTTONUP):
             # FIXME WM_MENUSELECT is triggered again after auto closing a submenu (seq: select, close, select)
@@ -738,7 +739,7 @@ class MenuItem(_Control):
     @staticmethod
     @functools.lru_cache
     def _load_image(path: str, resize: bool) -> _gdiplus.Bitmap:
-        if os.path.splitext(path)[1].lower() == '.svg':
+        if ntpath.splitext(path)[1].lower() == '.svg':
             res_or_path = _gdiplus.bitmap_from_svg(path, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
         else:
             res_or_path = _gdiplus.Bitmap.from_file(path)

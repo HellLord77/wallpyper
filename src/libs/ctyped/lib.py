@@ -4244,6 +4244,60 @@ class kernel32(_Func, metaclass=_WinDLL):
     QueryMemoryResourceNotification: _Callable[[_type.HANDLE,  # ResourceNotificationHandle
                                                 _Pointer[_type.BOOL]],  # ResourceState
                                                _type.BOOL]
+    # processenv
+    SetEnvironmentStringsW: _Callable[[_type.LPWCH],  # NewEnvironment
+                                      _type.BOOL]
+    GetStdHandle: _Callable[[_type.DWORD],  # nStdHandle
+                            _type.HANDLE]
+    SetStdHandle: _Callable[[_type.DWORD,  # nStdHandle
+                             _type.HANDLE],  # hHandle
+                            _type.BOOL]
+    SetStdHandleEx: _Callable[[_type.DWORD,  # nStdHandle
+                               _type.HANDLE,  # hHandle
+                               _Optional[_Pointer[_type.HANDLE]]],  # phPrevValue
+                              _type.BOOL]
+    GetCommandLineA: _Callable[[],
+                               _type.LPSTR]
+    GetCommandLineW: _Callable[[],
+                               _type.LPWSTR]
+    GetEnvironmentStrings: _Callable[[],
+                                     _type.LPCH]
+    GetEnvironmentStringsW: _Callable[[],
+                                      _type.LPWCH]
+    FreeEnvironmentStringsA: _Callable[[_type.LPCH],  # penv
+                                       _type.BOOL]
+    FreeEnvironmentStringsW: _Callable[[_type.LPWCH],  # penv
+                                       _type.BOOL]
+    GetEnvironmentVariableA: _Callable[[_Optional[_type.LPCSTR],  # lpName
+                                        _Optional[_type.LPSTR],  # lpBuffer
+                                        _type.DWORD],  # nSize
+                                       _type.DWORD]
+    GetEnvironmentVariableW: _Callable[[_Optional[_type.LPCWSTR],  # lpName
+                                        _Optional[_type.LPWSTR],  # lpBuffer
+                                        _type.DWORD],  # nSize
+                                       _type.DWORD]
+    SetEnvironmentVariableA: _Callable[[_type.LPCSTR,  # lpName
+                                        _Optional[_type.LPCSTR]],  # lpValue
+                                       _type.BOOL]
+    SetEnvironmentVariableW: _Callable[[_type.LPCWSTR,  # lpName
+                                        _Optional[_type.LPCWSTR]],  # lpValue
+                                       _type.BOOL]
+    SetCurrentDirectoryA: _Callable[[_type.LPCSTR],  # lpPathName
+                                    _type.BOOL]
+    SetCurrentDirectoryW: _Callable[[_type.LPCWSTR],  # lpPathName
+                                    _type.BOOL]
+    GetCurrentDirectoryA: _Callable[[_type.DWORD,  # nBufferLength
+                                     _Optional[_type.LPSTR]],  # lpBuffer
+                                    _type.DWORD]
+    GetCurrentDirectoryW: _Callable[[_type.DWORD,  # nBufferLength
+                                     _Optional[_type.LPWSTR]],  # lpBuffer
+                                    _type.DWORD]
+    NeedCurrentDirectoryForExePathA: _Callable[[_type.LPCSTR],  # ExeName
+                                               _type.BOOL]
+    NeedCurrentDirectoryForExePathW: _Callable[[_type.LPCWSTR],  # ExeName
+                                               _type.BOOL]
+    GetEnvironmentStringsA: _Callable[[],
+                                      _type.LPCH]
     # processthreadsapi
     GetCurrentProcess: _Callable[[],
                                  _type.HANDLE]

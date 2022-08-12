@@ -2,7 +2,7 @@ from __future__ import annotations as _
 
 import contextlib
 import math
-import os
+import ntpath
 import string as _string
 from typing import Callable, ContextManager, Generator, Literal, Optional
 
@@ -1368,7 +1368,7 @@ def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[
 
 def bitmap_from_string(string: str = _string.printable.replace(_string.whitespace, '', 1), size: int = 1024,
                        r: int = 0, g: int = 0, b: int = 0, font_name_or_path: str = 'Segoe UI') -> Bitmap:
-    if os.path.isfile(font_name_or_path):
+    if ntpath.isfile(font_name_or_path):
         collection = PrivateFontCollection.from_empty()
         collection.add_new_font(font_name_or_path)
         font = Font.from_font_family(collection.get_font_families()[0], size)
@@ -1394,7 +1394,7 @@ def image_save(image: Image, path: str, quality: int = 100) -> bool:
     param_val = ctyped.type.LONG(quality)
     params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
         ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(param_val, ctyped.type.PVOID))))
-    return image.save_to_file(path, ImageCodec.get_encoder_by_filename_extension(os.path.splitext(path)[1]).Clsid, params)
+    return image.save_to_file(path, ImageCodec.get_encoder_by_filename_extension(ntpath.splitext(path)[1]).Clsid, params)
 
 
 def image_iter_frames(image: Image) -> Generator[int, None, None]:

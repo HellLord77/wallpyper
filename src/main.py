@@ -167,12 +167,12 @@ def first_run():
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[int, ...], bool]] = None,
+def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[float, ...], bool]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = os.path.join(TEMP_DIR, wallpaper.name)
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
-                            chunk_count=20, query_callback=query_callback, args=args, kwargs=kwargs):
+                            chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
             return temp_path
 
 
@@ -191,7 +191,7 @@ def get_next_wallpaper() -> Optional[files.File]:
 
 
 @utils.singleton_run
-def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
+def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
     if query_callback:
@@ -552,9 +552,12 @@ def create_menu():  # TODO slideshow (smaller timer)
     item_change.set_icon(RES_TEMPLATE.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(STRINGS.MENU_RECENT, False, icon=RES_TEMPLATE.format(consts.RES_RECENT))
 
-    def query_callback(progress: Optional[int] = None) -> bool:  # TODO fix exploding width
-        print(progress)
-        # item_change.set_text(STRINGS.LABEL_CHANGE if progress is None else
+    def query_callback(progress: Optional[float] = None) -> bool:
+        if progress is None:
+            print()
+        else:
+            print(f'[{utils.get_progress(progress, 1, 32)}]', end='\r', flush=True)
+        # item_change.set_text(STRINGS.LABEL_CHANGE if progress is None else TODO fix exploding width
         #                      f'{STRINGS.LABEL_CHANGE} ({langs.to_str(min(99, progress), STRINGS, 2)}%)')
         return True
 
@@ -648,9 +651,8 @@ def start():  # TODO dark theme
                    on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if consts.ARG_DEBUG in sys.argv:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
-        log.init(os.path.basename(__file__),
-                 utils.re_join('libs', r'.*\.py'), utils.re_join('modules', r'.*\.py'),
-                 utils.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
+        log.init(os.path.basename(__file__), utils.re_join('libs', r'.*\.py'), utils.re_join(
+            'modules', r'.*\.py'), utils.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     files.make_dir(TEMP_DIR)
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE)

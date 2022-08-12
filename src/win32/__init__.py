@@ -55,8 +55,8 @@ def _get_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA
             var_ref = ctyped.byref(var)
             for key in pkeys:
                 with contextlib.suppress(OSError):
-                    prop_store.GetValue(ctyped.byref(
-                        ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]), key[1])), var_ref)
+                    prop_store.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
+                        ctyped.get_guid(key[0]), key[1])), var_ref)
                 vals.append(var.U.S.U.pwszVal)
                 ctyped.lib.ole32.PropVariantClear(var_ref)
     return tuple(vals)
@@ -71,8 +71,8 @@ def _set_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA
             for key, val in pkeys.items():
                 var.U.S.U.pwszVal = val
                 with contextlib.suppress(OSError):
-                    prop_store.SetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(ctyped.get_guid(key[0]),
-                                                                               key[1])), ctyped.byref(var))
+                    prop_store.SetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
+                        ctyped.get_guid(key[0]), key[1])), ctyped.byref(var))
             with contextlib.suppress(OSError):
                 prop_store.Commit()
         return all(val == val_ for val, val_ in zip(pkeys.values(), _get_str_ex_props(path_or_interface, *pkeys)))

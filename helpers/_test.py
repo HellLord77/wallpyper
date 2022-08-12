@@ -415,12 +415,48 @@ class RemoteProcess:
         return thread
 
 
-code = r'''import ctypes
-import sys
-# import libs.ctyped as ctyped
-pid = ctypes.windll.kernel32.GetCurrentProcessId()
-ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})\n{sys.path}', 'Hello from Python', 0x1000)'''
-sys_path = ';'.join(sys.path)
+class PyRemoteProcess(RemoteProcess):
+    def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
+        super().__init__(pid, access)
+        self.load_lib(ctyped.lib.python)
+
+    def __del__(self):
+        self.unload_lib(ctyped.lib.python)
+
+    def initialize(self) -> bool:
+        self.call_func(self.get_remote_func(ctyped.lib.python.Py_Initialize, ctyped.lib.python))
+        return self.is_initialized()
+
+    def initialize_ex(self, init: bool = False) -> bool:
+        self.call_func(self.get_remote_func(ctyped.lib.python.Py_InitializeEx, ctyped.lib.python), init)
+        return self.is_initialized()
+
+    def finalize(self) -> bool:
+        self.call_func(self.get_remote_func(ctyped.lib.python.Py_Finalize, ctyped.lib.python))
+        return not self.is_initialized()
+
+    def finalize_ex(self) -> bool:
+        return self.call_func(self.get_remote_func(
+            ctyped.lib.python.Py_FinalizeEx, ctyped.lib.python)).get_exit_code() == 0
+
+    def is_initialized(self) -> bool:
+        return bool(self.call_func(self.get_remote_func(
+            ctyped.lib.python.Py_IsInitialized, ctyped.lib.python)).get_exit_code())
+
+    def set_path(self: RemoteProcess, *paths: str):
+        arg = ';'.join(paths)
+        arg_addr = self.alloc_mem(len(arg) * 2, ctyped.const.PAGE_EXECUTE_READWRITE)
+        self.write_mem(arg_addr, arg)
+        self.call_func(self.get_remote_func(ctyped.lib.python.Py_SetPath, ctyped.lib.python), arg_addr)
+        self.free_mem(arg_addr)
+
+    def run_simple_string(self, string: str) -> bool:
+        arg = string.encode() + b'\0'
+        arg_addr = self.alloc_mem(len(arg), ctyped.const.PAGE_EXECUTE_READWRITE)
+        self.write_mem(arg_addr, arg)
+        thread = self.call_func(self.get_remote_func(ctyped.lib.python.PyRun_SimpleString, ctyped.lib.python), arg_addr)
+        self.free_mem(arg_addr)
+        return thread.get_exit_code() == 0
 
 
 def _test_load_string_from_lib():
@@ -429,16 +465,21 @@ def _test_load_string_from_lib():
     print(buff.value)
 
 
+code = r'''import ctypes
+# import libs.ctyped as ctyped
+pid = ctypes.windll.kernel32.GetCurrentProcessId()
+ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})', 'Hello from Python', 0x1000)'''
+
+
 def _test():
     # ctyped.lib.Python.PyRun_SimpleString(code.encode())
     name = 'Progman'
 
     # hwnd = ctyped.lib.User32.FindWindowW(name, None)
-    pid = ctyped.type.DWORD(21112)
+    pid = ctyped.type.DWORD(31420)
     # ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
     print(pid)
-    proc = RemoteProcess(pid.value)
-    print(proc.load_lib(ctyped.lib.python))
+    proc = PyRemoteProcess(pid.value)
 
     # multi args doesn't work [only first arg is loaded in register]
     # proc.load_lib(ctyped.lib.Kernel32)
@@ -459,34 +500,15 @@ def _test():
     #     print(proc.call_func(func_addr, arg_addr).get_exit_code())
     #     proc.free_mem(arg_addr)
 
-    print(sys_path)
-    arg_addr = proc.alloc_mem(len(sys_path) * 2, ctyped.const.PAGE_EXECUTE_READWRITE)
-    if arg_addr:
-        proc.write_mem(arg_addr, sys_path)
-        func_addr = proc.get_remote_func(ctyped.lib.python.Py_SetPath, ctyped.lib.python)
-        proc.call_func(func_addr, arg_addr)
-        proc.free_mem(arg_addr)
-
-    func_addr = proc.get_remote_func(ctyped.lib.python.Py_InitializeEx, ctyped.lib.python)
-    proc.call_func(func_addr, 0)
-
-    print(code)
-    b_code = code.encode() + b'\0'
-    arg_addr = proc.alloc_mem(len(b_code), ctyped.const.PAGE_EXECUTE_READWRITE)
-    if arg_addr:
-        proc.write_mem(arg_addr, b_code)
-        func_addr = proc.get_remote_func(ctyped.lib.python.PyRun_SimpleString, ctyped.lib.python)
-        print(proc.call_func(func_addr, arg_addr).get_exit_code())
-        proc.free_mem(arg_addr)
-
-    func_addr = proc.get_remote_func(ctyped.lib.python.Py_FinalizeEx, ctyped.lib.python)
-    print(proc.call_func(func_addr).get_exit_code())
-    proc.unload_lib(ctyped.lib.python)
+    print(proc.set_path(*sys.path))
+    print(proc.initialize_ex())
+    print(proc.run_simple_string(code))
+    print(proc.finalize_ex())
 
 
 if __name__ == '__main__':
-    _test_gui()
-    # _test()
+    # _test_gui()
+    _test()
 
     # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS32, 'OptionalHeader'))
     # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER32, 'SizeOfImage'))
