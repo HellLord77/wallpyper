@@ -454,7 +454,7 @@ def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdipl
     graphics.fill_rectangle(_gdiplus.SolidBrush.from_color(color), 0, 0, width, height)
     graphics.scale_transform(width / src_w, height / src_h)
     graphics.draw_image_from_rect(src, -min(0, src_x), -min(0, src_y), max(0, src_x), max(0, src_y))
-    bitmap.save(temp_path)
+    _gdiplus.image_save(bitmap, temp_path)
     return bitmap.get_hbitmap().get_hdc()
 
 

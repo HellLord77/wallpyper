@@ -4,7 +4,7 @@ import contextlib
 import math
 import os
 import string as _string
-from typing import Callable, ContextManager, Generator, Optional
+from typing import Callable, ContextManager, Generator, Literal, Optional
 
 import libs.ctyped as ctyped
 from . import _utils
@@ -37,10 +37,10 @@ class _GdiplusToken(ctyped.type.ULONG_PTR):
     def __init__(self):
         if not self.count:
             _GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)
-        type(self).count += 1
+        _GdiplusToken.count += 1
 
     def __del__(self):
-        type(self).count -= 1
+        _GdiplusToken.count -= 1
         if not self.count:
             _GdiPlus.GdiplusShutdown(self)
 
@@ -531,6 +531,21 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
         _GdiPlus.GdipCloneImage(image, ctyped.byref(self))
         return self
 
+    def get_encoder_parameters_size(self, encoder: ctyped.struct.CLSID) -> Optional[int]:
+        size = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetEncoderParameterListSize(self, ctyped.byref(encoder), ctyped.byref(size)):
+            return size.value
+
+    def save_to_file(self, path: str, encoder: ctyped.struct.CLSID,
+                     encoder_params: ctyped.struct.EncoderParameters) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSaveImageToFile(
+            self, path, ctyped.byref(encoder), ctyped.byref(encoder_params))
+
+    def save_to_stream(self, stream: ctyped.interface.IStream, encoder: ctyped.struct.CLSID,
+                       encoder_params: ctyped.struct.EncoderParameters) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipSaveImageToStream(
+            self, stream, ctyped.byref(encoder), ctyped.byref(encoder_params))
+
     def get_type(self) -> Optional[ctyped.enum.ImageType]:
         image_type = ctyped.enum.ImageType()
         if _GpStatus.Ok == _GdiPlus.GdipGetImageType(self, ctyped.byref(image_type)):
@@ -591,10 +606,29 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
     def set_palette(self, palette: ctyped.struct.ColorPalette) -> bool:
         return _GpStatus.Ok == _GdiPlus.GdipSetImagePalette(self, ctyped.byref(palette))
 
+    def get_thumbnail(self, width: int = 0, height: int = 0) -> Optional[Image]:
+        image = Image()
+        image_abort = ctyped.type.GetThumbnailImageAbort()
+        if _GpStatus.Ok == _GdiPlus.GdipGetImageThumbnail(self, width, height, ctyped.byref(image), image_abort, None):
+            return image
+
     def get_frame_dimensions_count(self) -> Optional[int]:
         count = ctyped.type.UINT()
         if _GpStatus.Ok == _GdiPlus.GdipImageGetFrameDimensionsCount(self, ctyped.byref(count)):
             return count.value
+
+    def get_frame_dimensions(self, count: int = 1) -> Optional[tuple[ctyped.struct.GUID]]:
+        dimensions = ctyped.array(type=ctyped.struct.GUID, size=count)
+        if _GpStatus.Ok == _GdiPlus.GdipImageGetFrameDimensionsList(self, dimensions, count):
+            return tuple(dimensions)
+
+    def get_frame_count(self, dimension: ctyped.struct.GUID) -> Optional[int]:
+        count = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipImageGetFrameCount(self, ctyped.byref(dimension), ctyped.byref(count)):
+            return count.value
+
+    def select_active_frame(self, dimension: ctyped.struct.GUID, index: int = 0) -> bool:
+        return _GpStatus.Ok == _GdiPlus.GdipImageSelectActiveFrame(self, ctyped.byref(dimension), index)
 
     # noinspection PyShadowingBuiltins
     def rotate_flip(self, type: ctyped.enum.RotateFlipType) -> bool:
@@ -612,6 +646,27 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
             return size.value
 
     # noinspection PyShadowingBuiltins
+    @contextlib.contextmanager
+    def get_property_item(self, id: ctyped.type.PROPID,
+                          size: Optional[int] = None) -> ContextManager[Optional[ctyped.struct.PropertyItem]]:
+        if size is None:
+            size = self.get_property_item_size(id)
+        if size is not None:
+            with ctyped.buffer(size) as buff:
+                if buff:
+                    property_item_ref = ctyped.cast(buff, ctyped.struct.PropertyItem)
+                    if _GpStatus.Ok == _GdiPlus.GdipGetPropertyItem(self, id, size, property_item_ref):
+                        yield property_item_ref.contents
+                        return
+        yield
+
+    def get_property_size_and_count(self) -> Optional[tuple[int, int]]:
+        size = ctyped.type.UINT()
+        count = ctyped.type.UINT()
+        if _GpStatus.Ok == _GdiPlus.GdipGetPropertySize(self, ctyped.byref(size), ctyped.byref(count)):
+            return size.value, count.value
+
+    # noinspection PyShadowingBuiltins
     def remove_property_item(self, id: ctyped.type.PROPID) -> bool:
         return _GpStatus.Ok == _GdiPlus.GdipRemovePropertyItem(self, id)
 
@@ -620,61 +675,6 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
 
     def _del(self):
         _GdiPlus.GdipDisposeImage(self)
-
-    def _get_dimension_id(self) -> ctyped.Pointer[ctyped.struct.GUID]:
-        guid_ref = ctyped.byref(ctyped.struct.GUID())
-        _GdiPlus.GdipImageGetFrameDimensionsList(self, guid_ref, self.get_frame_dimensions_count())
-        return guid_ref
-
-    def get_frame_count(self, dimension_id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> int:
-        count = ctyped.type.UINT()
-        _GdiPlus.GdipImageGetFrameCount(
-            self, self._get_dimension_id() if dimension_id is None else dimension_id, ctyped.byref(count))
-        return count.value
-
-    def select_frame(self, index: int = 0, dimension_id: Optional[ctyped.Pointer[ctyped.struct.GUID]] = None) -> bool:
-        return _GpStatus.Ok == _GdiPlus.GdipImageSelectActiveFrame(
-            self, self._get_dimension_id() if dimension_id is None else dimension_id, index)
-
-    def iter_frames(self) -> Generator[int, None, None]:
-        dimension_id = self._get_dimension_id()
-        for index in range(self.get_frame_count(dimension_id)):
-            self.select_frame(index, dimension_id)
-            yield index
-
-    def get_property(self, tag: int) -> Optional[ctyped.Pointer]:
-        size = self.get_property_item_size(tag)
-        with ctyped.buffer(size) as buff:
-            if buff:
-                property_item = ctyped.cast(buff, ctyped.struct.PropertyItem)
-                _GdiPlus.GdipGetPropertyItem(self, tag, size, property_item)
-                if property_item.contents.type == ctyped.const.PropertyTagTypeByte:
-                    type_ = ctyped.type.c_byte
-                elif property_item.contents.type == ctyped.const.PropertyTagTypeShort:
-                    type_ = ctyped.type.c_ushort
-                elif property_item.contents.type == ctyped.const.PropertyTagTypeLong:
-                    type_ = ctyped.type.c_ulong
-                elif property_item.contents.type == ctyped.const.PropertyTagTypeRational:
-                    type_ = ctyped.struct.Rational
-                elif property_item.contents.type == ctyped.const.PropertyTagTypeUndefined:
-                    type_ = ctyped.type.c_byte
-                elif property_item.contents.type == ctyped.const.PropertyTagTypeSLONG:
-                    type_ = ctyped.type.c_long
-                else:
-                    type_ = ctyped.type.c_void_p
-                return ctyped.cast(property_item.contents.value, ctyped.pointer(type_))
-
-    def save(self, path: str, quality: int = 100) -> bool:
-        ext = os.path.splitext(path)[1].upper()
-        with ImageCodec.get_encoders() as encoders:
-            if encoders:
-                for encoder in encoders:
-                    if ext in encoder.FilenameExtension:
-                        quality_ = ctyped.type.LONG(quality)
-                        params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
-                            ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(quality_, ctyped.type.PVOID))))
-                        return _GpStatus.Ok == _GdiPlus.GdipSaveImageToFile(self, path, ctyped.byref(encoder.Clsid), ctyped.byref(params))
-        return False
 
 
 class Bitmap(Image, ctyped.type.GpBitmap):
@@ -1265,7 +1265,7 @@ class Color(int):
 
 class ImageCodec:
     @staticmethod
-    def get_decoders_count_size() -> Optional[tuple[int, int]]:
+    def get_decoders_count_and_size() -> Optional[tuple[int, int]]:
         count = ctyped.type.UINT()
         size = ctyped.type.UINT()
         if _GpStatus.Ok == _GdiPlus.GdipGetImageDecodersSize(ctyped.byref(count), ctyped.byref(size)):
@@ -1276,7 +1276,7 @@ class ImageCodec:
     def get_decoders(cls, count: Optional[int] = None,
                      size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
         if count is None or size is None:
-            count, size = cls.get_decoders_count_size()
+            count, size = cls.get_decoders_count_and_size()
         with ctyped.buffer(size) as buffer:
             if buffer:
                 codecs = ctyped.cast(buffer, ctyped.struct.ImageCodecInfo)
@@ -1286,7 +1286,7 @@ class ImageCodec:
         yield
 
     @staticmethod
-    def get_encoders_count_size() -> Optional[tuple[int, int]]:
+    def get_encoders_count_and_size() -> Optional[tuple[int, int]]:
         count = ctyped.type.UINT()
         size = ctyped.type.UINT()
         if _GpStatus.Ok == _GdiPlus.GdipGetImageEncodersSize(ctyped.byref(count), ctyped.byref(size)):
@@ -1297,7 +1297,7 @@ class ImageCodec:
     def get_encoders(cls, count: Optional[int] = None,
                      size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
         if count is None or size is None:
-            count, size = cls.get_encoders_count_size()
+            count, size = cls.get_encoders_count_and_size()
         with ctyped.buffer(size) as buffer:
             if buffer:
                 codecs = ctyped.cast(buffer, ctyped.struct.ImageCodecInfo)
@@ -1305,6 +1305,34 @@ class ImageCodec:
                     yield tuple(codecs[index] for index in range(count))
                     return
         yield
+
+    @staticmethod
+    def _get_codec(prov: Callable[[], ContextManager[tuple[ctyped.struct.ImageCodecInfo]]],
+                   prop: Literal['FormatDescription', 'CodecName', 'FilenameExtension', 'MimeType'],
+                   val: str) -> Optional[ctyped.struct.ImageCodecInfo]:
+        val = val.casefold()
+        with prov() as codecs:
+            if codecs is not None:
+                for codec in codecs:
+                    if val in getattr(codec, prop).casefold():
+                        return ctyped.struct.ImageCodecInfo.from_buffer_copy(codec)
+
+    @classmethod
+    def get_encoder_by_format_description(cls, description: str) -> Optional[ctyped.struct.ImageCodecInfo]:
+        return cls._get_codec(cls.get_encoders, 'FormatDescription', description)
+
+    @classmethod
+    def get_encoder_by_codec_name(cls, name: str) -> Optional[ctyped.struct.ImageCodecInfo]:
+        return cls._get_codec(cls.get_encoders, 'CodecName', name)
+
+    @classmethod
+    def get_encoder_by_filename_extension(cls, extension: str) -> Optional[ctyped.struct.ImageCodecInfo]:
+        return cls._get_codec(cls.get_encoders, 'FilenameExtension', extension)
+
+    # noinspection PyShadowingBuiltins
+    @classmethod
+    def get_encoder_by_mime_type(cls, type: str) -> Optional[ctyped.struct.ImageCodecInfo]:
+        return cls._get_codec(cls.get_encoders, 'MimeType', type)
 
 
 def image_attributes_from_alpha(alpha: float = 1) -> ImageAttributes:
@@ -1360,3 +1388,36 @@ def bitmap_from_string(string: str = _string.printable.replace(_string.whitespac
     graphics = Graphics.from_image(bitmap)
     graphics.draw_string(string, font, SolidBrush.from_color(Color.from_rgba(r, g, b)), format=format_)
     return bitmap
+
+
+def image_save(image: Image, path: str, quality: int = 100) -> bool:
+    param_val = ctyped.type.LONG(quality)
+    params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
+        ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(param_val, ctyped.type.PVOID))))
+    return image.save_to_file(path, ImageCodec.get_encoder_by_filename_extension(os.path.splitext(path)[1]).Clsid, params)
+
+
+def image_iter_frames(image: Image) -> Generator[int, None, None]:
+    dim_id = image.get_frame_dimensions()[0]
+    for index in range(image.get_frame_count(dim_id)):
+        image.select_active_frame(dim_id, index)
+        yield index
+
+
+def image_get_property(image: Image, tag: int) -> Optional[ctyped.Pointer]:
+    with image.get_property_item(tag) as property_item:
+        if property_item.type == ctyped.const.PropertyTagTypeByte:
+            type_ = ctyped.type.c_byte
+        elif property_item.type == ctyped.const.PropertyTagTypeShort:
+            type_ = ctyped.type.c_ushort
+        elif property_item.type == ctyped.const.PropertyTagTypeLong:
+            type_ = ctyped.type.c_ulong
+        elif property_item.type == ctyped.const.PropertyTagTypeRational:
+            type_ = ctyped.struct.Rational
+        elif property_item.type == ctyped.const.PropertyTagTypeUndefined:
+            type_ = ctyped.type.c_byte
+        elif property_item.type == ctyped.const.PropertyTagTypeSLONG:
+            type_ = ctyped.type.c_long
+        else:
+            type_ = ctyped.type.c_void_p
+        return ctyped.cast(property_item.value, ctyped.pointer(type_))

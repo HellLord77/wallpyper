@@ -314,7 +314,7 @@ def _dwrite_font():
             target.DrawText(text, len(text), text_format, ctyped.byref(
                 rect), brush, ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
             target.EndDraw(None, None)
-    bitmap.save('d:\\test.png')
+    gdiplus.image_save(bitmap, 'd:\\test.png')
 
 
 PageAddress = TypeVar('PageAddress', bound=int)
@@ -423,6 +423,12 @@ ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})\n{sys.path}', '
 sys_path = ';'.join(sys.path)
 
 
+def _test_load_string_from_lib():
+    buff = ctyped.char_array(' ' * ctyped.const.MAX_PATH)
+    ctyped.lib.user32.LoadStringW(ctyped.lib.kernel32.GetModuleHandleW('shell32.dll'), 5387, buff, ctyped.const.MAX_PATH)
+    print(buff.value)
+
+
 def _test():
     # ctyped.lib.Python.PyRun_SimpleString(code.encode())
     name = 'Progman'
@@ -479,10 +485,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    buff = ctyped.char_array(' ' * ctyped.const.MAX_PATH)
-    ctyped.lib.user32.LoadStringW(ctyped.lib.kernel32.GetModuleHandleW('shell32.dll'), 5387, buff, ctyped.const.MAX_PATH)
-    print(buff.value)
-
+    _test_gui()
     # _test()
 
     # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS32, 'OptionalHeader'))

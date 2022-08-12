@@ -2289,7 +2289,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
                                       _type.UINT,  # thumbHeight
                                       _Pointer[_type.GpImage],  # thumbImage
                                       _type.GetThumbnailImageAbort,  # callback
-                                      _Pointer[_type.VOID]],  # callbackData
+                                      _Optional[_Pointer[_type.VOID]]],  # callbackData
                                      _enum.GpStatus]
     GdipGetEncoderParameterListSize: _Callable[[_type.GpImage,  # image
                                                 _Pointer[_struct.CLSID],  # clsidEncoder

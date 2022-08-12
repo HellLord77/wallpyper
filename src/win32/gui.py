@@ -382,13 +382,6 @@ class _Control(_EventHandler):
         return gui.get_id()
 
 
-def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
-    bitmap = _gdiplus.Bitmap.from_file(path)
-    delays: ctyped.Pointer[ctyped.type.c_long] = bitmap.get_property(ctyped.const.PropertyTagFrameDelay)
-    for index in bitmap.iter_frames():
-        yield delays[index] * 10, bitmap.get_hicon()
-
-
 class SystemTray(_Control):
     _selves: dict[int, SystemTray]
     _id_gen = _IDGenerator()
@@ -452,9 +445,16 @@ class SystemTray(_Control):
             self._set_hicon(hicon)
             ctyped.lib.user32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
 
+    @staticmethod
+    def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
+        bitmap = _gdiplus.Bitmap.from_file(path)
+        delays: ctyped.Pointer[ctyped.type.c_long] = _gdiplus.image_get_property(bitmap, ctyped.const.PropertyTagFrameDelay)
+        for index in _gdiplus.image_iter_frames(bitmap):
+            yield delays[index] * 10, bitmap.get_hicon()
+
     def start_animation(self, gif_path: str) -> bool:
         self.stop_animation()
-        self._animation_frames = itertools.cycle(frames := tuple(_get_gif_frames(gif_path)))
+        self._animation_frames = itertools.cycle(frames := tuple(self._get_gif_frames(gif_path)))
         if frames:
             self._set_next_frame()
         return bool(frames)
@@ -750,7 +750,7 @@ class MenuItem(_Control):
         if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
             res_or_path = self._load_image(res_or_path, resize).get_hbitmap()
             if not FEATURE_MENU_ITEM_IMAGE_CACHE:
-                self._load_image.clear_cache()
+                self._load_image.cache_clear()
             self._hbmps[index] = res_or_path
             return res_or_path.value
         return res_or_path
