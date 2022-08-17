@@ -38,7 +38,7 @@ GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
-win32.gui.FEATURE_MENU_ITEM_IMAGE_CACHE = True
+win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 STRINGS = langs.eng
 DISPLAYS: list[str] = []
@@ -677,7 +677,7 @@ def stop():
     apply_auto_start(CONFIG[consts.CONFIG_START])
     apply_save_config(CONFIG[consts.CONFIG_SAVE])
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE) if CONFIG[consts.CONFIG_CACHE] else files.remove(TEMP_DIR, True)
-    if os.path.isdir(TEMP_DIR) and files.is_empty_dir(TEMP_DIR, True):
+    if os.path.isdir(TEMP_DIR) and files.is_only_dirs(TEMP_DIR, True):
         files.remove(TEMP_DIR, True)
 
 

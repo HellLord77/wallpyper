@@ -27,6 +27,11 @@ def _bitfield(type_: type[_CT], size: int) -> type[_CT]:
 
 
 @_struct
+class FILE:
+    _Placeholder: _type.c_void_p = None
+
+
+@_struct
 class GdiplusStartupInput:
     GdiplusVersion: _type.UINT32 = 1
     DebugEventCallback: _type.DebugEventProc = None
@@ -149,6 +154,21 @@ class RECT:
 class SIZE:
     cx: _type.LONG = None
     cy: _type.LONG = None
+
+
+@_struct
+class COORD:
+    X: _type.SHORT = None
+    Y: _type.SHORT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class SMALL_RECT:
+    Left: _type.SHORT = None
+    Top: _type.SHORT = None
+    Right: _type.SHORT = None
+    Bottom: _type.SHORT = None
 
 
 @_struct

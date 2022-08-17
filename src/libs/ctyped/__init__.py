@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.18'
+__version__ = '0.2.19'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -9,8 +9,9 @@ import functools as _functools
 import threading as _threading
 import types as _types
 import typing as _typing
-from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager, Generic as _Generic,
-                    Iterable as _Iterable, Mapping as _Mapping, MutableSequence as _MutableSequence, Optional as _Optional, Union as _Union)
+from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
+                    Generic as _Generic, Iterable as _Iterable, Mapping as _Mapping,
+                    MutableSequence as _MutableSequence, Optional as _Optional, Union as _Union)
 
 from . import const, enum, handle, interface, lib, macro, struct, type, union
 from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
@@ -18,7 +19,8 @@ from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer 
 
 _MESSAGES = {}
 
-THREADED_COM = False
+FLAG_GENERATE_DOC = True  # TODO
+FLAG_THREADED_COM = False
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -36,7 +38,8 @@ def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
-def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None, size: _Optional[int] = None) -> _Union[_MutableSequence[CT], Pointer[CT]]:
+def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None,
+          size: _Optional[int] = None) -> _Union[_MutableSequence[CT], Pointer[CT]]:
     return ((_builtins.type(elements[0]) if type is None else type) * (
         len(elements) if size is None else size))(*elements)
 
@@ -138,7 +141,7 @@ def get_guid(string: str) -> struct.GUID:
 
 @_contextlib.contextmanager
 def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    lib.ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if THREADED_COM else lib.ole32.CoInitialize(None)
+    lib.ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if FLAG_THREADED_COM else lib.ole32.CoInitialize(None)
     obj = type_()
     try:
         yield obj
@@ -162,7 +165,8 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def cast_com(obj: _Union[interface.IUnknown, interface.IUnknown_impl], type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
+def cast_com(obj: _Union[interface.IUnknown, interface.IUnknown_impl],
+             type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type) as obj_:
         yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*macro.IID_PPV_ARGS(obj_))) else None
 
@@ -171,7 +175,7 @@ def cast_com(obj: _Union[interface.IUnknown, interface.IUnknown_impl], type: _bu
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[interface.IInspectable]]]:
-    lib.combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
+    lib.combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if FLAG_THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
     base = (interface.IInspectable if init else interface.IActivationFactory)()
     try:
         yield handle.HSTRING.from_string(_get_winrt_class_name(type_)), None if init else macro.__uuidof(type_), base
@@ -194,11 +198,11 @@ def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_
 
 
 class Async(_Generic[CT]):
-    _completed = None
-    _progress = None
+    _completed_async = None
     _completed_callback = None
     _completed_args = None
     _completed_kwargs = None
+    _progress_async = None
     _progress_callback = None
     _progress_args = None
     _progress_kwargs = None
@@ -239,12 +243,12 @@ class Async(_Generic[CT]):
 
     def __del__(self):
         if self._async:
-            if self._completed:
-                self._completed.Release()
-                self._completed = None
-            if self._progress:
-                self._progress.Release()
-                self._progress = None
+            if self._completed_async:
+                self._completed_async.Release()
+                self._completed_async = None
+            if self._progress_async:
+                self._progress_async.Release()
+                self._progress_async = None
             if self._info:
                 self._info.Release()
                 self._info = None
@@ -263,7 +267,7 @@ class Async(_Generic[CT]):
         return self._info
 
     def _put(self, put: _Callable, handler):
-        put(handler) if THREADED_COM else _threading.Thread(
+        put(handler) if FLAG_THREADED_COM else _threading.Thread(
             target=put, name=f'{__name__}-{__version__}-{_builtins.type(self).__name__}'
                              f'({_builtins.type(self._async).__name__}.{put.__name__})', args=(handler,)).start()
 
@@ -295,29 +299,31 @@ class Async(_Generic[CT]):
         return const.NOERROR
 
     # noinspection PyProtectedMember
-    def put_completed(self, callback: _Callable[[CT[interface._TResult], ...], _Any],
-                      args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.Windows.Foundation.AsyncStatus:
-        if self._completed:
-            self._completed.Release()
-            self._completed = None
+    def put_completed(self, callback: _Callable[[CT[interface._TResult], ...], _Any], args: _Optional[_Iterable] = None,
+                      kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.Windows.Foundation.AsyncStatus:
+        if self._completed_async:
+            self._completed_async.Release()
+            self._completed_async = None
         self._completed_callback = callback
         self._completed_args = () if args is None else args
         self._completed_kwargs = {} if kwargs is None else kwargs
-        self._completed = create_handler(self._completed_handler, self._get_completed_handler(_builtins.type(self._async)))
-        self._put(self._async.put_Completed, self._completed)
+        self._completed_async = create_handler(
+            self._completed_handler, self._get_completed_handler(_builtins.type(self._async)))
+        self._put(self._async.put_Completed, self._completed_async)
         return self.get_status()
 
     # noinspection PyProtectedMember
-    def put_progress(self, callback: _Callable[[CT[interface._TProgress], ...], _Any],
-                     args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.Windows.Foundation.AsyncStatus:
-        if self._progress:
-            self._progress.Release()
-            self._progress = None
+    def put_progress(self, callback: _Callable[[CT[interface._TProgress], ...], _Any], args: _Optional[_Iterable] = None,
+                     kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.Windows.Foundation.AsyncStatus:
+        if self._progress_async:
+            self._progress_async.Release()
+            self._progress_async = None
         self._progress_callback = callback
         self._progress_args = () if args is None else args
         self._progress_kwargs = {} if kwargs is None else kwargs
-        self._progress = create_handler(self._progress_handler, self._get_progress_handler(_builtins.type(self._async)))
-        self._put(self._async.put_Progress, self._progress)
+        self._progress_async = create_handler(
+            self._progress_handler, self._get_progress_handler(_builtins.type(self._async)))
+        self._put(self._async.put_Progress, self._progress_async)
         return self.get_status()
 
     # noinspection PyProtectedMember

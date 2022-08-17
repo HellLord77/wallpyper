@@ -126,6 +126,102 @@ class msvcrt(_Func, metaclass=_CDLL):
                         _type.c_wchar_p,  # _String2
                         _type.c_size_t],  # _MaxCount
                        _type.c_int]
+    # stdio
+    clearerr_s: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                          _type.errno_t]
+    clearerr: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                        _type.c_void]
+    fclose: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                      _type.c_int]
+    _fcloseall: _Callable[[],
+                          _type.c_int]
+    feof: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                    _type.c_int]
+    ferror: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                      _type.c_int]
+    fflush: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                      _type.c_int]
+    fgetc: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                     _type.c_int]
+    _fgetchar: _Callable[[],
+                         _type.c_int]
+    fgets: _Callable[[_type.c_char_p,  # _Buffer
+                      _type.c_int,  # _MaxCount
+                      _Pointer[_struct.FILE]],  # _Stream
+                     _type.c_char_p]
+    _fileno: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                       _type.c_int]
+    _flushall: _Callable[[],
+                         _type.c_int]
+    fopen: _Callable[[_type.c_char_p,  # _FileName
+                      _type.c_char_p],  # _Mode
+                     _Pointer[_struct.FILE]]
+    fputc: _Callable[[_type.c_int,  # _Character
+                      _Pointer[_struct.FILE]],  # _Stream
+                     _type.c_int]
+    _fputchar: _Callable[[_type.c_int],  # _Character
+                         _type.c_int]
+    fputs: _Callable[[_type.c_char_p,  # _Buffer
+                      _Pointer[_struct.FILE]],  # _Stream
+                     _type.c_int]
+    freopen: _Callable[[_type.c_char_p,  # _FileName
+                        _type.c_char_p,  # _Mode
+                        _Pointer[_struct.FILE]],  # _Stream
+                       _Pointer[_struct.FILE]]
+    _fsopen: _Callable[[_type.c_char_p,  # _FileName
+                        _type.c_char_p,  # _Mode
+                        _type.c_int],  # _ShFlag
+                       _Pointer[_struct.FILE]]
+    fseek: _Callable[[_Pointer[_struct.FILE],  # _Stream
+                      _type.c_long,  # _Offset
+                      _type.c_int],  # _Origin
+                     _type.c_int]
+    _fseeki64: _Callable[[_Pointer[_struct.FILE],  # _Stream
+                          _type.c_int64,  # _Offset
+                          _type.c_int],  # _Origin
+                         _type.c_int]
+    ftell: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                     _type.c_long]
+    getc: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                    _type.c_int]
+    getchar: _Callable[[],
+                       _type.c_int]
+    _getmaxstdio: _Callable[[],
+                            _type.c_int]
+    _getw: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                     _type.c_int]
+    perror: _Callable[[_Optional[_type.c_char_p]],  # _ErrorMessage
+                      _type.c_void]
+    _pclose: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                       _type.c_int]
+    _popen: _Callable[[_type.c_char_p,  # _Command
+                       _type.c_char_p],  # _Mode
+                      _Pointer[_struct.FILE]]
+    putc: _Callable[[_type.c_int,  # _Character
+                     _Pointer[_struct.FILE]],  # _Stream
+                    _type.c_int]
+    putchar: _Callable[[_type.c_int],  # _Character
+                       _type.c_int]
+    puts: _Callable[[_type.c_char_p],  # _Buffer
+                    _type.c_int]
+    _putw: _Callable[[_type.c_int,  # _Word
+                      _Pointer[_struct.FILE]],  # _Stream
+                     _type.c_int]
+    remove: _Callable[[_type.c_char_p],  # _FileName
+                      _type.c_int]
+    rename: _Callable[[_type.c_char_p,  # _OldFileName
+                       _type.c_char_p],  # _NewFileName
+                      _type.c_int]
+    _unlink: _Callable[[_type.c_char_p],  # _FileName
+                       _type.c_int]
+    unlink: _Callable[[_type.c_char_p],  # _FileName
+                      _type.c_int]
+    rewind: _Callable[[_Pointer[_struct.FILE]],  # _Stream
+                      _type.c_void]
+    _rmtmp: _Callable[[],
+                      _type.c_int]
+    _setmaxstdio: _Callable[[_type.c_int],  # _Maximum
+                            _type.c_int]
     # stdlib
     getenv: _Callable[[_type.c_char_p],  # _VarName
                       _type.c_char_p]
@@ -3743,26 +3839,65 @@ class kernel32(_Func, metaclass=_WinDLL):
     # consoleapi
     AllocConsole: _Callable[[],
                             _type.BOOL]
-    AttachConsole: _Callable[[_type.DWORD],
-                             _type.BOOL]
     FreeConsole: _Callable[[],
                            _type.BOOL]
+    AttachConsole: _Callable[[_type.DWORD],  # dwProcessId
+                             _type.BOOL]
     GetConsoleCP: _Callable[[],
                             _type.UINT]
-    GetConsoleMode: _Callable[[_type.HANDLE,
-                               _Pointer[_type.DWORD]],
-                              _type.BOOL]
     GetConsoleOutputCP: _Callable[[],
                                   _type.UINT]
-    GetNumberOfConsoleInputEvents: _Callable[[_type.HANDLE,
-                                              _Pointer[_type.DWORD]],
-                                             _type.BOOL]
-    SetConsoleCtrlHandler: _Callable[[_Optional[_type.PHANDLER_ROUTINE],
-                                      _type.BOOL],
-                                     _type.BOOL]
-    SetConsoleMode: _Callable[[_type.HANDLE,
-                               _type.DWORD],
+    GetConsoleMode: _Callable[[_type.HANDLE,  # hConsoleHandle
+                               _Pointer[_type.DWORD]],  # lpMode
                               _type.BOOL]
+    SetConsoleMode: _Callable[[_type.HANDLE,  # hConsoleHandle
+                               _type.DWORD],  # dwMode
+                              _type.BOOL]
+    GetNumberOfConsoleInputEvents: _Callable[[_type.HANDLE,  # hConsoleInput
+                                              _Pointer[_type.DWORD]],  # lpNumberOfEvents
+                                             _type.BOOL]
+    SetConsoleCtrlHandler: _Callable[[_Optional[_type.PHANDLER_ROUTINE],  # HandlerRoutine
+                                      _type.BOOL],  # Add
+                                     _type.BOOL]
+    # consoleapi2
+    GenerateConsoleCtrlEvent: _Callable[[_type.DWORD,  # dwCtrlEvent
+                                         _type.DWORD],  # dwProcessGroupId
+                                        _type.BOOL]
+    SetConsoleActiveScreenBuffer: _Callable[[_type.HANDLE],  # hConsoleOutput
+                                            _type.BOOL]
+    FlushConsoleInputBuffer: _Callable[[_type.HANDLE],  # hConsoleInput
+                                       _type.BOOL]
+    SetConsoleCP: _Callable[[_type.UINT],  # wCodePageID
+                            _type.BOOL]
+    SetConsoleOutputCP: _Callable[[_type.UINT],  # wCodePageID
+                                  _type.BOOL]
+    SetConsoleScreenBufferSize: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                           _struct.COORD],  # dwSize
+                                          _type.BOOL]
+    SetConsoleCursorPosition: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                         _struct.COORD],  # dwCursorPosition
+                                        _type.BOOL]
+    GetLargestConsoleWindowSize: _Callable[[_type.HANDLE],  # hConsoleOutput
+                                           _struct.COORD]
+    SetConsoleTextAttribute: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                        _type.WORD],  # wAttributes
+                                       _type.BOOL]
+    GetConsoleTitleA: _Callable[[_type.LPSTR,  # lpConsoleTitle
+                                 _type.DWORD],  # nSize
+                                _type.DWORD]
+    GetConsoleTitleW: _Callable[[_type.LPWSTR,  # lpConsoleTitle
+                                 _type.DWORD],  # nSize
+                                _type.DWORD]
+    GetConsoleOriginalTitleA: _Callable[[_type.LPSTR,  # lpConsoleTitle
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    GetConsoleOriginalTitleW: _Callable[[_type.LPWSTR,  # lpConsoleTitle
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    SetConsoleTitleA: _Callable[[_type.LPCSTR],  # lpConsoleTitle
+                                _type.BOOL]
+    SetConsoleTitleW: _Callable[[_type.LPCWSTR],  # lpConsoleTitle
+                                _type.BOOL]
     # errhandlingapi
     GetLastError: _Callable[[],
                             _type.DWORD]

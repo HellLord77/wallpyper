@@ -170,7 +170,7 @@ def find_child(parent: winrt.Windows.UI.Xaml.DependencyObject, name: str = '') -
 def main():
     global _HWND
     class_name = "test_winui"
-    with open(r'xaml.xml', 'r') as file:
+    with open(r'xaml.xml') as file:
         xaml_data = file.read()
     corner_radius = ctyped.struct.Windows.UI.Xaml.CornerRadius(4, 4, 4, 4)
 

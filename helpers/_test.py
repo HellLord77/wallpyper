@@ -4,6 +4,7 @@ __version__ = '0.0.0'
 
 import atexit
 import io
+import ntpath
 import sys
 import threading
 import time
@@ -204,7 +205,7 @@ def activ(sender: winrt.Windows.UI.Notifications.ToastNotification, a):
 
 
 def _test_toast():
-    ctyped.THREADED_COM = True
+    ctyped.FLAG_THREADED_COM = True
     aumi = 'HellLord.Wallpyper'
     xml_data = '''
 <toast launch="action=viewDownload&amp;downloadId=9438108">
@@ -459,6 +460,31 @@ class PyRemoteProcess(RemoteProcess):
         return thread.get_exit_code() == 0
 
 
+class PyRemoteProcessEx(PyRemoteProcess):
+    def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
+        super().__init__(pid, access)
+        self.load_lib(ctyped.lib.kernel32)
+
+    def __del__(self):
+        self.unload_lib(ctyped.lib.kernel32)
+        super().__del__()
+
+    def alloc_console(self) -> bool:
+        return bool(self.call_func(self.get_remote_func(
+            ctyped.lib.kernel32.AllocConsole, ctyped.lib.kernel32)).get_exit_code())
+
+    def free_console(self) -> bool:
+        return bool(self.call_func(self.get_remote_func(
+            ctyped.lib.kernel32.FreeConsole, ctyped.lib.kernel32)).get_exit_code())
+
+    def reopen_console(self) -> bool:
+        return self.run_simple_string(
+            "import sys; sys.stdin = open('CONIN$', 'r'); sys.stdout = sys.stderr = open('CONOUT$', 'w')")
+
+    def exec_file(self, path: str) -> bool:
+        return self.run_simple_string(f"exec(open('{path}').read())")
+
+
 def _test_load_string_from_lib():
     buff = ctyped.char_array(' ' * ctyped.const.MAX_PATH)
     ctyped.lib.user32.LoadStringW(ctyped.lib.kernel32.GetModuleHandleW('shell32.dll'), 5387, buff, ctyped.const.MAX_PATH)
@@ -476,10 +502,10 @@ def _test():
     name = 'Progman'
 
     # hwnd = ctyped.lib.User32.FindWindowW(name, None)
-    pid = ctyped.type.DWORD(31420)
+    pid = ctyped.type.DWORD(26280)
     # ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
     print(pid)
-    proc = PyRemoteProcess(pid.value)
+    proc = PyRemoteProcessEx(pid.value)
 
     # multi args doesn't work [only first arg is loaded in register]
     # proc.load_lib(ctyped.lib.Kernel32)
@@ -500,27 +526,22 @@ def _test():
     #     print(proc.call_func(func_addr, arg_addr).get_exit_code())
     #     proc.free_mem(arg_addr)
 
-    print(proc.set_path(*sys.path))
+    proc.alloc_console()
+    proc.set_path(*sys.path)
     print(proc.initialize_ex())
-    print(proc.run_simple_string(code))
+    proc.reopen_console()
+    # print(proc.run_simple_string(code))
+    print(proc.exec_file(ntpath.realpath('_test_py.py')))
     print(proc.finalize_ex())
+    proc.free_console()
 
 
 if __name__ == '__main__':
-    # _test_gui()
     _test()
-
-    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS32, 'OptionalHeader'))
-    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER32, 'SizeOfImage'))
-    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER32, 'DataDirectory'))
-    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_NT_HEADERS64, 'OptionalHeader'))
-    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER64, 'SizeOfImage'))
-    # print(ctyped.macro.FIELD_OFFSET(ctyped.struct.IMAGE_OPTIONAL_HEADER64, 'DataDirectory'))
-
     # _test_gui()
     exit()
 
-    ctyped.THREADED_COM = True
+    ctyped.FLAG_THREADED_COM = True
 
     path_ = r'D:\MMDs\洛天依  -  倾杯.mp4'
     path2 = r'D:\test.mp4'

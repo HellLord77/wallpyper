@@ -20,7 +20,7 @@ def _str(guid: list[str]) -> str:
 
 
 def _guid_direct(path: str, macro: str):
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(rf'interface {macro}\("(.*)"\) (\w*)', file.read()):
             groups = match.groups()
             print(f"IID_{groups[1]} = '{{{groups[0].upper()}}}'")
@@ -42,7 +42,7 @@ def dwrite():
 
 def propkey():
     path = os.path.join(SDK_PATH, 'um', 'propkey.h')
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r'DEFINE_PROPERTYKEY\((PKEY_.*)\);', file.read()):
             pkey = match.groups()[0].replace(',', ' ').split()
             print(f"{pkey[0]} = '{_str(pkey[1:12])}', {pkey[12]}")
@@ -50,14 +50,14 @@ def propkey():
 
 def functiondiscoverykeys_devpkey():
     path = os.path.join(SDK_PATH, 'um', 'functiondiscoverykeys_devpkey.h')
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r'DEFINE_PROPERTYKEY\((PKEY_.*)\);', file.read()):
             pkey = match.groups()[0].replace(',', ' ').split()
             print(f"{pkey[0]} = '{_str(pkey[1:12])}', {pkey[12]}")
 
 
 def _guid(path: str, prefix: str = 'GUID'):
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(rf'DEFINE_GUID.*({prefix}.*)\);', file.read()):
             guid = match.groups()[0].replace(',', ' ').split()
             guid[1] = guid[1].replace('L', '')
@@ -89,7 +89,7 @@ def devguid():
 
 def gdiplusimaging():
     print('# gdiplusimaging')
-    with open(os.path.join(SDK_PATH, 'um', 'gdiplusimaging.h'), 'r') as file:
+    with open(os.path.join(SDK_PATH, 'um', 'gdiplusimaging.h')) as file:
         for match in re.finditer(r'DEFINE_GUID\((.*)\);', file.read()):
             guid = match.groups()[0].replace(',', ' ').split()
             print(f"{guid[0]} = '{_str(guid[1:12])}'")
@@ -97,7 +97,7 @@ def gdiplusimaging():
 
 def devpkey():
     path = os.path.join(SDK_PATH, 'shared', 'devpkey.h')
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r'DEFINE_DEVPROPKEY\((DEVPKEY_.*)\);', file.read()):
             devpkey_ = match.groups()[0].replace(',', ' ').split()
             print(f"{devpkey_[0]} = '{_str(devpkey_[1:12])}', {devpkey_[12]}")
@@ -105,7 +105,7 @@ def devpkey():
 
 def knownfolders():
     path = os.path.join(SDK_PATH, 'um', 'KnownFolders.h')
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r'DEFINE_KNOWN_FOLDER\((FOLDERID_.*)\);', file.read()):
             folderid = match.groups()[0].replace(',', ' ').split()
             print(f"{folderid[0]} = '{_str(folderid[1:12])}'")
@@ -113,7 +113,7 @@ def knownfolders():
 
 def _runtime_class(file: str):
     classes = []
-    with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
+    with open(os.path.join(SDK_PATH, 'winrt', file)) as f:
         for match in re.finditer(r'(RuntimeClass_.*)\[]\s=\sL"(.*)";', f.read()):
             groups = match.groups()
             class_ = f"{groups[0]} = '{groups[1]}'"
@@ -127,7 +127,7 @@ def _runtime_class(file: str):
 
 def winerror():
     path = os.path.join(SDK_PATH, 'shared', 'winerror.h')
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r'#define (ERROR_.*)\s(\d*)L', file.read()):
             group = match.groups()
             print(f'{group[0].strip()} = {group[1]}')
@@ -136,7 +136,7 @@ def winerror():
 def mscoree():
     print('# mscoree')
     path = os.path.join(NET_PATH, 'mscoree.h')
-    with open(path, 'r') as file:
+    with open(path) as file:
         for line in file.readlines():
             if line.startswith('EXTERN_GUID('):
                 line = line.replace(' ', '')
@@ -146,7 +146,7 @@ def mscoree():
 
 
 def _clsid_iid(path: str):
-    with open(path, 'r') as file:
+    with open(path) as file:
         data = file.read()
     name = ''
     re_name = re.compile(r'EXTERN_C\sconst\s(CLSID|IID)\s((CLSID|IID)_.*);')
@@ -165,7 +165,7 @@ def wincodec():
 
 def wincodec_codecs():
     print('# wincodec')
-    with open(os.path.join(SDK_PATH, 'um', 'wincodec.h'), 'r') as file:
+    with open(os.path.join(SDK_PATH, 'um', 'wincodec.h')) as file:
         for match in re.finditer(r'DEFINE_GUID\((\w*),\s*(0x.*)\);', file.read()):
             print(f"{match.groups()[0]} = '{_str(match.groups()[1].split(', '))}'")
 
@@ -181,7 +181,7 @@ def propsys():
 
 
 def _iid_shlobj(path: str):
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r'DECLARE_INTERFACE_IID_?\((\w*),.*\s"(.*)"\)', file.read()):
             groups = match.groups()
             print(f"IID_{groups[0]} = '{{{groups[1].upper()}}}'")
@@ -293,7 +293,7 @@ def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], l
 
 
 def gen_template_iid(file: str):
-    with open(os.path.join(SDK_PATH, 'winrt', file), 'r') as f:
+    with open(os.path.join(SDK_PATH, 'winrt', file)) as f:
         data = f.read()
 
     re_iid = re.compile(r'struct __declspec\(uuid\("(.*)"\)\)')
@@ -310,7 +310,7 @@ def gen_template_iid(file: str):
 def gen_winrt_interface(pattern: str = '*.h'):
     data = ''
     for file in glob.glob(os.path.join(SDK_PATH, 'winrt', pattern)):
-        with open(file, 'r') as stream:
+        with open(file) as stream:
             data += stream.read()
 
     re_midl = re.compile(r'MIDL_INTERFACE\(\"(.*)\"\)')
@@ -355,7 +355,7 @@ def gen_winrt_interface(pattern: str = '*.h'):
 def set_const():
     path = r'D:\Projects\wallpyper\src\libs\ctyped\const.py'
     iids = set()
-    with open(path, 'r') as file:
+    with open(path) as file:
         for match in re.finditer(r"IID_(.*) = '(.*)'", file.read()):
             grp = match.groups()
             if grp[1] in iids:
@@ -399,7 +399,7 @@ def gen_generated_files_iid(base: str):
     iid = {}
     for file in os.listdir(base):
         if file.endswith('.h'):
-            with open(os.path.join(base, file), 'r') as f:
+            with open(os.path.join(base, file)) as f:
                 for match in re.finditer(r'\s\s\s\stemplate <> inline constexpr guid guid_v<winrt::(.*)>{ .*// (.*)', f.read()):
                     groups = match.groups()
                     dct = iid
@@ -624,7 +624,7 @@ def gen_winrt(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = Fal
     assert pattern.endswith('.idl')
     for file in glob.glob(os.path.join(SDK_PATH, 'winrt', pattern)):
         if '.' in os.path.splitext(os.path.basename(file))[0]:
-            with open(file, 'r') as stream:
+            with open(file) as stream:
                 data += stream.read()
 
     re_namespace = re.compile(r'namespace (\S+)')
@@ -797,7 +797,7 @@ class GdiPlus:
         re_star = re.compile(r'\*([^*])')
         file = io.StringIO()
 
-        with open(self._path, 'r') as f:
+        with open(self._path) as f:
             lines = f.read().splitlines()
         line_num = 0
         while line_num < len(lines):

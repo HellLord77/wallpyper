@@ -44,8 +44,8 @@ _MIIM_FIELDS = {
     ctyped.const.MIIM_BITMAP: ('hbmpItem',),
     ctyped.const.MIIM_FTYPE: ('fType',)}
 
-FEATURE_MENU_ITEM_TOOLTIP_RESHOW = False
-FEATURE_MENU_ITEM_IMAGE_CACHE = False
+FLAG_MENU_ITEM_TOOLTIP_RESHOW = False
+FLAG_MENU_ITEM_IMAGE_CACHE = False
 MENU_ITEM_TOOLTIP_INITIAL = _MENU_ITEM_AUTOMATIC * 1
 MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_AUTOMATIC // 5
 
@@ -283,7 +283,7 @@ class Gui(_EventHandler):
             if wparam == ctyped.const.MSGF_MENU and self._menu_item_tooltip_proc:
                 ctyped.lib.user32.SetTimer(
                     hwnd, _TID_MENU_ITEM_TOOLTIP, MENU_ITEM_TOOLTIP_RESHOW
-                    if FEATURE_MENU_ITEM_TOOLTIP_RESHOW and self._menu_item_tooltip_hwnd.is_visible() else
+                    if FLAG_MENU_ITEM_TOOLTIP_RESHOW and self._menu_item_tooltip_hwnd.is_visible() else
                     MENU_ITEM_TOOLTIP_INITIAL, self._menu_item_tooltip_proc)
         elif message == ctyped.const.WM_DISPLAYCHANGE:
             self.trigger(message)
@@ -750,7 +750,7 @@ class MenuItem(_Control):
     def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
         if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
             res_or_path = self._load_image(res_or_path, resize).get_hbitmap()
-            if not FEATURE_MENU_ITEM_IMAGE_CACHE:
+            if not FLAG_MENU_ITEM_IMAGE_CACHE:
                 self._load_image.cache_clear()
             self._hbmps[index] = res_or_path
             return res_or_path.value

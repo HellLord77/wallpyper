@@ -1,4 +1,4 @@
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import contextlib
 import filecmp
@@ -39,24 +39,17 @@ def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
 
 
-def iter_files(paths: Iterable[str]) -> Generator[str, None, None]:
-    for path in paths:
-        if os.path.isfile(path):
-            yield path
-
-
 def iter_dir(path: str) -> Generator[str, None, None]:
     dir_: os.DirEntry
     for dir_ in os.scandir(path):
         yield os.path.realpath(dir_.path)
 
 
-def get_size(path: str) -> int:
-    size = 0
-    for dir_ in os.listdir(path):
-        path_ = os.path.join(path, dir_)
-        size += get_size(path_) if os.path.isdir(path_) else os.path.getsize(path_)
-    return size
+def get_size(path: str) -> Optional[int]:
+    if os.path.isdir(path):
+        return sum(get_size(dir_) for dir_ in iter_dir(path))
+    elif os.path.isfile(path):
+        return os.path.getsize(path)
 
 
 def copyfileobj(src: IO, dst: IO, size: Optional[int] = None,
@@ -95,17 +88,22 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_empty_dir(path: str, recursive: bool = False) -> bool:
+def is_only_dirs(path: str, recursive: bool = False) -> bool:
     if recursive:
         try:
-            for dir_ in os.listdir(path):
-                path_ = os.path.join(path, dir_)
-                if os.path.isfile(path_) or not is_empty_dir(path_, recursive):
+            for dir_ in iter_dir(path):
+                if os.path.isfile(dir_) or not is_only_dirs(dir_, recursive):
                     return False
         except PermissionError:
             return False
         return True
     return not any(os.scandir(path))
+
+
+def _filter_files(paths: Iterable[str]) -> Generator[str, None, None]:
+    for path in paths:
+        if os.path.isfile(path):
+            yield path
 
 
 def trim_dir(path: str, target: int) -> bool:
@@ -115,7 +113,7 @@ def trim_dir(path: str, target: int) -> bool:
         paths.sort(key=os.path.getctime, reverse=True)
     except FileNotFoundError:
         return False
-    itt = iter_files(paths)
+    itt = _filter_files(paths)
     size = 0
     for path in itt:
         size += os.path.getsize(path)

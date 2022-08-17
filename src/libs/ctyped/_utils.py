@@ -83,17 +83,19 @@ class _Globals(dict):
                 yield item
 
 
+# noinspection PyUnusedLocal
 def _addressof(obj: _CT) -> int:
-    return _ctypes.addressof(obj)
+    pass
 
 
+# noinspection PyUnusedLocal
 def _sizeof(obj_or_type: _CT) -> int:
-    return _ctypes.sizeof(obj_or_type)
+    pass
 
 
+# noinspection PyUnusedLocal
 def _byref(obj: _CT) -> _Pointer[_CT]:
-    # noinspection PyTypeChecker
-    return _ctypes.byref(obj)
+    pass
 
 
 def _pointer(obj_or_type: type[_CT]) -> type[_Pointer[_CT]]:
@@ -214,6 +216,9 @@ def _get_winrt_class_name(type: type[_CT]) -> str:
 
 
 def _init():
+    globals_ = globals()
+    for func in (_addressof, _sizeof, _byref):
+        globals_[func.__name__] = getattr(_ctypes, func.__name__[1:])
     for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
         _sys.modules[module.name] = _sys.modules.get(module.name, _Module(module.name))
 
