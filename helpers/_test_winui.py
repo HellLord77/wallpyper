@@ -369,11 +369,6 @@ def foo(p: winrt.Windows.UI.Xaml.ApplicationInitializationCallbackParams):
     return ctyped.const.NOERROR
 
 
-def disp():
-    print('disp')
-    return ctyped.const.NOERROR
-
-
 def application():
     ctyped.lib.combase.RoInitialize(ctyped.enum.RO_INIT_TYPE.SINGLETHREADED)
     app = winrt.Windows.UI.Xaml.Application()

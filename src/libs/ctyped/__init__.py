@@ -11,7 +11,7 @@ import types as _types
 import typing as _typing
 from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
                     Generic as _Generic, Iterable as _Iterable, Mapping as _Mapping,
-                    MutableSequence as _MutableSequence, Optional as _Optional, Union as _Union)
+                    MutableSequence as _MutableSequence, Optional as _Optional)
 
 from . import const, enum, handle, interface, lib, macro, struct, type, union
 from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
@@ -39,7 +39,7 @@ def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None,
-          size: _Optional[int] = None) -> _Union[_MutableSequence[CT], Pointer[CT]]:
+          size: _Optional[int] = None) -> _MutableSequence[CT] | Pointer[CT]:
     return ((_builtins.type(elements[0]) if type is None else type) * (
         len(elements) if size is None else size))(*elements)
 
@@ -78,7 +78,7 @@ def get_message(message: int) -> str:
         return f'WM_{message}'
 
 
-def get_interface_name(iid: str, base: _Union[type, _types.ModuleType] = const) -> _Optional[str]:
+def get_interface_name(iid: str, base: _builtins.type | _types.ModuleType = const) -> _Optional[str]:
     for var, val in vars(base).items():
         if isinstance(val, _builtins.type):
             if name := get_interface_name(iid, val):
@@ -165,7 +165,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
-def cast_com(obj: _Union[interface.IUnknown, interface.IUnknown_impl],
+def cast_com(obj: interface.IUnknown | interface.IUnknown_impl,
              type: _builtins.type[CT] = interface.IUnknown) -> _ContextManager[_Optional[CT]]:
     with _prep_com(type) as obj_:
         yield obj_ if macro.SUCCEEDED(obj.QueryInterface(*macro.IID_PPV_ARGS(obj_))) else None

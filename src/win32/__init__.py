@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 import winreg
-from typing import ContextManager, Generator, Mapping, MutableSequence, Optional, Union
+from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
 import libs.ctyped as ctyped
 from . import _utils, clipboard, gui, display
@@ -29,7 +29,7 @@ WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'Transc
 
 
 @contextlib.contextmanager
-def _load_prop(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
+def _load_prop(path_or_interface: str | ctyped.interface.IShellLinkA | ctyped.interface.IShellLinkW,
                write: bool = False) -> ContextManager[Optional[ctyped.interface.IPropertyStore]]:
     if isinstance(path_or_interface, str):
         with ctyped.init_com(ctyped.interface.IPropertyStore, False) as prop_store:
@@ -46,7 +46,7 @@ def _load_prop(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctype
     yield
 
 
-def _get_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
+def _get_str_ex_props(path_or_interface: str | ctyped.interface.IShellLinkA | ctyped.interface.IShellLinkW,
                       *pkeys: tuple[str, int]) -> tuple[Optional[str], ...]:
     vals = []
     with _load_prop(path_or_interface) as prop_store:
@@ -62,7 +62,7 @@ def _get_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA
     return tuple(vals)
 
 
-def _set_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
+def _set_str_ex_props(path_or_interface: str | ctyped.interface.IShellLinkA | ctyped.interface.IShellLinkW,
                       pkeys: Mapping[tuple[str, int], str]) -> bool:
     with _load_prop(path_or_interface, True) as prop_store:
         if prop_store:
@@ -79,7 +79,7 @@ def _set_str_ex_props(path_or_interface: Union[str, ctyped.interface.IShellLinkA
 
 
 @contextlib.contextmanager
-def _load_link(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW]) -> \
+def _load_link(path_or_link: str | ctyped.interface.IShellLinkA | ctyped.interface.IShellLinkW) -> \
         ContextManager[ctyped.interface.IShellLinkW]:
     if isinstance(path_or_link, str):
         with ctyped.init_com(ctyped.interface.IShellLinkW) as link:
@@ -101,7 +101,7 @@ def _save_link(link: ctyped.interface.IShellLinkW, path: str) -> bool:
     return ntpath.isfile(path)
 
 
-def _get_link_data(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW]) -> \
+def _get_link_data(path_or_link: str | ctyped.interface.IShellLinkA | ctyped.interface.IShellLinkW) -> \
         tuple[str, str, str, str, int, int, tuple[str, int]]:
     data = []
     word = ctyped.type.WORD()
@@ -126,7 +126,7 @@ def _get_link_data(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped
     return tuple(data)
 
 
-def _set_link_data(path_or_link: Union[str, ctyped.interface.IShellLinkA, ctyped.interface.IShellLinkW],
+def _set_link_data(path_or_link: str | ctyped.interface.IShellLinkA | ctyped.interface.IShellLinkW,
                    path: Optional[str] = None, desc: Optional[str] = None, work_dir: Optional[str] = None,
                    args: Optional[str] = None, hotkey: Optional[int] = None,
                    show: Optional[int] = None, icon: Optional[tuple[str, int]] = None) -> bool:
@@ -175,7 +175,7 @@ def _get_hdevinfo(guid_ref: Optional[ctyped.Pointer[ctyped.struct.GUID]],
 
 
 def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Pointer[ctyped.struct.SP_DEVINFO_DATA],
-                      spdrp_or_devpkey: Union[int, tuple[str, int]]) -> str:
+                      spdrp_or_devpkey: int | tuple[str, int]) -> str:
     if isinstance(spdrp_or_devpkey, int):
         getter = ctyped.lib.setupapi.SetupDiGetDeviceRegistryPropertyW
         key_ref = spdrp_or_devpkey
@@ -193,7 +193,7 @@ def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Point
         return buff.value
 
 
-def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: Union[int, tuple[str, int]]) -> tuple[tuple[str, ...]]:
+def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: int | tuple[str, int]) -> tuple[tuple[str, ...]]:
     vals = []
     guid_ref = None
     flags = ctyped.const.DIGCF_ALLCLASSES | ctyped.const.DIGCF_PRESENT

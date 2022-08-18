@@ -343,6 +343,34 @@ class python(_Func, metaclass=_PyDLL):
                                        _type.c_long]
     PyImport_GetMagicTag: _Callable[[],
                                     _type.c_char_p]
+    # pyerrors
+    PyErr_Clear: _Callable[[],
+                           _type.c_void]
+    Py_FatalError: _Callable[[_type.c_char_p],  # message
+                             _type.c_void]
+    PyErr_BadArgument: _Callable[[],
+                                 _type.c_void]
+    PyErr_BadInternalCall: _Callable[[],
+                                     _type.c_void]
+    _PyErr_BadInternalCall: _Callable[[_type.c_char_p,  # filename
+                                       _type.c_int],  # lineno
+                                      _type.c_void]
+    PyErr_CheckSignals: _Callable[[],
+                                  _type.c_int]
+    PyErr_SetInterrupt: _Callable[[],
+                                  _type.c_void]
+    PyErr_SyntaxLocation: _Callable[[_type.c_char_p,  # filename
+                                     _type.c_int],  # lineno
+                                    _type.c_void]
+    PyErr_SyntaxLocationEx: _Callable[[_type.c_char_p,  # filename
+                                       _type.c_int,  # lineno
+                                       _type.c_int],  # col_offset
+                                      _type.c_void]
+    PyOS_vsnprintf: _Callable[[_type.c_char_p,  # str
+                               _type.c_size_t,  # size
+                               _type.c_char_p,  # format
+                               _type.va_list],  # va
+                              _type.c_int]
     # pylifecycle
     Py_Initialize: _Callable[[],
                              _type.c_void]
@@ -4930,6 +4958,39 @@ class kernel32(_Func, metaclass=_WinDLL):
                                     _type.DWORD,
                                     _type.BYTE],
                                    _type.ULONGLONG]
+    # wow64apiset
+    Wow64EnableWow64FsRedirection: _Callable[[_type.BOOLEAN],  # Wow64FsEnableRedirection
+                                             _type.BOOLEAN]
+    Wow64RevertWow64FsRedirection: _Callable[[_type.PVOID],  # OlValue
+                                             _type.BOOL]
+    IsWow64Process: _Callable[[_type.HANDLE,  # hProcess
+                               _Pointer[_type.BOOL]],  # Wow64Process
+                              _type.BOOL]
+    GetSystemWow64DirectoryA: _Callable[[_type.LPSTR,  # lpBuffer
+                                         _type.UINT],  # uSize
+                                        _type.UINT]
+    GetSystemWow64DirectoryW: _Callable[[_type.LPWSTR,  # lpBuffer
+                                         _type.UINT],  # uSize
+                                        _type.UINT]
+    Wow64SetThreadDefaultGuestMachine: _Callable[[_type.USHORT],  # Machine
+                                                 _type.USHORT]
+    IsWow64Process2: _Callable[[_type.HANDLE,  # hProcess
+                                _Pointer[_type.USHORT],  # pProcessMachine
+                                _Optional[_Pointer[_type.USHORT]]],  # pNativeMachine
+                               _type.BOOL]
+    GetSystemWow64Directory2A: _Callable[[_type.LPSTR,  # lpBuffer
+                                          _type.UINT,  # uSize
+                                          _type.WORD],  # ImageFileMachineType
+                                         _type.UINT]
+    GetSystemWow64Directory2W: _Callable[[_type.LPWSTR,  # lpBuffer
+                                          _type.UINT,  # uSize
+                                          _type.WORD],  # ImageFileMachineType
+                                         _type.UINT]
+    IsWow64GuestMachineSupported: _Callable[[[_type.USHORT],  # WowGuestMachine
+                                             _Pointer[_type.BOOL]],  # MachineIsSupported
+                                            _type.HRESULT]
+    Wow64SuspendThread: _Callable[[_type.HANDLE],  # hThread
+                                  _type.DWORD]
 
 
 # noinspection PyPep8Naming

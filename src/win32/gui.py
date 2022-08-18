@@ -7,7 +7,7 @@ import functools
 import itertools
 import ntpath
 import threading
-from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union, Sequence, Generator
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Sequence, Generator
 
 import libs.ctyped as ctyped
 from . import _gdiplus, _utils
@@ -393,7 +393,7 @@ class SystemTray(_Control):
     _animation_frames = None
     _animation_speed = 1
 
-    def __init__(self, icon: Union[int, str] = SystemTrayIcon.APPLICATION,
+    def __init__(self, icon: int | str = SystemTrayIcon.APPLICATION,
                  tooltip: Optional[str] = None, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
         self._animation_proc = ctyped.type.TIMERPROC(self._set_next_frame)
@@ -426,7 +426,7 @@ class SystemTray(_Control):
         self._data.hIcon = hicon
         return self._update()
 
-    def set_icon(self, res_or_path: Union[int, str]) -> bool:
+    def set_icon(self, res_or_path: int | str) -> bool:
         self.stop_animation()
         self._hicon = _gdiplus.Bitmap.from_file(res_or_path).get_hicon() if isinstance(
             res_or_path, str) else ctyped.handle.HICON.from_idi(res_or_path)
@@ -483,7 +483,7 @@ class SystemTray(_Control):
         return not self._show
 
     def show_balloon(self, title: str, text: Optional[str] = None,
-                     res_or_path: Union[int, str] = SystemTrayIcon.BALLOON_NONE, silent: bool = False) -> bool:
+                     res_or_path: int | str = SystemTrayIcon.BALLOON_NONE, silent: bool = False) -> bool:
         flags = self._data.uFlags
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
@@ -521,17 +521,17 @@ class Menu(_Control):
         self._items: list[MenuItem] = []
         super().__init__(self._hmenu.value)
 
-    def __contains__(self, id_or_item: Union[int, MenuItem]):
+    def __contains__(self, id_or_item: int | MenuItem):
         return self.get_item(id_or_item) is not None
 
     def __len__(self):
         return len(self._items)
 
-    def __getitem__(self, pos: Union[int, slice]) -> Union[MenuItem, tuple[MenuItem]]:
+    def __getitem__(self, pos: int | slice) -> MenuItem | tuple[MenuItem]:
         items = self._items[pos]
         return tuple(items) if isinstance(pos, slice) else items
 
-    def __delitem__(self, pos_or_item: Union[int, slice, MenuItem]) -> bool:
+    def __delitem__(self, pos_or_item: int | slice | MenuItem) -> bool:
         if isinstance(pos_or_item, slice):
             deleted = True
             for item in self[pos_or_item]:
@@ -551,7 +551,7 @@ class Menu(_Control):
     def get_item_count(self) -> int:
         return self._hmenu.get_item_count()
 
-    def get_item(self, id_or_pos_or_item: Union[int, MenuItem],
+    def get_item(self, id_or_pos_or_item: int | MenuItem,
                  default: Any = None, by_pos: bool = False) -> Optional[MenuItem]:
         if by_pos:
             if id_or_pos_or_item >= 0:
@@ -565,13 +565,13 @@ class Menu(_Control):
         return default
 
     # noinspection PyShadowingBuiltins
-    def append_item(self, text: Optional[str] = None, image_res_or_path: Optional[Union[str, None]] = None,
+    def append_item(self, text: Optional[str] = None, image_res_or_path: Optional[int | str] = None,
                     submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
                     type: int = MenuItemType.NORMAL) -> Optional[MenuItem]:
         return self.insert_item(self.get_item_count(), text, image_res_or_path, submenu, enable, check, type)
 
     # noinspection PyShadowingBuiltins
-    def insert_item(self, pos: int, text: Optional[str] = None, image_res_or_path: Optional[Union[int, str]] = None,
+    def insert_item(self, pos: int, text: Optional[str] = None, image_res_or_path: Optional[int | str] = None,
                     submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
                     type: int = MenuItemType.NORMAL) -> Optional[MenuItem]:
         item = MenuItem(self, type, gui=Gui.get(self._hwnd))
@@ -597,7 +597,7 @@ class Menu(_Control):
                 item.enable(enable)
             return item
 
-    def remove_item(self, id_or_pos_or_item: Union[int, MenuItem], by_pos: bool = False) -> bool:
+    def remove_item(self, id_or_pos_or_item: int | MenuItem, by_pos: bool = False) -> bool:
         if isinstance(id_or_pos_or_item, MenuItem):
             id_or_pos_or_item = id_or_pos_or_item.get_id()
             by_pos = False
@@ -660,7 +660,7 @@ class Menu(_Control):
         setattr(info, _MIM_FIELD[mim], data)
         return bool(ctyped.lib.user32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
 
-    def set_background_color(self, color_or_rgb: Union[int, tuple[int, int, int]], recursive: bool = True) -> bool:
+    def set_background_color(self, color_or_rgb: int | tuple[int, int, int], recursive: bool = True) -> bool:
         self._hbrush = ctyped.handle.HBRUSH.from_color(color_or_rgb) if isinstance(
             color_or_rgb, int) else ctyped.handle.HBRUSH.from_rgb(*color_or_rgb)
         return bool(self._hbrush) and self._set_data(ctyped.const.MIM_BACKGROUND, self._hbrush, recursive)
@@ -747,7 +747,7 @@ class MenuItem(_Control):
                 res_or_path = res_or_path.get_resized(_MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
         return res_or_path
 
-    def _prep_image(self, res_or_path: Union[int, str], index: int, resize: bool) -> int:
+    def _prep_image(self, res_or_path: int | str, index: int, resize: bool) -> int:
         if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
             res_or_path = self._load_image(res_or_path, resize).get_hbitmap()
             if not FLAG_MENU_ITEM_IMAGE_CACHE:
@@ -829,11 +829,11 @@ class MenuItem(_Control):
             setattr(info, field, data)
         return bool(ctyped.lib.user32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
 
-    def set_icon(self, res_or_path: Union[int, str], resize: bool = True) -> bool:
+    def set_icon(self, res_or_path: int | str, resize: bool = True) -> bool:
         return self._set_datas(ctyped.const.MIIM_BITMAP, (self._prep_image(res_or_path, 0, resize),))
 
-    def _set_check_icons(self, res_or_path_checked: Optional[Union[int, str]],
-                         res_or_path_unchecked: Optional[Union[int, str]], resize: bool) -> bool:
+    def _set_check_icons(self, res_or_path_checked: Optional[int | str],
+                         res_or_path_unchecked: Optional[int | str], resize: bool) -> bool:
         return self._set_datas(ctyped.const.MIIM_CHECKMARKS, (
             self._prep_image(res_or_path_checked, 1, resize), self._prep_image(res_or_path_unchecked, 2, resize)))
 
@@ -895,7 +895,7 @@ class MenuItem(_Control):
     def set_text(self, text: str) -> bool:  # TODO removes icon (?)
         return self._set_datas(ctyped.const.MIIM_TYPE, (ctyped.const.MFT_STRING, text))
 
-    def set_image(self, res_or_path: Union[int, str]) -> bool:
+    def set_image(self, res_or_path: int | str) -> bool:
         return self._set_datas(ctyped.const.MIIM_TYPE, (
             ctyped.const.MFT_BITMAP, ctyped.type.LPWSTR(self._prep_image(res_or_path, 0, False))))
 
@@ -923,13 +923,13 @@ class MenuItem(_Control):
     def check(self, check: bool = True) -> bool:
         return (self._check_radio() if check else not self.is_checked()) if self.is_radio() else self._check(check)
 
-    def set_checked_icon(self, res_or_path: Optional[Union[int, str]] = None, resize: bool = True) -> bool:
+    def set_checked_icon(self, res_or_path: Optional[int | str] = None, resize: bool = True) -> bool:
         return self._set_check_icons(res_or_path, self._hbmps[2], resize)
 
-    def set_unchecked_icon(self, res_or_path: Optional[Union[int, str]] = None, resize: bool = True) -> bool:
+    def set_unchecked_icon(self, res_or_path: Optional[int | str] = None, resize: bool = True) -> bool:
         return self._set_check_icons(self._hbmps[1], res_or_path, resize)
 
-    def set_tooltip(self, text: str, title: str = '', icon_res_or_path: Union[int, str] = MenuItemTooltipIcon.NONE):
+    def set_tooltip(self, text: str, title: str = '', icon_res_or_path: int | str = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
         self._tooltip_title = title
         self._tooltip_icon = (_gdiplus.Bitmap.from_file(icon_res_or_path).get_resized(

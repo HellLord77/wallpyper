@@ -2,7 +2,7 @@ from __future__ import annotations as _
 
 import inspect
 import os
-from typing import Any, Generator, Iterable, Optional, Union
+from typing import Any, Generator, Iterable, Optional
 
 import langs
 from libs import files, utils
@@ -30,7 +30,7 @@ class _Module(metaclass=_ModuleMeta):
     VERSION: str
     ICON: str
     DEFAULT_CONFIG: dict[str, Any]
-    CONFIG: dict[str, Union[bool, str]]
+    CONFIG: dict[str, bool | str]
     STRINGS = langs.DEFAULT
 
     @classmethod

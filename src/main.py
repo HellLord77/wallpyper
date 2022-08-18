@@ -11,7 +11,7 @@ import tempfile
 import threading
 import time
 import webbrowser
-from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional, Union
+from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 
 import consts
 import gui
@@ -107,9 +107,9 @@ def fix_config(loaded: bool = True):
     _fix_config(consts.CONFIG_MODULE, modules.MODULES)
 
 
-def _load_config(getters: dict[type, Callable[[str, str], Union[str, int, float, bool, tuple, list, set]]],
-                 section: str, config: dict[str, Union[str, int, float, bool]],
-                 default: dict[str, Union[str, int, float, bool]]) -> bool:
+def _load_config(getters: dict[type, Callable[[str, str], str | int | float | bool | tuple | list | set]],
+                 section: str, config: dict[str, str | int | float | bool],
+                 default: dict[str, str | int | float | bool]) -> bool:
     loaded = True
     for option, value in default.items():
         try:

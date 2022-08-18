@@ -2,12 +2,11 @@ __version__ = '0.0.2'
 
 import json
 import os
-from typing import Union
 
 COLORS: dict[str, str] = {}
 
 
-def get_name(color: Union[str, tuple[int, int, int]]) -> str:
+def get_name(color: str | tuple[int, int, int]) -> str:
     if not COLORS:
         with open(os.path.join(os.path.dirname(__file__), 'res', 'colornames.min.json'), encoding='utf-8') as file:
             COLORS.update(json.load(file))

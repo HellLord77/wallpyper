@@ -2,13 +2,7 @@ from __future__ import annotations as _
 
 import builtins
 import datetime
-from typing import Any
-from typing import Callable
-from typing import Iterable
-from typing import Mapping
-from typing import Optional
-from typing import TypeVar
-from typing import Union
+from typing import Any, Callable, Iterable, Mapping, Optional, TypeVar
 
 from .. import _get_winrt_class_name
 from .. import byref
@@ -84,7 +78,7 @@ class _Unknown(metaclass=_Interface):
                 # noinspection PyProtectedMember
                 cls._interfaces.update({interface_: None for interface_ in base._interfaces})
 
-    def __init__(self, obj: Optional[Union[_Unknown, interface.IUnknown]] = None):
+    def __init__(self, obj: Optional[_Unknown | interface.IUnknown] = None):
         if isinstance(obj, _Unknown):
             obj = obj._self  # TODO obj.AddRef()
         if obj is None:

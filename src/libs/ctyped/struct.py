@@ -3600,10 +3600,11 @@ class _Struct(_ctypes.Structure):
 def _init(item: str, var: _Optional[type] = None) -> type:
     if var is None:
         var = _globals.vars_[item]
-    if getattr(var, '__annotations__', {}):
+    if getattr(var, '__annotations__', None):
         fields = tuple((name, _resolve_type(annot)) for name, annot in _typing.get_type_hints(var, _globals, _globals).items())
         # noinspection PyProtectedMember
-        struct = type(item, (_Struct,), {'_fields_': tuple((*field, field[1]._bitfield) if hasattr(field[1], '_bitfield') else field for field in fields)})
+        struct = type(item, (_Struct,), {'_fields_': tuple(
+            (*field, field[1]._bitfield) if hasattr(field[1], '_bitfield') else field for field in fields)})
         # noinspection PyTypeChecker
         size = _ctypes.sizeof(struct)
         struct._defaults = tuple((field[0], size if (val := getattr(var, field[0])) is _SIZE else val) for field in fields)

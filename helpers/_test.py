@@ -319,7 +319,6 @@ def _dwrite_font():
 
 
 PageAddress = TypeVar('PageAddress', bound=int)
-ThreadID = TypeVar('ThreadID', bound=int)
 FunctionAddress = TypeVar('FunctionAddress', bound=int)
 
 
@@ -388,11 +387,10 @@ class RemoteProcess:
         lib_path = ctyped.get_lib_path(lib).encode() + b'\0'
         arg_addr = self.alloc_mem(len(lib_path), ctyped.const.PAGE_EXECUTE_READWRITE)
         if arg_addr:
-            if self.write_mem(arg_addr, lib_path) and (thread := Thread.create_remote(
-                    self._handle, ctyped.addressof_func(ctyped.lib.kernel32.LoadLibraryA), arg_addr)):
+            if self.write_mem(arg_addr, lib_path):
                 # print(ctyped.cast(self.read_mem(arg_addr, len(lib_path)), ctyped.type.LPSTR).value)
-                thread.join()
-                if lib_remote := thread.get_exit_code():
+                if lib_remote := self.call_func(ctyped.addressof_func(
+                        ctyped.lib.kernel32.LoadLibraryA), arg_addr).get_exit_code():
                     self._libs_remote[lib] = lib_remote
                     self._libs_local[lib] = ctyped.lib.kernel32.GetModuleHandleA(lib_path)
             self.free_mem(arg_addr)
@@ -451,6 +449,13 @@ class PyRemoteProcess(RemoteProcess):
         self.call_func(self.get_remote_func(ctyped.lib.python.Py_SetPath, ctyped.lib.python), arg_addr)
         self.free_mem(arg_addr)
 
+    def err_print(self):
+        self.call_func(self.get_remote_func(ctyped.lib.python.PyErr_Print, ctyped.lib.python)).get_exit_code()
+
+    def err_print_ex(self, set_vars: bool = False):
+        self.call_func(self.get_remote_func(
+            ctyped.lib.python.PyErr_PrintEx, ctyped.lib.python), set_vars).get_exit_code()
+
     def run_simple_string(self, string: str) -> bool:
         arg = string.encode() + b'\0'
         arg_addr = self.alloc_mem(len(arg), ctyped.const.PAGE_EXECUTE_READWRITE)
@@ -461,21 +466,11 @@ class PyRemoteProcess(RemoteProcess):
 
 
 class PyRemoteProcessEx(PyRemoteProcess):
-    def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
-        super().__init__(pid, access)
-        self.load_lib(ctyped.lib.kernel32)
-
-    def __del__(self):
-        self.unload_lib(ctyped.lib.kernel32)
-        super().__del__()
-
     def alloc_console(self) -> bool:
-        return bool(self.call_func(self.get_remote_func(
-            ctyped.lib.kernel32.AllocConsole, ctyped.lib.kernel32)).get_exit_code())
+        return bool(self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.AllocConsole)).get_exit_code())
 
     def free_console(self) -> bool:
-        return bool(self.call_func(self.get_remote_func(
-            ctyped.lib.kernel32.FreeConsole, ctyped.lib.kernel32)).get_exit_code())
+        return bool(self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.FreeConsole)).get_exit_code())
 
     def reopen_console(self) -> bool:
         return self.run_simple_string(
@@ -497,12 +492,12 @@ pid = ctypes.windll.kernel32.GetCurrentProcessId()
 ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})', 'Hello from Python', 0x1000)'''
 
 
-def _test():
+def _test_hook():
     # ctyped.lib.Python.PyRun_SimpleString(code.encode())
     name = 'Progman'
 
     # hwnd = ctyped.lib.User32.FindWindowW(name, None)
-    pid = ctyped.type.DWORD(26280)
+    pid = ctyped.type.DWORD(3240)
     # ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
     print(pid)
     proc = PyRemoteProcessEx(pid.value)
@@ -536,8 +531,15 @@ def _test():
     proc.free_console()
 
 
+def _test():
+    ctyped.lib.kernel32.SetComputerNameExW(ctyped.enum.COMPUTER_NAME_FORMAT.PhysicalDnsHostname, 'sexy-name')
+    t = ctyped.type.LPWSTR('sexy daya')
+    print(t.value)
+
+
 if __name__ == '__main__':
     _test()
+    # _test_hook()
     # _test_gui()
     exit()
 

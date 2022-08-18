@@ -13,7 +13,7 @@ import urllib.parse
 import urllib.request
 import urllib.response
 import uuid
-from typing import Any, Callable, Generator, Iterable, Mapping, Optional, Union
+from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
 _CRLF = '\r\n'
 
@@ -34,7 +34,8 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 
 _MIN_CHUNK = 32 * 1024
-_OPENERS = urllib.request.build_opener(_HTTPRedirectHandler), urllib.request.build_opener()
+_OPENER_DEFAULT = urllib.request.build_opener()
+_OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
 ACCEPT_LANGUAGE = 'en-US'
 USER_AGENT = f'{__name__}/{__version__}'
@@ -51,7 +52,7 @@ class Header:
 class _Response:
     chunk_size = _MIN_CHUNK
 
-    def __init__(self, response: Union[urllib.response.addinfourl, http.client.HTTPResponse, urllib.error.URLError]):
+    def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self.response = response
         self.getheader = getattr(response, 'getheader', self._getheader)
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
@@ -100,7 +101,7 @@ def query(url: str) -> dict[str, list[str]]:
     return urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
 
 
-def encode(url: str, params: Optional[Mapping[str, Union[str, Iterable[str]]]] = None) -> str:
+def encode(url: str, params: Optional[Mapping[str, str | Iterable[str]]] = None) -> str:
     if params is None:
         return url
     parts = urllib.parse.urlparse(url)
@@ -129,7 +130,7 @@ def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[by
         for head, val in (headers or {}).items():
             request.add_header(head, val)
         try:
-            urllib.request.install_opener(_OPENERS[redirect])
+            urllib.request.install_opener(_OPENER_DEFAULT if redirect else _OPENER_NO_REDIRECT)
             response = urllib.request.urlopen(request)
         except urllib.error.URLError as response:
             return _Response(response)

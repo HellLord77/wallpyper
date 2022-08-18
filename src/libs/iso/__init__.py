@@ -5,7 +5,7 @@ __version__ = '0.0.3'  # https://salsa.debian.org/iso-codes-team/iso-codes
 import collections
 import json
 import os
-from typing import Optional, Union
+from typing import Optional
 
 
 class _ISOMeta(type):
@@ -145,8 +145,8 @@ class __Locale:
 
     # noinspection PyProtectedMember
     @classmethod
-    def get(cls, language: Optional[Union[str, ISO6392._BASE_]] = None,
-            country: Optional[Union[str, ISO31661._BASE_]] = None) -> _BASE_:
+    def get(cls, language: Optional[str | ISO6392._BASE_] = None,
+            country: Optional[str | ISO31661._BASE_] = None) -> _BASE_:
         if not isinstance(language, ISO6392._BASE_):
             language = ISO6392.get(alpha_2=language)
         if not isinstance(country, ISO31661._BASE_):

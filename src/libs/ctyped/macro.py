@@ -1,5 +1,5 @@
 import ctypes as _ctypes
-from typing import Optional as _Optional, Union as _Union
+from typing import Optional as _Optional
 
 from . import const as _const, lib as _lib, interface as _interface, struct as _struct, type as _type
 from ._utils import _CT, _Pointer, _cast_int, _get_namespace
@@ -180,8 +180,7 @@ def MAKEINTRESOURCEW(i: int) -> _type.LPWSTR:
     return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 
 
-def __uuidof(_: _Union[_interface.IUnknown, type[_interface.IUnknown],
-                       _interface.IUnknown_impl, type[_interface.IUnknown_impl]]) -> _struct.IID:
+def __uuidof(_: _interface.IUnknown | type[_interface.IUnknown] | _interface.IUnknown_impl | type[_interface.IUnknown_impl]) -> _struct.IID:
     if not isinstance(_, type):
         _ = type(_)
     iid = _struct.IID()

@@ -8,7 +8,7 @@ import socket
 import sys
 import tempfile
 import time
-from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional, Union
+from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 
 WAIT_INTERVAL = 5
 POLL_INTERVAL = 1
@@ -92,7 +92,7 @@ class Method:
     SOCKET = _socket
 
 
-def _get_uid(data_or_path: Union[bytes, str], prefix: Optional[str] = None) -> str:
+def _get_uid(data_or_path: bytes | str, prefix: Optional[str] = None) -> str:
     md5 = hashlib.md5()
     if isinstance(data_or_path, bytes):
         md5.update(data_or_path)

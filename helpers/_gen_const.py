@@ -2,7 +2,7 @@ import glob
 import io
 import os
 import re
-from typing import Union, Optional
+from typing import Optional
 
 from libs import ctyped
 
@@ -246,7 +246,7 @@ def referencetracker():
     _clsid_iid(os.path.join(SDK_PATH, 'um', 'windows.ui.xaml.hosting.referencetracker.h'))
 
 
-def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], iids: dict[str, str], indent: str = '    '):
+def _print_iids(interfaces: dict[str, dict] | dict[tuple[str, str] | list[str]], iids: dict[str, str], indent: str = '    '):
     for name in interfaces:
         if isinstance(name, str):
             print(f'{indent}class {name}:')
@@ -258,7 +258,7 @@ def _print_iids(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[st
 _Namespace = ['Windows']
 
 
-def _print_interfaces(interfaces: Union[dict[str, dict], dict[tuple[str, str], list[str]]], indent: str = '    '):
+def _print_interfaces(interfaces: dict[str, dict] | dict[tuple[str, str] | list[str]], indent: str = '    '):
     for name in interfaces:
         if not isinstance(name, str):
             if (name[0].endswith('Handler') or name[0].endswith('Callback')) and name[1] == 'IUnknown' and len(interfaces[name]) == 1 and 'Invoke' == interfaces[name][0]:
@@ -386,7 +386,7 @@ def gen_properties(tp):
                     print(template.format(underscore(annot[4:]), static.__qualname__, annot))
 
 
-def _print_generated_files_iid(iids: dict[str, Union[str, dict]], intend: str = ''):
+def _print_generated_files_iid(iids: dict[str, str | dict], intend: str = ''):
     for name in iids:
         if isinstance(iids[name], str):
             print(f"{intend}IID_{name} = '{{{iids[name]}}}'")

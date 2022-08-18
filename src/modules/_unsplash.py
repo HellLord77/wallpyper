@@ -1,7 +1,7 @@
 __version__ = '0.0.2'  # https://unsplash.com/documentation
 
 import sys
-from typing import Generator, Optional, Union
+from typing import Generator, Optional
 
 import gui
 from libs import files, request
@@ -49,7 +49,7 @@ class Unsplash(_Module):
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: Union[bool, str]) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
         results: Optional[list] = None
         total_pages = 1
         if params.pop(CONFIG_EDITORIAL):

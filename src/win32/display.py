@@ -10,7 +10,7 @@ import threading
 import time
 import typing
 import winreg
-from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Union
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional
 
 import libs.ctyped as ctyped
 from . import _utils, _gdiplus
@@ -515,7 +515,7 @@ def _set_wallpaper_iactivedesktop(path: str, fade: bool = True) -> bool:
 
 
 def _set_wallpaper_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ctyped.type.COLORREF] = None,
-                                     style: Optional[Union[int, ctyped.enum.DESKTOP_WALLPAPER_POSITION]] = None) -> bool:
+                                     style: Optional[int | ctyped.enum.DESKTOP_WALLPAPER_POSITION] = None) -> bool:
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
             if color is not None and ctyped.macro.FAILED(wallpaper.SetBackgroundColor(color)):

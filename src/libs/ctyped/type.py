@@ -11,7 +11,6 @@ import _ctypes as __ctypes
 from . import const as _const, struct as _struct
 from ._utils import _Globals, _Pointer, _resolve_type
 
-_WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _CT_BINARY = (
     '__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__', '__mod__',
     '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
@@ -24,6 +23,8 @@ _CT_I_BINARY = (
 _CT_UNARY = '__neg__', '__pos__', '__abs__', '__invert__', '__round__', '__trunc__', '__floor__', '__ceil__'
 _PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
 _PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
+
+_WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _MAGICS = {}
 
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
@@ -346,7 +347,7 @@ _set_magics()
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
-def _init(item: str) -> _Union[type[_ctypes._SimpleCData], type[_ctypes._CFuncPtr]]:
+def _init(item: str) -> type[_ctypes._SimpleCData] | type[_ctypes._CFuncPtr]:
     var = _globals.vars_[item]
     type_ = _resolve_type(var)
     if isinstance(var, _typing._CallableGenericAlias):
