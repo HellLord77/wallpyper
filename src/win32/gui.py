@@ -410,6 +410,13 @@ class SystemTray(_Control):
         self.hide()
         return super().destroy()
 
+    def _force_update(self) -> bool:
+        return bool(ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(self._data)))
+
+    def _update(self) -> bool:
+        return self._show and bool(self._force_update() or ctyped.lib.shell32.Shell_NotifyIconW(
+            ctyped.const.NIM_ADD, ctyped.byref(self._data)))
+
     @classmethod
     def update(cls):
         for self in cls._selves.values():
@@ -418,9 +425,9 @@ class SystemTray(_Control):
     def is_animated(self) -> bool:
         return self._animation_frames is not None
 
-    def is_shown(self) -> bool:
-        return not bool(ctyped.lib.shell32.Shell_NotifyIconGetRect(ctyped.byref(
-            ctyped.struct.NOTIFYICONIDENTIFIER(hWnd=self._hwnd, uID=self._id)), ctyped.byref(ctyped.struct.RECT())))
+    def is_shown(self, exclude_flyout: bool = True) -> bool:
+        return not bool(ctyped.lib.shell32.Shell_NotifyIconGetRect(ctyped.byref(ctyped.struct.NOTIFYICONIDENTIFIER(
+            hWnd=self._hwnd, uID=self._id)), ctyped.byref(ctyped.struct.RECT()))) if exclude_flyout else self._force_update()
 
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
         self._data.hIcon = hicon
@@ -468,10 +475,6 @@ class SystemTray(_Control):
     def set_animation_speed(self, factor: float) -> bool:
         self._animation_speed = factor
         return bool(self._animation_frames)
-
-    def _update(self) -> bool:
-        return self._show and bool(ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(
-            self._data)) or ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_ADD, ctyped.byref(self._data)))
 
     def show(self) -> bool:
         self._show = True

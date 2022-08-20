@@ -354,7 +354,7 @@ def _init(item: str) -> type[_ctypes._SimpleCData] | type[_ctypes._CFuncPtr]:
         type_ = _ctypes.CFUNCTYPE(*type_)
     for item_ in _MAGICS.items():  # TODO subclass
         setattr(type_, *item_)
-    # if item != type_.__name__:
+    # if item != type_.__name__:  # TODO _const.IID_IAsyncOperationWithProgressCompletedHandler_HSTRING_UINT64
     #     type_ = type(item, type_.__bases__, dict(vars(type_)))
     return type_
 

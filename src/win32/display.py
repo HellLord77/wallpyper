@@ -5,6 +5,7 @@ import ntpath
 import operator
 import os
 import random
+import string
 import tempfile
 import threading
 import time
@@ -15,7 +16,6 @@ from typing import Any, Callable, Iterable, Iterator, Mapping, Optional
 import libs.ctyped as ctyped
 from . import _utils, _gdiplus
 
-_HWND_RETRY = 5
 _DELETE_AFTER = 0.5
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 
@@ -282,6 +282,36 @@ class Transition(metaclass=_IntEnum):
         _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal))
 
 
+def _spawn_workerw():
+    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', None), 0x52C, 0, 0)
+
+
+@ctyped.type.WNDENUMPROC
+def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM) -> ctyped.type.BOOL:
+    if ctyped.lib.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
+            hwnd_ := ctyped.lib.user32.FindWindowExW(None, hwnd, 'WorkerW', None)):
+        ctyped.from_address(lparam, ctyped.type.LPARAM).value = hwnd_
+        return False
+    return True
+
+
+def _get_workerw_hwnd() -> int:
+    hwnd = ctyped.type.LPARAM()
+    _spawn_workerw()
+    ctyped.lib.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd))
+    return hwnd.value
+
+
+def _get_drives() -> dict[str, str]:
+    drives = {}
+    buff = ctyped.char_array('\0' * ctyped.const.MAX_PATH)
+    for letter in string.ascii_uppercase:
+        path = f'{letter}:'
+        if ctyped.lib.kernel32.QueryDosDeviceW(path, buff, ctyped.const.MAX_PATH):
+            drives[buff.value] = path
+    return drives
+
+
 def get_monitor_count() -> int:
     num = ctyped.type.c_int()
     ctyped.lib.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
@@ -328,12 +358,142 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
     return monitors
 
 
-def get_screen_size() -> tuple[int, int]:
+def get_display_size() -> tuple[int, int]:
     return ctyped.lib.user32.GetSystemMetrics(
         ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.user32.GetSystemMetrics(ctyped.const.SM_CYVIRTUALSCREEN)
 
 
-def get_style() -> Optional[int]:
+def _get_monitor_rect(dev_path: str) -> Optional[ctyped.struct.RECT]:
+    rect = ctyped.struct.RECT()
+    with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
+        if wallpaper and ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
+            return rect
+
+
+def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
+    rect = _get_monitor_rect(dev_path)
+    if rect:
+        return rect.left - ctyped.lib.user32.GetSystemMetrics(
+            ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.user32.GetSystemMetrics(
+            ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
+    return 0, 0, 0, 0
+
+
+def _get_window_text(hwnd: ctyped.type.HWND) -> Optional[str]:
+    if size := ctyped.lib.user32.GetWindowTextLengthW(hwnd):
+        text = ctyped.char_array(size=size + 1)
+        if ctyped.lib.user32.GetWindowTextW(hwnd, text, ctyped.const.MAX_PATH):
+            return text.value
+
+
+def _get_window_exe_path(hwnd: ctyped.type.HWND, drives: Optional[dict[str, str]] = None) -> str:
+    file_name = ''
+    pid = ctyped.type.DWORD()
+    ctyped.lib.user32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
+    if handle := ctyped.lib.kernel32.OpenProcess(ctyped.const.PROCESS_QUERY_LIMITED_INFORMATION, False, pid):
+        buff = ctyped.char_array(size=ctyped.const.MAX_PATH + 1)
+        if ctyped.lib.psapi.GetProcessImageFileNameW(handle, buff, ctyped.const.MAX_PATH):
+            file_name = buff.value
+        ctyped.lib.kernel32.CloseHandle(handle)
+    if drives:
+        for drive, path in drives.items():
+            if file_name.startswith(drive):
+                file_name = file_name.replace(drive, path, 1)
+                break
+    return file_name
+
+
+def _get_window_frame_rect(hwnd: ctyped.type.HWND) -> Optional[ctyped.struct.RECT]:
+    rect = ctyped.struct.RECT()
+    if ctyped.macro.SUCCEEDED(ctyped.lib.dwmapi.DwmGetWindowAttribute(
+            hwnd, ctyped.enum.DWMWINDOWATTRIBUTE.EXTENDED_FRAME_BOUNDS, ctyped.byref(rect), ctyped.sizeof(rect))):
+        return rect
+
+
+def _get_window_monitor(hwnd: ctyped.type.HWND, monitor_rects: Optional[dict[str, ctyped.struct.RECT]] = None) -> Optional[str]:
+    if monitor_rects is None:
+        monitor_rects = {monitor: _get_monitor_rect(monitor) for monitor in get_monitors()}
+    hmonitor = ctyped.lib.user32.MonitorFromWindow(hwnd, ctyped.const.MONITOR_DEFAULTTONEAREST)
+    if hmonitor:
+        info = ctyped.struct.MONITORINFO()
+        if ctyped.lib.user32.GetMonitorInfoW(hmonitor, ctyped.byref(info)):
+            for monitor, rect in monitor_rects.items():
+                if ctyped.lib.user32.EqualRect(ctyped.byref(rect), ctyped.byref(info.rcMonitor)):
+                    return monitor
+
+
+def _get_window_pid(hwnd: ctyped.type.HWND) -> int:
+    pid = ctyped.type.DWORD()
+    ctyped.lib.user32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
+    return pid.value
+
+
+def get_display_blockers(*monitors: str, verify_maximized: bool = False, maximized_only: bool = True) -> dict[str, tuple[str, ...]]:
+    blockers = {monitor: set() for monitor in monitors}
+    rects_or_regions = {monitor: _get_monitor_rect(monitor) for monitor in monitors}
+    drives = _get_drives()
+
+    if maximized_only:
+        dummy = ctyped.struct.RECT()
+        placement = ctyped.struct.WINDOWPLACEMENT()
+
+        def wind_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
+            if ctyped.lib.user32.GetWindowPlacement(hwnd, ctyped.byref(
+                    placement)) and placement.showCmd == ctyped.const.SW_MAXIMIZE:
+                monitor = _get_window_monitor(hwnd, rects_or_regions)
+                if monitor and not (verify_maximized and ctyped.lib.user32.SubtractRect(ctyped.byref(dummy), ctyped.byref(
+                        rects_or_regions[monitor]), ctyped.byref(_get_window_frame_rect(hwnd) or ctyped.struct.RECT()))):
+                    blockers[monitor].add(_get_window_exe_path(hwnd, drives))
+            return True
+    else:
+        rects_or_regions = {monitor: ctyped.handle.HRGN.from_rect(rect) for monitor, rect in rects_or_regions.items()}
+        explorer_pid = _get_window_pid(ctyped.lib.user32.FindWindowW('Shell_TrayWnd', None))
+
+        def wind_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
+            if explorer_pid != _get_window_pid(hwnd):
+                window_region = ctyped.handle.HRGN.from_rect(_get_window_frame_rect(hwnd))
+                for monitor, region_ in rects_or_regions.items():
+                    diff_region = ctyped.handle.HRGN.from_combination(region_, window_region, ctyped.const.RGN_DIFF)
+                    if not region_.is_equal(diff_region):
+                        rects_or_regions[monitor] = diff_region
+                        blockers[monitor].add(_get_window_exe_path(hwnd, drives))
+            return True
+
+    ctyped.lib.user32.EnumWindows(ctyped.type.WNDENUMPROC(wind_enum_proc), 0)
+    if not maximized_only:
+        for monitor, region in rects_or_regions.items():
+            if not region.is_empty():
+                blockers[monitor].clear()
+    for monitor, blockers_ in blockers.items():
+        blockers[monitor] = tuple(blockers_)
+    return blockers
+
+
+def is_desktop_unblocked(*monitors: str) -> dict[str, bool]:
+    hwnd = _get_workerw_hwnd()
+    if hwnd:
+        hdc = ctyped.handle.HDC.from_hwnd(hwnd)
+        return {monitor: bool(ctyped.lib.gdi32.RectVisible(hdc, ctyped.byref(
+            ctyped.struct.RECT(*_get_monitor_x_y_w_h(monitor))))) for monitor in monitors}
+    return {monitor: True for monitor in monitors}
+
+
+def get_desktop_blocker(*monitors: str) -> dict[str, Optional[tuple[str, str]]]:
+    blockers = {monitor: None for monitor in monitors}
+    rects = {monitor: _get_monitor_rect(monitor) for monitor in monitors}
+    drives = _get_drives()
+
+    @ctyped.type.WNDENUMPROC
+    def wnd_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
+        if (monitor := _get_window_monitor(hwnd, rects)) and blockers[monitor] is None:
+            blockers[monitor] = _get_window_text(hwnd), _get_window_exe_path(hwnd, drives)
+        return not all(blockers.values())
+
+    ctyped.lib.user32.EnumChildWindows(_get_workerw_hwnd(), wnd_enum_proc, 0)
+    return blockers
+
+
+def get_wallpaper_style() -> Optional[int]:
     with ctyped.init_com(ctyped.interface.IActiveDesktop) as desktop:
         if desktop:
             opt = ctyped.struct.WALLPAPEROPT()
@@ -390,37 +550,7 @@ def _get_rotate_flip(rotate: int, flip: int) -> ctyped.enum.RotateFlipType:
         return ctyped.enum.RotateFlipType.RotateNoneFlipNone
 
 
-def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
-    rect = ctyped.struct.RECT()
-    with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
-        if wallpaper and ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
-            return rect.left - ctyped.lib.user32.GetSystemMetrics(
-                ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.user32.GetSystemMetrics(
-                ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
-    return 0, 0, 0, 0
-
-
-def _spawn_workerw():
-    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', None), 0x52C, 0, 0)
-
-
-@ctyped.type.WNDENUMPROC
-def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM):
-    if ctyped.lib.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
-            hwnd_ := ctyped.lib.user32.FindWindowExW(None, hwnd, 'WorkerW', None)):
-        ctyped.from_address(lparam, ctyped.type.LPARAM).value = hwnd_
-    return True
-
-
-def _get_workerw_hwnd() -> Optional[int]:
-    hwnd = ctyped.type.LPARAM()
-    for _ in range(_HWND_RETRY):
-        _spawn_workerw()
-        if ctyped.lib.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd)) and hwnd.value:
-            return hwnd.value
-
-
-def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,
+def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,  # TODO _gdiplus._calc_src_x_y_w_h
             by_h: bool = True) -> tuple[int, int, int, int]:
     ratio = to_w / to_h
     if by_h:
@@ -446,7 +576,7 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
     return 0, 0, 0, 0
 
 
-def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,  # TODO remove [get_resized]
+def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
                    src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> ctyped.handle.HDC:
     bitmap = _gdiplus.Bitmap.from_dimension(width, height)
     bitmap.set_resolution(src.get_horizontal_resolution(), src.get_vertical_resolution())
@@ -459,12 +589,13 @@ def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdipl
 
 
 def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
-    rect = ctyped.struct.RECT()
+    fore_rect = ctyped.struct.RECT()  # TODO get_display_blockers
     fore_hwnd = ctyped.lib.user32.GetForegroundWindow()
-    if (fore_hwnd and ctyped.lib.user32.GetClientRect(fore_hwnd, ctyped.byref(rect)) and
-            ctyped.lib.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(rect, ctyped.struct.POINT), 2)):
-        rect_ = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
-        return bool(ctyped.lib.user32.SubtractRect(ctyped.byref(rect_), ctyped.byref(rect_), ctyped.byref(rect)))
+    if (fore_hwnd and ctyped.lib.user32.GetClientRect(fore_hwnd, ctyped.byref(fore_rect)) and
+            ctyped.lib.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(fore_rect, ctyped.struct.POINT), 2)):
+        visible_rect = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
+        return bool(ctyped.lib.user32.SubtractRect(ctyped.byref(
+            visible_rect), ctyped.byref(visible_rect), ctyped.byref(fore_rect)))
     return True
 
 
@@ -553,7 +684,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
             image.rotate_flip(_get_rotate_flip(rotate, flip))
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
-            monitor_x_y_w_h = 0, 0, *get_screen_size()
+            monitor_x_y_w_h = 0, 0, *get_display_size()
             if style == Style.TILE:
                 width_ = monitor_x_y_w_h[2]
                 height_ = monitor_x_y_w_h[3]
@@ -592,7 +723,7 @@ def set_wallpapers_ex(*wallpapers: Wallpaper):
     return all(future.result() for future in futures)
 
 
-def set_lock(path: str) -> bool:
+def set_lock_background(path: str) -> bool:
     with ctyped.get_winrt(ctyped.interface.Windows.Storage.IStorageFileStatics) as file_statics:
         if file_statics:
             with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.IStorageFile]) as operation:
@@ -617,8 +748,8 @@ def set_slideshow(*paths: str) -> bool:
     return False
 
 
-def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] = None,
-              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def save_lock_background(path: str, progress_callback: Optional[Callable[[int, ...], Any]] = None,
+                         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     with _utils.get_wallpaper_lock_input_stream() as input_stream:
         if input_stream:
             os.makedirs(ntpath.dirname(path), exist_ok=True)
@@ -631,7 +762,7 @@ def save_lock(path: str, progress_callback: Optional[Callable[[int, ...], Any]] 
     return False
 
 
-def remove_from_history(*paths: str) -> bool:
+def remove_wallpaper_history(*paths: str) -> bool:
     removed = True
     paths = tuple(path.casefold() for path in paths)
     with winreg.OpenKey(

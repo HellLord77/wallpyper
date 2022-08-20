@@ -211,10 +211,6 @@ def get_menu_item_by_uid(uid: str, recursive: bool = True,
                 return menu_item
 
 
-def show_balloon(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE) -> bool:
-    return SYSTEM_TRAY.show_balloon(title, text, icon)
-
-
 def init(name: str):
     GUI.__init__(name)
     SYSTEM_TRAY.__init__()
@@ -244,10 +240,6 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
 
 def stop_loop(*_):
     GUI.exit_mainloop()
-
-
-def is_system_tray_shown() -> bool:
-    return SYSTEM_TRAY.is_shown()
 
 
 def disable_events():
