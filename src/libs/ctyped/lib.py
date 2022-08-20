@@ -881,6 +881,73 @@ class dwmapi(_Func, metaclass=_WinDLL):
 # noinspection PyPep8Naming
 class gdi32(_Func, metaclass=_WinDLL):
     # wingdi
+    CombineRgn: _Callable[[_type.HRGN,  # hrgnDst
+                           _type.HRGN,  # hrgnSrc1
+                           _type.HRGN,  # hrgnSrc2
+                           _type.c_int],  # iMode
+                          _type.c_int]
+    CreateRectRgn: _Callable[[_type.c_int,  # x1
+                              _type.c_int,  # y1
+                              _type.c_int,  # x2
+                              _type.c_int],  # y2
+                             _type.HRGN]
+    CreateRectRgnIndirect: _Callable[[_Pointer[_struct.RECT]],  # lprect
+                                     _type.HRGN]
+    CreateRoundRectRgn: _Callable[[_type.c_int,  # x1
+                                   _type.c_int,  # y1
+                                   _type.c_int,  # x2
+                                   _type.c_int,  # y2
+                                   _type.c_int,  # w
+                                   _type.c_int],  # h
+                                  _type.HRGN]
+    EqualRgn: _Callable[[_type.HRGN,  # hrgn1
+                         _type.HRGN],  # hrgn2
+                        _type.BOOL]
+    ExcludeClipRect: _Callable[[_type.HDC,  # hdc
+                                _type.c_int,  # left
+                                _type.c_int,  # top
+                                _type.c_int,  # right
+                                _type.c_int],  # bottom
+                               _type.c_int]
+    ExtFloodFill: _Callable[[_type.HDC,  # hdc
+                             _type.c_int,  # x
+                             _type.c_int,  # y
+                             _type.COLORREF,  # color
+                             _type.UINT],  # type
+                            _type.BOOL]
+    FillRgn: _Callable[[_type.HDC,  # hdc
+                        _type.HRGN,  # hrgn
+                        _type.HBRUSH],  # hbr
+                       _type.BOOL]
+    FloodFill: _Callable[[_type.HDC,  # hdc
+                          _type.c_int,  # x
+                          _type.c_int,  # y
+                          _type.COLORREF],  # color
+                         _type.BOOL]
+    FrameRgn: _Callable[[_type.HDC,  # hdc
+                         _type.HRGN,  # hrgn
+                         _type.HBRUSH,  # hbr
+                         _type.c_int,  # w
+                         _type.c_int],  # h
+                        _type.BOOL]
+    GetROP2: _Callable[[_type.HDC],  # hdc
+                       _type.c_int]
+    GetBkColor: _Callable[[_type.HDC],  # hdc
+                          _type.COLORREF]
+    GetDCBrushColor: _Callable[[_type.HDC],  # hdc
+                               _type.COLORREF]
+    GetDCPenColor: _Callable[[_type.HDC],  # hdc
+                             _type.COLORREF]
+    RectVisible: _Callable[[_type.HDC,  # hdc
+                            _Pointer[_struct.RECT]],  # lprect
+                           _type.BOOL]
+    Rectangle: _Callable[[_type.HDC,  # hdc
+                          _type.c_int,  # left
+                          _type.c_int,  # top
+                          _type.c_int,  # right
+                          _type.c_int],  # bottom
+                         _type.BOOL]
+    # TODO
     AbortDoc: _Callable[[_type.HDC],
                         _type.c_int]
     AbortPath: _Callable[[_type.HDC],
@@ -980,10 +1047,6 @@ class gdi32(_Func, metaclass=_WinDLL):
     GetColorAdjustment: _Callable[[_type.HDC,
                                    _Pointer[_struct.COLORADJUSTMENT]],
                                   _type.BOOL]
-    GetDCBrushColor: _Callable[[_type.HDC],
-                               _type.COLORREF]
-    GetDCPenColor: _Callable[[_type.HDC],
-                             _type.COLORREF]
     GetDIBits: _Callable[[_type.HDC,
                           _type.HBITMAP,
                           _type.UINT,
@@ -4098,7 +4161,7 @@ class kernel32(_Func, metaclass=_WinDLL):
                          _type.DWORD,
                          _type.DWORD],
                         _type.BOOL]
-    QueryDosDeviceW: _Callable[[_type.LPCWSTR,
+    QueryDosDeviceW: _Callable[[_Optional[_type.LPCWSTR],
                                 _type.LPWSTR,
                                 _type.DWORD],
                                _type.DWORD]
@@ -5189,6 +5252,43 @@ class oleaut32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
+class psapi(_Func, metaclass=_WinDLL):
+    # Psapi
+    GetDeviceDriverBaseNameA: _Callable[[_type.LPVOID,  # ImageBase
+                                         _type.LPSTR,  # lpFilename
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    GetDeviceDriverBaseNameW: _Callable[[_type.LPVOID,  # ImageBase
+                                         _type.LPWSTR,  # lpFilename
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    GetDeviceDriverFileNameA: _Callable[[_type.LPVOID,  # ImageBase
+                                         _type.LPSTR,  # lpFilename
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    GetDeviceDriverFileNameW: _Callable[[_type.LPVOID,  # ImageBase
+                                         _type.LPWSTR,  # lpFilename
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    QueryWorkingSet: _Callable[[_type.HANDLE,  # hProcess
+                                _type.PVOID,  # pv
+                                _type.DWORD],  # cb
+                               _type.BOOL]
+    QueryWorkingSetEx: _Callable[[_type.HANDLE,  # hProcess
+                                  _type.PVOID,  # pv
+                                  _type.DWORD],  # cb
+                                 _type.BOOL]
+    GetProcessImageFileNameA: _Callable[[_type.HANDLE,  # hProcess
+                                         _type.LPSTR,  # lpImageFileName
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+    GetProcessImageFileNameW: _Callable[[_type.HANDLE,  # hProcess
+                                         _type.LPWSTR,  # lpImageFileName
+                                         _type.DWORD],  # nSize
+                                        _type.DWORD]
+
+
+# noinspection PyPep8Naming
 class setupapi(_Func, metaclass=_WinDLL):
     # SetupAPI
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
@@ -5788,7 +5888,88 @@ class shlwapi(_Func, metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class user32(_Func, metaclass=_WinDLL):
+    MessageBoxTimeoutA: _Callable[[_Optional[_type.HWND],  # hWnd
+                                   _Optional[_type.LPCSTR],  # lpText
+                                   _Optional[_type.LPCSTR],  # lpCaption
+                                   _type.UINT,  # uType
+                                   _type.WORD,  # wLanguageId
+                                   _type.DWORD],  # dwMilliseconds
+                                  _type.c_int]
+    MessageBoxTimeoutW: _Callable[[_Optional[_type.HWND],  # hWnd
+                                   _Optional[_type.LPCWSTR],  # lpText
+                                   _Optional[_type.LPCWSTR],  # lpCaption
+                                   _type.UINT,  # uType
+                                   _type.WORD,  # wLanguageId
+                                   _type.DWORD],  # dwMilliseconds
+                                  _type.c_int]
     # WinUser
+    GetWindowTextA: _Callable[[_type.HWND,  # hWnd
+                               _type.LPSTR,  # lpString
+                               _type.c_int],  # nMaxCount
+                              _type.c_int]
+    GetWindowTextW: _Callable[[_type.HWND,  # hWnd
+                               _type.LPWSTR,  # lpString
+                               _type.c_int],  # nMaxCount
+                              _type.c_int]
+    GetWindowTextLengthA: _Callable[[_type.HWND],  # hWnd
+                                    _type.c_int]
+    GetWindowTextLengthW: _Callable[[_type.HWND],  # hWnd
+                                    _type.c_int]
+    MessageBoxA: _Callable[[_Optional[_type.HWND],  # hWnd
+                            _Optional[_type.LPCSTR],  # lpText
+                            _Optional[_type.LPCSTR],  # lpCaption
+                            _type.UINT],
+                           _type.c_int]
+    MessageBoxW: _Callable[[_Optional[_type.HWND],  # hWnd
+                            _Optional[_type.LPCWSTR],  # lpText
+                            _Optional[_type.LPCWSTR],  # lpCaption
+                            _type.UINT],
+                           _type.c_int]
+    GetShellWindow: _Callable[[],
+                              _type.HWND]
+    RegisterShellHookWindow: _Callable[[_type.HWND],  # hwnd
+                                       _type.BOOL]
+    DeregisterShellHookWindow: _Callable[[_type.HWND],  # hwnd
+                                         _type.BOOL]
+    EnumWindows: _Callable[[_type.WNDENUMPROC,  # lpEnumFunc
+                            _type.LPARAM],  # lParam
+                           _type.BOOL]
+    EnumThreadWindows: _Callable[[_type.DWORD,  # dwThreadId
+                                  _type.WNDENUMPROC,  # lpfn
+                                  _type.LPARAM],  # lParam
+                                 _type.BOOL]
+    GetClassNameA: _Callable[[_type.HWND,  # hWnd
+                              _type.LPSTR,  # lpClassName
+                              _type.c_int],  # nMaxCount
+                             _type.c_int]
+    GetClassNameW: _Callable[[_type.HWND,  # hWnd
+                              _type.LPWSTR,  # lpClassName
+                              _type.c_int],  # nMaxCount
+                             _type.c_int]
+    GetTopWindow: _Callable[[_Optional[_type.HWND]],  # hWnd
+                            _type.HWND]
+    GetWindowThreadProcessId: _Callable[[_type.HWND,  # hWnd
+                                         _Optional[_Pointer[_type.DWORD]]],  # lpdwProcessId
+                                        _type.DWORD]
+    IsGUIThread: _Callable[[_type.BOOL],  # bConvert
+                           _type.BOOL]
+    GetLastActivePopup: _Callable[[_type.HWND],  # hWnd
+                                  _type.HWND]
+    SetLastErrorEx: _Callable[[_type.DWORD,  # dwErrCode
+                               _type.DWORD],  # dwType
+                              _type.VOID]
+    CancelShutdown: _Callable[[],
+                              _type.BOOL]
+    MonitorFromPoint: _Callable[[_struct.POINT,  # pt,
+                                 _type.DWORD],  # dwFlags
+                                _type.HMONITOR]
+    MonitorFromRect: _Callable[[_Pointer[_struct.RECT],  # lprc,
+                                _type.DWORD],  # dwFlags
+                               _type.HMONITOR]
+    MonitorFromWindow: _Callable[[_type.HWND,  # hwnd,
+                                  _type.DWORD],  # dwFlags
+                                 _type.HMONITOR]
+    # TODO
     wvsprintfA: _Callable[[_type.LPSTR,
                            _type.LPCSTR,
                            _type.va_list],
@@ -6100,13 +6281,6 @@ class user32(_Func, metaclass=_WinDLL):
                                     _type.MONITORENUMPROC,
                                     _type.LPARAM],
                                    _type.BOOL]
-    EnumThreadWindows: _Callable[[_type.DWORD,
-                                  _type.WNDENUMPROC,
-                                  _type.LPARAM],
-                                 _type.BOOL]
-    EnumWindows: _Callable[[_type.WNDENUMPROC,
-                            _type.LPARAM],
-                           _type.BOOL]
     EqualRect: _Callable[[_Pointer[_struct.RECT],
                           _Pointer[_struct.RECT]],
                          _type.BOOL]
@@ -6163,14 +6337,6 @@ class user32(_Func, metaclass=_WinDLL):
                                 _type.LPCWSTR,
                                 _Pointer[_struct.WNDCLASSEXW]],
                                _type.BOOL]
-    GetClassNameA: _Callable[[_type.HWND,
-                              _type.LPSTR,
-                              _type.c_int],
-                             _type.c_int]
-    GetClassNameW: _Callable[[_type.HWND,
-                              _type.LPWSTR,
-                              _type.c_int],
-                             _type.c_int]
     GetClientRect: _Callable[[_type.HWND,
                               _Pointer[_struct.RECT]],
                              _type.BOOL]
@@ -6239,8 +6405,6 @@ class user32(_Func, metaclass=_WinDLL):
                                 _type.BOOL]
     GetKeyState: _Callable[[_type.c_int],
                            _type.SHORT]
-    GetLastActivePopup: _Callable[[_type.HWND],
-                                  _type.HWND]
     GetMenu: _Callable[[_type.HWND],
                        _type.HMENU]
     GetMenuCheckMarkDimensions: _Callable[[],
@@ -6336,8 +6500,6 @@ class user32(_Func, metaclass=_WinDLL):
                              _type.HMENU]
     GetSystemMetrics: _Callable[[_type.c_int],
                                 _type.c_int]
-    GetTopWindow: _Callable[[_Optional[_type.HWND]],
-                            _type.HWND]
     GetUnpredictedMessagePos: _Callable[[],
                                         _type.DWORD]
     GetWindow: _Callable[[_type.HWND,
@@ -6354,17 +6516,6 @@ class user32(_Func, metaclass=_WinDLL):
     GetWindowRect: _Callable[[_type.HWND,
                               _Pointer[_struct.RECT]],
                              _type.BOOL]
-    GetWindowTextA: _Callable[[_type.HWND,
-                               _type.LPSTR,
-                               _type.c_int],
-                              _type.c_int]
-    GetWindowTextW: _Callable[[_type.HWND,
-                               _type.LPWSTR,
-                               _type.c_int],
-                              _type.c_int]
-    GetWindowThreadProcessId: _Callable[[_type.HWND,
-                                         _Optional[_Pointer[_type.DWORD]]],
-                                        _type.DWORD]
     HiliteMenuItem: _Callable[[_type.HWND,
                                _type.HMENU,
                                _type.UINT,
@@ -6405,8 +6556,6 @@ class user32(_Func, metaclass=_WinDLL):
     IsDlgButtonChecked: _Callable[[_type.HWND,
                                    _type.c_int],
                                   _type.UINT]
-    IsGUIThread: _Callable[[_type.BOOL],
-                           _type.BOOL]
     IsIconic: _Callable[[_type.HWND],
                         _type.BOOL]
     IsImmersiveProcess: _Callable[[_type.HANDLE],
@@ -6498,16 +6647,6 @@ class user32(_Func, metaclass=_WinDLL):
                                   _type.HMENU,
                                   _struct.POINT],
                                  _type.c_int]
-    MessageBoxA: _Callable[[_Optional[_type.HWND],
-                            _Optional[_type.LPCSTR],
-                            _Optional[_type.LPCSTR],
-                            _type.UINT],
-                           _type.c_int]
-    MessageBoxW: _Callable[[_Optional[_type.HWND],
-                            _Optional[_type.LPCWSTR],
-                            _Optional[_type.LPCWSTR],
-                            _type.UINT],
-                           _type.c_int]
     ModifyMenuA: _Callable[[_type.HMENU,
                             _type.UINT,
                             _type.UINT,
@@ -6520,12 +6659,6 @@ class user32(_Func, metaclass=_WinDLL):
                             _type.UINT_PTR,
                             _Optional[_type.LPCWSTR]],
                            _type.BOOL]
-    MonitorFromPoint: _Callable[[_struct.POINT,
-                                 _type.DWORD],
-                                _type.HMONITOR]
-    MonitorFromRect: _Callable[[_Pointer[_struct.RECT],
-                                _type.DWORD],
-                               _type.HMONITOR]
     MoveWindow: _Callable[[_type.HWND,
                            _type.c_int,
                            _type.c_int,

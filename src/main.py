@@ -3,6 +3,7 @@ import configparser
 import contextlib
 import copy
 import functools
+import itertools
 import math
 import multiprocessing
 import os.path
@@ -50,7 +51,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_LAST: math.inf,
     consts.CONFIG_RECENT: utils.encrypt(RECENT, True),
     consts.CONFIG_DISPLAY: ALL_DISPLAY,
-    consts.CONFIG_FIRST: True,
+    consts.CONFIG_FIRST: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_AUTOSAVE: False,
     consts.CONFIG_SKIP: False,
     consts.CONFIG_REAPPLY: True,
@@ -59,6 +60,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_CACHE: False,
     consts.CONFIG_START: False,
     consts.CONFIG_SAVE: False,
+    consts.CONFIG_BLOCKED: True,
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
@@ -69,9 +71,10 @@ DEFAULT_CONFIG = {
 CONFIG = {}
 
 
-def notify(title: str, text: str):
-    if CONFIG[consts.CONFIG_NOTIFY]:
-        gui.show_balloon(title, text)
+def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
+    if force or CONFIG[consts.CONFIG_NOTIFY]:
+        return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFICATION_LEN), icon)
+    return False
 
 
 def reapply_wallpaper(_):
@@ -159,9 +162,30 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 @timer.on_thread
 def first_run():
     if CONFIG[consts.CONFIG_FIRST]:
-        while not gui.is_system_tray_shown():
+        while not gui.SYSTEM_TRAY.is_shown(False):
             time.sleep(consts.POLL_INTERVAL)
-        CONFIG[consts.CONFIG_FIRST] = not gui.show_balloon(STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, gui.SystemTrayIcon.BALLOON_TRAY)
+        CONFIG[consts.CONFIG_FIRST] = not notify(
+            STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
+
+
+@timer.on_thread
+def check_blocked(*_, monitors: Optional[dict[str, str]] = None):
+    if CONFIG[consts.CONFIG_BLOCKED]:
+        displays = DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],)
+        if not all(win32.display.is_desktop_unblocked(*displays).values()):
+            if monitors is None:
+                monitors = win32.display.get_monitors()
+            count = itertools.count(1)
+            text = '\n'.join(f'{langs.to_str(next(count), STRINGS)}. {_get_monitor_name(monitor, monitors)}'
+                             f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKED_NAME else ""}'
+                             for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
+            while not gui.SYSTEM_TRAY.is_shown(False):
+                time.sleep(consts.POLL_INTERVAL)
+            if CONFIG[consts.CONFIG_FIRST]:
+                end_time = time.time() + consts.MAX_FIRST_NOTIFICATION_TIMEOUT
+                while end_time > time.time() and not CONFIG[consts.CONFIG_FIRST]:
+                    time.sleep(consts.POLL_INTERVAL)
+            notify(STRINGS.BLOCKED_TITLE, STRINGS.BLOCKED_TEXT.format(text), force=True)
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -311,7 +335,7 @@ def _update_recent(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
                                       on_thread=False, change_state=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
-                        win32.display.set_lock, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
+                        win32.display.set_lock_background, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
                         RES_TEMPLATE.format(consts.RES_SET_LOCK))
                     gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click, args=(
                         save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)).set_icon(
@@ -393,25 +417,31 @@ def _update_display():
     DISPLAYS.extend(win32.display.get_monitor_ids())
 
 
+def _get_monitor_name(monitor: str, monitors: dict[str, tuple[str, tuple[int, int]]]) -> str:
+    return monitors[monitor][0] or win32.display.get_monitor_name(monitor) or STRINGS.DISPLAY
+
+
 def on_display_change(update: int, __: Optional[gui.Gui], item: win32.gui.MenuItem):
     if update:
         _update_display()
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_main_menu(submenu):
-        size = win32.display.get_screen_size()
+        size = win32.display.get_display_size()
         gui.add_menu_item(f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}',
                           gui.MenuItemType.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
                           uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
                           menu_args=(gui.Property.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
         monitors = win32.display.get_monitors()
         gui.add_mapped_submenu(item, {
-            id_: f'{langs.to_str(index, STRINGS)}. {monitors[id_][0] or win32.display.get_monitor_name(id_) or STRINGS.DISPLAY}'
+            id_: f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(id_, monitors)}'
                  f'\t{langs.to_str(monitors[id_][1][0], STRINGS)} × {monitors[id_][1][1]}'
-            for index, id_ in enumerate(DISPLAYS, 1) if id_ in monitors}, CONFIG, consts.CONFIG_DISPLAY)
+            for index, id_ in enumerate(DISPLAYS, 1) if id_ in monitors}, CONFIG, consts.CONFIG_DISPLAY,
+                               on_click=check_blocked, kwargs={'monitors': monitors})
         if consts.FEATURE_UPDATE_DISPLAY:
             gui.add_separator()
             gui.add_menu_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_display_change, args=(item,))
+    check_blocked(monitors=monitors)
     # TODO add lock screen
 
 
@@ -519,7 +549,12 @@ def on_module(name: str, item: win32.gui.MenuItem):
 
 
 def on_about():
-    gui.show_balloon(STRINGS.LABEL_ABOUT, str(NotImplemented))
+    notify(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
+
+
+def on_blocked(item: gui.MenuItem):
+    if item.is_checked():
+        check_blocked()
 
 
 def apply_auto_start(start_: bool) -> bool:
@@ -638,6 +673,8 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_separator()
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, consts.CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY, CONFIG, consts.CONFIG_NOTIFY)
+        item_blocked = gui.add_mapped_menu_item(STRINGS.LABEL_BLOCKED, CONFIG, consts.CONFIG_BLOCKED)
+        gui.set_on_click(item_blocked, on_blocked, args=(item_blocked,))
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, consts.CONFIG_SKIP)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CONFIG, consts.CONFIG_REAPPLY)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CONFIG, consts.CONFIG_CACHE)
@@ -660,11 +697,11 @@ def start():  # TODO dark theme
     load_config()
     RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))
     gui.init(consts.NAME)
+    first_run()
     create_menu()
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE])
     apply_auto_start(CONFIG[consts.CONFIG_START])
     apply_save_config(CONFIG[consts.CONFIG_SAVE])
-    first_run()
     change_after = CONFIG[consts.CONFIG_INTERVAL] + CONFIG[consts.CONFIG_LAST] - time.time()
     if consts.ARG_CHANGE in sys.argv or (CONFIG[consts.CONFIG_INTERVAL] and change_after <= 0):
         on_change(*TIMER.args, auto_change=False)

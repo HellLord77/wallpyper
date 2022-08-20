@@ -531,14 +531,10 @@ def _test_hook():
     proc.free_console()
 
 
-def _test():
-    ctyped.lib.kernel32.SetComputerNameExW(ctyped.enum.COMPUTER_NAME_FORMAT.PhysicalDnsHostname, 'sexy-name')
-    t = ctyped.type.LPWSTR('sexy daya')
-    print(t.value)
-
-
 if __name__ == '__main__':
-    _test()
+    print(ctyped.lib.user32.MessageBoxW(None, 'Hello from Python', 'Hello from Python', 0x1000))
+    # _test_workerw_child()
+    # print(win32.display.get_display_blockers(*win32.display.get_monitors(), verify_maximized=True))
     # _test_hook()
     # _test_gui()
     exit()

@@ -1,4 +1,4 @@
-__version__ = '0.0.25'
+__version__ = '0.0.26'
 
 import contextlib
 import ntpath
@@ -26,6 +26,15 @@ DESKTOP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Desktop)
 PICTURES_DIR = _utils.get_dir(ctyped.const.FOLDERID_Pictures)
 START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
 WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
+
+
+def get_short_path(path: str) -> str:
+    size = ctyped.lib.kernel32.GetShortPathNameW(path, None, 0)
+    if size:
+        with _utils.string_buffer(size) as buff:
+            if ctyped.lib.kernel32.GetShortPathNameW(path, buff, size):
+                return buff.value
+    return path
 
 
 @contextlib.contextmanager

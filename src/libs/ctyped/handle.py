@@ -190,6 +190,39 @@ class HMENU(_type.HMENU):
         return not _lib.user32.SendMessageW(self._hwnd, _const.WM_CANCELMODE, 0, 0)
 
 
+class HRGN(_type.HRGN):
+    def __del__(self):
+        _lib.gdi32.DeleteObject(self)
+
+    @classmethod
+    def from_corners(cls, x1: int, y1: int, x2: int, y2: int) -> HRGN:
+        return cls(_lib.gdi32.CreateRectRgn(x1, y1, x2, y2))
+
+    @classmethod
+    def from_rect(cls, rect: _struct.RECT) -> HRGN:
+        # noinspection PyTypeChecker
+        return cls(_lib.gdi32.CreateRectRgnIndirect(_ctypes.byref(rect)))
+
+    @classmethod
+    def from_combination(cls, self: _type.HRGN, other: _type.HRGN, mode: int = _const.RGN_OR) -> HRGN:
+        hrgn = cls.from_corners(0, 0, 0, 0)
+        _lib.gdi32.CombineRgn(hrgn, self, other, mode)
+        return hrgn
+
+    def get_rect(self) -> _struct.RECT:
+        rect = _struct.RECT()
+        # noinspection PyTypeChecker
+        _lib.gdi32.GetRgnBox(self, _ctypes.byref(rect))
+        return rect
+
+    def is_empty(self) -> bool:
+        # noinspection PyTypeChecker
+        return bool(_lib.user32.IsRectEmpty(_ctypes.byref(self.get_rect())))
+
+    def is_equal(self, other: _type.HRGN) -> bool:
+        return bool(_lib.gdi32.EqualRgn(self, other))
+
+
 class HWND(_type.HWND):
     def __del__(self):
         _lib.user32.DestroyWindow(self)

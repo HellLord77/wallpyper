@@ -962,10 +962,10 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
         if _GpStatus.Ok == _GdiPlus.GdipGetRegionBounds(self, graphics, ctyped.byref(rect)):
             return rect.X, rect.Y, rect.Width, rect.Height
 
-    def get_hrgn(self, graphics: ctyped.type.GpGraphics) -> Optional[ctyped.type.HRGN]:
+    def get_hrgn(self, graphics: ctyped.type.GpGraphics) -> Optional[ctyped.handle.HRGN]:
         hrgn = ctyped.type.HRGN()
         if _GpStatus.Ok == _GdiPlus.GdipGetRegionHRgn(self, graphics, ctyped.byref(hrgn)):
-            return hrgn
+            return ctyped.handle.HRGN(hrgn)
 
     def is_empty(self, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
         empty = ctyped.type.BOOL()
