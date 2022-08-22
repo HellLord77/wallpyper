@@ -14,7 +14,7 @@ from typing import (Any as _Any, Callable as _Callable, ContextManager as _Conte
                     MutableSequence as _MutableSequence, Optional as _Optional)
 
 from . import const, enum, handle, interface, lib, macro, struct, type, union
-from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
+from ._utils import (_CLSID, _get_namespace, _get_winrt_class_name, _CT as CT, _Pointer as Pointer, _addressof as addressof,
                      _byref as byref, _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
 
 _MESSAGES = {}
@@ -158,7 +158,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
         if init:
             # noinspection PyProtectedMember
             if macro.FAILED(lib.ole32.CoCreateInstance(byref(get_guid(
-                    type._CLSID_)), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
+                    _CLSID[type])), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
                 obj = None
         yield obj
 

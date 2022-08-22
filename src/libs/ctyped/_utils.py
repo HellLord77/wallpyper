@@ -10,6 +10,7 @@ import typing as _typing
 from typing import Any as _Any, Generator as _Generator, Generic as _Generic, Optional as _Optional, Sequence as _Sequence
 
 _CT = _typing.TypeVar('_CT')
+_CLSID = {}
 
 
 class _Pointer(_Generic[_CT], _Sequence[_CT]):
