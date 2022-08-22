@@ -41,6 +41,7 @@ BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
+MAXIMIZED_ACTIONS = '', 'POSTPONE', 'CANCEL'
 STRINGS = langs.eng
 DISPLAYS: list[str] = []
 RESTART = threading.Event()
@@ -62,6 +63,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_SAVE: False,
     consts.CONFIG_BLOCKED: True,
     consts.CONFIG_INTERVAL: INTERVALS[0],
+    consts.CONFIG_MAXIMIZED: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
@@ -105,6 +107,7 @@ def fix_config(loaded: bool = True):
     if CONFIG[consts.CONFIG_LAST] > time.time():
         CONFIG[consts.CONFIG_LAST] = DEFAULT_CONFIG[consts.CONFIG_LAST]
     _fix_config(consts.CONFIG_INTERVAL, INTERVALS)
+    _fix_config(consts.CONFIG_MAXIMIZED, MAXIMIZED_ACTIONS)
     if not CONFIG[consts.CONFIG_DIR]:  # TODO is_path_exists_or_creatable
         CONFIG[consts.CONFIG_DIR] = DEFAULT_CONFIG[consts.CONFIG_DIR]
     _fix_config(consts.CONFIG_MODULE, modules.MODULES)
@@ -168,10 +171,14 @@ def first_run():
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
 
 
+def get_displays() -> Iterable[str]:
+    return DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],)
+
+
 @timer.on_thread
 def check_blocked(*_, monitors: Optional[dict[str, str]] = None):
     if CONFIG[consts.CONFIG_BLOCKED]:
-        displays = DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],)
+        displays = get_displays()
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             if monitors is None:
                 monitors = win32.display.get_monitors()
@@ -184,7 +191,7 @@ def check_blocked(*_, monitors: Optional[dict[str, str]] = None):
             if CONFIG[consts.CONFIG_FIRST]:
                 end_time = time.time() + consts.MAX_FIRST_NOTIFICATION_TIMEOUT
                 while end_time > time.time() and not CONFIG[consts.CONFIG_FIRST]:
-                    time.sleep(consts.POLL_INTERVAL)
+                    time.sleep(consts.POLL_FAST_INTERVAL)
             notify(STRINGS.BLOCKED_TITLE, STRINGS.BLOCKED_TEXT.format(text), force=True)
 
 
@@ -221,7 +228,8 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
     if query_callback:
         query_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if wallpaper is None:
-        wallpaper = get_next_wallpaper()
+        with gui.animate(STRINGS.STATUS_FETCH):
+            wallpaper = get_next_wallpaper()
     if wallpaper is not None:
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
@@ -233,8 +241,7 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
                 path, display, getattr(win32.display.Style, CONFIG[consts.CONFIG_STYLE]), rotate=getattr(
                     win32.display.Rotate, CONFIG[consts.CONFIG_ROTATE]), flip=getattr(
                     win32.display.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
-                    win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION]))
-                for display in (DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],))))
+                    win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION])) for display in get_displays()))
     return changed
 
 
@@ -282,15 +289,23 @@ def on_bing(url: str) -> bool:
 def on_change(enable: Callable, menu_recent: win32.gui.MenuItem, set_label: Callable,
               wallpaper: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
-    if not change_wallpaper.is_running():
+    if auto_change:
+        if CONFIG[consts.CONFIG_MAXIMIZED] and all(win32.display.get_display_blockers(
+                *get_displays(), full_screen_only=True).values()):
+            while CONFIG[consts.CONFIG_INTERVAL] and CONFIG[consts.CONFIG_MAXIMIZED] == MAXIMIZED_ACTIONS[1] and all(
+                    win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
+                time.sleep(consts.POLL_INTERVAL)
+            if not CONFIG[consts.CONFIG_INTERVAL] or CONFIG[consts.CONFIG_MAXIMIZED] == MAXIMIZED_ACTIONS[2]:
+                changed = True
+        on_auto_change(CONFIG[consts.CONFIG_INTERVAL])
+    if not changed and not change_wallpaper.is_running():
         enable(False)
         menu_recent.enable(False)
         with gui.animate(STRINGS.STATUS_CHANGE):
             if auto_change:
-                on_auto_change(CONFIG[consts.CONFIG_INTERVAL])
-            CONFIG[consts.CONFIG_LAST] = time.time()
+                CONFIG[consts.CONFIG_LAST] = time.time()
             if (changed := change_wallpaper(wallpaper, set_label)) and CONFIG[consts.CONFIG_AUTOSAVE]:
-                on_click(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
+                on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
             set_label()
         _update_recent(menu_recent)
         enable()
@@ -299,7 +314,7 @@ def on_change(enable: Callable, menu_recent: win32.gui.MenuItem, set_label: Call
     return changed
 
 
-def on_click(callback: utils.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
+def on_wallpaper(callback: utils.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -332,32 +347,32 @@ def _update_recent(item: win32.gui.MenuItem):
                 menu.remove_item(item_)
             else:
                 with gui.set_main_menu(gui.Menu()) as submenu:
-                    gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper),
+                    gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper, False),
                                       on_thread=False, change_state=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
-                    gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_click, args=(
+                    gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_wallpaper, args=(
                         win32.display.set_lock_background, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
                         RES_TEMPLATE.format(consts.RES_SET_LOCK))
-                    gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_click, args=(
+                    gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_wallpaper, args=(
                         save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)).set_icon(
                         RES_TEMPLATE.format(consts.RES_SAVE))
                     gui.add_separator()
-                    gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_click, args=(
+                    gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=on_wallpaper, args=(
                         win32.open_file, wallpaper, STRINGS.LABEL_OPEN, STRINGS.FAIL_OPEN)).set_icon(
                         RES_TEMPLATE.format(consts.RES_OPEN))
                     if consts.FEATURE_OPEN_WITH:
-                        gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_click, args=(
+                        gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_wallpaper, args=(
                             win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH)).set_icon(
                             RES_TEMPLATE.format(consts.RES_OPEN_WITH))
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_click, args=(
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_wallpaper, args=(
                         win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,)).set_icon(
                         RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,)).set_icon(
                         RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
-                    gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_click, args=(
+                    gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_wallpaper, args=(
                         win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH)).set_icon(
                         RES_TEMPLATE.format(consts.RES_COPY_PATH))
-                    gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_click, args=(
+                    gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_wallpaper, args=(
                         win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY)).set_icon(
                         RES_TEMPLATE.format(consts.RES_COPY))
                     gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,)).set_icon(
@@ -368,7 +383,7 @@ def _update_recent(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(
                         wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_BING))
                     if consts.FEATURE_LENS_UPLOAD:
-                        gui.add_menu_item(STRINGS.LABEL_LENS, on_click=on_click, args=(
+                        gui.add_menu_item(STRINGS.LABEL_LENS, on_click=on_wallpaper, args=(
                             search_wallpaper, wallpaper, STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH,)).set_icon(
                             RES_TEMPLATE.format(consts.RES_LENS))
             item_ = menu.insert_item(index, label, submenu=submenu)
@@ -577,7 +592,7 @@ def on_quit():
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + win32.get_max_shutdown_time()
         while end_time > time.time() and threading.active_count() > max_threads:
-            time.sleep(consts.POLL_INTERVAL)
+            time.sleep(consts.POLL_FAST_INTERVAL)
     gui.stop_loop()
 
 
@@ -596,12 +611,12 @@ def create_menu():  # TODO slideshow (smaller timer)
         #                      f'{STRINGS.LABEL_CHANGE} ({langs.to_str(min(99, progress), STRINGS, 2)}%)')
         return True
 
-    TIMER.__init__(0, on_change, (item_change.enable, item_recent, query_callback))
+    TIMER.__init__(0, on_change, (item_change.enable, item_recent, query_callback), once=True)
+    gui.set_on_click(item_change, on_change, args=(*TIMER.args, None, False), on_thread=False, change_state=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
         item_recent.enable,), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
     _update_recent(item_recent)
-    gui.set_on_click(item_change, on_change, args=TIMER.args, on_thread=False, change_state=False)
     gui.add_separator()
     item_module = gui.add_submenu('')
     on_module(CONFIG[consts.CONFIG_MODULE], item_module)
@@ -645,6 +660,8 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
                 STRINGS, f'TIME_{interval}') for interval in INTERVALS},
                                    CONFIG, consts.CONFIG_INTERVAL, on_click=on_auto_change)
+            gui.add_mapped_submenu(STRINGS.MENU_IF_MAXIMIZED, {action: getattr(
+                STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CONFIG, consts.CONFIG_MAXIMIZED)
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
             gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save)
@@ -705,9 +722,10 @@ def start():  # TODO dark theme
     apply_save_config(CONFIG[consts.CONFIG_SAVE])
     change_after = CONFIG[consts.CONFIG_INTERVAL] + CONFIG[consts.CONFIG_LAST] - time.time()
     if consts.ARG_CHANGE in sys.argv or (CONFIG[consts.CONFIG_INTERVAL] and change_after <= 0):
-        on_change(*TIMER.args, auto_change=False)
-    on_auto_change(CONFIG[consts.CONFIG_INTERVAL], None if change_after <= 0 else change_after)
-    gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME, on_change, TIMER.args)
+        on_change(*TIMER.args)
+    else:
+        on_auto_change(CONFIG[consts.CONFIG_INTERVAL], None if change_after <= 0 else change_after)
+    gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME, on_change, (*TIMER.args, None, False))
 
 
 def stop():

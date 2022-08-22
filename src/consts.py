@@ -4,7 +4,8 @@ MAX_CACHE = 128 * 1024 * 1024
 MAX_LABEL = 25
 MAX_RECENT = 9
 MAX_FIRST_NOTIFICATION_TIMEOUT = 1
-POLL_INTERVAL = 0.01
+POLL_INTERVAL = 1
+POLL_FAST_INTERVAL = 0.01
 
 FEATURE_FIRST_RUN = True
 FEATURE_PIN_PYTHON = False
@@ -42,6 +43,7 @@ CONFIG_STYLE = 'wallpaper_fit'
 CONFIG_TRANSITION = 'wallpaper_transition'
 CONFIG_REAPPLY = 'reapply_wallpaper'
 CONFIG_BLOCKED = 'notify_blocked'
+CONFIG_MAXIMIZED = 'if_maximized'
 
 RES_BUSY = 'busy.gif'
 RES_TRAY = 'tray.png'

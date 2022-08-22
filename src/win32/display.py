@@ -304,7 +304,7 @@ def _get_workerw_hwnd() -> int:
 
 def _get_drives() -> dict[str, str]:
     drives = {}
-    buff = ctyped.char_array('\0' * ctyped.const.MAX_PATH)
+    buff = ctyped.char_array(size=ctyped.const.MAX_PATH)
     for letter in string.ascii_uppercase:
         path = f'{letter}:'
         if ctyped.lib.kernel32.QueryDosDeviceW(path, buff, ctyped.const.MAX_PATH):
@@ -428,12 +428,13 @@ def _get_window_pid(hwnd: ctyped.type.HWND) -> int:
     return pid.value
 
 
-def get_display_blockers(*monitors: str, verify_maximized: bool = False, maximized_only: bool = True) -> dict[str, tuple[str, ...]]:
+def get_display_blockers(*monitors: str, full_screen_only: bool = False,
+                         _maximized_only: bool = True) -> dict[str, tuple[str, ...]]:
     blockers = {monitor: set() for monitor in monitors}
     rects_or_regions = {monitor: _get_monitor_rect(monitor) for monitor in monitors}
     drives = _get_drives()
 
-    if maximized_only:
+    if _maximized_only:
         dummy = ctyped.struct.RECT()
         placement = ctyped.struct.WINDOWPLACEMENT()
 
@@ -441,7 +442,7 @@ def get_display_blockers(*monitors: str, verify_maximized: bool = False, maximiz
             if ctyped.lib.user32.GetWindowPlacement(hwnd, ctyped.byref(
                     placement)) and placement.showCmd == ctyped.const.SW_MAXIMIZE:
                 monitor = _get_window_monitor(hwnd, rects_or_regions)
-                if monitor and not (verify_maximized and ctyped.lib.user32.SubtractRect(ctyped.byref(dummy), ctyped.byref(
+                if monitor and not (full_screen_only and ctyped.lib.user32.SubtractRect(ctyped.byref(dummy), ctyped.byref(
                         rects_or_regions[monitor]), ctyped.byref(_get_window_frame_rect(hwnd) or ctyped.struct.RECT()))):
                     blockers[monitor].add(_get_window_exe_path(hwnd, drives))
             return True
@@ -460,7 +461,7 @@ def get_display_blockers(*monitors: str, verify_maximized: bool = False, maximiz
             return True
 
     ctyped.lib.user32.EnumWindows(ctyped.type.WNDENUMPROC(wind_enum_proc), 0)
-    if not maximized_only:
+    if not _maximized_only:
         for monitor, region in rects_or_regions.items():
             if not region.is_empty():
                 blockers[monitor].clear()
@@ -588,21 +589,20 @@ def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdipl
     return bitmap.get_hbitmap().get_hdc()
 
 
-def _is_visible(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
-    fore_rect = ctyped.struct.RECT()  # TODO get_display_blockers
+def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
+    fore_rect = ctyped.struct.RECT()
     fore_hwnd = ctyped.lib.user32.GetForegroundWindow()
     if (fore_hwnd and ctyped.lib.user32.GetClientRect(fore_hwnd, ctyped.byref(fore_rect)) and
             ctyped.lib.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(fore_rect, ctyped.struct.POINT), 2)):
-        visible_rect = ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)
-        return bool(ctyped.lib.user32.SubtractRect(ctyped.byref(
-            visible_rect), ctyped.byref(visible_rect), ctyped.byref(fore_rect)))
+        return bool(ctyped.lib.user32.SubtractRect(ctyped.byref(ctyped.struct.RECT()), ctyped.byref(
+            ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)), ctyped.byref(fore_rect)))
     return True
 
 
 def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
                      color: ctyped.type.ARGB = 0, transition: int = Transition.DISABLED, duration: float = 0):
-    if (hwnd := _get_workerw_hwnd()) and _is_visible(hwnd, dst_x, dst_y, dst_w, dst_h):
+    if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
         src = _save_temp_bmp(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
         if transition != Transition.DISABLED:

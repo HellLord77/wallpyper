@@ -10,7 +10,6 @@ import shutil as _shutil
 import sys as _sys
 import types as _types
 import typing as _typing
-import warnings as _warnings
 # noinspection PyUnresolvedReferences
 from typing import Callable as _Callable, Generic as _Generic, Optional as _Optional
 
@@ -98,7 +97,7 @@ class _Interface_impl(_type.c_void_p):
                 # noinspection PyProtectedMember
                 if __name__ == base.__module__ and not base.__name__.startswith(
                         '_') and not (issubclass(base, _Template) and base._args is None):
-                    # noinspection PyTypeChecker,PyProtectedMember
+                    # noinspection PyProtectedMember,PyTypeChecker
                     iid_refs.append(_ctypes.byref(_macro._uuidof(base)))
                     cls_annot = base
             cls._iid_refs = tuple(iid_refs)
@@ -106,9 +105,9 @@ class _Interface_impl(_type.c_void_p):
         return super().__new__(cls)
 
     def __init__(self):
-        # noinspection PyProtectedMember,PyTypeChecker
-        self._ptr = _ctypes.pointer(self._vtbl(*(type_(_functools.wraps(func := getattr(self, name))(
-            lambda _, *args, _func=func: _func(*args))) for name, type_ in self._vtbl._fields_)))
+        # noinspection PyProtectedMember
+        self._ptr = _ctypes.pointer(self._vtbl(*(functype(_functools.wraps(func := getattr(self, name))(
+            lambda _, *args, _func=func: _func(*args))) for name, functype in self._vtbl._fields_)))
         super().__init__(_ctypes.addressof(self._ptr))
         self._c_refs[self] = 1
 
@@ -217,14 +216,13 @@ def _init():
         _LINES = file.read().splitlines()
     _module = _sys.modules[__name__]
     if not _load_cache():
-        _warnings.warn('Invalid cache')
-        re_class = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:')
+        class_match = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:').fullmatch
         _module._interfaces = {}
         level = 0
         namespaces = [_module]
         interface = None
         for index, line in enumerate(_LINES):
-            if match := re_class.fullmatch(line):
+            if match := class_match(line):
                 groups = match.groups()
                 level = line.index('c') // 4
                 if groups[0].startswith('_') or groups[1]:

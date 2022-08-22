@@ -15,6 +15,7 @@ from typing import Optional
 import libs.ctyped as ctyped
 import win32._gdiplus as gdiplus
 import win32._utils as utils
+import win32.display
 import win32.gui as gui
 from libs.ctyped import winrt
 
@@ -532,9 +533,9 @@ def _test_hook():
 
 
 def _test():
-    ctyped.lib.kernel32.SetComputerNameExW(ctyped.enum.COMPUTER_NAME_FORMAT.PhysicalDnsHostname, 'sexy-name')
-    t = ctyped.type.LPWSTR('sexy daya')
-    print(t.value)
+    while True:
+        win32.display.get_display_blockers(*win32.display.get_monitors())
+        time.sleep(1)
 
 
 if __name__ == '__main__':
