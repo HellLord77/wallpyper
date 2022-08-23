@@ -3,6 +3,7 @@ $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $Datas = @(
 "libs\colornames\res",
+"libs\ctyped\interface.pyi",
 "libs\iso\res",
 "modules\res",
 "res",
