@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.19'
+__version__ = '0.3.0'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -158,7 +158,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
         if init:
             # noinspection PyProtectedMember
             if macro.FAILED(lib.ole32.CoCreateInstance(byref(get_guid(
-                    type._CLSID_)), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
+                    type._CLSID)), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
                 obj = None
         yield obj
 
@@ -298,7 +298,7 @@ class Async(_Generic[CT]):
         self._progress_callback(progress, *self._progress_args, **self._progress_kwargs)
         return const.NOERROR
 
-    # noinspection PyProtectedMember
+    # noinspection PyProtectedMember,PyUnresolvedReferences
     def put_completed(self, callback: _Callable[[CT[interface._TResult], ...], _Any], args: _Optional[_Iterable] = None,
                       kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.Windows.Foundation.AsyncStatus:
         if self._completed_async:
@@ -312,7 +312,7 @@ class Async(_Generic[CT]):
         self._put(self._async.put_Completed, self._completed_async)
         return self.get_status()
 
-    # noinspection PyProtectedMember
+    # noinspection PyProtectedMember,PyUnresolvedReferences
     def put_progress(self, callback: _Callable[[CT[interface._TProgress], ...], _Any], args: _Optional[_Iterable] = None,
                      kwargs: _Optional[_Mapping[str, _Any]] = None) -> enum.Windows.Foundation.AsyncStatus:
         if self._progress_async:
@@ -326,7 +326,7 @@ class Async(_Generic[CT]):
         self._put(self._async.put_Progress, self._progress_async)
         return self.get_status()
 
-    # noinspection PyProtectedMember
+    # noinspection PyProtectedMember,PyUnresolvedReferences
     def get_results(self: Async[CT[interface._TResult]]) -> _Optional[interface._TResult]:
         t_result = self._async._args.get(interface._TResult, None) if isinstance(self._async, interface._Template) else None
         if t_result:
@@ -335,7 +335,7 @@ class Async(_Generic[CT]):
             self._async.GetResults(byref(result))
             return result
 
-    # noinspection PyProtectedMember
+    # noinspection PyProtectedMember,PyUnresolvedReferences
     def get(self: Async[CT[interface._TResult]]) -> _Optional[interface._TResult]:
         if enum.Windows.Foundation.AsyncStatus.Completed == self.wait_for():
             return self.get_results()
