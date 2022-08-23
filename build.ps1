@@ -2,7 +2,7 @@ $Version = "0.0.7"
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $Datas = @(
-"libs\colornames\res\colornames.min.json",
+"libs\colornames\res",
 "libs\iso\res",
 "modules\res",
 "res",
