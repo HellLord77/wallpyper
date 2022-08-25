@@ -1,8 +1,9 @@
-$Version = "0.0.7"
+$Version = "0.0.8"
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $Datas = @(
 "libs\colornames\res",
+"libs\ctyped\interface.json",
 "libs\ctyped\interface.pyi",
 "libs\iso\res",
 "modules\res",
@@ -19,6 +20,8 @@ $OneFile = $True
 $OptimizationLevel = 2
 $UPX = $False
 $MainManifest = "manifest.xml"
+$RunBefore = "import src.libs.ctyped; src.libs.ctyped.interface._dump_cache()"
+$RunAfter = "import os; os.remove('src\libs\ctyped\interface.json')"
 
 function Get-Name
 {
@@ -114,6 +117,11 @@ function Install-Dependencies
 
 function BuildProject
 {
+    if ($RunBefore)
+    {
+        python -c $RunBefore
+    }
+
     $MainArgs = @("--noconfirm")
     if ($OneFile)
     {
@@ -192,6 +200,7 @@ function BuildProject
     "NAME=$FullName" >> $Env:GITHUB_ENV
 
     $AddArgs = "--clean", "--name=$FullName", $EntryPoint
+    $env:PYTHONOPTIMIZE = $OptimizationLevel
     if ($Obfuscate)
     {
         pyarmor @("pack", "--output=dist", "--options=$MainArgs") $AddArgs
@@ -216,6 +225,11 @@ function BuildProject
     {
         MergeManifest $ExePath $MainManifest
     }
+
+    if ($RunAfter)
+    {
+        python -c $RunAfter
+    }
 }
 
 function UploadBuildToMEGA
@@ -238,7 +252,6 @@ function UploadBuildToMEGA
 }
 
 $ErrorActionPreference = "Stop"
-$env:PYTHONOPTIMIZE = $OptimizationLevel
 if ($Args)
 {
     Invoke-Expression $Args[0]

@@ -2,11 +2,15 @@ from __future__ import annotations as _  # TODO docs
 
 import ctypes as _ctypes
 import functools as _functools
+import hashlib as _hashlib
+import json as _json
 import ntpath as _ntpath
 import re as _re
+import shutil as _shutil
 import sys as _sys
 import types as _types
 import typing as _typing
+import warnings as _warnings
 # noinspection PyUnresolvedReferences
 from typing import Callable as _Callable, Generic as _Generic, Optional as _Optional
 
@@ -17,6 +21,7 @@ from ._utils import _Pointer, _get_winrt_class_name, _resolve_type
 
 _LINES: list[str]
 _LOCALS: _Locals
+_NAME_TEMPLATE = f'{_ntpath.splitext(__file__)[0]}.{{}}'
 _K = _typing.TypeVar('_K')
 _V = _typing.TypeVar('_V')
 _T = _typing.TypeVar('_T')
@@ -143,7 +148,8 @@ class _NamespaceMeta(type):
         except KeyError:
             raise AttributeError
         else:
-            del self._interfaces[name]
+            if not __debug__:
+                del self._interfaces[name]  # noqa
             first_line = _LINES[data[0]]
             intend = first_line.index('c')
             _LOCALS.locals.append(self)
@@ -153,36 +159,88 @@ class _NamespaceMeta(type):
             return interface
 
 
+def _get_hash() -> str:
+    md5 = _hashlib.md5()
+    with open(_NAME_TEMPLATE.format('pyi'), 'rb') as file:
+        # noinspection PyUnresolvedReferences
+        while data := file.read(_shutil.COPY_BUFSIZE):
+            md5.update(data)
+    return md5.hexdigest()
+
+
+def _get_interfaces(namespace):
+    # noinspection PyProtectedMember
+    interfaces = namespace._interfaces
+    for name, value in vars(namespace).items():
+        if isinstance(value, _NamespaceMeta):
+            interfaces[name] = _get_interfaces(value)
+    return interfaces
+
+
+def _set_interfaces(namespace, interfaces: dict[str, tuple[int, int] | dict]):
+    namespace._interfaces = interfaces
+    namespaces = []
+    for name, value in interfaces.items():
+        if isinstance(value, dict):
+            new_namespace = _NamespaceMeta(name, (), {})
+            _set_interfaces(new_namespace, value)
+            setattr(namespace, name, new_namespace)
+            namespaces.append(name)
+    for name in namespaces:
+        del interfaces[name]
+
+
+def _dump_cache():
+    interfaces = _get_interfaces(_sys.modules[__name__])
+    with open(_NAME_TEMPLATE.format('json'), 'w') as file:
+        _json.dump({_get_hash(): interfaces}, file, indent=2)
+
+
+def _load_cache() -> bool:
+    path = _NAME_TEMPLATE.format('json')
+    if _ntpath.isfile(path):
+        with open(path) as file:
+            try:
+                data = _json.load(file)
+            except _json.JSONDecodeError:
+                data = {}
+        if interfaces := data.get(_get_hash()):
+            _set_interfaces(_sys.modules[__name__], interfaces)
+            return True
+    return False
+
+
 def _init():
     global _LINES, _LOCALS
-
     _LOCALS = _Locals()
-    with open(f'{_ntpath.splitext(__file__)[0]}.pyi') as file:
+    with open(_NAME_TEMPLATE.format('pyi')) as file:
         _LINES = file.read().splitlines()
-    re_class = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:')
     _module = _sys.modules[__name__]
-    _module._interfaces = {}
-    level = 0
-    namespaces = [_module]
-    interface = None
-    for index, line in enumerate(_LINES):
-        if match := re_class.fullmatch(line):
-            groups = match.groups()
-            level = line.index('c') // 4
-            if groups[0].startswith('_') or groups[1]:
-                interface = groups[0], index
-            else:
-                namespace = _NamespaceMeta(groups[0], (), {})
-                try:
-                    namespaces[level + 1] = namespace
-                except IndexError:
-                    namespaces.append(namespace)
-                namespace._interfaces = {}
-                setattr(namespaces[level], groups[0], namespace)
-        elif not line and interface:
-            # noinspection PyProtectedMember
-            namespaces[level]._interfaces[interface[0]] = interface[1], index
-            interface = None
+    if not _load_cache():
+        _warnings.warn('Invalid cache')
+        re_class = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:')
+        _module._interfaces = {}
+        level = 0
+        namespaces = [_module]
+        interface = None
+        for index, line in enumerate(_LINES):
+            if match := re_class.fullmatch(line):
+                groups = match.groups()
+                level = line.index('c') // 4
+                if groups[0].startswith('_') or groups[1]:
+                    interface = groups[0], index
+                else:
+                    namespace = _NamespaceMeta(groups[0], (), {})
+                    try:
+                        namespaces[level + 1] = namespace
+                    except IndexError:
+                        namespaces.append(namespace)
+                    namespace._interfaces = {}
+                    setattr(namespaces[level], groups[0], namespace)
+            elif not line and interface:
+                # noinspection PyProtectedMember
+                namespaces[level]._interfaces[interface[0]] = interface[1], index
+                interface = None
     _module.__getattr__ = _types.MethodType(_NamespaceMeta.__getattr__, _module)
 
 

@@ -9,7 +9,8 @@ import sys
 import time
 from typing import Any, Callable, Generator, IO, Iterable, Mapping, Optional
 
-CHUNK = 1024 * 1024
+# noinspection PyUnresolvedReferences
+CHUNK = shutil.COPY_BUFSIZE
 POLL_INTERVAL = 0.1
 
 
