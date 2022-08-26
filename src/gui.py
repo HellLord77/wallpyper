@@ -177,8 +177,12 @@ def add_mapped_submenu(label_or_submenu_item: str | win32.gui.MenuItem, items: M
                        uid: Optional[str] = None, on_click: Optional[Callable] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
                        position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> win32.gui.MenuItem:
-    submenu_item = add_submenu(label_or_submenu_item, enable, uid, position, menu=menu) if isinstance(
+    submenu_item = add_submenu(label_or_submenu_item, position=position, menu=menu) if isinstance(
         label_or_submenu_item, str) else label_or_submenu_item
+    if uid is not None:
+        submenu_item.set_uid(uid)
+    if enable is not None:
+        submenu_item.enable(enable)
     if on_click is None:
         on_click_ = mapping.__setitem__
     else:

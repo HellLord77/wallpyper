@@ -39,6 +39,10 @@ class _Module(metaclass=_ModuleMeta):
             cls.CONFIG[key] = cls.DEFAULT_CONFIG[key]
 
     @classmethod
+    def update_config(cls):
+        pass
+
+    @classmethod
     def fix_config(cls):
         pass
 

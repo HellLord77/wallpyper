@@ -533,9 +533,8 @@ def _test_hook():
 
 
 def _test():
-    while True:
-        win32.display.get_display_blockers(*win32.display.get_monitors())
-        time.sleep(1)
+    print(win32.display.get_monitors())
+    print(win32.display.get_known_monitor_ids())
 
 
 if __name__ == '__main__':

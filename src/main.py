@@ -33,7 +33,8 @@ UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.realpath(os.path.join(os.path.dirname(__file__), 'res', '{}'))
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
-CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'  # TODO paths.join(win32.SAVE_DIR, consts.NAME, f'{consts.NAME}.ini')
+CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
+# CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
 LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
@@ -43,14 +44,14 @@ win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 MAXIMIZED_ACTIONS = '', 'POSTPONE', 'CANCEL'
 STRINGS = langs.eng
-DISPLAYS: list[str] = []
+DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT)
 
 DEFAULT_CONFIG = {
     consts.CONFIG_LAST: math.inf,
-    consts.CONFIG_RECENT: utils.encrypt(RECENT, True),
+    consts.CONFIG_RECENT: f'\n{utils.encrypt(RECENT, True)}',
     consts.CONFIG_DISPLAY: ALL_DISPLAY,
     consts.CONFIG_FIRST: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_AUTOSAVE: False,
@@ -84,6 +85,10 @@ def reapply_wallpaper(_):
         on_change(*TIMER.args, RECENT[0], False)
 
 
+def update_config():
+    CONFIG[consts.CONFIG_RECENT] = f'\n{utils.encrypt(RECENT, True)}'
+
+
 def _fix_config(key: str, itt: Iterable):
     val = CONFIG[key]
     if is_str := isinstance(val, str):
@@ -96,13 +101,11 @@ def _fix_config(key: str, itt: Iterable):
         CONFIG[key] = DEFAULT_CONFIG[key]
 
 
-def fix_config(loaded: bool = True):
+def fix_config():
     _fix_config(consts.CONFIG_STYLE, win32.display.Style)
     _fix_config(consts.CONFIG_ROTATE, win32.display.Rotate)
     _fix_config(consts.CONFIG_FLIP, win32.display.Flip)
     _fix_config(consts.CONFIG_TRANSITION, win32.display.Transition)
-    if loaded:
-        CONFIG[consts.CONFIG_RECENT] = f'\n{utils.encrypt(RECENT, True)}'
     _fix_config(consts.CONFIG_DISPLAY, DISPLAYS)
     if CONFIG[consts.CONFIG_LAST] > time.time():
         CONFIG[consts.CONFIG_LAST] = DEFAULT_CONFIG[consts.CONFIG_LAST]
@@ -136,27 +139,19 @@ def load_config() -> bool:
         loaded = False
     getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
                tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
-    loaded = _load_config(getters, consts.NAME, CONFIG, DEFAULT_CONFIG) and loaded
-    fix_config(False)
-    for name, module in modules.MODULES.items():
+    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
         loaded = _load_config(getters, name, module.CONFIG, module.DEFAULT_CONFIG) and loaded
         module.fix_config()
     return loaded
 
 
-def _strip_config(config: dict[str, Any], default: dict[str, Any]) -> dict[str, Any]:
-    return {option: config[option] for option, value in sorted(default.items()) if config[option] != value}
-
-
 def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
-    fix_config()
     parser = configparser.ConfigParser()
-    if config := _strip_config(CONFIG, DEFAULT_CONFIG):
-        parser[consts.NAME] = config
-    for name, module in modules.MODULES.items():
+    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
+        module.update_config()
         module.fix_config()
-        if config := _strip_config(module.CONFIG, module.DEFAULT_CONFIG):
-            parser[name] = config
+        parser[name] = {option: module.CONFIG[option] for option, value in sorted(
+            module.DEFAULT_CONFIG.items()) if module.CONFIG[option] != value}
     with open(CONFIG_PATH, 'w') as file:
         parser.write(file)
     return os.path.isfile(CONFIG_PATH)
@@ -172,18 +167,17 @@ def first_run():
 
 
 def get_displays() -> Iterable[str]:
+    _fix_config(consts.CONFIG_DISPLAY, DISPLAYS)
     return DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],)
 
 
 @timer.on_thread
-def check_blocked(*_, monitors: Optional[dict[str, str]] = None):
+def check_blocked(*_):
     if CONFIG[consts.CONFIG_BLOCKED]:
         displays = get_displays()
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
-            if monitors is None:
-                monitors = win32.display.get_monitors()
             count = itertools.count(1)
-            text = '\n'.join(f'{langs.to_str(next(count), STRINGS)}. {_get_monitor_name(monitor, monitors)}'
+            text = '\n'.join(f'{langs.to_str(next(count), STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
                              f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKED_NAME else ""}'
                              for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
             while not gui.SYSTEM_TRAY.is_shown(False):
@@ -429,34 +423,35 @@ def on_flip(vertical: win32.gui.MenuItem, horizontal: win32.gui.MenuItem):
 
 def _update_display():
     DISPLAYS.clear()
-    DISPLAYS.extend(win32.display.get_monitor_ids())
+    DISPLAYS.update(win32.display.get_monitors())
 
 
 def _get_monitor_name(monitor: str, monitors: dict[str, tuple[str, tuple[int, int]]]) -> str:
     return monitors[monitor][0] or win32.display.get_monitor_name(monitor) or STRINGS.DISPLAY
 
 
-def on_display_change(update: int, __: Optional[gui.Gui], item: win32.gui.MenuItem):
+def on_display_change(update: int, _: Optional[gui.Gui], item: win32.gui.MenuItem):
     if update:
         _update_display()
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_main_menu(submenu):
         size = win32.display.get_display_size()
-        gui.add_menu_item(f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}',
-                          gui.MenuItemType.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
-                          uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
-                          menu_args=(gui.Property.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
-        monitors = win32.display.get_monitors()
+        gui.add_menu_item(
+            f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}',
+            gui.MenuItemType.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY], uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
+            on_click=CONFIG.__setitem__, menu_args=(gui.Property.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
         gui.add_mapped_submenu(item, {
-            id_: f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(id_, monitors)}'
-                 f'\t{langs.to_str(monitors[id_][1][0], STRINGS)} × {monitors[id_][1][1]}'
-            for index, id_ in enumerate(DISPLAYS, 1) if id_ in monitors}, CONFIG, consts.CONFIG_DISPLAY,
-                               on_click=check_blocked, kwargs={'monitors': monitors})
+            monitor: f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
+                     f'\t{langs.to_str(DISPLAYS[monitor][1][0], STRINGS)} × {DISPLAYS[monitor][1][1]}'
+            for index, monitor in enumerate(DISPLAYS, 1)}, CONFIG, consts.CONFIG_DISPLAY, on_click=check_blocked)
+        enable = len(DISPLAYS) > 1
+        for submenu_item in item.get_submenu():
+            submenu_item.enable(enable)
         if consts.FEATURE_UPDATE_DISPLAY:
             gui.add_separator()
             gui.add_menu_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_display_change, args=(item,))
-    check_blocked(monitors=monitors)
+    check_blocked()
     # TODO add lock screen
 
 

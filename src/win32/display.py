@@ -318,7 +318,7 @@ def get_monitor_count() -> int:
     return num.value
 
 
-def get_monitor_ids() -> tuple[str, ...]:
+def get_known_monitor_ids() -> tuple[str, ...]:
     monitors = []
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
         if wallpaper:
@@ -366,8 +366,12 @@ def get_display_size() -> tuple[int, int]:
 def _get_monitor_rect(dev_path: str) -> Optional[ctyped.struct.RECT]:
     rect = ctyped.struct.RECT()
     with ctyped.init_com(ctyped.interface.IDesktopWallpaper) as wallpaper:
-        if wallpaper and ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
-            return rect
+        if wallpaper:
+            try:
+                if ctyped.macro.SUCCEEDED(wallpaper.GetMonitorRECT(dev_path, ctyped.byref(rect))):
+                    return rect
+            except OSError:
+                pass
 
 
 def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
@@ -522,7 +526,7 @@ def _get_wallpaper_idesktopwallpaper(*monitors: str) -> tuple[str, ...]:
         if wallpaper:
             with _utils.string_buffer() as buff:
                 return tuple(buff.value if ctyped.macro.SUCCEEDED(wallpaper.GetWallpaper(
-                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitor_ids()))
+                    monitor, ctyped.byref(buff))) else '' for monitor in (monitors or get_monitors()))
         else:
             return ()
 
