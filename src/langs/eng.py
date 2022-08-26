@@ -8,7 +8,6 @@ FIRST_TEXT = '👀 See the system tray icon?\n' \
              'Double click to change wallpaper,\n' \
              'Right click to open context menu.'
 BLOCKED_TITLE = 'Desktop Overlay Detected! 🚫'
-BLOCKED_TEXT = '⛔ Following displays are obscured:\n{}'
 
 FAIL_CHANGE = 'Failed Changing Wallpaper'
 FAIL_CHANGE_LOCK = 'Failed Changing Lock Screen'

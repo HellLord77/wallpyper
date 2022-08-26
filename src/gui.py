@@ -237,7 +237,7 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
 
         SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.LEFT_DOUBLE, wrapper)
     SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.RIGHT_DOWN, lambda _, __: MENU.show())
-    GUI.bind(win32.gui.GuiEvent.QUERY_END, stop_loop)  # TODO fix shutdown
+    GUI.bind(win32.gui.GuiEvent.QUERY_END_SESSION, stop_loop)  # TODO fix shutdown
     SYSTEM_TRAY.show()
     GUI.mainloop()
 

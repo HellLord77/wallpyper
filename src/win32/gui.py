@@ -51,15 +51,14 @@ MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_AUTOMATIC // 5
 
 
 class GuiEvent:
-    QUERY_END = ctyped.const.WM_QUERYENDSESSION
-    END = ctyped.const.WM_ENDSESSION
+    QUERY_END_SESSION = ctyped.const.WM_QUERYENDSESSION
+    END_SESSION = ctyped.const.WM_ENDSESSION
     DISPLAY_CHANGE = ctyped.const.WM_DISPLAYCHANGE
+    NC_RENDERING_CHANGED = ctyped.const.WM_DWMNCRENDERINGCHANGED
 
-
-class EndingReason:
-    UNKNOWN = 0
-    CRITICAL = ctyped.const.ENDSESSION_CRITICAL
-    LOGOFF = ctyped.const.ENDSESSION_LOGOFF
+    END_UNKNOWN = 0
+    END_CRITICAL = ctyped.const.ENDSESSION_CRITICAL
+    END_LOGOFF = ctyped.const.ENDSESSION_LOGOFF
 
 
 class SystemTrayIcon:
@@ -200,13 +199,21 @@ class _EventHandler:
     @classmethod
     def get(cls, id: Optional[int] = None, default: Optional = None) -> Optional:
         if id is None:
-            with contextlib.suppress(StopIteration):
+            if cls._selves:
                 return next(reversed(cls._selves.values()))
         else:
             return cls._selves.get(id, default)
 
-    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping] = None):
-        self._bindings[self._id][event] = callback, () if args is None else args, {} if kwargs is None else kwargs
+    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None,
+             kwargs: Optional[Mapping] = None, once: bool = False):
+        if once:
+            @functools.wraps(callback)
+            def wrapper(*args_, **kwargs_):
+                self.unbind(event)
+                return callback(*args_, **kwargs_)
+        else:
+            wrapper = callback
+        self._bindings[self._id][event] = wrapper, () if args is None else args, {} if kwargs is None else kwargs
 
     def unbind(self, event: int) -> bool:
         try:
@@ -285,7 +292,7 @@ class Gui(_EventHandler):
                     hwnd, _TID_MENU_ITEM_TOOLTIP, MENU_ITEM_TOOLTIP_RESHOW
                     if FLAG_MENU_ITEM_TOOLTIP_RESHOW and self._menu_item_tooltip_hwnd.is_visible() else
                     MENU_ITEM_TOOLTIP_INITIAL, self._menu_item_tooltip_proc)
-        elif message == ctyped.const.WM_DISPLAYCHANGE:
+        elif message in (ctyped.const.WM_DISPLAYCHANGE, ctyped.const.WM_DWMNCRENDERINGCHANGED):
             self.trigger(message)
         elif message == _WM_SYS_TRAY:
             SystemTray.get(wparam).trigger(lparam)

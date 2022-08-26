@@ -13,9 +13,9 @@ from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
+import libs.utils
 import win32._gdiplus as gdiplus
 import win32._utils as utils
-import win32.display
 import win32.gui as gui
 from libs.ctyped import winrt
 
@@ -53,7 +53,7 @@ def fill_surrounding_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_
 
 
 def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui.MenuItem):
-    # s.show_balloon('very busy', 'mini text', Icon.TRAY)
+    s.show_balloon('very busy', 'mini text', gui.SystemTrayIcon.BALLOON_TRAY)
     menu.show()
     return 0
 
@@ -169,7 +169,7 @@ def _test_gui():
     # sys.stderr.write = write2
     atexit.register(on_exit)
     g.block_end('doing sexy job...')
-    g.bind(gui.GuiEvent.QUERY_END, query_end)
+    g.bind(gui.GuiEvent.QUERY_END_SESSION, query_end)
     # g.bind(gui.GuiEvent.END, end)
     print(g.get_name())
     g.mainloop()
@@ -532,13 +532,13 @@ def _test_hook():
     proc.free_console()
 
 
-def _test():
-    print(win32.display.get_monitors())
-    print(win32.display.get_known_monitor_ids())
+def _test(*args):
+    print(args)
 
 
 if __name__ == '__main__':
-    _test()
+    libs.utils.hook_except(_test, format=True)
+    raise FileNotFoundError('data')
     # _test_hook()
     # _test_gui()
     exit()

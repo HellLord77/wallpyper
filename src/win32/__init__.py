@@ -232,7 +232,9 @@ def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     return error
 
 
-def show_error(title: str, text: str) -> bool:
+def show_error(title: Optional[str | type], text: str) -> bool:
+    if isinstance(title, type):
+        title = title.__name__
     return ctyped.lib.user32.MessageBoxW(
         None, text, title, ctyped.const.MB_OK | ctyped.const.MB_ICONERROR | ctyped.const.MB_SYSTEMMODAL) != 0
 

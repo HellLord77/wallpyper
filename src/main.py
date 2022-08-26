@@ -11,6 +11,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 import webbrowser
 from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 
@@ -80,7 +81,7 @@ def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BAL
     return False
 
 
-def reapply_wallpaper(_):
+def reapply_wallpaper(_: Optional[bool]):
     if CONFIG[consts.CONFIG_REAPPLY] and RECENT:
         on_change(*TIMER.args, RECENT[0], False)
 
@@ -158,12 +159,13 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 
 
 @timer.on_thread
-def first_run():
+def first_run(*_):
     if CONFIG[consts.CONFIG_FIRST]:
-        while not gui.SYSTEM_TRAY.is_shown(False):
-            time.sleep(consts.POLL_INTERVAL)
         CONFIG[consts.CONFIG_FIRST] = not notify(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
+    if CONFIG[consts.CONFIG_BLOCKED]:
+        time.sleep(consts.POLL_INTERVAL)
+        check_blocked()
 
 
 def get_displays() -> Iterable[str]:
@@ -173,20 +175,14 @@ def get_displays() -> Iterable[str]:
 
 @timer.on_thread
 def check_blocked(*_):
-    if CONFIG[consts.CONFIG_BLOCKED]:
+    if not CONFIG[consts.CONFIG_FIRST] and CONFIG[consts.CONFIG_BLOCKED]:
         displays = get_displays()
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
             text = '\n'.join(f'{langs.to_str(next(count), STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
                              f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKED_NAME else ""}'
                              for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
-            while not gui.SYSTEM_TRAY.is_shown(False):
-                time.sleep(consts.POLL_INTERVAL)
-            if CONFIG[consts.CONFIG_FIRST]:
-                end_time = time.time() + consts.MAX_FIRST_NOTIFICATION_TIMEOUT
-                while end_time > time.time() and not CONFIG[consts.CONFIG_FIRST]:
-                    time.sleep(consts.POLL_FAST_INTERVAL)
-            notify(STRINGS.BLOCKED_TITLE, STRINGS.BLOCKED_TEXT.format(text), force=True)
+            notify(STRINGS.BLOCKED_TITLE, text, force=True)
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -203,10 +199,10 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
 
 def get_next_wallpaper() -> Optional[files.File]:
     module = modules.MODULES[CONFIG[consts.CONFIG_MODULE]]
-    config = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
+    params = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
     first_wallpaper = None
     while True:
-        next_wallpaper = next(module.get_next_wallpaper(**config))
+        next_wallpaper = next(module.get_next_wallpaper(**params))
         if not CONFIG[consts.CONFIG_SKIP] or next_wallpaper not in RECENT:
             if first_wallpaper != next_wallpaper:
                 return next_wallpaper
@@ -280,7 +276,7 @@ def on_bing(url: str) -> bool:
 
 
 @timer.on_thread
-def on_change(enable: Callable, menu_recent: win32.gui.MenuItem, set_label: Callable,
+def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, set_label: Callable,
               wallpaper: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if auto_change:
@@ -293,16 +289,16 @@ def on_change(enable: Callable, menu_recent: win32.gui.MenuItem, set_label: Call
                 changed = True
         on_auto_change(CONFIG[consts.CONFIG_INTERVAL])
     if not changed and not change_wallpaper.is_running():
-        enable(False)
-        menu_recent.enable(False)
+        item_change_enable(False)
+        item_recent.enable(False)
         with gui.animate(STRINGS.STATUS_CHANGE):
             if auto_change:
                 CONFIG[consts.CONFIG_LAST] = time.time()
             if (changed := change_wallpaper(wallpaper, set_label)) and CONFIG[consts.CONFIG_AUTOSAVE]:
                 on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
             set_label()
-        _update_recent(menu_recent)
-        enable()
+        _update_recent(item_recent)
+        item_change_enable()
     if not changed:
         notify(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
     return changed
@@ -407,9 +403,9 @@ def on_modify_save() -> bool:
     return bool(path)
 
 
-def on_flip(vertical: win32.gui.MenuItem, horizontal: win32.gui.MenuItem):
-    vertical_checked = vertical.is_checked()
-    horizontal_checked = horizontal.is_checked()
+def on_flip(vertical_is_checked: Callable[[], bool], horizontal_is_checked: Callable[[], bool]):
+    vertical_checked = vertical_is_checked()
+    horizontal_checked = horizontal_is_checked()
     if vertical_checked and horizontal_checked:
         CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.BOTH]
     elif vertical_checked:
@@ -512,14 +508,14 @@ def pin_to_start() -> bool:
                          icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(consts.RES_ICON), show=pyinstall.FROZEN)
 
 
-def on_pin_start(enable: Callable, enable_: Callable) -> bool:
+def on_pin_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> bool:
     pinned = False
     if not pin_to_start.is_running():
-        enable(False)
-        enable_(False)
+        item_pin_enable(False)
+        item_unpin_enable(False)
         pinned = pin_to_start()
-        enable_()
-        enable()
+        item_unpin_enable()
+        item_pin_enable()
     if not pinned:
         notify(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
     return pinned
@@ -562,8 +558,8 @@ def on_about():
     notify(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
 
 
-def on_blocked(item: gui.MenuItem):
-    if item.is_checked():
+def on_blocked(checked: bool):
+    if checked:
         check_blocked()
 
 
@@ -671,8 +667,8 @@ def create_menu():  # TODO slideshow (smaller timer)
                 win32.display.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.display.Flip.VERTICAL, win32.display.Flip.BOTH))
             item_horizontal = gui.add_menu_item(STRINGS.FLIP_HORIZONTAL, gui.MenuItemType.CHECK, getattr(
                 win32.display.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.display.Flip.HORIZONTAL, win32.display.Flip.BOTH))
-            gui.set_on_click(item_vertical, on_flip, args=(item_vertical, item_horizontal))
-            gui.set_on_click(item_horizontal, on_flip, args=(item_vertical, item_horizontal))
+            gui.set_on_click(item_vertical, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
+            gui.set_on_click(item_horizontal, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
         gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style: getattr(
             STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style},
                                CONFIG, consts.CONFIG_STYLE, on_click=reapply_wallpaper)
@@ -685,8 +681,7 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_separator()
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS)):
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CONFIG, consts.CONFIG_NOTIFY)
-            item_blocked = gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CONFIG, consts.CONFIG_BLOCKED)
-            gui.set_on_click(item_blocked, on_blocked, args=(item_blocked,))
+            gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CONFIG, consts.CONFIG_BLOCKED, on_click=on_blocked)
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, consts.CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, consts.CONFIG_SKIP)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CONFIG, consts.CONFIG_REAPPLY)
@@ -710,7 +705,7 @@ def start():  # TODO dark theme
     load_config()
     RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))
     gui.init(consts.NAME)
-    first_run()
+    gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, first_run, once=True)
     create_menu()
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE])
     apply_auto_start(CONFIG[consts.CONFIG_START])
@@ -733,10 +728,18 @@ def stop():
 
 
 def main() -> NoReturn:
-    print('Start')
-    start()
-    stop()
-    print('Stop')
+    if consts.FEATURE_EXCEPT_HOOK:
+        utils.hook_except(win32.show_error, format=True)
+    try:
+        start()
+        stop()
+    except BaseException as e:
+        if consts.FEATURE_EXCEPT_HOOK and multiprocessing.parent_process():
+            thread = threading.Thread(target=win32.show_error, args=(type(
+                e), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
+                traceback.format_exception(type(e), e, e.__traceback__))))
+            thread.start()
+        raise
     sys.exit(consts.EX_TEMPFAIL * RESTART.is_set())
 
 

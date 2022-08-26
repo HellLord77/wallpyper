@@ -8,6 +8,7 @@ import datetime
 import functools
 import hashlib
 import inspect
+import io
 import itertools
 import math
 import os
@@ -19,6 +20,7 @@ import secrets
 import sys
 import threading
 import time
+import types
 import typing
 import uuid
 import zlib
@@ -337,8 +339,8 @@ def clear_queue(queue_: queue.Queue) -> int:
     return tasks
 
 
-def iter_io(io: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]:
-    read = io.read
+def iter_stream(stream: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]:
+    read = stream.read
     size = size or sys.maxsize
     chunk = read(size)
     while chunk:
@@ -404,6 +406,33 @@ def decrypt(data: str, default: Any = None, key: Optional[int] = None) -> Any:
             return default
     else:
         return default
+
+
+# noinspection PyShadowingBuiltins
+def hook_except(func: Callable, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None, format: bool = False):
+    if args is None:
+        args = ()
+    if kwargs is None:
+        kwargs = {}
+
+    @functools.wraps(func)
+    def wrapper(hook: Callable, *hook_args, **hook_kwargs):
+        if format:
+            stderr = sys.stderr
+            temp = io.StringIO()
+            sys.stderr = temp
+        hook(*hook_args, **hook_kwargs)
+        if format:
+            # noinspection PyUnboundLocalVariable
+            stderr.write(temp.getvalue())
+            sys.stderr = stderr
+            while not isinstance(hook_args, type):
+                hook_args = hook_args[0]
+            hook_args = (hook_args, temp.getvalue())
+        func(*hook_args, *args, **hook_kwargs, **kwargs)
+
+    sys.excepthook = types.MethodType(wrapper, sys.excepthook)
+    threading.excepthook = types.MethodType(wrapper, threading.excepthook)
 
 
 def _get_params(args, kwargs):
