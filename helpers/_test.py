@@ -13,7 +13,7 @@ from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
-import libs.utils
+import win32
 import win32._gdiplus as gdiplus
 import win32._utils as utils
 import win32.gui as gui
@@ -537,8 +537,7 @@ def _test(*args):
 
 
 if __name__ == '__main__':
-    libs.utils.hook_except(_test, format=True)
-    raise FileNotFoundError('data')
+    print(win32.has_console())
     # _test_hook()
     # _test_gui()
     exit()

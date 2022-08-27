@@ -3989,6 +3989,85 @@ class kernel32(_Func, metaclass=_WinDLL):
                                 _type.BOOL]
     SetConsoleTitleW: _Callable[[_type.LPCWSTR],  # lpConsoleTitle
                                 _type.BOOL]
+    # consoleapi3
+    GetNumberOfConsoleMouseButtons: _Callable[[_Pointer[_type.DWORD]],  # lpNumberOfMouseButtons
+                                              _type.BOOL]
+    GetConsoleFontSize: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                   _type.DWORD],  # nFont
+                                  _struct.COORD]
+    GetConsoleDisplayMode: _Callable[[_Pointer[_type.DWORD]],  # lpModeFlags
+                                     _type.BOOL]
+    SetConsoleDisplayMode: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                      _type.DWORD,  # dwFlags
+                                      _Optional[_Pointer[_struct.COORD]]],  # lpNewScreenBufferDimensions
+                                     _type.BOOL]
+    GetConsoleWindow: _Callable[[],
+                                _type.HWND]
+    AddConsoleAliasA: _Callable[[_type.LPSTR,  # Source
+                                 _type.LPSTR,  # Target
+                                 _type.LPSTR],  # ExeName
+                                _type.BOOL]
+    AddConsoleAliasW: _Callable[[_type.LPWSTR,  # Source
+                                 _type.LPWSTR,  # Target
+                                 _type.LPWSTR],  # ExeName
+                                _type.BOOL]
+    GetConsoleAliasA: _Callable[[_type.LPSTR,  # Source
+                                 _type.LPSTR,  # TargetBuffer
+                                 _type.DWORD,  # TargetBufferLength
+                                 _type.LPSTR],  # ExeName
+                                _type.DWORD]
+    GetConsoleAliasW: _Callable[[_type.LPWSTR,  # Source
+                                 _type.LPWSTR,  # TargetBuffer
+                                 _type.DWORD,  # TargetBufferLength
+                                 _type.LPWSTR],  # ExeName
+                                _type.DWORD]
+    GetConsoleAliasesLengthA: _Callable[[_type.LPSTR],  # ExeName
+                                        _type.DWORD]
+    GetConsoleAliasesLengthW: _Callable[[_type.LPWSTR],  # ExeName
+                                        _type.DWORD]
+    GetConsoleAliasExesLengthA: _Callable[[],
+                                          _type.DWORD]
+    GetConsoleAliasExesLengthW: _Callable[[],
+                                          _type.DWORD]
+    GetConsoleAliasesA: _Callable[[_type.LPSTR,  # AliasBuffer
+                                   _type.DWORD,  # AliasBufferLength
+                                   _type.LPSTR],  # ExeName
+                                  _type.DWORD]
+    GetConsoleAliasesW: _Callable[[_type.LPWSTR,  # AliasBuffer
+                                   _type.DWORD,  # AliasBufferLength
+                                   _type.LPWSTR],  # ExeName
+                                  _type.DWORD]
+    GetConsoleAliasExesA: _Callable[[_type.LPSTR,  # ExeNameBuffer
+                                     _type.DWORD],  # ExeNameBufferLength
+                                    _type.DWORD]
+    GetConsoleAliasExesW: _Callable[[_type.LPWSTR,  # ExeNameBuffer
+                                     _type.DWORD],  # ExeNameBufferLength
+                                    _type.DWORD]
+    ExpungeConsoleCommandHistoryA: _Callable[[_type.LPSTR],  # ExeName
+                                             _type.VOID]
+    ExpungeConsoleCommandHistoryW: _Callable[[_type.LPWSTR],  # ExeName
+                                             _type.VOID]
+    SetConsoleNumberOfCommandsA: _Callable[[_type.DWORD,  # Number
+                                            _type.LPSTR],  # ExeName
+                                           _type.BOOL]
+    SetConsoleNumberOfCommandsW: _Callable[[_type.DWORD,  # Number
+                                            _type.LPWSTR],  # ExeName
+                                           _type.BOOL]
+    GetConsoleCommandHistoryLengthA: _Callable[[_type.LPSTR],  # ExeName
+                                               _type.DWORD]
+    GetConsoleCommandHistoryLengthW: _Callable[[_type.LPWSTR],  # ExeName
+                                               _type.DWORD]
+    GetConsoleCommandHistoryA: _Callable[[_type.LPSTR,  # Commands
+                                          _type.DWORD,  # CommandBufferLength
+                                          _type.LPSTR],  # ExeName
+                                         _type.DWORD]
+    GetConsoleCommandHistoryW: _Callable[[_type.LPWSTR,  # Commands
+                                          _type.DWORD,  # CommandBufferLength
+                                          _type.LPWSTR],  # ExeName
+                                         _type.DWORD]
+    GetConsoleProcessList: _Callable[[_Pointer[_type.DWORD],  # lpdwProcessList
+                                      _type.DWORD],  # dwProcessCount
+                                     _type.DWORD]
     # errhandlingapi
     GetLastError: _Callable[[],
                             _type.DWORD]
@@ -4739,46 +4818,106 @@ class kernel32(_Func, metaclass=_WinDLL):
                                      _Optional[_type.LPCWSTR]],  # lpTimerName
                                     _type.HANDLE]
     # sysinfoapi
-    GetComputerNameExA: _Callable[[_enum.COMPUTER_NAME_FORMAT,
-                                   _Optional[_type.LPSTR],
-                                   _Pointer[_type.DWORD]],
-                                  _type.BOOL]
-    GetComputerNameExW: _Callable[[_enum.COMPUTER_NAME_FORMAT,
-                                   _Optional[_type.LPWSTR],
-                                   _Pointer[_type.DWORD]],
-                                  _type.BOOL]
-    GetSystemDirectoryA: _Callable[[_Optional[_type.LPSTR],
-                                    _type.UINT],
+    GetSystemTime: _Callable[[_Pointer[_struct.SYSTEMTIME]],  # lpSystemTime
+                             _type.VOID]
+    GetSystemTimeAsFileTime: _Callable[[_Pointer[_struct.FILETIME]],  # lpSystemTimeAsFileTime
+                                       _type.VOID]
+    GetLocalTime: _Callable[[_Pointer[_struct.SYSTEMTIME]],  # lpSystemTime
+                            _type.VOID]
+    IsUserCetAvailableInEnvironment: _Callable[[_type.DWORD],  # UserCetEnvironment
+                                               _type.BOOL]
+    GetSystemLeapSecondInformation: _Callable[[_Pointer[_type.BOOL],  # Enabled
+                                               _Pointer[_type.DWORD]],  # _type.BOOL
+                                              _type.BOOL]
+    GetVersion: _Callable[[],
+                          _type.DWORD]
+    GetTickCount: _Callable[[],
+                            _type.DWORD]
+    GetTickCount64: _Callable[[],
+                              _type.ULONGLONG]
+    GetSystemTimeAdjustment: _Callable[[_Pointer[_type.DWORD],  # lpTimeAdjustment
+                                        _Pointer[_type.DWORD],  # lpTimeIncrement
+                                        _Pointer[_type.BOOL]],  # lpTimeAdjustmentDisabled
+                                       _type.BOOL]
+    GetSystemTimeAdjustmentPrecise: _Callable[[_Pointer[_type.DWORD64],  # lpTimeAdjustment
+                                               _Pointer[_type.DWORD64],  # lpTimeIncrement
+                                               _Pointer[_type.BOOL]],  # lpTimeAdjustmentDisabled
+                                              _type.BOOL]
+    GetSystemDirectoryA: _Callable[[_Optional[_type.LPSTR],  # lpBuffer
+                                    _type.UINT],  # uSize
                                    _type.UINT]
-    GetSystemDirectoryW: _Callable[[_Optional[_type.LPWSTR],
-                                    _type.UINT],
+    GetSystemDirectoryW: _Callable[[_Optional[_type.LPWSTR],  # lpBuffer
+                                    _type.UINT],  # uSize
                                    _type.UINT]
-    GetSystemWindowsDirectoryA: _Callable[[_Optional[_type.LPSTR],
-                                           _type.UINT],
+    GetWindowsDirectoryA: _Callable[[_Optional[_type.LPSTR],  # lpBuffer
+                                     _type.UINT],  # uSize
+                                    _type.UINT]
+    GetWindowsDirectoryW: _Callable[[_Optional[_type.LPWSTR],  # lpBuffer
+                                     _type.UINT],  # uSize
+                                    _type.UINT]
+    GetSystemWindowsDirectoryA: _Callable[[_Optional[_type.LPSTR],  # lpBuffer
+                                           _type.UINT],  # uSize
                                           _type.UINT]
-    GetSystemWindowsDirectoryW: _Callable[[_Optional[_type.LPWSTR],
-                                           _type.UINT],
+    GetSystemWindowsDirectoryW: _Callable[[_Optional[_type.LPWSTR],  # lpBuffer
+                                           _type.UINT],  # uSize
                                           _type.UINT]
+    GetComputerNameExA: _Callable[[_enum.COMPUTER_NAME_FORMAT,  # NameType
+                                   _Optional[_type.LPSTR],  # lpBuffer
+                                   _Pointer[_type.DWORD]],  # nSize
+                                  _type.BOOL]
+    GetComputerNameExW: _Callable[[_enum.COMPUTER_NAME_FORMAT,  # NameType
+                                   _Optional[_type.LPWSTR],  # lpBuffer
+                                   _Pointer[_type.DWORD]],  # nSize
+                                  _type.BOOL]
+    SetComputerNameExW: _Callable[[_enum.COMPUTER_NAME_FORMAT,  # NameType
+                                   _type.LPCWSTR],  # lpBuffer
+                                  _type.BOOL]
+    SetSystemTime: _Callable[[_Pointer[_struct.SYSTEMTIME]],  # lpSystemTime
+                             _type.BOOL]
     GetVersionExA: _Callable[[_Pointer[_struct.OSVERSIONINFOA]],
                              _type.BOOL]
     GetVersionExW: _Callable[[_Pointer[_struct.OSVERSIONINFOW]],
                              _type.BOOL]
-    GetWindowsDirectoryA: _Callable[[_Optional[_type.LPSTR],
-                                     _type.UINT],
-                                    _type.UINT]
-    GetWindowsDirectoryW: _Callable[[_Optional[_type.LPWSTR],
-                                     _type.UINT],
-                                    _type.UINT]
-    SetComputerNameExW: _Callable[[_enum.COMPUTER_NAME_FORMAT,
-                                   _type.LPCWSTR],
+    GetSystemTimePreciseAsFileTime: _Callable[[_Pointer[_struct.FILETIME]],  # lpSystemTimeAsFileTime
+                                              _type.VOID]
+    GetProductInfo: _Callable[[_type.DWORD,  # dwOSMajorVersion
+                               _type.DWORD,  # dwOSMinorVersion
+                               _type.DWORD,  # dwSpMajorVersion
+                               _type.DWORD,  # dwSpMinorVersion
+                               _Pointer[_type.DWORD]],  # pdwReturnedProductType
+                              _type.BOOL]
+    VerSetConditionMask: _Callable[[_type.ULONGLONG,  # ConditionMask
+                                    _type.ULONG,  # TypeMask
+                                    _type.UCHAR],  # Condition
+                                   _type.ULONGLONG]
+    GetOsSafeBootMode: _Callable[[_Pointer[_type.DWORD]],  # Flags
+                                 _type.BOOL]
+    GetPhysicallyInstalledSystemMemory: _Callable[[_Pointer[_type.ULONGLONG]],  # TotalMemoryInKilobytes
+                                                  _type.BOOL]
+    SetSystemTimeAdjustment: _Callable[[_type.DWORD,  # dwTimeAdjustment
+                                        _type.BOOL],  # bTimeAdjustmentDisabled
+                                       _type.BOOL]
+    SetSystemTimeAdjustmentPrecise: _Callable[[_type.DWORD64,  # dwTimeAdjustment
+                                               _type.BOOL],  # bTimeAdjustmentDisabled
+                                              _type.BOOL]
+    InstallELAMCertificateInfo: _Callable[[_type.HANDLE],  # ELAMFile
+                                          _type.BOOL]
+    GetOsManufacturingMode: _Callable[[_Pointer[_type.BOOL]],  # pbEnabled
+                                      _type.BOOL]
+    GetIntegratedDisplaySize: _Callable[[_Pointer[_type.c_double]],  # sizeInInches
+                                        _type.HRESULT]
+    SetComputerNameA: _Callable[[_type.LPCSTR],  # lpComputerName
+                                _type.BOOL]
+    SetComputerNameW: _Callable[[_type.LPCWSTR],  # lpComputerName
+                                _type.BOOL]
+    SetComputerNameExA: _Callable[[_enum.COMPUTER_NAME_FORMAT,  # NameType
+                                   _type.LPCSTR],  # lpBuffer
                                   _type.BOOL]
-    SetSystemTime: _Callable[[_Pointer[_struct.SYSTEMTIME]],
-                             _type.BOOL]
     # utilapiset
     Beep: _Callable[[_type.DWORD,  # dwFreq
                      _type.DWORD],  # dwDuration
                     _type.BOOL]
-    # WinBase
+    # WinBase TODO
     ActivateActCtx: _Callable[[_Optional[_type.HANDLE],
                                _Pointer[_type.ULONG_PTR]],
                               _type.BOOL]
@@ -4990,36 +5129,36 @@ class kernel32(_Func, metaclass=_WinDLL):
     ZombifyActCtx: _Callable[[_type.HANDLE],
                              _type.BOOL]
     # WinNls
+    GetSystemDefaultUILanguage: _Callable[[],
+                                          _type.LANGID]
+    GetThreadLocale: _Callable[[],
+                               _type.LCID]
+    SetThreadLocale: _Callable[[_type.LCID],  # Locale
+                               _type.BOOL]
+    GetUserDefaultUILanguage: _Callable[[],
+                                        _type.LANGID]
+    GetUserDefaultLangID: _Callable[[],
+                                    _type.LANGID]
     GetSystemDefaultLangID: _Callable[[],
                                       _type.LANGID]
     GetSystemDefaultLCID: _Callable[[],
                                     _type.LCID]
-    GetSystemDefaultLocaleName: _Callable[[_type.LPWSTR,
-                                           _type.c_int],
-                                          _type.c_int]
-    GetThreadLocale: _Callable[[],
-                               _type.LCID]
-    GetUserDefaultLangID: _Callable[[],
-                                    _type.LANGID]
     GetUserDefaultLCID: _Callable[[],
                                   _type.LCID]
-    GetUserDefaultUILanguage: _Callable[[],
-                                        _type.LANGID]
-    GetUserDefaultLocaleName: _Callable[[_type.LPWSTR,
-                                         _type.c_int],
+    SetThreadUILanguage: _Callable[[_type.LANGID],  # LangID
+                                   _type.LANGID]
+    GetThreadUILanguage: _Callable[[],
+                                   _type.LCID]
+    GetUserDefaultLocaleName: _Callable[[_type.LPWSTR,  # lpLocaleName
+                                         _type.c_int],  # cchLocaleName
                                         _type.c_int]
-    SetThreadLocale: _Callable[[_type.LCID],
-                               _type.BOOL]
+    GetSystemDefaultLocaleName: _Callable[[_type.LPWSTR,  # lpLocaleName
+                                           _type.c_int],  # cchLocaleName
+                                          _type.c_int]
     # winnt
-    RtlGetProductInfo: _Callable[[_type.DWORD,
-                                  _type.DWORD,
-                                  _type.DWORD,
-                                  _type.DWORD,
-                                  _Pointer[_type.DWORD]],
-                                 _type.BOOLEAN]
-    VerSetConditionMask: _Callable[[_type.ULONGLONG,
-                                    _type.DWORD,
-                                    _type.BYTE],
+    VerSetConditionMask: _Callable[[_type.ULONGLONG,  # ConditionMask
+                                    _type.DWORD,  # TypeMask
+                                    _type.BYTE],  # Condition
                                    _type.ULONGLONG]
     # wow64apiset
     Wow64EnableWow64FsRedirection: _Callable[[_type.BOOLEAN],  # Wow64FsEnableRedirection
@@ -5105,39 +5244,46 @@ class msimg32(_Func, metaclass=_WinDLL):
 class ntdll(_Func, metaclass=_WinDLL):
     RtlAreLongPathsEnabled: _Callable[[],
                                       _type.c_ubyte]
+    # winnt
+    RtlGetProductInfo: _Callable[[_type.DWORD,  # OSMajorVersion
+                                  _type.DWORD,  # OSMinorVersion
+                                  _type.DWORD,  # SpMajorVersion
+                                  _type.DWORD,  # SpMinorVersion
+                                  _Pointer[_type.DWORD]],  # ReturnedProductType
+                                 _type.BOOLEAN]
     # winternl
-    RtlAnsiStringToUnicodeString: _Callable[[_Pointer[_struct.UNICODE_STRING],
-                                             _Pointer[_struct.ANSI_STRING],
-                                             _type.BOOLEAN],
-                                            _type.NTSTATUS]
-    RtlFreeAnsiString: _Callable[[_Pointer[_struct.ANSI_STRING]],
+    RtlFreeAnsiString: _Callable[[_Pointer[_struct.ANSI_STRING]],  # AnsiString
                                  _type.VOID]
-    RtlFreeOemString: _Callable[[_Pointer[_struct.OEM_STRING]],
+    RtlFreeUnicodeString: _Callable[[_Pointer[_struct.UNICODE_STRING]],  # UnicodeString
+                                    _type.VOID]
+    RtlFreeOemString: _Callable[[_Pointer[_struct.OEM_STRING]],  # OemString
                                 _type.VOID]
-    RtlFreeUnicodeString: _Callable[[_Pointer[_struct.UNICODE_STRING]],
-                                    _type.VOID]
-    RtlInitAnsiString: _Callable[[_Pointer[_struct.ANSI_STRING],
-                                  _type.PCSZ],
-                                 _type.VOID]
-    RtlInitAnsiStringEx: _Callable[[_Pointer[_struct.ANSI_STRING],
-                                    _type.PCSZ],
-                                   _type.NTSTATUS]
-    RtlInitString: _Callable[[_Pointer[_struct.STRING],
-                              _type.PCSZ],
+    RtlInitString: _Callable[[_Pointer[_struct.STRING],  # DestinationString
+                              _type.PCSZ],  # SourceString
                              _type.VOID]
-    RtlInitStringEx: _Callable[[_Pointer[_struct.STRING],
-                                _type.PCSZ],
+    RtlInitStringEx: _Callable[[_Pointer[_struct.STRING],  # DestinationString
+                                _type.PCSZ],  # SourceString
                                _type.NTSTATUS]
-    RtlInitUnicodeString: _Callable[[_Pointer[_struct.UNICODE_STRING],
-                                     _type.PCWSTR],
+    RtlInitAnsiString: _Callable[[_Pointer[_struct.ANSI_STRING],  # DestinationString
+                                  _type.PCSZ],  # SourceString
+                                 _type.VOID]
+    RtlInitAnsiStringEx: _Callable[[_Pointer[_struct.ANSI_STRING],  # DestinationString
+                                    _type.PCSZ],  # SourceString
+                                   _type.NTSTATUS]
+    RtlInitUnicodeString: _Callable[[_Pointer[_struct.UNICODE_STRING],  # DestinationString
+                                     _type.PCWSTR],  # SourceString
                                     _type.VOID]
-    RtlUnicodeStringToAnsiString: _Callable[[_Pointer[_struct.ANSI_STRING],
-                                             _Pointer[_struct.UNICODE_STRING],
-                                             _type.BOOLEAN],
+    RtlAnsiStringToUnicodeString: _Callable[[_Pointer[_struct.UNICODE_STRING],  # DestinationString
+                                             _Pointer[_struct.ANSI_STRING],  # SourceString
+                                             _type.BOOLEAN],  # AllocateDestinationString
                                             _type.NTSTATUS]
-    RtlUnicodeStringToOemString: _Callable[[_Pointer[_struct.OEM_STRING],
-                                            _Pointer[_struct.UNICODE_STRING],
-                                            _type.BOOLEAN],
+    RtlUnicodeStringToAnsiString: _Callable[[_Pointer[_struct.ANSI_STRING],  # DestinationString
+                                             _Pointer[_struct.UNICODE_STRING],  # SourceString
+                                             _type.BOOLEAN],  # AllocateDestinationString
+                                            _type.NTSTATUS]
+    RtlUnicodeStringToOemString: _Callable[[_Pointer[_struct.OEM_STRING],  # DestinationString
+                                            _Pointer[_struct.UNICODE_STRING],  # SourceString
+                                            _type.BOOLEAN],  # AllocateDestinationString
                                            _type.NTSTATUS]
 
 
@@ -5955,6 +6101,72 @@ class user32(_Func, metaclass=_WinDLL):
                            _type.BOOL]
     GetLastActivePopup: _Callable[[_type.HWND],  # hWnd
                                   _type.HWND]
+    GetWindow: _Callable[[_type.HWND,  # hWnd
+                          _type.UINT],  # uCmd
+                         _type.HWND]
+    SetWindowsHookA: _Callable[[_type.c_int,  # nFilterType
+                                _type.HOOKPROC],  # pfnFilterProc
+                               _type.HHOOK]
+    SetWindowsHookW: _Callable[[_type.c_int,  # nFilterType
+                                _type.HOOKPROC],  # pfnFilterProc
+                               _type.HHOOK]
+    UnhookWindowsHook: _Callable[[_type.c_int,  # nCode
+                                  _type.HOOKPROC],  # pfnFilterProc
+                                 _type.BOOL]
+    SetWindowsHookExA: _Callable[[_type.c_int,  # idHook
+                                  _type.HOOKPROC,  # lpfn
+                                  _type.HINSTANCE,  # hmod
+                                  _type.DWORD],  # dwThreadId
+                                 _type.HHOOK]
+    SetWindowsHookExW: _Callable[[_type.c_int,  # idHook
+                                  _type.HOOKPROC,  # lpfn
+                                  _type.HINSTANCE,  # hmod
+                                  _type.DWORD],  # dwThreadId
+                                 _type.HHOOK]
+    UnhookWindowsHookEx: _Callable[[_type.HHOOK],  # hhk
+                                   _type.BOOL]
+    CallNextHookEx: _Callable[[_Optional[_type.HHOOK],  # hhk
+                               _type.c_int,  # nCode
+                               _type.WPARAM,  # wParam
+                               _type.LPARAM],  # lParam
+                              _type.LRESULT]
+    CheckMenuRadioItem: _Callable[[_type.HMENU,  # hmenu
+                                   _type.UINT,  # first
+                                   _type.UINT,  # last
+                                   _type.UINT,  # check
+                                   _type.UINT],  # flags
+                                  _type.BOOL]
+    LoadBitmapA: _Callable[[_Optional[_type.HINSTANCE],  # hInstance
+                            _type.LPCSTR],  # lpBitmapName
+                           _type.HBITMAP]
+    LoadBitmapW: _Callable[[_Optional[_type.HINSTANCE],  # hInstance
+                            _type.LPCWSTR],  # lpBitmapName
+                           _type.HBITMAP]
+    LoadCursorA: _Callable[[_Optional[_type.HINSTANCE],  # hInstance
+                            _type.LPCSTR],  # lpCursorName
+                           _type.HCURSOR]
+    LoadCursorW: _Callable[[_Optional[_type.HINSTANCE],  # hInstance
+                            _type.LPCWSTR],  # lpCursorName
+                           _type.HCURSOR]
+    LoadCursorFromFileA: _Callable[[_type.LPCSTR],  # lpFileName
+                                   _type.HCURSOR]
+    LoadCursorFromFileW: _Callable[[_type.LPCWSTR],  # lpFileName
+                                   _type.HCURSOR]
+    DestroyCursor: _Callable[[_type.HCURSOR],  # hCursor
+                             _type.BOOL]
+    SetSystemCursor: _Callable[[_type.HCURSOR,  # hcur
+                                _type.DWORD],  # id
+                               _type.BOOL]
+    LoadIconA: _Callable[[_Optional[_type.HINSTANCE],  # hInstance
+                          _type.UINT],  # lpIconName
+                         _type.HICON]
+    LoadIconW: _Callable[[_Optional[_type.HINSTANCE],  # hInstance
+                          _type.LPCWSTR],  # lpIconName
+                         _type.HICON]
+    DestroyIcon: _Callable[[_type.HICON],  # hIcon
+                           _type.BOOL]
+    SetThreadCursorCreationScaling: _Callable[[_type.UINT],  # cursorDpi
+                                              _type.UINT]
     SetLastErrorEx: _Callable[[_type.DWORD,  # dwErrCode
                                _type.DWORD],  # dwType
                               _type.VOID]
@@ -6070,12 +6282,6 @@ class user32(_Func, metaclass=_WinDLL):
                               _type.UINT,
                               _type.UINT],
                              _type.DWORD]
-    CheckMenuRadioItem: _Callable[[_type.HMENU,
-                                   _type.UINT,
-                                   _type.UINT,
-                                   _type.UINT,
-                                   _type.UINT],
-                                  _type.BOOL]
     CheckRadioButton: _Callable[[_type.HWND,
                                  _type.c_int,
                                  _type.c_int,
@@ -6188,10 +6394,6 @@ class user32(_Func, metaclass=_WinDLL):
                            _type.UINT,
                            _type.UINT],
                           _type.BOOL]
-    DestroyCursor: _Callable[[_type.HCURSOR],
-                             _type.BOOL]
-    DestroyIcon: _Callable[[_type.HICON],
-                           _type.BOOL]
     DestroyMenu: _Callable[[_type.HMENU],
                            _type.BOOL]
     DestroyWindow: _Callable[[_type.HWND],
@@ -6502,9 +6704,6 @@ class user32(_Func, metaclass=_WinDLL):
                                 _type.c_int]
     GetUnpredictedMessagePos: _Callable[[],
                                         _type.DWORD]
-    GetWindow: _Callable[[_type.HWND,
-                          _type.UINT],
-                         _type.HWND]
     GetWindowDC: _Callable[[_Optional[_type.HWND]],
                            _type.HDC]
     GetWindowDisplayAffinity: _Callable[[_type.HWND,
@@ -6584,22 +6783,6 @@ class user32(_Func, metaclass=_WinDLL):
     KillTimer: _Callable[[_type.HWND,
                           _type.UINT_PTR],
                          _type.BOOL]
-    LoadCursorA: _Callable[[_Optional[_type.HINSTANCE],
-                            _type.LPCSTR],
-                           _type.HCURSOR]
-    LoadCursorW: _Callable[[_Optional[_type.HINSTANCE],
-                            _type.LPCWSTR],
-                           _type.HCURSOR]
-    LoadCursorFromFileA: _Callable[[_type.LPCSTR],
-                                   _type.HCURSOR]
-    LoadCursorFromFileW: _Callable[[_type.LPCWSTR],
-                                   _type.HCURSOR]
-    LoadIconA: _Callable[[_Optional[_type.HINSTANCE],
-                          _type.UINT],
-                         _type.HICON]
-    LoadIconW: _Callable[[_Optional[_type.HINSTANCE],
-                          _type.LPCWSTR],
-                         _type.HICON]
     LoadImageA: _Callable[[_Optional[_type.HINSTANCE],
                            _type.LPCSTR,
                            _type.UINT,
@@ -6912,22 +7095,6 @@ class user32(_Func, metaclass=_WinDLL):
                              _type.c_int,
                              _type.UINT],
                             _type.BOOL]
-    SetWindowsHookA: _Callable[[_type.c_int,
-                                _type.HOOKPROC],
-                               _type.HHOOK]
-    SetWindowsHookW: _Callable[[_type.c_int,
-                                _type.HOOKPROC],
-                               _type.HHOOK]
-    SetWindowsHookExA: _Callable[[_type.c_int,
-                                  _type.HOOKPROC,
-                                  _type.HINSTANCE,
-                                  _type.DWORD],
-                                 _type.HHOOK]
-    SetWindowsHookExW: _Callable[[_type.c_int,
-                                  _type.HOOKPROC,
-                                  _type.HINSTANCE,
-                                  _type.DWORD],
-                                 _type.HHOOK]
     SetWindowTextA: _Callable[[_type.HWND,
                                _type.LPCSTR],
                               _type.BOOL]
@@ -6994,11 +7161,6 @@ class user32(_Func, metaclass=_WinDLL):
                                 _type.BOOL]
     UnhookWinEvent: _Callable[[_type.HWINEVENTHOOK],
                               _type.BOOL]
-    UnhookWindowsHook: _Callable[[_type.c_int,
-                                  _type.HOOKPROC],
-                                 _type.BOOL]
-    UnhookWindowsHookEx: _Callable[[_type.HHOOK],
-                                   _type.BOOL]
     UnionRect: _Callable[[_Pointer[_struct.RECT],
                           _Pointer[_struct.RECT],
                           _Pointer[_struct.RECT]],

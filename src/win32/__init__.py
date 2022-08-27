@@ -260,6 +260,25 @@ def press_keyboard(key: int) -> bool:
     return False
 
 
+def has_console() -> bool:
+    return bool(ctyped.lib.kernel32.GetConsoleWindow())
+
+
+def create_console(title: Optional[str] = None, ignore_ctrl_c: bool = False, remove_close: bool = False) -> bool:
+    created = bool(ctyped.lib.kernel32.AllocConsole())
+    if title is not None:
+        ctyped.lib.kernel32.SetConsoleTitleW(title)
+    if ignore_ctrl_c:
+        ctyped.lib.kernel32.SetConsoleCtrlHandler(ctyped.type.PHANDLER_ROUTINE(), True)
+    if remove_close:
+        ctyped.handle.HMENU.from_hwnd(ctyped.lib.kernel32.GetConsoleWindow(), True).delete_item(ctyped.const.SC_CLOSE)
+    return created
+
+
+def remove_console() -> bool:
+    return bool(ctyped.lib.kernel32.FreeConsole())
+
+
 def open_file(path: str) -> bool:
     return ctyped.lib.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
 

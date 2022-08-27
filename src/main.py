@@ -159,7 +159,7 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 
 
 @timer.on_thread
-def first_run(*_):
+def on_shown(*_):
     if CONFIG[consts.CONFIG_FIRST]:
         CONFIG[consts.CONFIG_FIRST] = not notify(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
@@ -705,7 +705,7 @@ def start():  # TODO dark theme
     load_config()
     RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))
     gui.init(consts.NAME)
-    gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, first_run, once=True)
+    gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     create_menu()
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE])
     apply_auto_start(CONFIG[consts.CONFIG_START])
@@ -728,6 +728,9 @@ def stop():
 
 
 def main() -> NoReturn:
+    # if not win32.has_console():  TODO hidden console
+    #     win32.create_console(consts.NAME, True, True)
+    #     sys.stdout = sys.stderr = open('CONOUT$', 'w')
     if consts.FEATURE_EXCEPT_HOOK:
         utils.hook_except(win32.show_error, format=True)
     try:

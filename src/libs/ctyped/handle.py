@@ -127,8 +127,8 @@ class HMENU(_type.HMENU):
         return cls(_lib.user32.CreatePopupMenu() if popup else _lib.user32.CreateMenu())
 
     @classmethod
-    def from_hwnd(cls, hwnd: _type.HWND) -> HMENU:
-        self = cls(_lib.user32.GetMenu(hwnd))
+    def from_hwnd(cls, hwnd: _type.HWND, system: bool = False) -> HMENU:
+        self = cls(_lib.user32.GetSystemMenu(hwnd, False) if system else _lib.user32.GetMenu(hwnd))
         self._hwnd = hwnd
         return self
 
@@ -142,6 +142,9 @@ class HMENU(_type.HMENU):
 
     def get_item_count(self) -> int:
         return _lib.user32.GetMenuItemCount(self)
+
+    def delete_item(self, id_or_pos: int, by_pos: bool = False) -> bool:
+        return bool(_lib.user32.DeleteMenu(self, id_or_pos, _HMENU_MF[by_pos]))
 
     def remove_item(self, id_or_pos: int, by_pos: bool = False) -> bool:
         return bool(_lib.user32.RemoveMenu(self, id_or_pos, _HMENU_MF[by_pos]))
@@ -226,12 +229,6 @@ class HRGN(_type.HRGN):
 class HWND(_type.HWND):
     def __del__(self):
         _lib.user32.DestroyWindow(self)
-
-    def get_hdc(self) -> HDC:
-        return HDC.from_hwnd(self)
-
-    def get_menu(self) -> HMENU:
-        return HMENU.from_hwnd(self)
 
     def is_visible(self) -> bool:
         return bool(_lib.user32.IsWindowVisible(self))

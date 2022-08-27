@@ -3,7 +3,7 @@ $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $Datas = @(
 "libs\colornames\res",
-"libs\ctyped\interface.json",
+"libs\ctyped\interface.pickle",
 "libs\ctyped\interface.pyi",
 "libs\iso\res",
 "modules\res",
@@ -20,8 +20,8 @@ $OneFile = $True
 $OptimizationLevel = 2
 $UPX = $False
 $MainManifest = "manifest.xml"
-$RunBefore = "import src.libs.ctyped; src.libs.ctyped.interface._dump_cache()"
-$RunAfter = "import os; os.remove('src\libs\ctyped\interface.json')"
+$RunBefore = "import src.libs.ctyped; src.libs.ctyped.interface._dump_pickle()"
+$RunAfter = "import os; os.remove('src\libs\ctyped\interface.pickle')"
 
 function Get-Name
 {

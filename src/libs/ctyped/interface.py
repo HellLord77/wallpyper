@@ -3,7 +3,6 @@ from __future__ import annotations as _  # TODO docs
 import ctypes as _ctypes
 import functools as _functools
 import hashlib as _hashlib
-import json as _json
 import ntpath as _ntpath
 import re as _re
 import shutil as _shutil
@@ -116,7 +115,7 @@ def _get_vtbl(cls: type, name: _Optional[str] = None) -> type[_ctypes.Structure]
     fields = []
     args = getattr(cls, '_args', None)
     for base in reversed(cls.__mro__):
-        if hints := _typing.get_type_hints(base):
+        if hints := _typing.get_type_hints(base, _LOCALS, _LOCALS):
             for func_name in base.__annotations__:
                 types = _resolve_type(hints[func_name], args)
                 types.insert(1, _type.c_void_p)
@@ -167,13 +166,13 @@ def _get_hash() -> str:
     return md5.hexdigest()
 
 
-def _get_interfaces(namespace):
-    # noinspection PyProtectedMember
-    interfaces = namespace._interfaces
+def _get_interfaces(namespace) -> dict[str, tuple[int, int] | dict]:
     for name, value in vars(namespace).items():
         if isinstance(value, _NamespaceMeta):
-            interfaces[name] = _get_interfaces(value)
-    return interfaces
+            # noinspection PyProtectedMember
+            namespace._interfaces[name] = _get_interfaces(value)
+    # noinspection PyProtectedMember
+    return namespace._interfaces
 
 
 def _set_interfaces(namespace, interfaces: dict[str, tuple[int, int] | dict]):
@@ -189,19 +188,43 @@ def _set_interfaces(namespace, interfaces: dict[str, tuple[int, int] | dict]):
         del interfaces[name]
 
 
-def _dump_cache():
+def _dump_json():
+    import json
     interfaces = _get_interfaces(_sys.modules[__name__])
     with open(_NAME_TEMPLATE.format('json'), 'w') as file:
-        _json.dump({_get_hash(): interfaces}, file, indent=2)
+        json.dump({_get_hash(): interfaces}, file)
 
 
-def _load_cache() -> bool:
+def _load_json() -> bool:
+    import json
     path = _NAME_TEMPLATE.format('json')
     if _ntpath.isfile(path):
         with open(path) as file:
             try:
-                data = _json.load(file)
-            except _json.JSONDecodeError:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = {}
+        if interfaces := data.get(_get_hash()):
+            _set_interfaces(_sys.modules[__name__], interfaces)
+            return True
+    return False
+
+
+def _dump_pickle():
+    import pickle
+    interfaces = _get_interfaces(_sys.modules[__name__])
+    with open(_NAME_TEMPLATE.format('pickle'), 'wb') as file:
+        pickle.dump({_get_hash(): interfaces}, file)
+
+
+def _load_pickle() -> bool:
+    import pickle
+    path = _NAME_TEMPLATE.format('pickle')
+    if _ntpath.isfile(path):
+        with open(path, 'rb') as file:
+            try:
+                data = pickle.load(file)
+            except pickle.UnpicklingError:
                 data = {}
         if interfaces := data.get(_get_hash()):
             _set_interfaces(_sys.modules[__name__], interfaces)
@@ -215,7 +238,10 @@ def _init():
     with open(_NAME_TEMPLATE.format('pyi')) as file:
         _LINES = file.read().splitlines()
     _module = _sys.modules[__name__]
-    if not _load_cache():
+    if not _load_pickle() and not _load_json():
+        if not __debug__:
+            import warnings  # noqa
+            warnings.warn('Invalid cache')
         class_match = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:').fullmatch
         _module._interfaces = {}
         level = 0

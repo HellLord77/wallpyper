@@ -63,5 +63,11 @@ def main():
         json.dump(interfaces, file, indent=2)
 
 
+def _test():
+    import libs.ctyped as ctyped
+    # print(ctyped.interface._dump_pickle())
+    print(ctyped.interface.ID2D1SolidColorBrush())
+
+
 if __name__ == '__main__':
-    main()
+    _test()
