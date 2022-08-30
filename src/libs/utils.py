@@ -423,7 +423,7 @@ def decrypt(data: str, default: Any = None, key: Optional[int] = None) -> Any:
             uuid.getnode() if key is None else key).encode()).digest():
         try:
             return pickle.loads(decoded[size:])
-        except AttributeError:
+        except (AttributeError, ModuleNotFoundError):
             return default
     else:
         return default

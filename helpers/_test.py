@@ -5,13 +5,15 @@ __version__ = '0.0.0'
 import atexit
 import io
 import ntpath
-import os
 import sys
 import threading
 import time
 import tkinter.messagebox
 from typing import Callable, TypeVar
 from typing import Optional
+
+from PyInstaller.lib.modulegraph.__main__ import create_graph
+from PyInstaller.lib.modulegraph.modulegraph import Node
 
 import libs.ctyped as ctyped
 import win32._gdiplus as gdiplus
@@ -59,8 +61,7 @@ def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui.MenuItem):
 
 
 def _foo2(e: int, s: gui.SystemTray):
-    print(s.start_animation(
-        r'D:\Projects\Wallpyper\src\res\busy.gif'))  # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
+    print(s.start_animation(r'D:\Projects\Wallpyper\src\res\busy.gif'))  # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
 
 
 def foo3(e, m: gui.SystemTray, s: gui.SystemTray):
@@ -100,8 +101,7 @@ def _test_gui():
     ball = menu.append_item('balloon\tright2')
     ball.set_tooltip('another tip')
     ball.bind(gui.MenuItemEvent.RIGHT_UP, lambda *args: print('balloon button right up'))
-    ball.bind(gui.MenuItemEvent.LEFT_UP,
-              lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\res\icon.ico'))
+    ball.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\res\icon.ico'))
     # print(menu.set_item_image(it, p))
     # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
     item = menu.append_item('text')
@@ -177,17 +177,13 @@ def _test_gui():
 
 
 def _test_settings():
-    info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open', lpFile='ms-settings:mobile-devices',
-                                           nShow=ctyped.const.SW_NORMAL)
+    info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open', lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
     print(ctyped.lib.shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
-class ToastDismiss(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[
-                       ctyped.interface.Windows.UI.Notifications.IToastNotification,
-                       ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs]):
+class ToastDismiss(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[ctyped.interface.Windows.UI.Notifications.IToastNotification, ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs]):
     # noinspection PyPep8Naming
-    def Invoke(self, sender: ctyped.interface.Windows.UI.Notifications.IToastNotification,
-               args: ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs) -> ctyped.type.HRESULT:
+    def Invoke(self, sender: ctyped.interface.Windows.UI.Notifications.IToastNotification, args: ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs) -> ctyped.type.HRESULT:
         print('invoke', self, sender, args)
         reason = ctyped.enum.Windows.UI.Notifications.ToastDismissalReason()
         args.get_Reason(ctyped.byref(reason))
@@ -258,15 +254,10 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
         ctx = ctyped.struct.ACTCTXW(lpSource=path)
         handle = ctyped.lib.kernel32.CreateActCtxW(ctyped.byref(ctx))
     sz = ctyped.type.SIZE_T()
-    if not ctyped.lib.kernel32.QueryActCtxW(
-            ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None,
-            ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, None, 0,
-            ctyped.byref(sz)) and ctyped.lib.kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
+    if not ctyped.lib.kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, None, 0,
+                                            ctyped.byref(sz)) and ctyped.lib.kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
         buff = ctyped.lib.kernel32.HeapAlloc(ctyped.lib.kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
-        if ctyped.lib.kernel32.QueryActCtxW(
-                ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None,
-                ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext,
-                buff, sz, ctyped.byref(sz)):
+        if ctyped.lib.kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, buff, sz, ctyped.byref(sz)):
             info = ctyped.cast(buff, ctyped.struct.ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION).contents
             compatibility = (*ctyped.resize_array(info.Elements, info.ElementCount),)
         if buff:
@@ -297,14 +288,11 @@ def set_lock():
 
 def _dwrite_font():
     bitmap = gdiplus.Bitmap.from_dimension(100, 100)
-    with utils.get_d2d1_dc_render_target() as target, ctyped.init_com(
-            ctyped.interface.IDWriteFactory, False) as factory, ctyped.init_com(
-        ctyped.interface.IDWriteTextFormat, False) as text_format, ctyped.init_com(
-        ctyped.interface.ID2D1SolidColorBrush, False) as brush, gdiplus.Graphics.from_image(bitmap).get_managed_hdc() as hdc:
-        if target and ctyped.macro.SUCCEEDED(ctyped.lib.DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(
-                ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
-            factory.CreateTextFormat("Wingdings", None, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL,
-                                     ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
+    with utils.get_d2d1_dc_render_target() as target, ctyped.init_com(ctyped.interface.IDWriteFactory, False) as factory, ctyped.init_com(ctyped.interface.IDWriteTextFormat, False) as text_format, ctyped.init_com(ctyped.interface.ID2D1SolidColorBrush,
+                                                                                                                                                                                                                     False) as brush, gdiplus.Graphics.from_image(
+        bitmap).get_managed_hdc() as hdc:
+        if target and ctyped.macro.SUCCEEDED(ctyped.lib.DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
+            factory.CreateTextFormat("Wingdings", None, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL, ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
             print(text_format.GetFontSize())
             col = ctyped.struct.D3DCOLORVALUE(1, 0, 0, 1)
             print(target.CreateSolidColorBrush(ctyped.byref(col), None, ctyped.byref(brush)))
@@ -313,8 +301,7 @@ def _dwrite_font():
             target.BindDC(hdc, ctyped.byref(rect2))
             text = 'Hello World \u0028'
             target.BeginDraw()
-            target.DrawText(text, len(text), text_format, ctyped.byref(
-                rect), brush, ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
+            target.DrawText(text, len(text), text_format, ctyped.byref(rect), brush, ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
             target.EndDraw(None, None)
     gdiplus.image_save(bitmap, 'd:\\test.png')
 
@@ -326,8 +313,7 @@ FunctionAddress = TypeVar('FunctionAddress', bound=int)
 class Thread(ctyped.type.HANDLE):
     @classmethod
     def create_remote(cls, proc, target: FunctionAddress, arg: Optional[int] = None, suspended: bool = False) -> Thread:
-        return cls(ctyped.lib.kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(
-            target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
+        return cls(ctyped.lib.kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
 
     def set_priority(self, priority: int) -> bool:
         return bool(ctyped.lib.kernel32.SetThreadPriority(self, priority))
@@ -380,8 +366,7 @@ class RemoteProcess:
 
     def write_mem(self, addr: PageAddress, data: bytes | str, size: Optional[int] = None) -> bool:
         if size is None:
-            size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(data, (
-                str)) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
+            size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(data, (str)) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
         return bool(ctyped.lib.kernel32.WriteProcessMemory(self._handle, addr, data, size, None))
 
     def load_lib(self, lib) -> bool:
@@ -390,8 +375,7 @@ class RemoteProcess:
         if arg_addr:
             if self.write_mem(arg_addr, lib_path):
                 # print(ctyped.cast(self.read_mem(arg_addr, len(lib_path)), ctyped.type.LPSTR).value)
-                if lib_remote := self.call_func(ctyped.addressof_func(
-                        ctyped.lib.kernel32.LoadLibraryA), arg_addr).get_exit_code():
+                if lib_remote := self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.LoadLibraryA), arg_addr).get_exit_code():
                     self._libs_remote[lib] = lib_remote
                     self._libs_local[lib] = ctyped.lib.kernel32.GetModuleHandleA(lib_path)
             self.free_mem(arg_addr)
@@ -405,8 +389,7 @@ class RemoteProcess:
 
     def get_remote_func(self, func: Callable, lib) -> FunctionAddress:
         lib_local = self._libs_local[lib]
-        return self._libs_remote[lib] + ctyped.lib.kernel32.GetProcAddress(
-            lib_local, func.__name__.encode()) - lib_local
+        return self._libs_remote[lib] + ctyped.lib.kernel32.GetProcAddress(lib_local, func.__name__.encode()) - lib_local
 
     def call_func(self, func: FunctionAddress, arg: Optional[int] = None, wait: bool = True) -> Thread:
         thread = Thread.create_remote(self._handle, func, arg)
@@ -436,12 +419,10 @@ class PyRemoteProcess(RemoteProcess):
         return not self.is_initialized()
 
     def finalize_ex(self) -> bool:
-        return self.call_func(self.get_remote_func(
-            ctyped.lib.python.Py_FinalizeEx, ctyped.lib.python)).get_exit_code() == 0
+        return self.call_func(self.get_remote_func(ctyped.lib.python.Py_FinalizeEx, ctyped.lib.python)).get_exit_code() == 0
 
     def is_initialized(self) -> bool:
-        return bool(self.call_func(self.get_remote_func(
-            ctyped.lib.python.Py_IsInitialized, ctyped.lib.python)).get_exit_code())
+        return bool(self.call_func(self.get_remote_func(ctyped.lib.python.Py_IsInitialized, ctyped.lib.python)).get_exit_code())
 
     def set_path(self: RemoteProcess, *paths: str):
         arg = ';'.join(paths)
@@ -454,8 +435,7 @@ class PyRemoteProcess(RemoteProcess):
         self.call_func(self.get_remote_func(ctyped.lib.python.PyErr_Print, ctyped.lib.python)).get_exit_code()
 
     def err_print_ex(self, set_vars: bool = False):
-        self.call_func(self.get_remote_func(
-            ctyped.lib.python.PyErr_PrintEx, ctyped.lib.python), set_vars).get_exit_code()
+        self.call_func(self.get_remote_func(ctyped.lib.python.PyErr_PrintEx, ctyped.lib.python), set_vars).get_exit_code()
 
     def run_simple_string(self, string: str) -> bool:
         arg = string.encode() + b'\0'
@@ -474,8 +454,7 @@ class PyRemoteProcessEx(PyRemoteProcess):
         return bool(self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.FreeConsole)).get_exit_code())
 
     def reopen_console(self) -> bool:
-        return self.run_simple_string(
-            "import sys; sys.stdin = open('CONIN$', 'r'); sys.stdout = sys.stderr = open('CONOUT$', 'w')")
+        return self.run_simple_string("import sys; sys.stdin = open('CONIN$', 'r'); sys.stdout = sys.stderr = open('CONOUT$', 'w')")
 
     def exec_file(self, path: str) -> bool:
         return self.run_simple_string(f"exec(open('{path}').read())")
@@ -532,11 +511,13 @@ def _test_hook():
     proc.free_console()
 
 
-def _test():
-    os.chdir(r'D:\Projects\wallpyper')
-    from Cython.Build.Dependencies import extended_iglob
+def get_imported_modules(script_path: str, *excludes: str) -> tuple[Node]:
+    graph = create_graph((script_path,), False, 1, excludes, [])
+    return tuple(graph.iter_graph())
 
-    print(';'.join(extended_iglob(r"src\libs\{colornames,iso}\__init__.py")))
+
+def _test():
+    pass
 
 
 if __name__ == '__main__':

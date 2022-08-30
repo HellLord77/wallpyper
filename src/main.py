@@ -721,7 +721,7 @@ def start():  # TODO dark theme
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE)
     _update_display()
     load_config()
-    RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))
+    RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))  # TODO .py cannot load .pyd RECENT
     gui.init(consts.NAME)
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     create_menu()
