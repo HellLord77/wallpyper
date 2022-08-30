@@ -8,10 +8,8 @@ import tracemalloc
 @contextlib.contextmanager
 def timeit():
     start = time.time()
-    try:
-        yield
-    finally:
-        print(time.time() - start)
+    yield
+    print(time.time() - start)
 
 
 def bench():

@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: .\build.ps1 Install-Dependencies
+        run: .\build.ps1 install
       - name: Build project
         run: .\build.ps1
       - name: Upload build
@@ -21,4 +21,4 @@ jobs:
           MEGA_USERNAME: ${{ secrets.USERNAME }}
           MEGA_PASSWORD: ${{ secrets.PASSWORD }}
           PYTHON_VERSION: ${{ matrix.python-version }}
-        run: .\build.ps1 UploadBuildToMEGA
+        run: .\build.ps1 upload

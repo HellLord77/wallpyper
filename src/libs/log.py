@@ -3,7 +3,6 @@ __version__ = '0.0.12'
 import atexit
 import contextlib
 import datetime
-import importlib
 import io
 import logging
 import os
@@ -170,8 +169,7 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, ch
         _PATTERN = re.compile(f'({"|".join(patterns)})')
     Level.CURRENT = level
     if redirect_wx:
-        # noinspection PyUnresolvedReferences
-        importlib.import_module('wx').GetApp().RedirectStdio()
+        __import__('wx').GetApp().RedirectStdio()
     if check_comp:
         _fix_compatibility()
     if _WRITE:
@@ -180,7 +178,6 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, ch
             sys.stderr.write = types.MethodType(_WRITE, sys.stderr.write)
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
-        # noinspection PyUnresolvedReferences
         logging.error(
             f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
     else:

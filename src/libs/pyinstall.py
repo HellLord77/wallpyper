@@ -1,5 +1,6 @@
 __version__ = '0.0.2'
 
+import __main__
 import glob
 import importlib
 import io
@@ -11,6 +12,13 @@ from xml.etree import ElementTree
 
 FROZEN = hasattr(sys, 'frozen')
 TEMP_DIR = getattr(sys, '_MEIPASS', '')
+
+
+def get_launch_args() -> tuple[str, ...]:
+    if FROZEN:
+        return sys.executable,
+    else:
+        return sys.executable, os.path.realpath(__main__.__file__)
 
 
 def clean_temp(remove_base: bool = False) -> bool:

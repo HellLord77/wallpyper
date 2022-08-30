@@ -17,7 +17,7 @@ class _ISOMeta(type):
     def __iter__(cls):
         if cls._items is None:
             iso = cls._iso or f'{cls.__name__[3:-1]}-{cls.__name__[-1]}'
-            with open(os.path.join(os.path.dirname(__file__), 'res', f'iso_{iso}.json'), encoding='utf-8') as file:
+            with open(os.path.join(os.path.dirname(__file__), f'iso_{iso}.json'), encoding='utf-8') as file:
                 cls._items = json.load(file)[iso]
         # noinspection PyProtectedMember
         return (item[cls._BASE_._fields[0]] for item in cls._items)

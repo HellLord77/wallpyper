@@ -7,6 +7,7 @@ import itertools
 import math
 import multiprocessing
 import os.path
+import subprocess
 import sys
 import tempfile
 import threading
@@ -49,6 +50,7 @@ DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT)
+CONSOLE: Optional[win32.pipe.TextNamedPipe] = win32.pipe.TextNamedPipe(UUID)
 
 DEFAULT_CONFIG = {
     consts.CONFIG_LAST: math.inf,
@@ -216,7 +218,7 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
     if query_callback:
-        query_callback(0, *() if args is None else args, **{} if kwargs is None else kwargs)
+        query_callback(0.0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if wallpaper is None:
         with gui.animate(STRINGS.STATUS_FETCH):
             wallpaper = get_next_wallpaper()
@@ -451,16 +453,9 @@ def on_display_change(update: int, _: Optional[gui.Gui], item: win32.gui.MenuIte
     # TODO add lock screen
 
 
-def _get_launch_args() -> list[str]:
-    argv = [sys.executable]
-    if not pyinstall.FROZEN:
-        argv.append(os.path.realpath(__file__))
-    return argv
-
-
 def _create_shortcut(dir_: str) -> bool:
     return files.make_dir(dir_) and win32.create_shortcut(os.path.join(
-        dir_, consts.NAME), *_get_launch_args(), icon_path=RES_TEMPLATE.format(consts.RES_ICON) * (
+        dir_, consts.NAME), *pyinstall.get_launch_args(), icon_path=RES_TEMPLATE.format(consts.RES_ICON) * (
         not pyinstall.FROZEN), comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
 
 
@@ -490,21 +485,21 @@ def on_remove_start_shortcuts() -> bool:
 
 def on_pin() -> bool:
     if not (pinned := win32.add_pin(
-            *_get_launch_args(), name=consts.NAME, icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(
+            *pyinstall.get_launch_args(), name=consts.NAME, icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(
                 consts.RES_ICON), show=pyinstall.FROZEN)):
         notify(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
     return pinned
 
 
 def on_unpin() -> bool:
-    if not (unpinned := win32.remove_pins(*_get_launch_args())):
+    if not (unpinned := win32.remove_pins(*pyinstall.get_launch_args())):
         notify(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
     return unpinned
 
 
 @utils.singleton_run
 def pin_to_start() -> bool:
-    return win32.add_pin(*_get_launch_args(), taskbar=False, name=consts.NAME,
+    return win32.add_pin(*pyinstall.get_launch_args(), taskbar=False, name=consts.NAME,
                          icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(consts.RES_ICON), show=pyinstall.FROZEN)
 
 
@@ -522,9 +517,30 @@ def on_pin_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> bool
 
 
 def on_unpin_start() -> bool:
-    if not (unpinned := win32.remove_pins(*_get_launch_args(), taskbar=False)):
+    if not (unpinned := win32.remove_pins(*pyinstall.get_launch_args(), taskbar=False)):
         notify(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
     return unpinned
+
+
+def on_console():  # TODO
+    if win32.pipe.exists(UUID):
+        CONSOLE.close()
+    else:
+        if pyinstall.FROZEN:
+            launch_args = files.replace_ext(win32.pipe.__file__, 'exe'),
+        else:
+            launch_args = sys.executable, win32.pipe.__file__
+        subprocess.Popen((*launch_args, UUID), creationflags=subprocess.CREATE_NEW_CONSOLE)
+        client = win32.pipe.client(UUID, consts.PIPE_TIMEOUT)  # stdout, stderr
+        CONSOLE.value = client.value
+        client.value = None
+        if CONSOLE:
+            # flush all output
+            sys.stdout.write = utils.call_after(CONSOLE.write)(sys.stdout.write)
+            print('hello fancy new console')
+        else:
+            # notify error
+            pass
 
 
 def on_clear_cache() -> bool:
@@ -565,7 +581,7 @@ def on_blocked(checked: bool):
 
 def apply_auto_start(start_: bool) -> bool:
     return win32.register_autorun(
-        consts.NAME, *_get_launch_args(), *((consts.ARG_CHANGE,) if CONFIG[consts.CONFIG_INTERVAL] else ()),
+        consts.NAME, *pyinstall.get_launch_args(), *((consts.ARG_CHANGE,) if CONFIG[consts.CONFIG_INTERVAL] else ()),
         show=pyinstall.FROZEN, uid=UUID) if start_ else win32.unregister_autorun(consts.NAME, UUID)
 
 
@@ -627,19 +643,21 @@ def create_menu():  # TODO slideshow (smaller timer)
                 RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
             gui.add_menu_item(
-                STRINGS.LABEL_PIN, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_pin).set_icon(
+                STRINGS.LABEL_PIN, enable=consts.FEATURE_SYS_PIN, on_click=on_pin).set_icon(
                 RES_TEMPLATE.format(consts.RES_PIN))
             gui.add_menu_item(
-                STRINGS.LABEL_UNPIN, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_unpin).set_icon(
+                STRINGS.LABEL_UNPIN, enable=consts.FEATURE_SYS_PIN, on_click=on_unpin).set_icon(
                 RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_separator()
             item_unpin_start = gui.add_menu_item(
-                STRINGS.LABEL_UNPIN_START, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_unpin_start)
+                STRINGS.LABEL_UNPIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_unpin_start)
             item_unpin_start.set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_menu_item(
-                STRINGS.LABEL_PIN_START, enable=pyinstall.FROZEN or consts.FEATURE_PIN_PYTHON, on_click=on_pin_start,
+                STRINGS.LABEL_PIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_pin_start,
                 menu_args=(gui.Method.ENABLE,), args=(item_unpin_start.enable,), change_state=False, position=9).set_icon(
                 RES_TEMPLATE.format(consts.RES_PIN))
+        if consts.FEATURE_CONSOLE_VIEW:
+            gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(RES_TEMPLATE.format(consts.RES_CONSOLE))
         gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
         gui.add_menu_item(STRINGS.LABEL_RESET, on_click=on_reset).set_icon(RES_TEMPLATE.format(consts.RES_RESET))
@@ -725,11 +743,15 @@ def stop():
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE) if CONFIG[consts.CONFIG_CACHE] else files.remove(TEMP_DIR, True)
     if os.path.isdir(TEMP_DIR) and files.is_only_dirs(TEMP_DIR, True):
         files.remove(TEMP_DIR, True)
+    CONSOLE.close()
 
 
 def main() -> NoReturn:
-    # if not win32.has_console():  TODO hidden console
-    #     win32.create_console(consts.NAME, True, True)
+    # if not win32.console.is_present():  # TODO hidden console
+    #     win32.console.create()
+    #     win32.console.set_title(consts.NAME)
+    #     win32.console.ignore_ctrl_c()
+    #     win32.console.disable_close()
     #     sys.stdout = sys.stderr = open('CONOUT$', 'w')
     if consts.FEATURE_EXCEPT_HOOK:
         utils.hook_except(win32.show_error, format=True)

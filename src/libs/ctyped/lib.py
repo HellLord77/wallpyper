@@ -3927,6 +3927,72 @@ class GdiPlus(_Func, metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class kernel32(_Func, metaclass=_WinDLL):
+    # commapi
+    ClearCommBreak: _Callable[[_type.HANDLE],  # hFile
+                              _type.BOOL]
+    ClearCommError: _Callable[[_type.HANDLE,  # hFile
+                               _Optional[_Pointer[_type.DWORD]],  # lpErrors
+                               _Optional[_Pointer[_struct.COMSTAT]]],  # lpStat
+                              _type.BOOL]
+    SetupComm: _Callable[[_type.HANDLE,  # hFile
+                          _type.DWORD,  # dwInQueue
+                          _type.DWORD],  # dwOutQueue
+                         _type.BOOL]
+    EscapeCommFunction: _Callable[[_type.HANDLE,  # hFile
+                                   _type.DWORD],  # dwFunc
+                                  _type.BOOL]
+    GetCommConfig: _Callable[[_type.HANDLE,  # hCommDev
+                              _Pointer[_struct.COMMCONFIG],  # lpCC
+                              _Pointer[_type.WORD]],  # lpdwSize
+                             _type.BOOL]
+    GetCommMask: _Callable[[_type.HANDLE,  # hFile
+                            _Pointer[_type.DWORD]],  # lpEvtMask
+                           _type.BOOL]
+    GetCommModemStatus: _Callable[[_type.HANDLE,  # hFile
+                                   _Pointer[_type.DWORD]],  # lpModemStat
+                                  _type.BOOL]
+    GetCommProperties: _Callable[[_type.HANDLE,  # hFile
+                                  _Pointer[_struct.COMMPROP]],  # lpCommProp
+                                 _type.BOOL]
+    GetCommState: _Callable[[_type.HANDLE,  # hFile
+                             _Pointer[_struct.DCB]],  # lpDCB
+                            _type.BOOL]
+    GetCommTimeouts: _Callable[[_type.HANDLE,  # hFile
+                                _Pointer[_struct.COMMTIMEOUTS]],  # lpCommTimeouts
+                               _type.BOOL]
+    PurgeComm: _Callable[[_type.HANDLE,  # hFile
+                          _type.DWORD],  # dwFlags
+                         _type.BOOL]
+    SetCommBreak: _Callable[[_type.HANDLE],  # hFile
+                            _type.BOOL]
+    SetCommConfig: _Callable[[_type.HANDLE,  # hCommDev
+                              _Pointer[_struct.COMMCONFIG],  # lpCC
+                              _type.DWORD],  # dwSize
+                             _type.BOOL]
+    SetCommMask: _Callable[[_type.HANDLE,  # hFile
+                            _type.DWORD],  # dwEvtMask
+                           _type.BOOL]
+    SetCommState: _Callable[[_type.HANDLE,  # hFile
+                             _Pointer[_struct.DCB]],  # lpDCB
+                            _type.BOOL]
+    SetCommTimeouts: _Callable[[_type.HANDLE,  # hFile
+                                _Pointer[_struct.COMMTIMEOUTS]],  # lpCommTimeouts
+                               _type.BOOL]
+    TransmitCommChar: _Callable[[_type.HANDLE,  # hFile
+                                 _type.c_char],  # cChar
+                                _type.BOOL]
+    WaitCommEvent: _Callable[[_type.HANDLE,  # hFile
+                              _Pointer[_type.DWORD],  # lpEvtMask
+                              _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                             _type.BOOL]
+    OpenCommPort: _Callable[[_type.ULONG,  # uPortNumber
+                             _type.DWORD,  # dwDesiredAccess
+                             _type.DWORD],  # dwFlagsAndAttributes
+                            _type.HANDLE]
+    GetCommPorts: _Callable[[_Pointer[_type.ULONG],  # lpPortNumbers
+                             _type.ULONG,  # uPortNumbersCount
+                             _Pointer[_type.ULONG]],  # puPortNumbersFound
+                            _type.ULONG]
     # consoleapi
     AllocConsole: _Callable[[],
                             _type.BOOL]
@@ -4097,6 +4163,15 @@ class kernel32(_Func, metaclass=_WinDLL):
     TerminateProcessOnMemoryExhaustion: _Callable[[_type.SIZE_T],  # FailedAllocationSize
                                                   _type.VOID]
     # fileapi
+    FlushFileBuffers: _Callable[[_type.HANDLE],  # hFile
+                                _type.BOOL]
+    WriteFile: _Callable[[_type.HANDLE,  # hFile
+                          _type.LPCVOID,  # lpBuffer
+                          _type.DWORD,  # nNumberOfBytesToWrite
+                          _Optional[_Pointer[_type.DWORD]],  # lpNumberOfBytesWritten
+                          _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                         _type.BOOL]
+    # TODO
     AreShortNamesEnabled: _Callable[[_type.HANDLE,
                                      _Pointer[_type.BOOL]],
                                     _type.BOOL]
@@ -4129,8 +4204,6 @@ class kernel32(_Func, metaclass=_WinDLL):
                                _type.BOOL]
     FindVolumeClose: _Callable[[_type.HANDLE],
                                _type.BOOL]
-    FlushFileBuffers: _Callable[[_type.HANDLE],
-                                _type.BOOL]
     GetDiskFreeSpaceA: _Callable[[_type.LPCSTR,
                                   _Optional[_Pointer[_type.DWORD]],
                                   _Optional[_Pointer[_type.DWORD]],
@@ -4332,6 +4405,57 @@ class kernel32(_Func, metaclass=_WinDLL):
     HeapWalk: _Callable[[_type.HANDLE,
                          _Pointer[_struct.PROCESS_HEAP_ENTRY]],
                         _type.BOOL]
+    # ioapiset
+    CreateIoCompletionPort: _Callable[[_type.HANDLE,  # FileHandle
+                                       _Optional[_type.HANDLE],  # ExistingCompletionPort
+                                       _type.ULONG_PTR,  # CompletionKey
+                                       _type.DWORD],  # NumberOfConcurrentThreads
+                                      _type.HANDLE]
+    GetQueuedCompletionStatus: _Callable[[_type.HANDLE,  # CompletionPort
+                                          _Pointer[_type.DWORD],  # lpNumberOfBytesTransferred
+                                          _Pointer[_type.ULONG_PTR],  # lpCompletionKey
+                                          _Pointer[_Pointer[_struct.OVERLAPPED]],  # lpOverlapped
+                                          _type.DWORD],  # dwMilliseconds
+                                         _type.BOOL]
+    GetQueuedCompletionStatusEx: _Callable[[_type.HANDLE,  # CompletionPort
+                                            _Pointer[_struct.OVERLAPPED_ENTRY],  # lpCompletionPortEntries
+                                            _type.ULONG,  # ulCount
+                                            _Pointer[_type.ULONG],  # ulNumEntriesRemoved
+                                            _type.DWORD,  # dwMilliseconds
+                                            _type.BOOL],  # fAlertable
+                                           _type.BOOL]
+    PostQueuedCompletionStatus: _Callable[[_type.HANDLE,  # CompletionPort
+                                           _type.DWORD,  # dwNumberOfBytesTransferred
+                                           _type.ULONG_PTR,  # dwCompletionKey
+                                           _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                                          _type.BOOL]
+    DeviceIoControl: _Callable[[_type.HANDLE,  # hDevice
+                                _type.DWORD,  # dwIoControlCode
+                                _Optional[_type.LPVOID],  # lpInBuffer
+                                _type.DWORD,  # nInBufferSize
+                                _Optional[_type.LPVOID],  # lpOutBuffer
+                                _type.DWORD,  # nOutBufferSize
+                                _Optional[_Pointer[_type.DWORD]],  # lpBytesReturned
+                                _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                               _type.BOOL]
+    GetOverlappedResult: _Callable[[_type.HANDLE,  # hFile
+                                    _Pointer[_struct.OVERLAPPED],  # lpOverlapped
+                                    _Pointer[_type.DWORD],  # lpNumberOfBytesTransferred
+                                    _type.BOOL],  # bWait
+                                   _type.BOOL]
+    CancelIoEx: _Callable[[_type.HANDLE,  # hFile
+                           _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                          _type.BOOL]
+    CancelIo: _Callable[[_type.HANDLE],  # hFile
+                        _type.BOOL]
+    GetOverlappedResultEx: _Callable[[_type.HANDLE,  # hFile
+                                      _Pointer[_struct.OVERLAPPED],  # lpOverlapped
+                                      _Pointer[_type.DWORD],  # lpNumberOfBytesTransferred
+                                      _type.DWORD,  # dwMilliseconds
+                                      _type.BOOL],  # bWait
+                                     _type.BOOL]
+    CancelSynchronousIo: _Callable[[_type.HANDLE],  # hThread
+                                   _type.BOOL]
     # libloaderapi
     AddDllDirectory: _Callable[[_type.LPCWSTR],
                                _type.DLL_DIRECTORY_COOKIE]
@@ -4549,6 +4673,77 @@ class kernel32(_Func, metaclass=_WinDLL):
     QueryMemoryResourceNotification: _Callable[[_type.HANDLE,  # ResourceNotificationHandle
                                                 _Pointer[_type.BOOL]],  # ResourceState
                                                _type.BOOL]
+    # namedpipeapi
+    CreatePipe: _Callable[[_Pointer[_type.HANDLE],  # hReadPipe
+                           _Pointer[_type.HANDLE],  # hWritePipe
+                           _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpPipeAttributes
+                           _type.DWORD],  # nSize
+                          _type.BOOL]
+    ConnectNamedPipe: _Callable[[_type.HANDLE,  # hNamedPipe
+                                 _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                                _type.BOOL]
+    DisconnectNamedPipe: _Callable[[_type.HANDLE],  # hNamedPipe
+                                   _type.BOOL]
+    SetNamedPipeHandleState: _Callable[[_type.HANDLE,  # hNamedPipe
+                                        _Optional[_Pointer[_type.DWORD]],  # lpMode
+                                        _Optional[_Pointer[_type.DWORD]],  # lpMaxCollectionCount
+                                        _Optional[_Pointer[_type.DWORD]]],  # lpCollectDataTimeout
+                                       _type.BOOL]
+    PeekNamedPipe: _Callable[[_type.HANDLE,  # hNamedPipe
+                              _Optional[_type.LPVOID],  # lpBuffer
+                              _type.DWORD,  # nBufferSize
+                              _Optional[_Pointer[_type.DWORD]],  # lpBytesRead
+                              _Optional[_Pointer[_type.DWORD]],  # lpTotalBytesAvail
+                              _Optional[_Pointer[_type.DWORD]]],  # lpBytesLeftThisMessage
+                             _type.BOOL]
+    TransactNamedPipe: _Callable[[_type.HANDLE,  # hNamedPipe
+                                  _Optional[_type.LPVOID],  # lpInBuffer
+                                  _type.DWORD,  # nInBufferSize
+                                  _Optional[_type.LPVOID],  # lpOutBuffer
+                                  _type.DWORD,  # nOutBufferSize
+                                  _Optional[_Pointer[_type.DWORD]],  # lpBytesRead
+                                  _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                                 _type.BOOL]
+    CreateNamedPipeW: _Callable[[_type.LPCWSTR,  # lpName
+                                 _type.DWORD,  # dwOpenMode
+                                 _type.DWORD,  # dwPipeMode
+                                 _type.DWORD,  # nMaxInstances
+                                 _type.DWORD,  # nOutBufferSize
+                                 _type.DWORD,  # nInBufferSize
+                                 _type.DWORD,  # nDefaultTimeOut
+                                 _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]]],  # lpSecurityAttributes
+                                _type.HANDLE]
+    WaitNamedPipeW: _Callable[[_type.LPCWSTR,  # lpNamedPipeName
+                               _type.DWORD],  # nTimeOut
+                              _type.BOOL]
+    GetNamedPipeClientComputerNameW: _Callable[[_type.HANDLE,  # Pipe
+                                                _type.LPWSTR,  # ClientComputerName
+                                                _type.ULONG],  # ClientComputerNameLength
+                                               _type.BOOL]
+    ImpersonateNamedPipeClient: _Callable[[_type.HANDLE],  # hNamedPipe
+                                          _type.BOOL]
+    GetNamedPipeInfo: _Callable[[_type.HANDLE,  # hNamedPipe
+                                 _Optional[_Pointer[_type.DWORD]],  # lpFlags
+                                 _Optional[_Pointer[_type.DWORD]],  # lpOutBufferSize
+                                 _Optional[_Pointer[_type.DWORD]],  # lpInBufferSize
+                                 _Optional[_Pointer[_type.DWORD]]],  # lpMaxInstances
+                                _type.BOOL]
+    GetNamedPipeHandleStateW: _Callable[[_type.HANDLE,  # hNamedPipe
+                                         _Optional[_Pointer[_type.DWORD]],  # lpState
+                                         _Optional[_Pointer[_type.DWORD]],  # lpCurInstances
+                                         _Optional[_Pointer[_type.DWORD]],  # lpMaxCollectionCount
+                                         _Optional[_Pointer[_type.DWORD]],  # lpCollectDataTimeout
+                                         _Optional[_Pointer[_type.LPWSTR]],  # lpUserName
+                                         _type.DWORD],  # nMaxUserNameSize
+                                        _type.BOOL]
+    CallNamedPipeW: _Callable[[_type.LPCWSTR,  # lpNamedPipeName
+                               _Optional[_type.LPVOID],  # lpInBuffer
+                               _type.DWORD,  # nInBufferSize
+                               _Optional[_type.LPVOID],  # lpOutBuffer
+                               _type.DWORD,  # nOutBufferSize
+                               _Pointer[_type.DWORD],  # lpBytesRead
+                               _type.DWORD],  # nTimeOut
+                              _type.BOOL]
     # processenv
     SetEnvironmentStringsW: _Callable[[_type.LPWCH],  # NewEnvironment
                                       _type.BOOL]
@@ -4918,6 +5113,56 @@ class kernel32(_Func, metaclass=_WinDLL):
                      _type.DWORD],  # dwDuration
                     _type.BOOL]
     # WinBase TODO
+    CreateNamedPipeA: _Callable[[_type.LPCSTR,  # lpName
+                                 _type.DWORD,  # dwOpenMode
+                                 _type.DWORD,  # dwPipeMode
+                                 _type.DWORD,  # nMaxInstances
+                                 _type.DWORD,  # nOutBufferSize
+                                 _type.DWORD,  # nInBufferSize
+                                 _type.DWORD,  # nDefaultTimeOut
+                                 _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]]],  # lpSecurityAttributes
+                                _type.HANDLE]
+    GetNamedPipeHandleStateA: _Callable[[_type.HANDLE,  # hNamedPipe
+                                         _Optional[_Pointer[_type.DWORD]],  # lpState
+                                         _Optional[_Pointer[_type.DWORD]],  # lpCurInstances
+                                         _Optional[_Pointer[_type.DWORD]],  # lpMaxCollectionCount
+                                         _Optional[_Pointer[_type.DWORD]],  # lpCollectDataTimeout
+                                         _Optional[_Pointer[_type.LPSTR]],  # lpUserName
+                                         _type.DWORD],  # nMaxUserNameSize
+                                        _type.BOOL]
+    CallNamedPipeA: _Callable[[_type.LPCSTR,  # lpNamedPipeName
+                               _Optional[_type.LPVOID],  # lpInBuffer
+                               _type.DWORD,  # nInBufferSize
+                               _Optional[_type.LPVOID],  # lpOutBuffer
+                               _type.DWORD,  # nOutBufferSize
+                               _Pointer[_type.DWORD],  # lpBytesRead
+                               _type.DWORD],  # nTimeOut
+                              _type.BOOL]
+    WaitNamedPipeA: _Callable[[_type.LPCSTR,  # lpNamedPipeName
+                               _type.DWORD],  # nTimeOut
+                              _type.BOOL]
+    GetNamedPipeClientComputerNameA: _Callable[[_type.HANDLE,  # Pipe
+                                                _type.LPSTR,  # ClientComputerName
+                                                _type.ULONG],  # ClientComputerNameLength
+                                               _type.BOOL]
+    GetNamedPipeClientProcessId: _Callable[[_type.HANDLE,  # Pipe
+                                            _Pointer[_type.ULONG]],  # ClientProcessId
+                                           _type.BOOL]
+    GetNamedPipeClientSessionId: _Callable[[_type.HANDLE,  # Pipe
+                                            _Pointer[_type.ULONG]],  # ClientSessionId
+                                           _type.BOOL]
+    GetNamedPipeServerProcessId: _Callable[[_type.HANDLE,  # Pipe
+                                            _Pointer[_type.ULONG]],  # ServerProcessId
+                                           _type.BOOL]
+    GetNamedPipeServerSessionId: _Callable[[_type.HANDLE,  # Pipe
+                                            _Pointer[_type.ULONG]],  # ServerSessionId
+                                           _type.BOOL]
+    SetVolumeLabelA: _Callable[[_Optional[_type.LPCSTR],  # lpRootPathName
+                                _Optional[_type.LPCSTR]],  # lpVolumeName
+                               _type.BOOL]
+    SetVolumeLabelW: _Callable[[_Optional[_type.LPCWSTR],  # lpRootPathName
+                                _Optional[_type.LPCWSTR]],  # lpVolumeName
+                               _type.BOOL]
     ActivateActCtx: _Callable[[_Optional[_type.HANDLE],
                                _Pointer[_type.ULONG_PTR]],
                               _type.BOOL]

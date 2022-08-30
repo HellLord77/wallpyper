@@ -162,7 +162,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
         if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (
                 md5 and md5 == _get_hash(path)) or (sha256 and _get_hash(path, 'sha256'))):
             if query_callback:
-                query_callback(1, *args, **kwargs)
+                query_callback(1.0, *args, **kwargs)
             return True
         elif os.path.isdir(path):
             return False
@@ -174,7 +174,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
         if os.path.isfile(path):
             if size == os.path.getsize(path):
                 if query_callback:
-                    query_callback(1, *args, **kwargs)
+                    query_callback(1.0, *args, **kwargs)
                 return True
             else:
                 os.remove(path)
@@ -192,7 +192,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
             return False
         if os.path.isfile(path) and size == os.path.getsize(path):
             if query_callback:
-                query_callback(1, *args, **kwargs)
+                query_callback(1.0, *args, **kwargs)
             return True
     return False
 

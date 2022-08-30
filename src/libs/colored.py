@@ -1,6 +1,7 @@
 __version__ = '0.0.2'
 
 import sys
+from typing import Optional
 
 _ESC = '\x1B'
 _CSI = f'{_ESC}['
@@ -63,7 +64,7 @@ class BackColor(_Code):
     BRIGHT_WHITE = 107
 
 
-def cprint(*strings, reset: bool = True):
+def cprint(*strings, reset: bool = True, file: Optional = None, flush: bool = True):
     index = 0
     for string in strings:
         print(string, end='')
@@ -71,6 +72,6 @@ def cprint(*strings, reset: bool = True):
             break
         index += 1
     for string in strings[index + 1:]:
-        print(f'{" " * (string not in _CODES)}{string}', end='')
+        print(f'{" " * (string not in _CODES)}{string}', end='', file=file, flush=flush)
     if reset:
-        print(FontStyle.RESET)
+        print(FontStyle.RESET, file=file, flush=flush)

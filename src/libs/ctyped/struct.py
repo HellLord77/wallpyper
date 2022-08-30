@@ -32,6 +32,95 @@ class FILE:
 
 
 @_struct
+class COMMPROP:
+    wPacketLength: _type.WORD = None
+    wPacketVersion: _type.WORD = None
+    dwServiceMask: _type.DWORD = None
+    dwReserved1: _type.DWORD = None
+    dwMaxTxQueue: _type.DWORD = None
+    dwMaxRxQueue: _type.DWORD = None
+    dwMaxBaud: _type.DWORD = None
+    dwProvSubType: _type.DWORD = None
+    dwProvCapabilities: _type.DWORD = None
+    dwSettableParams: _type.DWORD = None
+    dwSettableBaud: _type.DWORD = None
+    wSettableData: _type.WORD = None
+    wSettableStopParity: _type.WORD = None
+    dwCurrentTxQueue: _type.DWORD = None
+    dwCurrentRxQueue: _type.DWORD = None
+    dwProvSpec1: _type.DWORD = None
+    dwProvSpec2: _type.DWORD = None
+    wcProvChar: _type.WORD * 1 = None
+
+
+@_struct
+class COMSTAT:
+    fCtsHold: _bitfield(_type.DWORD, 1) = None
+    fDsrHold: _bitfield(_type.DWORD, 1) = None
+    fRlsdHold: _bitfield(_type.DWORD, 1) = None
+    fXoffHold: _bitfield(_type.DWORD, 1) = None
+    fXoffSent: _bitfield(_type.DWORD, 1) = None
+    fEof: _bitfield(_type.DWORD, 1) = None
+    fTxim: _bitfield(_type.DWORD, 1) = None
+    fReserved: _bitfield(_type.DWORD, 25) = None
+    cbInQue: _type.DWORD = None
+    cbOutQue: _type.DWORD = None
+
+
+@_struct
+class DCB:
+    DCBlength: _type.DWORD = _SIZE
+    BaudRate: _type.DWORD = None
+    fBinary: _bitfield(_type.DWORD, 1) = None
+    fParity: _bitfield(_type.DWORD, 1) = None
+    fOutxCtsFlow: _bitfield(_type.DWORD, 1) = None
+    fOutxDsrFlow: _bitfield(_type.DWORD, 1) = None
+    fDtrControl: _bitfield(_type.DWORD, 2) = None
+    fDsrSensitivity: _bitfield(_type.DWORD, 1) = None
+    fTXContinueOnXoff: _bitfield(_type.DWORD, 1) = None
+    fOutX: _bitfield(_type.DWORD, 1) = None
+    fInX: _bitfield(_type.DWORD, 1) = None
+    fErrorChar: _bitfield(_type.DWORD, 1) = None
+    fNull: _bitfield(_type.DWORD, 1) = None
+    fRtsControl: _bitfield(_type.DWORD, 2) = None
+    fAbortOnError: _bitfield(_type.DWORD, 1) = None
+    fDummy2: _bitfield(_type.DWORD, 17) = None
+    wReserved: _type.WORD = None
+    XonLim: _type.WORD = None
+    XoffLim: _type.WORD = None
+    ByteSize: _type.BYTE = None
+    Parity: _type.BYTE = None
+    StopBits: _type.BYTE = None
+    XonChar: _type.c_char = None
+    XoffChar: _type.c_char = None
+    ErrorChar: _type.c_char = None
+    EofChar: _type.c_char = None
+    EvtChar: _type.c_char = None
+    wReserved1: _type.WORD = None
+
+
+@_struct
+class COMMTIMEOUTS:
+    ReadIntervalTimeout: _type.DWORD = None
+    ReadTotalTimeoutMultiplier: _type.DWORD = None
+    ReadTotalTimeoutConstant: _type.DWORD = None
+    WriteTotalTimeoutMultiplier: _type.DWORD = None
+    WriteTotalTimeoutConstant: _type.DWORD = None
+
+
+@_struct
+class COMMCONFIG:
+    dwSize: _type.DWORD = _SIZE
+    wVersion: _type.WORD = None
+    wReserved: _type.WORD = None
+    dcb: DCB = None
+    dwProviderSubType: _type.DWORD = None
+    dwProviderOffset: _type.DWORD = None
+    dwProviderSize: _type.DWORD = None
+    wcProviderData: _type.WCHAR * 1 = None
+
+
+@_struct
 class GdiplusStartupInput:
     GdiplusVersion: _type.UINT32 = 1
     DebugEventCallback: _type.DebugEventProc = None

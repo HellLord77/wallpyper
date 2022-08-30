@@ -5,6 +5,7 @@ __version__ = '0.0.0'
 import atexit
 import io
 import ntpath
+import os
 import sys
 import threading
 import time
@@ -13,7 +14,6 @@ from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
-import win32
 import win32._gdiplus as gdiplus
 import win32._utils as utils
 import win32.gui as gui
@@ -532,12 +532,15 @@ def _test_hook():
     proc.free_console()
 
 
-def _test(*args):
-    print(args)
+def _test():
+    os.chdir(r'D:\Projects\wallpyper')
+    from Cython.Build.Dependencies import extended_iglob
+
+    print(';'.join(extended_iglob(r"src\libs\{colornames,iso}\__init__.py")))
 
 
 if __name__ == '__main__':
-    print(win32.has_console())
+    _test()
     # _test_hook()
     # _test_gui()
     exit()

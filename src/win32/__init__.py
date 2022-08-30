@@ -1,4 +1,4 @@
-__version__ = '0.0.26'
+__version__ = '0.0.27'
 
 import contextlib
 import ntpath
@@ -9,10 +9,10 @@ import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
 import libs.ctyped as ctyped
-from . import _utils, clipboard, gui, display
+from . import _utils, clipboard, console, display, gui, pipe
 from ._utils import sanitize_filename
 
-_PIN_INTERVAL = 3
+_PIN_TIMEOUT = 3
 _POLL_INTERVAL = 0.1
 _APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
 _STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
@@ -173,8 +173,8 @@ def _get_link_paths(dir_: str, recursive: bool = False) -> Generator[str, None, 
 @contextlib.contextmanager
 def _get_hdevinfo(guid_ref: Optional[ctyped.Pointer[ctyped.struct.GUID]],
                   flags: ctyped.type.DWORD) -> ContextManager[Optional[ctyped.type.HDEVINFO]]:
-    if (hdevinfo := ctyped.lib.setupapi.SetupDiGetClassDevsW(guid_ref, None, None,
-                                                             flags)) == ctyped.const.INVALID_HANDLE_VALUE:
+    if (hdevinfo := ctyped.lib.setupapi.SetupDiGetClassDevsW(
+            guid_ref, None, None, flags)) == ctyped.const.INVALID_HANDLE_VALUE:
         yield
     else:
         try:
@@ -258,25 +258,6 @@ def press_keyboard(key: int) -> bool:
         input_.U.ki.dwFlags = ctyped.const.KEYEVENTF_KEYUP
         return ctyped.lib.user32.SendInput(1, ref, sz) == 1
     return False
-
-
-def has_console() -> bool:
-    return bool(ctyped.lib.kernel32.GetConsoleWindow())
-
-
-def create_console(title: Optional[str] = None, ignore_ctrl_c: bool = False, remove_close: bool = False) -> bool:
-    created = bool(ctyped.lib.kernel32.AllocConsole())
-    if title is not None:
-        ctyped.lib.kernel32.SetConsoleTitleW(title)
-    if ignore_ctrl_c:
-        ctyped.lib.kernel32.SetConsoleCtrlHandler(ctyped.type.PHANDLER_ROUTINE(), True)
-    if remove_close:
-        ctyped.handle.HMENU.from_hwnd(ctyped.lib.kernel32.GetConsoleWindow(), True).delete_item(ctyped.const.SC_CLOSE)
-    return created
-
-
-def remove_console() -> bool:
-    return bool(ctyped.lib.kernel32.FreeConsole())
 
 
 def open_file(path: str) -> bool:
@@ -483,28 +464,29 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
     if remove_pins(target, *args, taskbar=taskbar):
         if not subprocess.run((_SYSPIN_PATH, target, '5386' if taskbar else '51201'),
                               creationflags=subprocess.DETACHED_PROCESS).returncode:
-            if args and not taskbar:
-                time.sleep(_PIN_INTERVAL)
-            name_ = ntpath.splitext(ntpath.basename(target))[0]
+            cur_name = ntpath.splitext(ntpath.basename(target))[0]
+            if name is None:
+                name = cur_name
             if taskbar:
-                path_ = ntpath.join(
-                    _TASKBAR_DIR, f'{_get_str_ex_props(target, ctyped.const.PKEY_FileDescription)[0] or name_}{LINK_EXT}')
+                cur_path = ntpath.join(
+                    _TASKBAR_DIR, f'{_get_str_ex_props(target, ctyped.const.PKEY_FileDescription)[0] or cur_name}{LINK_EXT}')
                 path = ntpath.join(_TASKBAR_DIR, f'{name}{LINK_EXT}')
             else:
-                path_ = ntpath.join(START_DIR, f'{name_}{LINK_EXT}')
+                cur_path = ntpath.join(START_DIR, f'{cur_name}{LINK_EXT}')
                 path = ntpath.join(START_DIR, f'{name}{LINK_EXT}')
-            os.replace(path_, path)
-            if args or icon_path or icon_index or not show:
-                with _load_link(path) as link:
-                    return _set_link_data(
-                        link, args=subprocess.list2cmdline(args),  # FIXME taskbar button requires click to fix (no api)
-                        show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
-                        icon=(icon_path, icon_index)) and _save_link(link, path)
-            else:
-                end = time.time() + _PIN_INTERVAL
-                while (no_pin := not ntpath.isfile(path)) and end > time.time():
-                    time.sleep(_POLL_INTERVAL)
-                return not no_pin
+            end_time = time.time() + _PIN_TIMEOUT
+            while end_time > time.time() and not ntpath.isfile(cur_path):
+                time.sleep(_POLL_INTERVAL)
+            if ntpath.isfile(cur_path):
+                os.replace(cur_path, path)
+                if args or icon_path or icon_index or not show:
+                    with _load_link(path) as link:
+                        return _set_link_data(
+                            link, args=subprocess.list2cmdline(args),  # FIXME taskbar button requires click to fix (no api)
+                            show=ctyped.const.SW_SHOWNORMAL if show else ctyped.const.SW_SHOWMINNOACTIVE,
+                            icon=(icon_path, icon_index)) and _save_link(link, path)
+                else:
+                    return ntpath.isfile(path)
     return False
 
 
