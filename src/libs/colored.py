@@ -1,5 +1,7 @@
 __version__ = '0.0.2'
 
+import builtins
+import io
 import sys
 from typing import Optional
 
@@ -64,14 +66,15 @@ class BackColor(_Code):
     BRIGHT_WHITE = 107
 
 
-def cprint(*strings, reset: bool = True, file: Optional = None, flush: bool = True):
+# noinspection PyShadowingBuiltins
+def print(*strings, reset: bool = True, file: Optional[io.TextIOWrapper] = None, flush: bool = True):
     index = 0
     for string in strings:
-        print(string, end='')
+        builtins.print(string, end='')
         if string not in _CODES:
             break
         index += 1
     for string in strings[index + 1:]:
-        print(f'{" " * (string not in _CODES)}{string}', end='', file=file, flush=flush)
+        builtins.print(f'{" " * (string not in _CODES)}{string}', end='', file=file, flush=flush)
     if reset:
-        print(FontStyle.RESET, file=file, flush=flush)
+        builtins.print(FontStyle.RESET, file=file, flush=flush)

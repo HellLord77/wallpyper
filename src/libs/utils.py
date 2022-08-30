@@ -48,7 +48,7 @@ class ProgressBar:
 class _Mutable:
     _type = type(None)
 
-    def __init__(self, val: Optional = None):
+    def __init__(self, val: Optional[int | float | bool | str] = None):
         self._data = self._type() if val is None else val
 
     def __int__(self):
@@ -78,6 +78,27 @@ class _Mutable:
 
 class MutableInt(_Mutable):
     _type = int
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableFloat(_Mutable):
+    _type = float
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableBool(_Mutable):
+    _type = bool
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableStr(_Mutable):
+    _type = str
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
@@ -483,7 +504,7 @@ def one_cache(func: Callable) -> Callable:
     return wrapper
 
 
-def time_cache(secs: float = math.inf, size: int = math.inf) -> Callable[[Callable], Callable]:
+def time_cache(secs: float = math.inf, size: int = sys.maxsize) -> Callable[[Callable], Callable]:
     def time_cache_(func: Callable) -> Callable:
         cache = []
 

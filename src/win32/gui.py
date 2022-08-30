@@ -5,9 +5,8 @@ import collections
 import contextlib
 import functools
 import itertools
-import ntpath
 import threading
-from typing import Any, Callable, Iterable, Iterator, Mapping, Optional, Sequence, Generator
+from typing import Any, Callable, Generator, Iterable, Iterator, Mapping, Optional, Sequence
 
 import libs.ctyped as ctyped
 from . import _gdiplus, _utils
@@ -197,12 +196,12 @@ class _EventHandler:
 
     # noinspection PyShadowingBuiltins
     @classmethod
-    def get(cls, id: Optional[int] = None, default: Optional = None) -> Optional:
+    def get(cls, id: Optional[int] = None) -> Optional[_EventHandler]:
         if id is None:
             if cls._selves:
                 return next(reversed(cls._selves.values()))
         else:
-            return cls._selves.get(id, default)
+            return cls._selves.get(id)
 
     def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None,
              kwargs: Optional[Mapping] = None, once: bool = False):
@@ -637,7 +636,7 @@ class Menu(_Control):
     def hide(self) -> bool:
         return self._hmenu.untrack()
 
-    def _get_data(self, mim: int) -> Optional:
+    def _get_data(self, mim: int) -> Any:
         info = ctyped.struct.MENUINFO(fMask=mim)
         if ctyped.lib.user32.GetMenuInfo(self._hmenu, ctyped.byref(info)):
             return getattr(info, _MIM_FIELD[mim])
@@ -704,6 +703,14 @@ class Menu(_Control):
         return self._set_styles(no_check=no_check, recursive=recursive)
 
 
+@functools.lru_cache
+def _menu_item_load_image(path: str, resize: bool) -> _gdiplus.Bitmap:
+    res_or_path = _gdiplus.Bitmap.from_file(path)
+    if resize and not (res_or_path.get_width() == res_or_path.get_height() == _MENU_ITEM_IMAGE_SIZE):
+        res_or_path = res_or_path.get_resized(_MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
+    return res_or_path
+
+
 class MenuItem(_Control):
     _selves: dict[int, MenuItem]
     _id_gen = _IDGenerator()
@@ -711,7 +718,7 @@ class MenuItem(_Control):
     _tooltip_text: str = ''
     _tooltip_icon: int = MenuItemTooltipIcon.NONE
     _tooltip_title: str = ''
-    _uid: str = ''
+    _uid: int | str = 0
 
     def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
         self._hwnd = self._attach(gui)
@@ -746,22 +753,11 @@ class MenuItem(_Control):
     def get_type(self) -> int:
         return self._type
 
-    @staticmethod
-    @functools.lru_cache
-    def _load_image(path: str, resize: bool) -> _gdiplus.Bitmap:
-        if ntpath.splitext(path)[1].lower() == '.svg':
-            res_or_path = _gdiplus.bitmap_from_svg(path, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
-        else:
-            res_or_path = _gdiplus.Bitmap.from_file(path)
-            if resize and not (res_or_path.get_width() == res_or_path.get_height() == _MENU_ITEM_IMAGE_SIZE):
-                res_or_path = res_or_path.get_resized(_MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
-        return res_or_path
-
     def _prep_image(self, res_or_path: int | str, index: int, resize: bool) -> int:
         if isinstance(res_or_path, str):  # FIXME checkable item cannot have image/icon
-            res_or_path = self._load_image(res_or_path, resize).get_hbitmap()
+            res_or_path = _menu_item_load_image(res_or_path, resize).get_hbitmap()
             if not FLAG_MENU_ITEM_IMAGE_CACHE:
-                self._load_image.cache_clear()
+                _menu_item_load_image.cache_clear()
             self._hbmps[index] = res_or_path
             return res_or_path.value
         return res_or_path
@@ -945,8 +941,8 @@ class MenuItem(_Control):
         self._tooltip_icon = (_gdiplus.Bitmap.from_file(icon_res_or_path).get_resized(
             _TOOLTIP_ICON_SIZE, _TOOLTIP_ICON_SIZE, True).get_hicon() or MenuItemTooltipIcon.NONE) if isinstance(icon_res_or_path, str) else icon_res_or_path
 
-    def set_uid(self, uid: str):
+    def set_uid(self, uid: int | str):
         self._uid = uid
 
-    def get_uid(self):
+    def get_uid(self) -> int | str:
         return self._uid

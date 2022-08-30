@@ -273,13 +273,16 @@ class Transition(metaclass=_IntEnum):
         yield dst_dw, dst_h_, dst_w - dst_dw, dst_h, dst_dw, dst_h_
         yield dst_w_, dst_dh, dst_w - dst_h_, dst_h - dst_dh, dst_w_, dst_dh
 
-    # noinspection PyUnresolvedReferences
-    _TRANSITIONS = tuple(static.__func__ for static in (
-        _fade, _explode, _implode, _left, _top, _right, _bottom, _top_left, _top_right, _bottom_left, _bottom_right,
-        _vertical, _horizontal, _reverse_vertical, _reverse_horizontal,
-        _slide_left, _slide_top, _slide_right, _slide_bottom,
-        _slide_top_left, _slide_top_right, _slide_bottom_left, _slide_bottom_right,
-        _slide_vertical, _slide_horizontal, _slide_reverse_vertical, _slide_reverse_horizontal))
+
+# noinspection PyProtectedMember
+_TRANSITIONS = (
+    Transition._fade, Transition._explode, Transition._implode,
+    Transition._left, Transition._top, Transition._right, Transition._bottom,
+    Transition._top_left, Transition._top_right, Transition._bottom_left, Transition._bottom_right,
+    Transition._vertical, Transition._horizontal, Transition._reverse_vertical, Transition._reverse_horizontal,
+    Transition._slide_left, Transition._slide_top, Transition._slide_right, Transition._slide_bottom,
+    Transition._slide_top_left, Transition._slide_top_right, Transition._slide_bottom_left, Transition._slide_bottom_right,
+    Transition._slide_vertical, Transition._slide_horizontal, Transition._slide_reverse_vertical, Transition._slide_reverse_horizontal)
 
 
 def _spawn_workerw():
@@ -626,8 +629,7 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                 args.append(dst_h / 2)
             start = time.time()
             while duration > (passed := time.time() - start):
-                # noinspection PyProtectedMember
-                for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in Transition._TRANSITIONS[transition](
+                for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in _TRANSITIONS[transition](
                         passed / duration, dst_w, dst_h, *args):
                     ctyped.lib.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
