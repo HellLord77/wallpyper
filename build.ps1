@@ -32,7 +32,7 @@ $OptimizationLevel = 2
 $UPX = $False
 $MainManifest = "manifest.xml"
 $AddPython = $False
-$Cythonize = @(
+$CythonizeGlobs = @(
 "src\libs\{colornames,iso}\__init__.py"
 "src\libs\{cythonizer,files,pyinstall,singleton,timer}.py"
 "src\{consts.init,main}.py")
@@ -43,6 +43,9 @@ $CodeRunBefore = @(
 $CodeRunAfter = @(
 "from os import remove"
 "remove('src\libs\ctyped\interface.pickle')")
+$MinifyJsonRegExs = @(
+"src\libs\colornames\colornames.min.json",
+"src\libs\iso\iso_*.json")
 
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 $CodePythonBase = @(
@@ -55,9 +58,11 @@ $CodeGlobTemplate = @(
 "from Cython.Build.Dependencies import extended_iglob"
 "print(';'.join(extended_iglob(r'{0}')))")
 
-function Get-Name
+$IsGithub = Test-Path Env:GITHUB_REPOSITORY
+
+function Get-ProjectName
 {
-    return Split-Path $( if ($Env:GITHUB_REPOSITORY)
+    return Split-Path $( if ($IsGithub)
     {
         $Env:GITHUB_REPOSITORY
     }
@@ -196,8 +201,18 @@ function Get-MainArgs
 function Get-PythonResult([string[]]$Lines)
 {
     $Code = $Lines -Join "; "
-    Write-Host $Code
+    Write-Host "python <- $Code"
     return python -c $Code
+}
+
+function MinifyJsonFile([string]$Path, [string]$OutPath)
+{
+    if (-not$OutPath)
+    {
+        $OutPath = $Path
+    }
+    Write-Host "Minify $Path -> $OutPath"
+    ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Compress | Set-Content $Path
 }
 
 function Install-Dependencies
@@ -226,7 +241,7 @@ function Install-Dependencies
         Pop-Location
         Remove-Item $Temp -Force -Recurse
     }
-    if ($Cythonize)
+    if ($CythonizeGlobs)
     {
         pip install cython --pre # FIXME https://github.com/cython/cython/milestone/58
     }
@@ -244,13 +259,24 @@ function Write-Build
         Get-PythonResult $CodeRunBefore
     }
 
-    $MainArgs = Get-MainArgs
-    if ($Cythonize)
+    if ($IsGithub)
     {
-        cythonize -3 --inplace $Cythonize
+        foreach ($MinifyJsonRegEx in $MinifyJsonRegExs)
+        {
+            foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx)
+            {
+                MinifyJsonFile $Json.FullName
+            }
+        }
     }
 
-    $Name = Get-Name
+    $MainArgs = Get-MainArgs
+    if ($CythonizeGlobs)
+    {
+        cythonize -3 --inplace $CythonizeGlobs
+    }
+
+    $Name = Get-ProjectName
     $VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
     $FullName = "$Name-$( if ($VersionLine)
     {
@@ -287,16 +313,16 @@ function Write-Build
     if ($CythonizeCleanup)
     {
         $ExtSuffix = Get-PythonResult $CodeExtSuffix
-        foreach ($Pattern in $Cythonize)
+        foreach ($CythonizeGlob in $CythonizeGlobs)
         {
             $CodeGlob = @() + $CodeGlobTemplate
-            $CodeGlob[1] = $CodeGlob[1] -f $Pattern
+            $CodeGlob[1] = $CodeGlob[1] -f $CythonizeGlob
             $Files = Get-PythonResult $CodeGlob
             foreach ($File in $Files -Split ";")
             {
                 $Root = $File.Substring(0,$File.LastIndexOf("."))
-                Remove-Item ($Root + ".c") -Force
-                Remove-Item ($Root + $ExtSuffix) -Force
+                Remove-Item "$Root.c" -Force
+                Remove-Item "$Root$ExtSuffix" -Force
             }
         }
     }
@@ -323,7 +349,7 @@ function UploadToMEGA
         Remove-Item $Temp -Force
         $env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
         mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
-        mega-put dist (Join-Path "$( Get-Name )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
+        mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
     }
     else
     {
