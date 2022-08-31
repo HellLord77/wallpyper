@@ -7,6 +7,7 @@ import ntpath as _ntpath
 import re as _re
 import shutil as _shutil
 import sys as _sys
+import sysconfig as _sysconfig
 import types as _types
 import typing as _typing
 # noinspection PyUnresolvedReferences
@@ -19,7 +20,7 @@ from ._utils import _Pointer, _get_winrt_class_name, _resolve_type
 
 _LINES: list[str]
 _LOCALS: _Locals
-_NAME_TEMPLATE = f'{_ntpath.splitext(__file__)[0]}.{{}}'
+_NAME_TEMPLATE = f'{_ntpath.splitext(__file__.removesuffix(_sysconfig.get_config_var("EXT_SUFFIX")))[0]}.{{}}'
 _K = _typing.TypeVar('_K')
 _V = _typing.TypeVar('_V')
 _T = _typing.TypeVar('_T')

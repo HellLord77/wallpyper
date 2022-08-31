@@ -22,6 +22,8 @@ $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonizeGlobs = @(
 "src\libs\{colornames,iso}\__init__.py"
+# "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
+"src\libs\ctyped\{__init__,const,enum,handle,lib,macro}.py"
 "src\{langs,libs,modules,win32}\*.py"
 "src\{consts.init,main}.py")
 $CythonizeRemove = $True
@@ -204,7 +206,7 @@ function Get-ModuleGraph
         $CodeModuleGraphSmartProcess = @() + $CodeModuleGraphSmartTemplate
         $CodeModuleGraphSmartProcess[3] = $CodeModuleGraphSmartTemplate[3] -f (Split-Path $EntryPoint -Parent)
         $CodeModuleGraphSmartProcess[4] = $CodeModuleGraphSmartTemplate[4] -f $TempDir
-        $CodeModuleGraphSmartProcess[6] = $CodeModuleGraphSmartTemplate[6] -f ($Excludes -Join " "), ($HooksDirs -Join ";")
+        $CodeModuleGraphSmartProcess[6] = $CodeModuleGraphSmartTemplate[6] -f "$Excludes", ($HooksDirs -Join ";")
         $CodeModuleGraphSmartProcess[7] = $CodeModuleGraphSmartTemplate[7] -f $EntryPoint
         $Modules = (Start-PythonCode $CodeModuleGraphSmartProcess) -Split ";"
         Remove-Item $TempDir -Force -Recurse
@@ -222,7 +224,7 @@ function Get-ModuleGraph
     }
 }
 
-function Get-MainArgs
+function Get-PyInstallerArgs
 {
     $Args = @("--noconfirm")
     if ($OneFile)
@@ -362,10 +364,10 @@ function Write-Build
         }
     }
 
-    $MainArgs = Get-MainArgs
+    $PyInstallerArgs = Get-PyInstallerArgs
     if ($CythonizeGlobs)
     {
-        Write-Host "cythonize <- $( $CythonizeGlobs -Join " " )"
+        Write-Host "cythonize <- $CythonizeGlobs"
         cythonize -3 --inplace $CythonizeGlobs
     }
 
@@ -381,16 +383,19 @@ function Write-Build
     } )"
     "NAME=$FullName" >> $Env:GITHUB_ENV
 
-    $AddArgs = "--name=$FullName", $EntryPoint
+    $CommonArgs = "--name=$FullName", $EntryPoint
     $env:PYTHONOPTIMIZE = $OptimizationLevel
     if ($Obfuscate)
     {
-        pyarmor @("pack", "--output=dist", "--options=$MainArgs") $AddArgs
+        $PyArmorArgs = @("pack", "--output=dist", "--options=$PyInstallerArgs") + $CommonArgs
+        Write-Host "pyarmor $PyArmorArgs"
+        pyarmor $PyArmorArgs
     }
     else
     {
-        Write-Host "pyinstaller $( $MainArgs -Join " " ) $( $AddArgs -Join " " )"
-        pyinstaller $MainArgs $AddArgs
+        $PyInstallerArgs += $CommonArgs
+        Write-Host "pyinstaller $PyInstallerArgs"
+        pyinstaller $PyInstallerArgs
     }
 
     $DistPath = Join-Path "dist" $FullName

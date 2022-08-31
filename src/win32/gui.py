@@ -300,7 +300,7 @@ class Gui(_EventHandler):
             Menu.get(wparam).trigger(message)
         elif message in (ctyped.const.WM_MENUSELECT, ctyped.const.WM_MENUCOMMAND, ctyped.const.WM_MENURBUTTONUP):
             # FIXME WM_MENUSELECT is triggered again after auto closing a submenu (seq: select, close, select)
-            is_command = message == ctyped.const.WM_MENUCOMMAND
+            is_command = int(message == ctyped.const.WM_MENUCOMMAND)
             self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, is_command)
             if lparam:
                 is_select = message == ctyped.const.WM_MENUSELECT
