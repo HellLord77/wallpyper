@@ -32,7 +32,7 @@ import win32
 
 ALL_DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
-RES_TEMPLATE = os.path.realpath(os.path.join(os.path.dirname(__file__), 'res', '{}'))
+RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
@@ -41,6 +41,7 @@ LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
+MODULE = sys.modules[__name__]
 
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
@@ -54,7 +55,7 @@ CONSOLE: Optional[win32.pipe.TextNamedPipe] = win32.pipe.TextNamedPipe(UUID)
 
 DEFAULT_CONFIG = {
     consts.CONFIG_LAST: math.inf,
-    consts.CONFIG_RECENT: f'\n{utils.encrypt(RECENT, True)}',
+    consts.CONFIG_RECENT: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_DISPLAY: ALL_DISPLAY,
     consts.CONFIG_FIRST: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_AUTOSAVE: False,
@@ -77,31 +78,12 @@ DEFAULT_CONFIG = {
 CONFIG = {}
 
 
-def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
-    if force or CONFIG[consts.CONFIG_NOTIFY]:
-        return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFICATION_LEN), icon)
-    return False
-
-
-def reapply_wallpaper(_: Optional[bool]):
-    if CONFIG[consts.CONFIG_REAPPLY] and RECENT:
-        on_change(*TIMER.args, RECENT[0], False)
-
-
 def update_config():
-    CONFIG[consts.CONFIG_RECENT] = f'\n{utils.encrypt(RECENT, True)}'
+    CONFIG[consts.CONFIG_RECENT] = f'\n{utils.encrypt(RECENT, split=True)}'
 
 
-def _fix_config(key: str, itt: Iterable):
-    val = CONFIG[key]
-    if is_str := isinstance(val, str):
-        val = val.casefold()
-    for val_ in itt:
-        if val == (val_.casefold() if is_str else val_):
-            CONFIG[key] = val_
-            break
-    else:
-        CONFIG[key] = DEFAULT_CONFIG[key]
+def _fix_config(key: str, values: Iterable):
+    utils.fix_dict_key(CONFIG, key, values, DEFAULT_CONFIG)
 
 
 def fix_config():
@@ -142,7 +124,7 @@ def load_config() -> bool:
         loaded = False
     getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
                tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
-    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
+    for name, module in ({consts.NAME: MODULE} | modules.MODULES).items():
         loaded = _load_config(getters, name, module.CONFIG, module.DEFAULT_CONFIG) and loaded
         module.fix_config()
     return loaded
@@ -150,7 +132,7 @@ def load_config() -> bool:
 
 def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
     parser = configparser.ConfigParser()
-    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
+    for name, module in ({consts.NAME: MODULE} | modules.MODULES).items():
         module.update_config()
         module.fix_config()
         parser[name] = {option: module.CONFIG[option] for option, value in sorted(
@@ -158,6 +140,17 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
     with open(CONFIG_PATH, 'w') as file:
         parser.write(file)
     return os.path.isfile(CONFIG_PATH)
+
+
+def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
+    if force or CONFIG[consts.CONFIG_NOTIFY]:
+        return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFICATION_LEN), icon)
+    return False
+
+
+def reapply_wallpaper(_: Optional[bool]):
+    if CONFIG[consts.CONFIG_REAPPLY] and RECENT:
+        on_change(*TIMER.args, RECENT[0], False)
 
 
 @timer.on_thread
@@ -721,7 +714,8 @@ def start():  # TODO dark theme
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE)
     _update_display()
     load_config()
-    RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))  # TODO .py cannot load .pyd RECENT
+    sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
+    RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))
     gui.init(consts.NAME)
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     create_menu()

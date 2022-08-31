@@ -7,6 +7,10 @@ import os
 import sys
 from typing import Optional
 
+import cython
+
+COMPILED = cython.compiled
+
 
 def compile_c(source: str, output: Optional[str] = None):
     if output is None:

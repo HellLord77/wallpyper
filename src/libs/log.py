@@ -134,8 +134,7 @@ def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
         path = frame.f_code.co_filename
         with contextlib.suppress(ValueError):
             path = os.path.relpath(path, _BASE)
-        if _PATTERN.fullmatch(path) and __name__ is not frame.f_globals['__name__'] and _filter(event, arg,
-                                                                                                frame.f_code.co_name):
+        if _PATTERN.fullmatch(path) and __name__ is not frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name):
             thread = threading.current_thread()
             if thread not in _STACK:
                 _STACK[thread] = 0
@@ -178,8 +177,7 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, ch
             sys.stderr.write = types.MethodType(_WRITE, sys.stderr.write)
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
-        logging.error(
-            f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
+        logging.error(f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
     else:
         sys.settrace(_on_trace)
         threading.settrace(_on_trace)

@@ -325,12 +325,12 @@ def sleep_ex(secs: Optional[float] = None):
 def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
            kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
            excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
-    for func, args_, kwargs_, excs_ in itertools.zip_longest(
-            funcs, () if args is None else args, {} if kwargs is None else kwargs, excs or ()):
-        if not func:
+    for func, func_args, func_kwargs, func_excs in itertools.zip_longest(
+            funcs, () if args is None else args, () if kwargs is None else kwargs, () if excs is None else excs):
+        if func is None:
             break
-        with contextlib.suppress(*excs_ or ()):
-            return func(*args_ or (), **kwargs_ or {})
+        with contextlib.suppress(*() if func_excs is None else func_excs):
+            return func(*() if func_args is None else func_args, **{} if func_kwargs is None else func_kwargs)
 
 
 def pass_ex(*_, **__):
@@ -350,6 +350,20 @@ def vars_ex(obj) -> str:
         fmt += (f'{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] '
                 f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}\n')
     return fmt
+
+
+def fix_dict_key(current_dict: dict, key: str, possible_values: Iterable, default_dict: dict):
+    cur_val = current_dict[key]
+    if isinstance(cur_val, str):
+        cur_val = cur_val.casefold()
+        for val in possible_values:
+            if cur_val == val.casefold():
+                current_dict[key] = val
+                return
+    else:
+        if cur_val in possible_values:
+            return
+    current_dict[key] = default_dict[key]
 
 
 def clear_queue(queue_: queue.Queue) -> int:
@@ -403,27 +417,36 @@ def shrink_string_mid(string: str, max_len: int, filler: str = '...') -> str:
     return string
 
 
-def encrypt(obj, split: bool = False) -> str:
+def _get_key(key: Optional[bytes | int | str]) -> bytes:
+    if key is None:
+        key = uuid.getnode()
+    if isinstance(key, int):
+        key = str(key)
+    if isinstance(key, str):
+        key = key.encode()
+    return key
+
+
+def encrypt(obj, key: Optional[bytes | int | str] = None, split: bool = False) -> str:
     try:
         pickled = pickle.dumps(obj)
     except TypeError:
         return ''
-    base64 = binascii.b2a_base64(zlib.compress(hashlib.blake2b(pickled, key=str(
-        uuid.getnode()).encode()).digest() + pickled), newline=False).decode()
+    base64 = binascii.b2a_base64(zlib.compress(hashlib.blake2b(
+        pickled, key=_get_key(key)).digest() + pickled), newline=False).decode()
     return '\n'.join(split_ex(base64)) if split else base64
 
 
-def decrypt(data: str, default: Any = None, key: Optional[int] = None) -> Any:
+def decrypt(data: str, default: Any = None, key: Optional[bytes | int | str] = None) -> Any:
     try:
         decoded = zlib.decompress(binascii.a2b_base64(''.join(data.split('\n')).encode()))
     except (binascii.Error, zlib.error):
         return default
     size = hashlib.blake2b().digest_size
-    if decoded[:size] == hashlib.blake2b(decoded[size:], key=str(
-            uuid.getnode() if key is None else key).encode()).digest():
+    if decoded[:size] == hashlib.blake2b(decoded[size:], key=_get_key(key)).digest():
         try:
             return pickle.loads(decoded[size:])
-        except (AttributeError, ModuleNotFoundError):
+        except (AttributeError, ModuleNotFoundError, pickle.UnpicklingError):
             return default
     else:
         return default

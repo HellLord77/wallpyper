@@ -29,9 +29,9 @@ MenuItem = win32.gui.MenuItem
 
 class _Arg(type):
     def __new__(mcs, *args, **kwargs):
-        self = super().__new__(mcs, *args, **kwargs)
-        self._values = set(getattr(self, var) for var in dir(self) if not var.startswith('_'))
-        return self
+        cls = super().__new__(mcs, *args, **kwargs)
+        cls._values = set(getattr(cls, var) for var in dir(cls) if not var.startswith('_'))
+        return cls
 
     def __contains__(cls, item):
         return item in cls._values

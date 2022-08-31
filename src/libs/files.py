@@ -15,6 +15,8 @@ POLL_INTERVAL = 0.1
 
 
 class File:
+    __slots__ = 'url', 'name', 'size', 'md5', 'sha256'
+
     def __init__(self, url: str, name: str, size: Optional[int] = None,
                  md5: Optional[bytes] = None, sha256: Optional[bytes] = None):
         self.url = url

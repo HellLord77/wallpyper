@@ -24,9 +24,9 @@ TEMP_WALLPAPER_DIR = tempfile.gettempdir()
 
 class _IntEnum(type):
     def __new__(mcs, *args, **kwargs):
-        self = super().__new__(mcs, *args, **kwargs)
-        self._vars = {var: val for var, val in vars(self).items() if not var.startswith('_')}
-        return self
+        cls = super().__new__(mcs, *args, **kwargs)
+        cls._vars = {var: val for var, val in vars(cls).items() if not var.startswith('_')}
+        return cls
 
     def __contains__(cls, item):
         return item in cls._vars

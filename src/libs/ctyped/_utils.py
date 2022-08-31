@@ -1,6 +1,5 @@
 import ctypes as _ctypes
 import gc as _gc
-import importlib as _importlib
 import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
@@ -19,17 +18,17 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
 
 
 class _Module(_types.ModuleType):
-    __slots__ = '_name', '_module'
+    __slots__ = '_name'
+    _module = None
 
     # noinspection PyMissingConstructor
     def __init__(self, name: str):
         self._name = name
-        self._module = None
 
     def __getattr__(self, name: str):
         if self._module is None:
             del _sys.modules[self._name]
-            self._module = _importlib.import_module(*reversed(_os.path.splitext(self._name)))
+            self._module = __import__(self._name, fromlist=self._name.rsplit('.', 1)[:1])
         _replace_object(self, self._module)
         return getattr(self._module, name)
 

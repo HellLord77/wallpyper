@@ -2,7 +2,6 @@ __version__ = '0.0.2'
 
 import __main__
 import glob
-import importlib
 import io
 import os
 import shutil
@@ -18,7 +17,7 @@ def get_launch_args() -> tuple[str, ...]:
     if FROZEN:
         return sys.executable,
     else:
-        return sys.executable, os.path.realpath(__main__.__file__)
+        return sys.executable, __main__.__file__
 
 
 def clean_temp(remove_base: bool = False) -> bool:
@@ -88,7 +87,7 @@ def _calc_winpe_size(stream: io.BytesIO) -> int:
 
 
 def add_manifest(path: str, manifest: str, merge: bool = True):
-    winmanifest = importlib.import_module('PyInstaller.utils.win32.winmanifest')
+    winmanifest = __import__('PyInstaller.utils.win32.winmanifest', fromlist=['PyInstaller.utils.win32'])
     if merge:
         manifest = _xml_merge(winmanifest.GetManifestResources(path)[winmanifest.RT_MANIFEST][1][0].decode(), manifest)
     with tempfile.TemporaryFile() as temp:

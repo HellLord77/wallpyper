@@ -17,15 +17,14 @@ $ModuleGraph = $True
 $AddPython = $False
 $EntryPoint = "src\init.py"
 $Icon = "src\res\icon.ico"
-$Manifest = "" # FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
+# $Manifest = "manifest.xml" FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
+$Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonizeGlobs = @(
-"src\langs\*.py"
 "src\libs\{colornames,iso}\__init__.py"
-"src\libs\{colored,cythonizer,files,log,pyinstall,request,singleton,timer,utils}.py"
-"src\modules\*.py"
+"src\{langs,libs,modules,win32}\*.py"
 "src\{consts.init,main}.py")
-$CythonizeCleanup = $True
+$CythonizeRemove = $True
 $CodeRunBefore = @(
 "from src.libs.ctyped.interface import _dump_pickle"
 "_dump_pickle()")
@@ -64,7 +63,9 @@ $CodeModuleGraphSmartTemplate = @(
 "graph.add_script(r'{0}')"
 "graph.process_post_graph_hooks(analysis)"
 "print(';'.join(module.identifier for module in graph.iter_graph()))")
+$CopyTimeout = 5
 $ModuleGraphSmart = $True
+$CythonizeRemoveC = $False
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $IsGithub = Test-Path Env:GITHUB_REPOSITORY
@@ -74,7 +75,7 @@ function Get-InsertedArray($Array, $Index, $Value)
     return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
 }
 
-function Start-Base64Process([String] $Base64, [String] $Args = "")
+function Start-Base64Process([string] $Base64, [string] $Args = "")
 {
     $TempFile = New-TemporaryFile
     [IO.File]::WriteAllBytes($TempFile,[Convert]::FromBase64String($Base64))
@@ -105,6 +106,18 @@ function Get-ExeSize([System.IO.FileStream] $Stream)
         }
     }
     return $Size
+}
+
+function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0)
+{
+    Write-Host "$Source -> $Destination"
+    New-Item (Split-Path $Destination -Parent) -ItemType Directory -ErrorAction SilentlyContinue
+    $EndTime = [int](Get-Date -UFormat %s) + $Timeout
+    do
+    {
+        Copy-Item $Source -Destination $Destination -ErrorAction SilentlyContinue
+        Start-Sleep 0.01
+    } while (($EndTime -ge ([int](Get-Date -UFormat %s))) -and -not(Test-Path $Destination -PathType Leaf))
 }
 
 function MinifyJsonFile([string]$Path, [string]$OutPath)
@@ -151,10 +164,41 @@ function Get-ProjectName
     } ) -Leaf
 }
 
+function Remove-Cythonized([bool] $Throw = $True)
+{
+    $ExtSuffix = Start-PythonCode $CodeExtSuffix
+    foreach ($CythonizeGlob in $CythonizeGlobs)
+    {
+        $CodeGlob = @() + $CodeGlobTemplate
+        $CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeGlob
+        $Files = Start-PythonCode $CodeGlob
+        foreach ($File in $Files -Split ";")
+        {
+            $Root = $File.Substring(0,$File.LastIndexOf("."))
+            if ($Throw -and $CythonizeRemoveC)
+            {
+                Remove-Item "$Root.c" -Force
+            }
+            try
+            {
+                Remove-Item "$Root$ExtSuffix" -Force
+            }
+            catch
+            {
+                if ($Throw)
+                {
+                    throw
+                }
+            }
+        }
+    }
+}
+
 function Get-ModuleGraph
 {
     if ($ModuleGraphSmart)
     {
+        Remove-Cythonized $False
         $TempDir = Join-Path $env:TEMP (New-Guid)
         New-Item $TempDir -ItemType Directory
         $CodeModuleGraphSmartProcess = @() + $CodeModuleGraphSmartTemplate
@@ -187,7 +231,6 @@ function Get-MainArgs
     }
     if ($Debug)
     {
-        $NoConsole = $False
         $Args += "--debug=all"
     }
     if ($NoConsole)
@@ -291,7 +334,8 @@ function Install-Dependencies
     }
     if ($CythonizeGlobs)
     {
-        pip install cython --pre # FIXME https://github.com/cython/cython/milestone/58
+        # pip install cython FIXME https://github.com/cython/cython/milestone/58
+        pip install cython --pre
     }
 
     if (Test-Path requirements.txt -PathType Leaf)
@@ -362,25 +406,15 @@ function Write-Build
 
     if ($MainManifest)
     {
-        Start-Sleep 1
-        MergeManifest $ExePath $MainManifest
+        $TempPath = Join-Path $env:TEMP (New-Guid)
+        Copy-File $ExePath $TempPath $CopyTimeout
+        MergeManifest $TempPath $MainManifest
+        Move-Item $TempPath -Destination $ExePath -Force
     }
 
-    if ($CythonizeCleanup -and -not$Debug)
+    if ($CythonizeRemove)
     {
-        $ExtSuffix = Start-PythonCode $CodeExtSuffix
-        foreach ($CythonizeGlob in $CythonizeGlobs)
-        {
-            $CodeGlob = @() + $CodeGlobTemplate
-            $CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeGlob
-            $Files = Start-PythonCode $CodeGlob
-            foreach ($File in $Files -Split ";")
-            {
-                $Root = $File.Substring(0,$File.LastIndexOf("."))
-                # Remove-Item "$Root.c" -Force
-                Remove-Item "$Root$ExtSuffix" -Force
-            }
-        }
+        Remove-Cythonized
     }
 
     if ($CodeRunAfter)
@@ -426,50 +460,6 @@ if ($Args)
             throw
         }
     }
-    Invoke-Expression $Args[0]
-}
-else
-{
-}
-
-function UploadToMEGA
-{
-    if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
-    {
-        # choco install megacmd --verbose --yes FIXME Error retrieving packages from source
-        $Temp = Join-Path $Env:TEMP (Split-Path $MegaURL -Leaf)
-        Invoke-WebRequest $MegaURL -OutFile $Temp
-        Start-Process $Temp "/S" -Wait
-        Remove-Item $Temp -Force
-        $env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
-        mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
-        mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
-    }
-    else
-    {
-        throw
-    }
-}
-
-$ErrorActionPreference = "Stop"
-if ($Args)
-{
-    switch ($Args[0])
-    {
-        "install" {
-            Install-Dependencies; Break
-        }
-        "build" {
-            Write-Build; Break
-        }
-        "upload" {
-            UploadToMEGA; Break
-        }
-        Default {
-            throw
-        }
-    }
-    Invoke-Expression $Args[0]
 }
 else
 {

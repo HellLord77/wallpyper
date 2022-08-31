@@ -12,17 +12,17 @@ MODULES: dict[str, type[_Module]] = {}
 
 class _ModuleMeta(type):
     def __new__(mcs, *args, **kwargs):
-        _self = super().__new__(mcs, *args, **kwargs)
-        if not _self.__name__.startswith('_'):
-            _self.NAME = getattr(_self, 'NAME', _self.__name__)
-            _self.VERSION = inspect.currentframe().f_back.f_globals.get('__version__', 'X.Y.Z')
-            _self.ICON = os.path.join(os.path.dirname(__file__), 'res', getattr(_self, 'ICON', f'{_self.__name__}.ico'))
-            _self.DEFAULT_CONFIG = getattr(_self, 'DEFAULT_CONFIG', {})
-            _self.CONFIG = {}
-            _self.get_next_wallpaper = utils.one_cache(_self.get_next_wallpaper)
+        cls = super().__new__(mcs, *args, **kwargs)
+        if not cls.__name__.startswith('_'):
+            cls.NAME = getattr(cls, 'NAME', cls.__name__)
+            cls.VERSION = inspect.currentframe().f_back.f_globals.get('__version__', 'X.Y.Z')
+            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', getattr(cls, 'ICON', f'{cls.__name__}.ico'))
+            cls.DEFAULT_CONFIG = getattr(cls, 'DEFAULT_CONFIG', {})
+            cls.CONFIG = {}
+            cls.get_next_wallpaper = utils.one_cache(cls.get_next_wallpaper)
             # noinspection PyTypeChecker
-            MODULES[_self.__name__] = _self
-        return _self
+            MODULES[cls.__name__] = cls
+        return cls
 
 
 class _Module(metaclass=_ModuleMeta):
@@ -34,13 +34,12 @@ class _Module(metaclass=_ModuleMeta):
     STRINGS = langs.DEFAULT
 
     @classmethod
-    def _fix_config(cls, key: str, values: Iterable[str]):
-        if cls.CONFIG[key] not in values:
-            cls.CONFIG[key] = cls.DEFAULT_CONFIG[key]
-
-    @classmethod
     def update_config(cls):
         pass
+
+    @classmethod
+    def _fix_config(cls, key: str, values: Iterable):
+        utils.fix_dict_key(cls.CONFIG, key, values, cls.DEFAULT_CONFIG)
 
     @classmethod
     def fix_config(cls):
