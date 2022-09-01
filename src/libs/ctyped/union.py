@@ -81,6 +81,13 @@ class PICTDESC_U:
 
 # noinspection PyPep8Naming
 @_union
+class CHAR_INFO_U:
+    UnicodeChar: _type.WCHAR
+    AsciiChar: _type.CHAR
+
+
+# noinspection PyPep8Naming
+@_union
 class VARIANT_U_S_U:
     llVal: _type.LONGLONG
     lVal: _type.LONG

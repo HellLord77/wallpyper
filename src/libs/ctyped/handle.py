@@ -29,7 +29,6 @@ class HBRUSH(_type.HBRUSH):
 
     @classmethod
     def from_rgb(cls, r: int = 0, g: int = 0, b: int = 0) -> HBRUSH:
-        print(r, g, b)
         return cls(_lib.gdi32.CreateSolidBrush(_macro.RGB(r, g, b)))
 
     @classmethod

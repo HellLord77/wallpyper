@@ -19,7 +19,7 @@ from ._utils import (_get_namespace, _get_winrt_class_name, _CT as CT, _Pointer 
 
 _MESSAGES = {}
 
-FLAG_GENERATE_DOC = True  # TODO
+# FLAG_GENERATE_DOC = True  # TODO
 FLAG_THREADED_COM = False
 
 

@@ -776,6 +776,57 @@ class OPENASINFO:
     oaifInFlags: _enum.OPEN_AS_INFO_FLAGS = None
 
 
+# noinspection PyPep8Naming
+@_struct
+class CONSOLE_READCONSOLE_CONTROL:
+    nLength: _type.ULONG = None
+    nInitialChars: _type.ULONG = None
+    dwCtrlWakeupMask: _type.ULONG = None
+    dwControlKeyState: _type.ULONG = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class CHAR_INFO:
+    Char: _union.CHAR_INFO_U = None
+    Attributes: _type.WORD = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class CONSOLE_FONT_INFO:
+    nFont: _type.DWORD = None
+    dwFontSize: COORD = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class CONSOLE_FONT_INFOEX:
+    cbSize: _type.ULONG = _SIZE
+    nFont: _type.DWORD = None
+    dwFontSize: COORD = None
+    FontFamily: _type.UINT = None
+    FontWeight: _type.UINT = None
+    FaceName: _type.WCHAR * _const.LF_FACESIZE = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class CONSOLE_SELECTION_INFO:
+    dwFlags: _type.DWORD = None
+    dwSelectionAnchor: COORD = None
+    srSelection: SMALL_RECT = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class CONSOLE_HISTORY_INFO:
+    cbSize: _type.UINT = _SIZE
+    HistoryBufferSize: _type.UINT = None
+    NumberOfHistoryBuffers: _type.UINT = None
+    dwFlags: _type.DWORD = None
+
+
 @_struct
 class SHELLEXECUTEINFOA:
     cbSize: _type.DWORD = _SIZE

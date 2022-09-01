@@ -7,12 +7,13 @@ import itertools
 import math
 import multiprocessing
 import os.path
-import subprocess
 import sys
+import sysconfig
 import tempfile
 import threading
 import time
 import traceback
+import uuid
 import webbrowser
 from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 
@@ -28,16 +29,19 @@ import libs.singleton as singleton
 import libs.timer as timer
 import libs.utils as utils
 import modules
+import pipe
 import win32
 
 ALL_DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
-TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
 LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
+PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var(
+    'EXT_SUFFIX')), 'exe') if pyinstall.FROZEN else sys.executable
+TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
@@ -51,7 +55,7 @@ DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT)
-CONSOLE: Optional[win32.pipe.TextNamedPipe] = win32.pipe.TextNamedPipe(UUID)
+PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
 DEFAULT_CONFIG = {
     consts.CONFIG_LAST: math.inf,
@@ -515,25 +519,17 @@ def on_unpin_start() -> bool:
     return unpinned
 
 
-def on_console():  # TODO
-    if win32.pipe.exists(UUID):
-        CONSOLE.close()
+@utils.singleton_run
+def on_console():
+    if PIPE:
+        if not PIPE.disconnect():
+            notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
-        if pyinstall.FROZEN:
-            launch_args = files.replace_ext(win32.pipe.__file__, 'exe'),
+        win32.open_file(PIPE_PATH, *() if pyinstall.FROZEN else (pipe.__file__,), str(PIPE))
+        if PIPE.connect(consts.PIPE_TIMEOUT):
+            PIPE.flush()
         else:
-            launch_args = sys.executable, win32.pipe.__file__
-        subprocess.Popen((*launch_args, UUID), creationflags=subprocess.CREATE_NEW_CONSOLE)
-        client = win32.pipe.client(UUID, consts.PIPE_TIMEOUT)  # stdout, stderr
-        CONSOLE.value = client.value
-        client.value = None
-        if CONSOLE:
-            # flush all output
-            sys.stdout.write = utils.call_after(CONSOLE.write)(sys.stdout.write)
-            print('hello fancy new console')
-        else:
-            # notify error
-            pass
+            notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
 
 
 def on_clear_cache() -> bool:
@@ -737,22 +733,28 @@ def stop():
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE) if CONFIG[consts.CONFIG_CACHE] else files.remove(TEMP_DIR, True)
     if os.path.isdir(TEMP_DIR) and files.is_only_dirs(TEMP_DIR, True):
         files.remove(TEMP_DIR, True)
-    CONSOLE.close()
+    PIPE.disconnect()
 
 
 def main() -> NoReturn:
+    # CONSOLE_FONT_INFOEX(cbSize=84, nFont=0, dwFontSize=COORD(X=0, Y=16), FontFamily=4, FontWeight=0, FaceName=Consolas)
+    # CONSOLE_FONT_INFOEX(cbSize=84, nFont=0, dwFontSize=COORD(X=8, Y=16), FontFamily=54, FontWeight=400, FaceName=Consolas)
     # if not win32.console.is_present():  # TODO hidden console
     #     win32.console.create()
+    #     sys.stdout = sys.stderr = open('CONOUT$', 'w')
+    #     print(win32.ctyped.lib.kernel32.SetConsoleOutputCP(win32.ctyped.const.CP_UTF8))
     #     win32.console.set_title(consts.NAME)
     #     win32.console.ignore_ctrl_c()
     #     win32.console.disable_close()
-    #     sys.stdout = sys.stderr = open('CONOUT$', 'w')
+    #     win32.console.write(str(win32.console._get_font_info_ex()))
+    #     win32.console.write('\n')
+    #     win32.console.write(utils.ProgressBar.BLOCK_HORIZONTAL)
     if consts.FEATURE_EXCEPT_HOOK:
         utils.hook_except(win32.show_error, format=True)
     try:
         start()
         stop()
-    except BaseException as e:
+    except Exception as e:
         if consts.FEATURE_EXCEPT_HOOK and multiprocessing.parent_process():
             thread = threading.Thread(target=win32.show_error, args=(type(
                 e), f'Process {multiprocessing.current_process().name}:\n' + ''.join(

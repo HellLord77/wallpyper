@@ -517,7 +517,17 @@ def get_imported_modules(script_path: str, *excludes: str) -> tuple[Node]:
 
 
 def _test():
-    pass
+    from distutils.command.build_ext import build_ext
+    from distutils.ccompiler import new_compiler
+    from distutils.core import Distribution
+    from os.path import splitext
+    source = r'{0}'
+    build = build_ext(Distribution())
+    build.finalize_options()
+    compiler = new_compiler()
+    objects = compiler.compile([source], include_dirs=build.include_dirs)
+    libraries = [f'python{sys.version_info.major}{sys.version_info.minor}']
+    compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)
 
 
 if __name__ == '__main__':

@@ -1,12 +1,14 @@
-$Version = "0.1.0"
+$Version = "0.1.1"
 
 $Datas = @(
 "modules\res"
 "res"
-"win32\syspin.exe")
+"win32\syspin.exe"
+"pipe.exe")
 $Imports = @()
 $Excludes = @()
 $HooksDirs = @("hooks")
+$RuntimeHooks = @()
 $OptimizationLevel = 2
 $Debug = $False
 $NoConsole = $True
@@ -20,18 +22,20 @@ $Icon = "src\res\icon.ico"
 # $Manifest = "manifest.xml" FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $Manifest = ""
 $MainManifest = "manifest.xml"
+$CythonSources = @("src\pipe.py")
 $CythonizeGlobs = @(
 "src\libs\{colornames,iso}\__init__.py"
 # "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
 "src\libs\ctyped\{__init__,const,enum,handle,lib,macro}.py"
 "src\{langs,libs,modules,win32}\*.py"
-"src\{consts.init,main}.py")
+"src\{consts,init,main,pipe}.py")
 $CythonizeRemove = $True
 $CodeRunBefore = @(
 "from src.libs.ctyped.interface import _dump_pickle"
 "_dump_pickle()")
 $CodeRunAfter = @(
 "from os import remove"
+"remove('src\pipe.exe')"
 "remove('src\libs\ctyped\interface.pickle')")
 $MinifyJsonRegExs = @(
 "src\libs\colornames\colornames.min.json", "src\libs\iso\iso_*.json")
@@ -65,6 +69,19 @@ $CodeModuleGraphSmartTemplate = @(
 "graph.add_script(r'{0}')"
 "graph.process_post_graph_hooks(analysis)"
 "print(';'.join(module.identifier for module in graph.iter_graph()))")
+$CodeCompileCTemplate = @(
+"from distutils.command.build_ext import build_ext"
+"from distutils.ccompiler import new_compiler"
+"from distutils.core import Distribution"
+"from os.path import splitext"
+"from sys import version_info"
+"build = build_ext(Distribution())"
+"build.finalize_options()"
+"compiler = new_compiler()"
+"source = r'{0}'"
+"objects = compiler.compile([source], include_dirs=build.include_dirs)"
+"libraries = [f'python{version_info.major}{version_info.minor}']"
+"compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
 $CopyTimeout = 5
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
@@ -259,6 +276,10 @@ function Get-PyInstallerArgs
     {
         $Args += "--additional-hooks-dir=$HooksDir"
     }
+    foreach ($RuntimeHook in $RuntimeHooks)
+    {
+        $Args += "--runtime-hook=$RuntimeHook"
+    }
     if ($AddPython)
     {
         $Args += "--add-data=""$( Join-Path (Start-PythonCode $CodePythonBase) "python.exe" );."""
@@ -290,6 +311,10 @@ function Get-PyInstallerArgs
             {
                 $DataDst = $Data
             }
+        }
+        if (-not$DataDst)
+        {
+            $DataDst = "."
         }
         $Args += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
     }
@@ -334,7 +359,7 @@ function Install-Dependencies
         Pop-Location
         Remove-Item $TempDir -Force -Recurse
     }
-    if ($CythonizeGlobs)
+    if ($CythonSources -or $CythonizeGlobs)
     {
         # pip install cython FIXME https://github.com/cython/cython/milestone/58
         pip install cython --pre
@@ -362,6 +387,18 @@ function Write-Build
                 MinifyJsonFile $Json.FullName
             }
         }
+    }
+
+    foreach ($CythonSource in $CythonSources)
+    {
+        cython -3 --embed $CythonSource
+        $SourceBase = $CythonSource.Substring(0,$CythonSource.LastIndexOf("."))
+        $CodeCompileC = @() + $CodeCompileCTemplate
+        $CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
+        Start-PythonCode $CodeCompileC
+        Remove-Item "$SourceBase.exp" -Force
+        Remove-Item "$SourceBase.lib" -Force
+        Remove-Item "$SourceBase.obj" -Force
     }
 
     $PyInstallerArgs = Get-PyInstallerArgs

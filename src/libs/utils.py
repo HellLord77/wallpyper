@@ -592,13 +592,12 @@ def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str
     while True:
         work = works.get()
         running.set()
-        with contextlib.suppress(BaseException):
-            try:
-                wrapper.res = func(*work[0], **work[1])
-            finally:
-                running.clear()
-                if works.unfinished_tasks:
-                    works.task_done()
+        try:
+            wrapper.res = func(*work[0], **work[1])
+        finally:
+            running.clear()
+            if works.unfinished_tasks:
+                works.task_done()
 
 
 def queue_run_ex(func: Callable) -> Callable:

@@ -65,7 +65,7 @@ def _xml_merge(self: str, other: str) -> str:
 
 
 def _calc_winpe_size(stream: io.BytesIO) -> int:
-    stream.seek(0, os.SEEK_SET)
+    stream.seek(0)
     buff = stream.read(4096)
     header_offset = int.from_bytes(buff[60:64], 'little')
     machine = int.from_bytes(buff[header_offset + 4:header_offset + 6], 'little')
@@ -94,6 +94,6 @@ def add_manifest(path: str, manifest: str, merge: bool = True):
         with open(path, 'rb') as file:
             shutil.copyfileobj(file, temp)
         winmanifest.UpdateManifestResourcesFromXML(path, manifest.encode())
-        temp.seek(_calc_winpe_size(temp), os.SEEK_SET)
+        temp.seek(_calc_winpe_size(temp))
         with open(path, 'ab') as file:
             shutil.copyfileobj(temp, file)

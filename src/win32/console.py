@@ -1,3 +1,5 @@
+from typing import Optional
+
 import libs.ctyped as ctyped
 
 
@@ -15,6 +17,23 @@ def remove() -> bool:
 
 def set_title(title: str) -> bool:
     return bool(ctyped.lib.kernel32.SetConsoleTitleW(title))
+
+
+def _get_handle(error: bool) -> int:
+    return ctyped.lib.kernel32.GetStdHandle(ctyped.const.STD_ERROR_HANDLE if error else ctyped.const.STD_OUTPUT_HANDLE)
+
+
+def write(text: bytes | str, error: bool = False):
+    written = ctyped.type.DWORD()
+    (ctyped.lib.kernel32.WriteConsoleA if isinstance(text, bytes) else ctyped.lib.kernel32.WriteConsoleW)(
+        _get_handle(error), text, len(text), ctyped.byref(written), 0)
+    return written.value
+
+
+def _get_font_info_ex(error: bool = False) -> Optional[ctyped.struct.CONSOLE_FONT_INFOEX]:
+    info = ctyped.struct.CONSOLE_FONT_INFOEX()
+    if ctyped.lib.kernel32.GetCurrentConsoleFontEx(_get_handle(error), False, ctyped.byref(info)):
+        return info
 
 
 def ignore_ctrl_c(ignore: bool = True) -> bool:

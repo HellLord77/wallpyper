@@ -9,7 +9,7 @@ import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
 import libs.ctyped as ctyped
-from . import _utils, clipboard, console, display, gui, pipe
+from . import _utils, clipboard, console, display, gui
 from ._utils import sanitize_filename
 
 _PIN_TIMEOUT = 3
@@ -260,8 +260,9 @@ def press_keyboard(key: int) -> bool:
     return False
 
 
-def open_file(path: str) -> bool:
-    return ctyped.lib.shell32.ShellExecuteW(None, None, path, None, None, ctyped.const.SW_SHOW) > 32
+def open_file(path: str, *args: str) -> bool:
+    return ctyped.lib.shell32.ShellExecuteW(
+        None, None, path, subprocess.list2cmdline(args), None, ctyped.const.SW_SHOW) > 32
 
 
 def open_file_path(path: str) -> bool:
@@ -534,7 +535,7 @@ def get_manifest(path: Optional[str] = None) -> str:
     return ''
 
 
-def calc_exe_size(path: str) -> int:
+def get_exe_size(path: str) -> int:
     size = 0
     hfile = ctyped.lib.kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, None,
                                             ctyped.const.OPEN_EXISTING, ctyped.const.FILE_ATTRIBUTE_NORMAL, None)

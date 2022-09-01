@@ -4013,6 +4013,30 @@ class kernel32(_Func, metaclass=_WinDLL):
     GetNumberOfConsoleInputEvents: _Callable[[_type.HANDLE,  # hConsoleInput
                                               _Pointer[_type.DWORD]],  # lpNumberOfEvents
                                              _type.BOOL]
+    ReadConsoleA: _Callable[[_type.HANDLE,  # hConsoleInput
+                             _type.LPVOID,  # lpBuffer
+                             _type.DWORD,  # nNumberOfCharsToRead
+                             _Pointer[_type.DWORD],  # lpNumberOfCharsRead
+                             _Optional[_Pointer[_struct.CONSOLE_READCONSOLE_CONTROL]]],  # pInputControl
+                            _type.BOOL]
+    ReadConsoleW: _Callable[[_type.HANDLE,  # hConsoleInput
+                             _type.LPVOID,  # lpBuffer
+                             _type.DWORD,  # nNumberOfCharsToRead
+                             _Pointer[_type.DWORD],  # lpNumberOfCharsRead
+                             _Optional[_Pointer[_struct.CONSOLE_READCONSOLE_CONTROL]]],  # pInputControl
+                            _type.BOOL]
+    WriteConsoleA: _Callable[[_type.HANDLE,  # hConsoleOutput
+                              _type.PVOID,  # lpBuffer
+                              _type.DWORD,  # nNumberOfCharsToWrite
+                              _Optional[_Pointer[_type.DWORD]],  # lpNumberOfCharsWritten
+                              _type.LPVOID],  # lpReserved
+                             _type.BOOL]
+    WriteConsoleW: _Callable[[_type.HANDLE,  # hConsoleOutput
+                              _type.PVOID,  # lpBuffer
+                              _type.DWORD,  # nNumberOfCharsToWrite
+                              _Optional[_Pointer[_type.DWORD]],  # lpNumberOfCharsWritten
+                              _type.LPVOID],  # lpReserved
+                             _type.BOOL]
     SetConsoleCtrlHandler: _Callable[[_Optional[_type.PHANDLER_ROUTINE],  # HandlerRoutine
                                       _type.BOOL],  # Add
                                      _type.BOOL]
@@ -4061,6 +4085,24 @@ class kernel32(_Func, metaclass=_WinDLL):
     GetConsoleFontSize: _Callable[[_type.HANDLE,  # hConsoleOutput
                                    _type.DWORD],  # nFont
                                   _struct.COORD]
+    GetCurrentConsoleFont: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                      _type.BOOL,  # bMaximumWindow
+                                      _Pointer[_struct.CONSOLE_FONT_INFO]],  # lpConsoleCurrentFont
+                                     _type.BOOL]
+    GetCurrentConsoleFontEx: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                        _type.BOOL,  # bMaximumWindow
+                                        _Pointer[_struct.CONSOLE_FONT_INFOEX]],  # lpConsoleCurrentFont
+                                       _type.BOOL]
+    SetCurrentConsoleFontEx: _Callable[[_type.HANDLE,  # hConsoleOutput
+                                        _type.BOOL,  # bMaximumWindow
+                                        _Pointer[_struct.CONSOLE_FONT_INFOEX]],  # lpConsoleCurrentFont
+                                       _type.BOOL]
+    GetConsoleSelectionInfo: _Callable[[_Pointer[_struct.CONSOLE_SELECTION_INFO]],  # lpConsoleSelectionInfo
+                                       _type.BOOL]
+    GetConsoleHistoryInfo: _Callable[[_Pointer[_struct.CONSOLE_HISTORY_INFO]],  # lpConsoleHistoryInfo
+                                     _type.BOOL]
+    SetConsoleHistoryInfo: _Callable[[_Pointer[_struct.CONSOLE_HISTORY_INFO]],  # lpConsoleHistoryInfo
+                                     _type.BOOL]
     GetConsoleDisplayMode: _Callable[[_Pointer[_type.DWORD]],  # lpModeFlags
                                      _type.BOOL]
     SetConsoleDisplayMode: _Callable[[_type.HANDLE,  # hConsoleOutput
