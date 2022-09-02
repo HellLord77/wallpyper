@@ -153,8 +153,12 @@ class _NamespaceMeta(type):
             intend = first_line.index('c')
             _LOCALS.locals.append(self)
             exec('\n'.join(line[intend:] for line in _LINES[data[0]:data[1]]), globals(), _LOCALS)
-            _LOCALS.locals.pop()
+            del _LOCALS.locals[-1]
             setattr(self, name, interface := _LOCALS[name])
+            try:
+                interface.__qualname__ = f'{self.__qualname__}.{name}'
+            except AttributeError:
+                interface.__qualname__ = name
             return interface
 
 
@@ -176,14 +180,19 @@ def _get_interfaces(namespace) -> dict[str, tuple[int, int] | dict]:
     return namespace._interfaces
 
 
-def _set_interfaces(namespace, interfaces: dict[str, tuple[int, int] | dict]):
-    namespace._interfaces = interfaces
+def _set_interfaces(cur_namespace, interfaces: dict[str, tuple[int, int] | dict], qualname: _Optional[list[str]] = None):
+    if qualname is None:
+        qualname = []
+    cur_namespace._interfaces = interfaces
     namespaces = []
     for name, value in interfaces.items():
         if isinstance(value, dict):
-            new_namespace = _NamespaceMeta(name, (), {})
-            _set_interfaces(new_namespace, value)
-            setattr(namespace, name, new_namespace)
+            namespace = _NamespaceMeta(name, (), {})
+            qualname.append(name)
+            namespace.__qualname__ = '.'.join(qualname)
+            _set_interfaces(namespace, value, qualname)
+            del qualname[-1]
+            setattr(cur_namespace, name, namespace)
             namespaces.append(name)
     for name in namespaces:
         del interfaces[name]
@@ -246,7 +255,7 @@ def _init():
         class_match = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:').fullmatch
         _module._interfaces = {}
         level = 0
-        namespaces = [_module]
+        interfaces = [{}]
         interface = None
         for index, line in enumerate(_LINES):
             if match := class_match(line):
@@ -255,17 +264,16 @@ def _init():
                 if groups[0].startswith('_') or groups[1]:
                     interface = groups[0], index
                 else:
-                    namespace = _NamespaceMeta(groups[0], (), {})
+                    namespace = {}
                     try:
-                        namespaces[level + 1] = namespace
+                        interfaces[level + 1] = namespace
                     except IndexError:
-                        namespaces.append(namespace)
-                    namespace._interfaces = {}
-                    setattr(namespaces[level], groups[0], namespace)
+                        interfaces.append(namespace)
+                    interfaces[level][groups[0]] = namespace
             elif not line and interface:
-                # noinspection PyProtectedMember
-                namespaces[level]._interfaces[interface[0]] = interface[1], index
+                interfaces[level][interface[0]] = interface[1], index
                 interface = None
+        _set_interfaces(_sys.modules[__name__], interfaces[0])
     _module.__getattr__ = _types.MethodType(_NamespaceMeta.__getattr__, _module)
 
 

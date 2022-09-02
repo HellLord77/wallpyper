@@ -64,7 +64,7 @@ def set_main_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> ContextManager[w
     finally:
         for func, defaults in defaults_bk.items():
             func.__defaults__ = defaults
-        _MAIN_MENU.pop()
+        del _MAIN_MENU[-1]
 
 
 def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
