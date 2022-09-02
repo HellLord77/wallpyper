@@ -45,7 +45,8 @@ class ProgressBar:
     CLOCK = '🌕🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛'
 
 
-class _Mutable:
+class _Mutable:  # TODO wait for change
+    __slots__ = '_data'
     _type = type(None)
 
     def __init__(self, val: Optional[int | float | bool | str] = None):
@@ -427,9 +428,9 @@ def _get_key(key: Optional[bytes | int | str]) -> bytes:
     return key
 
 
-def encrypt(obj, key: Optional[bytes | int | str] = None, split: bool = False) -> str:
+def encrypt(obj, key: Optional[bytes | int | str] = None, split: bool = False, proto: int = pickle.HIGHEST_PROTOCOL) -> str:
     try:
-        pickled = pickle.dumps(obj)
+        pickled = pickle.dumps(obj, proto)
     except TypeError:
         return ''
     base64 = binascii.b2a_base64(zlib.compress(hashlib.blake2b(
@@ -481,7 +482,7 @@ def hook_except(func: Callable, args: Optional[Iterable] = None, kwargs: Optiona
 
 def _get_params(args, kwargs):
     params = args + tuple(kwargs.items())
-    return try_ex(hash, pickle.dumps, args=((params,), (params,)), excs=((TypeError,), (ValueError,))) or params
+    return try_ex(hash, pickle.dumps, args=((params,), (params, pickle.HIGHEST_PROTOCOL)), excs=((TypeError,), (ValueError,))) or params
 
 
 class OneCachedCallable(Callable):

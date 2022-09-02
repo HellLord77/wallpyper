@@ -1,7 +1,5 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.0'
-
 import atexit
 import io
 import ntpath

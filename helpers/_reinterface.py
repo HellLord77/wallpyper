@@ -16,7 +16,7 @@ def bench():
     tracemalloc.start()
     with timeit():
         # noinspection PyUnresolvedReferences
-        from libs import ctyped  # < 0.8s -> 0.5s -> 0.35s
+        from libs import ctyped  # < 0.8s -> 0.5s -> 0.3s
     print(tracemalloc.get_tracemalloc_memory() / (1024 * 1024), 'MB')
     tracemalloc.stop()
 
@@ -62,9 +62,7 @@ def main():
 
 
 def _test():
-    import libs.ctyped as ctyped
-    # print(ctyped.interface._dump_pickle())
-    print(ctyped.interface.ID2D1SolidColorBrush())
+    bench()
 
 
 if __name__ == '__main__':

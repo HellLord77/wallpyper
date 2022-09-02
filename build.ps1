@@ -24,11 +24,12 @@ $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonSources = @("src\pipe.py")
 $CythonizeGlobs = @(
-"src\libs\{colornames,iso}\__init__.py"
+"src\libs\{colornames,iso,spinners}\__init__.py"
 # "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
 "src\libs\ctyped\{__init__,const,enum,handle,lib,macro}.py"
 "src\{langs,libs,modules,win32}\*.py"
 "src\{consts,init,main,pipe}.py")
+# $CythonizeGlobs = @()
 $CythonizeRemove = $True
 $CodeRunBefore = @(
 "from src.libs.ctyped.interface import _dump_pickle"
@@ -38,7 +39,9 @@ $CodeRunAfter = @(
 "remove('src\pipe.exe')"
 "remove('src\libs\ctyped\interface.pickle')")
 $MinifyJsonRegExs = @(
-"src\libs\colornames\colornames.min.json", "src\libs\iso\iso_*.json")
+"src\libs\colornames\colornames.min.json"
+"src\libs\iso\iso_*.json"
+"src\libs\spinners\spinners.json")
 
 $CodePythonBase = @(
 "from sys import base_prefix"
@@ -85,6 +88,7 @@ $CodeCompileCTemplate = @(
 $CopyTimeout = 5
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
+$MinifyLocalJson = $False
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $IsGithub = Test-Path Env:GITHUB_REPOSITORY
@@ -146,7 +150,7 @@ function MinifyJsonFile([string]$Path, [string]$OutPath)
         $OutPath = $Path
     }
     Write-Host "Minify $Path -> $OutPath"
-    ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Compress | Set-Content $Path
+    ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Depth 100 -Compress | Set-Content $OutPath
 }
 
 function MergeManifest([String]$ExePath, [String]$ManifestPath)
@@ -378,7 +382,7 @@ function Write-Build
         Start-PythonCode $CodeRunBefore
     }
 
-    if ($IsGithub)
+    if ($MinifyLocalJson -or $IsGithub)
     {
         foreach ($MinifyJsonRegEx in $MinifyJsonRegExs)
         {

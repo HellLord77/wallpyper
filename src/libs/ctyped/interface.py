@@ -202,7 +202,7 @@ def _dump_json():
     import json
     interfaces = _get_interfaces(_sys.modules[__name__])
     with open(_NAME_TEMPLATE.format('json'), 'w') as file:
-        json.dump({_get_hash(): interfaces}, file)
+        json.dump({_get_hash(): interfaces}, file, separators=(',', ':'))
 
 
 def _load_json() -> bool:
@@ -224,7 +224,7 @@ def _dump_pickle():
     import pickle
     interfaces = _get_interfaces(_sys.modules[__name__])
     with open(_NAME_TEMPLATE.format('pickle'), 'wb') as file:
-        pickle.dump({_get_hash(): interfaces}, file)
+        pickle.dump({_get_hash(): interfaces}, file, pickle.HIGHEST_PROTOCOL)
 
 
 def _load_pickle() -> bool:

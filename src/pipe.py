@@ -171,7 +171,8 @@ class StringNamedPipe(_NamedPipe):
 
 
 class StringNamedPipeClient:
-    def __init__(self, name: str):
+    def __init__(self, name: str, cache: bool = False):
+        self._cache = cache
         self._console = StringNamedPipe(name)
         self._io = io.StringIO()
         self._std_write = sys.stdout.write, sys.stderr.write
@@ -199,7 +200,8 @@ class StringNamedPipeClient:
         return self._console.close()
 
     def write(self, text: str, stderr: bool = False):
-        self._io.write(text)
+        if self._cache:
+            self._io.write(text)
         if self:
             self._console.write(text)
         self._std_write[stderr](text)

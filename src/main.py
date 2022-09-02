@@ -26,6 +26,7 @@ import libs.log as log
 import libs.pyinstall as pyinstall
 import libs.request as request
 import libs.singleton as singleton
+import libs.spinners as spinners
 import libs.timer as timer
 import libs.utils as utils
 import modules
@@ -39,13 +40,12 @@ gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
 LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
-PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var(
-    'EXT_SUFFIX')), 'exe') if pyinstall.FROZEN else sys.executable
+PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
-MODULE = sys.modules[__name__]
+PROGRESS = utils.MutableFloat()
 
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
@@ -54,7 +54,7 @@ STRINGS = langs.eng
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
-RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT)
+RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
 DEFAULT_CONFIG = {
@@ -128,7 +128,7 @@ def load_config() -> bool:
         loaded = False
     getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
                tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
-    for name, module in ({consts.NAME: MODULE} | modules.MODULES).items():
+    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
         loaded = _load_config(getters, name, module.CONFIG, module.DEFAULT_CONFIG) and loaded
         module.fix_config()
     return loaded
@@ -136,7 +136,7 @@ def load_config() -> bool:
 
 def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
     parser = configparser.ConfigParser()
-    for name, module in ({consts.NAME: MODULE} | modules.MODULES).items():
+    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
         module.update_config()
         module.fix_config()
         parser[name] = {option: module.CONFIG[option] for option, value in sorted(
@@ -148,7 +148,7 @@ def save_config() -> bool:  # TODO save module generator to restore upon restart
 
 def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
     if force or CONFIG[consts.CONFIG_NOTIFY]:
-        return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFICATION_LEN), icon)
+        return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFY_LEN), icon)
     return False
 
 
@@ -163,7 +163,7 @@ def on_shown(*_):
         CONFIG[consts.CONFIG_FIRST] = not notify(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
     if CONFIG[consts.CONFIG_BLOCKED]:
-        time.sleep(consts.POLL_INTERVAL)
+        time.sleep(consts.POLL_SLO_INTERVAL)
         check_blocked()
 
 
@@ -184,6 +184,15 @@ def check_blocked(*_):
             notify(STRINGS.BLOCKED_TITLE, text, force=True)
 
 
+@timer.on_thread
+def print_progress():
+    spinner = spinners.get_spinner(spinners.Spinner.DOTS_8_BIT)[1]
+    while (progress := PROGRESS.get()) != -1:
+        print(f'[{next(spinner)}] [{utils.get_progress(progress, 1, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
+        time.sleep(consts.POLL_MED_INTERVAL)
+    print(f'[#] [{utils.get_progress(100, 1, 32)}] 100%')
+
+
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
@@ -191,6 +200,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = os.path.join(TEMP_DIR, wallpaper.name)
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
+        print_progress()
         if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
                             chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
             return temp_path
@@ -231,6 +241,8 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
                     win32.display.Rotate, CONFIG[consts.CONFIG_ROTATE]), flip=getattr(
                     win32.display.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
                     win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION])) for display in get_displays()))
+    if query_callback:
+        query_callback(100.0, *() if args is None else args, **{} if kwargs is None else kwargs)
     return changed
 
 
@@ -275,7 +287,7 @@ def on_bing(url: str) -> bool:
 
 
 @timer.on_thread
-def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, set_label: Callable,
+def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, query_callback: Callable[[float], bool],
               wallpaper: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if auto_change:
@@ -283,7 +295,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, set
                 *get_displays(), full_screen_only=True).values()):
             while CONFIG[consts.CONFIG_INTERVAL] and CONFIG[consts.CONFIG_MAXIMIZED] == MAXIMIZED_ACTIONS[1] and all(
                     win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
-                time.sleep(consts.POLL_INTERVAL)
+                time.sleep(consts.POLL_SLO_INTERVAL)
             if not CONFIG[consts.CONFIG_INTERVAL] or CONFIG[consts.CONFIG_MAXIMIZED] == MAXIMIZED_ACTIONS[2]:
                 changed = True
         on_auto_change(CONFIG[consts.CONFIG_INTERVAL])
@@ -293,9 +305,9 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, set
         with gui.animate(STRINGS.STATUS_CHANGE):
             if auto_change:
                 CONFIG[consts.CONFIG_LAST] = time.time()
-            if (changed := change_wallpaper(wallpaper, set_label)) and CONFIG[consts.CONFIG_AUTOSAVE]:
+            if (changed := change_wallpaper(wallpaper, query_callback)) and CONFIG[consts.CONFIG_AUTOSAVE]:
                 on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
-            set_label()
+            query_callback(-1.0)
         _update_recent(item_recent)
         item_change_enable()
     if not changed:
@@ -329,7 +341,7 @@ def _update_recent(item: win32.gui.MenuItem):
     with gui.set_main_menu(menu):
         items = gui.get_menu_items()
         for index, wallpaper in enumerate(RECENT):
-            label = f'{langs.to_str(index + 1, STRINGS)}. {utils.shrink_string(wallpaper.name, consts.MAX_LABEL)}'
+            label = f'{langs.to_str(index + 1, STRINGS)}. {utils.shrink_string(wallpaper.name, consts.MAX_LABEL_LEN)}'
             if wallpaper in items:
                 item_ = items[wallpaper.url]
                 submenu = item_.get_submenu()
@@ -525,7 +537,7 @@ def on_console():
         if not PIPE.disconnect():
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
-        win32.open_file(PIPE_PATH, *() if pyinstall.FROZEN else (pipe.__file__,), str(PIPE))
+        win32.open_file(PIPE_PATH if pyinstall.FROZEN else sys.executable, *() if pyinstall.FROZEN else (pipe.__file__,), str(PIPE))
         if PIPE.connect(consts.PIPE_TIMEOUT):
             PIPE.flush()
         else:
@@ -588,7 +600,7 @@ def on_quit():
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + win32.get_max_shutdown_time()
         while end_time > time.time() and threading.active_count() > max_threads:
-            time.sleep(consts.POLL_FAST_INTERVAL)
+            time.sleep(consts.POLL_FST_INTERVAL)
     gui.stop_loop()
 
 
@@ -597,17 +609,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     item_change.set_default()
     item_change.set_icon(RES_TEMPLATE.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(STRINGS.MENU_RECENT, False, icon=RES_TEMPLATE.format(consts.RES_RECENT))
-
-    def query_callback(progress: Optional[float] = None) -> bool:
-        if progress is None:
-            print()
-        else:
-            print(f'[{utils.get_progress(progress, 1, 32)}]', end='\r', flush=True)
-        # item_change.set_text(STRINGS.LABEL_CHANGE if progress is None else TODO fix exploding width
-        #                      f'{STRINGS.LABEL_CHANGE} ({langs.to_str(min(99, progress), STRINGS, 2)}%)')
-        return True
-
-    TIMER.__init__(0, on_change, (item_change.enable, item_recent, query_callback), once=True)
+    TIMER.__init__(0, on_change, (item_change.enable, item_recent, utils.call_after(PROGRESS.set)(lambda _: True)), once=True)
     gui.set_on_click(item_change, on_change, args=(*TIMER.args, None, False), on_thread=False, change_state=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
@@ -707,7 +709,7 @@ def start():  # TODO dark theme
             'modules', r'.*\.py'), utils.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     files.make_dir(TEMP_DIR)
-    files.trim_dir(TEMP_DIR, consts.MAX_CACHE)
+    files.trim_dir(TEMP_DIR, consts.MAX_CACHE_SZ)
     _update_display()
     load_config()
     sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
@@ -730,7 +732,7 @@ def stop():
     timer.Timer.kill_all()
     apply_auto_start(CONFIG[consts.CONFIG_START])
     apply_save_config(CONFIG[consts.CONFIG_SAVE])
-    files.trim_dir(TEMP_DIR, consts.MAX_CACHE) if CONFIG[consts.CONFIG_CACHE] else files.remove(TEMP_DIR, True)
+    files.trim_dir(TEMP_DIR, consts.MAX_CACHE_SZ) if CONFIG[consts.CONFIG_CACHE] else files.remove(TEMP_DIR, True)
     if os.path.isdir(TEMP_DIR) and files.is_only_dirs(TEMP_DIR, True):
         files.remove(TEMP_DIR, True)
     PIPE.disconnect()
