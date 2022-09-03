@@ -14,7 +14,8 @@ MENU = win32.gui.Menu.__new__(win32.gui.Menu)
 _ENABLE_ANIMATION = True
 _TOOLTIPS: collections.deque[str] = collections.deque()
 _ANIMATIONS: collections.deque[tuple[str, str]] = collections.deque()
-_MAIN_MENU = [MENU]
+_MAIN_MENU = object()
+_MAIN_MENUS = [MENU]
 
 GuiEvent = win32.gui.GuiEvent
 SystemTrayIcon = win32.gui.SystemTrayIcon
@@ -53,18 +54,11 @@ class Property(metaclass=_Arg):
 def set_main_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> ContextManager[win32.gui.Menu]:  # TODO cythonize (__defaults__)
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
-    defaults_bk = {}
-    for func in globals().values():
-        if defaults := getattr(func, '__defaults__', None):
-            defaults_bk[func] = func.__defaults__
-            func.__defaults__ = tuple(menu if default is _MAIN_MENU[-1] else default for default in defaults)
-    _MAIN_MENU.append(menu)
+    _MAIN_MENUS.append(menu)
     try:
         yield menu
     finally:
-        for func, defaults in defaults_bk.items():
-            func.__defaults__ = defaults
-        del _MAIN_MENU[-1]
+        del _MAIN_MENUS[-1]
 
 
 def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
@@ -113,7 +107,9 @@ def add_menu_item(label: str = '', kind: int = win32.gui.MenuItemType.NORMAL, ch
                   menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
                   kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, change_state: bool = True,
                   position: Optional[int] = None, pre_menu_args: bool = True,
-                  menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> win32.gui.MenuItem:
+                  menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
     menu_item = menu.insert_item(menu.get_item_count() if position is None else position, label, enable=enable, check=check, type=kind)
@@ -124,7 +120,9 @@ def add_menu_item(label: str = '', kind: int = win32.gui.MenuItemType.NORMAL, ch
     return menu_item
 
 
-def get_menu_items(menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> dict[str, win32.gui.MenuItem]:
+def get_menu_items(menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> dict[str, win32.gui.MenuItem]:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
     items = {}
@@ -133,7 +131,9 @@ def get_menu_items(menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> dict[str
     return items
 
 
-def add_separator(position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> win32.gui.MenuItem:
+def add_separator(position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
     return add_menu_item(kind=win32.gui.MenuItemType.SEPARATOR, position=position, menu=menu)
@@ -141,7 +141,9 @@ def add_separator(position: Optional[int] = None, menu: win32.gui.Menu | win32.g
 
 def add_submenu(label: str, enable: bool = True, uid: Optional[int | str] = None,
                 position: Optional[int] = None, icon: Optional[int | str] = None,
-                menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> win32.gui.MenuItem:
+                menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
     item = menu.insert_item(menu.get_item_count() if position is None else position, label, submenu=win32.gui.Menu(), enable=enable)
@@ -155,7 +157,9 @@ def add_submenu(label: str, enable: bool = True, uid: Optional[int | str] = None
 def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool],
                          key: str, enable: bool = True, on_click: Optional[Callable] = None,
                          args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
-                         position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> win32.gui.MenuItem:
+                         position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     if on_click is None:
         on_click_ = mapping.__setitem__
     else:
@@ -176,7 +180,9 @@ def add_mapped_submenu(label_or_submenu_item: str | win32.gui.MenuItem, items: M
                        mapping: MutableMapping[str, str], key: str, enable: bool = True,
                        uid: Optional[int | str] = None, on_click: Optional[Callable] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
-                       position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> win32.gui.MenuItem:
+                       position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     submenu_item = add_submenu(label_or_submenu_item, position=position, menu=menu) if isinstance(
         label_or_submenu_item, str) else label_or_submenu_item
     if uid is not None:
@@ -203,7 +209,9 @@ def add_mapped_submenu(label_or_submenu_item: str | win32.gui.MenuItem, items: M
 
 
 def get_menu_item_by_uid(uid: int | str, recursive: bool = True,
-                         menu: win32.gui.Menu | win32.gui.MenuItem = MENU) -> Optional[win32.gui.MenuItem]:
+                         menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> Optional[win32.gui.MenuItem]:
+    if menu is _MAIN_MENU:
+        menu = _MAIN_MENUS[-1]
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
     menu_: win32.gui.MenuItem

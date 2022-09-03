@@ -24,11 +24,11 @@ $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonSources = @("src\pipe.py")
 $CythonizeGlobs = @(
+"src\{langs,libs,modules,win32}\*.py"
 "src\libs\{colornames,iso,spinners}\__init__.py"
 # "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
 "src\libs\ctyped\{__init__,const,enum,handle,lib,macro}.py"
-"src\{langs,libs,modules,win32}\*.py"
-"src\{consts,init,main,pipe}.py")
+"src\*.py")
 # $CythonizeGlobs = @()
 $CythonizeRemove = $True
 $CodeRunBefore = @(
