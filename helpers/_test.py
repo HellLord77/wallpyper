@@ -13,6 +13,7 @@ from typing import Optional
 from PyInstaller.lib.modulegraph.__main__ import create_graph
 from PyInstaller.lib.modulegraph.modulegraph import Node
 
+import libs.colornames as colornames
 import libs.ctyped as ctyped
 import win32
 import win32._gdiplus as gdiplus
@@ -515,14 +516,12 @@ def get_imported_modules(script_path: str, *excludes: str) -> tuple[Node]:
 
 
 def _test():
-    p = r'D:\wallhaven-8o23gk.jpg'
-    print(win32.display.set_lock_background(p))
-    print(ctyped.type.DWORD, ctyped.type.c_ulong)
-    print(issubclass(ctyped.type.DWORD, ctyped.type.c_ulong))
-    td = ctyped.type.DWORD(69)
-    print(isinstance(td, ctyped.type.c_ulong))
-    print(isinstance(69, ctyped.type.c_ulong))
-    print(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.type.DWORD])
+    color = '77cc33'
+    print(colornames.get(color))
+    start = time.time()
+    for _ in range(20):
+        colornames.get_nearest(hex(int(color, 16) + _)[2:])
+    print(time.time() - start)
 
 
 if __name__ == '__main__':

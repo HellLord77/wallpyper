@@ -40,15 +40,15 @@ class _Template:
         cls._classes = {}
         super().__init_subclass__()
 
-    def __class_getitem__(cls, item):
-        if not isinstance(item, tuple):
-            item = item,
-        if item not in cls._classes:
+    def __class_getitem__(cls, key):
+        if not isinstance(key, tuple):
+            key = key,
+        if key not in cls._classes:
             # noinspection PyUnresolvedReferences
-            args = dict(zip(cls.__parameters__, _typing.get_args(super().__class_getitem__(item))))
+            args = dict(zip(cls.__parameters__, _typing.get_args(super().__class_getitem__(key))))
             qualname = f'{cls.__qualname__.removesuffix("_impl")}_{"_".join(type_.__name__ for type_ in args.values())}{"_impl" * cls.__qualname__.endswith("_impl")}'
-            cls._classes[item] = type(qualname.rsplit('.', 1)[-1], (cls,), {'__qualname__': qualname, '_args': args})
-        return cls._classes[item]
+            cls._classes[key] = type(qualname.rsplit('.', 1)[-1], (cls,), {'__qualname__': qualname, '_args': args})
+        return cls._classes[key]
 
 
 class _Interface(_type.c_void_p):

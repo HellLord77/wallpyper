@@ -408,8 +408,8 @@ def _register_autorun_link(name: str, path: str, *args: str, show: bool, aumi: O
 
 
 def register_autorun(name: str, path: str, *args: str, show: bool = True, uid: Optional[str] = None) -> bool:
-    return unregister_autorun(name, uid) and (_register_autorun_link(
-        name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path, *args))
+    unregister_autorun(name, uid)
+    return _register_autorun_link(name, path, *args, show=show, aumi=uid) or _register_autorun_reg(name, path, *args)
 
 
 def _unregister_autorun_reg(name: str) -> bool:
@@ -421,13 +421,11 @@ def _unregister_autorun_link(aumi: str) -> bool:
     return remove_shortcuts(_STARTUP_DIR, aumi)
 
 
-def unregister_autorun(name: Optional[str] = None, uid: Optional[str] = None) -> bool:
-    unregistered = False
+def unregister_autorun(name: Optional[str] = None, uid: Optional[str] = None):
     if name:
-        unregistered = _unregister_autorun_reg(name)
+        _unregister_autorun_reg(name)
     if uid:
-        unregistered = _unregister_autorun_link(uid) and unregistered
-    return unregistered
+        _unregister_autorun_link(uid)
 
 
 def create_shortcut(path: str, target: str, *args: str, icon_path: str = '', icon_index: int = 0,

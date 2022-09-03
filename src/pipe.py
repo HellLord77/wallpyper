@@ -193,7 +193,6 @@ class StringNamedPipeClient:
         end_time = time.time() + timeout
         while end_time > time.time() and not self._console.open(False, True):
             time.sleep(POLL_INTERVAL)
-        self._std_write[0](str(str(self._console) in os.listdir(_DIR)))
         return bool(self)
 
     def disconnect(self) -> bool:

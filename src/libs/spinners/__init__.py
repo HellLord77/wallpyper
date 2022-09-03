@@ -95,7 +95,7 @@ class Spinner:
     AESTHETIC = 'aesthetic'
 
 
-def get_spinner(spinner: str) -> tuple[float, Iterator[str]]:
+def get(spinner: str) -> tuple[float, Iterator[str]]:
     global _SPINNERS
     if _SPINNERS is None:
         with open(os.path.join(os.path.dirname(__file__), 'spinners.json'), encoding='utf-8') as file:

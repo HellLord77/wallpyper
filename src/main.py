@@ -45,7 +45,6 @@ TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir()
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
-PROGRESS = utils.MutableFloat()
 
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
@@ -54,6 +53,7 @@ STRINGS = langs.eng
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
+PROGRESS = utils.MutableFloat()
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}', True)
 
@@ -187,7 +187,7 @@ def check_blocked(*_):
 @timer.on_thread
 def print_progress():
     if win32.console.is_present() or PIPE:
-        interval, spinner = spinners.get_spinner(spinners.Spinner.SAND)
+        interval, spinner = spinners.get(spinners.Spinner.SAND)
         while (progress := PROGRESS.get()) != -1:
             print(f'[{next(spinner)}] [{utils.get_progress(progress, 1, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
             time.sleep(interval)
@@ -202,9 +202,12 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
     temp_path = os.path.join(TEMP_DIR, wallpaper.name)
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         print_progress()
-        if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
-                            chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
-            return temp_path
+        try:
+            if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
+                                chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
+                return temp_path
+        finally:
+            PROGRESS.set(-1.0)
 
 
 def get_next_wallpaper() -> Optional[files.File]:
@@ -308,7 +311,6 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
                 CONFIG[consts.CONFIG_LAST] = time.time()
             if (changed := change_wallpaper(wallpaper, query_callback)) and CONFIG[consts.CONFIG_AUTOSAVE]:
                 on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
-            query_callback(-1.0)
         _update_recent(item_recent)
         item_change_enable()
     if not changed:
@@ -344,9 +346,9 @@ def _update_recent(item: win32.gui.MenuItem):
         for index, wallpaper in enumerate(RECENT):
             label = f'{langs.to_str(index + 1, STRINGS)}. {utils.shrink_string(wallpaper.name, consts.MAX_LABEL_LEN)}'
             if wallpaper in items:
-                item_ = items[wallpaper.url]
-                submenu = item_.get_submenu()
-                menu.remove_item(item_)
+                wallpaper_item = items[wallpaper.url]
+                submenu = wallpaper_item.get_submenu()
+                menu.remove_item(wallpaper_item)
             else:
                 with gui.set_main_menu(gui.Menu()) as submenu:
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper, False),
@@ -388,13 +390,13 @@ def _update_recent(item: win32.gui.MenuItem):
                         gui.add_menu_item(STRINGS.LABEL_LENS, on_click=on_wallpaper, args=(
                             search_wallpaper, wallpaper, STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH,)).set_icon(
                             RES_TEMPLATE.format(consts.RES_LENS))
-            item_ = menu.insert_item(index, label, submenu=submenu)
-            item_.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
+            wallpaper_item = menu.insert_item(index, label, submenu=submenu)
+            wallpaper_item.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
                 TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
-            item_.set_uid(wallpaper.url)
-    for uid, item_ in items.items():
+            wallpaper_item.set_uid(wallpaper.url)
+    for uid, wallpaper_item in items.items():
         if uid and uid not in RECENT:
-            menu.remove_item(item_)
+            menu.remove_item(wallpaper_item)
     item.enable(bool(RECENT))
 
 
@@ -533,16 +535,17 @@ def on_unpin_start() -> bool:
 
 
 @utils.singleton_run
-def on_console():
+def on_console() -> bool:
     if PIPE:
-        if not PIPE.disconnect():
+        if consoled := not PIPE.disconnect():
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
         win32.open_file(PIPE_PATH if pyinstall.FROZEN else sys.executable, *() if pyinstall.FROZEN else (pipe.__file__,), str(PIPE))
-        if PIPE.connect(consts.PIPE_TIMEOUT):
+        if consoled := PIPE.connect(consts.PIPE_TIMEOUT):
             PIPE.flush()
         else:
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
+    return consoled
 
 
 def on_clear_cache() -> bool:
@@ -581,10 +584,10 @@ def on_blocked(checked: bool):
         check_blocked()
 
 
-def apply_auto_start(start_: bool) -> bool:
+def apply_auto_start(auto_start: bool) -> bool:
     return win32.register_autorun(
         consts.NAME, *pyinstall.get_launch_args(), *((consts.ARG_CHANGE,) if CONFIG[consts.CONFIG_INTERVAL] else ()),
-        show=pyinstall.FROZEN, uid=UUID) if start_ else win32.unregister_autorun(consts.NAME, UUID)
+        show=pyinstall.FROZEN, uid=UUID) if auto_start else win32.unregister_autorun(consts.NAME, UUID)
 
 
 def apply_save_config(save: bool) -> bool:
@@ -740,18 +743,6 @@ def stop():
 
 
 def main() -> NoReturn:
-    # CONSOLE_FONT_INFOEX(cbSize=84, nFont=0, dwFontSize=COORD(X=0, Y=16), FontFamily=4, FontWeight=0, FaceName=Consolas)
-    # CONSOLE_FONT_INFOEX(cbSize=84, nFont=0, dwFontSize=COORD(X=8, Y=16), FontFamily=54, FontWeight=400, FaceName=Consolas)
-    # if not win32.console.is_present():  # TODO hidden console
-    #     win32.console.create()
-    #     sys.stdout = sys.stderr = open('CONOUT$', 'w')
-    #     print(win32.ctyped.lib.kernel32.SetConsoleOutputCP(win32.ctyped.const.CP_UTF8))
-    #     win32.console.set_title(consts.NAME)
-    #     win32.console.ignore_ctrl_c()
-    #     win32.console.disable_close()
-    #     win32.console.write(str(win32.console._get_font_info_ex()))
-    #     win32.console.write('\n')
-    #     win32.console.write(utils.ProgressBar.BLOCK_HORIZONTAL)
     if consts.FEATURE_EXCEPT_HOOK:
         utils.hook_except(win32.show_error, format=True)
     try:
