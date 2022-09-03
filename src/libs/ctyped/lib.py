@@ -7258,7 +7258,7 @@ class user32(_Func, metaclass=_WinDLL):
                                     _type.LPARAM,
                                     _type.UINT,
                                     _type.UINT,
-                                    _Optional[_type.PDWORD_PTR]],
+                                    _Optional[_Pointer[_type.DWORD_PTR]]],
                                    _type.LRESULT]
     SendMessageTimeoutW: _Callable[[_type.HWND,
                                     _type.UINT,
@@ -7266,7 +7266,7 @@ class user32(_Func, metaclass=_WinDLL):
                                     _type.LPARAM,
                                     _type.UINT,
                                     _type.UINT,
-                                    _Optional[_type.PDWORD_PTR]],
+                                    _Optional[_Pointer[_type.DWORD_PTR]]],
                                    _type.LRESULT]
     SendNotifyMessageA: _Callable[[_type.HWND,
                                    _type.UINT,

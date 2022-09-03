@@ -269,10 +269,6 @@ def cycle_ex(itt: Iterable, func: Optional[Callable] = None, args: Optional[Iter
             func(*args, **kwargs)
 
 
-def dict_ex(obj) -> dict[str, Any]:
-    return getattr(obj, '__dict__', {})
-
-
 def enquote(string: str, quote: str = '"') -> str:
     if len(string) < 2 or (string[0] != quote and string[-1] != quote):
         string = f'{quote}{string}{quote}'
@@ -309,8 +305,16 @@ def replace_ex(string: str, a: str, b: str) -> str:
     return ''.join(a if char == b else b if char == a else char for char in string)
 
 
+def vars_ex(obj) -> dict[str, Any]:
+    return ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value
+
+
+def getattr_ex(obj, name: str) -> Any:
+    return vars_ex(obj)[name]
+
+
 def setattr_ex(obj, name: str, value):
-    ctypes.cast(id(obj) + type(obj).__dictoffset__, ctypes.POINTER(ctypes.py_object)).contents.value[name] = value
+    vars_ex(obj)[name] = value
 
 
 def sleep_ex(secs: Optional[float] = None):
@@ -338,8 +342,8 @@ def pass_ex(*_, **__):
     pass
 
 
-def vars_ex(obj) -> str:
-    dict_ = dict_ex(obj)
+def pretty_vars(obj) -> str:
+    dict_ = getattr(obj, '__dict__', {})
     attrs = [], []
     for val in dict_.values():
         attrs[0].append(type(val).__name__)
@@ -367,11 +371,12 @@ def fix_dict_key(current_dict: dict, key: str, possible_values: Iterable, defaul
     current_dict[key] = default_dict[key]
 
 
-def clear_queue(queue_: queue.Queue) -> int:
-    with queue_.mutex:
-        tasks = queue_.unfinished_tasks
-        queue_.queue.clear()
-        queue_.unfinished_tasks = 0
+# noinspection PyShadowingNames
+def clear_queue(queue: queue.Queue) -> int:
+    with queue.mutex:
+        tasks = queue.unfinished_tasks
+        queue.queue.clear()
+        queue.unfinished_tasks = 0
     return tasks
 
 

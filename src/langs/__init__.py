@@ -17,7 +17,8 @@ def _getattr(name: str) -> str:
 
 def to_str(num: int, lang: types.ModuleType, pad: Optional[int] = None) -> str:
     # noinspection PyProtectedMember
-    return (f'{"".join(lang._DIGITS[int(char)] for char in str(num)):{lang._DIGITS[0]}>{pad or 0}}' if hasattr(lang, '_DIGITS') else _getattr(f'{num:0>{pad or 0}}'))
+    return (f'{"".join(lang._DIGITS[int(char)] for char in str(num)):{lang._DIGITS[0]}>{pad or 0}}'
+            if hasattr(lang, '_DIGITS') else _getattr(f'{num:0>{pad or 0}}'))
 
 
 def _init():

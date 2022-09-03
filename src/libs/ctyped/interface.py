@@ -81,7 +81,7 @@ class _Interface(_type.c_void_p):
 
 
 # noinspection PyPep8Naming
-class _Interface_impl(_type.c_void_p):
+class _Interface_impl(_type.c_void_p):  # TODO fixit
     _iid_refs = None
     _vtbl = _ctypes.Structure
     _c_refs = {}

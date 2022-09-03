@@ -19,18 +19,21 @@ if None:
         pass
 else:
     class _EnumMeta(type(_type.c_int)):
-        def __getattr__(self, name: str):
-            if name in self._members:
+        # noinspection PyMethodParameters
+        def __getattr__(cls, name: str):
+            if name in cls._members:
                 # noinspection PyCallingNonCallable
-                setattr(self, name, self(self._members[name]))
+                setattr(cls, name, cls(cls._members[name]))
             return super().__getattribute__(name)
 
-        def __iter__(self):
-            for name in self._members:
-                yield getattr(self, name)
+        # noinspection PyMethodParameters
+        def __iter__(cls):
+            for name in cls._members:
+                yield getattr(cls, name)
 
-        def __str__(self):
-            return f'{self.__name__}{str(self._members)}'.replace("'", '')
+        # noinspection PyMethodParameters
+        def __str__(cls):
+            return f'{cls.__name__}{str(cls._members)}'.replace("'", '')
 
 
     class _Enum(_type.c_int, metaclass=_EnumMeta):

@@ -55,7 +55,7 @@ DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
-PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
+PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}', True)
 
 DEFAULT_CONFIG = {
     consts.CONFIG_LAST: math.inf,
@@ -186,11 +186,12 @@ def check_blocked(*_):
 
 @timer.on_thread
 def print_progress():
-    spinner = spinners.get_spinner(spinners.Spinner.DOTS_8_BIT)[1]
-    while (progress := PROGRESS.get()) != -1:
-        print(f'[{next(spinner)}] [{utils.get_progress(progress, 1, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
-        time.sleep(consts.POLL_MED_INTERVAL)
-    print(f'[#] [{utils.get_progress(100, 1, 32)}] 100%')
+    if win32.console.is_present() or PIPE:
+        interval, spinner = spinners.get_spinner(spinners.Spinner.SAND)
+        while (progress := PROGRESS.get()) != -1:
+            print(f'[{next(spinner)}] [{utils.get_progress(progress, 1, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
+            time.sleep(interval)
+        print(f'[#] [{utils.get_progress(100, 1, 32)}] 100%')
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())

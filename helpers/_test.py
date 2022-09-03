@@ -14,8 +14,8 @@ from PyInstaller.lib.modulegraph.__main__ import create_graph
 from PyInstaller.lib.modulegraph.modulegraph import Node
 
 import libs.ctyped as ctyped
+import win32
 import win32._gdiplus as gdiplus
-import win32._utils as utils
 import win32.gui as gui
 from libs.ctyped import winrt
 
@@ -286,8 +286,8 @@ def set_lock():
 
 def _dwrite_font():
     bitmap = gdiplus.Bitmap.from_dimension(100, 100)
-    with utils.get_d2d1_dc_render_target() as target, ctyped.init_com(ctyped.interface.IDWriteFactory, False) as factory, ctyped.init_com(ctyped.interface.IDWriteTextFormat, False) as text_format, ctyped.init_com(ctyped.interface.ID2D1SolidColorBrush,
-                                                                                                                                                                                                                     False) as brush, gdiplus.Graphics.from_image(
+    with win32._utils.get_d2d1_dc_render_target() as target, ctyped.init_com(ctyped.interface.IDWriteFactory, False) as factory, ctyped.init_com(ctyped.interface.IDWriteTextFormat, False) as text_format, ctyped.init_com(ctyped.interface.ID2D1SolidColorBrush,
+                                                                                                                                                                                                                            False) as brush, gdiplus.Graphics.from_image(
         bitmap).get_managed_hdc() as hdc:
         if target and ctyped.macro.SUCCEEDED(ctyped.lib.DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
             factory.CreateTextFormat("Wingdings", None, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL, ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
@@ -515,7 +515,13 @@ def get_imported_modules(script_path: str, *excludes: str) -> tuple[Node]:
 
 
 def _test():
-    print(ctyped.type.DWORD)
+    p = r'D:\wallhaven-8o23gk.jpg'
+    print(win32.display.set_lock_background(p))
+    print(ctyped.type.DWORD, ctyped.type.c_ulong)
+    print(issubclass(ctyped.type.DWORD, ctyped.type.c_ulong))
+    td = ctyped.type.DWORD(69)
+    print(isinstance(td, ctyped.type.c_ulong))
+    print(isinstance(69, ctyped.type.c_ulong))
     print(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.type.DWORD])
 
 

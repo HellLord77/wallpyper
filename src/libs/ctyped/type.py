@@ -1,31 +1,19 @@
+from __future__ import annotations as _
+
 import ctypes as _ctypes
-import functools as _functools
-import itertools as _itertools
-import numbers as _numbers
-import operator as _operator
 import typing as _typing
-from typing import Callable as _Callable, Union as _Union
+from typing import Any as _Any, Callable as _Callable, Union as _Union
 
 import _ctypes as __ctypes
 
 from . import const as _const, struct as _struct
 from ._utils import _Globals, _Pointer, _resolve_type
 
-_CT_BINARY = (
-    '__add__', '__sub__', '__mul__', '__matmul__', '__truediv__', '__floordiv__', '__mod__',
-    '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__')
-_CT_R_BINARY = (
-    '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__', '__rmod__',
-    '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__')
-_CT_I_BINARY = (
-    '__iadd__', '__isub__', '__imul__', '__imatmul__', '__itruediv__', '__ifloordiv__',
-    '__imod__', '__ipow__', '__ilshift__', '__irshift__', '__iand__', '__ixor__', '__ior__')
-_CT_UNARY = '__neg__', '__pos__', '__abs__', '__invert__', '__round__', '__trunc__', '__floor__', '__ceil__'
-_PY_BINARY = '__lt__', '__le__', '__eq__', '__ne__', '__gt__', '__ge__'
-_PY_UNARY = '__complex__', '__int__', '__float__', '__index__'
-
 _WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
-_MAGICS = {}
+_ATTR_NAME = '_proxy'
+# noinspection PyProtectedMember
+_SimpleCData = __ctypes._SimpleCData
+_PyCSimpleType = type(_SimpleCData)
 
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
@@ -274,8 +262,6 @@ LPCOLESTR = LPOLESTR
 REGSAM = DWORD
 SHSTDAPI = STDAPI
 
-PDWORD_PTR = _Pointer[DWORD_PTR]
-
 LPCSTR_PROXY = ULONG_PTR
 LPCWSTR_PROXY = ULONG_PTR
 LPSTR_PROXY = ULONG_PTR
@@ -319,46 +305,233 @@ DrawImageAbort = ImageAbort
 GetThumbnailImageAbort = ImageAbort
 
 
-def _set_magic(magic: str, func: _Callable):
-    _MAGICS[magic] = _functools.update_wrapper(func, getattr(_operator, magic, None) or getattr(
-        _operator, magic.replace('r', '', 1), None) or getattr(int, magic, None) or getattr(_numbers.Complex, magic))
+def _setattr(self: _PyCSimpleType, name: str, value):
+    _ctypes.cast(id(self) + type(self).__dictoffset__, _ctypes.POINTER(_ctypes.py_object)).contents.value[name] = value
 
 
-def _set_magics():
-    for magic in _CT_BINARY:
-        _set_magic(magic, lambda self, other, *args, _magic=magic: type(self)(
-            getattr(self.value, _magic)(getattr(other, 'value', other), *args)))
-    for magic in _CT_R_BINARY:
-        _set_magic(magic, lambda self, other, *args, _magic=magic.replace(
-            'r', '', 1): type(self)(getattr(getattr(other, 'value', other), _magic)(self.value, *args)))
-    for magic in _CT_I_BINARY:
-        _set_magic(magic, lambda self, other, *args, _magic=magic.replace('i', '', 1): (setattr(
-            self, 'value', getattr(self.value, _magic)(getattr(other, 'value', other), *args)), self)[1])
-    for magic in _CT_UNARY:
-        _set_magic(magic, lambda self, *args, _magic=magic: type(self)(getattr(self.value, _magic)(*args)))
-    for magic in _PY_BINARY:
-        _set_magic(magic, lambda self, other, _magic=magic: getattr(self.value, _magic)(getattr(other, 'value', other)))
-    for magic in _PY_UNARY:
-        _set_magic(magic, (lambda self: complex(
-            self.value)) if magic == '__complex__' else (lambda self, _magic=magic: getattr(self.value, _magic)()))
+def _instancecheck(self: _PyCSimpleType, instance, /,
+                   __instancecheck: _Callable[[_PyCSimpleType, _Any], bool] = _PyCSimpleType.__instancecheck__) -> bool:
+    return __instancecheck(self, instance) or _subclasscheck(self, type(instance))
 
 
-_set_magics()
+def _subclasscheck(self: _PyCSimpleType, subclass, /,
+                   __subclasscheck: _Callable[[_PyCSimpleType, _Any], bool] = _PyCSimpleType.__subclasscheck__) -> bool:
+    return __subclasscheck(self, subclass) or ((proxy_self := getattr(self, _ATTR_NAME, None)) and __subclasscheck(
+        proxy_self, subclass)) or ((proxy_subclass := getattr(subclass, _ATTR_NAME, None)) and __subclasscheck(
+        self, proxy_subclass)) or (proxy_self and proxy_subclass and __subclasscheck(proxy_self, proxy_subclass))  # noqa
+
+
+_setattr(_PyCSimpleType, '__instancecheck__', _instancecheck)
+_setattr(_PyCSimpleType, '__subclasscheck__', _subclasscheck)
+_setattr(__ctypes.Array, '__str__', lambda self: f'{self._type_.__name__}[{self._length_}]'
+                                                 f'{{{", ".join(str(obj) for obj in self)}}}')
+
+
+class _TypeMixin:
+    def __init__(self, value=None):
+        self.value = value
+
+    del __init__
+
+    def __lt__(self, other) -> bool:
+        return self.value.__lt__(getattr(other, 'value', other))
+
+    def __le__(self, other) -> bool:
+        return self.value.__le__(getattr(other, 'value', other))
+
+    def __eq__(self, other) -> bool:
+        return self.value.__eq__(getattr(other, 'value', other))
+
+    def __ne__(self, other) -> bool:
+        return self.value.__ne__(getattr(other, 'value', other))
+
+    def __gt__(self, other) -> bool:
+        return self.value.__gt__(getattr(other, 'value', other))
+
+    def __ge__(self, other) -> bool:
+        return self.value.__ge__(getattr(other, 'value', other))
+
+    def __hash__(self):
+        return self.value.__hash__()
+
+    def __bool__(self) -> bool:
+        return self.value.__bool__()
+
+    def __len__(self) -> int:
+        return self.value.__len__()
+
+    def __add__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__add__(getattr(other, 'value', other)))
+
+    def __sub__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__sub__(getattr(other, 'value', other)))
+
+    def __mul__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__mul__(getattr(other, 'value', other)))
+
+    def __matmul__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__matmul__(getattr(other, 'value', other)))
+
+    def __truediv__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__truediv__(getattr(other, 'value', other)))
+
+    def __floordiv__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__floordiv__(getattr(other, 'value', other)))
+
+    def __mod__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__mod__(getattr(other, 'value', other)))
+
+    def __divmod__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__divmod__(getattr(other, 'value', other)))
+
+    def __pow__(self, other, modulo=None) -> _TypeMixin:
+        return self.__class__(self.value.__pow__(getattr(other, 'value', other), modulo))
+
+    def __lshift__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__lshift__(getattr(other, 'value', other)))
+
+    def __rshift__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rshift__(getattr(other, 'value', other)))
+
+    def __and__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__and__(getattr(other, 'value', other)))
+
+    def __xor__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__xor__(getattr(other, 'value', other)))
+
+    def __or__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__or__(getattr(other, 'value', other)))
+
+    def __radd__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__radd__(getattr(other, 'value', other)))
+
+    def __rsub__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rsub__(getattr(other, 'value', other)))
+
+    def __rmul__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rmul__(getattr(other, 'value', other)))
+
+    def __rmatmul__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rmatmul__(getattr(other, 'value', other)))
+
+    def __rtruediv__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rtruediv__(getattr(other, 'value', other)))
+
+    def __rfloordiv__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rfloordiv__(getattr(other, 'value', other)))
+
+    def __rmod__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rmod__(getattr(other, 'value', other)))
+
+    def __rdivmod__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rdivmod__(getattr(other, 'value', other)))
+
+    def __rpow__(self, other, modulo=None) -> _TypeMixin:
+        return self.__class__(self.value.__rpow__(getattr(other, 'value', other), modulo))
+
+    def __rlshift__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rlshift__(getattr(other, 'value', other)))
+
+    def __rrshift__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rrshift__(getattr(other, 'value', other)))
+
+    def __rand__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rand__(getattr(other, 'value', other)))
+
+    def __rxor__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__rxor__(getattr(other, 'value', other)))
+
+    def __ror__(self, other) -> _TypeMixin:
+        return self.__class__(self.value.__ror__(getattr(other, 'value', other)))
+
+    def __iadd__(self, other):
+        self.value = self.value.__add__(getattr(other, 'value', other))
+
+    def __isub__(self, other):
+        self.value = self.value.__sub__(getattr(other, 'value', other))
+
+    def __imul__(self, other):
+        self.value = self.value.__mul__(getattr(other, 'value', other))
+
+    def __imatmul__(self, other):
+        self.value = self.value.__matmul__(getattr(other, 'value', other))
+
+    def __itruediv__(self, other):
+        self.value = self.value.__itruediv__(getattr(other, 'value', other))
+
+    def __ifloordiv__(self, other):
+        self.value = self.value.__floordiv__(getattr(other, 'value', other))
+
+    def __imod__(self, other):
+        self.value = self.value.__mod__(getattr(other, 'value', other))
+
+    def __ipow__(self, other):
+        self.value = self.value.__pow__(getattr(other, 'value', other))
+
+    def __ilshift__(self, other):
+        self.value = self.value.__lshift__(getattr(other, 'value', other))
+
+    def __irshift__(self, other):
+        self.value = self.value.__rshift__(getattr(other, 'value', other))
+
+    def __iand__(self, other):
+        self.value = self.value.__and__(getattr(other, 'value', other))
+
+    def __ixor__(self, other):
+        self.value = self.value.__xor__(getattr(other, 'value', other))
+
+    def __ior__(self, other):
+        self.value = self.value.__ior__(getattr(other, 'value', other))
+
+    def __neg__(self) -> _TypeMixin:
+        return self.__class__(self.value.__neg__())
+
+    def __pos__(self) -> _TypeMixin:
+        return self.__class__(self.value.__pos__())
+
+    def __abs__(self) -> _TypeMixin:
+        return self.__class__(self.value.__abs__())
+
+    def __invert__(self) -> _TypeMixin:
+        return self.__class__(self.value.__invert__())
+
+    def __complex__(self) -> complex:
+        return complex(self.value)
+
+    def __int__(self) -> int:
+        return self.value.__int__()
+
+    def __float__(self) -> float:
+        return self.value.__float__()
+
+    def __index__(self) -> int:
+        return self.value.__index__()
+
+    def __round__(self) -> _TypeMixin:
+        return self.__class__(self.value.__round__())
+
+    def __trunc__(self) -> _TypeMixin:
+        return self.__class__(self.value.__trunc__())
+
+    def __floor__(self) -> _TypeMixin:
+        return self.__class__(self.value.__floor__())
+
+    def __ceil__(self) -> _TypeMixin:
+        return self.__class__(self.value.__ceil__())
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
-def _init(item: str) -> type[_ctypes._SimpleCData] | type[_ctypes._CFuncPtr]:
+def _init(item: str) -> type[_SimpleCData] | type[_ctypes._CFuncPtr]:
     var = _globals.vars_[item]
-    type_ = _resolve_type(var)
+    c_type = _resolve_type(var)
     if isinstance(var, _typing._CallableGenericAlias):
-        type_ = _ctypes.CFUNCTYPE(*type_)
-    for item_ in _MAGICS.items():  # TODO subclass
-        setattr(type_, *item_)
-    # if item != type_.__name__:  # TODO _const.IID_IAsyncOperationWithProgressCompletedHandler_HSTRING_UINT64
-    #     type_ = type(item, type_.__bases__, dict(vars(type_)))
-    return type_
+        c_type = _ctypes.CFUNCTYPE(*c_type)
+    elif item != c_type.__name__:
+        c_dict = _TypeMixin.__dict__.copy()
+        c_dict.update(c_type.__dict__)
+        c_dict[_ATTR_NAME] = c_type
+        c_type = type(item, (_SimpleCData,), c_dict)
+    return c_type
 
 
-_ctypes.cast(id(__ctypes.Array) + type(__ctypes.Array).__dictoffset__, _ctypes.POINTER(_ctypes.py_object)).contents.value[
-    '__str__'] = lambda self: f'{self._type_.__name__}[{self._length_}]{{{", ".join(str(_) for _ in _itertools.islice(self, None))}}}'
 _globals = _Globals(True)
