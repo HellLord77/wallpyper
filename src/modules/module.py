@@ -19,7 +19,7 @@ class _ModuleMeta(type):
             cls.ICON = os.path.join(os.path.dirname(__file__), 'res', getattr(cls, 'ICON', f'{cls.__name__}.ico'))
             cls.DEFAULT_CONFIG = getattr(cls, 'DEFAULT_CONFIG', {})
             cls.CONFIG = {}
-            cls.get_next_wallpaper = utils.one_cache(cls.get_next_wallpaper)
+            cls.get_next_wallpaper = utils.LastCacheCallable(cls.get_next_wallpaper)
             # noinspection PyTypeChecker
             MODULES[cls.__name__] = cls
         return cls

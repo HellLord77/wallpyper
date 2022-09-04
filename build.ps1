@@ -291,7 +291,8 @@ function Get-PyInstallerArgs
     }
     if ($ModuleGraph)
     {
-        foreach ($Module in Get-ModuleGraph)
+        $_, $Modules = Get-ModuleGraph
+        foreach ($Module in $Modules)
         {
             $Args += "--hidden-import=$Module"
         }

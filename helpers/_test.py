@@ -1,6 +1,7 @@
 from __future__ import annotations as _
 
 import atexit
+import functools
 import io
 import ntpath
 import sys
@@ -13,7 +14,6 @@ from typing import Optional
 from PyInstaller.lib.modulegraph.__main__ import create_graph
 from PyInstaller.lib.modulegraph.modulegraph import Node
 
-import libs.colornames as colornames
 import libs.ctyped as ctyped
 import win32
 import win32._gdiplus as gdiplus
@@ -515,13 +515,15 @@ def get_imported_modules(script_path: str, *excludes: str) -> tuple[Node]:
     return tuple(graph.iter_graph())
 
 
+@functools.lru_cache
+def foo(*args):
+    pass
+
+
 def _test():
-    color = '77cc33'
-    print(colornames.get(color))
-    start = time.time()
-    for _ in range(20):
-        colornames.get_nearest(hex(int(color, 16) + _)[2:])
-    print(time.time() - start)
+    foo(69)
+    foo(69)
+    print(foo.__wrapped__)
 
 
 if __name__ == '__main__':

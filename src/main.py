@@ -224,7 +224,7 @@ def get_next_wallpaper() -> Optional[files.File]:
             first_wallpaper = next_wallpaper
 
 
-@utils.singleton_run
+@utils.SingletonCallable
 def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
@@ -250,12 +250,12 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
     return changed
 
 
-@utils.singleton_run
+@utils.SingletonCallable
 def save_wallpaper(path: str) -> bool:
     return files.copy(path, os.path.join(CONFIG[consts.CONFIG_DIR], os.path.basename(path)))
 
 
-@utils.singleton_run
+@utils.SingletonCallable
 def search_wallpaper(path: str) -> bool:
     searched = False
     with gui.animate(STRINGS.STATUS_SEARCH):
@@ -509,7 +509,7 @@ def on_unpin() -> bool:
     return unpinned
 
 
-@utils.singleton_run
+@utils.SingletonCallable
 def pin_to_start() -> bool:
     return win32.add_pin(*pyinstall.get_launch_args(), taskbar=False, name=consts.NAME,
                          icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(consts.RES_ICON), show=pyinstall.FROZEN)
@@ -534,7 +534,7 @@ def on_unpin_start() -> bool:
     return unpinned
 
 
-@utils.singleton_run
+@utils.SingletonCallable
 def on_console() -> bool:
     if PIPE:
         if consoled := not PIPE.disconnect():
