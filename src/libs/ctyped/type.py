@@ -309,12 +309,12 @@ def _setattr(self: _PyCSimpleType, name: str, value):
     _ctypes.cast(id(self) + type(self).__dictoffset__, _ctypes.POINTER(_ctypes.py_object)).contents.value[name] = value
 
 
-def _instancecheck(self: _PyCSimpleType, instance, /,
+def _instancecheck(self: _PyCSimpleType, instance, *,
                    __instancecheck: _Callable[[_PyCSimpleType, _Any], bool] = _PyCSimpleType.__instancecheck__) -> bool:
     return __instancecheck(self, instance) or _subclasscheck(self, type(instance))
 
 
-def _subclasscheck(self: _PyCSimpleType, subclass, /,
+def _subclasscheck(self: _PyCSimpleType, subclass, *,
                    __subclasscheck: _Callable[[_PyCSimpleType, _Any], bool] = _PyCSimpleType.__subclasscheck__) -> bool:
     return __subclasscheck(self, subclass) or ((proxy_self := getattr(self, _ATTR_NAME, None)) and __subclasscheck(
         proxy_self, subclass)) or ((proxy_subclass := getattr(subclass, _ATTR_NAME, None)) and __subclasscheck(

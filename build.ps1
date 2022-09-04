@@ -87,6 +87,7 @@ $CodeCompileCTemplate = @(
 "compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
 $CopyTimeout = 5
 $ModuleGraphSmart = $True
+$CythonizeHighMemory = $True
 $CythonizeRemoveC = $False
 $MinifyLocalJson = $False
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
@@ -377,6 +378,11 @@ function Install-Dependencies
 
 function Write-Build
 {
+    if ($CythonizeHighMemory)
+    {
+        $env:CL = "/Zm500"
+    }
+
     if ($CodeRunBefore)
     {
         Start-PythonCode $CodeRunBefore
@@ -395,7 +401,7 @@ function Write-Build
 
     foreach ($CythonSource in $CythonSources)
     {
-        cython -3 --embed $CythonSource
+        cython --verbose -3 --embed $CythonSource
         $SourceBase = $CythonSource.Substring(0,$CythonSource.LastIndexOf("."))
         $CodeCompileC = @() + $CodeCompileCTemplate
         $CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
