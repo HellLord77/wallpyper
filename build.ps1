@@ -27,7 +27,8 @@ $CythonizeGlobs = @(
 "src\{langs,libs,modules,win32}\*.py"
 "src\libs\{colornames,iso,spinners}\__init__.py"
 # "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
-"src\libs\ctyped\{__init__,const,enum,handle,lib,macro}.py"
+# "src\libs\ctyped\const.py" FIXME https://stackoverflow.com/questions/65197248/cythonize-ends-with-fatal-error-c1002-compiler-is-out-of-heap-space-in-pass-2
+"src\libs\ctyped\{__init__,enum,handle,lib,macro}.py"
 "src\*.py")
 # $CythonizeGlobs = @()
 $CythonizeRemove = $True
@@ -87,7 +88,6 @@ $CodeCompileCTemplate = @(
 "compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
 $CopyTimeout = 5
 $ModuleGraphSmart = $True
-$CythonizeHighMemory = $True
 $CythonizeRemoveC = $False
 $MinifyLocalJson = $False
 $MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
@@ -378,11 +378,6 @@ function Install-Dependencies
 
 function Write-Build
 {
-    if ($CythonizeHighMemory)
-    {
-        $env:CL = "/Zm500"
-    }
-
     if ($CodeRunBefore)
     {
         Start-PythonCode $CodeRunBefore
