@@ -21,7 +21,6 @@ import consts
 import gui
 import langs
 import libs.files as files
-import libs.files as paths
 import libs.log as log
 import libs.pyinstall as pyinstall
 import libs.request as request
@@ -39,7 +38,7 @@ RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
-LOG_PATH = paths.replace_ext(CONFIG_PATH, 'log')
+LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
@@ -228,8 +227,6 @@ def get_next_wallpaper() -> Optional[files.File]:
 def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
-    if query_callback:
-        query_callback(0.0, *() if args is None else args, **{} if kwargs is None else kwargs)
     if wallpaper is None:
         with gui.animate(STRINGS.STATUS_FETCH):
             wallpaper = get_next_wallpaper()
@@ -245,8 +242,6 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
                     win32.display.Rotate, CONFIG[consts.CONFIG_ROTATE]), flip=getattr(
                     win32.display.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
                     win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION])) for display in get_displays()))
-    if query_callback:
-        query_callback(100.0, *() if args is None else args, **{} if kwargs is None else kwargs)
     return changed
 
 
@@ -618,10 +613,10 @@ def create_menu():  # TODO slideshow (smaller timer)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
         item_recent.enable,), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
-    _update_recent(item_recent)
+    (timer.on_thread(_update_recent) if consts.FEATURE_THREADED_MENU else _update_recent)(item_recent)
     gui.add_separator()
     item_module = gui.add_submenu('')
-    on_module(CONFIG[consts.CONFIG_MODULE], item_module)
+    (timer.on_thread(on_module) if consts.FEATURE_THREADED_MENU else on_module)(CONFIG[consts.CONFIG_MODULE], item_module)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS, icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
         item_links = gui.add_submenu(STRINGS.MENU_LINKS)
@@ -690,7 +685,7 @@ def create_menu():  # TODO slideshow (smaller timer)
                                CONFIG, consts.CONFIG_MODULE, on_click=on_module, args=(item_module,))
         item_display = gui.add_submenu(STRINGS.MENU_DISPLAY)
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, on_display_change, (item_display,))
-        on_display_change(0, None, item_display)
+        (timer.on_thread(on_display_change) if consts.FEATURE_THREADED_MENU else on_display_change)(0, None, item_display)
         gui.add_separator()
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS)):
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CONFIG, consts.CONFIG_NOTIFY)

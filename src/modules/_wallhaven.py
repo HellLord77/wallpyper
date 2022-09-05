@@ -1,4 +1,4 @@
-__version__ = '0.0.2'  # https://wallhaven.cc/help/api
+__version__ = '0.0.3'  # https://wallhaven.cc/help/api
 
 import os.path
 import re
@@ -123,8 +123,8 @@ class Wallhaven(_Module):
             gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
                               uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
         gui.add_separator(6, menu_ratio)
-        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colornames.get(
-            color) if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}, cls.CONFIG, CONFIG_COLORS)
+        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colornames.get_nearest(
+            color)[1] if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}, cls.CONFIG, CONFIG_COLORS)
 
     @classmethod
     def _on_category(cls, menu: gui.Menu):
@@ -152,5 +152,5 @@ class Wallhaven(_Module):
         cls.CONFIG[CONFIG_RATIO] = ','.join(ratios)
 
     @classmethod
-    def _on_sorting(cls, _, enable: Callable):
+    def _on_sorting(cls, _, enable: Callable[[bool], bool]):
         enable(cls.CONFIG[CONFIG_SORTING] == SORTINGS[5])
