@@ -28,6 +28,20 @@ START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
 WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 
+class ColorMode(metaclass=_utils.IntEnumMeta):
+    DEFAULT = ctyped.enum.PreferredAppMode.Default.value
+    AUTO = ctyped.enum.PreferredAppMode.AllowDark.value
+    LIGHT = ctyped.enum.PreferredAppMode.ForceLight.value
+    DARK = ctyped.enum.PreferredAppMode.ForceDark.value
+
+
+def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
+    # noinspection PyTypeChecker
+    ctyped.lib.uxtheme.SetPreferredAppMode(mode)
+    if flush:
+        ctyped.lib.uxtheme.FlushMenuThemes()
+
+
 def get_short_path(path: str) -> str:
     size = ctyped.lib.kernel32.GetShortPathNameW(path, None, 0)
     if size:
@@ -290,7 +304,7 @@ def open_file_with_ex(path: str) -> bool:
     return False
 
 
-def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:  # TODO dark context menu
+def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:
     with ctyped.init_com(ctyped.interface.IFileDialog) as dialog:
         if dialog:
             dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.PICKFOLDERS)

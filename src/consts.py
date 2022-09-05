@@ -48,6 +48,7 @@ CONFIG_TRANSITION = 'transition_style'
 CONFIG_REAPPLY = 'reapply_wallpaper'
 CONFIG_BLOCKED = 'notify_blocked'
 CONFIG_MAXIMIZED = 'if_maximized'
+CONFIG_COLOR = 'menu_color'
 
 RES_BUSY = 'busy.gif'
 RES_TRAY = 'tray.png'

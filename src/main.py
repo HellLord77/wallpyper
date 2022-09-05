@@ -72,6 +72,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_BLOCKED: True,
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MAXIMIZED: MAXIMIZED_ACTIONS[0],
+    consts.CONFIG_COLOR: win32.ColorMode.AUTO,
     consts.CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
@@ -99,6 +100,7 @@ def fix_config():
         CONFIG[consts.CONFIG_LAST] = DEFAULT_CONFIG[consts.CONFIG_LAST]
     _fix_config(consts.CONFIG_INTERVAL, INTERVALS)
     _fix_config(consts.CONFIG_MAXIMIZED, MAXIMIZED_ACTIONS)
+    _fix_config(consts.CONFIG_COLOR, (win32.ColorMode[mode] for mode in win32.ColorMode[1:]))
     if not CONFIG[consts.CONFIG_DIR]:  # TODO is_path_exists_or_creatable
         CONFIG[consts.CONFIG_DIR] = DEFAULT_CONFIG[consts.CONFIG_DIR]
     _fix_config(consts.CONFIG_MODULE, modules.MODULES)
@@ -579,6 +581,10 @@ def on_blocked(checked: bool):
         check_blocked()
 
 
+def on_color_mode(mode: str):
+    print(mode)
+
+
 def apply_auto_start(auto_start: bool) -> bool:
     return win32.register_autorun(
         consts.NAME, *pyinstall.get_launch_args(), *((consts.ARG_CHANGE,) if CONFIG[consts.CONFIG_INTERVAL] else ()),
@@ -690,6 +696,9 @@ def create_menu():  # TODO slideshow (smaller timer)
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS)):
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CONFIG, consts.CONFIG_NOTIFY)
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CONFIG, consts.CONFIG_BLOCKED, on_click=on_blocked)
+        gui.add_mapped_submenu(STRINGS.MENU_COLORS, {win32.ColorMode[mode]: getattr(
+            STRINGS, f'COLOR_MODE_{mode}') for mode in win32.ColorMode[1:]}, CONFIG, consts.CONFIG_COLOR, on_click=win32.set_color_mode)
+        win32.set_color_mode(CONFIG[consts.CONFIG_COLOR])
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, consts.CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, consts.CONFIG_SKIP)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CONFIG, consts.CONFIG_REAPPLY)

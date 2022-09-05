@@ -27,6 +27,13 @@ def _bitfield(type_: type[_CT], size: int) -> type[_CT]:
 
 
 @_struct
+class WINDOWCOMPOSITIONATTRIBDATA:
+    Attrib: _enum.WINDOWCOMPOSITIONATTRIB = None
+    pvData: _type.PVOID = None
+    cbData: _type.SIZE_T = None
+
+
+@_struct
 class FILE:
     _Placeholder: _type.c_void_p = None
 

@@ -2,61 +2,54 @@ from __future__ import annotations as _
 
 import ctypes as _ctypes
 import typing as _typing
-from typing import Callable as _Callable, Optional as _Optional
+from typing import Any as _Any, Callable as _Callable, Optional as _Optional
 
 from . import const as _const, enum as _enum, interface as _interface, struct as _struct, type as _type, union as _union
 from ._utils import _Pointer, _format_annotations, _func_doc, _resolve_type
 
 
 class _CDLL(type):
-    pass
-
-
-def _load(self: _CDLL):
-    if self._lib is None:
-        if isinstance(self, _PyDLL):
-            self._lib = _ctypes.pythonapi
-        else:
-            name_ = self.__qualname__
-            mode = _ctypes.DEFAULT_MODE
-            if isinstance(self, _WinDLL):
-                name_ = f'{name_}.dll'
-                mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
-            self._lib = getattr(_ctypes, type(self).__name__[1:])(name_, mode)
-
-
-def _init(self, name: str):
-    if name in self.__annotations__:
-        if self._funcs is None:
-            self._annots = _typing.get_type_hints(self)
-            self._funcs = {}
-            for name_ in self.__annotations__:
-                try:
-                    self._funcs[name_] = vars(self)[name_]
-                except KeyError:
-                    self._funcs[name_] = name_
-                else:
-                    delattr(self, name_)
-        func = None
-        while func is None:
+    def __new__(mcs, name: str, bases: tuple, dct: dict[str, _Any]):
+        cls = super().__new__(mcs, name, bases, dct)
+        cls._annots = _typing.get_type_hints(cls)
+        cls._funcs = {}
+        for func_name in cls.__annotations__:
             try:
-                func = self._lib[self._funcs[name]]
+                cls._funcs[func_name] = cls.__dict__[func_name]
             except KeyError:
-                raise AttributeError(f"Lib '{self.__qualname__}' has no function '{name}'")
-            except TypeError:
-                _load(self)
-        annot = _format_annotations(self.__annotations__[name])
-        func.restype, *func.argtypes = _resolve_type(self._annots[name])
-        if self._errcheck is not None:
-            func.errcheck = self._errcheck
-        func.__name__ = name
-        func.__doc__ = _func_doc(name, func.restype, func.argtypes, annot)
-        setattr(self, name, func)
-        return func
-    return super(type(self), self).__getattribute__(name)
+                cls._funcs[func_name] = func_name
+            else:
+                delattr(cls, func_name)
+        return cls
 
-
-_CDLL.__getattr__ = _init
+    def __getattr__(cls, name: str):
+        if name in cls.__annotations__:
+            func = None
+            while func is None:
+                try:
+                    func = cls._lib[cls._funcs[name]]
+                except KeyError:
+                    raise AttributeError(f"Lib '{cls.__qualname__}' has no function '{name}'")
+                except TypeError:
+                    if cls._lib is None:
+                        if isinstance(cls, _PyDLL):
+                            cls._lib = _ctypes.pythonapi
+                        else:
+                            lib_name = cls.__qualname__
+                            mode = _ctypes.DEFAULT_MODE
+                            if isinstance(cls, _WinDLL):
+                                lib_name = f'{lib_name}.dll'
+                                mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+                            cls._lib = getattr(_ctypes, type(cls).__name__[1:])(lib_name, mode)
+            annot = _format_annotations(cls.__annotations__[name])
+            func.restype, *func.argtypes = _resolve_type(cls._annots[name])
+            if cls._errcheck is not None:
+                func.errcheck = cls._errcheck
+            func.__name__ = name
+            func.__doc__ = _func_doc(name, func.restype, func.argtypes, annot)
+            setattr(cls, name, func)
+            return func
+        return super().__getattribute__(name)
 
 
 class _OleDLL(_CDLL):
@@ -71,14 +64,13 @@ class _WinDLL(_CDLL):
     pass
 
 
-class _Func:
+class _FuncMixin:
     _lib = None
     _errcheck = None
-    _funcs = None
 
 
 # noinspection PyPep8Naming
-class msvcrt(_Func, metaclass=_CDLL):
+class msvcrt(_FuncMixin, metaclass=_CDLL):
     # corecrt_io
     _access: _Callable[[_type.c_char_p,  # _FileName
                         _type.c_int],  # _AccessMode
@@ -318,7 +310,7 @@ class msvcrt(_Func, metaclass=_CDLL):
 
 
 # noinspection PyPep8Naming
-class python(_Func, metaclass=_PyDLL):
+class python(_FuncMixin, metaclass=_PyDLL):
     # ceval
     Py_MakePendingCalls: _Callable[[],
                                    _type.c_int]
@@ -481,7 +473,7 @@ class python(_Func, metaclass=_PyDLL):
 
 
 # noinspection PyPep8Naming
-class advapi32(_Func, metaclass=_WinDLL):
+class advapi32(_FuncMixin, metaclass=_WinDLL):
     # winreg
     AbortSystemShutdownA: _Callable[[_type.LPSTR],
                                     _type.BOOL]
@@ -615,7 +607,7 @@ class advapi32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class cfgmgr32(_Func, metaclass=_WinDLL):
+class cfgmgr32(_FuncMixin, metaclass=_WinDLL):
     # Cfgmgr32
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
                                          _Pointer[_struct.DEVPROPKEY],
@@ -642,7 +634,7 @@ class cfgmgr32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class combase(_Func, metaclass=_WinDLL):
+class combase(_FuncMixin, metaclass=_WinDLL):
     # roapi
     RoActivateInstance: _Callable[[_type.HSTRING,
                                    _Pointer[_interface.IInspectable]],
@@ -691,7 +683,7 @@ class combase(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class comctl32(_Func, metaclass=_WinDLL):
+class comctl32(_FuncMixin, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     # CommCtrl
@@ -702,7 +694,7 @@ class comctl32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class comdlg32(_Func, metaclass=_WinDLL):
+class comdlg32(_FuncMixin, metaclass=_WinDLL):
     # commdlg
     ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
                             _type.BOOL]
@@ -711,7 +703,7 @@ class comdlg32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class computecore(_Func, metaclass=_WinDLL):
+class computecore(_FuncMixin, metaclass=_WinDLL):
     # computecore
     HcsGetServiceProperties: _Callable[[_Optional[_type.PCWSTR],
                                         _Pointer[_type.PWSTR]],
@@ -738,7 +730,7 @@ class computecore(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class crypt32(_Func, metaclass=_WinDLL):
+class crypt32(_FuncMixin, metaclass=_WinDLL):
     # wincrypt
     CryptBinaryToStringA: _Callable[[_Pointer[_type.BYTE],
                                      _type.DWORD,
@@ -771,7 +763,7 @@ class crypt32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class d2d1(_Func, metaclass=_WinDLL):
+class d2d1(_FuncMixin, metaclass=_WinDLL):
     # d2d1
     D2D1CreateFactory: _Callable[[_enum.D2D1_FACTORY_TYPE,  # factoryType
                                   _Pointer[_struct.IID],  # riid
@@ -809,7 +801,7 @@ class d2d1(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class d3d11(_Func, metaclass=_WinDLL):
+class d3d11(_FuncMixin, metaclass=_WinDLL):
     # d3d11
     D3D11CreateDevice: _Callable[[_Optional[_interface.IDXGIAdapter],  # pAdapter
                                   _enum.D3D_DRIVER_TYPE,  # DriverType
@@ -824,7 +816,7 @@ class d3d11(_Func, metaclass=_WinDLL):
                                  _type.HRESULT]
 
 
-class DWrite(_Func, metaclass=_WinDLL):
+class DWrite(_FuncMixin, metaclass=_WinDLL):
     # dwrite
     DWriteCreateFactory: _Callable[[_enum.DWRITE_FACTORY_TYPE,  # factoryType
                                     _Pointer[_struct.IID],  # iid
@@ -833,7 +825,7 @@ class DWrite(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class dwmapi(_Func, metaclass=_WinDLL):
+class dwmapi(_FuncMixin, metaclass=_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
                                  _type.UINT,
@@ -879,7 +871,7 @@ class dwmapi(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class gdi32(_Func, metaclass=_WinDLL):
+class gdi32(_FuncMixin, metaclass=_WinDLL):
     # wingdi
     CombineRgn: _Callable[[_type.HRGN,  # hrgnDst
                            _type.HRGN,  # hrgnSrc1
@@ -1197,7 +1189,7 @@ class gdi32(_Func, metaclass=_WinDLL):
                               _type.BOOL]
 
 
-class GdiPlus(_Func, metaclass=_WinDLL):
+class GdiPlus(_FuncMixin, metaclass=_WinDLL):
     # gdipluseffects
     GdipCreateEffect: _Callable[[_struct.GUID,  # guid
                                  _Pointer[_type.CGpEffect]],  # effect
@@ -3926,7 +3918,7 @@ class GdiPlus(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class kernel32(_Func, metaclass=_WinDLL):
+class kernel32(_FuncMixin, metaclass=_WinDLL):
     # commapi
     ClearCommBreak: _Callable[[_type.HANDLE],  # hFile
                               _type.BOOL]
@@ -5483,7 +5475,7 @@ class kernel32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class mscoree(_Func, metaclass=_WinDLL):
+class mscoree(_FuncMixin, metaclass=_WinDLL):
     # cor
     CoEEShutDownCOM: _Callable[[],
                                _type.c_void]
@@ -5511,7 +5503,7 @@ class mscoree(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class msimg32(_Func, metaclass=_WinDLL):
+class msimg32(_FuncMixin, metaclass=_WinDLL):
     # wingdi
     AlphaBlend: _Callable[[_type.HDC,
                            _type.c_int,
@@ -5528,7 +5520,7 @@ class msimg32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class ntdll(_Func, metaclass=_WinDLL):
+class ntdll(_FuncMixin, metaclass=_WinDLL):
     RtlAreLongPathsEnabled: _Callable[[],
                                       _type.c_ubyte]
     # winnt
@@ -5575,7 +5567,7 @@ class ntdll(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class ole32(_Func, metaclass=_WinDLL):
+class ole32(_FuncMixin, metaclass=_WinDLL):
     # combaseapi
     CLSIDFromString: _Callable[[_type.LPCOLESTR,
                                 _Pointer[_struct.CLSID]],
@@ -5627,7 +5619,7 @@ class ole32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class oleacc(_Func, metaclass=_WinDLL):
+class oleacc(_FuncMixin, metaclass=_WinDLL):
     GetProcessHandleFromHwnd: _Callable[[_type.HWND],
                                         _type.HANDLE]
     # oleacc
@@ -5650,7 +5642,7 @@ class oleacc(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class oleaut32(_Func, metaclass=_WinDLL):
+class oleaut32(_FuncMixin, metaclass=_WinDLL):
     # oleauto
     VariantChangeType: _Callable[[_Pointer[_struct.VARIANTARG],
                                   _Pointer[_struct.VARIANTARG],
@@ -5685,7 +5677,7 @@ class oleaut32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class psapi(_Func, metaclass=_WinDLL):
+class psapi(_FuncMixin, metaclass=_WinDLL):
     # Psapi
     GetDeviceDriverBaseNameA: _Callable[[_type.LPVOID,  # ImageBase
                                          _type.LPSTR,  # lpFilename
@@ -5722,7 +5714,7 @@ class psapi(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class setupapi(_Func, metaclass=_WinDLL):
+class setupapi(_FuncMixin, metaclass=_WinDLL):
     # SetupAPI
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
                                               _Pointer[_struct.SP_DEVINFO_DATA],
@@ -5801,7 +5793,7 @@ class setupapi(_Func, metaclass=_WinDLL):
                                                  _type.BOOL]
 
 
-class SHCore(_Func, metaclass=_WinDLL):
+class SHCore(_FuncMixin, metaclass=_WinDLL):
     # ShellScalingApi
     GetDpiForMonitor: _Callable[[_type.HMONITOR,
                                  _enum.MONITOR_DPI_TYPE,
@@ -5816,21 +5808,21 @@ class SHCore(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class shdocvw(_Func, metaclass=_WinDLL):
+class shdocvw(_FuncMixin, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
 
 
 # noinspection PyPep8Naming
-class shell32(_Func, metaclass=_WinDLL):
-    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
-                             _type.HRESULT]
+class shell32(_FuncMixin, metaclass=_WinDLL):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 703
     GUIDFromStringW: _Callable[[_type.LPCWSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 704
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
     # shellapi
     InitNetworkAddressControl: _Callable[[],
                                          _type.BOOL]
@@ -5988,15 +5980,15 @@ class shell32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class shlwapi(_Func, metaclass=_WinDLL):
-    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
-                             _type.HRESULT]
+class shlwapi(_FuncMixin, metaclass=_WinDLL):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 269
     GUIDFromStringW: _Callable[[_type.LPCWSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 270
+    DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
+                             _type.HRESULT]
     # Shlwapi
     IsInternetESCEnabled: _Callable[[],
                                     _type.BOOL]
@@ -6320,7 +6312,7 @@ class shlwapi(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class user32(_Func, metaclass=_WinDLL):
+class user32(_FuncMixin, metaclass=_WinDLL):
     MessageBoxTimeoutA: _Callable[[_Optional[_type.HWND],  # hWnd
                                    _Optional[_type.LPCSTR],  # lpText
                                    _Optional[_type.LPCSTR],  # lpCaption
@@ -6335,6 +6327,12 @@ class user32(_Func, metaclass=_WinDLL):
                                    _type.WORD,  # wLanguageId
                                    _type.DWORD],  # dwMilliseconds
                                   _type.c_int]
+    GetWindowCompositionAttribute: _Callable[[_type.HWND,  # hwnd
+                                              _Pointer[_struct.WINDOWCOMPOSITIONATTRIBDATA]],  # pAttrData
+                                             _type.BOOL]
+    SetWindowCompositionAttribute: _Callable[[_type.HWND,  # hwnd
+                                              _Pointer[_struct.WINDOWCOMPOSITIONATTRIBDATA]],  # pAttrData
+                                             _type.BOOL]
     # WinUser
     GetWindowTextA: _Callable[[_type.HWND,  # hWnd
                                _type.LPSTR,  # lpString
@@ -7470,7 +7468,29 @@ class user32(_Func, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class uxtheme(_Func, metaclass=_WinDLL):
+class uxtheme(_FuncMixin, metaclass=_WinDLL):
+    OpenNcThemeData: _Callable[[_type.HWND,  # hWnd
+                                _type.LPCWSTR],  # pszClassList
+                               _type.HTHEME] = 49
+    RefreshImmersiveColorPolicyState: _Callable[[],
+                                                _type.c_void] = 104
+    GetIsImmersiveColorUsingHighContrast: _Callable[[_enum.IMMERSIVE_HC_CACHE_MODE],  # mode
+                                                    _type.c_bool] = 106
+    ShouldAppsUseDarkMode: _Callable[[],
+                                     _type.c_bool] = 132
+    AllowDarkModeForWindow: _Callable[[_type.HWND,  # hWnd
+                                       _type.c_bool],  # allow
+                                      _type.c_bool] = 133
+    SetPreferredAppMode: _Callable[[_enum.PreferredAppMode],  # appMode
+                                   _enum.PreferredAppMode] = 135
+    FlushMenuThemes: _Callable[[],
+                               _type.c_void] = 136
+    IsDarkModeAllowedForWindow: _Callable[[],
+                                          _type.c_bool] = 137
+    ShouldSystemUseDarkMode: _Callable[[],
+                                       _type.c_bool] = 138
+    IsDarkModeAllowedForApp: _Callable[[],
+                                       _type.c_bool] = 139
     # Uxtheme
     BeginPanningFeedback: _Callable[[_type.HWND],
                                     _type.BOOL]
@@ -7757,13 +7777,13 @@ class uxtheme(_Func, metaclass=_WinDLL):
 
 class Microsoft:
     class UI:
-        class Xaml(_Func, metaclass=_WinDLL):
+        class Xaml(_FuncMixin, metaclass=_WinDLL):
             DllGetActivationFactory: _Callable[[_type.HSTRING,
                                                 _Pointer[_interface.IActivationFactory]],
                                                _type.HRESULT]
 
     class WindowsAppRuntime:
-        class Bootstrap(_Func, metaclass=_WinDLL):
+        class Bootstrap(_FuncMixin, metaclass=_WinDLL):
             MddBootstrapInitialize: _Callable[[_type.UINT32,
                                                _type.PCWSTR,
                                                _struct.PACKAGE_VERSION],

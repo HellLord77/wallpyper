@@ -1,8 +1,53 @@
 import contextlib
+import itertools
+import random
+import typing
 import winreg
-from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
+from typing import Any, Callable, ContextManager, Iterable, Iterator, Mapping, Optional
 
 import libs.ctyped as ctyped
+
+
+class IntEnumMeta(type):
+    def __new__(mcs, *args, **kwargs):
+        cls = super().__new__(mcs, *args, **kwargs)
+        cls._vars = {var: val for var, val in vars(cls).items() if not var.startswith('_')}
+        return cls
+
+    def __contains__(cls, item):
+        return item in cls._vars
+
+    def __iter__(cls) -> Iterator[str]:
+        return iter(cls._vars)
+
+    @typing.overload
+    def __getitem__(cls, var_or_val: slice) -> tuple[str]:
+        pass
+
+    @typing.overload
+    def __getitem__(cls, var_or_val: int) -> str:
+        pass
+
+    @typing.overload
+    def __getitem__(cls, var_or_val: str) -> int:
+        pass
+
+    def __getitem__(cls, var_or_val):
+        if isinstance(var_or_val, int):
+            for var, val_ in cls._vars.items():
+                if var_or_val == val_:
+                    return var
+            raise IndexError
+        elif isinstance(var_or_val, slice):
+            return tuple(itertools.islice(cls._vars, var_or_val.start, var_or_val.stop, var_or_val.step))
+        else:
+            return cls._vars[var_or_val]
+
+    def get_random(cls, *ignores: int) -> int:
+        vals = tuple(cls._vars.values())
+        while (rand := random.choice(vals)) in ignores:
+            pass
+        return rand
 
 
 def get_dir(folderid: str) -> str:

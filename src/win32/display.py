@@ -4,14 +4,12 @@ import functools
 import ntpath
 import operator
 import os
-import random
 import string
 import tempfile
 import threading
 import time
-import typing
 import winreg
-from typing import Any, Callable, Iterable, Iterator, Mapping, Optional
+from typing import Any, Callable, Iterable, Mapping, Optional
 
 import libs.ctyped as ctyped
 from . import _utils, _gdiplus
@@ -22,43 +20,7 @@ _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion',
 TEMP_WALLPAPER_DIR = tempfile.gettempdir()
 
 
-class _IntEnumMeta(type):
-    def __new__(mcs, *args, **kwargs):
-        cls = super().__new__(mcs, *args, **kwargs)
-        cls._vars = {var: val for var, val in vars(cls).items() if not var.startswith('_')}
-        return cls
-
-    def __contains__(cls, item):
-        return item in cls._vars
-
-    def __iter__(cls) -> Iterator[str]:
-        return iter(cls._vars)
-
-    @typing.overload
-    def __getitem__(cls, var_or_val: int) -> str:
-        pass
-
-    @typing.overload
-    def __getitem__(cls, var_or_val: str) -> int:
-        pass
-
-    def __getitem__(cls, var_or_val):
-        if isinstance(var_or_val, int):
-            for var, val_ in cls._vars.items():
-                if var_or_val == val_:
-                    return var
-            raise IndexError
-        else:
-            return cls._vars[var_or_val]
-
-    def get_random(cls, *ignores: int) -> int:
-        vals = tuple(cls._vars.values())
-        while (rand := random.choice(vals)) in ignores:
-            pass
-        return rand
-
-
-class Style(metaclass=_IntEnumMeta):
+class Style(metaclass=_utils.IntEnumMeta):
     FILL = ctyped.const.WPSTYLE_CROPTOFIT
     FIT = ctyped.const.WPSTYLE_KEEPASPECT
     STRETCH = ctyped.const.WPSTYLE_STRETCH
@@ -67,21 +29,21 @@ class Style(metaclass=_IntEnumMeta):
     SPAN = ctyped.const.WPSTYLE_SPAN
 
 
-class Rotate(metaclass=_IntEnumMeta):
+class Rotate(metaclass=_utils.IntEnumMeta):
     NONE = 0
     RIGHT = 1
     LEFT = 2
     FLIP = 3
 
 
-class Flip(metaclass=_IntEnumMeta):
+class Flip(metaclass=_utils.IntEnumMeta):
     NONE = 0
     HORIZONTAL = 1
     VERTICAL = 2
     BOTH = 3
 
 
-class Transition(metaclass=_IntEnumMeta):
+class Transition(metaclass=_utils.IntEnumMeta):
     DISABLED = -2
     RANDOM = -1
     FADE = 0

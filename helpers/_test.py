@@ -521,9 +521,10 @@ def foo(*args):
 
 
 def _test():
-    foo(69)
-    foo(69)
-    print(foo.__wrapped__)
+    # print(ctyped.lib.shlwapi.GUIDFromStringA)
+    print(ctyped.lib.shlwapi.GUIDFromStringA)
+    print(dir(ctyped.lib.shlwapi))
+    # print(ctyped.lib.shlwapi.GUIDFromStringW)
 
 
 if __name__ == '__main__':
