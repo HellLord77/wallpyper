@@ -755,6 +755,7 @@ class Bitmap(Image, ctyped.type.GpBitmap):
         bitmap = self.from_dimension(width, height, self.get_pixel_format())
         bitmap.set_resolution(self.get_horizontal_resolution(), self.get_vertical_resolution())
         graphics = Graphics.from_image(bitmap)
+        graphics.set_interpolation_mode(ctyped.enum.InterpolationMode.HighQualityBicubic)
         if fit:
             x, y, w, h = _calc_src_x_y_w_h(
                 src_w, src_h, width, height, crop_to_fit ^ (width / src_w > height / src_h))

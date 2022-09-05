@@ -90,17 +90,17 @@ def get(color: str) -> str:
 @functools.lru_cache
 def get_nearest(color: str) -> tuple[str, str]:
     if not (name := get(color)).startswith('#'):
-        return color, name
+        return color.upper(), name
     global _RGB_TO_HEX_COLORS
     if _RGB_TO_HEX_COLORS is None:
         _RGB_TO_HEX_COLORS = {hex_to_rgb(hex_color) for hex_color in _COLORS}
-    color = hex_to_rgb(color)
+    rgb_color = hex_to_rgb(color)
     min_distance = math.inf
     nearest_color = 0, 0, 0
-    for rgb_color in _RGB_TO_HEX_COLORS:
-        distance = sum((color[i] - rgb_color[i]) ** 2 for i in range(3))
+    for cur_color in _RGB_TO_HEX_COLORS:
+        distance = sum((rgb_color[i] - cur_color[i]) ** 2 for i in range(3))
         if min_distance > distance:
             min_distance = distance
-            nearest_color = rgb_color
+            nearest_color = cur_color
     nearest_color = rgb_to_hex(*nearest_color)
     return nearest_color.upper(), _COLORS[nearest_color[1:]]

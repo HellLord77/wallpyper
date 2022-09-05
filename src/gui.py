@@ -184,8 +184,9 @@ def add_mapped_submenu(label_or_submenu_item: str | win32.gui.MenuItem, items: M
                        mapping: MutableMapping[str, str], key: str, enable: bool = True,
                        uid: Optional[int | str] = None, on_click: Optional[Callable] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
-                       position: Optional[int] = None, menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
-    submenu_item = add_submenu(label_or_submenu_item, position=position, menu=menu) if isinstance(
+                       position: Optional[int] = None, icon: Optional[int | str] = None,
+                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
+    submenu_item = add_submenu(label_or_submenu_item, position=position, icon=icon, menu=menu) if isinstance(
         label_or_submenu_item, str) else label_or_submenu_item
     if uid is not None:
         submenu_item.set_uid(uid)

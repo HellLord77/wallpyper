@@ -661,22 +661,24 @@ def create_menu():  # TODO slideshow (smaller timer)
             multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
         gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
-        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_AUTO)):
+        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_AUTO, icon=RES_TEMPLATE.format(consts.RES_AUTO))):
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
-                STRINGS, f'TIME_{interval}') for interval in INTERVALS},
-                                   CONFIG, consts.CONFIG_INTERVAL, on_click=on_auto_change)
+                STRINGS, f'TIME_{interval}') for interval in INTERVALS}, CONFIG, consts.CONFIG_INTERVAL,
+                                   on_click=on_auto_change, icon=RES_TEMPLATE.format(consts.RES_INTERVAL))
             gui.add_mapped_submenu(STRINGS.MENU_IF_MAXIMIZED, {action: getattr(
-                STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CONFIG, consts.CONFIG_MAXIMIZED)
+                STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CONFIG,
+                                   consts.CONFIG_MAXIMIZED, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
-            gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save)
+            gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save).set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
         gui.add_mapped_submenu(STRINGS.MENU_TRANSITION, {transition: getattr(
-            STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CONFIG, consts.CONFIG_TRANSITION)
+            STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CONFIG,
+                               consts.CONFIG_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))
         if consts.FEATURE_ROTATE_IMAGE:
             gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
                 STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate},
                                    CONFIG, consts.CONFIG_ROTATE, on_click=reapply_wallpaper)
-        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_FLIP)):
+        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_FLIP, icon=RES_TEMPLATE.format(consts.RES_FLIP))):
             item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.MenuItemType.CHECK, getattr(
                 win32.display.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.display.Flip.VERTICAL, win32.display.Flip.BOTH))
             item_horizontal = gui.add_menu_item(STRINGS.FLIP_HORIZONTAL, gui.MenuItemType.CHECK, getattr(
@@ -684,20 +686,21 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.set_on_click(item_vertical, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
             gui.set_on_click(item_horizontal, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
         gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style: getattr(
-            STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style},
-                               CONFIG, consts.CONFIG_STYLE, on_click=reapply_wallpaper)
-        gui.add_mapped_submenu(STRINGS.MENU_MODULE,
-                               {name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()},
-                               CONFIG, consts.CONFIG_MODULE, on_click=on_module, args=(item_module,))
-        item_display = gui.add_submenu(STRINGS.MENU_DISPLAY)
+            STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style}, CONFIG, consts.CONFIG_STYLE,
+                               on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
+        gui.add_mapped_submenu(STRINGS.MENU_MODULE, {
+            name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()}, CONFIG, consts.CONFIG_MODULE,
+                               on_click=on_module, args=(item_module,), icon=RES_TEMPLATE.format(consts.RES_MODULE))
+        item_display = gui.add_submenu(STRINGS.MENU_DISPLAY, icon=RES_TEMPLATE.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, on_display_change, (item_display,))
         (timer.on_thread(on_display_change) if consts.FEATURE_THREADED_MENU else on_display_change)(0, None, item_display)
         gui.add_separator()
-        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS)):
+        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS, icon=RES_TEMPLATE.format(consts.RES_NOTIFICATION))):
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CONFIG, consts.CONFIG_NOTIFY)
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CONFIG, consts.CONFIG_BLOCKED, on_click=on_blocked)
         gui.add_mapped_submenu(STRINGS.MENU_COLORS, {win32.ColorMode[mode]: getattr(
-            STRINGS, f'COLOR_MODE_{mode}') for mode in win32.ColorMode[1:]}, CONFIG, consts.CONFIG_COLOR, on_click=win32.set_color_mode)
+            STRINGS, f'COLOR_MODE_{mode}') for mode in win32.ColorMode[1:]}, CONFIG, consts.CONFIG_COLOR,
+                               on_click=win32.set_color_mode, icon=RES_TEMPLATE.format(consts.RES_THEME))
         win32.set_color_mode(CONFIG[consts.CONFIG_COLOR])
         gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CONFIG, consts.CONFIG_ANIMATE, on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, consts.CONFIG_SKIP)
@@ -723,7 +726,6 @@ def start():  # TODO dark theme
     sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
     RECENT.extend(utils.decrypt(CONFIG[consts.CONFIG_RECENT], ()))
     gui.init(consts.NAME)
-    gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     create_menu()
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE])
     apply_auto_start(CONFIG[consts.CONFIG_START])
@@ -733,6 +735,7 @@ def start():  # TODO dark theme
         on_change(*TIMER.args)
     else:
         on_auto_change(CONFIG[consts.CONFIG_INTERVAL], None if change_after <= 0 else change_after)
+    gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME, on_change, (*TIMER.args, None, False))
 
 
