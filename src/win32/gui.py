@@ -6,6 +6,7 @@ import contextlib
 import functools
 import itertools
 import threading
+import types
 from typing import Any, Callable, Generator, Iterable, Iterator, Mapping, Optional, Sequence
 
 import libs.ctyped as ctyped
@@ -845,15 +846,15 @@ class MenuItem(_Control):
 
     def _set_types(self, broken: Optional[bool] = None, radio: Optional[bool] = None,
                    right_aligned: Optional[bool] = None, right_justified: Optional[bool] = None) -> bool:
-        types = self.get_types()
+        types_ = self.get_types()
         flags = 0
-        if types[0] if broken is None else broken:
+        if types_[0] if broken is None else broken:
             flags |= ctyped.const.MF_MENUBREAK
-        if types[1] if radio is None else radio:
+        if types_[1] if radio is None else radio:
             flags |= ctyped.const.MFT_RADIOCHECK
-        if types[2] if right_aligned is None else right_aligned:
+        if types_[2] if right_aligned is None else right_aligned:
             flags |= ctyped.const.MFT_RIGHTORDER
-        if types[3] if right_justified is None else right_justified:
+        if types_[3] if right_justified is None else right_justified:
             flags |= ctyped.const.MFT_RIGHTJUSTIFY
         return self._set_datas(ctyped.const.MIIM_FTYPE, (flags,))
 
@@ -946,3 +947,8 @@ class MenuItem(_Control):
 
     def get_uid(self) -> int | str:
         return self._uid
+
+
+def enable_threaded_menu_item_icon_setter():
+    MenuItem.set_icon = types.MethodType(lambda set_icon, *args, **kwargs: threading.Thread(
+        target=set_icon, args=args, kwargs=kwargs), MenuItem.set_icon)

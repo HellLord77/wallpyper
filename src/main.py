@@ -341,7 +341,6 @@ def _update_recent(item: win32.gui.MenuItem):
     with gui.set_main_menu(menu):
         items = gui.get_menu_items()
         for index, wallpaper in enumerate(RECENT):
-            label = f'{langs.to_str(index + 1, STRINGS)}. {utils.shrink_string(wallpaper.name, consts.MAX_LABEL_LEN)}'
             if wallpaper in items:
                 wallpaper_item = items[wallpaper.url]
                 submenu = wallpaper_item.get_submenu()
@@ -367,8 +366,8 @@ def _update_recent(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_wallpaper, args=(
                         win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,)).set_icon(
                         RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(wallpaper.url,)).set_icon(
-                        RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(
+                        wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_wallpaper, args=(
                         win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH)).set_icon(
@@ -387,7 +386,9 @@ def _update_recent(item: win32.gui.MenuItem):
                         gui.add_menu_item(STRINGS.LABEL_LENS, on_click=on_wallpaper, args=(
                             search_wallpaper, wallpaper, STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH,)).set_icon(
                             RES_TEMPLATE.format(consts.RES_LENS))
-            wallpaper_item = menu.insert_item(index, label, submenu=submenu)
+            wallpaper_item = menu.insert_item(index, utils.shrink_string(
+                wallpaper.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
+                consts.RES_DIGIT_TEMPLATE.format(index + 1)), submenu=submenu)
             wallpaper_item.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
                 TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             wallpaper_item.set_uid(wallpaper.url)
@@ -464,8 +465,8 @@ def on_display_change(update: int, _: Optional[gui.Gui], item: win32.gui.MenuIte
 
 def _create_shortcut(dir_: str) -> bool:
     return files.make_dir(dir_) and win32.create_shortcut(os.path.join(
-        dir_, consts.NAME), *pyinstall.get_launch_args(), icon_path=RES_TEMPLATE.format(consts.RES_ICON) * (
-        not pyinstall.FROZEN), comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
+        dir_, consts.NAME), *pyinstall.get_launch_args(), icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(
+        consts.RES_ICON), comment=STRINGS.DESCRIPTION, show=pyinstall.FROZEN, uid=UUID)
 
 
 def on_shortcut() -> bool:
@@ -676,8 +677,8 @@ def create_menu():  # TODO slideshow (smaller timer)
                                consts.CONFIG_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))
         if consts.FEATURE_ROTATE_IMAGE:
             gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
-                STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate},
-                                   CONFIG, consts.CONFIG_ROTATE, on_click=reapply_wallpaper)
+                STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate}, CONFIG, consts.CONFIG_ROTATE,
+                                   on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ROTATE))
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_FLIP, icon=RES_TEMPLATE.format(consts.RES_FLIP))):
             item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.MenuItemType.CHECK, getattr(
                 win32.display.Flip, CONFIG[consts.CONFIG_FLIP]) in (win32.display.Flip.VERTICAL, win32.display.Flip.BOTH))
