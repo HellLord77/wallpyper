@@ -41,7 +41,7 @@ $CodeRunAfter = @(
 "remove('src\libs\ctyped\interface.pickle')")
 $MinifyJsonRegExs = @(
 "src\libs\colornames\colornames.min.json"
-"src\libs\iso\iso_*.json"
+"src\libs\iso_codes\iso_*.json"
 "src\libs\spinners\spinners.json")
 
 $CodePythonBase = @(
