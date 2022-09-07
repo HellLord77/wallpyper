@@ -1,70 +1,16 @@
 from __future__ import annotations as _
 
-import atexit
-import functools
-import io
 import ntpath
 import sys
 import threading
 import time
-import tkinter.messagebox
 from typing import Callable, TypeVar
 from typing import Optional
-
-from PyInstaller.lib.modulegraph.__main__ import create_graph
-from PyInstaller.lib.modulegraph.modulegraph import Node
 
 import libs.ctyped as ctyped
 import win32
 import win32._gdiplus as gdiplus
-import win32.gui as gui
 from libs.ctyped import winrt
-
-
-def exception_handler(excepthook: Callable, *args, **kwargs):
-    stderr = sys.stderr
-    sys.stderr = io.StringIO()
-    excepthook(*args, **kwargs)
-    sys.stderr.seek(0)
-    root = tkinter.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
-    while not isinstance(args, type):
-        args = args[0]
-    tkinter.messagebox.showerror(args.__name__, sys.stderr.read())
-    root.destroy()
-    sys.stderr = stderr
-
-
-# sys.excepthook = types.MethodType(exception_handler, sys.excepthook)
-# threading.excepthook = types.MethodType(exception_handler, threading.excepthook)
-
-
-def fill_surrounding_rect(hdc, out_x, out_y, out_w, out_h, in_x, in_y, in_w, in_h, argb: ctyped.type.ARGB):
-    graphics = gdiplus.Graphics.from_hdc(hdc)
-    brush = gdiplus.SolidBrush.from_color(argb)
-    if out_x < in_x:
-        graphics.fill_rectangle(brush, out_x, out_y, in_x - out_x, out_h)
-    if out_y < in_y:
-        graphics.fill_rectangle(brush, out_x, out_y, out_w, in_y - out_y)
-    if in_x + in_w < out_x + out_w:
-        graphics.fill_rectangle(brush, in_x + in_w, out_y, out_x + out_w - (in_x + in_w), out_h)
-    if in_y + in_h < out_y + out_h:
-        graphics.fill_rectangle(brush, out_x, in_y + in_h, out_w, out_y + out_h - (in_y + in_h))
-
-
-def _foo(e, s: gui.SystemTray, menu: gui.Menu, item: gui.MenuItem):
-    s.show_balloon('very busy', 'mini text', gui.SystemTrayIcon.BALLOON_TRAY)
-    menu.show()
-    return 0
-
-
-def _foo2(e: int, s: gui.SystemTray):
-    print(s.start_animation(r'D:\Projects\Wallpyper\src\res\busy.gif'))  # Gui.get().exit_mainloop()  # s.set_icon(r'E:\Projects\wallpyper\icon.ico')  # s.stop_animation()
-
-
-def foo3(e, m: gui.SystemTray, s: gui.SystemTray):
-    s.stop_animation()
 
 
 def _wait():
@@ -73,106 +19,6 @@ def _wait():
             time.sleep(0.1)
     except KeyboardInterrupt:
         pass
-
-
-def write(s):
-    with open(r'D:\stdout.txt', 'a') as f:
-        f.write(s)
-
-
-def write2(s):
-    with open(r'D:\stderr.txt', 'a') as f:
-        f.write(s)
-
-
-def _test_gui():
-    p = r'D:\Projects\wallpyper\src\res\tray.png'
-    # bind(EVENT_CLOSE, lambda *args: print(6969))
-    g = gui.Gui()
-    s = gui.SystemTray(p, 'tip')
-    menu = gui.Menu()
-    not_hidden = menu.append_item('tray icon shown')
-    not_hidden.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: print(s.is_shown()))
-    it = menu.append_item('stop animate\tright')
-    it.bind(gui.MenuItemEvent.LEFT_UP, foo3, (s,))
-    it.set_tooltip('important long text tip', 'tip title', p)
-    menu.append_item(type=gui.MenuItemType.SEPARATOR)
-    ball = menu.append_item('balloon\tright2')
-    ball.set_tooltip('another tip')
-    ball.bind(gui.MenuItemEvent.RIGHT_UP, lambda *args: print('balloon button right up'))
-    ball.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: s.show_balloon('very busy', 'mini text', r'D:\Projects\wallpyper\src\res\icon.ico'))
-    # print(menu.set_item_image(it, p))
-    # ctyped.lib.User32.SetMenu(s._hwnd, menu._hmenu)
-    item = menu.append_item('text')
-    # print(item.get_id(), menu.get_item_id(item))
-    menu2 = gui.Menu()
-    menu2.append_item('gg', type=gui.MenuItemType.CHECK)
-    it_ck = menu.append_item('check', type=gui.MenuItemType.CHECK)
-    it_ck.check()
-    menu3 = gui.Menu()
-    submenu_item = menu.append_item('rad test', submenu=menu3)
-    # submenu_item.get_submenu()
-    submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\res\Wallhaven.ico')
-    print('set_icon')
-    submenu_item.set_submenu(menu3)
-    item_icon = menu.append_item('test icon')
-    item_icon.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: submenu_item.set_icon(r'D:\Projects\wallpyper\src\modules\Pexels.ico'))
-    # menu.set_max_height(100)
-    # print(menu.get_max_height())
-    for i in range(6):
-        menu3.append_item('radio' + str(i), type=gui.MenuItemType.RADIO)
-    it7 = menu2.append_item('69')
-    it7.bind(gui.MenuItemEvent.HIGHLIGHT, lambda *args: print('hover', args))
-    menu2.append_item('new')
-    ex = menu.append_item('exit', gui.MenuItemImage.CLOSE)
-    ex.bind(gui.MenuItemEvent.LEFT_UP, lambda *args: g.exit_mainloop())
-    # print(item.set_image(r'D:\Projects\wallpyper\src\res\tray.png', True))
-    # menu.set_item_submenu(item, menu2)
-    item.set_submenu(menu2)
-    item.set_image(p)
-    item.set_tooltip('https://www.google.com')
-    g.bind(gui.GuiEvent.DISPLAY_CHANGE, lambda *args: print('display', args))
-
-    s.bind(gui.SystemTrayEvent.RIGHT_UP, _foo, (menu, item))
-    s.bind(gui.SystemTrayEvent.LEFT_DOUBLE, _foo2)
-    s.bind(gui.SystemTrayEvent.BALLOON_SHOW, lambda *args: print('show_balloon'))
-    s.bind(gui.SystemTrayEvent.BALLOON_HIDE, lambda *args: print('show_balloon hide'))
-    s.bind(gui.SystemTrayEvent.BALLOON_CLICK, lambda *args: print('show_balloon click'))
-    s.bind(ctyped.const.NIN_SELECT, lambda *args: print('sel'))
-    s.show()
-
-    # s2 = gui.SystemTray(r'D:\Projects\wallpyper\src\res\tray.png', 'tip2')
-    # s2.set_animation_speed(5)
-    # s2.start_animation(r'D:\Projects\wallpyper\src\res\busy.gif')
-    # s2.show()
-
-    def on_exit(*_):
-        print('at_exit')
-
-    def on_thread(*_):
-        print('thread')
-        time.sleep(7)
-        print('job_done')
-
-    def end(*_):
-        print('end')
-        g.exit_mainloop()
-
-    def query_end(*_):
-        print('query_end')
-        print(hex(g.get_ending_reason()))
-        g.exit_mainloop()
-        threading.Thread(target=on_thread).start()
-
-    # sys.stdout.write = write
-    # sys.stderr.write = write2
-    atexit.register(on_exit)
-    g.block_end('doing sexy job...')
-    g.bind(gui.GuiEvent.QUERY_END_SESSION, query_end)
-    # g.bind(gui.GuiEvent.END, end)
-    print(g.get_name())
-    g.mainloop()
-    print('exit_mainloop')
 
 
 def _test_settings():
@@ -510,27 +356,17 @@ def _test_hook():
     proc.free_console()
 
 
-def get_imported_modules(script_path: str, *excludes: str) -> tuple[Node]:
-    graph = create_graph((script_path,), False, 1, excludes, [])
-    return tuple(graph.iter_graph())
-
-
-@functools.lru_cache
-def foo(*args):
-    pass
-
-
 def _test():
-    # print(ctyped.lib.shlwapi.GUIDFromStringA)
-    print(ctyped.lib.shlwapi.GUIDFromStringA)
-    print(dir(ctyped.lib.shlwapi))
-    # print(ctyped.lib.shlwapi.GUIDFromStringW)
+    import libs.colornames as colornames
+    r1, g1, b1 = 69, 77, 125
+    r2, g2, b2 = 125, 77, 69
+    print(colornames.get_nearest_color_lab(colornames.rgb_to_hex(r2, g2, b2)))
+    print(colornames.get_nearest_color(colornames.rgb_to_hex(r2, g2, b2)))
 
 
 if __name__ == '__main__':
     _test()
     # _test_hook()
-    # _test_gui()
     exit()
 
     ctyped.FLAG_THREADED_COM = True

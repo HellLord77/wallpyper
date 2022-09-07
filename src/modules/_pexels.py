@@ -4,7 +4,7 @@ import os
 from typing import Generator, Optional
 
 import gui
-from libs import files, iso, request
+from libs import files, iso_codes, request
 from .module import _Module
 
 BASE_URL = request.join('https://api.pexels.com', 'v1')
@@ -90,6 +90,6 @@ class Pexels(_Module):
                 cls.STRINGS, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_COLOR, {color: getattr(
                 cls.STRINGS, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: iso.ISO31661.get(
+            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
                 locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
                                                                     for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)

@@ -4,7 +4,7 @@ import os.path
 from typing import Generator, Optional
 
 import gui
-from libs import files, iso, request
+from libs import files, iso_codes, request
 from .module import _Module
 
 BASE_URL = 'https://www.bing.com'
@@ -66,7 +66,7 @@ class Bing(_Module):
         gui.add_mapped_submenu(cls.STRINGS.BING_MENU_DAY, {str(day): getattr(
             cls.STRINGS, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
                                cls.CONFIG, CONFIG_DAY)
-        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_MARKET, {market: iso.ISO31661.get(
+        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_MARKET, {market: iso_codes.ISO31661.get(
             market[market.find('-') + 1:]).name for market in MARKETS}, cls.CONFIG, CONFIG_MARKET)
         gui.add_mapped_submenu(cls.STRINGS.BING_MENU_RESOLUTION,
                                {resolution: getattr(cls.STRINGS, f'BING_RESOLUTION_{resolution}')

@@ -123,7 +123,7 @@ class Wallhaven(_Module):
             gui.add_menu_item(getattr(cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
                               uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
         gui.add_separator(6, menu_ratio)
-        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colornames.get_nearest(
+        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_COLOR, {color: colornames.get_nearest_color(
             color)[1] if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}, cls.CONFIG, CONFIG_COLORS)
 
     @classmethod
