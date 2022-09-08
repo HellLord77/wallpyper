@@ -180,19 +180,19 @@ def _get_interfaces(namespace) -> dict[str, tuple[int, int] | dict]:
     return namespace._interfaces
 
 
-def _set_interfaces(cur_namespace, interfaces: dict[str, tuple[int, int] | dict], qualname: _Optional[list[str]] = None):
+def _set_interfaces(namespace, interfaces: dict[str, tuple[int, int] | dict], qualname: _Optional[list[str]] = None):
     if qualname is None:
         qualname = []
-    cur_namespace._interfaces = interfaces
+    namespace._interfaces = interfaces
     namespaces = []
     for name, value in interfaces.items():
         if isinstance(value, dict):
-            namespace = _NamespaceMeta(name, (), {})
+            new_namespace = _NamespaceMeta(name, (), {})
             qualname.append(name)
-            namespace.__qualname__ = '.'.join(qualname)
-            _set_interfaces(namespace, value, qualname)
+            new_namespace.__qualname__ = '.'.join(qualname)
+            _set_interfaces(new_namespace, value, qualname)
             del qualname[-1]
-            setattr(cur_namespace, name, namespace)
+            setattr(namespace, name, new_namespace)
             namespaces.append(name)
     for name in namespaces:
         del interfaces[name]

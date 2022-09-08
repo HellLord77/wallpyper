@@ -17,6 +17,7 @@ from . import _utils, _gdiplus
 _DELETE_AFTER = 0.5
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 
+ANIMATION_POLL_INTERVAL = 0.01
 TEMP_WALLPAPER_DIR = tempfile.gettempdir()
 
 
@@ -398,12 +399,12 @@ def _get_window_pid(hwnd: ctyped.type.HWND) -> int:
 
 
 def get_display_blockers(*monitors: str, full_screen_only: bool = False,
-                         _maximized_only: bool = True) -> dict[str, tuple[str, ...]]:
+                         fullscreen: bool = True) -> dict[str, tuple[str, ...]]:
     blockers = {monitor: set() for monitor in monitors}
     rects_or_regions = {monitor: _get_monitor_rect(monitor) for monitor in monitors}
     drives = _get_drives()
 
-    if _maximized_only:
+    if fullscreen:
         dummy = ctyped.struct.RECT()
         placement = ctyped.struct.WINDOWPLACEMENT()
 
@@ -430,7 +431,7 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
             return True
 
     ctyped.lib.user32.EnumWindows(ctyped.type.WNDENUMPROC(wind_enum_proc), 0)
-    if not _maximized_only:
+    if not fullscreen:
         for monitor, region in rects_or_regions.items():
             if not region.is_empty():
                 blockers[monitor].clear()
@@ -591,10 +592,11 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                 args.append(dst_h / 2)
             start = time.time()
             while duration > (passed := time.time() - start):
-                for dst_ox, dst_oy, dst_w_, dst_h_, src_ox, src_oy in _TRANSITIONS[transition](
+                for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](
                         passed / duration, dst_w, dst_h, *args):
-                    ctyped.lib.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_w_, dst_h_,
+                    ctyped.lib.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_ow, dst_oh,
                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
+                time.sleep(ANIMATION_POLL_INTERVAL)
         ctyped.lib.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 

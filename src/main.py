@@ -447,18 +447,20 @@ def on_display_change(update: int, _: Optional[gui.Gui], item: win32.gui.MenuIte
         size = win32.display.get_display_size()
         gui.add_menu_item(
             f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}',
-            gui.MenuItemType.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY], uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
-            on_click=CONFIG.__setitem__, menu_args=(gui.Property.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
+            gui.MenuItemType.RADIO, CONFIG[consts.CONFIG_DISPLAY] == DEFAULT_CONFIG[consts.CONFIG_DISPLAY],
+            uid=DEFAULT_CONFIG[consts.CONFIG_DISPLAY], on_click=CONFIG.__setitem__,
+            menu_args=(gui.MenuItemProperty.UID,), args=(consts.CONFIG_DISPLAY,), pre_menu_args=False)
         gui.add_mapped_submenu(item, {
             monitor: f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
                      f'\t{langs.to_str(DISPLAYS[monitor][1][0], STRINGS)} × {DISPLAYS[monitor][1][1]}'
             for index, monitor in enumerate(DISPLAYS, 1)}, CONFIG, consts.CONFIG_DISPLAY, on_click=check_blocked)
         enable = len(DISPLAYS) > 1
-        for submenu_item in item.get_submenu():
+        for submenu_item in submenu:
             submenu_item.enable(enable)
         if consts.FEATURE_UPDATE_DISPLAY:
             gui.add_separator()
-            gui.add_menu_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_display_change, args=(item,))
+            gui.add_menu_item(STRINGS.LABEL_UPDATE_DISPLAY, on_click=on_display_change, args=(
+                1, None, item)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_UPDATE))
     check_blocked()
     # TODO add lock screen
 
@@ -620,10 +622,10 @@ def create_menu():  # TODO slideshow (smaller timer)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
         item_recent.enable,), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
-    (timer.on_thread(_update_recent) if consts.FEATURE_THREADED_MENU else _update_recent)(item_recent)
+    _update_recent(item_recent)
     gui.add_separator()
     item_module = gui.add_submenu('')
-    (timer.on_thread(on_module) if consts.FEATURE_THREADED_MENU else on_module)(CONFIG[consts.CONFIG_MODULE], item_module)
+    on_module(CONFIG[consts.CONFIG_MODULE], item_module)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS, icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
         item_links = gui.add_submenu(STRINGS.MENU_LINKS)
@@ -639,20 +641,18 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.add_menu_item(STRINGS.LABEL_REMOVE_START_MENU, on_click=on_remove_start_shortcuts).set_icon(
                 RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
-            gui.add_menu_item(
-                STRINGS.LABEL_PIN, enable=consts.FEATURE_SYS_PIN, on_click=on_pin).set_icon(
-                RES_TEMPLATE.format(consts.RES_PIN))
-            gui.add_menu_item(
-                STRINGS.LABEL_UNPIN, enable=consts.FEATURE_SYS_PIN, on_click=on_unpin).set_icon(
-                RES_TEMPLATE.format(consts.RES_UNPIN))
+            gui.add_menu_item(STRINGS.LABEL_PIN, enable=consts.FEATURE_SYS_PIN,
+                              on_click=on_pin).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
+            gui.add_menu_item(STRINGS.LABEL_UNPIN, enable=consts.FEATURE_SYS_PIN,
+                              on_click=on_unpin).set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_separator()
             item_unpin_start = gui.add_menu_item(
                 STRINGS.LABEL_UNPIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_unpin_start)
             item_unpin_start.set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_menu_item(
                 STRINGS.LABEL_PIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_pin_start,
-                menu_args=(gui.Method.ENABLE,), args=(item_unpin_start.enable,), change_state=False, position=9).set_icon(
-                RES_TEMPLATE.format(consts.RES_PIN))
+                menu_args=(gui.MenuItemMethod.ENABLE,), args=(item_unpin_start.enable,),
+                change_state=False, position=9).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         if consts.FEATURE_CONSOLE_VIEW:
             gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(RES_TEMPLATE.format(consts.RES_CONSOLE))
         gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
@@ -671,7 +671,8 @@ def create_menu():  # TODO slideshow (smaller timer)
                                    consts.CONFIG_MAXIMIZED, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
-            gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save).set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
+            gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save).set_icon(
+                RES_TEMPLATE.format(consts.RES_SAVE_DIR))
         gui.add_mapped_submenu(STRINGS.MENU_TRANSITION, {transition: getattr(
             STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CONFIG,
                                consts.CONFIG_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))
@@ -694,7 +695,7 @@ def create_menu():  # TODO slideshow (smaller timer)
                                on_click=on_module, args=(item_module,), icon=RES_TEMPLATE.format(consts.RES_MODULE))
         item_display = gui.add_submenu(STRINGS.MENU_DISPLAY, icon=RES_TEMPLATE.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, on_display_change, (item_display,))
-        (timer.on_thread(on_display_change) if consts.FEATURE_THREADED_MENU else on_display_change)(0, None, item_display)
+        on_display_change(0, None, item_display)
         gui.add_separator()
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS, icon=RES_TEMPLATE.format(consts.RES_NOTIFICATION))):
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CONFIG, consts.CONFIG_NOTIFY)
@@ -712,10 +713,10 @@ def create_menu():  # TODO slideshow (smaller timer)
     gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_QUIT))
 
 
-def start():  # TODO dark theme
-    singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, on_crash=print, on_crash_args=('Crash',),
+def start():
+    singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, print, ('Crash',),
                    on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
-    if consts.ARG_DEBUG in sys.argv:
+    if consts.FEATURE_DEBUG_MODE:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
         log.init(os.path.basename(__file__), utils.re_join('libs', r'.*\.py'), utils.re_join(
             'modules', r'.*\.py'), utils.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)

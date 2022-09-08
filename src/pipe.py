@@ -227,7 +227,9 @@ def create_server(name: str):
 
 
 def main():
-    create_server(sys.argv[1])
+    if len(sys.argv) > 1:
+        create_server(sys.argv[1])
+    sys.exit()
 
 
 if __name__ == '__main__':

@@ -13,20 +13,19 @@ PIPE_TIMEOUT = 3
 FEATURE_SYS_PIN = False
 FEATURE_FIRST_RUN = True
 FEATURE_OPEN_WITH = True
+FEATURE_DEBUG_MODE = False
 FEATURE_EXCEPT_HOOK = True
 FEATURE_LENS_UPLOAD = False
 FEATURE_BLOCKED_NAME = True
 FEATURE_CONSOLE_VIEW = True
 FEATURE_TOOLTIP_ICON = False
 FEATURE_ROTATE_IMAGE = False
-FEATURE_THREADED_MENU = True
 FEATURE_UPDATE_DISPLAY = False
 
 AUTHOR = 'HellLord'
 NAME = 'Wallpyper'
 
 ARG_CHANGE = 'change'
-ARG_DEBUG = 'debug'
 ARG_WAIT = 'wait'
 
 CONFIG_ANIMATE = 'animate_icon'
@@ -95,5 +94,6 @@ RES_MAXIMIZED = f'{_ICONS}\\maximized.png'
 RES_SAVE_DIR = f'{_ICONS}\\save-dir.png'
 RES_ALIGNMENT = f'{_ICONS}\\alignment.png'
 RES_DISPLAY = f'{_ICONS}\\display.png'
+RES_DISPLAY_UPDATE = f'{_ICONS}\\display-update.png'
 RES_MODULE = f'{_ICONS}\\module.png'
 RES_ROTATE = f'{_ICONS}\\rotate.png'

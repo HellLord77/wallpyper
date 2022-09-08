@@ -29,7 +29,7 @@ Menu = win32.gui.Menu
 MenuItem = win32.gui.MenuItem
 
 
-class _Arg(type):
+class _MenuItemArgMeta(type):
     def __new__(mcs, *args, **kwargs):
         cls = super().__new__(mcs, *args, **kwargs)
         cls._values = set(getattr(cls, var) for var in dir(cls) if not var.startswith('_'))
@@ -39,16 +39,18 @@ class _Arg(type):
         return item in cls._values
 
 
-class Method(metaclass=_Arg):
+class MenuItemMethod(metaclass=_MenuItemArgMeta):
     ENABLE = win32.gui.MenuItem.enable.__name__
     SET_LABEL = win32.gui.MenuItem.set_text.__name__
+    SET_ICON = win32.gui.MenuItem.set_icon.__name__
 
 
-class Property(metaclass=_Arg):
+class MenuItemProperty(metaclass=_MenuItemArgMeta):
     CHECKED = win32.gui.MenuItem.is_checked.__name__
     ENABLED = win32.gui.MenuItem.is_enabled.__name__
     UID = win32.gui.MenuItem.get_uid.__name__
     LABEL = win32.gui.MenuItem.get_text.__name__
+    SUBMENU = win32.gui.MenuItem.get_submenu.__name__
 
 
 @contextlib.contextmanager
@@ -76,9 +78,9 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
             menu_item.enable(False)
         args_ = [] if pre_menu_args else list(args)
         for menu_arg in menu_args:
-            if menu_arg in Method:
+            if menu_arg in MenuItemMethod:
                 args_.append(getattr(menu_item, menu_arg))
-            elif menu_arg in Property:
+            elif menu_arg in MenuItemProperty:
                 args_.append(getattr(menu_item, menu_arg)())
         if pre_menu_args:
             args_.extend(args)
@@ -177,7 +179,7 @@ def add_mapped_menu_item(label: str, mapping: MutableMapping[str, bool],
             mapping[key_] = checked
             return on_click(checked, *args, **kwargs)
     return add_menu_item(label, win32.gui.MenuItemType.CHECK, mapping[key], enable, on_click=on_click_,
-                         menu_args=(Property.CHECKED,), args=(key,), position=position, pre_menu_args=False, menu=menu)
+                         menu_args=(MenuItemProperty.CHECKED,), args=(key,), position=position, pre_menu_args=False, menu=menu)
 
 
 def add_mapped_submenu(label_or_submenu_item: str | win32.gui.MenuItem, items: Mapping[str, str],
@@ -207,7 +209,7 @@ def add_mapped_submenu(label_or_submenu_item: str | win32.gui.MenuItem, items: M
     submenu = submenu_item.get_submenu()
     for index, (uid__, label_) in enumerate(items.items(), 1):
         add_menu_item(label_, win32.gui.MenuItemType.RADIO, mapping[key] == uid__, uid=uid__, on_click=on_click_,
-                      menu_args=(Property.UID,), args=(key,), pre_menu_args=False, menu=submenu)
+                      menu_args=(MenuItemProperty.UID,), args=(key,), pre_menu_args=False, menu=submenu)
     return submenu_item
 
 

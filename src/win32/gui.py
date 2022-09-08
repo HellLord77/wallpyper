@@ -6,7 +6,6 @@ import contextlib
 import functools
 import itertools
 import threading
-import types
 from typing import Any, Callable, Generator, Iterable, Iterator, Mapping, Optional, Sequence
 
 import libs.ctyped as ctyped
@@ -947,8 +946,3 @@ class MenuItem(_Control):
 
     def get_uid(self) -> int | str:
         return self._uid
-
-
-def enable_threaded_menu_item_icon_setter():
-    MenuItem.set_icon = types.MethodType(lambda set_icon, *args, **kwargs: threading.Thread(
-        target=set_icon, args=args, kwargs=kwargs), MenuItem.set_icon)

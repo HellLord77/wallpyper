@@ -152,7 +152,7 @@ GpCachedBitmap = _obj_p
 GpMatrix = _obj_p
 CGpEffect = _obj_p
 
-_enum = c_uint
+_enum = c_int
 DebugEventLevel = _enum
 EmfPlusRecordType = _enum
 
