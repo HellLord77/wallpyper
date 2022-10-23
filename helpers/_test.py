@@ -357,11 +357,7 @@ def _test_hook():
 
 
 def _test():
-    import libs.colornames as colornames
-    r1, g1, b1 = 69, 77, 125
-    r2, g2, b2 = 125, 77, 69
-    print(colornames.get_nearest_color_lab(colornames.rgb_to_hex(r2, g2, b2)))
-    print(colornames.get_nearest_color(colornames.rgb_to_hex(r2, g2, b2)))
+    pass
 
 
 if __name__ == '__main__':

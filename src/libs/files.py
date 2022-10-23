@@ -1,16 +1,19 @@
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import contextlib
 import filecmp
 import glob
+import hashlib
 import os
 import shutil
 import sys
 import time
 from typing import Any, Callable, Generator, IO, Iterable, Mapping, Optional
 
+import _hashlib
+
 # noinspection PyUnresolvedReferences
-CHUNK = shutil.COPY_BUFSIZE
+MAX_CHUNK = shutil.COPY_BUFSIZE
 POLL_INTERVAL = 0.1
 
 
@@ -36,6 +39,10 @@ class File:
 
     def __hash__(self):
         return hash(str(self))
+
+    def checksum(self, path: str) -> bool:
+        return os.path.isfile(path) and any(check_hash(path, getattr(
+            self, name, None), name) for name in hashlib.algorithms_available)
 
 
 def remove_ext(path: str) -> str:
@@ -63,7 +70,7 @@ def copyfileobj(src: IO, dst: IO, size: Optional[int] = None,
                 chunk_size: Optional[int] = None, query_callback: Optional[Callable[[int, ...], bool]] = None,
                 args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
     size = size or sys.maxsize
-    chunk_size = chunk_size or CHUNK
+    chunk_size = chunk_size or MAX_CHUNK
     args = () if args is None else args
     kwargs = {} if kwargs is None else kwargs
     ratio = 0
@@ -145,3 +152,29 @@ def remove(path: str, recursive: bool = False, timeout: Optional[float] = None) 
         tried = True
         time.sleep(POLL_INTERVAL)
     return not os.path.exists(path)
+
+
+def get_hash(path: str, name: str = 'md5', *, __hash=None) -> _hashlib.HASH:
+    if __hash is None:
+        __hash = hashlib.new(name)
+    if os.path.isdir(path):
+        for dir_ in iter_dir(path):
+            get_hash(dir_, name, __hash=__hash)
+    elif os.path.isfile(path):
+        with open(path, 'rb') as file:
+            while buffer := file.read(MAX_CHUNK):
+                __hash.update(buffer)
+    return __hash
+
+
+# noinspection PyShadowingBuiltins
+def check_hash(path: str, hash: Optional[bytes | str | _hashlib.HASH], name: str = 'md5') -> bool:
+    if isinstance(hash, (bytes | str | _hashlib.HASH)):
+        hash_ = get_hash(path, name)
+        if isinstance(hash, _hashlib.HASH):
+            hash = hash.digest()
+        if isinstance(hash, bytes):
+            return hash == hash_.digest()
+        else:
+            return hash.lower() == hash_.hexdigest()
+    return False

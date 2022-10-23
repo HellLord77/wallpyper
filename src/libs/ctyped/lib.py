@@ -5677,6 +5677,33 @@ class oleaut32(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
+class opengl32(_FuncMixin, metaclass=_WinDLL):
+    # GL
+    glEnd: _Callable[[],
+                     _type.c_void]
+    glEndList: _Callable[[],
+                         _type.c_void]
+    glFinish: _Callable[[],
+                        _type.c_void]
+    glFlush: _Callable[[],
+                       _type.c_void]
+    glInitNames: _Callable[[],
+                           _type.c_void]
+    glLoadIdentity: _Callable[[],
+                              _type.c_void]
+    glPopAttrib: _Callable[[],
+                           _type.c_void]
+    glPopClientAttrib: _Callable[[],
+                                 _type.c_void]
+    glPopMatrix: _Callable[[],
+                           _type.c_void]
+    glPopName: _Callable[[],
+                         _type.c_void]
+    glPushMatrix: _Callable[[],
+                            _type.c_void]
+
+
+# noinspection PyPep8Naming
 class psapi(_FuncMixin, metaclass=_WinDLL):
     # Psapi
     GetDeviceDriverBaseNameA: _Callable[[_type.LPVOID,  # ImageBase

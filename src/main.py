@@ -45,6 +45,7 @@ GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
 GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
 BING_URL = request.join('https://www.bing.com', 'images', 'search')
 
+win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 MAXIMIZED_ACTIONS = '', 'POSTPONE', 'CANCEL'
@@ -153,7 +154,7 @@ def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BAL
     return False
 
 
-def reapply_wallpaper(_: Optional[bool]):
+def reapply_wallpaper(_: Optional[bool] = None):
     if CONFIG[consts.CONFIG_REAPPLY] and RECENT:
         on_change(*TIMER.args, RECENT[0], False)
 
@@ -204,8 +205,8 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         print_progress()
         try:
-            if request.download(wallpaper.url, temp_path, wallpaper.size, wallpaper.md5, wallpaper.sha256,
-                                chunk_count=100, query_callback=query_callback, args=args, kwargs=kwargs):
+            if wallpaper.checksum(temp_path) or request.download(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
+                                                                 query_callback=query_callback, args=args, kwargs=kwargs):
                 return temp_path
         finally:
             PROGRESS.set(-1.0)
@@ -426,7 +427,7 @@ def on_flip(vertical_is_checked: Callable[[], bool], horizontal_is_checked: Call
         CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.HORIZONTAL]
     else:
         CONFIG[consts.CONFIG_FLIP] = win32.display.Flip[win32.display.Flip.NONE]
-    reapply_wallpaper(None)
+    reapply_wallpaper()
 
 
 def _update_display():

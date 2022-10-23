@@ -1,4 +1,4 @@
-__version__ = '0.0.18'
+__version__ = '0.0.19'
 
 import ast
 import binascii
@@ -593,45 +593,49 @@ class OnceCallable(Callable):
             self._ran.clear()
 
 
-def queue_run(func: Callable) -> Callable:
-    lock = threading.Lock()
+class QueueCallable(Callable):
+    def __init__(self, func: Callable):
+        self.__func__ = func
+        self._lock = threading.Lock()
+        functools.update_wrapper(self, func)
 
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        with lock:
-            return func(*args, **kwargs)
+    def __call__(self, *args, **kwargs) -> Any:
+        with self._lock:
+            return self.__func__(*args, **kwargs)
 
-    wrapper.is_running = lock.locked
-    return wrapper
+    def is_running(self) -> bool:
+        return self._lock.locked()
 
 
-def _queue_worker(func: Callable, works: queue.Queue[tuple[Iterable, Mapping[str, Any]]],
-                  running: threading.Event, wrapper: Callable) -> NoReturn:
-    while True:
-        work = works.get()
-        running.set()
+class QueueExCallable(Callable):
+    def __init__(self, func: Callable):
+        self.__func__ = func
+        self._works = queue.Queue()
+        self.res = None
+        functools.update_wrapper(self, func)
+        threading.Thread(target=self._worker,
+                         name=f'{__name__}-{__version__}-{type(self).__name__}({func.__name__})', daemon=True).start()
+
+    def __call__(self, *args, **kwargs):
+        self._works.put((args, kwargs))
+
+    def _worker(self) -> NoReturn:
+        while True:
+            params = self._works.get()
+            try:
+                self.res = self.__func__(*params[0], **params[1])
+            finally:
+                if self._works.unfinished_tasks:
+                    self._works.task_done()
+
+    def is_running(self) -> bool:
+        return bool(self._works.unfinished_tasks)
+
+    def reset(self) -> bool:
         try:
-            wrapper.res = func(*work[0], **work[1])
+            return not self._works.unfinished_tasks
         finally:
-            running.clear()
-            if works.unfinished_tasks:
-                works.task_done()
-
-
-def queue_run_ex(func: Callable) -> Callable:
-    running = threading.Event()
-    works = queue.Queue()
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        works.put((args, kwargs))
-
-    threading.Thread(target=_queue_worker, name=f'{__name__}-{__version__}-{queue_run_ex.__name__}({func.__name__})',
-                     args=(func, works, running, wrapper), daemon=True).start()
-    wrapper.is_running = lambda: running.is_set() or bool(works.unfinished_tasks)
-    wrapper.reset = lambda: clear_queue(works)
-    wrapper.res = None
-    return wrapper
+            clear_queue(self._works)
 
 
 class SingletonCallable(Callable):

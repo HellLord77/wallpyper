@@ -2,7 +2,6 @@ __version__ = '0.0.7'
 
 import builtins
 import contextlib
-import hashlib
 import http.client
 import io
 import json
@@ -141,16 +140,7 @@ def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[by
             return lazy_response
 
 
-def _get_hash(path: str, type_: str = 'md5') -> bytes:
-    hash_ = hashlib.new(type_)
-    with builtins.open(path, 'rb') as file:
-        while buffer := file.read(MAX_CHUNK):
-            hash_.update(buffer)
-    return hash_.digest()
-
-
-def download(url: str, path: str, size: Optional[int] = None, md5: Optional[bytes] = None,
-             sha256: Optional[bytes] = None, chunk_size: Optional[int] = None,
+def download(url: str, path: str, size: Optional[int] = None, chunk_size: Optional[int] = None,
              chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if args is None:
@@ -159,8 +149,7 @@ def download(url: str, path: str, size: Optional[int] = None, md5: Optional[byte
         kwargs = {}
     response = open(url)
     if os.path.exists(path):
-        if os.path.isfile(path) and ((size and size == os.path.getsize(path)) or (
-                md5 and md5 == _get_hash(path)) or (sha256 and _get_hash(path, 'sha256'))):
+        if os.path.isfile(path) and size and size == os.path.getsize(path):
             if query_callback:
                 query_callback(1.0, *args, **kwargs)
             return True

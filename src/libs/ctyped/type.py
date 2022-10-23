@@ -125,6 +125,7 @@ byte = c_uchar
 cs_byte = byte
 
 _obj_p = c_void_p
+# GdiPlus
 GpGraphics = _obj_p
 GpBrush = _obj_p
 GpTexture = GpBrush
@@ -151,6 +152,22 @@ GpPrivateFontCollection = GpFontCollection
 GpCachedBitmap = _obj_p
 GpMatrix = _obj_p
 CGpEffect = _obj_p
+# GL
+GLenum = c_uint
+GLboolean = c_uchar
+GLbitfield = c_uint
+GLbyte = c_char
+GLshort = c_short
+GLint = c_int
+GLsizei = c_int
+GLubyte = c_uchar
+GLushort = c_ushort
+GLuint = c_uint
+GLfloat = c_float
+GLclampf = c_float
+GLdouble = c_double
+GLclampd = c_double
+GLvoid = c_void
 
 _enum = c_int
 DebugEventLevel = _enum
