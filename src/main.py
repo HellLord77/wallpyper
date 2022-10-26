@@ -4,7 +4,6 @@ import contextlib
 import copy
 import functools
 import itertools
-import math
 import multiprocessing
 import os.path
 import sys
@@ -58,7 +57,6 @@ RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECE
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}', True)
 
 DEFAULT_CONFIG = {
-    consts.CONFIG_LAST: math.inf,
     consts.CONFIG_RECENT: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_DISPLAY: ALL_DISPLAY,
     consts.CONFIG_FIRST: consts.FEATURE_FIRST_RUN,
@@ -71,6 +69,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_START: False,
     consts.CONFIG_SAVE: False,
     consts.CONFIG_BLOCKED: True,
+    consts.CONFIG_CHANGES: False,
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MAXIMIZED: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_COLOR: win32.ColorMode.AUTO,
@@ -97,8 +96,6 @@ def fix_config():
     _fix_config(consts.CONFIG_FLIP, win32.display.Flip)
     _fix_config(consts.CONFIG_TRANSITION, win32.display.Transition)
     _fix_config(consts.CONFIG_DISPLAY, DISPLAYS)
-    if CONFIG[consts.CONFIG_LAST] > time.time():
-        CONFIG[consts.CONFIG_LAST] = DEFAULT_CONFIG[consts.CONFIG_LAST]
     _fix_config(consts.CONFIG_INTERVAL, INTERVALS)
     _fix_config(consts.CONFIG_MAXIMIZED, MAXIMIZED_ACTIONS)
     _fix_config(consts.CONFIG_COLOR, (win32.ColorMode[mode] for mode in win32.ColorMode[1:]))
@@ -305,8 +302,6 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
         item_change_enable(False)
         item_recent.enable(False)
         with gui.animate(STRINGS.STATUS_CHANGE):
-            if auto_change:
-                CONFIG[consts.CONFIG_LAST] = time.time()
             if (changed := change_wallpaper(wallpaper, query_callback)) and CONFIG[consts.CONFIG_AUTOSAVE]:
                 on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         _update_recent(item_recent)
@@ -591,8 +586,8 @@ def on_color_mode(mode: str):
 
 def apply_auto_start(auto_start: bool) -> bool:
     return win32.register_autorun(
-        consts.NAME, *pyinstall.get_launch_args(), *((consts.ARG_CHANGE,) if CONFIG[consts.CONFIG_INTERVAL] else ()),
-        show=pyinstall.FROZEN, uid=UUID) if auto_start else win32.unregister_autorun(consts.NAME, UUID)
+        consts.NAME, *pyinstall.get_launch_args(), show=pyinstall.FROZEN,
+        uid=UUID) if auto_start else win32.unregister_autorun(consts.NAME, UUID)
 
 
 def apply_save_config(save: bool) -> bool:
@@ -664,6 +659,8 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_AUTO, icon=RES_TEMPLATE.format(consts.RES_AUTO))):
+            gui.add_mapped_menu_item(STRINGS.LABEL_CHANGE_START, CONFIG, consts.CONFIG_CHANGES)
+            gui.add_separator()
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
                 STRINGS, f'TIME_{interval}') for interval in INTERVALS}, CONFIG, consts.CONFIG_INTERVAL,
                                    on_click=on_auto_change, icon=RES_TEMPLATE.format(consts.RES_INTERVAL))
@@ -733,11 +730,8 @@ def start():
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE])
     apply_auto_start(CONFIG[consts.CONFIG_START])
     apply_save_config(CONFIG[consts.CONFIG_SAVE])
-    change_after = CONFIG[consts.CONFIG_INTERVAL] + CONFIG[consts.CONFIG_LAST] - time.time()
-    if consts.ARG_CHANGE in sys.argv or (CONFIG[consts.CONFIG_INTERVAL] and change_after <= 0):
+    if CONFIG[consts.CONFIG_CHANGES]:
         on_change(*TIMER.args)
-    else:
-        on_auto_change(CONFIG[consts.CONFIG_INTERVAL], None if change_after <= 0 else change_after)
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME, on_change, (*TIMER.args, None, False))
 
