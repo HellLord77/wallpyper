@@ -873,11 +873,55 @@ class dwmapi(_FuncMixin, metaclass=_WinDLL):
 # noinspection PyPep8Naming
 class gdi32(_FuncMixin, metaclass=_WinDLL):
     # wingdi
-    CombineRgn: _Callable[[_type.HRGN,  # hrgnDst
-                           _type.HRGN,  # hrgnSrc1
-                           _type.HRGN,  # hrgnSrc2
+    AddFontResourceA: _Callable[[_type.LPCSTR],
+                                _type.c_int]
+    AddFontResourceW: _Callable[[_type.LPCWSTR],
+                                _type.c_int]
+    ArcTo: _Callable[[_type.HDC,  # hdc
+                      _type.c_int,  # x1
+                      _type.c_int,  # y1
+                      _type.c_int,  # x2
+                      _type.c_int,  # y2
+                      _type.c_int,  # x3
+                      _type.c_int,  # y3
+                      _type.c_int,  # x4
+                      _type.c_int],  # y4
+                     _type.BOOL]
+    BitBlt: _Callable[[_type.HDC,  # hdc
+                       _type.c_int,  # x
+                       _type.c_int,  # y
+                       _type.c_int,  # cx
+                       _type.c_int,  # cy
+                       _type.HDC,  # hdcSrc
+                       _type.c_int,  # x1
+                       _type.c_int,  # y1
+                       _type.DWORD],  # rop
+                      _type.BOOL]
+    CancelDC: _Callable[[_type.HDC],  # hdc
+                        _type.BOOL]
+    Chord: _Callable[[_type.HDC,  # hdc
+                      _type.c_int,  # x1
+                      _type.c_int,  # y1
+                      _type.c_int,  # x2
+                      _type.c_int,  # y2
+                      _type.c_int,  # x3
+                      _type.c_int,  # y3
+                      _type.c_int,  # x4
+                      _type.c_int],  # y4
+                     _type.BOOL]
+    CloseMetaFile: _Callable[[_type.HDC],  # hdc
+                             _type.HMETAFILE]
+    CombineRgn: _Callable[[_Optional[_type.HRGN],  # hrgnDst
+                           _Optional[_type.HRGN],  # hrgnSrc1
+                           _Optional[_type.HRGN],  # hrgnSrc2
                            _type.c_int],  # iMode
                           _type.c_int]
+    CopyMetaFileA: _Callable[[_type.HMETAFILE,
+                              _Optional[_type.LPCSTR]],
+                             _type.HMETAFILE]
+    CopyMetaFileW: _Callable[[_type.HMETAFILE,
+                              _Optional[_type.LPCWSTR]],
+                             _type.HMETAFILE]
     CreateRectRgn: _Callable[[_type.c_int,  # x1
                               _type.c_int,  # y1
                               _type.c_int,  # x2
@@ -939,33 +983,25 @@ class gdi32(_FuncMixin, metaclass=_WinDLL):
                           _type.c_int,  # right
                           _type.c_int],  # bottom
                          _type.BOOL]
+    TransparentBlt: _Callable[[_type.HDC,  # hdcDest
+                               _type.c_int,  # xoriginDest
+                               _type.c_int,  # yoriginDest
+                               _type.c_int,  # wDest
+                               _type.c_int,  # hDest
+                               _type.HDC,  # hdcSrc
+                               _type.c_int,  # xoriginSrc
+                               _type.c_int,  # yoriginSrc
+                               _type.c_int,  # wSrc
+                               _type.c_int,  # hSrc
+                               _type.UINT],  # crTransparent
+                              _type.BOOL]
     # TODO
     AbortDoc: _Callable[[_type.HDC],
                         _type.c_int]
     AbortPath: _Callable[[_type.HDC],
                          _type.BOOL]
-    ArcTo: _Callable[[_type.HDC,
-                      _type.c_int,
-                      _type.c_int,
-                      _type.c_int,
-                      _type.c_int,
-                      _type.c_int,
-                      _type.c_int,
-                      _type.c_int,
-                      _type.c_int],
-                     _type.BOOL]
     BeginPath: _Callable[[_type.HDC],
                          _type.BOOL]
-    BitBlt: _Callable[[_type.HDC,
-                       _type.c_int,
-                       _type.c_int,
-                       _type.c_int,
-                       _type.c_int,
-                       _type.HDC,
-                       _type.c_int,
-                       _type.c_int,
-                       _type.DWORD],
-                      _type.BOOL]
     CloseFigure: _Callable[[_type.HDC],
                            _type.BOOL]
     CreateBitmap: _Callable[[_type.c_int,
@@ -1175,18 +1211,6 @@ class gdi32(_FuncMixin, metaclass=_WinDLL):
                          _type.LPCWSTR,
                          _type.c_int],
                         _type.BOOL]
-    TransparentBlt: _Callable[[_type.HDC,
-                               _type.c_int,
-                               _type.c_int,
-                               _type.c_int,
-                               _type.c_int,
-                               _type.HDC,
-                               _type.c_int,
-                               _type.c_int,
-                               _type.c_int,
-                               _type.c_int,
-                               _type.UINT],
-                              _type.BOOL]
 
 
 class GdiPlus(_FuncMixin, metaclass=_WinDLL):
@@ -5505,17 +5529,17 @@ class mscoree(_FuncMixin, metaclass=_WinDLL):
 # noinspection PyPep8Naming
 class msimg32(_FuncMixin, metaclass=_WinDLL):
     # wingdi
-    AlphaBlend: _Callable[[_type.HDC,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.HDC,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _struct.BLENDFUNCTION],
+    AlphaBlend: _Callable[[_type.HDC,  # hdcDest
+                           _type.c_int,  # xoriginDest
+                           _type.c_int,  # yoriginDest
+                           _type.c_int,  # wDest
+                           _type.c_int,  # hDest
+                           _type.HDC,  # hdcSrc
+                           _type.c_int,  # xoriginSrc
+                           _type.c_int,  # yoriginSrc
+                           _type.c_int,  # wSrc
+                           _type.c_int,  # hSrc
+                           _struct.BLENDFUNCTION],  # ftn
                           _type.BOOL]
 
 
@@ -5572,9 +5596,8 @@ class ntdll(_FuncMixin, metaclass=_WinDLL):
                                             _type.BOOLEAN],  # AllocateDestinationString
                                            _type.NTSTATUS]
 
-    # noinspection PyPep8Naming
 
-
+# noinspection PyPep8Naming
 class ole32(_FuncMixin, metaclass=_WinDLL):
     # combaseapi
     CLSIDFromString: _Callable[[_type.LPCOLESTR,

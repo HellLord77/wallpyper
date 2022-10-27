@@ -170,59 +170,63 @@ class Transition(metaclass=utils.IntEnumMeta):
         yield dst_w_, dst_h_, dst_w - dst_w_, dst_h - dst_h_, 0, 0
 
     @staticmethod
-    def _vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
-        dst_w_ = int(half_dst_w * (1 - factor))
+    def _vertical(factor: float, dst_w: int, dst_h: int):
+        dst_w_ = int(dst_w / 2 * (1 - factor))
         yield dst_w_, 0, dst_w - dst_w_ * 2, dst_h, dst_w_, 0
 
     @staticmethod
-    def _reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
-        dst_w_ = int(half_dst_w * factor)
+    def _reverse_vertical(factor: float, dst_w: int, dst_h: int):
+        dst_w_ = int(dst_w / 2 * factor)
         yield 0, 0, dst_w_, dst_h, 0, 0
         yield dst_w - dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
 
     @staticmethod
-    def _slide_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
+    def _slide_vertical(factor: float, dst_w: int, dst_h: int):
+        half_dst_w = dst_w / 2
         dst_w_ = int(half_dst_w * factor)
         half_dst_w_ = int(half_dst_w)
         yield half_dst_w_ - dst_w_, 0, dst_w_, dst_h, 0, 0
         yield half_dst_w_, 0, dst_w_, dst_h, dst_w - dst_w_, 0
 
     @staticmethod
-    def _slide_reverse_vertical(factor: float, dst_w: int, dst_h: int, half_dst_w: float):
+    def _slide_reverse_vertical(factor: float, dst_w: int, dst_h: int):
+        half_dst_w = dst_w / 2
         dst_w_ = int(half_dst_w * factor)
         half_dst_w_ = int(half_dst_w)
         yield 0, 0, dst_w_, dst_h, half_dst_w_ - dst_w_, 0
         yield dst_w - dst_w_, 0, dst_w_, dst_h, half_dst_w_, 0
 
     @staticmethod
-    def _horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
-        dst_h_ = int(half_dst_h * (1 - factor))
+    def _horizontal(factor: float, dst_w: int, dst_h: int):
+        dst_h_ = int(dst_h / 2 * (1 - factor))
         yield 0, dst_h_, dst_w, dst_h - dst_h_ * 2, 0, dst_h_
 
     @staticmethod
-    def _reverse_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
-        dst_h_ = int(half_dst_h * factor)
+    def _reverse_horizontal(factor: float, dst_w: int, dst_h: int):
+        dst_h_ = int(dst_h / 2 * factor)
         yield 0, 0, dst_w, dst_h_, 0, 0
         yield 0, dst_h - dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
 
     @staticmethod
-    def _slide_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+    def _slide_horizontal(factor: float, dst_w: int, dst_h: int):
+        half_dst_h = dst_h / 2
         dst_h_ = int(half_dst_h * factor)
         half_dst_h_ = int(half_dst_h)
         yield 0, half_dst_h_ - dst_h_, dst_w, dst_h_, 0, 0
         yield 0, half_dst_h_, dst_w, dst_h_, 0, dst_h - dst_h_
 
     @staticmethod
-    def _slide_reverse_horizontal(factor: float, dst_w: int, dst_h: int, half_dst_h: float):
+    def _slide_reverse_horizontal(factor: float, dst_w: int, dst_h: int):
+        half_dst_h = dst_h / 2
         dst_h_ = int(half_dst_h * factor)
         half_dst_h_ = int(half_dst_h)
         yield 0, 0, dst_w, dst_h_, 0, half_dst_h_ - dst_h_
         yield 0, dst_h - dst_h_, dst_w, dst_h_, 0, half_dst_h_
 
     @staticmethod
-    def _explode(factor: float, dst_w: int, dst_h: int, half_dst_w: float, half_dst_h: float):
-        dst_w_ = int(half_dst_w * (1 - factor))
-        dst_h_ = int(half_dst_h * (1 - factor))
+    def _explode(factor: float, dst_w: int, dst_h: int):
+        dst_w_ = int(dst_w / 2 * (1 - factor))
+        dst_h_ = int(dst_h / 2 * (1 - factor))
         yield dst_w_, dst_h_, dst_w - dst_w_ * 2, dst_h - dst_h_ * 2, dst_w_, dst_h_
 
     @staticmethod
@@ -585,12 +589,6 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                 ctyped.lib.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
                 args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
                              dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
-            if transition in (Transition.VERTICAL, Transition.REVERSE_VERTICAL,
-                              Transition.EXPLODE, Transition.SLIDE_VERTICAL, Transition.SLIDE_REVERSE_VERTICAL):
-                args.append(dst_w / 2)
-            if transition in (Transition.HORIZONTAL, Transition.REVERSE_HORIZONTAL,
-                              Transition.EXPLODE, Transition.SLIDE_HORIZONTAL, Transition.SLIDE_REVERSE_HORIZONTAL):
-                args.append(dst_h / 2)
             start = time.time()
             while duration > (passed := time.time() - start):
                 for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](

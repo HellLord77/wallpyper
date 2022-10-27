@@ -171,11 +171,8 @@ class IntEnumMeta(type):
         else:
             return cls._vars[var_or_val]
 
-    def get_random(cls, *ignores: int) -> int:
-        vals = tuple(cls._vars.values())
-        while (val := random.choice(vals)) in ignores:
-            pass
-        return val
+    def get_random(cls, *excludes: int) -> int:
+        return random.choice(tuple(val for val in cls._vars.values() if val not in excludes))
 
 
 class PointedList:
