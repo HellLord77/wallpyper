@@ -28,6 +28,26 @@ def FAILED(hr: int) -> bool:
 
 
 # noinspection PyPep8Naming
+def NT_SUCCESS(Status: int) -> bool:
+    return Status >= 0
+
+
+# noinspection PyPep8Naming
+def NT_INFORMATION(Status: int) -> bool:
+    return (Status >> 30) == 1
+
+
+# noinspection PyPep8Naming
+def NT_WARNING(Status: int) -> bool:
+    return (Status >> 30) == 2
+
+
+# noinspection PyPep8Naming
+def NT_ERROR(Status: int) -> bool:
+    return (Status >> 30) == 3
+
+
+# noinspection PyPep8Naming
 def HRESULT_FROM_WIN32(x: int) -> int:
     return _type.HRESULT(x if x < 0 else (x & 0x0000FFFF) | _const.FACILITY_WIN32 << 16 | 0x80000000).value
 

@@ -19,6 +19,7 @@ from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 import consts
 import gui
 import langs
+import libs.easings as easings
 import libs.files as files
 import libs.log as log
 import libs.pyinstall as pyinstall
@@ -56,6 +57,24 @@ PROGRESS = utils.MutableFloat()
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}', True)
 
+
+class EaseSpeeds(metaclass=utils.IntEnumMeta):
+    NONE = 0
+    IN = 1
+    OUT = 2
+    BOTH = 3
+
+
+class EaseStyles(metaclass=utils.IntEnumMeta):
+    SINE = 0
+    QUAD = 1
+    CUBIC = 2
+    QUART = 3
+    QUINT = 4
+    EXPO = 5
+    CIRC = 6
+
+
 DEFAULT_CONFIG = {
     consts.CONFIG_RECENT: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_DISPLAY: ALL_DISPLAY,
@@ -77,6 +96,8 @@ DEFAULT_CONFIG = {
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
     consts.CONFIG_ROTATE: win32.display.Rotate[win32.display.Rotate.NONE],
+    consts.CONFIG_EASE: EaseStyles[EaseStyles.CUBIC],
+    consts.CONFIG_EASES: EaseSpeeds[EaseSpeeds.BOTH],
     consts.CONFIG_FLIP: win32.display.Flip[win32.display.Flip.NONE],
     consts.CONFIG_TRANSITION: win32.display.Transition[win32.display.Transition.FADE]}
 CONFIG = {}
@@ -92,6 +113,8 @@ def _fix_config(key: str, values: Iterable):
 
 def fix_config():
     _fix_config(consts.CONFIG_STYLE, win32.display.Style)
+    _fix_config(consts.CONFIG_EASE, EaseStyles)
+    _fix_config(consts.CONFIG_EASES, EaseSpeeds)
     _fix_config(consts.CONFIG_ROTATE, win32.display.Rotate)
     _fix_config(consts.CONFIG_FLIP, win32.display.Flip)
     _fix_config(consts.CONFIG_TRANSITION, win32.display.Transition)
@@ -241,7 +264,10 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
                 path, display, getattr(win32.display.Style, CONFIG[consts.CONFIG_STYLE]), rotate=getattr(
                     win32.display.Rotate, CONFIG[consts.CONFIG_ROTATE]), flip=getattr(
                     win32.display.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
-                    win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION])) for display in get_displays()))
+                    win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION]), easing=easings.get(
+                    getattr(easings.Ease, CONFIG[consts.CONFIG_EASE]), EaseSpeeds[CONFIG[consts.CONFIG_EASES]] in (
+                        EaseSpeeds.IN, EaseSpeeds.BOTH), CONFIG[consts.CONFIG_EASES] in (
+                                                                           EaseSpeeds.OUT, EaseSpeeds.BOTH))) for display in get_displays()))
     return changed
 
 
@@ -409,6 +435,21 @@ def on_modify_save() -> bool:
     else:
         notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)
+
+
+def on_easing_direction(in_is_checked: Callable[[], bool], out_is_checked: Callable[[], bool], enable_ease: Callable[[bool], bool]):
+    in_checked = in_is_checked()
+    out_checked = out_is_checked()
+    enable_ease(in_checked or out_checked)
+    if in_checked and out_checked:
+        CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.BOTH]
+    elif in_checked:
+        CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.IN]
+    elif out_checked:
+        CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.OUT]
+    else:
+        CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.NONE]
+    reapply_wallpaper()
 
 
 def on_flip(vertical_is_checked: Callable[[], bool], horizontal_is_checked: Callable[[], bool]):
@@ -671,9 +712,20 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
             gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save).set_icon(
                 RES_TEMPLATE.format(consts.RES_SAVE_DIR))
-        gui.add_mapped_submenu(STRINGS.MENU_TRANSITION, {transition: getattr(
+        gui.add_mapped_submenu(STRINGS.MENU_ANIMATION, {transition: getattr(
             STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CONFIG,
                                consts.CONFIG_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))
+        item_ease_timing = gui.add_submenu(STRINGS.MENU_EASE_TIMING, icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))
+        with gui.set_main_menu(item_ease_timing):
+            item_in = gui.add_menu_item(STRINGS.EASE_DIRECTION_IN, gui.MenuItemType.CHECK, getattr(
+                EaseSpeeds, CONFIG[consts.CONFIG_EASES]) in (EaseSpeeds.IN, EaseSpeeds.BOTH))
+            item_out = gui.add_menu_item(STRINGS.EASE_DIRECTION_OUT, gui.MenuItemType.CHECK, getattr(
+                EaseSpeeds, CONFIG[consts.CONFIG_EASES]) in (EaseSpeeds.OUT, EaseSpeeds.BOTH))
+        item_ease = gui.add_mapped_submenu(STRINGS.MENU_EASE, {ease: getattr(
+            STRINGS, f'EASE_{ease}') for ease in EaseStyles}, CONFIG, consts.CONFIG_EASE, bool(
+            EaseSpeeds[CONFIG[consts.CONFIG_EASES]]), on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE))
+        gui.set_on_click(item_in, on_easing_direction, args=(item_in.is_checked, item_out.is_checked, item_ease.enable))
+        gui.set_on_click(item_out, on_easing_direction, args=(item_in.is_checked, item_out.is_checked, item_ease.enable))
         if consts.FEATURE_ROTATE_IMAGE:
             gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
                 STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate}, CONFIG, consts.CONFIG_ROTATE,

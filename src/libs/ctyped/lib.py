@@ -5521,6 +5521,13 @@ class msimg32(_FuncMixin, metaclass=_WinDLL):
 
 # noinspection PyPep8Naming
 class ntdll(_FuncMixin, metaclass=_WinDLL):
+    NtQueryWnfStateData: _Callable[[_Pointer[_struct.WNF_STATE_NAME],  # StateName
+                                    _Optional[_Pointer[_struct.WNF_TYPE_ID]],  # TypeId
+                                    _Optional[_Pointer[_type.VOID]],  # ExplicitScope
+                                    _Pointer[_type.WNF_CHANGE_STAMP],  # ChangeStamp
+                                    _type.PVOID,  # Buffer
+                                    _Pointer[_type.ULONG]],  # BufferSize
+                                   _type.NTSTATUS]
     RtlAreLongPathsEnabled: _Callable[[],
                                       _type.c_ubyte]
     # winnt
@@ -5565,8 +5572,9 @@ class ntdll(_FuncMixin, metaclass=_WinDLL):
                                             _type.BOOLEAN],  # AllocateDestinationString
                                            _type.NTSTATUS]
 
+    # noinspection PyPep8Naming
 
-# noinspection PyPep8Naming
+
 class ole32(_FuncMixin, metaclass=_WinDLL):
     # combaseapi
     CLSIDFromString: _Callable[[_type.LPCOLESTR,

@@ -9,6 +9,7 @@ import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
 import libs.ctyped as ctyped
+import libs.utils as utils
 from . import _utils, clipboard, console, display, gui
 from ._utils import sanitize_filename
 
@@ -28,11 +29,19 @@ START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
 WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 
-class ColorMode(metaclass=_utils.IntEnumMeta):
+class ColorMode(metaclass=utils.IntEnumMeta):
     DEFAULT = ctyped.enum.PreferredAppMode.Default.value
     AUTO = ctyped.enum.PreferredAppMode.AllowDark.value
     LIGHT = ctyped.enum.PreferredAppMode.ForceLight.value
     DARK = ctyped.enum.PreferredAppMode.ForceDark.value
+
+
+class FocusAssistState(metaclass=utils.IntEnumMeta):
+    NOT_SUPPORTED = -2
+    FAILED = -1
+    OFF = 0
+    PRIORITY_ONLY = 1
+    ALARMS_ONLY = 2
 
 
 def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
@@ -40,6 +49,16 @@ def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
     ctyped.lib.uxtheme.SetPreferredAppMode(mode)
     if flush:
         ctyped.lib.uxtheme.FlushMenuThemes()
+
+
+def get_focus_assist_state() -> int:
+    buffer = ctyped.type.DWORD()
+    if ctyped.macro.NT_SUCCESS(ctyped.lib.ntdll.NtQueryWnfStateData(ctyped.byref(ctyped.struct.WNF_STATE_NAME(
+            ctyped.array(0xA3BF1C75, 0xD83063E, type=ctyped.type.ULONG))), None, None, ctyped.byref(
+        ctyped.type.WNF_CHANGE_STAMP()), ctyped.byref(buffer), ctyped.byref(ctyped.type.ULONG(ctyped.sizeof(buffer))))):
+        return buffer.value
+    else:
+        return FocusAssistState.FAILED
 
 
 def get_short_path(path: str) -> str:

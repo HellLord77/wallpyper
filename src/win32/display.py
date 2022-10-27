@@ -12,6 +12,7 @@ import winreg
 from typing import Any, Callable, Iterable, Mapping, Optional
 
 import libs.ctyped as ctyped
+import libs.utils as utils
 from . import _utils, _gdiplus
 
 _DELETE_AFTER = 0.5
@@ -21,7 +22,7 @@ ANIMATION_POLL_INTERVAL = 0.01
 TEMP_WALLPAPER_DIR = tempfile.gettempdir()
 
 
-class Style(metaclass=_utils.IntEnumMeta):
+class Style(metaclass=utils.IntEnumMeta):
     FILL = ctyped.const.WPSTYLE_CROPTOFIT
     FIT = ctyped.const.WPSTYLE_KEEPASPECT
     STRETCH = ctyped.const.WPSTYLE_STRETCH
@@ -30,21 +31,21 @@ class Style(metaclass=_utils.IntEnumMeta):
     SPAN = ctyped.const.WPSTYLE_SPAN
 
 
-class Rotate(metaclass=_utils.IntEnumMeta):
+class Rotate(metaclass=utils.IntEnumMeta):
     NONE = 0
     RIGHT = 1
     LEFT = 2
     FLIP = 3
 
 
-class Flip(metaclass=_utils.IntEnumMeta):
+class Flip(metaclass=utils.IntEnumMeta):
     NONE = 0
     HORIZONTAL = 1
     VERTICAL = 2
     BOTH = 3
 
 
-class Transition(metaclass=_utils.IntEnumMeta):
+class Transition(metaclass=utils.IntEnumMeta):
     DISABLED = -2
     RANDOM = -1
     FADE = 0
@@ -571,7 +572,7 @@ def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: 
 
 def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
-                     color: ctyped.type.ARGB = 0, transition: int = Transition.DISABLED, duration: float = 0):
+                     color: ctyped.type.ARGB, transition: int, duration: float, easing: Callable[[float], float]):
     if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = ctyped.handle.HDC.from_hwnd(hwnd)
         src = _save_temp_bmp(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
@@ -593,7 +594,7 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
             start = time.time()
             while duration > (passed := time.time() - start):
                 for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](
-                        passed / duration, dst_w, dst_h, *args):
+                        easing(passed / duration), dst_w, dst_h, *args):
                     ctyped.lib.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_ow, dst_oh,
                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
                 time.sleep(ANIMATION_POLL_INTERVAL)
@@ -645,8 +646,9 @@ def set_wallpaper(path: str, *monitors: str, fade: bool = True):
 _temp_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL, r: int = 0, g: int = 0, b: int = 0,
-                     rotate: int = Rotate.NONE, flip: int = Flip.NONE, transition: int = Transition.FADE, duration: int = 1) -> bool:
+def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
+                     r: int = 0, g: int = 0, b: int = 0, rotate: int = Rotate.NONE, flip: int = Flip.NONE,
+                     transition: int = Transition.FADE, duration: int = 1, easing: Callable[[float], float] = lambda x: x) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
         width = image.get_width()
         height = image.get_height()
@@ -674,7 +676,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
         with _temp_lock(temp_path):
             # noinspection PyTypeChecker
             _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
-                             temp_path, _gdiplus.Color.from_rgba(r, g, b), transition, duration)
+                             temp_path, _gdiplus.Color.from_rgba(r, g, b), transition, duration, easing)
             try:
                 return _set_wallpaper_idesktopwallpaper(
                     temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
@@ -683,8 +685,8 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
     return False
 
 
-Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'rotate', 'flip', 'transition', 'duration'),
-                                   defaults=(Style.FILL, 0, 0, 0, Rotate.NONE, Flip.NONE, Transition.FADE, 1))
+Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'rotate', 'flip', 'transition', 'duration', 'easing'),
+                                   defaults=(Style.FILL, 0, 0, 0, Rotate.NONE, Flip.NONE, Transition.FADE, 1, lambda x: x))
 
 
 def set_wallpapers_ex(*wallpapers: Wallpaper):

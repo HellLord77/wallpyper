@@ -357,7 +357,9 @@ def _test_hook():
 
 
 def _test():
-    pass
+    import libs.easings as easings
+    print(vars(easings.Ease))
+    print(easings.get(easings.Ease.BACK))
 
 
 if __name__ == '__main__':

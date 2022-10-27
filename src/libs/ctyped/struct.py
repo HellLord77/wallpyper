@@ -776,6 +776,32 @@ class Rational:
     Denominator: _type.UINT32 = None
 
 
+# noinspection PyPep8Naming
+@_struct
+class WNF_TYPE_ID:
+    TypeId: GUID = None
+
+
+# noinspection PyPep8Naming
+@_struct
+class WNF_STATE_NAME:
+    Data: _type.ULONG * 2 = None
+
+
+@_struct
+class STRING32:
+    Length: _type.USHORT = None
+    MaximumLength: _type.USHORT = None
+    Buffer: _type.ULONG = None
+
+
+@_struct
+class STRING64:
+    Length: _type.USHORT = None
+    MaximumLength: _type.USHORT = None
+    Buffer: _type.ULONGLONG = None
+
+
 @_struct
 class OPENASINFO:
     pcszFile: _type.LPCWSTR = None

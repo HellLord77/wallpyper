@@ -15,6 +15,7 @@ import os
 import pickle
 import pprint
 import queue
+import random
 import re
 import secrets
 import sys
@@ -24,7 +25,7 @@ import types
 import typing
 import uuid
 import zlib
-from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
+from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Iterator, Mapping, NoReturn, Optional
 
 T = typing.TypeVar('T')
 DEFAULT = object()
@@ -133,6 +134,48 @@ class MutableBool(_Mutable):
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
+
+
+class IntEnumMeta(type):
+    def __new__(mcs, *args, **kwargs):
+        cls = super().__new__(mcs, *args, **kwargs)
+        cls._vars = {var: val for var, val in vars(cls).items() if not var.startswith('_')}
+        return cls
+
+    def __contains__(cls, item):
+        return item in cls._vars
+
+    def __iter__(cls) -> Iterator[str]:
+        return iter(cls._vars)
+
+    @typing.overload
+    def __getitem__(cls, var_or_val: slice) -> tuple[str]:
+        pass
+
+    @typing.overload
+    def __getitem__(cls, var_or_val: int) -> str:
+        pass
+
+    @typing.overload
+    def __getitem__(cls, var_or_val: str) -> int:
+        pass
+
+    def __getitem__(cls, var_or_val):
+        if isinstance(var_or_val, int):
+            for var, val_ in cls._vars.items():
+                if var_or_val == val_:
+                    return var
+            raise IndexError
+        elif isinstance(var_or_val, slice):
+            return tuple(itertools.islice(cls._vars, var_or_val.start, var_or_val.stop, var_or_val.step))
+        else:
+            return cls._vars[var_or_val]
+
+    def get_random(cls, *ignores: int) -> int:
+        vals = tuple(cls._vars.values())
+        while (val := random.choice(vals)) in ignores:
+            pass
+        return val
 
 
 class PointedList:
