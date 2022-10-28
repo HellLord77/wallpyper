@@ -106,13 +106,12 @@ def encode(url: str, params: Optional[Mapping[str, str | Iterable[str]]] = None)
     parts = urllib.parse.urlparse(url)
     query_ = urllib.parse.parse_qs(parts.query)
     for key, val in params.items():
-        if val:  # TODO test
-            if key not in query_:
-                query_[key] = []
-            if isinstance(val, str):
-                query_[key].append(val)
-            else:
-                query_[key].extend(val)
+        if key not in query_:
+            query_[key] = []
+        if isinstance(val, str):
+            query_[key].append(val)
+        else:
+            query_[key].extend(val)
     return urllib.parse.urlunparse(parts._replace(query=urllib.parse.urlencode(query_, True)))
 
 

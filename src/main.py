@@ -21,6 +21,7 @@ import gui
 import langs
 import libs.easings as easings
 import libs.files as files
+import libs.lens as lens
 import libs.log as log
 import libs.pyinstall as pyinstall
 import libs.request as request
@@ -41,9 +42,7 @@ CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
-GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage')
-GOOGLE_UPLOAD_URL = request.join(GOOGLE_URL, 'upload')
-BING_URL = request.join('https://www.bing.com', 'images', 'search')
+GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage', 'upload')
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
@@ -252,7 +251,10 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
     changed = False
     if wallpaper is None:
         with gui.animate(STRINGS.STATUS_FETCH):
-            wallpaper = get_next_wallpaper()
+            try:
+                wallpaper = get_next_wallpaper()
+            except BaseException as e:
+                print(e)
     if wallpaper is not None:
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
@@ -280,7 +282,7 @@ def save_wallpaper(path: str) -> bool:
 def search_wallpaper(path: str) -> bool:
     searched = False
     with gui.animate(STRINGS.STATUS_SEARCH):
-        if location := request.upload(GOOGLE_UPLOAD_URL, files={'encoded_image': (None, path)},
+        if location := request.upload(GOOGLE_URL, files={'encoded_image': (None, path)},
                                       redirect=False).getheader('location'):
             searched = webbrowser.open(location)
     return searched
@@ -298,16 +300,9 @@ def on_copy_url(url: str) -> bool:
     return copied
 
 
-def on_google(url: str) -> bool:
-    if not (opened := webbrowser.open(request.encode(GOOGLE_URL, {'image_url': url}))):
-        notify(STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH)
-    return opened
-
-
-def on_bing(url: str) -> bool:
-    if not (opened := webbrowser.open(request.encode(
-            BING_URL, {'view': 'detailv2', 'iss': 'sbi', 'q': f'imgurl:{url}'}))):
-        notify(STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH)
+def on_search(engine: str, url: str) -> bool:
+    if not (opened := webbrowser.open(lens.get(engine, url))):
+        notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
     return opened
 
 
@@ -400,14 +395,15 @@ def _update_recent(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,)).set_icon(
                         RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
-                    gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_google, args=(
-                        wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
-                    gui.add_menu_item(STRINGS.LABEL_BING, on_click=on_bing, args=(
-                        wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_BING))
-                    if consts.FEATURE_LENS_UPLOAD:
-                        gui.add_menu_item(STRINGS.LABEL_LENS, on_click=on_wallpaper, args=(
-                            search_wallpaper, wallpaper, STRINGS.LABEL_LENS, STRINGS.FAIL_SEARCH,)).set_icon(
-                            RES_TEMPLATE.format(consts.RES_LENS))
+                    if consts.FEATURE_SEARCH_GOOGLE:
+                        gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_wallpaper, args=(
+                            search_wallpaper, wallpaper, STRINGS.LABEL_GOOGLE, STRINGS.FAIL_SEARCH,)).set_icon(
+                            RES_TEMPLATE.format(consts.RES_GOOGLE))
+                    with gui.set_main_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
+                        for engine in lens.Engine:
+                            gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
+                                              on_click=on_search, menu_args=(gui.MenuItemProperty.UID,), args=(
+                                    wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
             wallpaper_item = menu.insert_item(index, utils.shrink_string(
                 wallpaper.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.RES_DIGIT_TEMPLATE.format(index + 1)), submenu=submenu)
@@ -665,9 +661,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     on_module(CONFIG[consts.CONFIG_MODULE], item_module)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS, icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
-        item_links = gui.add_submenu(STRINGS.MENU_LINKS)
-        item_links.set_icon(RES_TEMPLATE.format(consts.RES_LINKS))
-        with gui.set_main_menu(item_links):
+        with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_LINKS, icon=RES_TEMPLATE.format(consts.RES_LINKS))):
             gui.add_menu_item(STRINGS.LABEL_DESKTOP, on_click=on_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_LINK))
             gui.add_menu_item(STRINGS.LABEL_REMOVE_DESKTOP, on_click=on_remove_shortcuts).set_icon(

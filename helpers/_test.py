@@ -1,5 +1,6 @@
 from __future__ import annotations as _
 
+import enum
 import ntpath
 import sys
 import threading
@@ -356,10 +357,13 @@ def _test_hook():
     proc.free_console()
 
 
+class En(enum.Enum):
+    V1 = 69
+    V2 = 420
+
+
 def _test():
-    import libs.easings as easings
-    print(vars(easings.Ease))
-    print(easings.get(easings.Ease.BACK))
+    print(str(En.V2))
 
 
 if __name__ == '__main__':
