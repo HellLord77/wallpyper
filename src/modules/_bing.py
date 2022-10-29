@@ -7,9 +7,9 @@ import gui
 from libs import files, iso_codes, request
 from .module import _Module
 
-BASE_URL = 'https://www.bing.com'
-ARCHIVE_URL = request.join(BASE_URL, 'HPImageArchive.aspx')
-IMAGE_URL = request.join(BASE_URL, 'th')
+URL_BASE = 'https://www.bing.com'
+URL_ARCHIVE = request.join(URL_BASE, 'HPImageArchive.aspx')
+URL_IMAGE = request.join(URL_BASE, 'th')
 
 CONFIG_DAY = 'idx'
 CONFIG_MARKET = 'mkt'
@@ -44,7 +44,7 @@ class Bing(_Module):
                 images_ = []
                 for day in range(int(params[CONFIG_DAY]), MAX_DAY):
                     params[CONFIG_DAY] = str(day)
-                    response = request.open(ARCHIVE_URL, params)
+                    response = request.open(URL_ARCHIVE, params)
                     if response:
                         for image in response.get_json()['images']:
                             if image not in images_:
@@ -59,7 +59,7 @@ class Bing(_Module):
             query = request.query(images.pop(0)['url'])
             name, ext = os.path.splitext(query['id'][0])
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{cls.CONFIG[CONFIG_RESOLUTION]}{ext}'
-            yield files.File(request.encode(IMAGE_URL, query), query['id'][0][4:])
+            yield files.File(request.encode(URL_IMAGE, query), query['id'][0][4:])
 
     @classmethod
     def create_menu(cls):

@@ -9,7 +9,7 @@ import gui
 from libs import files, iso_codes, request
 from .module import _Module
 
-BASE_URL = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
+URL_BASE = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
 CONFIG_LOCALE = 'pl'
 CONFIG_ORIENTATION = '_orientation'
@@ -39,7 +39,7 @@ class Spotlight(_Module):
         params['ctry'] = CONFIG_LOCALE.split('-')[-1].lower()
         while True:
             if not items:
-                response = request.open(BASE_URL, params)
+                response = request.open(URL_BASE, params)
                 if response:
                     items = response.get_json()['batchrsp']['items']
                 if not items:

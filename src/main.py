@@ -37,12 +37,11 @@ ALL_DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
-CONFIG_PATH = fr'D:\Projects\Wallpyper\{consts.NAME}.ini'
+CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.ini'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
-GOOGLE_URL = request.join('https://www.google.com', 'searchbyimage', 'upload')
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
@@ -61,7 +60,7 @@ class EaseSpeeds(metaclass=utils.IntEnumMeta):
     NONE = 0
     IN = 1
     OUT = 2
-    BOTH = 3
+    INOUT = 3
 
 
 class EaseStyles(metaclass=utils.IntEnumMeta):
@@ -96,7 +95,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
     consts.CONFIG_ROTATE: win32.display.Rotate[win32.display.Rotate.NONE],
     consts.CONFIG_EASE: EaseStyles[EaseStyles.CUBIC],
-    consts.CONFIG_EASES: EaseSpeeds[EaseSpeeds.BOTH],
+    consts.CONFIG_EASES: EaseSpeeds[EaseSpeeds.INOUT],
     consts.CONFIG_FLIP: win32.display.Flip[win32.display.Flip.NONE],
     consts.CONFIG_TRANSITION: win32.display.Transition[win32.display.Transition.FADE]}
 CONFIG = {}
@@ -268,8 +267,8 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
                     win32.display.Flip, CONFIG[consts.CONFIG_FLIP]), transition=getattr(
                     win32.display.Transition, CONFIG[consts.CONFIG_TRANSITION]), easing=easings.get(
                     getattr(easings.Ease, CONFIG[consts.CONFIG_EASE]), EaseSpeeds[CONFIG[consts.CONFIG_EASES]] in (
-                        EaseSpeeds.IN, EaseSpeeds.BOTH), CONFIG[consts.CONFIG_EASES] in (
-                                                                           EaseSpeeds.OUT, EaseSpeeds.BOTH))) for display in get_displays()))
+                        EaseSpeeds.IN, EaseSpeeds.INOUT), CONFIG[consts.CONFIG_EASES] in (
+                                                                           EaseSpeeds.OUT, EaseSpeeds.INOUT))) for display in get_displays()))
     return changed
 
 
@@ -282,7 +281,7 @@ def save_wallpaper(path: str) -> bool:
 def search_wallpaper(path: str) -> bool:
     searched = False
     with gui.animate(STRINGS.STATUS_SEARCH):
-        if location := request.upload(GOOGLE_URL, files={'encoded_image': (None, path)},
+        if location := request.upload(consts.URL_GOOGLE, files={'encoded_image': (None, path)},
                                       redirect=False).getheader('location'):
             searched = webbrowser.open(location)
     return searched
@@ -438,7 +437,7 @@ def on_easing_direction(in_is_checked: Callable[[], bool], out_is_checked: Calla
     out_checked = out_is_checked()
     enable_ease(in_checked or out_checked)
     if in_checked and out_checked:
-        CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.BOTH]
+        CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.INOUT]
     elif in_checked:
         CONFIG[consts.CONFIG_EASES] = EaseSpeeds[EaseSpeeds.IN]
     elif out_checked:
@@ -712,9 +711,9 @@ def create_menu():  # TODO slideshow (smaller timer)
         item_ease_timing = gui.add_submenu(STRINGS.MENU_EASE_TIMING, icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))
         with gui.set_main_menu(item_ease_timing):
             item_in = gui.add_menu_item(STRINGS.EASE_DIRECTION_IN, gui.MenuItemType.CHECK, getattr(
-                EaseSpeeds, CONFIG[consts.CONFIG_EASES]) in (EaseSpeeds.IN, EaseSpeeds.BOTH))
+                EaseSpeeds, CONFIG[consts.CONFIG_EASES]) in (EaseSpeeds.IN, EaseSpeeds.INOUT))
             item_out = gui.add_menu_item(STRINGS.EASE_DIRECTION_OUT, gui.MenuItemType.CHECK, getattr(
-                EaseSpeeds, CONFIG[consts.CONFIG_EASES]) in (EaseSpeeds.OUT, EaseSpeeds.BOTH))
+                EaseSpeeds, CONFIG[consts.CONFIG_EASES]) in (EaseSpeeds.OUT, EaseSpeeds.INOUT))
         item_ease = gui.add_mapped_submenu(STRINGS.MENU_EASE, {ease: getattr(
             STRINGS, f'EASE_{ease}') for ease in EaseStyles}, CONFIG, consts.CONFIG_EASE, bool(
             EaseSpeeds[CONFIG[consts.CONFIG_EASES]]), on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE))

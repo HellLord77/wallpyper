@@ -8,9 +8,9 @@ import gui
 from libs import colornames, files, request
 from .module import _Module
 
-BASE_URL = request.join('https://wallhaven.cc', 'api', 'v1')
-SEARCH_URL = request.join(BASE_URL, 'search')
-SETTINGS_URL = request.join(BASE_URL, 'settings')
+URL_BASE = request.join('https://wallhaven.cc', 'api', 'v1')
+URL_SEARCH = request.join(URL_BASE, 'search')
+URL_SETTINGS = request.join(URL_BASE, 'settings')
 
 CONFIG_KEY = 'apikey'
 CONFIG_CATEGORY = 'categories'
@@ -37,7 +37,7 @@ CATEGORIES_PURITIES = re.compile('(?!000)[01]{3}')
 
 
 def _authenticate(key: str) -> bool:
-    return bool(response := request.open(SETTINGS_URL, {'apikey': key})) and 'error' not in response.get_json()
+    return bool(response := request.open(URL_SETTINGS, {'apikey': key})) and 'error' not in response.get_json()
 
 
 class Wallhaven(_Module):
@@ -82,7 +82,7 @@ class Wallhaven(_Module):
             if not datas:
                 params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
                 params['seed'] = meta['seed'] or ''
-                response = request.open(SEARCH_URL, params)
+                response = request.open(URL_SEARCH, params)
                 if response:
                     json = response.get_json()
                     datas = json['data']

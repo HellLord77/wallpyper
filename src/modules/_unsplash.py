@@ -7,9 +7,9 @@ import gui
 from libs import files, request
 from .module import _Module
 
-BASE_URL = 'https://api.unsplash.com'
-EDITORIAL_URL = request.join(BASE_URL, 'photos')
-SEARCH_URL = request.join(BASE_URL, 'search', 'photos')
+URL_BASE = 'https://api.unsplash.com'
+URL_EDITORIAL = request.join(URL_BASE, 'photos')
+URL_SEARCH = request.join(URL_BASE, 'search', 'photos')
 
 CONFIG_ID = 'client_id'
 CONFIG_EDITORIAL = 'editorial'
@@ -26,7 +26,7 @@ ORIENTATIONS = '', 'landscape', 'portrait', 'squarish'
 
 
 def _authenticate(id_: str) -> bool:
-    return bool(request.open(EDITORIAL_URL, {CONFIG_ID: id_}))
+    return bool(request.open(URL_EDITORIAL, {CONFIG_ID: id_}))
 
 
 class Unsplash(_Module):
@@ -53,12 +53,12 @@ class Unsplash(_Module):
         results: Optional[list] = None
         total_pages = 1
         if params.pop(CONFIG_EDITORIAL):
-            query_url = EDITORIAL_URL
+            query_url = URL_EDITORIAL
             params = {
                 CONFIG_ID: params[CONFIG_ID],
                 CONFIG_ORDER: params[CONFIG_ORDER]}
         else:
-            query_url = SEARCH_URL
+            query_url = URL_SEARCH
         params['page'] = '1'
         params['per_page'] = '30'
         while True:

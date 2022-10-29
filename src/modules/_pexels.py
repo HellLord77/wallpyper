@@ -7,9 +7,9 @@ import gui
 from libs import files, iso_codes, request
 from .module import _Module
 
-BASE_URL = request.join('https://api.pexels.com', 'v1')
-CURATED_URL = request.join(BASE_URL, 'curated')
-SEARCH_URL = request.join(BASE_URL, 'search')
+URL_BASE = request.join('https://api.pexels.com', 'v1')
+URL_CURATED = request.join(URL_BASE, 'curated')
+URL_SEARCH = request.join(URL_BASE, 'search')
 
 CONFIG_KEY = 'key'
 CONFIG_CURATED = 'curated'
@@ -33,7 +33,7 @@ def on_curated(curated: bool, menu: gui.MenuItem):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.open(CURATED_URL, {'per_page': '1'}, headers={'Authorization': key}))
+    return bool(request.open(URL_CURATED, {'per_page': '1'}, headers={'Authorization': key}))
 
 
 class Pexels(_Module):
@@ -58,10 +58,10 @@ class Pexels(_Module):
         photos: Optional[list] = None
         key = params.pop(CONFIG_KEY)
         if params.pop(CONFIG_CURATED):
-            query_url = CURATED_URL
+            query_url = URL_CURATED
             params.clear()
         else:
-            query_url = SEARCH_URL
+            query_url = URL_SEARCH
         params['page'] = '1'
         params['per_page'] = '80'
         while True:

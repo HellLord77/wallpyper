@@ -1,4 +1,4 @@
-_ICONS = 'windows-11-color'
+URL_GOOGLE = 'https://www.google.com/searchbyimage/upload'
 
 EX_TEMPFAIL = 75
 MAX_NOTIFY_LEN = 256
@@ -9,6 +9,8 @@ POLL_SLO_INTERVAL = 1
 POLL_MED_INTERVAL = 0.1
 POLL_FST_INTERVAL = 0.01
 PIPE_TIMEOUT = 3
+
+_ICONS = 'windows-11-color'
 
 FEATURE_SYS_PIN = False
 FEATURE_FIRST_RUN = True

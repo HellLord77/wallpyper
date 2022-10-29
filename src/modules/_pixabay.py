@@ -8,7 +8,7 @@ import gui
 from libs import files, iso_codes, request
 from .module import _Module
 
-BASE_URL = 'https://pixabay.com/api'
+URL_BASE = 'https://pixabay.com/api'
 
 CONFIG_KEY = 'key'
 CONFIG_LANG = 'lang'
@@ -36,7 +36,7 @@ ORDERS = 'popular', 'latest'
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.open(BASE_URL, {CONFIG_KEY: key, 'per_page': '3'}))
+    return bool(request.open(URL_BASE, {CONFIG_KEY: key, 'per_page': '3'}))
 
 
 class Pixabay(_Module):
@@ -73,7 +73,7 @@ class Pixabay(_Module):
         while True:
             if not hits:
                 pass
-                response = request.open(BASE_URL, params)
+                response = request.open(URL_BASE, params)
                 if (response.status == request.Status.BAD_REQUEST and
                         response.get_content() == b'[ERROR 400] "page" is out of valid range.'):
                     params['page'] = '1'

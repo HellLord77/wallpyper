@@ -72,7 +72,7 @@ class _Response:
     def get_content(self) -> bytes:
         return self.response.read()
 
-    def get_json(self) -> Optional[dict | list | str | int | float | bool]:
+    def get_json(self) -> Any:
         with contextlib.suppress(json.decoder.JSONDecodeError):
             return json.loads(self.get_text())
 
