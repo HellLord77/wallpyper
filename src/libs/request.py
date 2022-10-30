@@ -139,7 +139,7 @@ def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[by
             return lazy_response
 
 
-def download(url: str, path: str, size: Optional[int] = None, chunk_size: Optional[int] = None,
+def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = None,
              chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     if args is None:
