@@ -1,4 +1,4 @@
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 import contextlib
 import filecmp
@@ -18,18 +18,21 @@ POLL_INTERVAL = 0.1
 
 
 class File:
-    __slots__ = 'url', 'name', 'size', 'md5', 'sha256'
+    __slots__ = 'url', 'name', '_size', '_md5', '_sha256'
 
     def __init__(self, url: str, name: str, size: Optional[int] = None,
                  md5: Optional[bytes] = None, sha256: Optional[bytes] = None):
         self.url = url
         self.name = name
-        self.size = size
-        self.md5 = md5
-        self.sha256 = sha256
+        self._size = size
+        self._md5 = md5
+        self._sha256 = sha256
 
     def __bool__(self):
         return bool(str(self))
+
+    def __int__(self):
+        return self._size
 
     def __str__(self):
         return self.url
@@ -43,6 +46,16 @@ class File:
     def checksum(self, path: str) -> bool:
         return os.path.isfile(path) and any(check_hash(path, getattr(
             self, name, None), name) for name in hashlib.algorithms_available)
+
+    def fill(self, path: str) -> bool:
+        if os.path.isfile(path):
+            if self._size is None:
+                self._size = os.path.getsize(path)
+            for name in hashlib.algorithms_available:
+                if getattr(self, name, b'') is None:
+                    setattr(self, name, get_hash(path, name).digest())
+            return True
+        return False
 
 
 def remove_ext(path: str) -> str:
@@ -169,7 +182,7 @@ def get_hash(path: str, name: str = 'md5', *, __hash=None) -> _hashlib.HASH:
 
 # noinspection PyShadowingBuiltins
 def check_hash(path: str, hash: Optional[bytes | str | _hashlib.HASH], name: str = 'md5') -> bool:
-    if isinstance(hash, (bytes | str | _hashlib.HASH)):
+    if isinstance(hash, (bytes, str, _hashlib.HASH)):
         hash_ = get_hash(path, name)
         if isinstance(hash, _hashlib.HASH):
             hash = hash.digest()

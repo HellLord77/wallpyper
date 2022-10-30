@@ -220,11 +220,12 @@ _download_lock = functools.lru_cache(lambda _: threading.Lock())
 def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[float, ...], bool]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = os.path.join(TEMP_DIR, wallpaper.name)
-    with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
+    with _download_lock(str(wallpaper)), gui.animate(STRINGS.STATUS_DOWNLOAD):
         print_progress()
         try:
-            if wallpaper.checksum(temp_path) or request.download(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
+            if wallpaper.checksum(temp_path) or request.download(str(wallpaper), temp_path, int(wallpaper), chunk_count=100,
                                                                  query_callback=query_callback, args=args, kwargs=kwargs):
+                wallpaper.fill(temp_path)
                 return temp_path
         finally:
             PROGRESS.set(-1.0)
@@ -358,7 +359,7 @@ def _update_recent(item: win32.gui.MenuItem):
         items = gui.get_menu_items()
         for index, wallpaper in enumerate(RECENT):
             if wallpaper in items:
-                wallpaper_item = items[wallpaper.url]
+                wallpaper_item = items[str(wallpaper)]
                 submenu = wallpaper_item.get_submenu()
                 menu.remove_item(wallpaper_item)
             else:
@@ -383,7 +384,7 @@ def _update_recent(item: win32.gui.MenuItem):
                         win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,)).set_icon(
                         RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(
-                        wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
+                        str(wallpaper),)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_wallpaper, args=(
                         win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH)).set_icon(
@@ -391,7 +392,7 @@ def _update_recent(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_wallpaper, args=(
                         win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY)).set_icon(
                         RES_TEMPLATE.format(consts.RES_COPY))
-                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(wallpaper.url,)).set_icon(
+                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=on_copy_url, args=(str(wallpaper),)).set_icon(
                         RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
                     if consts.FEATURE_SEARCH_GOOGLE:
@@ -402,13 +403,13 @@ def _update_recent(item: win32.gui.MenuItem):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
                                               on_click=on_search, menu_args=(gui.MenuItemProperty.UID,), args=(
-                                    wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
+                                    str(wallpaper),)).set_icon(RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
             wallpaper_item = menu.insert_item(index, utils.shrink_string(
                 wallpaper.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.RES_DIGIT_TEMPLATE.format(index + 1)), submenu=submenu)
-            wallpaper_item.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
+            wallpaper_item.set_tooltip(str(wallpaper), wallpaper.name, os.path.join(
                 TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
-            wallpaper_item.set_uid(wallpaper.url)
+            wallpaper_item.set_uid(str(wallpaper))
     for uid, wallpaper_item in items.items():
         if uid and uid not in RECENT:
             menu.remove_item(wallpaper_item)
