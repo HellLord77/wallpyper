@@ -96,6 +96,7 @@ DOUBLE = c_double
 DWORD = c_ulong
 DWORD64 = c_uint64
 FLOAT = c_float
+GPFIDL_FLAGS = c_int
 INT = c_int
 INT16 = c_short
 INT32 = c_int

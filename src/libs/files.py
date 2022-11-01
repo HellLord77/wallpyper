@@ -5,7 +5,6 @@ import filecmp
 import glob
 import hashlib
 import os
-import pathlib
 import shutil
 import sys
 import time
@@ -65,10 +64,6 @@ def remove_ext(path: str) -> str:
 
 def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
-
-
-def get_uri(path: str) -> str:
-    return pathlib.Path(path).as_uri()
 
 
 def iter_dir(path: str, recursive: bool = False) -> Generator[str, None, None]:

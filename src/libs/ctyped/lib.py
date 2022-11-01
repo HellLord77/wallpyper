@@ -5945,6 +5945,101 @@ class shell32(_FuncMixin, metaclass=_WinDLL):
                                    _Pointer[_struct.SHQUERYRBINFO]],
                                   _type.HRESULT]
     # ShlObj_core
+    ILAppendID: _Callable[[_Optional[_Pointer[_struct.ITEMIDLIST]],  # pidl
+                           _Pointer[_struct.SHITEMID],  # pmkid
+                           _type.BOOL],  # fAppend
+                          _Pointer[_struct.ITEMIDLIST]]
+    SHGetPathFromIDListEx: _Callable[[_Pointer[_struct.ITEMIDLIST],  # pidl
+                                      _type.PWSTR,  # pszPath
+                                      _type.DWORD,  # cchPath
+                                      _type.GPFIDL_FLAGS],  # uOpts
+                                     _type.BOOL]
+    SHGetPathFromIDListA: _Callable[[_Pointer[_struct.ITEMIDLIST],  # pidl
+                                     _type.LPSTR],  # pszPath
+                                    _type.BOOL]
+    SHGetPathFromIDListW: _Callable[[_Pointer[_struct.ITEMIDLIST],  # pidl
+                                     _type.LPWSTR],  # pszPath
+                                    _type.BOOL]
+    SHCreateDirectory: _Callable[[_Optional[_type.HWND],  # hwnd
+                                  _type.PCWSTR],  # pszPath
+                                 _type.c_int]
+    SHCreateDirectoryExA: _Callable[[_Optional[_type.HWND],  # hwnd
+                                     _type.LPCSTR,  # pszPath
+                                     _Pointer[_struct.SECURITY_ATTRIBUTES]],  # psa
+                                    _type.c_int]
+    SHCreateDirectoryExW: _Callable[[_Optional[_type.HWND],  # hwnd
+                                     _type.LPCWSTR,  # pszPath
+                                     _Pointer[_struct.SECURITY_ATTRIBUTES]],  # psa
+                                    _type.c_int]
+    SHGetSpecialFolderLocation: _Callable[[_type.HWND,  # hwnd
+                                           _type.c_int,  # csidl
+                                           _Pointer[_struct.ITEMIDLIST]],  # ppidl
+                                          _type.HRESULT]
+    SHCloneSpecialIDList: _Callable[[_type.HWND,  # hwnd
+                                     _type.c_int,  # csidl
+                                     _type.BOOL],  # fCreate
+                                    _Pointer[_struct.ITEMIDLIST]]
+    SHGetSpecialFolderPathA: _Callable[[_type.HWND,  # hwnd
+                                        _type.LPSTR,  # pszPath
+                                        _type.c_int,  # csidl
+                                        _type.BOOL],  # fCreate
+                                       _type.BOOL]
+    SHGetSpecialFolderPathW: _Callable[[_type.HWND,  # hwnd
+                                        _type.LPWSTR,  # pszPath
+                                        _type.c_int,  # csidl
+                                        _type.BOOL],  # fCreate
+                                       _type.BOOL]
+    SHFlushSFCache: _Callable[[],
+                              _type.c_void]
+    SHGetFolderPathA: _Callable[[_Optional[_type.HWND],  # hwnd
+                                 _type.c_int,  # csidl
+                                 _Optional[_type.HANDLE],  # hToken
+                                 _type.DWORD,  # dwFlags
+                                 _type.LPSTR],  # pszPath
+                                _type.HRESULT]
+    SHGetFolderPathW: _Callable[[_Optional[_type.HWND],  # hwnd
+                                 _type.c_int,  # csidl
+                                 _Optional[_type.HANDLE],  # hToken
+                                 _type.DWORD,  # dwFlags
+                                 _type.LPWSTR],  # pszPath
+                                _type.HRESULT]
+    SHGetFolderLocation: _Callable[[_type.HWND,  # hwnd
+                                    _type.c_int,  # csidl
+                                    _Optional[_type.HANDLE],  # hToken
+                                    _type.DWORD,  # dwFlags
+                                    _Pointer[_Pointer[_struct.ITEMIDLIST]]],  # ppidl
+                                   _type.HRESULT]
+    SHSetFolderPathA: _Callable[[_type.c_int,  # csidl
+                                 _Optional[_type.HANDLE],  # hToken
+                                 _type.DWORD,  # dwFlags
+                                 _type.LPCSTR],  # pszPath
+                                _type.HRESULT]
+    SHSetFolderPathW: _Callable[[_type.c_int,  # csidl
+                                 _Optional[_type.HANDLE],  # hToken
+                                 _type.DWORD,  # dwFlags
+                                 _type.LPCWSTR],  # pszPath
+                                _type.HRESULT]
+    SHGetFolderPathAndSubDirA: _Callable[[_type.HWND,  # hwnd
+                                          _type.c_int,  # csidl
+                                          _Optional[_type.HANDLE],  # hToken
+                                          _type.DWORD,  # dwFlags
+                                          _Optional[_type.LPCSTR],  # pszSubDir
+                                          _type.LPSTR],  # pszPath
+                                         _type.HRESULT]
+    SHGetFolderPathAndSubDirW: _Callable[[_type.HWND,  # hwnd
+                                          _type.c_int,  # csidl
+                                          _Optional[_type.HANDLE],  # hToken
+                                          _type.DWORD,  # dwFlags
+                                          _Optional[_type.LPCWSTR],  # pszSubDir
+                                          _type.LPWSTR],  # pszPath
+                                         _type.HRESULT]
+    SHParseDisplayName: _Callable[[_type.PCWSTR,  # pszName
+                                   _Optional[_interface.IBindCtx],  # pbc
+                                   _Pointer[_Pointer[_struct.ITEMIDLIST]],  # ppidl
+                                   _type.SFGAOF,  # sfgaoIn
+                                   _Optional[_Pointer[_type.SFGAOF]]],  # psfgaoOut
+                                  _type.HRESULT]
+    # TODO
     GetCurrentProcessExplicitAppUserModelID: _Callable[[_Pointer[_type.PWSTR]],
                                                        _type.HRESULT]
     ILClone: _Callable[[_Pointer[_struct.ITEMIDLIST]],
@@ -5994,18 +6089,6 @@ class shell32(_FuncMixin, metaclass=_WinDLL):
                                _Optional[_type.LPCVOID],
                                _Optional[_type.LPCVOID]],
                               _type.c_void]
-    SHGetFolderPathA: _Callable[[_Optional[_type.HWND],
-                                 _type.c_int,
-                                 _Optional[_type.HANDLE],
-                                 _type.DWORD,
-                                 _type.LPSTR],
-                                _type.HRESULT]
-    SHGetFolderPathW: _Callable[[_Optional[_type.HWND],
-                                 _type.c_int,
-                                 _Optional[_type.HANDLE],
-                                 _type.DWORD,
-                                 _type.LPWSTR],
-                                _type.HRESULT]
     SHOpenFolderAndSelectItems: _Callable[[_Pointer[_struct.ITEMIDLIST],
                                            _type.UINT,
                                            _Optional[_Pointer[_Pointer[_struct.ITEMIDLIST]]],

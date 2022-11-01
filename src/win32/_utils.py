@@ -21,12 +21,12 @@ def string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWS
     try:
         yield ptr
     finally:
-        if size is None and ptr:
+        if size is None and ptr.value:
             ctyped.lib.kernel32.LocalFree(ptr)
 
 
 @contextlib.contextmanager
-def get_itemidlist(*paths: str) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
+def get_itemidlist(*paths: str | ctyped.type.PCWSTR) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
     ids = tuple(ctyped.lib.shell32.ILCreateFromPath(path) for path in paths)
     try:
         yield ids

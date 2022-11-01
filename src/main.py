@@ -400,7 +400,7 @@ def _update_recent(item: win32.gui.MenuItem):
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_wallpaper, args=(
                             search_wallpaper, wallpaper, STRINGS.LABEL_GOOGLE, STRINGS.FAIL_SEARCH,)).set_icon(
                             RES_TEMPLATE.format(consts.RES_GOOGLE))
-                    with gui.set_main_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_local(
+                    with gui.set_main_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.url_is_path(
                             str(wallpaper)), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,

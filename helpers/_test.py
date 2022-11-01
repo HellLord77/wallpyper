@@ -8,7 +8,6 @@ from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
-import libs.files as files
 import win32
 import win32._gdiplus as gdiplus
 from libs.ctyped import winrt
@@ -358,9 +357,8 @@ def _test_hook():
 
 
 def _test():
-    tp = r'C:\Users\ratul\OneDrive\Pictures'
-    print(*files.iter_files(tp, True))
-    # print(gdiplus.image_is_valid(tp))
+    p = win32.select_folder()
+    print(p)
 
 
 if __name__ == '__main__':

@@ -56,9 +56,9 @@ def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
 
 def get_focus_assist_state() -> int:
     buffer = ctyped.type.DWORD()
-    if ctyped.macro.NT_SUCCESS(ctyped.lib.ntdll.NtQueryWnfStateData(ctyped.byref(ctyped.struct.WNF_STATE_NAME(
-            ctyped.array(0xA3BF1C75, 0xD83063E, type=ctyped.type.ULONG))), None, None, ctyped.byref(
-        ctyped.type.WNF_CHANGE_STAMP()), ctyped.byref(buffer), ctyped.byref(ctyped.type.ULONG(ctyped.sizeof(buffer))))):
+    focus_assist = ctyped.struct.WNF_STATE_NAME(ctyped.array(0xA3BF1C75, 0xD83063E, type=ctyped.type.ULONG))
+    if ctyped.macro.NT_SUCCESS(ctyped.lib.ntdll.NtQueryWnfStateData(ctyped.byref(focus_assist), None, None, ctyped.byref(
+            ctyped.type.WNF_CHANGE_STAMP()), ctyped.byref(buffer), ctyped.byref(ctyped.type.ULONG(ctyped.sizeof(buffer))))):
         return buffer.value
     else:
         return FocusAssistState.FAILED
@@ -329,7 +329,7 @@ def open_file_with_ex(path: str) -> bool:
 def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> str:
     with ctyped.init_com(ctyped.interface.IFileDialog) as dialog:
         if dialog:
-            dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.PICKFOLDERS)
+            dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.PICKFOLDERS | ctyped.enum.FILEOPENDIALOGOPTIONS.FORCEFILESYSTEM)
             if path is not None:
                 with ctyped.init_com(ctyped.interface.IShellItem, False) as item:
                     try:
@@ -352,7 +352,7 @@ def select_folder(title: Optional[str] = None, path: Optional[str] = None) -> st
                 with ctyped.init_com(ctyped.interface.IShellItem, False) as item:
                     dialog.GetResult(ctyped.byref(item))
                     with _utils.string_buffer() as buff:
-                        item.GetDisplayName(ctyped.enum.SIGDN.DESKTOPABSOLUTEPARSING, ctyped.byref(buff))
+                        item.GetDisplayName(ctyped.enum.SIGDN.FILESYSPATH, ctyped.byref(buff))
                         dir_ = buff.value
                     return dir_
     return ''

@@ -5,7 +5,7 @@ from typing import Generator, Optional, Callable
 
 import gui
 import win32
-from libs import files
+from libs import files, request
 from .module import _Module
 
 CONFIG_DIR = 'dir'
@@ -45,8 +45,8 @@ class Local(_Module):
                 results = [path for path in files.iter_files(
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
                 results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
-            result = results.pop(0)
-            yield files.File(files.get_uri(result), os.path.basename(result), os.path.getsize(result))
+            path = results.pop(0)
+            yield files.File(request.path_to_url(path), os.path.basename(path), os.path.getsize(path))
 
     @classmethod
     def create_menu(cls):

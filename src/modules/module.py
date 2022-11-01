@@ -46,7 +46,7 @@ class _Module(metaclass=_ModuleMeta):
         pass
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
         raise NotImplementedError
 
     @classmethod

@@ -6,7 +6,6 @@ import http.client
 import io
 import json
 import os
-import pathlib
 import sys
 import urllib.error
 import urllib.parse
@@ -16,6 +15,7 @@ import uuid
 from typing import Any, Callable, Generator, Iterable, Mapping, Optional
 
 _CRLF = '\r\n'
+_FILE_URI = 'file'
 
 MAX_CHUNK = 1024 * 1024
 
@@ -84,13 +84,12 @@ class _Response:
         return self.response.read(n)
 
 
-def is_local(url: str) -> bool:
-    try:
-        pathlib.Path(url)
-    except ValueError:
-        return False
-    else:
-        return True
+def url_is_path(url: str) -> bool:
+    return urllib.parse.urlparse(url).scheme == _FILE_URI
+
+
+def path_to_url(path: str) -> str:
+    return urllib.parse.urljoin(f'{_FILE_URI}:', urllib.request.pathname2url(path))
 
 
 def strip(url: str) -> str:
@@ -157,15 +156,6 @@ def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = Non
     if kwargs is None:
         kwargs = {}
     response = open(url)
-    if os.path.exists(path):
-        if os.path.isfile(path) and size and size == os.path.getsize(path):
-            if query_callback:
-                query_callback(1.0, *args, **kwargs)
-            return True
-        elif os.path.isdir(path):
-            return False
-    else:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
     if response:
         size = size or int(response.getheader(Header.CONTENT_LENGTH, str(
             sys.maxsize if response.local is None else os.path.getsize(response.local))))
@@ -178,6 +168,7 @@ def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = Non
                 os.remove(path)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             with builtins.open(path, 'wb') as file:
                 ratio = 0
                 for chunk in response:
