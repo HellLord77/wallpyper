@@ -41,6 +41,7 @@ def _authenticate(key: str) -> bool:
 
 
 class Wallhaven(_Module):
+    ICON = 'Wallhaven.ico'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',

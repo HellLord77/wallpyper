@@ -183,6 +183,20 @@ COLOR_MODE_AUTO = 'System'
 COLOR_MODE_LIGHT = 'Light'
 COLOR_MODE_DARK = 'Dark'
 
+LOCAL_MENU_DIR = 'Choose Folder...'
+LOCAL_MENU_RECURSE = 'Scan Recursively'
+LOCAL_MENU_SORT = 'Sort Image by'
+LOCAL_MENU_ORDER = 'Image Sort Order'
+
+LOCAL_SORT_name = 'Name'
+LOCAL_SORT_size = 'Size'
+LOCAL_SORT_created = 'Creation Time'
+LOCAL_SORT_modified = 'Last Modified'
+LOCAL_SORT_accessed = 'Access Time'
+
+LOCAL_ORDER_ascending = 'Ascending'
+LOCAL_ORDER_descending = 'Descending'
+
 BING_MENU_DAY = 'Start from'
 BING_MENU_MARKET = 'Location'
 BING_MENU_RESOLUTION = 'Resolution'

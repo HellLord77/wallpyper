@@ -1,4 +1,4 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import builtins
 import contextlib
@@ -6,6 +6,7 @@ import http.client
 import io
 import json
 import os
+import pathlib
 import sys
 import urllib.error
 import urllib.parse
@@ -55,10 +56,10 @@ class _Response:
         self.response = response
         self.getheader = getattr(response, 'getheader', self._getheader)
         self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
-        self.file = isinstance(getattr(self.response, 'file', None), io.BufferedReader)
+        self.local = response.fp.name if isinstance(getattr(self.response, 'file', None), io.BufferedReader) else None
 
     def __bool__(self) -> bool:
-        return self.file or self.status == Status.OK
+        return self.status == Status.OK if self.local is None else os.path.isfile(self.local)
 
     def __iter__(self) -> Generator[bytes, None, None]:
         with contextlib.suppress(ConnectionError):
@@ -81,6 +82,15 @@ class _Response:
 
     def read(self, n: int) -> bytes:
         return self.response.read(n)
+
+
+def is_local(url: str) -> bool:
+    try:
+        pathlib.Path(url)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def strip(url: str) -> str:
@@ -158,7 +168,7 @@ def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = Non
         os.makedirs(os.path.dirname(path), exist_ok=True)
     if response:
         size = size or int(response.getheader(Header.CONTENT_LENGTH, str(
-            os.path.getsize(response.response.fp.name) if response.file else sys.maxsize)))
+            sys.maxsize if response.local is None else os.path.getsize(response.local))))
         if os.path.isfile(path):
             if size == os.path.getsize(path):
                 if query_callback:

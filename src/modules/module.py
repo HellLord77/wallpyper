@@ -16,7 +16,7 @@ class _ModuleMeta(type):
         if not cls.__name__.startswith('_'):
             cls.NAME = getattr(cls, 'NAME', cls.__name__)
             cls.VERSION = inspect.currentframe().f_back.f_globals.get('__version__', 'X.Y.Z')
-            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', getattr(cls, 'ICON', f'{cls.__name__}.ico'))
+            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', getattr(cls, 'ICON', f'{cls.__name__}.png'))
             cls.DEFAULT_CONFIG = getattr(cls, 'DEFAULT_CONFIG', {})
             cls.CONFIG = {}
             cls.get_next_wallpaper = utils.LastCacheCallable(cls.get_next_wallpaper)

@@ -30,7 +30,6 @@ def _authenticate(id_: str) -> bool:
 
 
 class Unsplash(_Module):
-    ICON = 'Unsplash.png'
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
         CONFIG_EDITORIAL: True,

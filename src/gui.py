@@ -43,6 +43,7 @@ class MenuItemMethod(metaclass=_MenuItemArgMeta):
     ENABLE = win32.gui.MenuItem.enable.__name__
     SET_LABEL = win32.gui.MenuItem.set_text.__name__
     SET_ICON = win32.gui.MenuItem.set_icon.__name__
+    SET_TOOLTIP = win32.gui.MenuItem.set_tooltip.__name__
 
 
 class MenuItemProperty(metaclass=_MenuItemArgMeta):

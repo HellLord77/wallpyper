@@ -37,6 +37,7 @@ def _authenticate(key: str) -> bool:
 
 
 class Pexels(_Module):
+    ICON = 'Pexels.ico'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         CONFIG_CURATED: False,

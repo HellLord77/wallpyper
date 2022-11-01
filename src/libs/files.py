@@ -5,6 +5,7 @@ import filecmp
 import glob
 import hashlib
 import os
+import pathlib
 import shutil
 import sys
 import time
@@ -66,10 +67,20 @@ def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
 
 
-def iter_dir(path: str) -> Generator[str, None, None]:
-    dir_: os.DirEntry
-    for dir_ in os.scandir(path):
-        yield os.path.realpath(dir_.path)
+def get_uri(path: str) -> str:
+    return pathlib.Path(path).as_uri()
+
+
+def iter_dir(path: str, recursive: bool = False) -> Generator[str, None, None]:
+    dir_entry: os.DirEntry
+    for dir_entry in os.scandir(path):
+        yield os.path.realpath(dir_entry.path)
+        if recursive and dir_entry.is_dir():
+            yield from iter_dir(dir_entry.path, recursive)
+
+
+def iter_files(path: str, recursive: bool = False) -> Generator[str, None, None]:
+    yield from filter(os.path.isfile, iter_dir(path, recursive))
 
 
 def get_size(path: str) -> Optional[int]:

@@ -154,13 +154,14 @@ def load_config() -> bool:
     return loaded
 
 
-def save_config() -> bool:  # TODO save module generator to restore upon restart (?)
+def save_config() -> bool:
     parser = configparser.ConfigParser()
     for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
         module.update_config()
         module.fix_config()
-        parser[name] = {option: module.CONFIG[option] for option, value in sorted(
-            module.DEFAULT_CONFIG.items()) if module.CONFIG[option] != value}
+        if config := {option: module.CONFIG[option] for option, value in sorted(
+                module.DEFAULT_CONFIG.items()) if module.CONFIG[option] != value}:
+            parser[name] = config
     with open(CONFIG_PATH, 'w') as file:
         parser.write(file)
     return os.path.isfile(CONFIG_PATH)
@@ -238,11 +239,11 @@ def get_next_wallpaper() -> Optional[files.File]:
     while True:
         next_wallpaper = next(module.get_next_wallpaper(**params))
         if not CONFIG[consts.CONFIG_SKIP] or next_wallpaper not in RECENT:
-            if first_wallpaper != next_wallpaper:
-                return next_wallpaper
-            break
+            return next_wallpaper
         if first_wallpaper is None:
             first_wallpaper = next_wallpaper
+        elif first_wallpaper == next_wallpaper:
+            return next_wallpaper
 
 
 @utils.SingletonCallable
@@ -399,7 +400,8 @@ def _update_recent(item: win32.gui.MenuItem):
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_wallpaper, args=(
                             search_wallpaper, wallpaper, STRINGS.LABEL_GOOGLE, STRINGS.FAIL_SEARCH,)).set_icon(
                             RES_TEMPLATE.format(consts.RES_GOOGLE))
-                    with gui.set_main_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
+                    with gui.set_main_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_local(
+                            str(wallpaper)), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
                                               on_click=on_search, menu_args=(gui.MenuItemProperty.UID,), args=(
@@ -425,9 +427,10 @@ def on_auto_change(interval: int, after: Optional[float] = None):
         TIMER.stop()
 
 
-def on_modify_save() -> bool:
+def on_modify_save(set_tooltip: Callable) -> bool:
     if path := win32.select_folder(STRINGS.LABEL_SAVE_DIR, CONFIG[consts.CONFIG_DIR]):
         CONFIG[consts.CONFIG_DIR] = path
+        set_tooltip(path)
     else:
         notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)
@@ -704,8 +707,9 @@ def create_menu():  # TODO slideshow (smaller timer)
                                    consts.CONFIG_MAXIMIZED, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTOSAVE)
-            gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save).set_icon(
-                RES_TEMPLATE.format(consts.RES_SAVE_DIR))
+            item_dir = gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu_args=(gui.MenuItemMethod.SET_TOOLTIP,))
+            item_dir.set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
+            item_dir.set_tooltip(CONFIG[consts.CONFIG_DIR])
         gui.add_mapped_submenu(STRINGS.MENU_ANIMATION, {transition: getattr(
             STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CONFIG,
                                consts.CONFIG_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))

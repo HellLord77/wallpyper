@@ -1,6 +1,5 @@
 from __future__ import annotations as _
 
-import enum
 import ntpath
 import sys
 import threading
@@ -9,6 +8,7 @@ from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
+import libs.files as files
 import win32
 import win32._gdiplus as gdiplus
 from libs.ctyped import winrt
@@ -357,13 +357,10 @@ def _test_hook():
     proc.free_console()
 
 
-class En(enum.Enum):
-    V1 = 69
-    V2 = 420
-
-
 def _test():
-    print(str(En.V2))
+    tp = r'C:\Users\ratul\OneDrive\Pictures'
+    print(*files.iter_files(tp, True))
+    # print(gdiplus.image_is_valid(tp))
 
 
 if __name__ == '__main__':

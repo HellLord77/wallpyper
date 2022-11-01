@@ -10,7 +10,7 @@ from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
 import libs.ctyped as ctyped
 import libs.utils as utils
-from . import _utils, clipboard, console, display, gui
+from . import _gdiplus, _utils, clipboard, console, display, gui
 from ._utils import sanitize_filename
 
 _PIN_TIMEOUT = 3
@@ -42,6 +42,9 @@ class FocusAssistState(metaclass=utils.IntEnumMeta):
     OFF = 0
     PRIORITY_ONLY = 1
     ALARMS_ONLY = 2
+
+
+is_valid_image = _gdiplus.image_is_valid
 
 
 def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
