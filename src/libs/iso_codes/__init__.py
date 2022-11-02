@@ -1,29 +1,32 @@
-from __future__ import annotations as _
-
-__version__ = '0.0.3'  # https://salsa.debian.org/iso-codes-team/iso-codes
+__version__ = '0.0.4'  # https://salsa.debian.org/iso-codes-team/iso-codes
 
 import collections
 import json
 import os
 from typing import Optional
 
+_RAW_URL = 'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/'
+
 
 class _ISOMeta(type):
     _BASE_: collections.namedtuple
 
-    _iso = ''
+    _code = ''
     _items = None
 
     def __iter__(cls):
         if cls._items is None:
-            iso = cls._iso or f'{cls.__name__[3:-1]}-{cls.__name__[-1]}'
-            with open(os.path.join(os.path.dirname(__file__), f'iso_{iso}.json'), encoding='utf-8') as file:
-                cls._items = json.load(file)[iso]
+            path = cls._path()
+            with open(path, encoding='utf-8') as file:
+                cls._items = json.load(file)[os.path.basename(path)[4:-5]]
         # noinspection PyProtectedMember
         return (item[cls._BASE_._fields[0]] for item in cls._items)
 
     def __getitem__(cls, key: str):
         return cls.get(key)
+
+    def _path(cls) -> str:
+        return os.path.join(os.path.dirname(__file__), f'iso_{cls._code or f"{cls.__name__[3:-1]}-{cls.__name__[-1]}"}.json')
 
     def get(cls, *args, **kwargs):
         iter(cls)
@@ -119,7 +122,7 @@ class ISO31663(metaclass=_ISOMeta):
 
 
 class ISO4217(metaclass=_ISOMeta):
-    _iso = '4217'
+    _code = '4217'
     _BASE_ = collections.namedtuple('ISO_4217', ('alpha_3', 'name', 'numeric'))
 
     @classmethod
@@ -130,7 +133,7 @@ class ISO4217(metaclass=_ISOMeta):
 
 
 class ISO15924(metaclass=_ISOMeta):
-    _iso = '15924'
+    _code = '15924'
     _BASE_ = collections.namedtuple('ISO_15924', ('alpha_4', 'name', 'numeric'))
 
     @classmethod
@@ -152,3 +155,17 @@ class __Locale:
         if not isinstance(country, ISO31661._BASE_):
             country = ISO31661.get(country)
         return cls._BASE_(language, country, f'{language.alpha_2}-{country.alpha_2}', f'{language.name} - {country.name}')
+
+
+def _download_json():
+    import gc
+    import shutil
+    import urllib.parse
+    import urllib.request
+    for obj in gc.get_objects():
+        if isinstance(obj, _ISOMeta):
+            # noinspection PyProtectedMember
+            path = obj._path()
+            response = urllib.request.urlopen(urllib.parse.urljoin(_RAW_URL, os.path.basename(path)))
+            with open(path, 'wb') as file:
+                shutil.copyfileobj(response, file)

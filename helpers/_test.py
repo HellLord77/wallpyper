@@ -357,8 +357,7 @@ def _test_hook():
 
 
 def _test():
-    p = win32.select_folder()
-    print(p)
+    pass
 
 
 if __name__ == '__main__':

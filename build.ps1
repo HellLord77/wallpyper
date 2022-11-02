@@ -35,10 +35,15 @@ $CythonizeRemove = $True
 $CodeRunBefore = @(
 "from src.libs.ctyped.interface import _dump_pickle"
 "_dump_pickle()")
+$CodeRunBeforeRemote = @(
+"from src.libs.iso_codes import _download_json"
+"_download_json()"
+)
 $CodeRunAfter = @(
 "from os import remove"
 "remove('src\pipe.exe')"
 "remove('src\libs\ctyped\interface.pickle')")
+$CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(
 "src\libs\colornames\colornames.min.json"
 "src\libs\iso_codes\iso_*.json"
@@ -383,6 +388,10 @@ function Write-Build
     {
         Start-PythonCode $CodeRunBefore
     }
+    if ($IsGithub -and $CodeRunBeforeRemote)
+    {
+        Start-PythonCode $CodeRunBeforeRemote
+    }
 
     if ($MinifyLocalJson -or $IsGithub)
     {
@@ -468,6 +477,10 @@ function Write-Build
     if ($CodeRunAfter)
     {
         Start-PythonCode $CodeRunAfter
+    }
+    if ($IsGithub -and $CodeRunAfterRemote)
+    {
+        Start-PythonCode $CodeRunAfterRemote
     }
 }
 
