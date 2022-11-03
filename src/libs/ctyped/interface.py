@@ -198,11 +198,19 @@ def _set_interfaces(namespace, interfaces: dict[str, tuple[int, int] | dict], qu
         del interfaces[name]
 
 
-def _dump_json():
-    import json
-    interfaces = _get_interfaces(_sys.modules[__name__])
-    with open(_NAME_TEMPLATE.format('json'), 'w') as file:
-        json.dump({_get_hash(): interfaces}, file, separators=(',', ':'))
+if __debug__:
+    def _dump_json():
+        import json
+        interfaces = _get_interfaces(_sys.modules[__name__])
+        with open(_NAME_TEMPLATE.format('json'), 'w') as file:
+            json.dump({_get_hash(): interfaces}, file, separators=(',', ':'))
+
+
+    def _dump_pickle():
+        import pickle
+        interfaces = _get_interfaces(_sys.modules[__name__])
+        with open(_NAME_TEMPLATE.format('pickle'), 'wb') as file:
+            pickle.dump({_get_hash(): interfaces}, file, pickle.HIGHEST_PROTOCOL)
 
 
 def _load_json() -> bool:
@@ -218,13 +226,6 @@ def _load_json() -> bool:
             _set_interfaces(_sys.modules[__name__], interfaces)
             return True
     return False
-
-
-def _dump_pickle():
-    import pickle
-    interfaces = _get_interfaces(_sys.modules[__name__])
-    with open(_NAME_TEMPLATE.format('pickle'), 'wb') as file:
-        pickle.dump({_get_hash(): interfaces}, file, pickle.HIGHEST_PROTOCOL)
 
 
 def _load_pickle() -> bool:
@@ -249,9 +250,6 @@ def _init():
         _LINES = file.read().splitlines()
     _module = _sys.modules[__name__]
     if not _load_pickle() and not _load_json():
-        if not __debug__:
-            import warnings  # noqa
-            warnings.warn('Invalid cache')
         class_match = _re.compile(r'\s*class\s(\w*)(?:\((.*)\))?.*:').fullmatch
         _module._interfaces = {}
         level = 0

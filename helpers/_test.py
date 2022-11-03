@@ -361,8 +361,9 @@ def _test():
 
 
 if __name__ == '__main__':
-    _test()
-    # _test_hook()
+    import libs.iso_codes as iso_codes
+
+    iso_codes._download_json()
     exit()
 
     ctyped.FLAG_THREADED_COM = True

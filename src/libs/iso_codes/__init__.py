@@ -1,17 +1,14 @@
-__version__ = '0.0.4'  # https://salsa.debian.org/iso-codes-team/iso-codes
+__version__ = '0.0.5'  # https://salsa.debian.org/iso-codes-team/iso-codes
 
 import collections
 import json
 import os
 from typing import Optional
 
-_RAW_URL = 'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/'
-
 
 class _ISOMeta(type):
     _BASE_: collections.namedtuple
 
-    _code = ''
     _items = None
 
     def __iter__(cls):
@@ -26,7 +23,7 @@ class _ISOMeta(type):
         return cls.get(key)
 
     def _path(cls) -> str:
-        return os.path.join(os.path.dirname(__file__), f'iso_{cls._code or f"{cls.__name__[3:-1]}-{cls.__name__[-1]}"}.json')
+        return os.path.join(os.path.dirname(__file__), f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json')
 
     def get(cls, *args, **kwargs):
         iter(cls)
@@ -122,7 +119,6 @@ class ISO31663(metaclass=_ISOMeta):
 
 
 class ISO4217(metaclass=_ISOMeta):
-    _code = '4217'
     _BASE_ = collections.namedtuple('ISO_4217', ('alpha_3', 'name', 'numeric'))
 
     @classmethod
@@ -133,7 +129,6 @@ class ISO4217(metaclass=_ISOMeta):
 
 
 class ISO15924(metaclass=_ISOMeta):
-    _code = '15924'
     _BASE_ = collections.namedtuple('ISO_15924', ('alpha_4', 'name', 'numeric'))
 
     @classmethod
@@ -143,29 +138,16 @@ class ISO15924(metaclass=_ISOMeta):
     del get
 
 
-class __Locale:
-    _BASE_ = collections.namedtuple('Locale', ('language', 'country', 'tag', 'name'))
-
-    # noinspection PyProtectedMember
-    @classmethod
-    def get(cls, language: Optional[str | ISO6392._BASE_] = None,
-            country: Optional[str | ISO31661._BASE_] = None) -> _BASE_:
-        if not isinstance(language, ISO6392._BASE_):
-            language = ISO6392.get(alpha_2=language)
-        if not isinstance(country, ISO31661._BASE_):
-            country = ISO31661.get(country)
-        return cls._BASE_(language, country, f'{language.alpha_2}-{country.alpha_2}', f'{language.name} - {country.name}')
-
-
-def _download_json():
-    import gc
-    import shutil
-    import urllib.parse
-    import urllib.request
-    for obj in gc.get_objects():
-        if isinstance(obj, _ISOMeta):
-            # noinspection PyProtectedMember
-            path = obj._path()
-            response = urllib.request.urlopen(urllib.parse.urljoin(_RAW_URL, os.path.basename(path)))
-            with open(path, 'wb') as file:
-                shutil.copyfileobj(response, file)
+if __debug__:
+    def _download_json():
+        import gc
+        import urllib.parse
+        import urllib.request
+        for obj in gc.get_objects():
+            if isinstance(obj, _ISOMeta):
+                # noinspection PyProtectedMember
+                path = obj._path()
+                urllib.request.urlretrieve(urllib.parse.urljoin(
+                    'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/', os.path.basename(path)), path)
+                with open(path, encoding='utf-8') as file:
+                    json.load(file)
