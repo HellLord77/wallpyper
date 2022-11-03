@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.3.2'
+__version__ = '0.2.20'
 
 import builtins as _builtins
 import contextlib as _contextlib
@@ -113,7 +113,8 @@ def create_handler(handler: _Callable[[...], type.HRESULT], type: _builtins.type
     args = getattr(type, '_args', None)
     impl_name = type.__name__
     if args is not None:
-        impl_name = f'{impl_name.split("_", 1)[0]}_impl'
+        impl_name = impl_name.split("_", 1)[0]
+    impl_name = f'{impl_name}_impl'
     impl = getattr(_get_namespace(type), impl_name)
     if args is not None:
         impl = impl[tuple(args.values())]
@@ -122,7 +123,6 @@ def create_handler(handler: _Callable[[...], type.HRESULT], type: _builtins.type
 
 # noinspection PyProtectedMember
 def get_lib_path(library: lib._OleDLL | lib._PyDLL | lib._WinDLL) -> str:
-    lib._load(library)
     buff = type.LPWSTR('\0' * const.MAX_PATH)
     # noinspection PyUnresolvedReferences
     lib.kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)

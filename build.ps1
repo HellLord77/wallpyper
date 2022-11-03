@@ -32,17 +32,14 @@ $CythonizeGlobs = @(
 "src\*.py")
 # $CythonizeGlobs = @()
 $CythonizeRemove = $True
-$CodeRunBefore = @(
-"from src.libs.ctyped.interface import _dump_pickle"
-"_dump_pickle()")
+$CodeRunBefore = @()
 $CodeRunBeforeRemote = @(
 "from src.libs.iso_codes import _download_json"
 "_download_json()"
 )
 $CodeRunAfter = @(
 "from os import remove"
-"remove('src\pipe.exe')"
-"remove('src\libs\ctyped\interface.pickle')")
+"remove('src\pipe.exe')")
 $CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(
 "src\libs\colornames\colornames.min.json"
