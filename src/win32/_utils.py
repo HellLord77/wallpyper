@@ -4,6 +4,8 @@ from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
 
 import libs.ctyped as ctyped
 
+POLL_INTERVAL = 0.1
+
 
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
@@ -12,7 +14,7 @@ def get_dir(folderid: str) -> str:
     try:
         return buff.value
     finally:
-        ctyped.lib.ole32.CoTaskMemFree(buff)
+        ctyped.lib.Ole32.CoTaskMemFree(buff)
 
 
 @contextlib.contextmanager
@@ -201,3 +203,63 @@ def set_svg_doc_dimension(svg: ctyped.interface.ID2D1SvgDocument, width: float =
                 set_ = ctyped.macro.SUCCEEDED(root.SetAttributeValue_(
                     'height', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT, ref, size)) and set_
     return set_
+
+
+def get_variant_value(variant: ctyped.struct.VARIANT) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:
+    var_type = variant.U.S.vt
+    if var_type == ctyped.enum.VARENUM.EMPTY:
+        return
+    elif var_type == ctyped.enum.VARENUM.NULL:
+        return
+    elif var_type == ctyped.enum.VARENUM.I4:
+        return variant.U.S.U.intVal
+    elif var_type == ctyped.enum.VARENUM.R8:
+        return variant.U.S.U.dblVal
+    elif var_type == ctyped.enum.VARENUM.BSTR:
+        return ctyped.type.c_wchar_p.from_buffer(variant.U.S.U).value
+    elif var_type == ctyped.enum.VARENUM.DISPATCH:
+        dispatch = ctyped.interface.IDispatch()
+        dispatch.value = variant.U.S.U.pdispVal
+        return dispatch
+    elif var_type == ctyped.enum.VARENUM.BOOL:
+        return bool(variant.U.S.U.VARIANT_BOOL)
+
+
+@contextlib.contextmanager
+def get_bstr(string: Optional[str] = None) -> ContextManager[ctyped.type.BSTR]:
+    bstr = ctyped.type.BSTR() if string is None else ctyped.type.BSTR(ctyped.lib.OleAut32.SysAllocString(string))
+    try:
+        yield bstr
+    finally:
+        if bstr:
+            ctyped.lib.OleAut32.SysFreeString(bstr)
+
+
+# noinspection PyShadowingBuiltins
+def get_members(dispatch_ex: ctyped.interface.IDispatchEx, all: bool = False) -> dict[int, str]:
+    members = {}
+    disp_id = ctyped.type.DISPID(ctyped.const.DISPID_STARTENUM)
+    while ctyped.macro.SUCCEEDED(dispatch_ex.GetNextDispID(ctyped.const.fdexEnumAll if all else ctyped.const.fdexEnumDefault,
+                                                           disp_id, ctyped.byref(disp_id))) and disp_id.value > 0:
+        with get_bstr() as name:
+            dispatch_ex.GetMemberName(disp_id, ctyped.byref(name))
+            members[disp_id.value] = ctyped.type.c_wchar_p.from_buffer(name).value
+    return members
+
+
+def get_funcs(dispatch: ctyped.interface.IDispatch) -> dict[int, str]:
+    funcs = {}
+    with ctyped.init_com(ctyped.interface.ITypeInfo, False) as type_info:
+        if ctyped.macro.SUCCEEDED(dispatch.GetTypeInfo(0, ctyped.const.LOCALE_SYSTEM_DEFAULT, ctyped.byref(type_info))):
+            p_type_attr = ctyped.pointer(ctyped.struct.TYPEATTR)()
+            if ctyped.macro.SUCCEEDED(type_info.GetTypeAttr(ctyped.byref(p_type_attr))):
+                p_func_desc = ctyped.pointer(ctyped.struct.FUNCDESC)()
+                for index in range(p_type_attr.contents.cFuncs):
+                    if ctyped.macro.SUCCEEDED(type_info.GetFuncDesc(index, ctyped.byref(p_func_desc))):
+                        with get_bstr() as name:
+                            # noinspection PyTypeChecker
+                            type_info.GetDocumentation(p_func_desc.contents.memid, ctyped.byref(name), None, None, None)
+                            funcs[p_func_desc.contents.memid] = ctyped.type.c_wchar_p.from_buffer(name).value
+                        type_info.ReleaseFuncDesc(p_func_desc)
+                type_info.ReleaseTypeAttr(p_type_attr)
+    return funcs

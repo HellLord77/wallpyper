@@ -655,9 +655,9 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
         if size is None:
             size = self.get_property_item_size(id)
         if size is not None:
-            with ctyped.buffer(size) as buff:
-                if buff:
-                    property_item_ref = ctyped.cast(buff, ctyped.struct.PropertyItem)
+            with ctyped.buffer(size) as buffer:
+                if buffer:
+                    property_item_ref = ctyped.cast(buffer, ctyped.struct.PropertyItem)
                     if _GpStatus.Ok == _GdiPlus.GdipGetPropertyItem(self, id, size, property_item_ref):
                         yield property_item_ref.contents
                         return

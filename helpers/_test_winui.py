@@ -265,7 +265,7 @@ def main():
 
         def QueryInterface(self, riid: ctyped.Pointer[ctyped.struct.IID], ppvObject: ctyped.type.LPVOID) -> ctyped.type.HRESULT:
             val = ctyped.type.LPOLESTR()
-            ctyped.lib.ole32.StringFromIID(riid, ctyped.byref(val))
+            ctyped.lib.Ole32.StringFromIID(riid, ctyped.byref(val))
             print(val.value, ctyped.get_interface_name(val.value))
             if val.value == '{D20E4C28-F18B-491A-9A45-F1A04A9369A4}':
                 return super().QueryInterface(riid, ppvObject)

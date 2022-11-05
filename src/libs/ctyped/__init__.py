@@ -141,14 +141,14 @@ def get_guid(string: str) -> struct.GUID:
 
 @_contextlib.contextmanager
 def _prep_com(type_: _builtins.type[CT]) -> _ContextManager[CT]:
-    lib.ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if FLAG_THREADED_COM else lib.ole32.CoInitialize(None)
+    lib.Ole32.CoInitializeEx(None, enum.COINIT.MULTITHREADED.value) if FLAG_THREADED_COM else lib.Ole32.CoInitialize(None)
     obj = type_()
     try:
         yield obj
     finally:
         if obj:
             obj.Release()
-        lib.ole32.CoUninitialize()
+        lib.Ole32.CoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -157,7 +157,7 @@ def init_com(type: _builtins.type[CT], init: bool = True) -> _ContextManager[_Op
     with _prep_com(type) as obj:
         if init:
             # noinspection PyProtectedMember
-            if macro.FAILED(lib.ole32.CoCreateInstance(byref(get_guid(
+            if macro.FAILED(lib.Ole32.CoCreateInstance(byref(get_guid(
                     type._CLSID)), None, const.CLSCTX_ALL, *macro.IID_PPV_ARGS(obj))):
                 obj = None
         yield obj

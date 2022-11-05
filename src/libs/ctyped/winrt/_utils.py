@@ -128,7 +128,7 @@ class _Inspectable(_Unknown):
         if macro.SUCCEEDED(self[interface.IInspectable].GetIids(byref(count), byref(values))):
             # noinspection PyTypeChecker
             return tuple(value.value for index in range(count.value) if macro.SUCCEEDED(
-                lib.ole32.StringFromIID(values[index], byref(value))))
+                lib.Ole32.StringFromIID(values[index], byref(value))))
 
     def get_runtime_class_name(self) -> str:
         value = HSTRING()

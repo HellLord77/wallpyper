@@ -149,7 +149,7 @@ def _clsid_iid(path: str):
     with open(path) as file:
         data = file.read()
     name = ''
-    re_name = re.compile(r'EXTERN_C\sconst\s(CLSID|IID)\s((CLSID|IID)_.*);')
+    re_name = re.compile(r'EXTERN_C.*const\s(CLSID|IID)\s((CLSID|DIID|IID)_\w*).*;')
     re_iid = re.compile(r'.*(DECLSPEC_UUID|MIDL_INTERFACE)\("(.*)"\)')
     for line in data.splitlines():
         if match := re_name.match(line):
@@ -161,6 +161,21 @@ def _clsid_iid(path: str):
 def wincodec():
     print('# wincodec')
     _clsid_iid(os.path.join(SDK_PATH, 'um', 'wincodec.h'))
+
+
+def disp_ex():
+    print('# DispEx')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'DispEx.h'))
+
+
+def ex_disp():
+    print('# ExDisp')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'ExDisp.h'))
+
+
+def ms_html():
+    print('# MsHTML')
+    _clsid_iid(os.path.join(SDK_PATH, 'um', 'MsHTML.h'))
 
 
 def wincodec_codecs():
@@ -244,6 +259,11 @@ def desktopwindowxamlhost():
 def referencetracker():
     print('# windows.ui.xaml.hosting.referencetracker')
     _clsid_iid(os.path.join(SDK_PATH, 'um', 'windows.ui.xaml.hosting.referencetracker.h'))
+
+
+def WebView2():
+    print('# WebView2')
+    _clsid_iid(r'D:\Projects\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\packages\Microsoft.Web.WebView2.1.0.1418.22\build\native\include\WebView2.h')
 
 
 def _print_iids(interfaces: dict[str, dict] | dict[tuple[str, str] | list[str]], iids: dict[str, str], indent: str = '    '):
@@ -840,7 +860,7 @@ class GdiPlus:
 
 if __name__ == '__main__':
     # TODO cl /d1 reportAllClassLayout testVS.cpp
-    shldisp()
+    disp_ex()
     # noinspection PyUnresolvedReferences
     # from libs.ctyped import winrt
     #

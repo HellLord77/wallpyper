@@ -8,6 +8,7 @@ from typing import Callable, TypeVar
 from typing import Optional
 
 import libs.ctyped as ctyped
+import libs.request as request
 import win32
 import win32._gdiplus as gdiplus
 from libs.ctyped import winrt
@@ -311,7 +312,7 @@ def _test_load_string_from_lib():
     print(buff.value)
 
 
-code = r'''import ctypes
+py_code = r'''import ctypes
 # import libs.ctyped as ctyped
 pid = ctypes.windll.kernel32.GetCurrentProcessId()
 ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})', 'Hello from Python', 0x1000)'''
@@ -356,14 +357,70 @@ def _test_hook():
     proc.free_console()
 
 
+# url = 'https://500px.com/popular/'
+url = 'https://www.w3schools.com/html/tryit.asp?filename=tryhtml_scripts_intro'
+scroll_to_bottom = 'window.scrollTo(0, document.body.scrollHeight)'
+
+
 def _test():
-    pass
+    response = request.open(url)
+    print(response.get_text())
+
+
+class BSTR(ctyped.type.BSTR):
+    # noinspection PyMissingConstructor
+    def __init__(self, string: Optional[str] = None, size: Optional[int] = None):
+        if size is not None:
+            ctyped.lib.OleAut32.SysAllocStringLen(string, size)
+        elif string is not None:
+            self.value = ctyped.lib.OleAut32.SysAllocString(string)
+
+    def __del__(self):
+        if self:
+            ctyped.lib.OleAut32.SysFreeString(self)
+
+    def __str__(self):
+        return ctyped.type.c_wchar_p.from_buffer(self).value
+
+    def __len__(self):
+        return ctyped.lib.OleAut32.SysStringLen(self)
+
+
+js_code = '''('b' + 'a' + + 'a' + 'a').toLowerCase();'''
+
+
+class DispTest(ctyped.interface.IDispatch_impl):
+    def __call__(self, *args, **kwargs):
+        print(self, args, kwargs)
+        return ctyped.const.NOERROR
+
+
+def _webbrowser():
+    handler = DispTest()
+    browser = win32.browser.Browser(url)
+    browser._show()
+    browser.wait()
+
+    # doc = browser._browser.document.obj
+    # print(doc, doc.value)
+    # variant = ctyped.struct.VARIANT()
+    # variant.U.S.vt = ctyped.enum.VARENUM.DISPATCH.value
+    # variant.U.S.U.pdispVal = handler
+    # print(doc.put_onmousemove(variant))
+    # ctyped.lib.OleAut32.VariantClear(ctyped.byref(variant))
+    # del doc
+
+    print(browser.get_title())
+    # print(len(browser.get_html()))
+    # r = browser.eval_js(js_code)
+    # print(r, type(r))
+    time.sleep(3)
 
 
 if __name__ == '__main__':
-    import libs.iso_codes as iso_codes
-
-    iso_codes._download_json()
+    ctyped.lib.Ole32.CoInitialize(None)
+    # _test()
+    _webbrowser()
     exit()
 
     ctyped.FLAG_THREADED_COM = True
@@ -374,13 +431,13 @@ if __name__ == '__main__':
     event = threading.Event()
 
 
-    def handler(*_):
+    def handler_(*_):
         event.set()
         print(*_)
         return 0
 
 
-    op.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handler)
+    op.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handler_)
     event.wait()
     in_stream = op.get_results()
     print(in_stream.size)
@@ -388,7 +445,7 @@ if __name__ == '__main__':
     open(path2, 'w').close()
     op_out = winrt.Windows.Storage.Streams.FileRandomAccessStream.open_async(path2, ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite)
     event.clear()
-    op_out.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handler)
+    op_out.completed = winrt.Windows.Foundation.AsyncOperationCompletedHandlerRandomAccessStream.create_instance(handler_)
     event.wait()
     out_stream = op_out.get_results()
 
@@ -401,7 +458,7 @@ if __name__ == '__main__':
     op_copy = winrt.Windows.Storage.Streams.RandomAccessStream.copy_async(in_stream, out_stream)
     event.clear()
     op_copy.progress = winrt.Windows.Foundation.AsyncOperationProgressHandlerUINT64UINT64.create_instance(progress)
-    op_copy.completed = winrt.Windows.Foundation.AsyncOperationWithProgressCompletedHandlerUINT64UINT64.create_instance(handler)
+    op_copy.completed = winrt.Windows.Foundation.AsyncOperationWithProgressCompletedHandlerUINT64UINT64.create_instance(handler_)
     event.wait()
 
     in_stream.close()

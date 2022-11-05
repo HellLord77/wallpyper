@@ -207,7 +207,7 @@ def __uuidof(_: _interface.IUnknown | type[_interface.IUnknown] | _interface.IUn
         _ = type(_)
     iid = _struct.IID()
     # noinspection PyTypeChecker
-    _lib.ole32.IIDFromString(getattr(_get_namespace(_, _const), f'IID_{_.__name__.removesuffix("_impl")}'), _ctypes.byref(iid))
+    _lib.Ole32.IIDFromString(getattr(_get_namespace(_, _const), f'IID_{_.__name__.removesuffix("_impl")}'), _ctypes.byref(iid))
     return iid
 
 

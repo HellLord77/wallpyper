@@ -16,7 +16,7 @@ def bench():
     tracemalloc.start()
     with timeit():
         # noinspection PyUnresolvedReferences
-        from libs import ctyped  # < 0.8s -> 0.5s -> 0.3s
+        from libs import ctyped  # < 0.8s -> 0.5s -> 0.3s -> 1.6s
     print(tracemalloc.get_tracemalloc_memory() / (1024 * 1024), 'MB')
     tracemalloc.stop()
 

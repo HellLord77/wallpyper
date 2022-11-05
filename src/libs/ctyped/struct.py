@@ -714,6 +714,119 @@ class VARIANT:
     U: _union.VARIANT_U = None
 
 
+@_struct
+class DISPPARAMS:
+    rgvarg: _Pointer[VARIANTARG] = None
+    rgdispidNamedArgs: _Pointer[_type.DISPID] = None
+    cArgs: _type.UINT = None
+    cNamedArgs: _type.UINT = None
+
+
+@_struct
+class EXCEPINFO:
+    wCode: _type.WORD = None
+    wReserved: _type.WORD = None
+    bstrSource: _type.BSTR = None
+    bstrDescription: _type.BSTR = None
+    bstrHelpFile: _type.BSTR = None
+    dwHelpContext: _type.DWORD = None
+    pvReserved: _type.ULONG_PTR = None
+    pfnDeferredFillIn: _type.ULONG_PTR = None
+    scode: _type.SCODE = None
+
+
+@_struct
+class SAFEARRAYBOUND:
+    cElements: _type.ULONG = None
+    lLbound: _type.LONG = None
+
+
+@_struct
+class TYPEDESC:
+    U: _type.TYPEDESC_U = None
+    vt: _type.VARTYPE = None
+
+
+@_struct
+class ARRAYDESC:
+    tdescElem: TYPEDESC = None
+    cDims: _type.USHORT = None
+    # noinspection PyTypeChecker
+    rgbounds: SAFEARRAYBOUND * 1 = None
+
+
+@_struct
+class PARAMDESCEX:
+    cBytes: _type.ULONG = None
+    varDefaultValue: VARIANTARG = None
+
+
+@_struct
+class PARAMDESC:
+    pparamdescex: _Pointer[PARAMDESCEX] = None
+    wParamFlags: _type.USHORT = None
+
+
+@_struct
+class IDLDESC:
+    dwReserved: _type.ULONG_PTR = None
+    wIDLFlags: _type.USHORT = None
+
+
+@_struct
+class ELEMDESC:
+    tdesc: TYPEDESC = None
+    U: _union.ELEMDESC_U = None
+
+
+@_struct
+class TYPEATTR:
+    guid: GUID = None
+    lcid: _type.LCID = None
+    dwReserved: _type.DWORD = None
+    memidConstructor: _type.MEMBERID = None
+    memidDestructor: _type.MEMBERID = None
+    lpstrSchema: _type.LPOLESTR = None
+    cbSizeInstance: _type.ULONG = None
+    typekind: _enum.TYPEKIND = None
+    cFuncs: _type.WORD = None
+    cVars: _type.WORD = None
+    cImplTypes: _type.WORD = None
+    cbSizeVft: _type.WORD = None
+    cbAlignment: _type.WORD = None
+    wTypeFlags: _type.WORD = None
+    wMajorVerNum: _type.WORD = None
+    wMinorVerNum: _type.WORD = None
+    tdescAlias: TYPEDESC = None
+    idldescType: IDLDESC = None
+
+
+@_struct
+class FUNCDESC:
+    memid: _type.MEMBERID = None
+    lprgscode: _Pointer[_type.SCODE] = None
+    lprgelemdescParam: _Pointer[ELEMDESC] = None
+    funckind: _enum.FUNCKIND = None
+    invkind: _enum.INVOKEKIND = None
+    callconv: _enum.CALLCONV = None
+    cParams: _type.SHORT = None
+    cParamsOpt: _type.SHORT = None
+    oVft: _type.SHORT = None
+    cScodes: _type.SHORT = None
+    elemdescFunc: ELEMDESC = None
+    wFuncFlags: _type.WORD = None
+
+
+@_struct
+class VARDESC:
+    memid: _type.MEMBERID = None
+    lpstrSchema: _type.LPOLESTR = None
+    U: _union.VARDESC_U = None
+    elemdescVar: ELEMDESC = None
+    wVarFlags: _type.WORD = None
+    varkind: _enum.VARKIND = None
+
+
 # noinspection PyPep8Naming
 @_struct
 class SP_DEVINFO_DATA:

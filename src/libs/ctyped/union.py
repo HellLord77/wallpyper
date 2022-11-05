@@ -95,8 +95,13 @@ class VARIANT_U_S_U:
     iVal: _type.SHORT
     fltVal: _type.FLOAT
     dblVal: _type.DOUBLE
+    boolVal: _type.VARIANT_BOOL
+    VARIANT_BOOL: _type.VARIANT_BOOL
+    scode: _type.SCODE
     ...
     bstrVal: _type.BSTR
+    punkVal: _type.IUnknown
+    pdispVal: _type.IDispatch
     ...
     pbVal: _Pointer[_type.BYTE]
     piVal: _Pointer[_type.SHORT]
@@ -177,6 +182,28 @@ class SHELLEXECUTEINFO_U:
 class PACKAGE_VERSION_U:
     Version: _type.UINT64
     S: _struct.PACKAGE_VERSION_U_S
+
+
+# noinspection PyPep8Naming
+@_union
+class TYPEDESC_U:
+    lptdesc: _Pointer[_struct.TYPEDESC]
+    lpadesc: _Pointer[_struct.ARRAYDESC]
+    hreftype: _type.HREFTYPE
+
+
+# noinspection PyPep8Naming
+@_union
+class ELEMDESC_U:
+    idldesc: _struct.IDLDESC
+    paramdesc: _struct.PARAMDESC
+
+
+# noinspection PyPep8Naming
+@_union
+class VARDESC_U:
+    oInst: _type.ULONG
+    lpvarValue: _Pointer[_struct.VARIANT]
 
 
 # noinspection PyPep8Naming

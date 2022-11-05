@@ -5597,8 +5597,7 @@ class ntdll(_FuncMixin, metaclass=_WinDLL):
                                            _type.NTSTATUS]
 
 
-# noinspection PyPep8Naming
-class ole32(_FuncMixin, metaclass=_WinDLL):
+class Ole32(_FuncMixin, metaclass=_WinDLL):
     # combaseapi
     CLSIDFromString: _Callable[[_type.LPCOLESTR,
                                 _Pointer[_struct.CLSID]],
@@ -5618,6 +5617,26 @@ class ole32(_FuncMixin, metaclass=_WinDLL):
                              _type.c_void]
     CoUninitialize: _Callable[[],
                               _type.VOID]
+    CoIsHandlerConnected: _Callable[[_interface.IUnknown],  # pUnk
+                                    _type.BOOL]
+    CoMarshalInterThreadInterfaceInStream: _Callable[[_Pointer[_struct.IID],  # riid
+                                                      _interface.IUnknown,  # pUnk
+                                                      _Pointer[_interface.IStream]],  # ppStm
+                                                     _type.HRESULT]
+    CoGetInterfaceAndReleaseStream: _Callable[[_interface.IStream,  # pStm
+                                               _Pointer[_struct.IID],  # riid
+                                               _type.LPVOID],  # ppv
+                                              _type.HRESULT]
+    CoCreateFreeThreadedMarshaler: _Callable[[_interface.IUnknown,  # punkOuter
+                                              _Pointer[_type.IUnknown]],  # ppunkMarshal
+                                             _type.HRESULT]
+    CoFreeUnusedLibraries: _Callable[[],
+                                     _type.c_void]
+    CoFreeUnusedLibrariesEx: _Callable[[_type.DWORD,  # dwUnloadDelay
+                                        _type.DWORD],  # dwReserved
+                                       _type.c_void]
+    CoDisconnectContext: _Callable[[_type.DWORD],  # dwTimeout
+                                   _type.HRESULT]
     IIDFromString: _Callable[[_type.LPCOLESTR,
                               _Pointer[_struct.IID]],
                              _type.HRESULT]
@@ -5672,9 +5691,34 @@ class oleacc(_FuncMixin, metaclass=_WinDLL):
                              _type.UINT]
 
 
-# noinspection PyPep8Naming
-class oleaut32(_FuncMixin, metaclass=_WinDLL):
+class OleAut32(_FuncMixin, metaclass=_WinDLL):
     # oleauto
+    SysAllocString: _Callable[[_Optional[_type.LPCOLESTR]],  # psz
+                              _type.BSTR]
+    SysReAllocString: _Callable[[_Optional[_Pointer[_type.BSTR]],  # pbstr
+                                 _Optional[_type.LPCOLESTR]],  # psz
+                                _type.INT]
+    SysAllocStringLen: _Callable[[_Optional[_type.LPCOLESTR],  # strIn
+                                  _type.UINT],  # ui
+                                 _type.BSTR]
+    SysReAllocStringLen: _Callable[[_Optional[_Pointer[_type.BSTR]],  # pbstr
+                                    _Optional[_type.LPCOLESTR],  # psz
+                                    _type.c_uint],  # len
+                                   _type.INT]
+    SysAddRefString: _Callable[[_type.BSTR],  # bstrString
+                               _type.HRESULT]
+    SysReleaseString: _Callable[[_type.BSTR],  # bstrString
+                                _type.c_void]
+    SysFreeString: _Callable[[_Optional[_type.BSTR]],  # pbstr
+                             _type.UINT]
+    SysStringLen: _Callable[[_Optional[_type.BSTR]],  # pbstr
+                            _type.UINT]
+    SysStringByteLen: _Callable[[_Optional[_type.BSTR]],  # pbstr
+                                _type.c_void]
+    SysAllocStringByteLen: _Callable[[_Optional[_type.LPCSTR],  # psz
+                                      _type.UINT],  # len
+                                     _type.BSTR]
+    # TODO
     VariantChangeType: _Callable[[_Pointer[_struct.VARIANTARG],
                                   _Pointer[_struct.VARIANTARG],
                                   _type.USHORT,
@@ -7608,8 +7652,7 @@ class user32(_FuncMixin, metaclass=_WinDLL):
                             _type.HWND]
 
 
-# noinspection PyPep8Naming
-class uxtheme(_FuncMixin, metaclass=_WinDLL):
+class UXTheme(_FuncMixin, metaclass=_WinDLL):
     OpenNcThemeData: _Callable[[_type.HWND,  # hWnd
                                 _type.LPCWSTR],  # pszClassList
                                _type.HTHEME] = 49
@@ -7914,6 +7957,101 @@ class uxtheme(_FuncMixin, metaclass=_WinDLL):
                                       _type.LONG,
                                       _type.BOOL],
                                      _type.BOOL]
+
+
+class WebView2Loader(_FuncMixin, metaclass=_WinDLL):
+    # WebView2
+    CreateCoreWebView2EnvironmentWithOptions: _Callable[[_type.PCWSTR,  # browserExecutableFolder
+                                                         _type.PCWSTR,  # userDataFolder
+                                                         _interface.ICoreWebView2EnvironmentOptions,  # environmentOptions
+                                                         _interface.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler],  # environmentCreatedHandler
+                                                        _type.HRESULT]
+    CreateCoreWebView2Environment: _Callable[[_interface.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler],  # environmentCreatedHandler
+                                             _type.HRESULT]
+    GetAvailableCoreWebView2BrowserVersionString: _Callable[[_type.PCWSTR,  # browserExecutableFolder
+                                                             _Pointer[_type.LPWSTR]],  # versionInfo
+                                                            _type.HRESULT]
+    CompareBrowserVersions: _Callable[[_type.PCWSTR,  # version1
+                                       _type.PCWSTR,  # version2
+                                       _Pointer[_type.c_int]],  # result
+                                      _type.HRESULT]
+
+
+class WinINet(_FuncMixin, metaclass=_WinDLL):
+    # wininet
+    InternetCloseHandle: _Callable[[_type.HINTERNET],  # hInternet
+                                   _type.BOOLAPI]
+    InternetSetOptionA: _Callable[[_Optional[_type.HINTERNET],  # hInternet
+                                   _type.DWORD,  # dwOption
+                                   _Optional[_type.LPVOID],  # lpBuffer
+                                   _type.DWORD],  # dwBufferLength
+                                  _type.BOOLAPI]
+    InternetSetOptionW: _Callable[[_Optional[_type.HINTERNET],  # hInternet
+                                   _type.DWORD,  # dwOption
+                                   _Optional[_type.LPVOID],  # lpBuffer
+                                   _type.DWORD],  # dwBufferLength
+                                  _type.BOOLAPI]
+    InternetSetOptionExA: _Callable[[_Optional[_type.HINTERNET],  # hInternet
+                                     _type.DWORD,  # dwOption
+                                     _Optional[_type.LPVOID],  # lpBuffer
+                                     _type.DWORD,  # dwBufferLength
+                                     _type.DWORD],  # dwFlags
+                                    _type.BOOLAPI]
+    InternetSetOptionExW: _Callable[[_Optional[_type.HINTERNET],  # hInternet
+                                     _type.DWORD,  # dwOption
+                                     _Optional[_type.LPVOID],  # lpBuffer
+                                     _type.DWORD,  # dwBufferLength
+                                     _type.DWORD],  # dwFlags
+                                    _type.BOOLAPI]
+    InternetLockRequestFile: _Callable[[_type.HINTERNET,  # hInternet
+                                        _Pointer[_type.HANDLE]],  # lphLockRequestInfo
+                                       _type.BOOLAPI]
+    InternetUnlockRequestFile: _Callable[[_type.HANDLE],  # hLockRequestInfo
+                                         _type.BOOLAPI]
+    InternetSetCookieA: _Callable[[_type.LPCSTR,  # lpszUrl
+                                   _Optional[_type.LPCSTR],  # lpszCookieName
+                                   _type.LPCSTR],  # lpszCookieData
+                                  _type.BOOLAPI]
+    InternetSetCookieW: _Callable[[_type.LPCWSTR,  # lpszUrl
+                                   _Optional[_type.LPCWSTR],  # lpszCookieName
+                                   _type.LPCWSTR],  # lpszCookieData
+                                  _type.BOOLAPI]
+    InternetGetCookieA: _Callable[[_type.LPCSTR,  # lpszUrl
+                                   _Optional[_type.LPCSTR],  # lpszCookieName
+                                   _type.LPSTR,  # lpszCookieData
+                                   _Pointer[_type.DWORD]],  # lpdwSize
+                                  _type.BOOLAPI]
+    InternetGetCookieW: _Callable[[_type.LPCWSTR,  # lpszUrl
+                                   _Optional[_type.LPCWSTR],  # lpszCookieName
+                                   _type.LPWSTR,  # lpszCookieData
+                                   _Pointer[_type.DWORD]],  # lpdwSize
+                                  _type.BOOLAPI]
+    InternetSetCookieExA: _Callable[[_type.LPCSTR,  # lpszUrl
+                                     _Optional[_type.LPCSTR],  # lpszCookieName
+                                     _type.LPCSTR,  # lpszCookieData
+                                     _type.DWORD,  # dwFlags
+                                     _Optional[_type.DWORD_PTR]],  # dwReserved
+                                    _type.DWORD]
+    InternetSetCookieExW: _Callable[[_type.LPCWSTR,  # lpszUrl
+                                     _Optional[_type.LPCWSTR],  # lpszCookieName
+                                     _type.LPCWSTR,  # lpszCookieData
+                                     _type.DWORD,  # dwFlags
+                                     _Optional[_type.DWORD_PTR]],  # dwReserved
+                                    _type.DWORD]
+    InternetGetCookieExA: _Callable[[_type.LPCSTR,  # lpszUrl
+                                     _Optional[_type.LPCSTR],  # lpszCookieName
+                                     _type.LPSTR,  # lpszCookieData
+                                     _Pointer[_type.DWORD],  # lpdwSize
+                                     _type.DWORD,  # dwFlags
+                                     _type.LPVOID],  # lpReserved
+                                    _type.BOOLAPI]
+    InternetGetCookieExW: _Callable[[_type.LPCWSTR,  # lpszUrl
+                                     _Optional[_type.LPCWSTR],  # lpszCookieName
+                                     _type.LPWSTR,  # lpszCookieData
+                                     _Pointer[_type.DWORD],  # lpdwSize
+                                     _type.DWORD,  # dwFlags
+                                     _type.LPVOID],  # lpReserved
+                                    _type.BOOLAPI]
 
 
 class Microsoft:

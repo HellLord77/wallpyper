@@ -51,7 +51,6 @@ c_void = c_void_p
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
 
-BSTR = c_wchar_p
 LPCCH = c_char_p
 LPCH = c_char_p
 LPCSTR = c_char_p
@@ -106,6 +105,10 @@ LONG = c_long
 LONGLONG = c_int64
 REAL = c_float
 RPC_STATUS = c_long
+SHANDLE_PTR = c_int64
+HANDLE_PTR = c_uint64
+UHALF_PTR = c_uint
+HALF_PTR = c_int
 SHORT = c_short
 UCHAR = c_uchar
 UINT = c_uint
@@ -169,13 +172,18 @@ GLclampf = c_float
 GLdouble = c_double
 GLclampd = c_double
 GLvoid = c_void
+# wtypes
+BSTR = _obj_p
 
 _enum = c_int
 DebugEventLevel = _enum
 EmfPlusRecordType = _enum
 
-_interface = c_void_p
-IDWriteFontFace = _interface
+# circular import
+TYPEDESC_U = DWORD
+IUnknown = c_void_p
+IDispatch = c_void_p
+IDWriteFontFace = c_void_p
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -188,6 +196,7 @@ ACCESS_MASK = DWORD
 ARGB = DWORD
 ATOM = WORD
 BOOLEAN = BYTE
+BOOLAPI = BOOL
 COLORREF = DWORD
 D2D1_TAG = UINT64
 DEVINST = DWORD
@@ -197,6 +206,8 @@ DEVPROPTYPE = ULONG
 DLL_DIRECTORY_COOKIE = PVOID
 DWORDLONG = ULONGLONG
 DWORD_PTR = ULONG_PTR
+DISPID = LONG
+HREFTYPE = DWORD
 FARPROC = INT_PTR
 HANDLE = PVOID
 GraphicsState = UINT
@@ -208,7 +219,6 @@ LANGID = WORD
 LCID = DWORD
 LP = LPWSTR
 LPARAM = LONG_PTR
-LPOLESTR = LPWSTR
 LRESULT = LONG_PTR
 LSTATUS = LONG
 MENUTEMPLATEA = VOID
@@ -229,6 +239,13 @@ STDAPI = HRESULT
 WINOLECTLAPI = HRESULT
 WNF_CHANGE_STAMP = ULONG
 WPARAM = UINT_PTR
+
+# noinspection PyProtectedMember
+OLECHAR = WCHAR if _const._WIN32 and not _const.OLE2ANSI else c_char
+# noinspection PyProtectedMember
+LPOLESTR = LPWSTR if _const._WIN32 and not _const.OLE2ANSI else LPSTR
+# noinspection PyProtectedMember
+LPCOLESTR = LPCWSTR if _const._WIN32 and not _const.OLE2ANSI else LPCSTR
 
 APARTMENT_SHUTDOWN_REGISTRATION_COOKIE = HANDLE
 HACCEL = HANDLE
@@ -257,6 +274,7 @@ HPALETTE = HANDLE
 HPEN = HANDLE
 HRGN = HANDLE
 HRSRC = HANDLE
+HINTERNET = HANDLE
 HSTR = HANDLE
 HSTRING = HANDLE
 HSTRING_BUFFER = HANDLE
@@ -277,9 +295,9 @@ PROPVAR_PAD3 = ULONG if _const.MIDL_PASS else WORD
 ARGB64 = DWORDLONG
 CONFIGRET = RETURN_TYPE
 HCURSOR = HICON
-LPCOLESTR = LPOLESTR
 REGSAM = DWORD
 SHSTDAPI = STDAPI
+MEMBERID = DISPID
 
 LPCSTR_PROXY = ULONG_PTR
 LPCWSTR_PROXY = ULONG_PTR

@@ -1,4 +1,4 @@
-__version__ = '0.0.27'
+__version__ = '0.0.28'
 
 import contextlib
 import ntpath
@@ -10,11 +10,10 @@ from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
 import libs.ctyped as ctyped
 import libs.utils as utils
-from . import _gdiplus, _utils, clipboard, console, display, gui
+from . import _gdiplus, _utils, browser, clipboard, console, display, gui
 from ._utils import sanitize_filename
 
 _PIN_TIMEOUT = 3
-_POLL_INTERVAL = 0.1
 _APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
 _STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
 _TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
@@ -49,9 +48,9 @@ is_valid_image = _gdiplus.image_is_valid
 
 def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
     # noinspection PyTypeChecker
-    ctyped.lib.uxtheme.SetPreferredAppMode(mode)
+    ctyped.lib.UXTheme.SetPreferredAppMode(mode)
     if flush:
-        ctyped.lib.uxtheme.FlushMenuThemes()
+        ctyped.lib.UXTheme.FlushMenuThemes()
 
 
 def get_focus_assist_state() -> int:
@@ -103,7 +102,7 @@ def _get_str_ex_props(path_or_interface: str | ctyped.interface.IShellLinkA | ct
                     prop_store.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
                         ctyped.get_guid(key[0]), key[1])), var_ref)
                 vals.append(var.U.S.U.pwszVal)
-                ctyped.lib.ole32.PropVariantClear(var_ref)
+                ctyped.lib.Ole32.PropVariantClear(var_ref)
     return tuple(vals)
 
 
@@ -390,10 +389,10 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
             pict_desc = ctyped.struct.PICTDESC(picType=ctyped.const.PICTYPE_BITMAP)
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
-            ctyped.lib.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
+            ctyped.lib.OleAut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
             with ctyped.cast_com(picture, ctyped.interface.IPictureDisp) as picture_disp:
                 try:
-                    ctyped.lib.oleaut32.OleSavePictureFile(picture_disp, path)
+                    ctyped.lib.OleAut32.OleSavePictureFile(picture_disp, path)
                 except OSError:
                     pass
                 else:
@@ -418,11 +417,11 @@ def get_direct_show_devices_properties(
                                 var_ref = ctyped.byref(var)
                                 props.clear()
                                 for prop_name in prop_names:
-                                    ctyped.lib.oleaut32.VariantInit(var_ref)
+                                    ctyped.lib.OleAut32.VariantInit(var_ref)
                                     with contextlib.suppress(FileNotFoundError):
                                         prop_bag.Read(prop_name, var_ref, None)
                                     props.append(var.U.S.U.bstrVal)
-                                    ctyped.lib.oleaut32.VariantClear(var_ref)
+                                    ctyped.lib.OleAut32.VariantClear(var_ref)
                                 devices.append(tuple(props))
     return tuple(devices)
 
@@ -511,7 +510,7 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
                 path = ntpath.join(START_DIR, f'{name}{LINK_EXT}')
             end_time = time.time() + _PIN_TIMEOUT
             while end_time > time.time() and not ntpath.isfile(cur_path):
-                time.sleep(_POLL_INTERVAL)
+                time.sleep(_utils.POLL_INTERVAL)
             if ntpath.isfile(cur_path):
                 os.replace(cur_path, path)
                 if args or icon_path or icon_index or not show:
