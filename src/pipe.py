@@ -7,6 +7,8 @@ import sys
 import time
 
 
+# FIXME Fatal Python error: init_fs_encoding: failed to get the Python codec of the filesystem encoding (3.11)
+
 # noinspection PyPep8Naming
 class ctyped:
     sizeof = ctypes.sizeof
@@ -80,8 +82,7 @@ class _NamedPipe(ctyped.type.HANDLE):
     _size: int
     _base: bytes | str
 
-    _pipe_mode = (ctyped.const.PIPE_TYPE_BYTE | ctyped.const.PIPE_READMODE_BYTE |
-                  ctyped.const.PIPE_WAIT | ctyped.const.PIPE_ACCEPT_REMOTE_CLIENTS)
+    _pipe_mode = (ctyped.const.PIPE_TYPE_BYTE | ctyped.const.PIPE_READMODE_BYTE | ctyped.const.PIPE_WAIT | ctyped.const.PIPE_ACCEPT_REMOTE_CLIENTS)
 
     def __init__(self, name: str):
         self._name = ntpath.join(_DIR, name)
@@ -100,8 +101,7 @@ class _NamedPipe(ctyped.type.HANDLE):
         return bool(ctyped.lib.kernel32.WaitNamedPipeW(self._name, int(timeout * 1000)))
 
     def create(self, read: bool = True, write: bool = False) -> bool:
-        open_mode = ((read * ctyped.const.PIPE_ACCESS_INBOUND) |
-                     (write * ctyped.const.PIPE_ACCESS_OUTBOUND) | ctyped.const.FILE_FLAG_FIRST_PIPE_INSTANCE)
+        open_mode = ((read * ctyped.const.PIPE_ACCESS_INBOUND) | (write * ctyped.const.PIPE_ACCESS_OUTBOUND) | ctyped.const.FILE_FLAG_FIRST_PIPE_INSTANCE)
         self.value = ctyped.lib.kernel32.CreateNamedPipeW(self._name, open_mode, self._pipe_mode, 1, 0, 0, 0, None)
         return bool(self)
 

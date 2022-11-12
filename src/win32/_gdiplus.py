@@ -4,7 +4,7 @@ import contextlib
 import math
 import ntpath
 import string as _string
-from typing import Callable, ContextManager, Generator, Literal, Optional, Self
+from typing import Callable, ContextManager, Generator, Literal, Optional
 
 import libs.ctyped as ctyped
 from . import _utils
@@ -59,7 +59,7 @@ class _GdiplusBase:
     def __hash__(self):
         return id(self)
 
-    def __enter__(self) -> _GdiplusBase:  # TODO typing.Self
+    def __enter__(self) -> _GdiplusBase:
         return self
 
     def __exit__(self, *_):
@@ -71,13 +71,13 @@ class _GdiplusBase:
 
 class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
     @classmethod
-    def from_hdc(cls, hdc: ctyped.type.HDC) -> Self:
+    def from_hdc(cls, hdc: ctyped.type.HDC) -> Graphics:
         self = cls()
         _GdiPlus.GdipCreateFromHDC(hdc, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_image(cls, image: ctyped.type.GpImage) -> Self:
+    def from_image(cls, image: ctyped.type.GpImage) -> Graphics:
         self = cls()
         _GdiPlus.GdipGetImageGraphicsContext(image, ctyped.byref(self))
         return self
@@ -326,7 +326,7 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
 
 class Brush(_GdiplusBase, ctyped.type.GpBrush):
     @classmethod
-    def from_brush(cls, brush: ctyped.type.GpBrush) -> Self:
+    def from_brush(cls, brush: ctyped.type.GpBrush) -> Brush:
         self = cls()
         _GdiPlus.GdipCloneBrush(brush, ctyped.byref(self))
         return self
@@ -342,7 +342,7 @@ class Brush(_GdiplusBase, ctyped.type.GpBrush):
 
 class SolidBrush(Brush, ctyped.type.GpSolidFill):
     @classmethod
-    def from_color(cls, color: ctyped.type.ARGB) -> Self:
+    def from_color(cls, color: ctyped.type.ARGB) -> SolidBrush:
         self = cls()
         _GdiPlus.GdipCreateSolidFill(color, ctyped.byref(self))
         return self
@@ -359,20 +359,20 @@ class SolidBrush(Brush, ctyped.type.GpSolidFill):
 class Pen(_GdiplusBase, ctyped.type.GpPen):
     @classmethod
     def from_color(cls, color: ctyped.type.ARGB, width: float = 1,
-                   unit: ctyped.enum.GpUnit = ctyped.enum.GpUnit.Pixel) -> Self:
+                   unit: ctyped.enum.GpUnit = ctyped.enum.GpUnit.Pixel) -> Pen:
         self = cls()
         _GdiPlus.GdipCreatePen1(color, width, unit, ctyped.byref(self))
         return self
 
     @classmethod
     def from_brush(cls, brush: ctyped.type.GpBrush, width: float = 1,
-                   unit: ctyped.enum.Unit = ctyped.enum.Unit.World) -> Self:
+                   unit: ctyped.enum.Unit = ctyped.enum.Unit.World) -> Pen:
         self = cls()
         _GdiPlus.GdipCreatePen2(brush, width, unit, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_pen(cls, pen: ctyped.type.GpPen) -> Self:
+    def from_pen(cls, pen: ctyped.type.GpPen) -> Pen:
         self = cls()
         _GdiPlus.GdipClonePen(pen, ctyped.byref(self))
         return self
@@ -513,14 +513,14 @@ class Pen(_GdiplusBase, ctyped.type.GpPen):
 
 class Image(_GdiplusBase, ctyped.type.GpImage):
     @classmethod
-    def from_file(cls, path: str, embedded_color_management: bool = False) -> Self:
+    def from_file(cls, path: str, embedded_color_management: bool = False) -> Image:
         self = cls()
         (_GdiPlus.GdipLoadImageFromFileICM if embedded_color_management else _GdiPlus.GdipLoadImageFromFile)(
             path, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Self:
+    def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Image:
         self = cls()
         if stream := ctyped.lib.shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
             (_GdiPlus.GdipLoadImageFromStreamICM if embedded_color_management else _GdiPlus.GdipLoadImageFromStream)(
@@ -529,7 +529,7 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
         return self
 
     @classmethod
-    def from_image(cls, image: ctyped.type.GpImage) -> Self:
+    def from_image(cls, image: ctyped.type.GpImage) -> Image:
         self = cls()
         _GdiPlus.GdipCloneImage(image, ctyped.byref(self))
         return self
@@ -682,14 +682,14 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
 
 class Bitmap(Image, ctyped.type.GpBitmap):
     @classmethod
-    def from_file(cls, path: str, embedded_color_management: bool = False) -> Self:
+    def from_file(cls, path: str, embedded_color_management: bool = False) -> Bitmap:
         self = cls()
         (_GdiPlus.GdipCreateBitmapFromFileICM if embedded_color_management else _GdiPlus.GdipCreateBitmapFromFile)(
             path, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Self:
+    def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Bitmap:
         self = cls()
         if stream := ctyped.lib.shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
             (_GdiPlus.GdipCreateBitmapFromStreamICM if embedded_color_management else _GdiPlus.GdipCreateBitmapFromStream)(
@@ -700,19 +700,19 @@ class Bitmap(Image, ctyped.type.GpBitmap):
     # noinspection PyShadowingBuiltins
     @classmethod
     def from_dimension(cls, width: int, height: int,
-                       format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Self:
+                       format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
         self = cls()
         _GdiPlus.GdipCreateBitmapFromScan0(width, height, 0, format, None, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_graphics(cls, width: int, height: int, graphics: ctyped.type.GpGraphics) -> Self:
+    def from_graphics(cls, width: int, height: int, graphics: ctyped.type.GpGraphics) -> Bitmap:
         self = cls()
         _GdiPlus.GdipCreateBitmapFromGraphics(width, height, graphics, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_hicon(cls, hicon: ctyped.type.HICON) -> Self:
+    def from_hicon(cls, hicon: ctyped.type.HICON) -> Bitmap:
         self = cls()
         _GdiPlus.GdipCreateBitmapFromHICON(hicon, ctyped.byref(self))
         return self
@@ -721,7 +721,7 @@ class Bitmap(Image, ctyped.type.GpBitmap):
     @classmethod
     def from_bitmap(cls, bitmap: ctyped.type.GpBitmap, x: int | float = 0, y: int | float = 0,
                     width: Optional[int | float] = None, height: Optional[int | float] = None,
-                    format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Self:
+                    format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
         if width is None:
             width = Image.get_width(bitmap)
         if height is None:
@@ -772,13 +772,13 @@ class Bitmap(Image, ctyped.type.GpBitmap):
 
 class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
     @classmethod
-    def from_empty(cls) -> Self:
+    def from_empty(cls) -> ImageAttributes:
         self = cls()
         _GdiPlus.GdipCreateImageAttributes(ctyped.byref(self))
         return self
 
     @classmethod
-    def from_image_attributes(cls, attr: ctyped.type.GpImageAttributes) -> Self:
+    def from_image_attributes(cls, attr: ctyped.type.GpImageAttributes) -> ImageAttributes:
         self = cls()
         _GdiPlus.GdipCloneImageAttributes(attr, ctyped.byref(self))
         return self
@@ -882,13 +882,13 @@ class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
 
 class Region(_GdiplusBase, ctyped.type.GpRegion):
     @classmethod
-    def from_empty(cls) -> Self:
+    def from_empty(cls) -> Region:
         self = cls()
         _GdiPlus.GdipCreateRegion(ctyped.byref(self))
         return self
 
     @classmethod
-    def from_rect(cls, x: int | float, y: int | float, width: int | float, height: int | float) -> Self:
+    def from_rect(cls, x: int | float, y: int | float, width: int | float, height: int | float) -> Region:
         self = cls()
         _get_obj(_GdiPlus.GdipCreateRegionRect, _GdiPlus.GdipCreateRegionRectI, x, y, width, height)(
             ctyped.byref(self), ctyped.byref(_get_obj(
@@ -896,13 +896,13 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
         return self
 
     @classmethod
-    def from_hrgn(cls, hrgn: ctyped.type.HRGN) -> Self:
+    def from_hrgn(cls, hrgn: ctyped.type.HRGN) -> Region:
         self = cls()
         _GdiPlus.GdipCreateRegionHrgn(ctyped.byref(self), hrgn)
         return self
 
     @classmethod
-    def from_region(cls, region: Region) -> Self:
+    def from_region(cls, region: Region) -> Region:
         self = cls()
         _GdiPlus.GdipCloneRegion(region, ctyped.byref(self))
         return self
@@ -1010,13 +1010,13 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
 
 class FontFamily(_GdiplusBase, ctyped.type.GpFontFamily):
     @classmethod
-    def from_name(cls, name: str, collection: Optional[FontCollection] = None) -> Self:
+    def from_name(cls, name: str, collection: Optional[FontCollection] = None) -> FontFamily:
         self = cls()
         _GdiPlus.GdipCreateFontFamilyFromName(name, collection, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_font_family(cls, family: ctyped.type.GpFontFamily) -> Self:
+    def from_font_family(cls, family: ctyped.type.GpFontFamily) -> FontFamily:
         self = cls()
         _GdiPlus.GdipCloneFontFamily(family, ctyped.byref(self))
         return self
@@ -1057,7 +1057,7 @@ class FontFamily(_GdiplusBase, ctyped.type.GpFontFamily):
 
 class Font(_GdiplusBase, ctyped.type.GpFont):
     @classmethod
-    def from_hdc(cls, hdc: ctyped.type.HDC) -> Self:
+    def from_hdc(cls, hdc: ctyped.type.HDC) -> Font:
         self = cls()
         _GdiPlus.GdipCreateFontFromDC(hdc, ctyped.byref(self))
         return self
@@ -1065,13 +1065,13 @@ class Font(_GdiplusBase, ctyped.type.GpFont):
     @classmethod
     def from_font_family(cls, family: ctyped.type.GpFontFamily, size: float = 16,
                          style: ctyped.enum.FontStyle = ctyped.enum.FontStyle.Regular,
-                         unit: ctyped.enum.Unit = ctyped.enum.Unit.Pixel) -> Self:
+                         unit: ctyped.enum.Unit = ctyped.enum.Unit.Pixel) -> Font:
         self = cls()
         _GdiPlus.GdipCreateFont(family, size, style.value, unit, ctyped.byref(self))
         return self
 
     @classmethod
-    def from_font(cls, font: ctyped.type.GpFont) -> Self:
+    def from_font(cls, font: ctyped.type.GpFont) -> Font:
         self = cls()
         _GdiPlus.GdipCloneFont(font, ctyped.byref(self))
         return self
@@ -1112,26 +1112,26 @@ class Font(_GdiplusBase, ctyped.type.GpFont):
 
 class StringFormat(_GdiplusBase, ctyped.type.GpStringFormat):
     @classmethod
-    def from_default(cls) -> Self:
+    def from_default(cls) -> StringFormat:
         self = cls()
         _GdiPlus.GdipStringFormatGetGenericDefault(ctyped.byref(self))
         return self
 
     @classmethod
-    def from_typographic(cls) -> Self:
+    def from_typographic(cls) -> StringFormat:
         self = cls()
         _GdiPlus.GdipStringFormatGetGenericTypographic(ctyped.byref(self))
         return self
 
     @classmethod
-    def from_flags(cls, flags: int = 0, language: int = ctyped.const.LANG_NEUTRAL) -> Self:
+    def from_flags(cls, flags: int = 0, language: int = ctyped.const.LANG_NEUTRAL) -> StringFormat:
         self = cls()
         _GdiPlus.GdipCreateStringFormat(flags, language, ctyped.byref(self))
         return self
 
     # noinspection PyShadowingBuiltins
     @classmethod
-    def from_string_format(cls, format: StringFormat) -> Self:
+    def from_string_format(cls, format: StringFormat) -> StringFormat:
         self = cls()
         _GdiPlus.GdipCloneStringFormat(format, ctyped.byref(self))
         return self
@@ -1216,7 +1216,7 @@ class FontCollection(_GdiplusBase, ctyped.type.GpFontCollection):
 
 class InstalledFontCollection(FontCollection, ctyped.type.GpInstalledFontCollection):
     @classmethod
-    def from_installed(cls) -> Self:
+    def from_installed(cls) -> InstalledFontCollection:
         self = cls()
         _GdiPlus.GdipNewInstalledFontCollection(ctyped.byref(self))
         return self
@@ -1224,7 +1224,7 @@ class InstalledFontCollection(FontCollection, ctyped.type.GpInstalledFontCollect
 
 class PrivateFontCollection(FontCollection, ctyped.type.GpPrivateFontCollection):
     @classmethod
-    def from_empty(cls) -> Self:
+    def from_empty(cls) -> PrivateFontCollection:
         self = cls()
         _GdiPlus.GdipNewPrivateFontCollection(ctyped.byref(self))
         return self
@@ -1241,14 +1241,14 @@ class Color(int):
         return f'#{self.get_red():02x}{self.get_green():02x}{self.get_blue():02x}{self.get_alpha():02x}'
 
     @classmethod
-    def from_rgba(cls, r: int, g: int, b: int, a: int = 255) -> Self:
+    def from_rgba(cls, r: int, g: int, b: int, a: int = 255) -> Color:
         return Color(ctyped.cast_int(b << ctyped.const.BlueShift, ctyped.type.ARGB) |
                      ctyped.cast_int(g << ctyped.const.GreenShift, ctyped.type.ARGB) |
                      ctyped.cast_int(r << ctyped.const.RedShift, ctyped.type.ARGB) |
                      ctyped.cast_int(a << ctyped.const.AlphaShift, ctyped.type.ARGB))
 
     @classmethod
-    def from_colorref(cls, bgr: ctyped.type.COLORREF) -> Self:
+    def from_colorref(cls, bgr: ctyped.type.COLORREF) -> Color:
         return cls.from_rgba(ctyped.macro.GetRValue(bgr), ctyped.macro.GetGValue(bgr), ctyped.macro.GetBValue(bgr))
 
     def get_alpha(self) -> int:

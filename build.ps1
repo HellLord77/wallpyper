@@ -1,8 +1,8 @@
 $Version = "0.1.1"
 
 $Datas = @(
-"modules\res"
 "res"
+"srcs\res"
 "win32\syspin.exe"
 "pipe.exe")
 $Imports = @()
