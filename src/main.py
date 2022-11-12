@@ -29,8 +29,8 @@ import libs.singleton as singleton
 import libs.spinners as spinners
 import libs.timer as timer
 import libs.utils as utils
-import modules
 import pipe
+import srcs
 import win32
 
 ALL_DISPLAY = 'DISPLAY'
@@ -90,7 +90,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MAXIMIZED: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_COLOR: win32.ColorMode.AUTO,
-    consts.CONFIG_MODULE: next(iter(modules.MODULES.values())).__name__,
+    consts.CONFIG_SOURCE: next(iter(srcs.SOURCES.values())).__name__,
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
     consts.CONFIG_ROTATE: win32.display.Rotate[win32.display.Rotate.NONE],
@@ -122,7 +122,7 @@ def fix_config():
     _fix_config(consts.CONFIG_COLOR, (win32.ColorMode[mode] for mode in win32.ColorMode[1:]))
     if not CONFIG[consts.CONFIG_DIR]:  # TODO is_path_exists_or_creatable
         CONFIG[consts.CONFIG_DIR] = DEFAULT_CONFIG[consts.CONFIG_DIR]
-    _fix_config(consts.CONFIG_MODULE, modules.MODULES)
+    _fix_config(consts.CONFIG_SOURCE, srcs.SOURCES)
 
 
 def _load_config(getters: dict[type, Callable[[str, str], str | int | float | bool | tuple | list | set]],
@@ -148,19 +148,19 @@ def load_config() -> bool:
         loaded = False
     getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
                tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
-    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
-        loaded = _load_config(getters, name, module.CONFIG, module.DEFAULT_CONFIG) and loaded
-        module.fix_config()
+    for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
+        loaded = _load_config(getters, name, source.CONFIG, source.DEFAULT_CONFIG) and loaded
+        source.fix_config()
     return loaded
 
 
 def save_config() -> bool:
     parser = configparser.ConfigParser()
-    for name, module in ({consts.NAME: sys.modules[__name__]} | modules.MODULES).items():
-        module.update_config()
-        module.fix_config()
-        if config := {option: module.CONFIG[option] for option, value in sorted(
-                module.DEFAULT_CONFIG.items()) if module.CONFIG[option] != value}:
+    for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
+        source.update_config()
+        source.fix_config()
+        if config := {option: source.CONFIG[option] for option, value in sorted(
+                source.DEFAULT_CONFIG.items()) if source.CONFIG[option] != value}:
             parser[name] = config
     with open(CONFIG_PATH, 'w') as file:
         parser.write(file)
@@ -233,11 +233,11 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
 
 
 def get_next_wallpaper() -> Optional[files.File]:
-    module = modules.MODULES[CONFIG[consts.CONFIG_MODULE]]
-    params = {key: val for key, val in module.CONFIG.items() if not key.startswith('_')}
+    source = srcs.SOURCES[CONFIG[consts.CONFIG_SOURCE]]
+    params = {key: val for key, val in source.CONFIG.items() if not key.startswith('_')}
     first_wallpaper = None
     while True:
-        next_wallpaper = next(module.get_next_wallpaper(**params))
+        next_wallpaper = next(source.get_next_wallpaper(**params))
         if not CONFIG[consts.CONFIG_SKIP] or next_wallpaper not in RECENT:
             return next_wallpaper
         if first_wallpaper is None:
@@ -600,14 +600,14 @@ def on_restart():
     on_quit()
 
 
-def on_module(name: str, item: win32.gui.MenuItem):
-    module = modules.MODULES[name]
-    item.set_text(module.NAME)
-    item.set_icon(module.ICON if os.path.isfile(module.ICON) else gui.MenuItemImage.NONE)
+def on_source(name: str, item: win32.gui.MenuItem):
+    source = srcs.SOURCES[name]
+    item.set_text(source.NAME)
+    item.set_icon(source.ICON if os.path.isfile(source.ICON) else gui.MenuItemImage.NONE)
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_main_menu(submenu):
-        module.create_menu()
+        source.create_menu()
         item.enable(bool(len(submenu)))
 
 
@@ -661,7 +661,7 @@ def create_menu():  # TODO slideshow (smaller timer)
     _update_recent(item_recent)
     gui.add_separator()
     item_module = gui.add_submenu('')
-    on_module(CONFIG[consts.CONFIG_MODULE], item_module)
+    on_source(CONFIG[consts.CONFIG_SOURCE], item_module)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS, icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_LINKS, icon=RES_TEMPLATE.format(consts.RES_LINKS))):
@@ -739,8 +739,8 @@ def create_menu():  # TODO slideshow (smaller timer)
             STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style}, CONFIG, consts.CONFIG_STYLE,
                                on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
         gui.add_mapped_submenu(STRINGS.MENU_MODULE, {
-            name: f'{name}\t{module.VERSION}' for name, module in modules.MODULES.items()}, CONFIG, consts.CONFIG_MODULE,
-                               on_click=on_module, args=(item_module,), icon=RES_TEMPLATE.format(consts.RES_MODULE))
+            name: f'{name}\t{src.VERSION}' for name, src in srcs.SOURCES.items()}, CONFIG, consts.CONFIG_SOURCE,
+                               on_click=on_source, args=(item_module,), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
         item_display = gui.add_submenu(STRINGS.MENU_DISPLAY, icon=RES_TEMPLATE.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, on_display_change, (item_display,))
         on_display_change(0, None, item_display)

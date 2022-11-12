@@ -24,7 +24,7 @@ $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonSources = @("src\pipe.py")
 $CythonizeGlobs = @(
-"src\{langs,libs,modules,win32}\*.py"
+"src\{langs,libs,srcs,win32}\*.py"
 "src\libs\{colornames,iso_codes,spinners}\__init__.py"
 # "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
 # "src\libs\ctyped\{const,enum}.py" FIXME https://stackoverflow.com/questions/65197248/cythonize-ends-with-fatal-error-c1002-compiler-is-out-of-heap-space-in-pass-2

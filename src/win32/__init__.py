@@ -368,7 +368,7 @@ def _choose_color_hook(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
     return 0
 
 
-def choose_color(title: Optional[str] = None, color: Optional[int] = None,
+def select_color(title: Optional[str] = None, color: Optional[int] = None,
                  custom_colors: Optional[MutableSequence[int]] = None) -> Optional[int]:
     data = ctyped.type.LPWSTR(title)
     color_chooser = ctyped.struct.CHOOSECOLORW(

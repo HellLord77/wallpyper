@@ -7,7 +7,7 @@ from typing import Generator, Optional
 
 import gui
 from libs import files, iso_codes, request
-from .module import _Module
+from .source import _Source
 
 URL_BASE = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
@@ -18,7 +18,7 @@ LOCALES = 'en-US', 'de-DE', 'fr-FR', 'zh-CN', 'es-ES', 'ru-RU', 'en-GB', 'bn-IN'
 ORIENTATIONS = 'landscape', 'portrait'
 
 
-class Spotlight(_Module):
+class Spotlight(_Source):
     NAME = 'Windows Spotlight'
     DEFAULT_CONFIG = {
         CONFIG_LOCALE: LOCALES[0],

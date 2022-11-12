@@ -1,4 +1,4 @@
-__version__ = '0.0.1'  # 'https://pixabay.com/api/docs'
+__version__ = '0.0.1'  # https://pixabay.com/api/docs
 
 import os.path
 import re
@@ -6,7 +6,7 @@ from typing import Generator, Optional
 
 import gui
 from libs import files, iso_codes, request
-from .module import _Module
+from .source import _Source
 
 URL_BASE = 'https://pixabay.com/api'
 
@@ -39,7 +39,7 @@ def _authenticate(key: str) -> bool:
     return bool(request.open(URL_BASE, {CONFIG_KEY: key, 'per_page': '3'}))
 
 
-class Pixabay(_Module):
+class Pixabay(_Source):
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',

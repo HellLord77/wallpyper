@@ -7,10 +7,10 @@ from typing import Any, Generator, Iterable, Optional
 import langs
 from libs import files, utils
 
-MODULES: dict[str, type[_Module]] = {}
+SOURCES: dict[str, type[_Source]] = {}
 
 
-class _ModuleMeta(type):
+class _SourceMeta(type):
     def __new__(mcs, *args, **kwargs):
         cls = super().__new__(mcs, *args, **kwargs)
         if not cls.__name__.startswith('_'):
@@ -21,11 +21,11 @@ class _ModuleMeta(type):
             cls.CONFIG = {}
             cls.get_next_wallpaper = utils.LastCacheCallable(cls.get_next_wallpaper)
             # noinspection PyTypeChecker
-            MODULES[cls.__name__] = cls
+            SOURCES[cls.__name__] = cls
         return cls
 
 
-class _Module(metaclass=_ModuleMeta):
+class _Source(metaclass=_SourceMeta):
     NAME: str
     VERSION: str
     ICON: str

@@ -5,7 +5,7 @@ from typing import Generator, Optional
 
 import gui
 from libs import files, iso_codes, request
-from .module import _Module
+from .source import _Source
 
 URL_BASE = request.join('https://api.pexels.com', 'v1')
 URL_CURATED = request.join(URL_BASE, 'curated')
@@ -36,7 +36,7 @@ def _authenticate(key: str) -> bool:
     return bool(request.open(URL_CURATED, {'per_page': '1'}, headers={'Authorization': key}))
 
 
-class Pexels(_Module):
+class Pexels(_Source):
     ICON = 'Pexels.ico'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',

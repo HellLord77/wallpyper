@@ -6,7 +6,7 @@ from typing import Callable, Generator, Optional
 
 import gui
 from libs import colornames, files, request
-from .module import _Module
+from .source import _Source
 
 URL_BASE = request.join('https://wallhaven.cc', 'api', 'v1')
 URL_SEARCH = request.join(URL_BASE, 'search')
@@ -40,7 +40,7 @@ def _authenticate(key: str) -> bool:
     return bool(response := request.open(URL_SETTINGS, {'apikey': key})) and 'error' not in response.get_json()
 
 
-class Wallhaven(_Module):
+class Wallhaven(_Source):
     ICON = 'Wallhaven.ico'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',

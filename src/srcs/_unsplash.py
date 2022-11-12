@@ -5,7 +5,7 @@ from typing import Generator, Optional
 
 import gui
 from libs import files, request
-from .module import _Module
+from .source import _Source
 
 URL_BASE = 'https://api.unsplash.com'
 URL_EDITORIAL = request.join(URL_BASE, 'photos')
@@ -29,7 +29,7 @@ def _authenticate(id_: str) -> bool:
     return bool(request.open(URL_EDITORIAL, {CONFIG_ID: id_}))
 
 
-class Unsplash(_Module):
+class Unsplash(_Source):
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
         CONFIG_EDITORIAL: True,

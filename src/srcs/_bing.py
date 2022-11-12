@@ -5,7 +5,7 @@ from typing import Generator, Optional
 
 import gui
 from libs import files, iso_codes, request
-from .module import _Module
+from .source import _Source
 
 URL_BASE = 'https://www.bing.com'
 URL_ARCHIVE = request.join(URL_BASE, 'HPImageArchive.aspx')
@@ -20,7 +20,7 @@ MARKETS = 'de-DE', 'en-AU', 'en-CA', 'en-GB', 'en-IN', 'en-US', 'fr-CA', 'fr-FR'
 RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x1080', 'UHD'
 
 
-class Bing(_Module):
+class Bing(_Source):
     NAME = 'Bing Wallpaper'
     ICON = 'Bing.ico'
     DEFAULT_CONFIG = {

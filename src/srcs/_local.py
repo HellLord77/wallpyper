@@ -6,7 +6,7 @@ from typing import Generator, Optional, Callable
 import gui
 import win32
 from libs import files, request
-from .module import _Module
+from .source import _Source
 
 CONFIG_DIR = 'dir'
 CONFIG_RECURSE = 'recursive'
@@ -22,7 +22,7 @@ SORTS = {
 ORDERS = 'ascending', 'descending'
 
 
-class Local(_Module):
+class Local(_Source):
     NAME = 'Local Folder'
     DEFAULT_CONFIG = {
         CONFIG_DIR: win32.PICTURES_DIR,
