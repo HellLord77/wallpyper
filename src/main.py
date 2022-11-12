@@ -210,9 +210,9 @@ def print_progress():
     if win32.console.is_present() or PIPE:
         interval, spinner = spinners.get(spinners.Spinner.SAND)
         while (progress := PROGRESS.get()) != -1:
-            print(f'[{next(spinner)}] [{utils.get_progress(progress, 1, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
+            print(f'[{next(spinner)}] [{utils.get_progress(progress, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
             time.sleep(interval)
-        print(f'[#] [{utils.get_progress(100, 1, 32)}] 100%')
+        print(f'[#] [{utils.get_progress(1, 32)}] 100%')
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -222,6 +222,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
     temp_path = os.path.join(TEMP_DIR, wallpaper.name)
     with _download_lock(str(wallpaper)), gui.animate(STRINGS.STATUS_DOWNLOAD):
+        PROGRESS.clear()
         print_progress()
         try:
             if wallpaper.checksum(temp_path) or request.download(str(wallpaper), temp_path, int(wallpaper), chunk_count=100,
@@ -618,10 +619,6 @@ def on_about():
 def on_blocked(checked: bool):
     if checked:
         check_blocked()
-
-
-def on_color_mode(mode: str):
-    print(mode)
 
 
 def apply_auto_start(auto_start: bool) -> bool:

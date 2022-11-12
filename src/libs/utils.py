@@ -290,13 +290,12 @@ def to_dict(string: str) -> dict:
     return _to_type(string, dict)
 
 
-def get_progress(current: float = 0, total: float = 100,
-                 width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
+def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
     if current < 0:
         current = 0
-    elif current > total:
-        current = total
-    each = total / width
+    elif current > 1:
+        current = 1
+    each = 1 / width
     filled = int(current / each)
     index = int((len(bars) - 1) / each * (current - filled * each))
     return f'{bars[-1] * filled}{bars[index] * bool(index)}{bars[0] * (width - filled - bool(index))}'

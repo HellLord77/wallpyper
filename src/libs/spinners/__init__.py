@@ -101,4 +101,4 @@ def get(spinner: str) -> tuple[float, Iterator[str]]:
         with open(os.path.join(os.path.dirname(__file__), 'spinners.json'), encoding='utf-8') as file:
             _SPINNERS = json.load(file)
     data = _SPINNERS[spinner]
-    return data['interval'] / 1000, itertools.cycle(_SPINNERS[spinner]['frames'])
+    return data['interval'] / 1000, itertools.cycle(data['frames'])
