@@ -309,8 +309,7 @@ class msvcrt(_FuncMixin, metaclass=_CDLL):
                       _type.c_wchar_p]
 
 
-# noinspection PyPep8Naming
-class python(_FuncMixin, metaclass=_PyDLL):
+class Python(_FuncMixin, metaclass=_PyDLL):
     # ceval
     Py_MakePendingCalls: _Callable[[],
                                    _type.c_int]

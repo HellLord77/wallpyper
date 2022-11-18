@@ -72,11 +72,9 @@ def set_main_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> ContextManager[w
 
 
 def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
-                 kwargs: Mapping[str, Any], set_state: bool, on_thread: bool, pre_menu_args: bool) -> Callable:
+                 kwargs: Mapping[str, Any], on_thread: bool, pre_menu_args: bool) -> Callable:
     @functools.wraps(on_click)
     def wrapper(_: int, menu_item: win32.gui.MenuItem):
-        if set_state:
-            menu_item.enable(False)
         args_ = [] if pre_menu_args else list(args)
         for menu_arg in menu_args:
             if menu_arg in MenuItemMethod:
@@ -85,11 +83,7 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
                 args_.append(getattr(menu_item, menu_arg)())
         if pre_menu_args:
             args_.extend(args)
-        try:
-            on_click(*args_, **kwargs)
-        finally:
-            if set_state:
-                menu_item.enable()
+        on_click(*args_, **kwargs)
 
     if not on_thread:
         return wrapper
@@ -105,11 +99,10 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
 
 def set_on_click(menu_item: win32.gui.MenuItem, callback: Optional[Callable] = None,
                  menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, change_state: bool = True,
-                 pre_menu_args: bool = True):
+                 kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, pre_menu_args: bool = True):
     menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, _get_wrapper(
         callback, () if menu_args is None else menu_args, () if args is None else args,
-        {} if kwargs is None else kwargs, change_state, on_thread, pre_menu_args))
+        {} if kwargs is None else kwargs, on_thread, pre_menu_args))
 
 
 def _get_default_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> win32.gui.Menu:
@@ -124,17 +117,16 @@ def _get_default_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> win32.gui.Me
 
 
 def add_menu_item(label: str = '', kind: int = win32.gui.MenuItemType.NORMAL, check: bool = False, enable: bool = True,
-                  uid: Optional[int | str] = None, on_click: Optional[Callable] = None,
-                  menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
-                  kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, change_state: bool = True,
-                  position: Optional[int] = None, pre_menu_args: bool = True,
+                  uid: Optional[int | str] = None, on_click: Optional[Callable] = None, menu_args: Optional[Iterable[str]] = None,
+                  args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None,
+                  on_thread: bool = True, position: Optional[int] = None, pre_menu_args: bool = True,
                   menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     menu = _get_default_menu(menu)
     menu_item = menu.insert_item(menu.get_item_count() if position is None else position, label, enable=enable, check=check, type=kind)
     if uid is not None:
         menu_item.set_uid(uid)
     if on_click is not None:
-        set_on_click(menu_item, on_click, menu_args, args, kwargs, on_thread, change_state, pre_menu_args)
+        set_on_click(menu_item, on_click, menu_args, args, kwargs, on_thread, pre_menu_args)
     return menu_item
 
 

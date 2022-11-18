@@ -11,8 +11,7 @@ import time
 import winreg
 from typing import Any, Callable, Iterable, Mapping, Optional
 
-import libs.ctyped as ctyped
-import libs.utils as utils
+from libs import ctyped, utils
 from . import _utils, _gdiplus
 
 _DELETE_AFTER = 0.5

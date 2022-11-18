@@ -4,7 +4,7 @@ import time
 import uuid
 from typing import Optional, ContextManager
 
-import libs.ctyped as ctyped
+from libs import ctyped
 from . import _mshtml, _utils
 
 
@@ -20,7 +20,9 @@ def _temp_var(window: _mshtml.HTMLWindow2, val: str) -> ContextManager[str]:
 
 class Browser:
     def __init__(self, url: Optional[str] = None, wait: bool = False):
-        self._browser = _mshtml.WebBrowser2()
+        ctyped.lib.Ole32.CoInitialize(None)
+        with ctyped.init_com(ctyped.interface.IWebBrowser2) as browser:
+            self._browser = _mshtml.WebBrowser2(browser)
         self.stop = self._browser.stop
         self.refresh = self._browser.refresh
         self.navigate = self._browser.navigate
@@ -32,9 +34,7 @@ class Browser:
     def __del__(self):
         if self._browser:
             self._browser.quit()
-
-    def _show(self):
-        self._browser.visible = True
+        ctyped.lib.Ole32.CoUninitialize()
 
     def is_ready(self) -> bool:
         return self._browser.ready_state == ctyped.enum.READYSTATE.COMPLETE
@@ -42,8 +42,14 @@ class Browser:
     def get_url(self) -> str:
         return self._browser.document.url
 
+    def get_body(self) -> str:
+        return self._browser.document.body.outer_html
+
     def get_title(self) -> str:
         return self._browser.document.title
+
+    def get_html(self) -> str:
+        return self._browser.document.body.parent_element.outer_html
 
     def wait(self, timeout: float = math.inf) -> bool:
         end_time = time.time() + timeout
@@ -51,23 +57,26 @@ class Browser:
             time.sleep(_utils.POLL_INTERVAL)
         return self.is_ready()
 
-    def get_html(self) -> Optional[str]:
+    def get_static_html(self) -> Optional[str]:
+        html = None
         # noinspection PyTypeChecker
         stream = ctyped.lib.shlwapi.SHCreateMemStream(None, 0)
-        with ctyped.init_com(ctyped.interface.IDispatch, False) as dispatch:
-            self._browser.obj.get_Document(ctyped.byref(dispatch))
-            with ctyped.cast_com(dispatch, ctyped.interface.IPersistStreamInit) as persist_stream:
-                persist_stream.Save(stream, ctyped.const.TRUE)
-        # noinspection PyTypeChecker
-        stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, None)
-        stat = ctyped.struct.STATSTG()
-        stream.Stat(ctyped.byref(stat), ctyped.enum.STATFLAG.NONAME | ctyped.enum.STATFLAG.NOOPEN)
-        with ctyped.buffer(stat.cbSize.QuadPart) as buffer:
-            read = ctyped.type.ULONG()
-            stream.Read(buffer, stat.cbSize.QuadPart, ctyped.byref(read))
-            if read == stat.cbSize.QuadPart:
-                return ctyped.type.c_char_p(buffer).value.decode()
-        stream.Release()
+        if stream:
+            with ctyped.init_com(ctyped.interface.IDispatch, False) as dispatch:
+                self._browser.obj.get_Document(ctyped.byref(dispatch))
+                with ctyped.cast_com(dispatch, ctyped.interface.IPersistStreamInit) as persist_stream:
+                    persist_stream.Save(stream, ctyped.const.TRUE)
+            # noinspection PyTypeChecker
+            stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, None)
+            stat = ctyped.struct.STATSTG()
+            stream.Stat(ctyped.byref(stat), ctyped.enum.STATFLAG.NONAME | ctyped.enum.STATFLAG.NOOPEN)
+            with ctyped.buffer(stat.cbSize.QuadPart) as buffer:
+                read = ctyped.type.ULONG()
+                stream.Read(buffer, stat.cbSize.QuadPart, ctyped.byref(read))
+                if read == stat.cbSize.QuadPart:
+                    html = ctyped.type.c_char_p(buffer).value.decode()
+            stream.Release()
+        return html
 
     def call_js(self, func: str, *args: str) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:  # TODO argtypes
         with _temp_var(window := self._browser.document.parent_window, func) as var, ctyped.cast_com(

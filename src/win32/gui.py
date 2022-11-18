@@ -8,7 +8,7 @@ import itertools
 import threading
 from typing import Any, Callable, Generator, Iterable, Iterator, Mapping, Optional, Sequence
 
-import libs.ctyped as ctyped
+from libs import ctyped
 from . import _gdiplus, _utils
 
 _NOTIFYICONDATAA_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'szTip', 64)

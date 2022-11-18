@@ -8,8 +8,7 @@ import time
 import winreg
 from typing import ContextManager, Generator, Mapping, MutableSequence, Optional
 
-import libs.ctyped as ctyped
-import libs.utils as utils
+from libs import ctyped, utils
 from . import _gdiplus, _utils, browser, clipboard, console, display, gui
 from ._utils import sanitize_filename
 

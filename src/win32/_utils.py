@@ -2,7 +2,7 @@ import contextlib
 import winreg
 from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
 
-import libs.ctyped as ctyped
+from libs import ctyped
 
 POLL_INTERVAL = 0.1
 

@@ -1,6 +1,6 @@
 from typing import Optional
 
-import libs.ctyped as ctyped
+from libs import ctyped
 
 
 def is_present() -> bool:

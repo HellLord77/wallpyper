@@ -6,7 +6,7 @@ import ntpath
 import string as _string
 from typing import Callable, ContextManager, Generator, Literal, Optional
 
-import libs.ctyped as ctyped
+from libs import ctyped
 from . import _utils
 
 _GdiPlus = ctyped.lib.GdiPlus

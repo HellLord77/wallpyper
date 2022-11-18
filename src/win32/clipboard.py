@@ -1,7 +1,7 @@
 import contextlib
 from typing import ContextManager, Optional
 
-import libs.ctyped as ctyped
+from libs import ctyped
 from . import _gdiplus
 
 
