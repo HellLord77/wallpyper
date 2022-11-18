@@ -1,4 +1,4 @@
-__version__ = '0.0.20'
+__version__ = '0.0.21'
 
 import ast
 import binascii
@@ -46,12 +46,19 @@ class ProgressBar:
     CLOCK = '🌕🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛'
 
 
-class _Mutable:  # TODO wait for change
-    __slots__ = '_data'
+class _Mutable:
+    __slots__ = '_data', '_changed'
     _type: type = types.NoneType
 
     def __init__(self, val: Optional[int | float | complex | tuple | str | bytes | bool] = None):
         self._data = self._type() if val is None else val
+        self._changed = threading.Event()
+
+    def __bool__(self):
+        return bool(self._data)
+
+    def __complex__(self):
+        return complex(self._data)
 
     def __int__(self):
         return int(self._data)
@@ -59,32 +66,42 @@ class _Mutable:  # TODO wait for change
     def __float__(self):
         return float(self._data)
 
-    def __complex__(self):
-        return complex(self._data)
-
     def __str__(self):
         return str(self._data)
 
     def __bytes__(self):
         return bytes(self._data)
 
-    def __bool__(self):
-        return bool(self._data)
-
-    def __iter__(self):
-        return iter(self._data)
-
     def get(self):
         return self._data
 
     def set(self, val):
         self._data = val
+        self._changed.set()
         return val
 
     def clear(self):
         val = self._type()
         self._data = val
+        self._changed.set()
         return val
+
+    def wait(self, timeout: Optional[float] = None, val=None) -> bool:
+        if val is None:
+            self._changed.clear()
+            return self._changed.wait(timeout)
+        else:
+            if timeout is None:
+                while self._data != val:
+                    self._changed.clear()
+                    self._changed.wait()
+            else:
+                end_time = time.time() + timeout
+                while self._data != val:
+                    self._changed.clear()
+                    if not self._changed.wait(end_time - time.time()):
+                        break
+            return self._data == val
 
 
 class MutableInt(_Mutable):
@@ -231,18 +248,6 @@ class PointedList:
         val = self.peek_previous()
         self.advance(-1)
         return val
-
-
-class PackedFunction:
-    def __init__(self, func: Optional[Callable] = None, args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None):
-        self.func = pass_ex if func is None else func
-        self.args = () if args is None else args
-        self.kwargs = {} if kwargs is None else kwargs
-        functools.update_wrapper(self, self.func)
-
-    def __call__(self, args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Any:
-        return self.func(*self.args, *() if args is None else args, **{} if kwargs is None else kwargs, **self.kwargs)
 
 
 class TimeDeltaEx(datetime.timedelta):
@@ -568,16 +573,22 @@ def _get_params(args, kwargs):
     return try_ex(hash, pickle.dumps, args=((params,), (params, pickle.HIGHEST_PROTOCOL)), excs=((TypeError,), (ValueError,))) or params
 
 
-class LastCacheCallable(Callable):
+class _Callable(Callable):
     def __init__(self, func: Callable):
         self.__func__ = func
-        self._cache = []
         functools.update_wrapper(self, func)
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class LastCacheCallable(_Callable):
+    _cache = None
 
     def __call__(self, *args, **kwargs):
         params = _get_params(args, kwargs)
         if not self._cache or self._cache[0] != params:
-            self._cache[:] = params, self.__func__(*args, **kwargs)
+            self._cache = params, self.__func__(*args, **kwargs)
         return self._cache[1]
 
     def dumps(self) -> str:
@@ -586,22 +597,115 @@ class LastCacheCallable(Callable):
     def loads(self, data: str) -> bool:
         cache = decrypt(data)
         if loaded := cache is not None:
-            self._cache[:] = cache
+            self._cache = cache
         return loaded
 
     def reset(self) -> bool:
         try:
             return bool(self._cache)
         finally:
-            self._cache.clear()
+            self._cache = None
 
 
-def time_cache(secs: float = math.inf, size: int = sys.maxsize) -> Callable[[Callable], Callable]:
-    def time_cache_(func: Callable) -> Callable:
+class OnceCallable(_Callable):
+    _run = False
+
+    def __call__(self, *args, **kwargs) -> Any:
+        if not self._run:
+            try:
+                return self.__func__(*args, **kwargs)
+            finally:
+                self._run = True
+
+    def reset(self) -> bool:
+        try:
+            return self._run
+        finally:
+            self._run = False
+
+    def has_run(self) -> bool:
+        return self._run
+
+
+class QueueCallable(_Callable):
+    def __init__(self, func: Callable):
+        self._lock = threading.Lock()
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs) -> Any:
+        with self._lock:
+            return self.__func__(*args, **kwargs)
+
+    def is_running(self) -> bool:
+        return self._lock.locked()
+
+
+class QueueThreadCallable(_Callable):
+    _res = None
+
+    def __init__(self, func: Callable):
+        self._works = queue.Queue()
+        threading.Thread(target=self._worker,
+                         name=f'{__name__}-{__version__}-{type(self).__name__}({func.__name__})', daemon=True).start()
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs):
+        self._works.put((args, kwargs))
+
+    def _worker(self) -> NoReturn:
+        while True:
+            params = self._works.get()
+            try:
+                self._res = self.__func__(*params[0], **params[1])
+            finally:
+                if self._works.unfinished_tasks:
+                    self._works.task_done()
+
+    def is_running(self) -> bool:
+        return bool(self._works.unfinished_tasks)
+
+    def reset(self) -> bool:
+        try:
+            return not self._works.unfinished_tasks
+        finally:
+            clear_queue(self._works)
+
+    def get_result(self) -> Any:
+        return self._res
+
+
+class SingletonCallable(_Callable):
+    _run = False
+
+    def __call__(self, *args, **kwargs) -> Any:
+        if not self._run:
+            self._run = True
+            try:
+                return self.__func__(*args, **kwargs)
+            finally:
+                self._run = False
+
+    def is_running(self) -> bool:
+        return bool(self._run)
+
+
+class ThreadedCallable(_Callable):
+    _res = None
+
+    def __call__(self, *args, **kwargs):
+        threading.Thread(target=lambda: setattr(self, '_res', self.__func__(*args, **kwargs)),
+                         name=f'{__name__}-{__version__}-{ThreadedCallable.__name__}({self.__func__.__name__})').start()
+
+    def get_result(self) -> Any:
+        return self._res
+
+
+def timed_cache(secs: float = math.inf, size: int = sys.maxsize) -> Callable[[Callable], Callable]:
+    def wrapper(func: Callable) -> Callable:
         cache = []
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapped(*args, **kwargs):
             cached = None
             remove = []
             current = time.time()
@@ -621,144 +725,42 @@ def time_cache(secs: float = math.inf, size: int = sys.maxsize) -> Callable[[Cal
                         del cache[0]
             return cached[1]
 
-        wrapper.reset = cache.clear
-        return wrapper
+        wrapped.reset = cache.clear
+        return wrapped
 
-    return time_cache_
-
-
-class OnceCallable(Callable):
-    def __init__(self, func: Callable):
-        self.__func__ = func
-        self._ran = MutableBool()
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs) -> Any:
-        if not self._ran:
-            try:
-                res = self.__func__(*args, **kwargs)
-            finally:
-                self._ran.set(True)
-            return res
-
-    def reset(self) -> bool:
-        try:
-            return bool(self._ran)
-        finally:
-            self._ran.clear()
+    return wrapper
 
 
-class QueueCallable(Callable):
-    def __init__(self, func: Callable):
-        self.__func__ = func
-        self._lock = threading.Lock()
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs) -> Any:
-        with self._lock:
-            return self.__func__(*args, **kwargs)
-
-    def is_running(self) -> bool:
-        return self._lock.locked()
-
-
-class QueueExCallable(Callable):
-    def __init__(self, func: Callable):
-        self.__func__ = func
-        self._works = queue.Queue()
-        self.res = None
-        functools.update_wrapper(self, func)
-        threading.Thread(target=self._worker,
-                         name=f'{__name__}-{__version__}-{type(self).__name__}({func.__name__})', daemon=True).start()
-
-    def __call__(self, *args, **kwargs):
-        self._works.put((args, kwargs))
-
-    def _worker(self) -> NoReturn:
-        while True:
-            params = self._works.get()
-            try:
-                self.res = self.__func__(*params[0], **params[1])
-            finally:
-                if self._works.unfinished_tasks:
-                    self._works.task_done()
-
-    def is_running(self) -> bool:
-        return bool(self._works.unfinished_tasks)
-
-    def reset(self) -> bool:
-        try:
-            return not self._works.unfinished_tasks
-        finally:
-            clear_queue(self._works)
-
-
-class SingletonCallable(Callable):
-    def __init__(self, func: Callable):
-        self.__func__ = func
-        self._running = MutableBool()
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs) -> Any:
-        if self._running:
-            return False
-        else:
-            self._running.set(True)
-            try:
-                return self.__func__(*args, **kwargs)
-            finally:
-                self._running.clear()
-
-    def is_running(self) -> bool:
-        return bool(self._running)
-
-
-class ThreadedCallable(Callable):
-    def __init__(self, func: Callable):
-        self.__func__ = func
-        self._result = None
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs):
-        threading.Thread(target=lambda: setattr(self, '_res', self.__func__(*args, **kwargs)),
-                         name=f'{__name__}-{__version__}-{ThreadedCallable.__name__}({self.__func__.__name__})').start()
-
-    def get_result(self) -> Any:
-        return self._result
-
-
-def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any],
-          res: Any, res_as_arg: bool, unpack_res: bool) -> Any:
+def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res, res_as_arg: bool, unpack_res: bool) -> Any:
     if res_as_arg:
         if unpack_res:
-            if isinstance(res, Iterable):
-                return func(*res)
-            elif isinstance(res, Mapping):
+            if isinstance(res, Mapping):
                 return func(**res)
+            elif isinstance(res, Iterable):
+                return func(*res)
         return func(res)
     return func(*args, **kwargs)
 
 
 def call_after(pre_func: Callable, res_as_arg: bool = False, unpack_res: bool = False) -> Callable:
-    def call_after_(func: Callable) -> Callable:
+    def wrapper(func: Callable) -> Callable:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            res = pre_func(*args, **kwargs)
-            return _call(func, args, kwargs, res, res_as_arg, unpack_res)
+        def wrapped(*args, **kwargs):
+            return _call(func, args, kwargs, pre_func(*args, **kwargs), res_as_arg, unpack_res)
 
-        return wrapper
+        return wrapped
 
-    return call_after_
+    return wrapper
 
 
 def call_before(post_func: Callable, res_as_arg: bool = False, unpack_res: bool = False) -> Callable:
-    def call_before_(func: Callable) -> Callable:
+    def wrapper(func: Callable) -> Callable:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapped(*args, **kwargs):
             res = func(*args, **kwargs)
             _call(post_func, args, kwargs, res, res_as_arg, unpack_res)
             return res
 
-        return wrapper
+        return wrapped
 
-    return call_before_
+    return wrapper

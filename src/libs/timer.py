@@ -117,7 +117,7 @@ def start_once(interval: Optional[float], target: Callable, args: Optional[Itera
 
 def on_thread(target: Callable) -> Callable:
     @functools.wraps(target)
-    def wrapper(*args, **kwargs) -> Timer:
+    def wrapped(*args, **kwargs) -> Timer:
         return start_once(None, target, args, kwargs)
 
-    return wrapper
+    return wrapped

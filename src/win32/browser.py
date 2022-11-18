@@ -1,10 +1,10 @@
+from __future__ import annotations as _
+
 import contextlib
-import functools
 import math
-import threading
 import time
 import uuid
-from typing import Optional, ContextManager
+from typing import ContextManager, Optional
 
 from libs import ctyped
 from . import _mshtml, _utils
@@ -23,32 +23,17 @@ def _temp_var(window: _mshtml.HTMLWindow2, val: str) -> ContextManager[str]:
 
 
 class Browser:
-    def __init__(self, url: Optional[str] = None):
+    def __init__(self, url: str = 'about:blank'):
         ctyped.lib.Ole32.CoInitialize(None)
-        self._browser_mrsl = ctyped.interface.IStream()
         with ctyped.init_com(ctyped.interface.IWebBrowser2) as browser:
-            ctyped.lib.Ole32.CoMarshalInterThreadInterfaceInStream(ctyped.macro.IID_PPV_ARGS(
-                browser)[0], browser, ctyped.byref(self._browser_mrsl))
-            if url is not None:
-                self._browser.navigate(url)
+            self._browser = _mshtml.WebBrowser2(browser)
+        self._browser.navigate(url)
 
     def __del__(self):
-        if self._browser_mrsl:
+        if self._browser:
             self._browser.quit()
-            self._browser_mrsl.Release()
+            self._browser = None
         ctyped.lib.Ole32.CoUninitialize()
-
-    @property
-    def _browser(self) -> _mshtml.WebBrowser2:
-        return self._get_browser(threading.get_ident())
-
-    # noinspection PyUnusedLocal
-    @functools.lru_cache(1)
-    def _get_browser(self, ident: int) -> _mshtml.WebBrowser2:
-        with ctyped.init_com(ctyped.interface.IWebBrowser2, False) as browser:
-            self._browser_mrsl.Seek(*_SEEK_ARGS)
-            ctyped.lib.Ole32.CoUnmarshalInterface(self._browser_mrsl, *ctyped.macro.IID_PPV_ARGS(browser))
-            return _mshtml.WebBrowser2(browser)
 
     def navigate(self, url: str) -> bool:
         return self._browser.navigate(url)

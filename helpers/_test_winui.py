@@ -12,15 +12,6 @@ from libs.ctyped import winrt
 _HWND: int = None
 
 
-def except_handlwer(except_hook, *args, **kwargs):
-    print(args, kwargs)
-    return except_hook(*args, **kwargs)
-
-
-# sys.excepthook = types.MethodType(except_handlwer, sys.excepthook)
-# threading.excepthook = types.MethodType(except_handlwer, threading.excepthook)
-
-
 # noinspection PyShadowingBuiltins
 @_contextlib.contextmanager  # TODO Array
 def box_value(value: _Optional = None, type: _Optional[type[ctyped.CT]] = None) -> _ContextManager[_Optional[ctyped.interface.IInspectable]]:

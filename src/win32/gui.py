@@ -207,12 +207,12 @@ class _EventHandler:
              kwargs: Optional[Mapping] = None, once: bool = False):
         if once:
             @functools.wraps(callback)
-            def wrapper(*args_, **kwargs_):
+            def wrapped(*args_, **kwargs_):
                 self.unbind(event)
                 return callback(*args_, **kwargs_)
         else:
-            wrapper = callback
-        self._bindings[self._id][event] = wrapper, () if args is None else args, {} if kwargs is None else kwargs
+            wrapped = callback
+        self._bindings[self._id][event] = wrapped, () if args is None else args, {} if kwargs is None else kwargs
 
     def unbind(self, event: int) -> bool:
         try:

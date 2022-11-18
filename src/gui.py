@@ -71,10 +71,10 @@ def set_main_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> ContextManager[w
             del _MAIN_MENUS2[thread]
 
 
-def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
+def _get_wrapped(on_click: Callable, menu_args: Iterable[str], args: Iterable,
                  kwargs: Mapping[str, Any], on_thread: bool, pre_menu_args: bool) -> Callable:
     @functools.wraps(on_click)
-    def wrapper(_: int, menu_item: win32.gui.MenuItem):
+    def wrapped(_: int, menu_item: win32.gui.MenuItem):
         args_ = [] if pre_menu_args else list(args)
         for menu_arg in menu_args:
             if menu_arg in MenuItemMethod:
@@ -85,22 +85,22 @@ def _get_wrapper(on_click: Callable, menu_args: Iterable[str], args: Iterable,
             args_.extend(args)
         on_click(*args_, **kwargs)
 
-    if not on_thread:
-        return wrapper
+    if on_thread:
+        @functools.wraps(wrapped)
+        def wrapped_thread(event: int, menu_item: win32.gui.MenuItem) -> threading.Thread:
+            thread = threading.Thread(target=wrapped, name=f'{__name__}-{on_click.__name__}', args=(event, menu_item))
+            thread.start()
+            return thread
 
-    @functools.wraps(wrapper)
-    def wrapper_thread(event: int, menu_item: win32.gui.MenuItem) -> threading.Thread:
-        thread = threading.Thread(target=wrapper, name=f'{__name__}-{on_click.__name__}', args=(event, menu_item))
-        thread.start()
-        return thread
-
-    return wrapper_thread
+        return wrapped_thread
+    else:
+        return wrapped
 
 
 def set_on_click(menu_item: win32.gui.MenuItem, callback: Optional[Callable] = None,
                  menu_args: Optional[Iterable[str]] = None, args: Optional[Iterable] = None,
                  kwargs: Optional[Mapping[str, Any]] = None, on_thread: bool = True, pre_menu_args: bool = True):
-    menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, _get_wrapper(
+    menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, _get_wrapped(
         callback, () if menu_args is None else menu_args, () if args is None else args,
         {} if kwargs is None else kwargs, on_thread, pre_menu_args))
 
@@ -234,10 +234,10 @@ def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Call
             kwargs = {}
 
         @functools.wraps(callback)
-        def wrapper(_: int, __: win32.gui.SystemTray):
+        def wrapped(_: int, __: win32.gui.SystemTray):
             callback(*args, **kwargs)
 
-        SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.LEFT_DOUBLE, wrapper)
+        SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.LEFT_DOUBLE, wrapped)
     SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.RIGHT_DOWN, lambda _, __: MENU.show())
     GUI.bind(win32.gui.GuiEvent.QUERY_END_SESSION, stop_loop)  # TODO fix shutdown
     SYSTEM_TRAY.show()

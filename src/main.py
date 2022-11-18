@@ -785,13 +785,13 @@ def stop():
 
 
 def main() -> NoReturn:
-    if consts.FEATURE_EXCEPT_HOOK:
+    if consts.FEATURE_ERROR_HOOK:
         utils.hook_except(win32.show_error, format=True)
     try:
         start()
         stop()
     except Exception as e:
-        if consts.FEATURE_EXCEPT_HOOK and multiprocessing.parent_process():
+        if consts.FEATURE_ERROR_HOOK and multiprocessing.parent_process():
             thread = threading.Thread(target=win32.show_error, args=(type(
                 e), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
                 traceback.format_exception(type(e), e, e.__traceback__))))

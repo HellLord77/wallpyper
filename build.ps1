@@ -1,4 +1,4 @@
-$Version = "0.1.1"
+$Version = "0.1.2"
 
 $Datas = @(
 "res"
@@ -92,7 +92,7 @@ $CopyTimeout = 5
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyLocalJson = $False
-$MegaURL = "https://mega.nz/MEGAcmdSetup64.exe"
+$MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $IsGithub = Test-Path Env:GITHUB_REPOSITORY
 
@@ -485,12 +485,15 @@ function UploadToMEGA
 {
     if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
     {
-        # choco install megacmd --verbose --yes FIXME Error retrieving packages from source
-        $Temp = Join-Path $Env:TEMP (Split-Path $MegaURL -Leaf)
-        Invoke-WebRequest $MegaURL -OutFile $Temp
-        Start-Process $Temp "/S" -Wait
-        Remove-Item $Temp -Force
+        choco install megacmd --verbose --yes
         $env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
+        if (!(Get-Command mega-login -ErrorAction SilentlyContinue))
+        {
+            $Temp = Join-Path $Env:TEMP (Split-Path $MEGAcmdURL -Leaf)
+            Invoke-WebRequest $MEGAcmdURL -OutFile $Temp
+            Start-Process $Temp "/S" -Wait
+            Remove-Item $Temp -Force
+        }
         mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
         mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
     }

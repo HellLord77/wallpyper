@@ -9,7 +9,7 @@ from typing import Optional
 
 import win32
 import win32._gdiplus as gdiplus
-from libs import ctyped
+from libs import ctyped, utils
 from libs.ctyped import winrt
 
 
@@ -375,8 +375,25 @@ class BSTR(ctyped.type.BSTR):
         return ctyped.lib.OleAut32.SysStringLen(self)
 
 
+def _long_task(mint: utils.MutableInt):
+    time.sleep(1)
+    mint.set(69)
+    time.sleep(2)
+    mint.set(70)
+
+
 def _test():
-    pass
+    s = time.time()
+    b = utils.MutableInt()
+    threading.Thread(target=_long_task, args=(b,), daemon=True).start()
+    print(b.wait(val=71))
+    print(time.time() - s)
+    # browser = win32.browser.Browser()
+    # browser.navigate('https://google.com')
+    # browser.wait()
+    # # browser.navigate('about:blank')
+    # # browser.wait()
+    # print(browser)
 
 
 if __name__ == '__main__':
