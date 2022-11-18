@@ -7,10 +7,9 @@ import time
 from typing import Callable, TypeVar
 from typing import Optional
 
-import libs.ctyped as ctyped
-import libs.request as request
 import win32
 import win32._gdiplus as gdiplus
+from libs import ctyped
 from libs.ctyped import winrt
 
 
@@ -247,47 +246,47 @@ class RemoteProcess:
 class PyRemoteProcess(RemoteProcess):
     def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
         super().__init__(pid, access)
-        self.load_lib(ctyped.lib.python)
+        self.load_lib(ctyped.lib.Python)
 
     def __del__(self):
-        self.unload_lib(ctyped.lib.python)
+        self.unload_lib(ctyped.lib.Python)
 
     def initialize(self) -> bool:
-        self.call_func(self.get_remote_func(ctyped.lib.python.Py_Initialize, ctyped.lib.python))
+        self.call_func(self.get_remote_func(ctyped.lib.Python.Py_Initialize, ctyped.lib.Python))
         return self.is_initialized()
 
     def initialize_ex(self, init: bool = False) -> bool:
-        self.call_func(self.get_remote_func(ctyped.lib.python.Py_InitializeEx, ctyped.lib.python), init)
+        self.call_func(self.get_remote_func(ctyped.lib.Python.Py_InitializeEx, ctyped.lib.Python), init)
         return self.is_initialized()
 
     def finalize(self) -> bool:
-        self.call_func(self.get_remote_func(ctyped.lib.python.Py_Finalize, ctyped.lib.python))
+        self.call_func(self.get_remote_func(ctyped.lib.Python.Py_Finalize, ctyped.lib.Python))
         return not self.is_initialized()
 
     def finalize_ex(self) -> bool:
-        return self.call_func(self.get_remote_func(ctyped.lib.python.Py_FinalizeEx, ctyped.lib.python)).get_exit_code() == 0
+        return self.call_func(self.get_remote_func(ctyped.lib.Python.Py_FinalizeEx, ctyped.lib.Python)).get_exit_code() == 0
 
     def is_initialized(self) -> bool:
-        return bool(self.call_func(self.get_remote_func(ctyped.lib.python.Py_IsInitialized, ctyped.lib.python)).get_exit_code())
+        return bool(self.call_func(self.get_remote_func(ctyped.lib.Python.Py_IsInitialized, ctyped.lib.Python)).get_exit_code())
 
     def set_path(self: RemoteProcess, *paths: str):
         arg = ';'.join(paths)
         arg_addr = self.alloc_mem(len(arg) * 2, ctyped.const.PAGE_EXECUTE_READWRITE)
         self.write_mem(arg_addr, arg)
-        self.call_func(self.get_remote_func(ctyped.lib.python.Py_SetPath, ctyped.lib.python), arg_addr)
+        self.call_func(self.get_remote_func(ctyped.lib.Python.Py_SetPath, ctyped.lib.Python), arg_addr)
         self.free_mem(arg_addr)
 
     def err_print(self):
-        self.call_func(self.get_remote_func(ctyped.lib.python.PyErr_Print, ctyped.lib.python)).get_exit_code()
+        self.call_func(self.get_remote_func(ctyped.lib.Python.PyErr_Print, ctyped.lib.Python)).get_exit_code()
 
     def err_print_ex(self, set_vars: bool = False):
-        self.call_func(self.get_remote_func(ctyped.lib.python.PyErr_PrintEx, ctyped.lib.python), set_vars).get_exit_code()
+        self.call_func(self.get_remote_func(ctyped.lib.Python.PyErr_PrintEx, ctyped.lib.Python), set_vars).get_exit_code()
 
     def run_simple_string(self, string: str) -> bool:
         arg = string.encode() + b'\0'
         arg_addr = self.alloc_mem(len(arg), ctyped.const.PAGE_EXECUTE_READWRITE)
         self.write_mem(arg_addr, arg)
-        thread = self.call_func(self.get_remote_func(ctyped.lib.python.PyRun_SimpleString, ctyped.lib.python), arg_addr)
+        thread = self.call_func(self.get_remote_func(ctyped.lib.Python.PyRun_SimpleString, ctyped.lib.Python), arg_addr)
         self.free_mem(arg_addr)
         return thread.get_exit_code() == 0
 
@@ -313,7 +312,7 @@ def _test_load_string_from_lib():
 
 
 py_code = r'''import ctypes
-# import libs.ctyped as ctyped
+# from libs import ctyped
 pid = ctypes.windll.kernel32.GetCurrentProcessId()
 ctypes.windll.user32.MessageBoxW(0, f'Hello from Python ({pid=})', 'Hello from Python', 0x1000)'''
 
@@ -357,16 +356,6 @@ def _test_hook():
     proc.free_console()
 
 
-# url = 'https://500px.com/popular/'
-url = 'https://www.w3schools.com/html/tryit.asp?filename=tryhtml_scripts_intro'
-scroll_to_bottom = 'window.scrollTo(0, document.body.scrollHeight)'
-
-
-def _test():
-    response = request.open(url)
-    print(response.get_text())
-
-
 class BSTR(ctyped.type.BSTR):
     # noinspection PyMissingConstructor
     def __init__(self, string: Optional[str] = None, size: Optional[int] = None):
@@ -386,41 +375,12 @@ class BSTR(ctyped.type.BSTR):
         return ctyped.lib.OleAut32.SysStringLen(self)
 
 
-js_code = '''('b' + 'a' + + 'a' + 'a').toLowerCase();'''
-
-
-class DispTest(ctyped.interface.IDispatch_impl):
-    def __call__(self, *args, **kwargs):
-        print(self, args, kwargs)
-        return ctyped.const.NOERROR
-
-
-def _webbrowser():
-    handler = DispTest()
-    browser = win32.browser.Browser(url)
-    browser._show()
-    browser.wait()
-
-    # doc = browser._browser.document.obj
-    # print(doc, doc.value)
-    # variant = ctyped.struct.VARIANT()
-    # variant.U.S.vt = ctyped.enum.VARENUM.DISPATCH.value
-    # variant.U.S.U.pdispVal = handler
-    # print(doc.put_onmousemove(variant))
-    # ctyped.lib.OleAut32.VariantClear(ctyped.byref(variant))
-    # del doc
-
-    print(browser.get_title())
-    # print(len(browser.get_html()))
-    # r = browser.eval_js(js_code)
-    # print(r, type(r))
-    time.sleep(3)
+def _test():
+    pass
 
 
 if __name__ == '__main__':
-    ctyped.lib.Ole32.CoInitialize(None)
-    # _test()
-    _webbrowser()
+    _test()
     exit()
 
     ctyped.FLAG_THREADED_COM = True

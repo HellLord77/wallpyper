@@ -1,4 +1,4 @@
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import builtins
 import contextlib
@@ -97,11 +97,12 @@ def strip(url: str) -> str:
     return f'{parts.scheme}://{parts.netloc}{parts.path}'
 
 
-def join(base: str, *urls: str) -> str:
+def join(base: str, *paths: str) -> str:
     if not base.endswith('/'):
         base = f'{base}/'
-    for url in urls:
-        base = f'{urllib.parse.urljoin(base, url)}/'
+    for path in paths:
+        if path:
+            base = f'{urllib.parse.urljoin(base, path)}/'
     return base[:-1]
 
 
@@ -115,12 +116,13 @@ def encode(url: str, params: Optional[Mapping[str, str | Iterable[str]]] = None)
     parts = urllib.parse.urlparse(url)
     query_ = urllib.parse.parse_qs(parts.query)
     for key, val in params.items():
-        if key not in query_:
-            query_[key] = []
-        if isinstance(val, str):
-            query_[key].append(val)
-        else:
-            query_[key].extend(val)
+        if val:
+            if key not in query_:
+                query_[key] = []
+            if isinstance(val, str):
+                query_[key].append(val)
+            else:
+                query_[key].extend(val)
     return urllib.parse.urlunparse(parts._replace(query=urllib.parse.urlencode(query_, True)))
 
 
@@ -157,15 +159,9 @@ def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = Non
         kwargs = {}
     response = open(url)
     if response:
-        size = size or int(response.getheader(Header.CONTENT_LENGTH, str(
-            sys.maxsize if response.local is None else os.path.getsize(response.local))))
-        if os.path.isfile(path):
-            if size == os.path.getsize(path):
-                if query_callback:
-                    query_callback(1.0, *args, **kwargs)
-                return True
-            else:
-                os.remove(path)
+        if not size:
+            size = int(response.getheader(
+                Header.CONTENT_LENGTH, sys.maxsize)) if response.local is None else os.path.getsize(response.local)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -198,12 +194,8 @@ def upload(url: str, params: Optional[Mapping[str, str]] = None, fields: Optiona
     if files is not None:
         for name, name_path in files.items():
             data += f'{prefix}"{name}"; filename="{name_path[0] or os.path.basename(name_path[1])}"{_CRLF * 2}'.encode()
-            if os.path.isfile(name_path[1]):
-                with builtins.open(name_path[1], 'rb') as file:
-                    buffer = file.read(MAX_CHUNK)
-                    while buffer:
-                        data += buffer
-                        buffer = file.read(MAX_CHUNK)
+            with builtins.open(name_path[1], 'rb') as file:
+                data += file.read()
             data += _CRLF.encode()
     data += f'--{boundary}--{_CRLF}'.encode()
     headers_ = {Header.CONTENT_TYPE: f'multipart/form-data; boundary={boundary}'}

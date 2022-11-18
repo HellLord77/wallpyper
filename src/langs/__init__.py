@@ -4,7 +4,7 @@ import contextlib
 import types
 from typing import Optional
 
-import libs.iso_codes as iso_codes
+from libs import iso_codes
 from . import ben
 from . import eng
 

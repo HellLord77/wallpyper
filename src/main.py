@@ -19,21 +19,11 @@ from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
 import consts
 import gui
 import langs
-import libs.easings as easings
-import libs.files as files
-import libs.lens as lens
-import libs.log as log
-import libs.pyinstall as pyinstall
-import libs.request as request
-import libs.singleton as singleton
-import libs.spinners as spinners
-import libs.timer as timer
-import libs.utils as utils
 import pipe
 import srcs
 import win32
+from libs import easings, files, lens, log, pyinstall, request, singleton, spinners, timer, utils
 
-ALL_DISPLAY = 'DISPLAY'
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
@@ -47,7 +37,7 @@ win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_MENU_ITEM_IMAGE_CACHE = True
 INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 MAXIMIZED_ACTIONS = '', 'POSTPONE', 'CANCEL'
-STRINGS = langs.eng
+STRINGS = srcs.Source.STRINGS = langs.DEFAULT
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = threading.Event()
 TIMER = timer.Timer.__new__(timer.Timer)
@@ -75,7 +65,7 @@ class EaseStyles(metaclass=utils.IntEnumMeta):
 
 DEFAULT_CONFIG = {
     consts.CONFIG_RECENT: f'\n{utils.encrypt(RECENT, split=True)}',
-    consts.CONFIG_DISPLAY: ALL_DISPLAY,
+    consts.CONFIG_DISPLAY: consts.ALL_DISPLAY,
     consts.CONFIG_FIRST: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_AUTOSAVE: False,
     consts.CONFIG_SKIP: False,
@@ -90,7 +80,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_INTERVAL: INTERVALS[0],
     consts.CONFIG_MAXIMIZED: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_COLOR: win32.ColorMode.AUTO,
-    consts.CONFIG_SOURCE: next(iter(srcs.SOURCES.values())).__name__,
+    consts.CONFIG_SOURCE: next(iter(srcs.SOURCES)),
     consts.CONFIG_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_STYLE: win32.display.Style[win32.display.Style.FILL],
     consts.CONFIG_ROTATE: win32.display.Rotate[win32.display.Rotate.NONE],
@@ -184,13 +174,13 @@ def on_shown(*_):
         CONFIG[consts.CONFIG_FIRST] = not notify(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
     if CONFIG[consts.CONFIG_BLOCKED]:
-        time.sleep(consts.POLL_SLO_INTERVAL)
+        time.sleep(consts.POLL_SLOW_INTERVAL)
         check_blocked()
 
 
 def get_displays() -> Iterable[str]:
     _fix_config(consts.CONFIG_DISPLAY, DISPLAYS)
-    return DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],)
+    return DISPLAYS if CONFIG[consts.CONFIG_DISPLAY] == consts.ALL_DISPLAY else (CONFIG[consts.CONFIG_DISPLAY],)
 
 
 @timer.on_thread
@@ -317,7 +307,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
                 *get_displays(), full_screen_only=True).values()):
             while CONFIG[consts.CONFIG_INTERVAL] and CONFIG[consts.CONFIG_MAXIMIZED] == MAXIMIZED_ACTIONS[1] and all(
                     win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
-                time.sleep(consts.POLL_SLO_INTERVAL)
+                time.sleep(consts.POLL_SLOW_INTERVAL)
             if not CONFIG[consts.CONFIG_INTERVAL] or CONFIG[consts.CONFIG_MAXIMIZED] == MAXIMIZED_ACTIONS[2]:
                 changed = True
         on_auto_change(CONFIG[consts.CONFIG_INTERVAL])
@@ -367,7 +357,7 @@ def _update_recent(item: win32.gui.MenuItem):
             else:
                 with gui.set_main_menu(gui.Menu()) as submenu:
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper, False),
-                                      on_thread=False, change_state=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
+                                      on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_wallpaper, args=(
                         win32.display.set_lock_background, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
                         RES_TEMPLATE.format(consts.RES_SET_LOCK))
@@ -603,8 +593,9 @@ def on_restart():
 
 def on_source(name: str, item: win32.gui.MenuItem):
     source = srcs.SOURCES[name]
-    item.set_text(source.NAME)
     item.set_icon(source.ICON if os.path.isfile(source.ICON) else gui.MenuItemImage.NONE)
+    item.set_tooltip(str(NotImplemented), f'{source.NAME}-{source.VERSION}',  # TODO
+                     source.ICON if os.path.isfile(source.ICON) else gui.MenuItemTooltipIcon.NONE)
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_main_menu(submenu):
@@ -641,7 +632,7 @@ def on_quit():
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.time() + win32.get_max_shutdown_time()
         while end_time > time.time() and threading.active_count() > max_threads:
-            time.sleep(consts.POLL_FST_INTERVAL)
+            time.sleep(consts.POLL_FAST_INTERVAL)
     gui.stop_loop()
 
 
@@ -651,14 +642,14 @@ def create_menu():  # TODO slideshow (smaller timer)
     item_change.set_icon(RES_TEMPLATE.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(STRINGS.MENU_RECENT, False, icon=RES_TEMPLATE.format(consts.RES_RECENT))
     TIMER.__init__(0, on_change, (item_change.enable, item_recent, utils.call_after(PROGRESS.set)(lambda _: True)), once=True)
-    gui.set_on_click(item_change, on_change, args=(*TIMER.args, None, False), on_thread=False, change_state=False)
+    gui.set_on_click(item_change, on_change, args=(*TIMER.args, None, False), on_thread=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
         item_recent.enable,), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
     _update_recent(item_recent)
     gui.add_separator()
-    item_module = gui.add_submenu('')
-    on_source(CONFIG[consts.CONFIG_SOURCE], item_module)
+    item_source = gui.add_submenu(STRINGS.MENU_SOURCE_SETTINGS)
+    on_source(CONFIG[consts.CONFIG_SOURCE], item_source)
     gui.add_separator()
     with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_ACTIONS, icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
         with gui.set_main_menu(gui.add_submenu(STRINGS.MENU_LINKS, icon=RES_TEMPLATE.format(consts.RES_LINKS))):
@@ -683,7 +674,7 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.add_menu_item(
                 STRINGS.LABEL_PIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_pin_start,
                 menu_args=(gui.MenuItemMethod.ENABLE,), args=(item_unpin_start.enable,),
-                change_state=False, position=9).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
+                position=9).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         if consts.FEATURE_CONSOLE_VIEW:
             gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(RES_TEMPLATE.format(consts.RES_CONSOLE))
         gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
@@ -735,9 +726,9 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style: getattr(
             STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style}, CONFIG, consts.CONFIG_STYLE,
                                on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
-        gui.add_mapped_submenu(STRINGS.MENU_MODULE, {
-            name: f'{name}\t{src.VERSION}' for name, src in srcs.SOURCES.items()}, CONFIG, consts.CONFIG_SOURCE,
-                               on_click=on_source, args=(item_module,), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+        gui.add_mapped_submenu(STRINGS.MENU_SOURCE, {
+            name: source.NAME for name, source in srcs.SOURCES.items()}, CONFIG, consts.CONFIG_SOURCE,
+                               on_click=on_source, args=(item_source,), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
         item_display = gui.add_submenu(STRINGS.MENU_DISPLAY, icon=RES_TEMPLATE.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, on_display_change, (item_display,))
         on_display_change(0, None, item_display)

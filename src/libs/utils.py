@@ -1,4 +1,4 @@
-__version__ = '0.0.19'
+__version__ = '0.0.20'
 
 import ast
 import binascii
@@ -301,6 +301,10 @@ def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.B
     return f'{bars[-1] * filled}{bars[index] * bool(index)}{bars[0] * (width - filled - bool(index))}'
 
 
+def len_ex(itt: Iterable) -> int:
+    return sum(1 for _ in itt)
+
+
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
            kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
@@ -348,9 +352,21 @@ def eq_ex(a, b) -> bool:
         return a == b
 
 
-def exhaust(itt: Generator):
-    for _ in itt:
-        pass
+def consume(itt: Iterable, count: int = -1) -> int:
+    count_ = itertools.count()
+    if count:
+        count -= 1
+        for _, index in zip(itt, count_):
+            if count == index:
+                break
+    return next(count_)
+
+
+def consume_ex(itt: Iterable, item) -> Optional[int]:
+    count = itertools.count()
+    for index, item_ in zip(count, itt):
+        if item == item_:
+            return index
 
 
 def randint_ex() -> int:
@@ -418,18 +434,18 @@ def pretty_vars(obj) -> str:
     return fmt
 
 
-def fix_dict_key(current_dict: dict, key: str, possible_values: Iterable, default_dict: dict):
-    cur_val = current_dict[key]
+def fix_dict_key(cur_dict: dict, key: str, vals: Iterable, default_dict: dict):
+    cur_val = cur_dict[key]
     if isinstance(cur_val, str):
         cur_val = cur_val.casefold()
-        for val in possible_values:
+        for val in vals:
             if cur_val == val.casefold():
-                current_dict[key] = val
+                cur_dict[key] = val
                 return
     else:
-        if cur_val in possible_values:
+        if cur_val in vals:
             return
-    current_dict[key] = default_dict[key]
+    cur_dict[key] = default_dict[key]
 
 
 # noinspection PyShadowingNames
