@@ -5598,24 +5598,30 @@ class ntdll(_FuncMixin, metaclass=_WinDLL):
 
 class Ole32(_FuncMixin, metaclass=_WinDLL):
     # combaseapi
-    CLSIDFromString: _Callable[[_type.LPCOLESTR,
-                                _Pointer[_struct.CLSID]],
-                               _type.HRESULT]
-    CoCreateGuid: _Callable[[_Pointer[_struct.GUID]],
-                            _type.HRESULT]
-    CoCreateInstance: _Callable[[_Pointer[_struct.CLSID],
-                                 _Optional[_Pointer[_interface.IUnknown]],
-                                 _type.DWORD,
-                                 _Pointer[_struct.IID],
-                                 _type.LPVOID],
-                                _type.HRESULT]
-    CoInitializeEx: _Callable[[_Optional[_type.LPVOID],
-                               _type.DWORD],
-                              _type.HRESULT]
-    CoTaskMemFree: _Callable[[_Optional[_type.LPVOID]],
-                             _type.c_void]
     CoUninitialize: _Callable[[],
                               _type.VOID]
+    CoGetCurrentProcess: _Callable[[],
+                                   _type.DWORD]
+    CoInitializeEx: _Callable[[_Optional[_type.LPVOID],  # pvReserved
+                               _type.DWORD],  # dwCoInit
+                              _type.HRESULT]
+    CoMarshalInterface: _Callable[[_interface.IStream,  # pStm
+                                   _Pointer[_struct.IID],  # riid
+                                   _interface.IUnknown,  # pUnk
+                                   _type.DWORD,  # dwDestContext
+                                   _Optional[_type.DWORD],  # pvDestContext
+                                   _type.DWORD],  # mshlflags
+                                  _type.HRESULT]
+    CoUnmarshalInterface: _Callable[[_interface.IStream,  # pStm
+                                     _Pointer[_struct.IID],  # riid
+                                     _type.LPVOID],  # ppv
+                                    _type.HRESULT]
+    CoMarshalHresult: _Callable[[_interface.IStream,  # pstm
+                                 _type.HRESULT],  # hresult
+                                _type.HRESULT]
+    CoUnmarshalHresult: _Callable[[_interface.IStream,  # pstm
+                                   _Pointer[_type.HRESULT]],  # phresult
+                                  _type.HRESULT]
     CoIsHandlerConnected: _Callable[[_interface.IUnknown],  # pUnk
                                     _type.BOOL]
     CoMarshalInterThreadInterfaceInStream: _Callable[[_Pointer[_struct.IID],  # riid
@@ -5636,19 +5642,42 @@ class Ole32(_FuncMixin, metaclass=_WinDLL):
                                        _type.c_void]
     CoDisconnectContext: _Callable[[_type.DWORD],  # dwTimeout
                                    _type.HRESULT]
-    IIDFromString: _Callable[[_type.LPCOLESTR,
-                              _Pointer[_struct.IID]],
-                             _type.HRESULT]
-    StringFromCLSID: _Callable[[_Pointer[_struct.CLSID],
-                                _Pointer[_type.LPOLESTR]],
+    CoCreateInstance: _Callable[[_Pointer[_struct.CLSID],  # rclsid
+                                 _Optional[_Pointer[_interface.IUnknown]],  # pUnkOuter
+                                 _type.DWORD,  # dwClsContext
+                                 _Pointer[_struct.IID],  # riid
+                                 _type.LPVOID],  # ppv
+                                _type.HRESULT]
+    StringFromCLSID: _Callable[[_Pointer[_struct.CLSID],  # rclsid
+                                _Pointer[_type.LPOLESTR]],  # lplpsz
                                _type.HRESULT]
-    StringFromGUID2: _Callable[[_Pointer[_struct.GUID],
-                                _type.LPOLESTR,
-                                _type.c_int],
-                               _type.c_int]
-    StringFromIID: _Callable[[_Pointer[_struct.IID],
-                              _Pointer[_type.LPOLESTR]],
+    CLSIDFromString: _Callable[[_type.LPCOLESTR,  # lpsz
+                                _Pointer[_struct.CLSID]],  # pclsid
+                               _type.HRESULT]
+    StringFromIID: _Callable[[_Pointer[_struct.IID],  # rclsid
+                              _Pointer[_type.LPOLESTR]],  # lplpsz
                              _type.HRESULT]
+    IIDFromString: _Callable[[_type.LPCOLESTR,  # lpsz
+                              _Pointer[_struct.IID]],  # lpiid
+                             _type.HRESULT]
+    ProgIDFromCLSID: _Callable[[_Pointer[_struct.CLSID],  # clsid
+                                _Pointer[_type.LPOLESTR]],  # lplpszProgID
+                               _type.HRESULT]
+    CLSIDFromProgID: _Callable[[_type.LPCOLESTR,  # lpszProgID
+                                _Pointer[_struct.CLSID]],  # lpclsid
+                               _type.HRESULT]
+    StringFromGUID2: _Callable[[_Pointer[_struct.GUID],  # rguid
+                                _type.LPOLESTR,  # lpsz
+                                _type.c_int],  # cchMax
+                               _type.c_int]
+    CoCreateGuid: _Callable[[_Pointer[_struct.GUID]],  # pguid
+                            _type.HRESULT]
+    DllCanUnloadNow: _Callable[[],
+                               _type.HRESULT]
+    CoTaskMemAlloc: _Callable[[_type.SIZE_T],  # cb
+                              _type.LPVOID]
+    CoTaskMemFree: _Callable[[_Optional[_type.LPVOID]],  # pv
+                             _type.c_void]
     # guiddef
     IsEqualGUID: _Callable[[_Pointer[_struct.GUID],
                             _Pointer[_struct.GUID]],

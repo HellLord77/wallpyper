@@ -1,11 +1,15 @@
 import contextlib
+import functools
 import math
+import threading
 import time
 import uuid
 from typing import Optional, ContextManager
 
 from libs import ctyped
 from . import _mshtml, _utils
+
+_SEEK_ARGS = ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET.value, None
 
 
 @contextlib.contextmanager
@@ -19,62 +23,56 @@ def _temp_var(window: _mshtml.HTMLWindow2, val: str) -> ContextManager[str]:
 
 
 class Browser:
-    def __init__(self, url: Optional[str] = None, wait: bool = False):
+    def __init__(self, url: Optional[str] = None):
         ctyped.lib.Ole32.CoInitialize(None)
         self._browser_mrsl = ctyped.interface.IStream()
         with ctyped.init_com(ctyped.interface.IWebBrowser2) as browser:
             ctyped.lib.Ole32.CoMarshalInterThreadInterfaceInStream(ctyped.macro.IID_PPV_ARGS(
                 browser)[0], browser, ctyped.byref(self._browser_mrsl))
             if url is not None:
-                _mshtml.WebBrowser2(browser).navigate(url)
-                if wait:
-                    self.wait()
+                self._browser.navigate(url)
 
     def __del__(self):
         if self._browser_mrsl:
-            with ctyped.init_com(ctyped.interface.IWebBrowser2, False) as browser:
-                ctyped.lib.Ole32.CoGetInterfaceAndReleaseStream(self._browser_mrsl, *ctyped.macro.IID_PPV_ARGS(browser))
-                browser.Quit()
+            self._browser.quit()
+            self._browser_mrsl.Release()
         ctyped.lib.Ole32.CoUninitialize()
 
     @property
-    @contextlib.contextmanager
-    def _browser(self) -> ContextManager[_mshtml.WebBrowser2]:
+    def _browser(self) -> _mshtml.WebBrowser2:
+        return self._get_browser(threading.get_ident())
+
+    # noinspection PyUnusedLocal
+    @functools.lru_cache(1)
+    def _get_browser(self, ident: int) -> _mshtml.WebBrowser2:
         with ctyped.init_com(ctyped.interface.IWebBrowser2, False) as browser:
+            self._browser_mrsl.Seek(*_SEEK_ARGS)
             ctyped.lib.Ole32.CoUnmarshalInterface(self._browser_mrsl, *ctyped.macro.IID_PPV_ARGS(browser))
-            yield _mshtml.WebBrowser2(browser)
+            return _mshtml.WebBrowser2(browser)
 
     def navigate(self, url: str) -> bool:
-        with self._browser as browser:
-            return browser.navigate(url)
+        return self._browser.navigate(url)
 
     def refresh(self) -> bool:
-        with self._browser as browser:
-            return browser.refresh()
+        return self._browser.refresh()
 
     def stop(self) -> bool:
-        with self._browser as browser:
-            return browser.stop()
+        return self._browser.stop()
 
     def is_ready(self) -> bool:
-        with self._browser as browser:
-            return browser.ready_state == ctyped.enum.READYSTATE.COMPLETE
+        return self._browser.ready_state == ctyped.enum.READYSTATE.COMPLETE
 
     def get_url(self) -> str:
-        with self._browser as browser:
-            return browser.document.url
+        return self._browser.document.url
 
     def get_body(self) -> str:
-        with self._browser as browser:
-            return browser.document.body.outer_html
+        return self._browser.document.body.outer_html
 
     def get_title(self) -> str:
-        with self._browser as browser:
-            return browser.document.title
+        return self._browser.document.title
 
     def get_html(self) -> str:
-        with self._browser as browser:
-            return browser.document.body.parent_element.outer_html
+        return self._browser.document.body.parent_element.outer_html
 
     def wait(self, timeout: float = math.inf) -> bool:
         end_time = time.time() + timeout
@@ -88,8 +86,7 @@ class Browser:
         stream = ctyped.lib.shlwapi.SHCreateMemStream(None, 0)
         if stream:
             with ctyped.init_com(ctyped.interface.IDispatch, False) as dispatch:
-                with self._browser as browser:
-                    browser.obj.get_Document(ctyped.byref(dispatch))
+                self._browser.obj.get_Document(ctyped.byref(dispatch))
                 with ctyped.cast_com(dispatch, ctyped.interface.IPersistStreamInit) as persist_stream:
                     persist_stream.Save(stream, ctyped.const.TRUE)
             # noinspection PyTypeChecker
@@ -105,9 +102,7 @@ class Browser:
         return html
 
     def call_js(self, func: str, *args: str) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:  # TODO argtypes
-        with self._browser as browser:
-            window = browser.document.parent_window
-        with _temp_var(window, func) as var, ctyped.cast_com(
+        with _temp_var(window := self._browser.document.parent_window, func) as var, ctyped.cast_com(
                 window.obj, ctyped.interface.IDispatchEx) as window_ex:
             disp_id = ctyped.type.DISPID()
             with _utils.get_bstr(var) as bstr:
@@ -133,9 +128,7 @@ class Browser:
 
     def _eval_js(self, code: str) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:
         source = code.replace('"', '\\"')
-        with self._browser as browser:
-            window = browser.document.parent_window
-        with _temp_var(window, f'eval("{source}")') as var:
+        with _temp_var(window := self._browser.document.parent_window, f'eval("{source}")') as var:
             disp_id = ctyped.type.DISPID()
             with ctyped.cast_com(window.obj, ctyped.interface.IDispatchEx) as window_ex, _utils.get_bstr(var) as bstr:
                 window_ex.GetDispID(bstr, ctyped.const.fdexNameCaseSensitive, ctyped.byref(disp_id))
