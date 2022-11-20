@@ -116,17 +116,17 @@ def app_bar_button_handler(arg2, args: winrt.Windows.UI.Xaml.RoutedEventArgs) ->
 
 def adjust_layout(hwnd: ctyped.type.HWND):
     rect = ctyped.struct.RECT()
-    ctyped.lib.user32.GetClientRect(hwnd, ctyped.byref(rect))
-    ctyped.lib.user32.SetWindowPos(_HWND, None, 0, 0, rect.right, rect.bottom, ctyped.const.SWP_SHOWWINDOW)
+    ctyped.lib.User32.GetClientRect(hwnd, ctyped.byref(rect))
+    ctyped.lib.User32.SetWindowPos(_HWND, None, 0, 0, rect.right, rect.bottom, ctyped.const.SWP_SHOWWINDOW)
 
 
 def wnd_proc(hwnd, msg, wparam, lparam):
     if msg == ctyped.const.WM_DESTROY:
-        ctyped.lib.user32.PostQuitMessage(0)
+        ctyped.lib.User32.PostQuitMessage(0)
     elif msg == ctyped.const.WM_SIZE:
         adjust_layout(hwnd)
     else:
-        return ctyped.lib.user32.DefWindowProcW(hwnd, msg, wparam, lparam)
+        return ctyped.lib.User32.DefWindowProcW(hwnd, msg, wparam, lparam)
     return 0
 
 
@@ -165,11 +165,11 @@ def main():
         xaml_data = file.read()
     corner_radius = ctyped.struct.Windows.UI.Xaml.CornerRadius(4, 4, 4, 4)
 
-    hinstance = ctyped.lib.kernel32.GetModuleHandleW(None)
+    hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
     wnd_class = ctyped.struct.WNDCLASSW(lpfnWndProc=ctyped.type.WNDPROC(wnd_proc), hInstance=hinstance, lpszClassName=class_name)
-    ctyped.lib.user32.RegisterClassW(ctyped.byref(wnd_class))
+    ctyped.lib.User32.RegisterClassW(ctyped.byref(wnd_class))
 
-    hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
+    hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
         0, class_name, "Windows python Win32 Desktop App", ctyped.const.WS_OVERLAPPEDWINDOW | ctyped.const.WS_VISIBLE, ctyped.const.CW_USEDEFAULT,
         ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, None, None, hinstance, None))
     # value = ctyped.type.BOOL(True)
@@ -348,9 +348,9 @@ def main():
     hwnd.update()
 
     msg = ctyped.struct.MSG()
-    while ctyped.lib.user32.GetMessageW(ctyped.byref(msg), 0, 0, 0):
-        ctyped.lib.user32.TranslateMessage(ctyped.byref(msg))
-        ctyped.lib.user32.DispatchMessageW(ctyped.byref(msg))
+    while ctyped.lib.User32.GetMessageW(ctyped.byref(msg), 0, 0, 0):
+        ctyped.lib.User32.TranslateMessage(ctyped.byref(msg))
+        ctyped.lib.User32.DispatchMessageW(ctyped.byref(msg))
 
     source.close()
 
@@ -361,7 +361,7 @@ def foo(p: winrt.Windows.UI.Xaml.ApplicationInitializationCallbackParams):
 
 
 def application():
-    ctyped.lib.combase.RoInitialize(ctyped.enum.RO_INIT_TYPE.SINGLETHREADED)
+    ctyped.lib.ComBase.RoInitialize(ctyped.enum.RO_INIT_TYPE.SINGLETHREADED)
     app = winrt.Windows.UI.Xaml.Application()
     # dh = winrt.Windows.UI.Core.DispatchedHandler.create_instance(disp)
     # patcher = winrt.Windows.UI.Core.CoreDispatcher()

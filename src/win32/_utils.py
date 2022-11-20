@@ -9,7 +9,7 @@ POLL_INTERVAL = 0.1
 
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
-    ctyped.lib.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
+    ctyped.lib.Shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
         folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT, None, ctyped.byref(buff))
     try:
         return buff.value
@@ -24,17 +24,17 @@ def string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWS
         yield ptr
     finally:
         if size is None and ptr.value:
-            ctyped.lib.kernel32.LocalFree(ptr)
+            ctyped.lib.Kernel32.LocalFree(ptr)
 
 
 @contextlib.contextmanager
 def get_itemidlist(*paths: str | ctyped.type.PCWSTR) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.lib.shell32.ILCreateFromPath(path) for path in paths)
+    ids = tuple(ctyped.lib.Shell32.ILCreateFromPath(path) for path in paths)
     try:
         yield ids
     finally:
         for id_ in ids:
-            ctyped.lib.shell32.ILFree(id_)
+            ctyped.lib.Shell32.ILFree(id_)
 
 
 def get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
@@ -76,7 +76,7 @@ def delete_key(key: winreg.HKEYType, name: str) -> bool:
 
 def sanitize_filename(name: str) -> Optional[str]:
     buff = ctyped.type.PWSTR(name)
-    if ctyped.lib.shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
+    if ctyped.lib.Shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
         return buff.value
 
 
@@ -95,7 +95,7 @@ def open_file(path: str) -> ContextManager[Optional[ctyped.interface.Windows.Sto
 @contextlib.contextmanager
 def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> ContextManager[Optional[ctyped.interface.IStream]]:
     with ctyped.init_com(ctyped.interface.IStream, False) as stream:
-        if ctyped.macro.SUCCEEDED(ctyped.lib.shlwapi.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
+        if ctyped.macro.SUCCEEDED(ctyped.lib.ShlWAPI.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
             yield stream
             return
     yield
@@ -160,7 +160,7 @@ def get_d2d1_dc_render_target() -> ContextManager[Optional[ctyped.interface.ID2D
     with ctyped.init_com(ctyped.interface.ID2D1Factory, False) as factory, ctyped.init_com(
             ctyped.interface.ID2D1DCRenderTarget, False) as target:
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
-        if ctyped.macro.SUCCEEDED(ctyped.lib.d2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
+        if ctyped.macro.SUCCEEDED(ctyped.lib.D2D1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
                 factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
                     ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
             yield target

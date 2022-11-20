@@ -471,8 +471,7 @@ class Python(_FuncMixin, metaclass=_PyDLL):
                                 _type.c_void]
 
 
-# noinspection PyPep8Naming
-class advapi32(_FuncMixin, metaclass=_WinDLL):
+class AdvAPI32(_FuncMixin, metaclass=_WinDLL):
     # winreg
     AbortSystemShutdownA: _Callable[[_type.LPSTR],
                                     _type.BOOL]
@@ -632,8 +631,7 @@ class cfgmgr32(_FuncMixin, metaclass=_WinDLL):
                                   _type.CONFIGRET]
 
 
-# noinspection PyPep8Naming
-class combase(_FuncMixin, metaclass=_WinDLL):
+class ComBase(_FuncMixin, metaclass=_WinDLL):
     # roapi
     RoActivateInstance: _Callable[[_type.HSTRING,
                                    _Pointer[_interface.IInspectable]],
@@ -701,8 +699,7 @@ class comdlg32(_FuncMixin, metaclass=_WinDLL):
                             _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class computecore(_FuncMixin, metaclass=_WinDLL):
+class ComputeCore(_FuncMixin, metaclass=_WinDLL):
     # computecore
     HcsGetServiceProperties: _Callable[[_Optional[_type.PCWSTR],
                                         _Pointer[_type.PWSTR]],
@@ -728,8 +725,7 @@ class computecore(_FuncMixin, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class crypt32(_FuncMixin, metaclass=_WinDLL):
+class Crypt32(_FuncMixin, metaclass=_WinDLL):
     # wincrypt
     CryptBinaryToStringA: _Callable[[_Pointer[_type.BYTE],
                                      _type.DWORD,
@@ -761,8 +757,7 @@ class crypt32(_FuncMixin, metaclass=_WinDLL):
                                     _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class d2d1(_FuncMixin, metaclass=_WinDLL):
+class D2D1(_FuncMixin, metaclass=_WinDLL):
     # d2d1
     D2D1CreateFactory: _Callable[[_enum.D2D1_FACTORY_TYPE,  # factoryType
                                   _Pointer[_struct.IID],  # riid
@@ -799,8 +794,7 @@ class d2d1(_FuncMixin, metaclass=_WinDLL):
                               _type.FLOAT]
 
 
-# noinspection PyPep8Naming
-class d3d11(_FuncMixin, metaclass=_WinDLL):
+class D3D11(_FuncMixin, metaclass=_WinDLL):
     # d3d11
     D3D11CreateDevice: _Callable[[_Optional[_interface.IDXGIAdapter],  # pAdapter
                                   _enum.D3D_DRIVER_TYPE,  # DriverType
@@ -823,8 +817,7 @@ class DWrite(_FuncMixin, metaclass=_WinDLL):
                                    _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class dwmapi(_FuncMixin, metaclass=_WinDLL):
+class DWMAPI(_FuncMixin, metaclass=_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
                                  _type.UINT,
@@ -869,8 +862,7 @@ class dwmapi(_FuncMixin, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class gdi32(_FuncMixin, metaclass=_WinDLL):
+class GDI32(_FuncMixin, metaclass=_WinDLL):
     # wingdi
     AddFontResourceA: _Callable[[_type.LPCSTR],
                                 _type.c_int]
@@ -1212,7 +1204,7 @@ class gdi32(_FuncMixin, metaclass=_WinDLL):
                         _type.BOOL]
 
 
-class GdiPlus(_FuncMixin, metaclass=_WinDLL):
+class GDIPlus(_FuncMixin, metaclass=_WinDLL):
     # gdipluseffects
     GdipCreateEffect: _Callable[[_struct.GUID,  # guid
                                  _Pointer[_type.CGpEffect]],  # effect
@@ -3940,8 +3932,7 @@ class GdiPlus(_FuncMixin, metaclass=_WinDLL):
                                _type.VOID]
 
 
-# noinspection PyPep8Naming
-class kernel32(_FuncMixin, metaclass=_WinDLL):
+class Kernel32(_FuncMixin, metaclass=_WinDLL):
     # commapi
     ClearCommBreak: _Callable[[_type.HANDLE],  # hFile
                               _type.BOOL]
@@ -5696,8 +5687,7 @@ class Ole32(_FuncMixin, metaclass=_WinDLL):
                                _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class oleacc(_FuncMixin, metaclass=_WinDLL):
+class OleAcc(_FuncMixin, metaclass=_WinDLL):
     GetProcessHandleFromHwnd: _Callable[[_type.HWND],
                                         _type.HANDLE]
     # oleacc
@@ -5779,8 +5769,7 @@ class OleAut32(_FuncMixin, metaclass=_WinDLL):
                                   _type.WINOLECTLAPI]
 
 
-# noinspection PyPep8Naming
-class opengl32(_FuncMixin, metaclass=_WinDLL):
+class OpenGL32(_FuncMixin, metaclass=_WinDLL):
     # GL
     glEnd: _Callable[[],
                      _type.c_void]
@@ -5806,8 +5795,7 @@ class opengl32(_FuncMixin, metaclass=_WinDLL):
                             _type.c_void]
 
 
-# noinspection PyPep8Naming
-class psapi(_FuncMixin, metaclass=_WinDLL):
+class PSAPI(_FuncMixin, metaclass=_WinDLL):
     # Psapi
     GetDeviceDriverBaseNameA: _Callable[[_type.LPVOID,  # ImageBase
                                          _type.LPSTR,  # lpFilename
@@ -5843,8 +5831,7 @@ class psapi(_FuncMixin, metaclass=_WinDLL):
                                         _type.DWORD]
 
 
-# noinspection PyPep8Naming
-class setupapi(_FuncMixin, metaclass=_WinDLL):
+class SetupAPI(_FuncMixin, metaclass=_WinDLL):
     # SetupAPI
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
                                               _Pointer[_struct.SP_DEVINFO_DATA],
@@ -5937,14 +5924,12 @@ class SHCore(_FuncMixin, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class shdocvw(_FuncMixin, metaclass=_WinDLL):
+class SHDocVw(_FuncMixin, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
 
 
-# noinspection PyPep8Naming
-class shell32(_FuncMixin, metaclass=_WinDLL):
+class Shell32(_FuncMixin, metaclass=_WinDLL):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 703
@@ -6192,8 +6177,7 @@ class shell32(_FuncMixin, metaclass=_WinDLL):
                                                  _type.SHSTDAPI]
 
 
-# noinspection PyPep8Naming
-class shlwapi(_FuncMixin, metaclass=_WinDLL):
+class ShlWAPI(_FuncMixin, metaclass=_WinDLL):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 269
@@ -6524,8 +6508,7 @@ class shlwapi(_FuncMixin, metaclass=_WinDLL):
                                _type.BOOL]
 
 
-# noinspection PyPep8Naming
-class user32(_FuncMixin, metaclass=_WinDLL):
+class User32(_FuncMixin, metaclass=_WinDLL):
     MessageBoxTimeoutA: _Callable[[_Optional[_type.HWND],  # hWnd
                                    _Optional[_type.LPCSTR],  # lpText
                                    _Optional[_type.LPCSTR],  # lpCaption

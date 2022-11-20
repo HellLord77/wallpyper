@@ -79,9 +79,9 @@ class Transition(metaclass=utils.IntEnumMeta):
     def _fade(factor: float, dst_w: int, dst_h: int, dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC,
               blend: ctyped.struct.BLENDFUNCTION, dst_bk: ctyped.type.HDC, tmp_dst: ctyped.type.HDC):
         blend.SourceConstantAlpha = int(255 * factor)
-        ctyped.lib.gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.GDI32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
         ctyped.lib.msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
-        ctyped.lib.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.GDI32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
         return
         # noinspection PyUnreachableCode
         yield
@@ -253,13 +253,13 @@ _TRANSITIONS = (
 
 
 def _spawn_workerw():
-    ctyped.lib.user32.SendMessageW(ctyped.lib.user32.FindWindowW('Progman', None), 0x52C, 0, 0)
+    ctyped.lib.User32.SendMessageW(ctyped.lib.User32.FindWindowW('Progman', None), 0x52C, 0, 0)
 
 
 @ctyped.type.WNDENUMPROC
 def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARAM) -> ctyped.type.BOOL:
-    if ctyped.lib.user32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
-            hwnd_ := ctyped.lib.user32.FindWindowExW(None, hwnd, 'WorkerW', None)):
+    if ctyped.lib.User32.FindWindowExW(hwnd, None, 'SHELLDLL_DefView', None) and (
+            hwnd_ := ctyped.lib.User32.FindWindowExW(None, hwnd, 'WorkerW', None)):
         ctyped.from_address(lparam, ctyped.type.LPARAM).value = hwnd_
         return False
     return True
@@ -268,7 +268,7 @@ def _get_workerw_hwnd_callback(hwnd: ctyped.type.HWND, lparam: ctyped.type.LPARA
 def _get_workerw_hwnd() -> int:
     hwnd = ctyped.type.LPARAM()
     _spawn_workerw()
-    ctyped.lib.user32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd))
+    ctyped.lib.User32.EnumWindows(_get_workerw_hwnd_callback, ctyped.addressof(hwnd))
     return hwnd.value
 
 
@@ -277,14 +277,14 @@ def _get_drives() -> dict[str, str]:
     buff = ctyped.char_array(size=ctyped.const.MAX_PATH)
     for letter in string.ascii_uppercase:
         path = f'{letter}:'
-        if ctyped.lib.kernel32.QueryDosDeviceW(path, buff, ctyped.const.MAX_PATH):
+        if ctyped.lib.Kernel32.QueryDosDeviceW(path, buff, ctyped.const.MAX_PATH):
             drives[buff.value] = path
     return drives
 
 
 def get_monitor_count() -> int:
     num = ctyped.type.c_int()
-    ctyped.lib.user32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
+    ctyped.lib.User32.EnumDisplayMonitors(None, None, ctyped.type.MONITORENUMPROC(lambda *_: operator.iadd(num, 1)), 0)
     return num.value
 
 
@@ -311,10 +311,10 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
     monitors = {}
     path_count = ctyped.type.UINT32()
     mode_count = ctyped.type.UINT32()
-    if ctyped.const.ERROR_SUCCESS == ctyped.lib.user32.GetDisplayConfigBufferSizes(
+    if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.GetDisplayConfigBufferSizes(
             ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(path_count), ctyped.byref(mode_count)):
         modes = ctyped.array(type=ctyped.struct.DISPLAYCONFIG_MODE_INFO, size=mode_count.value)
-        if ctyped.const.ERROR_SUCCESS == ctyped.lib.user32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
+        if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
                 path_count), ctyped.array(type=ctyped.struct.DISPLAYCONFIG_PATH_INFO, size=path_count.value), ctyped.byref(mode_count), modes, None):
             name = ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME(ctyped.struct.DISPLAYCONFIG_DEVICE_INFO_HEADER(
                 ctyped.enum.DISPLAYCONFIG_DEVICE_INFO_TYPE.GET_TARGET_NAME, ctyped.sizeof(ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME)))
@@ -322,15 +322,15 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
                 if mode.infoType == ctyped.enum.DISPLAYCONFIG_MODE_INFO_TYPE.TARGET:
                     name.header.adapterId = mode.adapterId
                     name.header.id = mode.id
-                    if ctyped.const.ERROR_SUCCESS == ctyped.lib.user32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
+                    if ctyped.const.ERROR_SUCCESS == ctyped.lib.User32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
                         monitors[name.monitorDevicePath] = name.monitorFriendlyDeviceName, (
                             mode.U.targetMode.targetVideoSignalInfo.activeSize.cx, mode.U.targetMode.targetVideoSignalInfo.activeSize.cy)
     return monitors
 
 
 def get_display_size() -> tuple[int, int]:
-    return ctyped.lib.user32.GetSystemMetrics(
-        ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.user32.GetSystemMetrics(ctyped.const.SM_CYVIRTUALSCREEN)
+    return ctyped.lib.User32.GetSystemMetrics(
+        ctyped.const.SM_CXVIRTUALSCREEN), ctyped.lib.User32.GetSystemMetrics(ctyped.const.SM_CYVIRTUALSCREEN)
 
 
 def _get_monitor_rect(dev_path: str) -> Optional[ctyped.struct.RECT]:
@@ -347,28 +347,28 @@ def _get_monitor_rect(dev_path: str) -> Optional[ctyped.struct.RECT]:
 def _get_monitor_x_y_w_h(dev_path: str) -> tuple[int, int, int, int]:
     rect = _get_monitor_rect(dev_path)
     if rect:
-        return rect.left - ctyped.lib.user32.GetSystemMetrics(
-            ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.user32.GetSystemMetrics(
+        return rect.left - ctyped.lib.User32.GetSystemMetrics(
+            ctyped.const.SM_XVIRTUALSCREEN), rect.top - ctyped.lib.User32.GetSystemMetrics(
             ctyped.const.SM_YVIRTUALSCREEN), rect.right - rect.left, rect.bottom - rect.top
     return 0, 0, 0, 0
 
 
 def _get_window_text(hwnd: ctyped.type.HWND) -> Optional[str]:
-    if size := ctyped.lib.user32.GetWindowTextLengthW(hwnd):
+    if size := ctyped.lib.User32.GetWindowTextLengthW(hwnd):
         text = ctyped.char_array(size=size + 1)
-        if ctyped.lib.user32.GetWindowTextW(hwnd, text, ctyped.const.MAX_PATH):
+        if ctyped.lib.User32.GetWindowTextW(hwnd, text, ctyped.const.MAX_PATH):
             return text.value
 
 
 def _get_window_exe_path(hwnd: ctyped.type.HWND, drives: Optional[dict[str, str]] = None) -> str:
     file_name = ''
     pid = ctyped.type.DWORD()
-    ctyped.lib.user32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
-    if handle := ctyped.lib.kernel32.OpenProcess(ctyped.const.PROCESS_QUERY_LIMITED_INFORMATION, False, pid):
+    ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
+    if handle := ctyped.lib.Kernel32.OpenProcess(ctyped.const.PROCESS_QUERY_LIMITED_INFORMATION, False, pid):
         buff = ctyped.char_array(size=ctyped.const.MAX_PATH + 1)
-        if ctyped.lib.psapi.GetProcessImageFileNameW(handle, buff, ctyped.const.MAX_PATH):
+        if ctyped.lib.PSAPI.GetProcessImageFileNameW(handle, buff, ctyped.const.MAX_PATH):
             file_name = buff.value
-        ctyped.lib.kernel32.CloseHandle(handle)
+        ctyped.lib.Kernel32.CloseHandle(handle)
     if drives:
         for drive, path in drives.items():
             if file_name.startswith(drive):
@@ -379,7 +379,7 @@ def _get_window_exe_path(hwnd: ctyped.type.HWND, drives: Optional[dict[str, str]
 
 def _get_window_frame_rect(hwnd: ctyped.type.HWND) -> Optional[ctyped.struct.RECT]:
     rect = ctyped.struct.RECT()
-    if ctyped.macro.SUCCEEDED(ctyped.lib.dwmapi.DwmGetWindowAttribute(
+    if ctyped.macro.SUCCEEDED(ctyped.lib.DWMAPI.DwmGetWindowAttribute(
             hwnd, ctyped.enum.DWMWINDOWATTRIBUTE.EXTENDED_FRAME_BOUNDS, ctyped.byref(rect), ctyped.sizeof(rect))):
         return rect
 
@@ -387,18 +387,18 @@ def _get_window_frame_rect(hwnd: ctyped.type.HWND) -> Optional[ctyped.struct.REC
 def _get_window_monitor(hwnd: ctyped.type.HWND, monitor_rects: Optional[dict[str, ctyped.struct.RECT]] = None) -> Optional[str]:
     if monitor_rects is None:
         monitor_rects = {monitor: _get_monitor_rect(monitor) for monitor in get_monitors()}
-    hmonitor = ctyped.lib.user32.MonitorFromWindow(hwnd, ctyped.const.MONITOR_DEFAULTTONEAREST)
+    hmonitor = ctyped.lib.User32.MonitorFromWindow(hwnd, ctyped.const.MONITOR_DEFAULTTONEAREST)
     if hmonitor:
         info = ctyped.struct.MONITORINFO()
-        if ctyped.lib.user32.GetMonitorInfoW(hmonitor, ctyped.byref(info)):
+        if ctyped.lib.User32.GetMonitorInfoW(hmonitor, ctyped.byref(info)):
             for monitor, rect in monitor_rects.items():
-                if ctyped.lib.user32.EqualRect(ctyped.byref(rect), ctyped.byref(info.rcMonitor)):
+                if ctyped.lib.User32.EqualRect(ctyped.byref(rect), ctyped.byref(info.rcMonitor)):
                     return monitor
 
 
 def _get_window_pid(hwnd: ctyped.type.HWND) -> int:
     pid = ctyped.type.DWORD()
-    ctyped.lib.user32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
+    ctyped.lib.User32.GetWindowThreadProcessId(hwnd, ctyped.byref(pid))
     return pid.value
 
 
@@ -413,16 +413,16 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
         placement = ctyped.struct.WINDOWPLACEMENT()
 
         def wind_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
-            if ctyped.lib.user32.GetWindowPlacement(hwnd, ctyped.byref(
+            if ctyped.lib.User32.GetWindowPlacement(hwnd, ctyped.byref(
                     placement)) and placement.showCmd == ctyped.const.SW_MAXIMIZE:
                 monitor = _get_window_monitor(hwnd, rects_or_regions)
-                if monitor and not (full_screen_only and ctyped.lib.user32.SubtractRect(ctyped.byref(dummy), ctyped.byref(
+                if monitor and not (full_screen_only and ctyped.lib.User32.SubtractRect(ctyped.byref(dummy), ctyped.byref(
                         rects_or_regions[monitor]), ctyped.byref(_get_window_frame_rect(hwnd) or ctyped.struct.RECT()))):
                     blockers[monitor].add(_get_window_exe_path(hwnd, drives))
             return True
     else:
         rects_or_regions = {monitor: ctyped.handle.HRGN.from_rect(rect) for monitor, rect in rects_or_regions.items()}
-        explorer_pid = _get_window_pid(ctyped.lib.user32.FindWindowW('Shell_TrayWnd', None))
+        explorer_pid = _get_window_pid(ctyped.lib.User32.FindWindowW('Shell_TrayWnd', None))
 
         def wind_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
             if explorer_pid != _get_window_pid(hwnd):
@@ -434,7 +434,7 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
                         blockers[monitor].add(_get_window_exe_path(hwnd, drives))
             return True
 
-    ctyped.lib.user32.EnumWindows(ctyped.type.WNDENUMPROC(wind_enum_proc), 0)
+    ctyped.lib.User32.EnumWindows(ctyped.type.WNDENUMPROC(wind_enum_proc), 0)
     if not fullscreen:
         for monitor, region in rects_or_regions.items():
             if not region.is_empty():
@@ -448,7 +448,7 @@ def is_desktop_unblocked(*monitors: str) -> dict[str, bool]:
     hwnd = _get_workerw_hwnd()
     if hwnd:
         hdc = ctyped.handle.HDC.from_hwnd(hwnd)
-        return {monitor: bool(ctyped.lib.gdi32.RectVisible(hdc, ctyped.byref(
+        return {monitor: bool(ctyped.lib.GDI32.RectVisible(hdc, ctyped.byref(
             ctyped.struct.RECT(*_get_monitor_x_y_w_h(monitor))))) for monitor in monitors}
     return {monitor: True for monitor in monitors}
 
@@ -464,7 +464,7 @@ def get_desktop_blocker(*monitors: str) -> dict[str, Optional[tuple[str, str]]]:
             blockers[monitor] = _get_window_text(hwnd), _get_window_exe_path(hwnd, drives)
         return not all(blockers.values())
 
-    ctyped.lib.user32.EnumChildWindows(_get_workerw_hwnd(), wnd_enum_proc, 0)
+    ctyped.lib.User32.EnumChildWindows(_get_workerw_hwnd(), wnd_enum_proc, 0)
     return blockers
 
 
@@ -479,7 +479,7 @@ def get_wallpaper_style() -> Optional[int]:
 
 def _get_wallpaper_param() -> str:
     with _utils.string_buffer(ctyped.const.SHRT_MAX) as buff:
-        ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
+        ctyped.lib.User32.SystemParametersInfoW(ctyped.const.SPI_GETDESKWALLPAPER, ctyped.const.SHRT_MAX, buff, 0)
         return buff.value
 
 
@@ -565,10 +565,10 @@ def _save_temp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdipl
 
 def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: int, dst_h: int) -> bool:
     fore_rect = ctyped.struct.RECT()
-    fore_hwnd = ctyped.lib.user32.GetForegroundWindow()
-    if (fore_hwnd and ctyped.lib.user32.GetClientRect(fore_hwnd, ctyped.byref(fore_rect)) and
-            ctyped.lib.user32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(fore_rect, ctyped.struct.POINT), 2)):
-        return bool(ctyped.lib.user32.SubtractRect(ctyped.byref(ctyped.struct.RECT()), ctyped.byref(
+    fore_hwnd = ctyped.lib.User32.GetForegroundWindow()
+    if (fore_hwnd and ctyped.lib.User32.GetClientRect(fore_hwnd, ctyped.byref(fore_rect)) and
+            ctyped.lib.User32.MapWindowPoints(fore_hwnd, hwnd, ctyped.cast(fore_rect, ctyped.struct.POINT), 2)):
+        return bool(ctyped.lib.User32.SubtractRect(ctyped.byref(ctyped.struct.RECT()), ctyped.byref(
             ctyped.struct.RECT(dst_x, dst_y, dst_x + dst_w, dst_y + dst_h)), ctyped.byref(fore_rect)))
     return True
 
@@ -585,21 +585,21 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
             args = []
             if transition == Transition.FADE:
                 dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
-                ctyped.lib.gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
+                ctyped.lib.GDI32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
                 args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
                              dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
             start = time.time()
             while duration > (passed := time.time() - start):
                 for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](
                         easing(passed / duration), dst_w, dst_h, *args):
-                    ctyped.lib.gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_ow, dst_oh,
+                    ctyped.lib.GDI32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_ow, dst_oh,
                                             src, src_ox, src_oy, ctyped.const.SRCCOPY)
                 time.sleep(ANIMATION_POLL_INTERVAL)
-        ctyped.lib.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
+        ctyped.lib.GDI32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, src, 0, 0, ctyped.const.SRCCOPY)
 
 
 def _set_wallpaper_param(path: str) -> bool:
-    return bool(ctyped.lib.user32.SystemParametersInfoW(
+    return bool(ctyped.lib.User32.SystemParametersInfoW(
         ctyped.const.SPI_SETDESKWALLPAPER, 0, path, ctyped.const.SPIF_SENDWININICHANGE))
 
 
@@ -678,7 +678,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
                 return _set_wallpaper_idesktopwallpaper(
                     temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
             finally:
-                threading.Timer(_DELETE_AFTER, ctyped.lib.kernel32.DeleteFileW, (temp_path,)).start()
+                threading.Timer(_DELETE_AFTER, ctyped.lib.Kernel32.DeleteFileW, (temp_path,)).start()
     return False
 
 
@@ -712,7 +712,7 @@ def set_slideshow(*paths: str) -> bool:
             with ctyped.init_com(ctyped.interface.IShellItemArray, False) as shl_arr:
                 id_arr = ctyped.array(*pidl)
                 return ctyped.macro.SUCCEEDED(
-                    ctyped.lib.shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(
+                    ctyped.lib.Shell32.SHCreateShellItemArrayFromIDLists(len(id_arr), ctyped.byref(
                         id_arr[0]), ctyped.byref(shl_arr))) and ctyped.macro.SUCCEEDED(wallpaper.SetSlideshow(shl_arr))
     return False
 

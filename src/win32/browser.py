@@ -68,7 +68,7 @@ class Browser:
     def get_static_html(self) -> Optional[str]:
         html = None
         # noinspection PyTypeChecker
-        stream = ctyped.lib.shlwapi.SHCreateMemStream(None, 0)
+        stream = ctyped.lib.ShlWAPI.SHCreateMemStream(None, 0)
         if stream:
             with ctyped.init_com(ctyped.interface.IDispatch, False) as dispatch:
                 self._browser.obj.get_Document(ctyped.byref(dispatch))

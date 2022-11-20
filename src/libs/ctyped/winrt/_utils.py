@@ -83,7 +83,7 @@ class _Unknown(metaclass=_Interface):
             obj = obj._self  # TODO obj.AddRef()
         if obj is None:
             obj = interface.IInspectable()
-            lib.combase.RoActivateInstance(HSTRING(_get_winrt_class_name(next(iter(self._interfaces)))), byref(obj))
+            lib.ComBase.RoActivateInstance(HSTRING(_get_winrt_class_name(next(iter(self._interfaces)))), byref(obj))
             self._release = True
         self._self = obj
         self._interfaces = self._interfaces.copy()

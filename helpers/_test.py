@@ -9,7 +9,7 @@ from typing import Optional
 
 import win32
 import win32._gdiplus as gdiplus
-from libs import ctyped, utils
+from libs import ctyped
 from libs.ctyped import winrt
 
 
@@ -23,7 +23,7 @@ def _wait():
 
 def _test_settings():
     info = ctyped.struct.SHELLEXECUTEINFOW(lpVerb='open', lpFile='ms-settings:mobile-devices', nShow=ctyped.const.SW_NORMAL)
-    print(ctyped.lib.shell32.ShellExecuteExW(ctyped.byref(info)))
+    print(ctyped.lib.Shell32.ShellExecuteExW(ctyped.byref(info)))
 
 
 class ToastDismiss(ctyped.interface.Windows.Foundation.ITypedEventHandler_impl[ctyped.interface.Windows.UI.Notifications.IToastNotification, ctyped.interface.Windows.UI.Notifications.IToastDismissedEventArgs]):
@@ -94,20 +94,20 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
     compatibility = ()
     if path is None:
         handle = ctyped.type.HANDLE()
-        ctyped.lib.kernel32.GetCurrentActCtx(ctyped.byref(handle))
+        ctyped.lib.Kernel32.GetCurrentActCtx(ctyped.byref(handle))
     else:
         ctx = ctyped.struct.ACTCTXW(lpSource=path)
-        handle = ctyped.lib.kernel32.CreateActCtxW(ctyped.byref(ctx))
+        handle = ctyped.lib.Kernel32.CreateActCtxW(ctyped.byref(ctx))
     sz = ctyped.type.SIZE_T()
-    if not ctyped.lib.kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, None, 0,
-                                            ctyped.byref(sz)) and ctyped.lib.kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
-        buff = ctyped.lib.kernel32.HeapAlloc(ctyped.lib.kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
-        if ctyped.lib.kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, buff, sz, ctyped.byref(sz)):
+    if not ctyped.lib.Kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, None, 0,
+                                            ctyped.byref(sz)) and ctyped.lib.Kernel32.GetLastError() == ctyped.const.ERROR_INSUFFICIENT_BUFFER:
+        buff = ctyped.lib.Kernel32.HeapAlloc(ctyped.lib.Kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
+        if ctyped.lib.Kernel32.QueryActCtxW(ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, ctyped.enum.ACTIVATION_CONTEXT_INFO_CLASS.CompatibilityInformationInActivationContext, buff, sz, ctyped.byref(sz)):
             info = ctyped.cast(buff, ctyped.struct.ACTIVATION_CONTEXT_COMPATIBILITY_INFORMATION).contents
             compatibility = (*ctyped.resize_array(info.Elements, info.ElementCount),)
         if buff:
-            ctyped.lib.kernel32.HeapFree(ctyped.lib.kernel32.GetProcessHeap(), 0, buff)
-    ctyped.lib.kernel32.ReleaseActCtx(handle)
+            ctyped.lib.Kernel32.HeapFree(ctyped.lib.Kernel32.GetProcessHeap(), 0, buff)
+    ctyped.lib.Kernel32.ReleaseActCtx(handle)
     return compatibility
 
 
@@ -158,61 +158,61 @@ FunctionAddress = TypeVar('FunctionAddress', bound=int)
 class Thread(ctyped.type.HANDLE):
     @classmethod
     def create_remote(cls, proc, target: FunctionAddress, arg: Optional[int] = None, suspended: bool = False) -> Thread:
-        return cls(ctyped.lib.kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
+        return cls(ctyped.lib.Kernel32.CreateRemoteThread(proc, None, 0, ctyped.type.LPTHREAD_START_ROUTINE(target), arg, suspended * ctyped.const.CREATE_SUSPENDED, None))
 
     def set_priority(self, priority: int) -> bool:
-        return bool(ctyped.lib.kernel32.SetThreadPriority(self, priority))
+        return bool(ctyped.lib.Kernel32.SetThreadPriority(self, priority))
 
     def set_priority_boost(self, boost: bool = True) -> bool:
-        return bool(ctyped.lib.kernel32.SetThreadPriorityBoost(self, not boost))
+        return bool(ctyped.lib.Kernel32.SetThreadPriorityBoost(self, not boost))
 
     def get_priority_boost(self) -> Optional[bool]:
         boost = ctyped.type.BOOL()
-        if ctyped.lib.kernel32.GetThreadPriorityBoost(self, ctyped.byref(boost)):
+        if ctyped.lib.Kernel32.GetThreadPriorityBoost(self, ctyped.byref(boost)):
             return not boost.value
 
     def get_priority(self) -> int:
-        return ctyped.lib.kernel32.GetThreadPriority(self)
+        return ctyped.lib.Kernel32.GetThreadPriority(self)
 
     def terminate(self, exit_code: int) -> bool:
-        return bool(ctyped.lib.kernel32.TerminateThread(self, exit_code))
+        return bool(ctyped.lib.Kernel32.TerminateThread(self, exit_code))
 
     def get_exit_code(self) -> Optional[int]:
         exit_code = ctyped.type.DWORD()
-        if ctyped.lib.kernel32.GetExitCodeThread(self, ctyped.byref(exit_code)):
+        if ctyped.lib.Kernel32.GetExitCodeThread(self, ctyped.byref(exit_code)):
             return exit_code.value
 
     def suspend(self) -> bool:
-        return ctyped.lib.kernel32.SuspendThread(self) != -1
+        return ctyped.lib.Kernel32.SuspendThread(self) != -1
 
     def resume(self) -> bool:
-        return ctyped.lib.kernel32.ResumeThread(self) != -1
+        return ctyped.lib.Kernel32.ResumeThread(self) != -1
 
     def join(self, timeout: int = ctyped.const.INFINITE) -> bool:
-        return ctyped.const.WAIT_OBJECT_0 == ctyped.lib.kernel32.WaitForSingleObject(self, timeout)
+        return ctyped.const.WAIT_OBJECT_0 == ctyped.lib.Kernel32.WaitForSingleObject(self, timeout)
 
 
 class RemoteProcess:
     def __init__(self, pid: int, access: int = ctyped.const.PROCESS_ALL_ACCESS):
-        self._handle = ctyped.lib.kernel32.OpenProcess(access, False, pid)
+        self._handle = ctyped.lib.Kernel32.OpenProcess(access, False, pid)
         self._libs_remote = {}
         self._libs_local = {}
 
     def alloc_mem(self, size: int, permission: int = ctyped.const.PAGE_READONLY) -> PageAddress:
-        return ctyped.lib.kernel32.VirtualAllocEx(self._handle, None, size, ctyped.const.MEM_COMMIT, permission)
+        return ctyped.lib.Kernel32.VirtualAllocEx(self._handle, None, size, ctyped.const.MEM_COMMIT, permission)
 
     def free_mem(self, addr: PageAddress) -> bool:
-        return bool(ctyped.lib.kernel32.VirtualFreeEx(self._handle, addr, 0, ctyped.const.MEM_RELEASE))
+        return bool(ctyped.lib.Kernel32.VirtualFreeEx(self._handle, addr, 0, ctyped.const.MEM_RELEASE))
 
     def read_mem(self, addr: PageAddress, size: int):
         buff = (ctyped.type.c_byte * size)()
-        if ctyped.lib.kernel32.ReadProcessMemory(self._handle, addr, ctyped.addressof(buff), size, None):
+        if ctyped.lib.Kernel32.ReadProcessMemory(self._handle, addr, ctyped.addressof(buff), size, None):
             return buff
 
     def write_mem(self, addr: PageAddress, data: bytes | str, size: Optional[int] = None) -> bool:
         if size is None:
             size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(data, (str)) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
-        return bool(ctyped.lib.kernel32.WriteProcessMemory(self._handle, addr, data, size, None))
+        return bool(ctyped.lib.Kernel32.WriteProcessMemory(self._handle, addr, data, size, None))
 
     def load_lib(self, lib) -> bool:
         lib_path = ctyped.get_lib_path(lib).encode() + b'\0'
@@ -220,21 +220,21 @@ class RemoteProcess:
         if arg_addr:
             if self.write_mem(arg_addr, lib_path):
                 # print(ctyped.cast(self.read_mem(arg_addr, len(lib_path)), ctyped.type.LPSTR).value)
-                if lib_remote := self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.LoadLibraryA), arg_addr).get_exit_code():
+                if lib_remote := self.call_func(ctyped.addressof_func(ctyped.lib.Kernel32.LoadLibraryA), arg_addr).get_exit_code():
                     self._libs_remote[lib] = lib_remote
-                    self._libs_local[lib] = ctyped.lib.kernel32.GetModuleHandleA(lib_path)
+                    self._libs_local[lib] = ctyped.lib.Kernel32.GetModuleHandleA(lib_path)
             self.free_mem(arg_addr)
         return bool(self._libs_remote.get(lib) and self._libs_local.get(lib))
 
     def unload_lib(self, lib) -> bool:
-        if (lib_remote := self._libs_remote.get(lib)) and ctyped.lib.kernel32.FreeLibrary(lib_remote):
+        if (lib_remote := self._libs_remote.get(lib)) and ctyped.lib.Kernel32.FreeLibrary(lib_remote):
             del self._libs_remote[lib]
             return True
         return False
 
     def get_remote_func(self, func: Callable, lib) -> FunctionAddress:
         lib_local = self._libs_local[lib]
-        return self._libs_remote[lib] + ctyped.lib.kernel32.GetProcAddress(lib_local, func.__name__.encode()) - lib_local
+        return self._libs_remote[lib] + ctyped.lib.Kernel32.GetProcAddress(lib_local, func.__name__.encode()) - lib_local
 
     def call_func(self, func: FunctionAddress, arg: Optional[int] = None, wait: bool = True) -> Thread:
         thread = Thread.create_remote(self._handle, func, arg)
@@ -293,10 +293,10 @@ class PyRemoteProcess(RemoteProcess):
 
 class PyRemoteProcessEx(PyRemoteProcess):
     def alloc_console(self) -> bool:
-        return bool(self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.AllocConsole)).get_exit_code())
+        return bool(self.call_func(ctyped.addressof_func(ctyped.lib.Kernel32.AllocConsole)).get_exit_code())
 
     def free_console(self) -> bool:
-        return bool(self.call_func(ctyped.addressof_func(ctyped.lib.kernel32.FreeConsole)).get_exit_code())
+        return bool(self.call_func(ctyped.addressof_func(ctyped.lib.Kernel32.FreeConsole)).get_exit_code())
 
     def reopen_console(self) -> bool:
         return self.run_simple_string("import sys; sys.stdin = open('CONIN$', 'r'); sys.stdout = sys.stderr = open('CONOUT$', 'w')")
@@ -307,7 +307,7 @@ class PyRemoteProcessEx(PyRemoteProcess):
 
 def _test_load_string_from_lib():
     buff = ctyped.char_array(' ' * ctyped.const.MAX_PATH)
-    ctyped.lib.user32.LoadStringW(ctyped.lib.kernel32.GetModuleHandleW('shell32.dll'), 5387, buff, ctyped.const.MAX_PATH)
+    ctyped.lib.User32.LoadStringW(ctyped.lib.Kernel32.GetModuleHandleW('shell32.dll'), 5387, buff, ctyped.const.MAX_PATH)
     print(buff.value)
 
 
@@ -375,25 +375,13 @@ class BSTR(ctyped.type.BSTR):
         return ctyped.lib.OleAut32.SysStringLen(self)
 
 
-def _long_task(mint: utils.MutableInt):
-    time.sleep(1)
-    mint.set(69)
-    time.sleep(2)
-    mint.set(70)
-
-
 def _test():
-    s = time.time()
-    b = utils.MutableInt()
-    threading.Thread(target=_long_task, args=(b,), daemon=True).start()
-    print(b.wait(val=71))
-    print(time.time() - s)
-    # browser = win32.browser.Browser()
-    # browser.navigate('https://google.com')
+    browser = win32.browser.Browser()
+    browser.navigate('https://google.com')
+    browser.wait()
+    # browser.navigate('about:blank')
     # browser.wait()
-    # # browser.navigate('about:blank')
-    # # browser.wait()
-    # print(browser)
+    print(browser)
 
 
 if __name__ == '__main__':

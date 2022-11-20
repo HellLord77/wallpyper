@@ -221,11 +221,11 @@ def IID_PPV_ARGS(ppType: _CT) -> tuple[_Pointer[_struct.IID], _Pointer[_CT]]:
 def IsWindowsVersionOrGreater(wMajorVersion: int, wMinorVersion: int, wServicePackMajor: int) -> bool:
     osvi = _struct.OSVERSIONINFOEXW(
         dwMajorVersion=wMajorVersion, dwMinorVersion=wMinorVersion, wServicePackMajor=wServicePackMajor)
-    condition = _lib.kernel32.VerSetConditionMask(_lib.kernel32.VerSetConditionMask(
-        _lib.kernel32.VerSetConditionMask(0, _const.VER_MAJORVERSION, _const.VER_GREATER_EQUAL),
+    condition = _lib.Kernel32.VerSetConditionMask(_lib.Kernel32.VerSetConditionMask(
+        _lib.Kernel32.VerSetConditionMask(0, _const.VER_MAJORVERSION, _const.VER_GREATER_EQUAL),
         _const.VER_MINORVERSION, _const.VER_GREATER_EQUAL), _const.VER_SERVICEPACKMAJOR, _const.VER_GREATER_EQUAL)
     # noinspection PyTypeChecker
-    return bool(_lib.kernel32.VerifyVersionInfoW(_ctypes.byref(
+    return bool(_lib.Kernel32.VerifyVersionInfoW(_ctypes.byref(
         osvi), _const.VER_MAJORVERSION | _const.VER_MINORVERSION | _const.VER_SERVICEPACKMAJOR, condition))
 
 
@@ -311,9 +311,9 @@ def IsWindows10OrGreater() -> bool:
 # noinspection PyPep8Naming
 def IsWindowsServer() -> bool:
     osvi = _struct.OSVERSIONINFOEXW(wProductType=_const.VER_NT_WORKSTATION)
-    condition = _lib.kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
+    condition = _lib.Kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
     # noinspection PyTypeChecker
-    return not bool(_lib.kernel32.VerifyVersionInfoW(_ctypes.byref(osvi), _const.VER_PRODUCT_TYPE, condition))
+    return not bool(_lib.Kernel32.VerifyVersionInfoW(_ctypes.byref(osvi), _const.VER_PRODUCT_TYPE, condition))
 
 
 _uuidof = __uuidof

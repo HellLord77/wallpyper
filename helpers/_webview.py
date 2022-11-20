@@ -19,7 +19,7 @@ def _on_create_controller_completed(_, res, ctrl: ctyped.interface.ICoreWebView2
         CONTROLLER.get_CoreWebView2(ctyped.byref(WEBVIEW))
 
     bounds = ctyped.struct.RECT()
-    ctyped.lib.user32.GetClientRect(HWND, ctyped.byref(bounds))
+    ctyped.lib.User32.GetClientRect(HWND, ctyped.byref(bounds))
     CONTROLLER.put_Bounds(bounds)
 
     WEBVIEW.Navigate(url)
@@ -46,18 +46,18 @@ def wnd_proc(hwnd, message, wparam, lparam):
     if message == ctyped.const.WM_SIZE:
         if CONTROLLER:
             bounds = ctyped.struct.RECT()
-            ctyped.lib.user32.GetClientRect(hwnd, ctyped.byref(bounds))
+            ctyped.lib.User32.GetClientRect(hwnd, ctyped.byref(bounds))
             CONTROLLER.put_Bounds(bounds)
     elif message == ctyped.const.WM_DESTROY:
-        ctyped.lib.user32.PostQuitMessage(0)
+        ctyped.lib.User32.PostQuitMessage(0)
     else:
-        return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+        return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
     return 0
 
 
 def main():
     global HWND
-    hinstance = ctyped.lib.kernel32.GetModuleHandleW(None)
+    hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
 
     wcex = ctyped.struct.WNDCLASSEXW()
     wcex.style = ctyped.const.CS_HREDRAW | ctyped.const.CS_VREDRAW
@@ -65,22 +65,22 @@ def main():
     wcex.hInstance = hinstance
     wcex.hCursor = ctyped.handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW)
     wcex.lpszClassName = window_class
-    ctyped.lib.user32.RegisterClassExW(ctyped.byref(wcex))
+    ctyped.lib.User32.RegisterClassExW(ctyped.byref(wcex))
 
-    hwnd = ctyped.lib.user32.CreateWindowExW(0, window_class, title, ctyped.const.WS_OVERLAPPEDWINDOW,
+    hwnd = ctyped.lib.User32.CreateWindowExW(0, window_class, title, ctyped.const.WS_OVERLAPPEDWINDOW,
                                              ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, 1200, 900,
                                              ctyped.const.NULL, ctyped.const.NULL, hinstance, ctyped.const.NULL)
     HWND = hwnd
-    ctyped.lib.user32.ShowWindow(hwnd, ctyped.const.SW_SHOWNORMAL)
-    ctyped.lib.user32.UpdateWindow(hwnd)
+    ctyped.lib.User32.ShowWindow(hwnd, ctyped.const.SW_SHOWNORMAL)
+    ctyped.lib.User32.UpdateWindow(hwnd)
 
     webview()
     # The group or resource is not in the correct state to perform the requested operation
 
     msg = ctyped.struct.MSG()
-    while ctyped.lib.user32.GetMessageW(ctyped.byref(msg), ctyped.const.NULL, 0, 0):
-        ctyped.lib.user32.TranslateMessage(ctyped.byref(msg))
-        ctyped.lib.user32.DispatchMessageW(ctyped.byref(msg))
+    while ctyped.lib.User32.GetMessageW(ctyped.byref(msg), ctyped.const.NULL, 0, 0):
+        ctyped.lib.User32.TranslateMessage(ctyped.byref(msg))
+        ctyped.lib.User32.DispatchMessageW(ctyped.byref(msg))
     sys.exit(msg.wParam)
 
 

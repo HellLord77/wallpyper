@@ -125,7 +125,7 @@ def create_handler(handler: _Callable[[...], type.HRESULT], type: _builtins.type
 def get_lib_path(library: lib._OleDLL | lib._PyDLL | lib._WinDLL) -> str:
     buff = type.LPWSTR('\0' * const.MAX_PATH)
     # noinspection PyUnresolvedReferences
-    lib.kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
+    lib.Kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
     return buff.value
 
 
@@ -135,7 +135,7 @@ def addressof_func(func) -> int:
 
 def get_guid(string: str) -> struct.GUID:
     guid = struct.GUID()
-    lib.shell32.GUIDFromStringW(string, byref(guid))
+    lib.Shell32.GUIDFromStringW(string, byref(guid))
     return guid
 
 
@@ -175,22 +175,22 @@ def cast_com(obj: interface.IUnknown | interface.IUnknown_impl,
 def _prep_winrt(type_: _builtins.type[CT], init: bool) -> _ContextManager[tuple[type.HSTRING,
                                                                                 _Optional[Pointer[struct.IID]],
                                                                                 Pointer[interface.IInspectable]]]:
-    lib.combase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if FLAG_THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
+    lib.ComBase.RoInitialize(enum.RO_INIT_TYPE.MULTITHREADED if FLAG_THREADED_COM else enum.RO_INIT_TYPE.SINGLETHREADED)
     base = (interface.IInspectable if init else interface.IActivationFactory)()
     try:
         yield handle.HSTRING.from_string(_get_winrt_class_name(type_)), None if init else macro.__uuidof(type_), base
     finally:
         if base:
             base.Release()
-        lib.combase.RoUninitialize()
+        lib.ComBase.RoUninitialize()
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
 @_contextlib.contextmanager
 def get_winrt(type: _builtins.type[CT], init: bool = False) -> _ContextManager[_Optional[CT]]:
     with _prep_winrt(type, init) as (*args, base):
-        if macro.SUCCEEDED(lib.combase.RoActivateInstance(args[0], byref(
-                base)) if init else lib.combase.RoGetActivationFactory(*args, byref(base))):
+        if macro.SUCCEEDED(lib.ComBase.RoActivateInstance(args[0], byref(
+                base)) if init else lib.ComBase.RoGetActivationFactory(*args, byref(base))):
             with cast_com(base, type) as obj:
                 yield obj
         else:

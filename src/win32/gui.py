@@ -18,7 +18,7 @@ _NOTIFYICONDATAW_V2_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDAT
 _NOTIFYICONDATAA_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'hBalloonIcon')
 _NOTIFYICONDATAW_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'hBalloonIcon')
 
-_WM_TASKBARCREATED = ctyped.lib.user32.RegisterWindowMessageW('TaskbarCreated')
+_WM_TASKBARCREATED = ctyped.lib.User32.RegisterWindowMessageW('TaskbarCreated')
 _WM_SYS_TRAY = ctyped.const.WM_APP
 _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 
@@ -234,7 +234,7 @@ class _EventHandler:
 class Gui(_EventHandler):
     _selves: dict[int, Gui]
 
-    _hinstance = ctyped.lib.kernel32.GetModuleHandleW(None)
+    _hinstance = ctyped.lib.Kernel32.GetModuleHandleW(None)
     _mainloop_thread = 0
     _menu_item_tooltip_proc = None
     _menu_item_tooltip_title = None
@@ -244,11 +244,11 @@ class Gui(_EventHandler):
         self._class = ctyped.struct.WNDCLASSEXW(
             lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=self._hinstance,
             lpszClassName=f'{__name__}-{type(self).__name__}' if name is None else name)
-        if not ctyped.lib.user32.RegisterClassExW(ctyped.byref(self._class)):
+        if not ctyped.lib.User32.RegisterClassExW(ctyped.byref(self._class)):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
-        self._hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
+        self._hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
             0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
-        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
+        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.User32.CreateWindowExW(
             ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
             ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance, None))
         self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(uFlags=ctyped.const.TTF_SUBCLASS, hinst=self._hinstance)
@@ -260,20 +260,20 @@ class Gui(_EventHandler):
 
     def destroy(self) -> bool:
         atexit.unregister(self.destroy)
-        ctyped.lib.user32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
+        ctyped.lib.User32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
         while self._attached:
             self._attached.pop().destroy()
         self._menu_item_tooltip_hwnd = None
         self._hwnd = None
-        ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, self._hinstance)
+        ctyped.lib.User32.UnregisterClassW(self._class.lpszClassName, self._hinstance)
         return super().destroy()
 
     def _wnd_proc(self, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
                   wparam: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         if message == ctyped.const.WM_DESTROY:
-            ctyped.lib.user32.PostQuitMessage(0)
+            ctyped.lib.User32.PostQuitMessage(0)
         elif message == ctyped.const.WM_CLOSE:
-            ctyped.lib.user32.DestroyWindow(hwnd)
+            ctyped.lib.User32.DestroyWindow(hwnd)
         elif message in (ctyped.const.WM_QUERYENDSESSION, ctyped.const.WM_ENDSESSION):
             self._end_lparam = lparam
             self.trigger(message)
@@ -285,9 +285,9 @@ class Gui(_EventHandler):
             if wparam:
                 self._menu_item_tooltip_hwnd.show(ctyped.const.SW_HIDE)
         elif message == ctyped.const.WM_ENTERIDLE:
-            ctyped.lib.user32.KillTimer(hwnd, _TID_MENU_ITEM_TOOLTIP)
+            ctyped.lib.User32.KillTimer(hwnd, _TID_MENU_ITEM_TOOLTIP)
             if wparam == ctyped.const.MSGF_MENU and self._menu_item_tooltip_proc:
-                ctyped.lib.user32.SetTimer(
+                ctyped.lib.User32.SetTimer(
                     hwnd, _TID_MENU_ITEM_TOOLTIP, MENU_ITEM_TOOLTIP_RESHOW
                     if FLAG_MENU_ITEM_TOOLTIP_RESHOW and self._menu_item_tooltip_hwnd.is_visible() else
                     MENU_ITEM_TOOLTIP_INITIAL, self._menu_item_tooltip_proc)
@@ -309,13 +309,13 @@ class Gui(_EventHandler):
                 if is_select:
                     # noinspection PyProtectedMember
                     self._menu_item_tooltip_proc = item._tooltip_proc if item._tooltip_text else None
-                    ctyped.lib.user32.TrackMouseEvent(ctyped.byref(
+                    ctyped.lib.User32.TrackMouseEvent(ctyped.byref(
                         ctyped.struct.TRACKMOUSEEVENT(dwFlags=ctyped.const.TME_LEAVE, hwndTrack=hwnd)))
                 if is_command and item.get_type() in (MenuItemType.CHECK, MenuItemType.RADIO):
                     item.check(not item.is_checked())
                 item.trigger(message)
         else:
-            return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+            return ctyped.lib.User32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
 
     def _show_menu_item_tooltip(self, text: str, icon: int, title: str, pos: Optional[tuple[int, int]] = None):
@@ -329,7 +329,7 @@ class Gui(_EventHandler):
             ctyped.const.TTM_SETTITLEW, icon, ctyped.addressof(self._menu_item_tooltip_title))
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, 1, lparam)
         if pos:
-            ctyped.lib.user32.SetWindowPos(
+            ctyped.lib.User32.SetWindowPos(
                 self._menu_item_tooltip_hwnd, None, *pos, 0, 0, ctyped.const.SWP_NOACTIVATE | ctyped.const.SWP_NOSIZE)
 
     def get_name(self) -> str:
@@ -346,7 +346,7 @@ class Gui(_EventHandler):
 
     def _is_blocking_end(self) -> tuple[int, ctyped.type.DWORD]:
         sz = ctyped.type.DWORD()
-        return ctyped.lib.user32.ShutdownBlockReasonQuery(self._hwnd, None, ctyped.byref(sz)), sz
+        return ctyped.lib.User32.ShutdownBlockReasonQuery(self._hwnd, None, ctyped.byref(sz)), sz
 
     def is_blocking_end(self) -> bool:
         return bool(self._is_blocking_end()[0])
@@ -355,23 +355,23 @@ class Gui(_EventHandler):
         is_blocking, sz = self._is_blocking_end()
         if is_blocking:
             with _utils.string_buffer(sz.value) as buff:
-                if ctyped.lib.user32.ShutdownBlockReasonQuery(self._hwnd, buff, ctyped.byref(sz)):
+                if ctyped.lib.User32.ShutdownBlockReasonQuery(self._hwnd, buff, ctyped.byref(sz)):
                     return buff.value
 
     def block_end(self, reason: str) -> bool:
-        return bool(ctyped.lib.user32.ShutdownBlockReasonCreate(self._hwnd, reason))
+        return bool(ctyped.lib.User32.ShutdownBlockReasonCreate(self._hwnd, reason))
 
     def unblock_end(self) -> bool:
-        return bool(ctyped.lib.user32.ShutdownBlockReasonDestroy(self._hwnd))
+        return bool(ctyped.lib.User32.ShutdownBlockReasonDestroy(self._hwnd))
 
     def mainloop(self) -> Optional[int]:
         with self._mainloop_lock:
             self._mainloop_thread = threading.get_native_id()
             msg = ctyped.struct.MSG()
             msg_ref = ctyped.byref(msg)
-            while ctyped.lib.user32.GetMessageW(msg_ref, self._hwnd, 0, 0) > 0:  # TODO -1
-                ctyped.lib.user32.TranslateMessage(msg_ref)
-                ctyped.lib.user32.DispatchMessageW(msg_ref)
+            while ctyped.lib.User32.GetMessageW(msg_ref, self._hwnd, 0, 0) > 0:  # TODO -1
+                ctyped.lib.User32.TranslateMessage(msg_ref)
+                ctyped.lib.User32.DispatchMessageW(msg_ref)
             return msg.wParam
 
     def exit_mainloop(self) -> bool:
@@ -417,10 +417,10 @@ class SystemTray(_Control):
         return super().destroy()
 
     def _force_update(self) -> bool:
-        return bool(ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(self._data)))
+        return bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_MODIFY, ctyped.byref(self._data)))
 
     def _update(self) -> bool:
-        return self._show and bool(self._force_update() or ctyped.lib.shell32.Shell_NotifyIconW(
+        return self._show and bool(self._force_update() or ctyped.lib.Shell32.Shell_NotifyIconW(
             ctyped.const.NIM_ADD, ctyped.byref(self._data)))
 
     @classmethod
@@ -432,7 +432,7 @@ class SystemTray(_Control):
         return self._animation_frames is not None
 
     def is_shown(self, exclude_flyout: bool = True) -> bool:
-        return not bool(ctyped.lib.shell32.Shell_NotifyIconGetRect(ctyped.byref(ctyped.struct.NOTIFYICONIDENTIFIER(
+        return not bool(ctyped.lib.Shell32.Shell_NotifyIconGetRect(ctyped.byref(ctyped.struct.NOTIFYICONIDENTIFIER(
             hWnd=self._hwnd, uID=self._id)), ctyped.byref(ctyped.struct.RECT()))) if exclude_flyout else self._force_update()
 
     def _set_hicon(self, hicon: Optional[ctyped.type.HICON] = None) -> bool:
@@ -457,7 +457,7 @@ class SystemTray(_Control):
             pass
         else:
             self._set_hicon(hicon)
-            ctyped.lib.user32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
+            ctyped.lib.User32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
 
     @staticmethod
     def _get_gif_frames(path: str) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
@@ -475,7 +475,7 @@ class SystemTray(_Control):
 
     def stop_animation(self):
         self._animation_frames = None
-        ctyped.lib.user32.KillTimer(self._hwnd, self._id)
+        ctyped.lib.User32.KillTimer(self._hwnd, self._id)
         self._set_hicon(self._hicon)
 
     def set_animation_speed(self, factor: float) -> bool:
@@ -488,7 +488,7 @@ class SystemTray(_Control):
         return self._show
 
     def hide(self) -> bool:
-        self._show = not bool(ctyped.lib.shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
+        self._show = not bool(ctyped.lib.Shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._show
 
     def show_balloon(self, title: str, text: Optional[str] = None,
@@ -523,7 +523,7 @@ class Menu(_Control):
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
         self._hmenu = ctyped.handle.HMENU.from_type()
-        if not ctyped.lib.user32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
+        if not ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
                 fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
         self._hmenu.set_hwnd(self._hwnd)
@@ -584,7 +584,7 @@ class Menu(_Control):
                     submenu: Optional[Menu] = None, enable: bool = True, check: Optional[bool] = None,
                     type: int = MenuItemType.NORMAL) -> Optional[MenuItem]:
         item = MenuItem(self, type, gui=Gui.get(self._hwnd))
-        if ctyped.lib.user32.InsertMenuW(self._hmenu, pos, ctyped.const.MF_BYPOSITION, item.get_id(), None):
+        if ctyped.lib.User32.InsertMenuW(self._hmenu, pos, ctyped.const.MF_BYPOSITION, item.get_id(), None):
             self._items.insert(pos, item)
             if type == MenuItemType.SEPARATOR:
                 # noinspection PyProtectedMember
@@ -624,7 +624,7 @@ class Menu(_Control):
     def show(self, pos: Optional[Sequence[int, int]] = None, timeout: Optional[float] = None) -> bool:
         if pos is None:
             point = ctyped.struct.POINT()
-            ctyped.lib.user32.GetCursorPos(ctyped.byref(point))
+            ctyped.lib.User32.GetCursorPos(ctyped.byref(point))
             pos = point.x, point.y
         timer = threading.Timer(timeout, self.hide)
         timer.start()
@@ -638,7 +638,7 @@ class Menu(_Control):
 
     def _get_data(self, mim: int) -> Any:
         info = ctyped.struct.MENUINFO(fMask=mim)
-        if ctyped.lib.user32.GetMenuInfo(self._hmenu, ctyped.byref(info)):
+        if ctyped.lib.User32.GetMenuInfo(self._hmenu, ctyped.byref(info)):
             return getattr(info, _MIM_FIELD[mim])
 
     def get_background_color(self) -> Optional[tuple[int, int, int]]:
@@ -667,7 +667,7 @@ class Menu(_Control):
     def _set_data(self, mim: int, data, recursive: bool) -> bool:
         info = ctyped.struct.MENUINFO(fMask=(recursive * ctyped.const.MIM_APPLYTOSUBMENUS) | mim)
         setattr(info, _MIM_FIELD[mim], data)
-        return bool(ctyped.lib.user32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
+        return bool(ctyped.lib.User32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
 
     def set_background_color(self, color_or_rgb: int | tuple[int, int, int], recursive: bool = True) -> bool:
         self._hbrush = ctyped.handle.HBRUSH.from_color(color_or_rgb) if isinstance(
@@ -733,12 +733,12 @@ class MenuItem(_Control):
         return super().destroy()
 
     def _show_tooltip(self, *_):
-        ctyped.lib.user32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
+        ctyped.lib.User32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
         if self._tooltip_text and self.is_highlighted():
             rect = ctyped.struct.RECT()
-            ctyped.lib.user32.GetMenuItemRect(self._hwnd, self._menu.get_id(), self.get_pos(), ctyped.byref(rect))
+            ctyped.lib.User32.GetMenuItemRect(self._hwnd, self._menu.get_id(), self.get_pos(), ctyped.byref(rect))
             pt = ctyped.struct.POINT()
-            ctyped.lib.user32.GetCursorPos(ctyped.byref(pt))
+            ctyped.lib.User32.GetCursorPos(ctyped.byref(pt))
             if rect.left <= pt.x <= rect.right and rect.top <= pt.y <= rect.bottom:
                 pos = None
             else:
@@ -766,7 +766,7 @@ class MenuItem(_Control):
         if info is None:
             info = ctyped.struct.MENUITEMINFOW()
         info.fMask = miim
-        if ctyped.lib.user32.GetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)):
+        if ctyped.lib.User32.GetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)):
             return tuple(getattr(info, field) for field in _MIIM_FIELDS[miim])
 
     def _get_icon(self) -> Optional[ctyped.handle.HBITMAP]:
@@ -833,7 +833,7 @@ class MenuItem(_Control):
         info = ctyped.struct.MENUITEMINFOW(fMask=miim)
         for field, data in zip(_MIIM_FIELDS[miim], datas):
             setattr(info, field, data)
-        return bool(ctyped.lib.user32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
+        return bool(ctyped.lib.User32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
 
     def set_icon(self, res_or_path: int | str, resize: bool = True) -> bool:
         return self._set_datas(ctyped.const.MIIM_BITMAP, (self._prep_image(res_or_path, 0, resize),))
