@@ -96,6 +96,7 @@ $CodeCompileCTemplate = @(
 "compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
 $CopyTimeout = 9
 $ModuleGraphSmart = $True
+$CythonThreadsRemote = 9
 $CythonizeRemoveC = $False
 $MinifyLocalJson = $False
 $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
@@ -424,7 +425,12 @@ function Write-Build
     if ($CythonizeGlobs)
     {
         Write-Host "cythonize <- $CythonizeGlobs"
-        cythonize -3 --inplace --no-docstrings $CythonizeGlobs
+        $CythonArgs = @("-3", "--inplace", "--no-docstrings")
+        if ($IsGithub)
+        {
+            $CythonArgs += "--parallel=$CythonThreadsRemote"
+        }
+        cythonize $CythonArgs $CythonizeGlobs
     }
 
     $Name = Get-ProjectName
