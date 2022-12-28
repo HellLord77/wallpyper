@@ -1,16 +1,17 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.5'  # https://github.com/meodai/color-names/
+__version__ = '0.0.6'  # https://github.com/meodai/color-names/
 
 import functools
 import json
 import math
 import os
-from typing import Literal, Optional
+from typing import Literal
 
-_RGB_TO_NAME: Optional[dict[str, str]] = None
-_RGB_TO_HEX: Optional[dict[tuple[int, int, int], str]] = None
-_LAB_TO_HEX: Optional[dict[tuple[float, float, float], str]] = None
+_PATH = 'colornames.min.json'
+_RGB_TO_NAME: dict[str, str] = {}
+_RGB_TO_HEX: dict[tuple[int, int, int], str] = {}
+_LAB_TO_HEX: dict[tuple[float, float, float], str] = {}
 
 
 def xyz_to_srgb(x: float, y: float, z: float) -> tuple[float, float, float]:
@@ -56,18 +57,18 @@ def xyz_to_lab(x: float, y: float, z: float) -> tuple[float, float, float]:
     return 116 * y - 16, 500 * (x - y), 200 * (y - z)
 
 
-def lab_to_xyz(l: float, a: float, b: float) -> tuple[float, float, float]:  # noqa
+def lab_to_xyz(l: float, a: float, b: float) -> tuple[float, float, float]:  # NOQA: E741
     y = (l + 16) / 116
     c = 16 / 116
     # noinspection PyTypeChecker
     return tuple(c_ ** 3 if c_ > 0.008856 else (c_ - c) / 7.787 for c_ in (a / 500 + y, y, y - b / 200))
 
 
-def lab_to_lch(l: float, a: float, b: float) -> tuple[float, float, float]:  # noqa
+def lab_to_lch(l: float, a: float, b: float) -> tuple[float, float, float]:  # NOQA: E741
     return l, (a ** 2 + b ** 2) ** 0.5, math.degrees(math.atan2(b, a)) % 360
 
 
-def lch_to_lab(l: float, c: float, h: float) -> tuple[float, float, float]:  # noqa
+def lch_to_lab(l: float, c: float, h: float) -> tuple[float, float, float]:  # NOQA: E741
     h = math.radians(h)
     return l, math.cos(h) * c, math.sin(h) * c
 
@@ -151,11 +152,22 @@ def hex_to_rgb(h: str) -> tuple[int, int, int]:
     return int(h[:2], 16), int(h[2:4], 16), int(h[4:], 16)
 
 
+def format_cmyk(c: float, m: float, y: float, k: float) -> str:
+    return f'{"%, ".join(str(round(c_ * 100)) for c_ in (c, m, y, k))}%'
+
+
+def format_hsv(h: float, s: float, v: float) -> str:
+    return f'{round(h * 360)}°, {"%, ".join(str(round(c * 100)) for c in (s, v))}%'
+
+
+def format_hls(h: float, l: float, s: float) -> str:  # NOQA: E741
+    return format_hsv(h, s, l)
+
+
 def get(color: str) -> str:
-    global _RGB_TO_NAME
-    if _RGB_TO_NAME is None:
-        with open(os.path.join(os.path.dirname(__file__), 'colornames.min.json'), encoding='utf-8') as file:
-            _RGB_TO_NAME = json.load(file)
+    if not _RGB_TO_NAME:
+        with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
+            _RGB_TO_NAME.update(json.load(file))
     color = color.strip().lstrip('#').lower()
     try:
         return _RGB_TO_NAME[color]
@@ -167,9 +179,9 @@ def get(color: str) -> str:
 def get_nearest_color(color: str) -> tuple[str, str]:
     if not (name := get(color)).startswith('#'):
         return color.upper(), name
-    global _RGB_TO_HEX
-    if _RGB_TO_HEX is None:
-        _RGB_TO_HEX = {hex_to_rgb(hex_color): hex_color for hex_color in _RGB_TO_NAME}
+    if not _RGB_TO_HEX:
+        for hex_color in _RGB_TO_NAME:
+            _RGB_TO_HEX[hex_to_rgb(hex_color)] = hex_color
     rgb_color = hex_to_rgb(color)
     min_distance = math.inf
     nearest_color = 0, 0, 0
@@ -186,9 +198,9 @@ def get_nearest_color(color: str) -> tuple[str, str]:
 def get_nearest_color_lab(color: str) -> tuple[str, str]:
     if not (name := get(color)).startswith('#'):
         return color.upper(), name
-    global _LAB_TO_HEX
-    if _LAB_TO_HEX is None:
-        _LAB_TO_HEX = {xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(hex_color)))): hex_color for hex_color in _RGB_TO_NAME}
+    if not _LAB_TO_HEX:
+        for hex_color in _RGB_TO_NAME:
+            _LAB_TO_HEX[xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(hex_color))))] = hex_color
     lab_color = xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(color))))
     min_distance = math.inf
     nearest_color = 0.0, 0.0, 0.0
@@ -199,3 +211,14 @@ def get_nearest_color_lab(color: str) -> tuple[str, str]:
             nearest_color = cur_color
     nearest_color = _LAB_TO_HEX[nearest_color]
     return f'#{nearest_color.upper()}', _RGB_TO_NAME[nearest_color]
+
+
+if __debug__:
+    def _download():
+        import urllib.parse
+        import urllib.request
+        path = os.path.join(os.path.dirname(__file__), _PATH)
+        urllib.request.urlretrieve(urllib.parse.urljoin(
+            'https://raw.githubusercontent.com/meodai/color-names/master/dist/', _PATH), path)
+        with open(path, encoding='utf-8') as file:
+            json.load(file)

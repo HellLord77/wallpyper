@@ -12,7 +12,7 @@ DEFAULT = eng
 
 
 def _getattr(name: str) -> str:
-    return f'{{{name}}}'
+    return f'<{name}>'
 
 
 def to_str(num: int, lang: types.ModuleType, pad: Optional[int] = None) -> str:

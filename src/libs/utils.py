@@ -1,4 +1,4 @@
-__version__ = '0.0.21'
+__version__ = '0.0.22'
 
 import ast
 import binascii
@@ -24,6 +24,7 @@ import time
 import types
 import typing
 import uuid
+import zipfile
 import zlib
 from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Iterator, Mapping, NoReturn, Optional
 
@@ -310,6 +311,13 @@ def len_ex(itt: Iterable) -> int:
     return sum(1 for _ in itt)
 
 
+def index_ex(itt: Iterable, value) -> int:
+    for index, ele in enumerate(itt):
+        if value == ele:
+            return index
+    return -1
+
+
 def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
            kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     for ele in itt:
@@ -325,7 +333,7 @@ def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = No
             funcs, () if args is None else args, {} if kwargs is None else kwargs):
         if not func:
             break
-        yield func(*args_ or (), **kwargs_ or {})
+        yield func(*() if args_ is None else args_, **{} if kwargs_ is None else kwargs_)
 
 
 def cycle_ex(itt: Iterable, func: Optional[Callable] = None, args: Optional[Iterable] = None,
@@ -505,6 +513,28 @@ def shrink_string_mid(string: str, max_len: int, filler: str = '...') -> str:
     return string
 
 
+def compress(datas: Mapping[str, bytes | str], compression: int = zipfile.ZIP_STORED) -> bytes:
+    buff = io.BytesIO()
+    with zipfile.ZipFile(buff, 'w', compression) as file:
+        for name, data in datas.items():
+            file.writestr(name, data)
+    return buff.getvalue()
+
+
+def decompress(data: bytes, *names: str, password: Optional[bytes] = None) -> Mapping[str, Optional[bytes]]:
+    datas = {name: None for name in names}
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as file:
+            if not names:
+                names = file.namelist()
+            file.setpassword(password)
+            for name in names:
+                datas[name] = file.read(name)
+    except zipfile.BadZipFile:
+        pass
+    return datas
+
+
 def _get_key(key: Optional[bytes | int | str]) -> bytes:
     if key is None:
         key = uuid.getnode()
@@ -564,8 +594,8 @@ def hook_except(func: Callable, args: Optional[Iterable] = None,
             hook_args = (hook_args, temp.getvalue())
         func(*hook_args, *args, **hook_kwargs, **kwargs)
 
-    sys.excepthook = types.MethodType(wrapper, sys.excepthook)
-    threading.excepthook = types.MethodType(wrapper, threading.excepthook)
+    sys.excepthook = functools.partial(wrapper, sys.excepthook)
+    threading.excepthook = functools.partial(wrapper, threading.excepthook)
 
 
 def _get_params(args, kwargs):
@@ -575,8 +605,8 @@ def _get_params(args, kwargs):
 
 class _Callable(Callable):
     def __init__(self, func: Callable):
-        self.__func__ = func
         functools.update_wrapper(self, func)
+        self.__func__ = func
 
     def __call__(self, *args, **kwargs):
         raise NotImplementedError

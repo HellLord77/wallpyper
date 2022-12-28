@@ -1,10 +1,14 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
+import functools as _functools
 from typing import Optional as _Optional
 
-from . import const as _const, lib as _lib, interface as _interface, struct as _struct, type as _type
-from ._utils import _CT, _Pointer, _cast_int, _get_namespace
+from . import const as _const
+from . import lib as _lib
+from . import struct as _struct
+from . import type as _type
+from ._utils import _CT, _Pointer, _PyCSimpleType, _cast_int, _byref, _sizeof
 
 
 # noinspection PyPep8Naming,PyShadowingBuiltins
@@ -13,7 +17,7 @@ def FIELD_OFFSET(type: type[_ctypes.Structure], field: str, _: _Optional[int] = 
     offset = field_.offset
     if _ is not None:
         # noinspection PyUnresolvedReferences,PyProtectedMember
-        offset += _ctypes.sizeof(dict(type._fields_)[field]._type_) * _
+        offset += _sizeof(dict(type._fields_)[field]._type_) * _
     return offset
 
 
@@ -202,30 +206,35 @@ def MAKEINTRESOURCEW(i: int) -> _type.LPWSTR:
     return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
 
 
-def __uuidof(_: _interface.IUnknown | type[_interface.IUnknown] | _interface.IUnknown_impl | type[_interface.IUnknown_impl]) -> _struct.IID:
-    if not isinstance(_, type):
-        _ = type(_)
-    iid = _struct.IID()
-    # noinspection PyTypeChecker
-    _lib.Ole32.IIDFromString(getattr(_get_namespace(_, _const), f'IID_{_.__name__.removesuffix("_impl")}'), _ctypes.byref(iid))
-    return iid
+@_functools.lru_cache
+def __uuidof(_: _PyCSimpleType) -> _Pointer[_struct.IID]:
+    # noinspection PyProtectedMember
+    base = _._base
+    const = _const
+    for namespace in base.__module__.split('.'):
+        try:  # TODO rework
+            const = getattr(const, namespace)
+        except AttributeError:
+            pass
+    iid_ref = _byref(_struct.IID())
+    _lib.ole32.IIDFromString(getattr(const, f'IID_{base.__name__}'), iid_ref)
+    return iid_ref
 
 
 # noinspection PyPep8Naming
 def IID_PPV_ARGS(ppType: _CT) -> tuple[_Pointer[_struct.IID], _Pointer[_CT]]:
-    # noinspection PyTypeChecker
-    return _ctypes.byref(__uuidof(ppType)), _ctypes.byref(ppType)
+    # noinspection PyProtectedMember
+    return __uuidof(ppType._base), _byref(ppType)
 
 
 # noinspection PyPep8Naming
 def IsWindowsVersionOrGreater(wMajorVersion: int, wMinorVersion: int, wServicePackMajor: int) -> bool:
     osvi = _struct.OSVERSIONINFOEXW(
         dwMajorVersion=wMajorVersion, dwMinorVersion=wMinorVersion, wServicePackMajor=wServicePackMajor)
-    condition = _lib.Kernel32.VerSetConditionMask(_lib.Kernel32.VerSetConditionMask(
-        _lib.Kernel32.VerSetConditionMask(0, _const.VER_MAJORVERSION, _const.VER_GREATER_EQUAL),
+    condition = _lib.kernel32.VerSetConditionMask(_lib.kernel32.VerSetConditionMask(
+        _lib.kernel32.VerSetConditionMask(0, _const.VER_MAJORVERSION, _const.VER_GREATER_EQUAL),
         _const.VER_MINORVERSION, _const.VER_GREATER_EQUAL), _const.VER_SERVICEPACKMAJOR, _const.VER_GREATER_EQUAL)
-    # noinspection PyTypeChecker
-    return bool(_lib.Kernel32.VerifyVersionInfoW(_ctypes.byref(
+    return bool(_lib.kernel32.VerifyVersionInfoW(_byref(
         osvi), _const.VER_MAJORVERSION | _const.VER_MINORVERSION | _const.VER_SERVICEPACKMAJOR, condition))
 
 
@@ -311,9 +320,8 @@ def IsWindows10OrGreater() -> bool:
 # noinspection PyPep8Naming
 def IsWindowsServer() -> bool:
     osvi = _struct.OSVERSIONINFOEXW(wProductType=_const.VER_NT_WORKSTATION)
-    condition = _lib.Kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
-    # noinspection PyTypeChecker
-    return not bool(_lib.Kernel32.VerifyVersionInfoW(_ctypes.byref(osvi), _const.VER_PRODUCT_TYPE, condition))
+    condition = _lib.kernel32.VerSetConditionMask(0, _const.VER_PRODUCT_TYPE, _const.VER_EQUAL)
+    return not bool(_lib.kernel32.VerifyVersionInfoW(_byref(osvi), _const.VER_PRODUCT_TYPE, condition))
 
 
 _uuidof = __uuidof

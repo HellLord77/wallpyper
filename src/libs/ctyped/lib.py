@@ -1,17 +1,35 @@
 from __future__ import annotations as _
 
 import ctypes as _ctypes
-import typing as _typing
 from typing import Any as _Any, Callable as _Callable, Optional as _Optional
 
-from . import const as _const, enum as _enum, interface as _interface, struct as _struct, type as _type, union as _union
+from . import const as _const
+from . import enum as _enum
+from . import struct as _struct
+from . import type as _type
+from . import union as _union
 from ._utils import _Pointer, _format_annotations, _func_doc, _resolve_type
+from .interface.package import WebView2 as _WebView2
+from .interface.shared import dxgi as _dxgi
+from .interface.um import ShObjIdl_core as _ShObjIdl_core
+from .interface.um import Unknwnbase as _Unknwnbase
+from .interface.um import d2d1_1 as _d2d1_1
+from .interface.um import d3d11 as _d3d11
+from .interface.um import ddraw as _ddraw
+from .interface.um import objidl as _objidl
+from .interface.um import objidlbase as _objidlbase
+from .interface.um import ocidl as _ocidl
+from .interface.um import propsys as _propsys
+from .interface.winrt import activation as _activation
+from .interface.winrt import inspectable as _inspectable
 
 
-class _CDLL(type):
+class _CDLLMeta(type):
+    _lib = None
+    _errcheck = None
+
     def __new__(mcs, name: str, bases: tuple, dct: dict[str, _Any]):
         cls = super().__new__(mcs, name, bases, dct)
-        cls._annots = _typing.get_type_hints(cls)
         cls._funcs = {}
         for func_name in cls.__annotations__:
             try:
@@ -22,55 +40,66 @@ class _CDLL(type):
                 delattr(cls, func_name)
         return cls
 
-    def __getattr__(cls, name: str):
-        if name in cls.__annotations__:
+    def __getattr__(cls, func_name: str):
+        if func_name in cls._funcs:
             func = None
             while func is None:
                 try:
-                    func = cls._lib[cls._funcs[name]]
+                    func = cls._lib[cls._funcs[func_name]]
                 except KeyError:
-                    raise AttributeError(f"Lib '{cls.__qualname__}' has no function '{name}'")
+                    raise AttributeError(f"Lib '{cls.__qualname__}' has no function '{func_name}'")
                 except TypeError:
                     if cls._lib is None:
-                        if isinstance(cls, _PyDLL):
-                            cls._lib = _ctypes.pythonapi
-                        else:
-                            lib_name = cls.__qualname__
-                            mode = _ctypes.DEFAULT_MODE
-                            if isinstance(cls, _WinDLL):
-                                lib_name = f'{lib_name}.dll'
-                                mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
-                            cls._lib = getattr(_ctypes, type(cls).__name__[1:])(lib_name, mode)
-            annot = _format_annotations(cls.__annotations__[name])
-            func.restype, *func.argtypes = _resolve_type(cls._annots[name])
+                        lib_name = cls.__qualname__
+                        mode = _ctypes.DEFAULT_MODE
+                        if isinstance(cls, _WinDLLMeta):
+                            lib_name = f'{lib_name}.dll'
+                            mode = _const.LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+                        cls._lib = getattr(_ctypes, type(cls).__name__[1:-4])(lib_name, mode)
+            annot = cls.__annotations__[func_name]
+            func.restype, *func.argtypes = _resolve_type(eval(annot, globals()))
             if cls._errcheck is not None:
                 func.errcheck = cls._errcheck
-            func.__name__ = name
-            func.__doc__ = _func_doc(name, func.restype, func.argtypes, annot)
-            setattr(cls, name, func)
+            func.__name__ = func_name
+            func.__doc__ = _func_doc(func_name, func.restype, func.argtypes, _format_annotations(annot))
+            setattr(cls, func_name, func)
             return func
-        return super().__getattribute__(name)
+        return super().__getattribute__(func_name)
+
+    def __dir__(self):
+        return *self.__dict__, *self._funcs
 
 
-class _OleDLL(_CDLL):
+class _OleDLLMeta(_CDLLMeta):
     pass
 
 
-class _PyDLL(_CDLL):
+class _WinDLLMeta(_CDLLMeta):
     pass
 
 
-class _WinDLL(_CDLL):
+class _PyDLLMeta(_CDLLMeta):
+    _lib = _ctypes.pythonapi
+
+
+class _CDLL(metaclass=_CDLLMeta):
     pass
 
 
-class _FuncMixin:
-    _lib = None
-    _errcheck = None
+class _OleDLL(metaclass=_OleDLLMeta):
+    pass
+
+
+class _WinDLL(metaclass=_WinDLLMeta):
+    pass
+
+
+class _PyDLL(metaclass=_PyDLLMeta):
+    pass
 
 
 # noinspection PyPep8Naming
-class msvcrt(_FuncMixin, metaclass=_CDLL):
+class msvcrt(_CDLL):
     # corecrt_io
     _access: _Callable[[_type.c_char_p,  # _FileName
                         _type.c_int],  # _AccessMode
@@ -309,7 +338,1008 @@ class msvcrt(_FuncMixin, metaclass=_CDLL):
                       _type.c_wchar_p]
 
 
-class Python(_FuncMixin, metaclass=_PyDLL):
+# noinspection PyPep8Naming
+class libclang(_CDLL):
+    # BuildSystem
+    clang_getBuildSessionTimestamp: _Callable[[],
+                                              _type.c_ulonglong]
+    clang_VirtualFileOverlay_create: _Callable[[_type.c_uint],  # options
+                                               _type.CXVirtualFileOverlay]
+    clang_VirtualFileOverlay_addFileMapping: _Callable[[_type.CXVirtualFileOverlay,
+                                                        _type.c_char_p,  # virtualPath
+                                                        _type.c_char_p],  # realPath
+                                                       _enum.CXErrorCode]
+    clang_VirtualFileOverlay_setCaseSensitivity: _Callable[[_type.CXVirtualFileOverlay,
+                                                            _type.c_int],  # caseSensitive
+                                                           _enum.CXErrorCode]
+    clang_VirtualFileOverlay_writeToBuffer: _Callable[[_type.CXVirtualFileOverlay,
+                                                       _type.c_uint,  # options
+                                                       _Pointer[_type.c_char_p],  # out_buffer_ptr
+                                                       _Pointer[_type.c_uint]],  # out_buffer_size
+                                                      _enum.CXErrorCode]
+    clang_free: _Callable[[_type.c_void_p],  # buffer
+                          _type.c_void]
+    clang_VirtualFileOverlay_dispose: _Callable[[_type.CXVirtualFileOverlay],
+                                                _type.c_void]
+    clang_ModuleMapDescriptor_create: _Callable[[_type.c_uint],  # options
+                                                _type.CXModuleMapDescriptor]
+    clang_ModuleMapDescriptor_setFrameworkModuleName: _Callable[[_type.CXModuleMapDescriptor,
+                                                                 _type.c_char_p],  # name
+                                                                _enum.CXErrorCode]
+    clang_ModuleMapDescriptor_setUmbrellaHeader: _Callable[[_type.CXModuleMapDescriptor,
+                                                            _type.c_char_p],  # name
+                                                           _enum.CXErrorCode]
+    clang_ModuleMapDescriptor_writeToBuffer: _Callable[[_type.CXModuleMapDescriptor,
+                                                        _type.c_uint,  # options
+                                                        _Pointer[_type.c_char_p],  # out_buffer_ptr
+                                                        _Pointer[_type.c_uint]],  # out_buffer_size
+                                                       _enum.CXErrorCode]
+    clang_ModuleMapDescriptor_dispose: _Callable[[_type.CXModuleMapDescriptor],
+                                                 _type.c_void]
+    # CXCompilationDatabase
+    clang_CompilationDatabase_fromDirectory: _Callable[[_type.c_char_p,  # BuildDir
+                                                        _Pointer[_enum.CXCompilationDatabase_Error]],  # ErrorCode
+                                                       _type.CXCompilationDatabase]
+    clang_CompilationDatabase_dispose: _Callable[[_type.CXCompilationDatabase],
+                                                 _type.c_void]
+    clang_CompilationDatabase_getCompileCommands: _Callable[[_type.CXCompilationDatabase,
+                                                             _type.c_char_p],  # CompleteFileName
+                                                            _type.CXCompileCommands]
+    clang_CompilationDatabase_getAllCompileCommands: _Callable[[_type.CXCompilationDatabase],
+                                                               _type.CXCompileCommands]
+    clang_CompileCommands_dispose: _Callable[[_type.CXCompileCommands],
+                                             _type.c_void]
+    clang_CompileCommands_getSize: _Callable[[_type.CXCompileCommands],
+                                             _type.c_uint]
+    clang_CompileCommands_getCommand: _Callable[[_type.CXCompileCommands,
+                                                 _type.c_uint],  # I
+                                                _type.CXCompileCommand]
+    clang_CompileCommand_getDirectory: _Callable[[_type.CXCompileCommand],
+                                                 _struct.CXString]
+    clang_CompileCommand_getFilename: _Callable[[_type.CXCompileCommand],
+                                                _struct.CXString]
+    clang_CompileCommand_getNumArgs: _Callable[[_type.CXCompileCommand],
+                                               _type.c_uint]
+    clang_CompileCommand_getArg: _Callable[[_type.CXCompileCommand,
+                                            _type.c_uint],  # I
+                                           _struct.CXString]
+    clang_CompileCommand_getNumMappedSources: _Callable[[_type.CXCompileCommand],
+                                                        _type.c_uint]
+    clang_CompileCommand_getMappedSourcePath: _Callable[[_type.CXCompileCommand,
+                                                         _type.c_uint],  # I
+                                                        _struct.CXString]
+    clang_CompileCommand_getMappedSourceContent: _Callable[[_type.CXCompileCommand,
+                                                            _type.c_uint],  # I
+                                                           _struct.CXString]
+    # CXString
+    clang_getCString: _Callable[[_struct.CXString],  # string
+                                _type.c_char_p]
+    clang_disposeString: _Callable[[_struct.CXString],  # string
+                                   _type.c_void]
+    clang_disposeStringSet: _Callable[[_Pointer[_struct.CXStringSet]],  # set
+                                      _type.c_void]
+    # Documentation
+    clang_Cursor_getParsedComment: _Callable[[_struct.CXCursor],  # C
+                                             _struct.CXComment]
+    clang_Comment_getKind: _Callable[[_struct.CXComment],  # Comment
+                                     _enum.CXCommentKind]
+    clang_Comment_getNumChildren: _Callable[[_struct.CXComment],  # Comment
+                                            _type.c_uint]
+    clang_Comment_getChild: _Callable[[_struct.CXComment,  # Comment
+                                       _type.c_uint],  # ChildIdx
+                                      _struct.CXComment]
+    clang_Comment_isWhitespace: _Callable[[_struct.CXComment],  # Comment
+                                          _type.c_uint]
+    clang_InlineContentComment_hasTrailingNewline: _Callable[[_struct.CXComment],  # Comment
+                                                             _type.c_uint]
+    clang_TextComment_getText: _Callable[[_struct.CXComment],  # Comment
+                                         _struct.CXString]
+    clang_InlineCommandComment_getCommandName: _Callable[[_struct.CXComment],  # Comment
+                                                         _struct.CXString]
+    clang_InlineCommandComment_getRenderKind: _Callable[[_struct.CXComment],  # Comment
+                                                        _enum.CXCommentInlineCommandRenderKind]
+    clang_InlineCommandComment_getNumArgs: _Callable[[_struct.CXComment],  # Comment
+                                                     _type.c_uint]
+    clang_InlineCommandComment_getArgText: _Callable[[_struct.CXComment,  # Comment
+                                                      _type.c_uint],  # ArgIdx
+                                                     _struct.CXString]
+    clang_HTMLTagComment_getTagName: _Callable[[_struct.CXComment],  # Comment
+                                               _struct.CXString]
+    clang_HTMLStartTagComment_isSelfClosing: _Callable[[_struct.CXComment],  # Comment
+                                                       _type.c_uint]
+    clang_HTMLStartTag_getNumAttrs: _Callable[[_struct.CXComment],  # Comment
+                                              _type.c_uint]
+    clang_HTMLStartTag_getAttrName: _Callable[[_struct.CXComment,  # Comment
+                                               _type.c_uint],  # AttrIdx
+                                              _struct.CXString]
+    clang_HTMLStartTag_getAttrValue: _Callable[[_struct.CXComment,  # Comment
+                                                _type.c_uint],  # AttrIdx
+                                               _struct.CXString]
+    clang_BlockCommandComment_getCommandName: _Callable[[_struct.CXComment],  # Comment
+                                                        _struct.CXString]
+    clang_BlockCommandComment_getNumArgs: _Callable[[_struct.CXComment],  # Comment
+                                                    _type.c_uint]
+    clang_BlockCommandComment_getArgText: _Callable[[_struct.CXComment,  # Comment
+                                                     _type.c_uint],  # ArgIdx
+                                                    _struct.CXString]
+    clang_BlockCommandComment_getParagraph: _Callable[[_struct.CXComment],  # Comment
+                                                      _struct.CXComment]
+    clang_ParamCommandComment_getParamName: _Callable[[_struct.CXComment],  # Comment
+                                                      _struct.CXString]
+    clang_ParamCommandComment_isParamIndexValid: _Callable[[_struct.CXComment],  # Comment
+                                                           _type.c_uint]
+    clang_ParamCommandComment_getParamIndex: _Callable[[_struct.CXComment],  # Comment
+                                                       _type.c_uint]
+    clang_ParamCommandComment_isDirectionExplicit: _Callable[[_struct.CXComment],  # Comment
+                                                             _type.c_uint]
+    clang_ParamCommandComment_getDirection: _Callable[[_struct.CXComment],  # Comment
+                                                      _enum.CXCommentParamPassDirection]
+    clang_TParamCommandComment_getParamName: _Callable[[_struct.CXComment],  # Comment
+                                                       _struct.CXString]
+    clang_TParamCommandComment_isParamPositionValid: _Callable[[_struct.CXComment],  # Comment
+                                                               _type.c_uint]
+    clang_TParamCommandComment_getDepth: _Callable[[_struct.CXComment],  # Comment
+                                                   _type.c_uint]
+    clang_TParamCommandComment_getIndex: _Callable[[_struct.CXComment,  # Comment
+                                                    _type.c_uint],  # Depth
+                                                   _type.c_uint]
+    clang_VerbatimBlockLineComment_getText: _Callable[[_struct.CXComment],  # Comment
+                                                      _struct.CXString]
+    clang_VerbatimLineComment_getText: _Callable[[_struct.CXComment],  # Comment
+                                                 _struct.CXString]
+    clang_HTMLTagComment_getAsString: _Callable[[_struct.CXComment],  # Comment
+                                                _struct.CXString]
+    clang_FullComment_getAsHTML: _Callable[[_struct.CXComment],  # Comment
+                                           _struct.CXString]
+    clang_FullComment_getAsXML: _Callable[[_struct.CXComment],  # Comment
+                                          _struct.CXString]
+    # FatalErrorHandler
+    clang_install_aborting_llvm_fatal_error_handler: _Callable[[],
+                                                               _type.c_void]
+    clang_uninstall_llvm_fatal_error_handler: _Callable[[],
+                                                        _type.c_void]
+    # Index
+    clang_createIndex: _Callable[[_type.c_int,  # excludeDeclarationsFromPCH
+                                  _type.c_int],  # displayDiagnostics
+                                 _type.CXIndex]
+    clang_disposeIndex: _Callable[[_type.CXIndex],  # index
+                                  _type.c_void]
+    clang_CXIndex_setGlobalOptions: _Callable[[_type.CXIndex,
+                                               _type.c_uint],  # options
+                                              _type.c_void]
+    clang_CXIndex_getGlobalOptions: _Callable[[_type.CXIndex],
+                                              _type.c_uint]
+    clang_CXIndex_setInvocationEmissionPathOption: _Callable[[_type.CXIndex,
+                                                              _type.c_char_p],  # Path
+                                                             _type.c_void]
+    clang_getFileName: _Callable[[_type.CXFile],  # SFile
+                                 _struct.CXString]
+    clang_getFileTime: _Callable[[_type.CXFile],  # SFile
+                                 _type.time_t]
+    clang_getFileUniqueID: _Callable[[_type.CXFile,  # file
+                                      _Pointer[_struct.CXFileUniqueID]],  # outID
+                                     _type.c_int]
+    clang_isFileMultipleIncludeGuarded: _Callable[[_type.CXTranslationUnit,  # tu
+                                                   _type.CXFile],  # file
+                                                  _type.c_uint]
+    clang_getFile: _Callable[[_type.CXTranslationUnit,  # tu
+                              _type.c_char_p],  # file_name
+                             _type.CXFile]
+    clang_getFileContents: _Callable[[_type.CXTranslationUnit,  # tu
+                                      _type.CXFile,  # file
+                                      _Pointer[_type.c_size_t]],  # size
+                                     _type.c_char_p]
+    clang_File_isEqual: _Callable[[_type.CXFile,  # file1
+                                   _type.CXFile],  # file2
+                                  _type.c_int]
+    clang_File_tryGetRealPathName: _Callable[[_type.CXFile],  # file
+                                             _struct.CXString]
+    clang_getNullLocation: _Callable[[],
+                                     _struct.CXSourceLocation]
+    clang_equalLocations: _Callable[[_struct.CXSourceLocation,  # loc1
+                                     _struct.CXSourceLocation],  # loc2
+                                    _type.c_uint]
+    clang_getLocation: _Callable[[_type.CXTranslationUnit,  # tu
+                                  _type.CXFile,  # file
+                                  _type.c_uint,  # line
+                                  _type.c_uint],  # column
+                                 _struct.CXSourceLocation]
+    clang_getLocationForOffset: _Callable[[_type.CXTranslationUnit,  # tu
+                                           _type.CXFile,  # file
+                                           _type.c_uint],  # offset
+                                          _struct.CXSourceLocation]
+    clang_Location_isInSystemHeader: _Callable[[_struct.CXSourceLocation],  # location
+                                               _type.c_int]
+    clang_Location_isFromMainFile: _Callable[[_struct.CXSourceLocation],  # location
+                                             _type.c_int]
+    clang_getNullRange: _Callable[[],
+                                  _struct.CXSourceRange]
+    clang_getRange: _Callable[[_struct.CXSourceLocation,  # begin
+                               _struct.CXSourceLocation],  # end
+                              _struct.CXSourceRange]
+    clang_equalRanges: _Callable[[_struct.CXSourceRange,  # range1
+                                  _struct.CXSourceRange],  # range2
+                                 _type.c_uint]
+    clang_Range_isNull: _Callable[[_struct.CXSourceRange],  # range
+                                  _type.c_int]
+    clang_getExpansionLocation: _Callable[[_struct.CXSourceLocation,  # location
+                                           _Pointer[_type.CXFile],  # file
+                                           _Pointer[_type.c_uint],  # line
+                                           _Pointer[_type.c_uint],  # column
+                                           _Pointer[_type.c_uint]],  # offset
+                                          _type.c_void]
+    clang_getPresumedLocation: _Callable[[_struct.CXSourceLocation,  # location
+                                          _Pointer[_struct.CXString],  # filename
+                                          _Pointer[_type.c_uint],  # line
+                                          _Pointer[_type.c_uint]],  # column
+                                         _type.c_void]
+    clang_getInstantiationLocation: _Callable[[_struct.CXSourceLocation,  # location
+                                               _Pointer[_type.CXFile],  # file
+                                               _Pointer[_type.c_uint],  # line
+                                               _Pointer[_type.c_uint],  # column
+                                               _Pointer[_type.c_uint]],  # offset
+                                              _type.c_void]
+    clang_getSpellingLocation: _Callable[[_struct.CXSourceLocation,  # location
+                                          _Pointer[_type.CXFile],  # file
+                                          _Pointer[_type.c_uint],  # line
+                                          _Pointer[_type.c_uint],  # column
+                                          _Pointer[_type.c_uint]],  # offset
+                                         _type.c_void]
+    clang_getFileLocation: _Callable[[_struct.CXSourceLocation,  # location
+                                      _Pointer[_type.CXFile],  # file
+                                      _Pointer[_type.c_uint],  # line
+                                      _Pointer[_type.c_uint],  # column
+                                      _Pointer[_type.c_uint]],  # offset
+                                     _type.c_void]
+    clang_getRangeStart: _Callable[[_struct.CXSourceRange],  # range
+                                   _struct.CXSourceLocation]
+    clang_getRangeEnd: _Callable[[_struct.CXSourceRange],  # range
+                                 _struct.CXSourceLocation]
+    clang_getSkippedRanges: _Callable[[_type.CXTranslationUnit,  # tu
+                                       _type.CXFile],  # file
+                                      _Pointer[_struct.CXSourceRangeList]]
+    clang_getAllSkippedRanges: _Callable[[_type.CXTranslationUnit],  # tu
+                                         _Pointer[_struct.CXSourceRangeList]]
+    clang_disposeSourceRangeList: _Callable[[_Pointer[_struct.CXSourceRangeList]],  # ranges
+                                            _type.c_void]
+    clang_getNumDiagnosticsInSet: _Callable[[_type.CXDiagnosticSet],  # Diags
+                                            _type.c_uint]
+    clang_getDiagnosticInSet: _Callable[[_type.CXDiagnosticSet,  # Diags
+                                         _type.c_uint],  # Index
+                                        _type.CXDiagnostic]
+    clang_loadDiagnostics: _Callable[[_type.c_char_p,  # file
+                                      _Pointer[_enum.CXLoadDiag_Error],  # error
+                                      _Pointer[_struct.CXString]],  # errorString
+                                     _type.CXDiagnosticSet]
+    clang_disposeDiagnosticSet: _Callable[[_type.CXDiagnosticSet],  # Diags
+                                          _type.c_void]
+    clang_getChildDiagnostics: _Callable[[_type.CXDiagnostic],  # D
+                                         _type.CXDiagnosticSet]
+    clang_getNumDiagnostics: _Callable[[_type.CXTranslationUnit],  # Unit
+                                       _type.c_uint]
+    clang_getDiagnostic: _Callable[[_type.CXTranslationUnit,  # Unit
+                                    _type.c_uint],  # Index
+                                   _type.CXDiagnostic]
+    clang_getDiagnosticSetFromTU: _Callable[[_type.CXTranslationUnit],  # Unit
+                                            _type.CXDiagnosticSet]
+    clang_disposeDiagnostic: _Callable[[_type.CXDiagnostic],  # Diagnostic
+                                       _type.c_void]
+    clang_formatDiagnostic: _Callable[[_type.CXDiagnostic,  # Diagnostic
+                                       _type.c_uint],  # Options
+                                      _struct.CXString]
+    clang_defaultDiagnosticDisplayOptions: _Callable[[],
+                                                     _type.c_uint]
+    clang_getDiagnosticSeverity: _Callable[[_type.CXDiagnostic],
+                                           _enum.CXDiagnosticSeverity]
+    clang_getDiagnosticLocation: _Callable[[_type.CXDiagnostic],
+                                           _struct.CXSourceLocation]
+    clang_getDiagnosticSpelling: _Callable[[_type.CXDiagnostic],
+                                           _struct.CXString]
+    clang_getDiagnosticOption: _Callable[[_type.CXDiagnostic,  # Diag
+                                          _Pointer[_struct.CXString]],  # Disable
+                                         _struct.CXString]
+    clang_getDiagnosticCategory: _Callable[[_type.CXDiagnostic],
+                                           _type.c_uint]
+    clang_getDiagnosticCategoryName: _Callable[[_type.c_uint],  # Category
+                                               _struct.CXString]
+    clang_getDiagnosticCategoryText: _Callable[[_type.CXDiagnostic],
+                                               _struct.CXString]
+    clang_getDiagnosticNumRanges: _Callable[[_type.CXDiagnostic],
+                                            _type.c_uint]
+    clang_getDiagnosticRange: _Callable[[_type.CXDiagnostic,  # Diagnostic
+                                         _type.c_uint],  # Range
+                                        _struct.CXSourceRange]
+    clang_getDiagnosticNumFixIts: _Callable[[_type.CXDiagnostic],  # Diagnostic
+                                            _type.c_uint]
+    clang_getDiagnosticFixIt: _Callable[[_type.CXDiagnostic,  # Diagnostic
+                                         _type.c_uint,  # FixIt
+                                         _Pointer[_struct.CXSourceRange]],  # ReplacementRange
+                                        _struct.CXString]
+    clang_getTranslationUnitSpelling: _Callable[[_type.CXTranslationUnit],  # CTUnit
+                                                _struct.CXString]
+    clang_createTranslationUnitFromSourceFile: _Callable[[_type.CXIndex,  # CIdx
+                                                          _type.c_char_p,  # source_filename
+                                                          _type.c_int,  # num_clang_command_line_args
+                                                          _Pointer[_type.c_char_p],  # clang_command_line_args
+                                                          _type.c_uint,  # num_unsaved_files
+                                                          _Pointer[_struct.CXUnsavedFile]],  # unsaved_files
+                                                         _type.CXTranslationUnit]
+    clang_createTranslationUnit: _Callable[[_type.CXIndex,  # CIdx
+                                            _type.c_char_p],  # ast_filename
+                                           _type.CXTranslationUnit]
+    clang_createTranslationUnit2: _Callable[[_type.CXIndex,  # CIdx
+                                             _type.c_char_p,  # ast_filename
+                                             _Pointer[_type.CXTranslationUnit]],  # out_TU
+                                            _enum.CXErrorCode]
+    clang_defaultEditingTranslationUnitOptions: _Callable[[],
+                                                          _type.c_uint]
+    clang_parseTranslationUnit: _Callable[[_type.CXIndex,  # CIdx
+                                           _type.c_char_p,  # source_filename
+                                           _Pointer[_type.c_char_p],  # command_line_args
+                                           _type.c_int,  # num_command_line_args
+                                           _Pointer[_struct.CXUnsavedFile],  # unsaved_files
+                                           _type.c_uint,  # num_unsaved_files
+                                           _type.c_uint],  # options
+                                          _type.CXTranslationUnit]
+    clang_parseTranslationUnit2: _Callable[[_type.CXIndex,  # CIdx
+                                            _type.c_char_p,  # source_filename
+                                            _Pointer[_type.c_char_p],  # command_line_args
+                                            _type.c_int,  # num_command_line_args
+                                            _Pointer[_struct.CXUnsavedFile],  # unsaved_files
+                                            _type.c_uint,  # num_unsaved_files
+                                            _type.c_uint,  # options
+                                            _Pointer[_type.CXTranslationUnit]],  # out_TU
+                                           _enum.CXErrorCode]
+    clang_parseTranslationUnit2FullArgv: _Callable[[_type.CXIndex,  # CIdx
+                                                    _type.c_char_p,  # source_filename
+                                                    _Pointer[_type.c_char_p],  # command_line_args
+                                                    _type.c_int,  # num_command_line_args
+                                                    _Pointer[_struct.CXUnsavedFile],  # unsaved_files
+                                                    _type.c_uint,  # num_unsaved_files
+                                                    _type.c_uint,  # options
+                                                    _Pointer[_type.CXTranslationUnit]],  # out_TU
+                                                   _enum.CXErrorCode]
+    clang_defaultSaveOptions: _Callable[[_type.CXTranslationUnit],  # TU
+                                        _type.c_uint]
+    clang_saveTranslationUnit: _Callable[[_type.CXTranslationUnit,  # TU
+                                          _type.c_char_p,  # FileName
+                                          _type.c_uint],  # options
+                                         _type.c_int]
+    clang_suspendTranslationUnit: _Callable[[_type.CXTranslationUnit],
+                                            _type.c_uint]
+    clang_disposeTranslationUnit: _Callable[[_type.CXTranslationUnit],
+                                            _type.c_void]
+    clang_defaultReparseOptions: _Callable[[_type.CXTranslationUnit],  # TU
+                                           _type.c_uint]
+    clang_reparseTranslationUnit: _Callable[[_type.CXTranslationUnit,  # TU
+                                             _type.c_uint,  # num_unsaved_files
+                                             _Pointer[_struct.CXUnsavedFile],  # unsaved_files
+                                             _type.c_uint],  # options
+                                            _type.c_int]
+    clang_getTUResourceUsageName: _Callable[[_enum.CXTUResourceUsageKind],  # kind
+                                            _type.c_char_p]
+    clang_getCXTUResourceUsage: _Callable[[_type.CXTranslationUnit],  # TU
+                                          _struct.CXTUResourceUsage]
+    clang_disposeCXTUResourceUsage: _Callable[[_struct.CXTUResourceUsage],  # usage
+                                              _type.c_void]
+    clang_getTranslationUnitTargetInfo: _Callable[[_type.CXTranslationUnit],  # CTUnit
+                                                  _type.CXTargetInfo]
+    clang_TargetInfo_dispose: _Callable[[_type.CXTargetInfo],  # Info
+                                        _type.c_void]
+    clang_TargetInfo_getTriple: _Callable[[_type.CXTargetInfo],  # Info
+                                          _struct.CXString]
+    clang_TargetInfo_getPointerWidth: _Callable[[_type.CXTargetInfo],  # Info
+                                                _type.c_int]
+    clang_getNullCursor: _Callable[[],
+                                   _struct.CXCursor]
+    clang_getTranslationUnitCursor: _Callable[[_type.CXTranslationUnit],
+                                              _struct.CXCursor]
+    clang_equalCursors: _Callable[[_struct.CXCursor,
+                                   _struct.CXCursor],
+                                  _type.c_uint]
+    clang_Cursor_isNull: _Callable[[_struct.CXCursor],  # cursor
+                                   _type.c_int]
+    clang_hashCursor: _Callable[[_struct.CXCursor],
+                                _type.c_uint]
+    clang_getCursorKind: _Callable[[_struct.CXCursor],
+                                   _enum.CXCursorKind]
+    clang_isDeclaration: _Callable[[_enum.CXCursorKind],
+                                   _type.c_uint]
+    clang_isInvalidDeclaration: _Callable[[_struct.CXCursor],
+                                          _type.c_uint]
+    clang_isReference: _Callable[[_enum.CXCursorKind],
+                                 _type.c_uint]
+    clang_isExpression: _Callable[[_enum.CXCursorKind],
+                                  _type.c_uint]
+    clang_isStatement: _Callable[[_enum.CXCursorKind],
+                                 _type.c_uint]
+    clang_isAttribute: _Callable[[_enum.CXCursorKind],
+                                 _type.c_uint]
+    clang_Cursor_hasAttrs: _Callable[[_struct.CXCursor],  # C
+                                     _type.c_uint]
+    clang_isInvalid: _Callable[[_enum.CXCursorKind],
+                               _type.c_uint]
+    clang_isTranslationUnit: _Callable[[_enum.CXCursorKind],
+                                       _type.c_uint]
+    clang_isPreprocessing: _Callable[[_enum.CXCursorKind],
+                                     _type.c_uint]
+    clang_isUnexposed: _Callable[[_enum.CXCursorKind],
+                                 _type.c_uint]
+    clang_getCursorLinkage: _Callable[[_struct.CXCursor],  # cursor
+                                      _enum.CXLinkageKind]
+    clang_getCursorVisibility: _Callable[[_struct.CXCursor],  # cursor
+                                         _enum.CXVisibilityKind]
+    clang_getCursorAvailability: _Callable[[_struct.CXCursor],  # cursor
+                                           _enum.CXAvailabilityKind]
+    clang_getCursorPlatformAvailability: _Callable[[_struct.CXCursor,  # cursor
+                                                    _Pointer[_type.c_int],  # always_deprecated
+                                                    _Pointer[_struct.CXString],  # deprecated_message
+                                                    _Pointer[_type.c_int],  # always_unavailable
+                                                    _Pointer[_struct.CXString],  # unavailable_message
+                                                    _Pointer[_struct.CXPlatformAvailability],  # availability
+                                                    _type.c_int],  # availability_size
+                                                   _type.c_int]
+    clang_disposeCXPlatformAvailability: _Callable[[_Pointer[_struct.CXPlatformAvailability]],  # availability
+                                                   _type.c_void]
+    clang_Cursor_getVarDeclInitializer: _Callable[[_struct.CXCursor],  # cursor
+                                                  _struct.CXCursor]
+    clang_Cursor_hasVarDeclGlobalStorage: _Callable[[_struct.CXCursor],  # cursor
+                                                    _type.c_int]
+    clang_Cursor_hasVarDeclExternalStorage: _Callable[[_struct.CXCursor],  # cursor
+                                                      _type.c_int]
+    clang_getCursorLanguage: _Callable[[_struct.CXCursor],  # cursor
+                                       _enum.CXLanguageKind]
+    clang_getCursorTLSKind: _Callable[[_struct.CXCursor],  # cursor
+                                      _enum.CXTLSKind]
+    clang_Cursor_getTranslationUnit: _Callable[[_struct.CXCursor],
+                                               _type.CXTranslationUnit]
+    clang_createCXCursorSet: _Callable[[],
+                                       _type.CXCursorSet]
+    clang_disposeCXCursorSet: _Callable[[_type.CXCursorSet],  # cset
+                                        _type.c_void]
+    clang_CXCursorSet_contains: _Callable[[_type.CXCursorSet,  # cset
+                                           _struct.CXCursor],  # cursor
+                                          _type.c_uint]
+    clang_CXCursorSet_insert: _Callable[[_type.CXCursorSet,  # cset
+                                         _struct.CXCursor],  # cursor
+                                        _type.c_uint]
+    clang_getCursorSemanticParent: _Callable[[_struct.CXCursor],  # cursor
+                                             _struct.CXCursor]
+    clang_getCursorLexicalParent: _Callable[[_struct.CXCursor],  # cursor
+                                            _struct.CXCursor]
+    clang_getOverriddenCursors: _Callable[[_struct.CXCursor,  # cursor
+                                           _Pointer[_Pointer[_struct.CXCursor]],  # overridden
+                                           _Pointer[_type.c_uint]],  # num_overridden
+                                          _type.c_void]
+    clang_disposeOverriddenCursors: _Callable[[_Pointer[_struct.CXCursor]],  # overridden
+                                              _type.c_void]
+    clang_getIncludedFile: _Callable[[_struct.CXCursor],  # cursor
+                                     _type.CXFile]
+    clang_getCursor: _Callable[[_type.CXTranslationUnit,
+                                _struct.CXSourceLocation],
+                               _struct.CXCursor]
+    clang_getCursorLocation: _Callable[[_struct.CXCursor],
+                                       _struct.CXSourceLocation]
+    clang_getCursorExtent: _Callable[[_struct.CXCursor],
+                                     _struct.CXSourceRange]
+    clang_getCursorType: _Callable[[_struct.CXCursor],  # C
+                                   _struct.CXType]
+    clang_getTypeSpelling: _Callable[[_struct.CXType],  # CT
+                                     _struct.CXString]
+    clang_getTypedefDeclUnderlyingType: _Callable[[_struct.CXCursor],  # C
+                                                  _struct.CXType]
+    clang_getEnumDeclIntegerType: _Callable[[_struct.CXCursor],  # C
+                                            _struct.CXType]
+    clang_getEnumConstantDeclValue: _Callable[[_struct.CXCursor],  # C
+                                              _type.c_longlong]
+    clang_getEnumConstantDeclUnsignedValue: _Callable[[_struct.CXCursor],  # C
+                                                      _type.c_ulonglong]
+    clang_getFieldDeclBitWidth: _Callable[[_struct.CXCursor],  # C
+                                          _type.c_int]
+    clang_Cursor_getNumArguments: _Callable[[_struct.CXCursor],  # C
+                                            _type.c_int]
+    clang_Cursor_getArgument: _Callable[[_struct.CXCursor,  # C
+                                         _type.c_uint],  # i
+                                        _struct.CXCursor]
+    clang_Cursor_getNumTemplateArguments: _Callable[[_struct.CXCursor],  # C
+                                                    _type.c_int]
+    clang_Cursor_getTemplateArgumentKind: _Callable[[_struct.CXCursor,  # C
+                                                     _type.c_uint],  # I
+                                                    _enum.CXTemplateArgumentKind]
+    clang_Cursor_getTemplateArgumentType: _Callable[[_struct.CXCursor,  # C
+                                                     _type.c_uint],  # I
+                                                    _struct.CXType]
+    clang_Cursor_getTemplateArgumentValue: _Callable[[_struct.CXCursor,  # C
+                                                      _type.c_uint],  # I
+                                                     _type.c_longlong]
+    clang_Cursor_getTemplateArgumentUnsignedValue: _Callable[[_struct.CXCursor,  # C
+                                                              _type.c_uint],  # I
+                                                             _type.c_ulonglong]
+    clang_equalTypes: _Callable[[_struct.CXType,  # A
+                                 _struct.CXType],  # B
+                                _type.c_uint]
+    clang_getCanonicalType: _Callable[[_struct.CXType],  # T
+                                      _struct.CXType]
+    clang_isConstQualifiedType: _Callable[[_struct.CXType],  # T
+                                          _type.c_uint]
+    clang_Cursor_isMacroFunctionLike: _Callable[[_struct.CXCursor],  # C
+                                                _type.c_uint]
+    clang_Cursor_isMacroBuiltin: _Callable[[_struct.CXCursor],  # C
+                                           _type.c_uint]
+    clang_Cursor_isFunctionInlined: _Callable[[_struct.CXCursor],  # C
+                                              _type.c_uint]
+    clang_isVolatileQualifiedType: _Callable[[_struct.CXType],  # T
+                                             _type.c_uint]
+    clang_isRestrictQualifiedType: _Callable[[_struct.CXType],  # T
+                                             _type.c_uint]
+    clang_getAddressSpace: _Callable[[_struct.CXType],  # T
+                                     _type.c_uint]
+    clang_getTypedefName: _Callable[[_struct.CXType],  # CT
+                                    _struct.CXString]
+    clang_getPointeeType: _Callable[[_struct.CXType],  # T
+                                    _struct.CXType]
+    clang_getTypeDeclaration: _Callable[[_struct.CXType],  # T
+                                        _struct.CXCursor]
+    clang_getDeclObjCTypeEncoding: _Callable[[_struct.CXCursor],  # C
+                                             _struct.CXString]
+    clang_Type_getObjCEncoding: _Callable[[_struct.CXType],  # type
+                                          _struct.CXString]
+    clang_getTypeKindSpelling: _Callable[[_enum.CXTypeKind],  # K
+                                         _struct.CXString]
+    clang_getFunctionTypeCallingConv: _Callable[[_struct.CXType],  # T
+                                                _enum.CXCallingConv]
+    clang_getResultType: _Callable[[_struct.CXType],  # T
+                                   _struct.CXType]
+    clang_getExceptionSpecificationType: _Callable[[_struct.CXType],  # T
+                                                   _type.c_int]
+    clang_getNumArgTypes: _Callable[[_struct.CXType],  # T
+                                    _type.c_int]
+    clang_getArgType: _Callable[[_struct.CXType,  # T
+                                 _type.c_uint],  # i
+                                _struct.CXType]
+    clang_Type_getObjCObjectBaseType: _Callable[[_struct.CXType],  # T
+                                                _struct.CXType]
+    clang_Type_getNumObjCProtocolRefs: _Callable[[_struct.CXType],  # T
+                                                 _type.c_uint]
+    clang_Type_getObjCProtocolDecl: _Callable[[_struct.CXType,  # T
+                                               _type.c_uint],  # i
+                                              _struct.CXCursor]
+    clang_Type_getNumObjCTypeArgs: _Callable[[_struct.CXType],  # T
+                                             _type.c_uint]
+    clang_Type_getObjCTypeArg: _Callable[[_struct.CXType,  # T
+                                          _type.c_uint],  # i
+                                         _struct.CXType]
+    clang_isFunctionTypeVariadic: _Callable[[_struct.CXType],  # T
+                                            _type.c_uint]
+    clang_getCursorResultType: _Callable[[_struct.CXCursor],  # C
+                                         _struct.CXType]
+    clang_getCursorExceptionSpecificationType: _Callable[[_struct.CXCursor],  # C
+                                                         _type.c_int]
+    clang_isPODType: _Callable[[_struct.CXType],  # T
+                               _type.c_uint]
+    clang_getElementType: _Callable[[_struct.CXType],  # T
+                                    _struct.CXType]
+    clang_getNumElements: _Callable[[_struct.CXType],  # T
+                                    _type.c_longlong]
+    clang_getArrayElementType: _Callable[[_struct.CXType],  # T
+                                         _struct.CXType]
+    clang_getArraySize: _Callable[[_struct.CXType],  # T
+                                  _type.c_longlong]
+    clang_Type_getNamedType: _Callable[[_struct.CXType],  # T
+                                       _struct.CXType]
+    clang_Type_isTransparentTagTypedef: _Callable[[_struct.CXType],  # T
+                                                  _type.c_uint]
+    clang_Type_getNullability: _Callable[[_struct.CXType],  # T
+                                         _enum.CXTypeNullabilityKind]
+    clang_Type_getAlignOf: _Callable[[_struct.CXType],  # T
+                                     _type.c_longlong]
+    clang_Type_getClassType: _Callable[[_struct.CXType],  # T
+                                       _struct.CXType]
+    clang_Type_getSizeOf: _Callable[[_struct.CXType],  # T
+                                    _type.c_longlong]
+    clang_Type_getOffsetOf: _Callable[[_struct.CXType,  # T
+                                       _type.c_char_p],  # S
+                                      _type.c_longlong]
+    clang_Type_getModifiedType: _Callable[[_struct.CXType],  # T
+                                          _struct.CXType]
+    clang_Type_getValueType: _Callable[[_struct.CXType],  # CT
+                                       _struct.CXType]
+    clang_Cursor_getOffsetOfField: _Callable[[_struct.CXCursor],  # C
+                                             _type.c_longlong]
+    clang_Cursor_isAnonymous: _Callable[[_struct.CXCursor],  # C
+                                        _type.c_uint]
+    clang_Cursor_isAnonymousRecordDecl: _Callable[[_struct.CXCursor],  # C
+                                                  _type.c_uint]
+    clang_Cursor_isInlineNamespace: _Callable[[_struct.CXCursor],  # C
+                                              _type.c_uint]
+    clang_Type_getNumTemplateArguments: _Callable[[_struct.CXType],  # T
+                                                  _type.c_int]
+    clang_Type_getTemplateArgumentAsType: _Callable[[_struct.CXType,  # T
+                                                     _type.c_uint],  # i
+                                                    _struct.CXType]
+    clang_Type_getCXXRefQualifier: _Callable[[_struct.CXType],  # T
+                                             _enum.CXRefQualifierKind]
+    clang_Cursor_isBitField: _Callable[[_struct.CXCursor],  # C
+                                       _type.c_uint]
+    clang_isVirtualBase: _Callable[[_struct.CXCursor],
+                                   _type.c_uint]
+    clang_getCXXAccessSpecifier: _Callable[[_struct.CXCursor],
+                                           _enum.CX_CXXAccessSpecifier]
+    clang_Cursor_getStorageClass: _Callable[[_struct.CXCursor],
+                                            _enum.CX_StorageClass]
+    clang_getNumOverloadedDecls: _Callable[[_struct.CXCursor],  # cursor
+                                           _type.c_uint]
+    clang_getOverloadedDecl: _Callable[[_struct.CXCursor,  # cursor
+                                        _type.c_uint],  # index
+                                       _struct.CXCursor]
+    clang_getIBOutletCollectionType: _Callable[[_struct.CXCursor],
+                                               _struct.CXType]
+    clang_visitChildren: _Callable[[_struct.CXCursor,  # parent
+                                    _type.CXCursorVisitor,  # visitor
+                                    _type.CXClientData],  # client_data
+                                   _type.c_uint]
+    clang_getCursorUSR: _Callable[[_struct.CXCursor],
+                                  _struct.CXString]
+    clang_constructUSR_ObjCClass: _Callable[[_type.c_char_p],  # class_name
+                                            _struct.CXString]
+    clang_constructUSR_ObjCCategory: _Callable[[_type.c_char_p,  # class_name
+                                                _type.c_char_p],  # category_name
+                                               _struct.CXString]
+    clang_constructUSR_ObjCProtocol: _Callable[[_type.c_char_p],  # protocol_name
+                                               _struct.CXString]
+    clang_constructUSR_ObjCIvar: _Callable[[_type.c_char_p,  # name
+                                            _struct.CXString],  # classUSR
+                                           _struct.CXString]
+    clang_constructUSR_ObjCMethod: _Callable[[_type.c_char_p,  # name
+                                              _type.c_uint,  # isInstanceMethod
+                                              _struct.CXString],  # classUSR
+                                             _struct.CXString]
+    clang_constructUSR_ObjCProperty: _Callable[[_type.c_char_p,  # property
+                                                _struct.CXString],  # classUSR
+                                               _struct.CXString]
+    clang_getCursorSpelling: _Callable[[_struct.CXCursor],
+                                       _struct.CXString]
+    clang_Cursor_getSpellingNameRange: _Callable[[_struct.CXCursor,
+                                                  _type.c_uint,  # pieceIndex
+                                                  _type.c_uint],  # options
+                                                 _struct.CXSourceRange]
+    clang_PrintingPolicy_getProperty: _Callable[[_type.CXPrintingPolicy,  # Policy
+                                                 _enum.CXPrintingPolicyProperty],  # Property
+                                                _type.c_uint]
+    clang_PrintingPolicy_setProperty: _Callable[[_type.CXPrintingPolicy,  # Policy
+                                                 _enum.CXPrintingPolicyProperty,  # Property
+                                                 _type.c_uint],  # Value
+                                                _type.c_void]
+    clang_getCursorPrintingPolicy: _Callable[[_struct.CXCursor],
+                                             _type.CXPrintingPolicy]
+    clang_PrintingPolicy_dispose: _Callable[[_type.CXPrintingPolicy],  # Policy
+                                            _type.c_void]
+    clang_getCursorPrettyPrinted: _Callable[[_struct.CXCursor,  # Cursor
+                                             _type.CXPrintingPolicy],  # Policy
+                                            _struct.CXString]
+    clang_getCursorDisplayName: _Callable[[_struct.CXCursor],
+                                          _struct.CXString]
+    clang_getCursorReferenced: _Callable[[_struct.CXCursor],
+                                         _struct.CXCursor]
+    clang_getCursorDefinition: _Callable[[_struct.CXCursor],
+                                         _struct.CXCursor]
+    clang_isCursorDefinition: _Callable[[_struct.CXCursor],
+                                        _type.c_uint]
+    clang_getCanonicalCursor: _Callable[[_struct.CXCursor],
+                                        _struct.CXCursor]
+    clang_Cursor_getObjCSelectorIndex: _Callable[[_struct.CXCursor],
+                                                 _type.c_int]
+    clang_Cursor_isDynamicCall: _Callable[[_struct.CXCursor],  # C
+                                          _type.c_int]
+    clang_Cursor_getReceiverType: _Callable[[_struct.CXCursor],  # C
+                                            _struct.CXType]
+    clang_Cursor_getObjCPropertyAttributes: _Callable[[_struct.CXCursor,  # C
+                                                       _type.c_uint],  # reserved
+                                                      _type.c_uint]
+    clang_Cursor_getObjCPropertyGetterName: _Callable[[_struct.CXCursor],  # C
+                                                      _struct.CXString]
+    clang_Cursor_getObjCPropertySetterName: _Callable[[_struct.CXCursor],  # C
+                                                      _struct.CXString]
+    clang_Cursor_getObjCDeclQualifiers: _Callable[[_struct.CXCursor],  # C
+                                                  _type.c_uint]
+    clang_Cursor_isObjCOptional: _Callable[[_struct.CXCursor],  # C
+                                           _type.c_uint]
+    clang_Cursor_isVariadic: _Callable[[_struct.CXCursor],  # C
+                                       _type.c_uint]
+    clang_Cursor_isExternalSymbol: _Callable[[_struct.CXCursor,  # C
+                                              _Pointer[_struct.CXString],  # language
+                                              _Pointer[_struct.CXString],  # definedIn
+                                              _Pointer[_type.c_uint]],  # isGenerated
+                                             _type.c_uint]
+    clang_Cursor_getCommentRange: _Callable[[_struct.CXCursor],  # C
+                                            _struct.CXSourceRange]
+    clang_Cursor_getRawCommentText: _Callable[[_struct.CXCursor],  # C
+                                              _struct.CXString]
+    clang_Cursor_getBriefCommentText: _Callable[[_struct.CXCursor],  # C
+                                                _struct.CXString]
+    clang_Cursor_getMangling: _Callable[[_struct.CXCursor],
+                                        _struct.CXString]
+    clang_Cursor_getCXXManglings: _Callable[[_struct.CXCursor],
+                                            _Pointer[_struct.CXStringSet]]
+    clang_Cursor_getObjCManglings: _Callable[[_struct.CXCursor],
+                                             _Pointer[_struct.CXStringSet]]
+    clang_Cursor_getModule: _Callable[[_struct.CXCursor],  # C
+                                      _type.CXModule]
+    clang_getModuleForFile: _Callable[[_type.CXTranslationUnit,
+                                       _type.CXFile],
+                                      _type.CXModule]
+    clang_Module_getASTFile: _Callable[[_type.CXModule],  # Module
+                                       _type.CXFile]
+    clang_Module_getParent: _Callable[[_type.CXModule],  # Module
+                                      _type.CXModule]
+    clang_Module_getName: _Callable[[_type.CXModule],  # Module
+                                    _struct.CXString]
+    clang_Module_getFullName: _Callable[[_type.CXModule],  # Module
+                                        _struct.CXString]
+    clang_Module_isSystem: _Callable[[_type.CXModule],  # Module
+                                     _type.c_int]
+    clang_Module_getNumTopLevelHeaders: _Callable[[_type.CXTranslationUnit,
+                                                   _type.CXModule],  # Module
+                                                  _type.c_uint]
+    clang_Module_getTopLevelHeader: _Callable[[_type.CXTranslationUnit,
+                                               _type.CXModule,  # Module
+                                               _type.c_uint],  # Index
+                                              _type.CXFile]
+    clang_CXXConstructor_isConvertingConstructor: _Callable[[_struct.CXCursor],  # C
+                                                            _type.c_uint]
+    clang_CXXConstructor_isCopyConstructor: _Callable[[_struct.CXCursor],  # C
+                                                      _type.c_uint]
+    clang_CXXConstructor_isDefaultConstructor: _Callable[[_struct.CXCursor],  # C
+                                                         _type.c_uint]
+    clang_CXXConstructor_isMoveConstructor: _Callable[[_struct.CXCursor],  # C
+                                                      _type.c_uint]
+    clang_CXXField_isMutable: _Callable[[_struct.CXCursor],  # C
+                                        _type.c_uint]
+    clang_CXXMethod_isDefaulted: _Callable[[_struct.CXCursor],  # C
+                                           _type.c_uint]
+    clang_CXXMethod_isPureVirtual: _Callable[[_struct.CXCursor],  # C
+                                             _type.c_uint]
+    clang_CXXMethod_isStatic: _Callable[[_struct.CXCursor],  # C
+                                        _type.c_uint]
+    clang_CXXMethod_isVirtual: _Callable[[_struct.CXCursor],  # C
+                                         _type.c_uint]
+    clang_CXXRecord_isAbstract: _Callable[[_struct.CXCursor],  # C
+                                          _type.c_uint]
+    clang_EnumDecl_isScoped: _Callable[[_struct.CXCursor],  # C
+                                       _type.c_uint]
+    clang_CXXMethod_isConst: _Callable[[_struct.CXCursor],  # C
+                                       _type.c_uint]
+    clang_getTemplateCursorKind: _Callable[[_struct.CXCursor],  # C
+                                           _enum.CXCursorKind]
+    clang_getSpecializedCursorTemplate: _Callable[[_struct.CXCursor],  # C
+                                                  _struct.CXCursor]
+    clang_getCursorReferenceNameRange: _Callable[[_struct.CXCursor,  # C
+                                                  _type.c_uint,  # NameFlags
+                                                  _type.c_uint],  # PieceIndex
+                                                 _struct.CXSourceRange]
+    clang_getToken: _Callable[[_type.CXTranslationUnit,  # TU
+                               _struct.CXSourceLocation],  # Location
+                              _Pointer[_struct.CXToken]]
+    clang_getTokenKind: _Callable[[_struct.CXToken],
+                                  _enum.CXTokenKind]
+    clang_getTokenSpelling: _Callable[[_type.CXTranslationUnit,
+                                       _struct.CXToken],
+                                      _struct.CXString]
+    clang_getTokenLocation: _Callable[[_type.CXTranslationUnit,
+                                       _struct.CXToken],
+                                      _struct.CXSourceLocation]
+    clang_getTokenExtent: _Callable[[_type.CXTranslationUnit,
+                                     _struct.CXToken],
+                                    _struct.CXSourceRange]
+    clang_tokenize: _Callable[[_type.CXTranslationUnit,  # TU
+                               _struct.CXSourceRange,  # Range
+                               _Pointer[_Pointer[_struct.CXToken]],  # Tokens
+                               _Pointer[_type.c_uint]],  # NumTokens
+                              _type.c_void]
+    clang_annotateTokens: _Callable[[_type.CXTranslationUnit,  # TU
+                                     _Pointer[_struct.CXToken],  # Tokens
+                                     _type.c_uint,  # NumTokens
+                                     _Pointer[_struct.CXCursor]],  # Cursors
+                                    _type.c_void]
+    clang_disposeTokens: _Callable[[_type.CXTranslationUnit,  # TU
+                                    _Pointer[_struct.CXToken],  # Tokens
+                                    _type.c_uint],  # NumTokens
+                                   _type.c_void]
+    clang_getCursorKindSpelling: _Callable[[_enum.CXCursorKind],  # Kind
+                                           _struct.CXString]
+    clang_getDefinitionSpellingAndExtent: _Callable[[_struct.CXCursor,
+                                                     _Pointer[_type.c_char_p],  # startBuf
+                                                     _Pointer[_type.c_char_p],  # endBuf
+                                                     _Pointer[_type.c_uint],  # startLine
+                                                     _Pointer[_type.c_uint],  # startColumn
+                                                     _Pointer[_type.c_uint],  # endLine
+                                                     _Pointer[_type.c_uint]],  # endColumn
+                                                    _type.c_void]
+    clang_enableStackTraces: _Callable[[],
+                                       _type.c_void]
+    clang_executeOnThread: _Callable[[_type.c_void_p,  # fn
+                                      _type.c_void_p,  # user_data
+                                      _type.c_uint],  # stack_size
+                                     _type.c_void]
+    clang_getCompletionChunkKind: _Callable[[_type.CXCompletionString,  # completion_string
+                                             _type.c_uint],  # chunk_number
+                                            _enum.CXCompletionChunkKind]
+    clang_getCompletionChunkText: _Callable[[_type.CXCompletionString,  # completion_string
+                                             _type.c_uint],  # chunk_number
+                                            _struct.CXString]
+    clang_getCompletionChunkCompletionString: _Callable[[_type.CXCompletionString,  # completion_string
+                                                         _type.c_uint],  # chunk_number
+                                                        _type.CXCompletionString]
+    clang_getNumCompletionChunks: _Callable[[_type.CXCompletionString],  # completion_string
+                                            _type.c_uint]
+    clang_getCompletionPriority: _Callable[[_type.CXCompletionString],  # completion_string
+                                           _type.c_uint]
+    clang_getCompletionAvailability: _Callable[[_type.CXCompletionString],  # completion_string
+                                               _enum.CXAvailabilityKind]
+    clang_getCompletionNumAnnotations: _Callable[[_type.CXCompletionString],  # completion_string
+                                                 _type.c_uint]
+    clang_getCompletionAnnotation: _Callable[[_type.CXCompletionString,  # completion_string
+                                              _type.c_uint],  # annotation_number
+                                             _struct.CXString]
+    clang_getCompletionParent: _Callable[[_type.CXCompletionString,  # completion_string
+                                          _Pointer[_enum.CXCursorKind]],  # kind
+                                         _struct.CXString]
+    clang_getCompletionBriefComment: _Callable[[_type.CXCompletionString],  # completion_string
+                                               _struct.CXString]
+    clang_getCursorCompletionString: _Callable[[_struct.CXCursor],  # cursor
+                                               _type.CXCompletionString]
+    clang_getCompletionNumFixIts: _Callable[[_Pointer[_struct.CXCodeCompleteResults],  # results
+                                             _type.c_uint],  # completion_index
+                                            _type.c_uint]
+    clang_getCompletionFixIt: _Callable[[_Pointer[_struct.CXCodeCompleteResults],  # results
+                                         _type.c_uint,  # completion_index
+                                         _type.c_uint,  # fixit_index
+                                         _Pointer[_struct.CXSourceRange]],  # replacement_range
+                                        _struct.CXString]
+    clang_defaultCodeCompleteOptions: _Callable[[],
+                                                _type.c_uint]
+    clang_codeCompleteAt: _Callable[[_type.CXTranslationUnit,  # TU
+                                     _type.c_char_p,  # complete_filename
+                                     _type.c_uint,  # complete_line
+                                     _type.c_uint,  # complete_column
+                                     _Pointer[_struct.CXUnsavedFile],  # unsaved_files
+                                     _type.c_uint,  # num_unsaved_files
+                                     _type.c_uint],  # options
+                                    _Pointer[_struct.CXCodeCompleteResults]]
+    clang_sortCodeCompletionResults: _Callable[[_Pointer[_struct.CXCompletionResult],  # Results
+                                                _type.c_uint],  # NumResults
+                                               _type.c_void]
+    clang_disposeCodeCompleteResults: _Callable[[_Pointer[_struct.CXCodeCompleteResults]],  # Results
+                                                _type.c_void]
+    clang_codeCompleteGetNumDiagnostics: _Callable[[_Pointer[_struct.CXCodeCompleteResults]],  # Results
+                                                   _type.c_uint]
+    clang_codeCompleteGetDiagnostic: _Callable[[_Pointer[_struct.CXCodeCompleteResults],  # Results
+                                                _type.c_uint],  # Index
+                                               _type.CXDiagnostic]
+    clang_codeCompleteGetContexts: _Callable[[_Pointer[_struct.CXCodeCompleteResults]],  # Results
+                                             _type.c_ulonglong]
+    clang_codeCompleteGetContainerKind: _Callable[[_Pointer[_struct.CXCodeCompleteResults],  # Results
+                                                   _Pointer[_type.c_uint]],  # IsIncomplete
+                                                  _enum.CXCursorKind]
+    clang_codeCompleteGetContainerUSR: _Callable[[_Pointer[_struct.CXCodeCompleteResults]],  # Results
+                                                 _struct.CXString]
+    clang_codeCompleteGetObjCSelector: _Callable[[_Pointer[_struct.CXCodeCompleteResults]],  # Results
+                                                 _struct.CXString]
+    clang_getClangVersion: _Callable[[],
+                                     _struct.CXString]
+    clang_toggleCrashRecovery: _Callable[[_type.c_uint],  # isEnabled
+                                         _type.c_void]
+    clang_getInclusions: _Callable[[_type.CXTranslationUnit,  # tu
+                                    _type.CXInclusionVisitor,  # visitor
+                                    _type.CXClientData],  # client_data
+                                   _type.c_void]
+    clang_Cursor_Evaluate: _Callable[[_struct.CXCursor],  # C
+                                     _type.CXEvalResult]
+    clang_EvalResult_getKind: _Callable[[_type.CXEvalResult],  # E
+                                        _enum.CXEvalResultKind]
+    clang_EvalResult_getAsInt: _Callable[[_type.CXEvalResult],  # E
+                                         _type.c_int]
+    clang_EvalResult_getAsLongLong: _Callable[[_type.CXEvalResult],  # E
+                                              _type.c_longlong]
+    clang_EvalResult_isUnsignedInt: _Callable[[_type.CXEvalResult],  # E
+                                              _type.c_uint]
+    clang_EvalResult_getAsUnsigned: _Callable[[_type.CXEvalResult],  # E
+                                              _type.c_ulonglong]
+    clang_EvalResult_getAsDouble: _Callable[[_type.CXEvalResult],  # E
+                                            _type.c_double]
+    clang_EvalResult_getAsStr: _Callable[[_type.CXEvalResult],  # E
+                                         _type.c_char_p]
+    clang_EvalResult_dispose: _Callable[[_type.CXEvalResult],  # E
+                                        _type.c_void]
+    clang_getRemappings: _Callable[[_type.c_char_p],  # path
+                                   _type.CXRemapping]
+    clang_getRemappingsFromFileList: _Callable[[_Pointer[_type.c_char_p],  # filePaths
+                                                _type.c_uint],  # numFiles
+                                               _type.CXRemapping]
+    clang_remap_getNumFiles: _Callable[[_type.CXRemapping],
+                                       _type.c_uint]
+    clang_remap_getFilenames: _Callable[[_type.CXRemapping,
+                                         _type.c_uint,  # index
+                                         _Pointer[_struct.CXString],  # original
+                                         _Pointer[_struct.CXString]],  # transformed
+                                        _type.c_void]
+    clang_remap_dispose: _Callable[[_type.CXRemapping],
+                                   _type.c_void]
+    clang_findReferencesInFile: _Callable[[_struct.CXCursor,  # cursor
+                                           _type.CXFile,  # file
+                                           _struct.CXCursorAndRangeVisitor],  # visitor
+                                          _enum.CXResult]
+    clang_findIncludesInFile: _Callable[[_type.CXTranslationUnit,  # TU
+                                         _type.CXFile,  # file
+                                         _struct.CXCursorAndRangeVisitor],  # visitor
+                                        _enum.CXResult]
+    clang_index_isEntityObjCContainerKind: _Callable[[_enum.CXIdxEntityKind],
+                                                     _type.c_int]
+    clang_index_getObjCContainerDeclInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
+                                                    _Pointer[_struct.CXIdxObjCContainerDeclInfo]]
+    clang_index_getObjCInterfaceDeclInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
+                                                    _Pointer[_struct.CXIdxObjCInterfaceDeclInfo]]
+    clang_index_getObjCCategoryDeclInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
+                                                   _Pointer[_struct.CXIdxObjCCategoryDeclInfo]]
+    clang_index_getObjCProtocolRefListInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
+                                                      _Pointer[_struct.CXIdxObjCProtocolRefListInfo]]
+    clang_index_getObjCPropertyDeclInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
+                                                   _Pointer[_struct.CXIdxObjCPropertyDeclInfo]]
+    clang_index_getIBOutletCollectionAttrInfo: _Callable[[_Pointer[_struct.CXIdxAttrInfo]],
+                                                         _Pointer[_struct.CXIdxIBOutletCollectionAttrInfo]]
+    clang_index_getCXXClassDeclInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
+                                               _Pointer[_struct.CXIdxCXXClassDeclInfo]]
+    clang_index_getClientContainer: _Callable[[_Pointer[_struct.CXIdxContainerInfo]],
+                                              _type.CXIdxClientContainer]
+    clang_index_setClientContainer: _Callable[[_Pointer[_struct.CXIdxContainerInfo],
+                                               _type.CXIdxClientContainer],
+                                              _type.c_void]
+    clang_index_getClientEntity: _Callable[[_Pointer[_struct.CXIdxEntityInfo]],
+                                           _type.CXIdxClientEntity]
+    clang_index_setClientEntity: _Callable[[_Pointer[_struct.CXIdxEntityInfo],
+                                            _type.CXIdxClientEntity],
+                                           _type.c_void]
+    clang_IndexAction_create: _Callable[[_type.CXIndex],  # CIdx
+                                        _type.CXIndexAction]
+    clang_IndexAction_dispose: _Callable[[_type.CXIndexAction],
+                                         _type.c_void]
+    clang_indexLoc_getFileLocation: _Callable[[_struct.CXIdxLoc,  # loc
+                                               _Pointer[_type.CXIdxClientFile],  # indexFile
+                                               _Pointer[_type.CXFile],  # file
+                                               _Pointer[_type.c_uint],  # line
+                                               _Pointer[_type.c_uint],  # column
+                                               _Pointer[_type.c_uint]],  # offset
+                                              _type.c_void]
+    clang_indexLoc_getCXSourceLocation: _Callable[[_struct.CXIdxLoc],  # loc
+                                                  _struct.CXSourceLocation]
+    clang_Type_visitFields: _Callable[[_struct.CXType,  # T
+                                       _type.CXFieldVisitor,  # visitor
+                                       _type.CXClientData],  # client_data
+                                      _type.c_uint]
+    # Rewrite
+    clang_CXRewriter_create: _Callable[[_type.CXTranslationUnit],  # TU
+                                       _type.CXRewriter]
+    clang_CXRewriter_insertTextBefore: _Callable[[_type.CXRewriter,  # Rew
+                                                  _struct.CXSourceLocation,  # Loc
+                                                  _type.c_char_p],  # Insert
+                                                 _type.c_void]
+    clang_CXRewriter_replaceText: _Callable[[_type.CXRewriter,  # Rew
+                                             _struct.CXSourceRange,  # ToBeReplaced
+                                             _type.c_char_p],  # Replacement
+                                            _type.c_void]
+    clang_CXRewriter_removeText: _Callable[[_type.CXRewriter,  # Rew
+                                            _struct.CXSourceRange],  # ToBeRemoved
+                                           _type.c_void]
+    clang_CXRewriter_overwriteChangedFiles: _Callable[[_type.CXRewriter],  # Rew
+                                                      _type.c_int]
+    clang_CXRewriter_writeMainFileToStdOut: _Callable[[_type.CXRewriter],  # Rew
+                                                      _type.c_void]
+    clang_CXRewriter_dispose: _Callable[[_type.CXRewriter],  # Rew
+                                        _type.c_void]
+
+
+# noinspection PyPep8Naming
+class python(_PyDLL):
     # ceval
     Py_MakePendingCalls: _Callable[[],
                                    _type.c_int]
@@ -471,7 +1501,8 @@ class Python(_FuncMixin, metaclass=_PyDLL):
                                 _type.c_void]
 
 
-class AdvAPI32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class advapi32(_WinDLL):
     # winreg
     AbortSystemShutdownA: _Callable[[_type.LPSTR],
                                     _type.BOOL]
@@ -605,7 +1636,7 @@ class AdvAPI32(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class cfgmgr32(_FuncMixin, metaclass=_WinDLL):
+class cfgmgr32(_WinDLL):
     # Cfgmgr32
     CM_Get_DevNode_PropertyW: _Callable[[_type.DEVINST,
                                          _Pointer[_struct.DEVPROPKEY],
@@ -631,21 +1662,46 @@ class cfgmgr32(_FuncMixin, metaclass=_WinDLL):
                                   _type.CONFIGRET]
 
 
-class ComBase(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class combase(_WinDLL):
     # roapi
-    RoActivateInstance: _Callable[[_type.HSTRING,
-                                   _Pointer[_interface.IInspectable]],
-                                  _type.HRESULT]
-    RoGetActivationFactory: _Callable[[_type.HSTRING,
-                                       _Pointer[_struct.IID],
-                                       _Pointer[_interface.IActivationFactory]],
-                                      _type.HRESULT]
-    RoGetApartmentIdentifier: _Callable[[_Pointer[_type.UINT64]],
-                                        _type.HRESULT]
-    RoInitialize: _Callable[[_enum.RO_INIT_TYPE],
+    RoInitialize: _Callable[[_enum.RO_INIT_TYPE],  # initType
                             _type.HRESULT]
     RoUninitialize: _Callable[[],
                               _type.c_void]
+    RoActivateInstance: _Callable[[_type.HSTRING,  # activatableClassId
+                                   _Pointer[_inspectable.IInspectable]],  # instance
+                                  _type.HRESULT]
+    RoRegisterActivationFactories: _Callable[[_Pointer[_type.HSTRING],  # activatableClassIds
+                                              _Pointer[_type.PFNGETACTIVATIONFACTORY],  # activationFactoryCallbacks
+                                              _type.UINT32,  # count
+                                              _Pointer[_Pointer[_struct.RO_REGISTRATION_COOKIE]]],  # cookie
+                                             _type.HRESULT]
+    RoRevokeActivationFactories: _Callable[[_Pointer[_struct.RO_REGISTRATION_COOKIE]],  # cookie
+                                           _type.c_void]
+    RoGetActivationFactory: _Callable[[_type.HSTRING,  # activatableClassId
+                                       _Pointer[_struct.IID],  # iid
+                                       _type.c_void_p],  # factory
+                                      _type.HRESULT]
+    RoRegisterForApartmentShutdown: _Callable[[_objidl.IApartmentShutdown,  # callbackObject
+                                               _Pointer[_type.UINT64],  # apartmentIdentifier
+                                               _Pointer[_type.APARTMENT_SHUTDOWN_REGISTRATION_COOKIE]],  # regCookie
+                                              _type.HRESULT]
+    RoUnregisterForApartmentShutdown: _Callable[[_type.APARTMENT_SHUTDOWN_REGISTRATION_COOKIE],  # regCookie
+                                                _type.HRESULT]
+    RoGetApartmentIdentifier: _Callable[[_Pointer[_type.UINT64]],  # apartmentIdentifier
+                                        _type.HRESULT]
+    Initialize: _Callable[[_enum.RO_INIT_TYPE],  # initType
+                          _type.HRESULT]
+    Uninitialize: _Callable[[],
+                            _type.c_void]
+    RegisterActivationFactories: _Callable[[_Pointer[_type.HSTRING],  # activatableClassIds
+                                            _Pointer[_type.PFNGETACTIVATIONFACTORY],  # activationFactoryCallbacks
+                                            _type.UINT32,  # count
+                                            _Pointer[_Pointer[_struct.RO_REGISTRATION_COOKIE]]],  # cookie
+                                           _type.HRESULT]
+    RevokeActivationFactories: _Callable[[_Pointer[_struct.RO_REGISTRATION_COOKIE]],  # cookie
+                                         _type.c_void]
     # winstring
     WindowsConcatString: _Callable[[_Optional[_type.HSTRING],
                                     _Optional[_type.HSTRING],
@@ -680,7 +1736,7 @@ class ComBase(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class comctl32(_FuncMixin, metaclass=_WinDLL):
+class comctl32(_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     # CommCtrl
@@ -691,7 +1747,7 @@ class comctl32(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class comdlg32(_FuncMixin, metaclass=_WinDLL):
+class comdlg32(_WinDLL):
     # commdlg
     ChooseColorA: _Callable[[_Pointer[_struct.CHOOSECOLORA]],
                             _type.BOOL]
@@ -699,7 +1755,8 @@ class comdlg32(_FuncMixin, metaclass=_WinDLL):
                             _type.BOOL]
 
 
-class ComputeCore(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class computecore(_WinDLL):
     # computecore
     HcsGetServiceProperties: _Callable[[_Optional[_type.PCWSTR],
                                         _Pointer[_type.PWSTR]],
@@ -725,7 +1782,8 @@ class ComputeCore(_FuncMixin, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-class Crypt32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class crypt32(_WinDLL):
     # wincrypt
     CryptBinaryToStringA: _Callable[[_Pointer[_type.BYTE],
                                      _type.DWORD,
@@ -757,7 +1815,8 @@ class Crypt32(_FuncMixin, metaclass=_WinDLL):
                                     _type.BOOL]
 
 
-class D2D1(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class d2d1(_WinDLL):
     # d2d1
     D2D1CreateFactory: _Callable[[_enum.D2D1_FACTORY_TYPE,  # factoryType
                                   _Pointer[_struct.IID],  # riid
@@ -778,9 +1837,9 @@ class D2D1(_FuncMixin, metaclass=_WinDLL):
     D2D1InvertMatrix: _Callable[[_Pointer[_struct.D2D1_MATRIX_3X2_F]],  # matrix
                                 _type.BOOL]
     # d2d1_1
-    D2D1CreateDeviceContext: _Callable[[_interface.IDXGISurface,  # dxgiSurface
+    D2D1CreateDeviceContext: _Callable[[_dxgi.IDXGISurface,  # dxgiSurface
                                         _Optional[_Pointer[_struct.D2D1_CREATION_PROPERTIES]],  # creationProperties
-                                        _Pointer[_interface.ID2D1DeviceContext]],  # d2dDeviceContext
+                                        _Pointer[_d2d1_1.ID2D1DeviceContext]],  # d2dDeviceContext
                                        _type.HRESULT]
     D2D1SinCos: _Callable[[_type.FLOAT,  # angle
                            _Pointer[_type.FLOAT],  # s
@@ -794,30 +1853,32 @@ class D2D1(_FuncMixin, metaclass=_WinDLL):
                               _type.FLOAT]
 
 
-class D3D11(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class d3d11(_WinDLL):
     # d3d11
-    D3D11CreateDevice: _Callable[[_Optional[_interface.IDXGIAdapter],  # pAdapter
+    D3D11CreateDevice: _Callable[[_Optional[_dxgi.IDXGIAdapter],  # pAdapter
                                   _enum.D3D_DRIVER_TYPE,  # DriverType
                                   _type.HMODULE,  # Software
                                   _type.UINT,  # Flags
                                   _Optional[_Pointer[_enum.D3D_FEATURE_LEVEL]],  # pFeatureLevels
                                   _type.UINT,  # FeatureLevels
                                   _type.UINT,  # SDKVersion
-                                  _Optional[_Pointer[_interface.ID3D11Device]],  # ppDevice
+                                  _Optional[_Pointer[_d3d11.ID3D11Device]],  # ppDevice
                                   _Optional[_Pointer[_enum.D3D_FEATURE_LEVEL]],  # pFeatureLevel,
-                                  _Optional[_Pointer[_interface.ID3D11DeviceContext]]],  # ppImmediateContext
+                                  _Optional[_Pointer[_d3d11.ID3D11DeviceContext]]],  # ppImmediateContext
                                  _type.HRESULT]
 
 
-class DWrite(_FuncMixin, metaclass=_WinDLL):
+class DWrite(_WinDLL):
     # dwrite
     DWriteCreateFactory: _Callable[[_enum.DWRITE_FACTORY_TYPE,  # factoryType
                                     _Pointer[_struct.IID],  # iid
-                                    _Pointer[_interface.IUnknown]],  # factory
+                                    _Pointer[_Unknwnbase.IUnknown]],  # factory
                                    _type.HRESULT]
 
 
-class DWMAPI(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class dwmapi(_WinDLL):
     # dwmapi
     DwmDefWindowProc: _Callable[[_type.HWND,
                                  _type.UINT,
@@ -862,22 +1923,28 @@ class DWMAPI(_FuncMixin, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-class GDI32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class gdi32(_WinDLL):
     # wingdi
     AddFontResourceA: _Callable[[_type.LPCSTR],
                                 _type.c_int]
     AddFontResourceW: _Callable[[_type.LPCWSTR],
                                 _type.c_int]
-    ArcTo: _Callable[[_type.HDC,  # hdc
-                      _type.c_int,  # x1
-                      _type.c_int,  # y1
-                      _type.c_int,  # x2
-                      _type.c_int,  # y2
-                      _type.c_int,  # x3
-                      _type.c_int,  # y3
-                      _type.c_int,  # x4
-                      _type.c_int],  # y4
-                     _type.BOOL]
+    AnimatePalette: _Callable[[_type.HPALETTE,  # hPal
+                               _type.UINT,  # iStartIndex
+                               _type.UINT,  # cEntries
+                               _Pointer[_struct.PALETTEENTRY]],  # ppe
+                              _type.BOOL]
+    Arc: _Callable[[_type.HDC,  # hdc
+                    _type.c_int,  # x1
+                    _type.c_int,  # y1
+                    _type.c_int,  # x2
+                    _type.c_int,  # y2
+                    _type.c_int,  # x3
+                    _type.c_int,  # y3
+                    _type.c_int,  # x4
+                    _type.c_int],  # y4
+                   _type.BOOL]
     BitBlt: _Callable[[_type.HDC,  # hdc
                        _type.c_int,  # x
                        _type.c_int,  # y
@@ -900,19 +1967,138 @@ class GDI32(_FuncMixin, metaclass=_WinDLL):
                       _type.c_int,  # x4
                       _type.c_int],  # y4
                      _type.BOOL]
+    ChoosePixelFormat: _Callable[[_type.HDC,  # hdc
+                                  _Pointer[_struct.PIXELFORMATDESCRIPTOR]],  # ppfd
+                                 _type.c_int]
     CloseMetaFile: _Callable[[_type.HDC],  # hdc
                              _type.HMETAFILE]
-    CombineRgn: _Callable[[_Optional[_type.HRGN],  # hrgnDst
-                           _Optional[_type.HRGN],  # hrgnSrc1
-                           _Optional[_type.HRGN],  # hrgnSrc2
+    CombineRgn: _Callable[[_type.HRGN,  # hrgnDst
+                           _type.HRGN,  # hrgnSrc1
+                           _type.HRGN,  # hrgnSrc2
                            _type.c_int],  # iMode
                           _type.c_int]
     CopyMetaFileA: _Callable[[_type.HMETAFILE,
-                              _Optional[_type.LPCSTR]],
+                              _type.LPCSTR],
                              _type.HMETAFILE]
     CopyMetaFileW: _Callable[[_type.HMETAFILE,
-                              _Optional[_type.LPCWSTR]],
+                              _type.LPCWSTR],
                              _type.HMETAFILE]
+    CreateBitmap: _Callable[[_type.c_int,  # nWidth
+                             _type.c_int,  # nHeight
+                             _type.UINT,  # nPlanes
+                             _type.UINT,  # nBitCount
+                             _type.c_void_p],  # lpBits
+                            _type.HBITMAP]
+    CreateBitmapIndirect: _Callable[[_Pointer[_struct.BITMAP]],  # pbm
+                                    _type.HBITMAP]
+    CreateBrushIndirect: _Callable[[_Pointer[_struct.LOGBRUSH]],  # plbrush
+                                   _type.HBRUSH]
+    CreateCompatibleBitmap: _Callable[[_type.HDC,  # hdc
+                                       _type.c_int,  # cx
+                                       _type.c_int],  # cy
+                                      _type.HBITMAP]
+    CreateDiscardableBitmap: _Callable[[_type.HDC,  # hdc
+                                        _type.c_int,  # cx
+                                        _type.c_int],  # cy
+                                       _type.HBITMAP]
+    CreateCompatibleDC: _Callable[[_type.HDC],  # hdc
+                                  _type.HDC]
+    CreateDCA: _Callable[[_type.LPCSTR,  # pwszDriver
+                          _type.LPCSTR,  # pwszDevice
+                          _type.LPCSTR,  # pszPort
+                          _Pointer[_struct.DEVMODEA]],  # pdm
+                         _type.HDC]
+    CreateDCW: _Callable[[_type.LPCWSTR,  # pwszDriver
+                          _type.LPCWSTR,  # pwszDevice
+                          _type.LPCWSTR,  # pszPort
+                          _Pointer[_struct.DEVMODEW]],  # pdm
+                         _type.HDC]
+    CreateDIBitmap: _Callable[[_type.HDC,  # hdc
+                               _Pointer[_struct.BITMAPINFOHEADER],  # pbmih
+                               _type.DWORD,  # flInit
+                               _type.c_void_p,  # pjBits
+                               _Pointer[_struct.BITMAPINFO],  # pbmi
+                               _type.UINT],  # iUsage
+                              _type.HBITMAP]
+    CreateDIBPatternBrush: _Callable[[_type.HGLOBAL,  # h
+                                      _type.UINT],  # iUsage
+                                     _type.HBRUSH]
+    CreateDIBPatternBrushPt: _Callable[[_type.c_void_p,  # lpPackedDIB
+                                        _type.UINT],  # iUsage
+                                       _type.HBRUSH]
+    CreateEllipticRgn: _Callable[[_type.c_int,  # x1
+                                  _type.c_int,  # y1
+                                  _type.c_int,  # x2
+                                  _type.c_int],  # y2
+                                 _type.HRGN]
+    CreateEllipticRgnIndirect: _Callable[[_Pointer[_struct.RECT]],  # lprect
+                                         _type.HRGN]
+    CreateFontIndirectA: _Callable[[_Pointer[_struct.LOGFONTA]],  # lplf
+                                   _type.HFONT]
+    CreateFontIndirectW: _Callable[[_Pointer[_struct.LOGFONTW]],  # lplf
+                                   _type.HFONT]
+    CreateFontA: _Callable[[_type.c_int,  # cHeight
+                            _type.c_int,  # cWidth
+                            _type.c_int,  # cEscapement
+                            _type.c_int,  # cOrientation
+                            _type.c_int,  # cWeight
+                            _type.DWORD,  # bItalic
+                            _type.DWORD,  # bUnderline
+                            _type.DWORD,  # bStrikeOut
+                            _type.DWORD,  # iCharSet
+                            _type.DWORD,  # iOutPrecision
+                            _type.DWORD,  # iClipPrecision
+                            _type.DWORD,  # iQuality
+                            _type.DWORD,  # iPitchAndFamily
+                            _type.LPCSTR],  # pszFaceName
+                           _type.HFONT]
+    CreateFontW: _Callable[[_type.c_int,  # cHeight
+                            _type.c_int,  # cWidth
+                            _type.c_int,  # cEscapement
+                            _type.c_int,  # cOrientation
+                            _type.c_int,  # cWeight
+                            _type.DWORD,  # bItalic
+                            _type.DWORD,  # bUnderline
+                            _type.DWORD,  # bStrikeOut
+                            _type.DWORD,  # iCharSet
+                            _type.DWORD,  # iOutPrecision
+                            _type.DWORD,  # iClipPrecision
+                            _type.DWORD,  # iQuality
+                            _type.DWORD,  # iPitchAndFamily
+                            _type.LPCWSTR],  # pszFaceName
+                           _type.HFONT]
+    CreateHatchBrush: _Callable[[_type.c_int,  # iHatch
+                                 _type.COLORREF],  # color
+                                _type.HBRUSH]
+    CreateICA: _Callable[[_type.LPCSTR,  # pszDriver
+                          _type.LPCSTR,  # pszDevice
+                          _type.LPCSTR,  # pszPort
+                          _Pointer[_struct.DEVMODEA]],  # pdm
+                         _type.HDC]
+    CreateICW: _Callable[[_type.LPCWSTR,  # pszDriver
+                          _type.LPCWSTR,  # pszDevice
+                          _type.LPCWSTR,  # pszPort
+                          _Pointer[_struct.DEVMODEW]],  # pdm
+                         _type.HDC]
+    CreateMetaFileA: _Callable[[_type.LPCSTR],  # pszFile
+                               _type.HDC]
+    CreateMetaFileW: _Callable[[_type.LPCWSTR],  # pszFile
+                               _type.HDC]
+    CreatePalette: _Callable[[_Pointer[_struct.LOGPALETTE]],  # plpal
+                             _type.HPALETTE]
+    CreatePen: _Callable[[_type.c_int,  # iStyle
+                          _type.c_int,  # cWidth
+                          _type.COLORREF],  # color
+                         _type.HPEN]
+    CreatePenIndirect: _Callable[[_Pointer[_struct.LOGPEN]],  # plpen
+                                 _type.HPEN]
+    CreatePolyPolygonRgn: _Callable[[_Pointer[_struct.POINT],  # pptl
+                                     _Pointer[_type.INT],  # pc
+                                     _type.c_int,  # cPoly
+                                     _type.c_int],  # iMode
+                                    _type.HRGN]
+    CreatePatternBrush: _Callable[[_type.HBITMAP],  # hbm
+                                  _type.HBRUSH]
     CreateRectRgn: _Callable[[_type.c_int,  # x1
                               _type.c_int,  # y1
                               _type.c_int,  # x2
@@ -927,15 +2113,83 @@ class GDI32(_FuncMixin, metaclass=_WinDLL):
                                    _type.c_int,  # w
                                    _type.c_int],  # h
                                   _type.HRGN]
+    CreateScalableFontResourceA: _Callable[[_type.DWORD,  # fdwHidden
+                                            _type.LPCSTR,  # lpszFont
+                                            _type.LPCSTR,  # lpszFile
+                                            _type.LPCSTR],  # lpszPath
+                                           _type.BOOL]
+    CreateScalableFontResourceW: _Callable[[_type.DWORD,  # fdwHidden
+                                            _type.LPCWSTR,  # lpszFont
+                                            _type.LPCWSTR,  # lpszFile
+                                            _type.LPCWSTR],  # lpszPath
+                                           _type.BOOL]
+    CreateSolidBrush: _Callable[[_type.COLORREF],  # color
+                                _type.HBRUSH]
+    DeleteDC: _Callable[[_type.HDC],  # hdc
+                        _type.BOOL]
+    DeleteMetaFile: _Callable[[_type.HMETAFILE],  # hmf
+                              _type.BOOL]
+    DeleteObject: _Callable[[_type.HGDIOBJ],  # ho
+                            _type.BOOL]
+    DescribePixelFormat: _Callable[[_type.HDC,  # hdc
+                                    _type.c_int,  # iPixelFormat
+                                    _type.UINT,  # nBytes
+                                    _Pointer[_struct.PIXELFORMATDESCRIPTOR]],  # ppfd
+                                   _type.c_int]
+    DeviceCapabilitiesA: _Callable[[_type.LPCSTR,  # pDevice
+                                    _type.LPCSTR,  # pPort
+                                    _type.WORD,  # fwCapability
+                                    _type.LPSTR,  # pOutput
+                                    _Pointer[_struct.DEVMODEA]],  # pDevMode
+                                   _type.c_int]
+    DeviceCapabilitiesW: _Callable[[_type.LPCWSTR,  # pDevice
+                                    _type.LPCWSTR,  # pPort
+                                    _type.WORD,  # fwCapability
+                                    _type.LPWSTR,  # pOutput
+                                    _Pointer[_struct.DEVMODEW]],  # pDevMode
+                                   _type.c_int]
+    DrawEscape: _Callable[[_type.HDC,  # hdc
+                           _type.c_int,  # iEscape
+                           _type.c_int,  # cjIn
+                           _type.LPCSTR],  # lpIn
+                          _type.c_int]
+    Ellipse: _Callable[[_type.HDC,  # hdc
+                        _type.c_int,  # left
+                        _type.c_int,  # top
+                        _type.c_int,  # right
+                        _type.c_int],  # bottom
+                       _type.BOOL]
+    EnumObjects: _Callable[[_type.HDC,  # hdc
+                            _type.c_int,  # nType
+                            _type.GOBJENUMPROC,  # lpFunc
+                            _type.LPARAM],  # lParam
+                           _type.c_int]
     EqualRgn: _Callable[[_type.HRGN,  # hrgn1
                          _type.HRGN],  # hrgn2
                         _type.BOOL]
+    Escape: _Callable[[_type.HDC,  # hdc
+                       _type.c_int,  # iEscape
+                       _type.c_int,  # cjIn
+                       _type.LPCSTR,  # pvIn
+                       _type.LPVOID],  # pvOut
+                      _type.c_int]
+    ExtEscape: _Callable[[_type.HDC,  # hdc
+                          _type.c_int,  # iEscape
+                          _type.c_int,  # cjInput
+                          _type.LPCSTR,  # lpInData
+                          _type.c_int,  # cjOutput
+                          _type.LPSTR],  # lpOutData
+                         _type.c_int]
     ExcludeClipRect: _Callable[[_type.HDC,  # hdc
                                 _type.c_int,  # left
                                 _type.c_int,  # top
                                 _type.c_int,  # right
                                 _type.c_int],  # bottom
                                _type.c_int]
+    ExtCreateRegion: _Callable[[_Pointer[_struct.XFORM],  # lpx
+                                _type.DWORD,  # nCount
+                                _Pointer[_struct.RGNDATA]],  # lpData
+                               _type.HRGN]
     ExtFloodFill: _Callable[[_type.HDC,  # hdc
                              _type.c_int,  # x
                              _type.c_int,  # y
@@ -959,12 +2213,433 @@ class GDI32(_FuncMixin, metaclass=_WinDLL):
                         _type.BOOL]
     GetROP2: _Callable[[_type.HDC],  # hdc
                        _type.c_int]
+    GetAspectRatioFilterEx: _Callable[[_type.HDC,  # hdc
+                                       _Pointer[_struct.SIZE]],  # lpsize
+                                      _type.BOOL]
     GetBkColor: _Callable[[_type.HDC],  # hdc
                           _type.COLORREF]
     GetDCBrushColor: _Callable[[_type.HDC],  # hdc
                                _type.COLORREF]
     GetDCPenColor: _Callable[[_type.HDC],  # hdc
                              _type.COLORREF]
+    GetBkMode: _Callable[[_type.HDC],  # hdc
+                         _type.c_int]
+    GetBitmapBits: _Callable[[_type.HBITMAP,  # hbit
+                              _type.LONG,  # cb
+                              _type.LPVOID],  # lpvBits
+                             _type.LONG]
+    GetBitmapDimensionEx: _Callable[[_type.HBITMAP,  # hbit
+                                     _Pointer[_struct.SIZE]],  # lpsize
+                                    _type.BOOL]
+    GetBoundsRect: _Callable[[_type.HDC,  # hdc
+                              _Pointer[_struct.RECT],  # lprect
+                              _type.UINT],  # flags
+                             _type.UINT]
+    GetBrushOrgEx: _Callable[[_type.HDC,  # hdc
+                              _Pointer[_struct.POINT]],  # lppt
+                             _type.BOOL]
+    GetCharWidthA: _Callable[[_type.HDC,  # hdc
+                              _type.UINT,  # iFirst
+                              _type.UINT,  # iLast
+                              _Pointer[_type.c_int]],  # lpBuffer
+                             _type.BOOL]
+    GetCharWidthW: _Callable[[_type.HDC,  # hdc
+                              _type.UINT,  # iFirst
+                              _type.UINT,  # iLast
+                              _Pointer[_type.c_int]],  # lpBuffer
+                             _type.BOOL]
+    GetCharWidth32A: _Callable[[_type.HDC,  # hdc
+                                _type.UINT,  # iFirst
+                                _type.UINT,  # iLast
+                                _Pointer[_type.c_int]],  # lpBuffer
+                               _type.BOOL]
+    GetCharWidth32W: _Callable[[_type.HDC,  # hdc
+                                _type.UINT,  # iFirst
+                                _type.UINT,  # iLast
+                                _Pointer[_type.c_int]],  # lpBuffer
+                               _type.BOOL]
+    GetCharWidthFloatA: _Callable[[_type.HDC,  # hdc
+                                   _type.UINT,  # iFirst
+                                   _type.UINT,  # iLast
+                                   _Pointer[_type.FLOAT]],  # lpBuffer
+                                  _type.BOOL]
+    GetCharWidthFloatW: _Callable[[_type.HDC,  # hdc
+                                   _type.UINT,  # iFirst
+                                   _type.UINT,  # iLast
+                                   _Pointer[_type.FLOAT]],  # lpBuffer
+                                  _type.BOOL]
+    GetCharABCWidthsA: _Callable[[_type.HDC,  # hdc
+                                  _type.UINT,  # wFirst
+                                  _type.UINT,  # wLast
+                                  _Pointer[_struct.ABC]],  # lpABC
+                                 _type.BOOL]
+    GetCharABCWidthsW: _Callable[[_type.HDC,  # hdc
+                                  _type.UINT,  # wFirst
+                                  _type.UINT,  # wLast
+                                  _Pointer[_struct.ABC]],  # lpABC
+                                 _type.BOOL]
+    GetCharABCWidthsFloatA: _Callable[[_type.HDC,  # hdc
+                                       _type.UINT,  # iFirst
+                                       _type.UINT,  # iLast
+                                       _Pointer[_struct.ABCFLOAT]],  # lpABC
+                                      _type.BOOL]
+    GetCharABCWidthsFloatW: _Callable[[_type.HDC,  # hdc
+                                       _type.UINT,  # iFirst
+                                       _type.UINT,  # iLast
+                                       _Pointer[_struct.ABCFLOAT]],  # lpABC
+                                      _type.BOOL]
+    GetClipBox: _Callable[[_type.HDC,  # hdc
+                           _Pointer[_struct.RECT]],  # lprect
+                          _type.c_int]
+    GetClipRgn: _Callable[[_type.HDC,  # hdc
+                           _type.HRGN],  # hrgn
+                          _type.c_int]
+    GetMetaRgn: _Callable[[_type.HDC,  # hdc
+                           _type.HRGN],  # hrgn
+                          _type.c_int]
+    GetCurrentObject: _Callable[[_type.HDC,  # hdc
+                                 _type.UINT],  # type
+                                _type.HGDIOBJ]
+    GetCurrentPositionEx: _Callable[[_type.HDC,  # hdc
+                                     _Pointer[_struct.POINT]],  # lppt
+                                    _type.BOOL]
+    GetDeviceCaps: _Callable[[_type.HDC,  # hdc
+                              _type.c_int],  # index
+                             _type.c_int]
+    GetDIBits: _Callable[[_type.HDC,  # hdc
+                          _type.HBITMAP,  # hbm
+                          _type.UINT,  # start
+                          _type.UINT,  # cLines
+                          _type.LPVOID,  # lpvBits
+                          _Pointer[_struct.BITMAPINFO],  # lpbmi
+                          _type.UINT],  # usage
+                         _type.c_int]
+    GetFontData: _Callable[[_type.HDC,  # hdc
+                            _type.DWORD,  # dwTable
+                            _type.DWORD,  # dwOffset
+                            _type.PVOID,  # pvBuffer
+                            _type.DWORD],  # cjBuffer
+                           _type.DWORD]
+    GetGlyphOutlineA: _Callable[[_type.HDC,  # hdc
+                                 _type.UINT,  # uChar
+                                 _type.UINT,  # fuFormat
+                                 _Pointer[_struct.GLYPHMETRICS],  # lpgm
+                                 _type.DWORD,  # cjBuffer
+                                 _type.LPVOID,  # pvBuffer
+                                 _Pointer[_struct.MAT2]],  # lpmat2
+                                _type.DWORD]
+    GetGlyphOutlineW: _Callable[[_type.HDC,  # hdc
+                                 _type.UINT,  # uChar
+                                 _type.UINT,  # fuFormat
+                                 _Pointer[_struct.GLYPHMETRICS],  # lpgm
+                                 _type.DWORD,  # cjBuffer
+                                 _type.LPVOID,  # pvBuffer
+                                 _Pointer[_struct.MAT2]],  # lpmat2
+                                _type.DWORD]
+    GetGraphicsMode: _Callable[[_type.HDC],  # hdc
+                               _type.c_int]
+    GetMapMode: _Callable[[_type.HDC],  # hdc
+                          _type.c_int]
+    GetMetaFileBitsEx: _Callable[[_type.HMETAFILE,  # hMF
+                                  _type.UINT,  # cbBuffer
+                                  _type.LPVOID],  # lpData
+                                 _type.UINT]
+    GetMetaFileA: _Callable[[_type.LPCSTR],  # lpName
+                            _type.HMETAFILE]
+    GetMetaFileW: _Callable[[_type.LPCWSTR],  # lpName
+                            _type.HMETAFILE]
+    GetNearestColor: _Callable[[_type.HDC,  # hdc
+                                _type.COLORREF],  # color
+                               _type.COLORREF]
+    GetNearestPaletteIndex: _Callable[[_type.HPALETTE,  # h
+                                       _type.COLORREF],  # color
+                                      _type.UINT]
+    GetObjectType: _Callable[[_type.HGDIOBJ],  # h
+                             _type.DWORD]
+    GetOutlineTextMetricsA: _Callable[[_type.HDC,  # hdc
+                                       _type.UINT,  # cjCopy
+                                       _Pointer[_struct.OUTLINETEXTMETRICA]],  # potm
+                                      _type.UINT]
+    GetOutlineTextMetricsW: _Callable[[_type.HDC,  # hdc
+                                       _type.UINT,  # cjCopy
+                                       _Pointer[_struct.OUTLINETEXTMETRICW]],  # potm
+                                      _type.UINT]
+    GetPaletteEntries: _Callable[[_type.HPALETTE,  # hpal
+                                  _type.UINT,  # iStart
+                                  _type.UINT,  # cEntries
+                                  _Pointer[_struct.PALETTEENTRY]],  # pPalEntries
+                                 _type.UINT]
+    GetPixel: _Callable[[_type.HDC,  # hdc
+                         _type.c_int,  # x
+                         _type.c_int],  # y
+                        _type.COLORREF]
+    GetPixelFormat: _Callable[[_type.HDC],  # hdc
+                              _type.c_int]
+    GetPolyFillMode: _Callable[[_type.HDC],  # hdc
+                               _type.c_int]
+    GetRasterizerCaps: _Callable[[_Pointer[_struct.RASTERIZER_STATUS],  # lpraststat
+                                  _type.UINT],  # cjBytes
+                                 _type.BOOL]
+    GetRandomRgn: _Callable[[_type.HDC,  # hdc
+                             _type.HRGN,  # hrgn
+                             _type.INT],  # i
+                            _type.c_int]
+    GetRegionData: _Callable[[_type.HRGN,  # hrgn
+                              _type.DWORD,  # nCount
+                              _Pointer[_struct.RGNDATA]],  # lpRgnData
+                             _type.DWORD]
+    GetRgnBox: _Callable[[_type.HRGN,  # hrgn
+                          _Pointer[_struct.RECT]],  # lprc
+                         _type.c_int]
+    GetStockObject: _Callable[[_type.c_int],  # i
+                              _type.HGDIOBJ]
+    GetStretchBltMode: _Callable[[_type.HDC],  # hdc
+                                 _type.c_int]
+    GetSystemPaletteEntries: _Callable[[_type.HDC,  # hdc
+                                        _type.UINT,  # iStart
+                                        _type.UINT,  # cEntries
+                                        _Pointer[_struct.PALETTEENTRY]],  # pPalEntries
+                                       _type.UINT]
+    GetSystemPaletteUse: _Callable[[_type.HDC],  # hdc
+                                   _type.UINT]
+    GetTextCharacterExtra: _Callable[[_type.HDC],  # hdc
+                                     _type.c_int]
+    GetTextAlign: _Callable[[_type.HDC],  # hdc
+                            _type.UINT]
+    GetTextColor: _Callable[[_type.HDC],  # hdc
+                            _type.COLORREF]
+    GetTextExtentPointA: _Callable[[_type.HDC,  # hdc
+                                    _type.LPCSTR,  # lpString
+                                    _type.c_int,  # c
+                                    _Pointer[_struct.SIZE]],  # lpsz
+                                   _type.BOOL]
+    GetTextExtentPointW: _Callable[[_type.HDC,  # hdc
+                                    _type.LPCWSTR,  # lpString
+                                    _type.c_int,  # c
+                                    _Pointer[_struct.SIZE]],  # lpsz
+                                   _type.BOOL]
+    GetTextExtentPoint32A: _Callable[[_type.HDC,  # hdc
+                                      _type.LPCSTR,  # lpString
+                                      _type.c_int,  # c
+                                      _Pointer[_struct.SIZE]],  # psizl
+                                     _type.BOOL]
+    GetTextExtentPoint32W: _Callable[[_type.HDC,  # hdc
+                                      _type.LPCWSTR,  # lpString
+                                      _type.c_int,  # c
+                                      _Pointer[_struct.SIZE]],  # psizl
+                                     _type.BOOL]
+    GetTextExtentExPointA: _Callable[[_type.HDC,  # hdc
+                                      _type.LPCSTR,  # lpszString
+                                      _type.c_int,  # cchString
+                                      _type.c_int,  # nMaxExtent
+                                      _Pointer[_type.c_int],  # lpnFit
+                                      _Pointer[_type.c_int],  # lpnDx
+                                      _Pointer[_struct.SIZE]],  # lpSize
+                                     _type.BOOL]
+    GetTextExtentExPointW: _Callable[[_type.HDC,  # hdc
+                                      _type.LPCWSTR,  # lpszString
+                                      _type.c_int,  # cchString
+                                      _type.c_int,  # nMaxExtent
+                                      _Pointer[_type.c_int],  # lpnFit
+                                      _Pointer[_type.c_int],  # lpnDx
+                                      _Pointer[_struct.SIZE]],  # lpSize
+                                     _type.BOOL]
+    GetTextCharset: _Callable[[_type.HDC],  # hdc
+                              _type.c_int]
+    GetTextCharsetInfo: _Callable[[_type.HDC,  # hdc
+                                   _Pointer[_struct.FONTSIGNATURE],  # lpSig
+                                   _type.DWORD],  # dwFlags
+                                  _type.c_int]
+    TranslateCharsetInfo: _Callable[[_Pointer[_type.DWORD],  # lpSrc
+                                     _Pointer[_struct.CHARSETINFO],  # lpCs
+                                     _type.DWORD],  # dwFlags
+                                    _type.BOOL]
+    GetFontLanguageInfo: _Callable[[_type.HDC],  # hdc
+                                   _type.DWORD]
+    GetCharacterPlacementA: _Callable[[_type.HDC,  # hdc
+                                       _type.LPCSTR,  # lpString
+                                       _type.c_int,  # nCount
+                                       _type.c_int,  # nMexExtent
+                                       _Pointer[_struct.GCP_RESULTSA],  # lpResults
+                                       _type.DWORD],  # dwFlags
+                                      _type.DWORD]
+    GetCharacterPlacementW: _Callable[[_type.HDC,  # hdc
+                                       _type.LPCWSTR,  # lpString
+                                       _type.c_int,  # nCount
+                                       _type.c_int,  # nMexExtent
+                                       _Pointer[_struct.GCP_RESULTSW],  # lpResults
+                                       _type.DWORD],  # dwFlags
+                                      _type.DWORD]
+    GetFontUnicodeRanges: _Callable[[_type.HDC,  # hdc
+                                     _Pointer[_struct.GLYPHSET]],  # lpgs
+                                    _type.DWORD]
+    GetGlyphIndicesA: _Callable[[_type.HDC,  # hdc
+                                 _type.LPCSTR,  # lpstr
+                                 _type.c_int,  # c
+                                 _Pointer[_type.WORD],  # pgi
+                                 _type.DWORD],  # fl
+                                _type.DWORD]
+    GetGlyphIndicesW: _Callable[[_type.HDC,  # hdc
+                                 _type.LPCWSTR,  # lpstr
+                                 _type.c_int,  # c
+                                 _Pointer[_type.WORD],  # pgi
+                                 _type.DWORD],  # fl
+                                _type.DWORD]
+    GetTextExtentPointI: _Callable[[_type.HDC,  # hdc
+                                    _Pointer[_type.WORD],  # pgiIn
+                                    _type.c_int,  # cgi
+                                    _Pointer[_struct.SIZE]],  # psize
+                                   _type.BOOL]
+    GetTextExtentExPointI: _Callable[[_type.HDC,  # hdc
+                                      _Pointer[_type.WORD],  # lpwszString
+                                      _type.c_int,  # cwchString
+                                      _type.c_int,  # nMaxExtent
+                                      _Pointer[_type.c_int],  # lpnFit
+                                      _Pointer[_type.c_int],  # lpnDx
+                                      _Pointer[_struct.SIZE]],  # lpSize
+                                     _type.BOOL]
+    GetCharWidthI: _Callable[[_type.HDC,  # hdc
+                              _type.UINT,  # giFirst
+                              _type.UINT,  # cgi
+                              _Pointer[_type.WORD],  # pgi
+                              _Pointer[_type.c_int]],  # piWidths
+                             _type.BOOL]
+    GetCharABCWidthsI: _Callable[[_type.HDC,  # hdc
+                                  _type.UINT,  # giFirst
+                                  _type.UINT,  # cgi
+                                  _Pointer[_type.WORD],  # pgi
+                                  _Pointer[_struct.ABC]],  # pabc
+                                 _type.BOOL]
+    AddFontResourceExA: _Callable[[_type.LPCSTR,  # name
+                                   _type.DWORD,  # fl
+                                   _type.PVOID],  # res
+                                  _type.c_int]
+    AddFontResourceExW: _Callable[[_type.LPCWSTR,  # name
+                                   _type.DWORD,  # fl
+                                   _type.PVOID],  # res
+                                  _type.c_int]
+    RemoveFontResourceExA: _Callable[[_type.LPCSTR,  # name
+                                      _type.DWORD,  # fl
+                                      _type.PVOID],  # pdv
+                                     _type.BOOL]
+    RemoveFontResourceExW: _Callable[[_type.LPCWSTR,  # name
+                                      _type.DWORD,  # fl
+                                      _type.PVOID],  # pdv
+                                     _type.BOOL]
+    AddFontMemResourceEx: _Callable[[_type.PVOID,  # pFileView
+                                     _type.DWORD,  # cjSize
+                                     _type.PVOID,  # pvResrved
+                                     _Pointer[_type.DWORD]],  # pNumFonts
+                                    _type.HANDLE]
+    RemoveFontMemResourceEx: _Callable[[_type.HANDLE],  # h
+                                       _type.BOOL]
+    CreateFontIndirectExA: _Callable[[_Pointer[_struct.ENUMLOGFONTEXDVA]],
+                                     _type.HFONT]
+    CreateFontIndirectExW: _Callable[[_Pointer[_struct.ENUMLOGFONTEXDVW]],
+                                     _type.HFONT]
+    GetViewportExtEx: _Callable[[_type.HDC,  # hdc
+                                 _Pointer[_struct.SIZE]],  # lpsize
+                                _type.BOOL]
+    GetViewportOrgEx: _Callable[[_type.HDC,  # hdc
+                                 _Pointer[_struct.POINT]],  # lppoint
+                                _type.BOOL]
+    GetWindowExtEx: _Callable[[_type.HDC,  # hdc
+                               _Pointer[_struct.SIZE]],  # lpsize
+                              _type.BOOL]
+    GetWindowOrgEx: _Callable[[_type.HDC,  # hdc
+                               _Pointer[_struct.POINT]],  # lppoint
+                              _type.BOOL]
+    IntersectClipRect: _Callable[[_type.HDC,  # hdc
+                                  _type.c_int,  # left
+                                  _type.c_int,  # top
+                                  _type.c_int,  # right
+                                  _type.c_int],  # bottom
+                                 _type.c_int]
+    InvertRgn: _Callable[[_type.HDC,  # hdc
+                          _type.HRGN],  # hrgn
+                         _type.BOOL]
+    LineDDA: _Callable[[_type.c_int,  # xStart
+                        _type.c_int,  # yStart
+                        _type.c_int,  # xEnd
+                        _type.c_int,  # yEnd
+                        _type.LINEDDAPROC,  # lpProc
+                        _type.LPARAM],  # data
+                       _type.BOOL]
+    LineTo: _Callable[[_type.HDC,  # hdc
+                       _type.c_int,  # x
+                       _type.c_int],  # y
+                      _type.BOOL]
+    MaskBlt: _Callable[[_type.HDC,  # hdcDest
+                        _type.c_int,  # xDest
+                        _type.c_int,  # yDest
+                        _type.c_int,  # width
+                        _type.c_int,  # height
+                        _type.HDC,  # hdcSrc
+                        _type.c_int,  # xSrc
+                        _type.c_int,  # ySrc
+                        _type.HBITMAP,  # hbmMask
+                        _type.c_int,  # xMask
+                        _type.c_int,  # yMask
+                        _type.DWORD],  # rop
+                       _type.BOOL]
+    PlgBlt: _Callable[[_type.HDC,  # hdcDest
+                       _Pointer[_struct.POINT],  # lpPoint
+                       _type.HDC,  # hdcSrc
+                       _type.c_int,  # xSrc
+                       _type.c_int,  # ySrc
+                       _type.c_int,  # width
+                       _type.c_int,  # height
+                       _type.HBITMAP,  # hbmMask
+                       _type.c_int,  # xMask
+                       _type.c_int],  # yMask
+                      _type.BOOL]
+    OffsetClipRgn: _Callable[[_type.HDC,  # hdc
+                              _type.c_int,  # x
+                              _type.c_int],  # y
+                             _type.c_int]
+    OffsetRgn: _Callable[[_type.HRGN,  # hrgn
+                          _type.c_int,  # x
+                          _type.c_int],  # y
+                         _type.c_int]
+    PatBlt: _Callable[[_type.HDC,  # hdc
+                       _type.c_int,  # x
+                       _type.c_int,  # y
+                       _type.c_int,  # w
+                       _type.c_int,  # h
+                       _type.DWORD],  # rop
+                      _type.BOOL]
+    Pie: _Callable[[_type.HDC,  # hdc
+                    _type.c_int,  # left
+                    _type.c_int,  # top
+                    _type.c_int,  # right
+                    _type.c_int,  # bottom
+                    _type.c_int,  # xr1
+                    _type.c_int,  # yr1
+                    _type.c_int,  # xr2
+                    _type.c_int],  # yr2
+                   _type.BOOL]
+    PlayMetaFile: _Callable[[_type.HDC,  # hdc
+                             _type.HMETAFILE],  # hmf
+                            _type.BOOL]
+    PaintRgn: _Callable[[_type.HDC,  # hdc
+                         _type.HRGN],  # hrgn
+                        _type.BOOL]
+    PolyPolygon: _Callable[[_type.HDC,  # hdc
+                            _Pointer[_struct.POINT],  # apt
+                            _Pointer[_type.INT],  # asz
+                            _type.c_int],  # csz
+                           _type.BOOL]
+    PtInRegion: _Callable[[_type.HRGN,  # hrgn
+                           _type.c_int,  # x
+                           _type.c_int],  # y
+                          _type.BOOL]
+    PtVisible: _Callable[[_type.HDC,  # hdc
+                          _type.c_int,  # x
+                          _type.c_int],  # y
+                         _type.BOOL]
+    RectInRegion: _Callable[[_type.HRGN,  # hrgn
+                             _Pointer[_struct.RECT]],  # lprect
+                            _type.BOOL]
     RectVisible: _Callable[[_type.HDC,  # hdc
                             _Pointer[_struct.RECT]],  # lprect
                            _type.BOOL]
@@ -974,6 +2649,198 @@ class GDI32(_FuncMixin, metaclass=_WinDLL):
                           _type.c_int,  # right
                           _type.c_int],  # bottom
                          _type.BOOL]
+    RestoreDC: _Callable[[_type.HDC,  # hdc
+                          _type.c_int],  # nSavedDC
+                         _type.BOOL]
+    ResetDCA: _Callable[[_type.HDC,  # hdc
+                         _Pointer[_struct.DEVMODEA]],  # lpdm
+                        _type.HDC]
+    ResetDCW: _Callable[[_type.HDC,  # hdc
+                         _Pointer[_struct.DEVMODEW]],  # lpdm
+                        _type.HDC]
+    RealizePalette: _Callable[[_type.HDC],  # hdc
+                              _type.UINT]
+    RemoveFontResourceA: _Callable[[_type.LPCSTR],  # lpFileName
+                                   _type.BOOL]
+    RemoveFontResourceW: _Callable[[_type.LPCWSTR],  # lpFileName
+                                   _type.BOOL]
+    RoundRect: _Callable[[_type.HDC,  # hdc
+                          _type.c_int,  # left
+                          _type.c_int,  # top
+                          _type.c_int,  # right
+                          _type.c_int,  # bottom
+                          _type.c_int,  # width
+                          _type.c_int],  # height
+                         _type.BOOL]
+    ResizePalette: _Callable[[_type.HPALETTE,  # hpal
+                              _type.UINT],  # n
+                             _type.BOOL]
+    SaveDC: _Callable[[_type.HDC],  # hdc
+                      _type.c_int]
+    SelectClipRgn: _Callable[[_type.HDC,  # hdc
+                              _type.HRGN],  # hrgn
+                             _type.c_int]
+    ExtSelectClipRgn: _Callable[[_type.HDC,  # hdc
+                                 _type.HRGN,  # hrgn
+                                 _type.c_int],  # mode
+                                _type.c_int]
+    SetMetaRgn: _Callable[[_type.HDC],  # hdc
+                          _type.c_int]
+    SelectObject: _Callable[[_type.HDC,  # hdc
+                             _type.HGDIOBJ],  # h
+                            _type.HGDIOBJ]
+    SelectPalette: _Callable[[_type.HDC,  # hdc
+                              _type.HPALETTE,  # hPal
+                              _type.BOOL],  # bForceBkgd
+                             _type.HPALETTE]
+    SetBkColor: _Callable[[_type.HDC,  # hdc
+                           _type.COLORREF],  # color
+                          _type.COLORREF]
+    SetDCBrushColor: _Callable[[_type.HDC,  # hdc
+                                _type.COLORREF],  # color
+                               _type.COLORREF]
+    SetDCPenColor: _Callable[[_type.HDC,  # hdc
+                              _type.COLORREF],  # color
+                             _type.COLORREF]
+    SetBkMode: _Callable[[_type.HDC,  # hdc
+                          _type.c_int],  # mode
+                         _type.c_int]
+    SetBitmapBits: _Callable[[_type.HBITMAP,  # hbm
+                              _type.DWORD,  # cb
+                              _type.c_void_p],  # pvBits
+                             _type.LONG]
+    SetBoundsRect: _Callable[[_type.HDC,  # hdc
+                              _Pointer[_struct.RECT],  # lprect
+                              _type.UINT],  # flags
+                             _type.UINT]
+    SetDIBits: _Callable[[_type.HDC,  # hdc
+                          _type.HBITMAP,  # hbm
+                          _type.UINT,  # start
+                          _type.UINT,  # cLines
+                          _type.c_void_p,  # lpBits
+                          _Pointer[_struct.BITMAPINFO],  # lpbmi
+                          _type.UINT],  # ColorUse
+                         _type.c_int]
+    SetDIBitsToDevice: _Callable[[_type.HDC,  # hdc
+                                  _type.c_int,  # xDest
+                                  _type.c_int,  # yDest
+                                  _type.DWORD,  # w
+                                  _type.DWORD,  # h
+                                  _type.c_int,  # xSrc
+                                  _type.c_int,  # ySrc
+                                  _type.UINT,  # StartScan
+                                  _type.UINT,  # cLines
+                                  _type.c_void_p,  # lpvBits
+                                  _Pointer[_struct.BITMAPINFO],  # lpbmi
+                                  _type.UINT],  # ColorUse
+                                 _type.c_int]
+    SetMapperFlags: _Callable[[_type.HDC,  # hdc
+                               _type.DWORD],  # flags
+                              _type.DWORD]
+    SetGraphicsMode: _Callable[[_type.HDC,  # hdc
+                                _type.c_int],  # iMode
+                               _type.c_int]
+    SetMapMode: _Callable[[_type.HDC,  # hdc
+                           _type.c_int],  # iMode
+                          _type.c_int]
+    SetLayout: _Callable[[_type.HDC,  # hdc
+                          _type.DWORD],  # l
+                         _type.DWORD]
+    GetLayout: _Callable[[_type.HDC],  # hdc
+                         _type.DWORD]
+    SetMetaFileBitsEx: _Callable[[_type.UINT,  # cbBuffer
+                                  _Pointer[_type.BYTE]],  # lpData
+                                 _type.HMETAFILE]
+    SetPaletteEntries: _Callable[[_type.HPALETTE,  # hpal
+                                  _type.UINT,  # iStart
+                                  _type.UINT,  # cEntries
+                                  _Pointer[_struct.PALETTEENTRY]],  # pPalEntries
+                                 _type.UINT]
+    SetPixel: _Callable[[_type.HDC,  # hdc
+                         _type.c_int,  # x
+                         _type.c_int,  # y
+                         _type.COLORREF],  # color
+                        _type.COLORREF]
+    SetPixelV: _Callable[[_type.HDC,  # hdc
+                          _type.c_int,  # x
+                          _type.c_int,  # y
+                          _type.COLORREF],  # color
+                         _type.BOOL]
+    SetPixelFormat: _Callable[[_type.HDC,  # hdc
+                               _type.c_int,  # format
+                               _Pointer[_struct.PIXELFORMATDESCRIPTOR]],  # ppfd
+                              _type.BOOL]
+    SetPolyFillMode: _Callable[[_type.HDC,  # hdc
+                                _type.c_int],  # mode
+                               _type.c_int]
+    StretchBlt: _Callable[[_type.HDC,  # hdcDest
+                           _type.c_int,  # xDest
+                           _type.c_int,  # yDest
+                           _type.c_int,  # wDest
+                           _type.c_int,  # hDest
+                           _type.HDC,  # hdcSrc
+                           _type.c_int,  # xSrc
+                           _type.c_int,  # ySrc
+                           _type.c_int,  # wSrc
+                           _type.c_int,  # hSrc
+                           _type.DWORD],  # rop
+                          _type.BOOL]
+    SetRectRgn: _Callable[[_type.HRGN,  # hrgn
+                           _type.c_int,  # left
+                           _type.c_int,  # top
+                           _type.c_int,  # right
+                           _type.c_int],  # bottom
+                          _type.BOOL]
+    StretchDIBits: _Callable[[_type.HDC,  # hdc
+                              _type.c_int,  # xDest
+                              _type.c_int,  # yDest
+                              _type.c_int,  # DestWidth
+                              _type.c_int,  # DestHeight
+                              _type.c_int,  # xSrc
+                              _type.c_int,  # ySrc
+                              _type.c_int,  # SrcWidth
+                              _type.c_int,  # SrcHeight
+                              _type.c_void_p,  # lpBits
+                              _Pointer[_struct.BITMAPINFO],  # lpbmi
+                              _type.UINT,  # iUsage
+                              _type.DWORD],  # rop
+                             _type.c_int]
+    SetROP2: _Callable[[_type.HDC,  # hdc
+                        _type.c_int],  # rop2
+                       _type.c_int]
+    SetStretchBltMode: _Callable[[_type.HDC,  # hdc
+                                  _type.c_int],  # mode
+                                 _type.c_int]
+    SetSystemPaletteUse: _Callable[[_type.HDC,  # hdc
+                                    _type.UINT],  # use
+                                   _type.UINT]
+    SetTextCharacterExtra: _Callable[[_type.HDC,  # hdc
+                                      _type.c_int],  # extra
+                                     _type.c_int]
+    SetTextColor: _Callable[[_type.HDC,  # hdc
+                             _type.COLORREF],  # color
+                            _type.COLORREF]
+    SetTextAlign: _Callable[[_type.HDC,  # hdc
+                             _type.UINT],  # align
+                            _type.UINT]
+    SetTextJustification: _Callable[[_type.HDC,  # hdc
+                                     _type.c_int,  # extra
+                                     _type.c_int],  # count
+                                    _type.BOOL]
+    UpdateColors: _Callable[[_type.HDC],  # hdc
+                            _type.BOOL]
+    AlphaBlend: _Callable[[_type.HDC,  # hdcDest
+                           _type.c_int,  # xoriginDest
+                           _type.c_int,  # yoriginDest
+                           _type.c_int,  # wDest
+                           _type.c_int,  # hDest
+                           _type.HDC,  # hdcSrc
+                           _type.c_int,  # xoriginSrc
+                           _type.c_int,  # yoriginSrc
+                           _type.c_int,  # wSrc
+                           _type.c_int,  # hSrc
+                           _struct.BLENDFUNCTION],  # ftn
+                          _type.BOOL]
     TransparentBlt: _Callable[[_type.HDC,  # hdcDest
                                _type.c_int,  # xoriginDest
                                _type.c_int,  # yoriginDest
@@ -986,225 +2853,586 @@ class GDI32(_FuncMixin, metaclass=_WinDLL):
                                _type.c_int,  # hSrc
                                _type.UINT],  # crTransparent
                               _type.BOOL]
-    # TODO
-    AbortDoc: _Callable[[_type.HDC],
-                        _type.c_int]
-    AbortPath: _Callable[[_type.HDC],
-                         _type.BOOL]
-    BeginPath: _Callable[[_type.HDC],
-                         _type.BOOL]
-    CloseFigure: _Callable[[_type.HDC],
-                           _type.BOOL]
-    CreateBitmap: _Callable[[_type.c_int,
-                             _type.c_int,
-                             _type.UINT,
-                             _type.UINT,
-                             _Optional[_type.VOID]],
-                            _type.HBITMAP]
-    CreateCompatibleBitmap: _Callable[[_type.HDC,
-                                       _type.c_int,
-                                       _type.c_int],
-                                      _type.HBITMAP]
-    CreateCompatibleDC: _Callable[[_Optional[_type.HDC]],
-                                  _type.HDC]
-    CreateDIBitmap: _Callable[[_type.HDC,
-                               _Pointer[_struct.BITMAPINFOHEADER],
-                               _type.DWORD,
-                               _type.VOID,
-                               _Pointer[_struct.BITMAPINFO],
-                               _type.UINT],
-                              _type.HBITMAP]
-    CreateDIBSection: _Callable[[_type.HDC,
-                                 _Pointer[_struct.BITMAPINFOHEADER],
-                                 _type.UINT,
-                                 _Optional[_type.VOID],
-                                 _Optional[_type.HANDLE],
-                                 _type.DWORD],
-                                _type.HBITMAP]
-    CreateDiscardableBitmap: _Callable[[_type.HDC,
-                                        _type.c_int,
-                                        _type.c_int],
-                                       _type.HBITMAP]
-    CreateHalftonePalette: _Callable[[_type.HDC],
-                                     _type.HPALETTE]
-    CreateSolidBrush: _Callable[[_type.COLORREF],
-                                _type.HBRUSH]
-    DeleteDC: _Callable[[_type.HDC],
-                        _type.BOOL]
-    DeleteMetaFile: _Callable[[_type.HMETAFILE],
-                              _type.BOOL]
-    DeleteObject: _Callable[[_type.HGDIOBJ],
+    GradientFill: _Callable[[_type.HDC,  # hdc
+                             _Pointer[_struct.TRIVERTEX],  # pVertex
+                             _type.ULONG,  # nVertex
+                             _type.PVOID,  # pMesh
+                             _type.ULONG,  # nMesh
+                             _type.ULONG],  # ulMode
                             _type.BOOL]
-    EndDoc: _Callable[[_type.HDC],
-                      _type.c_int]
-    EndPath: _Callable[[_type.HDC],
-                       _type.BOOL]
-    EndPage: _Callable[[_type.HDC],
-                       _type.c_int]
-    ExtCreatePen: _Callable[[_type.DWORD,
-                             _type.DWORD,
-                             _Pointer[_struct.LOGBRUSH],
-                             _type.DWORD,
-                             _Optional[_Pointer[_type.DWORD]]],
-                            _type.HPEN]
-    FillPath: _Callable[[_type.HDC],
-                        _type.BOOL]
-    FlattenPath: _Callable[[_type.HDC],
-                           _type.BOOL]
-    GetArcDirection: _Callable[[_type.HDC],
-                               _type.c_int]
-    GetBitmapDimensionEx: _Callable[[_type.HBITMAP,
-                                     _Pointer[_struct.SIZE]],
-                                    _type.BOOL]
-    GetBkColor: _Callable[[_type.HDC],
-                          _type.COLORREF]
-    GetBkMode: _Callable[[_type.HDC],
-                         _type.c_int]
-    GetClipBox: _Callable[[_type.HDC,
-                           _Pointer[_struct.RECT]],
-                          _type.c_int]
-    GetColorAdjustment: _Callable[[_type.HDC,
-                                   _Pointer[_struct.COLORADJUSTMENT]],
+    GdiAlphaBlend: _Callable[[_type.HDC,  # hdcDest
+                              _type.c_int,  # xoriginDest
+                              _type.c_int,  # yoriginDest
+                              _type.c_int,  # wDest
+                              _type.c_int,  # hDest
+                              _type.HDC,  # hdcSrc
+                              _type.c_int,  # xoriginSrc
+                              _type.c_int,  # yoriginSrc
+                              _type.c_int,  # wSrc
+                              _type.c_int,  # hSrc
+                              _struct.BLENDFUNCTION],  # ftn
+                             _type.BOOL]
+    GdiTransparentBlt: _Callable[[_type.HDC,  # hdcDest
+                                  _type.c_int,  # xoriginDest
+                                  _type.c_int,  # yoriginDest
+                                  _type.c_int,  # wDest
+                                  _type.c_int,  # hDest
+                                  _type.HDC,  # hdcSrc
+                                  _type.c_int,  # xoriginSrc
+                                  _type.c_int,  # yoriginSrc
+                                  _type.c_int,  # wSrc
+                                  _type.c_int,  # hSrc
+                                  _type.UINT],  # crTransparent
+                                 _type.BOOL]
+    GdiGradientFill: _Callable[[_type.HDC,  # hdc
+                                _Pointer[_struct.TRIVERTEX],  # pVertex
+                                _type.ULONG,  # nVertex
+                                _type.PVOID,  # pMesh
+                                _type.ULONG,  # nCount
+                                _type.ULONG],  # ulMode
+                               _type.BOOL]
+    PlayMetaFileRecord: _Callable[[_type.HDC,  # hdc
+                                   _Pointer[_struct.HANDLETABLE],  # lpHandleTable
+                                   _Pointer[_struct.METARECORD],  # lpMR
+                                   _type.UINT],  # noObjs
                                   _type.BOOL]
-    GetDIBits: _Callable[[_type.HDC,
-                          _type.HBITMAP,
-                          _type.UINT,
-                          _type.UINT,
-                          _Optional[_type.LPVOID],
-                          _Pointer[_struct.BITMAPINFO],
-                          _type.UINT],
+    CloseEnhMetaFile: _Callable[[_type.HDC],  # hdc
+                                _type.HENHMETAFILE]
+    CopyEnhMetaFileA: _Callable[[_type.HENHMETAFILE,  # hEnh
+                                 _type.LPCSTR],  # lpFileName
+                                _type.HENHMETAFILE]
+    CopyEnhMetaFileW: _Callable[[_type.HENHMETAFILE,  # hEnh
+                                 _type.LPCWSTR],  # lpFileName
+                                _type.HENHMETAFILE]
+    CreateEnhMetaFileA: _Callable[[_type.HDC,  # hdc
+                                   _type.LPCSTR,  # lpFilename
+                                   _Pointer[_struct.RECT],  # lprc
+                                   _type.LPCSTR],  # lpDesc
+                                  _type.HDC]
+    CreateEnhMetaFileW: _Callable[[_type.HDC,  # hdc
+                                   _type.LPCWSTR,  # lpFilename
+                                   _Pointer[_struct.RECT],  # lprc
+                                   _type.LPCWSTR],  # lpDesc
+                                  _type.HDC]
+    DeleteEnhMetaFile: _Callable[[_type.HENHMETAFILE],  # hmf
+                                 _type.BOOL]
+    GetEnhMetaFileA: _Callable[[_type.LPCSTR],  # lpName
+                               _type.HENHMETAFILE]
+    GetEnhMetaFileW: _Callable[[_type.LPCWSTR],  # lpName
+                               _type.HENHMETAFILE]
+    GetEnhMetaFileBits: _Callable[[_type.HENHMETAFILE,  # hEMF
+                                   _type.UINT,  # nSize
+                                   _Pointer[_type.BYTE]],  # lpData
+                                  _type.UINT]
+    GetEnhMetaFileDescriptionA: _Callable[[_type.HENHMETAFILE,  # hemf
+                                           _type.UINT,  # cchBuffer
+                                           _type.LPSTR],  # lpDescription
+                                          _type.UINT]
+    GetEnhMetaFileDescriptionW: _Callable[[_type.HENHMETAFILE,  # hemf
+                                           _type.UINT,  # cchBuffer
+                                           _type.LPWSTR],  # lpDescription
+                                          _type.UINT]
+    GetEnhMetaFileHeader: _Callable[[_type.HENHMETAFILE,  # hemf
+                                     _type.UINT,  # nSize
+                                     _Pointer[_struct.ENHMETAHEADER]],  # lpEnhMetaHeader
+                                    _type.UINT]
+    GetEnhMetaFilePaletteEntries: _Callable[[_type.HENHMETAFILE,  # hemf
+                                             _type.UINT,  # nNumEntries
+                                             _Pointer[_struct.PALETTEENTRY]],  # lpPaletteEntries
+                                            _type.UINT]
+    GetEnhMetaFilePixelFormat: _Callable[[_type.HENHMETAFILE,  # hemf
+                                          _type.UINT,  # cbBuffer
+                                          _Pointer[_struct.PIXELFORMATDESCRIPTOR]],  # ppfd
+                                         _type.UINT]
+    GetWinMetaFileBits: _Callable[[_type.HENHMETAFILE,  # hemf
+                                   _type.UINT,  # cbData16
+                                   _Pointer[_type.BYTE],  # pData16
+                                   _type.INT,  # iMapMode
+                                   _type.HDC],  # hdcRef
+                                  _type.UINT]
+    PlayEnhMetaFile: _Callable[[_type.HDC,  # hdc
+                                _type.HENHMETAFILE,  # hmf
+                                _Pointer[_struct.RECT]],  # lprect
+                               _type.BOOL]
+    PlayEnhMetaFileRecord: _Callable[[_type.HDC,  # hdc
+                                      _Pointer[_struct.HANDLETABLE],  # pht
+                                      _Pointer[_struct.ENHMETARECORD],  # pmr
+                                      _type.UINT],  # cht
+                                     _type.BOOL]
+    SetEnhMetaFileBits: _Callable[[_type.UINT,  # nSize
+                                   _Pointer[_type.BYTE]],  # pb
+                                  _type.HENHMETAFILE]
+    SetWinMetaFileBits: _Callable[[_type.UINT,  # nSize
+                                   _Pointer[_type.BYTE],  # lpMeta16Data
+                                   _type.HDC,  # hdcRef
+                                   _Pointer[_struct.METAFILEPICT]],  # lpMFP
+                                  _type.HENHMETAFILE]
+    GdiComment: _Callable[[_type.HDC,  # hdc
+                           _type.UINT,  # nSize
+                           _Pointer[_type.BYTE]],  # lpData
+                          _type.BOOL]
+    GetTextMetricsA: _Callable[[_type.HDC,  # hdc
+                                _Pointer[_struct.TEXTMETRICA]],  # lptm
+                               _type.BOOL]
+    GetTextMetricsW: _Callable[[_type.HDC,  # hdc
+                                _Pointer[_struct.TEXTMETRICW]],  # lptm
+                               _type.BOOL]
+    AngleArc: _Callable[[_type.HDC,  # hdc
+                         _type.c_int,  # x
+                         _type.c_int,  # y
+                         _type.DWORD,  # r
+                         _type.FLOAT,  # StartAngle
+                         _type.FLOAT],  # SweepAngle
+                        _type.BOOL]
+    PolyPolyline: _Callable[[_type.HDC,  # hdc
+                             _Pointer[_struct.POINT],  # apt
+                             _Pointer[_type.DWORD],  # asz
+                             _type.DWORD],  # csz
+                            _type.BOOL]
+    GetWorldTransform: _Callable[[_type.HDC,  # hdc
+                                  _Pointer[_struct.XFORM]],  # lpxf
+                                 _type.BOOL]
+    SetWorldTransform: _Callable[[_type.HDC,  # hdc
+                                  _Pointer[_struct.XFORM]],  # lpxf
+                                 _type.BOOL]
+    ModifyWorldTransform: _Callable[[_type.HDC,  # hdc
+                                     _Pointer[_struct.XFORM],  # lpxf
+                                     _type.DWORD],  # mode
+                                    _type.BOOL]
+    CombineTransform: _Callable[[_Pointer[_struct.XFORM],  # lpxfOut
+                                 _Pointer[_struct.XFORM],  # lpxf1
+                                 _Pointer[_struct.XFORM]],  # lpxf2
+                                _type.BOOL]
+    CreateDIBSection: _Callable[[_type.HDC,  # hdc
+                                 _Pointer[_struct.BITMAPINFO],  # pbmi
+                                 _type.UINT,  # usage
+                                 _type.c_void_p,  # ppvBits
+                                 _type.HANDLE,  # hSection
+                                 _type.DWORD],  # offset
+                                _type.HBITMAP]
+    GetDIBColorTable: _Callable[[_type.HDC,  # hdc
+                                 _type.UINT,  # iStart
+                                 _type.UINT,  # cEntries
+                                 _Pointer[_struct.RGBQUAD]],  # prgbq
+                                _type.UINT]
+    SetDIBColorTable: _Callable[[_type.HDC,  # hdc
+                                 _type.UINT,  # iStart
+                                 _type.UINT,  # cEntries
+                                 _Pointer[_struct.RGBQUAD]],  # prgbq
+                                _type.UINT]
+    SetColorAdjustment: _Callable[[_type.HDC,  # hdc
+                                   _Pointer[_struct.COLORADJUSTMENT]],  # lpca
+                                  _type.BOOL]
+    GetColorAdjustment: _Callable[[_type.HDC,  # hdc
+                                   _Pointer[_struct.COLORADJUSTMENT]],  # lpca
+                                  _type.BOOL]
+    CreateHalftonePalette: _Callable[[_type.HDC],  # hdc
+                                     _type.HPALETTE]
+    StartDocA: _Callable[[_type.HDC,  # hdc
+                          _Pointer[_struct.DOCINFOA]],  # lpdi
                          _type.c_int]
+    StartDocW: _Callable[[_type.HDC,  # hdc
+                          _Pointer[_struct.DOCINFOW]],  # lpdi
+                         _type.c_int]
+    EndDoc: _Callable[[_type.HDC],  # hdc
+                      _type.c_int]
+    StartPage: _Callable[[_type.HDC],  # hdc
+                         _type.c_int]
+    EndPage: _Callable[[_type.HDC],  # hdc
+                       _type.c_int]
+    AbortDoc: _Callable[[_type.HDC],  # hdc
+                        _type.c_int]
+    SetAbortProc: _Callable[[_type.HDC,  # hdc
+                             _type.ABORTPROC],  # proc
+                            _type.c_int]
+    AbortPath: _Callable[[_type.HDC],  # hdc
+                         _type.BOOL]
+    ArcTo: _Callable[[_type.HDC,  # hdc
+                      _type.c_int,  # left
+                      _type.c_int,  # top
+                      _type.c_int,  # right
+                      _type.c_int,  # bottom
+                      _type.c_int,  # xr1
+                      _type.c_int,  # yr1
+                      _type.c_int,  # xr2
+                      _type.c_int],  # yr2
+                     _type.BOOL]
+    BeginPath: _Callable[[_type.HDC],  # hdc
+                         _type.BOOL]
+    CloseFigure: _Callable[[_type.HDC],  # hdc
+                           _type.BOOL]
+    EndPath: _Callable[[_type.HDC],  # hdc
+                       _type.BOOL]
+    FillPath: _Callable[[_type.HDC],  # hdc
+                        _type.BOOL]
+    FlattenPath: _Callable[[_type.HDC],  # hdc
+                           _type.BOOL]
+    GetPath: _Callable[[_type.HDC,  # hdc
+                        _Pointer[_struct.POINT],  # apt
+                        _Pointer[_type.BYTE],  # aj
+                        _type.c_int],  # cpt
+                       _type.c_int]
+    PathToRegion: _Callable[[_type.HDC],  # hdc
+                            _type.HRGN]
+    PolyDraw: _Callable[[_type.HDC,  # hdc
+                         _Pointer[_struct.POINT],  # apt
+                         _Pointer[_type.BYTE],  # aj
+                         _type.c_int],  # cpt
+                        _type.BOOL]
+    SelectClipPath: _Callable[[_type.HDC,  # hdc
+                               _type.c_int],  # mode
+                              _type.BOOL]
+    SetArcDirection: _Callable[[_type.HDC,  # hdc
+                                _type.c_int],  # dir
+                               _type.c_int]
+    SetMiterLimit: _Callable[[_type.HDC,  # hdc
+                              _type.FLOAT,  # limit
+                              _Pointer[_type.FLOAT]],  # old
+                             _type.BOOL]
+    StrokeAndFillPath: _Callable[[_type.HDC],  # hdc
+                                 _type.BOOL]
+    StrokePath: _Callable[[_type.HDC],  # hdc
+                          _type.BOOL]
+    WidenPath: _Callable[[_type.HDC],  # hdc
+                         _type.BOOL]
+    ExtCreatePen: _Callable[[_type.DWORD,  # iPenStyle
+                             _type.DWORD,  # cWidth
+                             _Pointer[_struct.LOGBRUSH],  # plbrush
+                             _type.DWORD,  # cStyle
+                             _Pointer[_type.DWORD]],  # pstyle
+                            _type.HPEN]
+    GetMiterLimit: _Callable[[_type.HDC,  # hdc
+                              _Pointer[_type.FLOAT]],  # plimit
+                             _type.BOOL]
+    GetArcDirection: _Callable[[_type.HDC],  # hdc
+                               _type.c_int]
+    GetObjectA: _Callable[[_type.HANDLE,  # h
+                           _type.c_int,  # c
+                           _type.LPVOID],  # pv
+                          _type.c_int]
+    GetObjectW: _Callable[[_type.HANDLE,  # h
+                           _type.c_int,  # c
+                           _type.LPVOID],  # pv
+                          _type.c_int]
+    MoveToEx: _Callable[[_type.HDC,  # hdc
+                         _type.c_int,  # x
+                         _type.c_int,  # y
+                         _Pointer[_struct.POINT]],  # lppt
+                        _type.BOOL]
+    TextOutA: _Callable[[_type.HDC,  # hdc
+                         _type.c_int,  # x
+                         _type.c_int,  # y
+                         _type.LPCSTR,  # lpString
+                         _type.c_int],  # c
+                        _type.BOOL]
+    TextOutW: _Callable[[_type.HDC,  # hdc
+                         _type.c_int,  # x
+                         _type.c_int,  # y
+                         _type.LPCWSTR,  # lpString
+                         _type.c_int],  # c
+                        _type.BOOL]
+    ExtTextOutA: _Callable[[_type.HDC,  # hdc
+                            _type.c_int,  # x
+                            _type.c_int,  # y
+                            _type.UINT,  # options
+                            _Pointer[_struct.RECT],  # lprect
+                            _type.LPCSTR,  # lpString
+                            _type.UINT,  # c
+                            _Pointer[_type.INT]],  # lpDx
+                           _type.BOOL]
+    ExtTextOutW: _Callable[[_type.HDC,  # hdc
+                            _type.c_int,  # x
+                            _type.c_int,  # y
+                            _type.UINT,  # options
+                            _Pointer[_struct.RECT],  # lprect
+                            _type.LPCWSTR,  # lpString
+                            _type.UINT,  # c
+                            _Pointer[_type.INT]],  # lpDx
+                           _type.BOOL]
+    PolyTextOutA: _Callable[[_type.HDC,  # hdc
+                             _Pointer[_struct.POLYTEXTA],  # ppt
+                             _type.c_int],  # nstrings
+                            _type.BOOL]
+    PolyTextOutW: _Callable[[_type.HDC,  # hdc
+                             _Pointer[_struct.POLYTEXTW],  # ppt
+                             _type.c_int],  # nstrings
+                            _type.BOOL]
+    CreatePolygonRgn: _Callable[[_Pointer[_struct.POINT],  # pptl
+                                 _type.c_int,  # cPoint
+                                 _type.c_int],  # iMode
+                                _type.HRGN]
+    DPtoLP: _Callable[[_type.HDC,  # hdc
+                       _Pointer[_struct.POINT],  # lppt
+                       _type.c_int],  # c
+                      _type.BOOL]
+    LPtoDP: _Callable[[_type.HDC,  # hdc
+                       _Pointer[_struct.POINT],  # lppt
+                       _type.c_int],  # c
+                      _type.BOOL]
+    Polygon: _Callable[[_type.HDC,  # hdc
+                        _Pointer[_struct.POINT],  # apt
+                        _type.c_int],  # cpt
+                       _type.BOOL]
+    Polyline: _Callable[[_type.HDC,  # hdc
+                         _Pointer[_struct.POINT],  # apt
+                         _type.c_int],  # cpt
+                        _type.BOOL]
+    PolyBezier: _Callable[[_type.HDC,  # hdc
+                           _Pointer[_struct.POINT],  # apt
+                           _type.DWORD],  # cpt
+                          _type.BOOL]
+    PolyBezierTo: _Callable[[_type.HDC,  # hdc
+                             _Pointer[_struct.POINT],  # apt
+                             _type.DWORD],  # cpt
+                            _type.BOOL]
+    PolylineTo: _Callable[[_type.HDC,  # hdc
+                           _Pointer[_struct.POINT],  # apt
+                           _type.DWORD],  # cpt
+                          _type.BOOL]
+    SetViewportExtEx: _Callable[[_type.HDC,  # hdc
+                                 _type.c_int,  # x
+                                 _type.c_int,  # y
+                                 _Pointer[_struct.SIZE]],  # lpsz
+                                _type.BOOL]
+    SetViewportOrgEx: _Callable[[_type.HDC,  # hdc
+                                 _type.c_int,  # x
+                                 _type.c_int,  # y
+                                 _Pointer[_struct.POINT]],  # lppt
+                                _type.BOOL]
+    SetWindowExtEx: _Callable[[_type.HDC,  # hdc
+                               _type.c_int,  # x
+                               _type.c_int,  # y
+                               _Pointer[_struct.SIZE]],  # lpsz
+                              _type.BOOL]
+    SetWindowOrgEx: _Callable[[_type.HDC,  # hdc
+                               _type.c_int,  # x
+                               _type.c_int,  # y
+                               _Pointer[_struct.POINT]],  # lppt
+                              _type.BOOL]
+    OffsetViewportOrgEx: _Callable[[_type.HDC,  # hdc
+                                    _type.c_int,  # x
+                                    _type.c_int,  # y
+                                    _Pointer[_struct.POINT]],  # lppt
+                                   _type.BOOL]
+    OffsetWindowOrgEx: _Callable[[_type.HDC,  # hdc
+                                  _type.c_int,  # x
+                                  _type.c_int,  # y
+                                  _Pointer[_struct.POINT]],  # lppt
+                                 _type.BOOL]
+    ScaleViewportExtEx: _Callable[[_type.HDC,  # hdc
+                                   _type.c_int,  # xn
+                                   _type.c_int,  # dx
+                                   _type.c_int,  # yn
+                                   _type.c_int,  # yd
+                                   _Pointer[_struct.SIZE]],  # lpsz
+                                  _type.BOOL]
+    ScaleWindowExtEx: _Callable[[_type.HDC,  # hdc
+                                 _type.c_int,  # xn
+                                 _type.c_int,  # xd
+                                 _type.c_int,  # yn
+                                 _type.c_int,  # yd
+                                 _Pointer[_struct.SIZE]],  # lpsz
+                                _type.BOOL]
+    SetBitmapDimensionEx: _Callable[[_type.HBITMAP,  # hbm
+                                     _type.c_int,  # w
+                                     _type.c_int,  # h
+                                     _Pointer[_struct.SIZE]],  # lpsz
+                                    _type.BOOL]
+    SetBrushOrgEx: _Callable[[_type.HDC,  # hdc
+                              _type.c_int,  # x
+                              _type.c_int,  # y
+                              _Pointer[_struct.POINT]],  # lppt
+                             _type.BOOL]
+    GetTextFaceA: _Callable[[_type.HDC,  # hdc
+                             _type.c_int,  # c
+                             _type.LPSTR],  # lpName
+                            _type.c_int]
+    GetTextFaceW: _Callable[[_type.HDC,  # hdc
+                             _type.c_int,  # c
+                             _type.LPWSTR],  # lpName
+                            _type.c_int]
+    GetKerningPairsA: _Callable[[_type.HDC,  # hdc
+                                 _type.DWORD,  # nPairs
+                                 _Pointer[_struct.KERNINGPAIR]],  # lpKernPair
+                                _type.DWORD]
+    GetKerningPairsW: _Callable[[_type.HDC,  # hdc
+                                 _type.DWORD,  # nPairs
+                                 _Pointer[_struct.KERNINGPAIR]],  # lpKernPair
+                                _type.DWORD]
+    GetDCOrgEx: _Callable[[_type.HDC,  # hdc
+                           _Pointer[_struct.POINT]],  # lppt
+                          _type.BOOL]
+    FixBrushOrgEx: _Callable[[_type.HDC,  # hdc
+                              _type.c_int,  # x
+                              _type.c_int,  # y
+                              _Pointer[_struct.POINT]],  # ptl
+                             _type.BOOL]
+    UnrealizeObject: _Callable[[_type.HGDIOBJ],  # h
+                               _type.BOOL]
     GdiFlush: _Callable[[],
                         _type.BOOL]
-    GetGraphicsMode: _Callable[[_type.HDC],
-                               _type.c_int]
-    GetMapMode: _Callable[[_type.HDC],
-                          _type.c_int]
-    GetMetaFileA: _Callable[[_type.LPCSTR],
-                            _type.HMETAFILE]
-    GetMetaFileW: _Callable[[_type.LPCWSTR],
-                            _type.HMETAFILE]
-    GetMiterLimit: _Callable[[_type.HDC,
-                              _Pointer[_type.FLOAT]],
-                             _type.BOOL]
-    GetObjectA: _Callable[[_type.HANDLE,
-                           _type.c_int,
-                           _type.LPVOID],
-                          _type.c_int]
-    GetObjectW: _Callable[[_type.HANDLE,
-                           _type.c_int,
-                           _type.LPVOID],
-                          _type.c_int]
-    GetObjectType: _Callable[[_type.HGDIOBJ],
-                             _type.DWORD]
-    GetPath: _Callable[[_type.HDC,
-                        _Pointer[_struct.POINT],
-                        _Pointer[_type.BYTE],
-                        _type.c_int],
-                       _type.c_int]
-    GetPixel: _Callable[[_type.HDC,
-                         _type.c_int,
-                         _type.c_int],
-                        _type.COLORREF]
-    GetPixelFormat: _Callable[[_type.HDC],
-                              _type.c_int]
-    GetPolyFillMode: _Callable[[_type.HDC],
-                               _type.c_int]
-    GetRandomRgn: _Callable[[_type.HDC,
-                             _type.HRGN,
-                             _type.INT],
-                            _type.c_int]
-    GetRgnBox: _Callable[[_type.HRGN,
-                          _Pointer[_struct.RECT]],
-                         _type.c_int]
-    GetROP2: _Callable[[_type.HDC],
-                       _type.c_int]
-    GetStockObject: _Callable[[_type.c_int],
-                              _type.HGDIOBJ]
-    GetStretchBltMode: _Callable[[_type.HDC],
-                                 _type.c_int]
+    GdiSetBatchLimit: _Callable[[_type.DWORD],  # dw
+                                _type.DWORD]
     GdiGetBatchLimit: _Callable[[],
                                 _type.DWORD]
-    GdiSetBatchLimit: _Callable[[_type.DWORD],
-                                _type.DWORD]
-    MoveToEx: _Callable[[_type.HDC,
-                         _type.c_int,
-                         _type.c_int,
-                         _Pointer[_struct.POINT]],
-                        _type.BOOL]
-    PathToRegion: _Callable[[_type.HDC],
-                            _type.HRGN]
-    PolyDraw: _Callable[[_type.HDC,
-                         _Pointer[_struct.POINT],
-                         _Pointer[_type.BYTE],
-                         _type.c_int],
-                        _type.BOOL]
-    SelectClipPath: _Callable[[_type.HDC,
-                               _type.c_int],
-                              _type.BOOL]
-    SelectObject: _Callable[[_type.HDC,
-                             _type.HGDIOBJ],
-                            _type.HGDIOBJ]
-    SetAbortProc: _Callable[[_type.HDC,
-                             _type.ABORTPROC],
-                            _type.c_int]
-    SetArcDirection: _Callable[[_type.HDC,
-                                _type.c_int],
-                               _type.c_int]
-    SetBkColor: _Callable[[_type.HDC,
-                           _type.COLORREF],
-                          _type.COLORREF]
-    SetColorAdjustment: _Callable[[_type.HDC,
-                                   _Pointer[_struct.COLORADJUSTMENT]],
+    SetICMMode: _Callable[[_type.HDC,  # hdc
+                           _type.c_int],  # mode
+                          _type.c_int]
+    CheckColorsInGamut: _Callable[[_type.HDC,  # hdc
+                                   _Pointer[_struct.RGBTRIPLE],  # lpRGBTriple
+                                   _type.LPVOID,  # dlpBuffer
+                                   _type.DWORD],  # nCount
                                   _type.BOOL]
-    SetDCBrushColor: _Callable[[_type.HDC,
-                                _type.COLORREF],
-                               _type.COLORREF]
-    SetDCPenColor: _Callable[[_type.HDC,
-                              _type.COLORREF],
-                             _type.COLORREF]
-    SetMiterLimit: _Callable[[_type.HDC,
-                              _type.FLOAT,
-                              _Optional[_Pointer[_type.FLOAT]]],
-                             _type.BOOL]
-    SetStretchBltMode: _Callable[[_type.HDC,
-                                  _type.c_int],
-                                 _type.c_int]
-    StartPage: _Callable[[_type.HDC],
-                         _type.c_int]
-    StretchBlt: _Callable[[_type.HDC,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.HDC,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.c_int,
-                           _type.DWORD],
-                          _type.BOOL]
-    StrokeAndFillPath: _Callable[[_type.HDC],
+    GetColorSpace: _Callable[[_type.HDC],  # hdc
+                             _type.HCOLORSPACE]
+    GetLogColorSpaceA: _Callable[[_type.HCOLORSPACE,  # hColorSpace
+                                  _Pointer[_struct.LOGCOLORSPACEA],  # lpBuffer
+                                  _type.DWORD],  # nSize
                                  _type.BOOL]
-    StrokePath: _Callable[[_type.HDC],
-                          _type.BOOL]
-    WidenPath: _Callable[[_type.HDC],
-                         _type.BOOL]
-    TextOutA: _Callable[[_type.HDC,
-                         _type.c_int,
-                         _type.c_int,
-                         _type.LPCSTR,
-                         _type.c_int],
-                        _type.BOOL]
-    TextOutW: _Callable[[_type.HDC,
-                         _type.c_int,
-                         _type.c_int,
-                         _type.LPCWSTR,
-                         _type.c_int],
-                        _type.BOOL]
+    GetLogColorSpaceW: _Callable[[_type.HCOLORSPACE,  # hColorSpace
+                                  _Pointer[_struct.LOGCOLORSPACEW],  # lpBuffer
+                                  _type.DWORD],  # nSize
+                                 _type.BOOL]
+    CreateColorSpaceA: _Callable[[_Pointer[_struct.LOGCOLORSPACEA]],  # lplcs
+                                 _type.HCOLORSPACE]
+    CreateColorSpaceW: _Callable[[_Pointer[_struct.LOGCOLORSPACEW]],  # lplcs
+                                 _type.HCOLORSPACE]
+    SetColorSpace: _Callable[[_type.HDC,  # hdc
+                              _type.HCOLORSPACE],  # hcs
+                             _type.HCOLORSPACE]
+    DeleteColorSpace: _Callable[[_type.HCOLORSPACE],  # hcs
+                                _type.BOOL]
+    GetICMProfileA: _Callable[[_type.HDC,  # hdc
+                               _Pointer[_type.DWORD],  # pBufSize
+                               _type.LPSTR],  # pszFilename
+                              _type.BOOL]
+    GetICMProfileW: _Callable[[_type.HDC,  # hdc
+                               _Pointer[_type.DWORD],  # pBufSize
+                               _type.LPWSTR],  # pszFilename
+                              _type.BOOL]
+    SetICMProfileA: _Callable[[_type.HDC,  # hdc
+                               _type.LPSTR],  # lpFileName
+                              _type.BOOL]
+    SetICMProfileW: _Callable[[_type.HDC,  # hdc
+                               _type.LPWSTR],  # lpFileName
+                              _type.BOOL]
+    GetDeviceGammaRamp: _Callable[[_type.HDC,  # hdc
+                                   _type.LPVOID],  # lpRamp
+                                  _type.BOOL]
+    SetDeviceGammaRamp: _Callable[[_type.HDC,  # hdc
+                                   _type.LPVOID],  # lpRamp
+                                  _type.BOOL]
+    ColorMatchToTarget: _Callable[[_type.HDC,  # hdc
+                                   _type.HDC,  # hdcTarget
+                                   _type.DWORD],  # action
+                                  _type.BOOL]
+    EnumICMProfilesA: _Callable[[_type.HDC,  # hdc
+                                 _type.ICMENUMPROCA,  # proc
+                                 _type.LPARAM],  # param
+                                _type.c_int]
+    EnumICMProfilesW: _Callable[[_type.HDC,  # hdc
+                                 _type.ICMENUMPROCW,  # proc
+                                 _type.LPARAM],  # param
+                                _type.c_int]
+    UpdateICMRegKeyA: _Callable[[_type.DWORD,  # reserved
+                                 _type.LPSTR,  # lpszCMID
+                                 _type.LPSTR,  # lpszFileName
+                                 _type.UINT],  # command
+                                _type.BOOL]
+    UpdateICMRegKeyW: _Callable[[_type.DWORD,  # reserved
+                                 _type.LPWSTR,  # lpszCMID
+                                 _type.LPWSTR,  # lpszFileName
+                                 _type.UINT],  # command
+                                _type.BOOL]
+    ColorCorrectPalette: _Callable[[_type.HDC,  # hdc
+                                    _type.HPALETTE,  # hPal
+                                    _type.DWORD,  # deFirst
+                                    _type.DWORD],  # num
+                                   _type.BOOL]
+    wglCopyContext: _Callable[[_type.HGLRC,
+                               _type.HGLRC,
+                               _type.UINT],
+                              _type.BOOL]
+    wglCreateContext: _Callable[[_type.HDC],
+                                _type.HGLRC]
+    wglCreateLayerContext: _Callable[[_type.HDC,
+                                      _type.c_int],
+                                     _type.HGLRC]
+    wglDeleteContext: _Callable[[_type.HGLRC],
+                                _type.BOOL]
+    wglGetCurrentContext: _Callable[[],
+                                    _type.HGLRC]
+    wglGetCurrentDC: _Callable[[],
+                               _type.HDC]
+    wglGetProcAddress: _Callable[[_type.LPCSTR],
+                                 _type.PROC]
+    wglMakeCurrent: _Callable[[_type.HDC,
+                               _type.HGLRC],
+                              _type.BOOL]
+    wglShareLists: _Callable[[_type.HGLRC,
+                              _type.HGLRC],
+                             _type.BOOL]
+    wglUseFontBitmapsA: _Callable[[_type.HDC,
+                                   _type.DWORD,
+                                   _type.DWORD,
+                                   _type.DWORD],
+                                  _type.BOOL]
+    wglUseFontBitmapsW: _Callable[[_type.HDC,
+                                   _type.DWORD,
+                                   _type.DWORD,
+                                   _type.DWORD],
+                                  _type.BOOL]
+    SwapBuffers: _Callable[[_type.HDC],
+                           _type.BOOL]
+    wglUseFontOutlinesA: _Callable[[_type.HDC,
+                                    _type.DWORD,
+                                    _type.DWORD,
+                                    _type.DWORD,
+                                    _type.FLOAT,
+                                    _type.FLOAT,
+                                    _type.c_int,
+                                    _Pointer[_struct.GLYPHMETRICSFLOAT]],
+                                   _type.BOOL]
+    wglUseFontOutlinesW: _Callable[[_type.HDC,
+                                    _type.DWORD,
+                                    _type.DWORD,
+                                    _type.DWORD,
+                                    _type.FLOAT,
+                                    _type.FLOAT,
+                                    _type.c_int,
+                                    _Pointer[_struct.GLYPHMETRICSFLOAT]],
+                                   _type.BOOL]
+    wglDescribeLayerPlane: _Callable[[_type.HDC,
+                                      _type.c_int,
+                                      _type.c_int,
+                                      _type.UINT,
+                                      _Pointer[_struct.LAYERPLANEDESCRIPTOR]],
+                                     _type.BOOL]
+    wglSetLayerPaletteEntries: _Callable[[_type.HDC,
+                                          _type.c_int,
+                                          _type.c_int,
+                                          _type.c_int,
+                                          _Pointer[_type.COLORREF]],
+                                         _type.c_int]
+    wglGetLayerPaletteEntries: _Callable[[_type.HDC,
+                                          _type.c_int,
+                                          _type.c_int,
+                                          _type.c_int,
+                                          _Pointer[_type.COLORREF]],
+                                         _type.c_int]
+    wglRealizeLayerPalette: _Callable[[_type.HDC,
+                                       _type.c_int,
+                                       _type.BOOL],
+                                      _type.BOOL]
+    wglSwapLayerBuffers: _Callable[[_type.HDC,
+                                    _type.UINT],
+                                   _type.BOOL]
+    wglSwapMultipleBuffers: _Callable[[_type.UINT,
+                                       _Pointer[_struct.WGLSWAP]],
+                                      _type.DWORD]
 
 
-class GDIPlus(_FuncMixin, metaclass=_WinDLL):
+class GdiPlus(_WinDLL):
     # gdipluseffects
     GdipCreateEffect: _Callable[[_struct.GUID,  # guid
                                  _Pointer[_type.CGpEffect]],  # effect
@@ -2409,13 +4637,13 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
     GdipGetAdjustableArrowCapFillState: _Callable[[_type.GpAdjustableArrowCap,  # cap
                                                    _Pointer[_type.BOOL]],  # fillState
                                                   _enum.GpStatus]
-    GdipLoadImageFromStream: _Callable[[_interface.IStream,  # stream
+    GdipLoadImageFromStream: _Callable[[_objidlbase.IStream,  # stream
                                         _Pointer[_type.GpImage]],  # image
                                        _enum.GpStatus]
     GdipLoadImageFromFile: _Callable[[_type.LPWSTR,  # filename
                                       _Pointer[_type.GpImage]],  # image
                                      _enum.GpStatus]
-    GdipLoadImageFromStreamICM: _Callable[[_interface.IStream,  # stream
+    GdipLoadImageFromStreamICM: _Callable[[_objidlbase.IStream,  # stream
                                            _Pointer[_type.GpImage]],  # image
                                           _enum.GpStatus]
     GdipLoadImageFromFileICM: _Callable[[_type.LPWSTR,  # filename
@@ -2432,7 +4660,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                     _Optional[_Pointer[_struct.EncoderParameters]]],  # encoderParams
                                    _enum.GpStatus]
     GdipSaveImageToStream: _Callable[[_type.GpImage,  # image
-                                      _interface.IStream,  # stream
+                                      _objidlbase.IStream,  # stream
                                       _Pointer[_struct.CLSID],  # clsidEncoder
                                       _Pointer[_struct.EncoderParameters]],  # encoderParams
                                      _enum.GpStatus]
@@ -2564,13 +4792,13 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                     _enum.GpStatus]
     GdipImageForceValidation: _Callable[[_type.GpImage],  # image
                                         _enum.GpStatus]
-    GdipCreateBitmapFromStream: _Callable[[_interface.IStream,  # stream
+    GdipCreateBitmapFromStream: _Callable[[_objidlbase.IStream,  # stream
                                            _Pointer[_type.GpBitmap]],  # bitmap
                                           _enum.GpStatus]
     GdipCreateBitmapFromFile: _Callable[[_type.LPWSTR,  # filename
                                          _Pointer[_type.GpBitmap]],  # bitmap
                                         _enum.GpStatus]
-    GdipCreateBitmapFromStreamICM: _Callable[[_interface.IStream,  # stream
+    GdipCreateBitmapFromStreamICM: _Callable[[_objidlbase.IStream,  # stream
                                               _Pointer[_type.GpBitmap]],  # bitmap
                                              _enum.GpStatus]
     GdipCreateBitmapFromFileICM: _Callable[[_type.LPWSTR,  # filename
@@ -2588,7 +4816,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                              _type.GpGraphics,  # target
                                              _Pointer[_type.GpBitmap]],  # bitmap
                                             _enum.GpStatus]
-    GdipCreateBitmapFromDirectDrawSurface: _Callable[[_interface.IDirectDrawSurface7,  # surface
+    GdipCreateBitmapFromDirectDrawSurface: _Callable[[_ddraw.IDirectDrawSurface7,  # surface
                                                       _Pointer[_type.GpBitmap]],  # bitmap
                                                      _enum.GpStatus]
     GdipCreateBitmapFromGdiDib: _Callable[[_Pointer[_struct.BITMAPINFO],  # gdiBitmapInfo
@@ -3546,7 +5774,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                 _enum.GpStatus]
     GdipCreateStreamOnFile: _Callable[[_type.LPWSTR,  # filename
                                        _type.UINT,  # access
-                                       _Pointer[_interface.IStream]],  # stream
+                                       _Pointer[_objidlbase.IStream]],  # stream
                                       _enum.GpStatus]
     GdipCreateMetafileFromWmf: _Callable[[_type.HMETAFILE,  # hWmf
                                           _type.BOOL,  # deleteWmf
@@ -3564,7 +5792,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                               _Pointer[_struct.WmfPlaceableFileHeader],  # wmfPlaceableFileHeader
                                               _Pointer[_type.GpMetafile]],  # metafile
                                              _enum.GpStatus]
-    GdipCreateMetafileFromStream: _Callable[[_interface.IStream,  # stream
+    GdipCreateMetafileFromStream: _Callable[[_objidlbase.IStream,  # stream
                                              _Pointer[_type.GpMetafile]],  # metafile
                                             _enum.GpStatus]
     GdipRecordMetafile: _Callable[[_type.HDC,  # referenceHdc
@@ -3597,7 +5825,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                             _type.LPWSTR,  # description
                                             _Pointer[_type.GpMetafile]],  # metafile
                                            _enum.GpStatus]
-    GdipRecordMetafileStream: _Callable[[_interface.IStream,  # stream
+    GdipRecordMetafileStream: _Callable[[_objidlbase.IStream,  # stream
                                          _type.HDC,  # referenceHdc
                                          _enum.EmfType,  # type
                                          _Pointer[_struct.GpRectF],  # frameRect
@@ -3605,7 +5833,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                          _type.LPWSTR,  # description
                                          _Pointer[_type.GpMetafile]],  # metafile
                                         _enum.GpStatus]
-    GdipRecordMetafileStreamI: _Callable[[_interface.IStream,  # stream
+    GdipRecordMetafileStreamI: _Callable[[_objidlbase.IStream,  # stream
                                           _type.HDC,  # referenceHdc
                                           _enum.EmfType,  # type
                                           _Pointer[_struct.GpRect],  # frameRect
@@ -3918,7 +6146,7 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
     GdipConvertToEmfPlusToStream: _Callable[[_type.GpGraphics,  # refGraphics
                                              _type.GpMetafile,  # metafile
                                              _Pointer[_type.INT],  # conversionFailureFlag
-                                             _interface.IStream,  # stream
+                                             _objidlbase.IStream,  # stream
                                              _enum.EmfType,  # emfType
                                              _type.LPWSTR,  # description
                                              _Pointer[_type.GpMetafile]],  # out_metafile
@@ -3932,7 +6160,224 @@ class GDIPlus(_FuncMixin, metaclass=_WinDLL):
                                _type.VOID]
 
 
-class Kernel32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class glu32(_WinDLL):
+    # GLU
+    gluErrorString: _Callable[[_type.GLenum],  # errCode
+                              _Pointer[_type.GLubyte]]
+    gluErrorUnicodeStringEXT: _Callable[[_type.GLenum],  # errCode
+                                        _Pointer[_type.c_wchar_t]]
+    gluGetString: _Callable[[_type.GLenum],  # name
+                            _Pointer[_type.GLubyte]]
+    gluOrtho2D: _Callable[[_type.GLdouble,  # left
+                           _type.GLdouble,  # right
+                           _type.GLdouble,  # bottom
+                           _type.GLdouble],  # top
+                          _type.c_void]
+    gluPerspective: _Callable[[_type.GLdouble,  # fovy
+                               _type.GLdouble,  # aspect
+                               _type.GLdouble,  # zNear
+                               _type.GLdouble],  # zFar
+                              _type.c_void]
+    gluPickMatrix: _Callable[[_type.GLdouble,  # x
+                              _type.GLdouble,  # y
+                              _type.GLdouble,  # width
+                              _type.GLdouble,  # height
+                              _type.GLint * 4],  # viewport
+                             _type.c_void]
+    gluLookAt: _Callable[[_type.GLdouble,  # eyex
+                          _type.GLdouble,  # eyey
+                          _type.GLdouble,  # eyez
+                          _type.GLdouble,  # centerx
+                          _type.GLdouble,  # centery
+                          _type.GLdouble,  # centerz
+                          _type.GLdouble,  # upx
+                          _type.GLdouble,  # upy
+                          _type.GLdouble],  # upz
+                         _type.c_void]
+    gluProject: _Callable[[_type.GLdouble,  # objx
+                           _type.GLdouble,  # objy
+                           _type.GLdouble,  # objz
+                           _type.GLdouble * 16,  # modelMatrix
+                           _type.GLdouble * 16,  # projMatrix
+                           _type.GLint * 4,  # viewport
+                           _Pointer[_type.GLdouble],  # winx
+                           _Pointer[_type.GLdouble],  # winy
+                           _Pointer[_type.GLdouble]],  # winz
+                          _type.c_int]
+    gluUnProject: _Callable[[_type.GLdouble,  # winx
+                             _type.GLdouble,  # winy
+                             _type.GLdouble,  # winz
+                             _type.GLdouble * 16,  # modelMatrix
+                             _type.GLdouble * 16,  # projMatrix
+                             _type.GLint * 4,  # viewport
+                             _Pointer[_type.GLdouble],  # objx
+                             _Pointer[_type.GLdouble],  # objy
+                             _Pointer[_type.GLdouble]],  # objz
+                            _type.c_int]
+    gluScaleImage: _Callable[[_type.GLenum,  # format
+                              _type.GLint,  # widthin
+                              _type.GLint,  # heightin
+                              _type.GLenum,  # typein
+                              _type.c_void_p,  # datain
+                              _type.GLint,  # widthout
+                              _type.GLint,  # heightout
+                              _type.GLenum,  # typeout
+                              _type.c_void_p],  # dataout
+                             _type.c_int]
+    gluBuild1DMipmaps: _Callable[[_type.GLenum,  # target
+                                  _type.GLint,  # components
+                                  _type.GLint,  # width
+                                  _type.GLenum,  # format
+                                  _type.GLenum,  # type
+                                  _type.c_void_p],  # data
+                                 _type.c_int]
+    gluBuild2DMipmaps: _Callable[[_type.GLenum,  # target
+                                  _type.GLint,  # components
+                                  _type.GLint,  # width
+                                  _type.GLint,  # height
+                                  _type.GLenum,  # format
+                                  _type.GLenum,  # type
+                                  _type.c_void_p],  # data
+                                 _type.c_int]
+    gluNewQuadric: _Callable[[],
+                             _Pointer[_type.GLUquadric]]
+    gluDeleteQuadric: _Callable[[_Pointer[_type.GLUquadric]],  # state
+                                _type.c_void]
+    gluQuadricNormals: _Callable[[_Pointer[_type.GLUquadric],  # quadObject
+                                  _type.GLenum],  # normals
+                                 _type.c_void]
+    gluQuadricTexture: _Callable[[_Pointer[_type.GLUquadric],  # quadObject
+                                  _type.GLboolean],  # textureCoords
+                                 _type.c_void]
+    gluQuadricOrientation: _Callable[[_Pointer[_type.GLUquadric],  # quadObject
+                                      _type.GLenum],  # orientation
+                                     _type.c_void]
+    gluQuadricDrawStyle: _Callable[[_Pointer[_type.GLUquadric],  # quadObject
+                                    _type.GLenum],  # drawStyle
+                                   _type.c_void]
+    gluCylinder: _Callable[[_Pointer[_type.GLUquadric],  # qobj
+                            _type.GLdouble,  # baseRadius
+                            _type.GLdouble,  # topRadius
+                            _type.GLdouble,  # height
+                            _type.GLint,  # slices
+                            _type.GLint],  # stacks
+                           _type.c_void]
+    gluDisk: _Callable[[_Pointer[_type.GLUquadric],  # qobj
+                        _type.GLdouble,  # innerRadius
+                        _type.GLdouble,  # outerRadius
+                        _type.GLint,  # slices
+                        _type.GLint],  # loops
+                       _type.c_void]
+    gluPartialDisk: _Callable[[_Pointer[_type.GLUquadric],  # qobj
+                               _type.GLdouble,  # innerRadius
+                               _type.GLdouble,  # outerRadius
+                               _type.GLint,  # slices
+                               _type.GLint,  # loops
+                               _type.GLdouble,  # startAngle
+                               _type.GLdouble],  # sweepAngle
+                              _type.c_void]
+    gluSphere: _Callable[[_Pointer[_type.GLUquadric],  # qobj
+                          _type.GLdouble,  # radius
+                          _type.GLint,  # slices
+                          _type.GLint],  # stacks
+                         _type.c_void]
+    gluNewTess: _Callable[[],
+                          _Pointer[_type.GLUtesselator]]
+    gluDeleteTess: _Callable[[_Pointer[_type.GLUtesselator]],  # tess
+                             _type.c_void]
+    gluTessBeginPolygon: _Callable[[_Pointer[_type.GLUtesselator],  # tess
+                                    _type.c_void_p],  # polygon_data
+                                   _type.c_void]
+    gluTessBeginContour: _Callable[[_Pointer[_type.GLUtesselator]],  # tess
+                                   _type.c_void]
+    gluTessVertex: _Callable[[_Pointer[_type.GLUtesselator],  # tess
+                              _type.GLdouble * 3,  # coords
+                              _type.c_void_p],  # data
+                             _type.c_void]
+    gluTessEndContour: _Callable[[_Pointer[_type.GLUtesselator]],  # tess
+                                 _type.c_void]
+    gluTessEndPolygon: _Callable[[_Pointer[_type.GLUtesselator]],  # tess
+                                 _type.c_void]
+    gluTessProperty: _Callable[[_Pointer[_type.GLUtesselator],  # tess
+                                _type.GLenum,  # which
+                                _type.GLdouble],  # value
+                               _type.c_void]
+    gluTessNormal: _Callable[[_Pointer[_type.GLUtesselator],  # tess
+                              _type.GLdouble,  # x
+                              _type.GLdouble,  # y
+                              _type.GLdouble],  # z
+                             _type.c_void]
+    gluGetTessProperty: _Callable[[_Pointer[_type.GLUtesselator],  # tess
+                                   _type.GLenum,  # which
+                                   _Pointer[_type.GLdouble]],  # value
+                                  _type.c_void]
+    gluNewNurbsRenderer: _Callable[[],
+                                   _Pointer[_type.GLUnurbs]]
+    gluDeleteNurbsRenderer: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                                      _type.c_void]
+    gluBeginSurface: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                               _type.c_void]
+    gluBeginCurve: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                             _type.c_void]
+    gluEndCurve: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                           _type.c_void]
+    gluEndSurface: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                             _type.c_void]
+    gluBeginTrim: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                            _type.c_void]
+    gluEndTrim: _Callable[[_Pointer[_type.GLUnurbs]],  # nobj
+                          _type.c_void]
+    gluPwlCurve: _Callable[[_Pointer[_type.GLUnurbs],  # nobj
+                            _type.GLint,  # count
+                            _Pointer[_type.GLfloat],  # array
+                            _type.GLint,  # stride
+                            _type.GLenum],  # type
+                           _type.c_void]
+    gluNurbsCurve: _Callable[[_Pointer[_type.GLUnurbs],  # nobj
+                              _type.GLint,  # nknots
+                              _Pointer[_type.GLfloat],  # knot
+                              _type.GLint,  # stride
+                              _Pointer[_type.GLfloat],  # ctlarray
+                              _type.GLint,  # order
+                              _type.GLenum],  # type
+                             _type.c_void]
+    gluNurbsSurface: _Callable[[_Pointer[_type.GLUnurbs],  # nobj
+                                _type.GLint,  # sknot_count
+                                _Pointer[_type.c_float],  # sknot
+                                _type.GLint,  # tknot_count
+                                _Pointer[_type.GLfloat],  # tknot
+                                _type.GLint,  # s_stride
+                                _type.GLint,  # t_stride
+                                _Pointer[_type.GLfloat],  # ctlarray
+                                _type.GLint,  # sorder
+                                _type.GLint,  # torder
+                                _type.GLenum],  # type
+                               _type.c_void]
+    gluLoadSamplingMatrices: _Callable[[_Pointer[_type.GLUnurbs],  # nobj
+                                        _type.GLfloat * 16,  # modelMatrix
+                                        _type.GLfloat * 16,  # projMatrix
+                                        _type.GLint * 4],  # viewport
+                                       _type.c_void]
+    gluNurbsProperty: _Callable[[_Pointer[_type.GLUnurbs],  # nobj
+                                 _type.GLenum,  # property
+                                 _type.GLfloat],  # value
+                                _type.c_void]
+    gluGetNurbsProperty: _Callable[[_Pointer[_type.GLUnurbs],  # nobj
+                                    _type.GLenum,  # property
+                                    _Pointer[_type.GLfloat]],  # value
+                                   _type.c_void]
+    gluBeginPolygon: _Callable[[_Pointer[_type.GLUtesselator]],  # tess
+                               _type.c_void]
+    gluNextContour: _Callable[[_Pointer[_type.GLUtesselator],  # tess
+                               _type.GLenum],  # type
+                              _type.c_void]
+    gluEndPolygon: _Callable[[_Pointer[_type.GLUtesselator]],  # tess
+                             _type.c_void]
+
+
+# noinspection PyPep8Naming
+class kernel32(_WinDLL):
     # commapi
     ClearCommBreak: _Callable[[_type.HANDLE],  # hFile
                               _type.BOOL]
@@ -5489,7 +7934,7 @@ class Kernel32(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class mscoree(_FuncMixin, metaclass=_WinDLL):
+class mscoree(_WinDLL):
     # cor
     CoEEShutDownCOM: _Callable[[],
                                _type.c_void]
@@ -5517,7 +7962,7 @@ class mscoree(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class msimg32(_FuncMixin, metaclass=_WinDLL):
+class msimg32(_WinDLL):
     # wingdi
     AlphaBlend: _Callable[[_type.HDC,  # hdcDest
                            _type.c_int,  # xoriginDest
@@ -5534,7 +7979,7 @@ class msimg32(_FuncMixin, metaclass=_WinDLL):
 
 
 # noinspection PyPep8Naming
-class ntdll(_FuncMixin, metaclass=_WinDLL):
+class ntdll(_WinDLL):
     NtQueryWnfStateData: _Callable[[_Pointer[_struct.WNF_STATE_NAME],  # StateName
                                     _Optional[_Pointer[_struct.WNF_TYPE_ID]],  # TypeId
                                     _Optional[_Pointer[_type.VOID]],  # ExplicitScope
@@ -5587,7 +8032,8 @@ class ntdll(_FuncMixin, metaclass=_WinDLL):
                                            _type.NTSTATUS]
 
 
-class Ole32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class ole32(_WinDLL):
     # combaseapi
     CoUninitialize: _Callable[[],
                               _type.VOID]
@@ -5596,35 +8042,35 @@ class Ole32(_FuncMixin, metaclass=_WinDLL):
     CoInitializeEx: _Callable[[_Optional[_type.LPVOID],  # pvReserved
                                _type.DWORD],  # dwCoInit
                               _type.HRESULT]
-    CoMarshalInterface: _Callable[[_interface.IStream,  # pStm
+    CoMarshalInterface: _Callable[[_objidlbase.IStream,  # pStm
                                    _Pointer[_struct.IID],  # riid
-                                   _interface.IUnknown,  # pUnk
+                                   _Unknwnbase.IUnknown,  # pUnk
                                    _type.DWORD,  # dwDestContext
                                    _Optional[_type.DWORD],  # pvDestContext
                                    _type.DWORD],  # mshlflags
                                   _type.HRESULT]
-    CoUnmarshalInterface: _Callable[[_interface.IStream,  # pStm
+    CoUnmarshalInterface: _Callable[[_objidlbase.IStream,  # pStm
                                      _Pointer[_struct.IID],  # riid
                                      _type.LPVOID],  # ppv
                                     _type.HRESULT]
-    CoMarshalHresult: _Callable[[_interface.IStream,  # pstm
+    CoMarshalHresult: _Callable[[_objidlbase.IStream,  # pstm
                                  _type.HRESULT],  # hresult
                                 _type.HRESULT]
-    CoUnmarshalHresult: _Callable[[_interface.IStream,  # pstm
+    CoUnmarshalHresult: _Callable[[_objidlbase.IStream,  # pstm
                                    _Pointer[_type.HRESULT]],  # phresult
                                   _type.HRESULT]
-    CoIsHandlerConnected: _Callable[[_interface.IUnknown],  # pUnk
+    CoIsHandlerConnected: _Callable[[_Unknwnbase.IUnknown],  # pUnk
                                     _type.BOOL]
     CoMarshalInterThreadInterfaceInStream: _Callable[[_Pointer[_struct.IID],  # riid
-                                                      _interface.IUnknown,  # pUnk
-                                                      _Pointer[_interface.IStream]],  # ppStm
+                                                      _Unknwnbase.IUnknown,  # pUnk
+                                                      _Pointer[_objidlbase.IStream]],  # ppStm
                                                      _type.HRESULT]
-    CoGetInterfaceAndReleaseStream: _Callable[[_interface.IStream,  # pStm
+    CoGetInterfaceAndReleaseStream: _Callable[[_objidlbase.IStream,  # pStm
                                                _Pointer[_struct.IID],  # riid
                                                _type.LPVOID],  # ppv
                                               _type.HRESULT]
-    CoCreateFreeThreadedMarshaler: _Callable[[_interface.IUnknown,  # punkOuter
-                                              _Pointer[_type.IUnknown]],  # ppunkMarshal
+    CoCreateFreeThreadedMarshaler: _Callable[[_Unknwnbase.IUnknown,  # punkOuter
+                                              _Pointer[_Unknwnbase.IUnknown]],  # ppunkMarshal
                                              _type.HRESULT]
     CoFreeUnusedLibraries: _Callable[[],
                                      _type.c_void]
@@ -5634,7 +8080,7 @@ class Ole32(_FuncMixin, metaclass=_WinDLL):
     CoDisconnectContext: _Callable[[_type.DWORD],  # dwTimeout
                                    _type.HRESULT]
     CoCreateInstance: _Callable[[_Pointer[_struct.CLSID],  # rclsid
-                                 _Optional[_Pointer[_interface.IUnknown]],  # pUnkOuter
+                                 _Optional[_Pointer[_Unknwnbase.IUnknown]],  # pUnkOuter
                                  _type.DWORD,  # dwClsContext
                                  _Pointer[_struct.IID],  # riid
                                  _type.LPVOID],  # ppv
@@ -5687,7 +8133,8 @@ class Ole32(_FuncMixin, metaclass=_WinDLL):
                                _type.HRESULT]
 
 
-class OleAcc(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class oleacc(_WinDLL):
     GetProcessHandleFromHwnd: _Callable[[_type.HWND],
                                         _type.HANDLE]
     # oleacc
@@ -5709,7 +8156,8 @@ class OleAcc(_FuncMixin, metaclass=_WinDLL):
                              _type.UINT]
 
 
-class OleAut32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class oleaut32(_WinDLL):
     # oleauto
     SysAllocString: _Callable[[_Optional[_type.LPCOLESTR]],  # psz
                               _type.BSTR]
@@ -5764,38 +8212,1133 @@ class OleAut32(_FuncMixin, metaclass=_WinDLL):
                                          _type.BOOL,
                                          _type.LPVOID],
                                         _type.WINOLECTLAPI]
-    OleSavePictureFile: _Callable[[_interface.IPictureDisp,
+    OleSavePictureFile: _Callable[[_ocidl.IPictureDisp,
                                    _type.BSTR],
                                   _type.WINOLECTLAPI]
 
 
-class OpenGL32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class opengl32(_WinDLL):
     # GL
+    glAccum: _Callable[[_type.GLenum,  # op
+                        _type.GLfloat],  # value
+                       _type.c_int]
+    glAlphaFunc: _Callable[[_type.GLenum,  # func
+                            _type.GLclampf],  # ref
+                           _type.c_int]
+    glArrayElement: _Callable[[_type.GLint],  # i
+                              _type.c_int]
+    glBegin: _Callable[[_type.GLenum],  # mode
+                       _type.c_int]
+    glBindTexture: _Callable[[_type.GLenum,  # target
+                              _type.GLuint],  # texture
+                             _type.c_int]
+    glBitmap: _Callable[[_type.GLsizei,  # width
+                         _type.GLsizei,  # height
+                         _type.GLfloat,  # xorig
+                         _type.GLfloat,  # yorig
+                         _type.GLfloat,  # xmove
+                         _type.GLfloat,  # ymove
+                         _Pointer[_type.GLubyte]],  # bitmap
+                        _type.c_int]
+    glBlendFunc: _Callable[[_type.GLenum,  # sfactor
+                            _type.GLenum],  # dfactor
+                           _type.c_int]
+    glCallList: _Callable[[_type.GLuint],  # list
+                          _type.c_int]
+    glCallLists: _Callable[[_type.GLsizei,  # n
+                            _type.GLenum,  # type
+                            _Pointer[_type.GLvoid]],  # lists
+                           _type.c_int]
+    glClear: _Callable[[_type.GLbitfield],  # mask
+                       _type.c_int]
+    glClearAccum: _Callable[[_type.GLfloat,  # red
+                             _type.GLfloat,  # green
+                             _type.GLfloat,  # blue
+                             _type.GLfloat],  # alpha
+                            _type.c_int]
+    glClearColor: _Callable[[_type.GLclampf,  # red
+                             _type.GLclampf,  # green
+                             _type.GLclampf,  # blue
+                             _type.GLclampf],  # alpha
+                            _type.c_int]
+    glClearDepth: _Callable[[_type.GLclampd],  # depth
+                            _type.c_int]
+    glClearIndex: _Callable[[_type.GLfloat],  # c
+                            _type.c_int]
+    glClearStencil: _Callable[[_type.GLint],  # s
+                              _type.c_int]
+    glClipPlane: _Callable[[_type.GLenum,  # plane
+                            _Pointer[_type.GLdouble]],  # equation
+                           _type.c_int]
+    glColor3b: _Callable[[_type.GLbyte,  # red
+                          _type.GLbyte,  # green
+                          _type.GLbyte],  # blue
+                         _type.c_int]
+    glColor3bv: _Callable[[_Pointer[_type.GLbyte]],  # v
+                          _type.c_int]
+    glColor3d: _Callable[[_type.GLdouble,  # red
+                          _type.GLdouble,  # green
+                          _type.GLdouble],  # blue
+                         _type.c_int]
+    glColor3dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                          _type.c_int]
+    glColor3f: _Callable[[_type.GLfloat,  # red
+                          _type.GLfloat,  # green
+                          _type.GLfloat],  # blue
+                         _type.c_int]
+    glColor3fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                          _type.c_int]
+    glColor3i: _Callable[[_type.GLint,  # red
+                          _type.GLint,  # green
+                          _type.GLint],  # blue
+                         _type.c_int]
+    glColor3iv: _Callable[[_Pointer[_type.GLint]],  # v
+                          _type.c_int]
+    glColor3s: _Callable[[_type.GLshort,  # red
+                          _type.GLshort,  # green
+                          _type.GLshort],  # blue
+                         _type.c_int]
+    glColor3sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                          _type.c_int]
+    glColor3ub: _Callable[[_type.GLubyte,  # red
+                           _type.GLubyte,  # green
+                           _type.GLubyte],  # blue
+                          _type.c_int]
+    glColor3ubv: _Callable[[_Pointer[_type.GLubyte]],  # v
+                           _type.c_int]
+    glColor3ui: _Callable[[_type.GLuint,  # red
+                           _type.GLuint,  # green
+                           _type.GLuint],  # blue
+                          _type.c_int]
+    glColor3uiv: _Callable[[_Pointer[_type.GLuint]],  # v
+                           _type.c_int]
+    glColor3us: _Callable[[_type.GLushort,  # red
+                           _type.GLushort,  # green
+                           _type.GLushort],  # blue
+                          _type.c_int]
+    glColor3usv: _Callable[[_Pointer[_type.GLushort]],  # v
+                           _type.c_int]
+    glColor4b: _Callable[[_type.GLbyte,  # red
+                          _type.GLbyte,  # green
+                          _type.GLbyte,  # blue
+                          _type.GLbyte],  # alpha
+                         _type.c_int]
+    glColor4bv: _Callable[[_Pointer[_type.GLbyte]],  # v
+                          _type.c_int]
+    glColor4d: _Callable[[_type.GLdouble,  # red
+                          _type.GLdouble,  # green
+                          _type.GLdouble,  # blue
+                          _type.GLdouble],  # alpha
+                         _type.c_int]
+    glColor4dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                          _type.c_int]
+    glColor4f: _Callable[[_type.GLfloat,  # red
+                          _type.GLfloat,  # green
+                          _type.GLfloat,  # blue
+                          _type.GLfloat],  # alpha
+                         _type.c_int]
+    glColor4fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                          _type.c_int]
+    glColor4i: _Callable[[_type.GLint,  # red
+                          _type.GLint,  # green
+                          _type.GLint,  # blue
+                          _type.GLint],  # alpha
+                         _type.c_int]
+    glColor4iv: _Callable[[_Pointer[_type.GLint]],  # v
+                          _type.c_int]
+    glColor4s: _Callable[[_type.GLshort,  # red
+                          _type.GLshort,  # green
+                          _type.GLshort,  # blue
+                          _type.GLshort],  # alpha
+                         _type.c_int]
+    glColor4sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                          _type.c_int]
+    glColor4ub: _Callable[[_type.GLubyte,  # red
+                           _type.GLubyte,  # green
+                           _type.GLubyte,  # blue
+                           _type.GLubyte],  # alpha
+                          _type.c_int]
+    glColor4ubv: _Callable[[_Pointer[_type.GLubyte]],  # v
+                           _type.c_int]
+    glColor4ui: _Callable[[_type.GLuint,  # red
+                           _type.GLuint,  # green
+                           _type.GLuint,  # blue
+                           _type.GLuint],  # alpha
+                          _type.c_int]
+    glColor4uiv: _Callable[[_Pointer[_type.GLuint]],  # v
+                           _type.c_int]
+    glColor4us: _Callable[[_type.GLushort,  # red
+                           _type.GLushort,  # green
+                           _type.GLushort,  # blue
+                           _type.GLushort],  # alpha
+                          _type.c_int]
+    glColor4usv: _Callable[[_Pointer[_type.GLushort]],  # v
+                           _type.c_int]
+    glColorMask: _Callable[[_type.GLboolean,  # red
+                            _type.GLboolean,  # green
+                            _type.GLboolean,  # blue
+                            _type.GLboolean],  # alpha
+                           _type.c_int]
+    glColorMaterial: _Callable[[_type.GLenum,  # face
+                                _type.GLenum],  # mode
+                               _type.c_int]
+    glColorPointer: _Callable[[_type.GLint,  # size
+                               _type.GLenum,  # type
+                               _type.GLsizei,  # stride
+                               _Pointer[_type.GLvoid]],  # pointer
+                              _type.c_int]
+    glCopyPixels: _Callable[[_type.GLint,  # x
+                             _type.GLint,  # y
+                             _type.GLsizei,  # width
+                             _type.GLsizei,  # height
+                             _type.GLenum],  # type
+                            _type.c_int]
+    glCopyTexImage1D: _Callable[[_type.GLenum,  # target
+                                 _type.GLint,  # level
+                                 _type.GLenum,  # internalFormat
+                                 _type.GLint,  # x
+                                 _type.GLint,  # y
+                                 _type.GLsizei,  # width
+                                 _type.GLint],  # border
+                                _type.c_int]
+    glCopyTexImage2D: _Callable[[_type.GLenum,  # target
+                                 _type.GLint,  # level
+                                 _type.GLenum,  # internalFormat
+                                 _type.GLint,  # x
+                                 _type.GLint,  # y
+                                 _type.GLsizei,  # width
+                                 _type.GLsizei,  # height
+                                 _type.GLint],  # border
+                                _type.c_int]
+    glCopyTexSubImage1D: _Callable[[_type.GLenum,  # target
+                                    _type.GLint,  # level
+                                    _type.GLint,  # xoffset
+                                    _type.GLint,  # x
+                                    _type.GLint,  # y
+                                    _type.GLsizei],  # width
+                                   _type.c_int]
+    glCopyTexSubImage2D: _Callable[[_type.GLenum,  # target
+                                    _type.GLint,  # level
+                                    _type.GLint,  # xoffset
+                                    _type.GLint,  # yoffset
+                                    _type.GLint,  # x
+                                    _type.GLint,  # y
+                                    _type.GLsizei,  # width
+                                    _type.GLsizei],  # height
+                                   _type.c_int]
+    glCullFace: _Callable[[_type.GLenum],  # mode
+                          _type.c_int]
+    glDeleteLists: _Callable[[_type.GLuint,  # list
+                              _type.GLsizei],  # range
+                             _type.c_int]
+    glDeleteTextures: _Callable[[_type.GLsizei,  # n
+                                 _Pointer[_type.GLuint]],  # textures
+                                _type.c_int]
+    glDepthFunc: _Callable[[_type.GLenum],  # func
+                           _type.c_int]
+    glDepthMask: _Callable[[_type.GLboolean],  # flag
+                           _type.c_int]
+    glDepthRange: _Callable[[_type.GLclampd,  # zNear
+                             _type.GLclampd],  # zFar
+                            _type.c_int]
+    glDisable: _Callable[[_type.GLenum],  # cap
+                         _type.c_int]
+    glDisableClientState: _Callable[[_type.GLenum],  # array
+                                    _type.c_int]
+    glDrawArrays: _Callable[[_type.GLenum,  # mode
+                             _type.GLint,  # first
+                             _type.GLsizei],  # count
+                            _type.c_int]
+    glDrawBuffer: _Callable[[_type.GLenum],  # mode
+                            _type.c_int]
+    glDrawElements: _Callable[[_type.GLenum,  # mode
+                               _type.GLsizei,  # count
+                               _type.GLenum,  # type
+                               _Pointer[_type.GLvoid]],  # indices
+                              _type.c_int]
+    glDrawPixels: _Callable[[_type.GLsizei,  # width
+                             _type.GLsizei,  # height
+                             _type.GLenum,  # format
+                             _type.GLenum,  # type
+                             _Pointer[_type.GLvoid]],  # pixels
+                            _type.c_int]
+    glEdgeFlag: _Callable[[_type.GLboolean],  # flag
+                          _type.c_int]
+    glEdgeFlagPointer: _Callable[[_type.GLsizei,  # stride
+                                  _Pointer[_type.GLvoid]],  # pointer
+                                 _type.c_int]
+    glEdgeFlagv: _Callable[[_Pointer[_type.GLboolean]],  # flag
+                           _type.c_int]
+    glEnable: _Callable[[_type.GLenum],  # cap
+                        _type.c_int]
+    glEnableClientState: _Callable[[_type.GLenum],  # array
+                                   _type.c_int]
     glEnd: _Callable[[],
-                     _type.c_void]
+                     _type.c_int]
     glEndList: _Callable[[],
-                         _type.c_void]
+                         _type.c_int]
+    glEvalCoord1d: _Callable[[_type.GLdouble],  # u
+                             _type.c_int]
+    glEvalCoord1dv: _Callable[[_Pointer[_type.GLdouble]],  # u
+                              _type.c_int]
+    glEvalCoord1f: _Callable[[_type.GLfloat],  # u
+                             _type.c_int]
+    glEvalCoord1fv: _Callable[[_Pointer[_type.GLfloat]],  # u
+                              _type.c_int]
+    glEvalCoord2d: _Callable[[_type.GLdouble,  # u
+                              _type.GLdouble],  # v
+                             _type.c_int]
+    glEvalCoord2dv: _Callable[[_Pointer[_type.GLdouble]],  # u
+                              _type.c_int]
+    glEvalCoord2f: _Callable[[_type.GLfloat,  # u
+                              _type.GLfloat],  # v
+                             _type.c_int]
+    glEvalCoord2fv: _Callable[[_Pointer[_type.GLfloat]],  # u
+                              _type.c_int]
+    glEvalMesh1: _Callable[[_type.GLenum,  # mode
+                            _type.GLint,  # i1
+                            _type.GLint],  # i2
+                           _type.c_int]
+    glEvalMesh2: _Callable[[_type.GLenum,  # mode
+                            _type.GLint,  # i1
+                            _type.GLint,  # i2
+                            _type.GLint,  # j1
+                            _type.GLint],  # j2
+                           _type.c_int]
+    glEvalPoint1: _Callable[[_type.GLint],  # i
+                            _type.c_int]
+    glEvalPoint2: _Callable[[_type.GLint,  # i
+                             _type.GLint],  # j
+                            _type.c_int]
+    glFeedbackBuffer: _Callable[[_type.GLsizei,  # size
+                                 _type.GLenum,  # type
+                                 _Pointer[_type.GLfloat]],  # buffer
+                                _type.c_int]
     glFinish: _Callable[[],
-                        _type.c_void]
+                        _type.c_int]
     glFlush: _Callable[[],
-                       _type.c_void]
+                       _type.c_int]
+    glFogf: _Callable[[_type.GLenum,  # pname
+                       _type.GLfloat],  # param
+                      _type.c_int]
+    glFogfv: _Callable[[_type.GLenum,  # pname
+                        _Pointer[_type.GLfloat]],  # params
+                       _type.c_int]
+    glFogi: _Callable[[_type.GLenum,  # pname
+                       _type.GLint],  # param
+                      _type.c_int]
+    glFogiv: _Callable[[_type.GLenum,  # pname
+                        _Pointer[_type.GLint]],  # params
+                       _type.c_int]
+    glFrontFace: _Callable[[_type.GLenum],  # mode
+                           _type.c_int]
+    glFrustum: _Callable[[_type.GLdouble,  # left
+                          _type.GLdouble,  # right
+                          _type.GLdouble,  # bottom
+                          _type.GLdouble,  # top
+                          _type.GLdouble,  # zNear
+                          _type.GLdouble],  # zFar
+                         _type.c_int]
+    glGenTextures: _Callable[[_type.GLsizei,  # n
+                              _Pointer[_type.GLuint]],  # textures
+                             _type.c_int]
+    glGetBooleanv: _Callable[[_type.GLenum,  # pname
+                              _Pointer[_type.GLboolean]],  # params
+                             _type.c_int]
+    glGetClipPlane: _Callable[[_type.GLenum,  # plane
+                               _Pointer[_type.GLdouble]],  # equation
+                              _type.c_int]
+    glGetDoublev: _Callable[[_type.GLenum,  # pname
+                             _Pointer[_type.GLdouble]],  # params
+                            _type.c_int]
+    glGetFloatv: _Callable[[_type.GLenum,  # pname
+                            _Pointer[_type.GLfloat]],  # params
+                           _type.c_int]
+    glGetIntegerv: _Callable[[_type.GLenum,  # pname
+                              _Pointer[_type.GLint]],  # params
+                             _type.c_int]
+    glGetLightfv: _Callable[[_type.GLenum,  # light
+                             _type.GLenum,  # pname
+                             _Pointer[_type.GLfloat]],  # params
+                            _type.c_int]
+    glGetLightiv: _Callable[[_type.GLenum,  # light
+                             _type.GLenum,  # pname
+                             _Pointer[_type.GLint]],  # params
+                            _type.c_int]
+    glGetMapdv: _Callable[[_type.GLenum,  # target
+                           _type.GLenum,  # query
+                           _Pointer[_type.GLdouble]],  # v
+                          _type.c_int]
+    glGetMapfv: _Callable[[_type.GLenum,  # target
+                           _type.GLenum,  # query
+                           _Pointer[_type.GLfloat]],  # v
+                          _type.c_int]
+    glGetMapiv: _Callable[[_type.GLenum,  # target
+                           _type.GLenum,  # query
+                           _Pointer[_type.GLint]],  # v
+                          _type.c_int]
+    glGetMaterialfv: _Callable[[_type.GLenum,  # face
+                                _type.GLenum,  # pname
+                                _Pointer[_type.GLfloat]],  # params
+                               _type.c_int]
+    glGetMaterialiv: _Callable[[_type.GLenum,  # face
+                                _type.GLenum,  # pname
+                                _Pointer[_type.GLint]],  # params
+                               _type.c_int]
+    glGetPixelMapfv: _Callable[[_type.GLenum,  # map
+                                _Pointer[_type.GLfloat]],  # values
+                               _type.c_int]
+    glGetPixelMapuiv: _Callable[[_type.GLenum,  # map
+                                 _Pointer[_type.GLuint]],  # values
+                                _type.c_int]
+    glGetPixelMapusv: _Callable[[_type.GLenum,  # map
+                                 _Pointer[_type.GLushort]],  # values
+                                _type.c_int]
+    glGetPointerv: _Callable[[_type.GLenum,  # pname
+                              _Pointer[_Pointer[_type.GLvoid]]],  # params
+                             _type.c_int]
+    glGetPolygonStipple: _Callable[[_Pointer[_type.GLubyte]],  # mask
+                                   _type.c_int]
+    glGetTexEnvfv: _Callable[[_type.GLenum,  # target
+                              _type.GLenum,  # pname
+                              _Pointer[_type.GLfloat]],  # params
+                             _type.c_int]
+    glGetTexEnviv: _Callable[[_type.GLenum,  # target
+                              _type.GLenum,  # pname
+                              _Pointer[_type.GLint]],  # params
+                             _type.c_int]
+    glGetTexGendv: _Callable[[_type.GLenum,  # coord
+                              _type.GLenum,  # pname
+                              _Pointer[_type.GLdouble]],  # params
+                             _type.c_int]
+    glGetTexGenfv: _Callable[[_type.GLenum,  # coord
+                              _type.GLenum,  # pname
+                              _Pointer[_type.GLfloat]],  # params
+                             _type.c_int]
+    glGetTexGeniv: _Callable[[_type.GLenum,  # coord
+                              _type.GLenum,  # pname
+                              _Pointer[_type.GLint]],  # params
+                             _type.c_int]
+    glGetTexImage: _Callable[[_type.GLenum,  # target
+                              _type.GLint,  # level
+                              _type.GLenum,  # format
+                              _type.GLenum,  # type
+                              _Pointer[_type.GLvoid]],  # pixels
+                             _type.c_int]
+    glGetTexLevelParameterfv: _Callable[[_type.GLenum,  # target
+                                         _type.GLint,  # level
+                                         _type.GLenum,  # pname
+                                         _Pointer[_type.GLfloat]],  # params
+                                        _type.c_int]
+    glGetTexLevelParameteriv: _Callable[[_type.GLenum,  # target
+                                         _type.GLint,  # level
+                                         _type.GLenum,  # pname
+                                         _Pointer[_type.GLint]],  # params
+                                        _type.c_int]
+    glGetTexParameterfv: _Callable[[_type.GLenum,  # target
+                                    _type.GLenum,  # pname
+                                    _Pointer[_type.GLfloat]],  # params
+                                   _type.c_int]
+    glGetTexParameteriv: _Callable[[_type.GLenum,  # target
+                                    _type.GLenum,  # pname
+                                    _Pointer[_type.GLint]],  # params
+                                   _type.c_int]
+    glHint: _Callable[[_type.GLenum,  # target
+                       _type.GLenum],  # mode
+                      _type.c_int]
+    glIndexMask: _Callable[[_type.GLuint],  # mask
+                           _type.c_int]
+    glIndexPointer: _Callable[[_type.GLenum,  # type
+                               _type.GLsizei,  # stride
+                               _Pointer[_type.GLvoid]],  # pointer
+                              _type.c_int]
+    glIndexd: _Callable[[_type.GLdouble],  # c
+                        _type.c_int]
+    glIndexdv: _Callable[[_Pointer[_type.GLdouble]],  # c
+                         _type.c_int]
+    glIndexf: _Callable[[_type.GLfloat],  # c
+                        _type.c_int]
+    glIndexfv: _Callable[[_Pointer[_type.GLfloat]],  # c
+                         _type.c_int]
+    glIndexi: _Callable[[_type.GLint],  # c
+                        _type.c_int]
+    glIndexiv: _Callable[[_Pointer[_type.GLint]],  # c
+                         _type.c_int]
+    glIndexs: _Callable[[_type.GLshort],  # c
+                        _type.c_int]
+    glIndexsv: _Callable[[_Pointer[_type.GLshort]],  # c
+                         _type.c_int]
+    glIndexub: _Callable[[_type.GLubyte],  # c
+                         _type.c_int]
+    glIndexubv: _Callable[[_Pointer[_type.GLubyte]],  # c
+                          _type.c_int]
     glInitNames: _Callable[[],
-                           _type.c_void]
+                           _type.c_int]
+    glInterleavedArrays: _Callable[[_type.GLenum,  # format
+                                    _type.GLsizei,  # stride
+                                    _Pointer[_type.GLvoid]],  # pointer
+                                   _type.c_int]
+    glLightModelf: _Callable[[_type.GLenum,  # pname
+                              _type.GLfloat],  # param
+                             _type.c_int]
+    glLightModelfv: _Callable[[_type.GLenum,  # pname
+                               _Pointer[_type.GLfloat]],  # params
+                              _type.c_int]
+    glLightModeli: _Callable[[_type.GLenum,  # pname
+                              _type.GLint],  # param
+                             _type.c_int]
+    glLightModeliv: _Callable[[_type.GLenum,  # pname
+                               _Pointer[_type.GLint]],  # params
+                              _type.c_int]
+    glLightf: _Callable[[_type.GLenum,  # light
+                         _type.GLenum,  # pname
+                         _type.GLfloat],  # param
+                        _type.c_int]
+    glLightfv: _Callable[[_type.GLenum,  # light
+                          _type.GLenum,  # pname
+                          _Pointer[_type.GLfloat]],  # params
+                         _type.c_int]
+    glLighti: _Callable[[_type.GLenum,  # light
+                         _type.GLenum,  # pname
+                         _type.GLint],  # param
+                        _type.c_int]
+    glLightiv: _Callable[[_type.GLenum,  # light
+                          _type.GLenum,  # pname
+                          _Pointer[_type.GLint]],  # params
+                         _type.c_int]
+    glLineStipple: _Callable[[_type.GLint,  # factor
+                              _type.GLushort],  # pattern
+                             _type.c_int]
+    glLineWidth: _Callable[[_type.GLfloat],  # width
+                           _type.c_int]
+    glListBase: _Callable[[_type.GLuint],  # base
+                          _type.c_int]
     glLoadIdentity: _Callable[[],
-                              _type.c_void]
+                              _type.c_int]
+    glLoadMatrixd: _Callable[[_Pointer[_type.GLdouble]],  # m
+                             _type.c_int]
+    glLoadMatrixf: _Callable[[_Pointer[_type.GLfloat]],  # m
+                             _type.c_int]
+    glLoadName: _Callable[[_type.GLuint],  # name
+                          _type.c_int]
+    glLogicOp: _Callable[[_type.GLenum],  # opcode
+                         _type.c_int]
+    glMap1d: _Callable[[_type.GLenum,  # target
+                        _type.GLdouble,  # u1
+                        _type.GLdouble,  # u2
+                        _type.GLint,  # stride
+                        _type.GLint,  # order
+                        _Pointer[_type.GLdouble]],  # points
+                       _type.c_int]
+    glMap1f: _Callable[[_type.GLenum,  # target
+                        _type.GLfloat,  # u1
+                        _type.GLfloat,  # u2
+                        _type.GLint,  # stride
+                        _type.GLint,  # order
+                        _Pointer[_type.GLfloat]],  # points
+                       _type.c_int]
+    glMap2d: _Callable[[_type.GLenum,  # target
+                        _type.GLdouble,  # u1
+                        _type.GLdouble,  # u2
+                        _type.GLint,  # ustride
+                        _type.GLint,  # uorder
+                        _type.GLdouble,  # v1
+                        _type.GLdouble,  # v2
+                        _type.GLint,  # vstride
+                        _type.GLint,  # vorder
+                        _Pointer[_type.GLdouble]],  # points
+                       _type.c_int]
+    glMap2f: _Callable[[_type.GLenum,  # target
+                        _type.GLfloat,  # u1
+                        _type.GLfloat,  # u2
+                        _type.GLint,  # ustride
+                        _type.GLint,  # uorder
+                        _type.GLfloat,  # v1
+                        _type.GLfloat,  # v2
+                        _type.GLint,  # vstride
+                        _type.GLint,  # vorder
+                        _Pointer[_type.GLfloat]],  # points
+                       _type.c_int]
+    glMapGrid1d: _Callable[[_type.GLint,  # un
+                            _type.GLdouble,  # u1
+                            _type.GLdouble],  # u2
+                           _type.c_int]
+    glMapGrid1f: _Callable[[_type.GLint,  # un
+                            _type.GLfloat,  # u1
+                            _type.GLfloat],  # u2
+                           _type.c_int]
+    glMapGrid2d: _Callable[[_type.GLint,  # un
+                            _type.GLdouble,  # u1
+                            _type.GLdouble,  # u2
+                            _type.GLint,  # vn
+                            _type.GLdouble,  # v1
+                            _type.GLdouble],  # v2
+                           _type.c_int]
+    glMapGrid2f: _Callable[[_type.GLint,  # un
+                            _type.GLfloat,  # u1
+                            _type.GLfloat,  # u2
+                            _type.GLint,  # vn
+                            _type.GLfloat,  # v1
+                            _type.GLfloat],  # v2
+                           _type.c_int]
+    glMaterialf: _Callable[[_type.GLenum,  # face
+                            _type.GLenum,  # pname
+                            _type.GLfloat],  # param
+                           _type.c_int]
+    glMaterialfv: _Callable[[_type.GLenum,  # face
+                             _type.GLenum,  # pname
+                             _Pointer[_type.GLfloat]],  # params
+                            _type.c_int]
+    glMateriali: _Callable[[_type.GLenum,  # face
+                            _type.GLenum,  # pname
+                            _type.GLint],  # param
+                           _type.c_int]
+    glMaterialiv: _Callable[[_type.GLenum,  # face
+                             _type.GLenum,  # pname
+                             _Pointer[_type.GLint]],  # params
+                            _type.c_int]
+    glMatrixMode: _Callable[[_type.GLenum],  # mode
+                            _type.c_int]
+    glMultMatrixd: _Callable[[_Pointer[_type.GLdouble]],  # m
+                             _type.c_int]
+    glMultMatrixf: _Callable[[_Pointer[_type.GLfloat]],  # m
+                             _type.c_int]
+    glNewList: _Callable[[_type.GLuint,  # list
+                          _type.GLenum],  # mode
+                         _type.c_int]
+    glNormal3b: _Callable[[_type.GLbyte,  # nx
+                           _type.GLbyte,  # ny
+                           _type.GLbyte],  # nz
+                          _type.c_int]
+    glNormal3bv: _Callable[[_Pointer[_type.GLbyte]],  # v
+                           _type.c_int]
+    glNormal3d: _Callable[[_type.GLdouble,  # nx
+                           _type.GLdouble,  # ny
+                           _type.GLdouble],  # nz
+                          _type.c_int]
+    glNormal3dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                           _type.c_int]
+    glNormal3f: _Callable[[_type.GLfloat,  # nx
+                           _type.GLfloat,  # ny
+                           _type.GLfloat],  # nz
+                          _type.c_int]
+    glNormal3fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                           _type.c_int]
+    glNormal3i: _Callable[[_type.GLint,  # nx
+                           _type.GLint,  # ny
+                           _type.GLint],  # nz
+                          _type.c_int]
+    glNormal3iv: _Callable[[_Pointer[_type.GLint]],  # v
+                           _type.c_int]
+    glNormal3s: _Callable[[_type.GLshort,  # nx
+                           _type.GLshort,  # ny
+                           _type.GLshort],  # nz
+                          _type.c_int]
+    glNormal3sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                           _type.c_int]
+    glNormalPointer: _Callable[[_type.GLenum,  # type
+                                _type.GLsizei,  # stride
+                                _Pointer[_type.GLvoid]],  # pointer
+                               _type.c_int]
+    glOrtho: _Callable[[_type.GLdouble,  # left
+                        _type.GLdouble,  # right
+                        _type.GLdouble,  # bottom
+                        _type.GLdouble,  # top
+                        _type.GLdouble,  # zNear
+                        _type.GLdouble],  # zFar
+                       _type.c_int]
+    glPassThrough: _Callable[[_type.GLfloat],  # token
+                             _type.c_int]
+    glPixelMapfv: _Callable[[_type.GLenum,  # map
+                             _type.GLsizei,  # mapsize
+                             _Pointer[_type.GLfloat]],  # values
+                            _type.c_int]
+    glPixelMapuiv: _Callable[[_type.GLenum,  # map
+                              _type.GLsizei,  # mapsize
+                              _Pointer[_type.GLuint]],  # values
+                             _type.c_int]
+    glPixelMapusv: _Callable[[_type.GLenum,  # map
+                              _type.GLsizei,  # mapsize
+                              _Pointer[_type.GLushort]],  # values
+                             _type.c_int]
+    glPixelStoref: _Callable[[_type.GLenum,  # pname
+                              _type.GLfloat],  # param
+                             _type.c_int]
+    glPixelStorei: _Callable[[_type.GLenum,  # pname
+                              _type.GLint],  # param
+                             _type.c_int]
+    glPixelTransferf: _Callable[[_type.GLenum,  # pname
+                                 _type.GLfloat],  # param
+                                _type.c_int]
+    glPixelTransferi: _Callable[[_type.GLenum,  # pname
+                                 _type.GLint],  # param
+                                _type.c_int]
+    glPixelZoom: _Callable[[_type.GLfloat,  # xfactor
+                            _type.GLfloat],  # yfactor
+                           _type.c_int]
+    glPointSize: _Callable[[_type.GLfloat],  # size
+                           _type.c_int]
+    glPolygonMode: _Callable[[_type.GLenum,  # face
+                              _type.GLenum],  # mode
+                             _type.c_int]
+    glPolygonOffset: _Callable[[_type.GLfloat,  # factor
+                                _type.GLfloat],  # units
+                               _type.c_int]
+    glPolygonStipple: _Callable[[_Pointer[_type.GLubyte]],  # mask
+                                _type.c_int]
     glPopAttrib: _Callable[[],
-                           _type.c_void]
+                           _type.c_int]
     glPopClientAttrib: _Callable[[],
-                                 _type.c_void]
+                                 _type.c_int]
     glPopMatrix: _Callable[[],
-                           _type.c_void]
+                           _type.c_int]
     glPopName: _Callable[[],
-                         _type.c_void]
+                         _type.c_int]
+    glPrioritizeTextures: _Callable[[_type.GLsizei,  # n
+                                     _Pointer[_type.GLuint],  # textures
+                                     _Pointer[_type.GLclampf]],  # priorities
+                                    _type.c_int]
+    glPushAttrib: _Callable[[_type.GLbitfield],  # mask
+                            _type.c_int]
+    glPushClientAttrib: _Callable[[_type.GLbitfield],  # mask
+                                  _type.c_int]
     glPushMatrix: _Callable[[],
-                            _type.c_void]
+                            _type.c_int]
+    glPushName: _Callable[[_type.GLuint],  # name
+                          _type.c_int]
+    glRasterPos2d: _Callable[[_type.GLdouble,  # x
+                              _type.GLdouble],  # y
+                             _type.c_int]
+    glRasterPos2dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                              _type.c_int]
+    glRasterPos2f: _Callable[[_type.GLfloat,  # x
+                              _type.GLfloat],  # y
+                             _type.c_int]
+    glRasterPos2fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                              _type.c_int]
+    glRasterPos2i: _Callable[[_type.GLint,  # x
+                              _type.GLint],  # y
+                             _type.c_int]
+    glRasterPos2iv: _Callable[[_Pointer[_type.GLint]],  # v
+                              _type.c_int]
+    glRasterPos2s: _Callable[[_type.GLshort,  # x
+                              _type.GLshort],  # y
+                             _type.c_int]
+    glRasterPos2sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                              _type.c_int]
+    glRasterPos3d: _Callable[[_type.GLdouble,  # x
+                              _type.GLdouble,  # y
+                              _type.GLdouble],  # z
+                             _type.c_int]
+    glRasterPos3dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                              _type.c_int]
+    glRasterPos3f: _Callable[[_type.GLfloat,  # x
+                              _type.GLfloat,  # y
+                              _type.GLfloat],  # z
+                             _type.c_int]
+    glRasterPos3fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                              _type.c_int]
+    glRasterPos3i: _Callable[[_type.GLint,  # x
+                              _type.GLint,  # y
+                              _type.GLint],  # z
+                             _type.c_int]
+    glRasterPos3iv: _Callable[[_Pointer[_type.GLint]],  # v
+                              _type.c_int]
+    glRasterPos3s: _Callable[[_type.GLshort,  # x
+                              _type.GLshort,  # y
+                              _type.GLshort],  # z
+                             _type.c_int]
+    glRasterPos3sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                              _type.c_int]
+    glRasterPos4d: _Callable[[_type.GLdouble,  # x
+                              _type.GLdouble,  # y
+                              _type.GLdouble,  # z
+                              _type.GLdouble],  # w
+                             _type.c_int]
+    glRasterPos4dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                              _type.c_int]
+    glRasterPos4f: _Callable[[_type.GLfloat,  # x
+                              _type.GLfloat,  # y
+                              _type.GLfloat,  # z
+                              _type.GLfloat],  # w
+                             _type.c_int]
+    glRasterPos4fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                              _type.c_int]
+    glRasterPos4i: _Callable[[_type.GLint,  # x
+                              _type.GLint,  # y
+                              _type.GLint,  # z
+                              _type.GLint],  # w
+                             _type.c_int]
+    glRasterPos4iv: _Callable[[_Pointer[_type.GLint]],  # v
+                              _type.c_int]
+    glRasterPos4s: _Callable[[_type.GLshort,  # x
+                              _type.GLshort,  # y
+                              _type.GLshort,  # z
+                              _type.GLshort],  # w
+                             _type.c_int]
+    glRasterPos4sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                              _type.c_int]
+    glReadBuffer: _Callable[[_type.GLenum],  # mode
+                            _type.c_int]
+    glReadPixels: _Callable[[_type.GLint,  # x
+                             _type.GLint,  # y
+                             _type.GLsizei,  # width
+                             _type.GLsizei,  # height
+                             _type.GLenum,  # format
+                             _type.GLenum,  # type
+                             _Pointer[_type.GLvoid]],  # pixels
+                            _type.c_int]
+    glRectd: _Callable[[_type.GLdouble,  # x1
+                        _type.GLdouble,  # y1
+                        _type.GLdouble,  # x2
+                        _type.GLdouble],  # y2
+                       _type.c_int]
+    glRectdv: _Callable[[_Pointer[_type.GLdouble],  # v1
+                         _Pointer[_type.GLdouble]],  # v2
+                        _type.c_int]
+    glRectf: _Callable[[_type.GLfloat,  # x1
+                        _type.GLfloat,  # y1
+                        _type.GLfloat,  # x2
+                        _type.GLfloat],  # y2
+                       _type.c_int]
+    glRectfv: _Callable[[_Pointer[_type.GLfloat],  # v1
+                         _Pointer[_type.GLfloat]],  # v2
+                        _type.c_int]
+    glRecti: _Callable[[_type.GLint,  # x1
+                        _type.GLint,  # y1
+                        _type.GLint,  # x2
+                        _type.GLint],  # y2
+                       _type.c_int]
+    glRectiv: _Callable[[_Pointer[_type.GLint],  # v1
+                         _Pointer[_type.GLint]],  # v2
+                        _type.c_int]
+    glRects: _Callable[[_type.GLshort,  # x1
+                        _type.GLshort,  # y1
+                        _type.GLshort,  # x2
+                        _type.GLshort],  # y2
+                       _type.c_int]
+    glRectsv: _Callable[[_Pointer[_type.GLshort],  # v1
+                         _Pointer[_type.GLshort]],  # v2
+                        _type.c_int]
+    glRotated: _Callable[[_type.GLdouble,  # angle
+                          _type.GLdouble,  # x
+                          _type.GLdouble,  # y
+                          _type.GLdouble],  # z
+                         _type.c_int]
+    glRotatef: _Callable[[_type.GLfloat,  # angle
+                          _type.GLfloat,  # x
+                          _type.GLfloat,  # y
+                          _type.GLfloat],  # z
+                         _type.c_int]
+    glScaled: _Callable[[_type.GLdouble,  # x
+                         _type.GLdouble,  # y
+                         _type.GLdouble],  # z
+                        _type.c_int]
+    glScalef: _Callable[[_type.GLfloat,  # x
+                         _type.GLfloat,  # y
+                         _type.GLfloat],  # z
+                        _type.c_int]
+    glScissor: _Callable[[_type.GLint,  # x
+                          _type.GLint,  # y
+                          _type.GLsizei,  # width
+                          _type.GLsizei],  # height
+                         _type.c_int]
+    glSelectBuffer: _Callable[[_type.GLsizei,  # size
+                               _Pointer[_type.GLuint]],  # buffer
+                              _type.c_int]
+    glShadeModel: _Callable[[_type.GLenum],  # mode
+                            _type.c_int]
+    glStencilFunc: _Callable[[_type.GLenum,  # func
+                              _type.GLint,  # ref
+                              _type.GLuint],  # mask
+                             _type.c_int]
+    glStencilMask: _Callable[[_type.GLuint],  # mask
+                             _type.c_int]
+    glStencilOp: _Callable[[_type.GLenum,  # fail
+                            _type.GLenum,  # zfail
+                            _type.GLenum],  # zpass
+                           _type.c_int]
+    glTexCoord1d: _Callable[[_type.GLdouble],  # s
+                            _type.c_int]
+    glTexCoord1dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                             _type.c_int]
+    glTexCoord1f: _Callable[[_type.GLfloat],  # s
+                            _type.c_int]
+    glTexCoord1fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                             _type.c_int]
+    glTexCoord1i: _Callable[[_type.GLint],  # s
+                            _type.c_int]
+    glTexCoord1iv: _Callable[[_Pointer[_type.GLint]],  # v
+                             _type.c_int]
+    glTexCoord1s: _Callable[[_type.GLshort],  # s
+                            _type.c_int]
+    glTexCoord1sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                             _type.c_int]
+    glTexCoord2d: _Callable[[_type.GLdouble,  # s
+                             _type.GLdouble],  # t
+                            _type.c_int]
+    glTexCoord2dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                             _type.c_int]
+    glTexCoord2f: _Callable[[_type.GLfloat,  # s
+                             _type.GLfloat],  # t
+                            _type.c_int]
+    glTexCoord2fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                             _type.c_int]
+    glTexCoord2i: _Callable[[_type.GLint,  # s
+                             _type.GLint],  # t
+                            _type.c_int]
+    glTexCoord2iv: _Callable[[_Pointer[_type.GLint]],  # v
+                             _type.c_int]
+    glTexCoord2s: _Callable[[_type.GLshort,  # s
+                             _type.GLshort],  # t
+                            _type.c_int]
+    glTexCoord2sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                             _type.c_int]
+    glTexCoord3d: _Callable[[_type.GLdouble,  # s
+                             _type.GLdouble,  # t
+                             _type.GLdouble],  # r
+                            _type.c_int]
+    glTexCoord3dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                             _type.c_int]
+    glTexCoord3f: _Callable[[_type.GLfloat,  # s
+                             _type.GLfloat,  # t
+                             _type.GLfloat],  # r
+                            _type.c_int]
+    glTexCoord3fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                             _type.c_int]
+    glTexCoord3i: _Callable[[_type.GLint,  # s
+                             _type.GLint,  # t
+                             _type.GLint],  # r
+                            _type.c_int]
+    glTexCoord3iv: _Callable[[_Pointer[_type.GLint]],  # v
+                             _type.c_int]
+    glTexCoord3s: _Callable[[_type.GLshort,  # s
+                             _type.GLshort,  # t
+                             _type.GLshort],  # r
+                            _type.c_int]
+    glTexCoord3sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                             _type.c_int]
+    glTexCoord4d: _Callable[[_type.GLdouble,  # s
+                             _type.GLdouble,  # t
+                             _type.GLdouble,  # r
+                             _type.GLdouble],  # q
+                            _type.c_int]
+    glTexCoord4dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                             _type.c_int]
+    glTexCoord4f: _Callable[[_type.GLfloat,  # s
+                             _type.GLfloat,  # t
+                             _type.GLfloat,  # r
+                             _type.GLfloat],  # q
+                            _type.c_int]
+    glTexCoord4fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                             _type.c_int]
+    glTexCoord4i: _Callable[[_type.GLint,  # s
+                             _type.GLint,  # t
+                             _type.GLint,  # r
+                             _type.GLint],  # q
+                            _type.c_int]
+    glTexCoord4iv: _Callable[[_Pointer[_type.GLint]],  # v
+                             _type.c_int]
+    glTexCoord4s: _Callable[[_type.GLshort,  # s
+                             _type.GLshort,  # t
+                             _type.GLshort,  # r
+                             _type.GLshort],  # q
+                            _type.c_int]
+    glTexCoord4sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                             _type.c_int]
+    glTexCoordPointer: _Callable[[_type.GLint,  # size
+                                  _type.GLenum,  # type
+                                  _type.GLsizei,  # stride
+                                  _Pointer[_type.GLvoid]],  # pointer
+                                 _type.c_int]
+    glTexEnvf: _Callable[[_type.GLenum,  # target
+                          _type.GLenum,  # pname
+                          _type.GLfloat],  # param
+                         _type.c_int]
+    glTexEnvfv: _Callable[[_type.GLenum,  # target
+                           _type.GLenum,  # pname
+                           _Pointer[_type.GLfloat]],  # params
+                          _type.c_int]
+    glTexEnvi: _Callable[[_type.GLenum,  # target
+                          _type.GLenum,  # pname
+                          _type.GLint],  # param
+                         _type.c_int]
+    glTexEnviv: _Callable[[_type.GLenum,  # target
+                           _type.GLenum,  # pname
+                           _Pointer[_type.GLint]],  # params
+                          _type.c_int]
+    glTexGend: _Callable[[_type.GLenum,  # coord
+                          _type.GLenum,  # pname
+                          _type.GLdouble],  # param
+                         _type.c_int]
+    glTexGendv: _Callable[[_type.GLenum,  # coord
+                           _type.GLenum,  # pname
+                           _Pointer[_type.GLdouble]],  # params
+                          _type.c_int]
+    glTexGenf: _Callable[[_type.GLenum,  # coord
+                          _type.GLenum,  # pname
+                          _type.GLfloat],  # param
+                         _type.c_int]
+    glTexGenfv: _Callable[[_type.GLenum,  # coord
+                           _type.GLenum,  # pname
+                           _Pointer[_type.GLfloat]],  # params
+                          _type.c_int]
+    glTexGeni: _Callable[[_type.GLenum,  # coord
+                          _type.GLenum,  # pname
+                          _type.GLint],  # param
+                         _type.c_int]
+    glTexGeniv: _Callable[[_type.GLenum,  # coord
+                           _type.GLenum,  # pname
+                           _Pointer[_type.GLint]],  # params
+                          _type.c_int]
+    glTexImage1D: _Callable[[_type.GLenum,  # target
+                             _type.GLint,  # level
+                             _type.GLint,  # internalformat
+                             _type.GLsizei,  # width
+                             _type.GLint,  # border
+                             _type.GLenum,  # format
+                             _type.GLenum,  # type
+                             _Pointer[_type.GLvoid]],  # pixels
+                            _type.c_int]
+    glTexImage2D: _Callable[[_type.GLenum,  # target
+                             _type.GLint,  # level
+                             _type.GLint,  # internalformat
+                             _type.GLsizei,  # width
+                             _type.GLsizei,  # height
+                             _type.GLint,  # border
+                             _type.GLenum,  # format
+                             _type.GLenum,  # type
+                             _Pointer[_type.GLvoid]],  # pixels
+                            _type.c_int]
+    glTexParameterf: _Callable[[_type.GLenum,  # target
+                                _type.GLenum,  # pname
+                                _type.GLfloat],  # param
+                               _type.c_int]
+    glTexParameterfv: _Callable[[_type.GLenum,  # target
+                                 _type.GLenum,  # pname
+                                 _Pointer[_type.GLfloat]],  # params
+                                _type.c_int]
+    glTexParameteri: _Callable[[_type.GLenum,  # target
+                                _type.GLenum,  # pname
+                                _type.GLint],  # param
+                               _type.c_int]
+    glTexParameteriv: _Callable[[_type.GLenum,  # target
+                                 _type.GLenum,  # pname
+                                 _Pointer[_type.GLint]],  # params
+                                _type.c_int]
+    glTexSubImage1D: _Callable[[_type.GLenum,  # target
+                                _type.GLint,  # level
+                                _type.GLint,  # xoffset
+                                _type.GLsizei,  # width
+                                _type.GLenum,  # format
+                                _type.GLenum,  # type
+                                _Pointer[_type.GLvoid]],  # pixels
+                               _type.c_int]
+    glTexSubImage2D: _Callable[[_type.GLenum,  # target
+                                _type.GLint,  # level
+                                _type.GLint,  # xoffset
+                                _type.GLint,  # yoffset
+                                _type.GLsizei,  # width
+                                _type.GLsizei,  # height
+                                _type.GLenum,  # format
+                                _type.GLenum,  # type
+                                _Pointer[_type.GLvoid]],  # pixels
+                               _type.c_int]
+    glTranslated: _Callable[[_type.GLdouble,  # x
+                             _type.GLdouble,  # y
+                             _type.GLdouble],  # z
+                            _type.c_int]
+    glTranslatef: _Callable[[_type.GLfloat,  # x
+                             _type.GLfloat,  # y
+                             _type.GLfloat],  # z
+                            _type.c_int]
+    glVertex2d: _Callable[[_type.GLdouble,  # x
+                           _type.GLdouble],  # y
+                          _type.c_int]
+    glVertex2dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                           _type.c_int]
+    glVertex2f: _Callable[[_type.GLfloat,  # x
+                           _type.GLfloat],  # y
+                          _type.c_int]
+    glVertex2fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                           _type.c_int]
+    glVertex2i: _Callable[[_type.GLint,  # x
+                           _type.GLint],  # y
+                          _type.c_int]
+    glVertex2iv: _Callable[[_Pointer[_type.GLint]],  # v
+                           _type.c_int]
+    glVertex2s: _Callable[[_type.GLshort,  # x
+                           _type.GLshort],  # y
+                          _type.c_int]
+    glVertex2sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                           _type.c_int]
+    glVertex3d: _Callable[[_type.GLdouble,  # x
+                           _type.GLdouble,  # y
+                           _type.GLdouble],  # z
+                          _type.c_int]
+    glVertex3dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                           _type.c_int]
+    glVertex3f: _Callable[[_type.GLfloat,  # x
+                           _type.GLfloat,  # y
+                           _type.GLfloat],  # z
+                          _type.c_int]
+    glVertex3fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                           _type.c_int]
+    glVertex3i: _Callable[[_type.GLint,  # x
+                           _type.GLint,  # y
+                           _type.GLint],  # z
+                          _type.c_int]
+    glVertex3iv: _Callable[[_Pointer[_type.GLint]],  # v
+                           _type.c_int]
+    glVertex3s: _Callable[[_type.GLshort,  # x
+                           _type.GLshort,  # y
+                           _type.GLshort],  # z
+                          _type.c_int]
+    glVertex3sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                           _type.c_int]
+    glVertex4d: _Callable[[_type.GLdouble,  # x
+                           _type.GLdouble,  # y
+                           _type.GLdouble,  # z
+                           _type.GLdouble],  # w
+                          _type.c_int]
+    glVertex4dv: _Callable[[_Pointer[_type.GLdouble]],  # v
+                           _type.c_int]
+    glVertex4f: _Callable[[_type.GLfloat,  # x
+                           _type.GLfloat,  # y
+                           _type.GLfloat,  # z
+                           _type.GLfloat],  # w
+                          _type.c_int]
+    glVertex4fv: _Callable[[_Pointer[_type.GLfloat]],  # v
+                           _type.c_int]
+    glVertex4i: _Callable[[_type.GLint,  # x
+                           _type.GLint,  # y
+                           _type.GLint,  # z
+                           _type.GLint],  # w
+                          _type.c_int]
+    glVertex4iv: _Callable[[_Pointer[_type.GLint]],  # v
+                           _type.c_int]
+    glVertex4s: _Callable[[_type.GLshort,  # x
+                           _type.GLshort,  # y
+                           _type.GLshort,  # z
+                           _type.GLshort],  # w
+                          _type.c_int]
+    glVertex4sv: _Callable[[_Pointer[_type.GLshort]],  # v
+                           _type.c_int]
+    glVertexPointer: _Callable[[_type.GLint,  # size
+                                _type.GLenum,  # type
+                                _type.GLsizei,  # stride
+                                _Pointer[_type.GLvoid]],  # pointer
+                               _type.c_int]
+    glViewport: _Callable[[_type.GLint,  # x
+                           _type.GLint,  # y
+                           _type.GLsizei,  # width
+                           _type.GLsizei],  # height
+                          _type.c_int]
 
 
-class PSAPI(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class psapi(_WinDLL):
     # Psapi
     GetDeviceDriverBaseNameA: _Callable[[_type.LPVOID,  # ImageBase
                                          _type.LPSTR,  # lpFilename
@@ -5831,7 +9374,8 @@ class PSAPI(_FuncMixin, metaclass=_WinDLL):
                                         _type.DWORD]
 
 
-class SetupAPI(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class setupapi(_WinDLL):
     # SetupAPI
     SetupDiCreateDeviceInterfaceA: _Callable[[_type.HDEVINFO,
                                               _Pointer[_struct.SP_DEVINFO_DATA],
@@ -5910,7 +9454,7 @@ class SetupAPI(_FuncMixin, metaclass=_WinDLL):
                                                  _type.BOOL]
 
 
-class SHCore(_FuncMixin, metaclass=_WinDLL):
+class SHCore(_WinDLL):
     # ShellScalingApi
     GetDpiForMonitor: _Callable[[_type.HMONITOR,
                                  _enum.MONITOR_DPI_TYPE,
@@ -5924,12 +9468,14 @@ class SHCore(_FuncMixin, metaclass=_WinDLL):
                                       _type.HRESULT]
 
 
-class SHDocVw(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class shdocvw(_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
 
 
-class Shell32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class shell32(_WinDLL):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 703
@@ -5939,6 +9485,19 @@ class Shell32(_FuncMixin, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     # shellapi
+    SHGetFileInfoA: _Callable[[_type.LPCSTR,  # pszPath
+                               _type.DWORD,  # dwFileAttributes
+                               _Pointer[_struct.SHFILEINFOA],  # psfi
+                               _type.UINT,  # cbFileInfo
+                               _type.UINT],  # uFlags
+                              _type.DWORD_PTR]
+    SHGetFileInfoW: _Callable[[_type.LPCWSTR,  # pszPath
+                               _type.DWORD,  # dwFileAttributes
+                               _Pointer[_struct.SHFILEINFOW],  # psfi
+                               _type.UINT,  # cbFileInfo
+                               _type.UINT],  # uFlags
+                              _type.DWORD_PTR]
+    # TODO
     InitNetworkAddressControl: _Callable[[],
                                          _type.BOOL]
     ShellExecuteA: _Callable[[_Optional[_type.HWND],
@@ -6091,7 +9650,7 @@ class Shell32(_FuncMixin, metaclass=_WinDLL):
                                           _type.LPWSTR],  # pszPath
                                          _type.HRESULT]
     SHParseDisplayName: _Callable[[_type.PCWSTR,  # pszName
-                                   _Optional[_interface.IBindCtx],  # pbc
+                                   _Optional[_objidl.IBindCtx],  # pbc
                                    _Pointer[_Pointer[_struct.ITEMIDLIST]],  # ppidl
                                    _type.SFGAOF,  # sfgaoIn
                                    _Optional[_Pointer[_type.SFGAOF]]],  # psfgaoOut
@@ -6156,13 +9715,13 @@ class Shell32(_FuncMixin, metaclass=_WinDLL):
                                 _type.SHSTDAPI]
     # ShObjIdl_core
     SHCreateItemFromParsingName: _Callable[[_type.PCWSTR,
-                                            _Optional[_Pointer[_interface.IBindCtx]],
+                                            _Optional[_Pointer[_objidl.IBindCtx]],
                                             _Pointer[_struct.IID],
-                                            _Pointer[_interface.IShellItem]],
+                                            _Pointer[_ShObjIdl_core.IShellItem]],
                                            _type.SHSTDAPI]
     SHCreateShellItemArrayFromIDLists: _Callable[[_type.UINT,
                                                   _Pointer[_Pointer[_struct.ITEMIDLIST]],
-                                                  _Pointer[_interface.IShellItemArray]],
+                                                  _Pointer[_ShObjIdl_core.IShellItemArray]],
                                                  _type.SHSTDAPI]
     SHGetKnownFolderPath: _Callable[[_Pointer[_struct.KNOWNFOLDERID],
                                      _enum.KNOWN_FOLDER_FLAG,
@@ -6170,14 +9729,15 @@ class Shell32(_FuncMixin, metaclass=_WinDLL):
                                      _Pointer[_type.PWSTR]],
                                     _type.HRESULT]
     SHGetPropertyStoreFromParsingName: _Callable[[_type.PCWSTR,
-                                                  _Optional[_Pointer[_interface.IBindCtx]],
+                                                  _Optional[_Pointer[_objidl.IBindCtx]],
                                                   _enum.GETPROPERTYSTOREFLAGS,
                                                   _Pointer[_struct.IID],
-                                                  _Pointer[_interface.IPropertyStore]],
+                                                  _Pointer[_propsys.IPropertyStore]],
                                                  _type.SHSTDAPI]
 
 
-class ShlWAPI(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class shlwapi(_WinDLL):
     GUIDFromStringA: _Callable[[_type.LPCSTR,
                                 _Pointer[_struct.GUID]],
                                _type.BOOL] = 269
@@ -6187,50 +9747,89 @@ class ShlWAPI(_FuncMixin, metaclass=_WinDLL):
     DllGetVersion: _Callable[[_Pointer[_struct.DLLVERSIONINFO]],
                              _type.HRESULT]
     # Shlwapi
+    PathMakePrettyA: _Callable[[_type.LPCSTR],  # pszPath
+                               _type.BOOL]
+    PathMakePrettyW: _Callable[[_type.LPCWSTR],  # pszPath
+                               _type.BOOL]
+    PathMatchSpecA: _Callable[[_type.LPCSTR,  # pszFile
+                               _type.LPCSTR],  # pszSpec
+                              _type.BOOL]
+    PathMatchSpecW: _Callable[[_type.LPCWSTR,  # pszFile
+                               _type.LPCWSTR],  # pszSpec
+                              _type.BOOL]
+    PathMatchSpecExA: _Callable[[_type.LPCSTR,  # pszFile
+                                 _type.LPCSTR,  # pszSpec
+                                 _type.DWORD],  # dwFlags
+                                _type.BOOL]
+    PathMatchSpecExW: _Callable[[_type.LPCWSTR,  # pszFile
+                                 _type.LPCWSTR,  # pszSpec
+                                 _type.DWORD],  # dwFlags
+                                _type.BOOL]
+    PathSkipRootA: _Callable[[_type.LPCSTR],  # pszPath
+                             _type.LPSTR]
+    PathSkipRootA: _Callable[[_type.LPCWSTR],  # pszPath
+                             _type.LPWSTR]
+    PathStripPathA: _Callable[[_type.LPSTR],  # pszPath
+                              _type.c_void]
+    PathStripPathW: _Callable[[_type.LPWSTR],  # pszPath
+                              _type.c_void]
+    PathStripToRootA: _Callable[[_type.LPSTR],  # pszPath
+                                _type.BOOL]
+    PathStripToRootW: _Callable[[_type.LPWSTR],  # pszPath
+                                _type.BOOL]
+    PathUnmakeSystemFolderA: _Callable[[_type.LPSTR],  # pszPath
+                                       _type.BOOL]
+    PathUnmakeSystemFolderW: _Callable[[_type.LPWSTR],  # pszPath
+                                       _type.BOOL]
+    PathUndecorateA: _Callable[[_type.LPSTR],  # pszPath
+                               _type.c_void]
+    PathUndecorateW: _Callable[[_type.LPWSTR],  # pszPath
+                               _type.c_void]
+    # TODO
     IsInternetESCEnabled: _Callable[[],
                                     _type.BOOL]
-    IStream_Copy: _Callable[[_interface.IStream,
-                             _interface.IStream,
+    IStream_Copy: _Callable[[_objidlbase.IStream,
+                             _objidlbase.IStream,
                              _type.DWORD],
                             _type.HRESULT]
-    IStream_Read: _Callable[[_interface.IStream,
+    IStream_Read: _Callable[[_objidlbase.IStream,
                              _type.c_void_p,
                              _type.ULONG],
                             _type.HRESULT]
-    IStream_ReadStr: _Callable[[_interface.IStream,
+    IStream_ReadStr: _Callable[[_objidlbase.IStream,
                                 _Pointer[_type.PCWSTR]],
                                _type.HRESULT]
-    IStream_Reset: _Callable[[_interface.IStream],  # pstm
+    IStream_Reset: _Callable[[_objidlbase.IStream],  # pstm
                              _type.HRESULT]
-    IStream_Size: _Callable[[_interface.IStream,  # pstm
+    IStream_Size: _Callable[[_objidlbase.IStream,  # pstm
                              _Pointer[_union.ULARGE_INTEGER]],  # pui
                             _type.HRESULT]
-    IStream_Write: _Callable[[_interface.IStream,
+    IStream_Write: _Callable[[_objidlbase.IStream,
                               _type.c_void_p,
                               _type.ULONG],
                              _type.HRESULT]
-    IStream_WriteStr: _Callable[[_interface.IStream,
+    IStream_WriteStr: _Callable[[_objidlbase.IStream,
                                  _Pointer[_type.PCWSTR]],
                                 _type.HRESULT]
     IUnknown_AtomicRelease: _Callable[[_type.c_void_p],
                                       _type.HRESULT]
-    IUnknown_GetSite: _Callable[[_interface.IUnknown,
+    IUnknown_GetSite: _Callable[[_Unknwnbase.IUnknown,
                                  _Pointer[_struct.IID],
                                  _type.c_void_p],
                                 _type.HRESULT]
-    IUnknown_GetWindow: _Callable[[_interface.IUnknown,
+    IUnknown_GetWindow: _Callable[[_Unknwnbase.IUnknown,
                                    _Pointer[_type.HWND]],
                                   _type.HRESULT]
-    IUnknown_QueryService: _Callable[[_interface.IUnknown,
+    IUnknown_QueryService: _Callable[[_Unknwnbase.IUnknown,
                                       _Pointer[_struct.GUID],
                                       _Pointer[_struct.IID],
                                       _type.c_void_p],
                                      _type.HRESULT]
-    IUnknown_Set: _Callable[[_Pointer[_interface.IUnknown],
-                             _Optional[_interface.IUnknown]],
+    IUnknown_Set: _Callable[[_Pointer[_Unknwnbase.IUnknown],
+                             _Optional[_Unknwnbase.IUnknown]],
                             _type.HRESULT]
-    IUnknown_SetSite: _Callable[[_interface.IUnknown,
-                                 _Optional[_interface.IUnknown]],
+    IUnknown_SetSite: _Callable[[_Unknwnbase.IUnknown,
+                                 _Optional[_Unknwnbase.IUnknown]],
                                 _type.HRESULT]
     PathAddBackslashA: _Callable[[_type.LPSTR],
                                  _type.LPSTR]
@@ -6452,42 +10051,42 @@ class ShlWAPI(_FuncMixin, metaclass=_WinDLL):
                                   _type.BOOL]
     SHCreateMemStream: _Callable[[_Pointer[_type.BYTE],
                                   _type.UINT],
-                                 _interface.IStream]
+                                 _objidlbase.IStream]
     SHCreateStreamOnFileA: _Callable[[_type.LPCSTR,  # pszFile
                                       _type.DWORD,  # grfMode
-                                      _Pointer[_interface.IStream]],  # ppstm
+                                      _Pointer[_objidlbase.IStream]],  # ppstm
                                      _type.HRESULT]
     SHCreateStreamOnFileW: _Callable[[_type.LPCWSTR,  # pszFile
                                       _type.DWORD,  # grfMode
-                                      _Pointer[_interface.IStream]],  # ppstm
+                                      _Pointer[_objidlbase.IStream]],  # ppstm
                                      _type.HRESULT]
     SHCreateStreamOnFileEx: _Callable[[_type.LPCWSTR,
                                        _type.DWORD,
                                        _type.DWORD,
                                        _type.BOOL,
-                                       _Optional[_interface.IStream],
-                                       _Pointer[_interface.IStream]],
+                                       _Optional[_objidlbase.IStream],
+                                       _Pointer[_objidlbase.IStream]],
                                       _type.HRESULT]
     SHOpenRegStreamA: _Callable[[_type.HKEY,
                                  _Optional[_type.LPCSTR],
                                  _Optional[_type.LPCSTR],
                                  _type.DWORD],
-                                _interface.IStream]
+                                _objidlbase.IStream]
     SHOpenRegStreamW: _Callable[[_type.HKEY,
                                  _Optional[_type.LPCWSTR],
                                  _Optional[_type.LPCWSTR],
                                  _type.DWORD],
-                                _interface.IStream]
+                                _objidlbase.IStream]
     SHOpenRegStream2A: _Callable[[_type.HKEY,
                                   _Optional[_type.LPCSTR],
                                   _Optional[_type.LPCSTR],
                                   _type.DWORD],
-                                 _interface.IStream]
+                                 _objidlbase.IStream]
     SHOpenRegStream2W: _Callable[[_type.HKEY,
                                   _Optional[_type.LPCWSTR],
                                   _Optional[_type.LPCWSTR],
                                   _type.DWORD],
-                                 _interface.IStream]
+                                 _objidlbase.IStream]
     UrlGetLocationA: _Callable[[_type.PCSTR],
                                _type.LPCSTR]
     UrlGetLocationW: _Callable[[_type.PCWSTR],
@@ -6508,7 +10107,8 @@ class ShlWAPI(_FuncMixin, metaclass=_WinDLL):
                                _type.BOOL]
 
 
-class User32(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class user32(_WinDLL):
     MessageBoxTimeoutA: _Callable[[_Optional[_type.HWND],  # hWnd
                                    _Optional[_type.LPCSTR],  # lpText
                                    _Optional[_type.LPCSTR],  # lpCaption
@@ -7663,7 +11263,8 @@ class User32(_FuncMixin, metaclass=_WinDLL):
                             _type.HWND]
 
 
-class UXTheme(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class uxtheme(_WinDLL):
     OpenNcThemeData: _Callable[[_type.HWND,  # hWnd
                                 _type.LPCWSTR],  # pszClassList
                                _type.HTHEME] = 49
@@ -7970,25 +11571,8 @@ class UXTheme(_FuncMixin, metaclass=_WinDLL):
                                      _type.BOOL]
 
 
-class WebView2Loader(_FuncMixin, metaclass=_WinDLL):
-    # WebView2
-    CreateCoreWebView2EnvironmentWithOptions: _Callable[[_type.PCWSTR,  # browserExecutableFolder
-                                                         _type.PCWSTR,  # userDataFolder
-                                                         _interface.ICoreWebView2EnvironmentOptions,  # environmentOptions
-                                                         _interface.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler],  # environmentCreatedHandler
-                                                        _type.HRESULT]
-    CreateCoreWebView2Environment: _Callable[[_interface.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler],  # environmentCreatedHandler
-                                             _type.HRESULT]
-    GetAvailableCoreWebView2BrowserVersionString: _Callable[[_type.PCWSTR,  # browserExecutableFolder
-                                                             _Pointer[_type.LPWSTR]],  # versionInfo
-                                                            _type.HRESULT]
-    CompareBrowserVersions: _Callable[[_type.PCWSTR,  # version1
-                                       _type.PCWSTR,  # version2
-                                       _Pointer[_type.c_int]],  # result
-                                      _type.HRESULT]
-
-
-class WinINet(_FuncMixin, metaclass=_WinDLL):
+# noinspection PyPep8Naming
+class wininet(_WinDLL):
     # wininet
     InternetCloseHandle: _Callable[[_type.HINTERNET],  # hInternet
                                    _type.BOOLAPI]
@@ -8067,16 +11651,34 @@ class WinINet(_FuncMixin, metaclass=_WinDLL):
 
 class Microsoft:
     class UI:
-        class Xaml(_FuncMixin, metaclass=_WinDLL):
+        class Xaml(_WinDLL):
             DllGetActivationFactory: _Callable[[_type.HSTRING,
-                                                _Pointer[_interface.IActivationFactory]],
+                                                _Pointer[_activation.IActivationFactory]],
                                                _type.HRESULT]
 
     class WindowsAppRuntime:
-        class Bootstrap(_FuncMixin, metaclass=_WinDLL):
+        class Bootstrap(_WinDLL):
             MddBootstrapInitialize: _Callable[[_type.UINT32,
                                                _type.PCWSTR,
                                                _struct.PACKAGE_VERSION],
                                               _type.HRESULT]
             MddBootstrapShutdown: _Callable[[],
                                             _type.c_void]
+
+
+class WebView2Loader(_WinDLL):
+    # WebView2
+    CreateCoreWebView2EnvironmentWithOptions: _Callable[[_type.PCWSTR,  # browserExecutableFolder
+                                                         _type.PCWSTR,  # userDataFolder
+                                                         _WebView2.ICoreWebView2EnvironmentOptions,  # environmentOptions
+                                                         _WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler],  # environmentCreatedHandler
+                                                        _type.HRESULT]
+    CreateCoreWebView2Environment: _Callable[[_WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler],  # environmentCreatedHandler
+                                             _type.HRESULT]
+    GetAvailableCoreWebView2BrowserVersionString: _Callable[[_type.PCWSTR,  # browserExecutableFolder
+                                                             _Pointer[_type.LPWSTR]],  # versionInfo
+                                                            _type.HRESULT]
+    CompareBrowserVersions: _Callable[[_type.PCWSTR,  # version1
+                                       _type.PCWSTR,  # version2
+                                       _Pointer[_type.c_int]],  # result
+                                      _type.HRESULT]

@@ -1,10 +1,11 @@
+from __future__ import annotations as _
+
 import ctypes
-import functools
-import io
 import ntpath
 import os
 import sys
 import time
+from typing import Optional, TextIO
 
 
 # FIXME Fatal Python error: init_fs_encoding: failed to get the Python codec of the filesystem encoding (3.11)
@@ -170,18 +171,29 @@ class StringNamedPipe(_NamedPipe):
     _base = type(ctyped.type.c_wchar().value)()
 
 
-class StringNamedPipeClient:
-    def __init__(self, name: str, cache: bool = False):
-        self._cache = cache
-        self._console = StringNamedPipe(name)
-        self._io = io.StringIO()
-        self._std_write = sys.stdout.write, sys.stderr.write
-        sys.stdout.write = self.write
-        sys.stderr.write = functools.partial(self.write, stderr=True)
+class _Writer:
+    def __init__(self, pipe: StringNamedPipeClient, target: Optional[TextIO]):
+        self.target = target
+        if target is None:
+            self.write = pipe.write
+            self.flush = pipe.flush
+        else:
+            self._pipe = pipe
 
-    def __del__(self):
-        sys.stdout.write, sys.stderr.write = self._std_write
-        self.disconnect()
+    def write(self, text: str) -> int:
+        self._pipe.write(text)
+        return self.target.write(text)
+
+    def flush(self):
+        self._pipe.flush()
+        self.target.flush()
+
+
+class StringNamedPipeClient:
+    def __init__(self, name: str):
+        self._console = StringNamedPipe(name)
+        self._out = sys.stdout = _Writer(self, sys.stdout)
+        self._err = sys.stderr = _Writer(self, sys.stderr)
 
     def __bool__(self):
         return bool(self._console) and self._console.exists()
@@ -196,18 +208,16 @@ class StringNamedPipeClient:
         return bool(self)
 
     def disconnect(self) -> bool:
+        sys.stdout = self._out.target
+        sys.stderr = self._err.target
         return self._console.close()
 
-    def write(self, text: str, stderr: bool = False):
-        if self._cache:
-            self._io.write(text)
-        if self:
-            self._console.write(text)
-        self._std_write[stderr](text)
+    def write(self, text: str) -> int:
+        return self._console.write(text) if self else 0
 
     def flush(self):
-        self._io.seek(0)
-        self._console.write(self._io.read())
+        if self:
+            self._console.flush()
 
 
 def create_server(name: str):

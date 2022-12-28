@@ -3,7 +3,9 @@ from __future__ import annotations as _
 import ctypes as _ctypes
 import typing as _typing
 
-from . import const as _const, struct as _struct, type as _type
+from . import const as _const
+from . import struct as _struct
+from . import type as _type
 from ._utils import _Globals, _Pointer, _fields_repr, _resolve_type
 
 if None:
@@ -284,7 +286,8 @@ class _Union(_ctypes.Union):
 
 def _init(item: str) -> type:
     return type(item, (_Union,), {'_fields_': tuple((name, _resolve_type(
-        annot)) for name, annot in _typing.get_type_hints(_globals.vars_[item], _globals, _globals).items())})
+        hints)) for name, hints in _typing.get_type_hints(
+        _globals.vars_[item], _globals, _globals).items())})
 
 
 _globals = _Globals()

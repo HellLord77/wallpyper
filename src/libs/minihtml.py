@@ -54,12 +54,12 @@ class Element:
         self.name = tag
         self.attributes = attrs
         self.parent = parent
-        self.child = []
+        self.children = []
         self.datas = []
         self.comments = []
         self.decls = ()
         if parent:
-            parent.child.append(self)
+            parent.children.append(self)
 
     def __eq__(self, other):
         return str(self) == str(other)
@@ -69,13 +69,13 @@ class Element:
             attributes = ' ' + ' '.join(f'{name}="{value}"' for name, value in self.attributes.items())
         else:
             attributes = ''
-        return f'<{self.name}{attributes}>{"".join(str(children) for children in self.child)}</{self.name}>'
+        return f'<{self.name}{attributes}>{"".join(str(children) for children in self.children)}</{self.name}>'
 
-    def iter_all_child(self, depth: int = -1) -> Generator[Element, None, None]:
+    def iter_all_children(self, depth: int = -1) -> Generator[Element, None, None]:
         if depth:
-            for children in self.child:
-                yield children
-                yield from children.iter_all_child(depth - 1)
+            for child in self.children:
+                yield child
+                yield from child.iter_all_children(depth - 1)
 
     def iter_all_parents(self, height: int = -1) -> Generator[Element, None, None]:
         if height and self.parent:
@@ -92,14 +92,14 @@ class Element:
 
     def iter_next_siblings(self) -> Generator[Element, None, None]:
         if self.parent:
-            yield from itertools.islice(self.parent.child, self.parent.child.index(self) + 1, None)
+            yield from itertools.islice(self.parent.children, self.parent.children.index(self) + 1, None)
 
     def iter_previous_siblings(self) -> Generator[Element, None, None]:
         if self.parent:
-            yield from itertools.islice(self.parent.child, None, self.parent.child.index(self))
+            yield from itertools.islice(self.parent.children, None, self.parent.children.index(self))
 
 
-def _match(pattern: Optional[str | re.Pattern | Callable[[str, ...], bool]], string: Optional[str]) -> bool:
+def _match(pattern: Optional[str | re.Pattern | Callable[[str], bool]], string: Optional[str]) -> bool:
     if pattern is None:
         return True
     elif string is None:
@@ -113,16 +113,16 @@ def _match(pattern: Optional[str | re.Pattern | Callable[[str, ...], bool]], str
 
 
 # noinspection PyShadowingBuiltins
-def find_element(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str, ...], bool]] = None,
-                 attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str, ...], bool]]]] = None,
+def find_element(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str], bool]] = None,
+                 attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str], bool]]]] = None,
                  filter: Optional[Callable[[Element], bool]] = None) -> Optional[Element]:
     for element in find_elements(elements, name, attributes, filter):
         return element
 
 
 # noinspection PyShadowingBuiltins
-def find_elements(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str, ...], bool]] = None,
-                  attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str, ...], bool]]]] = None,
+def find_elements(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str], bool]] = None,
+                  attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str], bool]]]] = None,
                   filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Generator[Element, None, None]:
     for element in elements:
         if not count:

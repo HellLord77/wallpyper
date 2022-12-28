@@ -139,7 +139,7 @@ class ISO15924(metaclass=_ISOMeta):
 
 
 if __debug__:
-    def _download_json():
+    def _download():
         import gc
         import urllib.parse
         import urllib.request

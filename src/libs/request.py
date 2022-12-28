@@ -30,7 +30,7 @@ class Status:
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
     def redirect_request(*_):
-        return
+        pass
 
 
 _MIN_CHUNK = 32 * 1024

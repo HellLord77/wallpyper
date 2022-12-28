@@ -3,7 +3,7 @@ __copyright__ = ''
 __credits__ = ['HellLord']
 
 __license__ = ''
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 __maintainer__ = 'HellLord'
 __email__ = 'ratul.debnath.year@gmail.com'
 __status__ = 'Development'
@@ -23,9 +23,10 @@ def target():
 def main():
     multiprocessing.freeze_support()
     counter = itertools.count(1)
-    exitcode = consts.EX_TEMPFAIL
-    while exitcode == consts.EX_TEMPFAIL:
-        process = multiprocessing.Process(target=target, name=f'{consts.NAME}-{__version__}-{next(counter)}', daemon=True)
+    exitcode = consts.CODE_RESTART
+    while exitcode == consts.CODE_RESTART:
+        process = multiprocessing.Process(
+            target=target, name=f'{consts.NAME}-{__version__}-{next(counter)}', daemon=True)
         process.start()
         process.join()
         exitcode = process.exitcode

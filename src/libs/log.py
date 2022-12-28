@@ -3,6 +3,7 @@ __version__ = '0.0.12'
 import atexit
 import contextlib
 import datetime
+import functools
 import io
 import logging
 import os
@@ -77,8 +78,8 @@ def _excepthook(excepthook: Callable, *args, **kwargs):
 def write_on_exception(path: str):
     global _DUMP
     _DUMP = False
-    sys.excepthook = types.MethodType(_excepthook, sys.excepthook)
-    threading.excepthook = types.MethodType(_excepthook, threading.excepthook)
+    sys.excepthook = functools.partial(_excepthook, sys.excepthook)
+    threading.excepthook = functools.partial(_excepthook, threading.excepthook)
     redirect_stdout(path, True, True)
 
 
@@ -172,9 +173,9 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, ch
     if check_comp:
         _fix_compatibility()
     if _WRITE:
-        sys.stdout.write = types.MethodType(_WRITE, sys.stdout.write)
+        sys.stdout.write = functools.partial(_WRITE, sys.stdout.write)
         if sys.stdout is not sys.stderr:
-            sys.stderr.write = types.MethodType(_WRITE, sys.stderr.write)
+            sys.stderr.write = functools.partial(_WRITE, sys.stderr.write)
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
         logging.error(f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])

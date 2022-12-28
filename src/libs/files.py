@@ -1,4 +1,4 @@
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 import contextlib
 import filecmp
@@ -18,13 +18,14 @@ POLL_INTERVAL = 0.1
 
 
 class File:
-    __slots__ = 'url', 'name', '_size', '_md5', '_sha256'
+    __slots__ = 'url', 'name', 'size', '_md5', '_sha256'
+    _algorithms = {f'_{algorithm}' for algorithm in hashlib.algorithms_available}.intersection(__slots__)
 
     def __init__(self, url: str, name: str, size: int = 0,
                  md5: Optional[bytes] = None, sha256: Optional[bytes] = None):
         self.url = url
         self.name = name
-        self._size = size
+        self.size = size
         self._md5 = md5
         self._sha256 = sha256
 
@@ -32,28 +33,28 @@ class File:
         return bool(str(self))
 
     def __int__(self):
-        return self._size
-
-    def __str__(self):
-        return self.url
+        return self.size
 
     def __eq__(self, other):
-        return str(self) == str(other)
+        return self.url == (other.url if isinstance(other, File) else other)
 
     def __hash__(self):
-        return hash(str(self))
+        return hash(self.url)
 
     def checksum(self, path: str) -> bool:
-        return os.path.isfile(path) and any(check_hash(path, getattr(
-            self, name, None), name) for name in hashlib.algorithms_available)
+        if os.path.isfile(path):
+            for algorithm in self._algorithms:
+                if getattr(self, algorithm) is not None:
+                    return check_hash(path, getattr(self, algorithm), algorithm[1:])
+        return False
 
     def fill(self, path: str) -> bool:
         if os.path.isfile(path):
-            if self._size is None:
-                self._size = os.path.getsize(path)
-            for name in hashlib.algorithms_available:
-                if getattr(self, name, b'') is None:
-                    setattr(self, name, get_hash(path, name).digest())
+            if self.size is None:
+                self.size = os.path.getsize(path)
+            for algorithm in self._algorithms:
+                if getattr(self, algorithm) is None:
+                    setattr(self, algorithm, get_hash(path, algorithm[1:]).digest())
             return True
         return False
 

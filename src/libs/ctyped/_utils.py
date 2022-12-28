@@ -1,4 +1,5 @@
 import ctypes as _ctypes
+import functools as _functools
 import gc as _gc
 import inspect as _inspect
 import os as _os
@@ -8,7 +9,13 @@ import types as _types
 import typing as _typing
 from typing import Any as _Any, Generator as _Generator, Generic as _Generic, Optional as _Optional, Sequence as _Sequence
 
+import _ctypes as __ctypes
+
 _CT = _typing.TypeVar('_CT')
+# noinspection PyProtectedMember
+_SimpleCData = __ctypes._SimpleCData
+_PyCSimpleType = type(_SimpleCData)
+_CArgObject = type(_ctypes.byref(_ctypes.c_void_p()))
 
 
 class _Pointer(_Generic[_CT], _Sequence[_CT]):
@@ -83,17 +90,17 @@ class _Globals(dict):
 
 
 # noinspection PyUnusedLocal
-def _addressof(obj: _CT) -> int:
+def _addressof(obj: _CT, /) -> int:
     pass
 
 
 # noinspection PyUnusedLocal
-def _sizeof(obj_or_type: _CT) -> int:
+def _sizeof(obj_or_type: _CT, /) -> int:
     pass
 
 
 # noinspection PyUnusedLocal
-def _byref(obj: _CT) -> _Pointer[_CT]:
+def _byref(obj: _CT, /) -> _Pointer[_CT]:
     pass
 
 
@@ -111,14 +118,25 @@ def _cast(obj: _Any, type: type[_CT]) -> _Pointer[_CT]:
     try:
         return _ctypes.cast(obj, type)
     except _ctypes.ArgumentError:
-        return _cast(_ctypes.byref(obj), type)
+        return _cast(_byref(obj), type)
     except TypeError:
         return _cast(obj, _ctypes.POINTER(type))
 
 
 # noinspection PyShadowingBuiltins
+@_functools.cache
+def _is_unsigned(type: type[_CT]) -> bool:
+    # noinspection PyUnresolvedReferences
+    return type(-1).value != -1
+
+
+# noinspection PyShadowingBuiltins
 def _cast_int(obj: int, type: _CT) -> int:
-    return obj & (2 ** (_ctypes.sizeof(type) * 8) - 1)
+    mask = 1 << (_sizeof(type) * 8)
+    obj &= mask - 1
+    if not _is_unsigned(type) and obj & (mask >> 1):
+        obj -= mask
+    return obj
 
 
 def _dummy(arg: _CT) -> _CT:
@@ -154,17 +172,8 @@ def _func_doc(name: str, restype: _Any, argtypes: _Sequence, annotations: tuple[
     return _pretty_tuples(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, '__name__', restype)), name=name)
 
 
-def _fields_repr(self) -> str:
-    return f'{type(self).__name__}({", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)})'
-
-
-# noinspection PyShadowingBuiltins
-def _get_namespace(type: type, base: _Optional[_types.ModuleType] = None):
-    if base is None:
-        base = _inspect.getmodule(type)
-    for namespace in type.__qualname__.split('.')[:-1]:
-        base = getattr(base, namespace)
-    return base
+def _fields_repr(self: _ctypes.Structure | _ctypes.Union) -> str:
+    return f'<{"Struct" if isinstance(self, _ctypes.Structure) else "Union"}: {type(self).__name__}<{", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)}>>'
 
 
 def _replace_object(old, new):
@@ -181,14 +190,15 @@ def _replace_object(old, new):
 
 
 def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
-    if args and hasattr(annot, '_args'):
+    if args is not None and hasattr(annot, '_args'):
         annot = annot.__mro__[1][tuple(args.values())]
     # noinspection PyUnresolvedReferences,PyProtectedMember
     if isinstance(annot, _typing._CallableType):
         annot = [_ctypes.c_void_p]
     elif isinstance(annot, _typing._CallableGenericAlias):
-        types = _typing.get_args(annot)
-        annot = [_resolve_type(types[1], args), *(_resolve_type(type_, args) for type_ in types[0])]
+        args_res = _typing.get_args(annot)
+        annot = [_resolve_type(args_res[1], args), *(
+            _resolve_type(arg, args) for arg in args_res[0])]
     else:
         # noinspection PyUnresolvedReferences,PyProtectedMember
         if isinstance(annot, _typing._UnionGenericAlias):
@@ -201,7 +211,7 @@ def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
 
 
 # noinspection PyShadowingBuiltins
-def _get_winrt_class_name(type: type[_CT]) -> str:
+def _get_winrt_class_name(type: type[_CT]) -> str:  # TODO remove
     namespace, name = type.__qualname__.rsplit('.', 1)
     name = name.removeprefix('I').removesuffix('_impl')
     while name[-1].isdigit():
@@ -219,7 +229,8 @@ def _init():
     for func in (_addressof, _sizeof, _byref):
         globals_[func.__name__] = getattr(_ctypes, func.__name__[1:])
     for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
-        _sys.modules[module.name] = _sys.modules.get(module.name, _Module(module.name))
+        if module.name.rsplit('.', 1)[1] not in ('const', 'interface', 'winrt'):  # TODO
+            _sys.modules[module.name] = _sys.modules.get(module.name, _Module(module.name))
 
 
 _init()

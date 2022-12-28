@@ -7,6 +7,7 @@ import uuid
 from typing import ContextManager, Optional
 
 from libs import ctyped
+from libs.ctyped.interface.um import DispEx, ExDisp, oaidl, ocidl
 from . import _mshtml, _utils
 
 _SEEK_ARGS = ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET.value, None
@@ -24,8 +25,7 @@ def _temp_var(window: _mshtml.HTMLWindow2, val: str) -> ContextManager[str]:
 
 class Browser:
     def __init__(self, url: str = 'about:blank'):
-        ctyped.lib.Ole32.CoInitialize(None)
-        with ctyped.init_com(ctyped.interface.IWebBrowser2) as browser:
+        with ctyped.interface.COM[ExDisp.IWebBrowser2]() as browser:
             self._browser = _mshtml.WebBrowser2(browser)
         self._browser.navigate(url)
 
@@ -33,7 +33,6 @@ class Browser:
         if self._browser:
             self._browser.quit()
             self._browser = None
-        ctyped.lib.Ole32.CoUninitialize()
 
     def navigate(self, url: str) -> bool:
         return self._browser.navigate(url)
@@ -67,15 +66,13 @@ class Browser:
 
     def get_static_html(self) -> Optional[str]:
         html = None
-        # noinspection PyTypeChecker
-        stream = ctyped.lib.ShlWAPI.SHCreateMemStream(None, 0)
+        stream = ctyped.lib.shlwapi.SHCreateMemStream(ctyped.NULLPTR, 0)
         if stream:
-            with ctyped.init_com(ctyped.interface.IDispatch, False) as dispatch:
-                self._browser.obj.get_Document(ctyped.byref(dispatch))
-                with ctyped.cast_com(dispatch, ctyped.interface.IPersistStreamInit) as persist_stream:
-                    persist_stream.Save(stream, ctyped.const.TRUE)
-            # noinspection PyTypeChecker
-            stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, None)
+            dispatch = ctyped.interface.COM[oaidl.IDispatch]()
+            self._browser.interface.get_Document(~dispatch)
+            with dispatch[ocidl.IPersistStreamInit] as persist_stream:
+                persist_stream.Save(stream, ctyped.const.TRUE)
+            stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.NULLPTR)
             stat = ctyped.struct.STATSTG()
             stream.Stat(ctyped.byref(stat), ctyped.enum.STATFLAG.NONAME | ctyped.enum.STATFLAG.NOOPEN)
             with ctyped.buffer(stat.cbSize.QuadPart) as buffer:
@@ -86,9 +83,9 @@ class Browser:
             stream.Release()
         return html
 
-    def call_js(self, func: str, *args: str) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:  # TODO argtypes
-        with _temp_var(window := self._browser.document.parent_window, func) as var, ctyped.cast_com(
-                window.obj, ctyped.interface.IDispatchEx) as window_ex:
+    def call_js(self, func: str, *args: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:  # TODO argtypes
+        with _temp_var(window := self._browser.document.parent_window, func) as var, \
+                ctyped.interface.COM[DispEx.IDispatchEx](window.interface) as window_ex:
             disp_id = ctyped.type.DISPID()
             with _utils.get_bstr(var) as bstr:
                 window_ex.GetDispID(bstr, ctyped.const.fdexNameCaseSensitive, ctyped.byref(disp_id))
@@ -98,33 +95,33 @@ class Browser:
                 for index, arg in enumerate(reversed(args)):
                     s = params.rgvarg[index].U.S
                     s.vt = ctyped.enum.VARENUM.BSTR.value
-                    s.U.bstrVal = ctyped.lib.OleAut32.SysAllocString(arg)
+                    s.U.bstrVal = ctyped.lib.oleaut32.SysAllocString(arg)
                 try:
                     result = ctyped.struct.VARIANT()
-                    window.obj.Invoke(disp_id, ctyped.byref(ctyped.struct.IID()), 0, ctyped.const.DISPATCH_METHOD,
-                                      ctyped.byref(params), ctyped.byref(result), None, None)
+                    window.interface.Invoke(disp_id, ctyped.byref(ctyped.struct.IID()), 0, ctyped.const.DISPATCH_METHOD,
+                                            ctyped.byref(params), ctyped.byref(result), None, None)
                     try:
                         return _utils.get_variant_value(result)
                     finally:
-                        ctyped.lib.OleAut32.VariantClear(ctyped.byref(result))
+                        ctyped.lib.oleaut32.VariantClear(ctyped.byref(result))
                 finally:
                     for index in range(len(args)):
-                        ctyped.lib.OleAut32.VariantClear(ctyped.byref(params.rgvarg[index]))
+                        ctyped.lib.oleaut32.VariantClear(ctyped.byref(params.rgvarg[index]))
 
-    def _eval_js(self, code: str) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:
+    def _eval_js(self, code: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:
         source = code.replace('"', '\\"')
         with _temp_var(window := self._browser.document.parent_window, f'eval("{source}")') as var:
             disp_id = ctyped.type.DISPID()
-            with ctyped.cast_com(window.obj, ctyped.interface.IDispatchEx) as window_ex, _utils.get_bstr(var) as bstr:
+            with ctyped.interface.COM[DispEx.IDispatchEx](window.interface) as window_ex, _utils.get_bstr(var) as bstr:
                 window_ex.GetDispID(bstr, ctyped.const.fdexNameCaseSensitive, ctyped.byref(disp_id))
             result = ctyped.struct.VARIANT()
-            window.obj.Invoke(disp_id, ctyped.byref(
+            window.interface.Invoke(disp_id, ctyped.byref(
                 ctyped.struct.IID()), ctyped.const.LOCALE_SYSTEM_DEFAULT, ctyped.const.DISPATCH_PROPERTYGET,
-                              ctyped.byref(ctyped.struct.DISPPARAMS()), ctyped.byref(result), None, None)
+                                    ctyped.byref(ctyped.struct.DISPPARAMS()), ctyped.byref(result), None, None)
             try:
                 return _utils.get_variant_value(result)
             finally:
-                ctyped.lib.OleAut32.VariantClear(ctyped.byref(result))
+                ctyped.lib.oleaut32.VariantClear(ctyped.byref(result))
 
-    def eval_js(self, code: str) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:
+    def eval_js(self, code: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:
         return self.call_js('eval', code)

@@ -1,4 +1,4 @@
-$Version = "0.1.2"
+$Version = "0.1.3"
 
 $Datas = @(
 "res"
@@ -24,18 +24,23 @@ $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonSources = @("src\pipe.py")
 $CythonizeGlobs = @(
-"src\{langs,libs,srcs,win32}\*.py"
-"src\libs\{colornames,iso_codes,spinners}\__init__.py"
-# "src\libs\ctyped\{_utils,interface,struct,type,union}.py"
-# "src\libs\ctyped\{const,enum}.py" FIXME https://stackoverflow.com/questions/65197248/cythonize-ends-with-fatal-error-c1002-compiler-is-out-of-heap-space-in-pass-2
-"src\libs\ctyped\{__init__,handle,lib,macro}.py"
-"src\*.py")
+"src/libs/{colornames,iso_codes,spinners}/__init__.py"
+"src/libs/ctyped/const/*.py"
+# "src/libs/ctyped/interface/**/*.py"
+"src/libs/ctyped/{__init__,enum,handle,lib,macro}.py"
+# "src/libs/ctyped/{_utils,struct,type,union}.py"
+"src/{langs,libs,srcs,win32}/*.py"
+"src/*.py")
 # $CythonizeGlobs = @()
 $CythonizeRemove = $True
 $CodeRunBefore = @()
 $CodeRunBeforeRemote = @(
-"from src.libs.iso_codes import _download_json"
-"_download_json()"
+"from src.libs.colornames import _download"
+"_download()"
+"from src.libs.iso_codes import _download"
+"_download()"
+"from src.libs.spinners import _download"
+"_download()"
 )
 $CodeRunAfter = @(
 "from os import remove"
@@ -101,11 +106,11 @@ function Get-InsertedArray($Array, $Index, $Value)
     return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
 }
 
-function Start-Base64Process([string] $Base64, [string] $Args = "")
+function Start-Base64Process([string] $Base64, [string] $ArgList = "")
 {
     $TempFile = New-TemporaryFile
     [IO.File]::WriteAllBytes($TempFile,[Convert]::FromBase64String($Base64))
-    Start-Process $TempFile -ArgumentList $Args -Wait
+    Start-Process $TempFile -ArgumentList $ArgList -Wait
     $TempFile.Delete()
 }
 
@@ -250,53 +255,53 @@ function Get-ModuleGraph
 
 function Get-PyInstallerArgs
 {
-    $Args = @("--noconfirm")
+    $ArgList = @("--noconfirm")
     if ($OneFile)
     {
-        $Args += "--onefile"
+        $ArgList += "--onefile"
     }
     if ($Debug)
     {
-        $Args += "--debug=all"
+        $ArgList += "--debug=all"
     }
     if ($NoConsole)
     {
-        $Args += "--windowed"
+        $ArgList += "--windowed"
     }
     if ($Manifest)
     {
-        $Args += "--manifest=$Manifest"
+        $ArgList += "--manifest=$Manifest"
     }
     if ($Icon)
     {
-        $Args += "--icon=$Icon"
+        $ArgList += "--icon=$Icon"
     }
     foreach ($Import in $Imports)
     {
-        $Args += "--hidden-import=$Import"
+        $ArgList += "--hidden-import=$Import"
     }
     foreach ($Exclude in $Excludes)
     {
-        $Args += "--exclude-module=$Exclude"
+        $ArgList += "--exclude-module=$Exclude"
     }
     foreach ($HooksDir in $HooksDirs)
     {
-        $Args += "--additional-hooks-dir=$HooksDir"
+        $ArgList += "--additional-hooks-dir=$HooksDir"
     }
     foreach ($RuntimeHook in $RuntimeHooks)
     {
-        $Args += "--runtime-hook=$RuntimeHook"
+        $ArgList += "--runtime-hook=$RuntimeHook"
     }
     if ($AddPython)
     {
-        $Args += "--add-data=""$( Join-Path (Start-PythonCode $CodePythonBase) "python.exe" );."""
+        $ArgList += "--add-data=""$( Join-Path (Start-PythonCode $CodePythonBase) "python.exe" );."""
     }
     if ($ModuleGraph)
     {
         $_, $Modules = Get-ModuleGraph
         foreach ($Module in $Modules)
         {
-            $Args += "--hidden-import=$Module"
+            $ArgList += "--hidden-import=$Module"
         }
     }
     $BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
@@ -324,7 +329,7 @@ function Get-PyInstallerArgs
         {
             $DataDst = "."
         }
-        $Args += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
+        $ArgList += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
     }
     if ($UPX)
     {
@@ -336,9 +341,9 @@ function Get-PyInstallerArgs
     }
     else
     {
-        $Args += "--noupx"
+        $ArgList += "--noupx"
     }
-    return $Args
+    return $ArgList
 }
 
 function Install-Dependencies
@@ -363,7 +368,8 @@ function Install-Dependencies
         tar -xvf $Source
         Set-Location $Source.Substring(0, $Source.Length - ".tar.gz".Length)
         Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
-        python setup.py build install
+        python setup.py build
+        pip install .
         Pop-Location
         Remove-Item $TempDir -Force -Recurse
     }
@@ -417,7 +423,7 @@ function Write-Build
     if ($CythonizeGlobs)
     {
         Write-Host "cythonize <- $CythonizeGlobs"
-        cythonize -3 --inplace $CythonizeGlobs
+        cythonize -3 --inplace --no-docstrings $CythonizeGlobs
     }
 
     $Name = Get-ProjectName

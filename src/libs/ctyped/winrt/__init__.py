@@ -1,143 +1,162 @@
-from . import _utils
+from __future__ import annotations as _
+
+import functools as _functools
+import threading as _threading
+from typing import Callable as _Callable, Generic as _Generic, Optional as _Optional
+
+from .. import byref as _byref
+from .. import const as _const
+from .. import enum as _enum
+from .. import interface as _interface
+from .. import macro as _macro
+from .. import type as _type
+from .._utils import _Pointer
+# noinspection PyProtectedMember
+from ..interface import _TProgress, _TResult
+from ..interface.winrt import asyncinfo as _asyncinfo
+from ..interface.winrt import inspectable as _inspectable
+from ..interface.winrt.Windows import Foundation as _Windows_Foundation
 
 
-class Windows:
-    class Data:
-        class Xml:
-            class Dom:
-                XmlDocument = _utils.XmlDocument
+class _AsyncInfo:
+    def __init__(self, winrt_or_interface, /):
+        self._obj = _interface.WinRT[_asyncinfo.IAsyncInfo](winrt_or_interface)
 
-    class Foundation:
-        AsyncActionCompletedHandler = _utils.AsyncActionCompletedHandler
-        AsyncAction = _utils.AsyncAction
-        PropertyValue = _utils.PropertyValue
-        Uri = _utils.Uri
-        WwwFormUrlDecoder = _utils.WwwFormUrlDecoder
+    @property
+    def id(self) -> _Optional[_type.c_uint32]:
+        prop = _type.c_uint32()
+        with self._obj as obj:
+            if _macro.SUCCEEDED(obj.get_Id(_byref(prop))):
+                return prop
 
-        AsyncOperationProgressHandlerUINT64UINT64 = _utils.AsyncOperationProgressHandlerUINT64UINT64
+    @property
+    def status(self) -> _Optional[_enum.Windows.Foundation.AsyncStatus]:
+        prop = _enum.Windows.Foundation.AsyncStatus()
+        with self._obj as obj:
+            if _macro.SUCCEEDED(obj.get_Status(_byref(prop))):
+                return prop
 
-        AsyncOperationWithProgressUINT64UINT64 = _utils.AsyncOperationWithProgressUINT64UINT64
+    @property
+    def error_code(self) -> _Optional[_type.HRESULT]:
+        prop = _type.HRESULT()
+        with self._obj as obj:
+            if _macro.SUCCEEDED(obj.get_ErrorCode(_byref(prop))):
+                return prop
 
-        AsyncOperationWithProgressCompletedHandlerUINT64UINT64 = _utils.AsyncOperationWithProgressCompletedHandlerUINT64UINT64
+    def cancel(self) -> bool:
+        with self._obj as obj:
+            return _macro.SUCCEEDED(obj.Cancel())
 
-        AsyncOperationCompletedHandlerRandomAccessStream = _utils.AsyncOperationCompletedHandlerRandomAccessStream
+    def close(self) -> bool:
+        with self._obj as obj:
+            return _macro.SUCCEEDED(obj.Close())
 
-        AsyncOperationRandomAccessStream = _utils.AsyncOperationRandomAccessStream
 
-        TypedEventHandlerToastNotificationInspectable = _utils.TypedEventHandlerToastNotificationInspectable
-        TypedEventHandlerToastNotificationToastDismissedEventArgs = _utils.TypedEventHandlerToastNotificationToastDismissedEventArgs
-        TypedEventHandlerToastNotificationToastFailedEventArgs = _utils.TypedEventHandlerToastNotificationToastFailedEventArgs
+class _Async:
+    _t: type[_inspectable.IInspectable]
+    _t_completed: type[_inspectable.IInspectable]
+    _completed: _interface.COM
 
-        class Collections:
-            IterableSetterBase = _utils.IterableSetterBase
+    def __init__(self):
+        self._obj = _interface.WinRT[self._t]()
 
-            IteratorSetterBase = _utils.IteratorSetterBase
+    def __del__(self):
+        self.cancel()
+        self._info.close()
 
-            VectorGradientStop = _utils.VectorGradientStop
-            VectorMenuFlyoutItemBase = _utils.VectorMenuFlyoutItemBase
-            VectorSetterBase = _utils.VectorSetterBase
-            VectorUIElement = _utils.VectorUIElement
+    def __invert__(self) -> _Pointer:
+        return ~self._obj
 
-            KeyValuePairHSTRINGHSTRING = _utils.KeyValuePairHSTRINGHSTRING
+    def __bool__(self):
+        return bool(self._obj)
 
-            MapHSTRINGHSTRING = _utils.MapHSTRINGHSTRING
+    @_functools.cached_property
+    def _info(self) -> _AsyncInfo:
+        with self._obj as obj:
+            return _AsyncInfo(obj)
 
-    class Storage:
-        class Streams:
-            FileInputStream = _utils.FileInputStream
-            FileOutputStream = _utils.FileOutputStream
-            FileRandomAccessStream = _utils.FileRandomAccessStream
-            RandomAccessStream = _utils.RandomAccessStream
+    def get_status(self) -> _Optional[_enum.Windows.Foundation.AsyncStatus]:
+        return self._info.status
 
-    class System:
-        class UserProfile:
-            LockScreen = _utils.LockScreen
-            UserInformation = _utils.UserInformation
+    def get_error_code(self) -> _Optional[_type.HRESULT]:
+        return self._info.error_code
 
-    class UI:
-        Colors = _utils.Colors
+    def cancel(self) -> bool:
+        return self._info.cancel()
 
-        class Composition:
-            SpringVector3NaturalMotionAnimation = _utils.SpringVector3NaturalMotionAnimation
-            Vector3NaturalMotionAnimation = _utils.Vector3NaturalMotionAnimation
-            NaturalMotionAnimation = _utils.NaturalMotionAnimation
-            CompositionAnimation = _utils.CompositionAnimation
-            CompositionObject = _utils.CompositionObject
-            Compositor = _utils.Compositor
+    def on_completed(self, callback: _Callable[[_Async, ...], _type.HRESULT]) -> bool:
+        self._completed = _interface.create_handler(_functools.wraps(
+            callback)(_functools.partial(callback, self)), self._t_completed)
+        with self._obj as obj, self._completed as handler:
+            return _macro.SUCCEEDED(obj.put_Completed(handler))
 
-        class Core:
-            CoreDispatcher = _utils.CoreDispatcher
-            DispatchedHandler = _utils.DispatchedHandler
+    def get_results(self):
+        with self._obj as obj:
+            obj.GetResults()
 
-        class Notifications:
-            ToastActivatedEventArgs = _utils.ToastActivatedEventArgs
-            ToastDismissedEventArgs = _utils.ToastDismissedEventArgs
-            ToastFailedEventArgs = _utils.ToastFailedEventArgs
-            ToastNotification = _utils.ToastNotification
-            ToastNotificationManager = _utils.ToastNotificationManager
-            ToastNotifier = _utils.ToastNotifier
+    def wait(self, timeout: _Optional[float] = None) -> _enum.Windows.Foundation.AsyncStatus:
+        event = _threading.Event()
 
-        class Xaml:
-            RoutedEventHandler = _utils.RoutedEventHandler
+        def handler(*_):
+            event.set()
+            return _const.NOERROR
 
-            ApplicationInitializationCallback = _utils.ApplicationInitializationCallback
-            ApplicationInitializationCallbackParams = _utils.ApplicationInitializationCallbackParams
-            Application = _utils.Application
-            DependencyObject = _utils.DependencyObject
-            DependencyProperty = _utils.DependencyProperty
-            FrameworkElement = _utils.FrameworkElement
-            PropertyMetadata = _utils.PropertyMetadata
-            RoutedEventArgs = _utils.RoutedEventArgs
-            Setter = _utils.Setter
-            ScalarTransition = _utils.ScalarTransition
-            SetterBase = _utils.SetterBase
-            SetterBaseCollection = _utils.SetterBaseCollection
-            Style = _utils.Style
-            UIElement = _utils.UIElement
-            Window = _utils.Window
+        self.on_completed(handler)
+        event.wait(timeout)
+        self.cancel()
+        return self.get_status()
 
-            class Controls:
-                AppBarButton = _utils.AppBarButton
-                Button = _utils.Button
-                ContentControl = _utils.ContentControl
-                Control = _utils.Control
-                DropDownButton = _utils.DropDownButton
-                HyperlinkButton = _utils.HyperlinkButton
-                IconElement = _utils.IconElement
-                ItemsControl = _utils.ItemsControl
-                MenuFlyout = _utils.MenuFlyout
-                MenuFlyoutItem = _utils.MenuFlyoutItem
-                MenuFlyoutItemBase = _utils.MenuFlyoutItemBase
-                MenuFlyoutPresenter = _utils.MenuFlyoutPresenter
-                Panel = _utils.Panel
-                StackPanel = _utils.StackPanel
-                SymbolIcon = _utils.SymbolIcon
-                TextBlock = _utils.TextBlock
-                ToolTip = _utils.ToolTip
-                ToolTipService = _utils.ToolTipService
-                UIElementCollection = _utils.UIElementCollection
+    def get(self) -> _Optional[_TResult]:
+        if self.wait() == _enum.Windows.Foundation.AsyncStatus.Completed:
+            return self.get_results()
 
-                class Primitives:
-                    ButtonBase = _utils.ButtonBase
-                    FlyoutBase = _utils.FlyoutBase
-                    FlyoutShowOptions = _utils.FlyoutShowOptions
-                    RepeatButton = _utils.RepeatButton
-                    ToggleButton = _utils.ToggleButton
 
-            class Hosting:
-                DesktopWindowXamlSource = _utils.DesktopWindowXamlSource
-                WindowsXamlManager = _utils.WindowsXamlManager
+class _AsyncWithProgress(_Async):
+    _t_progress: type[_inspectable.IInspectable]
+    _progress: _interface.COM
 
-            class Input:
-                PointerEventHandler = _utils.PointerEventHandler
+    def on_progress(self, callback: _Callable[[_Async, ...], _type.HRESULT]) -> bool:
+        self._progress = _interface.create_handler(_functools.wraps(
+            callback)(_functools.partial(callback, self)), self._t_progress)
+        with self._obj as obj, self._progress as handler:
+            return _macro.SUCCEEDED(obj.put_Progress(handler))
 
-            class Markup:
-                XamlReader = _utils.XamlReader
 
-            class Media:
-                Brush = _utils.Brush
-                GradientStop = _utils.GradientStop
-                GradientBrush = _utils.GradientBrush
-                LinearGradientBrush = _utils.LinearGradientBrush
-                SolidColorBrush = _utils.SolidColorBrush
-                VisualTreeHelper = _utils.VisualTreeHelper
+class AsyncAction(_Async):
+    _t = _Windows_Foundation.IAsyncAction
+    _t_completed = _Windows_Foundation.IAsyncActionCompletedHandler
+
+
+class AsyncActionWithProgress(_AsyncWithProgress, _Generic[_TProgress]):
+    def __init__(self, progress: type[_TProgress]):
+        self._t = _Windows_Foundation.IAsyncActionWithProgress[progress]
+        self._t_progress = _Windows_Foundation.IAsyncActionProgressHandler[progress]
+        self._t_completed = _Windows_Foundation.IAsyncActionWithProgressCompletedHandler[progress]
+        super().__init__()
+
+
+class _AsyncOperation(_Async):
+    _t_result: type[_TResult]
+
+    def get_results(self) -> _Optional[_TResult]:
+        result = self._t_result()
+        with self._obj as obj:
+            if _macro.SUCCEEDED(obj.GetResults(_byref(result))):
+                return result
+
+
+class AsyncOperation(_AsyncOperation, _Generic[_TResult]):
+    def __init__(self, result: type[_TResult]):
+        self._t_result = result
+        self._t = _Windows_Foundation.IAsyncOperation[result]
+        self._t_completed = _Windows_Foundation.IAsyncOperationCompletedHandler[result]
+        super().__init__()
+
+
+class AsyncOperationWithProgress(_AsyncOperation, _AsyncWithProgress, _Generic[_TResult, _TProgress]):
+    def __init__(self, result: type[_TResult], progress: type[_TProgress]):
+        self._t_result = result
+        self._t = _Windows_Foundation.IAsyncOperationWithProgress[result, progress]
+        self._t_progress = _Windows_Foundation.IAsyncOperationProgressHandler[result, progress]
+        self._t_completed = _Windows_Foundation.IAsyncOperationWithProgressCompletedHandler[result, progress]
+        super().__init__()

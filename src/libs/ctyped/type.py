@@ -6,14 +6,11 @@ from typing import Any as _Any, Callable as _Callable, Union as _Union
 
 import _ctypes as __ctypes
 
-from . import const as _const, struct as _struct
-from ._utils import _Globals, _Pointer, _resolve_type
+from . import const as _const
+from . import struct as _struct
+from ._utils import _Globals, _Pointer, _PyCSimpleType, _SimpleCData, _resolve_type, _sizeof
 
-_WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
-_ATTR_NAME = '_proxy'
-# noinspection PyProtectedMember
-_SimpleCData = __ctypes._SimpleCData
-_PyCSimpleType = type(_SimpleCData)
+_WIN64 = _sizeof(_ctypes.c_void_p) == 8
 
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
@@ -40,7 +37,7 @@ c_uint64: type[_ctypes.c_uint64] = _Union[_ctypes.c_uint64, int]
 c_ulong: type[_ctypes.c_ulong] = _Union[_ctypes.c_ulong, int]
 c_ulonglong: type[_ctypes.c_ulonglong] = _Union[_ctypes.c_ulonglong, int]
 c_ushort: type[_ctypes.c_ushort] = _Union[_ctypes.c_ushort, int]
-c_void_p: type[_ctypes.c_void_p] = _Union[_ctypes.c_void_p, _ctypes.c_char_p, _ctypes.c_wchar_p, _Pointer, bytes, int, str]
+c_void_p: type[_ctypes.c_void_p] = _Union[_ctypes.c_void_p, _ctypes.c_char_p, _ctypes.c_wchar_p, _Pointer, bytes, int, str, None]
 c_wchar: type[_ctypes.c_wchar] = _Union[_ctypes.c_wchar, str]
 c_wchar_p: type[_ctypes.c_wchar_p] = _Union[_ctypes.c_wchar_p, _Pointer, str]
 c_bool: type[_ctypes.c_bool] = _Union[_ctypes.c_bool, bool]
@@ -81,12 +78,32 @@ PWCH = c_wchar_p
 PWCHAR = c_wchar_p
 PWSTR = c_wchar_p
 PZZSTR = c_char_p
-VOID = c_void
-rsize_t = c_size_t
 va_list = c_char_p
-errno_t = c_int
+HDOMAINENUM = c_void_p
+UIA_HWND = c_void_p
 
+errno_t = c_int
+wint_t = c_ushort
+wctype_t = c_ushort
+__time32_t = c_long
+__time64_t = c_int64
+rsize_t = c_size_t
+VOID = c_void
 BOOL = c_int
+REFTIME = c_double
+NMCII_FLAGS = c_int
+NMCSAEI_FLAGS = c_int
+MP_POPUPFLAGS = c_int
+PERSIST_SPROPSTORE_FLAGS = c_int
+SIIGBF = c_int
+PROPERTYID = c_int
+PATTERNID = c_int
+EVENTID = c_int
+TEXTATTRIBUTEID = c_int
+CONTROLTYPEID = c_int
+LANDMARKTYPEID = c_int
+METADATAID = c_int
+HEADINGLEVELID = c_int
 BYTE = c_uchar
 CCHAR = c_char
 CHAR = c_char
@@ -128,62 +145,99 @@ boolean = c_uchar
 byte = c_uchar
 cs_byte = byte
 
-_obj_p = c_void_p
+__obj = c_void_p
 # GdiPlus
-GpGraphics = _obj_p
-GpBrush = _obj_p
+# gdiplusgpstubs
+GpGraphics = __obj
+GpBrush = __obj
 GpTexture = GpBrush
 GpSolidFill = GpBrush
 GpLineGradient = GpBrush
 GpPathGradient = GpBrush
 GpHatch = GpBrush
-GpPen = _obj_p
-GpCustomLineCap = _obj_p
+GpPen = __obj
+GpCustomLineCap = __obj
 GpAdjustableArrowCap = GpCustomLineCap
-GpImage = _obj_p
+GpImage = __obj
 GpBitmap = GpImage
 GpMetafile = GpImage
-GpImageAttributes = _obj_p
-GpPath = _obj_p
-GpRegion = _obj_p
-GpPathIterator = _obj_p
-GpFontFamily = _obj_p
-GpFont = _obj_p
-GpStringFormat = _obj_p
-GpFontCollection = _obj_p
+GpImageAttributes = __obj
+GpPath = __obj
+GpRegion = __obj
+GpPathIterator = __obj
+GpFontFamily = __obj
+GpFont = __obj
+GpStringFormat = __obj
+GpFontCollection = __obj
 GpInstalledFontCollection = GpFontCollection
 GpPrivateFontCollection = GpFontCollection
-GpCachedBitmap = _obj_p
-GpMatrix = _obj_p
-CGpEffect = _obj_p
-# GL
-GLenum = c_uint
-GLboolean = c_uchar
-GLbitfield = c_uint
-GLbyte = c_char
-GLshort = c_short
-GLint = c_int
-GLsizei = c_int
-GLubyte = c_uchar
-GLushort = c_ushort
-GLuint = c_uint
-GLfloat = c_float
-GLclampf = c_float
-GLdouble = c_double
-GLclampd = c_double
-GLvoid = c_void
+GpCachedBitmap = __obj
+GpMatrix = __obj
+# _
+CGpEffect = __obj
+# OpenGL
+# GLU
+GLUnurbs = __obj
+GLUquadric = __obj
+GLUtesselator = __obj
+GLUnurbsObj = GLUnurbs
+GLUquadricObj = GLUquadric
+GLUtesselatorObj = GLUtesselator
+GLUtriangulatorObj = GLUtesselator
+# libclang
+# BuildSystem
+CXVirtualFileOverlay = __obj
+CXModuleMapDescriptor = __obj
+# CXCompilationDatabase
+CXCompilationDatabase = __obj
+CXCompileCommands = __obj
+CXCompileCommand = __obj
+# Index
+CXIndex = __obj
+CXTargetInfo = __obj
+CXTranslationUnit = __obj
+CXClientData = __obj
+CXFile = __obj
+CXDiagnostic = __obj
+CXDiagnosticSet = __obj
+CXCursorSet = __obj
+CXPrintingPolicy = __obj
+CXModule = __obj
+CXCompletionString = __obj
+CXEvalResult = __obj
+CXRemapping = __obj
+CXIdxClientFile = __obj
+CXIdxClientEntity = __obj
+CXIdxClientContainer = __obj
+CXIdxClientASTFile = __obj
+CXIndexAction = __obj
+# Rewrite
+CXRewriter = __obj
 # wtypes
-BSTR = _obj_p
+BSTR = __obj
 
-_enum = c_int
-DebugEventLevel = _enum
-EmfPlusRecordType = _enum
+__enum = c_int
+DebugEventLevel = __enum
+EmfPlusRecordType = __enum
+WICProgressOperation = __enum
+CXChildVisitResult = __enum
+CXVisitorResult = __enum
+
+__struct = c_void_p
+CXSourceLocation = __struct
+CXSourceRange = __struct
+CXCursor = __struct
+
+__interface = c_void_p
+IUnknown = __interface
+IDispatch = __interface
+IDWriteFontFace = __interface
+ID2D1Geometry = __interface
+ID2D1Brush = __interface
+IActivationFactory = __interface
 
 # circular import
 TYPEDESC_U = DWORD
-IUnknown = c_void_p
-IDispatch = c_void_p
-IDWriteFontFace = c_void_p
 
 HALF_PTR = c_int if _WIN64 else c_short
 INT_PTR = c_int64 if _WIN64 else c_int
@@ -192,8 +246,47 @@ UHALF_PTR = c_uint if _WIN64 else c_ushort
 UINT_PTR = c_uint64 if _WIN64 else c_uint
 ULONG_PTR = c_uint64 if _WIN64 else c_ulong
 
+# noinspection PyProtectedMember
+time_t = __time32_t if _const._USE_32BIT_TIME_T else __time64_t
+DVD_REGISTER = DWORD
 ACCESS_MASK = DWORD
 ARGB = DWORD
+VALID_UOP_SOMTHING_OR_OTHER = DWORD
+REFERENCE_TIME = LONGLONG
+SHCONTF = DWORD
+SHGDNF = DWORD
+FILEOPENDIALOGOPTIONS = DWORD
+BROWSERFRAMEOPTIONS = DWORD
+REFEXPLORERPANE = DWORD
+SHCOLSTATEF = DWORD
+KF_REDIRECT_FLAGS = DWORD
+KF_REDIRECTION_CAPABILITIES = DWORD
+PROPERTYUI_FLAGS = DWORD
+TRANSFER_ADVISE_STATE = DWORD
+EXPCMDSTATE = DWORD
+EXPLORERPANESTATE = DWORD
+NSTCSTYLE = DWORD
+NSTCROOTSTYLE = DWORD
+NSTCITEMSTATE = DWORD
+SPINITF = DWORD
+PROPERTYUI_NAME_FLAGS = DWORD
+OPPROGDLGF = DWORD
+PDMODE = DWORD
+SPBEGINF = DWORD
+TRANSFER_SOURCE_FLAGS = DWORD
+PROPERTYUI_FORMAT_FLAGS = DWORD
+CDBE_ACTIONS = DWORD
+NSTCEHITTEST = DWORD
+SV3CVW3_FLAGS = DWORD
+NSTCECLICKTYPE = DWORD
+EXPPS = UINT
+SVSIF = UINT
+DXGI_USAGE = UINT
+OLE_HANDLE = UINT
+OLE_XPOS_HIMETRIC = LONG
+OLE_YPOS_HIMETRIC = LONG
+OLE_XSIZE_HIMETRIC = LONG
+OLE_YSIZE_HIMETRIC = LONG
 ATOM = WORD
 BOOLEAN = BYTE
 BOOLAPI = BOOL
@@ -229,6 +322,9 @@ OLECHAR = WCHAR
 PROC = INT_PTR
 PROPID = ULONG
 PSSTDAPI = HRESULT
+APP_DEPRECATED_HRESULT = HRESULT
+D3D12_GPU_VIRTUAL_ADDRESS = UINT64
+WICColor = UINT32
 PixelFormat = INT
 RETURN_TYPE = DWORD
 SCODE = LONG
@@ -239,6 +335,9 @@ STDAPI = HRESULT
 WINOLECTLAPI = HRESULT
 WNF_CHANGE_STAMP = ULONG
 WPARAM = UINT_PTR
+HHANDLE = UINT_PTR
+TASKID = UINT64
+CONNID = DWORD
 
 # noinspection PyProtectedMember
 OLECHAR = WCHAR if _const._WIN32 and not _const.OLE2ANSI else c_char
@@ -246,26 +345,32 @@ OLECHAR = WCHAR if _const._WIN32 and not _const.OLE2ANSI else c_char
 LPOLESTR = LPWSTR if _const._WIN32 and not _const.OLE2ANSI else LPSTR
 # noinspection PyProtectedMember
 LPCOLESTR = LPCWSTR if _const._WIN32 and not _const.OLE2ANSI else LPCSTR
+TCHAR = WCHAR if _const.UNICODE else c_char
+TBYTE = WCHAR if _const.UNICODE else c_uchar
 
 APARTMENT_SHUTDOWN_REGISTRATION_COOKIE = HANDLE
+HOLEMENU = HANDLE
+HIMC = HANDLE
+HIMCC = HANDLE
 HACCEL = HANDLE
 HBITMAP = HANDLE
 HBRUSH = HANDLE
 HCOLORSPACE = HANDLE
 HDC = HANDLE
+HGLRC = HANDLE
 HDESK = HANDLE
-HDWP = HANDLE
 HENHMETAFILE = HANDLE
 HFONT = HANDLE
+HICON = HANDLE
+HMENU = HANDLE
+HDWP = HANDLE
 HGDIOBJ = HANDLE
 HGLOBAL = HANDLE
 HHOOK = HANDLE
-HICON = HANDLE
 HINSTANCE = HANDLE
 HKEY = HANDLE
 HKL = HANDLE
 HLOCAL = HANDLE
-HMENU = HANDLE
 HMETAFILE = HANDLE
 HMODULE = HANDLE
 HMONITOR = HANDLE
@@ -298,11 +403,30 @@ HCURSOR = HICON
 REGSAM = DWORD
 SHSTDAPI = STDAPI
 MEMBERID = DISPID
+HSEMAPHORE = DWORD_PTR
+HEVENT = DWORD_PTR
 
 LPCSTR_PROXY = ULONG_PTR
 LPCWSTR_PROXY = ULONG_PTR
 LPSTR_PROXY = ULONG_PTR
 LPWSTR_PROXY = ULONG_PTR
+
+# GL
+GLenum = c_uint
+GLboolean = c_uchar
+GLbitfield = c_uint
+GLbyte = c_char
+GLshort = c_short
+GLint = c_int
+GLsizei = c_int
+GLubyte = c_uchar
+GLushort = c_ushort
+GLuint = c_uint
+GLfloat = c_float
+GLclampf = c_float
+GLdouble = c_double
+GLclampd = c_double
+GLvoid = c_void
 
 ABORTPROC = _Callable[[HDC, c_int], BOOL]
 APPLICATION_RECOVERY_CALLBACK = _Callable[[PVOID], DWORD]
@@ -337,9 +461,30 @@ WNDENUMPROC = _Callable[[HWND, LPARAM], BOOL]
 WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
 EnumerateMetafileProc = _Callable[[EmfPlusRecordType, UINT, UINT, _Pointer[BYTE], PVOID], BOOL]
 GdiplusAbort = _Callable[[], HRESULT]
+PD2D1_EFFECT_FACTORY = _Callable[[_Pointer[IUnknown]], HRESULT]
+PFN_DESTRUCTION_CALLBACK = _Callable[[c_void_p], c_void]
+WAITORTIMERCALLBACKFUNC = _Callable[[PVOID, BOOLEAN], VOID]
+WORKERCALLBACKFUNC = _Callable[[PVOID], VOID]
+APC_CALLBACK_FUNCTION = _Callable[[DWORD, PVOID, PVOID], VOID]
+PFLS_CALLBACK_FUNCTION = _Callable[[PVOID], VOID]
+PSECURE_MEMORY_CACHE_CALLBACK = _Callable[[PVOID, SIZE_T], BOOLEAN]
+LPOVERLAPPED_COMPLETION_ROUTINE = _Callable[[DWORD, DWORD, _Pointer[_struct.OVERLAPPED]], VOID]
+FExecuteInAppDomainCallback = _Callable[[c_void_p], HRESULT]
+PFNProgressNotification = _Callable[[LPVOID, ULONG, WICProgressOperation, c_double], HRESULT]
+GOBJENUMPROC = _Callable[[LPVOID, LPARAM], c_int]
+LINEDDAPROC = _Callable[[c_int, c_int, LPARAM], VOID]
+ICMENUMPROCA = _Callable[[LPSTR, LPARAM], c_int]
+ICMENUMPROCW = _Callable[[LPWSTR, LPARAM], c_int]
+PFNGETACTIVATIONFACTORY = _Callable[[HSTRING, _Pointer[IActivationFactory]], HRESULT]
+CXCursorVisitor = _Callable[[_Pointer[CXCursor], _Pointer[CXCursor], CXClientData], CXChildVisitResult]
+CXInclusionVisitor = _Callable[[CXFile, _Pointer[CXSourceLocation], c_uint, CXClientData], c_void]
+CXFieldVisitor = _Callable[[_Pointer[CXCursor], CXClientData], CXVisitorResult]
+CXCursorAndRangeVisitor_visit = _Callable[[c_void_p, CXCursor, CXSourceRange], CXVisitorResult]
+IViewObject_Draw_pfnContinue = _Callable[[ULONG_PTR], BOOL]
 
 DrawImageAbort = ImageAbort
 GetThumbnailImageAbort = ImageAbort
+WAITORTIMERCALLBACK = WAITORTIMERCALLBACKFUNC
 
 
 def _setattr(self: _PyCSimpleType, name: str, value):
@@ -352,16 +497,18 @@ def _instancecheck(self: _PyCSimpleType, instance, *,
 
 
 def _subclasscheck(self: _PyCSimpleType, subclass, *,
-                   __subclasscheck: _Callable[[_PyCSimpleType, _Any], bool] = _PyCSimpleType.__subclasscheck__) -> bool:
-    return __subclasscheck(self, subclass) or ((proxy_self := getattr(self, _ATTR_NAME, None)) and __subclasscheck(
-        proxy_self, subclass)) or ((proxy_subclass := getattr(subclass, _ATTR_NAME, None)) and __subclasscheck(
-        self, proxy_subclass)) or (proxy_self and proxy_subclass and __subclasscheck(proxy_self, proxy_subclass))  # noqa
+                   __subclasscheck: _Callable[[_PyCSimpleType, type], bool] = _PyCSimpleType.__subclasscheck__) -> bool:
+    return __subclasscheck(self, subclass) or (((proxy_self := getattr(self, '_proxy', None)) is not None and __subclasscheck(
+        proxy_self, subclass)) or ((proxy_subclass := getattr(subclass, '_proxy', None)) is not None and __subclasscheck(
+        self, proxy_subclass)) or (proxy_self is not None and proxy_subclass is not None and __subclasscheck(proxy_self, proxy_subclass)))  # NOQA
 
 
+# noinspection PyUnresolvedReferences,PyProtectedMember
+del _ctypes.HRESULT._check_retval_
 _setattr(_PyCSimpleType, '__instancecheck__', _instancecheck)
 _setattr(_PyCSimpleType, '__subclasscheck__', _subclasscheck)
-_setattr(__ctypes.Array, '__str__', lambda self: f'{self._type_.__name__}[{self._length_}]'
-                                                 f'{{{", ".join(str(obj) for obj in self)}}}')
+_setattr(__ctypes.Array, '__str__', lambda self: f'<Array: {self._type_.__name__}<{self._length_}>'
+                                                 f'<{", ".join(str(obj) for obj in self)}>>')
 
 
 class _TypeMixin:
@@ -566,7 +713,7 @@ def _init(item: str) -> type[_SimpleCData] | type[_ctypes._CFuncPtr]:
     elif item != c_type.__name__:
         c_dict = _TypeMixin.__dict__.copy()
         c_dict.update(c_type.__dict__)
-        c_dict[_ATTR_NAME] = c_type
+        c_dict['_proxy'] = c_type
         c_type = type(item, (_SimpleCData,), c_dict)
     return c_type
 

@@ -58,8 +58,8 @@ def _xml_merges(self: ElementTree.Element, other: ElementTree.Element):
 
 
 def _xml_merge(self: str, other: str) -> str:
-    root = ElementTree.fromstring(self)
-    _xml_merges(root, ElementTree.fromstring(other))
+    root = ElementTree.XML(self)
+    _xml_merges(root, ElementTree.XML(other))
     ElementTree.indent(root)
     return ElementTree.tostring(root, 'unicode')
 

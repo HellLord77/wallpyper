@@ -1,20 +1,47 @@
 import contextlib
+import ntpath
+import os
 import winreg
 from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
 
 from libs import ctyped
+from libs.ctyped import winrt
+from libs.ctyped.interface.um import DispEx, d2d1, d2d1svg, oaidl, objidlbase
+from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
+from libs.ctyped.interface.winrt.Windows.Storage import Streams as Windows_Storage_Streams
+from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
+from . import _com
 
 POLL_INTERVAL = 0.1
 
 
+class BSTRGetter(_com.Getter):
+    # noinspection PyProtectedMember
+    def __get__(self, instance: _com._Interface, owner: type[_com._Interface]) -> Optional[str]:
+        with get_bstr() as bstr:
+            getattr(instance.interface, self._getter)(ctyped.byref(bstr))
+            return ctyped.type.c_wchar_p.from_buffer(bstr).value
+
+
+class BSTRSetter(_com.Setter):
+    # noinspection PyProtectedMember
+    def __set__(self, instance: _com._Interface, value: str):
+        with get_bstr(value) as value:
+            getattr(instance.interface, self._setter)(value)
+
+
+class BSTRGetterSetter(BSTRSetter, BSTRGetter):
+    pass
+
+
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
-    ctyped.lib.Shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
+    ctyped.lib.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
         folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT, None, ctyped.byref(buff))
     try:
         return buff.value
     finally:
-        ctyped.lib.Ole32.CoTaskMemFree(buff)
+        ctyped.lib.ole32.CoTaskMemFree(buff)
 
 
 @contextlib.contextmanager
@@ -24,17 +51,17 @@ def string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWS
         yield ptr
     finally:
         if size is None and ptr.value:
-            ctyped.lib.Kernel32.LocalFree(ptr)
+            ctyped.lib.kernel32.LocalFree(ptr)
 
 
 @contextlib.contextmanager
 def get_itemidlist(*paths: str | ctyped.type.PCWSTR) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.lib.Shell32.ILCreateFromPath(path) for path in paths)
+    ids = tuple(ctyped.lib.shell32.ILCreateFromPath(path) for path in paths)
     try:
         yield ids
     finally:
         for id_ in ids:
-            ctyped.lib.Shell32.ILFree(id_)
+            ctyped.lib.shell32.ILFree(id_)
 
 
 def get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
@@ -76,91 +103,107 @@ def delete_key(key: winreg.HKEYType, name: str) -> bool:
 
 def sanitize_filename(name: str) -> Optional[str]:
     buff = ctyped.type.PWSTR(name)
-    if ctyped.lib.Shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
+    if ctyped.lib.shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
         return buff.value
 
 
-@contextlib.contextmanager
-def open_file(path: str) -> ContextManager[Optional[ctyped.interface.Windows.Storage.IStorageFile]]:
-    with ctyped.get_winrt(ctyped.interface.Windows.Storage.IStorageFileStatics) as file_statics:
-        if file_statics:
-            with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.IStorageFile]) as operation:
-                if ctyped.macro.SUCCEEDED(file_statics.GetFileFromPathAsync(
-                        ctyped.handle.HSTRING.from_string(path), operation.get_ref())) and (file := operation.get()):
-                    yield file
-                    return
-    yield
+def open_file(path: str) -> Optional[ctyped.interface.WinRT[Windows_Storage.IStorageFile]]:
+    operation = winrt.AsyncOperation(Windows_Storage.IStorageFile)
+    with ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
+            ctyped.const.runtimeclass.Windows.Storage.StorageFile) as statics:
+        if ctyped.macro.SUCCEEDED(statics.GetFileFromPathAsync(
+                ctyped.handle.HSTRING.from_string(path), ~operation)) and (file := operation.get()):
+            return ctyped.interface.WinRT[Windows_Storage.IStorageFile](file.value)
 
 
-@contextlib.contextmanager
-def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> ContextManager[Optional[ctyped.interface.IStream]]:
-    with ctyped.init_com(ctyped.interface.IStream, False) as stream:
-        if ctyped.macro.SUCCEEDED(ctyped.lib.ShlWAPI.SHCreateStreamOnFileW(path, mode, ctyped.byref(stream))):
-            yield stream
-            return
-    yield
+def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> Optional[ctyped.interface.COM[objidlbase.IStream]]:
+    stream = ctyped.interface.COM[objidlbase.IStream]()
+    if ctyped.macro.SUCCEEDED(ctyped.lib.shlwapi.SHCreateStreamOnFileW(path, mode, ~stream)):
+        return stream
 
 
-@contextlib.contextmanager
-def get_input_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
-        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
-    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
-        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.Read, operation.get_ref())) and (stream := operation.get()):
-            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
-                if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                    yield input_stream
-                    return
-    yield
+def get_input_stream(file: Windows_Storage.IStorageFile) -> \
+        Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]]:
+    operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
+    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.Read,
+                                             ~operation)) and (stream := operation.get()):
+        input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
+        hr = stream.GetInputStreamAt(0, ~input_stream)
+        stream.Release()
+        if ctyped.macro.SUCCEEDED(hr):
+            return input_stream
 
 
-@contextlib.contextmanager
-def get_output_stream(file: ctyped.interface.Windows.Storage.IStorageFile) -> \
-        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IOutputStream]]:
-    with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperation[ctyped.interface.Windows.Storage.Streams.IRandomAccessStream]) as operation:
-        if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite, operation.get_ref())) and (stream := operation.get()):
-            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IOutputStream, False) as output_stream:
-                if ctyped.macro.SUCCEEDED(stream.GetOutputStreamAt(0, ctyped.byref(output_stream))):
-                    yield output_stream
-                    return
-    yield
+def get_output_stream(file: Windows_Storage.IStorageFile) -> \
+        Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]]:
+    operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
+    if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite,
+                                             ~operation)) and (stream := operation.get()):
+        output_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]()
+        hr = stream.GetOutputStreamAt(0, ~output_stream)
+        stream.Release()
+        if ctyped.macro.SUCCEEDED(hr):
+            return output_stream
 
 
-@contextlib.contextmanager
-def get_wallpaper_lock_input_stream() -> \
-        ContextManager[Optional[ctyped.interface.Windows.Storage.Streams.IInputStream]]:
-    with ctyped.get_winrt(ctyped.interface.Windows.System.UserProfile.ILockScreenStatics) as lock_statics:
-        if lock_statics:
-            with ctyped.init_com(ctyped.interface.Windows.Storage.Streams.IRandomAccessStream, False) as stream:
-                if ctyped.macro.SUCCEEDED(lock_statics.GetImageStream(ctyped.byref(stream))):
-                    with ctyped.init_com(
-                            ctyped.interface.Windows.Storage.Streams.IInputStream, False) as input_stream:
-                        if ctyped.macro.SUCCEEDED(stream.GetInputStreamAt(0, ctyped.byref(input_stream))):
-                            yield input_stream
-                            return
-    yield
+def get_lock_background_input_stream() -> \
+        Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]]:
+    if p_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
+            ctyped.const.runtimeclass.Windows.System.UserProfile.LockScreen):
+        p_random = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStream]()
+        with p_statics as statics:
+            if ctyped.macro.SUCCEEDED(statics.GetImageStream(~p_random)):
+                input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
+                with p_random as random:
+                    if ctyped.macro.SUCCEEDED(random.GetInputStreamAt(0, ~input_stream)):
+                        return input_stream
 
 
-def copy_stream(input_stream: ctyped.interface.Windows.Storage.Streams.IInputStream,
-                output_stream: ctyped.interface.Windows.Storage.Streams.IOutputStream,
+def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
+                output_stream: Windows_Storage_Streams.IOutputStream,
                 progress_callback: Optional[Callable[[int, ...], Any]],
                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
-    with ctyped.get_winrt(ctyped.interface.Windows.Storage.Streams.IRandomAccessStreamStatics) as stream_statics:
-        if stream_statics:
-            with ctyped.Async(ctyped.interface.Windows.Foundation.IAsyncOperationWithProgress[ctyped.type.UINT64, ctyped.type.UINT64]) as operation:
-                if ctyped.macro.SUCCEEDED(stream_statics.CopyAndCloseAsync(
-                        input_stream, output_stream, operation.get_ref())):
-                    if progress_callback is not None:
-                        operation.put_progress(progress_callback, args, kwargs)
-                    return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait_for()
+    p_statics = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStreamStatics](
+        ctyped.const.runtimeclass.Windows.Storage.Streams.RandomAccessStream)
+    if p_statics:
+        operation = winrt.AsyncOperationWithProgress(ctyped.type.UINT64, ctyped.type.UINT64)
+        with p_statics as statics:
+            if ctyped.macro.SUCCEEDED(statics.CopyAndCloseAsync(input_stream, output_stream, ~operation)):
+                if progress_callback is not None:
+                    if args is None:
+                        args = ()
+                    if kwargs is None:
+                        kwargs = {}
+
+                    def handler(_, __, progress: int):
+                        try:
+                            progress_callback(progress, *args, **kwargs)
+                        finally:
+                            return ctyped.const.NOERROR
+
+                    operation.on_progress(handler)
+                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait()
+    return False
+
+
+def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...], Any]],
+              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+    p_src = open_file(src)
+    if p_src:
+        os.makedirs(ntpath.dirname(dst), exist_ok=True)
+        open(dst, 'w').close()
+        if p_dst := open_file(dst):
+            with p_src as f_src, p_dst as f_dst, get_input_stream(
+                    f_src) as i_stream, get_output_stream(f_dst) as o_stream:
+                return copy_stream(i_stream, o_stream, progress_callback, args, kwargs)
     return False
 
 
 @contextlib.contextmanager
-def get_d2d1_dc_render_target() -> ContextManager[Optional[ctyped.interface.ID2D1DCRenderTarget]]:
-    with ctyped.init_com(ctyped.interface.ID2D1Factory, False) as factory, ctyped.init_com(
-            ctyped.interface.ID2D1DCRenderTarget, False) as target:
+def get_d2d1_dc_render_target() -> ContextManager[Optional[d2d1.ID2D1DCRenderTarget]]:
+    with ctyped.interface.COM[d2d1.ID2D1Factory]() as factory, ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target:
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
-        if ctyped.macro.SUCCEEDED(ctyped.lib.D2D1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
+        if ctyped.macro.SUCCEEDED(ctyped.lib.d2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
                 factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
                     ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
             yield target
@@ -168,14 +211,14 @@ def get_d2d1_dc_render_target() -> ContextManager[Optional[ctyped.interface.ID2D
     yield
 
 
-def set_svg_doc_viewport(svg: ctyped.interface.ID2D1SvgDocument) -> bool:
-    with ctyped.init_com(ctyped.interface.ID2D1SvgElement, False) as root:
+def set_svg_doc_viewport(svg: d2d1svg.ID2D1SvgDocument) -> bool:
+    with ctyped.interface.COM[d2d1svg.ID2D1SvgElement]() as root:
         if ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
             view_box = ctyped.struct.D2D1_SVG_VIEWBOX()
-            if root.IsAttributeSpecified('viewBox', None):
+            if root.IsAttributeSpecified('viewBox', ctyped.NULLPTR):
                 root.GetAttributeValue_('viewBox', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.VIEWBOX,
                                         ctyped.byref(view_box), ctyped.sizeof(view_box))
-            elif root.IsAttributeSpecified('width', None) and root.IsAttributeSpecified('height', None):
+            elif root.IsAttributeSpecified('width', ctyped.NULLPTR) and root.IsAttributeSpecified('height', ctyped.NULLPTR):
                 buff = ctyped.type.FLOAT()
                 if ctyped.macro.SUCCEEDED(root.GetAttributeValue_('width', ctyped.enum.D2D1_SVG_ATTRIBUTE_POD_TYPE.FLOAT,
                                                                   ctyped.byref(buff), ctyped.sizeof(buff))):
@@ -188,8 +231,8 @@ def set_svg_doc_viewport(svg: ctyped.interface.ID2D1SvgDocument) -> bool:
     return False
 
 
-def set_svg_doc_dimension(svg: ctyped.interface.ID2D1SvgDocument, width: float = 0, height: float = 0) -> bool:
-    with ctyped.init_com(ctyped.interface.ID2D1SvgElement, False) as root:
+def set_svg_doc_dimension(svg: d2d1svg.ID2D1SvgDocument, width: float = 0, height: float = 0) -> bool:
+    with ctyped.interface.COM[d2d1svg.ID2D1SvgElement]() as root:
         if set_ := ctyped.macro.SUCCEEDED(svg.GetRoot(ctyped.byref(root))):
             buff = ctyped.type.FLOAT()
             ref = ctyped.byref(buff)
@@ -205,7 +248,7 @@ def set_svg_doc_dimension(svg: ctyped.interface.ID2D1SvgDocument, width: float =
     return set_
 
 
-def get_variant_value(variant: ctyped.struct.VARIANT) -> Optional[bool | int | float | str | ctyped.interface.IDispatch]:
+def get_variant_value(variant: ctyped.struct.VARIANT) -> Optional[bool | int | float | str | oaidl.IDispatch]:
     var_type = variant.U.S.vt
     if var_type == ctyped.enum.VARENUM.EMPTY:
         return
@@ -218,7 +261,7 @@ def get_variant_value(variant: ctyped.struct.VARIANT) -> Optional[bool | int | f
     elif var_type == ctyped.enum.VARENUM.BSTR:
         return ctyped.type.c_wchar_p.from_buffer(variant.U.S.U).value
     elif var_type == ctyped.enum.VARENUM.DISPATCH:
-        dispatch = ctyped.interface.IDispatch()
+        dispatch = oaidl.IDispatch()
         dispatch.value = variant.U.S.U.pdispVal
         return dispatch
     elif var_type == ctyped.enum.VARENUM.BOOL:
@@ -227,16 +270,16 @@ def get_variant_value(variant: ctyped.struct.VARIANT) -> Optional[bool | int | f
 
 @contextlib.contextmanager
 def get_bstr(string: Optional[str] = None) -> ContextManager[ctyped.type.BSTR]:
-    bstr = ctyped.type.BSTR() if string is None else ctyped.type.BSTR(ctyped.lib.OleAut32.SysAllocString(string))
+    bstr = ctyped.type.BSTR() if string is None else ctyped.type.BSTR(ctyped.lib.oleaut32.SysAllocString(string))
     try:
         yield bstr
     finally:
         if bstr:
-            ctyped.lib.OleAut32.SysFreeString(bstr)
+            ctyped.lib.oleaut32.SysFreeString(bstr)
 
 
 # noinspection PyShadowingBuiltins
-def get_members(dispatch_ex: ctyped.interface.IDispatchEx, all: bool = False) -> dict[int, str]:
+def get_members(dispatch_ex: DispEx.IDispatchEx, all: bool = False) -> dict[int, str]:
     members = {}
     disp_id = ctyped.type.DISPID(ctyped.const.DISPID_STARTENUM)
     while ctyped.macro.SUCCEEDED(dispatch_ex.GetNextDispID(ctyped.const.fdexEnumAll if all else ctyped.const.fdexEnumDefault,
@@ -247,9 +290,9 @@ def get_members(dispatch_ex: ctyped.interface.IDispatchEx, all: bool = False) ->
     return members
 
 
-def get_funcs(dispatch: ctyped.interface.IDispatch) -> dict[int, str]:
+def get_funcs(dispatch: oaidl.IDispatch) -> dict[int, str]:
     funcs = {}
-    with ctyped.init_com(ctyped.interface.ITypeInfo, False) as type_info:
+    with ctyped.interface.COM[oaidl.ITypeInfo]() as type_info:
         if ctyped.macro.SUCCEEDED(dispatch.GetTypeInfo(0, ctyped.const.LOCALE_SYSTEM_DEFAULT, ctyped.byref(type_info))):
             p_type_attr = ctyped.pointer(ctyped.struct.TYPEATTR)()
             if ctyped.macro.SUCCEEDED(type_info.GetTypeAttr(ctyped.byref(p_type_attr))):
@@ -257,8 +300,8 @@ def get_funcs(dispatch: ctyped.interface.IDispatch) -> dict[int, str]:
                 for index in range(p_type_attr.contents.cFuncs):
                     if ctyped.macro.SUCCEEDED(type_info.GetFuncDesc(index, ctyped.byref(p_func_desc))):
                         with get_bstr() as name:
-                            # noinspection PyTypeChecker
-                            type_info.GetDocumentation(p_func_desc.contents.memid, ctyped.byref(name), None, None, None)
+                            type_info.GetDocumentation(p_func_desc.contents.memid, ctyped.byref(
+                                name), ctyped.NULLPTR, ctyped.NULLPTR, ctyped.NULLPTR)
                             funcs[p_func_desc.contents.memid] = ctyped.type.c_wchar_p.from_buffer(name).value
                         type_info.ReleaseFuncDesc(p_func_desc)
                 type_info.ReleaseTypeAttr(p_type_attr)
