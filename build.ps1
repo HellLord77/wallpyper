@@ -27,8 +27,9 @@ $CythonizeGlobs = @(
 "src/libs/{colornames,iso_codes,spinners}/__init__.py"
 "src/libs/ctyped/const/*.py"
 # "src/libs/ctyped/interface/**/*.py"
-"src/libs/ctyped/{__init__,enum,handle,lib,macro}.py"
+"src/libs/ctyped/winrt/__init__.py"
 # "src/libs/ctyped/{_utils,struct,type,union}.py"
+"src/libs/ctyped/{__init__,enum,handle,lib,macro}.py"
 "src/{langs,libs,srcs,win32}/*.py"
 "src/*.py")
 # $CythonizeGlobs = @()
@@ -93,7 +94,7 @@ $CodeCompileCTemplate = @(
 "objects = compiler.compile([source], include_dirs=build.include_dirs)"
 "libraries = [f'python{version_info.major}{version_info.minor}']"
 "compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
-$CopyTimeout = 5
+$CopyTimeout = 9
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyLocalJson = $False
