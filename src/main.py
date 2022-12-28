@@ -48,19 +48,18 @@ TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
-
 DEFAULT_CONFIG = {
     consts.CONFIG_RECENT_LIST: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_ACTIVE_DISPLAYS: consts.ALL_DISPLAY,
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
-    consts.CONFIG_AUTO_SAVE: False,
+    consts.CONFIG_AUTOSAVE: False,
     consts.CONFIG_SKIP_RECENT: False,
     consts.CONFIG_REAPPLY_IMAGE: True,
     consts.CONFIG_NOTIFY_ERROR: True,
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_KEEP_CACHE: False,
-    consts.CONFIG_AUTO_START: False,
-    consts.CONFIG_SAVE_SETTINGS: False,
+    consts.CONFIG_AUTOSTART: False,
+    consts.CONFIG_KEEP_SETTINGS: False,
     consts.CONFIG_NOTIFY_BLOCKED: True,
     consts.CONFIG_CHANGE_START: False,
     consts.CONFIG_EASE_IN: True,
@@ -132,24 +131,26 @@ def load_config() -> bool:
     return loaded
 
 
-def save_config() -> bool:
-    parser = configparser.ConfigParser()
-    for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-        source.update_config()
-        source.fix_config()
-        if config := {option: source.CONFIG[option] for option, value in sorted(
-                source.DEFAULT_CONFIG.items()) if source.CONFIG[option] != value}:
-            parser[name] = config
-    with open(CONFIG_PATH, 'w') as file:
-        parser.write(file)
-    return os.path.isfile(CONFIG_PATH)
+def save_config(force: bool = False) -> bool:
+    if force or CONFIG[consts.CONFIG_KEEP_SETTINGS]:
+        parser = configparser.ConfigParser()
+        for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
+            source.update_config()
+            source.fix_config()
+            if config := {option: source.CONFIG[option] for option, value in sorted(
+                    source.DEFAULT_CONFIG.items()) if source.CONFIG[option] != value}:
+                parser[name] = config
+        with open(CONFIG_PATH, 'w') as file:
+            parser.write(file)
+        return os.path.isfile(CONFIG_PATH)
+    return True
 
 
 def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
-    end_time = time.time() + consts.POLL_BIG_INTERVAL
-    while end_time > time.time() and not gui.SYSTEM_TRAY.is_shown():
-        time.sleep(consts.POLL_SMALL_INTERVAL)
     if force or CONFIG[consts.CONFIG_NOTIFY_ERROR]:
+        end_time = time.time() + consts.POLL_BIG_INTERVAL
+        while end_time > time.time() and not gui.SYSTEM_TRAY.is_shown():
+            time.sleep(consts.POLL_SMALL_INTERVAL)
         return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFY_LEN), icon)
     return False
 
@@ -309,7 +310,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
         item_change_enable(False)
         item_recent.enable(False)
         with gui.animate(STRINGS.STATUS_CHANGE):
-            if (changed := change_wallpaper(wallpaper, query_callback)) and CONFIG[consts.CONFIG_AUTO_SAVE]:
+            if (changed := change_wallpaper(wallpaper, query_callback)) and CONFIG[consts.CONFIG_AUTOSAVE]:
                 on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         _update_recent_menu(item_recent)
         item_change_enable()
@@ -564,7 +565,7 @@ def on_clear_cache() -> bool:
 
 
 def on_reset():
-    CONFIG[consts.CONFIG_SAVE_SETTINGS] = False
+    files.remove(CONFIG_PATH)
     on_restart()
 
 
@@ -593,16 +594,6 @@ def on_about():
     notify(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
 
 
-def apply_auto_start(auto_start: bool) -> bool:
-    return win32.register_autorun(
-        consts.NAME, *pyinstall.get_launch_args(), show=pyinstall.FROZEN,
-        uid=UUID) if auto_start else win32.unregister_autorun(consts.NAME, UUID)
-
-
-def apply_save_config(save: bool) -> bool:
-    return save_config() if save else files.remove(CONFIG_PATH)
-
-
 @timer.on_thread
 def on_quit():
     TIMER.stop()
@@ -615,6 +606,12 @@ def on_quit():
         while end_time > time.time() and threading.active_count() > max_threads:
             time.sleep(consts.POLL_SMALL_INTERVAL)
     gui.stop_loop()
+
+
+def apply_auto_start(auto_start: bool) -> bool:
+    return win32.register_autorun(
+        consts.NAME, *pyinstall.get_launch_args(), show=pyinstall.FROZEN,
+        uid=UUID) if auto_start else win32.unregister_autorun(consts.NAME, UUID)
 
 
 def create_menu():  # TODO slideshow (smaller timer)
@@ -658,12 +655,13 @@ def create_menu():  # TODO slideshow (smaller timer)
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         if consts.FEATURE_CONSOLE_VIEW:
             gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(RES_TEMPLATE.format(consts.RES_CONSOLE))
+        gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
-        gui.add_menu_item(STRINGS.LABEL_RESET, on_click=on_reset).set_icon(RES_TEMPLATE.format(consts.RES_RESET))
+        gui.add_menu_item(STRINGS.LABEL_SETTINGS_RESET, on_click=on_reset).set_icon(
+            RES_TEMPLATE.format(consts.RES_SETTINGS_RESET))
         gui.add_menu_item(STRINGS.LABEL_RESTART, enable=bool(
             multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
-        gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
     with gui.set_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_AUTO, icon=RES_TEMPLATE.format(consts.RES_AUTO))):
             gui.add_mapped_menu_item(STRINGS.LABEL_CHANGE_START, CONFIG, consts.CONFIG_CHANGE_START)
@@ -675,7 +673,7 @@ def create_menu():  # TODO slideshow (smaller timer)
                 STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CONFIG,
                                    consts.CONFIG_IF_MAXIMIZED, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
-            gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CONFIG, consts.CONFIG_AUTO_SAVE)
+            gui.add_mapped_menu_item(STRINGS.LABEL_AUTOSAVE, CONFIG, consts.CONFIG_AUTOSAVE)
             item_dir = gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu_args=(gui.MenuItemMethod.SET_TOOLTIP,))
             item_dir.set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
             item_dir.set_tooltip(CONFIG[consts.CONFIG_SAVE_DIR])
@@ -727,8 +725,8 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CONFIG, consts.CONFIG_SKIP_RECENT)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CONFIG, consts.CONFIG_REAPPLY_IMAGE)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CONFIG, consts.CONFIG_KEEP_CACHE)
-        gui.add_mapped_menu_item(STRINGS.LABEL_START, CONFIG, consts.CONFIG_AUTO_START)
-        gui.add_mapped_menu_item(STRINGS.LABEL_CONFIG, CONFIG, consts.CONFIG_SAVE_SETTINGS)
+        gui.add_mapped_menu_item(STRINGS.LABEL_START, CONFIG, consts.CONFIG_AUTOSTART)
+        gui.add_mapped_menu_item(STRINGS.LABEL_SETTINGS_AUTOSAVE, CONFIG, consts.CONFIG_KEEP_SETTINGS)
     gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_QUIT))
 
 
@@ -749,8 +747,7 @@ def start():
     gui.init(consts.NAME)
     create_menu()
     gui.enable_animation(CONFIG[consts.CONFIG_ANIMATE_ICON])
-    apply_auto_start(CONFIG[consts.CONFIG_AUTO_START])
-    apply_save_config(CONFIG[consts.CONFIG_SAVE_SETTINGS])
+    apply_auto_start(CONFIG[consts.CONFIG_AUTOSTART])
     if CONFIG[consts.CONFIG_CHANGE_START]:
         on_change(*TIMER.args)
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
@@ -759,8 +756,8 @@ def start():
 
 def stop():
     timer.Timer.kill_all()
-    apply_auto_start(CONFIG[consts.CONFIG_AUTO_START])
-    apply_save_config(CONFIG[consts.CONFIG_SAVE_SETTINGS])
+    apply_auto_start(CONFIG[consts.CONFIG_AUTOSTART])
+    save_config()
     files.trim_dir(TEMP_DIR, consts.MAX_CACHE_SZ) if CONFIG[consts.CONFIG_KEEP_CACHE] else files.remove(TEMP_DIR, True)
     if os.path.isdir(TEMP_DIR) and files.is_only_dirs(TEMP_DIR, True):
         files.remove(TEMP_DIR, True)

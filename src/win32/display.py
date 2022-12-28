@@ -9,7 +9,7 @@ import tempfile
 import threading
 import time
 import winreg
-from typing import Callable, Optional
+from typing import Callable, Optional, Iterable
 
 from libs import ctyped, utils
 from libs.ctyped import winrt
@@ -525,19 +525,8 @@ def _get_rotate_flip(rotate: int, flip: int) -> ctyped.enum.RotateFlipType:
         return ctyped.enum.RotateFlipType.RotateNoneFlipNone
 
 
-def _fit_by(from_w: int, from_h: int, to_w: int, to_h: int,  # TODO _gdiplus._calc_src_x_y_w_h
-            by_h: bool = True) -> tuple[int, int, int, int]:
-    ratio = to_w / to_h
-    if by_h:
-        w = from_h * ratio
-        return int((from_w - w) / 2), 0, int(w), from_h
-    else:
-        h = from_w / ratio
-        return 0, int((from_h - h) / 2), from_w, int(h)
-
-
 def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
-                     style: int = Style.FILL) -> tuple[int, int, int, int]:
+                     style: int = Style.FILL) -> Iterable[int]:
     if style == Style.CENTER:
         dw = src_w - w
         dh = src_h - h
@@ -545,9 +534,11 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
     elif style in (Style.TILE, Style.STRETCH):
         return 0, 0, src_w, src_h
     elif style == Style.FIT:
-        return _fit_by(src_w, src_h, w, h, w / src_w > h / src_h)
+        # noinspection PyProtectedMember
+        return map(round, _gdiplus._calc_src_x_y_w_h(src_w, src_h, w, h, w / src_w > h / src_h))
     elif style in (Style.FILL, Style.SPAN):
-        return _fit_by(src_w, src_h, w, h, w / src_w < h / src_h)
+        # noinspection PyProtectedMember
+        return map(round, _gdiplus._calc_src_x_y_w_h(src_w, src_h, w, h, w / src_w < h / src_h))
     return 0, 0, 0, 0
 
 

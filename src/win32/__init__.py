@@ -20,14 +20,13 @@ _APPDATA_DIR = _utils.get_dir(ctyped.const.FOLDERID_RoamingAppData)
 _STARTUP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Startup)
 _TASKBAR_DIR = ntpath.join(_APPDATA_DIR, 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
 _STARTUP_KEY = ntpath.join('SOFTWARE', 'Microsoft', 'Windows', 'CurrentVersion', 'Run')
-_SYSPIN_PATH = ntpath.join(ntpath.dirname(__file__), 'syspin.exe')
+_SYS_PIN_PATH = ntpath.join(ntpath.dirname(__file__), 'syspin.exe')
 
 LINK_EXT = '.lnk'
 SAVE_DIR = _APPDATA_DIR
 DESKTOP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Desktop)
 PICTURES_DIR = _utils.get_dir(ctyped.const.FOLDERID_Pictures)
 START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
-WALLPAPER_PATH = ntpath.join(SAVE_DIR, 'Microsoft', 'Windows', 'Themes', 'TranscodedWallpaper')
 
 _MESSAGES = {}
 
@@ -445,7 +444,7 @@ def remove_shortcuts(dir: str, uid: str, rmdir: bool = True) -> bool:
 def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] = None,
             icon_path: str = '', icon_index: int = 0, show: bool = True) -> bool:
     if remove_pins(target, *args, taskbar=taskbar):
-        if not subprocess.run((_SYSPIN_PATH, target, '5386' if taskbar else '51201'),
+        if not subprocess.run((_SYS_PIN_PATH, target, '5386' if taskbar else '51201'),
                               creationflags=subprocess.DETACHED_PROCESS).returncode:
             cur_name = ntpath.splitext(ntpath.basename(target))[0]
             if name is None:
