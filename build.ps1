@@ -1,4 +1,4 @@
-$Version = "0.1.3"
+$Version = "0.1.4"
 
 $Datas = @(
 "res"
@@ -23,7 +23,9 @@ $Icon = "src\res\icon.ico"
 $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonSources = @("src\pipe.py")
-$CythonizeGlobs = @(
+$CythonizeExcludeGlobs = @(
+"src/libs/ctyped/enum.py")
+$CythonizeSourceGlobs = @(
 "src/libs/{colornames,iso_codes,spinners}/__init__.py"
 "src/libs/ctyped/const/*.py"
 # "src/libs/ctyped/interface/**/*.py"
@@ -96,7 +98,6 @@ $CodeCompileCTemplate = @(
 "compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
 $CopyTimeout = 9
 $ModuleGraphSmart = $True
-$CythonThreadsRemote = 9
 $CythonizeRemoveC = $False
 $MinifyLocalJson = $False
 $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
@@ -106,6 +107,27 @@ $IsGithub = Test-Path Env:GITHUB_REPOSITORY
 function Get-InsertedArray($Array, $Index, $Value)
 {
     return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
+}
+
+function Get-RemovedArray($Array, $Index)
+{
+    return $Array[0..($Index - 1)] + $Array[($Index + 1)..($Array.Length - 1)]
+}
+
+function Get-RemovedItemArray($Array, $Item, $Count = [double]::PositiveInfinity)
+{
+    for ($i = 0; $i -lt $Count; $i++) {
+        $Index = $Array.IndexOf($Item)
+        if ($Index -eq -1)
+        {
+            break
+        }
+        else
+        {
+            $Array = Get-RemovedArray $Array $Index
+        }
+    }
+    return $Array
 }
 
 function Start-Base64Process([string] $Base64, [string] $ArgList = "")
@@ -197,31 +219,45 @@ function Get-ProjectName
     } ) -Leaf
 }
 
+function Get-CythonizedSources
+{
+    $Sources = @()
+    $CodeGlob = @() + $CodeGlobTemplate
+    foreach ($CythonizeSourceGlob in $CythonizeSourceGlobs)
+    {
+        $CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeSourceGlob
+        $Sources += (Start-PythonCode $CodeGlob) -Split ";"
+    }
+    foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs)
+    {
+        $CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeExcludeGlob
+        foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";")
+        {
+            $Sources = Get-RemovedItemArray $Sources $Exclude
+        }
+    }
+    return $Sources
+}
+
 function Remove-Cythonized([bool] $Throw = $True)
 {
     $ExtSuffix = Start-PythonCode $CodeExtSuffix
-    foreach ($CythonizeGlob in $CythonizeGlobs)
+    foreach ($Source in Get-CythonizedSources)
     {
-        $CodeGlob = @() + $CodeGlobTemplate
-        $CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeGlob
-        $Files = Start-PythonCode $CodeGlob
-        foreach ($File in $Files -Split ";")
+        $Root = $Source.Substring(0,$Source.LastIndexOf("."))
+        if ($Throw -and $CythonizeRemoveC)
         {
-            $Root = $File.Substring(0,$File.LastIndexOf("."))
-            if ($Throw -and $CythonizeRemoveC)
+            Remove-Item "$Root.c" -Force
+        }
+        try
+        {
+            Remove-Item "$Root$ExtSuffix" -Force
+        }
+        catch
+        {
+            if ($Throw)
             {
-                Remove-Item "$Root.c" -Force
-            }
-            try
-            {
-                Remove-Item "$Root$ExtSuffix" -Force
-            }
-            catch
-            {
-                if ($Throw)
-                {
-                    throw
-                }
+                throw
             }
         }
     }
@@ -375,7 +411,7 @@ function Install-Dependencies
         Pop-Location
         Remove-Item $TempDir -Force -Recurse
     }
-    if ($CythonSources -or $CythonizeGlobs)
+    if ($CythonSources -or $CythonizeSourceGlobs)
     {
         # pip install cython FIXME https://github.com/cython/cython/milestone/58
         pip install cython --pre
@@ -422,15 +458,16 @@ function Write-Build
     }
 
     $PyInstallerArgs = Get-PyInstallerArgs
-    if ($CythonizeGlobs)
+    if ($CythonizeSourceGlobs)
     {
-        Write-Host "cythonize <- $CythonizeGlobs"
-        $CythonArgs = @("-3", "--inplace", "--no-docstrings")
-        if ($IsGithub)
+        $CythonizeArgs = @("-3", "--inplace", "--no-docstrings")
+        foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs)
         {
-            $CythonArgs += "--parallel=$CythonThreadsRemote"
+            $CythonizeArgs += "--exclude=$CythonizeExcludeGlob"
         }
-        cythonize $CythonArgs $CythonizeGlobs
+        $CythonizeArgs += $CythonizeSourceGlobs
+        Write-Host "cythonize $CythonizeArgs"
+        cythonize $CythonizeArgs
     }
 
     $Name = Get-ProjectName
