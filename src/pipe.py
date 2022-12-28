@@ -190,10 +190,11 @@ class _Writer:
 
 
 class StringNamedPipeClient:
+    _out = None
+    _err = None
+
     def __init__(self, name: str):
         self._console = StringNamedPipe(name)
-        self._out = sys.stdout = _Writer(self, sys.stdout)
-        self._err = sys.stderr = _Writer(self, sys.stderr)
 
     def __bool__(self):
         return bool(self._console) and self._console.exists()
@@ -205,11 +206,18 @@ class StringNamedPipeClient:
         end_time = time.time() + timeout
         while end_time > time.time() and not self._console.open(False, True):
             time.sleep(POLL_INTERVAL)
-        return bool(self)
+        if connected := bool(self):
+            self._out = sys.stdout = _Writer(self, sys.stdout)
+            self._err = sys.stderr = _Writer(self, sys.stderr)
+        return connected
 
     def disconnect(self) -> bool:
-        sys.stdout = self._out.target
-        sys.stderr = self._err.target
+        if self._out is not None:
+            sys.stdout = self._out.target
+            self._out = None
+        if self._err is not None:
+            sys.stderr = self._err.target
+            self._err = None
         return self._console.close()
 
     def write(self, text: str) -> int:

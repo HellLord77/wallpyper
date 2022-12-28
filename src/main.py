@@ -547,15 +547,15 @@ def on_unpin_start() -> bool:
 @utils.SingletonCallable
 def on_console() -> bool:
     if PIPE:
-        if consoled := not PIPE.disconnect():
+        if success := not PIPE.disconnect():
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
-        win32.open_file(PIPE_PATH if pyinstall.FROZEN else sys.executable, *() if pyinstall.FROZEN else (pipe.__file__,), str(PIPE))
-        if consoled := PIPE.connect(consts.PIPE_TIMEOUT):
+        win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__), str(PIPE))
+        if success := PIPE.connect(consts.PIPE_TIMEOUT):
             PIPE.flush()
         else:
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
-    return consoled
+    return success
 
 
 def on_clear_cache() -> bool:
