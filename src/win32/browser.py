@@ -25,7 +25,7 @@ def _temp_var(window: _mshtml.HTMLWindow2, val: str) -> ContextManager[str]:
 
 class Browser:
     def __init__(self, url: str = 'about:blank'):
-        with ctyped.interface.COM[ExDisp.IWebBrowser2]() as browser:
+        with ctyped.interface.COM[ExDisp.IWebBrowser2](ctyped.const.CLSID_InternetExplorer) as browser:
             self._browser = _mshtml.WebBrowser2(browser)
         self._browser.navigate(url)
 
@@ -69,7 +69,8 @@ class Browser:
         stream = ctyped.lib.shlwapi.SHCreateMemStream(ctyped.NULLPTR, 0)
         if stream:
             dispatch = ctyped.interface.COM[oaidl.IDispatch]()
-            self._browser.interface.get_Document(~dispatch)
+            # noinspection PyProtectedMember
+            self._browser._obj.get_Document(~dispatch)
             with dispatch[ocidl.IPersistStreamInit] as persist_stream:
                 persist_stream.Save(stream, ctyped.const.TRUE)
             stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.NULLPTR)
@@ -84,8 +85,9 @@ class Browser:
         return html
 
     def call_js(self, func: str, *args: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:  # TODO argtypes
+        # noinspection PyProtectedMember
         with _temp_var(window := self._browser.document.parent_window, func) as var, \
-                ctyped.interface.COM[DispEx.IDispatchEx](window.interface) as window_ex:
+                ctyped.interface.COM[DispEx.IDispatchEx](window._obj) as window_ex:
             disp_id = ctyped.type.DISPID()
             with _utils.get_bstr(var) as bstr:
                 window_ex.GetDispID(bstr, ctyped.const.fdexNameCaseSensitive, ctyped.byref(disp_id))
@@ -98,8 +100,9 @@ class Browser:
                     s.U.bstrVal = ctyped.lib.oleaut32.SysAllocString(arg)
                 try:
                     result = ctyped.struct.VARIANT()
-                    window.interface.Invoke(disp_id, ctyped.byref(ctyped.struct.IID()), 0, ctyped.const.DISPATCH_METHOD,
-                                            ctyped.byref(params), ctyped.byref(result), None, None)
+                    # noinspection PyProtectedMember
+                    window._obj.Invoke(disp_id, ctyped.byref(ctyped.struct.IID()), 0, ctyped.const.DISPATCH_METHOD,
+                                       ctyped.byref(params), ctyped.byref(result), None, None)
                     try:
                         return _utils.get_variant_value(result)
                     finally:
@@ -112,12 +115,14 @@ class Browser:
         source = code.replace('"', '\\"')
         with _temp_var(window := self._browser.document.parent_window, f'eval("{source}")') as var:
             disp_id = ctyped.type.DISPID()
-            with ctyped.interface.COM[DispEx.IDispatchEx](window.interface) as window_ex, _utils.get_bstr(var) as bstr:
+            # noinspection PyProtectedMember
+            with ctyped.interface.COM[DispEx.IDispatchEx](window._obj) as window_ex, _utils.get_bstr(var) as bstr:
                 window_ex.GetDispID(bstr, ctyped.const.fdexNameCaseSensitive, ctyped.byref(disp_id))
             result = ctyped.struct.VARIANT()
-            window.interface.Invoke(disp_id, ctyped.byref(
+            # noinspection PyProtectedMember
+            window._obj.Invoke(disp_id, ctyped.byref(
                 ctyped.struct.IID()), ctyped.const.LOCALE_SYSTEM_DEFAULT, ctyped.const.DISPATCH_PROPERTYGET,
-                                    ctyped.byref(ctyped.struct.DISPPARAMS()), ctyped.byref(result), None, None)
+                               ctyped.byref(ctyped.struct.DISPPARAMS()), ctyped.byref(result), None, None)
             try:
                 return _utils.get_variant_value(result)
             finally:

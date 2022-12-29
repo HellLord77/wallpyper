@@ -276,7 +276,7 @@ class BSTR(ctyped.type.BSTR):
     # noinspection PyMissingConstructor
     def __init__(self, string: Optional[str] = None, size: Optional[int] = None):
         if size is not None:
-            ctyped.lib.oleaut32.SysAllocStringLen(string, size)
+            self.value = ctyped.lib.oleaut32.SysAllocStringLen(string, size)
         elif string is not None:
             self.value = ctyped.lib.oleaut32.SysAllocString(string)
 
@@ -298,7 +298,7 @@ def _test_browser():
     print(browser._browser.width)
     # browser.navigate('about:blank')
     # browser.wait()
-    print(browser)
+    print(browser.get_static_html())
 
 
 def _test_dispatch():
@@ -311,14 +311,10 @@ def _test_dispatch():
     print(win32._utils.get_funcs(~disp).values())
 
 
-def _test_interface():
-    print(win32.open_file_with_ex(r'D:\Animes\2x1-ep-1-720p-v1x.mp4'))
-
-
 def _test():
     pass
 
 
 if __name__ == '__main__':
-    _test()
+    _test_browser()
     sys.exit()

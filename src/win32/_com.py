@@ -21,13 +21,15 @@ class Getter(_Property):
 
 class Setter(_Property):
     def __set__(self, instance: _Interface, value):
-        getattr(instance.interface, self._setter)(value)
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._setter)(value)
 
 
 class CIntGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> int:
         c_int = ctyped.type.c_int()
-        getattr(instance.interface, self._getter)(ctyped.byref(c_int))
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(c_int))
         return c_int.value
 
 
@@ -42,7 +44,8 @@ class CIntGetterSetter(CIntSetter, CIntGetter):
 class CLongGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> int:
         c_long = ctyped.type.c_long()
-        getattr(instance.interface, self._getter)(ctyped.byref(c_long))
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(c_long))
         return c_long.value
 
 
@@ -57,7 +60,8 @@ class CLongGetterSetter(CLongSetter, CLongGetter):
 class LPWSTRGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> str:
         lpwstr = ctyped.type.LPWSTR()
-        getattr(instance.interface, self._getter)(ctyped.byref(lpwstr))
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(lpwstr))
         return lpwstr.value
 
 
@@ -72,7 +76,8 @@ class LPWSTRGetterSetter(LPWSTRSetter, LPWSTRGetter):
 class BOOLGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> bool:
         bool_ = ctyped.type.BOOL()
-        getattr(instance.interface, self._getter)(ctyped.byref(bool_))
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(bool_))
         return bool(bool_.value)
 
 
@@ -87,7 +92,8 @@ class BOOLGetterSetter(BOOLSetter, BOOLGetter):
 class VariantBoolGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> bool:
         variant_bool = ctyped.type.VARIANT_BOOL()
-        getattr(instance.interface, self._getter)(ctyped.byref(variant_bool))
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(variant_bool))
         return bool(variant_bool.value)
 
 
@@ -101,14 +107,14 @@ class VariantBoolGetterSetter(VariantBoolSetter, VariantBoolGetter):
 
 class _Interface:
     def __init__(self, interface: Optional[Unknwnbase.IUnknown] = None):
-        self.interface = typing.get_type_hints(self, vars(inspect.getmodule(self)))['interface']()
+        self._obj = typing.get_type_hints(self, vars(inspect.getmodule(self)))['_obj']()
         if interface:
-            interface.QueryInterface(*ctyped.macro.IID_PPV_ARGS(self.interface))
+            interface.QueryInterface(*ctyped.macro.IID_PPV_ARGS(self._obj))
 
     def __del__(self):
-        if self.interface:
-            self.interface.Release()
+        if self._obj:
+            self._obj.Release()
 
 
 class Unknown(_Interface):
-    interface: Unknwnbase.IUnknown
+    _obj: Unknwnbase.IUnknown

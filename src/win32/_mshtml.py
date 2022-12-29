@@ -10,49 +10,52 @@ from . import _com, _utils
 class _HTMLDocument2Getter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLDocument2:
         with ctyped.interface.COM[MsHTML.IHTMLDocument2]() as html_document_2:
-            getattr(instance.interface, self._getter)(ctyped.byref(html_document_2))
+            # noinspection PyProtectedMember
+            getattr(instance._obj, self._getter)(ctyped.byref(html_document_2))
             return HTMLDocument2(html_document_2)
 
 
 class _HTMLElementGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElement:
         with ctyped.interface.COM[MsHTML.IHTMLElement]() as html_element:
-            getattr(instance.interface, self._getter)(ctyped.byref(html_element))
+            # noinspection PyProtectedMember
+            getattr(instance._obj, self._getter)(ctyped.byref(html_element))
             return HTMLElement(html_element)
 
 
 class _HTMLElementCollectionGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElementCollection:
         with ctyped.interface.COM[MsHTML.IHTMLElementCollection]() as html_element_collection:
-            getattr(instance.interface, self._getter)(ctyped.byref(html_element_collection))
+            # noinspection PyProtectedMember
+            getattr(instance._obj, self._getter)(ctyped.byref(html_element_collection))
             return HTMLElementCollection(html_element_collection)
 
 
 class WebBrowser2(_com.Unknown):
-    interface: ExDisp.IWebBrowser2
+    _obj: ExDisp.IWebBrowser2
 
     def go_back(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.GoBack())
+        return ctyped.macro.SUCCEEDED(self._obj.GoBack())
 
     def go_forward(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.GoForward())
+        return ctyped.macro.SUCCEEDED(self._obj.GoForward())
 
     def go_home(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.GoHome())
+        return ctyped.macro.SUCCEEDED(self._obj.GoHome())
 
     def go_search(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.GoSearch())
+        return ctyped.macro.SUCCEEDED(self._obj.GoSearch())
 
     def navigate(self, url: str) -> bool:
         with _utils.get_bstr(url) as bstr:
-            return ctyped.macro.SUCCEEDED(self.interface.Navigate(
+            return ctyped.macro.SUCCEEDED(self._obj.Navigate(
                 bstr, ctyped.NULLPTR, ctyped.NULLPTR, ctyped.NULLPTR, ctyped.NULLPTR))
 
     def refresh(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.Refresh())
+        return ctyped.macro.SUCCEEDED(self._obj.Refresh())
 
     def stop(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.Stop())
+        return ctyped.macro.SUCCEEDED(self._obj.Stop())
 
     document = _HTMLDocument2Getter('Document')
     left = _com.CLongGetterSetter('Left')
@@ -61,7 +64,7 @@ class WebBrowser2(_com.Unknown):
     height = _com.CLongGetterSetter('Height')
 
     def quit(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.Quit())
+        return ctyped.macro.SUCCEEDED(self._obj.Quit())
 
     visible = _com.VariantBoolGetterSetter('Visible')
     status_bar = _com.VariantBoolGetterSetter('StatusBar')
@@ -73,7 +76,7 @@ class WebBrowser2(_com.Unknown):
     @property
     def ready_state(self) -> ctyped.enum.READYSTATE:
         ready_state = ctyped.enum.READYSTATE()
-        self.interface.get_ReadyState(ctyped.byref(ready_state))
+        self._obj.get_ReadyState(ctyped.byref(ready_state))
         return ready_state
 
     offline = _com.VariantBoolGetterSetter('Offline')
@@ -86,7 +89,7 @@ class WebBrowser2(_com.Unknown):
 
 
 class HTMLDocument2(_com.Unknown):
-    interface: MsHTML.IHTMLDocument2
+    _obj: MsHTML.IHTMLDocument2
     all = _HTMLElementCollectionGetter('all')
     body = _HTMLElementGetter('body')
     active_element = _HTMLElementGetter('activeElement')
@@ -106,93 +109,93 @@ class HTMLDocument2(_com.Unknown):
     cookie = _utils.BSTRGetterSetter('cookie')
 
     def close(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.close())
+        return ctyped.macro.SUCCEEDED(self._obj.close())
 
     def clear(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.clear())
+        return ctyped.macro.SUCCEEDED(self._obj.clear())
 
     @property
     def parent_window(self) -> HTMLWindow2:
         with ctyped.interface.COM[MsHTML.IHTMLWindow2]() as html_window_2:
-            self.interface.get_parentWindow(ctyped.byref(html_window_2))
+            self._obj.get_parentWindow(ctyped.byref(html_window_2))
             return HTMLWindow2(html_window_2)
 
     def to_string(self) -> str:
         with _utils.get_bstr() as bstr:
-            self.interface.toString(ctyped.byref(bstr))
+            self._obj.toString(ctyped.byref(bstr))
             return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
 
 class HTMLDocument7(_com.Unknown):
-    interface: MsHTML.IHTMLDocument7
+    _obj: MsHTML.IHTMLDocument7
     head = _HTMLElementGetter('head')
 
 
 class HTMLWindow2(_com.Unknown):
-    interface: MsHTML.IHTMLWindow2
+    _obj: MsHTML.IHTMLWindow2
     default_status = _utils.BSTRGetterSetter('defaultStatus')
     status = _utils.BSTRGetterSetter('status')
 
     def alert(self, message: str) -> bool:
         with _utils.get_bstr(message) as bstr:
-            return ctyped.macro.SUCCEEDED(self.interface.alert(bstr))
+            return ctyped.macro.SUCCEEDED(self._obj.alert(bstr))
 
     def close(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.close())
+        return ctyped.macro.SUCCEEDED(self._obj.close())
 
     name = _utils.BSTRGetterSetter('name')
 
     def navigate(self, url: str) -> bool:
         with _utils.get_bstr(url) as bstr:
-            return ctyped.macro.SUCCEEDED(self.interface.navigate(bstr))
+            return ctyped.macro.SUCCEEDED(self._obj.navigate(bstr))
 
     document = _HTMLDocument2Getter('document')
 
     def focus(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.focus())
+        return ctyped.macro.SUCCEEDED(self._obj.focus())
 
     def blur(self) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.blur())
+        return ctyped.macro.SUCCEEDED(self._obj.blur())
 
     def scroll(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.scroll(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.scroll(x, y))
 
     def exec_script(self, code: str, language: str = 'JScript') -> bool:
         with _utils.get_bstr(code) as bstr, _utils.get_bstr(language) as bstr_2:
-            return ctyped.macro.SUCCEEDED(self.interface.execScript(bstr, bstr_2, ctyped.byref(ctyped.struct.VARIANT())))
+            return ctyped.macro.SUCCEEDED(self._obj.execScript(bstr, bstr_2, ctyped.byref(ctyped.struct.VARIANT())))
 
     def to_string(self) -> str:
         with _utils.get_bstr() as bstr:
-            self.interface.toString(ctyped.byref(bstr))
+            self._obj.toString(ctyped.byref(bstr))
             return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
     def scroll_by(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.scrollBy(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.scrollBy(x, y))
 
     def scroll_to(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.scrollTo(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.scrollTo(x, y))
 
     def move_to(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.moveTo(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.moveTo(x, y))
 
     def move_by(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.moveBy(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.moveBy(x, y))
 
     def resize_to(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.resizeTo(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.resizeTo(x, y))
 
     def resize_by(self, x: int, y: int) -> bool:
-        return ctyped.macro.SUCCEEDED(self.interface.resizeBy(x, y))
+        return ctyped.macro.SUCCEEDED(self._obj.resizeBy(x, y))
 
 
 class HTMLElement(_com.Unknown):
-    interface: MsHTML.IHTMLElement
+    _obj: MsHTML.IHTMLElement
 
     def get_attribute(self, attribute_name: str,
                       flags: int = 0) -> Optional[bool | int | float | str | oaidl.IDispatch]:
         with _utils.get_bstr(attribute_name) as bstr:
             variant = ctyped.struct.VARIANT()
-            self.interface.getAttribute(bstr, flags, ctyped.byref(variant))
+            self._obj.getAttribute(bstr, flags, ctyped.byref(variant))
             try:
                 return _utils.get_variant_value(variant)
             finally:
@@ -212,16 +215,16 @@ class HTMLElement(_com.Unknown):
 
     def to_string(self) -> str:
         with _utils.get_bstr() as bstr:
-            self.interface.toString(ctyped.byref(bstr))
+            self._obj.toString(ctyped.byref(bstr))
             return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
 
 class HTMLElementCollection(_com.Unknown):
-    interface: MsHTML.IHTMLElementCollection
+    _obj: MsHTML.IHTMLElementCollection
 
     def to_string(self) -> str:
         with _utils.get_bstr() as bstr:
-            self.interface.toString(ctyped.byref(bstr))
+            self._obj.toString(ctyped.byref(bstr))
             return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
     length = _com.CLongGetterSetter('length')
@@ -231,7 +234,7 @@ class HTMLElementCollection(_com.Unknown):
         variant.U.S.vt = ctyped.enum.VARENUM.I4.value
         variant.U.S.U.intVal = index
         with ctyped.interface.COM[oaidl.IDispatch]() as dispatch:
-            self.interface.item(variant, variant, ctyped.byref(dispatch))
+            self._obj.item(variant, variant, ctyped.byref(dispatch))
             return HTMLElement(dispatch)
 
     def tags(self, tag_name: str) -> HTMLElementCollection:
@@ -240,5 +243,5 @@ class HTMLElementCollection(_com.Unknown):
         with _utils.get_bstr(tag_name) as bstr:
             variant.U.S.U.bstrVal = bstr
             with ctyped.interface.COM[oaidl.IDispatch]() as dispatch:
-                self.interface.tags(variant, ctyped.byref(dispatch))
+                self._obj.tags(variant, ctyped.byref(dispatch))
                 return HTMLElementCollection(dispatch)

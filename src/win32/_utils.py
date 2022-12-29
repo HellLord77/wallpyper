@@ -16,18 +16,18 @@ POLL_INTERVAL = 0.1
 
 
 class BSTRGetter(_com.Getter):
-    # noinspection PyProtectedMember
-    def __get__(self, instance: _com._Interface, owner: type[_com._Interface]) -> Optional[str]:
+    def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> Optional[str]:
         with get_bstr() as bstr:
-            getattr(instance.interface, self._getter)(ctyped.byref(bstr))
+            # noinspection PyProtectedMember
+            getattr(instance._obj, self._getter)(ctyped.byref(bstr))
             return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
 
 class BSTRSetter(_com.Setter):
-    # noinspection PyProtectedMember
-    def __set__(self, instance: _com._Interface, value: str):
+    def __set__(self, instance: _com.Unknown, value: str):
         with get_bstr(value) as value:
-            getattr(instance.interface, self._setter)(value)
+            # noinspection PyProtectedMember
+            getattr(instance._obj, self._setter)(value)
 
 
 class BSTRGetterSetter(BSTRSetter, BSTRGetter):

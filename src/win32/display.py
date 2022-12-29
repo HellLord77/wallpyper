@@ -85,9 +85,8 @@ class Transition(metaclass=utils.IntEnumMeta):
         ctyped.lib.gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
         ctyped.lib.msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
         ctyped.lib.gdi32.BitBlt(dst, dst_x, dst_y, dst_w, dst_h, tmp_dst, 0, 0, ctyped.const.SRCCOPY)
-        return
-        # noinspection PyUnreachableCode
-        yield
+        if None:
+            yield
 
     @staticmethod
     def _left(factor: float, dst_w: int, dst_h: int):

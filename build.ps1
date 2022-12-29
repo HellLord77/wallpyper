@@ -23,6 +23,7 @@ $Icon = "src\res\icon.ico"
 $Manifest = ""
 $MainManifest = "manifest.xml"
 $CythonSources = @("src\pipe.py")
+# $CythonizeExludeGlobs = @() FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
 $CythonizeExcludeGlobs = @(
 "src/libs/ctyped/enum.py")
 $CythonizeSourceGlobs = @(

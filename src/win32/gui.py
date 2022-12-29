@@ -165,9 +165,8 @@ class _IDGenerator:
 @functools.lru_cache
 def _load_bitmap_cached(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
     if isinstance(path_or_bitmap, str):
-        return _gdiplus.Bitmap.from_file(path_or_bitmap)
-    else:
-        return path_or_bitmap
+        path_or_bitmap = _gdiplus.Bitmap.from_file(path_or_bitmap)
+    return path_or_bitmap
 
 
 def _load_bitmap(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
@@ -723,7 +722,7 @@ class MenuItem(_Control):
     _id_gen = _IDGenerator()
 
     _tooltip_text: str = ''
-    _tooltip_icon: int = MenuItemTooltipIcon.NONE
+    _tooltip_icon: int | ctyped.handle.HICON = MenuItemTooltipIcon.NONE
     _tooltip_title: str = ''
     _uid: int | str = 0
 
@@ -752,7 +751,7 @@ class MenuItem(_Control):
                 pos = rect.left + int((rect.right - rect.left) / 2), rect.top + int((rect.bottom - rect.top) / 2)
             # noinspection PyProtectedMember
             Gui.get(self._hwnd)._show_menu_item_tooltip(
-                self._tooltip_text, self._tooltip_icon, self._tooltip_title, pos)
+                self._tooltip_text, int(self._tooltip_icon), self._tooltip_title, pos)
 
     def get_menu(self) -> Menu:
         return self._menu
@@ -943,12 +942,16 @@ class MenuItem(_Control):
     def set_unchecked_icon(self, res_or_path: Optional[int | str] = None, resize: bool = True) -> bool:
         return self._set_check_icons(self._hbmps[1], res_or_path, resize)
 
-    def set_tooltip(self, text: str, title: str = '', icon_res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = MenuItemTooltipIcon.NONE):
+    def set_tooltip(self, text: str, title: str = '',
+                    icon_res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
         self._tooltip_title = title
-        self._tooltip_icon = icon_res_or_path_or_bitmap if isinstance(
-            icon_res_or_path_or_bitmap, int) else (_gdiplus.bitmap_from_resized_bitmap(_load_bitmap(
-            icon_res_or_path_or_bitmap), _TOOLTIP_ICON_SIZE, _TOOLTIP_ICON_SIZE, True).get_hicon() or MenuItemTooltipIcon.NONE)
+        if not isinstance(icon_res_or_path_or_bitmap, int):
+            icon_res_or_path_or_bitmap = _gdiplus.bitmap_from_resized_bitmap(_load_bitmap(
+                icon_res_or_path_or_bitmap), _TOOLTIP_ICON_SIZE, _TOOLTIP_ICON_SIZE, True).get_hicon()
+            if not icon_res_or_path_or_bitmap:
+                icon_res_or_path_or_bitmap = MenuItemTooltipIcon.NONE
+        self._tooltip_icon = icon_res_or_path_or_bitmap
 
     def set_uid(self, uid: int | str):
         self._uid = uid
