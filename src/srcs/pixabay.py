@@ -1,5 +1,3 @@
-__version__ = '0.0.1'  # https://pixabay.com/api/docs
-
 import os.path
 import re
 from typing import Generator, Optional
@@ -39,7 +37,10 @@ def _authenticate(key: str) -> bool:
     return bool(request.open(URL_BASE, {CONFIG_KEY: key, 'per_page': '3'}))
 
 
-class _Source(Source):
+class Pixabay(Source):  # https://pixabay.com/api/docs
+    NAME = 'pixabay'
+    VERSION = '0.0.1'
+    URL = 'https://pixabay.com'
     ICON = 'png'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
@@ -59,9 +60,9 @@ class _Source(Source):
         cls._fix_config(CONFIG_TYPE, TYPES)
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(CONFIG_CATEGORY, CATEGORIES)
-        for color in cls.CONFIG[CONFIG_COLORS].split(','):
+        for color in cls.CURRENT_CONFIG[CONFIG_COLORS].split(','):
             if color not in COLORS:
-                cls.CONFIG[CONFIG_COLORS] = cls.DEFAULT_CONFIG[CONFIG_COLORS]
+                cls.CURRENT_CONFIG[CONFIG_COLORS] = cls.DEFAULT_CONFIG[CONFIG_COLORS]
                 break
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
@@ -89,28 +90,28 @@ class _Source(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_LANG, {lang: re.split('[,;]', iso_codes.ISO6392.get(
-            alpha_2=lang).name)[0] for lang in LANGS}, cls.CONFIG, CONFIG_LANG)
-        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_TYPE, {type_: getattr(
-            cls.STRINGS, f'PIXABAY_TYPE_{type_}') for type_ in TYPES}, cls.CONFIG, CONFIG_TYPE)
-        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_ORIENTATION, {orientation: getattr(
-            cls.STRINGS, f'PIXABAY_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
-                               cls.CONFIG, CONFIG_ORIENTATION)
-        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_CATEGORY, {category: getattr(
-            cls.STRINGS, f'PIXABAY_CATEGORY_{category}') for category in CATEGORIES}, cls.CONFIG, CONFIG_CATEGORY)
-        colors = cls.CONFIG[CONFIG_COLORS].split(',')
-        menu_color = gui.add_submenu(cls.STRINGS.PIXABAY_MENU_COLORS).get_submenu()
+        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_LANG, {lang: re.split('[,;]', iso_codes.ISO6392.get(
+            alpha_2=lang).name)[0] for lang in LANGS}, cls.CURRENT_CONFIG, CONFIG_LANG)
+        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_TYPE, {type_: getattr(
+            cls.strings, f'PIXABAY_TYPE_{type_}') for type_ in TYPES}, cls.CURRENT_CONFIG, CONFIG_TYPE)
+        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_ORIENTATION, {orientation: getattr(
+            cls.strings, f'PIXABAY_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_CATEGORY, {category: getattr(
+            cls.strings, f'PIXABAY_CATEGORY_{category}') for category in CATEGORIES}, cls.CURRENT_CONFIG, CONFIG_CATEGORY)
+        colors = cls.CURRENT_CONFIG[CONFIG_COLORS].split(',')
+        menu_color = gui.add_submenu(cls.strings.PIXABAY_MENU_COLORS).get_submenu()
         for color in COLORS:
-            gui.add_menu_item(getattr(cls.STRINGS, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
+            gui.add_menu_item(getattr(cls.strings, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
                               uid=color, on_click=cls._on_color, args=(menu_color,), menu=menu_color)
         gui.add_separator(2, menu_color)
         cls._on_color(menu_color)
-        gui.add_mapped_menu_item(cls.STRINGS.PIXABAY_LABEL_EDITOR, cls.CONFIG, CONFIG_EDITOR)
-        gui.add_mapped_menu_item(cls.STRINGS.PIXABAY_LABEL_SAFE, cls.CONFIG, CONFIG_SAFE)
-        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CONFIG, CONFIG_ORDER)
+        gui.add_mapped_menu_item(cls.strings.PIXABAY_LABEL_EDITOR, cls.CURRENT_CONFIG, CONFIG_EDITOR)
+        gui.add_mapped_menu_item(cls.strings.PIXABAY_LABEL_SAFE, cls.CURRENT_CONFIG, CONFIG_SAFE)
+        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_ORDER, {order: getattr(
+            cls.strings, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
     def _on_color(cls, menu: gui.Menu):
-        cls.CONFIG[CONFIG_COLORS] = ','.join(
+        cls.CURRENT_CONFIG[CONFIG_COLORS] = ','.join(
             color for color, item in gui.get_menu_items(menu).items() if item.is_checked())

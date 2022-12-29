@@ -1,5 +1,3 @@
-__version__ = '0.0.1'
-
 import os.path
 from typing import Generator, Optional, Callable
 
@@ -22,8 +20,10 @@ SORTS = {
 ORDERS = 'ascending', 'descending'
 
 
-class _Source(Source):
+class LocalFolder(Source):
     NAME = 'Local Folder'
+    VERSION = '0.0.1'
+    URL = request.path_to_url(win32.PICTURES_DIR)
     ICON = 'png'
     DEFAULT_CONFIG = {
         CONFIG_DIR: win32.PICTURES_DIR,
@@ -33,8 +33,8 @@ class _Source(Source):
 
     @classmethod
     def fix_config(cls):
-        if not os.path.isdir(cls.CONFIG[CONFIG_DIR]):
-            cls.CONFIG[CONFIG_DIR] = cls.DEFAULT_CONFIG[CONFIG_DIR]
+        if not os.path.isdir(cls.CURRENT_CONFIG[CONFIG_DIR]):
+            cls.CURRENT_CONFIG[CONFIG_DIR] = cls.DEFAULT_CONFIG[CONFIG_DIR]
         cls._fix_config(CONFIG_SORT, SORTS)
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
@@ -51,18 +51,18 @@ class _Source(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_menu_item(cls.STRINGS.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, menu_args=(
-            gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CONFIG[CONFIG_DIR])
-        gui.add_mapped_menu_item(cls.STRINGS.LOCAL_MENU_RECURSE, cls.CONFIG, CONFIG_RECURSE)
+        gui.add_menu_item(cls.strings.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, menu_args=(
+            gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
+        gui.add_mapped_menu_item(cls.strings.LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()
-        gui.add_mapped_submenu(cls.STRINGS.LOCAL_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'LOCAL_SORT_{sort}') for sort in SORTS}, cls.CONFIG, CONFIG_SORT)
-        gui.add_mapped_submenu(cls.STRINGS.LOCAL_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'LOCAL_ORDER_{order}') for order in ORDERS}, cls.CONFIG, CONFIG_ORDER)
+        gui.add_mapped_submenu(cls.strings.LOCAL_MENU_SORT, {sort: getattr(
+            cls.strings, f'LOCAL_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
+        gui.add_mapped_submenu(cls.strings.LOCAL_MENU_ORDER, {order: getattr(
+            cls.strings, f'LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
     def _on_modify_dir(cls, set_tooltip: Callable) -> bool:
-        if path := win32.dialog.open_folder(cls.CONFIG[CONFIG_DIR], cls.STRINGS.LOCAL_MENU_DIR):
-            cls.CONFIG[CONFIG_DIR] = path
+        if path := win32.dialog.open_folder(cls.CURRENT_CONFIG[CONFIG_DIR], cls.strings.LOCAL_MENU_DIR):
+            cls.CURRENT_CONFIG[CONFIG_DIR] = path
             set_tooltip(path)
         return bool(path)

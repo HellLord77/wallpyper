@@ -2,7 +2,6 @@ from __future__ import annotations as _
 
 __version__ = '0.1.0'
 
-import inspect
 import os
 from typing import Any, Generator, Iterable, Optional
 
@@ -12,29 +11,26 @@ from libs import files, utils
 SOURCES: dict[str, type[Source]] = {}
 
 
-class _SourceMeta(type):
-    def __new__(mcs, *args, **kwargs):
-        cls = super().__new__(mcs, *args, **kwargs)
-        if cls.__name__.startswith('_'):
-            name = cls.__module__.split('.')[-1]
-            cls.NAME = getattr(cls, 'NAME', name)
-            cls.VERSION = getattr(cls, 'VERSION', inspect.currentframe().f_back.f_globals.get('__version__', 'X.Y.Z'))
-            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{name}.{getattr(cls, "ICON", "ico")}')
-            cls.DEFAULT_CONFIG = getattr(cls, 'DEFAULT_CONFIG', {})
-            cls.CONFIG = {}
-            cls.get_next_wallpaper = utils.LastCacheCallable(cls.get_next_wallpaper)
-            # noinspection PyTypeChecker
-            SOURCES[name] = cls
-        return cls
+class Source:
+    NAME: str = ''
+    VERSION: str = '0.0.0'
+    ICON: str = 'ico'
+    URL: str
+    DEFAULT_CONFIG: Optional[dict[str, Any]] = None
+    CURRENT_CONFIG: Optional[dict[str, bool | str]] = None
 
+    strings = langs.DEFAULT
 
-class Source(metaclass=_SourceMeta):
-    NAME: str
-    VERSION: str
-    ICON: str
-    DEFAULT_CONFIG: dict[str, Any]
-    CONFIG: dict[str, bool | str]
-    STRINGS = langs.DEFAULT
+    def __init_subclass__(cls):
+        uid = cls.__module__.split('.')[-1]
+        if not cls.NAME:
+            cls.NAME = cls.__name__
+        cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
+        if cls.DEFAULT_CONFIG is None:
+            cls.DEFAULT_CONFIG = {}
+        cls.CURRENT_CONFIG = {}
+        cls.get_next_wallpaper = utils.LastCacheCallable(cls.get_next_wallpaper)
+        SOURCES[uid] = cls
 
     @classmethod
     def update_config(cls):
@@ -42,7 +38,7 @@ class Source(metaclass=_SourceMeta):
 
     @classmethod
     def _fix_config(cls, key: str, values: Iterable):
-        utils.fix_dict_key(cls.CONFIG, key, values, cls.DEFAULT_CONFIG)
+        utils.fix_dict_key(cls.CURRENT_CONFIG, key, values, cls.DEFAULT_CONFIG)
 
     @classmethod
     def fix_config(cls):

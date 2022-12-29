@@ -25,7 +25,8 @@ _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 _TID_MENU_ITEM_TOOLTIP = 0
 _TOOLTIP_ICON_SIZE = 32
 _MENU_ITEM_IMAGE_SIZE = 16
-_MENU_ITEM_AUTOMATIC = 500
+_MENU_ITEM_TOOLTIP_AUTOMATIC = 500
+_MENU_ITEM_TOOLTIP_MAX_WIDTH = 32767
 
 _MIM_FIELD = {
     ctyped.const.MIM_BACKGROUND: 'hbrBack',
@@ -45,8 +46,8 @@ _MIIM_FIELDS = {
 
 FLAG_CACHE_BITMAP = False
 FLAG_MENU_ITEM_RESHOW_TOOLTIP = False
-MENU_ITEM_TOOLTIP_INITIAL = _MENU_ITEM_AUTOMATIC * 1
-MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_AUTOMATIC // 5
+MENU_ITEM_TOOLTIP_INITIAL = _MENU_ITEM_TOOLTIP_AUTOMATIC * 1
+MENU_ITEM_TOOLTIP_RESHOW = _MENU_ITEM_TOOLTIP_AUTOMATIC // 5
 
 
 class GuiEvent:
@@ -266,6 +267,7 @@ class Gui(_EventHandler):
             ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance, None))
         self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(uFlags=ctyped.const.TTF_SUBCLASS, hinst=self._hinstance)
         self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_ADDTOOLW, lparam=ctyped.addressof(self._menu_item_tooltip))
+        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_SETMAXTIPWIDTH, 0, _MENU_ITEM_TOOLTIP_MAX_WIDTH)
         self._attached: list[_Control] = []
         self._mainloop_lock = threading.Lock()
         super().__init__(self._hwnd.value)
@@ -331,19 +333,24 @@ class Gui(_EventHandler):
             return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
 
-    def _show_menu_item_tooltip(self, text: str, icon: int, title: str, pos: Optional[tuple[int, int]] = None):
+    def _show_menu_item_tooltip(self, text: str, title: str, icon: int,
+                                pos: Optional[tuple[int, int]] = None):
         self._menu_item_tooltip_proc = None
         self._menu_item_tooltip.lpszText = text
         self._menu_item_tooltip_title = ctyped.char_array(title)
         lparam = ctyped.addressof(self._menu_item_tooltip)
         self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE)
-        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_UPDATETIPTEXTW, lparam=lparam)
         self._menu_item_tooltip_hwnd.send_message(
-            ctyped.const.TTM_SETTITLEW, icon, ctyped.addressof(self._menu_item_tooltip_title))
-        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_TRACKACTIVATE, 1, lparam)
+            ctyped.const.TTM_UPDATETIPTEXTW, lparam=lparam)
+        self._menu_item_tooltip_hwnd.send_message(
+            ctyped.const.TTM_SETTITLEW, icon, ctyped.addressof(
+                self._menu_item_tooltip_title))
+        self._menu_item_tooltip_hwnd.send_message(
+            ctyped.const.TTM_TRACKACTIVATE, 1, lparam)
         if pos:
             ctyped.lib.user32.SetWindowPos(
-                self._menu_item_tooltip_hwnd, None, *pos, 0, 0, ctyped.const.SWP_NOACTIVATE | ctyped.const.SWP_NOSIZE)
+                self._menu_item_tooltip_hwnd, None, *pos,
+                0, 0, ctyped.const.SWP_NOACTIVATE | ctyped.const.SWP_NOSIZE)
 
     def get_name(self) -> str:
         return self._class.lpszClassName
@@ -722,8 +729,8 @@ class MenuItem(_Control):
     _id_gen = _IDGenerator()
 
     _tooltip_text: str = ''
-    _tooltip_icon: int | ctyped.handle.HICON = MenuItemTooltipIcon.NONE
     _tooltip_title: str = ''
+    _tooltip_icon: int | ctyped.handle.HICON = MenuItemTooltipIcon.NONE
     _uid: int | str = 0
 
     def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
@@ -742,16 +749,18 @@ class MenuItem(_Control):
         ctyped.lib.user32.KillTimer(self._hwnd, _TID_MENU_ITEM_TOOLTIP)
         if self._tooltip_text and self.is_highlighted():
             rect = ctyped.struct.RECT()
-            ctyped.lib.user32.GetMenuItemRect(self._hwnd, self._menu.get_id(), self.get_pos(), ctyped.byref(rect))
+            ctyped.lib.user32.GetMenuItemRect(self._hwnd, self._menu.get_id(),
+                                              self.get_pos(), ctyped.byref(rect))
             pt = ctyped.struct.POINT()
             ctyped.lib.user32.GetCursorPos(ctyped.byref(pt))
             if rect.left <= pt.x <= rect.right and rect.top <= pt.y <= rect.bottom:
                 pos = None
             else:
-                pos = rect.left + int((rect.right - rect.left) / 2), rect.top + int((rect.bottom - rect.top) / 2)
+                pos = (rect.left + int((rect.right - rect.left) / 2),
+                       rect.top + int((rect.bottom - rect.top) / 2))
             # noinspection PyProtectedMember
             Gui.get(self._hwnd)._show_menu_item_tooltip(
-                self._tooltip_text, int(self._tooltip_icon), self._tooltip_title, pos)
+                self._tooltip_text, self._tooltip_title, int(self._tooltip_icon), pos)
 
     def get_menu(self) -> Menu:
         return self._menu
@@ -947,8 +956,9 @@ class MenuItem(_Control):
         self._tooltip_text = text
         self._tooltip_title = title
         if not isinstance(icon_res_or_path_or_bitmap, int):
-            icon_res_or_path_or_bitmap = _gdiplus.bitmap_from_resized_bitmap(_load_bitmap(
-                icon_res_or_path_or_bitmap), _TOOLTIP_ICON_SIZE, _TOOLTIP_ICON_SIZE, True).get_hicon()
+            icon_res_or_path_or_bitmap = _gdiplus.bitmap_from_resized_bitmap(
+                _load_bitmap(icon_res_or_path_or_bitmap),
+                _TOOLTIP_ICON_SIZE, _TOOLTIP_ICON_SIZE, True).get_hicon()
             if not icon_res_or_path_or_bitmap:
                 icon_res_or_path_or_bitmap = MenuItemTooltipIcon.NONE
         self._tooltip_icon = icon_res_or_path_or_bitmap

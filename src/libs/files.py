@@ -18,16 +18,16 @@ POLL_INTERVAL = 0.1
 
 
 class File:
-    __slots__ = 'url', 'name', 'size', '_md5', '_sha256'
+    __slots__ = 'url', 'name', 'size', '_sha256', '_md5'
     _algorithms = {f'_{algorithm}' for algorithm in hashlib.algorithms_available}.intersection(__slots__)
 
     def __init__(self, url: str, name: str, size: int = 0,
-                 md5: Optional[bytes] = None, sha256: Optional[bytes] = None):
+                 sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
         self.url = url
         self.name = name
         self.size = size
-        self._md5 = md5
         self._sha256 = sha256
+        self._md5 = md5
 
     def __bool__(self):
         return bool(str(self))
@@ -41,11 +41,13 @@ class File:
     def __hash__(self):
         return hash(self.url)
 
-    def checksum(self, path: str) -> bool:
+    def checksum(self, path: str, try_: bool = False) -> bool:
         if os.path.isfile(path):
             for algorithm in self._algorithms:
-                if getattr(self, algorithm) is not None:
-                    return check_hash(path, getattr(self, algorithm), algorithm[1:])
+                if (hash_ := getattr(self, algorithm)) is not None:
+                    return check_hash(path, hash_, algorithm[1:])
+            if try_:
+                return True
         return False
 
     def fill(self, path: str) -> bool:
@@ -188,13 +190,11 @@ def get_hash(path: str, name: str = 'md5', *, __hash=None) -> _hashlib.HASH:
 
 
 # noinspection PyShadowingBuiltins
-def check_hash(path: str, hash: Optional[bytes | str | _hashlib.HASH], name: str = 'md5') -> bool:
-    if isinstance(hash, (bytes, str, _hashlib.HASH)):
-        hash_ = get_hash(path, name)
-        if isinstance(hash, _hashlib.HASH):
-            hash = hash.digest()
-        if isinstance(hash, bytes):
-            return hash == hash_.digest()
-        else:
-            return hash.lower() == hash_.hexdigest()
-    return False
+def check_hash(path: str, hash: bytes | str | _hashlib.HASH, name: str = 'md5') -> bool:
+    hash_ = get_hash(path, name)
+    if isinstance(hash, _hashlib.HASH):
+        hash = hash.digest()
+    if isinstance(hash, bytes):
+        return hash == hash_.digest()
+    else:
+        return hash.lower() == hash_.hexdigest()

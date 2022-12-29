@@ -1,5 +1,3 @@
-__version__ = '0.0.1'  # https://github.com/ORelio/Spotlight-Downloader
-
 import base64
 import json
 import os.path
@@ -18,8 +16,10 @@ LOCALES = 'en-US', 'de-DE', 'fr-FR', 'zh-CN', 'es-ES', 'ru-RU', 'en-GB', 'bn-IN'
 ORIENTATIONS = 'landscape', 'portrait'
 
 
-class _Source(Source):
+class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloader
     NAME = 'Windows Spotlight'
+    VERSION = '0.0.1'
+    URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
     ICON = 'png'
     DEFAULT_CONFIG = {
         CONFIG_LOCALE: LOCALES[0],
@@ -46,15 +46,15 @@ class _Source(Source):
                 if not items:
                     yield
                     continue
-            image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{cls.CONFIG[CONFIG_ORIENTATION]}']
+            image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
             yield files.File(url, files.replace_ext(os.path.basename(request.strip(url)), 'jpg'),
-                             int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
+                             int(image['fileSize']), base64.b64decode(image['sha256']))
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
-            locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
-        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
-            cls.STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
-                               cls.CONFIG, CONFIG_ORIENTATION)
+        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
+            locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
+        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
+            cls.strings, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)

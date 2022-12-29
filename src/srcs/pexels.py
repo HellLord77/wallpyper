@@ -1,5 +1,3 @@
-__version__ = '0.0.2'  # https://www.pexels.com/api/documentation
-
 import os
 from typing import Generator, Optional
 
@@ -36,8 +34,9 @@ def _authenticate(key: str) -> bool:
     return bool(request.open(URL_CURATED, {'per_page': '1'}, headers={'Authorization': key}))
 
 
-class _Source(Source):
-    NAME = 'Pexels'
+class Pexels(Source):  # https://www.pexels.com/api/documentation
+    VERSION = '0.0.2'
+    URL = 'https://www.pexels.com'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         CONFIG_CURATED: False,
@@ -80,17 +79,17 @@ class _Source(Source):
 
     @classmethod
     def create_menu(cls):
-        item_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CONFIG[CONFIG_CURATED])
-        gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CONFIG, CONFIG_CURATED,
+        item_search = gui.add_submenu(cls.strings.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
+        gui.add_mapped_menu_item(cls.strings.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
                                  on_click=on_curated, args=(item_search,), position=0)
         with gui.set_menu(item_search):
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
-                                   {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
-                                    for orientation in ORIENTATIONS}, cls.CONFIG, CONFIG_ORIENTATION)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_SIZE, {size: getattr(
-                cls.STRINGS, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CONFIG, CONFIG_SIZE)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_COLOR, {color: getattr(
-                cls.STRINGS, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
-                locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
-                                                                    for locale in LOCALES}, cls.CONFIG, CONFIG_LOCALE)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_ORIENTATION,
+                                   {orientation: getattr(cls.strings, f'PEXELS_ORIENTATION_{orientation}')
+                                    for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_SIZE, {size: getattr(
+                cls.strings, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CURRENT_CONFIG, CONFIG_SIZE)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_COLOR, {color: getattr(
+                cls.strings, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
+                locale[locale.find('-') + 1:]).name if locale else cls.strings.PEXELS_LOCALE_
+                                                                    for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)

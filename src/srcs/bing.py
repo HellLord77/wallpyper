@@ -1,5 +1,3 @@
-__version__ = '0.0.1'  # https://github.com/timothymctim/Bing-wallpapers
-
 import os.path
 from typing import Generator, Optional
 
@@ -20,8 +18,10 @@ MARKETS = 'de-DE', 'en-AU', 'en-CA', 'en-GB', 'en-IN', 'en-US', 'fr-CA', 'fr-FR'
 RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x1080', 'UHD'
 
 
-class _Source(Source):
+class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
     NAME = 'Bing Wallpaper'
+    VERSION = '0.0.1'
+    URL = URL_BASE
     DEFAULT_CONFIG = {
         CONFIG_DAY: '0',
         CONFIG_MARKET: MARKETS[5],
@@ -29,8 +29,8 @@ class _Source(Source):
 
     @classmethod
     def fix_config(cls):
-        if not int(cls.DEFAULT_CONFIG[CONFIG_DAY]) <= int(cls.CONFIG[CONFIG_DAY]) < MAX_DAY:
-            cls.CONFIG[CONFIG_DAY] = cls.DEFAULT_CONFIG[CONFIG_DAY]
+        if not int(cls.DEFAULT_CONFIG[CONFIG_DAY]) <= int(cls.CURRENT_CONFIG[CONFIG_DAY]) < MAX_DAY:
+            cls.CURRENT_CONFIG[CONFIG_DAY] = cls.DEFAULT_CONFIG[CONFIG_DAY]
         cls._fix_config(CONFIG_MARKET, MARKETS)
         cls._fix_config(CONFIG_RESOLUTION, RESOLUTIONS)
 
@@ -58,16 +58,16 @@ class _Source(Source):
                     continue
             query = request.query(images.pop(0)['url'])
             name, ext = os.path.splitext(query['id'][0])
-            query['id'][0] = f'{name[:name.rfind("_") + 1]}{cls.CONFIG[CONFIG_RESOLUTION]}{ext}'
+            query['id'][0] = f'{name[:name.rfind("_") + 1]}{cls.CURRENT_CONFIG[CONFIG_RESOLUTION]}{ext}'
             yield files.File(request.encode(URL_IMAGE, query), query['id'][0][4:])
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_DAY, {str(day): getattr(
-            cls.STRINGS, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
-                               cls.CONFIG, CONFIG_DAY)
-        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_MARKET, {market: iso_codes.ISO31661.get(
-            market[market.find('-') + 1:]).name for market in MARKETS}, cls.CONFIG, CONFIG_MARKET)
-        gui.add_mapped_submenu(cls.STRINGS.BING_MENU_RESOLUTION,
-                               {resolution: getattr(cls.STRINGS, f'BING_RESOLUTION_{resolution}')
-                                for resolution in RESOLUTIONS}, cls.CONFIG, CONFIG_RESOLUTION)
+        gui.add_mapped_submenu(cls.strings.BING_MENU_DAY, {str(day): getattr(
+            cls.strings, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
+                               cls.CURRENT_CONFIG, CONFIG_DAY)
+        gui.add_mapped_submenu(cls.strings.BING_MENU_MARKET, {market: iso_codes.ISO31661.get(
+            market[market.find('-') + 1:]).name for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
+        gui.add_mapped_submenu(cls.strings.BING_MENU_RESOLUTION,
+                               {resolution: getattr(cls.strings, f'BING_RESOLUTION_{resolution}')
+                                for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION)

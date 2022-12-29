@@ -479,7 +479,7 @@ function Write-Build
     }
     else
     {
-        "X.Y.Z"
+        "0.0.0"
     } )"
     "NAME=$FullName" >> $Env:GITHUB_ENV
 

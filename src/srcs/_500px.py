@@ -1,5 +1,3 @@
-__version__ = '0.0.1'
-
 import re
 import time
 from typing import Callable, Generator, Optional
@@ -12,8 +10,6 @@ from . import Source
 
 _TIMEOUT = 30
 _PATTERN = re.compile('^Elements__Image.*')
-
-URL_BASE = 'https://500px.com'
 
 CONFIG_CATEGORIES = 'categories'
 CONFIG_DISCOVER = 'discover'
@@ -45,8 +41,10 @@ def _on_category(menu: gui.Menu) -> tuple[str]:
     return categories
 
 
-class _Source(Source):
+class FiveHundredPx(Source):
     NAME = '500px'
+    VERSION = '0.0.0'
+    URL = 'https://500px.com'
     DEFAULT_CONFIG = {
         CONFIG_CATEGORIES: CATEGORIES[0],
         CONFIG_DISCOVER: DISCOVERS[0],
@@ -56,8 +54,8 @@ class _Source(Source):
 
     @classmethod
     def fix_config(cls):
-        categories = tuple(category for category in cls.CONFIG[CONFIG_CATEGORIES].lower().split('-') if category in CATEGORIES)
-        cls.CONFIG[CONFIG_CATEGORIES] = CATEGORIES[0] if CATEGORIES[0] in categories else '-'.join(categories)
+        categories = tuple(category for category in cls.CURRENT_CONFIG[CONFIG_CATEGORIES].lower().split('-') if category in CATEGORIES)
+        cls.CURRENT_CONFIG[CONFIG_CATEGORIES] = CATEGORIES[0] if CATEGORIES[0] in categories else '-'.join(categories)
         cls._fix_config(CONFIG_DISCOVER, DISCOVERS)
         cls._fix_config(CONFIG_FOLLOWERS, FOLLOWERS)
         cls._fix_config(CONFIG_SORT, SORTS)
@@ -66,7 +64,7 @@ class _Source(Source):
     def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
         images: Optional[list] = None
         image = None
-        url = request.join(URL_BASE, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))
+        url = request.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))
         if discover == DISCOVERS[3]:
             params.pop(CONFIG_DISCOVER)
         if discover != DISCOVERS[0]:
@@ -96,27 +94,27 @@ class _Source(Source):
 
     @classmethod
     def create_menu(cls):
-        categories = cls.CONFIG[CONFIG_CATEGORIES].split('-')
+        categories = cls.CURRENT_CONFIG[CONFIG_CATEGORIES].split('-')
         # noinspection PyProtectedMember
-        with gui.set_menu(gui.add_submenu(cls.STRINGS._500PX_MENU_CATEGORY)) as menu_category:
+        with gui.set_menu(gui.add_submenu(cls.strings._500PX_MENU_CATEGORY)) as menu_category:
             for category in CATEGORIES:
                 gui.add_menu_item(
                     f'_500PX_CATEGORY_{"".join(filter(str.isalnum, category))}', gui.MenuItemType.CHECK, category in categories,
                     uid=category, on_click=cls._on_category, menu_args=(gui.MenuItemProperty.UID,), args=(menu_category,))
         _on_category(menu_category)
         # noinspection PyProtectedMember
-        enable_follower = gui.add_mapped_submenu(cls.STRINGS._500PX_MENU_FOLLOWER, {follower: getattr(
-            cls.STRINGS, f'_500PX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CONFIG, CONFIG_FOLLOWERS).enable
+        enable_follower = gui.add_mapped_submenu(cls.strings._500PX_MENU_FOLLOWER, {follower: getattr(
+            cls.strings, f'_500PX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWERS).enable
         # noinspection PyProtectedMember
-        enable_sort = gui.add_mapped_submenu(cls.STRINGS._500PX_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'_500PX_SORT_{sort}') for sort in SORTS}, cls.CONFIG, CONFIG_SORT).enable
+        enable_sort = gui.add_mapped_submenu(cls.strings._500PX_MENU_SORT, {sort: getattr(
+            cls.strings, f'_500PX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
         # noinspection PyProtectedMember
-        gui.add_mapped_submenu(cls.STRINGS._500PX_MENU_DISCOVER, {discover: getattr(
-            cls.STRINGS, f'_500PX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CONFIG, CONFIG_DISCOVER,
+        gui.add_mapped_submenu(cls.strings._500PX_MENU_DISCOVER, {discover: getattr(
+            cls.strings, f'_500PX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CURRENT_CONFIG, CONFIG_DISCOVER,
                                on_click=cls._on_discover, args=(enable_follower, enable_sort), position=0)
         cls._on_discover(None, enable_follower, enable_sort)
         # noinspection PyProtectedMember
-        gui.add_mapped_menu_item(cls.STRINGS._500PX_MENU_NSFW, cls.CONFIG, CONFIG_NSFW)
+        gui.add_mapped_menu_item(cls.strings._500PX_MENU_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
 
     @classmethod
     def _on_category(cls, category: str, menu: gui.Menu):
@@ -125,9 +123,9 @@ class _Source(Source):
                 item.check(False)
         else:
             menu[0].check(False)
-        cls.CONFIG[CONFIG_CATEGORIES] = '-'.join(_on_category(menu))
+        cls.CURRENT_CONFIG[CONFIG_CATEGORIES] = '-'.join(_on_category(menu))
 
     @classmethod
     def _on_discover(cls, _, enable_follower: Callable[[bool], bool], enable_sort: Callable[[bool], bool]):
-        enable_follower(cls.CONFIG[CONFIG_DISCOVER] != DISCOVERS[3])
-        enable_sort(cls.CONFIG[CONFIG_DISCOVER] == DISCOVERS[0])
+        enable_follower(cls.CURRENT_CONFIG[CONFIG_DISCOVER] != DISCOVERS[3])
+        enable_sort(cls.CURRENT_CONFIG[CONFIG_DISCOVER] == DISCOVERS[0])
