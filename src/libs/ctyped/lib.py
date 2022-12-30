@@ -9724,7 +9724,7 @@ class shell32(_WinDLL):
                                                   _Pointer[_ShObjIdl_core.IShellItemArray]],
                                                  _type.SHSTDAPI]
     SHGetKnownFolderPath: _Callable[[_Pointer[_struct.KNOWNFOLDERID],
-                                     _enum.KNOWN_FOLDER_FLAG,
+                                     _type.DWORD,
                                      _Optional[_type.HANDLE],
                                      _Pointer[_type.PWSTR]],
                                     _type.HRESULT]

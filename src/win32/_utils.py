@@ -37,7 +37,7 @@ class BSTRGetterSetter(BSTRSetter, BSTRGetter):
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
     ctyped.lib.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
-        folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT, None, ctyped.byref(buff))
+        folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT.value, None, ctyped.byref(buff))
     try:
         return buff.value
     finally:

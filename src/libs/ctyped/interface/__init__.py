@@ -292,7 +292,8 @@ def init_winrt(multi_threaded: bool = True) -> bool:
     return init
 
 
-def create_handler(callback: _Callable[[...], _type.HRESULT], interface: type[_Interface], name: _Optional[str] = None) -> COM[_Interface]:
+# noinspection PyTypeChecker
+def create_handler(callback: _Callable[[...], _type.HRESULT], interface: type[_TInterface], name: _Optional[str] = None) -> COM[_TInterface]:
     impl_name = interface.__name__
     if (args := getattr(interface, '_args', None)) is not None:
         impl_name = impl_name.split("_", 1)[0]
@@ -301,7 +302,5 @@ def create_handler(callback: _Callable[[...], _type.HRESULT], interface: type[_I
     if args is not None:
         cls = cls[tuple(args.values())]
     handler = COM[interface](type(f'{interface.__name__}<{callback.__name__}>'
-                                  if name is None else name, (cls,), {'Invoke': staticmethod(callback)})())
-    # noinspection PyStatementEffect
-    -handler
+                                  if name is None else name, (cls,), {'Invoke': staticmethod(callback)})().value)
     return handler

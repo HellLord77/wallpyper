@@ -10,8 +10,6 @@ from libs import ctyped
 from libs.ctyped.interface.um import DispEx, ExDisp, oaidl, ocidl
 from . import _mshtml, _utils
 
-_SEEK_ARGS = ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET.value, None
-
 
 @contextlib.contextmanager
 def _temp_var(window: _mshtml.HTMLWindow2, val: str) -> ContextManager[str]:

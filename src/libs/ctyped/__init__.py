@@ -103,20 +103,6 @@ def set_result_checker(lib: lib._CDLLMeta, callback: _Optional[_Callable[[_Any, 
             getattr(lib, func).errcheck = errcheck
 
 
-# noinspection PyShadowingBuiltins,PyShadowingNames
-def create_handler(handler: _Callable[[...], type.HRESULT], type: _builtins.type[CT], name: _Optional[str] = None) -> CT:
-    args = getattr(type, '_args', None)
-    impl_name = type.__name__
-    if args is not None:
-        impl_name = impl_name.split("_", 1)[0]
-    impl_name = f'{impl_name}_impl'
-    impl = getattr(type.__module__, impl_name)
-    if args is not None:
-        impl = impl[tuple(args.values())]
-    return cast(_builtins.type(f'{type.__name__}<{handler.__name__}>'
-                               if name is None else name, (impl,), {'Invoke': staticmethod(handler)})(), type)
-
-
 # noinspection PyProtectedMember
 def get_lib_path(library: lib._OleDLLMeta | lib._PyDLLMeta | lib._WinDLLMeta) -> str:
     buff = type.LPWSTR('\0' * const.MAX_PATH)

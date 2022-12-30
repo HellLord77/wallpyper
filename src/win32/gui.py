@@ -183,10 +183,11 @@ class _EventHandler:
 
     # noinspection PyShadowingBuiltins
     def __init__(self, id: int):
+        cls = type(self)
         if self._selves is None:
-            type(self)._selves = {}
+            cls._selves = {}
         if self._bindings is None:
-            type(self)._bindings = {}
+            cls._bindings = {}
         self._id = id
         self._selves[id] = self
         self._bindings[id] = {}
@@ -198,8 +199,8 @@ class _EventHandler:
         try:
             del self._selves[self._id]
             del self._bindings[self._id]
-            if hasattr(self, '_id_gen'):
-                del self._id_gen[self._id]
+            if (id_gen := getattr(self, '_id_gen', None)) is not None:
+                del id_gen[self._id]
         except KeyError:
             return False
         else:

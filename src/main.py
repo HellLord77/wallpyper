@@ -52,7 +52,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_RECENT_LIST: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_ACTIVE_DISPLAYS: consts.ALL_DISPLAY,
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
-    consts.CONFIG_AUTOSAVE: False,
+    consts.CONFIG_AUTO_SAVE: False,
     consts.CONFIG_SKIP_RECENT: False,
     consts.CONFIG_REAPPLY_IMAGE: True,
     consts.CONFIG_NOTIFY_ERROR: True,
@@ -99,7 +99,8 @@ def fix_config():
     _fix_config(consts.CONFIG_MENU_COLOR, (win32.ColorMode[mode] for mode in win32.ColorMode[1:]))
     if not CURRENT_CONFIG[consts.CONFIG_SAVE_DIR]:
         CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = DEFAULT_CONFIG[consts.CONFIG_SAVE_DIR]
-    _fix_config(consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES)
+    _fix_config(consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else tuple(
+        name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
 
 
 def _load_config(getters: dict[type, Callable[[str, str], str | int | float | bool | tuple | list | set]],
@@ -311,7 +312,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
         item_change_enable(False)
         item_recent.enable(False)
         with gui.animate(STRINGS.STATUS_CHANGE):
-            if (changed := change_wallpaper(wallpaper, query_callback)) and CURRENT_CONFIG[consts.CONFIG_AUTOSAVE]:
+            if (changed := change_wallpaper(wallpaper, query_callback)) and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE]:
                 on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         _update_recent_menu(item_recent)
         item_change_enable()
@@ -417,10 +418,12 @@ def on_auto_change(interval: int, after: Optional[float] = None):
         TIMER.stop()
 
 
-def on_modify_save(set_tooltip: Callable) -> bool:
-    if path := win32.dialog.open_folder(CURRENT_CONFIG[consts.CONFIG_SAVE_DIR], STRINGS.LABEL_SAVE_DIR):
+def on_modify_save(set_tooltip: Callable, path: Optional[str] = None) -> bool:
+    if path is None:
+        path = win32.dialog.open_folder(CURRENT_CONFIG[consts.CONFIG_SAVE_DIR], STRINGS.LABEL_SAVE_DIR)
+    if path:
         CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = path
-        set_tooltip(path)
+        set_tooltip(STRINGS.TOOLTIP_SAVE_DIR_TEMPLATE.format(path))
     else:
         notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)
@@ -490,7 +493,7 @@ def on_shortcut() -> bool:
 
 def on_remove_shortcuts() -> bool:
     if not (removed := win32.remove_shortcuts(win32.DESKTOP_DIR, UUID)):
-        notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_REMOVE_DESKTOP)
+        notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_DESKTOP_REMOVE)
     return removed
 
 
@@ -502,7 +505,7 @@ def on_start_shortcut() -> bool:
 
 def on_remove_start_shortcuts() -> bool:
     if not (removed := win32.remove_shortcuts(win32.START_DIR, UUID)):
-        notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_REMOVE_START_MENU)
+        notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_START_MENU_REMOVE)
     return removed
 
 
@@ -666,7 +669,8 @@ def create_menu():  # TODO slideshow (smaller timer)
             multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_AUTO, icon=RES_TEMPLATE.format(consts.RES_AUTO))):
-            gui.add_mapped_menu_item(STRINGS.LABEL_CHANGE_START, CURRENT_CONFIG, consts.CONFIG_CHANGE_START)
+            gui.add_mapped_menu_item(STRINGS.LABEL_CHANGE_START, CURRENT_CONFIG,
+                                     consts.CONFIG_CHANGE_START).set_tooltip(STRINGS.TOOLTIP_CHANGE_START)
             gui.add_separator()
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
                 STRINGS, f'INTERVAL_{interval}') for interval in CHANGE_INTERVALS}, CURRENT_CONFIG, consts.CONFIG_CHANGE_INTERVAL,
@@ -675,10 +679,10 @@ def create_menu():  # TODO slideshow (smaller timer)
                 STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CURRENT_CONFIG,
                                    consts.CONFIG_IF_MAXIMIZED, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
-            gui.add_mapped_menu_item(STRINGS.LABEL_AUTOSAVE, CURRENT_CONFIG, consts.CONFIG_AUTOSAVE)
+            gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(STRINGS.TOOLTIP_AUTO_SAVE)
             item_dir = gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu_args=(gui.MenuItemMethod.SET_TOOLTIP,))
             item_dir.set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
-            item_dir.set_tooltip(CURRENT_CONFIG[consts.CONFIG_SAVE_DIR])
+            on_modify_save(item_dir.set_tooltip, CURRENT_CONFIG[consts.CONFIG_SAVE_DIR])
         if consts.FEATURE_ROTATE_IMAGE:
             gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
                 STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate}, CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
@@ -709,9 +713,13 @@ def create_menu():  # TODO slideshow (smaller timer)
             with gui.set_menu(gui.add_submenu(STRINGS.MENU_EASE_TIMING, position=-1, icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))):
                 gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_IN, CURRENT_CONFIG, consts.CONFIG_EASE_IN, on_click=on_easing_direction, args=(item_ease_enable,))
                 gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_OUT, CURRENT_CONFIG, consts.CONFIG_EASE_OUT, on_click=on_easing_direction, args=(item_ease_enable,))
-        gui.add_mapped_submenu(STRINGS.MENU_SOURCE, {
+        item_sources = gui.add_mapped_submenu(STRINGS.MENU_SOURCE, {
             name: source.NAME for name, source in srcs.SOURCES.items()}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
-                               on_click=on_source, args=(item_source,), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+                                              on_click=on_source, args=(item_source,), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+        if not consts.FEATURE_SOURCE_DEV:
+            for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
+                if source.VERSION == srcs.Source.VERSION:
+                    item_source.enable(False)
         item_display = gui.add_submenu(STRINGS.MENU_DISPLAY, icon=RES_TEMPLATE.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, on_display_change, (item_display,))
         on_display_change(0, None, item_display)
@@ -728,7 +736,7 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CURRENT_CONFIG, consts.CONFIG_REAPPLY_IMAGE)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
         gui.add_mapped_menu_item(STRINGS.LABEL_START, CURRENT_CONFIG, consts.CONFIG_AUTOSTART)
-        gui.add_mapped_menu_item(STRINGS.LABEL_SETTINGS_AUTOSAVE, CURRENT_CONFIG, consts.CONFIG_KEEP_SETTINGS)
+        gui.add_mapped_menu_item(STRINGS.LABEL_SETTINGS_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_KEEP_SETTINGS)
     gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_QUIT))
 
 

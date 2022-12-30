@@ -311,10 +311,6 @@ def _test_dispatch():
     print(win32._utils.get_funcs(~disp).values())
 
 
-def _test():
-    pass
-
-
 if __name__ == '__main__':
     _test_browser()
     sys.exit()
