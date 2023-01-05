@@ -1,10 +1,10 @@
 import os
 import sys
-from typing import Optional
+import threading
 
 from libs import ctyped
 from libs.ctyped.interface.package import WebView2
-from win32 import _webview2
+from win32.browser import _webview2
 
 window_class = 'DesktopApp'
 title = 'WebView sample'
@@ -13,9 +13,9 @@ url = 'https://www.bing.com/'
 
 class CLS:
     HWND: ctyped.type.HWND = 0
-    CONTROLLER: WebView2.ICoreWebView2Controller = WebView2.ICoreWebView2Controller()
-    WEBVIEW: WebView2.ICoreWebView2 = WebView2.ICoreWebView2()
-    response: Optional[_webview2.CoreWebView2WebResourceResponse] = None
+    CONTROLLER: _webview2.CoreWebView2Controller = None
+    WEBVIEW: _webview2.CoreWebView2 = None
+    # response: Optional[_webview2.CoreWebView2WebResourceResponse] = None
 
 
 def handle(sender: WebView2.ICoreWebView2,
@@ -26,48 +26,47 @@ def handle(sender: WebView2.ICoreWebView2,
     return ctyped.const.NOERROR
 
 
-def _on_create_controller_completed(res, ctrl: WebView2.ICoreWebView2Controller) -> ctyped.type.HRESULT:
+def _create_controller_completed(result: ctyped.type.HRESULT, controller: WebView2.ICoreWebView2Controller) -> ctyped.type.HRESULT:
     print('controller')
-    if ctrl:
-        CLS.CONTROLLER = ctrl
-        CLS.CONTROLLER.AddRef()
-        CLS.CONTROLLER.get_CoreWebView2(ctyped.byref(CLS.WEBVIEW))
+    if ctyped.macro.SUCCEEDED(result):
+        CLS.CONTROLLER = _webview2.CoreWebView2Controller(controller)
+        # CLS.CONTROLLER.add_ref()
+        CLS.WEBVIEW = CLS.CONTROLLER.core_web_view_2
 
     bounds = ctyped.struct.RECT()
     ctyped.lib.user32.GetClientRect(CLS.HWND, ctyped.byref(bounds))
-    CLS.CONTROLLER.put_Bounds(bounds)
+    CLS.CONTROLLER.bounds = bounds
 
-    print(CLS.WEBVIEW.AddWebResourceRequestedFilter('*', ctyped.enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT.IMAGE))
-    token = ctyped.struct.EventRegistrationToken()
-    with ctyped.interface.create_handler(handle, WebView2.ICoreWebView2WebResourceRequestedEventHandler) as handler:
-        CLS.WEBVIEW.add_WebResourceRequested(handler, ctyped.byref(token))
-    CLS.WEBVIEW.Navigate(url)
+    # print(CLS.WEBVIEW.AddWebResourceRequestedFilter('*', ctyped.enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT.IMAGE))
+    # token = ctyped.struct.EventRegistrationToken()
+    # with ctyped.interface.create_handler(handle, WebView2.ICoreWebView2WebResourceRequestedEventHandler) as handler:
+    #     CLS.WEBVIEW.add_WebResourceRequested(handler, ctyped.byref(token))
+    CLS.WEBVIEW.navigate(url)
     # WEBVIEW.AddScriptToExecuteOnDocumentCreated('window.addEventListener("DOMContentLoaded", (event) => { alert("HellLord"); });', None)
     return ctyped.const.S_OK
 
 
-def _on_create_env_completed(res, env: WebView2.ICoreWebView2Environment) -> ctyped.type.HRESULT:
+def _create_environment_completed(result: ctyped.type.HRESULT, environment: WebView2.ICoreWebView2Environment) -> ctyped.type.HRESULT:
     print('environment')
-    print(res)
-    if env:
-        with ctyped.interface.create_handler(_on_create_controller_completed, WebView2.ICoreWebView2CreateCoreWebView2ControllerCompletedHandler) as handler:
-            env.CreateCoreWebView2Controller(CLS.HWND, handler)
-        envv = _webview2.CoreWebView2Environment(env)
+    if ctyped.macro.SUCCEEDED(result):
+        with ctyped.interface.create_handler(_create_controller_completed, WebView2.ICoreWebView2CreateCoreWebView2ControllerCompletedHandler) as handler:
+            environment.CreateCoreWebView2Controller(CLS.HWND, handler)
+        envv = _webview2.CoreWebView2Environment(environment)
         print(envv.browser_version_string)
-        CLS.response = envv.create_web_resource_response(None, 418, "I'm a teapot", '')
-        return ctyped.const.S_OK
+        # CLS.response = envv.create_web_resource_response(None, 418, "I'm a teapot", '')
+        return ctyped.const.NOERROR
     else:
-        return ctyped.const.error.E_FAIL
+        return result
 
 
 def webview():
     os.add_dll_directory(r'D:\Projects\wallpyper\helpers')
-    # ctyped.interface.init_winrt(False)
-    ctyped.lib.ole32.CoUninitialize()
-    ctyped.interface.init_com(False)
+    data_path = r'D:\Projects\wallpyper\helpers\WebView2'
     with ctyped.interface.create_handler(
-            _on_create_env_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
-        ctyped.lib.WebView2Loader.CreateCoreWebView2Environment(handler)
+            _create_environment_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
+        if ctyped.macro.SUCCEEDED(ctyped.lib.WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
+                ctyped.NULLPTR, data_path, ctyped.NULLPTR, handler)):
+            print('wait')
 
 
 def wnd_proc(hwnd, message, wparam, lparam):
@@ -75,7 +74,7 @@ def wnd_proc(hwnd, message, wparam, lparam):
         if CLS.CONTROLLER:
             bounds = ctyped.struct.RECT()
             ctyped.lib.user32.GetClientRect(hwnd, ctyped.byref(bounds))
-            CLS.CONTROLLER.put_Bounds(bounds)
+            CLS.CONTROLLER.bounds = bounds
     elif message == ctyped.const.WM_DESTROY:
         ctyped.lib.user32.PostQuitMessage(0)
     else:
@@ -100,7 +99,6 @@ def main():
                                              ctyped.const.NULL, ctyped.const.NULL, hinstance, ctyped.const.NULL)
     CLS.HWND = hwnd
     ctyped.lib.user32.ShowWindow(hwnd, ctyped.const.SW_SHOWNORMAL)
-    ctyped.lib.user32.UpdateWindow(hwnd)
 
     webview()
 
@@ -109,11 +107,12 @@ def main():
         ctyped.lib.user32.TranslateMessage(ctyped.byref(msg))
         ctyped.lib.user32.DispatchMessageW(ctyped.byref(msg))
 
-    if CLS.CONTROLLER:
-        print(CLS.CONTROLLER.Release())
     del CLS
     sys.exit(msg.wParam)
 
 
 if __name__ == '__main__':
-    main()
+    thread = threading.Thread(target=main)
+    thread.start()
+    thread.join()
+    # main()

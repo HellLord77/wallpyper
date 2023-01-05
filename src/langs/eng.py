@@ -211,6 +211,13 @@ LOCAL_SORT_accessed = 'Access Time'
 LOCAL_ORDER_ascending = 'Ascending'
 LOCAL_ORDER_descending = 'Descending'
 
+THISDOESNOTEXIST_MENU_VARIANT = 'Variant'
+
+THISDOESNOTEXIST_VARIANT_person = 'Person'
+THISDOESNOTEXIST_VARIANT_artwork = 'Art'
+THISDOESNOTEXIST_VARIANT_cat = 'Cat'
+THISDOESNOTEXIST_VARIANT_horse = 'Horse'
+
 BING_MENU_DAY = 'Start from'
 BING_MENU_MARKET = 'Location'
 BING_MENU_RESOLUTION = 'Resolution'

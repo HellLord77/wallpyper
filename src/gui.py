@@ -225,9 +225,9 @@ def init(name: str):
     MENU.__init__()
 
 
-def start_loop(path: str, tooltip: Optional[str] = None, callback: Optional[Callable] = None,
+def start_loop(icon: str, tooltip: Optional[str] = None, callback: Optional[Callable] = None,
                args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
-    SYSTEM_TRAY.set_icon(path)
+    SYSTEM_TRAY.set_icon(icon)
     SYSTEM_TRAY.set_tooltip(tooltip)
     if callback is not None:
         if args is None:

@@ -54,7 +54,7 @@ class Source:
 
 
 from . import (
-    local,
+    local, thisdoesnotexist,
     wallhaven,
     unsplash, pixabay, pexels, _500px,
     bing, spotlight)  # NOQA: E402

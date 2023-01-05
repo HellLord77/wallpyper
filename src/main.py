@@ -48,7 +48,7 @@ TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: dict[str, int | float | bool | str] = {
     consts.CONFIG_RECENT_LIST: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_ACTIVE_DISPLAYS: consts.ALL_DISPLAY,
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
@@ -75,7 +75,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_ROTATE_BY: win32.display.Rotate[win32.display.Rotate.NONE],
     consts.CONFIG_FLIP_BY: win32.display.Flip[win32.display.Flip.NONE],
     consts.CONFIG_TRANSITION_STYLE: win32.display.Transition[win32.display.Transition.FADE]}
-CURRENT_CONFIG = {}
+CURRENT_CONFIG: dict[str, int | float | bool | str] = {}
 
 
 def update_config():
@@ -781,13 +781,12 @@ def main() -> NoReturn:
         start()
         stop()
     except Exception as e:
-        if consts.FEATURE_ERROR_HOOK and multiprocessing.parent_process():
-            thread = threading.Thread(target=win32.show_error, args=(type(
+        if consts.FEATURE_ERROR_HOOK and not pyinstall.FROZEN:
+            threading.Thread(target=win32.show_error, args=(type(
                 e), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
-                traceback.format_exception(type(e), e, e.__traceback__))))
-            thread.start()
+                traceback.format_exception(type(e), e, e.__traceback__)))).start()
         raise
-    sys.exit(consts.CODE_RESTART * RESTART.get())
+    sys.exit()
 
 
 if __name__ == '__main__':

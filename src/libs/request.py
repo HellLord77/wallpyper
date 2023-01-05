@@ -103,7 +103,7 @@ def join(base: str, *paths: str) -> str:
     for path in paths:
         if path:
             base = f'{urllib.parse.urljoin(base, path)}/'
-    return base
+    return base[:-1]
 
 
 def query(url: str) -> dict[str, list[str]]:

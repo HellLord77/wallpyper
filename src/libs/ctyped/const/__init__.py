@@ -1,7 +1,5 @@
 import ctypes as _ctypes  # TODO complex const
 
-from . import runtimeclass
-
 _CHAR_UNSIGNED = 0
 _WIN32_WCE = 0
 _WIN32_WINNT = 0x0A00
@@ -23,8 +21,6 @@ NOVIRTUALKEYCODES = 0
 NOWH = 0
 OLE2ANSI = 0
 D3D11_SDK_VERSION = 7
-
-from . import error  # NOQA: E402
 
 _WIN32_WINNT_NT4 = 0x0400
 _WIN32_WINNT_WIN2K = 0x0500

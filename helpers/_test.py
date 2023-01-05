@@ -2,14 +2,15 @@ from __future__ import annotations as _
 
 import ntpath
 import sys
+import time
 from typing import Callable, TypeVar
 from typing import Optional
 
 import win32
 import win32._gdiplus as gdiplus
 from libs import ctyped
-from libs.ctyped.interface.um import d2d1
-from libs.ctyped.interface.um import dwrite
+from libs.ctyped.const import error
+from libs.ctyped.interface.um import d2d1, dwrite
 
 
 def _test_settings():
@@ -29,7 +30,7 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
     sz = ctyped.type.SIZE_T()
     if not ctyped.lib.kernel32.QueryActCtxW(
             ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, flag, None, 0,
-            ctyped.byref(sz)) and ctyped.lib.kernel32.GetLastError() == ctyped.const.error.ERROR_INSUFFICIENT_BUFFER:
+            ctyped.byref(sz)) and ctyped.lib.kernel32.GetLastError() == error.ERROR_INSUFFICIENT_BUFFER:
         buff = ctyped.lib.kernel32.HeapAlloc(ctyped.lib.kernel32.GetProcessHeap(), ctyped.const.HEAP_ZERO_MEMORY, sz)
         if ctyped.lib.kernel32.QueryActCtxW(
                 ctyped.const.QUERY_ACTCTX_FLAG_NO_ADDREF, handle, None, flag, buff, sz, ctyped.byref(sz)):
@@ -311,6 +312,22 @@ def _test_dispatch():
     print(win32._utils.get_funcs(~disp).values())
 
 
+def _test_browser_ex():
+    browser = win32.browser._BrowserEx()
+    browser._mainloop()
+    if browser:
+        browser._hwnd.show()
+        time.sleep(5)
+        res = browser.navigate('https://google.com')
+        print(bool(browser._controller))
+        if res:
+            time.sleep(5)
+
+
+def _test():
+    pass
+
+
 if __name__ == '__main__':
-    _test_browser()
+    _test()
     sys.exit()
