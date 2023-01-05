@@ -3,7 +3,7 @@ import re
 from typing import Generator, Optional
 
 import gui
-from libs import files, iso_codes, request
+from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = 'https://pixabay.com/api'
@@ -90,7 +90,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_LANG, {lang: re.split('[,;]', iso_codes.ISO6392.get(
+        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_LANG, {lang: re.split('[,;]', isocodes.ISO6392.get(
             alpha_2=lang).name)[0] for lang in LANGS}, cls.CURRENT_CONFIG, CONFIG_LANG)
         gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_TYPE, {type_: getattr(
             cls.strings, f'PIXABAY_TYPE_{type_}') for type_ in TYPES}, cls.CURRENT_CONFIG, CONFIG_TYPE)

@@ -1,10 +1,10 @@
 $Version = "0.1.4"
 
 $Datas = @(
-"res"
-"srcs\res"
-"win32\syspin.exe"
-"pipe.exe")
+	"res"
+	"srcs/res"
+	"win32/syspin.exe"
+	"pipe.exe")
 $Imports = @()
 $Excludes = @()
 $HooksDirs = @("hooks")
@@ -19,88 +19,86 @@ $RemoteProc = $False
 $UPX = $False
 $ModuleGraph = $True
 $AddPython = $False
-$EntryPoint = "src\init.py"
-$Icon = "src\res\icon.ico"
+$EntryPoint = "src/init.py"
+$Icon = "src/res/icon.ico"
 # $Manifest = "manifest.xml" FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $Manifest = ""
 $MainManifest = "manifest.xml"
-$CythonSources = @("src\pipe.py")
-# $CythonizeExludeGlobs = @() FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
+$CythonSources = @("src/pipe.py")
 $CythonizeExcludeGlobs = @(
-"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
-"src/libs/ctyped/enum.py")
+	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
+	"src/libs/ctyped/enum.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
 $CythonizeSourceGlobs = @(
-"src/libs/{colornames,iso_codes,spinners}/__init__.py"
-"src/libs/ctyped/const/*.py"
-# "src/libs/ctyped/interface/**/*.py"
-"src/libs/ctyped/winrt/__init__.py"
-# "src/libs/ctyped/{_utils,struct,type,union}.py"
-"src/libs/ctyped/{__init__,enum,handle,lib,macro}.py"
-"src/win32/**/*.py"
-"src/{langs,libs,srcs}/*.py"
-"src/*.py")
+	"src/libs/{colornames,isocodes,spinners}/__init__.py"
+	"src/libs/ctyped/const/*.py"
+	# "src/libs/ctyped/interface/**/*.py"
+	"src/libs/ctyped/winrt/__init__.py"
+	# "src/libs/ctyped/{_utils,struct,type,union}.py"
+	"src/libs/ctyped/{__init__,enum,handle,lib,macro}.py"
+	"src/win32/**/*.py"
+	"src/{langs,libs,srcs}/*.py"
+	"src/*.py")
 # $CythonizeGlobs = @()
 $CythonizeRemove = $True
 $CodeRunBefore = @()
 $CodeRunBeforeRemote = @(
-"from src.libs.colornames import _download"
-"_download()"
-"from src.libs.iso_codes import _download"
-"_download()"
-"from src.libs.spinners import _download"
-"_download()"
-)
+	"from src.libs.colornames import _download"
+	"_download()"
+	"from src.libs.isocodes import _download"
+	"_download()"
+	"from src.libs.spinners import _download"
+	"_download()")
 $CodeRunAfter = @(
-"from os import remove"
-"remove('src\pipe.exe')")
+	"from os import remove"
+	"remove('src/pipe.exe')")
 $CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(
-"src\libs\colornames\colornames.min.json"
-"src\libs\iso_codes\iso_*.json"
-"src\libs\spinners\spinners.json")
+	"src/libs/colornames/colornames.min.json"
+	"src/libs/isocodes/iso_*.json"
+	"src/libs/spinners/spinners.json")
 
 $CodePythonBase = @(
-"from sys import base_prefix"
-"print(base_prefix)")
+	"from sys import base_prefix"
+	"print(base_prefix)")
 $CodeExtSuffix = @(
-"from sysconfig import get_config_var"
-"print(get_config_var('EXT_SUFFIX'))")
+	"from sysconfig import get_config_var"
+	"print(get_config_var('EXT_SUFFIX'))")
 $CodeGlobTemplate = @(
-"from Cython.Build.Dependencies import extended_iglob"
-"print(';'.join(extended_iglob(r'{0}')))")
+	"from Cython.Build.Dependencies import extended_iglob"
+	"print(';'.join(extended_iglob(r'{0}')))")
 $CodeModuleGraphTemplate = @(
-"from itertools import islice"
-"from sys import argv"
-"from PyInstaller.lib.modulegraph.__main__ import create_graph, parse_arguments"
-"from PyInstaller.lib.modulegraph.modulegraph import ExcludedModule"
-"argv.append(r'{0}')"
-"options = parse_arguments()"
-"graph = create_graph(options.scripts, options.domods, options.debug, options.excludes, options.addpath)"
-"print(';'.join(m.identifier for m in islice(graph.iter_graph(), 1, None) if not isinstance(m, ExcludedModule)))")
+	"from itertools import islice"
+	"from sys import argv"
+	"from PyInstaller.lib.modulegraph.__main__ import create_graph, parse_arguments"
+	"from PyInstaller.lib.modulegraph.modulegraph import ExcludedModule"
+	"argv.append(r'{0}')"
+	"options = parse_arguments()"
+	"graph = create_graph(options.scripts, options.domods, options.debug, options.excludes, options.addpath)"
+	"print(';'.join(m.identifier for m in islice(graph.iter_graph(), 1, None) if not isinstance(m, ExcludedModule)))")
 $CodeModuleGraphSmartTemplate = @(
-"from sys import path"
-"from PyInstaller.building.build_main import Analysis, initialize_modgraph"
-"from PyInstaller.config import CONF"
-"path.append(r'{0}')"
-"CONF['workpath'] = r'{0}'"
-"analysis = Analysis.__new__(Analysis)"
-"graph = initialize_modgraph(r'{0}'.split(), r'{1}'.split(';') if r'{1}' else [])"
-"graph.add_script(r'{0}')"
-"graph.process_post_graph_hooks(analysis)"
-"print(';'.join(module.identifier for module in graph.iter_graph()))")
+	"from sys import path"
+	"from PyInstaller.building.build_main import Analysis, initialize_modgraph"
+	"from PyInstaller.config import CONF"
+	"path.append(r'{0}')"
+	"CONF['workpath'] = r'{0}'"
+	"analysis = Analysis.__new__(Analysis)"
+	"graph = initialize_modgraph(r'{0}'.split(), r'{1}'.split(';') if r'{1}' else [])"
+	"graph.add_script(r'{0}')"
+	"graph.process_post_graph_hooks(analysis)"
+	"print(';'.join(module.identifier for module in graph.iter_graph()))")
 $CodeCompileCTemplate = @(
-"from distutils.command.build_ext import build_ext"
-"from distutils.ccompiler import new_compiler"
-"from distutils.core import Distribution"
-"from os.path import splitext"
-"from sys import version_info"
-"build = build_ext(Distribution())"
-"build.finalize_options()"
-"compiler = new_compiler()"
-"source = r'{0}'"
-"objects = compiler.compile([source], include_dirs=build.include_dirs)"
-"libraries = [f'python{version_info.major}{version_info.minor}']"
-"compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
+	"from distutils.command.build_ext import build_ext"
+	"from distutils.ccompiler import new_compiler"
+	"from distutils.core import Distribution"
+	"from os.path import splitext"
+	"from sys import version_info"
+	"build = build_ext(Distribution())"
+	"build.finalize_options()"
+	"compiler = new_compiler()"
+	"source = r'{0}'"
+	"objects = compiler.compile([source], include_dirs=build.include_dirs)"
+	"libraries = [f'python{version_info.major}{version_info.minor}']"
+	"compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
 $CopyTimeout = 9
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
@@ -109,48 +107,40 @@ $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $IsGithub = Test-Path Env:GITHUB_REPOSITORY
 
-function Get-InsertedArray($Array, $Index, $Value)
-{
+function Get-InsertedArray($Array, $Index, $Value) {
 	return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
 }
 
-function Get-RemovedArray($Array, $Index)
-{
+function Get-RemovedArray($Array, $Index) {
 	return $Array[0..($Index - 1)] + $Array[($Index + 1)..($Array.Length - 1)]
 }
 
-function Get-RemovedItemArray($Array, $Item, $Count = [double]::PositiveInfinity)
-{
+function Get-RemovedItemArray($Array, $Item, $Count = [double]::PositiveInfinity) {
 	for ($i = 0; $i -lt $Count; $i++) {
 		$Index = $Array.IndexOf($Item)
-		if ($Index -eq -1)
-		{
+		if ($Index -eq -1) {
 			break
 		}
-		else
-		{
+		else {
 			$Array = Get-RemovedArray $Array $Index
 		}
 	}
 	return $Array
 }
 
-function Start-Base64Process([string] $Base64, [string] $ArgList = "")
-{
+function Start-Base64Process([string] $Base64, [string] $ArgList = "") {
 	$TempFile = New-TemporaryFile
-	[IO.File]::WriteAllBytes($TempFile,[Convert]::FromBase64String($Base64))
+	[IO.File]::WriteAllBytes($TempFile, [Convert]::FromBase64String($Base64))
 	Start-Process $TempFile -ArgumentList $ArgList -Wait
 	$TempFile.Delete()
 }
 
-function Get-ExeSize([System.IO.FileStream] $Stream)
-{
+function Get-ExeSize([System.IO.FileStream] $Stream) {
 	$Buffer = [byte[]]::New(4096)
 	$Stream.Read($Buffer, 0, 4096) | Out-Null
 	$HeaderOffset = [System.BitConverter]::ToInt32($Buffer, 60)
 	$HeadersSize = 248
-	if ([System.BitConverter]::ToUInt16($Buffer, $HeaderOffset + 4) -eq 0x8664)
-	{
+	if ([System.BitConverter]::ToUInt16($Buffer, $HeaderOffset + 4) -eq 0x8664) {
 		$HeadersSize += 16
 	}
 	$SectionCount = [System.BitConverter]::ToUInt16($Buffer, $HeaderOffset + 6)
@@ -159,8 +149,7 @@ function Get-ExeSize([System.IO.FileStream] $Stream)
 	for ($i = 0; $i -lt $SectionCount; $i++) {
 		$SectionOffset = $HeaderOffset + $HeadersSize + $i * 40
 		$RawDataPointer = [System.BitConverter]::ToInt32($Buffer, $SectionOffset + 20)
-		if ($RawDataPointer -gt $MaxPointer)
-		{
+		if ($RawDataPointer -gt $MaxPointer) {
 			$MaxPointer = $RawDataPointer
 			$Size = $MaxPointer + [System.BitConverter]::ToInt32($Buffer, $SectionOffset + 16)
 		}
@@ -168,30 +157,25 @@ function Get-ExeSize([System.IO.FileStream] $Stream)
 	return $Size
 }
 
-function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0)
-{
+function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0) {
 	Write-Host "$Source -> $Destination"
 	New-Item (Split-Path $Destination -Parent) -ItemType Directory -ErrorAction SilentlyContinue
 	$EndTime = [int](Get-Date -UFormat %s) + $Timeout
-	do
-	{
+	do {
 		Copy-Item $Source -Destination $Destination -ErrorAction SilentlyContinue
 		Start-Sleep 0.01
 	} while (($EndTime -ge ([int](Get-Date -UFormat %s))) -and -not(Test-Path $Destination -PathType Leaf))
 }
 
-function MinifyJsonFile([string]$Path, [string]$OutPath)
-{
-	if (-not$OutPath)
-	{
+function MinifyJsonFile([string]$Path, [string]$OutPath) {
+	if (-not $OutPath) {
 		$OutPath = $Path
 	}
 	Write-Host "Minify $Path -> $OutPath"
 	ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Depth 100 -Compress | Set-Content $OutPath
 }
 
-function MergeManifest([String]$ExePath, [String]$ManifestPath)
-{
+function MergeManifest([String]$ExePath, [String]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
 	.\mt.exe -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose  # TODO remove
@@ -205,73 +189,59 @@ function MergeManifest([String]$ExePath, [String]$ManifestPath)
 	$TempFile.Delete()
 }
 
-function Start-PythonCode([string[]]$Lines)
-{
+function Start-PythonCode([string[]]$Lines) {
 	$Code = $Lines -Join "; "
 	Write-Host "python <- $Code"
 	return python -c $Code
 }
 
-function Get-ProjectName
-{
-	return Split-Path $( if ($IsGithub)
-	{
-		$Env:GITHUB_REPOSITORY
-	}
-	else
-	{
-		Split-Path -Path (Get-Location) -Leaf
-	} ) -Leaf
+function Get-ProjectName {
+	return Split-Path $( if ($IsGithub) {
+			$Env:GITHUB_REPOSITORY
+		}
+		else {
+			Split-Path -Path (Get-Location) -Leaf
+		} ) -Leaf
 }
 
-function Get-CythonizedSources
-{
+function Get-CythonizedSources {
 	$Sources = @()
 	$CodeGlob = @() + $CodeGlobTemplate
-	foreach ($CythonizeSourceGlob in $CythonizeSourceGlobs)
-	{
+	foreach ($CythonizeSourceGlob in $CythonizeSourceGlobs) {
 		$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeSourceGlob
-		$Sources += (Start-PythonCode $CodeGlob) -Split ";"
+		foreach ($Source in (Start-PythonCode $CodeGlob) -Split ";") {
+			$Sources += $Source -Replace "\\", "/"
+		}
 	}
-	foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs)
-	{
+	foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs) {
 		$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonizeExcludeGlob
-		foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";")
-		{
-			$Sources = Get-RemovedItemArray $Sources $Exclude
+		foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";") {
+			$Sources = Get-RemovedItemArray $Sources ($Exclude -Replace "\\", "/")
 		}
 	}
 	return $Sources
 }
 
-function Remove-Cythonized([bool] $Throw = $True)
-{
+function Remove-Cythonized([bool] $Throw = $True) {
 	$ExtSuffix = Start-PythonCode $CodeExtSuffix
-	foreach ($Source in Get-CythonizedSources)
-	{
-		$Root = $Source.Substring(0,$Source.LastIndexOf("."))
-		if ($Throw -and $CythonizeRemoveC)
-		{
+	foreach ($Source in Get-CythonizedSources) {
+		$Root = $Source.Substring(0, $Source.LastIndexOf("."))
+		if ($Throw -and $CythonizeRemoveC) {
 			Remove-Item "$Root.c" -Force
 		}
-		try
-		{
+		try {
 			Remove-Item "$Root$ExtSuffix" -Force
 		}
-		catch
-		{
-			if ($Throw)
-			{
+		catch {
+			if ($Throw) {
 				throw
 			}
 		}
 	}
 }
 
-function Get-ModuleGraph
-{
-	if ($ModuleGraphSmart)
-	{
+function Get-ModuleGraph {
+	if ($ModuleGraphSmart) {
 		Remove-Cythonized $False
 		$TempDir = Join-Path $env:TEMP (New-Guid)
 		New-Item $TempDir -ItemType Directory
@@ -284,131 +254,102 @@ function Get-ModuleGraph
 		Remove-Item $TempDir -Force -Recurse
 		return $Modules[1..($Modules.length - 1)]
 	}
-	else
-	{
+	else {
 		$CodeModuleGraph = @() + $CodeModuleGraphTemplate
 		$CodeModuleGraph[4] = $CodeModuleGraphTemplate[4] -f $EntryPoint
-		foreach ($Exclude in $Excludes)
-		{
+		foreach ($Exclude in $Excludes) {
 			$CodeModuleGraph = Get-InsertedArray $CodeModuleGraph 5 ($CodeModuleGraphTemplate[4] -f "-x=$Exclude")
 		}
 		return (Start-PythonCode $CodeModuleGraph) -Split ";"
 	}
 }
 
-function Get-PyInstallerArgs
-{
+function Get-PyInstallerArgs {
 	$ArgList = @("--noconfirm")
-	if ($OneFile)
-	{
+	if ($OneFile) {
 		$ArgList += "--onefile"
 	}
-	if ($Debug)
-	{
+	if ($Debug) {
 		$ArgList += "--debug=all"
 	}
-	if ($NoConsole)
-	{
+	if ($NoConsole) {
 		$ArgList += "--windowed"
 	}
-	if ($Manifest)
-	{
+	if ($Manifest) {
 		$ArgList += "--manifest=$Manifest"
 	}
-	if ($ElevatedProc)
-	{
+	if ($ElevatedProc) {
 		$ArgList += "--uac-admin"
 	}
-	if ($RemoteProc)
-	{
+	if ($RemoteProc) {
 		$ArgList += "--uac-uiaccess"
 	}
-	if ($Icon)
-	{
+	if ($Icon) {
 		$ArgList += "--icon=$Icon"
 	}
-	foreach ($Import in $Imports)
-	{
+	foreach ($Import in $Imports) {
 		$ArgList += "--hidden-import=$Import"
 	}
-	foreach ($Exclude in $Excludes)
-	{
+	foreach ($Exclude in $Excludes) {
 		$ArgList += "--exclude-module=$Exclude"
 	}
-	foreach ($HooksDir in $HooksDirs)
-	{
+	foreach ($HooksDir in $HooksDirs) {
 		$ArgList += "--additional-hooks-dir=$HooksDir"
 	}
-	foreach ($RuntimeHook in $RuntimeHooks)
-	{
+	foreach ($RuntimeHook in $RuntimeHooks) {
 		$ArgList += "--runtime-hook=$RuntimeHook"
 	}
-	if ($AddPython)
-	{
+	if ($AddPython) {
 		$ArgList += "--add-data=""$( Join-Path (Start-PythonCode $CodePythonBase) "python.exe" );."""
 	}
-	if ($ModuleGraph)
-	{
+	if ($ModuleGraph) {
 		$_, $Modules = Get-ModuleGraph
-		foreach ($Module in $Modules)
-		{
+		foreach ($Module in $Modules) {
 			$ArgList += "--hidden-import=$Module"
 		}
 	}
 	$BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
-	foreach ($Data in $Datas)
-	{
+	foreach ($Data in $Datas) {
 		$SrcLeaf = Split-Path $Data -Leaf
-		if ($SrcLeaf.EndsWith("%") -and $SrcLeaf.EndsWith("%"))
-		{
+		if ($SrcLeaf.EndsWith("%") -and $SrcLeaf.EndsWith("%")) {
 			$DataSrc = (Get-Command $SrcLeaf.Substring(1, $SrcLeaf.Length - 2)).Path
 			$DataDst = Split-Path $Data -Parent
 		}
-		else
-		{
+		else {
 			$DataSrc = Join-Path $BaseSrcDir $Data
-			if (Test-Path $DataSrc -PathType Leaf)
-			{
+			if (Test-Path $DataSrc -PathType Leaf) {
 				$DataDst = Split-Path $Data -Parent
 			}
-			else
-			{
+			else {
 				$DataDst = $Data
 			}
 		}
-		if (-not$DataDst)
-		{
+		if (-not $DataDst) {
 			$DataDst = "."
 		}
 		$ArgList += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
 	}
-	if ($UPX)
-	{
-		if (!(Get-Command upx -ErrorAction SilentlyContinue))
-		{
+	if ($UPX) {
+		if (!(Get-Command upx -ErrorAction SilentlyContinue)) {
 			choco install upx --verbose --yes
 		}
 		Get-Command upx
 	}
-	else
-	{
+	else {
 		$ArgList += "--noupx"
 	}
 	return $ArgList
 }
 
-function Install-Dependencies
-{
+function Install-Dependencies {
 	python -m pip install pip --upgrade
 	python -m pip install setuptools --upgrade
 
-	if ($Obfuscate)
-	{
+	if ($Obfuscate) {
 		pip install pyinstaller --upgrade
 		pip install pyarmor --upgrade
 	}
-	else
-	{
+	else {
 		pip install wheel --upgrade
 		# $TempDir = Join-Path $Env:TEMP (New-Guid) FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
 		$TempDir = Join-Path (Split-Path (Get-Location) -Qualifier) (Get-Random)
@@ -424,44 +365,35 @@ function Install-Dependencies
 		Pop-Location
 		Remove-Item $TempDir -Force -Recurse
 	}
-	if ($CythonSources -or $CythonizeSourceGlobs)
-	{
+	if ($CythonSources -or $CythonizeSourceGlobs) {
 		# pip install cython FIXME https://github.com/cython/cython/milestone/58
 		pip install cython --pre
 	}
 
-	if (Test-Path requirements.txt -PathType Leaf)
-	{
+	if (Test-Path requirements.txt -PathType Leaf) {
 		pip install -r requirements.txt
 	}
 }
 
-function Write-Build
-{
-	if ($CodeRunBefore)
-	{
+function Write-Build {
+	if ($CodeRunBefore) {
 		Start-PythonCode $CodeRunBefore
 	}
-	if ($IsGithub -and $CodeRunBeforeRemote)
-	{
+	if ($IsGithub -and $CodeRunBeforeRemote) {
 		Start-PythonCode $CodeRunBeforeRemote
 	}
 
-	if ($MinifyLocalJson -or $IsGithub)
-	{
-		foreach ($MinifyJsonRegEx in $MinifyJsonRegExs)
-		{
-			foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx)
-			{
+	if ($MinifyLocalJson -or $IsGithub) {
+		foreach ($MinifyJsonRegEx in $MinifyJsonRegExs) {
+			foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx) {
 				MinifyJsonFile $Json.FullName
 			}
 		}
 	}
 
-	foreach ($CythonSource in $CythonSources)
-	{
+	foreach ($CythonSource in $CythonSources) {
 		cython --verbose -3 --embed $CythonSource
-		$SourceBase = $CythonSource.Substring(0,$CythonSource.LastIndexOf("."))
+		$SourceBase = $CythonSource.Substring(0, $CythonSource.LastIndexOf("."))
 		$CodeCompileC = @() + $CodeCompileCTemplate
 		$CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
 		Start-PythonCode $CodeCompileC
@@ -471,11 +403,9 @@ function Write-Build
 	}
 
 	$PyInstallerArgs = Get-PyInstallerArgs
-	if ($CythonizeSourceGlobs)
-	{
+	if ($CythonizeSourceGlobs) {
 		$CythonizeArgs = @("-3", "--inplace", "--no-docstrings")
-		foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs)
-		{
+		foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs) {
 			$CythonizeArgs += "--exclude=$CythonizeExcludeGlob"
 		}
 		$CythonizeArgs += $CythonizeSourceGlobs
@@ -497,61 +427,50 @@ function Write-Build
 
 	$CommonArgs = "--name=$FullName", $EntryPoint
 	$env:PYTHONOPTIMIZE = $OptimizationLevel
-	if ($Obfuscate)
-	{
+	if ($Obfuscate) {
 		$PyArmorArgs = @("pack", "--output=dist", "--options=$PyInstallerArgs") + $CommonArgs
 		Write-Host "pyarmor $PyArmorArgs"
 		pyarmor $PyArmorArgs
 	}
-	else
-	{
+	else {
 		$PyInstallerArgs += $CommonArgs
 		Write-Host "pyinstaller $PyInstallerArgs"
 		pyinstaller $PyInstallerArgs
 	}
 
 	$DistPath = Join-Path "dist" $FullName
-	if ($OneFile)
-	{
+	if ($OneFile) {
 		$ExePath = "$DistPath.exe"
 	}
-	else
-	{
+	else {
 		$ExePath = Join-Path $DistPath "$Name.exe"
 		Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
 	}
 
-	if ($MainManifest)
-	{
+	if ($MainManifest) {
 		$TempPath = Join-Path $env:TEMP (New-Guid)
 		Copy-File $ExePath $TempPath $CopyTimeout
 		MergeManifest $TempPath $MainManifest
 		Move-Item $TempPath -Destination $ExePath -Force
 	}
 
-	if ($CythonizeRemove)
-	{
+	if ($CythonizeRemove) {
 		Remove-Cythonized
 	}
 
-	if ($CodeRunAfter)
-	{
+	if ($CodeRunAfter) {
 		Start-PythonCode $CodeRunAfter
 	}
-	if ($IsGithub -and $CodeRunAfterRemote)
-	{
+	if ($IsGithub -and $CodeRunAfterRemote) {
 		Start-PythonCode $CodeRunAfterRemote
 	}
 }
 
-function UploadToMEGA
-{
-	if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD)
-	{
+function UploadToMEGA {
+	if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD) {
 		choco install megacmd --verbose --yes
 		$env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
-		if (!(Get-Command mega-login -ErrorAction SilentlyContinue))
-		{
+		if (!(Get-Command mega-login -ErrorAction SilentlyContinue)) {
 			$Temp = Join-Path $Env:TEMP (Split-Path $MEGAcmdURL -Leaf)
 			Invoke-WebRequest $MEGAcmdURL -OutFile $Temp
 			Start-Process $Temp "/S" -Wait
@@ -560,17 +479,14 @@ function UploadToMEGA
 		mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
 		mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
 	}
-	else
-	{
+	else {
 		throw
 	}
 }
 
 $ErrorActionPreference = "Stop"
-if ($Args)
-{
-	switch ($Args[0])
-	{
+if ($Args) {
+	switch ($Args[0]) {
 		"install" {
 			Install-Dependencies; Break
 		}
@@ -585,7 +501,6 @@ if ($Args)
 		}
 	}
 }
-else
-{
+else {
 	Write-Build
 }

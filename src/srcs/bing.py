@@ -2,7 +2,7 @@ import os.path
 from typing import Generator, Optional
 
 import gui
-from libs import files, iso_codes, request
+from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = 'https://www.bing.com'
@@ -66,7 +66,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         gui.add_mapped_submenu(cls.strings.BING_MENU_DAY, {str(day): getattr(
             cls.strings, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
                                cls.CURRENT_CONFIG, CONFIG_DAY)
-        gui.add_mapped_submenu(cls.strings.BING_MENU_MARKET, {market: iso_codes.ISO31661.get(
+        gui.add_mapped_submenu(cls.strings.BING_MENU_MARKET, {market: isocodes.ISO31661.get(
             market[market.find('-') + 1:]).name for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
         gui.add_mapped_submenu(cls.strings.BING_MENU_RESOLUTION,
                                {resolution: getattr(cls.strings, f'BING_RESOLUTION_{resolution}')

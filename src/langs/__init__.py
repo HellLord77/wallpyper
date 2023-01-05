@@ -4,7 +4,7 @@ import contextlib
 import types
 from typing import Optional
 
-from libs import iso_codes
+from libs import isocodes
 from . import ben
 from . import eng
 
@@ -23,7 +23,7 @@ def to_str(num: int, lang: types.ModuleType, pad: Optional[int] = None) -> str:
 
 def _init():
     globals_ = globals()
-    for language in iso_codes.ISO6392:
+    for language in isocodes.ISO6392:
         with contextlib.suppress(KeyError):
             globals_[language].__getattr__ = _getattr
 

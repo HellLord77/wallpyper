@@ -4,7 +4,7 @@ import os.path
 from typing import Generator, Optional
 
 import gui
-from libs import files, iso_codes, request
+from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
@@ -53,7 +53,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
+        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
             locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
         gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
             cls.strings, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},

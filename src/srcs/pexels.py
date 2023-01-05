@@ -2,7 +2,7 @@ import os
 from typing import Generator, Optional
 
 import gui
-from libs import files, iso_codes, request
+from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = request.join('https://api.pexels.com', 'v1')
@@ -90,6 +90,6 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                 cls.strings, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CURRENT_CONFIG, CONFIG_SIZE)
             gui.add_mapped_submenu(cls.strings.PEXELS_MENU_COLOR, {color: getattr(
                 cls.strings, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_LOCALE, {locale: iso_codes.ISO31661.get(
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_LOCALE, {locale: isocodes.ISO31661.get(
                 locale[locale.find('-') + 1:]).name if locale else cls.strings.PEXELS_LOCALE_
                                                                     for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
