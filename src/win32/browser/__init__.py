@@ -1,14 +1,22 @@
 from __future__ import annotations as _
 
+import atexit
 import contextlib
 import math
+import ntpath
+import os
+import threading
 import time
 import uuid
 from typing import ContextManager, Optional
 
 from libs import ctyped
+from libs.ctyped.interface.package import WebView2
 from libs.ctyped.interface.um import DispEx, ExDisp, oaidl, ocidl
-from . import _mshtml, _utils
+from . import _mshtml, _webview2
+from .. import _utils
+
+DATA_DIR = os.path.dirname(__file__)
 
 
 @contextlib.contextmanager
@@ -128,3 +136,83 @@ class Browser:
 
     def eval_js(self, code: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:
         return self.call_js('eval', code)
+
+
+def _create_environment(timeout: Optional[float] = None) -> _webview2.CoreWebView2Environment:
+    environment = _webview2.CoreWebView2Environment()
+    event = threading.Event()
+
+    def on_completed(hr: ctyped.type.HRESULT, env: WebView2.ICoreWebView2Environment) -> ctyped.type.HRESULT:
+        if ctyped.macro.SUCCEEDED(hr):
+            environment.__init__(env)
+        event.set()
+        return hr
+
+    with ctyped.interface.create_handler(
+            on_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
+        if ctyped.macro.SUCCEEDED(ctyped.lib.WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
+                ctyped.NULLPTR, DATA_DIR, ctyped.NULLPTR, handler)):
+            event.wait(timeout)
+    return environment
+
+
+class _BrowserEx:
+    def __init__(self):
+        ctyped.interface.init_com(False)
+        self._class = ctyped.struct.WNDCLASSEXW(
+            style=ctyped.const.CS_HREDRAW | ctyped.const.CS_VREDRAW,
+            lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=_utils.HINSTANCE,
+            hCursor=ctyped.handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW),
+            lpszClassName=f'{__name__}-{type(self).__name__}')
+        self._environment = _create_environment()
+        if not self._environment or not ctyped.lib.user32.RegisterClassExW(ctyped.byref(self._class)):
+            raise RuntimeError(f'Cannot initialize {type(self).__name__}')
+        self._hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
+            0, self._class.lpszClassName, type(self).__name__, ctyped.const.WS_OVERLAPPEDWINDOW,
+            ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
+            ctyped.const.CW_USEDEFAULT, None, None, _utils.HINSTANCE, None))
+        self._controller: Optional[_webview2.CoreWebView2Controller] = None
+        with ctyped.interface.create_handler(
+                self._controller_created, WebView2.ICoreWebView2CreateCoreWebView2ControllerCompletedHandler) as handler:
+            self._environment.create_core_web_view_2_controller(self._hwnd, handler)
+        atexit.register(self.destroy)
+
+    def _controller_created(self, hr: ctyped.type.HRESULT,
+                            ctrl: WebView2.ICoreWebView2Controller) -> ctyped.type.HRESULT:
+        if ctyped.macro.SUCCEEDED(hr):
+            self._controller = _webview2.CoreWebView2Controller(ctrl)
+        return hr
+
+    def destroy(self):
+        atexit.unregister(self.destroy)
+        if self._controller:
+            self._controller.close()
+        self._hwnd = None
+        ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, _utils.HINSTANCE)
+
+    def _wnd_proc(self, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
+                  wparam: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
+        if message == ctyped.const.WM_SIZE:
+            if self._controller:
+                bounds = ctyped.struct.RECT()
+                ctyped.lib.user32.GetClientRect(hwnd, ctyped.byref(bounds))
+                self._controller.bounds = bounds
+        if message == ctyped.const.WM_DESTROY:
+            ctyped.lib.user32.PostQuitMessage(0)
+        else:
+            return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+        return 0
+
+    def _mainloop(self) -> int:
+        msg = ctyped.struct.MSG()
+        msg_ref = ctyped.byref(msg)
+        while ctyped.lib.user32.GetMessageW(msg_ref, self._hwnd, 0, 0):
+            ctyped.lib.user32.TranslateMessage(msg_ref)
+            ctyped.lib.user32.DispatchMessageW(msg_ref)
+        return msg.wParam
+
+    def navigate(self, url: str) -> bool:
+        return self._controller and self._controller.core_web_view_2.navigate(url)
+
+
+os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))

@@ -2,6 +2,7 @@ import os.path
 from typing import MutableSequence, Optional
 
 from libs import ctyped
+from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
 from . import _gdiplus, _utils
 
@@ -33,7 +34,7 @@ def open_folder(path: Optional[str] = None, title: Optional[str] = None) -> Opti
             hr = dialog.Show(ctyped.NULLPTR)
             if ctyped.macro.SUCCEEDED(hr):
                 return _get_path(dialog)
-            elif hr == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.error.ERROR_CANCELLED):
+            elif hr == ctyped.macro.HRESULT_FROM_WIN32(error.ERROR_CANCELLED):
                 return path
 
 
@@ -74,7 +75,7 @@ def save_file(path: Optional[str] = None, title: Optional[str] = None,
             hr = dialog.Show(ctyped.NULLPTR)
             if ctyped.macro.SUCCEEDED(hr):
                 return _get_path(dialog)
-            elif hr == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.error.ERROR_CANCELLED):
+            elif hr == ctyped.macro.HRESULT_FROM_WIN32(error.ERROR_CANCELLED):
                 return path
 
 

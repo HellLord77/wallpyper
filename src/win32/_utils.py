@@ -6,6 +6,7 @@ from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
 
 from libs import ctyped
 from libs.ctyped import winrt
+from libs.ctyped.const import runtimeclass
 from libs.ctyped.interface.um import DispEx, d2d1, d2d1svg, oaidl, objidlbase
 from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
 from libs.ctyped.interface.winrt.Windows.Storage import Streams as Windows_Storage_Streams
@@ -13,14 +14,15 @@ from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_Sy
 from . import _com
 
 POLL_INTERVAL = 0.1
+HINSTANCE = ctyped.lib.kernel32.GetModuleHandleW(None)
 
 
 class BSTRGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> Optional[str]:
-        with get_bstr() as bstr:
+        with get_bstr() as obj:
             # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(bstr))
-            return ctyped.type.c_wchar_p.from_buffer(bstr).value
+            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            return ctyped.type.c_wchar_p.from_buffer(obj).value
 
 
 class BSTRSetter(_com.Setter):
@@ -110,7 +112,7 @@ def sanitize_filename(name: str) -> Optional[str]:
 def open_file(path: str) -> Optional[ctyped.interface.WinRT[Windows_Storage.IStorageFile]]:
     operation = winrt.AsyncOperation(Windows_Storage.IStorageFile)
     with ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
-            ctyped.const.runtimeclass.Windows.Storage.StorageFile) as statics:
+            runtimeclass.Windows.Storage.StorageFile) as statics:
         if ctyped.macro.SUCCEEDED(statics.GetFileFromPathAsync(
                 ctyped.handle.HSTRING.from_string(path), ~operation)) and (file := operation.get()):
             return ctyped.interface.WinRT[Windows_Storage.IStorageFile](file.value)
@@ -149,7 +151,7 @@ def get_output_stream(file: Windows_Storage.IStorageFile) -> \
 def get_lock_background_input_stream() -> \
         Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]]:
     if p_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
-            ctyped.const.runtimeclass.Windows.System.UserProfile.LockScreen):
+            runtimeclass.Windows.System.UserProfile.LockScreen):
         p_random = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStream]()
         with p_statics as statics:
             if ctyped.macro.SUCCEEDED(statics.GetImageStream(~p_random)):
@@ -164,7 +166,7 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
                 progress_callback: Optional[Callable[[int, ...], Any]],
                 args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
     p_statics = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStreamStatics](
-        ctyped.const.runtimeclass.Windows.Storage.Streams.RandomAccessStream)
+        runtimeclass.Windows.Storage.Streams.RandomAccessStream)
     if p_statics:
         operation = winrt.AsyncOperationWithProgress(ctyped.type.UINT64, ctyped.type.UINT64)
         with p_statics as statics:

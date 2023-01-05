@@ -19,7 +19,7 @@ _NOTIFYICONDATAA_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDAT
 _NOTIFYICONDATAW_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'hBalloonIcon')
 
 _WM_TASKBARCREATED = ctyped.lib.user32.RegisterWindowMessageW('TaskbarCreated')
-_WM_SYS_TRAY = ctyped.const.WM_APP
+_WM_SYS_TRAY_MSG = ctyped.const.WM_APP
 _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 
 _TID_MENU_ITEM_TOOLTIP = 0
@@ -163,17 +163,14 @@ class _IDGenerator:
             return False
 
 
-@functools.lru_cache
-def _load_bitmap_cached(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
-    if isinstance(path_or_bitmap, str):
-        path_or_bitmap = _gdiplus.Bitmap.from_file(path_or_bitmap)
-    return path_or_bitmap
+_bitmap_from_file = functools.lru_cache(_gdiplus.Bitmap.from_file)
 
 
 def _load_bitmap(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
     if not FLAG_CACHE_BITMAP:
-        _load_bitmap_cached.cache_clear()
-    return _load_bitmap_cached(path_or_bitmap)
+        _bitmap_from_file.cache_clear()
+    return _bitmap_from_file(path_or_bitmap) if isinstance(
+        path_or_bitmap, str) else path_or_bitmap
 
 
 class _EventHandler:
@@ -249,7 +246,6 @@ class _EventHandler:
 class Gui(_EventHandler):
     _selves: dict[int, Gui]
 
-    _hinstance = ctyped.lib.kernel32.GetModuleHandleW(None)
     _mainloop_thread = 0
     _menu_item_tooltip_proc = None
     _menu_item_tooltip_title = None
@@ -257,22 +253,31 @@ class Gui(_EventHandler):
 
     def __init__(self, name: Optional[str] = None):
         self._class = ctyped.struct.WNDCLASSEXW(
-            lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=self._hinstance,
+            lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=_utils.HINSTANCE,
             lpszClassName=f'{__name__}-{type(self).__name__}' if name is None else name)
         if not ctyped.lib.user32.RegisterClassExW(ctyped.byref(self._class)):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
-        self._hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
-            0, self._class.lpszClassName, None, ctyped.const.WS_OVERLAPPED, 0, 0, 0, 0, None, None, self._hinstance, None))
-        self._menu_item_tooltip_hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
-            ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS, None,
-            ctyped.const.TTS_NOPREFIX, 0, 0, 0, 0, self._hwnd, None, self._hinstance, None))
-        self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(uFlags=ctyped.const.TTF_SUBCLASS, hinst=self._hinstance)
-        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_ADDTOOLW, lparam=ctyped.addressof(self._menu_item_tooltip))
-        self._menu_item_tooltip_hwnd.send_message(ctyped.const.TTM_SETMAXTIPWIDTH, 0, _MENU_ITEM_TOOLTIP_MAX_WIDTH)
+        self._hwnd = self._create_window(parent=0)
+        self._menu_item_tooltip_hwnd = self._create_window(
+            ctyped.const.WS_EX_TOPMOST, ctyped.const.TOOLTIPS_CLASS,
+            style=ctyped.const.TTS_NOPREFIX)
+        self._menu_item_tooltip = ctyped.struct.TTTOOLINFOW(
+            uFlags=ctyped.const.TTF_SUBCLASS, hinst=_utils.HINSTANCE)
+        self._menu_item_tooltip_hwnd.send_message(
+            ctyped.const.TTM_ADDTOOLW, lparam=ctyped.addressof(self._menu_item_tooltip))
+        self._menu_item_tooltip_hwnd.send_message(
+            ctyped.const.TTM_SETMAXTIPWIDTH, 0, _MENU_ITEM_TOOLTIP_MAX_WIDTH)
         self._attached: list[_Control] = []
         self._mainloop_lock = threading.Lock()
         super().__init__(self._hwnd.value)
         atexit.register(self.destroy)
+
+    def _create_window(self, ex_style: int = 0, cls: str = '', wnd: str = '',
+                       style: int = ctyped.const.WS_OVERLAPPED, x: int = 0, y: int = 0,
+                       w: int = 0, h: int = 0, parent: Optional[int] = None) -> ctyped.handle.HWND:
+        return ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
+            ex_style, cls if cls else self._class.lpszClassName, wnd, style,
+            x, y, w, h, self._hwnd if parent is None else parent, None, _utils.HINSTANCE, None))
 
     def destroy(self) -> bool:
         atexit.unregister(self.destroy)
@@ -281,7 +286,7 @@ class Gui(_EventHandler):
             self._attached.pop().destroy()
         self._menu_item_tooltip_hwnd = None
         self._hwnd = None
-        ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, self._hinstance)
+        ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, _utils.HINSTANCE)
         return super().destroy()
 
     def _wnd_proc(self, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
@@ -309,7 +314,7 @@ class Gui(_EventHandler):
                     MENU_ITEM_TOOLTIP_INITIAL, self._menu_item_tooltip_proc)
         elif message in (ctyped.const.WM_DISPLAYCHANGE, ctyped.const.WM_DWMNCRENDERINGCHANGED):
             self.trigger(message)
-        elif message == _WM_SYS_TRAY:
+        elif message == _WM_SYS_TRAY_MSG:
             SystemTray.get(wparam).trigger(lparam)
         elif message in (ctyped.const.WM_INITMENUPOPUP, ctyped.const.WM_UNINITMENUPOPUP):
             self._hwnd.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, 1)
@@ -404,7 +409,7 @@ class _Control(_EventHandler):
         if gui is None:
             gui = Gui.get()
             if gui is None:
-                raise RuntimeError(f"Cannot initialize '{type(self).__name__}' ('{Gui.__name__}' object unavailable)")
+                raise RuntimeError(f"There is no current {type(self).__name__} instance")
         # noinspection PyProtectedMember
         gui._attached.append(self)
         return gui.get_id()
@@ -427,7 +432,7 @@ class SystemTray(_Control):
         super().__init__(next(self._id_gen))
         self._data = ctyped.struct.NOTIFYICONDATAW(
             _NOTIFYICONDATAW_V3_SIZE, self._hwnd, self._id,
-            ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP, _WM_SYS_TRAY)
+            ctyped.const.NIF_MESSAGE | ctyped.const.NIF_ICON | ctyped.const.NIF_TIP, _WM_SYS_TRAY_MSG)
         self.set_icon(icon)
         if tooltip is not None:
             self.set_tooltip(tooltip)
@@ -547,7 +552,7 @@ class Menu(_Control):
         self._hmenu = ctyped.handle.HMENU.from_type()
         if not ctyped.lib.user32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
                 fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
-            raise RuntimeError(f'Cannot initialize {type(self).__name__}')
+            raise RuntimeError(f"Could not initialize '{type(self).__name__}'")
         self._hmenu.set_hwnd(self._hwnd)
         self._items: list[MenuItem] = []
         super().__init__(self._hmenu.value)

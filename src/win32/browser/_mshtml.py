@@ -4,31 +4,31 @@ from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.interface.um import ExDisp, MsHTML, oaidl
-from . import _com, _utils
+from .. import _com, _utils
 
 
 class _HTMLDocument2Getter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLDocument2:
-        with ctyped.interface.COM[MsHTML.IHTMLDocument2]() as html_document_2:
+        with ctyped.interface.COM[MsHTML.IHTMLDocument2]() as obj:
             # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(html_document_2))
-            return HTMLDocument2(html_document_2)
+            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            return HTMLDocument2(obj)
 
 
 class _HTMLElementGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElement:
-        with ctyped.interface.COM[MsHTML.IHTMLElement]() as html_element:
+        with ctyped.interface.COM[MsHTML.IHTMLElement]() as obj:
             # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(html_element))
-            return HTMLElement(html_element)
+            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            return HTMLElement(obj)
 
 
 class _HTMLElementCollectionGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElementCollection:
-        with ctyped.interface.COM[MsHTML.IHTMLElementCollection]() as html_element_collection:
+        with ctyped.interface.COM[MsHTML.IHTMLElementCollection]() as obj:
             # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(html_element_collection))
-            return HTMLElementCollection(html_element_collection)
+            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            return HTMLElementCollection(obj)
 
 
 class WebBrowser2(_com.Unknown):
@@ -88,8 +88,73 @@ class WebBrowser2(_com.Unknown):
     resizable = _com.VariantBoolGetterSetter('Resizable')
 
 
+class HTMLElement(_com.Unknown):
+    _obj: MsHTML.IHTMLElement
+
+    def get_attribute(self, attribute_name: str,
+                      flags: int = 0) -> Optional[bool | int | float | str | oaidl.IDispatch]:
+        with _utils.get_bstr(attribute_name) as bstr:
+            variant = ctyped.struct.VARIANT()
+            self._obj.getAttribute(bstr, flags, ctyped.byref(variant))
+            try:
+                return _utils.get_variant_value(variant)
+            finally:
+                ctyped.lib.oleaut32.VariantClear(ctyped.byref(variant))
+
+    class_name = _utils.BSTRGetterSetter('className')
+    id = _utils.BSTRGetterSetter('id')
+    tag_name = _utils.BSTRGetter('tagName')
+    parent_element = _HTMLElementGetter('parentElement')
+    title = _utils.BSTRGetterSetter('title')
+    language = _utils.BSTRGetterSetter('language')
+    lang = _utils.BSTRGetterSetter('lang')
+    inner_html = _utils.BSTRGetterSetter('innerHTML')
+    inner_text = _utils.BSTRGetterSetter('innerText')
+    outer_html = _utils.BSTRGetterSetter('outerHTML')
+    outer_text = _utils.BSTRGetterSetter('outerText')
+    _to_string = _utils.BSTRGetter('toString')
+
+    def to_string(self) -> str:
+        return self._to_string
+
+
+class HTMLElementCollection(_com.Unknown):
+    _obj: MsHTML.IHTMLElementCollection
+
+    _to_string = _utils.BSTRGetter('toString')
+
+    def to_string(self) -> str:
+        return self._to_string
+
+    length = _com.CLongGetterSetter('length')
+
+    def item(self, index: int) -> HTMLElement:
+        variant = ctyped.struct.VARIANT()
+        variant.U.S.vt = ctyped.enum.VARENUM.I4.value
+        variant.U.S.U.intVal = index
+        with ctyped.interface.COM[oaidl.IDispatch]() as dispatch:
+            self._obj.item(variant, variant, ctyped.byref(dispatch))
+            return HTMLElement(dispatch)
+
+    def tags(self, tag_name: str) -> HTMLElementCollection:
+        variant = ctyped.struct.VARIANT()
+        variant.U.S.vt = ctyped.enum.VARENUM.BSTR.value
+        with _utils.get_bstr(tag_name) as bstr:
+            variant.U.S.U.bstrVal = bstr
+            with ctyped.interface.COM[oaidl.IDispatch]() as dispatch:
+                self._obj.tags(variant, ctyped.byref(dispatch))
+                return HTMLElementCollection(dispatch)
+
+
+class HTMLDocument7(_com.Unknown):
+    _obj: MsHTML.IHTMLDocument7
+
+    head = _HTMLElementGetter('head')
+
+
 class HTMLDocument2(_com.Unknown):
     _obj: MsHTML.IHTMLDocument2
+
     all = _HTMLElementCollectionGetter('all')
     body = _HTMLElementGetter('body')
     active_element = _HTMLElementGetter('activeElement')
@@ -126,13 +191,9 @@ class HTMLDocument2(_com.Unknown):
             return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
 
-class HTMLDocument7(_com.Unknown):
-    _obj: MsHTML.IHTMLDocument7
-    head = _HTMLElementGetter('head')
-
-
 class HTMLWindow2(_com.Unknown):
     _obj: MsHTML.IHTMLWindow2
+
     default_status = _utils.BSTRGetterSetter('defaultStatus')
     status = _utils.BSTRGetterSetter('status')
 
@@ -186,62 +247,3 @@ class HTMLWindow2(_com.Unknown):
 
     def resize_by(self, x: int, y: int) -> bool:
         return ctyped.macro.SUCCEEDED(self._obj.resizeBy(x, y))
-
-
-class HTMLElement(_com.Unknown):
-    _obj: MsHTML.IHTMLElement
-
-    def get_attribute(self, attribute_name: str,
-                      flags: int = 0) -> Optional[bool | int | float | str | oaidl.IDispatch]:
-        with _utils.get_bstr(attribute_name) as bstr:
-            variant = ctyped.struct.VARIANT()
-            self._obj.getAttribute(bstr, flags, ctyped.byref(variant))
-            try:
-                return _utils.get_variant_value(variant)
-            finally:
-                ctyped.lib.oleaut32.VariantClear(ctyped.byref(variant))
-
-    class_name = _utils.BSTRGetterSetter('className')
-    id = _utils.BSTRGetterSetter('id')
-    tag_name = _utils.BSTRGetter('tagName')
-    parent_element = _HTMLElementGetter('parentElement')
-    title = _utils.BSTRGetterSetter('title')
-    language = _utils.BSTRGetterSetter('language')
-    lang = _utils.BSTRGetterSetter('lang')
-    inner_html = _utils.BSTRGetterSetter('innerHTML')
-    inner_text = _utils.BSTRGetterSetter('innerText')
-    outer_html = _utils.BSTRGetterSetter('outerHTML')
-    outer_text = _utils.BSTRGetterSetter('outerText')
-
-    def to_string(self) -> str:
-        with _utils.get_bstr() as bstr:
-            self._obj.toString(ctyped.byref(bstr))
-            return ctyped.type.c_wchar_p.from_buffer(bstr).value
-
-
-class HTMLElementCollection(_com.Unknown):
-    _obj: MsHTML.IHTMLElementCollection
-
-    def to_string(self) -> str:
-        with _utils.get_bstr() as bstr:
-            self._obj.toString(ctyped.byref(bstr))
-            return ctyped.type.c_wchar_p.from_buffer(bstr).value
-
-    length = _com.CLongGetterSetter('length')
-
-    def item(self, index: int) -> HTMLElement:
-        variant = ctyped.struct.VARIANT()
-        variant.U.S.vt = ctyped.enum.VARENUM.I4.value
-        variant.U.S.U.intVal = index
-        with ctyped.interface.COM[oaidl.IDispatch]() as dispatch:
-            self._obj.item(variant, variant, ctyped.byref(dispatch))
-            return HTMLElement(dispatch)
-
-    def tags(self, tag_name: str) -> HTMLElementCollection:
-        variant = ctyped.struct.VARIANT()
-        variant.U.S.vt = ctyped.enum.VARENUM.BSTR.value
-        with _utils.get_bstr(tag_name) as bstr:
-            variant.U.S.U.bstrVal = bstr
-            with ctyped.interface.COM[oaidl.IDispatch]() as dispatch:
-                self._obj.tags(variant, ctyped.byref(dispatch))
-                return HTMLElementCollection(dispatch)

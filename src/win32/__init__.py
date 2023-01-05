@@ -10,6 +10,7 @@ from typing import ContextManager, Generator, Mapping, Optional
 
 from libs import ctyped, utils
 from libs.ctyped import winrt
+from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import oaidl, objidl, ocidl, propsys, ShObjIdl, ShObjIdl_core, strmif
 from libs.ctyped.interface.winrt.Windows import System as Windows_System
 from . import _gdiplus, _utils, browser, clipboard, console, dialog, display, gui
@@ -275,8 +276,7 @@ def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
             None, ctyped.lib.kernel32.GetLastError() if hresult is None else hresult,
             ctyped.macro.MAKELANGID(ctyped.const.LANG_NEUTRAL, ctyped.const.SUBLANG_DEFAULT),
             ctyped.cast(ctyped.byref(buff), ctyped.type.LPWSTR), 0, None)
-        error = buff.value.strip()
-    return error
+        return buff.value.strip()
 
 
 def show_error(title: Optional[str | type], text: str) -> bool:
@@ -321,16 +321,16 @@ def open_file_with(path: str) -> bool:
     info_ref = ctyped.byref(ctyped.struct.OPENASINFO(path, oaifInFlags=(
             ctyped.enum.OPEN_AS_INFO_FLAGS.EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.HIDE_REGISTRATION)))
     hr = ctyped.lib.shell32.SHOpenWithDialog(None, info_ref)
-    return ctyped.macro.SUCCEEDED(hr) or hr == ctyped.macro.HRESULT_FROM_WIN32(ctyped.const.error.ERROR_CANCELLED)
+    return ctyped.macro.SUCCEEDED(hr) or hr == ctyped.macro.HRESULT_FROM_WIN32(error.ERROR_CANCELLED)
 
 
 def open_file_with_ex(path: str) -> bool:
     p_options = ctyped.interface.WinRT[Windows_System.ILauncherOptions](
-        ctyped.const.runtimeclass.Windows.System.LauncherOptions)
+        runtimeclass.Windows.System.LauncherOptions)
     with p_options as options:
         if options and ctyped.macro.SUCCEEDED(options.put_DisplayApplicationPicker(True)) and (
                 p_launcher := ctyped.interface.WinRT[Windows_System.ILauncherStatics](
-                    ctyped.const.runtimeclass.Windows.System.Launcher)) and (p_file := _utils.open_file(path)):
+                    runtimeclass.Windows.System.Launcher)) and (p_file := _utils.open_file(path)):
             operation = ctyped.winrt.AsyncOperation(ctyped.type.boolean)
             with p_launcher as launcher, p_file as file:
                 if ctyped.macro.SUCCEEDED(launcher.LaunchFileWithOptionsAsync(file, options, ~operation)):

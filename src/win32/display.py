@@ -13,6 +13,7 @@ from typing import Callable, Optional, Iterable
 
 from libs import ctyped, utils
 from libs.ctyped import winrt
+from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import ShlObj_core, ShObjIdl_core
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
 from . import _utils, _gdiplus
@@ -314,10 +315,10 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
     monitors = {}
     path_count = ctyped.type.UINT32()
     mode_count = ctyped.type.UINT32()
-    if ctyped.const.error.ERROR_SUCCESS == ctyped.lib.user32.GetDisplayConfigBufferSizes(
+    if error.ERROR_SUCCESS == ctyped.lib.user32.GetDisplayConfigBufferSizes(
             ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(path_count), ctyped.byref(mode_count)):
         modes = ctyped.array(type=ctyped.struct.DISPLAYCONFIG_MODE_INFO, size=mode_count.value)
-        if ctyped.const.error.ERROR_SUCCESS == ctyped.lib.user32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
+        if error.ERROR_SUCCESS == ctyped.lib.user32.QueryDisplayConfig(ctyped.const.QDC_ONLY_ACTIVE_PATHS, ctyped.byref(
                 path_count), ctyped.array(type=ctyped.struct.DISPLAYCONFIG_PATH_INFO, size=path_count.value), ctyped.byref(mode_count), modes, None):
             name = ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME(ctyped.struct.DISPLAYCONFIG_DEVICE_INFO_HEADER(
                 ctyped.enum.DISPLAYCONFIG_DEVICE_INFO_TYPE.GET_TARGET_NAME, ctyped.sizeof(ctyped.struct.DISPLAYCONFIG_TARGET_DEVICE_NAME)))
@@ -325,7 +326,7 @@ def get_monitors() -> dict[str, tuple[str, tuple[int, int]]]:
                 if mode.infoType == ctyped.enum.DISPLAYCONFIG_MODE_INFO_TYPE.TARGET:
                     name.header.adapterId = mode.adapterId
                     name.header.id = mode.id
-                    if ctyped.const.error.ERROR_SUCCESS == ctyped.lib.user32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
+                    if error.ERROR_SUCCESS == ctyped.lib.user32.DisplayConfigGetDeviceInfo(ctyped.byref(name.header)):
                         monitors[name.monitorDevicePath] = name.monitorFriendlyDeviceName, (
                             mode.U.targetMode.targetVideoSignalInfo.activeSize.cx, mode.U.targetMode.targetVideoSignalInfo.activeSize.cy)
     return monitors
@@ -679,7 +680,7 @@ def set_wallpapers_ex(*wallpapers: Wallpaper):
 def set_lock_background(path: str) -> bool:
     if (p_file := _utils.open_file(path)) and (
             p_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
-                ctyped.const.runtimeclass.Windows.System.UserProfile.LockScreen)):
+                runtimeclass.Windows.System.UserProfile.LockScreen)):
         action = winrt.AsyncAction()
         with p_file as file, p_statics as statics:
             if ctyped.macro.SUCCEEDED(statics.SetImageFileAsync(file, ~action)):

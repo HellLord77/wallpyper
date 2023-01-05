@@ -27,10 +27,10 @@ class Setter(_Property):
 
 class CIntGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> int:
-        c_int = ctyped.type.c_int()
+        obj = ctyped.type.c_int()
         # noinspection PyProtectedMember
-        getattr(instance._obj, self._getter)(ctyped.byref(c_int))
-        return c_int.value
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj.value
 
 
 class CIntSetter(Setter):
@@ -43,10 +43,10 @@ class CIntGetterSetter(CIntSetter, CIntGetter):
 
 class CLongGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> int:
-        c_long = ctyped.type.c_long()
+        obj = ctyped.type.c_long()
         # noinspection PyProtectedMember
-        getattr(instance._obj, self._getter)(ctyped.byref(c_long))
-        return c_long.value
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj.value
 
 
 class CLongSetter(Setter):
@@ -57,12 +57,36 @@ class CLongGetterSetter(CLongSetter, CLongGetter):
     pass
 
 
+class CDoubleGetter(Getter):
+    def __get__(self, instance: _Interface, owner: type[_Interface]) -> float:
+        obj = ctyped.type.c_double()
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj.value
+
+
+class CDoubleSetter(Setter):
+    pass
+
+
+class CDoubleGetterSetter(CDoubleSetter, CDoubleGetter):
+    pass
+
+
+class UINT32Getter(Getter):
+    def __get__(self, instance: _Interface, owner: type[_Interface]) -> int:
+        obj = ctyped.type.UINT32()
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj.value
+
+
 class LPWSTRGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> str:
-        lpwstr = ctyped.type.LPWSTR()
+        obj = ctyped.type.LPWSTR()
         # noinspection PyProtectedMember
-        getattr(instance._obj, self._getter)(ctyped.byref(lpwstr))
-        return lpwstr.value
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj.value
 
 
 class LPWSTRSetter(Setter):
@@ -75,10 +99,10 @@ class LPWSTRGetterSetter(LPWSTRSetter, LPWSTRGetter):
 
 class BOOLGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> bool:
-        bool_ = ctyped.type.BOOL()
+        obj = ctyped.type.BOOL()
         # noinspection PyProtectedMember
-        getattr(instance._obj, self._getter)(ctyped.byref(bool_))
-        return bool(bool_.value)
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return bool(obj.value)
 
 
 class BOOLSetter(Setter):
@@ -91,10 +115,10 @@ class BOOLGetterSetter(BOOLSetter, BOOLGetter):
 
 class VariantBoolGetter(Getter):
     def __get__(self, instance: _Interface, owner: type[_Interface]) -> bool:
-        variant_bool = ctyped.type.VARIANT_BOOL()
+        obj = ctyped.type.VARIANT_BOOL()
         # noinspection PyProtectedMember
-        getattr(instance._obj, self._getter)(ctyped.byref(variant_bool))
-        return bool(variant_bool.value)
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return bool(obj.value)
 
 
 class VariantBoolSetter(Setter):
@@ -102,6 +126,38 @@ class VariantBoolSetter(Setter):
 
 
 class VariantBoolGetterSetter(VariantBoolSetter, VariantBoolGetter):
+    pass
+
+
+class HWNDGetter(Getter):
+    def __get__(self, instance: _Interface, owner: type[_Interface]) -> int:
+        obj = ctyped.type.HWND()
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj.value
+
+
+class HWNDSetter(Setter):
+    pass
+
+
+class HWNDGetterSetter(HWNDSetter, HWNDGetter):
+    pass
+
+
+class RECTGetter(Getter):
+    def __get__(self, instance: _Interface, owner: type[_Interface]) -> ctyped.struct.RECT:
+        obj = ctyped.struct.RECT()
+        # noinspection PyProtectedMember
+        getattr(instance._obj, self._getter)(ctyped.byref(obj))
+        return obj
+
+
+class RECTSetter(Setter):
+    pass
+
+
+class RECTGetterSetter(RECTSetter, RECTGetter):
     pass
 
 
@@ -115,6 +171,15 @@ class _Interface:
         if self._obj:
             self._obj.Release()
 
+    def __bool__(self):
+        return bool(self._obj)
+
 
 class Unknown(_Interface):
     _obj: Unknwnbase.IUnknown
+
+    def add_ref(self) -> ctyped.type.HRESULT:
+        return self._obj.AddRef()
+
+    def release(self) -> ctyped.type.HRESULT:
+        return self._obj.Release()
