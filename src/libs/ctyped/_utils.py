@@ -100,6 +100,13 @@ def _byref(obj: _CT, /) -> _Pointer[_CT]:
     pass
 
 
+# noinspection PyShadowingBuiltins
+@_functools.cache
+def _is_unsigned(type: type[_CT]) -> bool:
+    # noinspection PyUnresolvedReferences
+    return type(-1).value != -1
+
+
 def _pointer(obj_or_type: type[_CT]) -> type[_Pointer[_CT]]:
     try:
         # noinspection PyTypeChecker
@@ -117,13 +124,6 @@ def _cast(obj: _Any, type: type[_CT]) -> _Pointer[_CT]:
         return _cast(_byref(obj), type)
     except TypeError:
         return _cast(obj, _ctypes.POINTER(type))
-
-
-# noinspection PyShadowingBuiltins
-@_functools.cache
-def _is_unsigned(type: type[_CT]) -> bool:
-    # noinspection PyUnresolvedReferences
-    return type(-1).value != -1
 
 
 # noinspection PyShadowingBuiltins
@@ -202,19 +202,21 @@ def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
     return annot
 
 
-def _iter_modules(path: str, prefix: str = __package__):
-    for module in _pkgutil.iter_modules((path,), f'{prefix}.'):
+def _iter_modules(path: str = _os.path.dirname(__file__), prefix: str = __package__,
+                  recursive: bool = False) -> _Generator[_pkgutil.ModuleInfo, None, None]:
+    prefix = f'{prefix}.'
+    for module in _pkgutil.iter_modules((path,), prefix):
         yield module
-        if module.ispkg:
+        if recursive and module.ispkg:
             yield from _iter_modules(_os.path.join(
-                path, module.name.rsplit('.', 1)[1]), module.name)
+                path, module.name.removeprefix(prefix)), module.name, recursive)
 
 
 def _init():
     globals_ = globals()
     for func in (_addressof, _sizeof, _byref):
         globals_[func.__name__] = getattr(_ctypes, func.__name__[1:])
-    for module in _iter_modules(_os.path.dirname(__file__)):
+    for module in _iter_modules(recursive=True):
         if module.name not in _sys.modules:
             _sys.modules[module.name] = _Module(module.name)
 

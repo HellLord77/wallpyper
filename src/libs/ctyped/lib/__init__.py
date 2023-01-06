@@ -14,7 +14,6 @@ class _CLib(_types.ModuleType):
 
     def __init__(self, name: str):
         super().__init__(name)
-        self._name = name.removeprefix(__name__)[1:]
         self._dict = _sys.modules[name].__dict__
         self._annots = self._dict['__annotations__']
         _sys.modules[name] = self
@@ -22,7 +21,7 @@ class _CLib(_types.ModuleType):
     def __getattr__(self, name: str):
         if name in self._annots:
             if self._lib is None:
-                self._lib = self._loader(self._name)
+                self._lib = self._loader(self.__name__.removeprefix(f'{__name__}.'))
             func = self._lib[self._dict.get(name, name)]
             annot = self._annots[name]
             func.restype, *func.argtypes = _resolve_type(eval(annot, self._dict))

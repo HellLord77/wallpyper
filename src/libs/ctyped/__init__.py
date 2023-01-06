@@ -19,8 +19,9 @@ from . import macro
 from . import struct
 from . import type
 from . import union
-from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
-                     _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
+from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
+                     _byref as byref, _cast as cast, _cast_int as cast_int,
+                     _is_unsigned as is_unsigned, _pointer as pointer, _sizeof as sizeof)
 from .lib import msvcrt as _msvcrt
 from .lib import shell32 as _shell32
 

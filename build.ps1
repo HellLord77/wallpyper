@@ -477,6 +477,7 @@ function UploadToMEGA {
 		}
 		mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
 		mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
+		mega-logout
 	}
 	else {
 		throw
