@@ -11,10 +11,11 @@ from libs.ctyped.interface.um import DispEx, d2d1, d2d1svg, oaidl, objidlbase
 from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
 from libs.ctyped.interface.winrt.Windows.Storage import Streams as Windows_Storage_Streams
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
+from libs.ctyped.lib import kernel32, ole32, shlwapi, shell32, cfgmgr32, oleaut32, d2d1 as d2d1_
 from . import _com
 
 POLL_INTERVAL = 0.1
-HINSTANCE = ctyped.lib.kernel32.GetModuleHandleW(None)
+HINSTANCE = kernel32.GetModuleHandleW(None)
 
 
 class BSTRGetter(_com.Getter):
@@ -38,12 +39,12 @@ class BSTRGetterSetter(BSTRSetter, BSTRGetter):
 
 def get_dir(folderid: str) -> str:
     buff = ctyped.type.PWSTR()
-    ctyped.lib.shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
+    shell32.SHGetKnownFolderPath(ctyped.byref(ctyped.get_guid(
         folderid)), ctyped.enum.KNOWN_FOLDER_FLAG.DEFAULT.value, None, ctyped.byref(buff))
     try:
         return buff.value
     finally:
-        ctyped.lib.ole32.CoTaskMemFree(buff)
+        ole32.CoTaskMemFree(buff)
 
 
 @contextlib.contextmanager
@@ -53,26 +54,26 @@ def string_buffer(size: Optional[int] = None) -> ContextManager[ctyped.type.LPWS
         yield ptr
     finally:
         if size is None and ptr.value:
-            ctyped.lib.kernel32.LocalFree(ptr)
+            kernel32.LocalFree(ptr)
 
 
 @contextlib.contextmanager
 def get_itemidlist(*paths: str | ctyped.type.PCWSTR) -> ContextManager[tuple[ctyped.Pointer[ctyped.struct.ITEMIDLIST]]]:
-    ids = tuple(ctyped.lib.shell32.ILCreateFromPath(path) for path in paths)
+    ids = tuple(shell32.ILCreateFromPath(path) for path in paths)
     try:
         yield ids
     finally:
         for id_ in ids:
-            ctyped.lib.shell32.ILFree(id_)
+            shell32.ILFree(id_)
 
 
 def get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
     sz = ctyped.type.ULONG()
     type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
     prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-    ctyped.lib.cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
+    cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
     with string_buffer(sz.value) as buff:
-        ctyped.lib.cfgmgr32.CM_Get_Device_Interface_PropertyW(
+        cfgmgr32.CM_Get_Device_Interface_PropertyW(
             dev_path, prop_key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
         return buff.value
 
@@ -84,11 +85,11 @@ def get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str
     type_ = ctyped.type.DEVPROPTYPE()
     for devpkey in devpkeys:
         prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-        ctyped.lib.cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
-        ctyped.lib.cfgmgr32.CM_Get_DevNode_PropertyW(
+        cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
+        cfgmgr32.CM_Get_DevNode_PropertyW(
             dev_int, prop_key_ref, ctyped.byref(type_), None, ctyped.byref(sz), 0)
         with string_buffer(sz.value) as buff:
-            ctyped.lib.cfgmgr32.CM_Get_DevNode_PropertyW(
+            cfgmgr32.CM_Get_DevNode_PropertyW(
                 dev_int, prop_key_ref, ctyped.byref(type_), ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
             props.append(buff.value)
     return tuple(props)
@@ -105,7 +106,7 @@ def delete_key(key: winreg.HKEYType, name: str) -> bool:
 
 def sanitize_filename(name: str) -> Optional[str]:
     buff = ctyped.type.PWSTR(name)
-    if ctyped.lib.shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
+    if shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
         return buff.value
 
 
@@ -120,7 +121,7 @@ def open_file(path: str) -> Optional[ctyped.interface.WinRT[Windows_Storage.ISto
 
 def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> Optional[ctyped.interface.COM[objidlbase.IStream]]:
     stream = ctyped.interface.COM[objidlbase.IStream]()
-    if ctyped.macro.SUCCEEDED(ctyped.lib.shlwapi.SHCreateStreamOnFileW(path, mode, ~stream)):
+    if ctyped.macro.SUCCEEDED(shlwapi.SHCreateStreamOnFileW(path, mode, ~stream)):
         return stream
 
 
@@ -205,7 +206,7 @@ def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...
 def get_d2d1_dc_render_target() -> ContextManager[Optional[d2d1.ID2D1DCRenderTarget]]:
     with ctyped.interface.COM[d2d1.ID2D1Factory]() as factory, ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target:
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
-        if ctyped.macro.SUCCEEDED(ctyped.lib.d2d1.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
+        if ctyped.macro.SUCCEEDED(d2d1_.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
                 factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
                     ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
             yield target
@@ -272,12 +273,12 @@ def get_variant_value(variant: ctyped.struct.VARIANT) -> Optional[bool | int | f
 
 @contextlib.contextmanager
 def get_bstr(string: Optional[str] = None) -> ContextManager[ctyped.type.BSTR]:
-    bstr = ctyped.type.BSTR() if string is None else ctyped.type.BSTR(ctyped.lib.oleaut32.SysAllocString(string))
+    bstr = ctyped.type.BSTR() if string is None else ctyped.type.BSTR(oleaut32.SysAllocString(string))
     try:
         yield bstr
     finally:
         if bstr:
-            ctyped.lib.oleaut32.SysFreeString(bstr)
+            oleaut32.SysFreeString(bstr)
 
 
 # noinspection PyShadowingBuiltins

@@ -4,6 +4,7 @@ from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.interface.um import ExDisp, MsHTML, oaidl
+from libs.ctyped.lib import oleaut32
 from .. import _com, _utils
 
 
@@ -99,7 +100,7 @@ class HTMLElement(_com.Unknown):
             try:
                 return _utils.get_variant_value(variant)
             finally:
-                ctyped.lib.oleaut32.VariantClear(ctyped.byref(variant))
+                oleaut32.VariantClear(ctyped.byref(variant))
 
     class_name = _utils.BSTRGetterSetter('className')
     id = _utils.BSTRGetterSetter('id')

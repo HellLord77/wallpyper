@@ -13,6 +13,7 @@ from typing import ContextManager, Optional
 from libs import ctyped
 from libs.ctyped.interface.package import WebView2
 from libs.ctyped.interface.um import DispEx, ExDisp, oaidl, ocidl
+from libs.ctyped.lib import user32, shlwapi, oleaut32, WebView2Loader
 from . import _mshtml, _webview2
 from .. import _utils
 
@@ -72,7 +73,7 @@ class Browser:
 
     def get_static_html(self) -> Optional[str]:
         html = None
-        stream = ctyped.lib.shlwapi.SHCreateMemStream(ctyped.NULLPTR, 0)
+        stream = shlwapi.SHCreateMemStream(ctyped.NULLPTR, 0)
         if stream:
             dispatch = ctyped.interface.COM[oaidl.IDispatch]()
             # noinspection PyProtectedMember
@@ -103,7 +104,7 @@ class Browser:
                 for index, arg in enumerate(reversed(args)):
                     s = params.rgvarg[index].U.S
                     s.vt = ctyped.enum.VARENUM.BSTR.value
-                    s.U.bstrVal = ctyped.lib.oleaut32.SysAllocString(arg)
+                    s.U.bstrVal = oleaut32.SysAllocString(arg)
                 try:
                     result = ctyped.struct.VARIANT()
                     # noinspection PyProtectedMember
@@ -112,10 +113,10 @@ class Browser:
                     try:
                         return _utils.get_variant_value(result)
                     finally:
-                        ctyped.lib.oleaut32.VariantClear(ctyped.byref(result))
+                        oleaut32.VariantClear(ctyped.byref(result))
                 finally:
                     for index in range(len(args)):
-                        ctyped.lib.oleaut32.VariantClear(ctyped.byref(params.rgvarg[index]))
+                        oleaut32.VariantClear(ctyped.byref(params.rgvarg[index]))
 
     def _eval_js(self, code: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:
         source = code.replace('"', '\\"')
@@ -132,7 +133,7 @@ class Browser:
             try:
                 return _utils.get_variant_value(result)
             finally:
-                ctyped.lib.oleaut32.VariantClear(ctyped.byref(result))
+                oleaut32.VariantClear(ctyped.byref(result))
 
     def eval_js(self, code: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:
         return self.call_js('eval', code)
@@ -150,7 +151,7 @@ def _create_environment(timeout: Optional[float] = None) -> _webview2.CoreWebVie
 
     with ctyped.interface.create_handler(
             on_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
-        if ctyped.macro.SUCCEEDED(ctyped.lib.WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
+        if ctyped.macro.SUCCEEDED(WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
                 ctyped.NULLPTR, DATA_DIR, ctyped.NULLPTR, handler)):
             event.wait(timeout)
     return environment
@@ -165,9 +166,9 @@ class _BrowserEx:
             hCursor=ctyped.handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW),
             lpszClassName=f'{__name__}-{type(self).__name__}')
         self._environment = _create_environment()
-        if not self._environment or not ctyped.lib.user32.RegisterClassExW(ctyped.byref(self._class)):
+        if not self._environment or not user32.RegisterClassExW(ctyped.byref(self._class)):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
-        self._hwnd = ctyped.handle.HWND(ctyped.lib.user32.CreateWindowExW(
+        self._hwnd = ctyped.handle.HWND(user32.CreateWindowExW(
             0, self._class.lpszClassName, type(self).__name__, ctyped.const.WS_OVERLAPPEDWINDOW,
             ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
             ctyped.const.CW_USEDEFAULT, None, None, _utils.HINSTANCE, None))
@@ -188,27 +189,27 @@ class _BrowserEx:
         if self._controller:
             self._controller.close()
         self._hwnd = None
-        ctyped.lib.user32.UnregisterClassW(self._class.lpszClassName, _utils.HINSTANCE)
+        user32.UnregisterClassW(self._class.lpszClassName, _utils.HINSTANCE)
 
     def _wnd_proc(self, hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
                   wparam: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.LRESULT:
         if message == ctyped.const.WM_SIZE:
             if self._controller:
                 bounds = ctyped.struct.RECT()
-                ctyped.lib.user32.GetClientRect(hwnd, ctyped.byref(bounds))
+                user32.GetClientRect(hwnd, ctyped.byref(bounds))
                 self._controller.bounds = bounds
         if message == ctyped.const.WM_DESTROY:
-            ctyped.lib.user32.PostQuitMessage(0)
+            user32.PostQuitMessage(0)
         else:
-            return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+            return user32.DefWindowProcW(hwnd, message, wparam, lparam)
         return 0
 
     def _mainloop(self) -> int:
         msg = ctyped.struct.MSG()
         msg_ref = ctyped.byref(msg)
-        while ctyped.lib.user32.GetMessageW(msg_ref, self._hwnd, 0, 0):
-            ctyped.lib.user32.TranslateMessage(msg_ref)
-            ctyped.lib.user32.DispatchMessageW(msg_ref)
+        while user32.GetMessageW(msg_ref, self._hwnd, 0, 0):
+            user32.TranslateMessage(msg_ref)
+            user32.DispatchMessageW(msg_ref)
         return msg.wParam
 
     def navigate(self, url: str) -> bool:

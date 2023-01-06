@@ -13,6 +13,7 @@ from libs.ctyped import winrt
 from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import oaidl, objidl, ocidl, propsys, ShObjIdl, ShObjIdl_core, strmif
 from libs.ctyped.interface.winrt.Windows import System as Windows_System
+from libs.ctyped.lib import kernel32, user32, uxtheme, shell32, ole32, ntdll, oleaut32, setupapi
 from . import _gdiplus, _utils, browser, clipboard, console, dialog, display, gui
 from ._utils import sanitize_filename
 
@@ -56,15 +57,15 @@ def get_colored_bitmap(r: int, g: int, b: int, width: int = 32, height: int = 32
 
 def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
     # noinspection PyTypeChecker
-    ctyped.lib.uxtheme.SetPreferredAppMode(mode)
+    uxtheme.SetPreferredAppMode(mode)
     if flush:
-        ctyped.lib.uxtheme.FlushMenuThemes()
+        uxtheme.FlushMenuThemes()
 
 
 def get_focus_assist_state() -> int:
     buffer = ctyped.type.DWORD()
     focus_assist = ctyped.struct.WNF_STATE_NAME(ctyped.array(0xA3BF1C75, 0xD83063E, type=ctyped.type.ULONG))
-    if ctyped.macro.NT_SUCCESS(ctyped.lib.ntdll.NtQueryWnfStateData(ctyped.byref(focus_assist), None, None, ctyped.byref(
+    if ctyped.macro.NT_SUCCESS(ntdll.NtQueryWnfStateData(ctyped.byref(focus_assist), None, None, ctyped.byref(
             ctyped.type.WNF_CHANGE_STAMP()), ctyped.byref(buffer), ctyped.byref(ctyped.type.ULONG(ctyped.sizeof(buffer))))):
         return buffer.value
     else:
@@ -72,10 +73,10 @@ def get_focus_assist_state() -> int:
 
 
 def get_short_path(path: str) -> str:
-    size = ctyped.lib.kernel32.GetShortPathNameW(path, None, 0)
+    size = kernel32.GetShortPathNameW(path, None, 0)
     if size:
         with _utils.string_buffer(size) as buff:
-            if ctyped.lib.kernel32.GetShortPathNameW(path, buff, size):
+            if kernel32.GetShortPathNameW(path, buff, size):
                 return buff.value
     return path
 
@@ -85,7 +86,7 @@ def _load_prop(path_or_link: str | ShObjIdl_core.IShellLinkW,
                write: bool = False) -> ContextManager[Optional[propsys.IPropertyStore]]:
     if isinstance(path_or_link, str):
         with ctyped.interface.COM[propsys.IPropertyStore]() as prop_store:
-            if ctyped.macro.SUCCEEDED(ctyped.lib.shell32.SHGetPropertyStoreFromParsingName(
+            if ctyped.macro.SUCCEEDED(shell32.SHGetPropertyStoreFromParsingName(
                     path_or_link, None, ctyped.enum.GETPROPERTYSTOREFLAGS.READWRITE
                     if write else ctyped.enum.GETPROPERTYSTOREFLAGS.PREFERQUERYPROPERTIES,
                     *ctyped.macro.IID_PPV_ARGS(prop_store))):
@@ -109,7 +110,7 @@ def get_shortcut_properties(path_or_link: str | ShObjIdl_core.IShellLinkW,
                 prop_store.GetValue(ctyped.byref(ctyped.struct.PROPERTYKEY(
                     ctyped.get_guid(key[0]), key[1])), var_ref)
                 vals.append(var.U.S.U.pwszVal)
-                ctyped.lib.ole32.PropVariantClear(var_ref)
+                ole32.PropVariantClear(var_ref)
     return tuple(vals)
 
 
@@ -210,25 +211,25 @@ def _get_link_paths(dir_: str, recursive: bool = False) -> Generator[str, None, 
 @contextlib.contextmanager
 def _get_hdevinfo(guid_ref: Optional[ctyped.Pointer[ctyped.struct.GUID]],
                   flags: ctyped.type.DWORD) -> ContextManager[Optional[ctyped.type.HDEVINFO]]:
-    if (hdevinfo := ctyped.lib.setupapi.SetupDiGetClassDevsW(
+    if (hdevinfo := setupapi.SetupDiGetClassDevsW(
             guid_ref, None, None, flags)) == ctyped.const.INVALID_HANDLE_VALUE:
         yield
     else:
         try:
             yield hdevinfo
         finally:
-            ctyped.lib.setupapi.SetupDiDestroyDeviceInfoList(hdevinfo)
+            setupapi.SetupDiDestroyDeviceInfoList(hdevinfo)
 
 
 def _get_str_dev_prop(hdevinfo: ctyped.type.HDEVINFO, dev_info_ref: ctyped.Pointer[ctyped.struct.SP_DEVINFO_DATA],
                       spdrp_or_devpkey: int | tuple[str, int]) -> str:
     if isinstance(spdrp_or_devpkey, int):
-        getter = ctyped.lib.setupapi.SetupDiGetDeviceRegistryPropertyW
+        getter = setupapi.SetupDiGetDeviceRegistryPropertyW
         key_ref = spdrp_or_devpkey
         type_ref = None
         flags = ()
     else:
-        getter = ctyped.lib.setupapi.SetupDiGetDevicePropertyW
+        getter = setupapi.SetupDiGetDevicePropertyW
         key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(spdrp_or_devpkey[0]), spdrp_or_devpkey[1]))
         type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
         flags = 0,
@@ -251,7 +252,7 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: int | tuple[str, 
             dev_info = ctyped.struct.SP_DEVINFO_DATA()
             dev_info_ref = ctyped.byref(dev_info)
             index = 0
-            while ctyped.lib.setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
+            while setupapi.SetupDiEnumDeviceInfo(hdevinfo, index, dev_info_ref):
                 vals.append(tuple(_get_str_dev_prop(hdevinfo, dev_info_ref, devpkey) for devpkey in devpkeys))
                 index += 1
     return tuple(vals)
@@ -270,10 +271,10 @@ def get_message(message: int) -> str:
 
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
     with _utils.string_buffer() as buff:
-        ctyped.lib.kernel32.FormatMessageW((
+        kernel32.FormatMessageW((
                 ctyped.const.FORMAT_MESSAGE_ALLOCATE_BUFFER |
                 ctyped.const.FORMAT_MESSAGE_FROM_SYSTEM | ctyped.const.FORMAT_MESSAGE_IGNORE_INSERTS),
-            None, ctyped.lib.kernel32.GetLastError() if hresult is None else hresult,
+            None, kernel32.GetLastError() if hresult is None else hresult,
             ctyped.macro.MAKELANGID(ctyped.const.LANG_NEUTRAL, ctyped.const.SUBLANG_DEFAULT),
             ctyped.cast(ctyped.byref(buff), ctyped.type.LPWSTR), 0, None)
         return buff.value.strip()
@@ -282,45 +283,45 @@ def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
 def show_error(title: Optional[str | type], text: str) -> bool:
     if isinstance(title, type):
         title = title.__name__
-    return ctyped.lib.user32.MessageBoxW(
+    return user32.MessageBoxW(
         None, text, title, ctyped.const.MB_OK | ctyped.const.MB_ICONERROR | ctyped.const.MB_SYSTEMMODAL) != 0
 
 
 def get_max_shutdown_time() -> float:
     buff = ctyped.type.c_int()
-    ctyped.lib.user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
+    user32.SystemParametersInfoW(ctyped.const.SPI_GETWAITTOKILLTIMEOUT, 0, ctyped.byref(buff), 0)
     return buff.value / 1000
 
 
 # noinspection PyShadowingBuiltins
 def refresh_dir(dir: str):
-    ctyped.lib.shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir, None)
+    shell32.SHChangeNotify(ctyped.const.SHCNE_UPDATEDIR, ctyped.const.SHCNF_PATHW, dir, None)
 
 
 def press_keyboard(key: int) -> bool:
     input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_U(ki=ctyped.struct.KEYBDINPUT(key)))
     ref = ctyped.byref(input_)
     sz = ctyped.sizeof(ctyped.struct.INPUT)
-    if ctyped.lib.user32.SendInput(1, ref, sz) == 1:
+    if user32.SendInput(1, ref, sz) == 1:
         input_.U.ki.dwFlags = ctyped.const.KEYEVENTF_KEYUP
-        return ctyped.lib.user32.SendInput(1, ref, sz) == 1
+        return user32.SendInput(1, ref, sz) == 1
     return False
 
 
 def open_file(path: str, *args: str) -> bool:
-    return ctyped.lib.shell32.ShellExecuteW(
+    return shell32.ShellExecuteW(
         None, None, path, subprocess.list2cmdline(args), None, ctyped.const.SW_SHOW) > 32
 
 
 def open_file_path(path: str) -> bool:
     with _utils.get_itemidlist(path) as pidl:
-        return ctyped.macro.SUCCEEDED(ctyped.lib.shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0))
+        return ctyped.macro.SUCCEEDED(shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0))
 
 
 def open_file_with(path: str) -> bool:
     info_ref = ctyped.byref(ctyped.struct.OPENASINFO(path, oaifInFlags=(
             ctyped.enum.OPEN_AS_INFO_FLAGS.EXEC | ctyped.enum.OPEN_AS_INFO_FLAGS.HIDE_REGISTRATION)))
-    hr = ctyped.lib.shell32.SHOpenWithDialog(None, info_ref)
+    hr = shell32.SHOpenWithDialog(None, info_ref)
     return ctyped.macro.SUCCEEDED(hr) or hr == ctyped.macro.HRESULT_FROM_WIN32(error.ERROR_CANCELLED)
 
 
@@ -344,9 +345,9 @@ def save_hbitmap(hbitmap: ctyped.type.HBITMAP, path: str) -> bool:
             pict_desc = ctyped.struct.PICTDESC(picType=ctyped.const.PICTYPE_BITMAP)
             pict_desc.U.bmp.hbitmap = hbitmap
             args = ctyped.macro.IID_PPV_ARGS(picture)
-            ctyped.lib.oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
+            oleaut32.OleCreatePictureIndirect(ctyped.byref(pict_desc), args[0], False, args[1])
             with ctyped.interface.COM[ocidl.IPictureDisp](picture) as picture_disp:
-                return ctyped.macro.SUCCEEDED(ctyped.lib.oleaut32.OleSavePictureFile(picture_disp, path))
+                return ctyped.macro.SUCCEEDED(oleaut32.OleSavePictureFile(picture_disp, path))
     return False
 
 
@@ -367,10 +368,10 @@ def get_direct_show_devices_properties(
                                 var_ref = ctyped.byref(var)
                                 props.clear()
                                 for prop_name in prop_names:
-                                    ctyped.lib.oleaut32.VariantInit(var_ref)
+                                    oleaut32.VariantInit(var_ref)
                                     prop_bag.Read(prop_name, var_ref, ctyped.NULLPTR)
                                     props.append(var.U.S.U.bstrVal)
-                                    ctyped.lib.oleaut32.VariantClear(var_ref)
+                                    oleaut32.VariantClear(var_ref)
                                 devices.append(tuple(props))
     return tuple(devices)
 
@@ -482,48 +483,48 @@ def remove_pins(target: str, *args: str, taskbar: bool = True) -> bool:
                 with ctyped.interface.COM[ShObjIdl.IStartMenuPinnedList](ctyped.const.CLSID_StartMenuPin) as pinned:
                     if pinned:
                         with ctyped.interface.COM[ShObjIdl_core.IShellItem]() as item:
-                            ctyped.lib.shell32.SHCreateItemFromParsingName(
+                            shell32.SHCreateItemFromParsingName(
                                 path, None, *ctyped.macro.IID_PPV_ARGS(item))
                             if item:
                                 removed = ctyped.macro.SUCCEEDED(pinned.RemoveFromList(item)) and removed
             if ntpath.isfile(path):
-                removed = ctyped.lib.kernel32.DeleteFileW(path) and removed
+                removed = kernel32.DeleteFileW(path) and removed
     return removed
 
 
 @ctyped.type.ENUMRESNAMEPROCW
 def _get_manifest_callback(hmodule, lptype, lpname, lparam):
-    hrsrc = ctyped.lib.kernel32.FindResourceW(
+    hrsrc = kernel32.FindResourceW(
         hmodule, ctyped.macro.MAKEINTRESOURCEW(lpname), ctyped.macro.MAKEINTRESOURCEW(lptype))
     string = ctyped.from_address(lparam, ctyped.struct.STRING)
-    string.Length = ctyped.lib.kernel32.SizeofResource(hmodule, hrsrc)
-    string.Buffer = ctyped.lib.kernel32.LockResource(ctyped.lib.kernel32.LoadResource(hmodule, hrsrc))
+    string.Length = kernel32.SizeofResource(hmodule, hrsrc)
+    string.Buffer = kernel32.LockResource(kernel32.LoadResource(hmodule, hrsrc))
     return False
 
 
 def get_manifest(path: Optional[str] = None) -> str:
-    hmodule = ctyped.lib.kernel32.GetModuleHandleW(
-        None) if path is None else ctyped.lib.kernel32.LoadLibraryExW(path, 0, ctyped.const.LOAD_LIBRARY_AS_DATAFILE)
+    hmodule = kernel32.GetModuleHandleW(
+        None) if path is None else kernel32.LoadLibraryExW(path, 0, ctyped.const.LOAD_LIBRARY_AS_DATAFILE)
     if hmodule:
         manifest = ctyped.struct.STRING()
-        ctyped.lib.kernel32.EnumResourceNamesW(hmodule, ctyped.macro.MAKEINTRESOURCEW(
+        kernel32.EnumResourceNamesW(hmodule, ctyped.macro.MAKEINTRESOURCEW(
             ctyped.const.RT_MANIFEST), _get_manifest_callback, ctyped.addressof(manifest))
         try:
             if manifest.Length:
                 return manifest.Buffer[:manifest.Length].decode()
         finally:
-            ctyped.lib.kernel32.FreeLibrary(hmodule)
+            kernel32.FreeLibrary(hmodule)
     return ''
 
 
 def get_exe_size(path: str) -> int:
     size = 0
-    hfile = ctyped.lib.kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, None,
-                                            ctyped.const.OPEN_EXISTING, ctyped.const.FILE_ATTRIBUTE_NORMAL, None)
+    hfile = kernel32.CreateFileW(path, ctyped.const.GENERIC_READ, ctyped.const.FILE_SHARE_READ, None,
+                                 ctyped.const.OPEN_EXISTING, ctyped.const.FILE_ATTRIBUTE_NORMAL, None)
     if hfile:
         buff = ctyped.array(type=ctyped.type.BYTE, size=4096)
-        ctyped.lib.kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), None, None)
-        ctyped.lib.kernel32.CloseHandle(hfile)
+        kernel32.ReadFile(hfile, buff, ctyped.sizeof(buff), None, None)
+        kernel32.CloseHandle(hfile)
         header = ctyped.cast(buff, ctyped.struct.IMAGE_DOS_HEADER).contents
         headers = ctyped.from_address(ctyped.addressof(buff) + header.e_lfanew, ctyped.struct.IMAGE_NT_HEADERS32)
         if headers.FileHeader.Machine == ctyped.const.IMAGE_FILE_MACHINE_AMD64:

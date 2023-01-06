@@ -4,6 +4,7 @@ import threading
 
 from libs import ctyped
 from libs.ctyped.interface.package import WebView2
+from libs.ctyped.lib import user32, kernel32, WebView2Loader
 from win32.browser import _webview2
 
 window_class = 'DesktopApp'
@@ -34,7 +35,7 @@ def _create_controller_completed(result: ctyped.type.HRESULT, controller: WebVie
         CLS.WEBVIEW = CLS.CONTROLLER.core_web_view_2
 
     bounds = ctyped.struct.RECT()
-    ctyped.lib.user32.GetClientRect(CLS.HWND, ctyped.byref(bounds))
+    user32.GetClientRect(CLS.HWND, ctyped.byref(bounds))
     CLS.CONTROLLER.bounds = bounds
 
     # print(CLS.WEBVIEW.AddWebResourceRequestedFilter('*', ctyped.enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT.IMAGE))
@@ -64,7 +65,7 @@ def webview():
     data_path = r'D:\Projects\wallpyper\helpers\WebView2'
     with ctyped.interface.create_handler(
             _create_environment_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:
-        if ctyped.macro.SUCCEEDED(ctyped.lib.WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
+        if ctyped.macro.SUCCEEDED(WebView2Loader.CreateCoreWebView2EnvironmentWithOptions(
                 ctyped.NULLPTR, data_path, ctyped.NULLPTR, handler)):
             print('wait')
 
@@ -73,18 +74,18 @@ def wnd_proc(hwnd, message, wparam, lparam):
     if message == ctyped.const.WM_SIZE:
         if CLS.CONTROLLER:
             bounds = ctyped.struct.RECT()
-            ctyped.lib.user32.GetClientRect(hwnd, ctyped.byref(bounds))
+            user32.GetClientRect(hwnd, ctyped.byref(bounds))
             CLS.CONTROLLER.bounds = bounds
     elif message == ctyped.const.WM_DESTROY:
-        ctyped.lib.user32.PostQuitMessage(0)
+        user32.PostQuitMessage(0)
     else:
-        return ctyped.lib.user32.DefWindowProcW(hwnd, message, wparam, lparam)
+        return user32.DefWindowProcW(hwnd, message, wparam, lparam)
     return 0
 
 
 def main():
     global CLS
-    hinstance = ctyped.lib.kernel32.GetModuleHandleW(None)
+    hinstance = kernel32.GetModuleHandleW(None)
 
     wcex = ctyped.struct.WNDCLASSEXW()
     wcex.style = ctyped.const.CS_HREDRAW | ctyped.const.CS_VREDRAW
@@ -92,20 +93,20 @@ def main():
     wcex.hInstance = hinstance
     wcex.hCursor = ctyped.handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW)
     wcex.lpszClassName = window_class
-    ctyped.lib.user32.RegisterClassExW(ctyped.byref(wcex))
+    user32.RegisterClassExW(ctyped.byref(wcex))
 
-    hwnd = ctyped.lib.user32.CreateWindowExW(0, window_class, title, ctyped.const.WS_OVERLAPPEDWINDOW,
-                                             ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, 1200, 900,
-                                             ctyped.const.NULL, ctyped.const.NULL, hinstance, ctyped.const.NULL)
+    hwnd = user32.CreateWindowExW(0, window_class, title, ctyped.const.WS_OVERLAPPEDWINDOW,
+                                  ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, 1200, 900,
+                                  ctyped.const.NULL, ctyped.const.NULL, hinstance, ctyped.const.NULL)
     CLS.HWND = hwnd
-    ctyped.lib.user32.ShowWindow(hwnd, ctyped.const.SW_SHOWNORMAL)
+    user32.ShowWindow(hwnd, ctyped.const.SW_SHOWNORMAL)
 
     webview()
 
     msg = ctyped.struct.MSG()
-    while ctyped.lib.user32.GetMessageW(ctyped.byref(msg), ctyped.const.NULL, 0, 0):
-        ctyped.lib.user32.TranslateMessage(ctyped.byref(msg))
-        ctyped.lib.user32.DispatchMessageW(ctyped.byref(msg))
+    while user32.GetMessageW(ctyped.byref(msg), ctyped.const.NULL, 0, 0):
+        user32.TranslateMessage(ctyped.byref(msg))
+        user32.DispatchMessageW(ctyped.byref(msg))
 
     del CLS
     sys.exit(msg.wParam)

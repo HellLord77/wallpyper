@@ -1,6 +1,7 @@
 import ctypes as _ctypes
 import functools as _functools
 import gc as _gc
+import importlib as _importlib
 import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
@@ -25,17 +26,12 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
 
 
 class _Module(_types.ModuleType):
-    __slots__ = '_name'
     _module = None
-
-    # noinspection PyMissingConstructor
-    def __init__(self, name: str):
-        self._name = name
 
     def __getattr__(self, name: str):
         if self._module is None:
-            del _sys.modules[self._name]
-            self._module = __import__(self._name, fromlist=self._name.rsplit('.', 1)[:1])
+            del _sys.modules[self.__name__]
+            self._module = _importlib.import_module(self.__name__)
         _replace_object(self, self._module)
         return getattr(self._module, name)
 
@@ -143,13 +139,13 @@ def _dummy(arg: _CT) -> _CT:
     return arg
 
 
-def _format_annotations(annotations: str) -> tuple[str]:
-    if annotations == '_Callable':
+def _fmt_annot(annot: str) -> tuple[str]:
+    if annot == '_Callable':
         return '_Undefined',
     else:
-        index = annotations.rfind(']', 0, -1)
-        annotations = f'{annotations[annotations.find("[[") + 2:index]}{annotations[index + 1: - 1]}'.split(', ')
-        return tuple(annotations[annotations[0] == '':])
+        index = annot.rfind(']', 0, -1)
+        annot = f'{annot[annot.find("[[") + 2:index]}{annot[index + 1: - 1]}'.split(', ')
+        return tuple(annot[annot[0] == '':])
 
 
 def _pretty_tuples(*itt: tuple[str, ...], name: str = '') -> str:
@@ -179,12 +175,8 @@ def _fields_repr(self: _ctypes.Structure | _ctypes.Union) -> str:
 def _replace_object(old, new):
     _gc.collect()
     for referrer in _gc.get_referrers(old):
-        try:
-            items = referrer.items()
-        except AttributeError:
-            continue
-        else:
-            for key, val in items:
+        if isinstance(referrer, dict):
+            for key, val in referrer.items():
                 if val is old:
                     referrer[key] = new
 
@@ -210,27 +202,21 @@ def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
     return annot
 
 
-# noinspection PyShadowingBuiltins
-def _get_winrt_class_name(type: type[_CT]) -> str:  # TODO remove
-    namespace, name = type.__qualname__.rsplit('.', 1)
-    name = name.removeprefix('I').removesuffix('_impl')
-    while name[-1].isdigit():
-        name = name[:-1]
-    name_ = ''
-    while name != name_:
-        name_ = name
-        for suffix in ('Factory', 'RuntimeClass', 'Statics', 'WithFlyout'):
-            name = name.removesuffix(suffix)
-    return f'{namespace}.{name}'
+def _iter_modules(path: str, prefix: str = __package__):
+    for module in _pkgutil.iter_modules((path,), f'{prefix}.'):
+        yield module
+        if module.ispkg:
+            yield from _iter_modules(_os.path.join(
+                path, module.name.rsplit('.', 1)[1]), module.name)
 
 
 def _init():
     globals_ = globals()
     for func in (_addressof, _sizeof, _byref):
         globals_[func.__name__] = getattr(_ctypes, func.__name__[1:])
-    for module in _pkgutil.iter_modules((_os.path.dirname(__file__),), f'{__package__}.'):
-        if module.name.rsplit('.', 1)[1] not in ('const', 'interface', 'winrt'):  # TODO
-            _sys.modules[module.name] = _sys.modules.get(module.name, _Module(module.name))
+    for module in _iter_modules(_os.path.dirname(__file__)):
+        if module.name not in _sys.modules:
+            _sys.modules[module.name] = _Module(module.name)
 
 
 _init()

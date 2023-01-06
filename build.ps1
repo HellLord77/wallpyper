@@ -30,11 +30,10 @@ $CythonizeExcludeGlobs = @(
 	"src/libs/ctyped/enum.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
 $CythonizeSourceGlobs = @(
 	"src/libs/{colornames,isocodes,spinners}/__init__.py"
-	"src/libs/ctyped/const/*.py"
 	# "src/libs/ctyped/interface/**/*.py"
-	"src/libs/ctyped/winrt/__init__.py"
+	"src/libs/ctyped/{const,lib,winrt}/*.py"
 	# "src/libs/ctyped/{_utils,struct,type,union}.py"
-	"src/libs/ctyped/{__init__,enum,handle,lib,macro}.py"
+	"src/libs/ctyped/{__init__,enum,handle,macro}.py"
 	"src/win32/**/*.py"
 	"src/{langs,libs,srcs}/*.py"
 	"src/*.py")

@@ -1,16 +1,14 @@
 from __future__ import annotations as _
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 import builtins as _builtins
 import contextlib as _contextlib
 import ctypes as _ctypes
-import functools as _functools
 import types as _types
 import typing as _typing
-from typing import (Any as _Any, Callable as _Callable, ContextManager as _ContextManager,
-                    Final as _Final, Iterable as _Iterable,
-                    Mapping as _Mapping, MutableSequence as _MutableSequence, Optional as _Optional)
+from typing import (Any as _Any, ContextManager as _ContextManager,
+                    Final as _Final, MutableSequence as _MutableSequence, Optional as _Optional)
 
 from . import const
 from . import enum
@@ -21,10 +19,10 @@ from . import macro
 from . import struct
 from . import type
 from . import union
-from ._utils import (_CT as CT, _Pointer as Pointer, _get_winrt_class_name, _addressof as addressof,
-                     _byref as byref, _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
-
-FLAG_THREADED_COM = False
+from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof, _byref as byref,
+                     _cast as cast, _cast_int as cast_int, _pointer as pointer, _sizeof as sizeof)
+from .lib import msvcrt as _msvcrt
+from .lib import shell32 as _shell32
 
 NULLPTR: _Final = None
 
@@ -36,11 +34,11 @@ def from_address(address: int, type: _builtins.type[CT]) -> CT:
 
 @_contextlib.contextmanager
 def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
-    ptr = lib.msvcrt.malloc(size)
+    ptr = _msvcrt.malloc(size)
     try:
         yield ptr or None
     finally:
-        lib.msvcrt.free(ptr)
+        _msvcrt.free(ptr)
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
@@ -82,32 +80,9 @@ def get_interface_name(iid: str, base: _builtins.type | _types.ModuleType = cons
             return var.removeprefix('IID_')
 
 
-# noinspection PyProtectedMember,PyShadowingNames
-def set_result_checker(lib: lib._CDLLMeta, callback: _Optional[_Callable[[_Any, _Callable, tuple], _Any]] = None,
-                       args: _Optional[_Iterable] = None, kwargs: _Optional[_Mapping[str, _Any]] = None):
-    if args is None:
-        args = ()
-    if kwargs is None:
-        kwargs = {}
-
-    @_functools.wraps
-    def errcheck(res, *args_):
-        callback(res, *args_, *args, **kwargs)
-        return res
-
-    lib._errcheck = errcheck
-    # noinspection PyUnresolvedReferences
-    if lib._funcs:
-        # noinspection PyUnresolvedReferences
-        for func in set(lib._funcs).intersection(dir(lib)):
-            getattr(lib, func).errcheck = errcheck
-
-
-# noinspection PyProtectedMember
-def get_lib_path(library: lib._OleDLLMeta | lib._PyDLLMeta | lib._WinDLLMeta) -> str:
+def get_lib_path(_) -> str:  # TODO
     buff = type.LPWSTR('\0' * const.MAX_PATH)
-    # noinspection PyUnresolvedReferences
-    lib.kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
+    # lib.kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
     return buff.value
 
 
@@ -117,7 +92,7 @@ def addressof_func(func) -> int:
 
 def get_guid(string: str) -> struct.GUID:  # TODO class GUID
     guid = struct.GUID()
-    lib.shell32.GUIDFromStringW(string, byref(guid))
+    _shell32.GUIDFromStringW(string, byref(guid))
     return guid
 
 

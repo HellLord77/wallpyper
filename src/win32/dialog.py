@@ -4,13 +4,14 @@ from typing import MutableSequence, Optional
 from libs import ctyped
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
+from libs.ctyped.lib import user32, shell32, shlwapi, comdlg32
 from . import _gdiplus, _utils
 
 
 def _set_folder(dialog: ShObjIdl_core.IFileDialog, path: Optional[str] = None) -> bool:
     if path is not None:
         with ctyped.interface.COM[ShObjIdl_core.IShellItem]() as item:
-            return ctyped.macro.SUCCEEDED(ctyped.lib.shell32.SHCreateItemFromParsingName(
+            return ctyped.macro.SUCCEEDED(shell32.SHCreateItemFromParsingName(
                 path, None, *ctyped.macro.IID_PPV_ARGS(item))) and ctyped.macro.SUCCEEDED(dialog.SetFolder(item))
     return True
 
@@ -40,7 +41,7 @@ def open_folder(path: Optional[str] = None, title: Optional[str] = None) -> Opti
 
 def _get_ext_name(ext: str) -> str:
     info = ctyped.struct.SHFILEINFOW()
-    if ctyped.lib.shell32.SHGetFileInfoW(ext, ctyped.const.FILE_ATTRIBUTE_NORMAL, ctyped.byref(
+    if shell32.SHGetFileInfoW(ext, ctyped.const.FILE_ATTRIBUTE_NORMAL, ctyped.byref(
             info), ctyped.sizeof(info), ctyped.const.SHGFI_TYPENAME | ctyped.const.SHGFI_USEFILEATTRIBUTES):
         return info.szTypeName
     return 'File'
@@ -60,7 +61,7 @@ def save_file(path: Optional[str] = None, title: Optional[str] = None,
             dialog.SetFileTypes(len(types), filters)
             if type_index is None:
                 for index, spec in enumerate(types.values()):
-                    if ctyped.lib.shlwapi.PathMatchSpecW(path, spec):
+                    if shlwapi.PathMatchSpecW(path, spec):
                         type_index = index
                         break
                 else:
@@ -88,11 +89,11 @@ def save_image(path: Optional[str] = None, title: Optional[str] = None) -> Optio
 def _cchookproc(hwnd: ctyped.type.HWND, message: ctyped.type.UINT,
                 _: ctyped.type.WPARAM, lparam: ctyped.type.LPARAM) -> ctyped.type.UINT_PTR:
     if message == ctyped.const.WM_INITDIALOG:
-        ctyped.lib.user32.SetWindowPos(hwnd, ctyped.const.HWND_TOPMOST, 0, 0, 0, 0,
-                                       ctyped.const.SWP_NOSIZE | ctyped.const.SWP_NOMOVE)
+        user32.SetWindowPos(hwnd, ctyped.const.HWND_TOPMOST, 0, 0, 0, 0,
+                            ctyped.const.SWP_NOSIZE | ctyped.const.SWP_NOMOVE)
         title_address = ctyped.from_address(lparam, ctyped.struct.CHOOSECOLORW).lCustData
         if title_address:
-            ctyped.lib.user32.SetWindowTextW(hwnd, ctyped.from_address(title_address, ctyped.type.LPWSTR))
+            user32.SetWindowTextW(hwnd, ctyped.from_address(title_address, ctyped.type.LPWSTR))
     return 0
 
 
@@ -104,7 +105,7 @@ def choose_color(title: Optional[str] = None, color: Optional[int] = None,
             () if custom_colors is None else custom_colors), type=ctyped.type.COLORREF, size=16),
         Flags=ctyped.const.CC_RGBINIT | ctyped.const.CC_FULLOPEN | ctyped.const.CC_ENABLEHOOK,
         lCustData=0 if title is None else ctyped.addressof(data), lpfnHook=ctyped.type.LPCCHOOKPROC(_cchookproc))
-    if ctyped.lib.comdlg32.ChooseColorW(ctyped.byref(color_chooser)):
+    if comdlg32.ChooseColorW(ctyped.byref(color_chooser)):
         color = color_chooser.rgbResult
     if custom_colors is not None:
         custom_colors[:] = color_chooser.lpCustColors[:16]

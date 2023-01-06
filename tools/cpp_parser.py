@@ -9,6 +9,7 @@ from typing import Iterable, Generator, Optional, Callable
 import clang.cindex
 
 from libs import ctyped
+from libs.ctyped.lib import libclang
 
 SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\DocObj.h'
 INCLUDES = ('<Windows.h>',)
@@ -139,21 +140,21 @@ def _unpack_typedef(cursor: clang.cindex.Cursor) -> clang.cindex.Cursor:
 def _eval_literal(cursor: ctyped.struct.CXCursor | clang.cindex.Cursor) -> Optional[int | float | str]:
     if not isinstance(cursor, ctyped.struct.CXCursor):
         cursor = ctyped.struct.CXCursor(cursor.kind.value, cursor.xdata, cursor.data)
-    res = ctyped.lib.libclang.clang_Cursor_Evaluate(cursor)
+    res = libclang.clang_Cursor_Evaluate(cursor)
     try:
-        kind = ctyped.lib.libclang.clang_EvalResult_getKind(res)
+        kind = libclang.clang_EvalResult_getKind(res)
         if kind == ctyped.enum.CXEvalResultKind.Int:
-            if ctyped.lib.libclang.clang_EvalResult_isUnsignedInt(res):
-                return ctyped.lib.libclang.clang_EvalResult_getAsUnsigned(res)
+            if libclang.clang_EvalResult_isUnsignedInt(res):
+                return libclang.clang_EvalResult_getAsUnsigned(res)
             else:
-                return ctyped.lib.libclang.clang_EvalResult_getAsLongLong(res)
+                return libclang.clang_EvalResult_getAsLongLong(res)
         elif kind == ctyped.enum.CXEvalResultKind.Float:
-            return ctyped.lib.libclang.clang_EvalResult_getAsDouble(res)
+            return libclang.clang_EvalResult_getAsDouble(res)
         elif kind == ctyped.enum.CXEvalResultKind.StrLiteral:
-            return ctyped.lib.libclang.clang_EvalResult_getAsStr(res)
+            return libclang.clang_EvalResult_getAsStr(res)
     finally:
         if res:
-            ctyped.lib.libclang.clang_EvalResult_dispose(res)
+            libclang.clang_EvalResult_dispose(res)
 
 
 def _same_location(location: str, source_location: clang.cindex.SourceLocation) -> bool:
