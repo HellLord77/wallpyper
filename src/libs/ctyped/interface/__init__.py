@@ -11,11 +11,12 @@ from typing import Callable as _Callable, Generic as _Generic, Iterable as _Iter
 from .. import const as _const
 from .. import enum as _enum
 from .. import handle as _handle
-from .. import lib as _lib
 from .. import macro as _macro
 from .. import struct as _struct
 from .. import type as _type
 from .._utils import _Pointer, _addressof, _byref, _resolve_type
+from ..lib import combase as _combase
+from ..lib import ole32 as _ole32
 
 _K = _typing.TypeVar('_K')
 _V = _typing.TypeVar('_V')
@@ -221,8 +222,8 @@ class COM(_COMBase):
     def __init__(self, clsid_or_progid_or_com_or_interface=None, /):
         if isinstance(clsid_or_progid_or_com_or_interface, str):
             clsid_ref = _byref(_struct.CLSID())
-            if _macro.SUCCEEDED(_lib.ole32.CLSIDFromString(clsid_or_progid_or_com_or_interface, clsid_ref)):
-                _lib.ole32.CoCreateInstance(
+            if _macro.SUCCEEDED(_ole32.CLSIDFromString(clsid_or_progid_or_com_or_interface, clsid_ref)):
+                _ole32.CoCreateInstance(
                     clsid_ref, None, _const.CLSCTX_SERVER, *_macro.IID_PPV_ARGS(self._obj))
         else:
             super().__init__(clsid_or_progid_or_com_or_interface)
@@ -261,9 +262,9 @@ class WinRT(_COMBase):
             # noinspection PyProtectedMember
             if self._type._factory:
                 # noinspection PyProtectedMember
-                _lib.combase.RoGetActivationFactory(
+                _combase.RoGetActivationFactory(
                     activatable_class_id, _macro._uuidof(self._type), ~self)
-            elif _macro.SUCCEEDED(_lib.combase.RoActivateInstance(activatable_class_id, ~self)):
+            elif _macro.SUCCEEDED(_combase.RoActivateInstance(activatable_class_id, ~self)):
                 self._obj.value = (self % self._type).value
                 # noinspection PyStatementEffect
                 -self
@@ -277,23 +278,24 @@ class WinRT(_COMBase):
 
 
 def init_com(multi_threaded: bool = True) -> bool:
-    init = _macro.SUCCEEDED(_lib.ole32.CoInitializeEx(None, (
+    init = _macro.SUCCEEDED(_ole32.CoInitializeEx(None, (
         _enum.COINIT.MULTITHREADED if multi_threaded else _enum.COINIT.APARTMENTTHREADED).value))
     if init:
-        _atexit.register(_lib.ole32.CoUninitialize)
+        _atexit.register(_ole32.CoUninitialize)
     return init
 
 
 def init_winrt(multi_threaded: bool = True) -> bool:
-    init = _macro.SUCCEEDED(_lib.combase.RoInitialize(
+    init = _macro.SUCCEEDED(_combase.RoInitialize(
         _enum.RO_INIT_TYPE.MULTITHREADED if multi_threaded else _enum.RO_INIT_TYPE.SINGLETHREADED))
     if init:
-        _atexit.register(_lib.combase.RoUninitialize)
+        _atexit.register(_combase.RoUninitialize)
     return init
 
 
 # noinspection PyTypeChecker
-def create_handler(callback: _Callable[[...], _type.HRESULT], interface: type[_TInterface], name: _Optional[str] = None) -> COM[_TInterface]:
+def create_handler(callback: _Callable[[...], _type.HRESULT], interface: type[_TInterface],
+                   name: _Optional[str] = None) -> COM[_TInterface]:
     impl_name = interface.__name__
     if (args := getattr(interface, '_args', None)) is not None:
         impl_name = impl_name.split("_", 1)[0]

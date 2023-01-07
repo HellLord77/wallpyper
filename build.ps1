@@ -31,7 +31,9 @@ $CythonizeExcludeGlobs = @(
 $CythonizeSourceGlobs = @(
 	"src/libs/{colornames,isocodes,spinners}/__init__.py"
 	# "src/libs/ctyped/interface/**/*.py"
-	"src/libs/ctyped/{const,lib,winrt}/*.py"
+	# "src/libs/ctyped/lib/*.py"  FIXME https://github.com/cython/cython/issues/3838
+	"src/libs/ctyped/lib/__init__.py"
+	"src/libs/ctyped/{const,winrt}/*.py"
 	# "src/libs/ctyped/{_utils,struct,type,union}.py"
 	"src/libs/ctyped/{__init__,enum,handle,macro}.py"
 	"src/win32/**/*.py"
@@ -390,10 +392,10 @@ function Write-Build {
 		}
 	}
 
+	$CodeCompileC = @() + $CodeCompileCTemplate
 	foreach ($CythonSource in $CythonSources) {
 		cython --verbose -3 --embed $CythonSource
 		$SourceBase = $CythonSource.Substring(0, $CythonSource.LastIndexOf("."))
-		$CodeCompileC = @() + $CodeCompileCTemplate
 		$CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
 		Start-PythonCode $CodeCompileC
 		Remove-Item "$SourceBase.exp" -Force

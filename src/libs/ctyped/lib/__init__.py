@@ -14,8 +14,9 @@ class _CLib(_types.ModuleType):
 
     def __init__(self, name: str):
         super().__init__(name)
-        self._dict = _sys.modules[name].__dict__
-        self._annots = self._dict['__annotations__']
+        module = _sys.modules[name]
+        self._dict = module.__dict__
+        self._annots = module.__annotations__
         _sys.modules[name] = self
 
     def __getattr__(self, name: str):

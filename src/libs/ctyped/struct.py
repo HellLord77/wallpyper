@@ -2,7 +2,6 @@ from __future__ import annotations as _
 
 import ctypes as _ctypes
 import functools as _functools
-import inspect as _inspect
 import typing as _typing
 from typing import Optional as _Optional
 
@@ -4275,7 +4274,7 @@ class _Struct(_ctypes.Structure):
 def _init(item: str, var: _Optional[type] = None) -> type:
     if var is None:
         var = _globals.vars_[item]
-    if _inspect.get_annotations(var):
+    if var.__annotations__:
         fields = tuple((name, _resolve_type(
             hints)) for name, hints in _typing.get_type_hints(
             var, _globals, _globals).items())

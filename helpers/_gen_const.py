@@ -345,8 +345,7 @@ class GdiPlus:
 
 
 def main():
-    # TODO cl /d1 reportAllClassLayout testVS.cpp
-    # gen_winrt(p_interface=True, folder=r'D:\Projects\wallpyper\src\libs\ctyped\interface\winrt')
+    # cl /d1 reportAllClassLayout testVS.cpp
     sys.exit()
 
 
