@@ -26,7 +26,6 @@ from libs import easings, files, lens, log, pyinstall, request, singleton, spinn
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
-gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.ini'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
@@ -40,6 +39,8 @@ EASE_STYLES: tuple[str, str, str, str, str, str, str] = 'SINE', 'QUAD', 'CUBIC',
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_CACHE_BITMAP = True
+gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
+
 STRINGS = srcs.Source.strings = langs.DEFAULT
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = utils.MutableBool()

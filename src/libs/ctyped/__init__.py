@@ -75,16 +75,10 @@ def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
 def get_interface_name(iid: str, base: _builtins.type | _types.ModuleType = const) -> _Optional[str]:
     for var, val in vars(base).items():
         if isinstance(val, _builtins.type):
-            if name := get_interface_name(iid, val):
+            if (name := get_interface_name(iid, val)) is not None:
                 return name
         elif iid == val:
             return var.removeprefix('IID_')
-
-
-def get_lib_path(_) -> str:  # TODO
-    buff = type.LPWSTR('\0' * const.MAX_PATH)
-    # lib.kernel32.GetModuleFileNameW(library._lib._handle, buff, const.MAX_PATH)
-    return buff.value
 
 
 def addressof_func(func) -> int:

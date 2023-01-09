@@ -6,7 +6,7 @@ import contextlib
 import functools
 import itertools
 import threading
-from typing import Any, Callable, Generator, Iterable, Iterator, Mapping, Optional, Sequence
+from typing import Any, Callable, Generator, Iterable, Mapping, Optional, Sequence
 
 from libs import ctyped
 from libs.ctyped.lib import user32, shell32
@@ -490,7 +490,8 @@ class SystemTray(_Control):
 
     @staticmethod
     def _get_animation_frames(bitmap: _gdiplus.Bitmap) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
-        delays: ctyped.Pointer[ctyped.type.c_long] = _gdiplus.image_get_property(bitmap, ctyped.const.PropertyTagFrameDelay)
+        delays: ctyped.Pointer[ctyped.type.c_long] = _gdiplus.image_get_property(
+            bitmap, ctyped.const.PropertyTagFrameDelay)
         for index in _gdiplus.image_iter_frames(bitmap):
             yield delays[index] * 10, bitmap.get_hicon()
 
@@ -520,7 +521,8 @@ class SystemTray(_Control):
         return not self._show
 
     def show_balloon(self, title: str, text: Optional[str] = None,
-                     res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = SystemTrayIcon.BALLOON_NONE, silent: bool = False) -> bool:
+                     res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = SystemTrayIcon.BALLOON_NONE,
+                     silent: bool = False) -> bool:
         flags = self._data.uFlags
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
@@ -577,7 +579,7 @@ class Menu(_Control):
         else:
             return self.remove_item(pos_or_item, True)
 
-    def __iter__(self) -> Iterator[MenuItem]:
+    def __iter__(self) -> Generator[MenuItem, None, None]:
         yield from self._items
 
     def destroy(self) -> bool:
@@ -864,7 +866,8 @@ class MenuItem(_Control):
     def _set_check_icons(self, res_or_path_or_bitmap_checked: Optional[int | str | _gdiplus.Bitmap],
                          res_or_path_or_bitmap_unchecked: Optional[int | str | _gdiplus.Bitmap], resize: bool) -> bool:
         return self._set_datas(ctyped.const.MIIM_CHECKMARKS, (
-            self._prep_image(res_or_path_or_bitmap_checked, 1, resize), self._prep_image(res_or_path_or_bitmap_unchecked, 2, resize)))
+            self._prep_image(res_or_path_or_bitmap_checked, 1, resize), self._prep_image(
+                res_or_path_or_bitmap_unchecked, 2, resize)))
 
     def _set_types(self, broken: Optional[bool] = None, radio: Optional[bool] = None,
                    right_aligned: Optional[bool] = None, right_justified: Optional[bool] = None) -> bool:

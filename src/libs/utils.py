@@ -26,7 +26,7 @@ import typing
 import uuid
 import zipfile
 import zlib
-from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Iterator, Mapping, NoReturn, Optional
+from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
 
 T = typing.TypeVar('T')
 DEFAULT = object()
@@ -163,8 +163,8 @@ class IntEnumMeta(type):
     def __contains__(cls, item):
         return item in cls._vars
 
-    def __iter__(cls) -> Iterator[str]:
-        return iter(cls._vars)
+    def __iter__(cls) -> Generator[str, None, None]:
+        yield from cls._vars
 
     @typing.overload
     def __getitem__(cls, var_or_val: slice) -> tuple[str]:
