@@ -43,7 +43,6 @@ def _on_category(menu: gui.Menu) -> tuple[str]:
 
 class FiveHundredPx(Source):
     NAME = '500px'
-    VERSION = '0.0.0'
     URL = 'https://500px.com'
     DEFAULT_CONFIG = {
         CONFIG_CATEGORIES: CATEGORIES[0],

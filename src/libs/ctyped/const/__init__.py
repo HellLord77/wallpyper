@@ -1,4 +1,4 @@
-import ctypes as _ctypes  # TODO complex const
+import ctypes as _ctypes
 
 _CHAR_UNSIGNED = 0
 _WIN32_WCE = 0
@@ -8,7 +8,7 @@ _SHELL_EXPORTS_INTERNALAPI_H_ = 0
 _MAC = 0
 _MAC_INT_64 = 0
 _WIN32 = 1
-_WIN64 = 1
+_WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
 _USE_32BIT_TIME_T = 0
 UNICODE = 1
 WIN32 = 1

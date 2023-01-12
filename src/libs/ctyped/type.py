@@ -8,9 +8,7 @@ import _ctypes as __ctypes
 
 from . import const as _const
 from . import struct as _struct
-from ._utils import _Globals, _Pointer, _PyCSimpleType, _SimpleCData, _resolve_type, _sizeof
-
-_WIN64 = _sizeof(_ctypes.c_void_p) == 8
+from ._utils import _Globals, _Pointer, _PyCSimpleType, _SimpleCData, _resolve_type
 
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
@@ -148,7 +146,6 @@ byte = c_uchar
 cs_byte = byte
 
 __obj = c_void_p
-# GdiPlus
 # gdiplusgpstubs
 GpGraphics = __obj
 GpBrush = __obj
@@ -177,7 +174,6 @@ GpCachedBitmap = __obj
 GpMatrix = __obj
 # _
 CGpEffect = __obj
-# OpenGL
 # GLU
 GLUnurbs = __obj
 GLUquadric = __obj
@@ -186,7 +182,8 @@ GLUnurbsObj = GLUnurbs
 GLUquadricObj = GLUquadric
 GLUtesselatorObj = GLUtesselator
 GLUtriangulatorObj = GLUtesselator
-# libclang
+# wtypes
+BSTR = __obj
 # BuildSystem
 CXVirtualFileOverlay = __obj
 CXModuleMapDescriptor = __obj
@@ -215,8 +212,6 @@ CXIdxClientASTFile = __obj
 CXIndexAction = __obj
 # Rewrite
 CXRewriter = __obj
-# wtypes
-BSTR = __obj
 
 __enum = c_int
 DebugEventLevel = __enum
@@ -241,12 +236,18 @@ IActivationFactory = __interface
 # circular import
 TYPEDESC_U = DWORD
 
-HALF_PTR = c_int if _WIN64 else c_short
-INT_PTR = c_int64 if _WIN64 else c_int
-LONG_PTR = c_int64 if _WIN64 else c_long
-UHALF_PTR = c_uint if _WIN64 else c_ushort
-UINT_PTR = c_uint64 if _WIN64 else c_uint
-ULONG_PTR = c_uint64 if _WIN64 else c_ulong
+# noinspection PyProtectedMember
+HALF_PTR = c_int if _const._WIN64 else c_short
+# noinspection PyProtectedMember
+INT_PTR = c_int64 if _const._WIN64 else c_int
+# noinspection PyProtectedMember
+LONG_PTR = c_int64 if _const._WIN64 else c_long
+# noinspection PyProtectedMember
+UHALF_PTR = c_uint if _const._WIN64 else c_ushort
+# noinspection PyProtectedMember
+UINT_PTR = c_uint64 if _const._WIN64 else c_uint
+# noinspection PyProtectedMember
+ULONG_PTR = c_uint64 if _const._WIN64 else c_ulong
 
 # noinspection PyProtectedMember
 time_t = __time32_t if _const._USE_32BIT_TIME_T else __time64_t

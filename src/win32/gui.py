@@ -29,12 +29,12 @@ _MENU_ITEM_IMAGE_SIZE = 16
 _MENU_ITEM_TOOLTIP_AUTOMATIC = 500
 _MENU_ITEM_TOOLTIP_MAX_WIDTH = 32767
 
-_MIM_FIELD = {
+_MIM_TO_FIELD = {
     ctyped.const.MIM_BACKGROUND: 'hbrBack',
     ctyped.const.MIM_HELPID: 'dwContextHelpID',
     ctyped.const.MIM_MAXHEIGHT: 'cyMax',
     ctyped.const.MIM_STYLE: 'dwStyle'}
-_MIIM_FIELDS = {
+_MIIM_TO_FIELDS = {
     ctyped.const.MIIM_STATE: ('fState',),
     ctyped.const.MIIM_ID: ('wID',),
     ctyped.const.MIIM_SUBMENU: ('hSubMenu',),
@@ -669,7 +669,7 @@ class Menu(_Control):
     def _get_data(self, mim: int) -> Any:
         info = ctyped.struct.MENUINFO(fMask=mim)
         if user32.GetMenuInfo(self._hmenu, ctyped.byref(info)):
-            return getattr(info, _MIM_FIELD[mim])
+            return getattr(info, _MIM_TO_FIELD[mim])
 
     def get_background_color(self) -> Optional[tuple[int, int, int]]:
         if info := self._get_data(ctyped.const.MIM_BACKGROUND):
@@ -696,7 +696,7 @@ class Menu(_Control):
 
     def _set_data(self, mim: int, data, recursive: bool) -> bool:
         info = ctyped.struct.MENUINFO(fMask=(recursive * ctyped.const.MIM_APPLYTOSUBMENUS) | mim)
-        setattr(info, _MIM_FIELD[mim], data)
+        setattr(info, _MIM_TO_FIELD[mim], data)
         return bool(user32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
 
     def set_background_color(self, color_or_rgb: int | tuple[int, int, int], recursive: bool = True) -> bool:
@@ -792,7 +792,7 @@ class MenuItem(_Control):
             info = ctyped.struct.MENUITEMINFOW()
         info.fMask = miim
         if user32.GetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)):
-            return tuple(getattr(info, field) for field in _MIIM_FIELDS[miim])
+            return tuple(getattr(info, field) for field in _MIIM_TO_FIELDS[miim])
 
     def _get_icon(self) -> Optional[_handle.HBITMAP]:
         if datas := self._get_datas(ctyped.const.MIIM_BITMAP):
@@ -856,7 +856,7 @@ class MenuItem(_Control):
 
     def _set_datas(self, miim: int, datas: Iterable) -> bool:
         info = ctyped.struct.MENUITEMINFOW(fMask=miim)
-        for field, data in zip(_MIIM_FIELDS[miim], datas):
+        for field, data in zip(_MIIM_TO_FIELDS[miim], datas):
             setattr(info, field, data)
         return bool(user32.SetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)))
 

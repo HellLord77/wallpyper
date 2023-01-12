@@ -269,8 +269,8 @@ class TimeDeltaEx(datetime.timedelta):
     __float__ = datetime.timedelta.total_seconds
 
 
-def _to_type(string: str, expected_type: type[T]) -> T:
-    if isinstance(val := ast.literal_eval(string), expected_type):
+def _to_type(string: str, expected: type[T]) -> T:
+    if isinstance(val := ast.literal_eval(string), expected):
         return val
     else:
         raise TypeError
