@@ -11,7 +11,7 @@ import clang.cindex
 from libs import ctyped
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\DocObj.h'
+SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\gdipluseffects.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -43,8 +43,8 @@ MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt')
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
-ENUM = True
-FUNCTION = False
+ENUM = False
+FUNCTION = True
 INTERFACE = False
 GUID = False
 
@@ -65,6 +65,41 @@ KIND_UNION = '_union.{}'
 KIND_STRUCT = '_struct.{}'
 KIND_INTERFACE = '_{}.{}'
 
+_TYPE_PTR = {
+    'PINT': 'c_int',
+    'LPINT': 'c_int',
+    'LPLONG': 'c_long',
+    'PUINT': 'c_uint',
+    'LPUINT': 'UINT',
+    'PFLOAT': 'FLOAT',
+    'PSHORT': 'SHORT',
+    'PUSHORT': 'USHORT',
+    'PUCHAR': 'UCHAR',
+    'PLONG': 'LONG',
+    'PULONG': 'ULONG',
+    'LPBYTE': 'BYTE',
+    'LPDWORD': 'DWORD',
+    'PDWORD': 'DWORD',
+    'LPWORD': 'WORD',
+    'PWORD': 'WORD',
+    'PBOOL': 'BOOL',
+    'PBOOLEAN': 'BOOLEAN',
+    'PDWORDLONG': 'DWORDLONG',
+    'PHKEY': 'HKEY',
+    'LPGUID': 'GUID',
+    'LPCGUID': 'GUID',
+    'LPRECT': 'RECT',
+    'LPCRECT': 'RECT',
+    'LPRECTL': 'RECTL',
+    'LPCRECTL': 'RECTL',
+    'LPPOINT': 'POINT',
+    'LPCPOINT': 'POINT',
+    'LPPOINTL': 'POINTL',
+    'LPCPOINTL': 'POINTL',
+    'LPSIZE': 'SIZE',
+    'LPCSIZE': 'SIZE',
+    'LPSIZEL': 'SIZEL',
+    'LPCSIZEL': 'SIZEL'}
 _TYPE_KIND = {
     clang.cindex.TypeKind.UINT: 'c_uint',
     clang.cindex.TypeKind.ULONG: 'c_ulong',
@@ -204,23 +239,26 @@ def str_type(type: clang.cindex.Type) -> str:
     while type.kind == clang.cindex.TypeKind.INCOMPLETEARRAY:
         count_pointer += 1
         type = type.get_array_element_type()
+    spelling = type.spelling.removeprefix('const ').removeprefix(
+        'enum ').removeprefix('struct ').removeprefix('union ')
     if type.kind == clang.cindex.TypeKind.TYPEDEF:
         canon = type.get_canonical()
         if canon.kind == clang.cindex.TypeKind.POINTER:
             pointee = canon.get_pointee()
             if pointee.kind == clang.cindex.TypeKind.RECORD:
-                spelling = pointee.spelling
-                if spelling.startswith('_'):
-                    spelling = spelling[1:]
-                elif spelling.startswith('tag'):
-                    spelling = spelling[3:]
+                spelling_def = pointee.spelling
+                if spelling_def.startswith('_'):
+                    spelling_def = spelling_def[1:]
+                elif spelling_def.startswith('tag'):
+                    spelling_def = spelling_def[3:]
                 else:
-                    spelling = ''
-                if spelling:
-                    return _str_pointer(KIND_STRUCT.format(spelling), count_pointer + 1)
+                    try:
+                        spelling_def = _TYPE_PTR[spelling]
+                    except KeyError:
+                        spelling_def = ''
+                if spelling_def:
+                    return _str_pointer(KIND_STRUCT.format(spelling_def), count_pointer + 1)
     cursor = type.get_declaration()
-    spelling = type.spelling.removeprefix('const ').removeprefix(
-        'enum ').removeprefix('struct ').removeprefix('union ')
     if is_interface(cursor):
         return _str_pointer(KIND_INTERFACE.format(_interface_location(
             type.get_declaration().location.file.name), spelling), count_pointer - 1)
@@ -238,6 +276,12 @@ def str_type(type: clang.cindex.Type) -> str:
     if count_pointer and spelling in ('char', 'wchar'):
         count_pointer -= 1
         spelling = f'{spelling}_p'
+    try:
+        spelling = _TYPE_PTR[spelling]
+    except KeyError:
+        pass
+    else:
+        count_pointer += 1
     try:
         spelling = _TYPE_KIND[type.kind]
     except KeyError:

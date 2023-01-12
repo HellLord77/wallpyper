@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-from typing import Callable as _Callable, Optional as _Optional
+from typing import Callable as _Callable
 
 from . import _WinLib
 from .. import enum as _enum
@@ -49,35 +49,97 @@ RegisterActivationFactories: _Callable[[_Pointer[_type.HSTRING],  # activatableC
 RevokeActivationFactories: _Callable[[_Pointer[_struct.RO_REGISTRATION_COOKIE]],  # cookie
                                      _type.c_void]
 # winstring
-WindowsConcatString: _Callable[[_Optional[_type.HSTRING],
-                                _Optional[_type.HSTRING],
-                                _Pointer[_type.HSTRING]],
+WindowsCreateString: _Callable[[_type.PCNZWCH,  # sourceString
+                                _type.UINT32,  # length
+                                _Pointer[_type.HSTRING]],  # string
                                _type.HRESULT]
-WindowsCreateString: _Callable[[_Optional[_type.PCNZWCH],
-                                _type.UINT32,
-                                _Pointer[_type.HSTRING]],
+WindowsCreateStringReference: _Callable[[_type.PCWSTR,  # sourceString
+                                         _type.UINT32,  # length
+                                         _Pointer[_struct.HSTRING_HEADER],  # hstringHeader
+                                         _Pointer[_type.HSTRING]],  # string
+                                        _type.HRESULT]
+WindowsDeleteString: _Callable[[_type.HSTRING],  # string
                                _type.HRESULT]
-WindowsDeleteString: _Callable[[_type.HSTRING],
-                               _type.HRESULT]
-WindowsGetStringLen: _Callable[[_type.HSTRING],
-                               _type.UINT32]
-WindowsGetStringRawBuffer: _Callable[[_Optional[_type.HSTRING],
-                                      _Optional[_Pointer[_type.UINT32]]],
-                                     _type.PCWSTR]
-WindowsIsStringEmpty: _Callable[[_type.HSTRING],
-                                _type.BOOL]
-WindowsReplaceString: _Callable[[_Optional[_type.HSTRING],
-                                 _Optional[_type.HSTRING],
-                                 _Optional[_type.HSTRING],
-                                 _Pointer[_type.HSTRING]],
-                                _type.HRESULT]
-WindowsTrimStringEnd: _Callable[[_Optional[_type.HSTRING],
-                                 _Optional[_type.HSTRING],
-                                 _Pointer[_type.HSTRING]],
-                                _type.HRESULT]
-WindowsTrimStringStart: _Callable[[_Optional[_type.HSTRING],
-                                   _Optional[_type.HSTRING],
-                                   _Pointer[_type.HSTRING]],
+WindowsDuplicateString: _Callable[[_type.HSTRING,  # string
+                                   _Pointer[_type.HSTRING]],  # newString
                                   _type.HRESULT]
+WindowsGetStringLen: _Callable[[_type.HSTRING],  # string
+                               _type.UINT32]
+WindowsGetStringRawBuffer: _Callable[[_type.HSTRING,  # string
+                                      _Pointer[_type.UINT32]],  # length
+                                     _type.PCWSTR]
+WindowsIsStringEmpty: _Callable[[_type.HSTRING],  # string
+                                _type.BOOL]
+WindowsStringHasEmbeddedNull: _Callable[[_type.HSTRING,  # string
+                                         _Pointer[_type.BOOL]],  # hasEmbedNull
+                                        _type.HRESULT]
+WindowsCompareStringOrdinal: _Callable[[_type.HSTRING,  # string1
+                                        _type.HSTRING,  # string2
+                                        _Pointer[_type.INT32]],  # result
+                                       _type.HRESULT]
+WindowsSubstring: _Callable[[_type.HSTRING,  # string
+                             _type.UINT32,  # startIndex
+                             _Pointer[_type.HSTRING]],  # newString
+                            _type.HRESULT]
+WindowsSubstringWithSpecifiedLength: _Callable[[_type.HSTRING,  # string
+                                                _type.UINT32,  # startIndex
+                                                _type.UINT32,  # length
+                                                _Pointer[_type.HSTRING]],  # newString
+                                               _type.HRESULT]
+WindowsConcatString: _Callable[[_type.HSTRING,  # string1
+                                _type.HSTRING,  # string2
+                                _Pointer[_type.HSTRING]],  # newString
+                               _type.HRESULT]
+WindowsReplaceString: _Callable[[_type.HSTRING,  # string
+                                 _type.HSTRING,  # stringReplaced
+                                 _type.HSTRING,  # stringReplaceWith
+                                 _Pointer[_type.HSTRING]],  # newString
+                                _type.HRESULT]
+WindowsTrimStringStart: _Callable[[_type.HSTRING,  # string
+                                   _type.HSTRING,  # trimString
+                                   _Pointer[_type.HSTRING]],  # newString
+                                  _type.HRESULT]
+WindowsTrimStringEnd: _Callable[[_type.HSTRING,  # string
+                                 _type.HSTRING,  # trimString
+                                 _Pointer[_type.HSTRING]],  # newString
+                                _type.HRESULT]
+WindowsPreallocateStringBuffer: _Callable[[_type.UINT32,  # length
+                                           _Pointer[_Pointer[_type.WCHAR]],  # charBuffer
+                                           _Pointer[_type.HSTRING_BUFFER]],  # bufferHandle
+                                          _type.HRESULT]
+WindowsPromoteStringBuffer: _Callable[[_type.HSTRING_BUFFER,  # bufferHandle
+                                       _Pointer[_type.HSTRING]],  # string
+                                      _type.HRESULT]
+WindowsDeleteStringBuffer: _Callable[[_type.HSTRING_BUFFER],  # bufferHandle
+                                     _type.HRESULT]
+HSTRING_UserSize: _Callable[[_Pointer[_type.ULONG],  # pFlags
+                             _type.ULONG,  # StartingSize
+                             _Pointer[_type.HSTRING]],  # ppidl
+                            _type.ULONG]
+HSTRING_UserMarshal: _Callable[[_Pointer[_type.ULONG],  # pFlags
+                                _Pointer[_type.UCHAR],  # pBuffer
+                                _Pointer[_type.HSTRING]],  # ppidl
+                               _Pointer[_type.UCHAR]]
+HSTRING_UserUnmarshal: _Callable[[_Pointer[_type.ULONG],  # pFlags
+                                  _Pointer[_type.UCHAR],  # pBuffer
+                                  _Pointer[_type.HSTRING]],  # ppidl
+                                 _Pointer[_type.UCHAR]]
+HSTRING_UserFree: _Callable[[_Pointer[_type.ULONG],  # pFlags
+                             _Pointer[_type.HSTRING]],  # ppidl
+                            _type.c_void]
+# WindowsInspectString: _Callable[[_type.UINT_PTR,  # targetHString
+#                                  _type.USHORT,  # machine
+#                                  PINSPECT_HSTRING_CALLBACK,  # callback
+#                                  _type.c_void_p,  # context
+#                                  _Pointer[_type.UINT32],  # length
+#                                  _Pointer[_type.UINT_PTR]],  # targetStringAddress
+#                                 _type.HRESULT]
+# WindowsInspectString2: _Callable[[_type.UINT64,  # targetHString
+#                                   _type.USHORT,  # machine
+#                                   PINSPECT_HSTRING_CALLBACK2,  # callback
+#                                   _type.c_void_p,  # context
+#                                   _Pointer[_type.UINT32],  # length
+#                                   _Pointer[_type.UINT64]],  # targetStringAddress
+#                                  _type.HRESULT]
 
 _WinLib(__name__)

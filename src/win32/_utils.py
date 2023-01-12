@@ -12,7 +12,7 @@ from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
 from libs.ctyped.interface.winrt.Windows.Storage import Streams as Windows_Storage_Streams
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
 from libs.ctyped.lib import kernel32, ole32, shlwapi, shell32, cfgmgr32, oleaut32, d2d1 as d2d1_
-from . import _com
+from . import _com, _handle
 
 POLL_INTERVAL = 0.1
 HINSTANCE = kernel32.GetModuleHandleW(None)
@@ -70,11 +70,14 @@ def get_itemidlist(*paths: str | ctyped.type.PCWSTR) -> ContextManager[tuple[cty
 def get_str_dev_id_prop(dev_path: str, devpkey: tuple[str, int]) -> str:
     sz = ctyped.type.ULONG()
     type_ref = ctyped.byref(ctyped.type.DEVPROPTYPE())
-    prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-    cfgmgr32.CM_Get_Device_Interface_PropertyW(dev_path, prop_key_ref, type_ref, None, ctyped.byref(sz), 0)
+    prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(
+        ctyped.get_guid(devpkey[0]), devpkey[1]))
+    cfgmgr32.CM_Get_Device_Interface_PropertyW(
+        dev_path, prop_key_ref, type_ref, ctyped.NULLPTR, ctyped.byref(sz), 0)
     with string_buffer(sz.value) as buff:
         cfgmgr32.CM_Get_Device_Interface_PropertyW(
-            dev_path, prop_key_ref, type_ref, ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
+            dev_path, prop_key_ref, type_ref, ctyped.cast(
+                buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
         return buff.value
 
 
@@ -84,13 +87,15 @@ def get_str_dev_node_props(dev_id: str, *devpkeys: tuple[str, int]) -> tuple[str
     sz = ctyped.type.ULONG()
     type_ = ctyped.type.DEVPROPTYPE()
     for devpkey in devpkeys:
-        prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(ctyped.get_guid(devpkey[0]), devpkey[1]))
-        cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
-        cfgmgr32.CM_Get_DevNode_PropertyW(
-            dev_int, prop_key_ref, ctyped.byref(type_), None, ctyped.byref(sz), 0)
+        prop_key_ref = ctyped.byref(ctyped.struct.DEVPROPKEY(
+            ctyped.get_guid(devpkey[0]), devpkey[1]))
+        cfgmgr32.CM_Locate_DevNodeW(ctyped.byref(
+            dev_int), dev_id, ctyped.const.CM_LOCATE_DEVNODE_NORMAL)
+        cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(
+            type_), ctyped.NULLPTR, ctyped.byref(sz), 0)
         with string_buffer(sz.value) as buff:
-            cfgmgr32.CM_Get_DevNode_PropertyW(
-                dev_int, prop_key_ref, ctyped.byref(type_), ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
+            cfgmgr32.CM_Get_DevNode_PropertyW(dev_int, prop_key_ref, ctyped.byref(
+                type_), ctyped.cast(buff, ctyped.type.PBYTE), ctyped.byref(sz), 0)
             props.append(buff.value)
     return tuple(props)
 
@@ -115,7 +120,7 @@ def open_file(path: str) -> Optional[ctyped.interface.WinRT[Windows_Storage.ISto
     with ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
             runtimeclass.Windows.Storage.StorageFile) as statics:
         if ctyped.macro.SUCCEEDED(statics.GetFileFromPathAsync(
-                ctyped.handle.HSTRING.from_string(path), ~operation)) and (file := operation.get()):
+                _handle.HSTRING.from_string(path), ~operation)) and (file := operation.get()):
             return ctyped.interface.WinRT[Windows_Storage.IStorageFile](file.value)
 
 
@@ -204,11 +209,18 @@ def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...
 
 @contextlib.contextmanager
 def get_d2d1_dc_render_target() -> ContextManager[Optional[d2d1.ID2D1DCRenderTarget]]:
-    with ctyped.interface.COM[d2d1.ID2D1Factory]() as factory, ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target:
+    with ctyped.interface.COM[d2d1.ID2D1Factory]() as factory, \
+            ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target:
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
-        if ctyped.macro.SUCCEEDED(d2d1_.D2D1CreateFactory(ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid, None, p_factory)) and ctyped.macro.SUCCEEDED(
-                factory.CreateDCRenderTarget(ctyped.byref(ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
-                    ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM, ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))), ctyped.byref(target))):
+        if ctyped.macro.SUCCEEDED(d2d1_.D2D1CreateFactory(
+                ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid,
+                ctyped.NULLPTR, p_factory)) and ctyped.macro.SUCCEEDED(
+            factory.CreateDCRenderTarget(ctyped.byref(
+                ctyped.struct.D2D1_RENDER_TARGET_PROPERTIES(
+                    pixelFormat=ctyped.struct.D2D1_PIXEL_FORMAT(
+                        ctyped.enum.DXGI_FORMAT.DF_B8G8R8A8_UNORM,
+                        ctyped.enum.D2D1_ALPHA_MODE.PREMULTIPLIED))),
+                ctyped.byref(target))):
             yield target
             return
     yield

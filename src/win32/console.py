@@ -2,6 +2,7 @@ from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.lib import kernel32
+from . import _handle
 
 
 def is_present() -> bool:
@@ -42,4 +43,4 @@ def ignore_ctrl_c(ignore: bool = True) -> bool:
 
 
 def disable_close() -> bool:
-    return bool(ctyped.handle.HMENU.from_hwnd(kernel32.GetConsoleWindow(), True).delete_item(ctyped.const.SC_CLOSE))
+    return bool(_handle.HMENU.from_hwnd(kernel32.GetConsoleWindow(), True).delete_item(ctyped.const.SC_CLOSE))

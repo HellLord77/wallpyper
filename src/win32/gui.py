@@ -10,7 +10,7 @@ from typing import Any, Callable, Generator, Iterable, Mapping, Optional, Sequen
 
 from libs import ctyped
 from libs.ctyped.lib import user32, shell32
-from . import _gdiplus, _utils
+from . import _gdiplus, _handle, _utils
 
 _NOTIFYICONDATAA_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'szTip', 64)
 _NOTIFYICONDATAW_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'szTip', 64)
@@ -275,8 +275,8 @@ class Gui(_EventHandler):
 
     def _create_window(self, ex_style: int = 0, cls: str = '', wnd: str = '',
                        style: int = ctyped.const.WS_OVERLAPPED, x: int = 0, y: int = 0,
-                       w: int = 0, h: int = 0, parent: Optional[int] = None) -> ctyped.handle.HWND:
-        return ctyped.handle.HWND(user32.CreateWindowExW(
+                       w: int = 0, h: int = 0, parent: Optional[int] = None) -> _handle.HWND:
+        return _handle.HWND(user32.CreateWindowExW(
             ex_style, cls if cls else self._class.lpszClassName, wnd, style,
             x, y, w, h, self._hwnd if parent is None else parent, None, _utils.HINSTANCE, None))
 
@@ -469,7 +469,7 @@ class SystemTray(_Control):
     def set_icon(self, res_or_path_or_bitmap: int | str | _gdiplus.Bitmap) -> bool:
         self.stop_animation()
         if isinstance(res_or_path_or_bitmap, int):
-            self._hicon = ctyped.handle.HICON.from_idi(res_or_path_or_bitmap)
+            self._hicon = _handle.HICON.from_idi(res_or_path_or_bitmap)
         else:
             self._hicon = _load_bitmap(res_or_path_or_bitmap).get_hicon()
         self._set_hicon(self._hicon)
@@ -489,7 +489,7 @@ class SystemTray(_Control):
             user32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
 
     @staticmethod
-    def _get_animation_frames(bitmap: _gdiplus.Bitmap) -> Generator[tuple[int, ctyped.handle.HICON], None, None]:
+    def _get_animation_frames(bitmap: _gdiplus.Bitmap) -> Generator[tuple[int, _handle.HICON], None, None]:
         delays: ctyped.Pointer[ctyped.type.c_long] = _gdiplus.image_get_property(
             bitmap, ctyped.const.PropertyTagFrameDelay)
         for index in _gdiplus.image_iter_frames(bitmap):
@@ -552,7 +552,7 @@ class Menu(_Control):
 
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
-        self._hmenu = ctyped.handle.HMENU.from_type()
+        self._hmenu = _handle.HMENU.from_type()
         if not user32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
                 fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
             raise RuntimeError(f"Could not initialize '{type(self).__name__}'")
@@ -673,7 +673,7 @@ class Menu(_Control):
 
     def get_background_color(self) -> Optional[tuple[int, int, int]]:
         if info := self._get_data(ctyped.const.MIM_BACKGROUND):
-            return ctyped.handle.HBRUSH.get_rgb(info)
+            return _handle.HBRUSH.get_rgb(info)
 
     def get_max_height(self) -> Optional[int]:
         if info := self._get_data(ctyped.const.MIM_MAXHEIGHT):
@@ -700,8 +700,8 @@ class Menu(_Control):
         return bool(user32.SetMenuInfo(self._hmenu, ctyped.byref(info)))
 
     def set_background_color(self, color_or_rgb: int | tuple[int, int, int], recursive: bool = True) -> bool:
-        self._hbrush = ctyped.handle.HBRUSH.from_color(color_or_rgb) if isinstance(
-            color_or_rgb, int) else ctyped.handle.HBRUSH.from_rgb(*color_or_rgb)
+        self._hbrush = _handle.HBRUSH.from_color(color_or_rgb) if isinstance(
+            color_or_rgb, int) else _handle.HBRUSH.from_rgb(*color_or_rgb)
         return bool(self._hbrush) and self._set_data(ctyped.const.MIM_BACKGROUND, self._hbrush, recursive)
 
     def set_max_height(self, height: int = 0, recursive: bool = True) -> bool:
@@ -739,7 +739,7 @@ class MenuItem(_Control):
 
     _tooltip_text: str = ''
     _tooltip_title: str = ''
-    _tooltip_icon: int | ctyped.handle.HICON = MenuItemTooltipIcon.NONE
+    _tooltip_icon: int | _handle.HICON = MenuItemTooltipIcon.NONE
     _uid: int | str = 0
 
     def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
@@ -747,7 +747,7 @@ class MenuItem(_Control):
         self._tooltip_proc = ctyped.type.TIMERPROC(self._show_tooltip)
         self._menu = menu
         self._type = type_
-        self._hbmps: list[Optional[ctyped.handle.HBITMAP]] = [None] * 3
+        self._hbmps: list[Optional[_handle.HBITMAP]] = [None] * 3
         super().__init__(next(self._id_gen))
 
     def destroy(self) -> bool:
@@ -794,13 +794,13 @@ class MenuItem(_Control):
         if user32.GetMenuItemInfoW(self._menu.get_id(), self._id, False, ctyped.byref(info)):
             return tuple(getattr(info, field) for field in _MIIM_FIELDS[miim])
 
-    def _get_icon(self) -> Optional[ctyped.handle.HBITMAP]:
+    def _get_icon(self) -> Optional[_handle.HBITMAP]:
         if datas := self._get_datas(ctyped.const.MIIM_BITMAP):
-            return ctyped.handle.HBITMAP(datas[0])
+            return _handle.HBITMAP(datas[0])
 
-    def _get_check_icons(self) -> Optional[tuple[ctyped.handle.HBITMAP, ctyped.handle.HBITMAP]]:
+    def _get_check_icons(self) -> Optional[tuple[_handle.HBITMAP, _handle.HBITMAP]]:
         if datas := self._get_datas(ctyped.const.MIIM_CHECKMARKS):
-            return ctyped.handle.HBITMAP(datas[0]), ctyped.handle.HBITMAP(datas[1])
+            return _handle.HBITMAP(datas[0]), _handle.HBITMAP(datas[1])
 
     def get_types(self) -> Optional[tuple[bool, bool, bool, bool]]:
         if datas := self._get_datas(ctyped.const.MIIM_TYPE):

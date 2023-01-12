@@ -16,6 +16,17 @@ else:
 
 # noinspection PyPep8Naming
 @_union
+class HSTRING_HEADER_U:
+    Reserved1: _type.PVOID
+    # noinspection PyProtectedMember
+    if _const._WIN64:
+        Reserved2: _type.c_char * 24
+    else:
+        Reserved2: _type.c_char * 20
+
+
+# noinspection PyPep8Naming
+@_union
 class NOTIFYICONDATA_U:
     uTimeout: _type.UINT
     uVersion: _type.UINT
@@ -287,7 +298,7 @@ class _Union(_ctypes.Union):
 def _init(item: str) -> type:
     return type(item, (_Union,), {'_fields_': tuple((name, _resolve_type(
         hints)) for name, hints in _typing.get_type_hints(
-        _globals.vars_[item], _globals, _globals).items())})
+        _globals.vars[item], _globals, _globals).items())})
 
 
-_globals = _Globals()
+_globals = _Globals(globals())

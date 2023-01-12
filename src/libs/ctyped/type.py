@@ -74,10 +74,12 @@ PCZZSTR = c_char_p
 PNZCH = c_char_p
 PSTR = c_char_p
 PVOID = c_void_p
+PCVOID = c_void_p
 PWCH = c_wchar_p
 PWCHAR = c_wchar_p
 PWSTR = c_wchar_p
 PZZSTR = c_char_p
+PZZWSTR = c_wchar_p
 va_list = c_char_p
 HDOMAINENUM = c_void_p
 UIA_HWND = c_void_p
@@ -382,10 +384,8 @@ HRSRC = HANDLE
 HINTERNET = HANDLE
 HSTR = HANDLE
 HSTRING = HANDLE
-HSTRING_BUFFER = HANDLE
 HTASK = HANDLE
 HTHEME = HANDLE
-HTHUMBNAIL = HANDLE
 HUMPD = HANDLE
 HWINEVENTHOOK = HANDLE
 HWINSTA = HANDLE
@@ -411,6 +411,29 @@ LPCWSTR_PROXY = ULONG_PTR
 LPSTR_PROXY = ULONG_PTR
 LPWSTR_PROXY = ULONG_PTR
 
+# cfgmgr32
+LOG_CONF = DWORD_PTR
+RES_DES = DWORD_PTR
+RESOURCEID = ULONG
+PRIORITY = ULONG
+RANGE_LIST = DWORD_PTR
+RANGE_ELEMENT = DWORD_PTR
+HMACHINE = HANDLE
+CONFLICT_LIST = DWORD_PTR
+DEVINSTID_A = PCHAR
+DEVINSTID_W = PWCHAR
+HCMNOTIFICATION = HANDLE
+REGDISPOSITION = ULONG
+
+# computedefs
+HCS_SYSTEM = HANDLE
+HCS_PROCESS = HANDLE
+HCS_OPERATION = HANDLE
+HCS_CALLBACK = HANDLE
+
+# dwmapi
+HTHUMBNAIL = HANDLE
+
 # GL
 GLenum = c_uint
 GLboolean = c_uchar
@@ -427,6 +450,15 @@ GLclampf = c_float
 GLdouble = c_double
 GLclampd = c_double
 GLvoid = c_void
+
+# hstring
+HSTRING_BUFFER = HANDLE
+
+# wincrypt
+ALG_ID = c_uint
+HCRYPTPROV = ULONG_PTR
+HCRYPTKEY = ULONG_PTR
+HCRYPTHASH = ULONG_PTR
 
 ABORTPROC = _Callable[[HDC, c_int], BOOL]
 APPLICATION_RECOVERY_CALLBACK = _Callable[[PVOID], DWORD]
@@ -465,6 +497,7 @@ PD2D1_EFFECT_FACTORY = _Callable[[_Pointer[IUnknown]], HRESULT]
 PFN_DESTRUCTION_CALLBACK = _Callable[[c_void_p], c_void]
 WAITORTIMERCALLBACKFUNC = _Callable[[PVOID, BOOLEAN], VOID]
 WORKERCALLBACKFUNC = _Callable[[PVOID], VOID]
+SUBCLASSPROC = _Callable[[HWND, UINT, WPARAM, LPARAM, UINT_PTR, DWORD_PTR], LRESULT]
 APC_CALLBACK_FUNCTION = _Callable[[DWORD, PVOID, PVOID], VOID]
 PFLS_CALLBACK_FUNCTION = _Callable[[PVOID], VOID]
 PSECURE_MEMORY_CACHE_CALLBACK = _Callable[[PVOID, SIZE_T], BOOLEAN]
@@ -706,7 +739,7 @@ class _TypeMixin:
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(item: str) -> type[_SimpleCData] | type[_ctypes._CFuncPtr]:
-    var = _globals.vars_[item]
+    var = _globals.vars[item]
     c_type = _resolve_type(var)
     if isinstance(var, _typing._CallableGenericAlias):
         c_type = _ctypes.CFUNCTYPE(*c_type)
@@ -718,4 +751,4 @@ def _init(item: str) -> type[_SimpleCData] | type[_ctypes._CFuncPtr]:
     return c_type
 
 
-_globals = _Globals(True)
+_globals = _Globals(globals(), True)

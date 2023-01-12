@@ -5,6 +5,7 @@ import threading
 from libs import ctyped
 from libs.ctyped.interface.package import WebView2
 from libs.ctyped.lib import user32, kernel32, WebView2Loader
+from win32 import _handle
 from win32.browser import _webview2
 
 window_class = 'DesktopApp'
@@ -91,7 +92,7 @@ def main():
     wcex.style = ctyped.const.CS_HREDRAW | ctyped.const.CS_VREDRAW
     wcex.lpfnWndProc = ctyped.type.WNDPROC(wnd_proc)
     wcex.hInstance = hinstance
-    wcex.hCursor = ctyped.handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW)
+    wcex.hCursor = _handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW)
     wcex.lpszClassName = window_class
     user32.RegisterClassExW(ctyped.byref(wcex))
 

@@ -9,7 +9,7 @@ from typing import Callable, ContextManager, Generator, Literal, Optional
 from libs import ctyped
 from libs.ctyped.interface.um import d2d1_3, d2d1svg, objidlbase
 from libs.ctyped.lib import GdiPlus, shlwapi
-from . import _utils
+from . import _handle, _utils
 
 _GpStatus = ctyped.enum.GpStatus
 
@@ -734,15 +734,15 @@ class Bitmap(Image, ctyped.type.GpBitmap):
             x, y, width, height, format, bitmap, ctyped.byref(self))
         return self
 
-    def get_hbitmap(self) -> Optional[ctyped.handle.HBITMAP]:
+    def get_hbitmap(self) -> Optional[_handle.HBITMAP]:
         hbitmap = ctyped.type.HBITMAP()
         if _GpStatus.Ok == GdiPlus.GdipCreateHBITMAPFromBitmap(self, ctyped.byref(hbitmap), 0):
-            return ctyped.handle.HBITMAP(hbitmap.value)
+            return _handle.HBITMAP(hbitmap.value)
 
-    def get_hicon(self) -> Optional[ctyped.handle.HICON]:
+    def get_hicon(self) -> Optional[_handle.HICON]:
         hicon = ctyped.type.HICON()
         if _GpStatus.Ok == GdiPlus.GdipCreateHICONFromBitmap(self, ctyped.byref(hicon)):
-            return ctyped.handle.HICON(hicon.value)
+            return _handle.HICON(hicon.value)
 
     def get_pixel(self, x: int, y: int) -> Optional[Color]:
         argb = ctyped.type.ARGB()
@@ -952,10 +952,10 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
         if _GpStatus.Ok == GdiPlus.GdipGetRegionBounds(self, graphics, ctyped.byref(rect)):
             return rect.X, rect.Y, rect.Width, rect.Height
 
-    def get_hrgn(self, graphics: ctyped.type.GpGraphics) -> Optional[ctyped.handle.HRGN]:
+    def get_hrgn(self, graphics: ctyped.type.GpGraphics) -> Optional[_handle.HRGN]:
         hrgn = ctyped.type.HRGN()
         if _GpStatus.Ok == GdiPlus.GdipGetRegionHRgn(self, graphics, ctyped.byref(hrgn)):
-            return ctyped.handle.HRGN(hrgn)
+            return _handle.HRGN(hrgn)
 
     def is_empty(self, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
         empty = ctyped.type.BOOL()
@@ -1334,9 +1334,13 @@ def image_is_valid(path: str) -> bool:
 
 def image_save(image: Image, path: str, quality: int = 100) -> bool:
     param_val = ctyped.type.LONG(quality)
-    params = ctyped.struct.EncoderParameters(1, ctyped.array(ctyped.struct.EncoderParameter(ctyped.get_guid(
-        ctyped.const.EncoderQuality), 1, ctyped.enum.EncoderParameterValueType.Long.value, ctyped.cast(param_val, ctyped.type.PVOID))))
-    return image.save_to_file(path, ImageCodec.get_encoder_by_filename_extension(ntpath.splitext(path)[1]).Clsid, params)
+    params = ctyped.struct.EncoderParameters(1, ctyped.array(
+        ctyped.struct.EncoderParameter(ctyped.get_guid(
+            ctyped.const.EncoderQuality), 1,
+            ctyped.enum.EncoderParameterValueType.Long.value,
+            ctyped.cast(param_val, ctyped.type.PVOID))))
+    return image.save_to_file(path, ImageCodec.get_encoder_by_filename_extension(
+        ntpath.splitext(path)[1]).Clsid, params)
 
 
 def image_iter_frames(image: Image) -> Generator[int, None, None]:

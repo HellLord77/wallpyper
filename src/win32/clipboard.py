@@ -3,7 +3,7 @@ from typing import ContextManager, Optional
 
 from libs import ctyped
 from libs.ctyped.lib import kernel32, user32, gdi32, msvcrt
-from . import _gdiplus
+from . import _gdiplus, _handle
 
 
 @contextlib.contextmanager
@@ -61,7 +61,7 @@ def copy_image(path: str) -> bool:
             biWidth=bmp.bmWidth, biHeight=bmp.bmHeight, biBitCount=bmp.bmBitsPixel, biCompression=ctyped.const.BI_RGB)
         sz = bmp.bmWidthBytes * bmp.bmHeight
         data = ctyped.array(type=ctyped.type.BYTE, size=sz)
-        hdc = ctyped.handle.HDC.from_hwnd()
+        hdc = _handle.HDC.from_hwnd()
         if hdc and gdi32.GetDIBits(hdc, hbitmap, 0, header.biHeight, data, ctyped.cast(
                 header, ctyped.struct.BITMAPINFO), ctyped.const.DIB_RGB_COLORS):
             sz_header = ctyped.sizeof(ctyped.struct.BITMAPINFOHEADER)

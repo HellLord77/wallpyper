@@ -15,7 +15,7 @@ from libs.ctyped.interface.package import WebView2
 from libs.ctyped.interface.um import DispEx, ExDisp, oaidl, ocidl
 from libs.ctyped.lib import user32, shlwapi, oleaut32, WebView2Loader
 from . import _mshtml, _webview2
-from .. import _utils
+from .. import _handle, _utils
 
 DATA_DIR = os.path.dirname(__file__)
 
@@ -163,12 +163,12 @@ class _BrowserEx:
         self._class = ctyped.struct.WNDCLASSEXW(
             style=ctyped.const.CS_HREDRAW | ctyped.const.CS_VREDRAW,
             lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=_utils.HINSTANCE,
-            hCursor=ctyped.handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW),
+            hCursor=_handle.HCURSOR.from_idc(ctyped.const.IDC_ARROW),
             lpszClassName=f'{__name__}-{type(self).__name__}')
         self._environment = _create_environment()
         if not self._environment or not user32.RegisterClassExW(ctyped.byref(self._class)):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
-        self._hwnd = ctyped.handle.HWND(user32.CreateWindowExW(
+        self._hwnd = _handle.HWND(user32.CreateWindowExW(
             0, self._class.lpszClassName, type(self).__name__, ctyped.const.WS_OVERLAPPEDWINDOW,
             ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,
             ctyped.const.CW_USEDEFAULT, None, None, _utils.HINSTANCE, None))

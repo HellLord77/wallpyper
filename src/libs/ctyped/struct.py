@@ -218,6 +218,66 @@ class CHOOSECOLORW:
 
 
 @_struct
+class VALENTA:
+    ve_valuename: _type.LPSTR
+    ve_valuelen: _type.DWORD
+    ve_valueptr: _type.DWORD_PTR
+    ve_type: _type.DWORD
+
+
+@_struct
+class VALENTW:
+    ve_valuename: _type.LPWSTR
+    ve_valuelen: _type.DWORD
+    ve_valueptr: _type.DWORD_PTR
+    ve_type: _type.DWORD
+
+
+# noinspection PyPep8Naming
+@_struct
+class HWPROFILEINFO_A:
+    HWPI_ulHWProfile: _type.ULONG
+    HWPI_szFriendlyName: _type.CHAR * _const.MAX_PROFILE_LEN
+    HWPI_dwFlags: _type.DWORD
+
+
+# noinspection PyPep8Naming
+@_struct
+class HWPROFILEINFO_W:
+    HWPI_ulHWProfile: _type.ULONG
+    HWPI_szFriendlyName: _type.WCHAR * _const.MAX_PROFILE_LEN
+    HWPI_dwFlags: _type.DWORD
+
+
+# noinspection PyPep8Naming
+@_struct
+class CONFLICT_DETAILS_A:
+    CD_ulsize: _type.ULONG
+    CD_ulMask: _type.ULONG
+    CD_dnDevInst: _type.DEVINST
+    CD_rdResDes: _type.RES_DES
+    CD_ulFlags: _type.ULONG
+    CD_szDescription: _type.CHAR * _const.MAX_PATH
+
+
+# noinspection PyPep8Naming
+@_struct
+class CONFLICT_DETAILS_W:
+    CD_ulsize: _type.ULONG
+    CD_ulMask: _type.ULONG
+    CD_dnDevInst: _type.DEVINST
+    CD_rdResDes: _type.RES_DES
+    CD_ulFlags: _type.ULONG
+    CD_szDescription: _type.WCHAR * _const.MAX_PATH
+
+
+# noinspection PyPep8Naming
+@_struct
+class HSTRING_HEADER:
+    Reserved: _union.HSTRING_HEADER_U
+
+
+@_struct
 class GUID:
     Data1: _type.c_ulong
     Data2: _type.c_ushort
@@ -4273,7 +4333,7 @@ class _Struct(_ctypes.Structure):
 
 def _init(item: str, var: _Optional[type] = None) -> type:
     if var is None:
-        var = _globals.vars_[item]
+        var = _globals.vars[item]
     if var.__annotations__:
         fields = tuple((name, _resolve_type(
             hints)) for name, hints in _typing.get_type_hints(
@@ -4289,4 +4349,4 @@ def _init(item: str, var: _Optional[type] = None) -> type:
         return _NamespaceMeta(item, (), dict(vars(var)))
 
 
-_globals = _Globals()
+_globals = _Globals(globals())

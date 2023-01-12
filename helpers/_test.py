@@ -8,7 +8,8 @@ from typing import Optional
 
 import win32
 from libs import ctyped
-from libs.ctyped.const import error
+from libs.ctyped.const import error, runtimeclass
+from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
 
@@ -331,7 +332,10 @@ def _test_browser_ex():
 
 
 def _test():
-    print(ctyped.lib.get_path(kernel32))
+    statics = ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
+        runtimeclass.Windows.System.UserProfile.LockScreen)
+    with statics as act_statics:
+        print(act_statics.value)
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import ShlObj_core, ShObjIdl_core
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
 from libs.ctyped.lib import user32, kernel32, gdi32, msimg32, dwmapi, psapi, shell32
-from . import _utils, _gdiplus
+from . import _gdiplus, _handle, _utils
 
 _DELETE_AFTER = 0.5
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
@@ -295,7 +295,8 @@ def get_monitor_count() -> int:
 
 def get_known_monitor_ids() -> tuple[str, ...]:
     monitors = []
-    with ctyped.interface.COM[ShObjIdl_core.IDesktopWallpaper](ctyped.const.CLSID_DesktopWallpaper) as wallpaper:
+    with ctyped.interface.COM[ShObjIdl_core.IDesktopWallpaper](
+            ctyped.const.CLSID_DesktopWallpaper) as wallpaper:
         if wallpaper:
             count = ctyped.type.UINT()
             wallpaper.GetMonitorDevicePathCount(ctyped.byref(count))
@@ -423,14 +424,14 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
                     blockers[monitor].add(_get_window_exe_path(hwnd, drives))
             return True
     else:
-        rects_or_regions = {monitor: ctyped.handle.HRGN.from_rect(rect) for monitor, rect in rects_or_regions.items()}
+        rects_or_regions = {monitor: _handle.HRGN.from_rect(rect) for monitor, rect in rects_or_regions.items()}
         explorer_pid = _get_window_pid(user32.FindWindowW('Shell_TrayWnd', None))
 
         def wind_enum_proc(hwnd: ctyped.type.HWND, _: ctyped.type.LPARAM) -> ctyped.type.BOOL:
             if explorer_pid != _get_window_pid(hwnd):
-                window_region = ctyped.handle.HRGN.from_rect(_get_window_frame_rect(hwnd))
+                window_region = _handle.HRGN.from_rect(_get_window_frame_rect(hwnd))
                 for monitor, region_ in rects_or_regions.items():
-                    diff_region = ctyped.handle.HRGN.from_combination(region_, window_region, ctyped.const.RGN_DIFF)
+                    diff_region = _handle.HRGN.from_combination(region_, window_region, ctyped.const.RGN_DIFF)
                     if not region_.is_equal(diff_region):
                         rects_or_regions[monitor] = diff_region
                         blockers[monitor].add(_get_window_exe_path(hwnd, drives))
@@ -449,7 +450,7 @@ def get_display_blockers(*monitors: str, full_screen_only: bool = False,
 def is_desktop_unblocked(*monitors: str) -> dict[str, bool]:
     hwnd = _get_workerw_hwnd()
     if hwnd:
-        hdc = ctyped.handle.HDC.from_hwnd(hwnd)
+        hdc = _handle.HDC.from_hwnd(hwnd)
         return {monitor: bool(gdi32.RectVisible(hdc, ctyped.byref(
             ctyped.struct.RECT(*_get_monitor_x_y_w_h(monitor))))) for monitor in monitors}
     return {monitor: True for monitor in monitors}
@@ -544,7 +545,7 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
 
 
 def _save_tmp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
-                  src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> ctyped.handle.HDC:
+                  src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> _handle.HDC:
     bitmap = _gdiplus.bitmap_from_color(color, width, height)
     bitmap.set_resolution(src.get_horizontal_resolution(), src.get_vertical_resolution())
     graphics = _gdiplus.Graphics.from_image(bitmap)
@@ -568,17 +569,17 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
                      color: ctyped.type.ARGB, transition: int, duration: float, easing: Callable[[float], float]):
     if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
-        dst = ctyped.handle.HDC.from_hwnd(hwnd)
+        dst = _handle.HDC.from_hwnd(hwnd)
         src = _save_tmp_bmp(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
         if transition != Transition.DISABLED:
             if transition == Transition.RANDOM:
                 transition = Transition.get_random(Transition.DISABLED, Transition.RANDOM)
             args = []
             if transition == Transition.FADE:
-                dst_bk = ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
+                dst_bk = _handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
                 gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
                 args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
-                             dst_bk, ctyped.handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
+                             dst_bk, _handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
             start = time.time()
             while duration > (passed := time.time() - start):
                 for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](

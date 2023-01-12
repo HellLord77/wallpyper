@@ -241,6 +241,38 @@ Ellipse: _Callable[[_type.HDC,  # hdc
                     _type.c_int,  # right
                     _type.c_int],  # bottom
                    _type.BOOL]
+# EnumFontFamiliesExA: _Callable[[_type.HDC,  # hdc
+#                                 _Pointer[_struct.LOGFONTA],  # lpLogfont
+#                                 FONTENUMPROCA,  # lpProc
+#                                 _type.LPARAM,  # lParam
+#                                 _type.DWORD],  # dwFlags
+#                                _type.c_int]
+# EnumFontFamiliesExW: _Callable[[_type.HDC,  # hdc
+#                                 _Pointer[_struct.LOGFONTW],  # lpLogfont
+#                                 FONTENUMPROCW,  # lpProc
+#                                 _type.LPARAM,  # lParam
+#                                 _type.DWORD],  # dwFlags
+#                                _type.c_int]
+# EnumFontFamiliesA: _Callable[[_type.HDC,  # hdc
+#                               _type.LPCSTR,  # lpLogfont
+#                               FONTENUMPROCA,  # lpProc
+#                               _type.LPARAM],  # lParam
+#                              _type.c_int]
+# EnumFontFamiliesW: _Callable[[_type.HDC,  # hdc
+#                               _type.LPCWSTR,  # lpLogfont
+#                               FONTENUMPROCW,  # lpProc
+#                               _type.LPARAM],  # lParam
+#                              _type.c_int]
+# EnumFontsA: _Callable[[_type.HDC,  # hdc
+#                        _type.LPCSTR,  # lpLogfont
+#                        FONTENUMPROCA,  # lpProc
+#                        _type.LPARAM],  # lParam
+#                       _type.c_int]
+# EnumFontsW: _Callable[[_type.HDC,  # hdc
+#                        _type.LPCWSTR,  # lpLogfont
+#                        FONTENUMPROCW,  # lpProc
+#                        _type.LPARAM],  # lParam
+#                       _type.c_int]
 EnumObjects: _Callable[[_type.HDC,  # hdc
                         _type.c_int,  # nType
                         _type.GOBJENUMPROC,  # lpFunc
@@ -978,6 +1010,11 @@ PlayMetaFileRecord: _Callable[[_type.HDC,  # hdc
                                _Pointer[_struct.METARECORD],  # lpMR
                                _type.UINT],  # noObjs
                               _type.BOOL]
+# EnumMetaFile: _Callable[[_type.HDC,  # hdc
+#                          _type.HMETAFILE,  # hmf
+#                          MFENUMPROC,  # proc
+#                          _type.LPARAM],  # param
+#                         _type.BOOL]
 CloseEnhMetaFile: _Callable[[_type.HDC],  # hdc
                             _type.HENHMETAFILE]
 CopyEnhMetaFileA: _Callable[[_type.HENHMETAFILE,  # hEnh
@@ -998,6 +1035,12 @@ CreateEnhMetaFileW: _Callable[[_type.HDC,  # hdc
                               _type.HDC]
 DeleteEnhMetaFile: _Callable[[_type.HENHMETAFILE],  # hmf
                              _type.BOOL]
+# EnumEnhMetaFile: _Callable[[_type.HDC,  # hdc
+#                             _type.HENHMETAFILE,  # hmf
+#                             ENHMFENUMPROC,  # proc
+#                             _type.LPVOID,  # param
+#                             _Pointer[_struct.RECT]],  # lpRect
+#                            _type.BOOL]
 GetEnhMetaFileA: _Callable[[_type.LPCSTR],  # lpName
                            _type.HENHMETAFILE]
 GetEnhMetaFileW: _Callable[[_type.LPCWSTR],  # lpName

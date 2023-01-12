@@ -2,7 +2,6 @@ import ctypes as _ctypes
 import functools as _functools
 import gc as _gc
 import importlib as _importlib
-import inspect as _inspect
 import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
@@ -37,33 +36,33 @@ class _Module(_types.ModuleType):
 
 
 class _Globals(dict):
-    def __init__(self, replace_once: bool = False):
+    def __init__(self, globals_: dict[str, _Any], replace_once: bool = False):
+        self.globals = globals_
         self.replace_once = replace_once
-        self.locals = _inspect.currentframe().f_back.f_locals
-        self.vars_ = {var: val for var, val in self.locals.items() if not var.startswith('_')}
-        for var in self.vars_:
-            del self.locals[var]
-        super().__init__(self.locals)
-        self.locals['__getattr__'] = self.__getitem__
+        self.vars = {var: val for var, val in self.globals.items() if not var.startswith('_')}
+        for var in self.vars:
+            del self.globals[var]
+        super().__init__(self.globals)
+        self.globals['__getattr__'] = self.__getitem__
 
     def __getitem__(self, item: str):
         try:
             return super().__getitem__(item)
         except KeyError:
             try:
-                val = self.locals[item]
+                val = self.globals[item]
             except KeyError:
-                if item not in self.vars_:
-                    raise AttributeError(f"Module '{self.locals['__name__']}' has no attribute '{item}'")
-                val = self.locals['_init'](item)
+                if item not in self.vars:
+                    raise AttributeError(f"Module '{self.globals['__name__']}' has no attribute '{item}'")
+                val = self.globals['_init'](item)
             else:
-                self.vars_[item] = val
+                self.vars[item] = val
             self[item] = val
             return val
 
     def __setitem__(self, key, value):
         try:
-            val = self.vars_[key]
+            val = self.vars[key]
         except KeyError:
             pass
         else:
@@ -71,17 +70,17 @@ class _Globals(dict):
                 self.setitem(key, value)
             else:
                 for key_ in self.iter_vars():
-                    if self.vars_[key_] is val:
+                    if self.vars[key_] is val:
                         self.setitem(key_, value)
 
     def setitem(self, key: str, value):
-        self.locals[key] = value
-        del self.vars_[key]
+        self.globals[key] = value
+        del self.vars[key]
         super().__setitem__(key, value)
 
     def iter_vars(self) -> _Generator[str, None, None]:
-        for item in tuple(self.vars_):
-            if item in self.vars_:
+        for item in tuple(self.vars):
+            if item in self.vars:
                 yield item
 
 
@@ -117,7 +116,7 @@ def _pointer(obj_or_type: type[_CT]) -> type[_Pointer[_CT]]:
 
 
 # noinspection PyShadowingBuiltins
-def _cast(obj: _Any, type: type[_CT]) -> _Pointer[_CT]:
+def _cast(obj, type: type[_CT]) -> _Pointer[_CT]:
     try:
         return _ctypes.cast(obj, type)
     except _ctypes.ArgumentError:
@@ -164,7 +163,7 @@ def _pretty_tuples(*itt: tuple[str, ...], name: str = '') -> str:
     return f'\n'.join(f'{name}({", ".join(line[:-1])}) -> {line[-1]}' for line in lines)
 
 
-def _func_doc(name: str, restype: _Any, argtypes: _Sequence, annotations: tuple[str]) -> str:
+def _func_doc(name: str, restype, argtypes: _Sequence, annotations: tuple[str]) -> str:
     return _pretty_tuples(annotations, (*(type_.__name__ for type_ in argtypes), getattr(restype, '__name__', restype)), name=name)
 
 
@@ -181,7 +180,7 @@ def _replace_object(old, new):
                     referrer[key] = new
 
 
-def _resolve_type(annot: _Any, args: _Optional[dict] = None) -> _Any:
+def _resolve_type(annot, args: _Optional[dict] = None) -> _Any:
     if args is not None and hasattr(annot, '_args'):
         annot = annot.__mro__[1][tuple(args.values())]
     # noinspection PyUnresolvedReferences,PyProtectedMember

@@ -10,7 +10,6 @@ from typing import Callable as _Callable, Generic as _Generic, Iterable as _Iter
 
 from .. import const as _const
 from .. import enum as _enum
-from .. import handle as _handle
 from .. import macro as _macro
 from .. import struct as _struct
 from .. import type as _type
@@ -257,22 +256,27 @@ class WinRT(_COMBase):
 
     def __init__(self, activatable_class_id_or_winrt_or_interface=None, /):
         if isinstance(activatable_class_id_or_winrt_or_interface, str):
-            activatable_class_id = _handle.HSTRING.from_string(
-                activatable_class_id_or_winrt_or_interface)
+            activatable_class_id = _type.HSTRING()
+            _combase.WindowsCreateString(activatable_class_id_or_winrt_or_interface, len(
+                activatable_class_id_or_winrt_or_interface), _byref(activatable_class_id))
             # noinspection PyProtectedMember
             if self._type._factory:
                 # noinspection PyProtectedMember
                 _combase.RoGetActivationFactory(
                     activatable_class_id, _macro._uuidof(self._type), ~self)
-            elif _macro.SUCCEEDED(_combase.RoActivateInstance(activatable_class_id, ~self)):
+            elif _macro.SUCCEEDED(_combase.RoActivateInstance(
+                    activatable_class_id, ~self)):
                 self._obj.value = (self % self._type).value
                 # noinspection PyStatementEffect
                 -self
+            # noinspection PyTypeChecker
+            _combase.WindowsGetStringRawBuffer(activatable_class_id, None)
         else:
             super().__init__(activatable_class_id_or_winrt_or_interface)
 
     # noinspection PyTypeChecker
-    def __getitem__(self, interface: type[_UInterface]) -> _Optional[WinRT[_UInterface]]:
+    def __getitem__(self, interface: type[_UInterface]) -> \
+            _Optional[WinRT[_UInterface]]:
         if self:
             return WinRT[interface](self)
 

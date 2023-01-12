@@ -689,55 +689,6 @@ class ACTCTX_COMPATIBILITY_ELEMENT_TYPE(_Enum):
     MAXVERSIONTESTED = _AUTO
 
 
-class DWMWINDOWATTRIBUTE(_Enum):
-    NCRENDERING_ENABLED = 1
-    NCRENDERING_POLICY = _AUTO
-    TRANSITIONS_FORCEDISABLED = _AUTO
-    ALLOW_NCPAINT = _AUTO
-    CAPTION_BUTTON_BOUNDS = _AUTO
-    NONCLIENT_RTL_LAYOUT = _AUTO
-    FORCE_ICONIC_REPRESENTATION = _AUTO
-    FLIP3D_POLICY = _AUTO
-    EXTENDED_FRAME_BOUNDS = _AUTO
-    HAS_ICONIC_BITMAP = _AUTO
-    DISALLOW_PEEK = _AUTO
-    EXCLUDED_FROM_PEEK = _AUTO
-    CLOAK = _AUTO
-    CLOAKED = _AUTO
-    FREEZE_REPRESENTATION = _AUTO
-    PASSIVE_UPDATE_MODE = _AUTO
-    USE_HOSTBACKDROPBRUSH = _AUTO
-    USE_IMMERSIVE_DARK_MODE = 20
-    WINDOW_CORNER_PREFERENCE = 33
-    BORDER_COLOR = _AUTO
-    CAPTION_COLOR = _AUTO
-    TEXT_COLOR = _AUTO
-    VISIBLE_FRAME_BORDER_THICKNESS = _AUTO
-    LAST = _AUTO
-
-
-# noinspection PyPep8Naming
-class DWM_WINDOW_CORNER_PREFERENCE(_Enum):
-    DEFAULT = _AUTO
-    DONOTROUND = _AUTO
-    ROUND = _AUTO
-    ROUNDSMALL = _AUTO
-
-
-class DWMNCRENDERINGPOLICY(_Enum):
-    USEWINDOWSTYLE = _AUTO
-    DISABLED = _AUTO
-    ENABLED = _AUTO
-    LAST = _AUTO
-
-
-class DWMFLIP3DWINDOWPOLICY(_Enum):
-    DEFAULT = _AUTO
-    EXCLUDEBELOW = _AUTO
-    EXCLUDEABOVE = _AUTO
-    LAST = _AUTO
-
-
 # noinspection PyPep8Naming
 class XAML_REFERENCETRACKER_DISCONNECT(_Enum):
     DEFAULT = _AUTO
@@ -995,6 +946,225 @@ class VARFLAGS(_Enum):
     FNONBROWSABLE = 0x400
     FREPLACEABLE = 0x800
     FIMMEDIATEBIND = 0x1000
+
+
+# cfg
+# noinspection PyPep8Naming
+class PNP_VETO_TYPE(_Enum):
+    TypeUnknown = 0
+    LegacyDevice = 1
+    PendingClose = 2
+    WindowsApp = 3
+    WindowsService = 4
+    OutstandingOpen = 5
+    Device = 6
+    Driver = 7
+    IllegalDeviceRequest = 8
+    InsufficientPower = 9
+    NonDisableable = 10
+    LegacyDriver = 11
+    InsufficientRights = 12
+    AlreadyRemoved = 13
+
+
+# CommCtrl
+class TVITEMPART(_Enum):
+    BUTTON = 1
+
+
+# noinspection PyPep8Naming
+class EC_ENDOFLINE(_Enum):
+    DETECTFROMCONTENT = 0
+    CRLF = 1
+    CR = 2
+    LF = 3
+
+
+# noinspection PyPep8Naming
+class EC_SEARCHWEB_ENTRYPOINT(_Enum):
+    EXTERNAL = 0
+    CONTEXTMENU = 1
+
+
+# noinspection PyPep8Naming
+class TASKDIALOG_FLAGS(_Enum):
+    ENABLE_HYPERLINKS = 1
+    USE_HICON_MAIN = 2
+    USE_HICON_FOOTER = 4
+    ALLOW_DIALOG_CANCELLATION = 8
+    USE_COMMAND_LINKS = 16
+    USE_COMMAND_LINKS_NO_ICON = 32
+    EXPAND_FOOTER_AREA = 64
+    EXPANDED_BY_DEFAULT = 128
+    VERIFICATION_FLAG_CHECKED = 256
+    SHOW_PROGRESS_BAR = 512
+    SHOW_MARQUEE_PROGRESS_BAR = 1024
+    CALLBACK_TIMER = 2048
+    POSITION_RELATIVE_TO_WINDOW = 4096
+    RTL_LAYOUT = 8192
+    NO_DEFAULT_RADIO_BUTTON = 16384
+    CAN_BE_MINIMIZED = 32768
+    NO_SET_FOREGROUND = 65536
+    SIZE_TO_CONTENT = 16777216
+
+
+# noinspection PyPep8Naming
+class TASKDIALOG_MESSAGES(_Enum):
+    NAVIGATE_PAGE = 1125
+    CLICK_BUTTON = 1126
+    SET_MARQUEE_PROGRESS_BAR = 1127
+    SET_PROGRESS_BAR_STATE = 1128
+    SET_PROGRESS_BAR_RANGE = 1129
+    SET_PROGRESS_BAR_POS = 1130
+    SET_PROGRESS_BAR_MARQUEE = 1131
+    SET_ELEMENT_TEXT = 1132
+    CLICK_RADIO_BUTTON = 1134
+    ENABLE_BUTTON = 1135
+    ENABLE_RADIO_BUTTON = 1136
+    CLICK_VERIFICATION = 1137
+    UPDATE_ELEMENT_TEXT = 1138
+    SET_BUTTON_ELEVATION_REQUIRED_STATE = 1139
+    UPDATE_ICON = 1140
+
+
+# noinspection PyPep8Naming
+class TASKDIALOG_NOTIFICATIONS(_Enum):
+    CREATED = 0
+    NAVIGATED = 1
+    BUTTON_CLICKED = 2
+    HYPERLINK_CLICKED = 3
+    TIMER = 4
+    DESTROYED = 5
+    RADIO_BUTTON_CLICKED = 6
+    DIALOG_CONSTRUCTED = 7
+    VERIFICATION_CLICKED = 8
+    HELP = 9
+    EXPANDO_BUTTON_CLICKED = 10
+
+
+# noinspection PyPep8Naming
+class TASKDIALOG_ELEMENTS(_Enum):
+    CONTENT = 0
+    EXPANDED_INFORMATION = 1
+    FOOTER = 2
+    MAIN_INSTRUCTION = 3
+
+
+# noinspection PyPep8Naming
+class TASKDIALOG_ICON_ELEMENTS(_Enum):
+    MAIN = 0
+    FOOTER = 1
+
+
+# noinspection PyPep8Naming
+class TASKDIALOG_COMMON_BUTTON_FLAGS(_Enum):
+    OK_BUTTON = 1
+    YES_BUTTON = 2
+    NO_BUTTON = 4
+    CANCEL_BUTTON = 8
+    RETRY_BUTTON = 16
+    CLOSE_BUTTON = 32
+
+
+# noinspection PyPep8Naming
+class LI_METRIC(_Enum):
+    SMALL = 0
+    ARGE = 1
+
+
+# computedefs
+# noinspection PyPep8Naming
+class HCS_OPERATION_TYPE(_Enum):
+    None_ = -1
+    Enumerate = 0
+    Create = 1
+    Start = 2
+    Shutdown = 3
+    Pause = 4
+    Resume = 5
+    Save = 6
+    Terminate = 7
+    Modify = 8
+    GetProperties = 9
+    CreateProcess = 10
+    SignalProcess = 11
+    GetProcessInfo = 12
+    GetProcessProperties = 13
+    ModifyProcess = 14
+    Crash = 15
+
+
+# noinspection PyPep8Naming
+class HCS_EVENT_TYPE(_Enum):
+    Invalid = 0
+    SystemExited = 1
+    SystemCrashInitiated = 2
+    SystemCrashReport = 3
+    SystemRdpEnhancedModeStateChanged = 4
+    SystemSiloJobCreated = 5
+    SystemGuestConnectionClosed = 6
+    ProcessExited = 65536
+    OperationCallback = 16777216
+    ServiceDisconnect = 33554432
+    GroupVmLifecycle = -2147483646
+    GroupOperationInfo = -1073741823
+
+
+# noinspection PyPep8Naming
+class HCS_EVENT_OPTIONS(_Enum):
+    None_ = 0
+    EnableOperationCallbacks = 1
+    EnableVmLifecycle = 2
+
+
+# noinspection PyPep8Naming
+class HCS_OPERATION_OPTIONS(_Enum):
+    None_ = 0
+    ProgressUpdate = 1
+
+
+# noinspection PyPep8Naming
+class HCS_RESOURCE_TYPE(_Enum):
+    None_ = 0
+    File = 1
+    Job = 2
+
+
+# noinspection PyPep8Naming
+class HCS_NOTIFICATION_FLAGS(_Enum):
+    Success = 0
+    Failure = -2147483648
+
+
+# noinspection PyPep8Naming
+class HCS_NOTIFICATIONS(_Enum):
+    Invalid = 0
+    SystemExited = 1
+    SystemCreateCompleted = 2
+    SystemStartCompleted = 3
+    SystemPauseCompleted = 4
+    SystemResumeCompleted = 5
+    SystemCrashReport = 6
+    SystemSiloJobCreated = 7
+    SystemSaveCompleted = 8
+    SystemRdpEnhancedModeStateChanged = 9
+    SystemShutdownFailed = 10
+    SystemShutdownCompleted = 10
+    SystemGetPropertiesCompleted = 11
+    SystemModifyCompleted = 12
+    SystemCrashInitiated = 13
+    SystemGuestConnectionClosed = 14
+    SystemOperationCompletion = 15
+    SystemPassThru = 16
+    OperationProgressUpdate = 256
+    ProcessExited = 65536
+    ServiceDisconnect = 16777216
+    FlagsReserved = -268435456
+
+
+# noinspection PyPep8Naming
+class HCS_CREATE_OPTIONS(_Enum):
+    HCO_1 = 65536
 
 
 # credentialprovider
@@ -1320,6 +1490,120 @@ class OLECMDID_VIEWPORT_MODE_FLAG(_Enum):
     EXCLUDE_VISUAL_BOTTOM = 2
     FIXED_LAYOUT_WIDTH_VALID = 65536
     EXCLUDE_VISUAL_BOTTOM_VALID = 131072
+
+
+# dwmapi
+class DWMWINDOWATTRIBUTE(_Enum):
+    NCRENDERING_ENABLED = 1
+    NCRENDERING_POLICY = 2
+    TRANSITIONS_FORCEDISABLED = 3
+    ALLOW_NCPAINT = 4
+    CAPTION_BUTTON_BOUNDS = 5
+    NONCLIENT_RTL_LAYOUT = 6
+    FORCE_ICONIC_REPRESENTATION = 7
+    FLIP3D_POLICY = 8
+    EXTENDED_FRAME_BOUNDS = 9
+    HAS_ICONIC_BITMAP = 10
+    DISALLOW_PEEK = 11
+    EXCLUDED_FROM_PEEK = 12
+    CLOAK = 13
+    CLOAKED = 14
+    FREEZE_REPRESENTATION = 15
+    PASSIVE_UPDATE_MODE = 16
+    USE_HOSTBACKDROPBRUSH = 17
+    USE_IMMERSIVE_DARK_MODE = 20
+    WINDOW_CORNER_PREFERENCE = 33
+    BORDER_COLOR = 34
+    CAPTION_COLOR = 35
+    TEXT_COLOR = 36
+    VISIBLE_FRAME_BORDER_THICKNESS = 37
+    SYSTEMBACKDROP_TYPE = 38
+    LAST = 39
+
+
+# noinspection PyPep8Naming
+class DWM_WINDOW_CORNER_PREFERENCE(_Enum):
+    DEFAULT = 0
+    DONOTROUND = 1
+    ROUND = 2
+    ROUNDSMALL = 3
+
+
+# noinspection PyPep8Naming
+class DWM_SYSTEMBACKDROP_TYPE(_Enum):
+    AUTO = 0
+    NONE = 1
+    MAINWINDOW = 2
+    TRANSIENTWINDOW = 3
+    TABBEDWINDOW = 4
+
+
+class DWMNCRENDERINGPOLICY(_Enum):
+    USEWINDOWSTYLE = 0
+    DISABLED = 1
+    ENABLED = 2
+    LAST = 3
+
+
+class DWMFLIP3DWINDOWPOLICY(_Enum):
+    DEFAULT = 0
+    EXCLUDEBELOW = 1
+    EXCLUDEABOVE = 2
+    LAST = 3
+
+
+# noinspection PyPep8Naming
+class DWM_SOURCE_FRAME_SAMPLING(_Enum):
+    POINT = 0
+    COVERAGE = 1
+    LAST = 2
+
+
+# noinspection PyPep8Naming
+class DWMTRANSITION_OWNEDWINDOW_TARGET(_Enum):
+    NULL = -1
+    REPOSITION = 0
+
+
+# noinspection PyPep8Naming
+class GESTURE_TYPE(_Enum):
+    PEN_TAP = 0
+    PEN_DOUBLETAP = 1
+    PEN_RIGHTTAP = 2
+    PEN_PRESSANDHOLD = 3
+    PEN_PRESSANDHOLDABORT = 4
+    TOUCH_TAP = 5
+    TOUCH_DOUBLETAP = 6
+    TOUCH_RIGHTTAP = 7
+    TOUCH_PRESSANDHOLD = 8
+    TOUCH_PRESSANDHOLDABORT = 9
+    TOUCH_PRESSANDTAP = 10
+
+
+# noinspection PyPep8Naming
+class DWM_SHOWCONTACT(_Enum):
+    DOWN = 1
+    UP = 2
+    DRAG = 4
+    HOLD = 8
+    PENBARREL = 16
+    NONE = 0
+    ALL = -1
+
+
+# noinspection PyPep8Naming
+class DWM_TAB_WINDOW_REQUIREMENTS(_Enum):
+    NONE = 0
+    IMPLEMENTED_BY_SYSTEM = 1
+    WINDOW_RELATIONSHIP = 2
+    WINDOW_STYLES = 4
+    WINDOW_REGION = 8
+    WINDOW_DWM_ATTRIBUTES = 16
+    WINDOW_MARGINS = 32
+    TABBING_ENABLED = 64
+    USER_POLICY = 128
+    GROUP_POLICY = 256
+    APP_COMPAT = 512
 
 
 # dxgi

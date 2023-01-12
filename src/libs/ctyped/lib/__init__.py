@@ -53,7 +53,7 @@ class _PyLib(_CLib):
     _lib = _ctypes.pythonapi
 
 
-def get_path(library: _types.ModuleType) -> str:
+def get_path(library: _CLib) -> str:
     buff = _type.LPWSTR('\0' * _const.MAX_PATH)
     # noinspection PyProtectedMember
     _kernel32.GetModuleFileNameW(library._lib._handle, buff, _const.MAX_PATH)

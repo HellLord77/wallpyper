@@ -1,18 +1,17 @@
 from __future__ import annotations as _
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 import builtins as _builtins
 import contextlib as _contextlib
 import ctypes as _ctypes
 import types as _types
 import typing as _typing
-from typing import (Any as _Any, ContextManager as _ContextManager,
-                    Final as _Final, MutableSequence as _MutableSequence, Optional as _Optional)
+from typing import (ContextManager as _ContextManager, Final as _Final,
+                    MutableSequence as _MutableSequence, Optional as _Optional)
 
 from . import const
 from . import enum
-from . import handle
 from . import interface
 from . import lib
 from . import macro
@@ -43,7 +42,7 @@ def buffer(size: int = 0) -> _ContextManager[_Optional[int]]:
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames
-def array(*elements: _Any, type: _Optional[_builtins.type[CT]] = None,
+def array(*elements, type: _Optional[_builtins.type[CT]] = None,
           size: _Optional[int] = None) -> _MutableSequence[CT] | Pointer[CT]:
     return ((_builtins.type(elements[0]) if type is None else type) * (
         len(elements) if size is None else size))(*elements)
