@@ -202,9 +202,9 @@ class StringNamedPipeClient:
     def __str__(self):
         return str(self._console)
 
-    def connect(self, timeout: int = 0) -> bool:
-        end_time = time.time() + timeout
-        while end_time > time.time() and not self._console.open(False, True):
+    def connect(self, timeout: float = 0.0) -> bool:
+        end_time = time.monotonic() + timeout
+        while end_time > time.monotonic() and not self._console.open(False, True):
             time.sleep(POLL_INTERVAL)
         if connected := bool(self):
             self._out = sys.stdout = _Writer(self, sys.stdout)

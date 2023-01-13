@@ -457,8 +457,8 @@ def add_pin(target: str, *args: str, taskbar: bool = True, name: Optional[str] =
             else:
                 cur_path = ntpath.join(START_DIR, f'{cur_name}{LINK_EXT}')
                 path = ntpath.join(START_DIR, f'{name}{LINK_EXT}')
-            end_time = time.time() + _PIN_TIMEOUT
-            while end_time > time.time() and not ntpath.isfile(cur_path):
+            end_time = time.monotonic() + _PIN_TIMEOUT
+            while end_time > time.monotonic() and not ntpath.isfile(cur_path):
                 time.sleep(_utils.POLL_INTERVAL)
             if ntpath.isfile(cur_path):
                 os.replace(cur_path, path)

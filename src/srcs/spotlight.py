@@ -4,10 +4,10 @@ import os.path
 from typing import Generator, Optional
 
 import gui
-from libs import files, isocodes, request
+from libs import files, isocodes, urls
 from . import Source
 
-URL_BASE = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
+URL_BASE = urls.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
 CONFIG_LOCALE = 'pl'
 CONFIG_ORIENTATION = '_orientation'
@@ -40,7 +40,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         params['ctry'] = CONFIG_LOCALE.split('-')[-1].lower()
         while True:
             if not items:
-                response = request.open(URL_BASE, params)
+                response = urls.open(URL_BASE, params)
                 if response:
                     items = response.get_json()['batchrsp']['items']
                 if not items:
@@ -48,7 +48,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
                     continue
             image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
-            yield files.File(url, files.replace_ext(os.path.basename(request.strip(url)), 'jpg'),
+            yield files.File(url, files.replace_ext(os.path.basename(urls.strip(url)), 'jpg'),
                              int(image['fileSize']), base64.b64decode(image['sha256']))
 
     @classmethod

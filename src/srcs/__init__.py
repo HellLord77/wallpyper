@@ -6,7 +6,7 @@ import os
 from typing import Any, Generator, Iterable, Optional
 
 import langs
-from libs import files, utils
+from libs import callables, files, utils
 
 SOURCES: dict[str, type[Source]] = {}
 
@@ -29,7 +29,7 @@ class Source:
         if cls.DEFAULT_CONFIG is None:
             cls.DEFAULT_CONFIG = {}
         cls.CURRENT_CONFIG = {}
-        cls.get_next_wallpaper = utils.LastCacheCallable(cls.get_next_wallpaper)
+        cls.get_next_wallpaper = callables.LastCacheCallable(cls.get_next_wallpaper)
         SOURCES[uid] = cls
 
     @classmethod

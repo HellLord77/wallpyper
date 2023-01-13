@@ -580,8 +580,8 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                 gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
                 args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
                              dst_bk, _handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
-            start = time.time()
-            while duration > (passed := time.time() - start):
+            start = time.monotonic()
+            while duration > (passed := time.monotonic() - start):
                 for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](
                         easing(passed / duration), dst_w, dst_h, *args):
                     gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_ow, dst_oh,

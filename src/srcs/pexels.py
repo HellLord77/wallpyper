@@ -2,12 +2,12 @@ import os
 from typing import Generator, Optional
 
 import gui
-from libs import files, isocodes, request
+from libs import files, isocodes, urls
 from . import Source
 
-URL_BASE = request.join('https://api.pexels.com', 'v1')
-URL_CURATED = request.join(URL_BASE, 'curated')
-URL_SEARCH = request.join(URL_BASE, 'search')
+URL_BASE = urls.join('https://api.pexels.com', 'v1')
+URL_CURATED = urls.join(URL_BASE, 'curated')
+URL_SEARCH = urls.join(URL_BASE, 'search')
 
 CONFIG_KEY = 'key'
 CONFIG_CURATED = 'curated'
@@ -31,7 +31,7 @@ def on_curated(curated: bool, menu: gui.MenuItem):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.open(URL_CURATED, {'per_page': '1'}, headers={'Authorization': key}))
+    return bool(urls.open(URL_CURATED, {'per_page': '1'}, headers={'Authorization': key}))
 
 
 class Pexels(Source):  # https://www.pexels.com/api/documentation
@@ -66,7 +66,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         params['per_page'] = '80'
         while True:
             if not photos:
-                response = request.open(query_url, params, headers={'Authorization': key})
+                response = urls.open(query_url, params, headers={'Authorization': key})
                 if response:
                     json = response.get_json()
                     photos = json.get('photos')
@@ -75,7 +75,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                     yield
                     continue
             url = photos.pop(0)['src']['original']
-            yield files.File(url, os.path.basename(request.strip(url)))
+            yield files.File(url, os.path.basename(urls.strip(url)))
 
     @classmethod
     def create_menu(cls):

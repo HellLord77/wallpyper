@@ -1,4 +1,4 @@
-__version__ = '0.0.22'
+__version__ = '0.0.23'
 
 import ast
 import binascii
@@ -26,7 +26,7 @@ import typing
 import uuid
 import zipfile
 import zlib
-from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, NoReturn, Optional
+from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, Optional
 
 T = typing.TypeVar('T')
 DEFAULT = object()
@@ -51,7 +51,7 @@ class _Mutable:
     __slots__ = '_data', '_changed'
     _type: type = types.NoneType
 
-    def __init__(self, val: Optional[int | float | complex | tuple | str | bytes | bool] = None):
+    def __init__(self, val: Optional[bool | bytes | complex | float | int | str | tuple] = None):
         self._data = self._type() if val is None else val
         self._changed = threading.Event()
 
@@ -97,44 +97,16 @@ class _Mutable:
                     self._changed.clear()
                     self._changed.wait()
             else:
-                end_time = time.time() + timeout
+                end_time = time.monotonic() + timeout
                 while self._data != val:
                     self._changed.clear()
-                    if not self._changed.wait(end_time - time.time()):
+                    if not self._changed.wait(end_time - time.monotonic()):
                         break
             return self._data == val
 
 
-class MutableInt(_Mutable):
-    _type = int
-    get: Callable[[], _type]
-    set: Callable[[_type], _type]
-    clear: Callable[[], _type]
-
-
-class MutableFloat(_Mutable):
-    _type = float
-    get: Callable[[], _type]
-    set: Callable[[_type], _type]
-    clear: Callable[[], _type]
-
-
-class MutableComplex(_Mutable):
-    _type = complex
-    get: Callable[[], _type]
-    set: Callable[[_type], _type]
-    clear: Callable[[], _type]
-
-
-class MutableTuple(_Mutable):
-    _type = tuple
-    get: Callable[[], _type]
-    set: Callable[[_type], _type]
-    clear: Callable[[], _type]
-
-
-class MutableStr(_Mutable):
-    _type = str
+class MutableBool(_Mutable):
+    _type = bool
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
@@ -147,8 +119,36 @@ class MutableBytes(_Mutable):
     clear: Callable[[], _type]
 
 
-class MutableBool(_Mutable):
-    _type = bool
+class MutableComplex(_Mutable):
+    _type = complex
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableFloat(_Mutable):
+    _type = float
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableInt(_Mutable):
+    _type = int
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableStr(_Mutable):
+    _type = str
+    get: Callable[[], _type]
+    set: Callable[[_type], _type]
+    clear: Callable[[], _type]
+
+
+class MutableTuple(_Mutable):
+    _type = tuple
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
@@ -280,8 +280,24 @@ def to_bool(string: str) -> bool:
     return _to_type(string, bool)
 
 
-def to_tuple(string: str) -> tuple:
-    return _to_type(string, tuple)
+def to_bytes(string: str) -> bytes:
+    return _to_type(string, bytes)
+
+
+def to_complex(string: str) -> complex:
+    return _to_type(string, complex)
+
+
+def to_dict(string: str) -> dict:
+    return _to_type(string, dict)
+
+
+def to_float(string: str) -> float:
+    return _to_type(string, float)
+
+
+def to_int(string: str) -> int:
+    return _to_type(string, int)
 
 
 def to_list(string: str) -> list:
@@ -292,8 +308,12 @@ def to_set(string: str) -> set:
     return _to_type(string, set)
 
 
-def to_dict(string: str) -> dict:
-    return _to_type(string, dict)
+def to_str(string: str) -> str:
+    return _to_type(string, str)
+
+
+def to_tuple(string: str) -> tuple:
+    return _to_type(string, tuple)
 
 
 def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
@@ -412,8 +432,8 @@ def sleep_ex(secs: Optional[float] = None):
         while secrets.randbelow(return_any(randint_ex)):
             pass
     elif secs != 0:
-        end_time = time.time() + secs
-        while end_time > time.time():
+        end_time = time.monotonic() + secs
+        while end_time > time.monotonic():
             pass
 
 
@@ -596,169 +616,6 @@ def hook_except(func: Callable, args: Optional[Iterable] = None,
 
     sys.excepthook = functools.partial(wrapper, sys.excepthook)
     threading.excepthook = functools.partial(wrapper, threading.excepthook)
-
-
-def _get_params(args, kwargs):
-    params = args + tuple(kwargs.items())
-    return try_ex(hash, pickle.dumps, args=((params,), (params, pickle.HIGHEST_PROTOCOL)), excs=((TypeError,), (ValueError,))) or params
-
-
-class _Callable(Callable):
-    def __init__(self, func: Callable):
-        functools.update_wrapper(self, func)
-        self.__func__ = func
-
-    def __call__(self, *args, **kwargs):
-        raise NotImplementedError
-
-
-class LastCacheCallable(_Callable):
-    _cache = None
-
-    def __call__(self, *args, **kwargs):
-        params = _get_params(args, kwargs)
-        if not self._cache or self._cache[0] != params:
-            self._cache = params, self.__func__(*args, **kwargs)
-        return self._cache[1]
-
-    def dumps(self) -> str:
-        return encrypt(self._cache)
-
-    def loads(self, data: str) -> bool:
-        cache = decrypt(data)
-        if loaded := cache is not None:
-            self._cache = cache
-        return loaded
-
-    def reset(self) -> bool:
-        try:
-            return bool(self._cache)
-        finally:
-            self._cache = None
-
-
-class OnceCallable(_Callable):
-    _run = False
-
-    def __call__(self, *args, **kwargs) -> Any:
-        if not self._run:
-            try:
-                return self.__func__(*args, **kwargs)
-            finally:
-                self._run = True
-
-    def reset(self) -> bool:
-        try:
-            return self._run
-        finally:
-            self._run = False
-
-    def has_run(self) -> bool:
-        return self._run
-
-
-class QueueCallable(_Callable):
-    def __init__(self, func: Callable):
-        self._lock = threading.Lock()
-        super().__init__(func)
-
-    def __call__(self, *args, **kwargs) -> Any:
-        with self._lock:
-            return self.__func__(*args, **kwargs)
-
-    def is_running(self) -> bool:
-        return self._lock.locked()
-
-
-class QueueThreadCallable(_Callable):
-    _res = None
-
-    def __init__(self, func: Callable):
-        self._works = queue.Queue()
-        threading.Thread(target=self._worker,
-                         name=f'{__name__}-{__version__}-{type(self).__name__}({func.__name__})', daemon=True).start()
-        super().__init__(func)
-
-    def __call__(self, *args, **kwargs):
-        self._works.put((args, kwargs))
-
-    def _worker(self) -> NoReturn:
-        while True:
-            params = self._works.get()
-            try:
-                self._res = self.__func__(*params[0], **params[1])
-            finally:
-                if self._works.unfinished_tasks:
-                    self._works.task_done()
-
-    def is_running(self) -> bool:
-        return bool(self._works.unfinished_tasks)
-
-    def reset(self) -> bool:
-        try:
-            return not self._works.unfinished_tasks
-        finally:
-            clear_queue(self._works)
-
-    def get_result(self) -> Any:
-        return self._res
-
-
-class SingletonCallable(_Callable):
-    _run = False
-
-    def __call__(self, *args, **kwargs) -> Any:
-        if not self._run:
-            self._run = True
-            try:
-                return self.__func__(*args, **kwargs)
-            finally:
-                self._run = False
-
-    def is_running(self) -> bool:
-        return bool(self._run)
-
-
-class ThreadedCallable(_Callable):
-    _res = None
-
-    def __call__(self, *args, **kwargs):
-        threading.Thread(target=lambda: setattr(self, '_res', self.__func__(*args, **kwargs)),
-                         name=f'{__name__}-{__version__}-{ThreadedCallable.__name__}({self.__func__.__name__})').start()
-
-    def get_result(self) -> Any:
-        return self._res
-
-
-def timed_cache(secs: float = math.inf, size: int = sys.maxsize) -> Callable[[Callable], Callable]:
-    def wrapper(func: Callable) -> Callable:
-        cache = []
-
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            cached = None
-            remove = []
-            current = time.time()
-            params = _get_params(args, kwargs)
-            for arg_res_time in cache:
-                if current > arg_res_time[2]:
-                    remove.append(arg_res_time)
-                elif params == arg_res_time[0]:
-                    cached = arg_res_time
-            for arg_res_time in remove:
-                cache.remove(arg_res_time)
-            if cached is None:
-                try:
-                    cache.append(cached := (params, func(*args, **kwargs), current + secs))
-                finally:
-                    while len(cache) > size:
-                        del cache[0]
-            return cached[1]
-
-        wrapped.reset = cache.clear
-        return wrapped
-
-    return wrapper
 
 
 def _call(func: Callable, args: Iterable, kwargs: Mapping[str, Any], res, res_as_arg: bool, unpack_res: bool) -> Any:

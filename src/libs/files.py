@@ -162,10 +162,10 @@ def trim_dir(path: str, target: int) -> bool:
     return trimmed
 
 
-def remove(path: str, recursive: bool = False, timeout: Optional[float] = None) -> bool:
+def remove(path: str, recursive: bool = False, timeout: float = 0.0) -> bool:
     tried = False
-    end_time = time.time() + (timeout or 0)
-    while not tried or end_time > time.time():
+    end_time = time.monotonic() + timeout
+    while not tried or end_time > time.monotonic():
         with contextlib.suppress(PermissionError):
             try:
                 shutil.rmtree(path) if recursive else os.remove(path)

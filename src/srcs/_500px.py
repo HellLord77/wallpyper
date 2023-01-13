@@ -5,7 +5,7 @@ from typing import Callable, Generator, Optional
 import consts
 import gui
 import win32.browser
-from libs import files, minihtml, request, utils
+from libs import files, minihtml, urls, utils
 from . import Source
 
 _TIMEOUT = 30
@@ -63,21 +63,21 @@ class FiveHundredPx(Source):
     def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
         images: Optional[list] = None
         image = None
-        url = request.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))
+        url = urls.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))
         if discover == DISCOVERS[3]:
             params.pop(CONFIG_DISCOVER)
         if discover != DISCOVERS[0]:
             params.pop(CONFIG_SORT)
-        browser = win32.browser.Browser(request.encode(url, params))
+        browser = win32.browser.Browser(urls.encode(url, params))
         browser.wait(_TIMEOUT)
         while True:
             if not images:
                 current = utils.len_ex(_find_images(browser))
                 if current:
                     browser.eval_js('window.scrollTo(0, document.body.scrollHeight);')
-                end_time = time.time() + _TIMEOUT
-                while end_time > time.time() and current == utils.len_ex(_find_images(browser)):
-                    time.sleep(consts.POLL_BIG_INTERVAL)
+                end_time = time.monotonic() + _TIMEOUT
+                while end_time > time.monotonic() and current == utils.len_ex(_find_images(browser)):
+                    time.sleep(consts.POLL_SLOW_SEC)
                 images_ = iter(_find_images(browser))
                 if image:
                     utils.consume_ex(images_, image)

@@ -19,7 +19,7 @@ SUFFIX = '.lock'
 def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_wait_args: Iterable,
                   on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
                   on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
-    if end_time > time.time():
+    if end_time > time.monotonic():
         if on_wait is not None:
             on_wait(*on_wait_args, **on_wait_kwargs)
         time.sleep(POLL_INTERVAL)
@@ -37,7 +37,7 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Ite
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
     flags = os.O_CREAT | os.O_EXCL
-    end_time = time.time() + wait * WAIT_INTERVAL
+    end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
         try:
             file = os.open(path, flags)
@@ -58,7 +58,7 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Ite
 def _memory(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable], on_wait_args: Iterable,
             on_wait_kwargs: Mapping[str, Any], on_exit: Optional[Callable], on_exit_args: Iterable,
             on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
-    end_time = time.time() + wait * WAIT_INTERVAL
+    end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
         try:
             memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
@@ -75,7 +75,7 @@ def _socket(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable], on_wa
             on_exit_kwargs: Mapping[str, Any]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    end_time = time.time() + wait * WAIT_INTERVAL
+    end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
         try:
             server.bind(address)

@@ -2,12 +2,12 @@ import sys
 from typing import Generator, Optional
 
 import gui
-from libs import files, request
+from libs import files, urls
 from . import Source
 
 URL_BASE = 'https://api.unsplash.com'
-URL_EDITORIAL = request.join(URL_BASE, 'photos')
-URL_SEARCH = request.join(URL_BASE, 'search', 'photos')
+URL_EDITORIAL = urls.join(URL_BASE, 'photos')
+URL_SEARCH = urls.join(URL_BASE, 'search', 'photos')
 
 CONFIG_ID = 'client_id'
 CONFIG_EDITORIAL = 'editorial'
@@ -24,7 +24,7 @@ ORIENTATIONS = '', 'landscape', 'portrait', 'squarish'
 
 
 def _authenticate(id_: str) -> bool:
-    return bool(request.open(URL_EDITORIAL, {CONFIG_ID: id_}))
+    return bool(urls.open(URL_EDITORIAL, {CONFIG_ID: id_}))
 
 
 class Unsplash(Source):  # https://unsplash.com/documentation
@@ -64,7 +64,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         while True:
             if not results:
                 params['page'] = str(int(params['page']) % total_pages + 1)
-                response = request.open(query_url, params)
+                response = urls.open(query_url, params)
                 if response:
                     json = response.get_json()
                     total_pages = sys.maxsize if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else int(json['total_pages'])

@@ -84,11 +84,11 @@ class _Response:
         return self.response.read(n)
 
 
-def url_is_path(url: str) -> bool:
+def is_path(url: str) -> bool:
     return urllib.parse.urlparse(url).scheme == _FILE_URI
 
 
-def path_to_url(path: str) -> str:
+def from_path(path: str) -> str:
     return urllib.parse.urljoin(f'{_FILE_URI}:', urllib.request.pathname2url(path))
 
 

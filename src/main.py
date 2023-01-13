@@ -22,7 +22,7 @@ import langs
 import pipe
 import srcs
 import win32
-from libs import easings, files, lens, log, pyinstall, request, singleton, spinners, timer, utils
+from libs import easings, callables, files, lens, log, pyinstall, urls, singleton, spinners, timer, utils
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -150,9 +150,9 @@ def save_config(force: bool = False) -> bool:
 
 def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
-        end_time = time.time() + consts.POLL_BIG_INTERVAL
-        while end_time > time.time() and not gui.SYSTEM_TRAY.is_shown():
-            time.sleep(consts.POLL_SMALL_INTERVAL)
+        end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
+        while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
+            time.sleep(consts.POLL_FAST_SEC)
         return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFY_LEN), icon)
     return False
 
@@ -168,7 +168,7 @@ def on_shown(*_):
         CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not notify(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
         if CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
-            time.sleep(consts.POLL_BIG_INTERVAL)
+            time.sleep(consts.POLL_SLOW_SEC)
             on_blocked()
 
 
@@ -208,7 +208,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
         PROGRESS.clear()
         print_progress()
         try:
-            if wallpaper.checksum(temp_path) or (request.download(
+            if wallpaper.checksum(temp_path) or (urls.download(
                     wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
                     query_callback=query_callback, args=args, kwargs=kwargs) and wallpaper.checksum(temp_path, True)):
                 wallpaper.fill(temp_path)
@@ -231,7 +231,7 @@ def get_next_wallpaper() -> Optional[files.File]:
             return next_wallpaper
 
 
-@utils.SingletonCallable
+@callables.SingletonCallable
 def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
@@ -259,7 +259,7 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
     return changed
 
 
-@utils.SingletonCallable
+@callables.SingletonCallable
 def save_wallpaper(path: str, select: bool = False) -> bool:
     dest = os.path.join(CURRENT_CONFIG[consts.CONFIG_SAVE_DIR], os.path.basename(path))
     if select:
@@ -268,12 +268,12 @@ def save_wallpaper(path: str, select: bool = False) -> bool:
     return files.copy(path, dest)
 
 
-@utils.SingletonCallable
+@callables.SingletonCallable
 def search_wallpaper(path: str) -> bool:
     searched = False
     with gui.animate(STRINGS.STATUS_SEARCH):
-        if location := request.upload(consts.URL_GOOGLE, files={'encoded_image': (None, path)},
-                                      redirect=False).getheader('location'):
+        if location := urls.upload(consts.URL_GOOGLE, files={'encoded_image': (None, path)},
+                                   redirect=False).getheader('location'):
             searched = webbrowser.open(location)
     return searched
 
@@ -305,7 +305,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
                 *get_displays(), full_screen_only=True).values()):
             while CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] == MAXIMIZED_ACTIONS[1] and all(
                     win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
-                time.sleep(consts.POLL_BIG_INTERVAL)
+                time.sleep(consts.POLL_SLOW_SEC)
             if not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] == MAXIMIZED_ACTIONS[2]:
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
@@ -322,7 +322,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
     return changed
 
 
-def on_wallpaper(callback: utils.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
+def on_wallpaper(callback: callables.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -392,7 +392,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=on_wallpaper, args=(
                             search_wallpaper, wallpaper, STRINGS.LABEL_GOOGLE, STRINGS.FAIL_SEARCH,)).set_icon(
                             RES_TEMPLATE.format(consts.RES_GOOGLE))
-                    with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.url_is_path(
+                    with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not urls.is_path(
                             wallpaper.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
@@ -524,7 +524,7 @@ def on_unpin() -> bool:
     return unpinned
 
 
-@utils.SingletonCallable
+@callables.SingletonCallable
 def pin_to_start() -> bool:
     return win32.add_pin(*pyinstall.get_launch_args(), taskbar=False, name=consts.NAME,
                          icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(consts.RES_ICON), show=pyinstall.FROZEN)
@@ -549,14 +549,14 @@ def on_unpin_start() -> bool:
     return unpinned
 
 
-@utils.SingletonCallable
+@callables.SingletonCallable
 def on_console() -> bool:
     if PIPE:
         if success := not PIPE.disconnect():
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
         win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__), str(PIPE))
-        if success := PIPE.connect(consts.PIPE_TIMEOUT):
+        if success := PIPE.connect(consts.MAX_PIPE_SEC):
             PIPE.flush()
         else:
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
@@ -608,9 +608,9 @@ def on_quit():
     if threading.active_count() > max_threads:
         gui.animate(STRINGS.STATUS_QUIT).__enter__()
         notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
-        end_time = time.time() + win32.get_max_shutdown_time()
-        while end_time > time.time() and threading.active_count() > max_threads:
-            time.sleep(consts.POLL_SMALL_INTERVAL)
+        end_time = time.monotonic() + win32.get_max_shutdown_time()
+        while end_time > time.monotonic() and threading.active_count() > max_threads:
+            time.sleep(consts.POLL_FAST_SEC)
     gui.stop_loop()
 
 

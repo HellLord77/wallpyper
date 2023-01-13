@@ -5,7 +5,7 @@ import threading
 from typing import Any, Callable, ContextManager, Iterable, Mapping, MutableMapping, Optional
 
 import win32
-from libs import utils
+from libs import callables
 from win32 import gui
 
 ANIMATION_PATH = ''
@@ -94,7 +94,7 @@ def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = N
         on_click(*menu_args_, *args, **kwargs)
 
     if on_thread:
-        wrapped = utils.ThreadedCallable(wrapped)
+        wrapped = callables.ThreadedCallable(wrapped)
     menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, wrapped)
 
 

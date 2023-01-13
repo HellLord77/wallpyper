@@ -3,7 +3,7 @@ from typing import Generator, Optional, Callable
 
 import gui
 import win32
-from libs import files, request
+from libs import files, urls
 from . import Source
 
 CONFIG_DIR = 'dir'
@@ -23,7 +23,7 @@ ORDERS = 'ascending', 'descending'
 class LocalFolder(Source):
     NAME = 'Local Folder'
     VERSION = '0.0.1'
-    URL = request.path_to_url(win32.PICTURES_DIR)
+    URL = urls.from_path(win32.PICTURES_DIR)
     ICON = 'png'
     DEFAULT_CONFIG = {
         CONFIG_DIR: win32.PICTURES_DIR,
@@ -47,7 +47,7 @@ class LocalFolder(Source):
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
                 results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
             path = results.pop(0)
-            yield files.File(request.path_to_url(path), os.path.basename(path), os.path.getsize(path))
+            yield files.File(urls.from_path(path), os.path.basename(path), os.path.getsize(path))
 
     @classmethod
     def create_menu(cls):

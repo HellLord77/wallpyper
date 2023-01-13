@@ -1,15 +1,16 @@
 from __future__ import annotations as _
 
+import collections.abc
 import sys
 import time
 import types
+import typing
 from typing import Callable, TypeVar
 from typing import Optional
 
 import win32
 from libs import ctyped
-from libs.ctyped.const import error, runtimeclass
-from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
+from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
 
@@ -331,11 +332,46 @@ def _test_browser_ex():
             time.sleep(5)
 
 
+def _isinstance(obj, cls: type) -> bool:
+    try:
+        return isinstance(obj, cls)
+    except TypeError:
+        if cls is typing.Any:
+            return True
+        else:
+            if _isinstance(obj, base := typing.get_origin(cls)):
+                args = typing.get_args(cls)
+                if base in (tuple, typing.Tuple):
+                    if args[-1] is not Ellipsis:
+                        return len(obj) == len(args) and all(
+                            _isinstance(ele, arg) for ele, arg in zip(obj, args))
+                    else:
+                        return all(_isinstance(ele, arg) for ele, arg in zip(obj, args[:-1]))
+                elif len(args) == 1:
+                    return all(_isinstance(ele, args[0]) for ele in obj)
+                elif len(args) == 2:
+                    if base is collections.abc.ItemsView:
+                        return all(_isinstance(ele, tuple[args]) for ele in obj)
+                    else:
+                        return all(_isinstance(key, args[0]) for key in obj.keys()) and all(
+                            _isinstance(value, args[1]) for value in obj.values())
+            else:
+                return False
+    raise NotImplementedError(cls)
+
+
 def _test():
-    statics = ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
-        runtimeclass.Windows.System.UserProfile.LockScreen)
-    with statics as act_statics:
-        print(act_statics.value)
+    tp = list[tuple[int]]
+    print(_isinstance([1, 2, 3], tp))
+    # tp2 = typing.Mapping[str, int]
+    # print(_test_isinstacne([1, 2, 3], tp2))
+    tp3 = dict[str, int]
+    print(_isinstance({'d': 6}, tp3))
+    tp4 = typing.Tuple[int, str]
+    print(_isinstance((2, '2'), tp4))
+    d: dict[int, str] = {1: '1'}
+    i = d.items()
+    print(_isinstance(i, typing.ItemsView[int, str]))
 
 
 if __name__ == '__main__':

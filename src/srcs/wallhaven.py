@@ -5,14 +5,14 @@ from typing import Callable, Generator, Optional
 
 import gui
 import win32
-from libs import colornames, files, request
+from libs import colornames, files, urls
 from . import Source
 
 _COLOR_TEMPLATE = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
-URL_BASE = request.join('https://wallhaven.cc', 'api', 'v1')
-URL_SEARCH = request.join(URL_BASE, 'search')
-URL_SETTINGS = request.join(URL_BASE, 'settings')
+URL_BASE = urls.join('https://wallhaven.cc', 'api', 'v1')
+URL_SEARCH = urls.join(URL_BASE, 'search')
+URL_SETTINGS = urls.join(URL_BASE, 'settings')
 
 CONFIG_KEY = 'apikey'
 CONFIG_CATEGORY = 'categories'
@@ -43,7 +43,7 @@ def on_color_right(_: int, item_color: gui.MenuItem):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(response := request.open(URL_SETTINGS, {'apikey': key})) and 'error' not in response.get_json()
+    return bool(response := urls.open(URL_SETTINGS, {'apikey': key})) and 'error' not in response.get_json()
 
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
@@ -91,7 +91,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             if not datas:
                 params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
                 params['seed'] = meta['seed'] or ''
-                response = request.open(URL_SEARCH, params)
+                response = urls.open(URL_SEARCH, params)
                 if response:
                     json = response.get_json()
                     datas = json['data']

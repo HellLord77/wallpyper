@@ -2,7 +2,7 @@ import uuid
 from typing import Generator, Optional
 
 import gui
-from libs import files, request
+from libs import files, urls
 from . import Source
 
 CONFIG_VARIANT = 'variant'
@@ -28,7 +28,7 @@ class ThisDoesNotExist(Source):
     def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
         url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
-            url = request.join(url, 'image')
+            url = urls.join(url, 'image')
         while True:
             yield files.File(url, f'{uuid.uuid4()}.jpg')
 

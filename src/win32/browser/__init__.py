@@ -66,8 +66,8 @@ class Browser:
         return self._browser.document.body.parent_element.outer_html
 
     def wait(self, timeout: float = math.inf) -> bool:
-        end_time = time.time() + timeout
-        while end_time > time.time() and not self.is_ready():
+        end_time = time.monotonic() + timeout
+        while end_time > time.monotonic() and not self.is_ready():
             time.sleep(_utils.POLL_INTERVAL)
         return self.is_ready()
 
