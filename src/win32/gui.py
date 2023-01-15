@@ -410,7 +410,7 @@ class _Control(_EventHandler):
         if gui is None:
             gui = Gui.get()
             if gui is None:
-                raise RuntimeError(f"There is no current {type(self).__name__} instance")
+                raise RuntimeError(f"Cannot find any {Gui.__name__} instance")
         # noinspection PyProtectedMember
         gui._attached.append(self)
         return gui.get_id()
@@ -555,7 +555,7 @@ class Menu(_Control):
         self._hmenu = _handle.HMENU.from_type()
         if not user32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
                 fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
-            raise RuntimeError(f"Could not initialize '{type(self).__name__}'")
+            raise RuntimeError(f"Cannot initialize '{type(self).__name__}'")
         self._hmenu.set_hwnd(self._hwnd)
         self._items: list[MenuItem] = []
         super().__init__(self._hmenu.value)

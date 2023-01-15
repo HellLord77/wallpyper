@@ -1,4 +1,4 @@
-__version__ = '0.0.12'
+__version__ = '0.0.13'
 
 import atexit
 import contextlib
@@ -14,7 +14,7 @@ import shutil
 import sys
 import threading
 import types
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Iterable, Mapping, Optional
 
 _CALL = 'call'
 _EXCEPTION = 'exception'
@@ -25,7 +25,8 @@ _SUFFIX = '\x1B[0m\n'
 _ANSI = re.compile(r'\x1B(?:[#-Z\\-_]|\[[0-?]*[ -/]*[#-~])')
 _GENERATOR = (_ for _ in ()).__name__
 _BASE = os.path.dirname(getattr(sys.modules['__main__'], '__file__', ''))
-_PATTERN = re.compile('.*')
+_INCLUDES = re.compile('.*')
+_EXCLUDES = re.compile('')
 _STACK = {}
 _STREAM = io.StringIO()
 _WRITE: Optional[Callable] = None
@@ -135,7 +136,8 @@ def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
         path = frame.f_code.co_filename
         with contextlib.suppress(ValueError):
             path = os.path.relpath(path, _BASE)
-        if _PATTERN.fullmatch(path) and __name__ is not frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name):
+        if (_INCLUDES.fullmatch(path) and not _EXCLUDES.fullmatch(path) and __name__ is not
+                frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name)):
             thread = threading.current_thread()
             if thread not in _STACK:
                 _STACK[thread] = 0
@@ -163,10 +165,13 @@ def _dump_info():
                                    f'Machine: {uname.machine}', f'Processor: {uname.processor}\n')))
 
 
-def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, check_comp: bool = True):
-    global _PATTERN
-    if patterns:
-        _PATTERN = re.compile(f'({"|".join(patterns)})')
+def init(includes: Optional[Iterable[str]] = None, excludes: Optional[Iterable[str]] = None,
+         level: int = Level.DEBUG, redirect_wx: bool = False, check_comp: bool = True):
+    global _INCLUDES, _EXCLUDES
+    if includes is not None:
+        _INCLUDES = re.compile(f'({"|".join(includes)})')
+    if excludes is not None:
+        _EXCLUDES = re.compile(f'({"|".join(excludes)})')
     Level.CURRENT = level
     if redirect_wx:
         __import__('wx').GetApp().RedirectStdio()
@@ -178,7 +183,7 @@ def init(*patterns: str, level: int = Level.DEBUG, redirect_wx: bool = False, ch
             sys.stderr.write = functools.partial(_WRITE, sys.stderr.write)
     logging.root.addHandler(logging.StreamHandler())
     if 'pytransform' in sys.modules:
-        logging.error(f'{_PREFIXES[_EXCEPTION]}Can not log {sys.modules["pytransform"].get_license_code()}{_SUFFIX}'[:-1])
+        raise RuntimeError(f'Cannot log {sys.modules["pytransform"].get_license_code()}')
     else:
         sys.settrace(_on_trace)
         threading.settrace(_on_trace)

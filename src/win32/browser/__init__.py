@@ -93,8 +93,8 @@ class Browser:
 
     def call_js(self, func: str, *args: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:  # TODO argtypes
         # noinspection PyProtectedMember
-        with _temp_var(window := self._browser.document.parent_window, func) as var, \
-                ctyped.interface.COM[DispEx.IDispatchEx](window._obj) as window_ex:
+        with (_temp_var(window := self._browser.document.parent_window, func) as var,
+              ctyped.interface.COM[DispEx.IDispatchEx](window._obj) as window_ex):
             disp_id = ctyped.type.DISPID()
             with _utils.get_bstr(var) as bstr:
                 window_ex.GetDispID(bstr, ctyped.const.fdexNameCaseSensitive, ctyped.byref(disp_id))

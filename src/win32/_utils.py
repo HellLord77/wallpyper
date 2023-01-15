@@ -209,8 +209,8 @@ def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...
 
 @contextlib.contextmanager
 def get_d2d1_dc_render_target() -> ContextManager[Optional[d2d1.ID2D1DCRenderTarget]]:
-    with ctyped.interface.COM[d2d1.ID2D1Factory]() as factory, \
-            ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target:
+    with (ctyped.interface.COM[d2d1.ID2D1Factory]() as factory,
+          ctyped.interface.COM[d2d1.ID2D1DCRenderTarget]() as target):
         p_iid, p_factory = ctyped.macro.IID_PPV_ARGS(factory)
         if ctyped.macro.SUCCEEDED(d2d1_.D2D1CreateFactory(
                 ctyped.enum.D2D1_FACTORY_TYPE.SINGLE_THREADED, p_iid,

@@ -499,8 +499,8 @@ def iter_stream(stream: IO, size: Optional[int] = None) -> Generator[AnyStr, Non
         chunk = read(size)
 
 
-def re_join(base: str, *child: str, sep: Optional[str] = None) -> str:
-    return re.escape(os.sep if sep is None else sep).join((base,) + child)
+def re_join(base: str, *child: str, sep: str = os.sep) -> str:
+    return re.escape(sep).join((base,) + child)
 
 
 def return_any(func: Callable, args: Optional[Iterable] = None,

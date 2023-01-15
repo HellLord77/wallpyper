@@ -22,7 +22,7 @@ import langs
 import pipe
 import srcs
 import win32
-from libs import easings, callables, files, lens, log, pyinstall, urls, singleton, spinners, timer, utils
+from libs import callables, easings, files, lens, log, pyinstall, singleton, spinners, timer, urls, utils
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -133,7 +133,7 @@ def load_config() -> bool:
     return loaded
 
 
-def save_config(force: bool = False) -> bool:
+def try_save_config(force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_KEEP_SETTINGS]:
         parser = configparser.ConfigParser()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
@@ -146,6 +146,16 @@ def save_config(force: bool = False) -> bool:
             parser.write(file)
         return os.path.isfile(CONFIG_PATH)
     return True
+
+
+def try_remove_temp(force: bool = False) -> bool:
+    if force or not CURRENT_CONFIG[consts.CONFIG_KEEP_CACHE]:
+        return files.remove(TEMP_DIR, True)
+    else:
+        files.trim_dir(TEMP_DIR, int(files.get_disk_size(TEMP_DIR) * consts.MAX_CACHE_PC))
+        if files.is_only_dirs(TEMP_DIR):
+            return try_remove_temp(True)
+        return True
 
 
 def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
@@ -203,14 +213,15 @@ _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[float, ...], bool]] = None,
                        args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> Optional[str]:
-    temp_path = os.path.join(TEMP_DIR, wallpaper.name)
+    try_remove_temp()
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         PROGRESS.clear()
         print_progress()
         try:
-            if wallpaper.checksum(temp_path) or (urls.download(
-                    wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
-                    query_callback=query_callback, args=args, kwargs=kwargs) and wallpaper.checksum(temp_path, True)):
+            if wallpaper.checksum(temp_path := os.path.join(TEMP_DIR, wallpaper.name)) or (
+                    urls.download(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
+                                  query_callback=query_callback, args=args,
+                                  kwargs=kwargs) and wallpaper.checksum(temp_path, True)):
                 wallpaper.fill(temp_path)
                 return temp_path
         finally:
@@ -465,10 +476,11 @@ def on_display_change(update: int, _: Optional[gui.Gui], item: win32.gui.MenuIte
     submenu.clear_items()
     with gui.set_menu(submenu):
         size = win32.display.get_display_size()
-        monitors = {consts.ALL_DISPLAY: f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}'}
+        monitors = {consts.ALL_DISPLAY: f'{langs.to_str(0, STRINGS)}. {STRINGS.DISPLAY_ALL}\t'
+                                        f'{langs.to_str(size[0], STRINGS)} × {langs.to_str(size[1], STRINGS)}'}
         for index, monitor in enumerate(DISPLAYS, 1):
-            monitors[monitor] = f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}' \
-                                f'\t{langs.to_str(DISPLAYS[monitor][1][0], STRINGS)} × {DISPLAYS[monitor][1][1]}'
+            monitors[monitor] = (f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
+                                 f'\t{langs.to_str(DISPLAYS[monitor][1][0], STRINGS)} × {DISPLAYS[monitor][1][1]}')
         gui.add_mapped_submenu(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAYS, on_click=on_blocked)
         enable = len(DISPLAYS) > 1
         for submenu_item in submenu:
@@ -564,7 +576,7 @@ def on_console() -> bool:
 
 
 def on_clear_cache() -> bool:
-    if not (cleared := files.remove(TEMP_DIR, True)):
+    if not (cleared := try_remove_temp(True)):
         notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
     return cleared
 
@@ -746,11 +758,8 @@ def start():
                    on_wait=print, on_wait_args=('Wait',), on_exit=print, on_exit_args=('Exit',))
     if consts.FEATURE_DEBUG_MODE:
         log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
-        log.init(os.path.basename(__file__), utils.re_join('libs', r'.*\.py'), utils.re_join(
-            'modules', r'.*\.py'), utils.re_join('win32', r'.*\.py'), level=log.Level.INFO, check_comp=False)
+        log.init((r'[^\\]*\.py', utils.re_join('srcs', r'.*\.py')), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
-    files.make_dir(TEMP_DIR)
-    files.trim_dir(TEMP_DIR, consts.MAX_CACHE_SZ)
     _update_display()
     load_config()
     sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
@@ -768,10 +777,8 @@ def start():
 def stop():
     timer.Timer.kill_all()
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTOSTART])
-    save_config()
-    files.trim_dir(TEMP_DIR, consts.MAX_CACHE_SZ) if CURRENT_CONFIG[consts.CONFIG_KEEP_CACHE] else files.remove(TEMP_DIR, True)
-    if os.path.isdir(TEMP_DIR) and files.is_only_dirs(TEMP_DIR, True):
-        files.remove(TEMP_DIR, True)
+    try_save_config()
+    try_remove_temp()
     PIPE.disconnect()
 
 

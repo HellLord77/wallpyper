@@ -4,9 +4,9 @@ DESCRIPTION = 'Python Wallpaper Changer!'
 DISPLAY = 'Unknown Display'
 DISPLAY_ALL = 'All Displays'
 FIRST_TITLE = 'Hello from Wallpyper! 👋'
-FIRST_TEXT = '👀 See the system tray icon?\n' \
-             'Double click to change wallpaper,\n' \
-             'Right click to open context menu.'
+FIRST_TEXT = ('👀 See the system tray icon?\n'
+              'Double click to change wallpaper,\n'
+              'Right click to open context menu.')
 BLOCKED_TITLE = 'Fullscreen Overlay Detected! 🚫'
 
 LABEL_ABOUT = 'About Wallpyper'

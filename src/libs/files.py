@@ -1,9 +1,10 @@
-__version__ = '0.0.12'
+__version__ = '0.0.13'
 
 import contextlib
 import filecmp
 import glob
 import hashlib
+import math
 import os
 import shutil
 import sys
@@ -70,11 +71,16 @@ def replace_ext(path: str, ext: str) -> str:
 
 
 def iter_dir(path: str, recursive: bool = False) -> Generator[str, None, None]:
-    dir_entry: os.DirEntry
-    for dir_entry in os.scandir(path):
-        yield os.path.realpath(dir_entry.path)
-        if recursive and dir_entry.is_dir():
-            yield from iter_dir(dir_entry.path, recursive)
+    try:
+        # noinspection PyTypeChecker
+        itt: Iterable[os.DirEntry] = os.scandir(path)
+    except FileNotFoundError:
+        pass
+    else:
+        for dir_entry in itt:
+            yield os.path.realpath(dir_entry.path)
+            if recursive and dir_entry.is_dir():
+                yield from iter_dir(dir_entry.path, recursive)
 
 
 def iter_files(path: str, recursive: bool = False) -> Generator[str, None, None]:
@@ -124,7 +130,7 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_only_dirs(path: str, recursive: bool = False) -> bool:
+def is_only_dirs(path: str, recursive: bool = True) -> bool:
     if recursive:
         try:
             for dir_ in iter_dir(path):
@@ -142,11 +148,11 @@ def _filter_files(paths: Iterable[str]) -> Generator[str, None, None]:
             yield path
 
 
-def trim_dir(path: str, target: int) -> bool:
+def trim_dir(path: str, target: int, key: Callable[[str], Any] = os.path.getctime) -> bool:
     trimmed = False
     paths = glob.glob(os.path.join(path, '**'), recursive=True)
     try:
-        paths.sort(key=os.path.getctime, reverse=True)
+        paths.sort(key=key, reverse=True)
     except FileNotFoundError:
         return False
     itt = _filter_files(paths)
@@ -162,15 +168,16 @@ def trim_dir(path: str, target: int) -> bool:
     return trimmed
 
 
-def remove(path: str, recursive: bool = False, timeout: float = 0.0) -> bool:
+def remove(path: str, recursive: bool = False, timeout: float = math.inf) -> bool:
     tried = False
     end_time = time.monotonic() + timeout
     while not tried or end_time > time.monotonic():
-        with contextlib.suppress(PermissionError):
-            try:
-                shutil.rmtree(path) if recursive else os.remove(path)
-            except (FileNotFoundError, NotADirectoryError):
-                break
+        try:
+            shutil.rmtree(path) if recursive else os.remove(path)
+        except PermissionError:
+            pass
+        except (FileNotFoundError, NotADirectoryError):
+            break
         tried = True
         time.sleep(POLL_INTERVAL)
     return not os.path.exists(path)
@@ -198,3 +205,7 @@ def check_hash(path: str, hash: bytes | str | _hashlib.HASH, name: str = 'md5') 
         return hash == hash_.digest()
     else:
         return hash.lower() == hash_.hexdigest()
+
+
+def get_disk_size(path: str) -> int:
+    return shutil.disk_usage(os.path.splitdrive(path)[0]).total
