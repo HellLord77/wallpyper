@@ -58,8 +58,8 @@ def _xml_merges(self: ElementTree.Element, other: ElementTree.Element):
 
 
 def _xml_merge(self: str, other: str) -> str:
-    root = ElementTree.XML(self)
-    _xml_merges(root, ElementTree.XML(other))
+    root = ElementTree.fromstring(self)
+    _xml_merges(root, ElementTree.fromstring(other))
     ElementTree.indent(root)
     return ElementTree.tostring(root, 'unicode')
 
@@ -89,7 +89,8 @@ def _calc_winpe_size(stream: io.BytesIO) -> int:
 def add_manifest(path: str, manifest: str, merge: bool = True):
     winmanifest = __import__('PyInstaller.utils.win32.winmanifest', fromlist=['PyInstaller.utils.win32'])
     if merge:
-        manifest = _xml_merge(winmanifest.GetManifestResources(path)[winmanifest.RT_MANIFEST][1][0].decode(), manifest)
+        manifest = _xml_merge(winmanifest.GetManifestResources(
+            path)[winmanifest.RT_MANIFEST][1][0].decode(), manifest)
     with tempfile.TemporaryFile() as temp:
         with open(path, 'rb') as file:
             shutil.copyfileobj(file, temp)

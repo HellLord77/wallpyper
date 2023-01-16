@@ -1,15 +1,16 @@
 from __future__ import annotations as _
 
 import collections.abc
+import pprint
 import sys
 import time
 import types
 import typing
-from typing import Callable, TypeVar
-from typing import Optional
+from typing import Any, Callable, TypeVar, Optional, Mapping, Iterable
+from xml.etree import ElementTree
 
 import win32
-from libs import ctyped
+from libs import ctyped, config
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
@@ -311,6 +312,7 @@ def _test_browser():
 
 
 def _test_dispatch():
+    # noinspection PyUnresolvedReferences
     import win32com.client as com
     excel = com.gencache.EnsureDispatch('Excel.Application')
     print(excel, sys.modules[type(excel).__module__])
@@ -333,15 +335,17 @@ def _test_browser_ex():
 
 
 def _isinstance(obj, cls: type) -> bool:
-    try:
-        return isinstance(obj, cls)
-    except TypeError:
-        if cls is typing.Any:
-            return True
-        else:
+    if cls is Any:
+        return True
+    elif isinstance(cls, types.UnionType):
+        return any(_isinstance(obj, arg) for arg in typing.get_args(cls))
+    else:
+        try:
+            return isinstance(obj, cls)
+        except TypeError:
             if _isinstance(obj, base := typing.get_origin(cls)):
                 args = typing.get_args(cls)
-                if base in (tuple, typing.Tuple):
+                if base is tuple:
                     if args[-1] is not Ellipsis:
                         return len(obj) == len(args) and all(
                             _isinstance(ele, arg) for ele, arg in zip(obj, args))
@@ -360,18 +364,89 @@ def _isinstance(obj, cls: type) -> bool:
     raise NotImplementedError(cls)
 
 
+def _to_xml(obj: Optional[bool | bytes | complex | float | int | str | Iterable | Mapping],
+            root: ElementTree.Element, __key: Optional[str] = None) -> ElementTree.Element:
+    if obj is None:
+        ElementTree.SubElement(root, __key)
+    elif isinstance(obj, bool | bytes | complex | float | int | str):
+        ElementTree.SubElement(root, __key).text = repr(obj)
+    elif isinstance(obj, Mapping):
+        if __key is not None:
+            root = ElementTree.SubElement(root, __key, type='dict')
+        for key, value in obj.items():
+            _to_xml(value, root, key)
+    elif isinstance(obj, Iterable):
+        ElementTree.SubElement(root, __key, type=type(obj).__name__)
+        for value in obj:
+            _to_xml(value, root, __key)
+    else:
+        raise TypeError
+    return root
+
+
 def _test():
-    tp = list[tuple[int]]
-    print(_isinstance([1, 2, 3], tp))
-    # tp2 = typing.Mapping[str, int]
-    # print(_test_isinstacne([1, 2, 3], tp2))
-    tp3 = dict[str, int]
-    print(_isinstance({'d': 6}, tp3))
-    tp4 = typing.Tuple[int, str]
-    print(_isinstance((2, '2'), tp4))
-    d: dict[int, str] = {1: '1'}
-    i = d.items()
-    print(_isinstance(i, typing.ItemsView[int, str]))
+    # tp = list[tuple[int] | list[str]]
+    # print(_isinstance([(1,), (2,), ['3']], tp))
+    # tp2 = Mapping[str, int]
+    # print(_isinstance([1, 2, 3], tp2))
+    # tp3 = dict[str, int]
+    # print(_isinstance({'d': 6}, tp3))
+    # tp4 = Tuple[int, str]
+    # print(_isinstance((2, '2'), tp4))
+    # d: dict[int, str] = {1: '1'}
+    # i = d.items()
+    # print(_isinstance(i, ItemsView[int, str]))
+    data = {'name': 'A Test \'of\' the "TOML" Parser',
+            'text': '123',
+            'num': 123,
+            'map': {},
+            'boolean': True,
+            'null': None,
+            'list': [],
+            'tuple': (1, 2, '3'),
+            'set': {1, '2', 3},
+            'frozen_set': frozenset({'1', 2, 3}),
+            'list2': [1, 2, '3'],
+            'bytes': b'\x01\x02\x03\x04',
+            # 'complex': 1 + 2j,
+            'things': [{'a': 'thing1', 'b': 'fdsa', 'multiLine': 'Some sample text.'},
+                       {'a': 'Something else',
+                        'b': 'zxcv',
+                        'multiLine': 'Multiline string',
+                        'objs': [{'x': 1},
+                                 {'x': 4},
+                                 {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
+                       {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
+    data2 = {"menu": {
+        "id": "file",
+        "value": "File",
+        "popup": {
+            "menuitem": [
+                {"value": "New", "onclick": "CreateNewDoc()"},
+                {"value": "Open", "onclick": "OpenDoc()"},
+                {"value": "Close", "onclick": "CloseDoc()"}
+            ]
+        }
+    }}
+    pprint.pprint(data, sort_dicts=False)
+    config_ = config.XMLConfig(data)
+    dumped = config_.dumps()
+    # print(dumped)
+    config__ = config.XMLConfig()
+    config__.loads(dumped)
+    print('XML', config_ == config__)
+    config_ = config.JSONConfig(data)
+    dumped = config_.dumps()
+    # print(dumped)
+    config__ = config.JSONConfig()
+    config__.loads(dumped)
+    print('JSON', config_ == config__)
+    config_ = config.REGConfig(data)
+    dumped = config_.dumps()
+    # print(dumped)
+    config__ = config.REGConfig()
+    config__.loads(dumped)
+    print('REG', config_ == config__)
 
 
 if __name__ == '__main__':

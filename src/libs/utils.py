@@ -534,11 +534,11 @@ def shrink_string_mid(string: str, max_len: int, filler: str = '...') -> str:
 
 
 def compress(datas: Mapping[str, bytes | str], compression: int = zipfile.ZIP_STORED) -> bytes:
-    buff = io.BytesIO()
-    with zipfile.ZipFile(buff, 'w', compression) as file:
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, 'w', compression) as file:
         for name, data in datas.items():
             file.writestr(name, data)
-    return buff.getvalue()
+    return stream.getvalue()
 
 
 def decompress(data: bytes, *names: str, password: Optional[bytes] = None) -> Mapping[str, Optional[bytes]]:
@@ -602,16 +602,16 @@ def hook_except(func: Callable, args: Optional[Iterable] = None,
     def wrapper(hook: Callable, *hook_args, **hook_kwargs):
         if format:
             stderr = sys.stderr
-            temp = io.StringIO()
-            sys.stderr = temp
+            stream = io.StringIO()
+            sys.stderr = stream
         hook(*hook_args, **hook_kwargs)
         if format:
             # noinspection PyUnboundLocalVariable
-            stderr.write(temp.getvalue())
+            stderr.write(stream.getvalue())
             sys.stderr = stderr
             while not isinstance(hook_args, type):
                 hook_args = hook_args[0]
-            hook_args = (hook_args, temp.getvalue())
+            hook_args = (hook_args, stream.getvalue())
         func(*hook_args, *args, **hook_kwargs, **kwargs)
 
     sys.excepthook = functools.partial(wrapper, sys.excepthook)
