@@ -1,4 +1,4 @@
-$Version = "0.1.4"
+$Version = "0.1.5"
 
 $Datas = @(
 	"res"
@@ -13,7 +13,7 @@ $OptimizationLevel = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issue
 $Debug = $False
 $NoConsole = $True
 $Obfuscate = $False
-$OneFile = $True
+$OneFile = $False
 $ElevatedProc = $False
 $RemoteProc = $False
 $UPX = $False
@@ -39,7 +39,9 @@ $CythonizeSourceGlobs = @(
 	"src/win32/**/*.py"
 	"src/{langs,libs,srcs}/*.py"
 	"src/*.py")
-# $CythonizeGlobs = @()
+# CythonizeSourceGlobs = @()
+$CythonizeAnnotate = $False
+$CythonizeNoDocstrings = $True
 $CythonizeRemove = $True
 $CodeRunBefore = @()
 $CodeRunBeforeRemote = @(
@@ -103,7 +105,7 @@ $CodeCompileCTemplate = @(
 $CopyTimeout = 9
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
-$MinifyLocalJson = $False
+$MinifyJsonLocal = $False
 $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 $IsGithub = Test-Path Env:GITHUB_REPOSITORY
@@ -384,7 +386,7 @@ function Write-Build {
 		Start-PythonCode $CodeRunBeforeRemote
 	}
 
-	if ($MinifyLocalJson -or $IsGithub) {
+	if ($MinifyJsonLocal -or $IsGithub) {
 		foreach ($MinifyJsonRegEx in $MinifyJsonRegExs) {
 			foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx) {
 				MinifyJsonFile $Json.FullName
@@ -394,7 +396,16 @@ function Write-Build {
 
 	$CodeCompileC = @() + $CodeCompileCTemplate
 	foreach ($CythonSource in $CythonSources) {
-		cython --verbose -3 --embed $CythonSource
+		$CythonArgs = @("--verbose", "-3", "--embed")
+		if (-not $IsGithub -and $CythonizeAnnotate) {
+			$CythonArgs += "--annotate"
+		}
+		if ($CythonizeNoDocstrings) {
+			$CythonArgs += "--no-docstrings"
+		}
+		$CythonArgs += $CythonSource
+		Write-Host "cython $CythonArgs"
+		cython $CythonArgs
 		$SourceBase = $CythonSource.Substring(0, $CythonSource.LastIndexOf("."))
 		$CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
 		Start-PythonCode $CodeCompileC
@@ -405,7 +416,13 @@ function Write-Build {
 
 	$PyInstallerArgs = Get-PyInstallerArgs
 	if ($CythonizeSourceGlobs) {
-		$CythonizeArgs = @("-3", "--inplace", "--no-docstrings")
+		$CythonizeArgs = @("-3", "--inplace")
+		if (-not $IsGithub -and $CythonizeAnnotate) {
+			$CythonizeArgs += "--annotate"
+		}
+		if ($CythonizeNoDocstrings) {
+			$CythonizeArgs += "--no-docstrings"
+		}
 		foreach ($CythonizeExcludeGlob in $CythonizeExcludeGlobs) {
 			$CythonizeArgs += "--exclude=$CythonizeExcludeGlob"
 		}

@@ -1,3 +1,3 @@
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = collect_data_files('libs.isocodes', excludes=['**/*.c'])
+datas = collect_data_files('libs.isocodes', excludes=['**/*.{c,html}'])
