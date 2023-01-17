@@ -17,8 +17,12 @@ jobs:
       - name: Build project
         run: .\build.ps1
       - name: Upload build
-        env:
-          MEGA_USERNAME: ${{ secrets.USERNAME }}
-          MEGA_PASSWORD: ${{ secrets.PASSWORD }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: .\build.ps1 upload
+        #        env:
+        #          MEGA_USERNAME: ${{ secrets.MEGA_USERNAME }}
+        #          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+        #          PYTHON_VERSION: ${{ matrix.python-version }}
+        #        run: .\build.ps1 upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event.repository.name }}
+          path: dist/*
