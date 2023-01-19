@@ -443,7 +443,7 @@ def _test():
     print('JSON', config_ == config__)
     config_ = config.REGConfig(data)
     dumped = config_.dumps()
-    # print(dumped)
+    print(dumped)
     config__ = config.REGConfig()
     config__.loads(dumped)
     print('REG', config_ == config__)
