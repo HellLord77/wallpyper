@@ -1,7 +1,6 @@
 from __future__ import annotations as _
 
 import collections.abc
-import pprint
 import sys
 import time
 import types
@@ -397,24 +396,28 @@ def _test():
     # i = d.items()
     # print(_isinstance(i, ItemsView[int, str]))
     data = {'name': 'A Test \'of\' the "TOML" Parser',
-            'text': '123',
+            'e_text': '',
             'num': 123,
             'map': {},
             'boolean': True,
             'null': None,
-            'list': [],
-            'tuple': (1, 2, '3'),
+            't_list': [],
+            'e_tup': (),
+            't_tuple': (1, 2, '3'),
             'set': {1, '2', 3},
-            'frozen_set': frozenset({'1', 2, 3}),
+            # 'barr': bytearray(b'123'),
+            # 'fzst': frozenset({'1', 2, 3}),
             'list2': [1, 2, '3'],
             'bytes': b'\x01\x02\x03\x04',
-            # 'complex': 1 + 2j,
-            'things': [{'a': 'thing1', 'b': 'fdsa', 'multiLine': 'Some sample text.'},
+            'complex': 1 + 2j,
+            'things': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
                        {'a': 'Something else',
                         'b': 'zxcv',
                         'multiLine': 'Multiline string',
                         'objs': [{'x': 1},
-                                 {'x': 4},
+                                 {'x': {
+                                     'list2': [1, 2, '3'],
+                                     'bytes': b'\x01\x02\x03\x04'}},
                                  {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
                        {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
     data2 = {"menu": {
@@ -428,25 +431,37 @@ def _test():
             ]
         }
     }}
-    pprint.pprint(data, sort_dicts=False)
-    config_ = config.XMLConfig(data)
-    dumped = config_.dumps()
-    # print(dumped)
-    config__ = config.XMLConfig()
-    config__.loads(dumped)
-    print('XML', config_ == config__)
+    # pprint.pprint(data, sort_dicts=False)
     config_ = config.JSONConfig(data)
     dumped = config_.dumps()
     # print(dumped)
     config__ = config.JSONConfig()
     config__.loads(dumped)
     print('JSON', config_ == config__)
+    config_ = config.XMLConfig(data)
+    dumped = config_.dumps()
+    # print(dumped)
+    config__ = config.XMLConfig()
+    config__.loads(dumped)
+    print('XML', config_ == config__)
+    config_ = config.FLATConfig(data)
+    dumped = config_.dumps()
+    # print(dumped)
+    config__ = config.FLATConfig()
+    config__.loads(dumped)
+    print('FLAT', config_ == config__)
     config_ = config.REGConfig(data)
     dumped = config_.dumps()
-    print(dumped)
+    # print(dumped)
     config__ = config.REGConfig()
     config__.loads(dumped)
     print('REG', config_ == config__)
+    config_ = config.YAMLConfig(data)
+    dumped = config_.dumps()
+    print(dumped)
+    config__ = config.YAMLConfig()
+    config__.loads(dumped)
+    print('YAML', config_ == config__)
 
 
 if __name__ == '__main__':
