@@ -1,12 +1,12 @@
 from __future__ import annotations as _
 
 import collections.abc
+import enum
 import sys
 import time
 import types
 import typing
-from typing import Any, Callable, TypeVar, Optional, Mapping, Iterable
-from xml.etree import ElementTree
+from typing import Any, Callable, TypeVar, Optional, Literal, Tuple
 
 import win32
 from libs import ctyped, config
@@ -342,9 +342,12 @@ def _isinstance(obj, cls: type) -> bool:
         try:
             return isinstance(obj, cls)
         except TypeError:
-            if _isinstance(obj, base := typing.get_origin(cls)):
+            base = typing.get_origin(cls)
+            if base is Literal:
+                return obj in typing.get_args(cls)
+            elif _isinstance(obj, base):
                 args = typing.get_args(cls)
-                if base is tuple:
+                if base in (tuple, Tuple):
                     if args[-1] is not Ellipsis:
                         return len(obj) == len(args) and all(
                             _isinstance(ele, arg) for ele, arg in zip(obj, args))
@@ -363,24 +366,13 @@ def _isinstance(obj, cls: type) -> bool:
     raise NotImplementedError(cls)
 
 
-def _to_xml(obj: Optional[bool | bytes | complex | float | int | str | Iterable | Mapping],
-            root: ElementTree.Element, __key: Optional[str] = None) -> ElementTree.Element:
-    if obj is None:
-        ElementTree.SubElement(root, __key)
-    elif isinstance(obj, bool | bytes | complex | float | int | str):
-        ElementTree.SubElement(root, __key).text = repr(obj)
-    elif isinstance(obj, Mapping):
-        if __key is not None:
-            root = ElementTree.SubElement(root, __key, type='dict')
-        for key, value in obj.items():
-            _to_xml(value, root, key)
-    elif isinstance(obj, Iterable):
-        ElementTree.SubElement(root, __key, type=type(obj).__name__)
-        for value in obj:
-            _to_xml(value, root, __key)
-    else:
-        raise TypeError
-    return root
+NamedTuple = collections.namedtuple('NamedTuple', ('a', 'b', 'c'))
+
+
+class TestEnum(enum.Enum):
+    A = 1
+    B = 2
+    C = 3
 
 
 def _test():
@@ -395,46 +387,41 @@ def _test():
     # d: dict[int, str] = {1: '1'}
     # i = d.items()
     # print(_isinstance(i, ItemsView[int, str]))
-    data = {'name': 'A Test \'of\' the "TOML" Parser',
-            'e_text': '',
-            'num': 123,
-            'map': {},
-            'boolean': True,
-            'null': None,
-            't_list': [],
-            'e_tup': (),
-            't_tuple': (1, 2, '3'),
-            'set': {1, '2', 3},
-            # 'barr': bytearray(b'123'),
-            # 'fzst': frozenset({'1', 2, 3}),
-            'list2': [1, 2, '3'],
-            'bytes': b'\x01\x02\x03\x04',
-            'complex': 1 + 2j,
-            'things': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
-                       {'a': 'Something else',
-                        'b': 'zxcv',
-                        'multiLine': 'Multiline string',
-                        'objs': [{'x': 1},
-                                 {'x': {
-                                     'list2': [1, 2, '3'],
-                                     'bytes': b'\x01\x02\x03\x04'}},
-                                 {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
-                       {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
-    data2 = {"menu": {
-        "id": "file",
-        "value": "File",
-        "popup": {
-            "menuitem": [
-                {"value": "New", "onclick": "CreateNewDoc()"},
-                {"value": "Open", "onclick": "OpenDoc()"},
-                {"value": "Close", "onclick": "CloseDoc()"}
-            ]
-        }
-    }}
+    data = {
+        # 'enum': TestEnum.A,
+        # 'ntt': NamedTuple(1, 2, 3),
+        'tough': collections.deque([1, (1, 2), '3'], maxlen=3),
+        'count': collections.Counter({'red': 4, 'blue': 2}),
+        'name': 'A Test \'of\' the "TOML" Parser',
+        'e_text': '',
+        'od': collections.OrderedDict([('a', 1), ('b', 2)]),
+        'num': 123,
+        'map': {},
+        'boolean': True,
+        'null': None,
+        't_list': [],
+        'e_tup': (),
+        't_tuple': (1, 2, '3'),
+        'set': {1, '2', 3},
+        'barr': bytearray(b'123'),
+        'fzst': frozenset({'1', 2, 3}),
+        'list2': [1, 2, '3'],
+        'bytes': b'\x01\x02\x03\x04',
+        'complex': 1 + 2j,
+        'things': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
+                   {'a': 'Something else',
+                    'b': 'zxcv',
+                    'multiLine': 'Multiline string',
+                    'objs': [{'x': 1},
+                             {'x': {
+                                 'list2': [1, 2, '3'],
+                                 'bytes': b'\x01\x02\x03\x04'}},
+                             {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
+                   {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
     # pprint.pprint(data, sort_dicts=False)
     config_ = config.JSONConfig(data)
     dumped = config_.dumps()
-    # print(dumped)
+    print(dumped)
     config__ = config.JSONConfig()
     config__.loads(dumped)
     print('JSON', config_ == config__)
@@ -456,12 +443,12 @@ def _test():
     config__ = config.REGConfig()
     config__.loads(dumped)
     print('REG', config_ == config__)
-    config_ = config.YAMLConfig(data)
-    dumped = config_.dumps()
-    print(dumped)
-    config__ = config.YAMLConfig()
-    config__.loads(dumped)
-    print('YAML', config_ == config__)
+    # config_ = config.YAMLConfig(data)
+    # dumped = config_.dumps()
+    # # print(dumped)
+    # config__ = config.YAMLConfig()
+    # config__.loads(dumped)
+    # print('YAML', config_ == config__)
 
 
 if __name__ == '__main__':
