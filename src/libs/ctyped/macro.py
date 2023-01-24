@@ -9,6 +9,7 @@ from . import lib as _lib
 from . import struct as _struct
 from . import type as _type
 from ._utils import _CT, _Pointer, _PyCSimpleType, _cast_int, _byref, _sizeof
+from .lib import ole32 as _ole32
 
 
 # noinspection PyPep8Naming,PyShadowingBuiltins
@@ -217,7 +218,7 @@ def __uuidof(_: _PyCSimpleType) -> _Pointer[_struct.IID]:
         except AttributeError:
             pass
     iid_ref = _byref(_struct.IID())
-    _lib.ole32.IIDFromString(getattr(const, f'IID_{base.__name__}'), iid_ref)
+    _ole32.IIDFromString(getattr(const, f'IID_{base.__name__}'), iid_ref)
     return iid_ref
 
 

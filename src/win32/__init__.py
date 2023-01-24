@@ -55,7 +55,9 @@ def get_colored_bitmap(r: int, g: int, b: int, width: int = 32, height: int = 32
     return _gdiplus.bitmap_from_color(_gdiplus.Color.from_rgba(r, g, b), width, height)
 
 
-def set_color_mode(mode: int = ColorMode.DEFAULT, flush: bool = True):
+def set_color_mode(mode: int | str = ColorMode.DEFAULT, flush: bool = True):
+    if isinstance(mode, str):
+        mode = ColorMode[mode]
     # noinspection PyTypeChecker
     uxtheme.SetPreferredAppMode(mode)
     if flush:

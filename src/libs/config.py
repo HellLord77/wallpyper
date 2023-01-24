@@ -1,10 +1,12 @@
 __version__ = '0.1.0'
 
 import ast
+import builtins
 import collections
 import configparser
 import contextlib
 import enum
+import inspect
 import io
 import itertools
 import json
@@ -34,8 +36,8 @@ def _open(path_or_file: _TPath | _TIO, write: bool = False,
 
 def _dump(obj: Any) -> str:
     type_ = type(obj)
-    module = type_.__module__
-    return type_.__qualname__ if module == 'builtins' else f'{module}|{type_.__qualname__}'
+    return type_.__qualname__ if inspect.getmodule(
+        type_) is builtins else f'{obj.__module__}|{type_.__qualname__}'
 
 
 def _load(name: str) -> type:

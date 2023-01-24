@@ -317,8 +317,8 @@ def _test_dispatch():
     print(excel, sys.modules[type(excel).__module__])
 
     from libs.ctyped.interface.um import oaidl
-    disp = ctyped.interface.COM[oaidl.IDispatch]('Excel.Application')
-    print(win32._utils.get_funcs(~disp).values())
+    with ctyped.interface.COM[oaidl.IDispatch]('Excel.Application') as disp:
+        print(win32._utils.get_funcs(disp).values())
 
 
 def _test_browser_ex():

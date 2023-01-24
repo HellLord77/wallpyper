@@ -34,7 +34,8 @@ TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir()
 
 CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
-MAXIMIZED_ACTIONS: tuple[str, str, str] = '', 'POSTPONE', 'CANCEL'
+MAXIMIZED_ACTIONS: tuple[
+    str, str, str] = consts.MAXIMIZED_ACTION_IGNORE, consts.MAXIMIZED_ACTION_POSTPONE, consts.MAXIMIZED_ACTION_SKIP
 EASE_STYLES: tuple[str, str, str, str, str, str, str] = 'SINE', 'QUAD', 'CUBIC', 'QUART', 'QUINT', 'EXPO', 'CIRC'
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
@@ -69,8 +70,8 @@ DEFAULT_CONFIG: dict[str, int | float | bool | str] = {
     consts.CONFIG_TRANSITION_DURATION: TRANSITION_DURATIONS[2],
     consts.CONFIG_IF_MAXIMIZED: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_TRANSITION_EASE: EASE_STYLES[2],
-    consts.CONFIG_MENU_COLOR: win32.ColorMode.AUTO,
     consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
+    consts.CONFIG_MENU_COLOR: win32.ColorMode[win32.ColorMode.AUTO],
     consts.CONFIG_SAVE_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_FIT_STYLE: win32.display.Style[win32.display.Style.FILL],
     consts.CONFIG_ROTATE_BY: win32.display.Rotate[win32.display.Rotate.NONE],
@@ -88,6 +89,7 @@ def _fix_config(key: str, values: Iterable):
 
 
 def fix_config():
+    _fix_config(consts.CONFIG_MENU_COLOR, win32.ColorMode[1:])
     _fix_config(consts.CONFIG_FIT_STYLE, win32.display.Style)
     _fix_config(consts.CONFIG_ROTATE_BY, win32.display.Rotate)
     _fix_config(consts.CONFIG_FLIP_BY, win32.display.Flip)
@@ -97,7 +99,6 @@ def fix_config():
     _fix_config(consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
     _fix_config(consts.CONFIG_IF_MAXIMIZED, MAXIMIZED_ACTIONS)
     _fix_config(consts.CONFIG_TRANSITION_EASE, EASE_STYLES)
-    _fix_config(consts.CONFIG_MENU_COLOR, (win32.ColorMode[mode] for mode in win32.ColorMode[1:]))
     if not CURRENT_CONFIG[consts.CONFIG_SAVE_DIR]:
         CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = DEFAULT_CONFIG[consts.CONFIG_SAVE_DIR]
     _fix_config(consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else tuple(
@@ -184,7 +185,8 @@ def on_shown(*_):
 
 def get_displays() -> Iterable[str]:
     _fix_config(consts.CONFIG_ACTIVE_DISPLAYS, DISPLAYS)
-    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAYS] == consts.ALL_DISPLAY else (CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAYS],)
+    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAYS] == consts.ALL_DISPLAY else (
+        CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAYS],)
 
 
 @timer.on_thread
@@ -195,7 +197,8 @@ def on_blocked(*_):
             count = itertools.count(1)
             text = '\n'.join(f'{langs.to_str(next(count), STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
                              f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKED_NAME else ""}'
-                             for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
+                             for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if
+                             blocker is not None)
             notify(STRINGS.BLOCKED_TITLE, text, force=True)
 
 
@@ -243,7 +246,8 @@ def get_next_wallpaper() -> Optional[files.File]:
 
 
 @callables.SingletonCallable
-def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
+def change_wallpaper(wallpaper: Optional[files.File] = None,
+                     query_callback: Optional[Callable[[float, ...], bool]] = None,
                      args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
     changed = False
     if wallpaper is None:
@@ -259,7 +263,8 @@ def change_wallpaper(wallpaper: Optional[files.File] = None, query_callback: Opt
         wallpaper.name = win32.sanitize_filename(wallpaper.name)
         if path := download_wallpaper(wallpaper, query_callback, args, kwargs):
             easing = easings.get(getattr(easings.Ease, CURRENT_CONFIG[
-                consts.CONFIG_TRANSITION_EASE]), CURRENT_CONFIG[consts.CONFIG_EASE_IN], CURRENT_CONFIG[consts.CONFIG_EASE_OUT])
+                consts.CONFIG_TRANSITION_EASE]), CURRENT_CONFIG[
+                                     consts.CONFIG_EASE_IN], CURRENT_CONFIG[consts.CONFIG_EASE_OUT])
             # noinspection PyArgumentList
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
                 path, display, getattr(win32.display.Style, CURRENT_CONFIG[consts.CONFIG_FIT_STYLE]), rotate=getattr(
@@ -314,10 +319,13 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
     if auto_change:
         if CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] and all(win32.display.get_display_blockers(
                 *get_displays(), full_screen_only=True).values()):
-            while CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] == MAXIMIZED_ACTIONS[1] and all(
-                    win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
+            while CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
+                consts.CONFIG_IF_MAXIMIZED] == consts.MAXIMIZED_ACTION_POSTPONE and all(
+                win32.display.get_display_blockers(
+                    *get_displays(), full_screen_only=True).values()):
                 time.sleep(consts.POLL_SLOW_SEC)
-            if not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] == MAXIMIZED_ACTIONS[2]:
+            if not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or \
+                    CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] == consts.MAXIMIZED_ACTION_SKIP:
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
     if not changed and not change_wallpaper.is_running():
@@ -333,7 +341,8 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
     return changed
 
 
-def on_wallpaper(callback: callables.SingletonCallable[[str], bool], wallpaper: files.File, title: str, text: str) -> bool:
+def on_wallpaper(callback: callables.SingletonCallable[[str], bool], wallpaper: files.File, title: str,
+                 text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -368,7 +377,8 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_SET, on_click=on_change, args=(*TIMER.args, wallpaper, False),
                                       on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=on_wallpaper, args=(
-                        win32.display.set_lock_background, wallpaper, STRINGS.LABEL_SET_LOCK, STRINGS.FAIL_CHANGE_LOCK)).set_icon(
+                        win32.display.set_lock_background, wallpaper, STRINGS.LABEL_SET_LOCK,
+                        STRINGS.FAIL_CHANGE_LOCK)).set_icon(
                         RES_TEMPLATE.format(consts.RES_SET_LOCK))
                     gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=on_wallpaper, args=(
                         save_wallpaper, wallpaper, STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)).set_icon(
@@ -382,16 +392,19 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         RES_TEMPLATE.format(consts.RES_OPEN))
                     if consts.FEATURE_OPEN_WITH:
                         gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=on_wallpaper, args=(
-                            win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH, STRINGS.FAIL_OPEN_WITH)).set_icon(
+                            win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH,
+                            STRINGS.FAIL_OPEN_WITH)).set_icon(
                             RES_TEMPLATE.format(consts.RES_OPEN_WITH))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=on_wallpaper, args=(
-                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER, STRINGS.FAIL_OPEN_EXPLORER,)).set_icon(
+                        win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER,
+                        STRINGS.FAIL_OPEN_EXPLORER,)).set_icon(
                         RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=on_open_url, args=(
                         wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=on_wallpaper, args=(
-                        win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH, STRINGS.FAIL_COPY_PATH)).set_icon(
+                        win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH,
+                        STRINGS.FAIL_COPY_PATH)).set_icon(
                         RES_TEMPLATE.format(consts.RES_COPY_PATH))
                     gui.add_menu_item(STRINGS.LABEL_COPY, on_click=on_wallpaper, args=(
                         win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY, STRINGS.FAIL_COPY)).set_icon(
@@ -408,7 +421,8 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
                                               on_click=on_search, menu_args=(gui.MenuItemProperty.UID,), args=(
-                                    wallpaper.url,)).set_icon(RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
+                                    wallpaper.url,)).set_icon(
+                                RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
             wallpaper_item = menu.insert_item(index, utils.shrink_string(
                 wallpaper.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.RES_DIGIT_TEMPLATE.format(index + 1)), submenu=submenu)
@@ -539,7 +553,8 @@ def on_unpin() -> bool:
 @callables.SingletonCallable
 def pin_to_start() -> bool:
     return win32.add_pin(*pyinstall.get_launch_args(), taskbar=False, name=consts.NAME,
-                         icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(consts.RES_ICON), show=pyinstall.FROZEN)
+                         icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(consts.RES_ICON),
+                         show=pyinstall.FROZEN)
 
 
 def on_pin_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> bool:
@@ -637,7 +652,8 @@ def create_menu():  # TODO slideshow (smaller timer)
     item_change.set_default()
     item_change.set_icon(RES_TEMPLATE.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(STRINGS.MENU_RECENT, False, icon=RES_TEMPLATE.format(consts.RES_RECENT))
-    TIMER.__init__(0, on_change, (item_change.enable, item_recent, utils.call_after(PROGRESS.set)(lambda _: True)), once=True)
+    TIMER.__init__(0, on_change, (item_change.enable, item_recent, utils.call_after(PROGRESS.set)(lambda _: True)),
+                   once=True)
     gui.set_on_click(item_change, on_change, args=(*TIMER.args, None, False), on_thread=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(STRINGS.LABEL_CLEAR, on_click=on_clear, args=(
@@ -672,7 +688,8 @@ def create_menu():  # TODO slideshow (smaller timer)
                 menu_args=(gui.MenuItemMethod.ENABLE,), args=(item_unpin_start.enable,),
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         if consts.FEATURE_CONSOLE_VIEW:
-            gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(RES_TEMPLATE.format(consts.RES_CONSOLE))
+            gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(
+                RES_TEMPLATE.format(consts.RES_CONSOLE))
         gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
@@ -686,49 +703,61 @@ def create_menu():  # TODO slideshow (smaller timer)
                                      consts.CONFIG_CHANGE_START).set_tooltip(STRINGS.TOOLTIP_CHANGE_START)
             gui.add_separator()
             gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
-                STRINGS, f'INTERVAL_{interval}') for interval in CHANGE_INTERVALS}, CURRENT_CONFIG, consts.CONFIG_CHANGE_INTERVAL,
+                STRINGS, f'INTERVAL_{interval}') for interval in CHANGE_INTERVALS}, CURRENT_CONFIG,
+                                   consts.CONFIG_CHANGE_INTERVAL,
                                    on_click=on_auto_change, icon=RES_TEMPLATE.format(consts.RES_INTERVAL))
             gui.add_mapped_submenu(STRINGS.MENU_IF_MAXIMIZED, {action: getattr(
                 STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CURRENT_CONFIG,
                                    consts.CONFIG_IF_MAXIMIZED, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
-            gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(STRINGS.TOOLTIP_AUTO_SAVE)
-            item_dir = gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save, menu_args=(gui.MenuItemMethod.SET_TOOLTIP,))
+            gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(
+                STRINGS.TOOLTIP_AUTO_SAVE)
+            item_dir = gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save,
+                                         menu_args=(gui.MenuItemMethod.SET_TOOLTIP,))
             item_dir.set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
             on_modify_save(item_dir.set_tooltip, CURRENT_CONFIG[consts.CONFIG_SAVE_DIR])
         if consts.FEATURE_ROTATE_IMAGE:
             gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
-                STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate}, CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
+                STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate},
+                                   CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
                                    on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ROTATE))
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_FLIP, icon=RES_TEMPLATE.format(consts.RES_FLIP))):
             item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.MenuItemType.CHECK, getattr(
-                win32.display.Flip, CURRENT_CONFIG[consts.CONFIG_FLIP_BY]) in (win32.display.Flip.VERTICAL, win32.display.Flip.BOTH))
+                win32.display.Flip, CURRENT_CONFIG[consts.CONFIG_FLIP_BY]) in (
+                                                  win32.display.Flip.VERTICAL, win32.display.Flip.BOTH))
             item_horizontal = gui.add_menu_item(STRINGS.FLIP_HORIZONTAL, gui.MenuItemType.CHECK, getattr(
-                win32.display.Flip, CURRENT_CONFIG[consts.CONFIG_FLIP_BY]) in (win32.display.Flip.HORIZONTAL, win32.display.Flip.BOTH))
+                win32.display.Flip, CURRENT_CONFIG[consts.CONFIG_FLIP_BY]) in (
+                                                    win32.display.Flip.HORIZONTAL, win32.display.Flip.BOTH))
             gui.set_on_click(item_vertical, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
             gui.set_on_click(item_horizontal, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
         gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style: getattr(
             STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style}, CURRENT_CONFIG, consts.CONFIG_FIT_STYLE,
                                on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))):
-            item_duration_enable = gui.add_mapped_submenu(STRINGS.MENU_TRANSITION_DURATION, {duration: getattr(
-                STRINGS, f'DURATION_{int(duration)}') for duration in TRANSITION_DURATIONS}, CURRENT_CONFIG, consts.CONFIG_TRANSITION_DURATION, CURRENT_CONFIG[
-                                                              consts.CONFIG_TRANSITION_STYLE] != win32.display.Transition[
-                                                              win32.display.Transition.DISABLED], icon=RES_TEMPLATE.format(consts.RES_TRANSITION_DURATION)).enable
+            item_duration_enable = gui.add_mapped_submenu(
+                STRINGS.MENU_TRANSITION_DURATION, {duration: getattr(STRINGS, f'DURATION_{int(duration)}')
+                                                   for duration in TRANSITION_DURATIONS}, CURRENT_CONFIG, consts.CONFIG_TRANSITION_DURATION,
+                CURRENT_CONFIG[consts.CONFIG_TRANSITION_STYLE] != win32.display.Transition[win32.display.Transition.DISABLED],
+                icon=RES_TEMPLATE.format(consts.RES_TRANSITION_DURATION)).enable
             gui.add_mapped_submenu(STRINGS.MENU_TRANSITION_STYLE, {transition: getattr(
                 STRINGS, f'TRANSITION_{transition}') for transition in win32.display.Transition}, CURRENT_CONFIG,
                                    consts.CONFIG_TRANSITION_STYLE, on_click=on_transition_style, args=(
                     item_duration_enable,), position=-1, icon=RES_TEMPLATE.format(consts.RES_TRANSITION_STYLE))
             gui.add_separator()
-            item_ease_enable = gui.add_mapped_submenu(STRINGS.MENU_EASE, {ease: getattr(
-                STRINGS, f'EASE_{ease}') for ease in EASE_STYLES}, CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE, CURRENT_CONFIG[
-                                                          consts.CONFIG_EASE_IN] or CURRENT_CONFIG[consts.CONFIG_EASE_OUT], on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE)).enable
-            with gui.set_menu(gui.add_submenu(STRINGS.MENU_EASE_TIMING, position=-1, icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))):
-                gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_IN, CURRENT_CONFIG, consts.CONFIG_EASE_IN, on_click=on_easing_direction, args=(item_ease_enable,))
-                gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_OUT, CURRENT_CONFIG, consts.CONFIG_EASE_OUT, on_click=on_easing_direction, args=(item_ease_enable,))
+            item_ease_enable = gui.add_mapped_submenu(
+                STRINGS.MENU_EASE, {ease: getattr(STRINGS, f'EASE_{ease}') for ease in EASE_STYLES},
+                CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE, CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[
+                    consts.CONFIG_EASE_OUT], on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE)).enable
+            with gui.set_menu(gui.add_submenu(STRINGS.MENU_EASE_TIMING, position=-1,
+                                              icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))):
+                gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_IN, CURRENT_CONFIG, consts.CONFIG_EASE_IN,
+                                         on_click=on_easing_direction, args=(item_ease_enable,))
+                gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_OUT, CURRENT_CONFIG, consts.CONFIG_EASE_OUT,
+                                         on_click=on_easing_direction, args=(item_ease_enable,))
         item_sources = gui.add_mapped_submenu(STRINGS.MENU_SOURCE, {
             name: source.NAME for name, source in srcs.SOURCES.items()}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
-                                              on_click=on_source, args=(item_source,), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+                                              on_click=on_source, args=(item_source,),
+                                              icon=RES_TEMPLATE.format(consts.RES_SOURCE))
         if not consts.FEATURE_SOURCE_DEV:
             for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
                 if source.VERSION == srcs.Source.VERSION:
@@ -739,18 +768,21 @@ def create_menu():  # TODO slideshow (smaller timer)
         gui.add_separator()
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS, icon=RES_TEMPLATE.format(consts.RES_NOTIFICATION))):
             gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CURRENT_CONFIG, consts.CONFIG_NOTIFY_ERROR)
-            gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CURRENT_CONFIG, consts.CONFIG_NOTIFY_BLOCKED, on_click=on_blocked)
-        gui.add_mapped_submenu(STRINGS.MENU_COLORS, {win32.ColorMode[mode]: getattr(
+            gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CURRENT_CONFIG, consts.CONFIG_NOTIFY_BLOCKED,
+                                     on_click=on_blocked)
+        gui.add_mapped_submenu(STRINGS.MENU_COLORS, {mode: getattr(
             STRINGS, f'COLOR_MODE_{mode}') for mode in win32.ColorMode[1:]}, CURRENT_CONFIG, consts.CONFIG_MENU_COLOR,
                                on_click=win32.set_color_mode, icon=RES_TEMPLATE.format(consts.RES_THEME))
         win32.set_color_mode(CURRENT_CONFIG[consts.CONFIG_MENU_COLOR])
-        gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CURRENT_CONFIG, consts.CONFIG_ANIMATE_ICON, on_click=gui.enable_animation)
+        gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CURRENT_CONFIG, consts.CONFIG_ANIMATE_ICON,
+                                 on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CURRENT_CONFIG, consts.CONFIG_SKIP_RECENT)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CURRENT_CONFIG, consts.CONFIG_REAPPLY_IMAGE)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
         gui.add_mapped_menu_item(STRINGS.LABEL_START, CURRENT_CONFIG, consts.CONFIG_AUTOSTART)
         gui.add_mapped_menu_item(STRINGS.LABEL_SETTINGS_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_KEEP_SETTINGS)
-    gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_QUIT))
+    gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False).set_icon(
+        RES_TEMPLATE.format(consts.RES_QUIT))
 
 
 def start():
