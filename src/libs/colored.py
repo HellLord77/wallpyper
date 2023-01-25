@@ -8,7 +8,7 @@ from typing import Optional
 _ESC = '\x1B'
 _CSI = f'{_ESC}['
 _CODES = set()
-_SUPPORTED = getattr(sys.stdout, 'isatty', lambda: False)()
+_SUPPORTED = sys.stdout.isatty() if hasattr(sys.stdout, 'isatty') else False
 
 
 class _Code:

@@ -8,7 +8,7 @@ import time
 from typing import Optional, TextIO
 
 
-# FIXME Fatal Python error: init_fs_encoding: failed to get the Python codec of the filesystem encoding (3.11)
+# FIXME https://github.com/cython/cython/issues/5134 [py3.11 fails on cython]
 
 # noinspection PyPep8Naming
 class ctyped:
@@ -101,7 +101,8 @@ class _NamedPipe(ctyped.type.HANDLE):
     _size: int
     _base: bytes | str
 
-    _pipe_mode = (ctyped.const.PIPE_TYPE_BYTE | ctyped.const.PIPE_READMODE_BYTE | ctyped.const.PIPE_WAIT | ctyped.const.PIPE_ACCEPT_REMOTE_CLIENTS)
+    _pipe_mode = (ctyped.const.PIPE_TYPE_BYTE | ctyped.const.PIPE_READMODE_BYTE |
+                  ctyped.const.PIPE_WAIT | ctyped.const.PIPE_ACCEPT_REMOTE_CLIENTS)
 
     def __init__(self, name: str):
         self._name = ntpath.join(_DIR, name)

@@ -159,7 +159,7 @@ def try_remove_temp(force: bool = False) -> bool:
         return True
 
 
-def notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
+def try_notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
         while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
@@ -176,7 +176,7 @@ def reapply_wallpaper(_: Optional[bool] = None):
 @timer.on_thread
 def on_shown(*_):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
-        CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not notify(
+        CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_notify(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
         if CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
             time.sleep(consts.POLL_SLOW_SEC)
@@ -199,7 +199,7 @@ def on_blocked(*_):
                              f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKED_NAME else ""}'
                              for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if
                              blocker is not None)
-            notify(STRINGS.BLOCKED_TITLE, text, force=True)
+            try_notify(STRINGS.BLOCKED_TITLE, text, force=True)
 
 
 @timer.on_thread
@@ -219,7 +219,8 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
     try_remove_temp()
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         PROGRESS.clear()
-        print_progress()
+        if win32.console.is_present():
+            print_progress()
         try:
             if wallpaper.checksum(temp_path := os.path.join(TEMP_DIR, wallpaper.name)) or (
                     urls.download(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
@@ -296,19 +297,19 @@ def search_wallpaper(path: str) -> bool:
 
 def on_open_url(url: str) -> bool:
     if not (opened := webbrowser.open(url)):
-        notify(STRINGS.LABEL_OPEN_BROWSER, STRINGS.FAIL_OPEN_BROWSER)
+        try_notify(STRINGS.LABEL_OPEN_BROWSER, STRINGS.FAIL_OPEN_BROWSER)
     return opened
 
 
 def on_copy_url(url: str) -> bool:
     if not (copied := win32.clipboard.copy_text(url)):
-        notify(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
+        try_notify(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
     return copied
 
 
 def on_search(engine: str, url: str) -> bool:
     if not (opened := webbrowser.open(lens.get(engine, url))):
-        notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
+        try_notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
     return opened
 
 
@@ -337,7 +338,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
         _update_recent_menu(item_recent)
         item_change_enable()
     if not changed:
-        notify(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
+        try_notify(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
     return changed
 
 
@@ -354,7 +355,7 @@ def on_wallpaper(callback: callables.SingletonCallable[[str], bool], wallpaper: 
         except BaseException as e:
             print(e)
     if not success:
-        notify(title, text)
+        try_notify(title, text)
     return success
 
 
@@ -451,7 +452,7 @@ def on_modify_save(set_tooltip: Callable, path: Optional[str] = None) -> bool:
         CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = path
         set_tooltip(STRINGS.TOOLTIP_SAVE_DIR_TEMPLATE.format(path))
     else:
-        notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
+        try_notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)
 
 
@@ -514,39 +515,40 @@ def _create_shortcut(dir_: str) -> bool:
 
 def on_shortcut() -> bool:
     if not (created := _create_shortcut(win32.DESKTOP_DIR)):
-        notify(STRINGS.LABEL_DESKTOP, STRINGS.FAIL_DESKTOP)
+        try_notify(STRINGS.LABEL_DESKTOP, STRINGS.FAIL_DESKTOP)
     return created
 
 
 def on_remove_shortcuts() -> bool:
     if not (removed := win32.remove_shortcuts(win32.DESKTOP_DIR, UUID)):
-        notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_DESKTOP_REMOVE)
+        try_notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_DESKTOP_REMOVE)
     return removed
 
 
 def on_start_shortcut() -> bool:
     if not (created := _create_shortcut(os.path.join(win32.START_DIR, consts.NAME))):
-        notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
+        try_notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
     return created
 
 
 def on_remove_start_shortcuts() -> bool:
     if not (removed := win32.remove_shortcuts(win32.START_DIR, UUID)):
-        notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_START_MENU_REMOVE)
+        try_notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_START_MENU_REMOVE)
     return removed
 
 
-def on_pin() -> bool:
+def on_pin_to_taskbar() -> bool:
     if not (pinned := win32.add_pin(
-            *pyinstall.get_launch_args(), name=consts.NAME, icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(
+            *pyinstall.get_launch_args(), name=consts.NAME,
+            icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(
                 consts.RES_ICON), show=pyinstall.FROZEN)):
-        notify(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
+        try_notify(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
     return pinned
 
 
-def on_unpin() -> bool:
+def on_unpin_from_taskbar() -> bool:
     if not (unpinned := win32.remove_pins(*pyinstall.get_launch_args())):
-        notify(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
+        try_notify(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
     return unpinned
 
 
@@ -557,7 +559,7 @@ def pin_to_start() -> bool:
                          show=pyinstall.FROZEN)
 
 
-def on_pin_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> bool:
+def on_pin_to_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> bool:
     pinned = False
     if not pin_to_start.is_running():
         item_pin_enable(False)
@@ -566,31 +568,31 @@ def on_pin_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> bool
         item_unpin_enable()
         item_pin_enable()
     if not pinned:
-        notify(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
+        try_notify(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
     return pinned
 
 
-def on_unpin_start() -> bool:
+def on_unpin_from_start() -> bool:
     if not (unpinned := win32.remove_pins(*pyinstall.get_launch_args(), taskbar=False)):
-        notify(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
+        try_notify(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
     return unpinned
 
 
 @callables.SingletonCallable
-def on_console() -> bool:
+def on_toggle_console() -> bool:
     if PIPE:
-        if success := not PIPE.disconnect():
-            notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
+        if toggled := not PIPE.disconnect():
+            try_notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
         win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__), str(PIPE))
-        if not (success := PIPE.connect(consts.MAX_PIPE_SEC)):
-            notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
-    return success
+        if not (toggled := PIPE.connect(consts.MAX_PIPE_SEC)):
+            try_notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
+    return toggled
 
 
 def on_clear_cache() -> bool:
     if not (cleared := try_remove_temp(True)):
-        notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
+        try_notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
     return cleared
 
 
@@ -622,7 +624,7 @@ def on_source(name: str, item: win32.gui.MenuItem):
 
 
 def on_about():
-    notify(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
+    try_notify(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
 
 
 @timer.on_thread
@@ -632,7 +634,7 @@ def on_quit():
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
     if threading.active_count() > max_threads:
         gui.animate(STRINGS.STATUS_QUIT).__enter__()
-        notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
+        try_notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.monotonic() + win32.get_max_shutdown_time()
         while end_time > time.monotonic() and threading.active_count() > max_threads:
             time.sleep(consts.POLL_FAST_SEC)
@@ -674,19 +676,19 @@ def create_menu():  # TODO slideshow (smaller timer)
                 RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
             gui.add_menu_item(STRINGS.LABEL_PIN, enable=consts.FEATURE_SYS_PIN,
-                              on_click=on_pin).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
+                              on_click=on_pin_to_taskbar).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
             gui.add_menu_item(STRINGS.LABEL_UNPIN, enable=consts.FEATURE_SYS_PIN,
-                              on_click=on_unpin).set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
+                              on_click=on_unpin_from_taskbar).set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_separator()
             item_unpin_start = gui.add_menu_item(
-                STRINGS.LABEL_UNPIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_unpin_start)
+                STRINGS.LABEL_UNPIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_unpin_from_start)
             item_unpin_start.set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_menu_item(
-                STRINGS.LABEL_PIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_pin_start,
+                STRINGS.LABEL_PIN_START, enable=consts.FEATURE_SYS_PIN, on_click=on_pin_to_start,
                 menu_args=(gui.MenuItemMethod.ENABLE,), args=(item_unpin_start.enable,),
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         if consts.FEATURE_CONSOLE_VIEW:
-            gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_console).set_icon(
+            gui.add_menu_item(STRINGS.LABEL_CONSOLE, on_click=on_toggle_console).set_icon(
                 RES_TEMPLATE.format(consts.RES_CONSOLE))
         gui.add_menu_item(STRINGS.LABEL_ABOUT, on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(STRINGS.LABEL_CLEAR_CACHE, on_click=on_clear_cache).set_icon(
@@ -809,7 +811,6 @@ def stop():
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTOSTART])
     try_save_config()
     try_remove_temp()
-    PIPE.disconnect()
 
 
 def main() -> NoReturn:
