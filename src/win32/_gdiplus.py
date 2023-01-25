@@ -1,5 +1,6 @@
 from __future__ import annotations as _
 
+import atexit
 import contextlib
 import math
 import ntpath
@@ -44,7 +45,8 @@ class _GdiplusToken(ctyped.type.ULONG_PTR):
 
     def __init__(self):
         if not self.count:
-            GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(ctyped.struct.GdiplusStartupInput()), None)
+            GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(
+                ctyped.struct.GdiplusStartupInput()), None)
         _GdiplusToken.count += 1
 
     def __del__(self):
@@ -54,13 +56,14 @@ class _GdiplusToken(ctyped.type.ULONG_PTR):
 
 
 class _GdiplusBase:
-    # noinspection PyMissingConstructor
     def __init__(self):
         self._token = _GdiplusToken()
+        atexit.register(self.__del__)
 
     def __del__(self):
+        atexit.unregister(self.__del__)
         if self:
-            self._del()
+            self.destroy()
             self.value = None
             self._token = None
 
@@ -73,7 +76,7 @@ class _GdiplusBase:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__del__()
 
-    def _del(self):
+    def destroy(self):
         raise NotImplementedError
 
 
@@ -293,7 +296,7 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
     def draw_image(self, src: Image, x: int | float = 0, y: int | float = 0) -> bool:
         return _OK == _get_obj(GdiPlus.GdipDrawImage, GdiPlus.GdipDrawImageI, x, y)(self, src, x, y)
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeleteGraphics(self)
 
     @contextlib.contextmanager
@@ -344,7 +347,7 @@ class Brush(_GdiplusBase, ctyped.type.GpBrush):
         if _OK == GdiPlus.GdipGetBrushType(self, ctyped.byref(brush_type)):
             return brush_type
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeleteBrush(self)
 
 
@@ -515,7 +518,7 @@ class Pen(_GdiplusBase, ctyped.type.GpPen):
         if _OK == GdiPlus.GdipGetPenCompoundCount(self, ctyped.byref(compound_array_count)):
             return compound_array_count.value
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeletePen(self)
 
 
@@ -684,7 +687,7 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
     def force_validation(self) -> bool:
         return _OK == GdiPlus.GdipImageForceValidation(self)
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDisposeImage(self)
 
 
@@ -869,7 +872,7 @@ class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
     def set_wrap_mode(self, mode: ctyped.enum.WrapMode, color: ctyped.type.ARGB = ctyped.const.Black, clamp: bool = False) -> bool:
         return _OK == GdiPlus.GdipSetImageAttributesWrapMode(self, mode, color, clamp)
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDisposeImageAttributes(self)
 
 
@@ -997,7 +1000,7 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
                 self, x, y, width, height, graphics, ctyped.byref(visible)):
             return bool(visible.value)
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeleteRegion(self)
 
 
@@ -1044,7 +1047,7 @@ class FontFamily(_GdiplusBase, ctyped.type.GpFontFamily):
         if _OK == GdiPlus.GdipIsStyleAvailable(self, style.value, ctyped.byref(has)):
             return bool(has.value)
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeleteFontFamily(self)
 
 
@@ -1099,7 +1102,7 @@ class Font(_GdiplusBase, ctyped.type.GpFont):
         if _OK == GdiPlus.GdipGetFontHeightGivenDPI(self, dpi, ctyped.byref(height)):
             return height.value
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeleteFont(self)
 
 
@@ -1183,7 +1186,7 @@ class StringFormat(_GdiplusBase, ctyped.type.GpStringFormat):
         if _OK == GdiPlus.GdipGetStringFormatMeasurableCharacterRangeCount(self, ctyped.byref(count)):
             return count.value
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeleteStringFormat(self)
 
 
@@ -1203,7 +1206,7 @@ class FontCollection(_GdiplusBase, ctyped.type.GpFontCollection):
                     self, count, ctyped.byref(families), ctyped.byref(found)):
                 return tuple(FontFamily.from_font_family(families[index]) for index in range(found.value))
 
-    def _del(self):
+    def destroy(self):
         pass
 
 
@@ -1225,7 +1228,7 @@ class PrivateFontCollection(FontCollection, ctyped.type.GpPrivateFontCollection)
     def add_new_font(self, path: str):
         return _OK == GdiPlus.GdipPrivateAddFontFile(self, path)
 
-    def _del(self):
+    def destroy(self):
         GdiPlus.GdipDeletePrivateFontCollection(ctyped.byref(self))
 
 

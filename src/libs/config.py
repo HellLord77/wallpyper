@@ -37,7 +37,7 @@ def _open(path_or_file: _TPath | _TIO, write: bool = False,
 def _dump(obj: Any) -> str:
     type_ = type(obj)
     return type_.__qualname__ if inspect.getmodule(
-        type_) is builtins else f'{obj.__module__}|{type_.__qualname__}'
+        type_) is builtins else f'{type_.__module__}|{type_.__qualname__}'
 
 
 def _load(name: str) -> type:

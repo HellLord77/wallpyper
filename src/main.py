@@ -583,9 +583,7 @@ def on_console() -> bool:
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
         win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__), str(PIPE))
-        if success := PIPE.connect(consts.MAX_PIPE_SEC):
-            PIPE.flush()
-        else:
+        if not (success := PIPE.connect(consts.MAX_PIPE_SEC)):
             notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
     return success
 

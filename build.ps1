@@ -178,7 +178,7 @@ function MinifyJsonFile([string]$Path, [string]$OutPath) {
 	ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Depth 100 -Compress | Set-Content $OutPath
 }
 
-function MergeManifest([String]$ExePath, [String]$ManifestPath) {
+function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
 	.\mt.exe -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose  # TODO remove
