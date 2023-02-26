@@ -57,6 +57,7 @@ DEFAULT_CONFIG: dict[str, int | float | bool | str] = {
     consts.CONFIG_AUTO_SAVE: False,
     consts.CONFIG_SKIP_RECENT: False,
     consts.CONFIG_REAPPLY_IMAGE: True,
+    consts.CONFIG_RESTORE_IMAGE: False,
     consts.CONFIG_NOTIFY_ERROR: True,
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_KEEP_CACHE: False,
@@ -168,8 +169,8 @@ def try_notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon
     return False
 
 
-def reapply_wallpaper(_: Optional[bool] = None):
-    if CURRENT_CONFIG[consts.CONFIG_REAPPLY_IMAGE] and RECENT:
+def reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
+    if (force or CURRENT_CONFIG[consts.CONFIG_REAPPLY_IMAGE]) and RECENT:
         on_change(*TIMER.args, RECENT[0], False)
 
 
@@ -181,6 +182,10 @@ def on_shown(*_):
         if CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
             time.sleep(consts.POLL_SLOW_SEC)
             on_blocked()
+    if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
+        on_change(*TIMER.args)
+    elif CURRENT_CONFIG[consts.CONFIG_RESTORE_IMAGE]:
+        reapply_wallpaper(force=True)
 
 
 def get_displays() -> Iterable[str]:
@@ -778,6 +783,7 @@ def create_menu():  # TODO slideshow (smaller timer)
                                  on_click=gui.enable_animation)
         gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CURRENT_CONFIG, consts.CONFIG_SKIP_RECENT)
         gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CURRENT_CONFIG, consts.CONFIG_REAPPLY_IMAGE)
+        gui.add_mapped_menu_item(STRINGS.LABEL_RESTORE, CURRENT_CONFIG, consts.CONFIG_RESTORE_IMAGE)
         gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
         gui.add_mapped_menu_item(STRINGS.LABEL_START, CURRENT_CONFIG, consts.CONFIG_AUTOSTART)
         gui.add_mapped_menu_item(STRINGS.LABEL_SETTINGS_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_KEEP_SETTINGS)
@@ -800,8 +806,6 @@ def start():
     create_menu()
     gui.enable_animation(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTOSTART])
-    if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
-        on_change(*TIMER.args)
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, once=True)
     gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME, on_change, (*TIMER.args, None, False))
 
