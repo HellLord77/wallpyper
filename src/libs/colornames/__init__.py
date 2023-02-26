@@ -6,11 +6,11 @@ import functools
 import json
 import math
 import os
-from typing import Literal
+from typing import Literal, Optional
 
 _PATH = 'colornames.min.json'
-_RGB_TO_NAME: dict[str, str] = {}
-_RGB_TO_HEX: dict[tuple[int, int, int], str] = {}
+_HEX_TO_NAME: Optional[dict[str, str]] = None
+_RGB_TO_HEX: Optional[dict[tuple[int, int, int], str]] = None
 _LAB_TO_HEX: dict[tuple[float, float, float], str] = {}
 
 
@@ -165,33 +165,34 @@ def format_hls(h: float, l: float, s: float) -> str:  # NOQA: E741
 
 
 def get(color: str) -> str:
-    if not _RGB_TO_NAME:
+    global _HEX_TO_NAME
+    if _HEX_TO_NAME is None:
         with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-            _RGB_TO_NAME.update(json.load(file))
+            _HEX_TO_NAME = json.load(file)
     color = color.strip().lstrip('#').lower()
     try:
-        return _RGB_TO_NAME[color]
+        return _HEX_TO_NAME[color]
     except KeyError:
         return f'#{color.upper()}'
 
 
 @functools.lru_cache
 def get_nearest_color(color: str) -> tuple[str, str]:
+    global _RGB_TO_HEX
     if not (name := get(color)).startswith('#'):
         return color.upper(), name
-    if not _RGB_TO_HEX:
-        for hex_color in _RGB_TO_NAME:
-            _RGB_TO_HEX[hex_to_rgb(hex_color)] = hex_color
+    if _RGB_TO_HEX is None:
+        _RGB_TO_HEX = {hex_to_rgb(hex_color): hex_color for hex_color in _HEX_TO_NAME}
     rgb_color = hex_to_rgb(color)
     min_distance = math.inf
-    nearest_color = 0, 0, 0
+    nearest_color_rgb = 0, 0, 0
     for cur_color in _RGB_TO_HEX:
         distance = sum((rgb_color[i] - cur_color[i]) ** 2 for i in range(3))
         if min_distance > distance:
             min_distance = distance
-            nearest_color = cur_color
-    nearest_color = _RGB_TO_HEX[nearest_color]
-    return f'#{nearest_color.upper()}', _RGB_TO_NAME[nearest_color]
+            nearest_color_rgb = cur_color
+    nearest_color = _RGB_TO_HEX[nearest_color_rgb]
+    return f'#{nearest_color.upper()}', _HEX_TO_NAME[nearest_color]
 
 
 @functools.lru_cache
@@ -199,18 +200,18 @@ def get_nearest_color_lab(color: str) -> tuple[str, str]:
     if not (name := get(color)).startswith('#'):
         return color.upper(), name
     if not _LAB_TO_HEX:
-        for hex_color in _RGB_TO_NAME:
+        for hex_color in _HEX_TO_NAME:
             _LAB_TO_HEX[xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(hex_color))))] = hex_color
     lab_color = xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(color))))
     min_distance = math.inf
-    nearest_color = 0.0, 0.0, 0.0
+    nearest_color_rgb = 0.0, 0.0, 0.0
     for cur_color in _LAB_TO_HEX:
         distance = ciede2000(*lab_color, *cur_color)
         if min_distance > distance:
             min_distance = distance
-            nearest_color = cur_color
-    nearest_color = _LAB_TO_HEX[nearest_color]
-    return f'#{nearest_color.upper()}', _RGB_TO_NAME[nearest_color]
+            nearest_color_rgb = cur_color
+    nearest_color = _LAB_TO_HEX[nearest_color_rgb]
+    return f'#{nearest_color.upper()}', _HEX_TO_NAME[nearest_color]
 
 
 if __debug__:

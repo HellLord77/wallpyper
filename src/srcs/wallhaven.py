@@ -133,7 +133,8 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                               uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
         gui.add_separator(6, menu_ratio)
         colors = {color: colornames.get_nearest_color(color)[1] if color else cls.strings.WALLHAVEN_COLOR_ for color in COLORS}
-        for item, color in zip(gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_COLOR, colors, cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
+        for item, color in zip(gui.add_mapped_submenu(
+                cls.strings.WALLHAVEN_MENU_COLOR, colors, cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
             if color:
                 rgb = colornames.hex_to_rgb(color)
                 srgb = tuple(c / 255 for c in rgb)
