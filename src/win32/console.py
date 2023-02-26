@@ -12,7 +12,7 @@ def reopen_stream():
 
 
 def is_present() -> bool:
-    return bool(kernel32.GetConsoleCP())
+    return bool(kernel32.GetConsoleWindow())
 
 
 def create() -> bool:

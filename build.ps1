@@ -369,8 +369,9 @@ function Install-Dependencies {
 		Remove-Item $TempDir -Force -Recurse
 	}
 	if ($CythonSources -or $CythonizeSourceGlobs) {
-		# pip install cython FIXME https://github.com/cython/cython/milestone/58
-		pip install cython --pre
+		# FIXME https://github.com/cython/cython/milestone/58
+        # FIXME https://github.com/cython/cython/issues/5263
+		pip install cython==3.0.0a11
 	}
 
 	if (Test-Path requirements.txt -PathType Leaf) {

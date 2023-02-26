@@ -219,7 +219,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
     try_remove_temp()
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         PROGRESS.clear()
-        if win32.console.is_present():
+        if PIPE or win32.console.is_present():
             print_progress()
         try:
             if wallpaper.checksum(temp_path := os.path.join(TEMP_DIR, wallpaper.name)) or (
