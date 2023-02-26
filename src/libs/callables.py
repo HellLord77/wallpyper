@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import collections
 import functools
@@ -25,8 +25,17 @@ def _get_params(args: tuple, kwargs: dict[str, Any]) -> Any:
     return params
 
 
-class _IsRunningMixin:
-    _selves: weakref.WeakSet[_IsRunningMixin]
+class _Callable(Callable):
+    def __init__(self, func: Callable):
+        self.__func__ = func
+        super().__init__()
+
+    def __call__(self, *args, **kwargs) -> Any:
+        raise NotImplementedError
+
+
+class _RunningQueryable:
+    _selves: weakref.WeakSet[_RunningQueryable]
 
     def __init_subclass__(cls, **kwargs):
         cls._selves = weakref.WeakSet()
@@ -40,27 +49,18 @@ class _IsRunningMixin:
         raise NotImplementedError
 
     @classmethod
-    def get_running(cls) -> Generator[_IsRunningMixin, None, None]:
+    def iter_running(cls) -> Generator[_RunningQueryable, None, None]:
         for self in cls._selves:
             if self.is_running():
                 yield self
 
 
-class _Callable(Callable):
-    def __init__(self, func: Callable):
-        self.__func__ = func
-        super().__init__()
-
-    def __call__(self, *args, **kwargs) -> Any:
-        raise NotImplementedError
-
-
 class LastCacheCallable(_Callable):
-    _cache = None
+    _cache: Optional[tuple[Any, Any]] = None
 
     def __call__(self, *args, **kwargs) -> Any:
         params = _get_params(args, kwargs)
-        if not self._cache or self._cache[0] != params:
+        if self._cache is None or self._cache[0] != params:
             self._cache = params, self.__func__(*args, **kwargs)
         return self._cache[1]
 
@@ -83,15 +83,27 @@ class LastCacheCallable(_Callable):
             self._cache = None
 
 
+class WeakCacheCallable(_Callable):
+    def __init__(self, func: Callable):
+        self._cache = weakref.WeakValueDictionary()
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs) -> Any:
+        params = _get_params(args, kwargs)
+        try:
+            res = self._cache[params]
+        except KeyError:
+            res = self._cache[params] = self.__func__(*args, **kwargs)
+        return res
+
+
 class OnceCallable(_Callable):
     _run = False
 
     def __call__(self, *args, **kwargs) -> Any:
         if not self._run:
-            try:
-                return self.__func__(*args, **kwargs)
-            finally:
-                self._run = True
+            self._run = True
+            return self.__func__(*args, **kwargs)
 
     def reset(self) -> bool:
         try:
@@ -103,7 +115,7 @@ class OnceCallable(_Callable):
         return self._run
 
 
-class QueueCallable(_Callable, _IsRunningMixin):
+class QueueCallable(_Callable, _RunningQueryable):
     def __init__(self, func: Callable):
         self._lock = threading.Lock()
         super().__init__(func)
@@ -116,7 +128,7 @@ class QueueCallable(_Callable, _IsRunningMixin):
         return self._lock.locked()
 
 
-class QueueThreadCallable(_Callable, _IsRunningMixin):
+class QueueThreadCallable(_Callable, _RunningQueryable):
     _res = None
 
     def __init__(self, func: Callable):
@@ -151,7 +163,7 @@ class QueueThreadCallable(_Callable, _IsRunningMixin):
         return self._res
 
 
-class SingletonCallable(_Callable, _IsRunningMixin):
+class SingletonCallable(_Callable, _RunningQueryable):
     _run = False
 
     def __call__(self, *args, **kwargs) -> Any:
