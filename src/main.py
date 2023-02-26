@@ -36,7 +36,9 @@ CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 
 TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
 MAXIMIZED_ACTIONS: tuple[
     str, str, str] = consts.MAXIMIZED_ACTION_IGNORE, consts.MAXIMIZED_ACTION_POSTPONE, consts.MAXIMIZED_ACTION_SKIP
-EASE_STYLES: tuple[str, str, str, str, str, str, str] = 'SINE', 'QUAD', 'CUBIC', 'QUART', 'QUINT', 'EXPO', 'CIRC'
+EASE_STYLES: tuple[str, str, str, str, str, str, str] = (
+    consts.EASE_STYLE_SINE, consts.EASE_STYLE_QUAD, consts.EASE_STYLE_CUBIC,
+    consts.EASE_STYLE_QUART, consts.EASE_STYLE_QUINT, consts.EASE_STYLE_EXPO, consts.EASE_STYLE_CIRC)
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_CACHE_BITMAP = True
@@ -209,7 +211,7 @@ def on_blocked(*_):
 
 @timer.on_thread
 def print_progress():
-    interval, spinner = spinners.get(spinners.Spinner.SAND)
+    interval, spinner = spinners.get('sand')
     while (progress := PROGRESS.get()) != -1:
         print(f'[{next(spinner)}] [{utils.get_progress(progress, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
         time.sleep(interval)

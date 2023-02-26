@@ -34,27 +34,21 @@ class Timer:
             self.start()
 
     @classmethod
-    def kill_all(cls) -> bool:
-        killed = True
+    def kill_all(cls):
         for self in cls._selves:
-            killed = self.kill() and killed
-        return killed
+            self.kill()
 
     @property
     def running(self) -> bool:
         return bool(self._running)
 
-    def _clean_timers(self) -> int:
-        removed = 0
+    def _clean_timers(self):
         for timer in tuple(self._timers):
             if not timer.is_alive():
                 try:
                     self._timers.remove(timer)
                 except ValueError:
                     pass
-                else:
-                    removed += 1
-        return removed
 
     def _callback(self):
         self._running += 1
@@ -101,13 +95,11 @@ class Timer:
             return not timer.is_alive()
         return False
 
-    def kill(self) -> int:
-        killed = 0
+    def kill(self):
         for timer in tuple(self._timers):
             if timer.is_alive():
-                killed += ctypes.pythonapi.PyThreadState_SetAsyncExc(timer.ident, _CTimerExit)
+                ctypes.pythonapi.PyThreadState_SetAsyncExc(timer.ident, _CTimerExit)
         self._clean_timers()
-        return killed
 
 
 def start_once(interval: Optional[float], target: Callable, args: Optional[Iterable] = None,
