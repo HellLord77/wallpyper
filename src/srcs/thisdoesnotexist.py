@@ -25,7 +25,7 @@ class ThisDoesNotExist(Source):
         cls._fix_config(CONFIG_VARIANT, VARIANTS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
             url = urls.join(url, 'image')

@@ -39,7 +39,7 @@ class LocalFolder(Source):
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         results: Optional[list] = None
         while True:
             if not results:

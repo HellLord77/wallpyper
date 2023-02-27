@@ -1,5 +1,6 @@
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
+import base64
 import builtins
 import contextlib
 import http.client
@@ -43,6 +44,7 @@ USER_AGENT = f'{__name__}/{__version__}'
 
 class Header:
     ACCEPT_LANGUAGE = 'Accept-Language'
+    AUTHORIZATION = 'Authorization'
     CONTENT_DISPOSITION = 'Content-Disposition'
     CONTENT_LENGTH = 'Content-Length'
     CONTENT_TYPE = 'Content-Type'
@@ -106,6 +108,10 @@ def join(base: str, *paths: str) -> str:
     return base[:-1]
 
 
+def basic_auth(username: str, password: str) -> dict[str, str]:
+    return {Header.AUTHORIZATION: f'Basic {base64.b64encode(f"{username}:{password}".encode()).decode()}'}
+
+
 def query(url: str) -> dict[str, list[str]]:
     return urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
 
@@ -127,7 +133,7 @@ def encode(url: str, params: Optional[Mapping[str, str | Iterable[str]]] = None)
 
 
 # noinspection PyShadowingBuiltins
-def open(url: str, params: Optional[Mapping[str, str]] = None, data: Optional[bytes] = None,
+def open(url: str, params: Optional[Mapping[str, str | Iterable[str]]] = None, data: Optional[bytes] = None,
          headers: Optional[Mapping[str, str]] = None, redirect: bool = True, stream: bool = True) -> _Response:
     try:
         request = urllib.request.Request(encode(url, params), data)

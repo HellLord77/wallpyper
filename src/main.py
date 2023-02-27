@@ -162,7 +162,7 @@ def try_remove_temp(force: bool = False) -> bool:
         return True
 
 
-def try_notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
+def try_show_notification(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
         while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
@@ -171,7 +171,7 @@ def try_notify(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon
     return False
 
 
-def reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
+def try_reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
     if (force or CURRENT_CONFIG[consts.CONFIG_REAPPLY_IMAGE]) and RECENT:
         on_change(*TIMER.args, RECENT[0], False)
 
@@ -179,7 +179,7 @@ def reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
 @timer.on_thread
 def on_shown(*_):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
-        CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_notify(
+        CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_show_notification(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
         if CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
             time.sleep(consts.POLL_SLOW_SEC)
@@ -187,7 +187,7 @@ def on_shown(*_):
     if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
         on_change(*TIMER.args)
     elif CURRENT_CONFIG[consts.CONFIG_RESTORE_IMAGE]:
-        reapply_wallpaper(force=True)
+        try_reapply_wallpaper(force=True)
 
 
 def get_displays() -> Iterable[str]:
@@ -206,7 +206,7 @@ def on_blocked(*_):
                              f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKED_NAME else ""}'
                              for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if
                              blocker is not None)
-            try_notify(STRINGS.BLOCKED_TITLE, text, force=True)
+            try_show_notification(STRINGS.BLOCKED_TITLE, text, force=True)
 
 
 @timer.on_thread
@@ -304,19 +304,19 @@ def search_wallpaper(path: str) -> bool:
 
 def on_open_url(url: str) -> bool:
     if not (opened := webbrowser.open(url)):
-        try_notify(STRINGS.LABEL_OPEN_BROWSER, STRINGS.FAIL_OPEN_BROWSER)
+        try_show_notification(STRINGS.LABEL_OPEN_BROWSER, STRINGS.FAIL_OPEN_BROWSER)
     return opened
 
 
 def on_copy_url(url: str) -> bool:
     if not (copied := win32.clipboard.copy_text(url)):
-        try_notify(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
+        try_show_notification(STRINGS.LABEL_COPY_URL, STRINGS.FAIL_COPY_URL)
     return copied
 
 
 def on_search(engine: str, url: str) -> bool:
     if not (opened := webbrowser.open(lens.get(engine, url))):
-        try_notify(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
+        try_show_notification(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
     return opened
 
 
@@ -345,7 +345,7 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
         _update_recent_menu(item_recent)
         item_change_enable()
     if not changed:
-        try_notify(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
+        try_show_notification(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
     return changed
 
 
@@ -362,7 +362,7 @@ def on_wallpaper(callback: callables.SingletonCallable[[str], bool], wallpaper: 
         except BaseException as e:
             print(e)
     if not success:
-        try_notify(title, text)
+        try_show_notification(title, text)
     return success
 
 
@@ -459,13 +459,13 @@ def on_modify_save(set_tooltip: Callable, path: Optional[str] = None) -> bool:
         CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = path
         set_tooltip(STRINGS.TOOLTIP_SAVE_DIR_TEMPLATE.format(path))
     else:
-        try_notify(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
+        try_show_notification(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)
 
 
 def on_easing_direction(_: bool, enable_ease: Callable[[bool], bool]):
     enable_ease(CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[consts.CONFIG_EASE_OUT])
-    reapply_wallpaper()
+    try_reapply_wallpaper()
 
 
 def on_flip(vertical_is_checked: Callable[[], bool], horizontal_is_checked: Callable[[], bool]):
@@ -479,7 +479,7 @@ def on_flip(vertical_is_checked: Callable[[], bool], horizontal_is_checked: Call
         CURRENT_CONFIG[consts.CONFIG_FLIP_BY] = win32.display.Flip[win32.display.Flip.HORIZONTAL]
     else:
         CURRENT_CONFIG[consts.CONFIG_FLIP_BY] = win32.display.Flip[win32.display.Flip.NONE]
-    reapply_wallpaper()
+    try_reapply_wallpaper()
 
 
 def _update_display():
@@ -522,25 +522,25 @@ def _create_shortcut(dir_: str) -> bool:
 
 def on_shortcut() -> bool:
     if not (created := _create_shortcut(win32.DESKTOP_DIR)):
-        try_notify(STRINGS.LABEL_DESKTOP, STRINGS.FAIL_DESKTOP)
+        try_show_notification(STRINGS.LABEL_DESKTOP, STRINGS.FAIL_DESKTOP)
     return created
 
 
 def on_remove_shortcuts() -> bool:
     if not (removed := win32.remove_shortcuts(win32.DESKTOP_DIR, UUID)):
-        try_notify(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_DESKTOP_REMOVE)
+        try_show_notification(STRINGS.LABEL_REMOVE_DESKTOP, STRINGS.FAIL_DESKTOP_REMOVE)
     return removed
 
 
 def on_start_shortcut() -> bool:
     if not (created := _create_shortcut(os.path.join(win32.START_DIR, consts.NAME))):
-        try_notify(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
+        try_show_notification(STRINGS.LABEL_START_MENU, STRINGS.FAIL_START_MENU)
     return created
 
 
 def on_remove_start_shortcuts() -> bool:
     if not (removed := win32.remove_shortcuts(win32.START_DIR, UUID)):
-        try_notify(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_START_MENU_REMOVE)
+        try_show_notification(STRINGS.LABEL_REMOVE_START_MENU, STRINGS.FAIL_START_MENU_REMOVE)
     return removed
 
 
@@ -549,13 +549,13 @@ def on_pin_to_taskbar() -> bool:
             *pyinstall.get_launch_args(), name=consts.NAME,
             icon_path='' if pyinstall.FROZEN else RES_TEMPLATE.format(
                 consts.RES_ICON), show=pyinstall.FROZEN)):
-        try_notify(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
+        try_show_notification(STRINGS.LABEL_PIN, STRINGS.FAIL_PIN)
     return pinned
 
 
 def on_unpin_from_taskbar() -> bool:
     if not (unpinned := win32.remove_pins(*pyinstall.get_launch_args())):
-        try_notify(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
+        try_show_notification(STRINGS.LABEL_UNPIN, STRINGS.FAIL_UNPIN)
     return unpinned
 
 
@@ -575,13 +575,13 @@ def on_pin_to_start(item_pin_enable: Callable, item_unpin_enable: Callable) -> b
         item_unpin_enable()
         item_pin_enable()
     if not pinned:
-        try_notify(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
+        try_show_notification(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
     return pinned
 
 
 def on_unpin_from_start() -> bool:
     if not (unpinned := win32.remove_pins(*pyinstall.get_launch_args(), taskbar=False)):
-        try_notify(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
+        try_show_notification(STRINGS.LABEL_UNPIN_START, STRINGS.FAIL_UNPIN_START)
     return unpinned
 
 
@@ -589,17 +589,17 @@ def on_unpin_from_start() -> bool:
 def on_toggle_console() -> bool:
     if PIPE:
         if toggled := not PIPE.disconnect():
-            try_notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
+            try_show_notification(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_HIDE_CONSOLE)
     else:
         win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__), str(PIPE))
         if not (toggled := PIPE.connect(consts.MAX_PIPE_SEC)):
-            try_notify(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
+            try_show_notification(STRINGS.LABEL_CONSOLE, STRINGS.FAIL_SHOW_CONSOLE)
     return toggled
 
 
 def on_clear_cache() -> bool:
     if not (cleared := try_remove_temp(True)):
-        try_notify(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
+        try_show_notification(STRINGS.LABEL_CLEAR_CACHE, STRINGS.FAIL_CLEAR)
     return cleared
 
 
@@ -631,7 +631,7 @@ def on_source(name: str, item: win32.gui.MenuItem):
 
 
 def on_about():
-    try_notify(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
+    try_show_notification(STRINGS.LABEL_ABOUT, str(NotImplemented), force=True)
 
 
 @timer.on_thread
@@ -641,7 +641,7 @@ def on_quit():
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
     if threading.active_count() > max_threads:
         gui.animate(STRINGS.STATUS_QUIT).__enter__()
-        try_notify(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
+        try_show_notification(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
         end_time = time.monotonic() + win32.get_max_shutdown_time()
         while end_time > time.monotonic() and threading.active_count() > max_threads:
             time.sleep(consts.POLL_FAST_SEC)
@@ -727,7 +727,7 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate: getattr(
                 STRINGS, f'ROTATE_{rotate}') for rotate in win32.display.Rotate},
                                    CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
-                                   on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ROTATE))
+                                   on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ROTATE))
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_FLIP, icon=RES_TEMPLATE.format(consts.RES_FLIP))):
             item_vertical = gui.add_menu_item(STRINGS.FLIP_VERTICAL, gui.MenuItemType.CHECK, getattr(
                 win32.display.Flip, CURRENT_CONFIG[consts.CONFIG_FLIP_BY]) in (
@@ -739,7 +739,7 @@ def create_menu():  # TODO slideshow (smaller timer)
             gui.set_on_click(item_horizontal, on_flip, args=(item_vertical.is_checked, item_horizontal.is_checked))
         gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style: getattr(
             STRINGS, f'ALIGNMENT_{style}') for style in win32.display.Style}, CURRENT_CONFIG, consts.CONFIG_FIT_STYLE,
-                               on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
+                               on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))):
             item_duration_enable = gui.add_mapped_submenu(
                 STRINGS.MENU_TRANSITION_DURATION, {duration: getattr(STRINGS, f'DURATION_{int(duration)}')
@@ -754,7 +754,7 @@ def create_menu():  # TODO slideshow (smaller timer)
             item_ease_enable = gui.add_mapped_submenu(
                 STRINGS.MENU_EASE, {ease: getattr(STRINGS, f'EASE_{ease}') for ease in EASE_STYLES},
                 CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE, CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[
-                    consts.CONFIG_EASE_OUT], on_click=reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE)).enable
+                    consts.CONFIG_EASE_OUT], on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE)).enable
             with gui.set_menu(gui.add_submenu(STRINGS.MENU_EASE_TIMING, position=-1,
                                               icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))):
                 gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_IN, CURRENT_CONFIG, consts.CONFIG_EASE_IN,

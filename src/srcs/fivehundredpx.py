@@ -32,12 +32,11 @@ def _find_images(browser: win32.browser.Browser) -> Generator[minihtml.Element, 
         browser.get_html()).iter_all_children(), 'img', {'class': _PATTERN})
 
 
-def _on_category(menu: gui.Menu) -> tuple[str]:
+def _on_category(menu: gui.Menu) -> tuple[str, ...]:
     categories = tuple(item.get_uid() for item in menu if item.is_checked())
     disable = CATEGORIES.index(categories[0]) if len(categories) == 1 else -1
     for index, item in enumerate(menu):
         item.enable(disable != index)
-    # noinspection PyTypeChecker
     return categories
 
 
@@ -60,7 +59,7 @@ class FiveHundredPx(Source):
         cls._fix_config(CONFIG_SORT, SORTS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         images: Optional[list] = None
         image = None
         url = urls.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))

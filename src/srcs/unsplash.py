@@ -49,7 +49,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         results: Optional[list] = None
         total_pages = 1
         if params.pop(CONFIG_EDITORIAL):

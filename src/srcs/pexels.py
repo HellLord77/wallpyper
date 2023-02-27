@@ -31,7 +31,7 @@ def on_curated(curated: bool, menu: gui.MenuItem):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(urls.open(URL_CURATED, {'per_page': '1'}, headers={'Authorization': key}))
+    return bool(urls.open(URL_CURATED, {'per_page': '1'}, headers={urls.Header.AUTHORIZATION: key}))
 
 
 class Pexels(Source):  # https://www.pexels.com/api/documentation
@@ -54,9 +54,9 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         cls._fix_config(CONFIG_LOCALE, LOCALES)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         photos: Optional[list] = None
-        key = params.pop(CONFIG_KEY)
+        headers = {urls.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
             query_url = URL_CURATED
             params.clear()
@@ -66,7 +66,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         params['per_page'] = '80'
         while True:
             if not photos:
-                response = urls.open(query_url, params, headers={'Authorization': key})
+                response = urls.open(query_url, params, headers=headers)
                 if response:
                     json = response.get_json()
                     photos = json.get('photos')

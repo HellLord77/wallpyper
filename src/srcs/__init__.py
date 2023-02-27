@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import os
 from typing import Any, Generator, Iterable, Optional
@@ -45,7 +45,7 @@ class Source:
         pass
 
     @classmethod
-    def get_next_wallpaper(cls, **params: bool | str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         raise NotImplementedError
 
     @classmethod
@@ -54,7 +54,13 @@ class Source:
 
 
 from . import (
-    local, thisdoesnotexist,
-    wallhaven,
-    unsplash, pixabay, pexels, _500px,
-    bing, spotlight)  # NOQA: E402
+    _shutterstock,
+    bing,
+    fivehundredpx,
+    local,
+    pexels,
+    pixabay,
+    spotlight,
+    thisdoesnotexist,
+    unsplash,
+    wallhaven)  # NOQA: E402
