@@ -125,7 +125,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         gui.add_mapped_submenu(item_sorting, {sorting: getattr(
             cls.strings, f'WALLHAVEN_SORTING_{sorting}') for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
                                on_click=cls._on_sorting, args=(enable_range,))
-        cls._on_sorting(None, enable_range)
+        cls._on_sorting(cls.CURRENT_CONFIG[CONFIG_SORTING], enable_range)
         ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
         menu_ratio = gui.add_submenu(cls.strings.WALLHAVEN_MENU_RATIO).get_submenu()
         for ratio in RATIOS:
@@ -169,5 +169,5 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls.CURRENT_CONFIG[CONFIG_RATIO] = ','.join(ratios)
 
     @classmethod
-    def _on_sorting(cls, _, enable_range: Callable[[bool], bool]):
-        enable_range(cls.CURRENT_CONFIG[CONFIG_SORTING] == SORTINGS[5])
+    def _on_sorting(cls, sorting: str, enable_range: Callable[[bool], bool]):
+        enable_range(sorting == SORTINGS[5])

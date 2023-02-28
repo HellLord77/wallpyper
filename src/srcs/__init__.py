@@ -57,6 +57,7 @@ from . import (
     _shutterstock,
     bing,
     fivehundredpx,
+    fivehundredpxlegacy,
     local,
     pexels,
     pixabay,

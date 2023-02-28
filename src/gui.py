@@ -49,6 +49,7 @@ class MenuItemMethod(metaclass=_MenuItemArgMeta):
 
 
 class MenuItemProperty(metaclass=_MenuItemArgMeta):
+    MENU = win32.gui.MenuItem.get_menu.__name__
     CHECKED = win32.gui.MenuItem.is_checked.__name__
     ENABLED = win32.gui.MenuItem.is_enabled.__name__
     UID = win32.gui.MenuItem.get_uid.__name__

@@ -94,25 +94,25 @@ class FiveHundredPx(Source):
     def create_menu(cls):
         categories = cls.CURRENT_CONFIG[CONFIG_CATEGORIES].split('-')
         # noinspection PyProtectedMember
-        with gui.set_menu(gui.add_submenu(cls.strings._500PX_MENU_CATEGORY)) as menu_category:
+        with gui.set_menu(gui.add_submenu(cls.strings.FIVEHUNDREDPX_MENU_CATEGORY)) as menu_category:
             for category in CATEGORIES:
                 gui.add_menu_item(
-                    f'_500PX_CATEGORY_{"".join(filter(str.isalnum, category))}', gui.MenuItemType.CHECK, category in categories,
+                    f'FIVEHUNDREDPX_CATEGORY_{"".join(filter(str.isalnum, category))}', gui.MenuItemType.CHECK, category in categories,
                     uid=category, on_click=cls._on_category, menu_args=(gui.MenuItemProperty.UID,), args=(menu_category,))
         _on_category(menu_category)
         # noinspection PyProtectedMember
-        enable_follower = gui.add_mapped_submenu(cls.strings._500PX_MENU_FOLLOWER, {follower: getattr(
-            cls.strings, f'_500PX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWERS).enable
+        enable_follower = gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_FOLLOWER, {follower: getattr(
+            cls.strings, f'FIVEHUNDREDPX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWERS).enable
         # noinspection PyProtectedMember
-        enable_sort = gui.add_mapped_submenu(cls.strings._500PX_MENU_SORT, {sort: getattr(
-            cls.strings, f'_500PX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
+        enable_sort = gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_SORT, {sort: getattr(
+            cls.strings, f'FIVEHUNDREDPX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
         # noinspection PyProtectedMember
-        gui.add_mapped_submenu(cls.strings._500PX_MENU_DISCOVER, {discover: getattr(
-            cls.strings, f'_500PX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CURRENT_CONFIG, CONFIG_DISCOVER,
+        gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_DISCOVER, {discover: getattr(
+            cls.strings, f'FIVEHUNDREDPX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CURRENT_CONFIG, CONFIG_DISCOVER,
                                on_click=cls._on_discover, args=(enable_follower, enable_sort), position=0)
-        cls._on_discover(None, enable_follower, enable_sort)
+        cls._on_discover(cls.CURRENT_CONFIG[CONFIG_DISCOVER], enable_follower, enable_sort)
         # noinspection PyProtectedMember
-        gui.add_mapped_menu_item(cls.strings._500PX_MENU_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
+        gui.add_mapped_menu_item(cls.strings.FIVEHUNDREDPX_MENU_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
 
     @classmethod
     def _on_category(cls, category: str, menu: gui.Menu):
@@ -124,6 +124,6 @@ class FiveHundredPx(Source):
         cls.CURRENT_CONFIG[CONFIG_CATEGORIES] = '-'.join(_on_category(menu))
 
     @classmethod
-    def _on_discover(cls, _, enable_follower: Callable[[bool], bool], enable_sort: Callable[[bool], bool]):
-        enable_follower(cls.CURRENT_CONFIG[CONFIG_DISCOVER] != DISCOVERS[3])
-        enable_sort(cls.CURRENT_CONFIG[CONFIG_DISCOVER] == DISCOVERS[0])
+    def _on_discover(cls, discover: str, enable_follower: Callable[[bool], bool], enable_sort: Callable[[bool], bool]):
+        enable_follower(discover != DISCOVERS[3])
+        enable_sort(discover == DISCOVERS[0])
