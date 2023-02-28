@@ -1,3 +1,4 @@
+import functools
 import os.path
 import re
 from typing import Generator, Optional
@@ -103,7 +104,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         menu_color = gui.add_submenu(cls.strings.PIXABAY_MENU_COLORS).get_submenu()
         for color in COLORS:
             gui.add_menu_item(getattr(cls.strings, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
-                              uid=color, on_click=cls._on_color, args=(menu_color,), menu=menu_color)
+                              uid=color, on_click=functools.partial(cls._on_color, menu_color), menu=menu_color)
         gui.add_separator(2, menu_color)
         cls._on_color(menu_color)
         gui.add_mapped_menu_item(cls.strings.PIXABAY_LABEL_EDITOR, cls.CURRENT_CONFIG, CONFIG_EDITOR)

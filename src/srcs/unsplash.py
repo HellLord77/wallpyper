@@ -1,3 +1,4 @@
+import functools
 import sys
 from typing import Generator, Optional
 
@@ -78,8 +79,8 @@ class Unsplash(Source):  # https://unsplash.com/documentation
             cls.strings, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_}, cls.CURRENT_CONFIG, CONFIG_ORDER).get_submenu()
         item_search = gui.add_submenu(cls.strings.UNSPLASH_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         gui.add_mapped_menu_item(cls.strings.UNSPLASH_LABEL_EDITORIAL, cls.CURRENT_CONFIG, CONFIG_EDITORIAL,
-                                 on_click=cls._on_editorial, args=(item_search, menu_order), position=0)
-        cls._on_editorial(cls.CURRENT_CONFIG[CONFIG_EDITORIAL], item_search, menu_order)
+                                 on_click=functools.partial(cls._on_editorial, item_search, menu_order), position=0)
+        cls._on_editorial(item_search, menu_order, cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         with gui.set_menu(item_search):
             gui.add_mapped_submenu(cls.strings.UNSPLASH_MENU_FILTER, {filter_: getattr(
                 cls.strings, f'UNSPLASH_FILTER_{filter_}') for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
@@ -94,7 +95,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         cls._fix_config(CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
 
     @classmethod
-    def _on_editorial(cls, editorial: bool, item_search: gui.MenuItem, menu_order: gui.Menu):
+    def _on_editorial(cls, item_search: gui.MenuItem, menu_order: gui.Menu, editorial: bool):
         item_search.enable(not editorial)
         cls._fix_order()
         for order, item in gui.get_menu_items(menu_order).items():

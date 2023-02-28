@@ -338,33 +338,24 @@ def index_ex(itt: Iterable, value) -> int:
     return -1
 
 
-def any_ex(itt: Iterable, func: Callable, args: Optional[Iterable] = None,
-           kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def any_ex(itt: Iterable, func: Callable) -> bool:
     for ele in itt:
-        res = func(ele, *() if args is None else args, **{} if kwargs is None else kwargs)
+        res = func(ele)
         if res:
             return True
     return False
 
 
-def chain_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
-             kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None) -> Generator:
-    for func, args_, kwargs_ in itertools.zip_longest(
-            funcs, () if args is None else args, {} if kwargs is None else kwargs):
-        if not func:
-            break
-        yield func(*() if args_ is None else args_, **{} if kwargs_ is None else kwargs_)
+def chain_ex(*funcs: Callable) -> Generator:
+    yield from (func() for func in funcs)
 
 
-def cycle_ex(itt: Iterable, func: Optional[Callable] = None, args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping[str, Any]] = None) -> Generator:
-    args = () if args is None else args
-    kwargs = {} if kwargs is None else kwargs
+def cycle_ex(itt: Iterable, func: Optional[Callable] = None) -> Generator:
     while True:
         for ele in itt:
             yield ele
-        if func:
-            func(*args, **kwargs)
+        if func is not None:
+            func()
 
 
 def enquote(string: str, quote: str = '"') -> str:
@@ -437,15 +428,13 @@ def sleep_ex(secs: Optional[float] = None):
             pass
 
 
-def try_ex(*funcs: Callable, args: Optional[Iterable[Optional[Iterable]]] = None,
-           kwargs: Optional[Iterable[Optional[Mapping[str, Any]]]] = None,
-           excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
-    for func, func_args, func_kwargs, func_excs in itertools.zip_longest(
-            funcs, () if args is None else args, () if kwargs is None else kwargs, () if excs is None else excs):
+def try_ex(*funcs: Callable, excs: Optional[Iterable[Optional[Iterable[type[BaseException]]]]] = None) -> Any:
+    for func, func_excs in itertools.zip_longest(
+            funcs, () if excs is None else excs):
         if func is None:
             break
         with contextlib.suppress(*() if func_excs is None else func_excs):
-            return func(*() if func_args is None else func_args, **{} if func_kwargs is None else func_kwargs)
+            return func()
 
 
 def pass_ex(*_, **__):
@@ -503,12 +492,9 @@ def re_join(base: str, *child: str, sep: str = os.sep) -> str:
     return re.escape(sep).join((base,) + child)
 
 
-def return_any(func: Callable, args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None, max_try: Optional[int] = None) -> Any:
-    args = () if args is None else args
-    kwargs = {} if kwargs is None else kwargs
+def return_any(func: Callable, max_try: Optional[int] = None) -> Any:
     for _ in (range if max_try else itertools.repeat)(max_try):
-        res = func(*args, **kwargs)
+        res = func()
         if res:
             return res
 
@@ -591,13 +577,7 @@ def decrypt(data: str, default: Any = None, key: Optional[bytes | int | str] = N
 
 
 # noinspection PyShadowingBuiltins
-def hook_except(func: Callable, args: Optional[Iterable] = None,
-                kwargs: Optional[Mapping[str, Any]] = None, format: bool = False):
-    if args is None:
-        args = ()
-    if kwargs is None:
-        kwargs = {}
-
+def hook_except(func: Callable, format: bool = False):
     @functools.wraps(func)
     def wrapper(hook: Callable, *hook_args, **hook_kwargs):
         if format:
@@ -612,7 +592,7 @@ def hook_except(func: Callable, args: Optional[Iterable] = None,
             while not isinstance(hook_args, type):
                 hook_args = hook_args[0]
             hook_args = (hook_args, stream.getvalue())
-        func(*hook_args, *args, **hook_kwargs, **kwargs)
+        func(*hook_args, **hook_kwargs)
 
     sys.excepthook = functools.partial(wrapper, sys.excepthook)
     threading.excepthook = functools.partial(wrapper, threading.excepthook)

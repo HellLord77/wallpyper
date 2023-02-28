@@ -51,7 +51,7 @@ class LocalFolder(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_menu_item(cls.strings.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, menu_args=(
+        gui.add_menu_item(cls.strings.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, args=(
             gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
         gui.add_mapped_menu_item(cls.strings.LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()

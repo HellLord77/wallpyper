@@ -6,7 +6,7 @@ import contextlib
 import functools
 import itertools
 import threading
-from typing import Any, Callable, Generator, Iterable, Mapping, Optional, Sequence
+from typing import Any, Callable, Generator, Iterable, Optional, Sequence
 
 from libs import ctyped
 from libs.ctyped.lib import user32, shell32
@@ -177,7 +177,7 @@ def _load_bitmap(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
 class _EventHandler:
     _id: int
     _selves: dict[int, _EventHandler] = None
-    _bindings: dict[int, dict[int, tuple[Callable, Iterable, Mapping[str, Any]]]] = None
+    _bindings: dict[int, dict[int, Callable]] = None
 
     # noinspection PyShadowingBuiltins
     def __init__(self, id: int):
@@ -216,8 +216,7 @@ class _EventHandler:
         else:
             return cls._selves.get(id)
 
-    def bind(self, event: int, callback: Callable, args: Optional[Iterable] = None,
-             kwargs: Optional[Mapping] = None, once: bool = False):
+    def bind(self, event: int, callback: Callable, once: bool = False):
         if once:
             @functools.wraps(callback)
             def wrapped(*args_, **kwargs_):
@@ -225,7 +224,7 @@ class _EventHandler:
                 return callback(*args_, **kwargs_)
         else:
             wrapped = callback
-        self._bindings[self._id][event] = wrapped, () if args is None else args, {} if kwargs is None else kwargs
+        self._bindings[self._id][event] = wrapped
 
     def unbind(self, event: int) -> bool:
         try:
@@ -237,11 +236,11 @@ class _EventHandler:
 
     def trigger(self, event: int) -> Any:
         try:
-            callback, args, kwargs = self._bindings[self._id][event]
+            callback = self._bindings[self._id][event]
         except KeyError:
             pass
         else:
-            return callback(event, self, *args, **kwargs)
+            return callback(event, self)
 
 
 class Gui(_EventHandler):

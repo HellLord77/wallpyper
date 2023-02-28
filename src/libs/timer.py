@@ -6,7 +6,7 @@ import functools
 import math
 import threading
 import time
-from typing import Any, Callable, Iterable, Mapping, Optional
+from typing import Callable, Optional
 
 
 class _TimerExit(SystemExit):
@@ -20,14 +20,13 @@ class Timer:
     _selves = []
     last_start = math.inf
 
-    def __init__(self, interval: float, target: Callable, args: Optional[Iterable] = None,
-                 kwargs: Optional[Mapping[str, Any]] = None, once: bool = False, start: bool = False):
+    def __init__(self, interval: float, target: functools.partial | Callable, once: bool = False, start: bool = False):
         self._interval = interval
         self.target = target
-        self.args = () if args is None else args
-        self.kwargs = {} if kwargs is None else kwargs
         self.once = once
         self._running = 0
+        self._name = f'{__name__}-{__version__}-{type(self).__name__}(' \
+                     f'{(target.func if isinstance(target, functools.partial) else target).__name__})'
         self._timers: list[threading.Timer] = []
         self._selves.append(self)
         if start:
@@ -57,7 +56,7 @@ class Timer:
             self.start()
         try:
             with contextlib.suppress(_TimerExit):
-                self.result = self.target(*self.args, **self.kwargs)
+                self.result = self.target()
         finally:
             self._running -= 1
 
@@ -74,7 +73,7 @@ class Timer:
         self.stop()
         self._clean_timers()
         timer = threading.Timer(self._interval if after is None else after, self._callback)
-        timer.name = f'{__name__}-{__version__}-{type(self).__name__}({self.target.__name__})'
+        timer.name = self._name
         timer.daemon = True
         timer.start()
         self._timers.append(timer)
@@ -102,14 +101,10 @@ class Timer:
         self._clean_timers()
 
 
-def start_once(interval: Optional[float], target: Callable, args: Optional[Iterable] = None,
-               kwargs: Optional[Mapping[str, Any]] = None) -> Timer:
-    return Timer(0 if interval is None else interval, target, args, kwargs, True, True)
+def start_once(interval: Optional[float], target: Callable) -> Timer:
+    return Timer(0 if interval is None else interval, target, True, True)
 
 
 def on_thread(target: Callable) -> Callable:
-    @functools.wraps(target)
-    def wrapped(*args, **kwargs) -> Timer:
-        return start_once(None, target, args, kwargs)
-
-    return wrapped
+    return functools.wraps(target)(lambda *args, **kwargs: start_once(
+        None, functools.partial(target, *args, **kwargs)))

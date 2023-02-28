@@ -8,9 +8,7 @@ import socket
 import sys
 import tempfile
 import time
-from typing import Any, Callable, Iterable, Mapping, NoReturn, Optional
-
-_TKWARGS = Mapping[str, Any]
+from typing import Callable, NoReturn, Optional
 
 WAIT_INTERVAL = 5
 POLL_INTERVAL = 1
@@ -18,23 +16,18 @@ MAX_CHUNK = 1024 * 1024
 SUFFIX = '.lock'
 
 
-def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_wait_args: Iterable,
-                  on_wait_kwargs: _TKWARGS, on_exit: Optional[Callable],
-                  on_exit_args: Iterable, on_exit_kwargs: _TKWARGS) -> Optional[NoReturn]:
+def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
     if end_time > time.monotonic():
         if on_wait is not None:
-            on_wait(*on_wait_args, **on_wait_kwargs)
+            on_wait()
         time.sleep(POLL_INTERVAL)
     else:
         if on_exit is not None:
-            on_exit(*on_exit_args, **on_exit_kwargs)
+            on_exit()
         raise SystemExit
 
 
-def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Iterable,
-          on_crash_kwargs: _TKWARGS, on_wait: Optional[Callable], on_wait_args: Iterable,
-          on_wait_kwargs: _TKWARGS, on_exit: Optional[Callable], on_exit_args: Iterable,
-          on_exit_kwargs: _TKWARGS) -> Optional[NoReturn]:
+def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -47,36 +40,30 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_crash_args: Ite
             try:
                 os.remove(path)
             except PermissionError:
-                _wait_or_exit(end_time, on_wait, on_wait_args,
-                              on_wait_kwargs, on_exit, on_exit_args, on_exit_kwargs)
+                _wait_or_exit(end_time, on_wait, on_exit)
             else:
                 if on_crash is not None:
-                    on_crash(*on_crash_args, **on_crash_kwargs)
+                    on_crash()
         else:
             atexit.register(os.remove, path)
             atexit.register(os.close, file)
             break
 
 
-def _memory(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable],
-            on_wait_args: Iterable, on_wait_kwargs: _TKWARGS, on_exit: Optional[Callable],
-            on_exit_args: Iterable, on_exit_kwargs: _TKWARGS) -> Optional[NoReturn]:
+def _memory(uid: str, wait: bool, _, on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
     end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
         try:
             memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
         except FileExistsError:
-            _wait_or_exit(end_time, on_wait, on_wait_args,
-                          on_wait_kwargs, on_exit, on_exit_args, on_exit_kwargs)
+            _wait_or_exit(end_time, on_wait, on_exit)
         else:
             atexit.register(memory.unlink)
             atexit.register(memory.close)
             break
 
 
-def _socket(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable],
-            on_wait_args: Iterable, on_wait_kwargs: _TKWARGS, on_exit: Optional[Callable],
-            on_exit_args: Iterable, on_exit_kwargs: _TKWARGS) -> Optional[NoReturn]:
+def _socket(uid: str, wait: bool, _, on_wait: Optional[Callable], on_exit: Optional[Callable], ) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.monotonic() + wait * WAIT_INTERVAL
@@ -84,8 +71,7 @@ def _socket(uid: str, wait: bool, _, __, ___, on_wait: Optional[Callable],
         try:
             server.bind(address)
         except OSError:
-            _wait_or_exit(end_time, on_wait, on_wait_args,
-                          on_wait_kwargs, on_exit, on_exit_args, on_exit_kwargs)
+            _wait_or_exit(end_time, on_wait, on_exit)
         else:
             atexit.register(server.close)
             break
@@ -109,14 +95,8 @@ def _get_uid(data_or_path: bytes | str, prefix: Optional[str] = None) -> str:
 
 
 def init(uuid: bytes | str, uid_prefix: Optional[str] = None, wait: bool = False,
-         on_crash: Optional[Callable] = None, on_crash_args: Optional[Iterable] = None,
-         on_crash_kwargs: Optional[_TKWARGS] = None, on_wait: Optional[Callable] = None,
-         on_wait_args: Optional[Iterable] = None, on_wait_kwargs: Optional[_TKWARGS] = None,
-         on_exit: Optional[Callable] = None, on_exit_args: Optional[Iterable] = None,
-         on_exit_kwargs: Optional[_TKWARGS] = None, method: Callable = Method.FILE) -> Optional[NoReturn]:
+         on_crash: Optional[Callable] = None, on_wait: Optional[Callable] = None,
+         on_exit: Optional[Callable] = None, method: Callable = Method.FILE) -> Optional[NoReturn]:
     if isinstance(uuid, str):
         uuid = uuid.encode()
-    method(_get_uid(uuid, uid_prefix), wait, on_crash, () if on_crash_args is None else on_crash_args,
-           {} if on_crash_kwargs is None else on_crash_kwargs, on_wait, () if on_wait_args is None else on_wait_args,
-           {} if on_wait_kwargs is None else on_wait_kwargs, on_exit, () if on_exit_args is None else on_exit_args,
-           {} if on_exit_kwargs is None else on_exit_args)
+    method(_get_uid(uuid, uid_prefix), wait, on_crash, on_wait, on_exit)

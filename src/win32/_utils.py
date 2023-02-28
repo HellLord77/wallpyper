@@ -2,7 +2,7 @@ import contextlib
 import ntpath
 import os
 import winreg
-from typing import Any, Callable, ContextManager, Iterable, Mapping, Optional
+from typing import Any, Callable, ContextManager, Optional
 
 from libs import ctyped
 from libs.ctyped import winrt
@@ -169,8 +169,7 @@ def get_lock_background_input_stream() -> \
 
 def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
                 output_stream: Windows_Storage_Streams.IOutputStream,
-                progress_callback: Optional[Callable[[int, ...], Any]],
-                args: Optional[Iterable], kwargs: Optional[Mapping[str, Any]]) -> bool:
+                progress_callback: Optional[Callable[[int], Any]] = None) -> bool:
     p_statics = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStreamStatics](
         runtimeclass.Windows.Storage.Streams.RandomAccessStream)
     if p_statics:
@@ -178,14 +177,9 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
         with p_statics as statics:
             if ctyped.macro.SUCCEEDED(statics.CopyAndCloseAsync(input_stream, output_stream, ~operation)):
                 if progress_callback is not None:
-                    if args is None:
-                        args = ()
-                    if kwargs is None:
-                        kwargs = {}
-
                     def handler(_, __, progress: int):
                         try:
-                            progress_callback(progress, *args, **kwargs)
+                            progress_callback(progress)
                         finally:
                             return ctyped.const.NOERROR
 
@@ -194,8 +188,7 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
     return False
 
 
-def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...], Any]],
-              args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...], Any]]) -> bool:
     p_src = open_file(src)
     if p_src:
         os.makedirs(ntpath.dirname(dst), exist_ok=True)
@@ -203,7 +196,7 @@ def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...
         if p_dst := open_file(dst):
             with p_src as f_src, p_dst as f_dst, get_input_stream(
                     f_src) as i_stream, get_output_stream(f_dst) as o_stream:
-                return copy_stream(i_stream, o_stream, progress_callback, args, kwargs)
+                return copy_stream(i_stream, o_stream, progress_callback)
     return False
 
 

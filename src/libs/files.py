@@ -9,7 +9,7 @@ import os
 import shutil
 import sys
 import time
-from typing import Any, Callable, Generator, IO, Iterable, Mapping, Optional
+from typing import Any, Callable, Generator, IO, Iterable, Optional
 
 import _hashlib
 
@@ -94,31 +94,27 @@ def get_size(path: str) -> Optional[int]:
         return os.path.getsize(path)
 
 
-def copyfileobj(src: IO, dst: IO, size: Optional[int] = None,
-                chunk_size: Optional[int] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
-                args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None):
+def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
+                query_callback: Optional[Callable[[float], bool]] = None):
     size = size or sys.maxsize
     chunk_size = chunk_size or MAX_CHUNK
-    args = () if args is None else args
-    kwargs = {} if kwargs is None else kwargs
     ratio = 0
     while chunk := src.read(chunk_size):
         dst.write(chunk)
         ratio += len(chunk) / size
-        if query_callback and not query_callback(ratio, *args, **kwargs):
+        if query_callback and not query_callback(ratio):
             break
 
 
-def copy(src: str, dst: str,
-         chunk_size: Optional[int] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
-         args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
+def copy(src: str, dst: str, chunk_size: Optional[int] = None,
+         query_callback: Optional[Callable[[float, ...], bool]] = None) -> bool:
     if os.path.exists(src):
         if not os.path.exists(dst):
             with contextlib.suppress(PermissionError):
                 with open(src, 'rb') as src_:
                     os.makedirs(os.path.dirname(dst), exist_ok=True)
                     with open(dst, 'wb') as dst_:
-                        copyfileobj(src_, dst_, os.path.getsize(src), chunk_size, query_callback, args, kwargs)
+                        copyfileobj(src_, dst_, os.path.getsize(src), chunk_size, query_callback)
         return os.path.exists(dst) and filecmp.cmp(src, dst)
     return False
 

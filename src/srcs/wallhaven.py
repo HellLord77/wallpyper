@@ -1,4 +1,5 @@
 import colorsys
+import functools
 import os.path
 import re
 from typing import Callable, Generator, Optional
@@ -109,13 +110,13 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         for index, category in enumerate(CATEGORIES):
             gui.add_menu_item(getattr(cls.strings, f'WALLHAVEN_CATEGORY_{category}'),
                               gui.MenuItemType.CHECK, cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
-                              on_click=cls._on_category, args=(menu_category,), menu=menu_category)
+                              on_click=functools.partial(cls._on_category, menu_category), menu=menu_category)
         cls._on_category(menu_category)
         menu_purity = gui.add_submenu(cls.strings.WALLHAVEN_MENU_PURITY).get_submenu()
         for index, purity in enumerate(PURITIES):
             gui.add_menu_item(getattr(cls.strings, f'WALLHAVEN_PURITY_{purity}'),
                               gui.MenuItemType.CHECK, cls.CURRENT_CONFIG[CONFIG_PURITY][index] == '1', uid=purity,
-                              on_click=cls._on_purity, args=(menu_purity,), menu=menu_purity)
+                              on_click=functools.partial(cls._on_purity, menu_purity), menu=menu_purity)
         cls._on_purity(menu_purity)
         item_sorting = gui.add_submenu(cls.strings.WALLHAVEN_MENU_SORTING)
         gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_ORDER, {order: getattr(
@@ -124,13 +125,13 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             cls.strings, f'WALLHAVEN_RANGE_{range_}') for range_ in RANGES}, cls.CURRENT_CONFIG, CONFIG_RANGE).enable
         gui.add_mapped_submenu(item_sorting, {sorting: getattr(
             cls.strings, f'WALLHAVEN_SORTING_{sorting}') for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
-                               on_click=cls._on_sorting, args=(enable_range,))
-        cls._on_sorting(cls.CURRENT_CONFIG[CONFIG_SORTING], enable_range)
+                               on_click=functools.partial(cls._on_sorting, enable_range))
+        cls._on_sorting(enable_range, cls.CURRENT_CONFIG[CONFIG_SORTING])
         ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
         menu_ratio = gui.add_submenu(cls.strings.WALLHAVEN_MENU_RATIO).get_submenu()
         for ratio in RATIOS:
             gui.add_menu_item(getattr(cls.strings, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
-                              uid=ratio, on_click=cls._on_ratio, args=(menu_ratio,), menu=menu_ratio)
+                              uid=ratio, on_click=functools.partial(cls._on_ratio, menu_ratio), menu=menu_ratio)
         gui.add_separator(6, menu_ratio)
         colors = {color: colornames.get_nearest_color(color)[1] if color else cls.strings.WALLHAVEN_COLOR_ for color in COLORS}
         for item, color in zip(gui.add_mapped_submenu(
@@ -169,5 +170,5 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls.CURRENT_CONFIG[CONFIG_RATIO] = ','.join(ratios)
 
     @classmethod
-    def _on_sorting(cls, sorting: str, enable_range: Callable[[bool], bool]):
+    def _on_sorting(cls, enable_range: Callable[[bool], bool], sorting: str):
         enable_range(sorting == SORTINGS[5])

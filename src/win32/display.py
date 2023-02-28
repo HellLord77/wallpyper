@@ -709,8 +709,7 @@ def save_lock_background(path: str) -> bool:
             with p_file as file:
                 if p_o_stream := _utils.get_output_stream(file):
                     with p_input_stream as i_stream, p_o_stream as o_stream:
-                        return _utils.copy_stream(
-                            i_stream, o_stream, None, None, None)
+                        return _utils.copy_stream(i_stream, o_stream)
     return False
 
 

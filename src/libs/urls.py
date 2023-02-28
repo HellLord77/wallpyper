@@ -157,12 +157,7 @@ def open(url: str, params: Optional[Mapping[str, str | Iterable[str]]] = None, d
 
 
 def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float, ...], bool]] = None,
-             args: Optional[Iterable] = None, kwargs: Optional[Mapping[str, Any]] = None) -> bool:
-    if args is None:
-        args = ()
-    if kwargs is None:
-        kwargs = {}
+             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = open(url)
     if response:
         if not size:
@@ -175,7 +170,7 @@ def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = Non
                 ratio = 0
                 for chunk in response:
                     ratio += file.write(chunk) / size
-                    if query_callback and not query_callback(ratio, *args, **kwargs):
+                    if query_callback and not query_callback(ratio):
                         file.close()
                         os.remove(path)
                         break
@@ -183,7 +178,7 @@ def download(url: str, path: str, size: int = 0, chunk_size: Optional[int] = Non
             return False
         if os.path.isfile(path) and size == os.path.getsize(path):
             if query_callback:
-                query_callback(1.0, *args, **kwargs)
+                query_callback(1.0)
             return True
     return False
 

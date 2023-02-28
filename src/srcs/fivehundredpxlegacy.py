@@ -1,3 +1,4 @@
+import functools
 from typing import Generator, Optional
 
 import gui
@@ -63,18 +64,18 @@ class FiveHundredPxLegacy(Source):
     def create_menu(cls):
         menu_only = gui.add_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_ONLY).get_submenu()
         menu_exclude = gui.add_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_EXCLUDE).get_submenu()
+        on_only = functools.partial(cls._on_category, CONFIG_ONLY, menu_only, menu_exclude)
+        on_exclude = functools.partial(cls._on_category, CONFIG_EXCLUDE, menu_exclude, menu_only)
         for category in CATEGORIES:
             label = getattr(cls.strings, f'FIVEHUNREDPXLEGACY_CATEGORY_{category}')
-            gui.add_menu_item(label, gui.MenuItemType.CHECK, uid=category, on_click=cls._on_category,
-                              args=(CONFIG_ONLY, menu_only, menu_exclude), menu=menu_only)
-            gui.add_menu_item(label, gui.MenuItemType.CHECK, uid=category, on_click=cls._on_category,
-                              args=(CONFIG_EXCLUDE, menu_exclude, menu_only), menu=menu_exclude)
+            gui.add_menu_item(label, gui.MenuItemType.CHECK, uid=category, on_click=on_only, menu=menu_only)
+            gui.add_menu_item(label, gui.MenuItemType.CHECK, uid=category, on_click=on_exclude, menu=menu_exclude)
 
         menu_sort = gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT, {sort: getattr(
             cls.strings, f'FIVEHUNREDPXLEGACY_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).get_submenu()
         gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_FEATURE, {
             feature: getattr(cls.strings, f'FIVEHUNREDPXLEGACY_FEATURE_{feature}') for feature in
-            FEATURES}, cls.CURRENT_CONFIG, CONFIG_FEATURE, on_click=cls._on_feature, args=(menu_sort,), position=0)
+            FEATURES}, cls.CURRENT_CONFIG, CONFIG_FEATURE, on_click=functools.partial(cls._on_feature, menu_sort), position=0)
         cls._last_feature = cls.CURRENT_CONFIG[CONFIG_FEATURE]
         gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
             sort_direction: getattr(cls.strings, f'FIVEHUNREDPXLEGACY_SORT_DIRECTION_{sort_direction}')
@@ -112,7 +113,7 @@ class FiveHundredPxLegacy(Source):
         cls.CURRENT_CONFIG[key] = ','.join(checked)
 
     @classmethod
-    def _on_feature(cls, feature: str, menu: gui.Menu):
+    def _on_feature(cls, menu: gui.Menu, feature: str):
         if cls._last_feature != feature:
             if cls.CURRENT_CONFIG[CONFIG_SORT] == _get_sort(cls._last_feature):
                 item = gui.get_menu_item_by_uid(_get_sort(feature), False, menu)

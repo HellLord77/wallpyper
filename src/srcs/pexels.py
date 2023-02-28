@@ -1,3 +1,4 @@
+import functools
 import os
 from typing import Generator, Optional
 
@@ -26,7 +27,7 @@ LOCALES = (
     'cs-CZ', 'da-DK', 'fi-FI', 'uk-UA', 'el-GR', 'ro-RO', 'nb-NO', 'sk-SK', 'tr-TR', 'ru-RU')
 
 
-def on_curated(curated: bool, menu: gui.MenuItem):
+def on_curated(menu: gui.MenuItem, curated: bool):
     menu.enable(not curated)
 
 
@@ -81,7 +82,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
     def create_menu(cls):
         item_search = gui.add_submenu(cls.strings.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
         gui.add_mapped_menu_item(cls.strings.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
-                                 on_click=on_curated, args=(item_search,), position=0)
+                                 on_click=functools.partial(on_curated, item_search), position=0)
         with gui.set_menu(item_search):
             gui.add_mapped_submenu(cls.strings.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.strings, f'PEXELS_ORIENTATION_{orientation}')
