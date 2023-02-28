@@ -20,7 +20,7 @@ CATEGORIES = (
     'Family', 'Fashion', 'Film', 'Fine Art', 'Food', 'Journalism', 'Landscapes', 'Macro', 'Nature', 'Nude', 'People',
     'Performing Arts', 'Sport', 'Still Life', 'Street', 'Transportation', 'Travel', 'Underwater', 'Urban Exploration', 'Wedding')
 SORTS = 'created_at', 'rating', 'highest_rating', 'times_viewed', 'votes_count', 'comments_count', 'taken_at'
-SORT_DIRECTIONS = 'asc', 'desc'
+SORT_DIRECTIONS = 'desc', 'asc'
 
 
 def _get_sort(feature: str) -> str:
@@ -30,13 +30,14 @@ def _get_sort(feature: str) -> str:
 class FiveHundredPxLegacy(Source):
     NAME = '500px Legacy'
     VERSION = '0.0.1'
+    ICON = 'png'
     URL = 'https://500px.com'
     DEFAULT_CONFIG = {
         CONFIG_FEATURE: FEATURES[4],
         CONFIG_ONLY: '',
         CONFIG_EXCLUDE: '',
         CONFIG_SORT: SORTS[0],
-        CONFIG_SORT_DIRECTION: SORT_DIRECTIONS[1]}
+        CONFIG_SORT_DIRECTION: SORT_DIRECTIONS[0]}
 
     _last_feature: str
 
@@ -55,22 +56,40 @@ class FiveHundredPxLegacy(Source):
     @classmethod
     def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         photos: Optional[list] = None
+        params['rpp'] = '100'
+        json = {
+            'current_page': 1,
+            'total_pages': 1}
         while True:
             if not photos:
-                pass
-            yield
+                params['page'] = str(json['current_page'] % json['total_pages'] + 1)
+                response = urls.open(URL_BASE, params)
+                if response:
+                    json = response.get_json()
+                    response = urls.open(urls.join(URL_BASE), {'ids': ','.join(str(
+                        photo['id']) for photo in json['photos']), 'image_size': '4096'})
+                    if response:
+                        photos = list(response.get_json()['photos'].values())
+                if not photos:
+                    yield
+                    continue
+            photo = photos.pop(0)
+            yield files.File(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}')
 
     @classmethod
     def create_menu(cls):
+        onlies = cls.CURRENT_CONFIG[CONFIG_ONLY].split(',')
+        excludes = cls.CURRENT_CONFIG[CONFIG_EXCLUDE].split(',')
         menu_only = gui.add_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_ONLY).get_submenu()
         menu_exclude = gui.add_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_EXCLUDE).get_submenu()
         on_only = functools.partial(cls._on_category, CONFIG_ONLY, menu_only, menu_exclude)
         on_exclude = functools.partial(cls._on_category, CONFIG_EXCLUDE, menu_exclude, menu_only)
         for category in CATEGORIES:
-            label = getattr(cls.strings, f'FIVEHUNREDPXLEGACY_CATEGORY_{category}')
-            gui.add_menu_item(label, gui.MenuItemType.CHECK, uid=category, on_click=on_only, menu=menu_only)
-            gui.add_menu_item(label, gui.MenuItemType.CHECK, uid=category, on_click=on_exclude, menu=menu_exclude)
-
+            label = getattr(cls.strings, f'FIVEHUNREDPXLEGACY_CATEGORY_{category.replace(" ", "_")}')
+            gui.add_menu_item(label, gui.MenuItemType.CHECK, category in onlies,
+                              category not in excludes, uid=category, on_click=on_only, menu=menu_only)
+            gui.add_menu_item(label, gui.MenuItemType.CHECK, category in excludes,
+                              category not in onlies, uid=category, on_click=on_exclude, menu=menu_exclude)
         menu_sort = gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT, {sort: getattr(
             cls.strings, f'FIVEHUNREDPXLEGACY_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).get_submenu()
         gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_FEATURE, {
@@ -80,30 +99,6 @@ class FiveHundredPxLegacy(Source):
         gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
             sort_direction: getattr(cls.strings, f'FIVEHUNREDPXLEGACY_SORT_DIRECTION_{sort_direction}')
             for sort_direction in SORT_DIRECTIONS}, cls.CURRENT_CONFIG, CONFIG_SORT_DIRECTION)
-
-        '''
-        categories = cls.CURRENT_CONFIG[CONFIG_CATEGORIES].split('-')
-        # noinspection PyProtectedMember
-        with gui.set_menu(gui.add_submenu(cls.strings._500PX_MENU_CATEGORY)) as menu_category:
-            for category in CATEGORIES:
-                gui.add_menu_item(
-                    f'_500PX_CATEGORY_{"".join(filter(str.isalnum, category))}', gui.MenuItemType.CHECK, category in categories,
-                    uid=category, on_click=cls._on_category, menu_args=(gui.MenuItemProperty.UID,), args=(menu_category,))
-        _on_category(menu_category)
-        # noinspection PyProtectedMember
-        enable_follower = gui.add_mapped_submenu(cls.strings._500PX_MENU_FOLLOWER, {follower: getattr(
-            cls.strings, f'_500PX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWERS).enable
-        # noinspection PyProtectedMember
-        enable_sort = gui.add_mapped_submenu(cls.strings._500PX_MENU_SORT, {sort: getattr(
-            cls.strings, f'_500PX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
-        # noinspection PyProtectedMember
-        gui.add_mapped_submenu(cls.strings._500PX_MENU_DISCOVER, {discover: getattr(
-            cls.strings, f'_500PX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CURRENT_CONFIG, CONFIG_DISCOVER,
-                               on_click=cls._on_discover, args=(enable_follower, enable_sort), position=0)
-        cls._on_discover(None, enable_follower, enable_sort)
-        # noinspection PyProtectedMember
-        gui.add_mapped_menu_item(cls.strings._500PX_MENU_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
-        '''
 
     @classmethod
     def _on_category(cls, key: str, menu: gui.Menu, menu_other: gui.Menu):
