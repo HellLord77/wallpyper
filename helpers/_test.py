@@ -454,12 +454,10 @@ def _test():
 def _test_red():
     token_url = r'https://www.reddit.com/api/v1/access_token'
     client_id = 'OmaZh49kO19M9h1oZmtXwA'
-    params = {
+    data = {
         'grant_type': 'https://oauth.reddit.com/grants/installed_client',
         'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
-    headers = {request.Header.CONTENT_TYPE: 'application/x-www-form-urlencoded'}
-
-    resp = request.post(token_url, params, headers=headers, auth=(client_id, ''))
+    resp = request.post(token_url, data, auth=(client_id, ''))
     print(resp.status)
     print(resp.get_json())
 

@@ -1,4 +1,5 @@
 import functools
+import http
 import os.path
 import re
 from typing import Generator, Optional
@@ -76,7 +77,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             if not hits:
                 pass
                 response = request.get(URL_BASE, params=params)
-                if (response.status == request.Status.BAD_REQUEST and
+                if (http.HTTPStatus.BAD_REQUEST == response.status and
                         response.get_content() == b'[ERROR 400] "page" is out of valid range.'):
                     params['page'] = '1'
                     continue

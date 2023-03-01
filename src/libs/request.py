@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import base64
 import contextlib
@@ -12,7 +12,7 @@ import urllib.parse
 import urllib.request
 import urllib.response
 import uuid
-from typing import Any, BinaryIO, Callable, ContextManager, Generator, Iterable, Mapping, Optional
+from typing import Any, BinaryIO, Callable, Generator, Iterable, Mapping, Optional
 
 _TJSON = int | bool | float | str | tuple | list | dict
 _TParams = Mapping[bytes | str, Optional[bytes | str | Iterable[bytes | str]]]
@@ -35,15 +35,7 @@ _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
 
-class Status:
-    OK = 200
-    FOUND = 302
-    BAD_REQUEST = 400
-    NOT_FOUND = 404
-    IM_A_TEAPOT = 418
-
-
-class Header:
+class Header:  # FIXME http.HTTPMethod [added on py3.11]
     # Authentication
     WWW_AUTHENTICATE = 'WWW-Authenticate'
     AUTHORIZATION = 'Authorization'
@@ -294,11 +286,11 @@ class _Response:
     def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self.response = response
         self.getheader = getattr(response, 'getheader', self._getheader)
-        self.status = getattr(response, 'status', Status.IM_A_TEAPOT)
+        self.status = http.HTTPStatus(getattr(response, 'status', int(http.HTTPStatus.IM_A_TEAPOT)))
         self.local = response.fp.name if isinstance(getattr(self.response, 'file', None), io.BufferedReader) else None
 
     def __bool__(self) -> bool:
-        return self.status == Status.OK if self.local is None else os.path.isfile(self.local)
+        return self.status == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
 
     def __iter__(self) -> Generator[bytes, None, None]:
         with contextlib.suppress(ConnectionError):
@@ -325,16 +317,6 @@ class _Response:
 
 def _str(o: bytes | str) -> str:
     return o.decode() if isinstance(o, bytes) else o
-
-
-@contextlib.contextmanager
-def _open(path_or_file: bytes | str | BinaryIO, mode: str = 'r') -> ContextManager[BinaryIO]:
-    if isinstance(path_or_file, (bytes, str)):
-        os.makedirs(os.path.dirname(path_or_file), exist_ok=True)
-        with open(path_or_file, mode) as file:
-            yield file
-    else:
-        yield path_or_file
 
 
 def is_path(url: str) -> bool:
@@ -384,7 +366,7 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
                     data.extend(({Header.CONTENT_DISPOSITION: f'form-data; name="{_str(name)}"'},
                                  val.encode() if isinstance(val, str) else val) for val in vals)
         for name, vals in files.items():
-            if not isinstance(vals, tuple):
+            if isinstance(vals, (bytes, str)):
                 vals = vals,
             headers = {
                 Header.CONTENT_DISPOSITION: f'form-data; name="{_str(name)}"',
@@ -395,12 +377,13 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
                 filename = vals[1]
                 if len(vals) > 2:
                     headers.update(vals[2])
+            val = vals[0]
             if filename is None:
-                filename = os.path.basename(vals[0] if isinstance(vals[0], (
-                    bytes, str)) else vals[0].name if hasattr(vals[0], 'name') else name)
+                filename = os.path.basename(val if isinstance(val, (
+                    bytes, str)) else val.name if hasattr(val, 'name') else name)
             headers[Header.CONTENT_DISPOSITION] += f'; filename="{_str(filename)}"'
-            data.append((headers, (open(vals[0], "rb") if isinstance(
-                vals[0], (bytes, str)) else vals[0]).read()))
+            data.append((headers, (open(val, "rb") if isinstance(
+                val, (bytes, str)) else val).read()))
         lines = []
         boundary = uuid.uuid4().hex
         for headers, val in data:
@@ -482,16 +465,18 @@ def post(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = Non
     return request('POST', url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
-def retrieve(url: str, path: bytes | str | BinaryIO, size: int = 0, chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float], bool]] = None) -> bool:
+def retrieve(url: str, path: bytes | str, size: Optional[int] = None,
+             chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
+             query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = get(url)
     if response:
-        if not size:
+        if size is None:
             size = int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize)) \
                 if response.local is None else os.path.getsize(response.local)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         try:
-            with _open(path, 'wb') as file:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'wb') as file:
                 ratio = 0
                 for chunk in response:
                     ratio += file.write(chunk) / size
@@ -499,8 +484,11 @@ def retrieve(url: str, path: bytes | str | BinaryIO, size: int = 0, chunk_size: 
                         return False
         except PermissionError:
             return False
-        if os.path.isfile(path) and size == os.path.getsize(path):
-            if query_callback:
-                query_callback(1.0)
-            return True
+        try:
+            retrieved = size == os.path.getsize(path)
+        except OSError:
+            retrieved = False
+        if retrieved and query_callback is not None:
+            query_callback(1.0)
+        return retrieved
     return False
