@@ -22,7 +22,7 @@ import langs
 import pipe
 import srcs
 import win32
-from libs import callables, easings, files, lens, log, pyinstall, singleton, spinners, timer, urls, utils
+from libs import callables, easings, files, lens, log, pyinstall, singleton, spinners, timer, request, utils
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -229,8 +229,8 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
             print_progress()
         try:
             if wallpaper.checksum(temp_path := os.path.join(TEMP_DIR, wallpaper.name)) or (
-                    urls.download(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
-                                  query_callback=query_callback) and wallpaper.checksum(temp_path, True)):
+                    request.retrieve(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
+                                     query_callback=query_callback) and wallpaper.checksum(temp_path, True)):
                 wallpaper.fill(temp_path)
                 return temp_path
         finally:
@@ -296,8 +296,8 @@ save_wallpaper_select = functools.partial(save_wallpaper, select=True)
 def search_wallpaper(path: str) -> bool:
     searched = False
     with gui.animate(STRINGS.STATUS_SEARCH):
-        if location := urls.upload(consts.URL_GOOGLE, files={'encoded_image': (None, path)},
-                                   redirect=False).getheader('location'):
+        if location := request.post(consts.URL_GOOGLE, files={'encoded_image': path},
+                                    allow_redirects=False).getheader(request.Header.LOCATION):
             searched = webbrowser.open(location)
     return searched
 
@@ -349,8 +349,8 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
     return changed
 
 
-def on_wallpaper(callback: callables.SingletonCallable[[str], bool], wallpaper: files.File, title: str,
-                 text: str) -> bool:
+def on_wallpaper(callback: callables.SingletonCallable[[str], bool],
+                 wallpaper: files.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -420,7 +420,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=functools.partial(
                             on_wallpaper, search_wallpaper, wallpaper, STRINGS.LABEL_GOOGLE,
                             STRINGS.FAIL_SEARCH, )).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
-                    with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not urls.is_path(
+                    with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_path(
                             wallpaper.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,

@@ -9,7 +9,7 @@ import typing
 from typing import Any, Callable, TypeVar, Optional, Literal, Tuple
 
 import win32
-from libs import ctyped, config
+from libs import ctyped, config, request
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
@@ -153,7 +153,7 @@ class RemoteProcess(ctyped.type.HANDLE):
 
     def get_remote_func(self, func: Callable, lib) -> FunctionAddress:
         lib_local = self._libs_local[lib]
-        return self._libs_remote[lib] + kernel32.GetProcAddress(lib_local, func.__name__.encode()) - lib_local
+        return self._libs_remote[lib] + kernel32.GetProcAddress(lib_local, func.__name__.extend_param()) - lib_local
 
     def call_func(self, func: FunctionAddress, arg: Optional[int] = None, wait: bool = True) -> Thread:
         thread = Thread.create_remote(self, func, arg)
@@ -451,6 +451,20 @@ def _test():
     # print('YAML', config_ == config__)
 
 
+def _test_red():
+    token_url = r'https://www.reddit.com/api/v1/access_token'
+    client_id = 'OmaZh49kO19M9h1oZmtXwA'
+    params = {
+        'grant_type': 'https://oauth.reddit.com/grants/installed_client',
+        'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
+    headers = {request.Header.CONTENT_TYPE: 'application/x-www-form-urlencoded'}
+
+    resp = request.post(token_url, params, headers=headers, auth=(client_id, ''))
+    print(resp.status)
+    print(resp.get_json())
+
+
 if __name__ == '__main__':
-    _test()
+    # _test()
+    _test_red()
     sys.exit()

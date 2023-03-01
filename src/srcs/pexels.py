@@ -3,12 +3,12 @@ import os
 from typing import Generator, Optional
 
 import gui
-from libs import files, isocodes, urls
+from libs import files, isocodes, request
 from . import Source
 
-URL_BASE = urls.join('https://api.pexels.com', 'v1')
-URL_CURATED = urls.join(URL_BASE, 'curated')
-URL_SEARCH = urls.join(URL_BASE, 'search')
+URL_BASE = request.join('https://api.pexels.com', 'v1')
+URL_CURATED = request.join(URL_BASE, 'curated')
+URL_SEARCH = request.join(URL_BASE, 'search')
 
 CONFIG_KEY = 'key'
 CONFIG_CURATED = 'curated'
@@ -32,7 +32,7 @@ def on_curated(menu: gui.MenuItem, curated: bool):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(urls.open(URL_CURATED, {'per_page': '1'}, headers={urls.Header.AUTHORIZATION: key}))
+    return bool(request.get(URL_CURATED, params={'per_page': '1'}, headers={request.Header.AUTHORIZATION: key}))
 
 
 class Pexels(Source):  # https://www.pexels.com/api/documentation
@@ -57,7 +57,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
     @classmethod
     def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         photos: Optional[list] = None
-        headers = {urls.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
+        headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
             query_url = URL_CURATED
             params.clear()
@@ -67,7 +67,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         params['per_page'] = '80'
         while True:
             if not photos:
-                response = urls.open(query_url, params, headers=headers)
+                response = request.get(query_url, params=params, headers=headers)
                 if response:
                     json = response.get_json()
                     photos = json.get('photos')
@@ -76,7 +76,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                     yield
                     continue
             url = photos.pop(0)['src']['original']
-            yield files.File(url, os.path.basename(urls.strip(url)))
+            yield files.File(url, os.path.basename(request.strip(url)))
 
     @classmethod
     def create_menu(cls):

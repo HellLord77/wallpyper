@@ -2,12 +2,12 @@ import os.path
 from typing import Generator, Optional
 
 import gui
-from libs import files, isocodes, urls
+from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = 'https://www.bing.com'
-URL_ARCHIVE = urls.join(URL_BASE, 'HPImageArchive.aspx')
-URL_IMAGE = urls.join(URL_BASE, 'th')
+URL_ARCHIVE = request.join(URL_BASE, 'HPImageArchive.aspx')
+URL_IMAGE = request.join(URL_BASE, 'th')
 
 CONFIG_DAY = 'idx'
 CONFIG_MARKET = 'mkt'
@@ -44,7 +44,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
                 images_ = []
                 for day in range(int(params[CONFIG_DAY]), MAX_DAY):
                     params[CONFIG_DAY] = str(day)
-                    response = urls.open(URL_ARCHIVE, params)
+                    response = request.get(URL_ARCHIVE, params=params)
                     if response:
                         for image in response.get_json()['images']:
                             if image not in images_:
@@ -56,10 +56,10 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
                 if not images:
                     yield
                     continue
-            query = urls.query(images.pop(0)['url'])
+            query = request.get_params(images.pop(0)['url'])
             name, ext = os.path.splitext(query['id'][0])
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{cls.CURRENT_CONFIG[CONFIG_RESOLUTION]}{ext}'
-            yield files.File(urls.encode(URL_IMAGE, query), query['id'][0][4:])
+            yield files.File(request.extend_param(URL_IMAGE, query), query['id'][0][4:])
 
     @classmethod
     def create_menu(cls):

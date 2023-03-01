@@ -1,12 +1,12 @@
 from typing import Generator, Optional
 
-from libs import files, urls
+from libs import files, request
 from . import Source
 
-URL_BASE = urls.join('https://api.shutterstock.com', 'v2')
-URL_IMAGES = urls.join(URL_BASE, 'images')
-URL_IMAGES_SEARCH = urls.join(URL_IMAGES, 'search')
-URL_USER = urls.join(URL_BASE, 'user')
+URL_BASE = request.join('https://api.shutterstock.com', 'v2')
+URL_IMAGES = request.join(URL_BASE, 'images')
+URL_IMAGES_SEARCH = request.join(URL_IMAGES, 'search')
+URL_USER = request.join(URL_BASE, 'user')
 
 CONFIG_KEY = 'key'
 CONFIG_SECRET = 'secret'
@@ -36,7 +36,7 @@ SORTS = 'popular', 'newest', 'relevance', 'random'
 
 
 def _authenticate(key: str, secret: str) -> bool:
-    return bool(urls.open(URL_IMAGES_SEARCH, {'per_page': '1'}, headers=urls.basic_auth(key, secret)))
+    return bool(request.get(URL_IMAGES_SEARCH, params={'per_page': '1'}, auth=(key, secret)))
 
 
 class ShutterStock(Source):
@@ -58,13 +58,13 @@ class ShutterStock(Source):
     @classmethod
     def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         datas: Optional[list] = None
-        headers = urls.basic_auth(params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET))
+        authorization = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'
         params['page'] = '1'
         params['per_page'] = '500'
         while True:
             if not datas:
-                response = urls.open(URL_IMAGES_SEARCH, params, headers=headers)
+                response = request.get(URL_IMAGES_SEARCH, params=params, auth=authorization)
                 if response:
                     datas = response.get_json()['data']
             yield

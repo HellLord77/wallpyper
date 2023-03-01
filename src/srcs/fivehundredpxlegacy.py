@@ -2,11 +2,11 @@ import functools
 from typing import Generator, Optional
 
 import gui
-from libs import files, urls
+from libs import files, request
 from . import Source
 
-URL_BASE = urls.join('https://api.500px.com', 'v1', 'photos')
-URL_SEARCH = urls.join(URL_BASE, 'search')
+URL_BASE = request.join('https://api.500px.com', 'v1', 'photos')
+URL_SEARCH = request.join(URL_BASE, 'search')
 
 CONFIG_FEATURE = 'feature'
 CONFIG_ONLY = 'only'
@@ -63,10 +63,10 @@ class FiveHundredPxLegacy(Source):
         while True:
             if not photos:
                 params['page'] = str(json['current_page'] % json['total_pages'] + 1)
-                response = urls.open(URL_BASE, params)
+                response = request.get(URL_BASE, params=params)
                 if response:
                     json = response.get_json()
-                    response = urls.open(urls.join(URL_BASE), {'ids': ','.join(str(
+                    response = request.get(request.join(URL_BASE), params={'ids': ','.join(str(
                         photo['id']) for photo in json['photos']), 'image_size': '4096'})
                     if response:
                         photos = list(response.get_json()['photos'].values())

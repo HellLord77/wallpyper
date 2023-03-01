@@ -6,7 +6,7 @@ from typing import Callable, Generator, Optional
 import consts
 import gui
 import win32.browser
-from libs import files, minihtml, urls, utils
+from libs import files, minihtml, request, utils
 from . import Source
 
 _TIMEOUT = 30
@@ -63,12 +63,12 @@ class FiveHundredPx(Source):
     def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         images: Optional[list] = None
         image = None
-        url = urls.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))
+        url = request.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))
         if discover == DISCOVERS[3]:
             params.pop(CONFIG_DISCOVER)
         if discover != DISCOVERS[0]:
             params.pop(CONFIG_SORT)
-        browser = win32.browser.Browser(urls.encode(url, params))
+        browser = win32.browser.Browser(request.extend_param(url, params))
         browser.wait(_TIMEOUT)
         while True:
             if not images:

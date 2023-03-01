@@ -1,5 +1,5 @@
 ALL_DISPLAY = 'DISPLAY'
-URL_GOOGLE = 'https://www.google.com/searchbyimage/upload/'
+URL_GOOGLE = 'https://www.google.com/searchbyimage/upload'
 
 MAX_NOTIFY_LEN = 256
 MAX_LABEL_LEN = 25

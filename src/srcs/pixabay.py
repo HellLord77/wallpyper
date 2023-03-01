@@ -4,7 +4,7 @@ import re
 from typing import Generator, Optional
 
 import gui
-from libs import files, isocodes, urls
+from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = 'https://pixabay.com/api'
@@ -35,7 +35,7 @@ ORDERS = 'popular', 'latest'
 
 
 def _authenticate(key: str) -> bool:
-    return bool(urls.open(URL_BASE, {CONFIG_KEY: key, 'per_page': '3'}))
+    return bool(request.get(URL_BASE, params={CONFIG_KEY: key, 'per_page': '3'}))
 
 
 class Pixabay(Source):  # https://pixabay.com/api/docs
@@ -75,8 +75,8 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         while True:
             if not hits:
                 pass
-                response = urls.open(URL_BASE, params)
-                if (response.status == urls.Status.BAD_REQUEST and
+                response = request.get(URL_BASE, params=params)
+                if (response.status == request.Status.BAD_REQUEST and
                         response.get_content() == b'[ERROR 400] "page" is out of valid range.'):
                     params['page'] = '1'
                     continue

@@ -219,9 +219,9 @@ class _EventHandler:
     def bind(self, event: int, callback: Callable, once: bool = False):
         if once:
             @functools.wraps(callback)
-            def wrapped(*args_, **kwargs_):
+            def wrapped(*args, **kwargs):
                 self.unbind(event)
-                return callback(*args_, **kwargs_)
+                return callback(*args, **kwargs)
         else:
             wrapped = callback
         self._bindings[self._id][event] = wrapped
