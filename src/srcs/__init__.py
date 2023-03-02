@@ -61,7 +61,8 @@ from . import (
     local,
     pexels,
     pixabay,
-    spotlight,
+    reddit,
     thisdoesnotexist,
     unsplash,
-    wallhaven)  # NOQA: E402
+    wallhaven,
+    windowsspotlight)  # NOQA: E402

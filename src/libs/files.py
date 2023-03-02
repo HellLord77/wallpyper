@@ -62,10 +62,6 @@ class File:
         return False
 
 
-def remove_ext(path: str) -> str:
-    return os.path.splitext(path)[0]
-
-
 def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
 

@@ -78,11 +78,11 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
                 pass
                 response = request.get(URL_BASE, params=params)
                 if (http.HTTPStatus.BAD_REQUEST == response.status and
-                        response.get_content() == b'[ERROR 400] "page" is out of valid range.'):
+                        response.content == b'[ERROR 400] "page" is out of valid range.'):
                     params['page'] = '1'
                     continue
                 if response:
-                    hits = response.get_json()['hits']
+                    hits = response.json()['hits']
                 if not hits:
                     yield
                     return

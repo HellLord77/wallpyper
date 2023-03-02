@@ -28,7 +28,7 @@ FOLLOWERS = '', 'undiscovered'
 SORTS = '', 'created_at'
 
 
-def _find_images(browser: win32.browser.Browser) -> Generator[minihtml.Element, None, None]:
+def _iter_images(browser: win32.browser.Browser) -> Generator[minihtml.Element, None, None]:
     yield from minihtml.find_elements(minihtml.loads(
         browser.get_html()).iter_all_children(), 'img', {'class': _PATTERN})
 
@@ -72,13 +72,13 @@ class FiveHundredPx(Source):
         browser.wait(_TIMEOUT)
         while True:
             if not images:
-                current = utils.len_ex(_find_images(browser))
+                current = utils.len_ex(_iter_images(browser))
                 if current:
                     browser.eval_js('window.scrollTo(0, document.body.scrollHeight);')
                 end_time = time.monotonic() + _TIMEOUT
-                while end_time > time.monotonic() and current == utils.len_ex(_find_images(browser)):
+                while end_time > time.monotonic() and current == utils.len_ex(_iter_images(browser)):
                     time.sleep(consts.POLL_SLOW_SEC)
-                images_ = iter(_find_images(browser))
+                images_ = iter(_iter_images(browser))
                 if image:
                     utils.consume_ex(images_, image)
                 images = list(images_)

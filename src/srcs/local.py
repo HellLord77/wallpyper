@@ -23,8 +23,8 @@ ORDERS = 'ascending', 'descending'
 class LocalFolder(Source):
     NAME = 'Local Folder'
     VERSION = '0.0.1'
-    URL = request.from_path(win32.PICTURES_DIR)
     ICON = 'png'
+    URL = request.from_path(win32.PICTURES_DIR)
     DEFAULT_CONFIG = {
         CONFIG_DIR: win32.PICTURES_DIR,
         CONFIG_SORT: next(iter(SORTS)),

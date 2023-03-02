@@ -30,8 +30,8 @@ def _authenticate(id_: str) -> bool:
 
 class Unsplash(Source):  # https://unsplash.com/documentation
     VERSION = '0.0.2'
-    URL = 'https://unsplash.com'
     ICON = 'png'
+    URL = 'https://unsplash.com'
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
         CONFIG_EDITORIAL: True,
@@ -54,20 +54,20 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         results: Optional[list] = None
         total_pages = 1
         if params.pop(CONFIG_EDITORIAL):
-            query_url = URL_EDITORIAL
+            url = URL_EDITORIAL
             params = {
                 CONFIG_ID: params[CONFIG_ID],
                 CONFIG_ORDER: params[CONFIG_ORDER]}
         else:
-            query_url = URL_SEARCH
+            url = URL_SEARCH
         params['page'] = '1'
         params['per_page'] = '30'
         while True:
             if not results:
                 params['page'] = str(int(params['page']) % total_pages + 1)
-                response = request.get(query_url, params=params)
+                response = request.get(url, params=params)
                 if response:
-                    json = response.get_json()
+                    json = response.json()
                     total_pages = sys.maxsize if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else int(json['total_pages'])
                     results = json if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else json['results']
             result = results.pop(0)

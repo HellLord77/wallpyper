@@ -19,8 +19,8 @@ ORIENTATIONS = 'landscape', 'portrait'
 class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloader
     NAME = 'Windows Spotlight'
     VERSION = '0.0.1'
-    URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
     ICON = 'png'
+    URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
     DEFAULT_CONFIG = {
         CONFIG_LOCALE: LOCALES[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0]}
@@ -42,7 +42,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
             if not items:
                 response = request.get(URL_BASE, params=params)
                 if response:
-                    items = response.get_json()['batchrsp']['items']
+                    items = response.json()['batchrsp']['items']
                 if not items:
                     yield
                     continue
@@ -53,8 +53,8 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
+        gui.add_mapped_submenu(cls.strings.WINDOWSSPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
             locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
-        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
-            cls.strings, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+        gui.add_mapped_submenu(cls.strings.WINDOWSSPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
+            cls.strings, f'WINDOWSSPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
                                cls.CURRENT_CONFIG, CONFIG_ORIENTATION)

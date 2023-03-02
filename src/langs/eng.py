@@ -387,11 +387,26 @@ PIXABAY_COLOR_brown = 'Brown'
 PIXABAY_ORDER_popular = 'Popular'
 PIXABAY_ORDER_latest = 'Latest'
 
-SPOTLIGHT_MENU_LOCALE = 'Locale'
-SPOTLIGHT_MENU_ORIENTATION = 'Orientation'
+REDDIT_MENU_ORIENTATION = 'Orientation'
+REDDIT_MENU_SORT = 'Sort by'
+REDDIT_MENU_TIME = 'Sort Limit'
 
-SPOTLIGHT_ORIENTATION_landscape = 'Landscape'
-SPOTLIGHT_ORIENTATION_portrait = 'Portrait'
+REDDIT_ORIENTATION_ = 'Any'
+REDDIT_ORIENTATION_landscape = 'Landscape'
+REDDIT_ORIENTATION_portrait = 'Portrait'
+
+REDDIT_SORT_hot = 'Hot'
+REDDIT_SORT_new = 'New'
+REDDIT_SORT_top = 'Top'
+REDDIT_SORT_controversial = 'Controversial'
+REDDIT_SORT_rising = 'Rising'
+
+REDDIT_TIME_hour = 'Past Hour'
+REDDIT_TIME_day = 'Past 24 Hours'
+REDDIT_TIME_week = 'Past Week'
+REDDIT_TIME_month = 'Past Month'
+REDDIT_TIME_year = 'Past Year'
+REDDIT_TIME_all = 'All Time'
 
 UNSPLASH_LABEL_EDITORIAL = 'Editorial'
 
@@ -478,3 +493,9 @@ WALLHAVEN_RATIO_4x3 = '4 × 3\tSquare'
 WALLHAVEN_RATIO_5x4 = '5 × 4\tSquare'
 
 WALLHAVEN_COLOR_ = 'Any'
+
+WINDOWSSPOTLIGHT_MENU_LOCALE = 'Locale'
+WINDOWSSPOTLIGHT_MENU_ORIENTATION = 'Orientation'
+
+WINDOWSSPOTLIGHT_ORIENTATION_landscape = 'Landscape'
+WINDOWSSPOTLIGHT_ORIENTATION_portrait = 'Portrait'

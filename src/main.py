@@ -176,6 +176,12 @@ def try_reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
         on_change(*TIMER.target.args, RECENT[0], False)
 
 
+def show_exception(exc: BaseException):
+    threading.Thread(target=win32.show_error, args=(type(
+        exc), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
+        traceback.format_exception(type(exc), exc, exc.__traceback__)))).start()
+
+
 @timer.on_thread
 def on_shown(*_):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
@@ -259,18 +265,17 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
         with gui.animate(STRINGS.STATUS_FETCH):
             try:
                 wallpaper = get_next_wallpaper()
-            except BaseException as e:
-                print(e)
+            except BaseException as exc:
+                show_exception(exc)
     if wallpaper is not None:
+        wallpaper.name = win32.sanitize_filename(wallpaper.name)
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
         RECENT.appendleft(wallpaper)
-        wallpaper.name = win32.sanitize_filename(wallpaper.name)
         if path := download_wallpaper(wallpaper, query_callback):
             easing = easings.get(getattr(easings.Ease, CURRENT_CONFIG[
                 consts.CONFIG_TRANSITION_EASE]), CURRENT_CONFIG[
                                      consts.CONFIG_EASE_IN], CURRENT_CONFIG[consts.CONFIG_EASE_OUT])
-            # noinspection PyArgumentList
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
                 path, display, getattr(win32.display.Style, CURRENT_CONFIG[consts.CONFIG_FIT_STYLE]), rotate=getattr(
                     win32.display.Rotate, CURRENT_CONFIG[consts.CONFIG_ROTATE_BY]), flip=getattr(
@@ -359,8 +364,8 @@ def on_wallpaper(callback: callables.SingletonCallable[[str], bool],
     if not running and (path := download_wallpaper(wallpaper)):
         try:
             success = callback(path)
-        except BaseException as e:
-            print(e)
+        except BaseException as exc:
+            show_exception(exc)
     if not success:
         try_show_notification(title, text)
     return success
@@ -822,11 +827,9 @@ def main() -> NoReturn:
     try:
         start()
         stop()
-    except Exception as e:
+    except BaseException as exc:
         if consts.FEATURE_ERROR_HOOK and not pyinstall.FROZEN:
-            threading.Thread(target=win32.show_error, args=(type(
-                e), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
-                traceback.format_exception(type(e), e, e.__traceback__)))).start()
+            show_exception(exc)
         raise
     sys.exit()
 

@@ -301,15 +301,17 @@ class _Response:
     def _getheader(_: str, default=None):
         return default
 
-    def get_content(self) -> bytes:
+    @property
+    def content(self) -> bytes:
         return self.response.read()
 
-    def get_json(self) -> Any:
-        with contextlib.suppress(json_.decoder.JSONDecodeError):
-            return json_.loads(self.get_text())
+    @property
+    def text(self) -> str:
+        return self.content.decode()
 
-    def get_text(self) -> str:
-        return self.get_content().decode()
+    def json(self) -> Any:
+        with contextlib.suppress(json_.decoder.JSONDecodeError):
+            return json_.loads(self.text)
 
     def read(self, n: int) -> bytes:
         return self.response.read(n)
@@ -428,8 +430,8 @@ def request(method: str, url: str, data: Optional[_TParams] = None, json: Option
         url = extend_param(url, params)
     try:
         _request = urllib.request.Request(url, data, HEADERS, method=method)
-    except ValueError as e:
-        return _Response(urllib.error.URLError(e))
+    except ValueError as exc:
+        return _Response(urllib.error.URLError(exc))
     else:
         _request.add_header(Header.CONTENT_TYPE, mime)
         if auth is not None:
@@ -447,7 +449,7 @@ def request(method: str, url: str, data: Optional[_TParams] = None, json: Option
         else:
             response = _Response(_response)
             if not stream:
-                response.get_content()
+                _ = response.content
             return response
 
 
@@ -470,7 +472,7 @@ def retrieve(url: str, path: bytes | str, size: Optional[int] = None,
              query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = get(url)
     if response:
-        if size is None:
+        if not size:
             size = int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize)) \
                 if response.local is None else os.path.getsize(response.local)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)

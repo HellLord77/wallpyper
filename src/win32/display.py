@@ -1,4 +1,3 @@
-import collections
 import concurrent.futures
 import functools
 import ntpath
@@ -8,8 +7,9 @@ import string
 import tempfile
 import threading
 import time
+import typing
 import winreg
-from typing import Callable, Optional, Iterable
+from typing import Callable, Iterable, Optional
 
 from libs import ctyped, utils
 from libs.ctyped import winrt
@@ -567,7 +567,7 @@ def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: 
 
 def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
-                     color: ctyped.type.ARGB, transition: int, duration: float, easing: Callable[[float], float]):
+                     color: _gdiplus.Color, transition: int, duration: float, easing: Callable[[float], float]):
     if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = _handle.HDC.from_hwnd(hwnd)
         src = _save_tmp_bmp(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
@@ -630,7 +630,7 @@ _temp_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
 def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
-                     r: int = 0, g: int = 0, b: int = 0, rotate: int = Rotate.NONE,
+                     rgb: tuple[int, int, int] = (0, 0, 0), rotate: int = Rotate.NONE,
                      flip: int = Flip.NONE, transition: int = Transition.FADE,
                      duration: float = 1.0, easing: Callable[[float], float] = lambda x: x) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
@@ -660,7 +660,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
         with _temp_lock(temp_path):
             # noinspection PyTypeChecker
             _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
-                             temp_path, _gdiplus.Color.from_rgba(r, g, b), transition, duration, easing)
+                             temp_path, _gdiplus.Color.from_rgba(*rgb), transition, duration, easing)
             try:
                 return _set_wallpaper_idesktopwallpaper(
                     temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
@@ -669,8 +669,16 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
     return False
 
 
-Wallpaper = collections.namedtuple('Wallpaper', ('path', 'monitor', 'style', 'r', 'g', 'b', 'rotate', 'flip', 'transition', 'duration', 'easing'),
-                                   defaults=(Style.FILL, 0, 0, 0, Rotate.NONE, Flip.NONE, Transition.FADE, 1, lambda x: x))
+class Wallpaper(typing.NamedTuple):
+    path: str
+    monitor: Optional[str] = None
+    style: int = Style.FILL
+    rgb: tuple[int, int, int] = 0, 0, 0
+    rotate: int = Rotate.NONE
+    flip: int = Flip.NONE
+    transition: int = Transition.FADE
+    duration: float = 1.0
+    easing: Callable[[float], float] = lambda x: x
 
 
 def set_wallpapers_ex(*wallpapers: Wallpaper):

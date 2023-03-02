@@ -39,12 +39,12 @@ COLORS = (
 CATEGORIES_PURITIES = re.compile('(?!000)[01]{3}')
 
 
-def on_color_right(_: int, item_color: gui.MenuItem):
+def _on_color_right(_: int, item_color: gui.MenuItem):
     win32.clipboard.copy_text(f'#{item_color.get_uid().upper()}')
 
 
 def _authenticate(key: str) -> bool:
-    return bool(response := request.get(URL_SETTINGS, params={'apikey': key})) and 'error' not in response.get_json()
+    return bool(request.get(URL_SETTINGS, params={'apikey': key}))
 
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
@@ -94,7 +94,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                 params['seed'] = meta['seed'] or ''
                 response = request.get(URL_SEARCH, params=params)
                 if response:
-                    json = response.get_json()
+                    json = response.json()
                     datas = json['data']
                     meta = json['meta']
                 if not datas:
@@ -142,7 +142,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                 item.set_tooltip(_COLOR_TEMPLATE.format(colornames.format_cmyk(*colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(
                     *srgb))), colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)), colornames.format_hls(
                     *colorsys.rgb_to_hls(*srgb))), f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
-                item.bind(gui.MenuItemEvent.RIGHT_UP, on_color_right)
+                item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
 
     @classmethod
     def _on_category(cls, menu: gui.Menu):

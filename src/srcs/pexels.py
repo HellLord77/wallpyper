@@ -27,7 +27,7 @@ LOCALES = (
     'cs-CZ', 'da-DK', 'fi-FI', 'uk-UA', 'el-GR', 'ro-RO', 'nb-NO', 'sk-SK', 'tr-TR', 'ru-RU')
 
 
-def on_curated(menu: gui.MenuItem, curated: bool):
+def _on_curated(menu: gui.MenuItem, curated: bool):
     menu.enable(not curated)
 
 
@@ -59,30 +59,30 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         photos: Optional[list] = None
         headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
-            query_url = URL_CURATED
+            url = URL_CURATED
             params.clear()
         else:
-            query_url = URL_SEARCH
+            url = URL_SEARCH
         params['page'] = '1'
         params['per_page'] = '80'
         while True:
             if not photos:
-                response = request.get(query_url, params=params, headers=headers)
+                response = request.get(url, params=params, headers=headers)
                 if response:
-                    json = response.get_json()
+                    json = response.json()
                     photos = json.get('photos')
                     params['page'] = str(int(params['page']) + 1) if json.get('next_page') else '1'
                 if not photos:
                     yield
                     continue
-            url = photos.pop(0)['src']['original']
-            yield files.File(url, os.path.basename(request.strip(url)))
+            url_photo = photos.pop(0)['src']['original']
+            yield files.File(url_photo, os.path.basename(request.strip(url_photo)))
 
     @classmethod
     def create_menu(cls):
         item_search = gui.add_submenu(cls.strings.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
         gui.add_mapped_menu_item(cls.strings.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
-                                 on_click=functools.partial(on_curated, item_search), position=0)
+                                 on_click=functools.partial(_on_curated, item_search), position=0)
         with gui.set_menu(item_search):
             gui.add_mapped_submenu(cls.strings.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.strings, f'PEXELS_ORIENTATION_{orientation}')

@@ -458,8 +458,20 @@ def _test_red():
         'grant_type': 'https://oauth.reddit.com/grants/installed_client',
         'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
     resp = request.post(token_url, data, auth=(client_id, ''))
-    print(resp.status)
-    print(resp.get_json())
+    if resp:
+        token = resp.json()
+        print(token)
+        auth = token['access_token']
+
+        base = 'https://oauth.reddit.com'
+        rdd = 'r/wallpapers'
+        hot = request.join(base, rdd, 'hot')
+        params = {}
+        # params['limit'] = '100'
+        resp2 = request.get(hot, params=params, auth=auth)
+        print(resp2.status)
+        # print(resp2.get_json())
+        print(resp2.text)
 
 
 if __name__ == '__main__':

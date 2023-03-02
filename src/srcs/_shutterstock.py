@@ -39,7 +39,7 @@ def _authenticate(key: str, secret: str) -> bool:
     return bool(request.get(URL_IMAGES_SEARCH, params={'per_page': '1'}, auth=(key, secret)))
 
 
-class ShutterStock(Source):
+class ShutterStock(Source):  # https://api-reference.shutterstock.com
     NAME = 'shutterstock'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
@@ -58,13 +58,13 @@ class ShutterStock(Source):
     @classmethod
     def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
         datas: Optional[list] = None
-        authorization = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
+        auth = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'
         params['page'] = '1'
         params['per_page'] = '500'
         while True:
             if not datas:
-                response = request.get(URL_IMAGES_SEARCH, params=params, auth=authorization)
+                response = request.get(URL_IMAGES_SEARCH, params=params, auth=auth)
                 if response:
-                    datas = response.get_json()['data']
+                    datas = response.json()['data']
             yield

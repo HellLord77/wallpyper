@@ -27,7 +27,7 @@ def _get_sort(feature: str) -> str:
     return SORTS[1] if feature == FEATURES[0] else SORTS[2] if feature == FEATURES[1] else SORTS[0]
 
 
-class FiveHundredPxLegacy(Source):
+class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-documentation
     NAME = '500px Legacy'
     VERSION = '0.0.1'
     ICON = 'png'
@@ -65,11 +65,11 @@ class FiveHundredPxLegacy(Source):
                 params['page'] = str(json['current_page'] % json['total_pages'] + 1)
                 response = request.get(URL_BASE, params=params)
                 if response:
-                    json = response.get_json()
+                    json = response.json()
                     response = request.get(request.join(URL_BASE), params={'ids': ','.join(str(
                         photo['id']) for photo in json['photos']), 'image_size': '4096'})
                     if response:
-                        photos = list(response.get_json()['photos'].values())
+                        photos = list(response.json()['photos'].values())
                 if not photos:
                     yield
                     continue
