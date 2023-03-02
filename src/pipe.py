@@ -8,7 +8,7 @@ import time
 from typing import Optional, TextIO
 
 
-# FIXME https://github.com/cython/cython/issues/5134 [py3.11 fails on cython]
+# FIXME https://github.com/cython/cython/issues/5134 [py3.11 Could not find platform independent libraries <prefix>]
 
 # noinspection PyPep8Naming
 class ctyped:
