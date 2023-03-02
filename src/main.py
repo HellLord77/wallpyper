@@ -227,7 +227,7 @@ def print_progress():
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[float, ...], bool]] = None) -> Optional[str]:
+def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[float], bool]] = None) -> Optional[str]:
     try_remove_temp()
     with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         PROGRESS.clear()
@@ -236,7 +236,7 @@ def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[
         try:
             if wallpaper.checksum(temp_path := os.path.join(TEMP_DIR, wallpaper.name)) or (
                     request.retrieve(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
-                                     query_callback=query_callback) and wallpaper.checksum(temp_path, True)):
+                                     query_callback=query_callback) and os.path.isfile(temp_path)):
                 wallpaper.fill(temp_path)
                 return temp_path
         finally:

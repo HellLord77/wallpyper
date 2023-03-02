@@ -188,7 +188,7 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
     return False
 
 
-def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int, ...], Any]]) -> bool:
+def copy_file(src: str, dst: str, progress_callback: Optional[Callable[[int], Any]]) -> bool:
     p_src = open_file(src)
     if p_src:
         os.makedirs(ntpath.dirname(dst), exist_ok=True)

@@ -286,7 +286,7 @@ class _Response:
     def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self.response = response
         self.getheader = getattr(response, 'getheader', self._getheader)
-        self.status = http.HTTPStatus(getattr(response, 'status', int(http.HTTPStatus.IM_A_TEAPOT)))
+        self.status = http.HTTPStatus(getattr(response, 'status', None) or http.HTTPStatus.IM_A_TEAPOT)
         self.local = response.fp.name if isinstance(getattr(self.response, 'file', None), io.BufferedReader) else None
 
     def __bool__(self) -> bool:
@@ -472,7 +472,7 @@ def retrieve(url: str, path: bytes | str, size: Optional[int] = None,
              query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = get(url)
     if response:
-        if not size:
+        if size is None:
             size = int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize)) \
                 if response.local is None else os.path.getsize(response.local)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)

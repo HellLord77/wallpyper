@@ -22,7 +22,7 @@ class File:
     __slots__ = 'url', 'name', 'size', '_sha256', '_md5'
     _algorithms = {f'_{algorithm}' for algorithm in hashlib.algorithms_available}.intersection(__slots__)
 
-    def __init__(self, url: str, name: str, size: int = 0,
+    def __init__(self, url: str, name: str, size: Optional[int] = None,
                  sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
         self.url = url
         self.name = name
@@ -33,22 +33,17 @@ class File:
     def __bool__(self):
         return bool(str(self))
 
-    def __int__(self):
-        return self.size
-
     def __eq__(self, other):
         return self.url == (other.url if isinstance(other, File) else other)
 
     def __hash__(self):
         return hash(self.url)
 
-    def checksum(self, path: str, try_: bool = False) -> bool:
+    def checksum(self, path: str) -> bool:
         if os.path.isfile(path):
             for algorithm in self._algorithms:
                 if (hash_ := getattr(self, algorithm)) is not None:
-                    return check_hash(path, hash_, algorithm[1:])
-            if try_:
-                return True
+                    return checksum(path, hash_, algorithm[1:])
         return False
 
     def fill(self, path: str) -> bool:
@@ -189,7 +184,7 @@ def get_hash(path: str, name: str = 'md5', *, __hash=None) -> _hashlib.HASH:
 
 
 # noinspection PyShadowingBuiltins
-def check_hash(path: str, hash: bytes | str | _hashlib.HASH, name: str = 'md5') -> bool:
+def checksum(path: str, hash: bytes | str | _hashlib.HASH, name: str = 'md5') -> bool:
     hash_ = get_hash(path, name)
     if isinstance(hash, _hashlib.HASH):
         hash = hash.digest()

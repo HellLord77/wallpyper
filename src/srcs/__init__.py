@@ -57,12 +57,12 @@ from . import (
     _fivehundredpx,
     _shutterstock,
     bing,
+    doesnotexist,
     fivehundredpxlegacy,
     local,
     pexels,
     pixabay,
     reddit,
-    thisdoesnotexist,
+    spotlight,
     unsplash,
-    wallhaven,
-    windowsspotlight)  # NOQA: E402
+    wallhaven)  # NOQA: E402

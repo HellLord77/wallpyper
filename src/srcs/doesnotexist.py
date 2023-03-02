@@ -34,5 +34,5 @@ class ThisDoesNotExist(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.THISDOESNOTEXIST_MENU_VARIANT, {variant: getattr(
-            cls.strings, f'THISDOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
+        gui.add_mapped_submenu(cls.strings.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
+            cls.strings, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)

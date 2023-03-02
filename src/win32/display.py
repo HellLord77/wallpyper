@@ -544,7 +544,7 @@ def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
     return 0, 0, 0, 0
 
 
-def _save_tmp_bmp(width: int, height: int, color: ctyped.type.ARGB, src: _gdiplus.Bitmap,
+def _save_tmp_bmp(src: _gdiplus.Bitmap, color: ctyped.type.ARGB, width: int, height: int,
                   src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str) -> _handle.HDC:
     bitmap = _gdiplus.bitmap_from_color(color, width, height)
     bitmap.set_resolution(src.get_horizontal_resolution(), src.get_vertical_resolution())
@@ -570,7 +570,7 @@ def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int,
                      color: _gdiplus.Color, transition: int, duration: float, easing: Callable[[float], float]):
     if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = _handle.HDC.from_hwnd(hwnd)
-        src = _save_tmp_bmp(dst_w, dst_h, color, image, src_x, src_y, src_w, src_h, temp_path)
+        src = _save_tmp_bmp(image, color, dst_w, dst_h, src_x, src_y, src_w, src_h, temp_path)
         if transition != Transition.DISABLED:
             if transition == Transition.RANDOM:
                 transition = Transition.get_random(Transition.DISABLED, Transition.RANDOM)

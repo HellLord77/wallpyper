@@ -47,7 +47,7 @@ class LocalFolder(Source):
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
                 results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
             path = results.pop(0)
-            yield files.File(request.from_path(path), os.path.basename(path), os.path.getsize(path))
+            yield files.File(request.from_path(path), os.path.basename(path))
 
     @classmethod
     def create_menu(cls):

@@ -9,7 +9,7 @@ import typing
 from typing import Any, Callable, TypeVar, Optional, Literal, Tuple
 
 import win32
-from libs import ctyped, config, request
+from libs import ctyped, config
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
@@ -451,30 +451,13 @@ def _test():
     # print('YAML', config_ == config__)
 
 
-def _test_red():
-    token_url = r'https://www.reddit.com/api/v1/access_token'
-    client_id = 'OmaZh49kO19M9h1oZmtXwA'
-    data = {
-        'grant_type': 'https://oauth.reddit.com/grants/installed_client',
-        'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
-    resp = request.post(token_url, data, auth=(client_id, ''))
-    if resp:
-        token = resp.json()
-        print(token)
-        auth = token['access_token']
-
-        base = 'https://oauth.reddit.com'
-        rdd = 'r/wallpapers'
-        hot = request.join(base, rdd, 'hot')
-        params = {}
-        # params['limit'] = '100'
-        resp2 = request.get(hot, params=params, auth=auth)
-        print(resp2.status)
-        # print(resp2.get_json())
-        print(resp2.text)
+def _test_mem():
+    lst = []
+    for i in range(10):
+        lst.append(i)
 
 
 if __name__ == '__main__':
     # _test()
-    _test_red()
+    _test_mem()
     sys.exit()

@@ -84,7 +84,7 @@ class _Async:
     def cancel(self) -> bool:
         return self._info.cancel()
 
-    def on_completed(self, callback: _Callable[[_Async, ...], _type.HRESULT]) -> bool:
+    def on_completed(self, callback: _Callable[[_Async], _type.HRESULT]) -> bool:
         self._completed = _interface.create_handler(_functools.wraps(
             callback)(_functools.partial(callback, self)), self._t_completed)
         with self._obj as obj, self._completed as handler:
@@ -115,7 +115,7 @@ class _AsyncWithProgress(_Async):
     _t_progress: type[_inspectable.IInspectable]
     _progress: _interface.COM
 
-    def on_progress(self, callback: _Callable[[_Async, ...], _type.HRESULT]) -> bool:
+    def on_progress(self, callback: _Callable[[_Async], _type.HRESULT]) -> bool:
         self._progress = _interface.create_handler(_functools.wraps(
             callback)(_functools.partial(callback, self)), self._t_progress)
         with self._obj as obj, self._progress as handler:
