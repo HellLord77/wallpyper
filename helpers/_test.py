@@ -1,12 +1,14 @@
 from __future__ import annotations as _
 
 import collections.abc
+import dataclasses
+import datetime
 import enum
 import sys
 import time
 import types
 import typing
-from typing import Any, AnyStr, Callable, TypeVar, Optional, Literal, Tuple
+from typing import Any, AnyStr, Callable, TypeVar, Optional, Literal, Tuple, Mapping, ItemsView
 
 import win32
 from libs import ctyped, config
@@ -366,32 +368,47 @@ def _isinstance(obj, cls: type) -> bool:
     raise NotImplementedError(cls)
 
 
-NamedTuple = collections.namedtuple('NamedTuple', ('a', 'b', 'c'))
+def _test_inst():
+    tp = list[tuple[int] | list[str]]
+    print(_isinstance([(1,), (2,), ['3']], tp))
+    tp2 = Mapping[str, int]
+    print(_isinstance([1, 2, 3], tp2))
+    tp3 = dict[str, int]
+    print(_isinstance({'d': 6}, tp3))
+    tp4 = Tuple[int, str]
+    print(_isinstance((2, '2'), tp4))
+    d: dict[int, str] = {1: '1'}
+    i = d.items()
+    print(_isinstance(i, ItemsView[int, str]))
 
 
-class TestEnum(enum.Enum):
+NT = collections.namedtuple('NT', ['a', 'b', 'c'])
+
+
+class TNT(typing.NamedTuple):
+    a: int
+    b: int
+    c: int
+
+
+class E(enum.Enum):
     A = 1
     B = 2
     C = 3
 
 
-def _test():
-    # tp = list[tuple[int] | list[str]]
-    # print(_isinstance([(1,), (2,), ['3']], tp))
-    # tp2 = Mapping[str, int]
-    # print(_isinstance([1, 2, 3], tp2))
-    # tp3 = dict[str, int]
-    # print(_isinstance({'d': 6}, tp3))
-    # tp4 = Tuple[int, str]
-    # print(_isinstance((2, '2'), tp4))
-    # d: dict[int, str] = {1: '1'}
-    # i = d.items()
-    # print(_isinstance(i, ItemsView[int, str]))
+@dataclasses.dataclass
+class DC:
+    prop1: int
+    prop5: Optional[DC] = None
+
+    not_data = 69
+
+
+def _test_cfg():
     data = {
-        # 'enum': TestEnum.A,
-        # 'ntt': NamedTuple(1, 2, 3),
+        # 'ntt': NT(1, 2, 3),
         'tough': collections.deque([1, (1, 2), '3'], maxlen=3),
-        'count': collections.Counter({'red': 4, 'blue': 2}),
         'name': 'A Test \'of\' the "TOML" Parser',
         'e_text': '',
         'od': collections.OrderedDict([('a', 1), ('b', 2)]),
@@ -421,7 +438,7 @@ def _test():
     # pprint.pprint(data, sort_dicts=False)
     config_ = config.JSONConfig(data)
     dumped = config_.dumps()
-    print(dumped)
+    # print(dumped)
     config__ = config.JSONConfig()
     config__.loads(dumped)
     print('JSON', config_ == config__)
@@ -451,13 +468,50 @@ def _test():
     # print('YAML', config_ == config__)
 
 
-def _test_mem():
-    lst = []
-    for i in range(10):
-        lst.append(i)
+def _test_cfg_json():
+    data = {
+        'date': datetime.date.today(),
+        'time': datetime.time(1, 2, 3, 4),
+        'datetime': datetime.datetime.now(),
+        'timedelta': datetime.timedelta(1, 2, 3, 4),
+        'enum': E.A,
+        'ntamedtuple': NT(1, 2, 3),
+        'typed_namedtuple': TNT(1, 2, 3),
+        'dataclass': DC(69, DC(420)),
+        'tough': collections.deque([1, (1, 2), '3'], maxlen=3),
+        'counter': collections.Counter({'red': 4, 'blue': 2}),
+        'name': 'A Test \'of\' the "TOML" Parser',
+        'e_text': '',
+        'od': collections.OrderedDict([('b', 420), ('a', 69)]),
+        'num': 123,
+        'map': {},
+        'boolean': True,
+        'null': None,
+        't_list': [],
+        'e_tup': (),
+        't_tuple': (1, 2, '3'),
+        'set': {1, '2', 3},
+        'barr': bytearray(b'123'),
+        'fzst': frozenset({'1', 2, 3}),
+        'list2': [1, 2, '3'],
+        'bytes': b'\x01\x02\x03\x04',
+        'complex': 1 + 2j,
+        'nest': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
+                 {'objs': [{'x': 1},
+                           {'x': {
+                               'list2': [1, 2, '3'],
+                               'bytes': b'\x01\x02\x03\x04'}},
+                           {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
+                 {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
+    config_ = config.JSONConfig(data)
+    dumped = config_.dumps()
+    print(dumped)
+    config__ = config.JSONConfig()
+    config__.loads(dumped)
+    print(config_ == config__)
 
 
 if __name__ == '__main__':
     # _test()
-    _test_mem()
+    _test_cfg_json()
     sys.exit()

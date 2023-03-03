@@ -590,7 +590,7 @@ class Menu(_Control):
         return self._hmenu.get_item_count()
 
     def get_item(self, id_or_pos_or_item: int | MenuItem,
-                 default: Any = None, by_pos: bool = False) -> Optional[MenuItem]:
+                 default=None, by_pos: bool = False) -> Optional[MenuItem]:
         if by_pos:
             if id_or_pos_or_item >= 0:
                 with contextlib.suppress(IndexError):

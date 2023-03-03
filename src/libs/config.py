@@ -1,10 +1,12 @@
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import ast
 import builtins
 import collections
 import configparser
 import contextlib
+import dataclasses
+import datetime
 import enum
 import inspect
 import io
@@ -19,6 +21,7 @@ from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, It
 from xml.etree import ElementTree
 
 _CONFIG = '_'
+_MATCH_TYPE = re.compile(r'__[.|\w]+__').fullmatch
 
 _T = typing.TypeVar('_T')
 _TIO = BinaryIO | TextIO
@@ -35,13 +38,18 @@ def _open(path_or_file: _TPath | _TIO, write: bool = False,
             yield file
 
 
-def _dump(obj: Any) -> str:
+def _is_type(obj) -> bool:
+    return isinstance(obj, list) and len(obj) == 2 and isinstance(
+        obj[0], str) and _MATCH_TYPE(obj[0]) and type(obj[1]) in (dict, list)
+
+
+def _dump_type(obj) -> str:
     type_ = type(obj)
     return type_.__qualname__ if inspect.getmodule(
         type_) is builtins else f'{type_.__module__}|{type_.__qualname__}'
 
 
-def _load(name: str) -> type:
+def _load_type(name: str) -> type:
     parts = name.split('|')
     type_ = sys.modules['builtins' if len(parts) == 1 else parts[0]]
     for part in parts[-1].split('.'):
@@ -49,6 +57,31 @@ def _load(name: str) -> type:
     if isinstance(type_, type):
         return type_
     return type
+
+
+def _issubclass_namedtuple(type_: type) -> bool:
+    bases = type_.__bases__
+    fields = getattr(type_, '_fields', None)
+    return len(bases) == 1 and bases[0] is tuple and isinstance(
+        fields, tuple) and all(type(name) is str for name in fields)
+
+
+def _key_dumper(data) -> Any:
+    if dataclasses.is_dataclass(data):
+        return [f'__{_dump_type(data)}__', vars(data)]
+    return data
+
+
+def _key_loader(data) -> Any:
+    if _is_type(data):
+        type_ = _load_type(data[0][2:-2])
+        if _issubclass_namedtuple(type_):
+            # noinspection PyProtectedMember
+            return type_(*(JSONConfig._load(val) for val in data[1]))
+        elif dataclasses.is_dataclass(type_):
+            # noinspection PyProtectedMember
+            return type_(**{key: JSONConfig._load(val) for key, val in data[1].items()})
+    return data
 
 
 def _configparser() -> configparser.ConfigParser:
@@ -82,15 +115,34 @@ class _Config(dict[str, Any]):
 
 
 class JSONConfig(_Config):
-    DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {}
-    LOADERS: dict[type[_T], Callable[[Any], _T]] = {}
-    MULTI_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {}
-    MULTI_LOADERS: dict[type[_T], Callable[[Any, type[_T]], _T]] = {}
-
-    _is_type = re.compile(r'__[.|\w]+__').fullmatch
+    KEY_DUMPERS: list[Callable[[Any], Any]] = [_key_dumper]
+    KEY_LOADERS: list[Callable[[Any], Any]] = [_key_loader]
+    DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
+        complex: lambda data: [data.real, data.imag],
+        collections.deque: lambda data: [data.maxlen, *data],
+        datetime.datetime: lambda data: [data.isoformat()],
+        datetime.timedelta: lambda data: [data.total_seconds()]}
+    DUMPERS[datetime.date] = DUMPERS[datetime.time] = DUMPERS[datetime.datetime]
+    LOADERS: dict[type[_T], Callable[[Any], _T]] = {
+        complex: lambda data: complex(*data),
+        collections.Counter: lambda data: collections.Counter(dict(data)),
+        collections.deque: lambda data: collections.deque(
+            itertools.islice(data, 1, None), data[0]),
+        datetime.date: lambda data: datetime.date.fromisoformat(data[0]),
+        datetime.time: lambda data: datetime.time.fromisoformat(data[0]),
+        datetime.datetime: lambda data: datetime.datetime.fromisoformat(data[0]),
+        datetime.timedelta: lambda data: datetime.timedelta(seconds=data[0])}
+    MULTI_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
+        enum.Enum: lambda data: [data.name]}
+    MULTI_LOADERS: dict[type[_T], Callable[[Any, type[_T]], _T]] = {
+        enum.Enum: lambda data, type_: type_[data[0]]}
 
     @classmethod
-    def _dump(cls, root: Any):
+    def _dump(cls, root) -> Any:
+        for dumper_ in reversed(cls.KEY_DUMPERS):
+            root_ = dumper_(root)
+            if root_ is not root:
+                return cls._dump(root_)
         type_ = type(root)
         dumper = None
         try:
@@ -104,20 +156,25 @@ class JSONConfig(_Config):
                 else:
                     break
         if dumper is None:
-            if issubclass(type_, Optional[bool | float | int | str]):
+            if issubclass(type_, (bool | float | int | str, types.NoneType)):
                 return root
             elif issubclass(type_, Iterable):
                 child = {key: cls._dump(val) for key, val in root.items()} if issubclass(
                     type_, Mapping) else [cls._dump(val) for val in root]
-                return child if type_ in (dict, list) else (f'__{_dump(root)}__', child)
+                return child if type_ in (dict, list) else (f'__{_dump_type(root)}__', child)
+            else:
+                raise TypeError(f'Node {root} is not JSON serializable')
         else:
-            return f'__{_dump(root)}__', cls._dump(dumper(root))
+            return f'__{_dump_type(root)}__', cls._dump(dumper(root))
 
     @classmethod
-    def _load(cls, root: Any):
-        if isinstance(root, list) and len(root) == 2 and isinstance(
-                root[0], str) and cls._is_type(root[0]) and type(root[1]) in (dict, list):
-            type_ = _load(root[0][2:-2])
+    def _load(cls, root) -> Any:
+        for loader_ in reversed(cls.KEY_LOADERS):
+            root_ = loader_(root)
+            if root_ is not root:
+                return cls._load(root_)
+        if _is_type(root):
+            type_ = _load_type(root[0][2:-2])
             try:
                 loader = cls.LOADERS[type_]
             except KeyError:
@@ -154,16 +211,6 @@ class JSONConfig(_Config):
         self.update(self._load(json.loads(data)))
 
 
-JSONConfig.DUMPERS[complex] = lambda data: [data.real, data.imag]
-JSONConfig.LOADERS[complex] = lambda data: complex(*data)
-JSONConfig.LOADERS[collections.Counter] = lambda data: collections.Counter(dict(data))
-JSONConfig.DUMPERS[collections.deque] = lambda data: [data.maxlen, *data]
-JSONConfig.LOADERS[collections.deque] = lambda data: collections.deque(
-    itertools.islice(data, 1, None), data[0])
-JSONConfig.MULTI_DUMPERS[enum.Enum] = lambda data: [data.name]
-JSONConfig.MULTI_LOADERS[enum.Enum] = lambda data, type_: type_[data[0]]
-
-
 class XMLConfig(_Config):
     TAG_ITEM: str = '_'
 
@@ -174,7 +221,7 @@ class XMLConfig(_Config):
         elif isinstance(obj, (bool, bytes, complex, float, int, str)):
             root.text = repr(obj)
         elif isinstance(obj, Iterable):
-            root.attrib['_'] = _dump(obj)
+            root.attrib['_'] = _dump_type(obj)
             for key, val in obj.items() if isinstance(
                     obj, Mapping) else zip(itertools.repeat(cls.TAG_ITEM), obj):
                 cls._dump(val, ElementTree.SubElement(root, key))
@@ -183,11 +230,11 @@ class XMLConfig(_Config):
         return root
 
     @classmethod
-    def _load(cls, root: ElementTree.Element):
+    def _load(cls, root: ElementTree.Element) -> Any:
         if (type_ := root.attrib.get('_')) is None:
             return None if root.text is None else ast.literal_eval(root.text)
         else:
-            type_ = _load(type_)
+            type_ = _load_type(type_)
             if issubclass(type_, Mapping):
                 return type_((child.tag, cls._load(child)) for child in root)
             elif issubclass(type_, Iterable):
@@ -220,7 +267,7 @@ class FLATConfig(_Config):
     SEPARATOR = '.'
 
     @classmethod
-    def _dump(cls, obj, root: dict[str, str], __parent: str = ''):
+    def _dump(cls, obj, root: dict[str, str], __parent: str = '') -> Any:
         if obj is None:
             pass
         elif isinstance(obj, (bool, bytes, complex, float, int, str)):
@@ -233,7 +280,7 @@ class FLATConfig(_Config):
                 children = {}
                 dumped = cls._dump(val, children, parent)
                 if dumped is children:
-                    root[parent + cls.SEPARATOR] = _dump(val)
+                    root[parent + cls.SEPARATOR] = _dump_type(val)
                     root.update(children)
                 else:
                     root[parent] = dumped
@@ -252,7 +299,7 @@ class FLATConfig(_Config):
                     yield flat, None if val is None else ast.literal_eval(val)
                 else:
                     flat = key.rsplit(cls.SEPARATOR, 2)[-2]
-                    type_ = _load(val)
+                    type_ = _load_type(val)
                     if issubclass(type_, Mapping):
                         yield flat, type_(cls._load(root, key))
                     elif issubclass(type_, Iterable):
@@ -281,13 +328,13 @@ class REGConfig(_Config):
     SEPARATOR = os.sep
 
     @classmethod
-    def _dump(cls, obj: Iterable, root: dict[str: str | dict], __parent: str):
+    def _dump(cls, obj: Iterable, root: dict[str, str | dict], __parent: str) -> dict:
         for key, val in obj.items() if isinstance(obj, Mapping) else enumerate(obj):
             if isinstance(val, (bool, bytes, complex, float, int, str, types.NoneType)):
                 root[__parent][key] = repr(val)
             elif isinstance(val, Iterable):
                 child = key if __parent == _CONFIG else f'{__parent}{cls.SEPARATOR}{key}'
-                root[__parent][f'{key}{cls.SEPARATOR}'] = _dump(val)
+                root[__parent][f'{key}{cls.SEPARATOR}'] = _dump_type(val)
                 root[child] = {}
                 cls._dump(val, root, child)
         return root
@@ -299,7 +346,7 @@ class REGConfig(_Config):
             if key.endswith(cls.SEPARATOR):
                 parent = __parent + key
                 reg = root[parent[:-1]]
-                type_ = _load(val)
+                type_ = _load_type(val)
                 if issubclass(type_, Mapping):
                     yield key[:-1], type_(cls._load(reg, root, parent))
                 elif issubclass(type_, Iterable):

@@ -194,7 +194,7 @@ class IntEnumMeta(type):
 
 
 class PointedList:
-    def __init__(self, val: Optional[list] = None, default: Any = DEFAULT):
+    def __init__(self, val: Optional[list] = None, default=DEFAULT):
         self._data = [] if val is None else val.copy()
         self.default = default
         self._current = -1
@@ -441,6 +441,15 @@ def pass_ex(*_, **__):
     pass
 
 
+def is_namedtuple(obj) -> bool:
+    if not isinstance(obj, type):
+        obj = type(obj)
+    bases = obj.__bases__
+    fields = getattr(obj, '_fields', None)
+    return len(bases) == 1 and bases[0] is tuple and isinstance(
+        fields, tuple) and all(type(name) is str for name in fields)
+
+
 def pretty_vars(obj) -> str:
     dict_ = getattr(obj, '__dict__', {})
     attrs = [], []
@@ -561,7 +570,7 @@ def encrypt(obj, key: Optional[bytes | int | str] = None, split: bool = False, p
     return '\n'.join(split_ex(base64)) if split else base64
 
 
-def decrypt(data: str, default: Any = None, key: Optional[bytes | int | str] = None) -> Any:
+def decrypt(data: str, default=None, key: Optional[bytes | int | str] = None) -> Any:
     try:
         decoded = zlib.decompress(binascii.a2b_base64(''.join(data.split('\n')).encode()))
     except (binascii.Error, zlib.error):
