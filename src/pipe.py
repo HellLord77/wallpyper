@@ -5,7 +5,7 @@ import ntpath
 import os
 import sys
 import time
-from typing import Optional, TextIO
+from typing import AnyStr, Optional, TextIO
 
 
 # FIXME https://github.com/cython/cython/issues/5134 [py3.11 Could not find platform independent libraries <prefix>]
@@ -36,7 +36,7 @@ class ctyped:
         DWORD = ctypes.c_ulong
 
     @staticmethod
-    def char_array(string: bytes | str, size: int):
+    def char_array(string: AnyStr, size: int):
         return ((ctypes.c_char if isinstance(string, bytes) else ctypes.c_wchar) * size)()
 
 
@@ -99,7 +99,7 @@ POLL_INTERVAL = 0.1
 
 class _NamedPipe(ctyped.type.HANDLE):
     _size: int
-    _base: bytes | str
+    _base: AnyStr
 
     _pipe_mode = (ctyped.const.PIPE_TYPE_BYTE | ctyped.const.PIPE_READMODE_BYTE |
                   ctyped.const.PIPE_WAIT | ctyped.const.PIPE_ACCEPT_REMOTE_CLIENTS)
@@ -154,7 +154,7 @@ class _NamedPipe(ctyped.type.HANDLE):
                 raise BrokenPipeError
         return len(self._base) * self._size + size.value
 
-    def read(self, size: int = -1, wait: bool = False) -> bytes | str:
+    def read(self, size: int = -1, wait: bool = False) -> AnyStr:
         if wait:
             self._wait_bytes()
         if size == -1:
@@ -167,7 +167,7 @@ class _NamedPipe(ctyped.type.HANDLE):
             self._base = type(self)._base
         return read
 
-    def write(self, text: bytes | str, flush: bool = True) -> int:
+    def write(self, text: AnyStr, flush: bool = True) -> int:
         written = ctyped.type.DWORD()
         kernel32.WriteFile(self, text, len(text) * self._size, ctyped.byref(written), None)
         if flush:

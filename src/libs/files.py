@@ -9,7 +9,7 @@ import os
 import shutil
 import sys
 import time
-from typing import Any, Callable, Generator, IO, Iterable, Optional
+from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Optional
 
 import _hashlib
 
@@ -61,7 +61,7 @@ def replace_ext(path: str, ext: str) -> str:
     return f'{os.path.splitext(path)[0]}.{ext}'
 
 
-def iter_dir(path: str, recursive: bool = False) -> Generator[str, None, None]:
+def iter_dir(path: str, recursive: bool = False) -> Iterator[str]:
     try:
         # noinspection PyTypeChecker
         itt: Iterable[os.DirEntry] = os.scandir(path)
@@ -74,8 +74,8 @@ def iter_dir(path: str, recursive: bool = False) -> Generator[str, None, None]:
                 yield from iter_dir(dir_entry.path, recursive)
 
 
-def iter_files(path: str, recursive: bool = False) -> Generator[str, None, None]:
-    yield from filter(os.path.isfile, iter_dir(path, recursive))
+def iter_files(path: str, recursive: bool = False) -> Iterator[str]:
+    return filter(os.path.isfile, iter_dir(path, recursive))
 
 
 def get_size(path: str) -> Optional[int]:
@@ -129,7 +129,7 @@ def is_only_dirs(path: str, recursive: bool = True) -> bool:
     return not any(os.scandir(path))
 
 
-def _filter_files(paths: Iterable[str]) -> Generator[str, None, None]:
+def _filter_files(paths: Iterable[str]) -> Iterator[str]:
     for path in paths:
         if os.path.isfile(path):
             yield path
@@ -184,13 +184,14 @@ def get_hash(path: str, name: str = 'md5', *, __hash=None) -> _hashlib.HASH:
 
 
 # noinspection PyShadowingBuiltins
-def checksum(path: str, hash: bytes | str | _hashlib.HASH, name: str = 'md5') -> bool:
+def checksum(path: str, hash: AnyStr | _hashlib.HASH, name: str = 'md5') -> bool:
     hash_ = get_hash(path, name)
     if isinstance(hash, _hashlib.HASH):
         hash = hash.digest()
     if isinstance(hash, bytes):
         return hash == hash_.digest()
     else:
+        # noinspection PyUnresolvedReferences
         return hash.lower() == hash_.hexdigest()
 
 

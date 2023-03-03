@@ -1,5 +1,5 @@
 import uuid
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 import gui
 from libs import files, request
@@ -25,7 +25,7 @@ class ThisDoesNotExist(Source):
         cls._fix_config(CONFIG_VARIANT, VARIANTS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
             url = request.join(url, 'image')

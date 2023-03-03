@@ -12,14 +12,14 @@ import urllib.parse
 import urllib.request
 import urllib.response
 import uuid
-from typing import Any, BinaryIO, Callable, Generator, Iterable, Mapping, Optional
+from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, Optional
 
 _TJSON = int | bool | float | str | tuple | list | dict
-_TParams = Mapping[bytes | str, Optional[bytes | str | Iterable[bytes | str]]]
+_TParams = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
 _THeaders = Mapping[str, str]
-_TFiles = Mapping[str, bytes | str | BinaryIO | tuple[
-    bytes | str | BinaryIO] | tuple[bytes | str | BinaryIO, bytes | str] | tuple[
-                      bytes | str | BinaryIO, bytes | str, Mapping[str, Optional[str]]]]
+_TFiles = Mapping[str, AnyStr | BinaryIO | tuple[
+    AnyStr | BinaryIO] | tuple[AnyStr | BinaryIO, AnyStr] | tuple[
+                      AnyStr | BinaryIO, AnyStr, Mapping[str, Optional[str]]]]
 _TAuth = str | tuple[str, str]
 
 
@@ -35,7 +35,7 @@ _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
 
-class Header:  # FIXME http.HTTPMethod [added on py3.11]
+class Header:
     # Authentication
     WWW_AUTHENTICATE = 'WWW-Authenticate'
     AUTHORIZATION = 'Authorization'
@@ -292,10 +292,9 @@ class _Response:
     def __bool__(self) -> bool:
         return self.status == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
 
-    def __iter__(self) -> Generator[bytes, None, None]:
-        with contextlib.suppress(ConnectionError):
-            while chunk := self.response.read(self.chunk_size):
-                yield chunk
+    def __iter__(self) -> Iterator[bytes]:
+        while chunk := self.response.read(self.chunk_size):
+            yield chunk
 
     @staticmethod
     def _getheader(_: str, default=None):
@@ -317,7 +316,7 @@ class _Response:
         return self.response.read(n)
 
 
-def _str(o: bytes | str) -> str:
+def _str(o: AnyStr) -> str:
     return o.decode() if isinstance(o, bytes) else o
 
 
@@ -347,7 +346,7 @@ def get_params(url: str) -> dict[str, list[str]]:
     return urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
 
 
-def encode_params(params: Optional[bytes | str | Mapping]) -> str:
+def encode_params(params: Optional[AnyStr | Mapping]) -> str:
     if params is None:
         return ''
     elif isinstance(params, (bytes, str)):
@@ -385,7 +384,7 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
                     bytes, str)) else val.name if hasattr(val, 'name') else name)
             headers[Header.CONTENT_DISPOSITION] += f'; filename="{_str(filename)}"'
             data.append((headers, (open(val, "rb") if isinstance(
-                val, (bytes, str)) else val).read()))
+                val, bytes | str) else val).read()))
         lines = []
         boundary = uuid.uuid4().hex
         for headers, val in data:
@@ -408,7 +407,7 @@ def extend_param(url: str, params: Optional[_TParams] = None) -> str:
     query = urllib.parse.parse_qs(parts.query)
     if params is not None:
         for key, val in params.items():
-            if val is not None:  # TODO if val:
+            if val is not None:
                 if key not in query:
                     query[key] = []
                 if isinstance(val, (bytes, str)):
@@ -418,7 +417,7 @@ def extend_param(url: str, params: Optional[_TParams] = None) -> str:
     return urllib.parse.urlunparse(parts._replace(query=encode_params(query)))
 
 
-def request(method: str, url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
+def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
             params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
             files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
             timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
@@ -429,7 +428,7 @@ def request(method: str, url: str, data: Optional[_TParams] = None, json: Option
     if params is not None:
         url = extend_param(url, params)
     try:
-        _request = urllib.request.Request(url, data, HEADERS, method=method)
+        _request = urllib.request.Request(url, data, HEADERS, method=str(method))
     except ValueError as exc:
         return _Response(urllib.error.URLError(exc))
     else:
@@ -457,17 +456,17 @@ def get(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None
         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
-    return request('GET', url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
+    return request(http.HTTPMethod.GET, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
 def post(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
-    return request('POST', url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
+    return request(http.HTTPMethod.POST, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
-def retrieve(url: str, path: bytes | str, size: Optional[int] = None,
+def retrieve(url: str, path: AnyStr, size: Optional[int] = None,
              chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
              query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = get(url)

@@ -3,7 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.1.1'
 
 import os
-from typing import Any, Generator, Iterable, Optional
+from typing import Any, Iterable, Iterator, Optional
 
 import langs
 from libs import callables, files, utils
@@ -45,7 +45,7 @@ class Source:
         pass
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         raise NotImplementedError
 
     @classmethod

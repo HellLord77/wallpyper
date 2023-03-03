@@ -4,7 +4,7 @@ import os
 import pathlib
 import re
 import uuid
-from typing import Iterable, Generator, Optional, Callable
+from typing import Iterable, Iterator, Optional, Callable
 
 import clang.cindex
 
@@ -127,7 +127,7 @@ def find_cursors(cursors: Iterable[clang.cindex.Cursor],
                  location: Optional[str | clang.cindex.SourceLocation | Callable[[clang.cindex.SourceLocation], bool]] = None,
                  type: Optional[int | clang.cindex.TypeKind | Callable[[clang.cindex.Type], bool]] = None,
                  filter: Optional[Callable[[clang.cindex.Cursor], bool]] = None,
-                 recursive: bool = True) -> Generator[clang.cindex.Cursor, None, None]:
+                 recursive: bool = True) -> Iterator[clang.cindex.Cursor]:
     for cursor in cursors:
         skip = False
         if not skip and kind is not None:

@@ -6,7 +6,7 @@ import sys
 import time
 import types
 import typing
-from typing import Any, Callable, TypeVar, Optional, Literal, Tuple
+from typing import Any, AnyStr, Callable, TypeVar, Optional, Literal, Tuple
 
 import win32
 from libs import ctyped, config
@@ -125,7 +125,7 @@ class RemoteProcess(ctyped.type.HANDLE):
         if kernel32.ReadProcessMemory(self, addr, ctyped.addressof(buff), size, None):
             return buff
 
-    def write_mem(self, addr: PageAddress, data: bytes | str, size: Optional[int] = None) -> bool:
+    def write_mem(self, addr: PageAddress, data: AnyStr, size: Optional[int] = None) -> bool:
         if size is None:
             size = (ctyped.sizeof(ctyped.type.c_wchar) if isinstance(
                 data, str) else ctyped.sizeof(ctyped.type.c_char)) * len(data)

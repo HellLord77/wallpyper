@@ -26,7 +26,7 @@ import typing
 import uuid
 import zipfile
 import zlib
-from typing import Any, AnyStr, Callable, Generator, IO, Iterable, Mapping, Optional
+from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Mapping, Optional
 
 T = typing.TypeVar('T')
 DEFAULT = object()
@@ -163,8 +163,8 @@ class IntEnumMeta(type):
     def __contains__(cls, item):
         return item in cls._vars
 
-    def __iter__(cls) -> Generator[str, None, None]:
-        yield from cls._vars
+    def __iter__(cls) -> Iterator[str]:
+        return iter(cls._vars)
 
     @typing.overload
     def __getitem__(cls, var_or_val: slice) -> tuple[str]:
@@ -346,11 +346,11 @@ def any_ex(itt: Iterable, func: Callable) -> bool:
     return False
 
 
-def chain_ex(*funcs: Callable) -> Generator:
+def chain_ex(*funcs: Callable) -> Iterator:
     yield from (func() for func in funcs)
 
 
-def cycle_ex(itt: Iterable, func: Optional[Callable] = None) -> Generator:
+def cycle_ex(itt: Iterable, func: Optional[Callable] = None) -> Iterator:
     while True:
         for ele in itt:
             yield ele
@@ -479,7 +479,7 @@ def clear_queue(queue: queue.Queue) -> int:
     return tasks
 
 
-def iter_stream(stream: IO, size: Optional[int] = None) -> Generator[AnyStr, None, None]:
+def iter_stream(stream: IO, size: Optional[int] = None) -> Iterator[AnyStr]:
     read = stream.read
     size = size or sys.maxsize
     chunk = read(size)
@@ -519,7 +519,7 @@ def shrink_string_mid(string: str, max_len: int, filler: str = '...') -> str:
     return string
 
 
-def compress(datas: Mapping[str, bytes | str], compression: int = zipfile.ZIP_STORED) -> bytes:
+def compress(datas: Mapping[str, AnyStr], compression: int = zipfile.ZIP_STORED) -> bytes:
     stream = io.BytesIO()
     with zipfile.ZipFile(stream, 'w', compression) as file:
         for name, data in datas.items():

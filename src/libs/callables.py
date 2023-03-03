@@ -10,7 +10,7 @@ import queue
 import threading
 import time
 import weakref
-from typing import Any, Callable, Generator, NoReturn, Optional
+from typing import Any, Callable, Iterator, NoReturn, Optional
 
 
 def _get_params(args: tuple, kwargs: dict[str, Any]) -> Any:
@@ -49,7 +49,7 @@ class _RunningQueryable:
         raise NotImplementedError
 
     @classmethod
-    def iter_running(cls) -> Generator[_RunningQueryable, None, None]:
+    def iter_running(cls) -> Iterator[_RunningQueryable]:
         for self in cls._selves:
             if self.is_running():
                 yield self

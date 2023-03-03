@@ -1,6 +1,6 @@
 import functools
 import sys
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 import gui
 from libs import files, request
@@ -50,7 +50,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         results: Optional[list] = None
         total_pages = 1
         if params.pop(CONFIG_EDITORIAL):

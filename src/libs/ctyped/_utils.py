@@ -7,7 +7,7 @@ import pkgutil as _pkgutil
 import sys as _sys
 import types as _types
 import typing as _typing
-from typing import Any as _Any, Generator as _Generator, Generic as _Generic, Optional as _Optional, Sequence as _Sequence
+from typing import Any as _Any, Generic as _Generic, Iterator as _Iterator, Optional as _Optional, Sequence as _Sequence
 
 import _ctypes as __ctypes
 
@@ -78,7 +78,7 @@ class _Globals(dict):
         del self.vars[key]
         super().__setitem__(key, value)
 
-    def iter_vars(self) -> _Generator[str, None, None]:
+    def iter_vars(self) -> _Iterator[str]:
         for item in tuple(self.vars):
             if item in self.vars:
                 yield item
@@ -202,7 +202,7 @@ def _resolve_type(annot, args: _Optional[dict] = None) -> _Any:
 
 
 def _iter_modules(path: str = _os.path.dirname(__file__), prefix: str = __package__,
-                  recursive: bool = False) -> _Generator[_pkgutil.ModuleInfo, None, None]:
+                  recursive: bool = False) -> _Iterator[_pkgutil.ModuleInfo]:
     prefix = f'{prefix}.'
     for module in _pkgutil.iter_modules((path,), prefix):
         yield module

@@ -6,7 +6,7 @@ import html.parser
 import itertools
 import re
 import shutil
-from typing import Callable, Generator, Iterable, Mapping, Optional, IO
+from typing import Callable, Iterable, Iterator, Mapping, Optional, IO
 
 _VOIDS = (
     'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
@@ -71,13 +71,13 @@ class Element:
             attributes = ''
         return f'<{self.name}{attributes}>{"".join(str(children) for children in self.children)}</{self.name}>'
 
-    def iter_all_children(self, depth: int = -1) -> Generator[Element, None, None]:
+    def iter_all_children(self, depth: int = -1) -> Iterator[Element]:
         if depth:
             for child in self.children:
                 yield child
                 yield from child.iter_all_children(depth - 1)
 
-    def iter_all_parents(self, height: int = -1) -> Generator[Element, None, None]:
+    def iter_all_parents(self, height: int = -1) -> Iterator[Element]:
         if height and self.parent:
             yield self.parent
             yield from self.parent.iter_all_parents(height - 1)
@@ -90,13 +90,13 @@ class Element:
         for sibling in self.iter_previous_siblings():
             return sibling
 
-    def iter_next_siblings(self) -> Generator[Element, None, None]:
+    def iter_next_siblings(self) -> itertools.islice[Element]:
         if self.parent:
-            yield from itertools.islice(self.parent.children, self.parent.children.index(self) + 1, None)
+            return itertools.islice(self.parent.children, self.parent.children.index(self) + 1, None)
 
-    def iter_previous_siblings(self) -> Generator[Element, None, None]:
+    def iter_previous_siblings(self) -> itertools.islice[Element]:
         if self.parent:
-            yield from itertools.islice(self.parent.children, None, self.parent.children.index(self))
+            return itertools.islice(self.parent.children, None, self.parent.children.index(self))
 
 
 def _match(pattern: Optional[str | re.Pattern | Callable[[str], bool]], string: Optional[str]) -> bool:
@@ -123,7 +123,7 @@ def find_element(elements: Iterable[Element], name: Optional[str | re.Pattern | 
 # noinspection PyShadowingBuiltins
 def find_elements(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str], bool]] = None,
                   attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str], bool]]]] = None,
-                  filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Generator[Element, None, None]:
+                  filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Iterator[Element]:
     for element in elements:
         if not count:
             break

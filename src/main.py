@@ -176,10 +176,11 @@ def try_reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
         on_change(*TIMER.target.args, RECENT[0], False)
 
 
-def show_exception(exc: BaseException):
-    threading.Thread(target=win32.show_error, args=(type(
-        exc), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
-        traceback.format_exception(type(exc), exc, exc.__traceback__)))).start()
+def try_alert_error(exc: BaseException, force: bool = False):
+    if force or (consts.FEATURE_ERROR_HOOK and not pyinstall.FROZEN):
+        threading.Thread(target=win32.alert_error, args=(type(
+            exc), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
+            traceback.format_exception(type(exc), exc, exc.__traceback__)))).start()
 
 
 @timer.on_thread
@@ -249,7 +250,7 @@ def get_next_wallpaper() -> Optional[files.File]:
     first_wallpaper = None
     while True:
         next_wallpaper = next(source.get_next_wallpaper(**params))
-        if not CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] or next_wallpaper not in RECENT:
+        if not CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] or next_wallpaper not in RECENT:  # TODO -> filter
             return next_wallpaper
         if first_wallpaper is None:
             first_wallpaper = next_wallpaper
@@ -266,22 +267,21 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
             try:
                 wallpaper = get_next_wallpaper()
             except BaseException as exc:
-                show_exception(exc)
+                try_alert_error(exc, True)
     if wallpaper is not None:
         wallpaper.name = win32.sanitize_filename(wallpaper.name)
         with contextlib.suppress(ValueError):
             RECENT.remove(wallpaper)
         RECENT.appendleft(wallpaper)
-        if path := download_wallpaper(wallpaper, query_callback):
-            easing = easings.get(getattr(easings.Ease, CURRENT_CONFIG[
-                consts.CONFIG_TRANSITION_EASE]), CURRENT_CONFIG[
-                                     consts.CONFIG_EASE_IN], CURRENT_CONFIG[consts.CONFIG_EASE_OUT])
+        if (path := download_wallpaper(wallpaper, query_callback)) is not None:
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
                 path, display, getattr(win32.display.Style, CURRENT_CONFIG[consts.CONFIG_FIT_STYLE]), rotate=getattr(
                     win32.display.Rotate, CURRENT_CONFIG[consts.CONFIG_ROTATE_BY]), flip=getattr(
                     win32.display.Flip, CURRENT_CONFIG[consts.CONFIG_FLIP_BY]), transition=getattr(
                     win32.display.Transition, CURRENT_CONFIG[consts.CONFIG_TRANSITION_STYLE]), duration=CURRENT_CONFIG[
-                    consts.CONFIG_TRANSITION_DURATION], easing=easing) for display in get_displays()))
+                    consts.CONFIG_TRANSITION_DURATION], easing=easings.get(
+                    getattr(easings.Ease, CURRENT_CONFIG[consts.CONFIG_TRANSITION_EASE]), CURRENT_CONFIG[
+                        consts.CONFIG_EASE_IN], CURRENT_CONFIG[consts.CONFIG_EASE_OUT])) for display in get_displays()))
     return changed
 
 
@@ -361,11 +361,11 @@ def on_wallpaper(callback: callables.SingletonCallable[[str], bool],
         running = callback.is_running()
     except AttributeError:
         running = False
-    if not running and (path := download_wallpaper(wallpaper)):
+    if not running and (path := download_wallpaper(wallpaper)) is not None:
         try:
             success = callback(path)
         except BaseException as exc:
-            show_exception(exc)
+            try_alert_error(exc, True)
     if not success:
         try_show_notification(title, text)
     return success
@@ -763,9 +763,10 @@ def create_menu():
                 gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_OUT, CURRENT_CONFIG, consts.CONFIG_EASE_OUT,
                                          on_click=functools.partial(on_easing_direction, item_ease_enable))
         item_sources = gui.add_mapped_submenu(STRINGS.MENU_SOURCE, {
-            name: source.NAME for name, source in srcs.SOURCES.items()}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
-                                              on_click=functools.partial(on_source, item_source),
-                                              icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+            name: source.NAME for name, source in sorted(
+                srcs.SOURCES.items(), key=lambda source: source[1].NAME.casefold())},
+                                              CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE, on_click=functools.partial(
+                on_source, item_source), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
         if not consts.FEATURE_SOURCE_DEV:
             for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
                 if source.VERSION == srcs.Source.VERSION:
@@ -823,13 +824,12 @@ def stop():
 
 def main() -> NoReturn:
     if consts.FEATURE_ERROR_HOOK:
-        utils.hook_except(win32.show_error, True)
+        utils.hook_except(win32.alert_error, True)
     try:
         start()
         stop()
     except BaseException as exc:
-        if consts.FEATURE_ERROR_HOOK and not pyinstall.FROZEN:
-            show_exception(exc)
+        try_alert_error(exc)
         raise
     sys.exit()
 

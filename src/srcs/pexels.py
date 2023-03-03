@@ -1,6 +1,6 @@
 import functools
 import os
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 import gui
 from libs import files, isocodes, request
@@ -55,7 +55,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         cls._fix_config(CONFIG_LOCALE, LOCALES)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         photos: Optional[list] = None
         headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):

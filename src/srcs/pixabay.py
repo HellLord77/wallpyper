@@ -2,7 +2,7 @@ import functools
 import http
 import os.path
 import re
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 import gui
 from libs import files, isocodes, request
@@ -69,7 +69,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
         hits: Optional[list] = None
         params['page'] = '1'
         params['per_page'] = '200'

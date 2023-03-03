@@ -6,7 +6,7 @@ import os
 import subprocess
 import time
 import winreg
-from typing import ContextManager, Generator, Mapping, Optional
+from typing import ContextManager, Iterator, Mapping, Optional
 
 from libs import ctyped, utils
 from libs.ctyped import winrt
@@ -200,7 +200,7 @@ def _set_link_data(path_or_link: str | ShObjIdl_core.IShellLinkW,
     return True
 
 
-def _get_link_paths(dir_: str, recursive: bool = False) -> Generator[str, None, None]:
+def _get_link_paths(dir_: str, recursive: bool = False) -> Iterator[str]:
     dir_entry: os.DirEntry
     for dir_entry in os.scandir(dir_):
         if recursive and dir_entry.is_dir():
@@ -282,11 +282,11 @@ def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:
         return buff.value.strip()
 
 
-def show_error(title: Optional[str | type], text: str) -> bool:
+def alert_error(title: Optional[str | type], text: str) -> bool:
     if isinstance(title, type):
         title = title.__name__
-    return user32.MessageBoxW(
-        None, text, title, ctyped.const.MB_OK | ctyped.const.MB_ICONERROR | ctyped.const.MB_SYSTEMMODAL) != 0
+    return user32.MessageBoxW(None, text, title, ctyped.const.MB_OK |
+                              ctyped.const.MB_ICONERROR | ctyped.const.MB_SYSTEMMODAL) != 0
 
 
 def get_max_shutdown_time() -> float:

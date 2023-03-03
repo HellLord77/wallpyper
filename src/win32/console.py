@@ -1,5 +1,5 @@
 import sys
-from typing import Callable, Optional
+from typing import AnyStr, Callable, Optional
 
 from libs import ctyped
 from libs.ctyped.lib import kernel32
@@ -23,7 +23,7 @@ def remove() -> bool:
     return bool(kernel32.FreeConsole())
 
 
-def set_title(title: bytes | str) -> bool:
+def set_title(title: AnyStr) -> bool:
     return bool((kernel32.SetConsoleTitleA if isinstance(
         title, bytes) else kernel32.SetConsoleTitleW)(title))
 
@@ -32,7 +32,7 @@ def _get_handle(error: bool) -> int:
     return kernel32.GetStdHandle(ctyped.const.STD_ERROR_HANDLE if error else ctyped.const.STD_OUTPUT_HANDLE)
 
 
-def write(text: bytes | str, error: bool = False) -> int:
+def write(text: AnyStr, error: bool = False) -> int:
     written = ctyped.type.DWORD()
     (kernel32.WriteConsoleA if isinstance(text, bytes) else kernel32.WriteConsoleW)(
         _get_handle(error), text, len(text), ctyped.byref(written), ctyped.const.NULL)

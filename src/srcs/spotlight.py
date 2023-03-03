@@ -1,7 +1,7 @@
 import base64
 import json
 import os.path
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 import gui
 from libs import files, isocodes, request
@@ -31,7 +31,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
         items: Optional[list] = None
         params['pid'] = '209567'
         params['fmt'] = 'json'

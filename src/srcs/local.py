@@ -1,5 +1,5 @@
 import os.path
-from typing import Generator, Optional, Callable
+from typing import Callable, Iterator, Optional
 
 import gui
 import win32
@@ -39,7 +39,7 @@ class LocalFolder(Source):
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         results: Optional[list] = None
         while True:
             if not results:

@@ -1,4 +1,4 @@
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 from libs import files, request
 from . import Source
@@ -40,7 +40,7 @@ def _authenticate(key: str, secret: str) -> bool:
 
 
 class ShutterStock(Source):  # https://api-reference.shutterstock.com
-    NAME = 'shutterstock'
+    NAME = '# shutterstock'
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         CONFIG_SECRET: '',
@@ -56,7 +56,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
         CONFIG_SORT: SORTS[0]}
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
         auth = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'

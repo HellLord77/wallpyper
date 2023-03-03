@@ -1,7 +1,7 @@
 import functools
 import re
 import time
-from typing import Callable, Generator, Optional
+from typing import Callable, Iterator, Optional
 
 import consts
 import gui
@@ -28,8 +28,8 @@ FOLLOWERS = '', 'undiscovered'
 SORTS = '', 'created_at'
 
 
-def _iter_images(browser: win32.browser.Browser) -> Generator[minihtml.Element, None, None]:
-    yield from minihtml.find_elements(minihtml.loads(
+def _iter_images(browser: win32.browser.Browser) -> Iterator[minihtml.Element]:
+    return minihtml.find_elements(minihtml.loads(
         browser.get_html()).iter_all_children(), 'img', {'class': _PATTERN})
 
 
@@ -42,7 +42,7 @@ def _on_category(menu: gui.Menu) -> tuple[str, ...]:
 
 
 class FiveHundredPx(Source):
-    NAME = '500px'
+    NAME = '# 500px'
     URL = 'https://500px.com'
     DEFAULT_CONFIG = {
         CONFIG_CATEGORIES: CATEGORIES[0],
@@ -60,7 +60,7 @@ class FiveHundredPx(Source):
         cls._fix_config(CONFIG_SORT, SORTS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         images: Optional[list] = None
         image = None
         url = request.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))

@@ -2,7 +2,7 @@ import colorsys
 import functools
 import os.path
 import re
-from typing import Callable, Generator, Optional
+from typing import Callable, Iterator, Optional
 
 import gui
 import win32
@@ -82,7 +82,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls._fix_config(CONFIG_COLORS, COLORS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
         meta: dict[str, Optional[int | str]] = {
             'current_page': 1,
@@ -91,7 +91,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         while True:
             if not datas:
                 params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
-                params['seed'] = meta['seed'] or ''
+                params['seed'] = meta['seed']
                 response = request.get(URL_SEARCH, params=params)
                 if response:
                     json = response.json()

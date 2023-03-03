@@ -1,5 +1,5 @@
 import os.path
-from typing import Generator, Optional
+from typing import Iterator, Optional
 
 import gui
 from libs import files, isocodes, request
@@ -35,7 +35,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         cls._fix_config(CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
         images: Optional[list] = None
         params['format'] = 'js'
         params['n'] = '8'

@@ -3,7 +3,7 @@ import functools
 import math
 import os.path
 import time
-from typing import Callable, Generator, Optional
+from typing import Callable, Iterator, Optional
 
 import gui
 from libs import callables, files, request
@@ -20,7 +20,7 @@ URL_IMAGE = request.join('https://i.redd.it')
 
 CONFIG_ID = '_client_id'
 CONFIG_ORIENTATION = '_orientation'
-CONFIG_SUBS = 'subreddit'
+CONFIG_SUBS = 'subreddits'
 CONFIG_SORT = 'sort'
 CONFIG_TIME = 't'
 
@@ -30,7 +30,7 @@ TIMES = 'hour', 'day', 'week', 'month', 'year', 'all'
 
 
 @callables.LastCacheCallable
-def _get_auth(client_id: str) -> Generator[Optional[str], None, None]:
+def _get_auth(client_id: str) -> Iterator[Optional[str]]:
     token = {'access_token': None}
     expires_at = 0.0
     while True:
@@ -44,7 +44,7 @@ def _get_auth(client_id: str) -> Generator[Optional[str], None, None]:
         yield token['access_token']
 
 
-def _iter_children(children: list[dict]) -> Generator[dict, None, None]:
+def _iter_children(children: list[dict]) -> Iterator[dict]:
     for child in children:
         data = child['data']
         post_hint = data.get('post_hint')
@@ -62,8 +62,8 @@ def _iter_children(children: list[dict]) -> Generator[dict, None, None]:
                     s = media['s']
                     gallery = copy.deepcopy(child)
                     data = gallery['data']
-                    data['preview'] = {'images': [
-                        {'source': {'width': s['x'], 'height': s['y']}}]}
+                    data['preview'] = {'images': [{'source': {
+                        'width': s['x'], 'height': s['y']}}]}
                     data['url'] = request.join(
                         URL_IMAGE, f'{media_id}.{os.path.basename(media["m"])}')
                     data['title'] = f'{title} ({index})'
@@ -97,7 +97,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         cls._fix_config(CONFIG_TIME, TIMES)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Generator[Optional[files.File], None, None]:
+    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
         children: Optional[list] = None
         sort = params.pop(CONFIG_SORT)
         url = request.join(URL_BASE, params.pop(CONFIG_SUBS), sort)

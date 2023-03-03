@@ -6,7 +6,7 @@ import contextlib
 import functools
 import itertools
 import threading
-from typing import Any, Callable, Generator, Iterable, Optional, Sequence
+from typing import Any, Callable, Iterable, Iterator, Optional, Sequence
 
 from libs import ctyped
 from libs.ctyped.lib import user32, shell32
@@ -488,7 +488,7 @@ class SystemTray(_Control):
             user32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
 
     @staticmethod
-    def _get_animation_frames(bitmap: _gdiplus.Bitmap) -> Generator[tuple[int, _handle.HICON], None, None]:
+    def _get_animation_frames(bitmap: _gdiplus.Bitmap) -> Iterator[tuple[int, _handle.HICON]]:
         delays: ctyped.Pointer[ctyped.type.c_long] = _gdiplus.image_get_property(
             bitmap, ctyped.const.PropertyTagFrameDelay)
         for index in _gdiplus.image_iter_frames(bitmap):
@@ -578,8 +578,8 @@ class Menu(_Control):
         else:
             return self.remove_item(pos_or_item, True)
 
-    def __iter__(self) -> Generator[MenuItem, None, None]:
-        yield from self._items
+    def __iter__(self) -> Iterator[MenuItem]:
+        return iter(self._items)
 
     def destroy(self) -> bool:
         self._items.clear()

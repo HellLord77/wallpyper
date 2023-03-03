@@ -4,7 +4,8 @@ import contextlib
 import math
 import ntpath
 import string as _string
-from typing import Callable, ContextManager, Generator, Literal, Optional
+import threading
+from typing import Callable, ContextManager, Iterator, Literal, Optional
 
 from libs import ctyped
 from libs.ctyped.interface.um import d2d1_3, d2d1svg, objidlbase
@@ -21,8 +22,8 @@ _TAG_TYPE_TO_TYPE = {
     ctyped.const.PropertyTagTypeSLONG: ctyped.type.c_long}
 
 
-def _get_obj(float_obj: Callable, int_obj: Callable, *numbers: Optional[int | float]) -> Callable:
-    for number in numbers:
+def _get_obj(float_obj: Callable, int_obj: Callable, *decimals: Optional[int | float]) -> Callable:
+    for number in decimals:
         if isinstance(number, float):
             return float_obj
     return int_obj
@@ -40,18 +41,21 @@ def _calc_src_x_y_w_h(from_w: int, from_h: int, to_w: int, to_h: int,
 
 
 class _GdiplusToken(ctyped.type.ULONG_PTR):
-    count = 0
+    _count = 0
+    _lock = threading.Lock()
 
     def __init__(self):
-        if not self.count:
-            GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(
-                ctyped.struct.GdiplusStartupInput()), None)
-        _GdiplusToken.count += 1
+        with self._lock:
+            if not self._count:
+                GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(
+                    ctyped.struct.GdiplusStartupInput()), None)
+            _GdiplusToken._count += 1
 
     def __del__(self):
-        _GdiplusToken.count -= 1
-        if not self.count:
-            GdiPlus.GdiplusShutdown(self)
+        with self._lock:
+            _GdiplusToken._count -= 1
+            if not self._count:
+                GdiPlus.GdiplusShutdown(self)
 
 
 class _GdiplusBase:
@@ -1350,7 +1354,7 @@ def image_save(image: Image, path: str, quality: int = 100) -> bool:
         ntpath.splitext(path)[1]).Clsid, params)
 
 
-def image_iter_frames(image: Image) -> Generator[int, None, None]:
+def image_iter_frames(image: Image) -> Iterator[int]:
     dim_id = image.get_frame_dimensions()[0]
     for index in range(image.get_frame_count(dim_id)):
         image.select_active_frame(dim_id, index)
