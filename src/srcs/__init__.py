@@ -29,12 +29,8 @@ class Source:
         if cls.DEFAULT_CONFIG is None:
             cls.DEFAULT_CONFIG = {}
         cls.CURRENT_CONFIG = {}
-        cls.get_next_wallpaper = callables.LastCacheCallable(cls.get_next_wallpaper)
+        cls.get_next_image = callables.LastCacheCallable(cls.get_next_image)
         SOURCES[uid] = cls
-
-    @classmethod
-    def update_config(cls):
-        pass
 
     @classmethod
     def _fix_config(cls, key: str, values: Iterable):
@@ -45,7 +41,7 @@ class Source:
         pass
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
         raise NotImplementedError
 
     @classmethod

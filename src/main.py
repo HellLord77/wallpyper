@@ -53,7 +53,7 @@ RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECE
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
 DEFAULT_CONFIG: dict[str, int | float | bool | str] = {
-    consts.CONFIG_RECENT_LIST: f'\n{utils.encrypt(RECENT, split=True)}',
+    consts.CONFIG_RECENT_IMAGES: f'\n{utils.encrypt(RECENT, split=True)}',
     consts.CONFIG_ACTIVE_DISPLAYS: consts.ALL_DISPLAY,
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_AUTO_SAVE: False,
@@ -81,10 +81,6 @@ DEFAULT_CONFIG: dict[str, int | float | bool | str] = {
     consts.CONFIG_FLIP_BY: win32.display.Flip[win32.display.Flip.NONE],
     consts.CONFIG_TRANSITION_STYLE: win32.display.Transition[win32.display.Transition.FADE]}
 CURRENT_CONFIG: dict[str, int | float | bool | str] = {}
-
-
-def update_config():
-    CURRENT_CONFIG[consts.CONFIG_RECENT_LIST] = f'\n{utils.encrypt(RECENT, split=True)}'
 
 
 def _fix_config(key: str, values: Iterable):
@@ -121,7 +117,7 @@ def _load_config(getters: dict[type, Callable[[str, str], str | int | float | bo
     return loaded
 
 
-def load_config() -> bool:
+def load_configs() -> bool:
     parser = configparser.ConfigParser(
         converters={tuple.__name__: utils.to_tuple, list.__name__: utils.to_list,
                     set.__name__: utils.to_set, dict.__name__: utils.to_dict})
@@ -138,10 +134,10 @@ def load_config() -> bool:
 
 
 def try_save_config(force: bool = False) -> bool:
+    CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = f'\n{utils.encrypt(RECENT, split=True)}'
     if force or CURRENT_CONFIG[consts.CONFIG_KEEP_SETTINGS]:
         parser = configparser.ConfigParser()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-            source.update_config()
             source.fix_config()
             if config := {option: source.CURRENT_CONFIG[option] for option, value in sorted(
                     source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[option] != value}:
@@ -228,52 +224,52 @@ def print_progress():
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_wallpaper(wallpaper: files.File, query_callback: Optional[Callable[[float], bool]] = None) -> Optional[str]:
+def download_image(image: files.File, query_callback: Optional[Callable[[float], bool]] = None) -> Optional[str]:
     try_remove_temp()
-    with _download_lock(wallpaper.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
+    with _download_lock(image.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         PROGRESS.clear()
         if PIPE or win32.console.is_present():
             print_progress()
         try:
-            if wallpaper.checksum(temp_path := os.path.join(TEMP_DIR, wallpaper.name)) or (
-                    request.retrieve(wallpaper.url, temp_path, wallpaper.size, chunk_count=100,
+            if image.checksum(temp_path := os.path.join(TEMP_DIR, image.name)) or (
+                    request.retrieve(image.url, temp_path, image.size, chunk_count=100,
                                      query_callback=query_callback) and os.path.isfile(temp_path)):
-                wallpaper.fill(temp_path)
+                image.fill(temp_path)
                 return temp_path
         finally:
             PROGRESS.set(-1.0)
 
 
-def get_next_wallpaper() -> Optional[files.File]:
+def get_next_image() -> Optional[files.File]:
     source = srcs.SOURCES[CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]]
     params = {key: val for key, val in source.CURRENT_CONFIG.items() if not key.startswith('_')}
-    first_wallpaper = None
+    first_image = None
     while True:
-        next_wallpaper = next(source.get_next_wallpaper(**params))
-        if not CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] or next_wallpaper not in RECENT:  # TODO -> filter
-            return next_wallpaper
-        if first_wallpaper is None:
-            first_wallpaper = next_wallpaper
-        elif first_wallpaper == next_wallpaper:
-            return next_wallpaper
+        next_image = next(source.get_next_image(**params))
+        if not CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] or next_image not in RECENT:  # TODO -> filter
+            return next_image
+        if first_image is None:
+            first_image = next_image
+        elif first_image == next_image:
+            return next_image
 
 
 @callables.SingletonCallable
-def change_wallpaper(wallpaper: Optional[files.File] = None,
+def change_wallpaper(image: Optional[files.File] = None,
                      query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     changed = False
-    if wallpaper is None:
+    if image is None:
         with gui.animate(STRINGS.STATUS_FETCH):
             try:
-                wallpaper = get_next_wallpaper()
+                image = get_next_image()
             except BaseException as exc:
                 try_alert_error(exc, True)
-    if wallpaper is not None:
-        wallpaper.name = win32.sanitize_filename(wallpaper.name)
+    if image is not None:
+        image.name = win32.sanitize_filename(image.name)
         with contextlib.suppress(ValueError):
-            RECENT.remove(wallpaper)
-        RECENT.appendleft(wallpaper)
-        if (path := download_wallpaper(wallpaper, query_callback)) is not None:
+            RECENT.remove(image)
+        RECENT.appendleft(image)
+        if (path := download_image(image, query_callback)) is not None:
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
                 path, display, getattr(win32.display.Style, CURRENT_CONFIG[consts.CONFIG_FIT_STYLE]), rotate=getattr(
                     win32.display.Rotate, CURRENT_CONFIG[consts.CONFIG_ROTATE_BY]), flip=getattr(
@@ -286,7 +282,7 @@ def change_wallpaper(wallpaper: Optional[files.File] = None,
 
 
 @callables.SingletonCallable
-def save_wallpaper(path: str, select: bool = False) -> bool:
+def save_image(path: str, select: bool = False) -> bool:
     dest = os.path.join(CURRENT_CONFIG[consts.CONFIG_SAVE_DIR], os.path.basename(path))
     if select:
         if (dest := win32.dialog.save_image(dest, STRINGS.LABEL_SAVE_AS)) is None:
@@ -294,11 +290,11 @@ def save_wallpaper(path: str, select: bool = False) -> bool:
     return files.copy(path, dest)
 
 
-save_wallpaper_select = functools.partial(save_wallpaper, select=True)
+on_save_image = functools.partial(save_image, select=True)
 
 
 @callables.SingletonCallable
-def search_wallpaper(path: str) -> bool:
+def search_image(path: str) -> bool:
     searched = False
     with gui.animate(STRINGS.STATUS_SEARCH):
         if location := request.post(consts.URL_GOOGLE, files={'encoded_image': path},
@@ -326,8 +322,9 @@ def on_search(url: str, engine: str) -> bool:
 
 
 @timer.on_thread
-def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, query_callback: Callable[[float], bool],
-              wallpaper: Optional[files.File] = None, auto_change: bool = True) -> bool:
+def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
+              query_callback: Callable[[float], bool],
+              image: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if auto_change:
         if CURRENT_CONFIG[consts.CONFIG_IF_MAXIMIZED] and all(win32.display.get_display_blockers(
@@ -342,26 +339,26 @@ def on_change(item_change_enable: Callable, item_recent: win32.gui.MenuItem, que
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
     if not changed and not change_wallpaper.is_running():
-        item_change_enable(False)
+        enable(False)
         item_recent.enable(False)
         with gui.animate(STRINGS.STATUS_CHANGE):
-            if (changed := change_wallpaper(wallpaper, query_callback)) and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE]:
-                on_wallpaper(save_wallpaper, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
+            if (changed := change_wallpaper(image, query_callback)) and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE]:
+                on_image_func(save_image, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         _update_recent_menu(item_recent)
-        item_change_enable()
+        enable(True)
     if not changed:
         try_show_notification(STRINGS.LABEL_CHANGE, STRINGS.FAIL_CHANGE)
     return changed
 
 
-def on_wallpaper(callback: callables.SingletonCallable[[str], bool],
-                 wallpaper: files.File, title: str, text: str) -> bool:
+def on_image_func(callback: callables.SingletonCallable[[str], bool],
+                  image: files.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
     except AttributeError:
         running = False
-    if not running and (path := download_wallpaper(wallpaper)) is not None:
+    if not running and (path := download_image(image)) is not None:
         try:
             success = callback(path)
         except BaseException as exc:
@@ -371,7 +368,7 @@ def on_wallpaper(callback: callables.SingletonCallable[[str], bool],
     return success
 
 
-def on_clear(enable: Callable):
+def on_clear(enable: Callable[[bool], bool]):
     RECENT.clear()
     enable(False)
 
@@ -380,67 +377,67 @@ def _update_recent_menu(item: win32.gui.MenuItem):
     menu = item.get_submenu()
     with gui.set_menu(menu):
         items = gui.get_menu_items()
-        for index, wallpaper in enumerate(RECENT):
-            if wallpaper in items:
-                wallpaper_item = items[wallpaper.url]
-                submenu = wallpaper_item.get_submenu()
-                menu.remove_item(wallpaper_item)
+        for index, image in enumerate(RECENT):
+            if image in items:
+                item_image = items[image.url]
+                submenu = item_image.get_submenu()
+                menu.remove_item(item_image)
             else:
                 with gui.set_menu(gui.Menu()) as submenu:
-                    gui.add_menu_item(STRINGS.LABEL_SET, on_click=functools.partial(on_change, *TIMER.target.args, wallpaper, False),
+                    gui.add_menu_item(STRINGS.LABEL_SET, on_click=functools.partial(on_change, *TIMER.target.args, image, False),
                                       on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(STRINGS.LABEL_SET_LOCK, on_click=functools.partial(
-                        on_wallpaper, win32.display.set_lock_background, wallpaper, STRINGS.LABEL_SET_LOCK,
+                        on_image_func, win32.display.set_lock_background, image, STRINGS.LABEL_SET_LOCK,
                         STRINGS.FAIL_CHANGE_LOCK)).set_icon(RES_TEMPLATE.format(consts.RES_SET_LOCK))
                     gui.add_menu_item(STRINGS.LABEL_SAVE, on_click=functools.partial(
-                        on_wallpaper, save_wallpaper, wallpaper, STRINGS.LABEL_SAVE,
+                        on_image_func, save_image, image, STRINGS.LABEL_SAVE,
                         STRINGS.FAIL_SAVE)).set_icon(RES_TEMPLATE.format(consts.RES_SAVE))
                     gui.add_menu_item(STRINGS.LABEL_SAVE_AS, on_click=functools.partial(
-                        on_wallpaper, save_wallpaper_select, wallpaper, STRINGS.LABEL_SAVE,
+                        on_image_func, on_save_image, image, STRINGS.LABEL_SAVE,
                         STRINGS.FAIL_SAVE)).set_icon(RES_TEMPLATE.format(consts.RES_SAVE_AS))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_OPEN, on_click=functools.partial(
-                        on_wallpaper, win32.open_file, wallpaper, STRINGS.LABEL_OPEN,
+                        on_image_func, win32.open_file, image, STRINGS.LABEL_OPEN,
                         STRINGS.FAIL_OPEN)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN))
                     if consts.FEATURE_OPEN_WITH:
                         gui.add_menu_item(STRINGS.LABEL_OPEN_WITH, on_click=functools.partial(
-                            on_wallpaper, win32.open_file_with_ex, wallpaper, STRINGS.LABEL_OPEN_WITH,
+                            on_image_func, win32.open_file_with_ex, image, STRINGS.LABEL_OPEN_WITH,
                             STRINGS.FAIL_OPEN_WITH)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_WITH))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=functools.partial(
-                        on_wallpaper, win32.open_file_path, wallpaper, STRINGS.LABEL_OPEN_EXPLORER,
+                        on_image_func, win32.open_file_path, image, STRINGS.LABEL_OPEN_EXPLORER,
                         STRINGS.FAIL_OPEN_EXPLORER)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=functools.partial(
-                        on_open_url, wallpaper.url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
+                        on_open_url, image.url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=functools.partial(
-                        on_wallpaper, win32.clipboard.copy_text, wallpaper, STRINGS.LABEL_COPY_PATH,
+                        on_image_func, win32.clipboard.copy_text, image, STRINGS.LABEL_COPY_PATH,
                         STRINGS.FAIL_COPY_PATH)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_PATH))
                     gui.add_menu_item(STRINGS.LABEL_COPY, on_click=functools.partial(
-                        on_wallpaper, win32.clipboard.copy_image, wallpaper, STRINGS.LABEL_COPY,
+                        on_image_func, win32.clipboard.copy_image, image, STRINGS.LABEL_COPY,
                         STRINGS.FAIL_COPY)).set_icon(RES_TEMPLATE.format(consts.RES_COPY))
                     gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=functools.partial(
-                        on_copy_url, wallpaper.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
+                        on_copy_url, image.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
                     if consts.FEATURE_SEARCH_GOOGLE:
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=functools.partial(
-                            on_wallpaper, search_wallpaper, wallpaper, STRINGS.LABEL_GOOGLE,
+                            on_image_func, search_image, image, STRINGS.LABEL_GOOGLE,
                             STRINGS.FAIL_SEARCH, )).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
                     with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_path(
-                            wallpaper.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
+                            image.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
-                                              on_click=functools.partial(on_search, wallpaper.url),
+                                              on_click=functools.partial(on_search, image.url),
                                               args=(gui.MenuItemProperty.UID,)).set_icon(
                                 RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
-            wallpaper_item = menu.insert_item(index, utils.shrink_string(
-                wallpaper.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
+            item_image = menu.insert_item(index, utils.shrink_string(
+                image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.RES_DIGIT_TEMPLATE.format(index + 1)), submenu=submenu)
-            wallpaper_item.set_tooltip(wallpaper.url, wallpaper.name, os.path.join(
-                TEMP_DIR, wallpaper.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
-            wallpaper_item.set_uid(wallpaper.url)
-    for uid, wallpaper_item in items.items():
+            item_image.set_tooltip(image.url, image.name, os.path.join(
+                TEMP_DIR, image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
+            item_image.set_uid(image.url)
+    for uid, item_image in items.items():
         if uid and uid not in RECENT:
-            menu.remove_item(wallpaper_item)
+            menu.remove_item(item_image)
     item.enable(bool(RECENT))
 
 
@@ -803,9 +800,9 @@ def start():
         log.init((r'[^\\]*\.py', utils.re_join('srcs', r'.*\.py')), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     _update_display()
-    load_config()
+    load_configs()
     sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
-    RECENT.extend(utils.decrypt(CURRENT_CONFIG[consts.CONFIG_RECENT_LIST], ()))
+    RECENT.extend(utils.decrypt(CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES], ()))
     gui.init(consts.NAME)
     create_menu()
     gui.enable_animation(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])

@@ -30,7 +30,7 @@ DESKTOP_DIR = _utils.get_dir(ctyped.const.FOLDERID_Desktop)
 PICTURES_DIR = _utils.get_dir(ctyped.const.FOLDERID_Pictures)
 START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
 
-_MESSAGES = {}
+_MESSAGES = None
 
 
 class ColorMode(metaclass=utils.IntEnumMeta):
@@ -261,14 +261,16 @@ def _get_str_devs_props(guid: Optional[str] = None, *devpkeys: int | tuple[str, 
 
 
 def get_message(message: int) -> str:
-    if not _MESSAGES:
+    global _MESSAGES
+    if _MESSAGES is None:
+        _MESSAGES = {}
         for name, val in vars(ctyped.const).items():
             if name.startswith('WM_'):
                 _MESSAGES[val] = name
     try:
         return _MESSAGES[message]
     except KeyError:
-        return f'WM_<{message}>'
+        return f'WM_{message}'
 
 
 def get_error(hresult: Optional[ctyped.type.HRESULT] = None) -> str:

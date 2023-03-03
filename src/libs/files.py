@@ -22,7 +22,7 @@ class File:
     __slots__ = 'url', 'name', 'size', '_sha256', '_md5'
     _algorithms = {f'_{algorithm}' for algorithm in hashlib.algorithms_available}.intersection(__slots__)
 
-    def __init__(self, url: str, name: str, size: Optional[int] = None,
+    def __init__(self, url: str, name: str, size: Optional[int] = None, *,
                  sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
         self.url = url
         self.name = name

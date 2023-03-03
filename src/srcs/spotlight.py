@@ -31,7 +31,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
         items: Optional[list] = None
         params['pid'] = '209567'
         params['fmt'] = 'json'
@@ -49,7 +49,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
             image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
             yield files.File(url, files.replace_ext(os.path.basename(request.strip(url)), 'jpg'),
-                             int(image['fileSize']), base64.b64decode(image['sha256']))
+                             int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
 
     @classmethod
     def create_menu(cls):

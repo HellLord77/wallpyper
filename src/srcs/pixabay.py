@@ -69,7 +69,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
         hits: Optional[list] = None
         params['page'] = '1'
         params['per_page'] = '200'

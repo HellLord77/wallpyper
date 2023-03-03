@@ -82,7 +82,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls._fix_config(CONFIG_COLORS, COLORS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
         meta: dict[str, Optional[int | str]] = {
             'current_page': 1,

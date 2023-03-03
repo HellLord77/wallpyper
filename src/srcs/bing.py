@@ -35,7 +35,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         cls._fix_config(CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
         images: Optional[list] = None
         params['format'] = 'js'
         params['n'] = '8'

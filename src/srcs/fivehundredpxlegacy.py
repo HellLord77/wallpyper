@@ -54,7 +54,7 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
         cls._fix_config(CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
         photos: Optional[list] = None
         params['rpp'] = '100'
         json = {

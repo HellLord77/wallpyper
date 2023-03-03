@@ -60,7 +60,7 @@ class FiveHundredPx(Source):
         cls._fix_config(CONFIG_SORT, SORTS)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
         images: Optional[list] = None
         image = None
         url = request.join(cls.URL, discover := params.pop(CONFIG_DISCOVER), params.pop(CONFIG_CATEGORIES))

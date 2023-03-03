@@ -97,7 +97,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         cls._fix_config(CONFIG_TIME, TIMES)
 
     @classmethod
-    def get_next_wallpaper(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
         children: Optional[list] = None
         sort = params.pop(CONFIG_SORT)
         url = request.join(URL_BASE, params.pop(CONFIG_SUBS), sort)
