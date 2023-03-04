@@ -26,7 +26,7 @@ class _ISOMeta(type):
         return os.path.join(os.path.dirname(__file__), f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json')
 
     def get(cls, *args, **kwargs):
-        iter(cls)
+        _ = iter(cls)
         # noinspection PyProtectedMember
         fields = cls._BASE_._fields
         kwargs.update(zip(fields, args))

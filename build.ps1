@@ -49,6 +49,8 @@ $CodeRunBeforeRemote = @(
 	"_download()"
 	"from src.libs.isocodes import _download"
 	"_download()"
+	"from src.libs.mimetype import _download"
+	"_download()"
 	"from src.libs.spinners import _download"
 	"_download()")
 $CodeRunAfter = @(
@@ -58,6 +60,7 @@ $CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(
 	"src/libs/colornames/colornames.min.json"
 	"src/libs/isocodes/iso_*.json"
+	"src/libs/mimetype/db.json"
 	"src/libs/spinners/spinners.json")
 
 $CodePythonBase = @(
