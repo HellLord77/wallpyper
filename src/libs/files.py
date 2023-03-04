@@ -64,11 +64,11 @@ def replace_ext(path: str, ext: str) -> str:
 def iter_dir(path: str, recursive: bool = False) -> Iterator[str]:
     try:
         # noinspection PyTypeChecker
-        itt: Iterable[os.DirEntry] = os.scandir(path)
+        it: Iterable[os.DirEntry] = os.scandir(path)
     except FileNotFoundError:
         pass
     else:
-        for dir_entry in itt:
+        for dir_entry in it:
             yield os.path.realpath(dir_entry.path)
             if recursive and dir_entry.is_dir():
                 yield from iter_dir(dir_entry.path, recursive)
@@ -142,15 +142,15 @@ def trim_dir(path: str, target: int, key: Callable[[str], Any] = os.path.getctim
         paths.sort(key=key, reverse=True)
     except FileNotFoundError:
         return False
-    itt = _filter_files(paths)
+    it = _filter_files(paths)
     size = 0
-    for path in itt:
+    for path in it:
         size += os.path.getsize(path)
         if size > target:
             os.remove(path)
             trimmed = True
             break
-    for path in itt:
+    for path in it:
         os.remove(path)
     return trimmed
 

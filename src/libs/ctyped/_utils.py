@@ -147,19 +147,19 @@ def _fmt_annot(annot: str) -> tuple[str]:
         return tuple(annot[annot[0] == '':])
 
 
-def _pretty_tuples(*itt: tuple[str, ...], name: str = '') -> str:
-    if lines := [[] for _ in range(len(itt))]:
-        for index in range(len(itt[0]) - 1):
+def _pretty_tuples(*it: tuple[str, ...], name: str = '') -> str:
+    if lines := [[] for _ in range(len(it))]:
+        for index in range(len(it[0]) - 1):
             sz = 0
-            for tup in itt:
+            for tup in it:
                 sz = max(sz, len(tup[index]))
-            for index_ in range(len(itt)):
-                lines[index_].append(itt[index_][index].center(sz))
+            for index_ in range(len(it)):
+                lines[index_].append(it[index_][index].center(sz))
         sz = 0
-        for tup in itt:
+        for tup in it:
             sz = max(sz, len(tup[-1]))
-        for index in range(len(itt)):
-            lines[index].append(itt[index][-1].center(sz))
+        for index in range(len(it)):
+            lines[index].append(it[index][-1].center(sz))
     return f'\n'.join(f'{name}({", ".join(line[:-1])}) -> {line[-1]}' for line in lines)
 
 

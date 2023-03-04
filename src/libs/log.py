@@ -118,7 +118,7 @@ def _get_class_name(locals_: Mapping[str, Any]) -> str:
 def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n') -> str:
     types_ = tuple(type(val).__name__ for val in dict_.values())
     sizes = tuple(str(sys.getsizeof(val)) for val in dict_.values())
-    pads = tuple(len(max(itt, key=len)) for itt in (dict_, types_, sizes))
+    pads = tuple(len(max(it, key=len)) for it in (dict_, types_, sizes))
     end = f'\n{" " * (len(_ANSI.sub("", prefix)) + sum(pads) + 6)}'
     formatted = ''
     for item, type_, size in zip(dict_.items(), types_, sizes):

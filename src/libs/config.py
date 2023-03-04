@@ -1,5 +1,6 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
+import array
 import ast
 import builtins
 import collections
@@ -7,16 +8,22 @@ import configparser
 import contextlib
 import dataclasses
 import datetime
+import decimal
 import enum
+import fractions
 import inspect
 import io
+import ipaddress
 import itertools
 import json
+import operator
 import os
+import pathlib
 import re
 import sys
 import types
 import typing
+import uuid
 from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, Optional, TextIO
 from xml.etree import ElementTree
 
@@ -56,32 +63,73 @@ def _load_type(name: str) -> type:
         type_ = getattr(type_, part)
     if isinstance(type_, type):
         return type_
-    return type
+    raise TypeError(f"Object '{type_!r}' is not a type")
 
 
 def _issubclass_namedtuple(type_: type) -> bool:
     bases = type_.__bases__
     fields = getattr(type_, '_fields', None)
-    return len(bases) == 1 and bases[0] is tuple and isinstance(
-        fields, tuple) and all(type(name) is str for name in fields)
+    return len(bases) == 1 and bases[0] is tuple and type(
+        fields) is tuple and all(type__ is str for type__ in map(type, fields))
 
 
-def _key_dumper(data) -> Any:
+def _dumper(data) -> Any:
     if dataclasses.is_dataclass(data):
         return [f'__{_dump_type(data)}__', vars(data)]
     return data
 
 
-def _key_loader(data) -> Any:
+def _loader(data) -> Any:
     if _is_type(data):
-        type_ = _load_type(data[0][2:-2])
+        dunder = data[0]
+        type_ = _load_type(dunder[2:-2])
         if _issubclass_namedtuple(type_):
             # noinspection PyProtectedMember
-            return type_(*(JSONConfig._load(val) for val in data[1]))
+            return type_(*map(JSONConfig._load, data[1]))
         elif dataclasses.is_dataclass(type_):
             # noinspection PyProtectedMember
-            return type_(**{key: JSONConfig._load(val) for key, val in data[1].items()})
+            return type_(**dict(map(JSONConfig._load_mapping, data[1].items())))
     return data
+
+
+def _dumper_int(data) -> list[int]:
+    return [int(data)]
+
+
+def _dumper_str(data) -> list[str]:
+    return [str(data)]
+
+
+def _dumper_state(data) -> list:
+    # noinspection PyProtectedMember
+    return JSONConfig._dump(data.__getstate__())
+
+
+def _loader_arg(cls: type[_T], data: dict | list) -> _T:
+    return cls(data)
+
+
+def _loader_args(cls: type[_T], data: dict | list) -> _T:
+    return cls(*data)
+
+
+def _loader_kwargs(cls: type[_T], data: dict | list) -> _T:
+    return cls(**data)
+
+
+def _loader_state(cls: type[_T], data: dict | list) -> _T:
+    self = cls.__new__(cls)
+    # noinspection PyProtectedMember
+    self.__setstate__(JSONConfig._load(data))
+    return self
+
+
+def _dumper_datetime(data) -> list[str]:
+    return [data.isoformat()]
+
+
+def _loader_datetime(type_: type[_T], data) -> _T:
+    return type_.fromisoformat(data[0])
 
 
 def _configparser() -> configparser.ConfigParser:
@@ -91,9 +139,6 @@ def _configparser() -> configparser.ConfigParser:
 
 
 class _Config(dict[str, Any]):
-    def __str__(self):
-        return f'{type(self).__name__}{super().__repr__()}'
-
     def dump(self, path_or_file: _TPath | _TIO):
         with _open(path_or_file, True) as file:
             # noinspection PyTypeChecker
@@ -115,90 +160,126 @@ class _Config(dict[str, Any]):
 
 
 class JSONConfig(_Config):
-    KEY_DUMPERS: list[Callable[[Any], Any]] = [_key_dumper]
-    KEY_LOADERS: list[Callable[[Any], Any]] = [_key_loader]
-    DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
+    DUMPERS: list[Callable[[Any], Any]] = [_dumper]
+    LOADERS: list[Callable[[Any], Any]] = [_loader]
+    TYPE_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
         complex: lambda data: [data.real, data.imag],
+        ElementTree.QName: lambda data: [data.text],
+        array.array: lambda data: [data.typecode, *data],
         collections.deque: lambda data: [data.maxlen, *data],
-        datetime.datetime: lambda data: [data.isoformat()],
-        datetime.timedelta: lambda data: [data.total_seconds()]}
-    DUMPERS[datetime.date] = DUMPERS[datetime.time] = DUMPERS[datetime.datetime]
-    LOADERS: dict[type[_T], Callable[[Any], _T]] = {
-        complex: lambda data: complex(*data),
-        collections.Counter: lambda data: collections.Counter(dict(data)),
-        collections.deque: lambda data: collections.deque(
-            itertools.islice(data, 1, None), data[0]),
-        datetime.date: lambda data: datetime.date.fromisoformat(data[0]),
-        datetime.time: lambda data: datetime.time.fromisoformat(data[0]),
-        datetime.datetime: lambda data: datetime.datetime.fromisoformat(data[0]),
-        datetime.timedelta: lambda data: datetime.timedelta(seconds=data[0])}
-    MULTI_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
-        enum.Enum: lambda data: [data.name]}
-    MULTI_LOADERS: dict[type[_T], Callable[[Any, type[_T]], _T]] = {
-        enum.Enum: lambda data, type_: type_[data[0]]}
+        datetime.date: _dumper_datetime,
+        datetime.time: _dumper_datetime,
+        datetime.datetime: _dumper_datetime,
+        datetime.timedelta: lambda data: [
+            data.days, data.seconds, data.microseconds],
+        decimal.Decimal: _dumper_str,
+        fractions.Fraction: lambda data: [data.numerator, data.denominator],
+        ipaddress.IPv4Address: _dumper_int,
+        ipaddress.IPv4Interface: _dumper_str,
+        ipaddress.IPv4Network: _dumper_str,
+        ipaddress.IPv6Address: _dumper_int,
+        ipaddress.IPv6Interface: _dumper_str,
+        ipaddress.IPv6Network: _dumper_str,
+        uuid.UUID: _dumper_state}
+    TYPE_LOADERS: dict[type[_T], Callable[[type[_T], dict | list], _T]] = {
+        complex: _loader_args,
+        ElementTree.QName: _loader_args,
+        array.array: lambda _, data: array.array(next(it := iter(data)), it),
+        collections.Counter: _loader_arg,
+        collections.deque: lambda _, data: collections.deque(
+            it := iter(data), next(it)),
+        datetime.date: _loader_datetime,
+        datetime.time: _loader_datetime,
+        datetime.datetime: _loader_datetime,
+        datetime.timedelta: _loader_args,
+        decimal.Decimal: _loader_args,
+        fractions.Fraction: _loader_args,
+        ipaddress.IPv4Address: _loader_args,
+        ipaddress.IPv4Network: _loader_args,
+        ipaddress.IPv4Interface: _loader_args,
+        ipaddress.IPv6Address: _loader_args,
+        ipaddress.IPv6Interface: _loader_args,
+        ipaddress.IPv6Network: _loader_args,
+        uuid.UUID: _loader_state}
+    TYPES_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
+        collections.UserString: lambda data: [data.data],
+        enum.Enum: lambda data: [data.value],
+        pathlib.PurePath: lambda data: list(data.parts)}
+    TYPES_LOADERS: dict[type[_T], Callable[[type[_T], dict | list], _T]] = {
+        collections.UserString: _loader_args,
+        enum.Enum: _loader_args,
+        pathlib.PurePath: _loader_args}
 
     @classmethod
     def _dump(cls, root) -> Any:
-        for dumper_ in reversed(cls.KEY_DUMPERS):
+        for dumper_ in reversed(cls.DUMPERS):
             root_ = dumper_(root)
             if root_ is not root:
                 return cls._dump(root_)
         type_ = type(root)
         dumper = None
         try:
-            dumper = cls.DUMPERS[type_]
+            dumper = cls.TYPE_DUMPERS[type_]
         except KeyError:
             for base in type_.__mro__:
                 try:
-                    dumper = cls.MULTI_DUMPERS[base]
+                    dumper = cls.TYPES_DUMPERS[base]
                 except KeyError:
                     pass
                 else:
                     break
-        if dumper is None:
-            if issubclass(type_, (bool | float | int | str, types.NoneType)):
-                return root
-            elif issubclass(type_, Iterable):
-                child = {key: cls._dump(val) for key, val in root.items()} if issubclass(
-                    type_, Mapping) else [cls._dump(val) for val in root]
-                return child if type_ in (dict, list) else (f'__{_dump_type(root)}__', child)
-            else:
-                raise TypeError(f'Node {root} is not JSON serializable')
-        else:
+        if dumper is not None:
             return f'__{_dump_type(root)}__', cls._dump(dumper(root))
+        elif issubclass(type_, (bool, float, int, str, types.NoneType)):
+            return root
+        elif issubclass(type_, Iterable):
+            child = dict(map(cls._dump_mapping, root.items())) if issubclass(
+                type_, Mapping) else list(map(cls._dump, root))
+            return child if type_ in (dict, list) else (f'__{_dump_type(root)}__', child)
+        else:
+            raise TypeError(f"Node '{root!r}' is not JSON serializable")
 
     @classmethod
     def _load(cls, root) -> Any:
-        for loader_ in reversed(cls.KEY_LOADERS):
+        for loader_ in reversed(cls.LOADERS):
             root_ = loader_(root)
             if root_ is not root:
                 return cls._load(root_)
         if _is_type(root):
             type_ = _load_type(root[0][2:-2])
+            loader = None
             try:
-                loader = cls.LOADERS[type_]
+                loader = cls.TYPE_LOADERS[type_]
             except KeyError:
                 for base in type_.__mro__:
                     try:
-                        loader = cls.MULTI_LOADERS[base]
+                        loader = cls.TYPES_LOADERS[base]
                     except KeyError:
                         pass
                     else:
-                        return loader(cls._load(root[1]), type_)
-                if issubclass(type_, Mapping):
-                    return type_((key, cls._load(val)) for key, val in root[1].items())
-                elif issubclass(type_, Iterable):
-                    return type_(cls._load(val) for val in root[1])
-                else:
-                    raise TypeError(f'Node {root} is not JSON deserializable')
+                        break
+            if loader is not None:
+                return loader(type_, cls._load(root[1]))
+            elif issubclass(type_, Mapping):
+                return type_(map(cls._load_mapping, root[1].items()))
+            elif issubclass(type_, Iterable):
+                return type_(map(cls._load, root[1]))
             else:
-                return loader(cls._load(root[1]))
+                raise TypeError(f"Node '{root!r}' is not JSON deserializable")
         elif isinstance(root, dict):
-            return {key: cls._load(val) for key, val in root.items()}
+            return dict(map(cls._load_mapping, root.items()))
         elif isinstance(root, list):
-            return [cls._load(val) for val in root]
+            return list(map(cls._load, root))
         else:
             return root
+
+    @classmethod
+    def _dump_mapping(cls, item: tuple) -> tuple:
+        return item[0], cls._dump(item[1])
+
+    @classmethod
+    def _load_mapping(cls, item: tuple) -> tuple:
+        return item[0], cls._load(item[1])
 
     def dump(self, path_or_file: _TPath | TextIO, indent: Optional[int | str] = None):
         with _open(path_or_file, True) as file:
@@ -226,7 +307,7 @@ class XMLConfig(_Config):
                     obj, Mapping) else zip(itertools.repeat(cls.TAG_ITEM), obj):
                 cls._dump(val, ElementTree.SubElement(root, key))
         else:
-            raise TypeError(f'Object of type {type(obj).__name__} is not XML serializable')
+            raise TypeError(f"Object of type '{type(obj).__name__}' is not XML serializable")
         return root
 
     @classmethod
@@ -236,11 +317,15 @@ class XMLConfig(_Config):
         else:
             type_ = _load_type(type_)
             if issubclass(type_, Mapping):
-                return type_((child.tag, cls._load(child)) for child in root)
+                return type_(map(cls._load_mapping, root))
             elif issubclass(type_, Iterable):
-                return type_(cls._load(val) for val in root)
+                return type_(map(cls._load, root))
             else:
-                raise TypeError(f'Node {root} is not XML deserializable')
+                raise TypeError(f"Node '{root!r}' is not XML deserializable")
+
+    @classmethod
+    def _load_mapping(cls, item: ElementTree.Element) -> tuple:
+        return item.tag, cls._load(item)
 
     def dump(self, path_or_file: _TPath | _TIO,
              indent: Optional[int | str] = None, encoding: Optional[str] = None):
@@ -286,7 +371,7 @@ class FLATConfig(_Config):
                     root[parent] = dumped
             return root
         else:
-            raise TypeError(f'Object of type {type(obj).__name__} is not REG serializable')
+            raise TypeError(f"Object of type '{type(obj).__name__}' is not REG serializable")
 
     @classmethod
     def _load(cls, root: collections.deque[tuple[str, str]],
@@ -303,12 +388,14 @@ class FLATConfig(_Config):
                     if issubclass(type_, Mapping):
                         yield flat, type_(cls._load(root, key))
                     elif issubclass(type_, Iterable):
-                        yield flat, type_(val for _, val in cls._load(root, key))
+                        yield flat, type_(map(cls._load_iterable, cls._load(root, key)))
                     else:
-                        raise TypeError(f'Node {root} is not REG deserializable')
+                        raise TypeError(f"Node '{root!r}' is not REG deserializable")
             else:
                 root.appendleft((key, val))
                 break
+
+    _load_iterable = operator.itemgetter(1)
 
     def dump(self, path_or_file: _TPath | TextIO):
         flat = _configparser()
@@ -350,11 +437,13 @@ class REGConfig(_Config):
                 if issubclass(type_, Mapping):
                     yield key[:-1], type_(cls._load(reg, root, parent))
                 elif issubclass(type_, Iterable):
-                    yield key[:-1], type_(val for _, val in cls._load(reg, root, parent))
+                    yield key[:-1], type_(map(cls._load_iterable, cls._load(reg, root, parent)))
                 else:
-                    raise TypeError(f'Node {root} is not REG deserializable')
+                    raise TypeError(f"Node '{root!r}' is not REG deserializable")
             else:
                 yield key, None if val is None else ast.literal_eval(val)
+
+    _load_iterable = operator.itemgetter(1)
 
     def dump(self, path_or_file: _TPath | TextIO):
         reg = _configparser()

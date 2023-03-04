@@ -327,19 +327,19 @@ def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.B
     return f'{bars[-1] * filled}{bars[index] * bool(index)}{bars[0] * (width - filled - bool(index))}'
 
 
-def len_ex(itt: Iterable) -> int:
-    return sum(1 for _ in itt)
+def len_ex(it: Iterable) -> int:
+    return sum(1 for _ in it)
 
 
-def index_ex(itt: Iterable, value) -> int:
-    for index, ele in enumerate(itt):
+def index_ex(it: Iterable, value) -> int:
+    for index, ele in enumerate(it):
         if value == ele:
             return index
     return -1
 
 
-def any_ex(itt: Iterable, func: Callable) -> bool:
-    for ele in itt:
+def any_ex(it: Iterable, func: Callable) -> bool:
+    for ele in it:
         res = func(ele)
         if res:
             return True
@@ -350,9 +350,9 @@ def chain_ex(*funcs: Callable) -> Iterator:
     yield from (func() for func in funcs)
 
 
-def cycle_ex(itt: Iterable, func: Optional[Callable] = None) -> Iterator:
+def cycle_ex(it: Iterable, func: Optional[Callable] = None) -> Iterator:
     while True:
-        for ele in itt:
+        for ele in it:
             yield ele
         if func is not None:
             func()
@@ -376,19 +376,19 @@ def eq_ex(a, b) -> bool:
         return a == b
 
 
-def consume(itt: Iterable, count: int = -1) -> int:
+def consume(it: Iterable, count: int = -1) -> int:
     count_ = itertools.count()
     if count:
         count -= 1
-        for _, index in zip(itt, count_):
+        for _, index in zip(it, count_):
             if count == index:
                 break
     return next(count_)
 
 
-def consume_ex(itt: Iterable, item) -> Optional[int]:
+def consume_ex(it: Iterable, item) -> Optional[int]:
     count = itertools.count()
-    for index, item_ in zip(count, itt):
+    for index, item_ in zip(count, it):
         if item == item_:
             return index
 
@@ -446,8 +446,21 @@ def is_namedtuple(obj) -> bool:
         obj = type(obj)
     bases = obj.__bases__
     fields = getattr(obj, '_fields', None)
-    return len(bases) == 1 and bases[0] is tuple and isinstance(
-        fields, tuple) and all(type(name) is str for name in fields)
+    return len(bases) == 1 and bases[0] is tuple and type(
+        fields) is tuple and all(type_ is str for type_ in map(type, fields))
+
+
+def is_typeddict(obj) -> bool:
+    if not isinstance(obj, type):
+        obj = type(obj)
+    bases = obj.__bases__
+    required_keys = getattr(obj, '__required_keys__', None)
+    optional_keys = getattr(obj, '__optional_keys__', None)
+    return len(bases) == 1 and bases[0] is dict and type(getattr(
+        obj, '__required_keys__', None)) is frozenset and all(
+        type_ is str for type_ in map(type, required_keys)) and type(
+        getattr(obj, '__optional_keys__', None)) is frozenset and all(
+        type_ is str for type_ in map(type, optional_keys))
 
 
 def pretty_vars(obj) -> str:
@@ -456,7 +469,7 @@ def pretty_vars(obj) -> str:
     for val in dict_.values():
         attrs[0].append(type(val).__name__)
         attrs[1].append(str(sys.getsizeof(val)))
-    pads = tuple(len(max(itt, key=len)) for itt in (dict_,) + attrs)
+    pads = tuple(len(max(it, key=len)) for it in (dict_,) + attrs)
     end = f'\n{" " * (sum(pads) + 6)}'
     fmt = ''
     for item, type_, size in zip(dict_.items(), *attrs):

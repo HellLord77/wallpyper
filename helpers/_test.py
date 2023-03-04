@@ -1,14 +1,21 @@
 from __future__ import annotations as _
 
+import array
 import collections.abc
 import dataclasses
 import datetime
+import decimal
 import enum
+import fractions
+import ipaddress
+import pathlib
 import sys
 import time
 import types
 import typing
-from typing import Any, AnyStr, Callable, TypeVar, Optional, Literal, Tuple, Mapping, ItemsView
+import uuid
+from typing import Any, AnyStr, Callable, TypeVar, Optional, Literal, Tuple
+from xml.etree import ElementTree
 
 import win32
 from libs import ctyped, config
@@ -335,9 +342,31 @@ def _test_browser_ex():
             time.sleep(5)
 
 
+def _issubclass_namedtuple(cls: type) -> bool:
+    bases = getattr(cls, '__bases__', ())
+    fields = getattr(cls, '_fields', None)
+    return len(bases) == 1 and bases[0] is tuple and type(
+        fields) is tuple and all(type_ is str for type_ in map(type, fields))
+
+
+def _issubclass_typeddict(cls: type) -> bool:
+    bases = getattr(cls, '__bases__', ())
+    required_keys = getattr(cls, '__required_keys__', None)
+    optional_keys = getattr(cls, '__optional_keys__', None)
+    return len(bases) == 1 and bases[0] is dict and type(getattr(
+        cls, '__required_keys__', None)) is frozenset and all(
+        type_ is str for type_ in map(type, required_keys)) and type(
+        getattr(cls, '__optional_keys__', None)) is frozenset and all(
+        type_ is str for type_ in map(type, optional_keys))
+
+
 def _isinstance(obj, cls: type) -> bool:
     if cls is Any:
         return True
+    elif _issubclass_namedtuple(cls):
+        raise NotImplementedError
+    elif _issubclass_typeddict(cls):
+        raise NotImplementedError
     elif isinstance(cls, types.UnionType):
         return any(_isinstance(obj, arg) for arg in typing.get_args(cls))
     else:
@@ -368,18 +397,29 @@ def _isinstance(obj, cls: type) -> bool:
     raise NotImplementedError(cls)
 
 
+class TD(typing.TypedDict):
+    a: int
+    b: str
+
+
 def _test_inst():
-    tp = list[tuple[int] | list[str]]
-    print(_isinstance([(1,), (2,), ['3']], tp))
-    tp2 = Mapping[str, int]
-    print(_isinstance([1, 2, 3], tp2))
-    tp3 = dict[str, int]
-    print(_isinstance({'d': 6}, tp3))
-    tp4 = Tuple[int, str]
-    print(_isinstance((2, '2'), tp4))
-    d: dict[int, str] = {1: '1'}
-    i = d.items()
-    print(_isinstance(i, ItemsView[int, str]))
+    # tp = list[tuple[int] | list[str]]
+    # print(_isinstance([(1,), (2,), ['3']], tp))
+    # tp2 = Mapping[str, int]
+    # print(_isinstance({'d': 2}, tp2))
+    # tp3 = dict[str, int]
+    # print(_isinstance({'d': 6}, tp3))
+    # tp4 = Tuple[int, str]
+    # print(_isinstance((2, '2'), tp4))
+    # d: dict[int, str] = {1: '1'}
+    # i = d.items()
+    # print(_isinstance(i, ItemsView[int, str]))
+    # tp5 = Union[str, types.NoneType]
+    # print(_isinstance(None, tp5))
+    # tp6 = Optional[str]
+    # print(_isinstance(None, tp6))
+    td = TD(a=1, b='2')
+    print(_isinstance(td, TD))
 
 
 NT = collections.namedtuple('NT', ['a', 'b', 'c'])
@@ -403,6 +443,18 @@ class DC:
     prop5: Optional[DC] = None
 
     not_data = 69
+
+
+class US(collections.UserString):
+    pass
+
+
+class UL(collections.UserList):
+    pass
+
+
+class UD(collections.UserDict):
+    pass
 
 
 def _test_cfg():
@@ -470,32 +522,63 @@ def _test_cfg():
 
 def _test_cfg_json():
     data = {
-        'date': datetime.date.today(),
-        'time': datetime.time(1, 2, 3, 4),
-        'datetime': datetime.datetime.now(),
-        'timedelta': datetime.timedelta(1, 2, 3, 4),
-        'enum': E.A,
-        'ntamedtuple': NT(1, 2, 3),
-        'typed_namedtuple': TNT(1, 2, 3),
-        'dataclass': DC(69, DC(420)),
-        'tough': collections.deque([1, (1, 2), '3'], maxlen=3),
-        'counter': collections.Counter({'red': 4, 'blue': 2}),
-        'name': 'A Test \'of\' the "TOML" Parser',
-        'e_text': '',
-        'od': collections.OrderedDict([('b', 420), ('a', 69)]),
-        'num': 123,
-        'map': {},
-        'boolean': True,
-        'null': None,
-        't_list': [],
-        'e_tup': (),
-        't_tuple': (1, 2, '3'),
-        'set': {1, '2', 3},
-        'barr': bytearray(b'123'),
-        'fzst': frozenset({'1', 2, 3}),
-        'list2': [1, 2, '3'],
+        'ElementTree': {
+            'QName': ElementTree.QName('ns', 'name')},
+        'array': {
+            'array': array.array('i', [1, 2, 3])},
+        'collections': {
+            'Counter': collections.Counter({'red': 4, 'blue': 2}),
+            'OrderedDict': collections.OrderedDict([('b', 420), ('a', 69)]),
+            'UserDict': UD({'a': 1, 'b': 2}),
+            'UserList': UL([1, 2, 3]),
+            'UserString': US('usd'),
+            'deque': collections.deque([1, (1, 2), '3'], maxlen=3),
+            'namedtuple': NT(1, 2, 3)},
+        'dataclasses': {
+            'dataclass': DC(69, DC(420))},
+        'datetime': {
+            'date': datetime.date.today(),
+            'time': datetime.time(1, 2, 3, 4),
+            'datetime': datetime.datetime.now(),
+            'timedelta': datetime.timedelta(1, 2, 3, 4)},
+        'decimal': {
+            'Decimal': decimal.Decimal('123.456')},
+        'enum': {
+            'enum': E.A},
+        'fractions': {
+            'Fraction': fractions.Fraction(1, 2)},
+        'ipaddress': {
+            'IPv4Address': ipaddress.IPv4Address('192.168.0.1'),
+            'IPv4Interface': ipaddress.IPv4Interface('192.0.2.5/24'),
+            'IPv4Network': ipaddress.IPv4Network('192.0.2.0/28'),
+            'IPv6Address': ipaddress.IPv6Address('2001:db8::1'),
+            'IPv6Interface': ipaddress.IPv6Interface('2001:db8::1/64'),
+            'IPv6Network': ipaddress.IPv6Network('2001:db8::/32')},
+        'pathlib': {
+            'PurePath': pathlib.PurePath('c:/temp/test.txt')},
+        'typing': {
+            'NamedTuple': TNT(1, 2, 3)},
+        'uuid': {
+            'UUID': uuid.uuid4()},
+        'NoneType': None,
         'bytes': b'\x01\x02\x03\x04',
+        'bytes_': b'',
+        'str': 'A Test \'of\' the "JSONConfig"',
+        'str_': '',
+        'int': 123,
+        'float': 123.456,
+        'bool': True,
         'complex': 1 + 2j,
+        'bytearray': bytearray(b'123'),
+        'frozenset': frozenset({'1', 2, 3}),
+        'tuple': (1, 2, '3'),
+        'tuple_': (),
+        'list': [1, 2, '3'],
+        'list_': [],
+        'set': {1, '2', 3},
+        'set_': set(),
+        'dict': {'a': 1, 'b': 2},
+        'dict_': {},
         'nest': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
                  {'objs': [{'x': 1},
                            {'x': {
@@ -508,10 +591,12 @@ def _test_cfg_json():
     print(dumped)
     config__ = config.JSONConfig()
     config__.loads(dumped)
+    print(config__)
     print(config_ == config__)
 
 
 if __name__ == '__main__':
-    # _test()
+    # _test_cfg()
     _test_cfg_json()
+    # _test_inst()
     sys.exit()
