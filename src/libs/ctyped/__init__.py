@@ -5,8 +5,8 @@ __version__ = '0.4.1'
 import builtins as _builtins
 import contextlib as _contextlib
 import ctypes as _ctypes
-import types as _types
 import typing as _typing
+from types import ModuleType as _ModuleType
 from typing import (ContextManager as _ContextManager, Final as _Final,
                     MutableSequence as _MutableSequence, Optional as _Optional)
 
@@ -71,7 +71,7 @@ def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
     return (array._type_ * size).from_address(addressof(array))
 
 
-def get_interface_name(iid: str, base: _builtins.type | _types.ModuleType = const) -> _Optional[str]:
+def get_interface_name(iid: str, base: _builtins.type | _ModuleType = const) -> _Optional[str]:
     for var, val in vars(base).items():
         if isinstance(val, _builtins.type):
             if (name := get_interface_name(iid, val)) is not None:

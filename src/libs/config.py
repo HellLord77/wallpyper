@@ -21,9 +21,9 @@ import os
 import pathlib
 import re
 import sys
-import types
 import typing
 import uuid
+from types import NoneType
 from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, Optional, TextIO
 from xml.etree import ElementTree
 
@@ -230,7 +230,7 @@ class JSONConfig(_Config):
                     break
         if dumper is not None:
             return f'__{_dump_type(root)}__', cls._dump(dumper(root))
-        elif issubclass(type_, (bool, float, int, str, types.NoneType)):
+        elif issubclass(type_, (bool, float, int, str, NoneType)):
             return root
         elif issubclass(type_, Iterable):
             child = dict(map(cls._dump_mapping, root.items())) if issubclass(
@@ -417,7 +417,7 @@ class REGConfig(_Config):
     @classmethod
     def _dump(cls, obj: Iterable, root: dict[str, str | dict], __parent: str) -> dict:
         for key, val in obj.items() if isinstance(obj, Mapping) else enumerate(obj):
-            if isinstance(val, (bool, bytes, complex, float, int, str, types.NoneType)):
+            if isinstance(val, (bool, bytes, complex, float, int, str, NoneType)):
                 root[__parent][key] = repr(val)
             elif isinstance(val, Iterable):
                 child = key if __parent == _CONFIG else f'{__parent}{cls.SEPARATOR}{key}'

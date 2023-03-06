@@ -3,7 +3,7 @@ from __future__ import annotations as _
 import ctypes as _ctypes
 import functools as _functools
 import sys as _sys
-import types as _types
+from types import ModuleType as _ModuleType
 
 from . import kernel32 as _kernel32
 from .. import const as _const
@@ -11,7 +11,7 @@ from .. import type as _type
 from .._utils import _fmt_annot, _func_doc, _resolve_type
 
 
-class _CLib(_types.ModuleType):
+class _CLib(_ModuleType):
     _loader = _ctypes.CDLL
 
     def __init__(self, name: str):

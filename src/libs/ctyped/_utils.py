@@ -5,8 +5,8 @@ import importlib as _importlib
 import os as _os
 import pkgutil as _pkgutil
 import sys as _sys
-import types as _types
 import typing as _typing
+from types import ModuleType as _ModuleType
 from typing import Any as _Any, Generic as _Generic, Iterator as _Iterator, Optional as _Optional, Sequence as _Sequence
 
 import _ctypes as __ctypes
@@ -24,7 +24,7 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
     value: _CT
 
 
-class _Module(_types.ModuleType):
+class _Module(_ModuleType):
     _module = None
 
     def __getattr__(self, name: str):

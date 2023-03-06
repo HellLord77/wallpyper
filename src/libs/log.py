@@ -13,7 +13,7 @@ import re
 import shutil
 import sys
 import threading
-import types
+from types import FrameType
 from typing import Any, Callable, Iterable, Mapping, Optional
 
 _CALL = 'call'
@@ -128,7 +128,7 @@ def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n')
     return formatted
 
 
-def _on_trace(frame: types.FrameType, event: str, arg) -> Optional[Callable]:
+def _on_trace(frame: FrameType, event: str, arg) -> Optional[Callable]:
     if frame.f_code is logging.shutdown.__code__:
         _on_trace.__code__ = (lambda *args, **kwargs: None).__code__
     else:

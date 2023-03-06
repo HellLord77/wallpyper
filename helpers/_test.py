@@ -11,10 +11,10 @@ import ipaddress
 import pathlib
 import sys
 import time
-import types
 import typing
 import uuid
-from typing import Any, AnyStr, Callable, TypeVar, Optional, Literal, Tuple
+from types import UnionType, ModuleType, EllipsisType, NoneType
+from typing import Any, AnyStr, Callable, TypeVar, Optional, Tuple, ItemsView, Mapping, Literal
 from xml.etree import ElementTree
 
 import win32
@@ -140,7 +140,7 @@ class RemoteProcess(ctyped.type.HANDLE):
                 data, str) else ctyped.sizeof(ctyped.type.c_char)) * len(data)
         return bool(kernel32.WriteProcessMemory(self, addr, data, size, None))
 
-    def load_lib(self, lib: types.ModuleType) -> bool:
+    def load_lib(self, lib: ModuleType) -> bool:
         getattr(lib, '_', None)
         lib = getattr(lib, '_module', lib)
         lib_path = ctyped.lib.get_path(lib).encode() + b'\0'
@@ -342,86 +342,6 @@ def _test_browser_ex():
             time.sleep(5)
 
 
-def _issubclass_namedtuple(cls: type) -> bool:
-    bases = getattr(cls, '__bases__', ())
-    fields = getattr(cls, '_fields', None)
-    return len(bases) == 1 and bases[0] is tuple and type(
-        fields) is tuple and all(type_ is str for type_ in map(type, fields))
-
-
-def _issubclass_typeddict(cls: type) -> bool:
-    bases = getattr(cls, '__bases__', ())
-    required_keys = getattr(cls, '__required_keys__', None)
-    optional_keys = getattr(cls, '__optional_keys__', None)
-    return len(bases) == 1 and bases[0] is dict and type(getattr(
-        cls, '__required_keys__', None)) is frozenset and all(
-        type_ is str for type_ in map(type, required_keys)) and type(
-        getattr(cls, '__optional_keys__', None)) is frozenset and all(
-        type_ is str for type_ in map(type, optional_keys))
-
-
-def _isinstance(obj, cls: type) -> bool:
-    if cls is Any:
-        return True
-    elif _issubclass_namedtuple(cls):
-        raise NotImplementedError
-    elif _issubclass_typeddict(cls):
-        raise NotImplementedError
-    elif isinstance(cls, types.UnionType):
-        return any(_isinstance(obj, arg) for arg in typing.get_args(cls))
-    else:
-        try:
-            return isinstance(obj, cls)
-        except TypeError:
-            base = typing.get_origin(cls)
-            if base is Literal:
-                return obj in typing.get_args(cls)
-            elif _isinstance(obj, base):
-                args = typing.get_args(cls)
-                if base in (tuple, Tuple):
-                    if args[-1] is not Ellipsis:
-                        return len(obj) == len(args) and all(
-                            _isinstance(ele, arg) for ele, arg in zip(obj, args))
-                    else:
-                        return all(_isinstance(ele, arg) for ele, arg in zip(obj, args[:-1]))
-                elif len(args) == 1:
-                    return all(_isinstance(ele, args[0]) for ele in obj)
-                elif len(args) == 2:
-                    if base is collections.abc.ItemsView:
-                        return all(_isinstance(ele, tuple[args]) for ele in obj)
-                    else:
-                        return all(_isinstance(key, args[0]) for key in obj.keys()) and all(
-                            _isinstance(value, args[1]) for value in obj.values())
-            else:
-                return False
-    raise NotImplementedError(cls)
-
-
-class TD(typing.TypedDict):
-    a: int
-    b: str
-
-
-def _test_inst():
-    # tp = list[tuple[int] | list[str]]
-    # print(_isinstance([(1,), (2,), ['3']], tp))
-    # tp2 = Mapping[str, int]
-    # print(_isinstance({'d': 2}, tp2))
-    # tp3 = dict[str, int]
-    # print(_isinstance({'d': 6}, tp3))
-    # tp4 = Tuple[int, str]
-    # print(_isinstance((2, '2'), tp4))
-    # d: dict[int, str] = {1: '1'}
-    # i = d.items()
-    # print(_isinstance(i, ItemsView[int, str]))
-    # tp5 = Union[str, types.NoneType]
-    # print(_isinstance(None, tp5))
-    # tp6 = Optional[str]
-    # print(_isinstance(None, tp6))
-    td = TD(a=1, b='2')
-    print(_isinstance(td, TD))
-
-
 NT = collections.namedtuple('NT', ['a', 'b', 'c'])
 
 
@@ -595,8 +515,153 @@ def _test_cfg_json():
     print(config_ == config__)
 
 
+LiteralType = type(Literal[None])
+
+
+def _issubclass_tuple(cls: type) -> bool:
+    return typing.get_origin(cls) in (tuple, Tuple)
+
+
+def _issubclass_namedtuple(cls: type) -> bool:
+    bases = getattr(cls, '__bases__', ())
+    fields = getattr(cls, '_fields', None)
+    return len(bases) == 1 and bases[0] is tuple and type(
+        fields) is tuple and all(type_ is str for type_ in map(type, fields))
+
+
+def _issubclass_typeddict(cls: type) -> bool:
+    bases = getattr(cls, '__bases__', ())
+    required_keys = getattr(cls, '__required_keys__', None)
+    optional_keys = getattr(cls, '__optional_keys__', None)
+    return len(bases) == 1 and bases[0] is dict and type(getattr(
+        cls, '__required_keys__', None)) is frozenset and all(
+        type_ is str for type_ in map(type, required_keys)) and type(
+        getattr(cls, '__optional_keys__', None)) is frozenset and all(
+        type_ is str for type_ in map(type, optional_keys))
+
+
+def _isinstance_tuple(obj, cls: type) -> bool:
+    if isinstance(obj, tuple):
+        args = typing.get_args(cls)
+        return all(_isinstance(ele, args[0]) for ele in obj) if len(
+            args) == 2 and args[1] is ... else len(obj) == len(
+            args) and all(_isinstance(ele, arg) for ele, arg in zip(obj, args))
+    else:
+        return False
+
+
+def _isinstance_literal(obj, cls: LiteralType) -> bool:
+    return obj in typing.get_args(cls)
+
+
+def _isinstance_union(obj, cls: UnionType) -> bool:
+    return any(_isinstance(obj, arg) for arg in typing.get_args(cls))
+
+
+def _isinstance_namedtuple(obj, cls: type) -> bool:
+    if _issubclass_namedtuple(type(obj)):
+        annotations = typing.get_type_hints(cls)
+        # noinspection PyUnresolvedReferences
+        for field in cls._fields:
+            try:
+                val = getattr(obj, field)
+            except AttributeError:
+                return False
+            else:
+                if not _isinstance(val, annotations[field]):
+                    return False
+        return True
+    else:
+        return False
+
+
+def _isinstance_typeddict(obj, cls: type) -> bool:
+    if isinstance(obj, dict):
+        annotations = typing.get_type_hints(cls)
+        # noinspection PyUnresolvedReferences
+        for required, keys in enumerate((cls.__optional_keys__, cls.__required_keys__)):
+            for key in keys:
+                try:
+                    val = obj[key]
+                except KeyError:
+                    if required:
+                        return False
+                else:
+                    if not _isinstance(val, annotations[key]):
+                        return False
+        return True
+    else:
+        return False
+
+
+def _isinstance(obj, cls: type | LiteralType | EllipsisType | UnionType) -> bool:
+    if cls in (..., Any):
+        return True
+    elif isinstance(cls, LiteralType):
+        return _isinstance_literal(obj, cls)
+    elif isinstance(cls, UnionType):
+        return _isinstance_union(obj, cls)
+    elif _issubclass_tuple(cls):
+        return _isinstance_tuple(obj, cls)
+    elif _issubclass_namedtuple(cls):
+        return _isinstance_namedtuple(obj, cls)
+    elif _issubclass_typeddict(cls):
+        return _isinstance_typeddict(obj, cls)
+    elif issubclass(cls, Mapping):
+        pass
+    else:
+        try:
+            return isinstance(obj, cls)
+        except TypeError:
+            base = typing.get_origin(cls)
+            if _isinstance(obj, base):
+                args = typing.get_args(cls)
+                if len(args) == 1:
+                    return all(_isinstance(ele, args[0]) for ele in obj)
+                elif len(args) == 2:
+                    if base is collections.abc.ItemsView:
+                        return all(_isinstance(ele, tuple[args]) for ele in obj)
+                    else:
+                        return all(_isinstance(key, args[0]) for key in obj.keys()) and all(
+                            _isinstance(value, args[1]) for value in obj.values())
+            else:
+                return False
+    raise NotImplementedError(cls)
+
+
+class TD(typing.TypedDict):
+    a: int
+    b: str
+
+
+def _test_inst():
+    tp = list[tuple[int] | list[str]]
+    print(_isinstance([(1,), (2,), ['3']], tp))
+    tp2 = Mapping[str, int]
+    print(_isinstance({'d': 2}, tp2))
+    tp3 = dict[str, int]
+    print(_isinstance({'d': 6}, tp3))
+    tp4 = Tuple[int, str]
+    print(_isinstance((2, '2'), tp4))
+    d: dict[int, str] = {1: '1'}
+    i = d.items()
+    print(_isinstance(i, ItemsView[int, str]))
+    tp5 = str | NoneType
+    print(_isinstance(None, tp5))
+    tp6 = Optional[str]
+    print(_isinstance(None, tp6))
+    td = TD(a=1, b='2')
+    print(_isinstance(td, TD))
+    nt = TNT(1, 2, 3)
+    print(_isinstance(nt, TNT))
+    nnt = 1, 2, 3
+    print(_isinstance(nnt, TNT))
+    tp = tuple[int, ...]
+    print(_isinstance((1, 2, 3), tp))
+
+
 if __name__ == '__main__':
     # _test_cfg()
-    _test_cfg_json()
-    # _test_inst()
+    # _test_cfg_json()
+    _test_inst()
     sys.exit()

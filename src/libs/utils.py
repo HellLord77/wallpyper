@@ -21,11 +21,11 @@ import secrets
 import sys
 import threading
 import time
-import types
 import typing
 import uuid
 import zipfile
 import zlib
+from types import NoneType
 from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Mapping, Optional
 
 T = typing.TypeVar('T')
@@ -49,7 +49,7 @@ class ProgressBar:
 
 class _Mutable:
     __slots__ = '_data', '_changed'
-    _type: type = types.NoneType
+    _type: type = NoneType
 
     def __init__(self, val: Optional[bool | bytes | complex | float | int | str | tuple] = None):
         self._data = self._type() if val is None else val

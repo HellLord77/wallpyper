@@ -4,8 +4,8 @@ import atexit as _atexit
 import ctypes as _ctypes
 import functools as _functools
 import inspect as _inspect
-import types as _types
 import typing as _typing
+from types import MethodType as _MethodType
 from typing import Callable as _Callable, Generic as _Generic, Iterable as _Iterable, Optional as _Optional
 
 from .. import const as _const
@@ -90,7 +90,7 @@ class _Interface(_InterfaceBase):
             for field_name in self._fields:
                 func = getattr(struct, field_name)
                 func.__name__ = field_name
-                setattr(self, field_name, _types.MethodType(func, self))
+                setattr(self, field_name, _MethodType(func, self))
         return super().__getattribute__(name)
 
 
