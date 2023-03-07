@@ -441,28 +441,6 @@ def pass_ex(*_, **__):
     pass
 
 
-def is_namedtuple(obj) -> bool:
-    if not isinstance(obj, type):
-        obj = type(obj)
-    bases = obj.__bases__
-    fields = getattr(obj, '_fields', None)
-    return len(bases) == 1 and bases[0] is tuple and type(
-        fields) is tuple and all(type_ is str for type_ in map(type, fields))
-
-
-def is_typeddict(obj) -> bool:
-    if not isinstance(obj, type):
-        obj = type(obj)
-    bases = obj.__bases__
-    required_keys = getattr(obj, '__required_keys__', None)
-    optional_keys = getattr(obj, '__optional_keys__', None)
-    return len(bases) == 1 and bases[0] is dict and type(getattr(
-        obj, '__required_keys__', None)) is frozenset and all(
-        type_ is str for type_ in map(type, required_keys)) and type(
-        getattr(obj, '__optional_keys__', None)) is frozenset and all(
-        type_ is str for type_ in map(type, optional_keys))
-
-
 def pretty_vars(obj) -> str:
     dict_ = getattr(obj, '__dict__', {})
     attrs = [], []
