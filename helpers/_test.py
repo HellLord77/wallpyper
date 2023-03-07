@@ -18,8 +18,7 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config
-from libs import typed
+from libs import ctyped, config, typed
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
@@ -579,6 +578,6 @@ def _test_inst():
 
 if __name__ == '__main__':
     # _test_cfg()
-    # _test_cfg_json()
-    _test_inst()
+    _test_cfg_json()
+    # _test_inst()
     sys.exit()

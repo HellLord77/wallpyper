@@ -39,17 +39,6 @@ class LocalFolder(Source):
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
-        results: Optional[list] = None
-        while True:
-            if not results:
-                results = [path for path in files.iter_files(
-                    params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
-                results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
-            path = results.pop(0)
-            yield files.File(request.from_path(path), os.path.basename(path))
-
-    @classmethod
     def create_menu(cls):
         gui.add_menu_item(cls.strings.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, args=(
             gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
@@ -59,6 +48,17 @@ class LocalFolder(Source):
             cls.strings, f'LOCAL_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
         gui.add_mapped_submenu(cls.strings.LOCAL_MENU_ORDER, {order: getattr(
             cls.strings, f'LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+
+    @classmethod
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+        results: Optional[list] = None
+        while True:
+            if not results:
+                results = [path for path in files.iter_files(
+                    params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
+                results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
+            path = results.pop(0)
+            yield files.File(request.from_path(path), os.path.basename(path))
 
     @classmethod
     def _on_modify_dir(cls, set_tooltip: Callable) -> bool:

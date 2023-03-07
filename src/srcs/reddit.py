@@ -1,6 +1,5 @@
 import copy
 import functools
-import math
 import os.path
 import time
 from typing import Callable, Iterator, Optional
@@ -19,12 +18,15 @@ URL_TOKEN = request.join('https://www.reddit.com', 'api', 'v1', 'access_token')
 URL_IMAGE = request.join('https://i.redd.it')
 
 CONFIG_ID = '_client_id'
+CONFIG_ADULT = '_over_18'
 CONFIG_ORIENTATION = '_orientation'
+CONFIG_STATIC = '_skip_animated'
 CONFIG_SUBS = 'subreddits'
 CONFIG_SORT = 'sort'
 CONFIG_TIME = 't'
 
-ORIENTATIONS = '', 'landscape', 'portrait'
+ADULTS = 'include', 'exclude', 'only'
+ORIENTATIONS = 'any', 'landscape', 'portrait'
 SORTS = 'hot', 'new', 'top', 'controversial', 'rising'
 TIMES = 'hour', 'day', 'week', 'month', 'year', 'all'
 
@@ -80,24 +82,42 @@ def _authenticate(client_id: str) -> bool:
 
 class Reddit(Source):  # https://www.reddit.com/dev/api
     NAME = 'reddit'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     ICON = 'png'
     URL = 'https://reddit.com'
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
+        CONFIG_ADULT: ADULTS[1],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
+        CONFIG_STATIC: True,
         CONFIG_SUBS: 'wallpaper',
         CONFIG_SORT: SORTS[0],
         CONFIG_TIME: TIMES[1]}
 
     @classmethod
     def fix_config(cls):
+        cls._fix_config(CONFIG_ADULT, ADULTS)
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(CONFIG_SORT, SORTS)
         cls._fix_config(CONFIG_TIME, TIMES)
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def create_menu(cls):
+        item_time_enable = gui.add_mapped_submenu(cls.strings.REDDIT_MENU_TIME, {time_: getattr(
+            cls.strings, f'REDDIT_TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
+        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_SORT, {sort: getattr(
+            cls.strings, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
+                               CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
+        _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
+        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_ADULT, {adult: getattr(
+            cls.strings, f'REDDIT_ADULT_{adult}') for adult in ADULTS}, cls.CURRENT_CONFIG, CONFIG_ADULT)
+        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_ORIENTATION, {orientation: getattr(
+            cls.strings, f'REDDIT_ORIENTATION_{orientation}') for orientation
+            in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+        gui.add_mapped_menu_item(cls.strings.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
+
+    @classmethod
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         children: Optional[list] = None
         sort = params.pop(CONFIG_SORT)
         url = request.join(URL_BASE, params.pop(CONFIG_SUBS), sort)
@@ -117,28 +137,19 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
                     yield
                     continue
             data = children.pop(0)['data']
-            while not cls._filter_orientation(data['preview']['images'][0]['source']):
-                if not children:
-                    break
-                data = children.pop(0)['data']
-            else:
-                url_child = data['url']
-                yield files.File(url_child, f'{data["title"]}{os.path.splitext(url_child)[1]}')
+            url_child = data['url']
+            source = data['preview']['images'][0]['source']
+            yield files.ImageFile(url_child, f'{data["title"]}{os.path.splitext(url_child)[1]}',
+                                  width=source['width'], height=source['height'], nsfw=data['over_18'])
 
     @classmethod
-    def create_menu(cls):
-        item_time_enable = gui.add_mapped_submenu(cls.strings.REDDIT_MENU_TIME, {time_: getattr(
-            cls.strings, f'REDDIT_TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
-        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_SORT, {sort: getattr(
-            cls.strings, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
-                               CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
-        _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
-        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_ORIENTATION, {orientation: getattr(
-            cls.strings, f'REDDIT_ORIENTATION_{orientation}') for orientation
-            in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
-
-    @classmethod
-    def _filter_orientation(cls, source: dict) -> bool:
-        orientation = cls.CURRENT_CONFIG[CONFIG_ORIENTATION]
-        return orientation == ORIENTATIONS[0] or orientation == ORIENTATIONS[
-            math.ceil(source['height'] / source['width'])]
+    def filter_image(cls, image: files.ImageFile) -> bool:
+        if cls.CURRENT_CONFIG[CONFIG_ADULT] not in (
+                ADULTS[0], ADULTS[image.nsfw + 1]):
+            return False
+        if cls.CURRENT_CONFIG[CONFIG_ORIENTATION] not in (
+                ORIENTATIONS[0], ORIENTATIONS[image.is_portrait() + 1]):
+            return False
+        if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
+            return False
+        return True

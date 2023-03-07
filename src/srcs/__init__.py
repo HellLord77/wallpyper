@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import os
 from typing import Any, Iterable, Iterator, Optional
@@ -29,7 +29,7 @@ class Source:
         if cls.DEFAULT_CONFIG is None:
             cls.DEFAULT_CONFIG = {}
         cls.CURRENT_CONFIG = {}
-        cls.get_next_image = callables.LastCacheCallable(cls.get_next_image)
+        cls.get_image = callables.LastCacheCallable(cls.get_image)
         SOURCES[uid] = cls
 
     @classmethod
@@ -41,12 +41,16 @@ class Source:
         pass
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def create_menu(cls):
+        pass
+
+    @classmethod
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         raise NotImplementedError
 
     @classmethod
-    def create_menu(cls):
-        pass
+    def filter_image(cls, image: files.File) -> bool:
+        return True
 
 
 from . import (

@@ -82,29 +82,6 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls._fix_config(CONFIG_COLORS, COLORS)
 
     @classmethod
-    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
-        datas: Optional[list] = None
-        meta: dict[str, Optional[int | str]] = {
-            'current_page': 1,
-            'last_page': 1,
-            'seed': None}
-        while True:
-            if not datas:
-                params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
-                params['seed'] = meta['seed']
-                response = request.get(URL_SEARCH, params=params)
-                if response:
-                    json = response.json()
-                    datas = json['data']
-                    meta = json['meta']
-                if not datas:
-                    yield
-                    continue
-            data = datas.pop(0)
-            url = data['path']
-            yield files.File(url, os.path.basename(url), data['file_size'])
-
-    @classmethod
     def create_menu(cls):
         menu_category = gui.add_submenu(cls.strings.WALLHAVEN_MENU_CATEGORY).get_submenu()
         for index, category in enumerate(CATEGORIES):
@@ -143,6 +120,29 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                     *srgb))), colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)), colornames.format_hls(
                     *colorsys.rgb_to_hls(*srgb))), f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
                 item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
+
+    @classmethod
+    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+        datas: Optional[list] = None
+        meta: dict[str, Optional[int | str]] = {
+            'current_page': 1,
+            'last_page': 1,
+            'seed': None}
+        while True:
+            if not datas:
+                params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
+                params['seed'] = meta['seed']
+                response = request.get(URL_SEARCH, params=params)
+                if response:
+                    json = response.json()
+                    datas = json['data']
+                    meta = json['meta']
+                if not datas:
+                    yield
+                    continue
+            data = datas.pop(0)
+            url = data['path']
+            yield files.File(url, os.path.basename(url), data['file_size'])
 
     @classmethod
     def _on_category(cls, menu: gui.Menu):

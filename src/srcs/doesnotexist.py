@@ -25,14 +25,14 @@ class ThisDoesNotExist(Source):
         cls._fix_config(CONFIG_VARIANT, VARIANTS)
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def create_menu(cls):
+        gui.add_mapped_submenu(cls.strings.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
+            cls.strings, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
+
+    @classmethod
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
             url = request.join(url, 'image')
         while True:
             yield files.File(url, f'{uuid.uuid4()}.jpg')
-
-    @classmethod
-    def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
-            cls.strings, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)

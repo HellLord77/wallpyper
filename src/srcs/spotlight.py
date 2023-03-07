@@ -31,7 +31,15 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
-    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def create_menu(cls):
+        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
+            locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
+        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
+            cls.strings, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+
+    @classmethod
+    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
         items: Optional[list] = None
         params['pid'] = '209567'
         params['fmt'] = 'json'
@@ -50,11 +58,3 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
             url = image['u']
             yield files.File(url, files.replace_ext(os.path.basename(request.strip(url)), 'jpg'),
                              int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
-
-    @classmethod
-    def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
-            locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
-        gui.add_mapped_submenu(cls.strings.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
-            cls.strings, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
-                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)

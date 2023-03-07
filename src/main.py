@@ -228,6 +228,7 @@ def download_image(image: files.File, query_callback: Optional[Callable[[float],
     try_remove_temp()
     with _download_lock(image.url), gui.animate(STRINGS.STATUS_DOWNLOAD):
         PROGRESS.clear()
+        print(f'[#] {image.url}')
         if PIPE or win32.console.is_present():
             print_progress()
         try:
@@ -240,18 +241,25 @@ def download_image(image: files.File, query_callback: Optional[Callable[[float],
             PROGRESS.set(-1.0)
 
 
-def get_next_image() -> Optional[files.File]:
+def get_image() -> Optional[files.File]:
     source = srcs.SOURCES[CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]]
     params = {key: val for key, val in source.CURRENT_CONFIG.items() if not key.startswith('_')}
     first_image = None
     while True:
-        next_image = next(source.get_next_image(**params))
-        if not CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] or next_image not in RECENT:  # TODO -> filter
+        next_image = next(source.get_image(**params))
+        if filter_image(next_image) and source.filter_image(next_image):
             return next_image
         if first_image is None:
             first_image = next_image
         elif first_image == next_image:
+            # TODO respect CURRENT_CONFIG
             return next_image
+
+
+def filter_image(image: files.File) -> bool:
+    if CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] and image in RECENT:
+        return False
+    return True
 
 
 @callables.SingletonCallable
@@ -261,11 +269,13 @@ def change_wallpaper(image: Optional[files.File] = None,
     if image is None:
         with gui.animate(STRINGS.STATUS_FETCH):
             try:
-                image = get_next_image()
+                image = get_image()
             except BaseException as exc:
                 try_alert_error(exc, True)
     if image is not None:
         image.name = win32.sanitize_filename(image.name)
+        if not image.size:
+            image.size = request.sizeof(image.url)
         with contextlib.suppress(ValueError):
             RECENT.remove(image)
         RECENT.appendleft(image)

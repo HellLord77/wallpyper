@@ -387,11 +387,18 @@ PIXABAY_COLOR_brown = 'Brown'
 PIXABAY_ORDER_popular = 'Popular'
 PIXABAY_ORDER_latest = 'Latest'
 
+REDDIT_LABEL_STATIC = 'Skip Animated'
+
+REDDIT_MENU_ADULT = 'Over 18'
 REDDIT_MENU_ORIENTATION = 'Orientation'
 REDDIT_MENU_SORT = 'Sort by'
 REDDIT_MENU_TIME = 'Sort Limit'
 
-REDDIT_ORIENTATION_ = 'Any'
+REDDIT_ADULT_include = 'Include'
+REDDIT_ADULT_exclude = 'Exclude'
+REDDIT_ADULT_only = 'Only'
+
+REDDIT_ORIENTATION_any = 'Any'
 REDDIT_ORIENTATION_landscape = 'Landscape'
 REDDIT_ORIENTATION_portrait = 'Portrait'
 

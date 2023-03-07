@@ -56,7 +56,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
         CONFIG_SORT: SORTS[0]}
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
         auth = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'

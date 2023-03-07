@@ -69,28 +69,6 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         cls._fix_config(CONFIG_ORDER, ORDERS)
 
     @classmethod
-    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
-        hits: Optional[list] = None
-        params['page'] = '1'
-        params['per_page'] = '200'
-        while True:
-            if not hits:
-                pass
-                response = request.get(URL_BASE, params=params)
-                if (http.HTTPStatus.BAD_REQUEST == response.status and
-                        response.content == b'[ERROR 400] "page" is out of valid range.'):
-                    params['page'] = '1'
-                    continue
-                if response:
-                    hits = response.json()['hits']
-                if not hits:
-                    yield
-                    return
-            hit = hits.pop(0)
-            name = os.path.basename(hit['previewURL'])
-            yield files.File(hit['largeImageURL'], f'{name[:name.rfind("_")]}{name[name.rfind("."):]}')
-
-    @classmethod
     def create_menu(cls):
         gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_LANG, {lang: re.split('[,;]', isocodes.ISO6392.get(
             alpha_2=lang).name)[0] for lang in LANGS}, cls.CURRENT_CONFIG, CONFIG_LANG)
@@ -112,6 +90,28 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         gui.add_mapped_menu_item(cls.strings.PIXABAY_LABEL_SAFE, cls.CURRENT_CONFIG, CONFIG_SAFE)
         gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_ORDER, {order: getattr(
             cls.strings, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+
+    @classmethod
+    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+        hits: Optional[list] = None
+        params['page'] = '1'
+        params['per_page'] = '200'
+        while True:
+            if not hits:
+                pass
+                response = request.get(URL_BASE, params=params)
+                if (http.HTTPStatus.BAD_REQUEST == response.status and
+                        response.content == b'[ERROR 400] "page" is out of valid range.'):
+                    params['page'] = '1'
+                    continue
+                if response:
+                    hits = response.json()['hits']
+                if not hits:
+                    yield
+                    return
+            hit = hits.pop(0)
+            name = os.path.basename(hit['previewURL'])
+            yield files.File(hit['largeImageURL'], f'{name[:name.rfind("_")]}{name[name.rfind("."):]}')
 
     @classmethod
     def _on_color(cls, menu: gui.Menu):

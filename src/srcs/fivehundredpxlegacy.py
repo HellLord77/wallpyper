@@ -54,29 +54,6 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
         cls._fix_config(CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
-        photos: Optional[list] = None
-        params['rpp'] = '100'
-        json = {
-            'current_page': 1,
-            'total_pages': 1}
-        while True:
-            if not photos:
-                params['page'] = str(json['current_page'] % json['total_pages'] + 1)
-                response = request.get(URL_BASE, params=params)
-                if response:
-                    json = response.json()
-                    response = request.get(request.join(URL_BASE), params={'ids': ','.join(str(
-                        photo['id']) for photo in json['photos']), 'image_size': '4096'})
-                    if response:
-                        photos = list(response.json()['photos'].values())
-                if not photos:
-                    yield
-                    continue
-            photo = photos.pop(0)
-            yield files.File(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}')
-
-    @classmethod
     def create_menu(cls):
         onlies = cls.CURRENT_CONFIG[CONFIG_ONLY].split(',')
         excludes = cls.CURRENT_CONFIG[CONFIG_EXCLUDE].split(',')
@@ -99,6 +76,29 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
         gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
             sort_direction: getattr(cls.strings, f'FIVEHUNREDPXLEGACY_SORT_DIRECTION_{sort_direction}')
             for sort_direction in SORT_DIRECTIONS}, cls.CURRENT_CONFIG, CONFIG_SORT_DIRECTION)
+
+    @classmethod
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+        photos: Optional[list] = None
+        params['rpp'] = '100'
+        json = {
+            'current_page': 1,
+            'total_pages': 1}
+        while True:
+            if not photos:
+                params['page'] = str(json['current_page'] % json['total_pages'] + 1)
+                response = request.get(URL_BASE, params=params)
+                if response:
+                    json = response.json()
+                    response = request.get(request.join(URL_BASE), params={'ids': ','.join(str(
+                        photo['id']) for photo in json['photos']), 'image_size': '4096'})
+                    if response:
+                        photos = list(response.json()['photos'].values())
+                if not photos:
+                    yield
+                    continue
+            photo = photos.pop(0)
+            yield files.File(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}')
 
     @classmethod
     def _on_category(cls, key: str, menu: gui.Menu, menu_other: gui.Menu):

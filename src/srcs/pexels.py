@@ -55,7 +55,24 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         cls._fix_config(CONFIG_LOCALE, LOCALES)
 
     @classmethod
-    def get_next_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def create_menu(cls):
+        item_search = gui.add_submenu(cls.strings.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
+        gui.add_mapped_menu_item(cls.strings.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
+                                 on_click=functools.partial(_on_curated, item_search), position=0)
+        with gui.set_menu(item_search):
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_ORIENTATION,
+                                   {orientation: getattr(cls.strings, f'PEXELS_ORIENTATION_{orientation}')
+                                    for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_SIZE, {size: getattr(
+                cls.strings, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CURRENT_CONFIG, CONFIG_SIZE)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_COLOR, {color: getattr(
+                cls.strings, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
+            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_LOCALE, {locale: isocodes.ISO31661.get(
+                locale[locale.find('-') + 1:]).name if locale else cls.strings.PEXELS_LOCALE_
+                                                                    for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
+
+    @classmethod
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         photos: Optional[list] = None
         headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
@@ -77,20 +94,3 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                     continue
             url_photo = photos.pop(0)['src']['original']
             yield files.File(url_photo, os.path.basename(request.strip(url_photo)))
-
-    @classmethod
-    def create_menu(cls):
-        item_search = gui.add_submenu(cls.strings.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
-        gui.add_mapped_menu_item(cls.strings.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
-                                 on_click=functools.partial(_on_curated, item_search), position=0)
-        with gui.set_menu(item_search):
-            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_ORIENTATION,
-                                   {orientation: getattr(cls.strings, f'PEXELS_ORIENTATION_{orientation}')
-                                    for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
-            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_SIZE, {size: getattr(
-                cls.strings, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CURRENT_CONFIG, CONFIG_SIZE)
-            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_COLOR, {color: getattr(
-                cls.strings, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.strings.PEXELS_MENU_LOCALE, {locale: isocodes.ISO31661.get(
-                locale[locale.find('-') + 1:]).name if locale else cls.strings.PEXELS_LOCALE_
-                                                                    for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)

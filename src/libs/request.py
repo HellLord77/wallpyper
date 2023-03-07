@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import base64
 import contextlib
@@ -459,6 +459,13 @@ def get(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None
     return request(http.HTTPMethod.GET, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
+def head(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
+         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
+    return request(http.HTTPMethod.HEAD, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
+
+
 def post(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
@@ -466,12 +473,15 @@ def post(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = Non
     return request(http.HTTPMethod.POST, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
-def retrieve(url: str, path: AnyStr, size: Optional[int] = None,
-             chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
-             query_callback: Optional[Callable[[float], bool]] = None) -> bool:
+def sizeof(url: str) -> int:
+    return int(head(url).getheader(Header.CONTENT_LENGTH, 0))
+
+
+def retrieve(url: str, path: AnyStr, size: int = 0, chunk_size: Optional[int] = None,
+             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = get(url)
     if response:
-        if size is None:
+        if not size:
             size = int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize)) \
                 if response.local is None else os.path.getsize(response.local)
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)

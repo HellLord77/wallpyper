@@ -35,7 +35,18 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         cls._fix_config(CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
-    def get_next_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def create_menu(cls):
+        gui.add_mapped_submenu(cls.strings.BING_MENU_DAY, {str(day): getattr(
+            cls.strings, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
+                               cls.CURRENT_CONFIG, CONFIG_DAY)
+        gui.add_mapped_submenu(cls.strings.BING_MENU_MARKET, {market: isocodes.ISO31661.get(
+            market[market.find('-') + 1:]).name for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
+        gui.add_mapped_submenu(cls.strings.BING_MENU_RESOLUTION,
+                               {resolution: getattr(cls.strings, f'BING_RESOLUTION_{resolution}')
+                                for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION)
+
+    @classmethod
+    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
         images: Optional[list] = None
         params['format'] = 'js'
         params['n'] = '8'
@@ -60,14 +71,3 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
             name, ext = os.path.splitext(query['id'][0])
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{cls.CURRENT_CONFIG[CONFIG_RESOLUTION]}{ext}'
             yield files.File(request.extend_param(URL_IMAGE, query), query['id'][0][4:])
-
-    @classmethod
-    def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.BING_MENU_DAY, {str(day): getattr(
-            cls.strings, f'BING_DAY_{day}') for day in range(int(cls.DEFAULT_CONFIG[CONFIG_DAY]), MAX_DAY)},
-                               cls.CURRENT_CONFIG, CONFIG_DAY)
-        gui.add_mapped_submenu(cls.strings.BING_MENU_MARKET, {market: isocodes.ISO31661.get(
-            market[market.find('-') + 1:]).name for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
-        gui.add_mapped_submenu(cls.strings.BING_MENU_RESOLUTION,
-                               {resolution: getattr(cls.strings, f'BING_RESOLUTION_{resolution}')
-                                for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION)

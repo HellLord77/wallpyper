@@ -1,4 +1,4 @@
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 import array
 import ast
@@ -36,12 +36,12 @@ _TPath = bytes | int | str | os.PathLike[bytes] | os.PathLike[str]
 
 
 @contextlib.contextmanager
-def _open(path_or_file: _TPath | _TIO, write: bool = False,
+def _open(path_or_file: _TPath | _TIO, write: bool = False, byte: bool = False,
           encoding: Optional[str] = None) -> ContextManager[_TIO]:
     if hasattr(path_or_file, 'write' if write else 'read'):
         yield path_or_file
     else:
-        with open(path_or_file, 'w' if write else 'r', encoding=encoding) as file:
+        with open(path_or_file, ('w' if write else 'r') + byte * 'b', encoding=encoding) as file:
             yield file
 
 
@@ -93,11 +93,11 @@ def _loader(data) -> Any:
 
 
 def _dumper_int(data) -> list[int]:
-    return [int(data)]
+    return [data.__int__()]
 
 
 def _dumper_str(data) -> list[str]:
-    return [str(data)]
+    return [data.__str__()]
 
 
 def _dumper_state(data) -> list:
@@ -155,8 +155,7 @@ class _Config(dict[str, Any]):
             self.loads(file.read())
 
     def loads(self, data: str):
-        stream = io.StringIO(data)
-        self.load(stream)
+        self.load(io.StringIO(data))
 
 
 class JSONConfig(_Config):
@@ -332,7 +331,8 @@ class XMLConfig(_Config):
         tree = ElementTree.ElementTree(self._dump(
             self, ElementTree.Element(_CONFIG)))
         if indent is not None:
-            ElementTree.indent(tree, indent if isinstance(indent, str) else ' ' * indent)
+            ElementTree.indent(tree, indent if isinstance(
+                indent, str) else ' ' * indent)
         tree.write(path_or_file, encoding=encoding)
 
     def dumps(self, indent: Optional[int | str] = 2) -> str:
@@ -494,7 +494,6 @@ else:
             self.update(yaml.full_load(data))
 
 
-    # noinspection PyTypeChecker
     yaml.add_representer(YAMLConfig, yaml.representer.SafeRepresenter.represent_dict)
 
 Config = JSONConfig

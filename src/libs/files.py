@@ -1,4 +1,4 @@
-__version__ = '0.0.13'
+__version__ = '0.0.14'
 
 import contextlib
 import filecmp
@@ -22,7 +22,7 @@ class File:
     __slots__ = 'url', 'name', 'size', '_sha256', '_md5'
     _algorithms = {f'_{algorithm}' for algorithm in hashlib.algorithms_available}.intersection(__slots__)
 
-    def __init__(self, url: str, name: str, size: Optional[int] = None, *,
+    def __init__(self, url: str, name: str, size: int = 0, *,
                  sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
         self.url = url
         self.name = name
@@ -30,14 +30,11 @@ class File:
         self._sha256 = sha256
         self._md5 = md5
 
-    def __bool__(self):
-        return bool(str(self))
+    def __hash__(self):
+        return hash(self.url)
 
     def __eq__(self, other):
         return self.url == (other.url if isinstance(other, File) else other)
-
-    def __hash__(self):
-        return hash(self.url)
 
     def checksum(self, path: str) -> bool:
         if os.path.isfile(path):
@@ -48,13 +45,33 @@ class File:
 
     def fill(self, path: str) -> bool:
         if os.path.isfile(path):
-            if self.size is None:
+            if not self.size:
                 self.size = os.path.getsize(path)
             for algorithm in self._algorithms:
                 if getattr(self, algorithm) is None:
                     setattr(self, algorithm, get_hash(path, algorithm[1:]).digest())
             return True
         return False
+
+
+class ImageFile(File):
+    __slots__ = 'width', 'height', 'nsfw'
+
+    def __init__(self, url: str, name: str, size: int = 0, width: int = 0, height: int = 0,
+                 nsfw: bool = False, *, sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
+        super().__init__(url, name, size, sha256=sha256, md5=md5)
+        self.width = width
+        self.height = height
+        self.nsfw = nsfw
+
+    def is_animated(self) -> bool:  # TODO
+        return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
+
+    def is_portrait(self) -> bool:
+        return self.width < self.height
+
+    def is_landscape(self) -> bool:
+        return self.width > self.height
 
 
 def replace_ext(path: str, ext: str) -> str:
