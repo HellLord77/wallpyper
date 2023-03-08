@@ -342,7 +342,7 @@ def _test_browser_ex():
             time.sleep(5)
 
 
-NT = collections.namedtuple('NT', ['a', 'b', 'c'])
+NT = collections.namedtuple('NT', ('a', 'b', 'c'))
 
 
 class TNT(typing.NamedTuple):
@@ -501,6 +501,7 @@ def _test_cfg_json():
         'set_': set(),
         'dict': {'a': 1, 'b': 2},
         'dict_': {},
+        'range': range(1, 10, 2),
         'nest': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
                  {'objs': [{'x': 1},
                            {'x': {
@@ -530,10 +531,6 @@ class CT(tuple):
     pass
 
 
-def v(x: int) -> float:
-    return float(x)
-
-
 def _test_inst():
     lst = [1, 2, 3]
     print(typed.is_instance(lst, list[int]))
@@ -556,7 +553,7 @@ def _test_inst():
     print(typed.is_instance(None, tp6))
     td = TD(a=1, b='2')
     print(typed.is_instance(td, TD))
-    nt = TNT(1, 2, 3)
+    nt = TNT(1, 2, 3, NT(4, 5, 6))
     print(typed.is_instance(nt, TNT))
     nnt = 1, 2, 3
     print('nnt', typed.is_instance(nnt, TNT))
@@ -578,20 +575,20 @@ def _test_inst():
     print(typed.is_instance([1, 2, 3], Iterator[int]))
 
 
-def foo(**kwargs):
-    print(kwargs)
-
-
 def _test():
-    m1 = {'a': 1, 'b': 2, 'c': {'d': 3, 'e': [1, 2, '3']}}
-    m2 = config.JSONConfig()
-    m2.deepupdate(m1)
-    print(m2)
+    td = TypedDict('td', {'a': int, 'b': list[int], 'c': dict[str, int]})
+    d1 = {'a': 1, 'b': [2, 3, 4], 'c': {'d': 5, 'e': 6}}
+    print(typed.is_instance(d1, td))
+    d2 = {'a': 1, 'b': [2, '3', 4], 'c': {'d': 5}}
+    print(typed.is_instance(d2, td))
+    typed.update_mapping(d2, d1, td)
+    print(d2)
+    print(typed.is_instance(d2, td))
 
 
 if __name__ == '__main__':
     # _test_cfg()
-    _test_cfg_json()
+    # _test_cfg_json()
     # _test_inst()
-    # _test()
+    _test()
     sys.exit()

@@ -53,34 +53,34 @@ RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECE
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
 DEFAULT_CONFIG: dict[str, int | float | bool | str] = {
-    consts.CONFIG_RECENT_IMAGES: f'\n{utils.encrypt(RECENT, split=True)}',
-    consts.CONFIG_ACTIVE_DISPLAYS: consts.ALL_DISPLAY,
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
-    consts.CONFIG_AUTO_SAVE: False,
-    consts.CONFIG_SKIP_RECENT: False,
-    consts.CONFIG_REAPPLY_IMAGE: True,
-    consts.CONFIG_RESTORE_IMAGE: False,
-    consts.CONFIG_NOTIFY_ERROR: True,
+    consts.CONFIG_RECENT_IMAGES: f'\n{utils.encrypt(RECENT, split=True)}',
+    consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
+    consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
     consts.CONFIG_ANIMATE_ICON: True,
-    consts.CONFIG_KEEP_CACHE: False,
     consts.CONFIG_AUTOSTART: False,
-    consts.CONFIG_KEEP_SETTINGS: False,
-    consts.CONFIG_NOTIFY_BLOCKED: True,
+    consts.CONFIG_AUTO_SAVE: False,
+    consts.CONFIG_CHANGE_INTERVAL: CHANGE_INTERVALS[0],
     consts.CONFIG_CHANGE_START: False,
     consts.CONFIG_EASE_IN: True,
     consts.CONFIG_EASE_OUT: True,
-    consts.CONFIG_CHANGE_INTERVAL: CHANGE_INTERVALS[0],
-    consts.CONFIG_TRANSITION_DURATION: TRANSITION_DURATIONS[2],
-    consts.CONFIG_IF_MAXIMIZED: MAXIMIZED_ACTIONS[0],
-    consts.CONFIG_TRANSITION_EASE: EASE_STYLES[2],
-    consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
-    consts.CONFIG_MENU_COLOR: win32.ColorMode[win32.ColorMode.AUTO],
-    consts.CONFIG_SAVE_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
     consts.CONFIG_FIT_STYLE: win32.display.Style[win32.display.Style.FILL],
-    consts.CONFIG_ROTATE_BY: win32.display.Rotate[win32.display.Rotate.NONE],
     consts.CONFIG_FLIP_BY: win32.display.Flip[win32.display.Flip.NONE],
+    consts.CONFIG_IF_MAXIMIZED: MAXIMIZED_ACTIONS[0],
+    consts.CONFIG_KEEP_CACHE: False,
+    consts.CONFIG_KEEP_SETTINGS: False,
+    consts.CONFIG_MENU_COLOR: win32.ColorMode[win32.ColorMode.AUTO],
+    consts.CONFIG_NOTIFY_BLOCKED: True,
+    consts.CONFIG_NOTIFY_ERROR: True,
+    consts.CONFIG_REAPPLY_IMAGE: True,
+    consts.CONFIG_RESTORE_IMAGE: False,
+    consts.CONFIG_ROTATE_BY: win32.display.Rotate[win32.display.Rotate.NONE],
+    consts.CONFIG_SAVE_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
+    consts.CONFIG_SKIP_RECENT: False,
+    consts.CONFIG_TRANSITION_DURATION: TRANSITION_DURATIONS[2],
+    consts.CONFIG_TRANSITION_EASE: EASE_STYLES[2],
     consts.CONFIG_TRANSITION_STYLE: win32.display.Transition[win32.display.Transition.FADE]}
-CURRENT_CONFIG: dict[str, int | float | bool | str] = {}
+CURRENT_CONFIG = {}
 
 
 def _fix_config(key: str, values: Iterable):
@@ -93,7 +93,7 @@ def fix_config():
     _fix_config(consts.CONFIG_ROTATE_BY, win32.display.Rotate)
     _fix_config(consts.CONFIG_FLIP_BY, win32.display.Flip)
     _fix_config(consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
-    _fix_config(consts.CONFIG_ACTIVE_DISPLAYS, DISPLAYS)
+    _fix_config(consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     _fix_config(consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
     _fix_config(consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
     _fix_config(consts.CONFIG_IF_MAXIMIZED, MAXIMIZED_ACTIONS)
@@ -194,9 +194,9 @@ def on_shown(*_):
 
 
 def get_displays() -> Iterable[str]:
-    _fix_config(consts.CONFIG_ACTIVE_DISPLAYS, DISPLAYS)
-    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAYS] == consts.ALL_DISPLAY else (
-        CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAYS],)
+    _fix_config(consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
+    return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == consts.ALL_DISPLAY else (
+        CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY],)
 
 
 @timer.on_thread
@@ -511,7 +511,7 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{langs.to_str(DISPLAYS[monitor][1][0], STRINGS)} × {DISPLAYS[monitor][1][1]}')
-        gui.add_mapped_submenu(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAYS, on_click=on_blocked)
+        gui.add_mapped_submenu(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=on_blocked)
         enable = len(DISPLAYS) > 1
         for submenu_item in submenu:
             submenu_item.enable(enable)

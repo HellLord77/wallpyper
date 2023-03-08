@@ -23,7 +23,7 @@ import sys
 import typing
 import uuid
 from types import NoneType
-from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, MutableMapping, Optional, TextIO
+from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, Optional, TextIO
 from xml.etree import ElementTree
 
 _T = typing.TypeVar('_T')
@@ -50,14 +50,6 @@ def _configparser() -> configparser.ConfigParser:
 
 
 class _Config(dict[str, Any]):
-    def deepupdate(self: MutableMapping, other: Mapping):
-        for key, val in other.items():
-            if isinstance(val, MutableMapping):
-                self[key] = self.get(key, type(val)())
-                _Config.deepupdate(self[key], val)
-            else:
-                self[key] = val
-
     def dump(self, path_or_file: _TPath | _TIO):
         with _open(path_or_file, True) as file:
             # noinspection PyTypeChecker
@@ -152,6 +144,7 @@ class JSONConfig(_Config):
     # noinspection PyUnresolvedReferences
     TYPE_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
         complex: lambda data: [data.real, data.imag],
+        range: lambda data: [data.start, data.stop, data.step],
         ElementTree.QName: lambda data: data.text,
         array.array: lambda data: [data.typecode, data.tolist()],
         collections.ChainMap: lambda data: data.maps,
@@ -172,6 +165,7 @@ class JSONConfig(_Config):
         uuid.UUID: uuid.UUID.__getstate__}
     TYPE_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
         complex: _loader_args,
+        range: _loader_args,
         ElementTree.QName: _loader_arg,
         array.array: _loader_args,
         collections.ChainMap: _loader_args,

@@ -1,8 +1,9 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
+import copy
 import typing
 from types import UnionType
-from typing import Any, Callable, ItemsView, Iterable, Literal, Mapping, Tuple, Union
+from typing import Any, Callable, ItemsView, Iterable, Literal, Mapping, MutableMapping, Tuple, Union
 
 
 def _issubclass_tuple(cls) -> bool:
@@ -212,3 +213,27 @@ def is_typeddict(obj) -> bool:
     if not isinstance(obj, type):
         obj = type(obj)
     return _issubclass_typeddict(obj)
+
+
+def _update(self: MutableMapping, val, type_hint, callback, key):
+    if key in self:
+        val_ = self[key]
+        if isinstance(val, Mapping):
+            if isinstance(val_, MutableMapping):
+                update_mapping(val_, val, type_hint, callback)
+                return
+        elif is_instance(val_, type_hint):
+            return
+    self[key] = callback(val)
+
+
+def update_mapping(self: MutableMapping, other: Mapping, cls,
+                   callback: Callable[[Any], Any] = copy.deepcopy):
+    assert is_instance(other, cls)
+    if _issubclass_typeddict(cls):
+        for key, type_hint in typing.get_type_hints(cls).items():
+            _update(self, other[key], type_hint, callback, key)
+    elif issubclass(typing.get_origin(cls), MutableMapping):
+        type_hint = typing.get_args(cls)[1]
+        for key, val in other.items():
+            _update(self, val, type_hint, callback, key)
