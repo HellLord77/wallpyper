@@ -9,6 +9,7 @@ import enum
 import fractions
 import ipaddress
 import pathlib
+import re
 import sys
 import time
 import typing
@@ -478,6 +479,8 @@ def _test_cfg_json():
             'IPv6Network': ipaddress.IPv6Network('2001:db8::/32')},
         'pathlib': {
             'PurePath': pathlib.PurePath('c:/temp/test.txt')},
+        're': {
+            'Pattern': re.compile(r'(?P<first>\w+) (?P<last>\w+)', re.IGNORECASE)},
         'typing': {
             'NamedTuple': TNT(1, 2, 3, NT(4, 5, 6))},
         'uuid': {
@@ -588,7 +591,7 @@ def _test():
 
 if __name__ == '__main__':
     # _test_cfg()
-    # _test_cfg_json()
+    _test_cfg_json()
     # _test_inst()
-    _test()
+    # _test()
     sys.exit()

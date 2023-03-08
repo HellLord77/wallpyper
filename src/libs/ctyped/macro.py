@@ -18,7 +18,7 @@ def FIELD_OFFSET(type: type[_ctypes.Structure], field: str, _: _Optional[int] = 
     offset = field_.offset
     if _ is not None:
         # noinspection PyUnresolvedReferences,PyProtectedMember
-        offset += _sizeof(dict(type._fields_)[field]._type_) * _
+        offset += _ * _sizeof(dict(type._fields_)[field]._type_)
     return offset
 
 

@@ -1,6 +1,7 @@
 __version__ = '0.1.0'
 
 import contextlib
+import enum
 import ntpath
 import os
 import subprocess
@@ -8,7 +9,7 @@ import time
 import winreg
 from typing import ContextManager, Iterator, Mapping, Optional
 
-from libs import ctyped, utils
+from libs import ctyped
 from libs.ctyped import winrt
 from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import oaidl, objidl, ocidl, propsys, ShObjIdl, ShObjIdl_core, strmif
@@ -33,14 +34,14 @@ START_DIR = _utils.get_dir(ctyped.const.FOLDERID_Programs)
 _MESSAGES = None
 
 
-class ColorMode(metaclass=utils.IntEnumMeta):
-    DEFAULT = ctyped.enum.PreferredAppMode.Default.value
-    AUTO = ctyped.enum.PreferredAppMode.AllowDark.value
-    LIGHT = ctyped.enum.PreferredAppMode.ForceLight.value
-    DARK = ctyped.enum.PreferredAppMode.ForceDark.value
+class ColorMode(enum.IntEnum):
+    DEFAULT = ctyped.enum.PreferredAppMode.Default
+    AUTO = ctyped.enum.PreferredAppMode.AllowDark
+    LIGHT = ctyped.enum.PreferredAppMode.ForceLight
+    DARK = ctyped.enum.PreferredAppMode.ForceDark
 
 
-class FocusAssistState(metaclass=utils.IntEnumMeta):
+class FocusAssistState(enum.IntEnum):
     NOT_SUPPORTED = -2
     FAILED = -1
     OFF = 0
@@ -55,21 +56,23 @@ def get_colored_bitmap(r: int, g: int, b: int, width: int = 32, height: int = 32
     return _gdiplus.bitmap_from_color(_gdiplus.Color.from_rgba(r, g, b), width, height)
 
 
-def set_color_mode(mode: int | str = ColorMode.DEFAULT, flush: bool = True):
+def set_color_mode(mode: int | str | ColorMode = ColorMode.DEFAULT, flush: bool = True):
     if isinstance(mode, str):
-        mode = ColorMode[mode]
+        mode = ColorMode[mode.upper()]
+    if isinstance(mode, ColorMode):
+        mode = mode.value
     # noinspection PyTypeChecker
     uxtheme.SetPreferredAppMode(mode)
     if flush:
         uxtheme.FlushMenuThemes()
 
 
-def get_focus_assist_state() -> int:
+def get_focus_assist_state() -> FocusAssistState:
     buffer = ctyped.type.DWORD()
     focus_assist = ctyped.struct.WNF_STATE_NAME(ctyped.array(0xA3BF1C75, 0xD83063E, type=ctyped.type.ULONG))
     if ctyped.macro.NT_SUCCESS(ntdll.NtQueryWnfStateData(ctyped.byref(focus_assist), None, None, ctyped.byref(
             ctyped.type.WNF_CHANGE_STAMP()), ctyped.byref(buffer), ctyped.byref(ctyped.type.ULONG(ctyped.sizeof(buffer))))):
-        return buffer.value
+        return FocusAssistState(buffer.value)
     else:
         return FocusAssistState.FAILED
 

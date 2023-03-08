@@ -1,5 +1,6 @@
 __version__ = '0.0.1'  # https://github.com/ai/easings.net
 
+import enum
 import math
 from typing import Callable, Optional
 
@@ -12,7 +13,7 @@ _n1 = 7.5625
 _d1 = 2.75
 
 
-class Ease:
+class Ease(enum.StrEnum):
     SINE = 'sine'
     QUAD = 'quad'
     CUBIC = 'cubic'
@@ -159,7 +160,7 @@ def in_out_bounce(x: float) -> float:
     return (1 - out_bounce(1 - 2 * x)) / 2 if x < 0.5 else (1 + out_bounce(2 * x - 1)) / 2
 
 
-def get(ease: Optional[str] = None, in_: bool = False, out: bool = False) -> Callable[[float], float]:
+def get(ease: Optional[str | Ease] = None, in_: bool = False, out: bool = False) -> Callable[[float], float]:
     easing = []
     if in_:
         easing.append('in')
@@ -168,5 +169,7 @@ def get(ease: Optional[str] = None, in_: bool = False, out: bool = False) -> Cal
     if ease is None or not easing:
         return linear
     else:
-        easing.append(ease)
+        if isinstance(ease, Ease):
+            ease = ease.value
+        easing.append(ease.lower())
         return globals()['_'.join(easing)]

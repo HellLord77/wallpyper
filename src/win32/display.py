@@ -1,8 +1,12 @@
+from __future__ import annotations as _
+
 import concurrent.futures
+import enum
 import functools
 import ntpath
 import operator
 import os
+import random
 import string
 import tempfile
 import threading
@@ -11,7 +15,7 @@ import typing
 import winreg
 from typing import Callable, Iterable, Optional
 
-from libs import ctyped, utils
+from libs import ctyped
 from libs.ctyped import winrt
 from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import ShlObj_core, ShObjIdl_core
@@ -26,7 +30,7 @@ ANIMATION_POLL_INTERVAL = 0.01
 TEMP_WALLPAPER_DIR = tempfile.gettempdir()
 
 
-class Style(metaclass=utils.IntEnumMeta):
+class Style(enum.IntEnum):
     FILL = ctyped.const.WPSTYLE_CROPTOFIT
     FIT = ctyped.const.WPSTYLE_KEEPASPECT
     STRETCH = ctyped.const.WPSTYLE_STRETCH
@@ -35,21 +39,21 @@ class Style(metaclass=utils.IntEnumMeta):
     SPAN = ctyped.const.WPSTYLE_SPAN
 
 
-class Rotate(metaclass=utils.IntEnumMeta):
+class Rotate(enum.IntEnum):
     NONE = 0
     RIGHT = 1
     LEFT = 2
     FLIP = 3
 
 
-class Flip(metaclass=utils.IntEnumMeta):
+class Flip(enum.IntEnum):
     NONE = 0
     HORIZONTAL = 1
     VERTICAL = 2
     BOTH = 3
 
 
-class Transition(metaclass=utils.IntEnumMeta):
+class Transition(enum.IntEnum):
     DISABLED = -2
     RANDOM = -1
     FADE = 0
@@ -81,8 +85,8 @@ class Transition(metaclass=utils.IntEnumMeta):
     SLIDE_REVERSE_HORIZONTAL = 26
 
     @staticmethod
-    def _fade(factor: float, dst_w: int, dst_h: int, dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC,
-              blend: ctyped.struct.BLENDFUNCTION, dst_bk: ctyped.type.HDC, tmp_dst: ctyped.type.HDC):
+    def _fade(dst: ctyped.type.HDC, dst_x: int, dst_y: int, src: ctyped.type.HDC, blend: ctyped.struct.BLENDFUNCTION,
+              dst_bk: ctyped.type.HDC, tmp_dst: ctyped.type.HDC, factor: float, dst_w: int, dst_h: int):
         blend.SourceConstantAlpha = int(255 * factor)
         gdi32.BitBlt(tmp_dst, 0, 0, dst_w, dst_h, dst_bk, 0, 0, ctyped.const.SRCCOPY)
         msimg32.AlphaBlend(tmp_dst, 0, 0, dst_w, dst_h, src, 0, 0, dst_w, dst_h, blend)
@@ -508,28 +512,36 @@ def get_wallpaper(monitor: Optional[str] = None) -> str:
             if monitor is None else _get_wallpaper_idesktopwallpaper(monitor)[0])
 
 
-def _get_rotate_flip(rotate: int, flip: int) -> ctyped.enum.RotateFlipType:  # FIXME https://github.com/cython/cython/pull/4897
-    if (rotate == Rotate.RIGHT and flip == Flip.NONE) or (rotate == Rotate.LEFT and flip == Flip.BOTH):
+# FIXME https://github.com/cython/cython/pull/4897
+def _get_rotate_flip(rotate: Rotate, flip: Flip) -> ctyped.enum.RotateFlipType:
+    if (rotate is Rotate.RIGHT and flip is Flip.NONE) or (
+            rotate is Rotate.LEFT and flip is Flip.BOTH):
         return ctyped.enum.RotateFlipType.Rotate90FlipNone
-    elif (rotate == Rotate.FLIP and flip == Flip.NONE) or (rotate == Rotate.NONE and flip == Flip.BOTH):
+    elif (rotate is Rotate.FLIP and flip is Flip.NONE) or (
+            rotate is Rotate.NONE and flip is Flip.BOTH):
         return ctyped.enum.RotateFlipType.Rotate180FlipNone
-    elif (rotate == Rotate.LEFT and flip == Flip.NONE) or (rotate == Rotate.RIGHT and flip == Flip.BOTH):
+    elif (rotate is Rotate.LEFT and flip is Flip.NONE) or (
+            rotate is Rotate.RIGHT and flip is Flip.BOTH):
         return ctyped.enum.RotateFlipType.Rotate270FlipNone
-    elif (rotate == Rotate.NONE and flip == Flip.HORIZONTAL) or (rotate == Rotate.FLIP and flip == Flip.VERTICAL):
+    elif (rotate is Rotate.NONE and flip is Flip.HORIZONTAL) or (
+            rotate is Rotate.FLIP and flip is Flip.VERTICAL):
         return ctyped.enum.RotateFlipType.RotateNoneFlipX
-    elif (rotate == Rotate.RIGHT and flip == Flip.HORIZONTAL) or (rotate == Rotate.LEFT and flip == Flip.VERTICAL):
+    elif (rotate is Rotate.RIGHT and flip is Flip.HORIZONTAL) or (
+            rotate is Rotate.LEFT and flip is Flip.VERTICAL):
         return ctyped.enum.RotateFlipType.Rotate90FlipX
-    elif (rotate == Rotate.FLIP and flip == Flip.HORIZONTAL) or (rotate == Rotate.NONE and flip == Flip.VERTICAL):
+    elif (rotate is Rotate.FLIP and flip is Flip.HORIZONTAL) or (
+            rotate is Rotate.NONE and flip is Flip.VERTICAL):
         return ctyped.enum.RotateFlipType.Rotate180FlipX
-    elif (rotate == Rotate.LEFT and flip == Flip.HORIZONTAL) or (rotate == Rotate.RIGHT and flip == Flip.VERTICAL):
+    elif (rotate is Rotate.LEFT and flip is Flip.HORIZONTAL) or (
+            rotate is Rotate.RIGHT and flip is Flip.VERTICAL):
         return ctyped.enum.RotateFlipType.Rotate270FlipX
     else:
         return ctyped.enum.RotateFlipType.RotateNoneFlipNone
 
 
 def _get_src_x_y_w_h(w: int, h: int, src_w: int, src_h: int,
-                     style: int = Style.FILL) -> Iterable[int]:
-    if style == Style.CENTER:
+                     style: Style = Style.FILL) -> Iterable[int]:
+    if style is Style.CENTER:
         dw = src_w - w
         dh = src_h - h
         return int(dw / 2), int(dh / 2), src_w - dw, src_h - dh
@@ -567,23 +579,25 @@ def _is_rect_not_blocked(hwnd: ctyped.type.HWND, dst_x: int, dst_y: int, dst_w: 
 
 def _draw_on_workerw(image: _gdiplus.Bitmap, dst_x: int, dst_y: int, dst_w: int, dst_h: int,
                      src_x: int, src_y: int, src_w: int, src_h: int, temp_path: str,
-                     color: _gdiplus.Color, transition: int, duration: float, easing: Callable[[float], float]):
+                     color: _gdiplus.Color, transition: Transition, duration: float, easing: Callable[[float], float]):
     if (hwnd := _get_workerw_hwnd()) and _is_rect_not_blocked(hwnd, dst_x, dst_y, dst_w, dst_h):
         dst = _handle.HDC.from_hwnd(hwnd)
         src = _save_tmp_bmp(image, color, dst_w, dst_h, src_x, src_y, src_w, src_h, temp_path)
-        if transition != Transition.DISABLED:
-            if transition == Transition.RANDOM:
-                transition = Transition.get_random(Transition.DISABLED, Transition.RANDOM)
-            args = []
-            if transition == Transition.FADE:
+        if transition is not Transition.DISABLED:
+            # noinspection PyTypeChecker
+            transitioning = random.choice(
+                _TRANSITIONS) if transition is Transition.RANDOM else _TRANSITIONS[transition.value]
+            # noinspection PyProtectedMember
+            if transitioning is Transition._fade:
                 dst_bk = _handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()
                 gdi32.BitBlt(dst_bk, 0, 0, dst_w, dst_h, dst, dst_x, dst_y, ctyped.const.SRCPAINT)
-                args.extend((dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
-                             dst_bk, _handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc()))
+                transitioning = functools.partial(
+                    transitioning, dst, dst_x, dst_y, src, ctyped.struct.BLENDFUNCTION(),
+                    dst_bk, _handle.HBITMAP.from_dimension(dst_w, dst_h).get_hdc())
             start = time.monotonic()
             while duration > (passed := time.monotonic() - start):
-                for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in _TRANSITIONS[transition](
-                        easing(passed / duration), dst_w, dst_h, *args):
+                for dst_ox, dst_oy, dst_ow, dst_oh, src_ox, src_oy in transitioning(
+                        easing(passed / duration), dst_w, dst_h):
                     gdi32.BitBlt(dst, dst_x + dst_ox, dst_y + dst_oy, dst_ow, dst_oh,
                                  src, src_ox, src_oy, ctyped.const.SRCCOPY)
                 time.sleep(ANIMATION_POLL_INTERVAL)
@@ -606,7 +620,7 @@ def _set_wallpaper_iactivedesktop(path: str, fade: bool = True) -> bool:
 
 
 def _set_wallpaper_idesktopwallpaper(path: str, monitor: Optional[str], color: Optional[ctyped.type.COLORREF] = None,
-                                     style: Optional[int | ctyped.enum.DESKTOP_WALLPAPER_POSITION] = None) -> bool:
+                                     style: Optional[int | ctyped.enum.DESKTOP_WALLPAPER_POSITION | Style] = None) -> bool:
     with ctyped.interface.COM[ShObjIdl_core.IDesktopWallpaper](ctyped.const.CLSID_DesktopWallpaper) as wallpaper:
         if wallpaper:
             if color is not None and ctyped.macro.FAILED(wallpaper.SetBackgroundColor(color)):
@@ -629,19 +643,19 @@ def set_wallpaper(path: str, *monitors: str, fade: bool = True):
 _temp_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Style.FILL,
-                     rgb: tuple[int, int, int] = (0, 0, 0), rotate: int = Rotate.NONE,
-                     flip: int = Flip.NONE, transition: int = Transition.FADE,
+def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: Style = Style.FILL,
+                     rgb: tuple[int, int, int] = (0, 0, 0), rotate: Rotate = Rotate.NONE,
+                     flip: Flip = Flip.NONE, transition: Transition = Transition.DISABLED,
                      duration: float = 1.0, easing: Callable[[float], float] = lambda x: x) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
         width = image.get_width()
         height = image.get_height()
-        if rotate or flip:
+        if rotate is not Rotate.NONE or flip is not Flip.NONE:
             image.rotate_flip(_get_rotate_flip(rotate, flip))
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
             monitor_x_y_w_h = 0, 0, *get_display_size()
-            if style == Style.TILE:
+            if style is Style.TILE:
                 width_ = monitor_x_y_w_h[2]
                 height_ = monitor_x_y_w_h[3]
                 bitmap = _gdiplus.Bitmap.from_dimension(width_, height_)
@@ -672,11 +686,11 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: int = Styl
 class Wallpaper(typing.NamedTuple):
     path: str
     monitor: Optional[str] = None
-    style: int = Style.FILL
+    style: Style = Style.FILL
     rgb: tuple[int, int, int] = 0, 0, 0
-    rotate: int = Rotate.NONE
-    flip: int = Flip.NONE
-    transition: int = Transition.FADE
+    rotate: Rotate = Rotate.NONE
+    flip: Flip = Flip.NONE
+    transition: Transition = Transition.DISABLED
     duration: float = 1.0
     easing: Callable[[float], float] = lambda x: x
 

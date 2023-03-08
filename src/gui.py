@@ -5,7 +5,7 @@ import threading
 from typing import Callable, ContextManager, Iterable, Mapping, MutableMapping, Optional
 
 import win32
-from libs import callables
+from libs import callables, utils
 from win32 import gui
 
 ANIMATION_PATH = ''
@@ -13,11 +13,11 @@ GUI = win32.gui.Gui.__new__(win32.gui.Gui)
 SYSTEM_TRAY = win32.gui.SystemTray.__new__(win32.gui.SystemTray)
 MENU = win32.gui.Menu.__new__(win32.gui.Menu)
 
-_ENABLE_ANIMATION = True
+_ENABLE_ANIMATED_ICON = utils.MutableBool(True)
 _TOOLTIPS: collections.deque[str] = collections.deque()
 _ANIMATIONS: collections.deque[tuple[str, str]] = collections.deque()
 _MAIN_MENU = object()
-_MAIN_MENUS2: dict[int, list[gui.Menu]] = {threading.get_ident(): [MENU]}
+_MAIN_MENUS: dict[int, list[gui.Menu]] = {threading.get_ident(): [MENU]}
 
 GuiEvent = win32.gui.GuiEvent
 SystemTrayIcon = win32.gui.SystemTrayIcon
@@ -63,15 +63,15 @@ def set_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> ContextManager[win32.
         menu = menu.get_submenu()
     thread = threading.get_ident()
     try:
-        _MAIN_MENUS2[thread].append(menu)
+        _MAIN_MENUS[thread].append(menu)
     except KeyError:
-        _MAIN_MENUS2[thread] = [menu]
+        _MAIN_MENUS[thread] = [menu]
     try:
         yield menu
     finally:
-        del _MAIN_MENUS2[thread][-1]
-        if not _MAIN_MENUS2[thread]:
-            del _MAIN_MENUS2[thread]
+        del _MAIN_MENUS[thread][-1]
+        if not _MAIN_MENUS[thread]:
+            del _MAIN_MENUS[thread]
 
 
 def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = None,
@@ -97,9 +97,9 @@ def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = N
 def _get_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> win32.gui.Menu:
     if menu is _MAIN_MENU:
         try:
-            menu = _MAIN_MENUS2[threading.get_ident()][-1]
+            menu = _MAIN_MENUS[threading.get_ident()][-1]
         except KeyError:
-            menu = next(iter(_MAIN_MENUS2.values()))[-1]
+            menu = next(iter(_MAIN_MENUS.values()))[-1]
     if isinstance(menu, win32.gui.MenuItem):
         menu = menu.get_submenu()
     return menu
@@ -230,7 +230,7 @@ def disable_events():
     GUI.unbind(win32.gui.GuiEvent.DISPLAY_CHANGE)
 
 
-def _animate():
+def _animate_icon():
     animate_ = False
     try:
         tooltip = _TOOLTIPS[-1]
@@ -239,25 +239,24 @@ def _animate():
     else:
         animate_ = True
     SYSTEM_TRAY.set_tooltip(tooltip)
-    if animate_ and _ENABLE_ANIMATION:
+    if animate_ and _ENABLE_ANIMATED_ICON:
         if not SYSTEM_TRAY.is_animated():
             SYSTEM_TRAY.start_animation(ANIMATION_PATH)
     else:
         SYSTEM_TRAY.stop_animation()
 
 
-def enable_animation(enable: bool = True):
-    global _ENABLE_ANIMATION
-    _ENABLE_ANIMATION = enable
-    _animate()
+def enable_animated_icon(enable: bool = True):
+    _ENABLE_ANIMATED_ICON.set(enable)
+    _animate_icon()
 
 
 @contextlib.contextmanager
-def animate(tooltip: Optional[str] = None) -> ContextManager[None]:
+def try_animate_icon(tooltip: Optional[str] = None, force: bool = False) -> ContextManager[None]:
     if tooltip is None:
         tooltip = GUI.get_name()
     _TOOLTIPS.append(GUI.get_name() if tooltip is None else tooltip)
-    _animate()
+    enable_animated_icon() if force else _animate_icon()
     try:
         yield
     finally:
@@ -266,4 +265,4 @@ def animate(tooltip: Optional[str] = None) -> ContextManager[None]:
         except ValueError:
             pass
         else:
-            _animate()
+            _animate_icon()

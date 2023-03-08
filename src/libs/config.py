@@ -19,6 +19,7 @@ import json
 import operator
 import os
 import pathlib
+import re
 import sys
 import typing
 import uuid
@@ -145,9 +146,9 @@ class JSONConfig(_Config):
     TYPE_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
         complex: lambda data: [data.real, data.imag],
         range: lambda data: [data.start, data.stop, data.step],
-        ElementTree.QName: lambda data: data.text,
+        ElementTree.QName: operator.attrgetter('text'),
         array.array: lambda data: [data.typecode, data.tolist()],
-        collections.ChainMap: lambda data: data.maps,
+        collections.ChainMap: operator.attrgetter('maps'),
         collections.deque: lambda data: [list(data), data.maxlen],
         datetime.date: datetime.date.isoformat,
         datetime.time: datetime.time.isoformat,
@@ -162,6 +163,7 @@ class JSONConfig(_Config):
         ipaddress.IPv6Address: ipaddress.IPv6Address.__int__,
         ipaddress.IPv6Interface: ipaddress.IPv6Interface.__str__,
         ipaddress.IPv6Network: ipaddress.IPv6Network.__str__,
+        re.Pattern: lambda data: [data.pattern, data.flags],
         uuid.UUID: uuid.UUID.__getstate__}
     TYPE_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
         complex: _loader_args,
@@ -183,10 +185,11 @@ class JSONConfig(_Config):
         ipaddress.IPv6Address: _loader_arg,
         ipaddress.IPv6Interface: _loader_arg,
         ipaddress.IPv6Network: _loader_arg,
+        re.Pattern: lambda _, data: re.compile(*data),
         uuid.UUID: _loader_state}
     TYPES_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
-        collections.UserString: lambda data: data.data,
-        enum.Enum: lambda data: data.value,
+        collections.UserString: operator.attrgetter('data'),
+        enum.Enum: operator.attrgetter('value'),
         pathlib.PurePath: lambda data: list(data.parts)}
     TYPES_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
         collections.UserString: _loader_arg,

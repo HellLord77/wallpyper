@@ -17,7 +17,7 @@ class Source:
     ICON: str = 'ico'
     URL: str
     DEFAULT_CONFIG: Optional[dict[str, Any]] = None
-    CURRENT_CONFIG: Optional[dict[str, bool | str]] = None
+    CURRENT_CONFIG: Optional[dict[str, Any]] = None
 
     strings = langs.DEFAULT
 
