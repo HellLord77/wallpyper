@@ -349,6 +349,7 @@ class TNT(typing.NamedTuple):
     a: int
     b: int
     c: int
+    d: NT
 
 
 class E(enum.Enum):
@@ -420,12 +421,12 @@ def _test_cfg():
     config__ = config.XMLConfig()
     config__.loads(dumped)
     print('XML', config_ == config__)
-    config_ = config.FLATConfig(data)
+    config_ = config.INIConfig(data)
     dumped = config_.dumps()
     # print(dumped)
-    config__ = config.FLATConfig()
+    config__ = config.INIConfig()
     config__.loads(dumped)
-    print('FLAT', config_ == config__)
+    print('INI', config_ == config__)
     config_ = config.REGConfig(data)
     dumped = config_.dumps()
     # print(dumped)
@@ -447,6 +448,7 @@ def _test_cfg_json():
         'array': {
             'array': array.array('i', [1, 2, 3])},
         'collections': {
+            'ChainMap': collections.ChainMap({'a': 1, 'b': 2}, {'c': 3, 'd': 4}),
             'Counter': collections.Counter({'red': 4, 'blue': 2}),
             'OrderedDict': collections.OrderedDict([('b', 420), ('a', 69)]),
             'UserDict': UD({'a': 1, 'b': 2}),
@@ -477,7 +479,7 @@ def _test_cfg_json():
         'pathlib': {
             'PurePath': pathlib.PurePath('c:/temp/test.txt')},
         'typing': {
-            'NamedTuple': TNT(1, 2, 3)},
+            'NamedTuple': TNT(1, 2, 3, NT(4, 5, 6))},
         'uuid': {
             'UUID': uuid.uuid4()},
         'NoneType': None,
@@ -576,8 +578,20 @@ def _test_inst():
     print(typed.is_instance([1, 2, 3], Iterator[int]))
 
 
+def foo(**kwargs):
+    print(kwargs)
+
+
+def _test():
+    m1 = {'a': 1, 'b': 2, 'c': {'d': 3, 'e': [1, 2, '3']}}
+    m2 = config.JSONConfig()
+    m2.deepupdate(m1)
+    print(m2)
+
+
 if __name__ == '__main__':
     # _test_cfg()
     _test_cfg_json()
     # _test_inst()
+    # _test()
     sys.exit()

@@ -1,4 +1,4 @@
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 import array
 import ast
@@ -19,20 +19,18 @@ import json
 import operator
 import os
 import pathlib
-import re
 import sys
 import typing
 import uuid
 from types import NoneType
-from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, Optional, TextIO
+from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, MutableMapping, Optional, TextIO
 from xml.etree import ElementTree
-
-_CONFIG = '_'
-_MATCH_TYPE = re.compile(r'__[.|\w]+__').fullmatch
 
 _T = typing.TypeVar('_T')
 _TIO = BinaryIO | TextIO
 _TPath = bytes | int | str | os.PathLike[bytes] | os.PathLike[str]
+
+_CONFIG = '_'
 
 
 @contextlib.contextmanager
@@ -45,15 +43,46 @@ def _open(path_or_file: _TPath | _TIO, write: bool = False, byte: bool = False,
             yield file
 
 
-def _is_type(obj) -> bool:
-    return isinstance(obj, list) and len(obj) == 2 and isinstance(
-        obj[0], str) and _MATCH_TYPE(obj[0]) and type(obj[1]) in (dict, list)
+def _configparser() -> configparser.ConfigParser:
+    parser = configparser.ConfigParser(allow_no_value=True)
+    parser.optionxform = str
+    return parser
+
+
+class _Config(dict[str, Any]):
+    def deepupdate(self: MutableMapping, other: Mapping):
+        for key, val in other.items():
+            if isinstance(val, MutableMapping):
+                self[key] = self.get(key, type(val)())
+                _Config.deepupdate(self[key], val)
+            else:
+                self[key] = val
+
+    def dump(self, path_or_file: _TPath | _TIO):
+        with _open(path_or_file, True) as file:
+            # noinspection PyTypeChecker
+            file.write(self.dumps())
+
+    def dumps(self) -> str:
+        stream = io.StringIO()
+        self.dump(stream)
+        return stream.getvalue()
+
+    def load(self, path_or_file: _TPath | _TIO):
+        with _open(path_or_file) as file:
+            # noinspection PyTypeChecker
+            self.loads(file.read())
+
+    def loads(self, data: str):
+        self.load(io.StringIO(data))
 
 
 def _dump_type(obj) -> str:
     type_ = type(obj)
-    return type_.__qualname__ if inspect.getmodule(
-        type_) is builtins else f'{type_.__module__}|{type_.__qualname__}'
+    name = type_.__qualname__
+    if inspect.getmodule(type_) is not builtins:
+        name = f'{type_.__module__}|{name}'
+    return name
 
 
 def _load_type(name: str) -> type:
@@ -61,9 +90,9 @@ def _load_type(name: str) -> type:
     type_ = sys.modules['builtins' if len(parts) == 1 else parts[0]]
     for part in parts[-1].split('.'):
         type_ = getattr(type_, part)
-    if isinstance(type_, type):
-        return type_
-    raise TypeError(f"Object '{type_!r}' is not a type")
+    if not isinstance(type_, type):
+        raise TypeError(f"Object '{type_!r}' is not a type")
+    return type_
 
 
 def _issubclass_namedtuple(type_: type) -> bool:
@@ -75,34 +104,22 @@ def _issubclass_namedtuple(type_: type) -> bool:
 
 def _dumper(data) -> Any:
     if dataclasses.is_dataclass(data):
-        return [f'__{_dump_type(data)}__', vars(data)]
+        # noinspection PyProtectedMember
+        return {JSONConfig._dump_type(data): data.__getstate__()}
     return data
 
 
 def _loader(data) -> Any:
-    if _is_type(data):
-        dunder = data[0]
-        type_ = _load_type(dunder[2:-2])
+    # noinspection PyProtectedMember
+    if (type_data := JSONConfig._load_type(data)) is not None:
+        type_, root = type_data
         if _issubclass_namedtuple(type_):
             # noinspection PyProtectedMember
-            return type_(*map(JSONConfig._load, data[1]))
+            return type_(*map(JSONConfig._load, root))
         elif dataclasses.is_dataclass(type_):
             # noinspection PyProtectedMember
-            return type_(**dict(map(JSONConfig._load_mapping, data[1].items())))
+            return type_(**dict(map(JSONConfig._load_mapping, root.items())))
     return data
-
-
-def _dumper_int(data) -> list[int]:
-    return [data.__int__()]
-
-
-def _dumper_str(data) -> list[str]:
-    return [data.__str__()]
-
-
-def _dumper_state(data) -> list:
-    # noinspection PyProtectedMember
-    return JSONConfig._dump(data.__getstate__())
 
 
 def _loader_arg(cls: type[_T], data: dict | list) -> _T:
@@ -124,90 +141,74 @@ def _loader_state(cls: type[_T], data: dict | list) -> _T:
     return self
 
 
-def _dumper_datetime(data) -> list[str]:
-    return [data.isoformat()]
-
-
 def _loader_datetime(type_: type[_T], data) -> _T:
-    return type_.fromisoformat(data[0])
-
-
-def _configparser() -> configparser.ConfigParser:
-    parser = configparser.ConfigParser(allow_no_value=True)
-    parser.optionxform = str
-    return parser
-
-
-class _Config(dict[str, Any]):
-    def dump(self, path_or_file: _TPath | _TIO):
-        with _open(path_or_file, True) as file:
-            # noinspection PyTypeChecker
-            file.write(self.dumps())
-
-    def dumps(self) -> str:
-        stream = io.StringIO()
-        self.dump(stream)
-        return stream.getvalue()
-
-    def load(self, path_or_file: _TPath | _TIO):
-        with _open(path_or_file) as file:
-            # noinspection PyTypeChecker
-            self.loads(file.read())
-
-    def loads(self, data: str):
-        self.load(io.StringIO(data))
+    return type_.fromisoformat(data)
 
 
 class JSONConfig(_Config):
+    TYPE_PREFIX = '$'
     DUMPERS: list[Callable[[Any], Any]] = [_dumper]
     LOADERS: list[Callable[[Any], Any]] = [_loader]
-    TYPE_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
+    # noinspection PyUnresolvedReferences
+    TYPE_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
         complex: lambda data: [data.real, data.imag],
-        ElementTree.QName: lambda data: [data.text],
-        array.array: lambda data: [data.typecode, *data],
-        collections.deque: lambda data: [data.maxlen, *data],
-        datetime.date: _dumper_datetime,
-        datetime.time: _dumper_datetime,
-        datetime.datetime: _dumper_datetime,
+        ElementTree.QName: lambda data: data.text,
+        array.array: lambda data: [data.typecode, data.tolist()],
+        collections.ChainMap: lambda data: data.maps,
+        collections.deque: lambda data: [list(data), data.maxlen],
+        datetime.date: datetime.date.isoformat,
+        datetime.time: datetime.time.isoformat,
+        datetime.datetime: datetime.datetime.isoformat,
         datetime.timedelta: lambda data: [
             data.days, data.seconds, data.microseconds],
-        decimal.Decimal: _dumper_str,
+        decimal.Decimal: decimal.Decimal.__str__,
         fractions.Fraction: lambda data: [data.numerator, data.denominator],
-        ipaddress.IPv4Address: _dumper_int,
-        ipaddress.IPv4Interface: _dumper_str,
-        ipaddress.IPv4Network: _dumper_str,
-        ipaddress.IPv6Address: _dumper_int,
-        ipaddress.IPv6Interface: _dumper_str,
-        ipaddress.IPv6Network: _dumper_str,
-        uuid.UUID: _dumper_state}
-    TYPE_LOADERS: dict[type[_T], Callable[[type[_T], dict | list], _T]] = {
+        ipaddress.IPv4Address: ipaddress.IPv4Address.__int__,
+        ipaddress.IPv4Interface: ipaddress.IPv4Interface.__str__,
+        ipaddress.IPv4Network: ipaddress.IPv4Network.__str__,
+        ipaddress.IPv6Address: ipaddress.IPv6Address.__int__,
+        ipaddress.IPv6Interface: ipaddress.IPv6Interface.__str__,
+        ipaddress.IPv6Network: ipaddress.IPv6Network.__str__,
+        uuid.UUID: uuid.UUID.__getstate__}
+    TYPE_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
         complex: _loader_args,
-        ElementTree.QName: _loader_args,
-        array.array: lambda _, data: array.array(next(it := iter(data)), it),
+        ElementTree.QName: _loader_arg,
+        array.array: _loader_args,
+        collections.ChainMap: _loader_args,
         collections.Counter: _loader_arg,
-        collections.deque: lambda _, data: collections.deque(
-            it := iter(data), next(it)),
+        collections.deque: _loader_args,
         datetime.date: _loader_datetime,
         datetime.time: _loader_datetime,
         datetime.datetime: _loader_datetime,
         datetime.timedelta: _loader_args,
-        decimal.Decimal: _loader_args,
+        decimal.Decimal: _loader_arg,
         fractions.Fraction: _loader_args,
-        ipaddress.IPv4Address: _loader_args,
-        ipaddress.IPv4Network: _loader_args,
-        ipaddress.IPv4Interface: _loader_args,
-        ipaddress.IPv6Address: _loader_args,
-        ipaddress.IPv6Interface: _loader_args,
-        ipaddress.IPv6Network: _loader_args,
+        ipaddress.IPv4Address: _loader_arg,
+        ipaddress.IPv4Network: _loader_arg,
+        ipaddress.IPv4Interface: _loader_arg,
+        ipaddress.IPv6Address: _loader_arg,
+        ipaddress.IPv6Interface: _loader_arg,
+        ipaddress.IPv6Network: _loader_arg,
         uuid.UUID: _loader_state}
-    TYPES_DUMPERS: dict[type[_T], Callable[[_T], dict | list]] = {
-        collections.UserString: lambda data: [data.data],
-        enum.Enum: lambda data: [data.value],
+    TYPES_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
+        collections.UserString: lambda data: data.data,
+        enum.Enum: lambda data: data.value,
         pathlib.PurePath: lambda data: list(data.parts)}
-    TYPES_LOADERS: dict[type[_T], Callable[[type[_T], dict | list], _T]] = {
-        collections.UserString: _loader_args,
-        enum.Enum: _loader_args,
+    TYPES_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
+        collections.UserString: _loader_arg,
+        enum.Enum: _loader_arg,
         pathlib.PurePath: _loader_args}
+
+    @classmethod
+    def _dump_type(cls, obj) -> str:
+        return f'{cls.TYPE_PREFIX}{_dump_type(obj)}'
+
+    @classmethod
+    def _load_type(cls, data) -> Optional[tuple[type, Any]]:
+        # noinspection PyUnboundLocalVariable
+        if isinstance(data, dict) and len(data) == 1 and isinstance(
+                name := next(iter(data)), str) and name.startswith(cls.TYPE_PREFIX):
+            return _load_type(name.removeprefix(cls.TYPE_PREFIX)), data[name]
 
     @classmethod
     def _dump(cls, root) -> Any:
@@ -228,13 +229,13 @@ class JSONConfig(_Config):
                 else:
                     break
         if dumper is not None:
-            return f'__{_dump_type(root)}__', cls._dump(dumper(root))
+            return {cls._dump_type(root): cls._dump(dumper(root))}
         elif issubclass(type_, (bool, float, int, str, NoneType)):
             return root
         elif issubclass(type_, Iterable):
             child = dict(map(cls._dump_mapping, root.items())) if issubclass(
                 type_, Mapping) else list(map(cls._dump, root))
-            return child if type_ in (dict, list) else (f'__{_dump_type(root)}__', child)
+            return child if type_ in (dict, list) else {cls._dump_type(root): child}
         else:
             raise TypeError(f"Node '{root!r}' is not JSON serializable")
 
@@ -244,8 +245,8 @@ class JSONConfig(_Config):
             root_ = loader_(root)
             if root_ is not root:
                 return cls._load(root_)
-        if _is_type(root):
-            type_ = _load_type(root[0][2:-2])
+        if (type_root := cls._load_type(root)) is not None:
+            type_, root_ = type_root
             loader = None
             try:
                 loader = cls.TYPE_LOADERS[type_]
@@ -258,11 +259,11 @@ class JSONConfig(_Config):
                     else:
                         break
             if loader is not None:
-                return loader(type_, cls._load(root[1]))
-            elif issubclass(type_, Mapping):
-                return type_(map(cls._load_mapping, root[1].items()))
+                return loader(type_, cls._load(root_))
             elif issubclass(type_, Iterable):
-                return type_(map(cls._load, root[1]))
+                # noinspection PyArgumentList
+                return type_(map(*(cls._load_mapping, root_.items()) if issubclass(
+                    type_, Mapping) else (cls._load, root_)))
             else:
                 raise TypeError(f"Node '{root!r}' is not JSON deserializable")
         elif isinstance(root, dict):
@@ -282,10 +283,10 @@ class JSONConfig(_Config):
 
     def dump(self, path_or_file: _TPath | TextIO, indent: Optional[int | str] = None):
         with _open(path_or_file, True) as file:
-            json.dump(self._dump(self)[1], file, indent=indent)
+            json.dump(self._dump(self)[self._dump_type(self)], file, indent=indent)
 
     def dumps(self, indent: Optional[int | str] = '\t') -> str:
-        return json.dumps(self._dump(self)[1], indent=indent)
+        return json.dumps(self._dump(self)[self._dump_type(self)], indent=indent)
 
     def loads(self, data: bytearray | AnyStr):
         self.update(self._load(json.loads(data)))
@@ -348,7 +349,7 @@ class XMLConfig(_Config):
         self.update(self._load(ElementTree.fromstring(data)))
 
 
-class FLATConfig(_Config):
+class INIConfig(_Config):
     SEPARATOR = '.'
 
     @classmethod
@@ -494,6 +495,7 @@ else:
             self.update(yaml.full_load(data))
 
 
+    # noinspection PyTypeChecker
     yaml.add_representer(YAMLConfig, yaml.representer.SafeRepresenter.represent_dict)
 
 Config = JSONConfig
