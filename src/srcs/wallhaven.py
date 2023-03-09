@@ -2,14 +2,15 @@ import colorsys
 import functools
 import os.path
 import re
-from typing import Callable, Iterator, Optional
+from typing import Callable, Iterator, Optional, TypedDict
 
+import fixer
 import gui
 import win32
 from libs import colornames, files, request
 from . import Source
 
-_COLOR_TEMPLATE = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
 URL_BASE = request.join('https://wallhaven.cc', 'api', 'v1')
 URL_SEARCH = request.join(URL_BASE, 'search')
@@ -36,7 +37,7 @@ COLORS = (
     '', '660000', '990000', 'cc0000', 'cc3333', 'ea4c88', '993399', '663399', '333399', '0066cc',
     '0099cc', '66cccc', '77cc33', '669900', '336600', '666600', '999900', 'cccc33', 'ffff00', 'ffcc33',
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
-CATEGORIES_PURITIES = re.compile('(?!000)[01]{3}')
+PATTERN_CATEGORY_PURITY = re.compile('(?!000)[01]{3}')
 
 
 def _on_color_right(_: int, item_color: gui.MenuItem):
@@ -51,6 +52,18 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     NAME = 'wallhaven'
     VERSION = '0.0.4'
     URL = 'https://wallhaven.cc'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_KEY: str,
+        'q': str,
+        CONFIG_CATEGORY: str,
+        CONFIG_PURITY: str,
+        CONFIG_SORTING: str,
+        CONFIG_ORDER: str,
+        CONFIG_RANGE: str,
+        'atleast': str,
+        'resolutions': str,
+        CONFIG_RATIO: str,
+        CONFIG_COLORS: str})
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',
@@ -65,64 +78,72 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         CONFIG_COLORS: COLORS[0]}
 
     @classmethod
-    def fix_config(cls):
-        if not CATEGORIES_PURITIES.fullmatch(cls.CURRENT_CONFIG[CONFIG_CATEGORY]):
-            cls.CURRENT_CONFIG[CONFIG_CATEGORY] = cls.DEFAULT_CONFIG[CONFIG_CATEGORY]
+    def fix_config(cls, saving: bool = False):
         if not cls.CURRENT_CONFIG[CONFIG_KEY]:
             cls.CURRENT_CONFIG[CONFIG_PURITY] = f'{cls.CURRENT_CONFIG[CONFIG_PURITY][:2]}0'
-        if not CATEGORIES_PURITIES.fullmatch(cls.CURRENT_CONFIG[CONFIG_PURITY]):
-            cls.CURRENT_CONFIG[CONFIG_PURITY] = cls.DEFAULT_CONFIG[CONFIG_PURITY]
-        cls._fix_config(CONFIG_SORTING, SORTINGS)
-        cls._fix_config(CONFIG_ORDER, ORDERS)
-        cls._fix_config(CONFIG_RANGE, RANGES)
-        for ratio in cls.CURRENT_CONFIG[CONFIG_RATIO].split(','):
-            if ratio not in RATIOS:
-                cls.CURRENT_CONFIG[CONFIG_RATIO] = cls.DEFAULT_CONFIG[CONFIG_RATIO]
-                break
-        cls._fix_config(CONFIG_COLORS, COLORS)
+        cls._fix_config(fixer.from_pattern, CONFIG_CATEGORY, PATTERN_CATEGORY_PURITY)
+        cls._fix_config(fixer.from_pattern, CONFIG_PURITY, PATTERN_CATEGORY_PURITY)
+        cls._fix_config(fixer.from_iterable, CONFIG_SORTING, SORTINGS)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(fixer.from_iterable, CONFIG_RANGE, RANGES)
+        cls._fix_config(fixer.from_joined_iterable, CONFIG_RATIO, RATIOS)
+        cls._fix_config(fixer.from_truthy, CONFIG_RATIO)
+        cls._fix_config(fixer.from_iterable, CONFIG_COLORS, COLORS)
 
     @classmethod
     def create_menu(cls):
-        menu_category = gui.add_submenu(cls.strings.WALLHAVEN_MENU_CATEGORY).get_submenu()
-        for index, category in enumerate(CATEGORIES):
-            gui.add_menu_item(getattr(cls.strings, f'WALLHAVEN_CATEGORY_{category}'),
-                              gui.MenuItemType.CHECK, cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
-                              on_click=functools.partial(cls._on_category, menu_category), menu=menu_category)
+        with gui.set_menu(menu_category := gui.add_submenu(
+                cls.strings.WALLHAVEN_MENU_CATEGORY).get_submenu()):
+            for index, category in enumerate(CATEGORIES):
+                gui.add_menu_item(getattr(
+                    cls.strings, f'WALLHAVEN_CATEGORY_{category}'), gui.MenuItemType.CHECK,
+                    cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
+                    on_click=functools.partial(cls._on_category, menu_category))
         cls._on_category(menu_category)
-        menu_purity = gui.add_submenu(cls.strings.WALLHAVEN_MENU_PURITY).get_submenu()
-        for index, purity in enumerate(PURITIES):
-            gui.add_menu_item(getattr(cls.strings, f'WALLHAVEN_PURITY_{purity}'),
-                              gui.MenuItemType.CHECK, cls.CURRENT_CONFIG[CONFIG_PURITY][index] == '1', uid=purity,
-                              on_click=functools.partial(cls._on_purity, menu_purity), menu=menu_purity)
+        with gui.set_menu(menu_purity := gui.add_submenu(cls.strings.WALLHAVEN_MENU_PURITY).get_submenu()):
+            for index, purity in enumerate(PURITIES):
+                gui.add_menu_item(getattr(
+                    cls.strings, f'WALLHAVEN_PURITY_{purity}'), gui.MenuItemType.CHECK,
+                    cls.CURRENT_CONFIG[CONFIG_PURITY][index] == '1',
+                    uid=purity, on_click=functools.partial(cls._on_purity, menu_purity))
         cls._on_purity(menu_purity)
         item_sorting = gui.add_submenu(cls.strings.WALLHAVEN_MENU_SORTING)
-        gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_ORDER, {order: getattr(
-            cls.strings, f'WALLHAVEN_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
-        enable_range = gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_RANGE, {range_: getattr(
-            cls.strings, f'WALLHAVEN_RANGE_{range_}') for range_ in RANGES}, cls.CURRENT_CONFIG, CONFIG_RANGE).enable
-        gui.add_mapped_submenu(item_sorting, {sorting: getattr(
-            cls.strings, f'WALLHAVEN_SORTING_{sorting}') for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
+        gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_ORDER, {
+            order: getattr(cls.strings, f'WALLHAVEN_ORDER_{order}')
+            for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+        enable_range = gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_RANGE, {
+            range_: getattr(cls.strings, f'WALLHAVEN_RANGE_{range_}')
+            for range_ in RANGES}, cls.CURRENT_CONFIG, CONFIG_RANGE).enable
+        gui.add_mapped_submenu(item_sorting, {
+            sorting: getattr(cls.strings, f'WALLHAVEN_SORTING_{sorting}')
+            for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
                                on_click=functools.partial(cls._on_sorting, enable_range))
         cls._on_sorting(enable_range, cls.CURRENT_CONFIG[CONFIG_SORTING])
         ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
-        menu_ratio = gui.add_submenu(cls.strings.WALLHAVEN_MENU_RATIO).get_submenu()
-        for ratio in RATIOS:
-            gui.add_menu_item(getattr(cls.strings, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
-                              uid=ratio, on_click=functools.partial(cls._on_ratio, menu_ratio), menu=menu_ratio)
+        with gui.set_menu(menu_ratio := gui.add_submenu(cls.strings.WALLHAVEN_MENU_RATIO).get_submenu()):
+            for ratio in RATIOS:
+                gui.add_menu_item(getattr(
+                    cls.strings, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
+                    uid=ratio, on_click=functools.partial(cls._on_ratio, menu_ratio))
+        cls._on_ratio(menu_ratio)
         gui.add_separator(6, menu_ratio)
-        colors = {color: colornames.get_nearest_color(color)[1] if color else cls.strings.WALLHAVEN_COLOR_ for color in COLORS}
+        colors = {color: colornames.get_nearest_color(color)[
+            1] if color else cls.strings.WALLHAVEN_COLOR_ for color in COLORS}
         for item, color in zip(gui.add_mapped_submenu(
-                cls.strings.WALLHAVEN_MENU_COLOR, colors, cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
+                cls.strings.WALLHAVEN_MENU_COLOR, colors,
+                cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
             if color:
                 rgb = colornames.hex_to_rgb(color)
                 srgb = tuple(c / 255 for c in rgb)
-                item.set_tooltip(_COLOR_TEMPLATE.format(colornames.format_cmyk(*colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(
-                    *srgb))), colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)), colornames.format_hls(
-                    *colorsys.rgb_to_hls(*srgb))), f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
+                item.set_tooltip(_TEMPLATE_COLOR.format(colornames.format_cmyk(
+                    *colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(*srgb))),
+                    colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)),
+                    colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),
+                    f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
                 item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
 
     @classmethod
-    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
         meta: dict[str, Optional[int | str]] = {
             'current_page': 1,
@@ -166,7 +187,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             if item.is_checked():
                 ratios.append(ratio)
         if len(ratios) == 1:
-            gui.get_menu_item_by_uid(ratios[0], menu=menu).enable(False)
+            gui.get_menu_item_by_uid(ratios[0], False, menu).enable(False)
         cls.CURRENT_CONFIG[CONFIG_RATIO] = ','.join(ratios)
 
     @classmethod

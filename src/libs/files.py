@@ -36,18 +36,28 @@ class File:
     def __eq__(self, other):
         return self.url == (other.url if isinstance(other, File) else other)
 
+    def _get_algorithms(self) -> dict[str, bytes]:
+        return {algorithm[1:]: hash_ for algorithm in self._algorithms if (
+            hash_ := getattr(self, algorithm)) is not None}
+
+    def asdict(self) -> dict[str, Any]:
+        result: dict = {'url': self.url, 'name': self.name}
+        if self.size:
+            result['size'] = self.size
+        result.update(self._get_algorithms())
+        return result
+
     def checksum(self, path: str) -> bool:
         if os.path.isfile(path):
-            for algorithm in self._algorithms:
-                if (hash_ := getattr(self, algorithm)) is not None:
-                    return checksum(path, hash_, algorithm[1:])
+            for algorithm, hash_ in self._get_algorithms().items():
+                return checksum(path, hash_, algorithm)
         return False
 
     def fill(self, path: str) -> bool:
         if os.path.isfile(path):
             if not self.size:
                 self.size = os.path.getsize(path)
-            for algorithm in self._algorithms:
+            for algorithm in self._algorithms:  # TODO _get_algorithms
                 if getattr(self, algorithm) is None:
                     setattr(self, algorithm, get_hash(path, algorithm[1:]).digest())
             return True
@@ -63,6 +73,18 @@ class ImageFile(File):
         self.width = width
         self.height = height
         self.nsfw = nsfw
+
+    def asdict(self) -> dict[str, Any]:
+        result = super().asdict()
+        if self.width:
+            result['width'] = self.width
+        if self.height:
+            result['height'] = self.height
+        if self.nsfw:
+            result['nsfw'] = self.nsfw
+        for algorithm in self._get_algorithms():
+            result[algorithm] = result.pop(algorithm)
+        return result
 
     def is_animated(self) -> bool:  # TODO
         return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')

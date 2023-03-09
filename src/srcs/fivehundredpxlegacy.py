@@ -1,6 +1,7 @@
 import functools
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import files, request
 from . import Source
@@ -32,6 +33,12 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
     VERSION = '0.0.1'
     ICON = 'png'
     URL = 'https://500px.com'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_FEATURE: str,
+        CONFIG_ONLY: str,
+        CONFIG_EXCLUDE: str,
+        CONFIG_SORT: str,
+        CONFIG_SORT_DIRECTION: str})
     DEFAULT_CONFIG = {
         CONFIG_FEATURE: FEATURES[4],
         CONFIG_ONLY: '',
@@ -42,16 +49,16 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
     _last_feature: str
 
     @classmethod
-    def fix_config(cls):
-        cls._fix_config(CONFIG_FEATURE, FEATURES)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_FEATURE, FEATURES)
+        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(fixer.from_iterable, CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)
         onlies = cls.CURRENT_CONFIG[CONFIG_ONLY].split(',')
         excludes = cls.CURRENT_CONFIG[CONFIG_EXCLUDE].split(',')
         cls.CURRENT_CONFIG[CONFIG_ONLY] = ','.join(
             category for category in onlies if category in CATEGORIES and category not in excludes)
         cls.CURRENT_CONFIG[CONFIG_EXCLUDE] = ','.join(
             category for category in excludes if category in CATEGORIES and category not in onlies)
-        cls._fix_config(CONFIG_SORT, SORTS)
-        cls._fix_config(CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)
 
     @classmethod
     def create_menu(cls):

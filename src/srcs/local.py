@@ -1,6 +1,7 @@
 import os.path
-from typing import Callable, Iterator, Optional
+from typing import Callable, Iterator, Optional, TypedDict
 
+import fixer
 import gui
 import win32
 from libs import files, request
@@ -25,18 +26,22 @@ class LocalFolder(Source):
     VERSION = '0.0.1'
     ICON = 'png'
     URL = request.from_path(win32.PICTURES_DIR)
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_DIR: str,
+        CONFIG_RECURSE: bool,
+        CONFIG_SORT: str,
+        CONFIG_ORDER: str})
     DEFAULT_CONFIG = {
         CONFIG_DIR: win32.PICTURES_DIR,
+        CONFIG_RECURSE: True,
         CONFIG_SORT: next(iter(SORTS)),
-        CONFIG_ORDER: ORDERS[0],
-        CONFIG_RECURSE: True}
+        CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
-    def fix_config(cls):
-        if not os.path.isdir(cls.CURRENT_CONFIG[CONFIG_DIR]):
-            cls.CURRENT_CONFIG[CONFIG_DIR] = cls.DEFAULT_CONFIG[CONFIG_DIR]
-        cls._fix_config(CONFIG_SORT, SORTS)
-        cls._fix_config(CONFIG_ORDER, ORDERS)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_disk, CONFIG_DIR, False)
+        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):

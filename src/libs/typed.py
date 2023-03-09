@@ -215,25 +215,27 @@ def is_typeddict(obj) -> bool:
     return _issubclass_typeddict(obj)
 
 
-def _update(self: MutableMapping, val, type_hint, callback, key):
+def _intersection_update(self: MutableMapping, val_, cls, callback, key):
     if key in self:
-        val_ = self[key]
-        if isinstance(val, Mapping):
-            if isinstance(val_, MutableMapping):
-                update_mapping(val_, val, type_hint, callback)
+        val = self[key]
+        if isinstance(val_, Mapping):
+            if isinstance(val, MutableMapping):
+                intersection_update(val, val_, cls, callback)
                 return
-        elif is_instance(val_, type_hint):
+        elif is_instance(val, cls):
             return
-    self[key] = callback(val)
+    self[key] = callback(val_)
 
 
-def update_mapping(self: MutableMapping, other: Mapping, cls,
-                   callback: Callable[[Any], Any] = copy.deepcopy):
+def intersection_update(self: MutableMapping, other: Mapping, cls,
+                        callback: Callable[[Any], Any] = copy.deepcopy):
     assert is_instance(other, cls)
     if _issubclass_typeddict(cls):
-        for key, type_hint in typing.get_type_hints(cls).items():
-            _update(self, other[key], type_hint, callback, key)
+        for key, cls_ in typing.get_type_hints(cls).items():
+            _intersection_update(self, other[key], cls_, callback, key)
     elif issubclass(typing.get_origin(cls), MutableMapping):
-        type_hint = typing.get_args(cls)[1]
+        cls_ = typing.get_args(cls)[1]
         for key, val in other.items():
-            _update(self, val, type_hint, callback, key)
+            _intersection_update(self, val, cls_, callback, key)
+    for key in self.keys() - other.keys():
+        del self[key]

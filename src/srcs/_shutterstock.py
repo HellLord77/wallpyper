@@ -1,4 +1,4 @@
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
 from libs import files, request
 from . import Source
@@ -41,6 +41,19 @@ def _authenticate(key: str, secret: str) -> bool:
 
 class ShutterStock(Source):  # https://api-reference.shutterstock.com
     NAME = '# shutterstock'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_KEY: str,
+        CONFIG_SECRET: str,
+        'query': str,
+        CONFIG_TYPE: tuple[str, str, str],
+        CONFIG_ORIENTATION: str,
+        CONFIG_COLOR: str,
+        CONFIG_PEOPLE: str,
+        CONFIG_AGE: str,
+        CONFIG_NUMBER: str,
+        CONFIG_LICENSE: tuple[str, str, str],
+        CONFIG_SAFE: str,
+        CONFIG_SORT: str})
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         CONFIG_SECRET: '',

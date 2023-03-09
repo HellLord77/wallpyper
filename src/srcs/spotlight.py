@@ -1,8 +1,9 @@
 import base64
 import json
 import os.path
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import files, isocodes, request
 from . import Source
@@ -21,14 +22,17 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
     VERSION = '0.0.1'
     ICON = 'png'
     URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_LOCALE: str,
+        CONFIG_ORIENTATION: str})
     DEFAULT_CONFIG = {
         CONFIG_LOCALE: LOCALES[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0]}
 
     @classmethod
-    def fix_config(cls):
-        cls._fix_config(CONFIG_LOCALE, LOCALES)
-        cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_LOCALE, LOCALES)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
     def create_menu(cls):
@@ -39,7 +43,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
                                cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod
-    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         items: Optional[list] = None
         params['pid'] = '209567'
         params['fmt'] = 'json'

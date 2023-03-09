@@ -1,12 +1,12 @@
 from __future__ import annotations as _
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 import os
-from typing import Any, Iterable, Iterator, Optional
+from typing import Any, Callable, Iterator, Optional, TypedDict
 
 import langs
-from libs import callables, files, utils
+from libs import callables, files
 
 SOURCES: dict[str, type[Source]] = {}
 
@@ -15,9 +15,10 @@ class Source:
     NAME: str = ''
     VERSION: str = '0.0.0'
     ICON: str = 'ico'
-    URL: str
-    DEFAULT_CONFIG: Optional[dict[str, Any]] = None
-    CURRENT_CONFIG: Optional[dict[str, Any]] = None
+    URL: str = ''
+    TCONFIG: type[dict] | type[TypedDict] = dict[str, Any]
+    DEFAULT_CONFIG: dict[str, Any] = None
+    CURRENT_CONFIG: dict[str, Any] = None
 
     strings = langs.DEFAULT
 
@@ -33,11 +34,11 @@ class Source:
         SOURCES[uid] = cls
 
     @classmethod
-    def _fix_config(cls, key: str, values: Iterable):
-        utils.fix_dict_key(cls.CURRENT_CONFIG, key, values, cls.DEFAULT_CONFIG)
+    def _fix_config(cls, fixer: Callable, key: str, *args, **kwargs) -> bool:
+        return fixer(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
 
     @classmethod
-    def fix_config(cls):
+    def fix_config(cls, saving: bool = False):
         pass
 
     @classmethod

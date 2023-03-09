@@ -1,7 +1,8 @@
 import functools
 import os
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import files, isocodes, request
 from . import Source
@@ -20,7 +21,8 @@ CONFIG_LOCALE = 'locale'
 ORIENTATIONS = '', 'landscape', 'portrait', 'square'
 SIZES = '', 'large', 'medium', 'small'
 COLORS = (
-    '', 'red', 'orange', 'yellow', 'green', 'turquoise', 'blue', 'violet', 'pink', 'brown', 'black', 'gray', 'white')
+    '', 'red', 'orange', 'yellow', 'green', 'turquoise',
+    'blue', 'violet', 'pink', 'brown', 'black', 'gray', 'white')
 LOCALES = (
     '', 'en-US', 'pt-BR', 'es-ES', 'ca-ES', 'de-DE', 'it-IT', 'fr-FR', 'sv-SE',
     'id-ID', 'pl-PL', 'ja-JP', 'zh-TW', 'zh-CN', 'ko-KR', 'th-TH', 'nl-NL', 'hu-HU', 'vi-VN',
@@ -38,6 +40,14 @@ def _authenticate(key: str) -> bool:
 class Pexels(Source):  # https://www.pexels.com/api/documentation
     VERSION = '0.0.2'
     URL = 'https://www.pexels.com'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_KEY: str,
+        CONFIG_CURATED: bool,
+        'query': str,
+        CONFIG_ORIENTATION: str,
+        CONFIG_SIZE: str,
+        CONFIG_COLOR: str,
+        CONFIG_LOCALE: str})
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         CONFIG_CURATED: False,
@@ -48,11 +58,11 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         CONFIG_LOCALE: LOCALES[0]}
 
     @classmethod
-    def fix_config(cls):
-        cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(CONFIG_SIZE, SIZES)
-        cls._fix_config(CONFIG_COLOR, COLORS)
-        cls._fix_config(CONFIG_LOCALE, LOCALES)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(fixer.from_iterable, CONFIG_SIZE, SIZES)
+        cls._fix_config(fixer.from_iterable, CONFIG_COLOR, COLORS)
+        cls._fix_config(fixer.from_iterable, CONFIG_LOCALE, LOCALES)
 
     @classmethod
     def create_menu(cls):

@@ -1,13 +1,9 @@
 import collections
-import configparser
 import contextlib
-import copy
-import enum
 import functools
 import itertools
 import multiprocessing
 import os.path
-import re
 import sys
 import sysconfig
 import tempfile
@@ -16,20 +12,21 @@ import time
 import traceback
 import uuid
 import webbrowser
-from typing import Callable, Iterable, NoReturn, Optional
+from typing import Callable, Iterable, NoReturn, Optional, TypedDict
 
 import consts
+import fixer
 import gui
 import langs
 import pipe
 import srcs
 import win32
-from libs import callables, easings, files, lens, log, pyinstall, request, singleton, spinners, timer, utils
+from libs import callables, config, easings, files, lens, log, pyinstall, request, singleton, spinners, timer, typed, utils
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
-CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.ini'
-# CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.ini')  # TODO
+CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
+# CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
@@ -51,6 +48,35 @@ TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
+TCONFIG = TypedDict('TCONFIG', {
+    consts.CONFIG_FIRST_RUN: bool,
+    consts.CONFIG_RECENT_IMAGES: str,
+    consts.CONFIG_ACTIVE_DISPLAY: str,
+    consts.CONFIG_ACTIVE_SOURCE: str,
+    consts.CONFIG_ANIMATE_ICON: bool,
+    consts.CONFIG_AUTOSTART: bool,
+    consts.CONFIG_AUTO_SAVE: bool,
+    consts.CONFIG_CHANGE_INTERVAL: int,
+    consts.CONFIG_CHANGE_START: bool,
+    consts.CONFIG_EASE_IN: bool,
+    consts.CONFIG_EASE_OUT: bool,
+    consts.CONFIG_FIT_STYLE: str,
+    consts.CONFIG_FLIP_HORIZONTAL: bool,
+    consts.CONFIG_FLIP_VERTICAL: bool,
+    consts.CONFIG_KEEP_CACHE: bool,
+    consts.CONFIG_KEEP_SETTINGS: bool,
+    consts.CONFIG_MAXIMIZED_ACTION: str,
+    consts.CONFIG_MENU_COLOR: str,
+    consts.CONFIG_NOTIFY_BLOCKED: bool,
+    consts.CONFIG_NOTIFY_ERROR: bool,
+    consts.CONFIG_REAPPLY_IMAGE: bool,
+    consts.CONFIG_RESTORE_IMAGE: bool,
+    consts.CONFIG_ROTATE_BY: str,
+    consts.CONFIG_SAVE_DIR: str,
+    consts.CONFIG_SKIP_RECENT: bool,
+    consts.CONFIG_TRANSITION_DURATION: float,
+    consts.CONFIG_TRANSITION_EASE: str,
+    consts.CONFIG_TRANSITION_STYLE: str})
 DEFAULT_CONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: f'\n{utils.encrypt(RECENT, split=True)}',
@@ -68,7 +94,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_FLIP_VERTICAL: False,
     consts.CONFIG_KEEP_CACHE: False,
     consts.CONFIG_KEEP_SETTINGS: False,
-    consts.CONFIG_MAX_ACTION: MAXIMIZED_ACTIONS[0],
+    consts.CONFIG_MAXIMIZED_ACTION: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_MENU_COLOR: win32.ColorMode.AUTO.name,
     consts.CONFIG_NOTIFY_BLOCKED: True,
     consts.CONFIG_NOTIFY_ERROR: True,
@@ -83,98 +109,56 @@ DEFAULT_CONFIG = {
 CURRENT_CONFIG = {}
 
 
-def validate_from_pattern(key, pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG):
-    val = CURRENT_CONFIG[key]
-    if re.fullmatch(pattern, val, flags) is not None:
-        return True
-    CURRENT_CONFIG[key] = DEFAULT_CONFIG[key]
-    return False
+# noinspection PyShadowingNames
+def _fix_config(fixer: Callable, key: str, *args, **kwargs) -> bool:
+    return fixer(CURRENT_CONFIG, DEFAULT_CONFIG, key, *args, **kwargs)
 
 
-def validate_from_iterable(key, iterable: Iterable, casefold: bool = True):
-    val = CURRENT_CONFIG[key]
-    if isinstance(val, str) and casefold:
-        val = val.casefold()
-        for item in iterable:
-            if val == item.casefold():
-                CURRENT_CONFIG[key] = item
-                return True
+def fix_config(saving: bool = False):
+    if saving:
+        CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = f'\n{utils.encrypt(RECENT, split=True)}'
     else:
-        if val in iterable:
-            return True
-    CURRENT_CONFIG[key] = DEFAULT_CONFIG[key]
-    return False
-
-
-# noinspection PyShadowingNames
-def validate_from_enum_names(key, enum: type[enum.Enum], casefold: bool = True):
-    return validate_from_iterable(key, (member.name for member in enum), casefold)
-
-
-# noinspection PyShadowingNames
-def validate_from_enum_values(key, enum: type[enum.Enum], casefold: bool = True):
-    return validate_from_iterable(key, (member.value for member in enum), casefold)
-
-
-def fix_config():
-    validate_from_iterable(consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
-    validate_from_iterable(consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
+        RECENT.extend(utils.decrypt(CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES], ()))
+    _fix_config(fixer.from_iterable, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
+    _fix_config(fixer.from_iterable, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
         name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
-    validate_from_iterable(consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
-    validate_from_enum_names(consts.CONFIG_FIT_STYLE, win32.display.Style)
-    validate_from_iterable(consts.CONFIG_MAX_ACTION, MAXIMIZED_ACTIONS)
-    validate_from_iterable(consts.CONFIG_MENU_COLOR, (
+    _fix_config(fixer.from_iterable, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
+    _fix_config(fixer.from_enum_names, consts.CONFIG_FIT_STYLE, win32.display.Style)
+    _fix_config(fixer.from_iterable, consts.CONFIG_MAXIMIZED_ACTION, MAXIMIZED_ACTIONS)
+    _fix_config(fixer.from_iterable, consts.CONFIG_MENU_COLOR, (
         color.name for color in itertools.islice(win32.ColorMode, 1, None)))
-    validate_from_enum_names(consts.CONFIG_ROTATE_BY, win32.display.Rotate)
-    validate_from_iterable(consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
-    validate_from_iterable(consts.CONFIG_TRANSITION_EASE, (
+    _fix_config(fixer.from_enum_names, consts.CONFIG_ROTATE_BY, win32.display.Rotate)
+    _fix_config(fixer.from_truthy, consts.CONFIG_SAVE_DIR)
+    _fix_config(fixer.from_iterable, consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
+    _fix_config(fixer.from_iterable, consts.CONFIG_TRANSITION_EASE, (
         ease.name for ease in itertools.islice(easings.Ease, None, 7)))
-    validate_from_enum_names(consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
-    if not CURRENT_CONFIG[consts.CONFIG_SAVE_DIR]:
-        CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = DEFAULT_CONFIG[consts.CONFIG_SAVE_DIR]
+    _fix_config(fixer.from_enum_names, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
 
 
-def _load_config(getters: dict[type, Callable[[str, str], str | int | float | bool | tuple | list | set]],
-                 section: str, config: dict[str, str | int | float | bool],
-                 default: dict[str, str | int | float | bool]) -> bool:
-    loaded = True
-    for option, value in default.items():
+def load_config():
+    json = config.JSONConfig()
+    if os.path.isfile(CONFIG_PATH):
         try:
-            config[option] = getters[type(value)](section, option)
-        except (ValueError, TypeError, configparser.NoSectionError, configparser.NoOptionError):
-            config[option] = copy.deepcopy(value)
-            loaded = False
-    return loaded
-
-
-def load_configs() -> bool:
-    parser = configparser.ConfigParser(
-        converters={tuple.__name__: utils.to_tuple, list.__name__: utils.to_list,
-                    set.__name__: utils.to_set, dict.__name__: utils.to_dict})
-    try:
-        loaded = bool(parser.read(CONFIG_PATH))
-    except configparser.MissingSectionHeaderError:
-        loaded = False
-    getters = {str: parser.get, int: parser.getint, float: parser.getfloat, bool: parser.getboolean,
-               tuple: parser.gettuple, list: parser.getlist, set: parser.getset, dict: parser.getdict}
+            json.load(CONFIG_PATH)
+        except BaseException as exc:
+            try_alert_error(exc, True)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-        loaded = _load_config(getters, name, source.CURRENT_CONFIG, source.DEFAULT_CONFIG) and loaded
+        current_config = json.get(name)
+        if isinstance(current_config, dict):
+            source.CURRENT_CONFIG.update(current_config)
+        typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
         source.fix_config()
-    RECENT.extend(utils.decrypt(CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES], ()))
-    return loaded
 
 
 def try_save_config(force: bool = False) -> bool:
-    CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = f'\n{utils.encrypt(RECENT, split=True)}'
     if force or CURRENT_CONFIG[consts.CONFIG_KEEP_SETTINGS]:
-        parser = configparser.ConfigParser()
+        json = config.JSONConfig()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-            source.fix_config()
-            if config := {option: source.CURRENT_CONFIG[option] for option, value in sorted(
+            source.fix_config(True)
+            if section := {option: source.CURRENT_CONFIG[option] for option, value in sorted(
                     source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[option] != value}:
-                parser[name] = config
-        with open(CONFIG_PATH, 'w') as file:
-            parser.write(file)
+                json[name] = section
+        json.dump(CONFIG_PATH, '\t')
         return os.path.isfile(CONFIG_PATH)
     return True
 
@@ -225,7 +209,7 @@ def on_shown(*_):
 
 
 def get_displays() -> Iterable[str]:
-    validate_from_iterable(consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
+    _fix_config(fixer.from_iterable, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == consts.ALL_DISPLAY else (
         CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY],)
 
@@ -370,15 +354,14 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
               image: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if auto_change:
-        if CURRENT_CONFIG[consts.CONFIG_MAX_ACTION] and all(win32.display.get_display_blockers(
-                *get_displays(), full_screen_only=True).values()):
+        if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != consts.MAXIMIZED_ACTION_IGNORE and all(
+                win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
             while CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
-                consts.CONFIG_MAX_ACTION] == consts.MAXIMIZED_ACTION_POSTPONE and all(
-                win32.display.get_display_blockers(
-                    *get_displays(), full_screen_only=True).values()):
+                consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_POSTPONE and \
+                    all(win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
                 time.sleep(consts.POLL_SLOW_SEC)
             if not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or \
-                    CURRENT_CONFIG[consts.CONFIG_MAX_ACTION] == consts.MAXIMIZED_ACTION_SKIP:
+                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_SKIP:
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
     if not changed and not change_wallpaper.is_running():
@@ -471,10 +454,10 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
                                               on_click=functools.partial(on_search, image.url),
                                               args=(gui.MenuItemProperty.UID,)).set_icon(
-                                RES_TEMPLATE.format(consts.RES_SEARCH_TEMPLATE.format(engine.name)))
+                                RES_TEMPLATE.format(consts.TEMPLATE_RES_SEARCH.format(engine.name)))
             item_image = menu.insert_item(index, utils.shrink_string(
                 image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
-                consts.RES_DIGIT_TEMPLATE.format(index + 1)), submenu=submenu)
+                consts.TEMPLATE_RES_DIGIT.format(index + 1)), submenu=submenu)
             item_image.set_tooltip(image.url, image.name, os.path.join(
                 TEMP_DIR, image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.url)
@@ -742,7 +725,7 @@ def create_menu():
                                    on_click=on_auto_change, icon=RES_TEMPLATE.format(consts.RES_INTERVAL))
             gui.add_mapped_submenu(STRINGS.MENU_IF_MAXIMIZED, {action: getattr(
                 STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CURRENT_CONFIG,
-                                   consts.CONFIG_MAX_ACTION, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
+                                   consts.CONFIG_MAXIMIZED_ACTION, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
             gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(
                 STRINGS.TOOLTIP_AUTO_SAVE)
@@ -829,7 +812,7 @@ def start():
     pyinstall.clean_temp()
     _update_display()
     sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
-    load_configs()
+    load_config()
     gui.init(consts.NAME)
     create_menu()
     gui.enable_animated_icon(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])

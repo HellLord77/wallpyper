@@ -1,7 +1,8 @@
 import functools
 import sys
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import files, request
 from . import Source
@@ -32,6 +33,15 @@ class Unsplash(Source):  # https://unsplash.com/documentation
     VERSION = '0.0.2'
     ICON = 'png'
     URL = 'https://unsplash.com'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_ID: str,
+        CONFIG_EDITORIAL: bool,
+        'query': str,
+        CONFIG_ORDER: str,
+        'collections': str,
+        CONFIG_FILTER: str,
+        CONFIG_COLOR: str,
+        CONFIG_ORIENTATION: str})
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
         CONFIG_EDITORIAL: True,
@@ -43,11 +53,11 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         CONFIG_ORIENTATION: ORIENTATIONS[0]}
 
     @classmethod
-    def fix_config(cls):
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_FILTER, FILTERS)
+        cls._fix_config(fixer.from_iterable, CONFIG_COLOR, COLORS)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_order()
-        cls._fix_config(CONFIG_FILTER, FILTERS)
-        cls._fix_config(CONFIG_COLOR, COLORS)
-        cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
     def create_menu(cls):
@@ -92,7 +102,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
     @classmethod
     def _fix_order(cls):
         cls.DEFAULT_CONFIG[CONFIG_ORDER] = ORDERS[0] if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_[1]
-        cls._fix_config(CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
 
     @classmethod
     def _on_editorial(cls, item_search: gui.MenuItem, menu_order: gui.Menu, editorial: bool):

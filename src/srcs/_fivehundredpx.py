@@ -1,9 +1,10 @@
 import functools
 import re
 import time
-from typing import Callable, Iterator, Optional
+from typing import Callable, Iterator, Optional, TypedDict
 
 import consts
+import fixer
 import gui
 import win32.browser
 from libs import files, minihtml, request, utils
@@ -12,11 +13,11 @@ from . import Source
 _TIMEOUT = 30
 _PATTERN = re.compile('^Elements__Image.*')
 
+CONFIG_NSFW = '_nsfw'
 CONFIG_CATEGORIES = 'categories'
 CONFIG_DISCOVER = 'discover'
-CONFIG_FOLLOWERS = 'followers'
+CONFIG_FOLLOWER = 'followers'
 CONFIG_SORT = 'sort'
-CONFIG_NSFW = '_nsfw'
 
 CATEGORIES = (
     '', 'abstract', 'aerial', 'animals', 'black+and+white', 'celebrities', 'city+%26+architecture',
@@ -44,20 +45,26 @@ def _on_category(menu: gui.Menu) -> tuple[str, ...]:
 class FiveHundredPx(Source):
     NAME = '# 500px'
     URL = 'https://500px.com'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_NSFW: bool,
+        CONFIG_CATEGORIES: str,
+        CONFIG_DISCOVER: str,
+        CONFIG_FOLLOWER: str,
+        CONFIG_SORT: str})
     DEFAULT_CONFIG = {
+        CONFIG_NSFW: False,
         CONFIG_CATEGORIES: CATEGORIES[0],
         CONFIG_DISCOVER: DISCOVERS[0],
-        CONFIG_FOLLOWERS: FOLLOWERS[0],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_NSFW: False}
+        CONFIG_FOLLOWER: FOLLOWERS[0],
+        CONFIG_SORT: SORTS[0]}
 
     @classmethod
-    def fix_config(cls):
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_DISCOVER, DISCOVERS)
+        cls._fix_config(fixer.from_iterable, CONFIG_FOLLOWER, FOLLOWERS)
+        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
         categories = tuple(category for category in cls.CURRENT_CONFIG[CONFIG_CATEGORIES].lower().split('-') if category in CATEGORIES)
         cls.CURRENT_CONFIG[CONFIG_CATEGORIES] = CATEGORIES[0] if CATEGORIES[0] in categories else '-'.join(categories)
-        cls._fix_config(CONFIG_DISCOVER, DISCOVERS)
-        cls._fix_config(CONFIG_FOLLOWERS, FOLLOWERS)
-        cls._fix_config(CONFIG_SORT, SORTS)
 
     @classmethod
     def create_menu(cls):
@@ -69,7 +76,7 @@ class FiveHundredPx(Source):
                     uid=category, on_click=functools.partial(cls._on_category, menu_category, ), args=(gui.MenuItemProperty.UID,))
         _on_category(menu_category)
         enable_follower = gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_FOLLOWER, {follower: getattr(
-            cls.strings, f'FIVEHUNDREDPX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWERS).enable
+            cls.strings, f'FIVEHUNDREDPX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWER).enable
         enable_sort = gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_SORT, {sort: getattr(
             cls.strings, f'FIVEHUNDREDPX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
         gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_DISCOVER, {discover: getattr(
@@ -101,7 +108,6 @@ class FiveHundredPx(Source):
                 if image:
                     utils.consume_ex(images_, image)
                 images = list(images_)
-                print(len(images))
             if not images:
                 yield
                 continue

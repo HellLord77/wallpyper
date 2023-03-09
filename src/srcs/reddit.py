@@ -2,8 +2,9 @@ import copy
 import functools
 import os.path
 import time
-from typing import Callable, Iterator, Optional
+from typing import Callable, Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import callables, files, request
 from . import Source
@@ -85,6 +86,14 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
     VERSION = '0.0.2'
     ICON = 'png'
     URL = 'https://reddit.com'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_ID: str,
+        CONFIG_ADULT: str,
+        CONFIG_ORIENTATION: str,
+        CONFIG_STATIC: bool,
+        CONFIG_SUBS: str,
+        CONFIG_SORT: str,
+        CONFIG_TIME: str})
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
         CONFIG_ADULT: ADULTS[1],
@@ -95,11 +104,11 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         CONFIG_TIME: TIMES[1]}
 
     @classmethod
-    def fix_config(cls):
-        cls._fix_config(CONFIG_ADULT, ADULTS)
-        cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(CONFIG_SORT, SORTS)
-        cls._fix_config(CONFIG_TIME, TIMES)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_ADULT, ADULTS)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(fixer.from_iterable, CONFIG_TIME, TIMES)
 
     @classmethod
     def create_menu(cls):

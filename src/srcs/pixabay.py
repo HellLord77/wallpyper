@@ -2,8 +2,9 @@ import functools
 import http
 import os.path
 import re
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import files, isocodes, request
 from . import Source
@@ -44,6 +45,17 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
     VERSION = '0.0.1'
     URL = 'https://pixabay.com'
     ICON = 'png'
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_KEY: str,
+        'q': str,
+        CONFIG_LANG: str,
+        CONFIG_TYPE: str,
+        CONFIG_ORIENTATION: str,
+        CONFIG_CATEGORY: str,
+        CONFIG_COLORS: str,
+        CONFIG_EDITOR: bool,
+        CONFIG_SAFE: bool,
+        CONFIG_ORDER: str})
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',
@@ -57,16 +69,13 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         CONFIG_ORDER: ORDERS[0]}
 
     @classmethod
-    def fix_config(cls):
-        cls._fix_config(CONFIG_LANG, LANGS)
-        cls._fix_config(CONFIG_TYPE, TYPES)
-        cls._fix_config(CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(CONFIG_CATEGORY, CATEGORIES)
-        for color in cls.CURRENT_CONFIG[CONFIG_COLORS].split(','):
-            if color not in COLORS:
-                cls.CURRENT_CONFIG[CONFIG_COLORS] = cls.DEFAULT_CONFIG[CONFIG_COLORS]
-                break
-        cls._fix_config(CONFIG_ORDER, ORDERS)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_LANG, LANGS)
+        cls._fix_config(fixer.from_iterable, CONFIG_TYPE, TYPES)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(fixer.from_iterable, CONFIG_CATEGORY, CATEGORIES)
+        cls._fix_config(fixer.from_joined_iterable, CONFIG_COLORS, COLORS)
+        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):
@@ -92,7 +101,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             cls.strings, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
-    def get_image(cls, **params: str) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         hits: Optional[list] = None
         params['page'] = '1'
         params['per_page'] = '200'

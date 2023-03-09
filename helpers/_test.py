@@ -19,7 +19,7 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, typed
+from libs import ctyped, config, typed, files
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 
@@ -579,19 +579,12 @@ def _test_inst():
 
 
 def _test():
-    td = TypedDict('td', {'a': int, 'b': list[int], 'c': dict[str, int]})
-    d1 = {'a': 1, 'b': [2, 3, 4], 'c': {'d': 5, 'e': 6}}
-    print(typed.is_instance(d1, td))
-    d2 = {'a': 1, 'b': [2, '3', 4], 'c': {'d': 5}}
-    print(typed.is_instance(d2, td))
-    typed.update_mapping(d2, d1, td)
-    print(d2)
-    print(typed.is_instance(d2, td))
+    fl = files.ImageFile('', '')
 
 
 if __name__ == '__main__':
     # _test_cfg()
-    _test_cfg_json()
+    # _test_cfg_json()
     # _test_inst()
-    # _test()
+    _test()
     sys.exit()

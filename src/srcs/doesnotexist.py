@@ -1,6 +1,7 @@
 import uuid
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TypedDict
 
+import fixer
 import gui
 from libs import files, request
 from . import Source
@@ -17,12 +18,14 @@ class ThisDoesNotExist(Source):
     VERSION = '0.0.1'
     ICON = 'jpg'
     URL = URL_BASE_TEMPLATE.format(VARIANTS[0])
+    TCONFIG = TypedDict('TCONFIG', {
+        CONFIG_VARIANT: str})
     DEFAULT_CONFIG = {
         CONFIG_VARIANT: VARIANTS[0]}
 
     @classmethod
-    def fix_config(cls):
-        cls._fix_config(CONFIG_VARIANT, VARIANTS)
+    def fix_config(cls, saving: bool = False):
+        cls._fix_config(fixer.from_iterable, CONFIG_VARIANT, VARIANTS)
 
     @classmethod
     def create_menu(cls):
