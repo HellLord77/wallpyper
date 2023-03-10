@@ -13,6 +13,10 @@ class _Property:
         self._getter = f'get_{name}'
         self._setter = f'put_{name}'
 
+    def __set_name__(self, owner: type[_Interface], name: str):
+        # TODO set_name, cached_property, merge setter/getter
+        pass
+
 
 class Getter(_Property):
     def __get__(self, instance: _Interface, owner: type[_Interface]):
