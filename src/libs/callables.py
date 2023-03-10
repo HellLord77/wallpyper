@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import collections
 import functools
@@ -10,7 +10,9 @@ import queue
 import threading
 import time
 import weakref
-from typing import Any, Callable, Iterator, NoReturn, Optional
+from typing import Any, Callable, Container, Iterator, NoReturn, Optional
+
+_TEMPLATE_THREAD_NAME = f'{__name__}-{__version__}-{{}}({{}})'
 
 
 def _get_params(args: tuple, kwargs: dict[str, Any]) -> Any:
@@ -55,46 +57,19 @@ class _RunningQueryable:
                 yield self
 
 
-class LastCacheCallable(_Callable):
-    _cache: Optional[tuple[Any, Any]] = None
+class SingletonCallable(_Callable, _RunningQueryable):
+    _run = False
 
     def __call__(self, *args, **kwargs) -> Any:
-        params = _get_params(args, kwargs)
-        if self._cache is None or self._cache[0] != params:
-            self._cache = params, self.__func__(*args, **kwargs)
-        return self._cache[1]
+        if not self._run:
+            self._run = True
+            try:
+                return self.__func__(*args, **kwargs)
+            finally:
+                self._run = False
 
-    def dumps(self) -> bytes:
-        return pickle.dumps(self._cache, pickle.HIGHEST_PROTOCOL)
-
-    def loads(self, data: bytes) -> bool:
-        try:
-            cache = pickle.loads(data)
-        except (AttributeError, ModuleNotFoundError, pickle.UnpicklingError):
-            return False
-        else:
-            self._cache = cache
-            return True
-
-    def reset(self) -> bool:
-        try:
-            return bool(self._cache)
-        finally:
-            self._cache = None
-
-
-class WeakCacheCallable(_Callable):
-    def __init__(self, func: Callable):
-        self._cache = weakref.WeakValueDictionary()
-        super().__init__(func)
-
-    def __call__(self, *args, **kwargs) -> Any:
-        params = _get_params(args, kwargs)
-        try:
-            res = self._cache[params]
-        except KeyError:
-            res = self._cache[params] = self.__func__(*args, **kwargs)
-        return res
+    def is_running(self) -> bool:
+        return bool(self._run)
 
 
 class OnceCallable(_Callable):
@@ -115,6 +90,38 @@ class OnceCallable(_Callable):
         return self._run
 
 
+class ThreadedCallable(_Callable):
+    _res = None
+
+    def __call__(self, *args, **kwargs):
+        threading.Thread(target=lambda: setattr(self, '_res', self.__func__(
+            *args, **kwargs)), name=_TEMPLATE_THREAD_NAME.format(
+            type(self).__name__, self.__func__.__name__)).start()
+
+    def get_result(self) -> Any:
+        return self._res
+
+
+class ReducedCallable(_Callable):
+    def __new__(cls, *args, **kwargs):
+        if args:
+            return super().__new__(cls)
+        else:
+            return functools.partial(cls, **kwargs)
+
+    def __init__(self, func: Callable,
+                 args: Container[int] = (), kwargs: Container[str] = ()):
+        self._args = args
+        self._kwargs = kwargs
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs) -> Any:
+        return self.__func__(*(arg for index, arg in enumerate(
+            args) if index not in self._args), **{
+            key: value for key, value in kwargs.items()
+            if key not in self._kwargs})
+
+
 class QueueCallable(_Callable, _RunningQueryable):
     def __init__(self, func: Callable):
         self._lock = threading.Lock()
@@ -133,8 +140,9 @@ class QueueThreadCallable(_Callable, _RunningQueryable):
 
     def __init__(self, func: Callable):
         self._works = queue.Queue()
-        threading.Thread(target=self._worker,
-                         name=f'{__name__}-{__version__}-{type(self).__name__}({func.__name__})', daemon=True).start()
+        threading.Thread(
+            target=self._worker, name=_TEMPLATE_THREAD_NAME.format(
+                type(self).__name__, func.__name__), daemon=True).start()
         super().__init__(func)
 
     def __call__(self, *args, **kwargs):
@@ -163,31 +171,46 @@ class QueueThreadCallable(_Callable, _RunningQueryable):
         return self._res
 
 
-class SingletonCallable(_Callable, _RunningQueryable):
-    _run = False
+class WeakCacheCallable(_Callable):
+    def __init__(self, func: Callable):
+        self._cache = weakref.WeakValueDictionary()
+        super().__init__(func)
 
     def __call__(self, *args, **kwargs) -> Any:
-        if not self._run:
-            self._run = True
-            try:
-                return self.__func__(*args, **kwargs)
-            finally:
-                self._run = False
-
-    def is_running(self) -> bool:
-        return bool(self._run)
+        params = _get_params(args, kwargs)
+        try:
+            res = self._cache[params]
+        except KeyError:
+            res = self._cache[params] = self.__func__(*args, **kwargs)
+        return res
 
 
-class ThreadedCallable(_Callable):
-    _res = None
+class LastCacheCallable(_Callable):
+    _cache: Optional[tuple[Any, Any]] = None
 
-    def __call__(self, *args, **kwargs):
-        threading.Thread(target=lambda: setattr(self, '_res', self.__func__(
-            *args, **kwargs)), name=f'{__name__}-{__version__}-{type(self).__name__}'
-                                    f'({self.__func__.__name__})').start()
+    def __call__(self, *args, **kwargs) -> Any:
+        params = _get_params(args, kwargs)
+        if self._cache is None or self._cache[0] != params:
+            self._cache = params, self.__func__(*args, **kwargs)
+        return self._cache[1]
 
-    def get_result(self) -> Any:
-        return self._res
+    def dumps(self) -> bytes:
+        return pickle.dumps(self._cache, pickle.HIGHEST_PROTOCOL)
+
+    def loads(self, data: bytes) -> bool:
+        try:
+            cache = pickle.loads(data)
+        except (AttributeError, ModuleNotFoundError, pickle.UnpicklingError):
+            return False
+        else:
+            self._cache = cache
+            return True
+
+    def reset(self) -> bool:
+        try:
+            return bool(self._cache)
+        finally:
+            self._cache = None
 
 
 class TimedCacheCallable(_Callable):
@@ -195,9 +218,10 @@ class TimedCacheCallable(_Callable):
         if args:
             return super().__new__(cls)
         else:
-            return functools.partial(cls, *args, **kwargs)
+            return functools.partial(cls, **kwargs)
 
-    def __init__(self, func: Callable, secs: float = math.inf, size: Optional[int] = None):
+    def __init__(self, func: Callable,
+                 secs: float = math.inf, size: Optional[int] = None):
         self._timeout = secs
         self._cache = collections.deque(maxlen=size)
         super().__init__(func)
@@ -215,7 +239,8 @@ class TimedCacheCallable(_Callable):
         for params_res_timeout_ in remove:
             self._cache.remove(params_res_timeout_)
         if params_res_timeout is None:
-            params_res_timeout = params, self.__func__(*args, **kwargs), current + self._timeout
+            params_res_timeout = params, self.__func__(
+                *args, **kwargs), current + self._timeout
             self._cache.append(params_res_timeout)
         return params_res_timeout[1]
 

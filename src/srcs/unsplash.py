@@ -2,8 +2,8 @@ import functools
 import sys
 from typing import Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 from libs import files, request
 from . import Source
 
@@ -54,9 +54,9 @@ class Unsplash(Source):  # https://unsplash.com/documentation
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_FILTER, FILTERS)
-        cls._fix_config(fixer.from_iterable, CONFIG_COLOR, COLORS)
-        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_FILTER, FILTERS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_COLOR, COLORS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_order()
 
     @classmethod
@@ -102,7 +102,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
     @classmethod
     def _fix_order(cls):
         cls.DEFAULT_CONFIG[CONFIG_ORDER] = ORDERS[0] if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_[1]
-        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
 
     @classmethod
     def _on_editorial(cls, item_search: gui.MenuItem, menu_order: gui.Menu, editorial: bool):

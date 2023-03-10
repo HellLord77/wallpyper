@@ -4,8 +4,8 @@ import os.path
 import re
 from typing import Callable, Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 import win32
 from libs import colornames, files, request
 from . import Source
@@ -79,16 +79,16 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
 
     @classmethod
     def fix_config(cls, saving: bool = False):
+        cls._fix_config(validator.ensure_pattern, CONFIG_CATEGORY, PATTERN_CATEGORY_PURITY)
+        cls._fix_config(validator.ensure_pattern, CONFIG_PURITY, PATTERN_CATEGORY_PURITY)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SORTING, SORTINGS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_RANGE, RANGES)
+        cls._fix_config(validator.ensure_joined_iterable, CONFIG_RATIO, RATIOS)
+        cls._fix_config(validator.ensure_truthy, CONFIG_RATIO)
+        cls._fix_config(validator.ensure_iterable, CONFIG_COLORS, COLORS)
         if not cls.CURRENT_CONFIG[CONFIG_KEY]:
             cls.CURRENT_CONFIG[CONFIG_PURITY] = f'{cls.CURRENT_CONFIG[CONFIG_PURITY][:2]}0'
-        cls._fix_config(fixer.from_pattern, CONFIG_CATEGORY, PATTERN_CATEGORY_PURITY)
-        cls._fix_config(fixer.from_pattern, CONFIG_PURITY, PATTERN_CATEGORY_PURITY)
-        cls._fix_config(fixer.from_iterable, CONFIG_SORTING, SORTINGS)
-        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS)
-        cls._fix_config(fixer.from_iterable, CONFIG_RANGE, RANGES)
-        cls._fix_config(fixer.from_joined_iterable, CONFIG_RATIO, RATIOS)
-        cls._fix_config(fixer.from_truthy, CONFIG_RATIO)
-        cls._fix_config(fixer.from_iterable, CONFIG_COLORS, COLORS)
 
     @classmethod
     def create_menu(cls):

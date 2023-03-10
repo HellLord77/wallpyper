@@ -1,8 +1,8 @@
 import functools
 from typing import Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 from libs import files, request
 from . import Source
 
@@ -50,9 +50,9 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_FEATURE, FEATURES)
-        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(fixer.from_iterable, CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_FEATURE, FEATURES)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SORT_DIRECTION, SORT_DIRECTIONS)
         onlies = cls.CURRENT_CONFIG[CONFIG_ONLY].split(',')
         excludes = cls.CURRENT_CONFIG[CONFIG_EXCLUDE].split(',')
         cls.CURRENT_CONFIG[CONFIG_ONLY] = ','.join(

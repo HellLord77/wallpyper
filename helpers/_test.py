@@ -2,12 +2,14 @@ from __future__ import annotations as _
 
 import array
 import collections.abc
+import contextlib
 import dataclasses
 import datetime
 import decimal
 import enum
 import fractions
 import ipaddress
+import os
 import pathlib
 import re
 import sys
@@ -19,9 +21,10 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, typed, files
+from libs import ctyped, config, typed
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
+from win32 import _utils
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -486,6 +489,7 @@ def _test_cfg_json():
         'uuid': {
             'UUID': uuid.uuid4()},
         'NoneType': None,
+        # 'EllipsisType': ...,
         'bytes': b'\x01\x02\x03\x04',
         'bytes_': b'',
         'str': 'A Test \'of\' the "JSONConfig"',
@@ -504,7 +508,9 @@ def _test_cfg_json():
         'set_': set(),
         'dict': {'a': 1, 'b': 2},
         'dict_': {},
+        'memoryview': memoryview(b'123'),
         'range': range(1, 10, 2),
+        'slice': slice(1, 10, 2),
         'nest': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
                  {'objs': [{'x': 1},
                            {'x': {
@@ -578,13 +584,18 @@ def _test_inst():
     print(typed.is_instance([1, 2, 3], Iterator[int]))
 
 
-def _test():
-    fl = files.ImageFile('', '')
-
+def _test_winrt():
+    src = r'D:\MMDs\洛天依  -  倾杯.mp4'
+    dst = r'D:\test.mp4'
+    try:
+        print(_utils.copy_file(src, dst, print))
+    finally:
+        with contextlib.suppress(BaseException):
+            os.remove(dst)
 
 if __name__ == '__main__':
     # _test_cfg()
-    # _test_cfg_json()
+    _test_cfg_json()
     # _test_inst()
-    _test()
+    # _test_winrt()
     sys.exit()

@@ -1,8 +1,8 @@
 import uuid
 from typing import Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 from libs import files, request
 from . import Source
 
@@ -25,7 +25,7 @@ class ThisDoesNotExist(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_VARIANT, VARIANTS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_VARIANT, VARIANTS)
 
     @classmethod
     def create_menu(cls):

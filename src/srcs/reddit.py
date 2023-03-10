@@ -4,8 +4,8 @@ import os.path
 import time
 from typing import Callable, Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 from libs import callables, files, request
 from . import Source
 
@@ -105,10 +105,10 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_ADULT, ADULTS)
-        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(fixer.from_iterable, CONFIG_TIME, TIMES)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ADULT, ADULTS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_TIME, TIMES)
 
     @classmethod
     def create_menu(cls):

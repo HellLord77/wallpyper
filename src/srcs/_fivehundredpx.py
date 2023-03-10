@@ -4,8 +4,8 @@ import time
 from typing import Callable, Iterator, Optional, TypedDict
 
 import consts
-import fixer
 import gui
+import validator
 import win32.browser
 from libs import files, minihtml, request, utils
 from . import Source
@@ -60,9 +60,9 @@ class FiveHundredPx(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_DISCOVER, DISCOVERS)
-        cls._fix_config(fixer.from_iterable, CONFIG_FOLLOWER, FOLLOWERS)
-        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_DISCOVER, DISCOVERS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_FOLLOWER, FOLLOWERS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
         categories = tuple(category for category in cls.CURRENT_CONFIG[CONFIG_CATEGORIES].lower().split('-') if category in CATEGORIES)
         cls.CURRENT_CONFIG[CONFIG_CATEGORIES] = CATEGORIES[0] if CATEGORIES[0] in categories else '-'.join(categories)
 

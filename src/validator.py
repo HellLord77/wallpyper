@@ -4,7 +4,7 @@ import re
 from typing import Iterable
 
 
-def from_truthy(current: dict, default: dict, key: str) -> bool:
+def ensure_truthy(current: dict, default: dict, key: str) -> bool:
     val = current[key]
     if val:
         return True
@@ -12,8 +12,18 @@ def from_truthy(current: dict, default: dict, key: str) -> bool:
     return False
 
 
-def from_pattern(current: dict, default: dict, key: str,
-                 pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG) -> bool:
+# noinspection PyShadowingBuiltins
+def ensure_max_len(current: dict, default: dict, key: str,
+                   max: int, trunc: bool = True, left: bool = True) -> bool:
+    val = current[key]
+    if max >= len(val):
+        return True
+    current[key] = val[slice(max) if left else slice(-max, None)] if trunc else default[key]
+    return False
+
+
+def ensure_pattern(current: dict, default: dict, key: str,
+                   pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG) -> bool:
     val = current[key]
     if re.fullmatch(pattern, val, flags) is not None:
         return True
@@ -21,8 +31,8 @@ def from_pattern(current: dict, default: dict, key: str,
     return False
 
 
-def from_iterable(current: dict, default: dict, key: str,
-                  iterable: Iterable, casefold: bool = True) -> bool:
+def ensure_iterable(current: dict, default: dict, key: str,
+                    iterable: Iterable, casefold: bool = True) -> bool:
     val = current[key]
     if isinstance(val, str) and casefold:
         val = val.casefold()
@@ -38,19 +48,13 @@ def from_iterable(current: dict, default: dict, key: str,
 
 
 # noinspection PyShadowingNames
-def from_enum_names(current: dict, default: dict, key: str,
-                    enum: type[enum.Enum], casefold: bool = True) -> bool:
-    return from_iterable(current, default, key, (member.name for member in enum), casefold)
+def ensure_enum_names(current: dict, default: dict, key: str,
+                      enum: type[enum.Enum], casefold: bool = True) -> bool:
+    return ensure_iterable(current, default, key, (member.name for member in enum), casefold)
 
 
-# noinspection PyShadowingNames
-def from_enum_values(current: dict, default: dict, key: str,
-                     enum: type[enum.Enum], casefold: bool = True) -> bool:
-    return from_iterable(current, default, key, (member.value for member in enum), casefold)
-
-
-def from_joined_iterable(current: dict, _: dict, key: str,
-                         iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
+def ensure_joined_iterable(current: dict, _: dict, key: str,
+                           iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
     val = current[key]
     iterable = tuple(iterable)
     if casefold:
@@ -72,8 +76,8 @@ def from_joined_iterable(current: dict, _: dict, key: str,
 
 
 # noinspection PyShadowingBuiltins
-def from_disk(current: dict, default: dict, key: str,
-              file: bool = True, dir: bool = True) -> bool:
+def ensure_disk(current: dict, default: dict, key: str,
+                file: bool = True, dir: bool = True) -> bool:
     val = current[key]
     if val:
         val = os.path.realpath(val)

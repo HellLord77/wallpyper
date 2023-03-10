@@ -34,8 +34,8 @@ class Source:
         SOURCES[uid] = cls
 
     @classmethod
-    def _fix_config(cls, fixer: Callable, key: str, *args, **kwargs) -> bool:
-        return fixer(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
+    def _fix_config(cls, validator: Callable, key: str, *args, **kwargs) -> bool:
+        return validator(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
 
     @classmethod
     def fix_config(cls, saving: bool = False):

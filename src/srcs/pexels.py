@@ -2,8 +2,8 @@ import functools
 import os
 from typing import Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 from libs import files, isocodes, request
 from . import Source
 
@@ -59,10 +59,10 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(fixer.from_iterable, CONFIG_SIZE, SIZES)
-        cls._fix_config(fixer.from_iterable, CONFIG_COLOR, COLORS)
-        cls._fix_config(fixer.from_iterable, CONFIG_LOCALE, LOCALES)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SIZE, SIZES)
+        cls._fix_config(validator.ensure_iterable, CONFIG_COLOR, COLORS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_LOCALE, LOCALES)
 
     @classmethod
     def create_menu(cls):

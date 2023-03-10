@@ -4,8 +4,8 @@ import os.path
 import re
 from typing import Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 from libs import files, isocodes, request
 from . import Source
 
@@ -70,12 +70,12 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_iterable, CONFIG_LANG, LANGS)
-        cls._fix_config(fixer.from_iterable, CONFIG_TYPE, TYPES)
-        cls._fix_config(fixer.from_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(fixer.from_iterable, CONFIG_CATEGORY, CATEGORIES)
-        cls._fix_config(fixer.from_joined_iterable, CONFIG_COLORS, COLORS)
-        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_LANG, LANGS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_TYPE, TYPES)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_CATEGORY, CATEGORIES)
+        cls._fix_config(validator.ensure_joined_iterable, CONFIG_COLORS, COLORS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):

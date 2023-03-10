@@ -1,8 +1,8 @@
 import os.path
 from typing import Callable, Iterator, Optional, TypedDict
 
-import fixer
 import gui
+import validator
 import win32
 from libs import files, request
 from . import Source
@@ -39,9 +39,9 @@ class LocalFolder(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(fixer.from_disk, CONFIG_DIR, False)
-        cls._fix_config(fixer.from_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(fixer.from_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_disk, CONFIG_DIR, False)
+        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):

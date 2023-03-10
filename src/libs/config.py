@@ -115,19 +115,19 @@ def _loader(data) -> Any:
     return data
 
 
-def _loader_arg(cls: type[_T], data: dict | list) -> _T:
+def _loader_arg(cls: type[_T], data) -> _T:
     return cls(data)
 
 
-def _loader_args(cls: type[_T], data: dict | list) -> _T:
+def _loader_args(cls: type[_T], data) -> _T:
     return cls(*data)
 
 
-def _loader_kwargs(cls: type[_T], data: dict | list) -> _T:
+def _loader_kwargs(cls: type[_T], data) -> _T:
     return cls(**data)
 
 
-def _loader_state(cls: type[_T], data: dict | list) -> _T:
+def _loader_state(cls: type[_T], data) -> _T:
     self = cls.__new__(cls)
     # noinspection PyProtectedMember
     self.__setstate__(JSONConfig._load(data))
@@ -146,6 +146,7 @@ class JSONConfig(_Config):
     TYPE_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
         complex: lambda data: [data.real, data.imag],
         range: lambda data: [data.start, data.stop, data.step],
+        slice: lambda data: [data.start, data.stop, data.step],
         ElementTree.QName: operator.attrgetter('text'),
         array.array: lambda data: [data.typecode, data.tolist()],
         collections.ChainMap: operator.attrgetter('maps'),
@@ -167,7 +168,9 @@ class JSONConfig(_Config):
         uuid.UUID: uuid.UUID.__getstate__}
     TYPE_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
         complex: _loader_args,
+        memoryview: lambda _, data: memoryview(bytes(data)),
         range: _loader_args,
+        slice: _loader_args,
         ElementTree.QName: _loader_arg,
         array.array: _loader_args,
         collections.ChainMap: _loader_args,

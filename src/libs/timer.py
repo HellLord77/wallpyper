@@ -1,4 +1,4 @@
-__version__ = '0.0.6'  # TODO revamp
+__version__ = '0.0.6'  # TODO remove (?)
 
 import contextlib
 import ctypes

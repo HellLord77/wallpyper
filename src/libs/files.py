@@ -1,6 +1,9 @@
-__version__ = '0.0.14'
+from __future__ import annotations as _
+
+__version__ = '0.0.15'
 
 import contextlib
+import dataclasses
 import filecmp
 import glob
 import hashlib
@@ -18,61 +21,79 @@ MAX_CHUNK = shutil.COPY_BUFSIZE
 POLL_INTERVAL = 0.1
 
 
+@dataclasses.dataclass
 class File:
-    __slots__ = 'url', 'name', 'size', '_sha256', '_md5'
-    _algorithms = {f'_{algorithm}' for algorithm in hashlib.algorithms_available}.intersection(__slots__)
+    url: str
+    name: str
+    size: int = 0
+    sha256: bytes = dataclasses.field(default=b'', repr=False, kw_only=True)
+    md5: bytes = dataclasses.field(default=b'', repr=False, kw_only=True)
 
-    def __init__(self, url: str, name: str, size: int = 0, *,
-                 sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
-        self.url = url
-        self.name = name
-        self.size = size
-        self._sha256 = sha256
-        self._md5 = md5
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        cls.__hash__ = cls.__hash__
+        cls.__eq__ = cls.__eq__
 
     def __hash__(self):
         return hash(self.url)
 
     def __eq__(self, other):
-        return self.url == (other.url if isinstance(other, File) else other)
+        if isinstance(other, File):
+            return self.url == other.url
+        return NotImplemented
 
-    def _get_algorithms(self) -> dict[str, bytes]:
-        return {algorithm[1:]: hash_ for algorithm in self._algorithms if (
-            hash_ := getattr(self, algorithm)) is not None}
+    def _iter_hashes(self) -> Iterable[tuple[str, bytes]]:
+        for algorithm in hashlib.algorithms_available:
+            if hash_ := getattr(self, algorithm, None):
+                yield algorithm, hash_
 
     def asdict(self) -> dict[str, Any]:
         result: dict = {'url': self.url, 'name': self.name}
         if self.size:
             result['size'] = self.size
-        result.update(self._get_algorithms())
+        result.update(self._iter_hashes())
         return result
 
+    def checksize(self, path: str) -> bool:
+        if self.size:
+            try:
+                return self.size == os.path.getsize(path)
+            except OSError:
+                pass
+        return False
+
     def checksum(self, path: str) -> bool:
-        if os.path.isfile(path):
-            for algorithm, hash_ in self._get_algorithms().items():
+        for algorithm, hash_ in self._iter_hashes():
+            try:
                 return checksum(path, hash_, algorithm)
+            except OSError:
+                break
         return False
 
     def fill(self, path: str) -> bool:
-        if os.path.isfile(path):
-            if not self.size:
+        if not self.size:
+            try:
                 self.size = os.path.getsize(path)
-            for algorithm in self._algorithms:  # TODO _get_algorithms
-                if getattr(self, algorithm) is None:
-                    setattr(self, algorithm, get_hash(path, algorithm[1:]).digest())
-            return True
-        return False
+            except OSError:
+                return False
+        if not any(self._iter_hashes()):
+            for algorithm in hashlib.algorithms_available:
+                if getattr(self, algorithm, None) == b'':
+                    try:
+                        hash_ = get_hash(path, algorithm)
+                    except OSError:
+                        return False
+                    else:
+                        setattr(self, algorithm, hash_.digest())
+                        break
+        return True
 
 
+@dataclasses.dataclass
 class ImageFile(File):
-    __slots__ = 'width', 'height', 'nsfw'
-
-    def __init__(self, url: str, name: str, size: int = 0, width: int = 0, height: int = 0,
-                 nsfw: bool = False, *, sha256: Optional[bytes] = None, md5: Optional[bytes] = None):
-        super().__init__(url, name, size, sha256=sha256, md5=md5)
-        self.width = width
-        self.height = height
-        self.nsfw = nsfw
+    width: int = 0
+    height: int = 0
+    nsfw: bool = False
 
     def asdict(self) -> dict[str, Any]:
         result = super().asdict()
@@ -82,7 +103,7 @@ class ImageFile(File):
             result['height'] = self.height
         if self.nsfw:
             result['nsfw'] = self.nsfw
-        for algorithm in self._get_algorithms():
+        for algorithm, _ in self._iter_hashes():
             result[algorithm] = result.pop(algorithm)
         return result
 
