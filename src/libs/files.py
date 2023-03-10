@@ -26,13 +26,18 @@ class File:
     url: str
     name: str
     size: int = 0
-    sha256: bytes = dataclasses.field(default=b'', repr=False, kw_only=True)
-    md5: bytes = dataclasses.field(default=b'', repr=False, kw_only=True)
+    sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
+    md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
 
     def __init_subclass__(cls):
         super().__init_subclass__()
         cls.__hash__ = cls.__hash__
         cls.__eq__ = cls.__eq__
+
+    def __post_init__(self):
+        for algorithm, hash_ in self._iter_hashes():
+            if isinstance(hash_, str):
+                setattr(self, algorithm, bytes.fromhex(hash_))
 
     def __hash__(self):
         return hash(self.url)
@@ -44,14 +49,20 @@ class File:
 
     def _iter_hashes(self) -> Iterable[tuple[str, bytes]]:
         for algorithm in hashlib.algorithms_available:
-            if hash_ := getattr(self, algorithm, None):
+            if hasattr(self, algorithm):
+                yield algorithm, getattr(self, algorithm)
+
+    def _iter_filled_hashes(self) -> Iterable[tuple[str, bytes]]:
+        for algorithm, hash_ in self._iter_hashes():
+            if hash_:
                 yield algorithm, hash_
 
     def asdict(self) -> dict[str, Any]:
         result: dict = {'url': self.url, 'name': self.name}
         if self.size:
             result['size'] = self.size
-        result.update(self._iter_hashes())
+        for algorithm, hash_ in self._iter_filled_hashes():
+            result[algorithm] = ''.join(f'{b:02x}' for b in hash_)
         return result
 
     def checksize(self, path: str) -> bool:
@@ -63,7 +74,7 @@ class File:
         return False
 
     def checksum(self, path: str) -> bool:
-        for algorithm, hash_ in self._iter_hashes():
+        for algorithm, hash_ in self._iter_filled_hashes():
             try:
                 return checksum(path, hash_, algorithm)
             except OSError:
@@ -76,9 +87,9 @@ class File:
                 self.size = os.path.getsize(path)
             except OSError:
                 return False
-        if not any(self._iter_hashes()):
-            for algorithm in hashlib.algorithms_available:
-                if getattr(self, algorithm, None) == b'':
+        if not any(self._iter_filled_hashes()):
+            for algorithm, hash_ in self._iter_hashes():
+                if not hash_:
                     try:
                         hash_ = get_hash(path, algorithm)
                     except OSError:
@@ -103,7 +114,7 @@ class ImageFile(File):
             result['height'] = self.height
         if self.nsfw:
             result['nsfw'] = self.nsfw
-        for algorithm, _ in self._iter_hashes():
+        for algorithm, _ in self._iter_filled_hashes():
             result[algorithm] = result.pop(algorithm)
         return result
 
@@ -118,6 +129,8 @@ class ImageFile(File):
 
 
 def replace_ext(path: str, ext: str) -> str:
+    if ext.startswith('.'):
+        ext = ext[1:]
     return f'{os.path.splitext(path)[0]}.{ext}'
 
 

@@ -50,7 +50,7 @@ PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uui
 
 TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_FIRST_RUN: bool,
-    consts.CONFIG_RECENT_IMAGES: str,
+    consts.CONFIG_RECENT_IMAGES: list[typed.type_dataclass_asdict(files.ImageFile)],
     consts.CONFIG_ACTIVE_DISPLAY: str,
     consts.CONFIG_ACTIVE_SOURCE: str,
     consts.CONFIG_ANIMATE_ICON: bool,
@@ -79,7 +79,7 @@ TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_TRANSITION_STYLE: str})
 DEFAULT_CONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
-    consts.CONFIG_RECENT_IMAGES: f'\n{utils.encrypt(RECENT, split=True)}',
+    consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
     consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
     consts.CONFIG_ANIMATE_ICON: True,
@@ -115,10 +115,7 @@ def _fix_config(validator: Callable, key: str, *args, **kwargs) -> bool:
 
 
 def fix_config(saving: bool = False):
-    if saving:
-        CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = f'\n{utils.encrypt(RECENT, split=True)}'
-    else:
-        RECENT.extend(utils.decrypt(CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES], ()))
+    _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, left=False)
     _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
         name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
@@ -133,6 +130,10 @@ def fix_config(saving: bool = False):
     _fix_config(validator.ensure_iterable, consts.CONFIG_TRANSITION_EASE, (
         ease.name for ease in itertools.islice(easings.Ease, None, 7)))
     _fix_config(validator.ensure_enum_names, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
+    if saving:
+        CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
+    else:
+        RECENT.extend(files.ImageFile(**kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])
 
 
 def create_menu():
@@ -792,7 +793,7 @@ def on_quit():
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
     if threading.active_count() > max_threads:
         gui.try_animate_icon(STRINGS.STATUS_QUIT).__enter__()
-        try_show_notification(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT)
+        try_show_notification(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT, force=True)
         end_time = time.monotonic() + win32.get_max_shutdown_time()
         while end_time > time.monotonic() and threading.active_count() > max_threads:
             time.sleep(consts.POLL_FAST_SEC)

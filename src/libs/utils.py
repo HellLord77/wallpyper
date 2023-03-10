@@ -276,6 +276,10 @@ def to_tuple(string: str) -> tuple:
     return _to_type(string, tuple)
 
 
+def hexdigest(digest: bytes) -> str:
+    return ''.join(f'{byte:02x}' for byte in digest)
+
+
 def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
     if current < 0:
         current = 0

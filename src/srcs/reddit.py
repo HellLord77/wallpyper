@@ -148,7 +148,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
             data = children.pop(0)['data']
             url_child = data['url']
             source = data['preview']['images'][0]['source']
-            yield files.ImageFile(url_child, f'{data["title"]}{os.path.splitext(url_child)[1]}',
+            yield files.ImageFile(url_child, files.replace_ext(data["title"], os.path.splitext(url_child)[1]),
                                   width=source['width'], height=source['height'], nsfw=data['over_18'])
 
     @classmethod

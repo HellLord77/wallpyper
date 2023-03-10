@@ -21,7 +21,7 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, typed
+from libs import ctyped, config, typed, files
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 from win32 import _utils
@@ -542,46 +542,46 @@ class CT(tuple):
 
 def _test_inst():
     lst = [1, 2, 3]
-    print(typed.is_instance(lst, list[int]))
+    print(typed.isinstance_ex(lst, list[int]))
     tp = list[tuple[int] | list[str]]
-    print(typed.is_instance([(1,), (2,), ['3']], tp))
+    print(typed.isinstance_ex([(1,), (2,), ['3']], tp))
     ct = CT((1, 2, 3))
-    print(typed.is_instance(ct, CT[int, int, int]))
+    print(typed.isinstance_ex(ct, CT[int, int, int]))
     tp2 = Mapping[str, int]
-    print(typed.is_instance({'d': 2}, tp2))
+    print(typed.isinstance_ex({'d': 2}, tp2))
     tp3 = dict[str, int]
-    print(typed.is_instance({'d': 6}, tp3))
+    print(typed.isinstance_ex({'d': 6}, tp3))
     tp4 = Tuple[int, str]
-    print(typed.is_instance((2, '2'), tp4))
+    print(typed.isinstance_ex((2, '2'), tp4))
     d: dict[int, str] = {1: '1'}
     i = d.items()
-    print('ItemsView', typed.is_instance(i, ItemsView[int, str]))
+    print('ItemsView', typed.isinstance_ex(i, ItemsView[int, str]))
     tp5 = str | NoneType
-    print(typed.is_instance(None, tp5))
+    print(typed.isinstance_ex(None, tp5))
     tp6 = Optional[str]
-    print(typed.is_instance(None, tp6))
+    print(typed.isinstance_ex(None, tp6))
     td = TD(a=1, b='2')
-    print(typed.is_instance(td, TD))
+    print(typed.isinstance_ex(td, TD))
     nt = TNT(1, 2, 3, NT(4, 5, 6))
-    print(typed.is_instance(nt, TNT))
+    print(typed.isinstance_ex(nt, TNT))
     nnt = 1, 2, 3
-    print('nnt', typed.is_instance(nnt, TNT))
+    print('nnt', typed.isinstance_ex(nnt, TNT))
     tp = tuple[int, ...]
-    print(typed.is_instance((1, 2, 3), tp))
+    print(typed.isinstance_ex((1, 2, 3), tp))
     ltt = Literal[1, 2, 3]
-    print('Literal', typed.is_instance(1, ltt))
-    print('Literal', typed.is_instance('2', ltt))
+    print('Literal', typed.isinstance_ex(1, ltt))
+    print('Literal', typed.isinstance_ex('2', ltt))
     minitd = TypedDict('minitd', {'a': int, 'b': str})
-    print('TypedDict', typed.is_instance(td, minitd))
-    print('TypedDict', typed.is_instance({}, minitd))
-    print(typed.is_instance(TD2(a=1, b='2'), TD2))
+    print('TypedDict', typed.isinstance_ex(td, minitd))
+    print('TypedDict', typed.isinstance_ex({}, minitd))
+    print(typed.isinstance_ex(TD2(a=1, b='2'), TD2))
     # print(typed.is_instance(v, Callable[[int], float]))
-    print(typed.is_instance([{'x': 3}], List[Dict[str, int]]))
-    print(typed.is_instance([{'x': 3}, {'y': 7.5}], List[Dict[str, int]]))
-    print(typed.is_instance([{'x': 3}], list[dict[str, int]]))
-    print(typed.is_instance([{'x': 3}, {'y': 7.5}], list[dict[str, int]]))
-    print(typed.is_instance(iter([1, 2, 3]), Iterator[int]))
-    print(typed.is_instance([1, 2, 3], Iterator[int]))
+    print(typed.isinstance_ex([{'x': 3}], List[Dict[str, int]]))
+    print(typed.isinstance_ex([{'x': 3}, {'y': 7.5}], List[Dict[str, int]]))
+    print(typed.isinstance_ex([{'x': 3}], list[dict[str, int]]))
+    print(typed.isinstance_ex([{'x': 3}, {'y': 7.5}], list[dict[str, int]]))
+    print(typed.isinstance_ex(iter([1, 2, 3]), Iterator[int]))
+    print(typed.isinstance_ex([1, 2, 3], Iterator[int]))
 
 
 def _test_winrt():
@@ -593,9 +593,19 @@ def _test_winrt():
         with contextlib.suppress(BaseException):
             os.remove(dst)
 
+
+def _test():
+    # print(typing.get_type_hints(files.ImageFile))
+    print(typed.type_ex({'a': 2, 'b': 3, '3': 1.0}))
+    th = typed.type_dataclass_asdict(files.ImageFile)
+    print(th)
+    print(typed.isinstance_ex({'url': 'http', 'name': 'file.png', 'sha256': b'da'}, th))
+
+
 if __name__ == '__main__':
     # _test_cfg()
-    _test_cfg_json()
+    # _test_cfg_json()
     # _test_inst()
     # _test_winrt()
+    _test()
     sys.exit()

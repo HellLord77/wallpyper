@@ -58,7 +58,9 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
                 if not items:
                     yield
                     continue
-            image = json.loads(items.pop(0)['item'])['ad'][f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
+            image = json.loads(items.pop(0)['item'])['ad'][
+                f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
-            yield files.File(url, files.replace_ext(os.path.basename(request.strip(url)), 'jpg'),
-                             int(image['fileSize']), sha256=base64.b64decode(image['sha256']))
+            yield files.ImageFile(url, files.replace_ext(os.path.basename(
+                request.strip(url)), 'jpg'), int(image['fileSize']), width=int(
+                image['w']), height=int(image['h']), sha256=base64.b64decode(image['sha256']))
