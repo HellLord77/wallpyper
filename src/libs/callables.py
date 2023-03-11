@@ -4,9 +4,12 @@ __version__ = '0.0.3'
 
 import collections
 import functools
+import inspect
+import itertools
 import math
 import pickle
 import queue
+import sys
 import threading
 import time
 import weakref
@@ -102,7 +105,7 @@ class ThreadedCallable(_Callable):
         return self._res
 
 
-class ReducedCallable(_Callable):
+class FilteredCallable(_Callable):
     def __new__(cls, *args, **kwargs):
         if args:
             return super().__new__(cls)
@@ -120,6 +123,27 @@ class ReducedCallable(_Callable):
             args) if index not in self._args), **{
             key: value for key, value in kwargs.items()
             if key not in self._kwargs})
+
+
+class ReducedCallable(_Callable):
+    _args: int = sys.maxsize
+    _kwargs: Optional[tuple[str]] = None
+
+    def __init__(self, func: Callable):
+        params = inspect.signature(func).parameters.values()
+        if not any(param.kind == inspect.Parameter.VAR_POSITIONAL for param in params):
+            self._args = sum(1 for param in params if param.kind in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.POSITIONAL_ONLY))
+        if not any(param.kind == inspect.Parameter.VAR_KEYWORD for param in params):
+            self._kwargs = tuple(param.name for param in params if param.kind in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY))
+        super().__init__(func)
+
+    def __call__(self, *args, **kwargs):
+        kwargs = kwargs if self._kwargs is None else {
+            key: value for key, value in kwargs.items() if key in self._kwargs}
+        print(kwargs)
+        return self.__func__(*itertools.islice(args, None, self._args - len(kwargs)), **kwargs)
 
 
 class QueueCallable(_Callable, _RunningQueryable):

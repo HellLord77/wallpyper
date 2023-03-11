@@ -133,7 +133,8 @@ def fix_config(saving: bool = False):
     if saving:
         CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
     else:
-        RECENT.extend(files.ImageFile(**kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])
+        image_file = callables.ReducedCallable(files.ImageFile)
+        RECENT.extend(image_file(**kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])
 
 
 def create_menu():

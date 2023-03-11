@@ -21,7 +21,7 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, typed, files
+from libs import ctyped, config, typed, files, callables
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 from win32 import _utils
@@ -594,15 +594,19 @@ def _test_winrt():
             os.remove(dst)
 
 
+@callables.ReducedCallable
+def foo(arg1, arg2, kw):
+    print(arg1, arg2, kw)
+
 def _test():
     # print(typing.get_type_hints(files.ImageFile))
     print(typed.type_ex({'a': 2, 'b': 3, '3': 1.0}))
     th = typed.type_dataclass_asdict(files.ImageFile)
     print(th)
-    print(typed.isinstance_ex({'url': 'http', 'name': 'file.png', 'sha256': b'da'}, th))
+    foo(1, 2, 3, kw=56)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg()
     # _test_cfg_json()
     # _test_inst()

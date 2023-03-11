@@ -5,8 +5,8 @@ import dataclasses
 import typing
 from types import NoneType, UnionType
 # noinspection PyProtectedMember
-from typing import Any, Callable, ItemsView, Iterable, Literal, Mapping, \
-    MutableMapping, NotRequired, Optional, Required, Tuple, TypedDict, Union
+from typing import Any, Callable, ItemsView, Iterable, Literal, Mapping, MutableMapping, \
+    MutableSequence, NotRequired, Optional, Sequence, Required, Tuple, TypedDict, Union
 
 
 def _type_tuple(obj: tuple) -> type:
@@ -276,16 +276,30 @@ def is_typeddict(obj) -> bool:
     return _issubclass_typeddict(obj)
 
 
-def _update(self: MutableMapping, other_val, cls, callback, key):
+def _update_sequence(self: MutableSequence, cls):
+    remove = []
+    for index, val in enumerate(self):
+        if not isinstance_ex(val, cls):
+            remove.append(index)
+    for index in reversed(remove):
+        del self[index]
+
+
+def _update_mapping(self: MutableMapping, val, cls, callback, key):
     if key in self:
-        self_val = self[key]
-        if isinstance(other_val, Mapping):
-            if isinstance(self_val, MutableMapping):
-                intersection_update(self_val, other_val, cls, callback)
-                return
-        elif isinstance_ex(self_val, cls):
+        val_ = self[key]
+        if isinstance_ex(val_, cls):
             return
-    self[key] = callback(other_val)
+        elif isinstance(val, Mapping):
+            if isinstance(val_, MutableMapping):
+                intersection_update(val_, val, cls, callback)
+                return
+        elif isinstance(val, Sequence):
+            if isinstance(val_, MutableSequence) and isinstance_ex(
+                    val_, typing.get_origin(cls)):
+                _update_sequence(val_, typing.get_args(cls)[0])
+                return
+    self[key] = callback(val)
 
 
 def intersection_update(self: MutableMapping, other: Mapping, cls,
@@ -293,10 +307,11 @@ def intersection_update(self: MutableMapping, other: Mapping, cls,
     assert isinstance_ex(other, cls)
     if _issubclass_typeddict(cls):
         for key, cls_ in typing.get_type_hints(cls).items():
-            _update(self, other[key], cls_, callback, key)
+            _update_mapping(self, other[key], cls_, callback, key)
     else:
         cls_ = typing.get_args(cls)[1]
         for key, val in other.items():
-            _update(self, val, cls_, callback, key)
-    for key in self.keys() - other.keys():
-        del self[key]
+            _update_mapping(self, val, cls_, callback, key)
+    for key in self:
+        if key not in other:
+            del self[key]
