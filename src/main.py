@@ -4,6 +4,7 @@ import functools
 import itertools
 import multiprocessing
 import os.path
+import pickle
 import sys
 import sysconfig
 import tempfile
@@ -81,7 +82,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
-    consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
+    consts.CONFIG_ACTIVE_SOURCE: next(reversed(srcs.SOURCES)),
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_AUTOSTART: False,
     consts.CONFIG_AUTO_SAVE: False,
@@ -115,7 +116,8 @@ def _fix_config(validator: Callable, key: str, *args, **kwargs) -> bool:
 
 
 def fix_config(saving: bool = False):
-    _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, left=False)
+    _fix_config(validator.ensure_unique, consts.CONFIG_RECENT_IMAGES, pickle.dumps)
+    _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, right=True)
     _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
         name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
@@ -284,6 +286,7 @@ def get_image() -> Optional[files.File]:
         next_image = next(source.get_image(**params))
         if filter_image(next_image) and source.filter_image(next_image):
             return next_image
+        print(f'[#] Filter: {next_image}')
         if first_image is None:
             first_image = next_image
         elif first_image == next_image:
@@ -406,7 +409,7 @@ def download_image(image: files.File, query_callback: Optional[Callable[[float],
     with _download_lock(image.url), gui.try_animate_icon(STRINGS.STATUS_DOWNLOAD):
         path = os.path.join(TEMP_DIR, image.name)
         PROGRESS.clear()
-        print(f'[#] {image.url}')
+        print(f'[#] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         try:

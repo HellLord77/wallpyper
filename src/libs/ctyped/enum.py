@@ -44,11 +44,6 @@ else:
                     last = cls._members[name] = (last + 1) if val is _AUTO else val
                     delattr(cls, name)
 
-        def __init__(self, value: _Optional[int] = None):
-            if value is None:
-                value = next(iter(self._members.values()))
-            super().__init__(value)
-
         @property
         def name(self) -> str:
             names = []

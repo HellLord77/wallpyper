@@ -1,7 +1,7 @@
 import enum
 import os.path
 import re
-from typing import Iterable
+from typing import Any, AnyStr, Callable, Hashable, Iterable, MutableSequence, Optional
 
 
 def ensure_truthy(current: dict, default: dict, key: str) -> bool:
@@ -14,17 +14,30 @@ def ensure_truthy(current: dict, default: dict, key: str) -> bool:
 
 # noinspection PyShadowingBuiltins
 def ensure_max_len(current: dict, default: dict, key: str,
-                   max: int, trunc: bool = True, left: bool = True) -> bool:
+                   max: int, trunc: bool = True, right: bool = False) -> bool:
     val = current[key]
     if max >= len(val):
         return True
-    current[key] = val[slice(max) if left else slice(-max, None)] if trunc else default[key]
+    current[key] = val[slice(-max, None) if right else slice(max)] if trunc else default[key]
+    return False
+
+
+def ensure_unique(current: dict, _: str, key: str,
+                  func: Optional[Callable[[Any], Hashable]] = None) -> bool:
+    val: MutableSequence = current[key]
+    keep = {item if func is None else func(item): index
+            for index, item in enumerate(val)}.values()
+    if len(keep) == len(val):
+        return True
+    for index in (index for index in reversed(
+            range(len(val))) if index not in keep):
+        del val[index]
     return False
 
 
 def ensure_pattern(current: dict, default: dict, key: str,
                    pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG) -> bool:
-    val = current[key]
+    val: AnyStr = current[key]
     if re.fullmatch(pattern, val, flags) is not None:
         return True
     current[key] = default[key]
@@ -55,7 +68,7 @@ def ensure_enum_names(current: dict, default: dict, key: str,
 
 def ensure_joined_iterable(current: dict, _: dict, key: str,
                            iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
-    val = current[key]
+    val: str = current[key]
     iterable = tuple(iterable)
     if casefold:
         val = val.casefold()
@@ -78,7 +91,7 @@ def ensure_joined_iterable(current: dict, _: dict, key: str,
 # noinspection PyShadowingBuiltins
 def ensure_disk(current: dict, default: dict, key: str,
                 file: bool = True, dir: bool = True) -> bool:
-    val = current[key]
+    val: AnyStr = current[key]
     if val:
         val = os.path.realpath(val)
         if file and dir:
