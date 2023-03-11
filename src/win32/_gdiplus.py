@@ -224,48 +224,47 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
             return Color(argb.value)
 
     def draw_line(self, pen: ctyped.type.GpPen, x1: int | float, y1: int | float, x2: int | float, y2: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipDrawLine, GdiPlus.GdipDrawLineI, x1, y1, x2, y2)(self, pen, x1, y1, x2, y2)
+        return _OK == _get_obj(GdiPlus.GdipDrawLine, GdiPlus.GdipDrawLineI,
+                               x1, y1, x2, y2)(self, pen, x1, y1, x2, y2)
 
     def draw_arc(self, pen: ctyped.type.GpPen, x: int | float, y: int | float, width: int | float, height: int | float,
                  start_angle: float, sweep_angle: float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipDrawArc, GdiPlus.GdipDrawArcI, x, y, width, height)(
-            self, pen, x, y, width, height, start_angle, sweep_angle)
+        return _OK == _get_obj(GdiPlus.GdipDrawArc, GdiPlus.GdipDrawArcI,
+                               x, y, width, height)(self, pen, x, y, width, height, start_angle, sweep_angle)
 
     def draw_bezier(self, pen: ctyped.type.GpPen, x1: int | float, y1: int | float, x2: int | float, y2: int | float,
                     x3: int | float, y3: int | float, x4: int | float, y4: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipDrawBezier, GdiPlus.GdipDrawBezierI, x1, y1, x2, y2, x3, y3, x4, y4)(
-            self, pen, x1, y1, x2, y2, x3, y3, x4, y4)
+        return _OK == _get_obj(GdiPlus.GdipDrawBezier, GdiPlus.GdipDrawBezierI,
+                               x1, y1, x2, y2, x3, y3, x4, y4)(self, pen, x1, y1, x2, y2, x3, y3, x4, y4)
 
     def draw_rectangle(self, pen: ctyped.type.GpPen, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipDrawRectangle, GdiPlus.GdipDrawRectangleI, x, y, width, height)(
-            self, pen, x, y, width, height)
+        return _OK == _get_obj(GdiPlus.GdipDrawRectangle, GdiPlus.GdipDrawRectangleI,
+                               x, y, width, height)(self, pen, x, y, width, height)
 
     def draw_ellipse(self, pen: ctyped.type.GpPen, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipDrawEllipse, GdiPlus.GdipDrawEllipseI, x, y, width, height)(
-            self, pen, x, y, width, height)
+        return _OK == _get_obj(GdiPlus.GdipDrawEllipse, GdiPlus.GdipDrawEllipseI,
+                               x, y, width, height)(self, pen, x, y, width, height)
 
     def draw_pie(self, pen: ctyped.type.GpPen, x: int | float, y: int | float, width: int | float, height: int | float,
                  start_angle: float, sweep_angle: float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipDrawPie, GdiPlus.GdipDrawPieI, x, y, width, height)(
-            self, pen, x, y, width, height, start_angle, sweep_angle)
+        return _OK == _get_obj(GdiPlus.GdipDrawPie, GdiPlus.GdipDrawPieI,
+                               x, y, width, height)(self, pen, x, y, width, height, start_angle, sweep_angle)
 
     def clear(self, color: ctyped.type.ARGB) -> bool:
         return _OK == GdiPlus.GdipGraphicsClear(self, color)
 
     def fill_rectangle(self, brush: ctyped.type.GpBrush, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipFillRectangle, GdiPlus.GdipFillRectangleI, x, y, width, height)(
-            self, brush, x, y, width, height)
+        return _OK == _get_obj(GdiPlus.GdipFillRectangle, GdiPlus.GdipFillRectangleI,
+                               x, y, width, height)(self, brush, x, y, width, height)
 
     def fill_ellipse(self, brush: ctyped.type.GpBrush, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipFillEllipse, GdiPlus.GdipFillEllipseI, x, y, width, height)(
-            self, brush, x, y, width, height)
+        return _OK == _get_obj(GdiPlus.GdipFillEllipse, GdiPlus.GdipFillEllipseI,
+                               x, y, width, height)(self, brush, x, y, width, height)
 
     def fill_pie(self, brush: ctyped.type.GpBrush, x: int | float, y: int | float, width: int | float, height: int | float,
                  start_angle: float, sweep_angle: float) -> bool:
-        return _OK == _get_obj(GdiPlus.GdipFillPie, GdiPlus.GdipFillPieI, x, y, width, height)(
-            self, brush, x, y, width, height, start_angle, sweep_angle)
+        return _OK == _get_obj(GdiPlus.GdipFillPie, GdiPlus.GdipFillPieI,
+                               x, y, width, height)(self, brush, x, y, width, height, start_angle, sweep_angle)
 
     # noinspection PyShadowingBuiltins
     def draw_string(self, string: str, font: ctyped.type.GpFont, brush: ctyped.type.GpBrush,
@@ -290,8 +289,8 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
                                  format: Optional[ctyped.type.GpStringFormat] = None) -> Optional[tuple[Region]]:
         regions = tuple(Region.from_empty() for _ in range(count))
         rect = ctyped.struct.RectF(x, y, width, height)
-        if _OK == GdiPlus.GdipMeasureCharacterRanges(
-                self, string, -1, font, ctyped.byref(rect), format, count, ctyped.array(*regions)):
+        if _OK == GdiPlus.GdipMeasureCharacterRanges(self, string, -1, font, ctyped.byref(
+                rect), format, count, ctyped.array(*regions)):
             return regions
 
     def draw_image(self, src: Image, x: int | float = 0, y: int | float = 0) -> bool:
@@ -315,7 +314,8 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
             src_w = src.get_width()
         if src_h is None:
             src_h = src.get_height()
-        return _OK == _get_obj(GdiPlus.GdipDrawImagePointRect, GdiPlus.GdipDrawImagePointRectI, x, y, src_x, src_y, src_w, src_h)(
+        return _OK == _get_obj(GdiPlus.GdipDrawImagePointRect, GdiPlus.GdipDrawImagePointRectI,
+                               x, y, src_x, src_y, src_w, src_h)(
             self, src, x, y, src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel)
 
     def draw_image_on_rect_from_rect(self, src: Image, x: int | float = 0, y: int | float = 0, w: Optional[int | float] = None,
@@ -527,16 +527,16 @@ class Image(_GdiplusBase, ctyped.type.GpImage):
     @classmethod
     def from_file(cls, path: str, embedded_color_management: bool = False) -> Image:
         self = cls()
-        (GdiPlus.GdipLoadImageFromFileICM if embedded_color_management else GdiPlus.GdipLoadImageFromFile)(
-            path, ctyped.byref(self))
+        (GdiPlus.GdipLoadImageFromFileICM if embedded_color_management
+         else GdiPlus.GdipLoadImageFromFile)(path, ctyped.byref(self))
         return self
 
     @classmethod
     def from_bytes(cls, data: bytes, embedded_color_management: bool = False) -> Image:
         self = cls()
         if stream := shlwapi.SHCreateMemStream(ctyped.array(*data, type=ctyped.type.BYTE), len(data)):
-            (GdiPlus.GdipLoadImageFromStreamICM if embedded_color_management else GdiPlus.GdipLoadImageFromStream)(
-                stream, ctyped.byref(self))
+            (GdiPlus.GdipLoadImageFromStreamICM if embedded_color_management
+             else GdiPlus.GdipLoadImageFromStream)(stream, ctyped.byref(self))
             stream.Release()
         return self
 
@@ -735,14 +735,12 @@ class Bitmap(Image, ctyped.type.GpBitmap):
                     width: Optional[int | float] = None, height: Optional[int | float] = None,
                     format: ctyped.type.PixelFormat = ctyped.const.PixelFormat24bppRGB) -> Bitmap:
         if width is None:
-            # noinspection PyTypeChecker
             width = Image.get_width(bitmap)
         if height is None:
-            # noinspection PyTypeChecker
             height = Image.get_height(bitmap)
         self = cls()
-        _get_obj(GdiPlus.GdipCloneBitmapArea, GdiPlus.GdipCloneBitmapAreaI, x, y, width, height)(
-            x, y, width, height, format, bitmap, ctyped.byref(self))
+        _get_obj(GdiPlus.GdipCloneBitmapArea, GdiPlus.GdipCloneBitmapAreaI,
+                 x, y, width, height)(x, y, width, height, format, bitmap, ctyped.byref(self))
         return self
 
     def get_hbitmap(self) -> Optional[_handle.HBITMAP]:
@@ -990,8 +988,8 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
 
     def is_visible_point(self, x: int | float, y: int | float, graphics: ctyped.type.GpGraphics) -> Optional[bool]:
         visible = ctyped.type.BOOL()
-        if _OK == _get_obj(GdiPlus.GdipIsVisibleRegionPoint, GdiPlus.GdipIsVisibleRegionPointI, x, y)(
-                self, x, y, graphics, ctyped.byref(visible)):
+        if _OK == _get_obj(GdiPlus.GdipIsVisibleRegionPoint, GdiPlus.GdipIsVisibleRegionPointI,
+                           x, y)(self, x, y, graphics, ctyped.byref(visible)):
             return bool(visible.value)
 
     def is_visible_rect(self, x: int | float, y: int | float, width: int | float,

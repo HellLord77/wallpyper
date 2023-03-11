@@ -163,7 +163,8 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                     continue
             data = datas.pop(0)
             url = data['path']
-            yield files.File(url, os.path.basename(url), data['file_size'])
+            yield files.ImageFile(url, os.path.basename(url), data['file_size'], width=data[
+                'dimension_x'], height=data['dimension_y'], nsfw=data['purity'] != PURITIES[0])
 
     @classmethod
     def _on_category(cls, menu: gui.Menu):
