@@ -3,6 +3,7 @@ from __future__ import annotations as _
 __version__ = '0.1.3'
 
 import os
+from types import ModuleType
 from typing import Any, Callable, Iterator, Optional, TypedDict
 
 import langs
@@ -20,7 +21,7 @@ class Source:
     DEFAULT_CONFIG: dict[str, Any] = None
     CURRENT_CONFIG: dict[str, Any] = None
 
-    strings = langs.DEFAULT
+    STRINGS: ModuleType = langs.DEFAULT
 
     def __init_subclass__(cls):
         uid = cls.__module__.split('.')[-1]

@@ -64,24 +64,24 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
     def create_menu(cls):
         onlies = cls.CURRENT_CONFIG[CONFIG_ONLY].split(',')
         excludes = cls.CURRENT_CONFIG[CONFIG_EXCLUDE].split(',')
-        menu_only = gui.add_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_ONLY).get_submenu()
-        menu_exclude = gui.add_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_EXCLUDE).get_submenu()
+        menu_only = gui.add_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_ONLY).get_submenu()
+        menu_exclude = gui.add_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_EXCLUDE).get_submenu()
         on_only = functools.partial(cls._on_category, CONFIG_ONLY, menu_only, menu_exclude)
         on_exclude = functools.partial(cls._on_category, CONFIG_EXCLUDE, menu_exclude, menu_only)
         for category in CATEGORIES:
-            label = getattr(cls.strings, f'FIVEHUNREDPXLEGACY_CATEGORY_{category.replace(" ", "_")}')
+            label = getattr(cls.STRINGS, f'FIVEHUNREDPXLEGACY_CATEGORY_{category.replace(" ", "_")}')
             gui.add_menu_item(label, gui.MenuItemType.CHECK, category in onlies,
                               category not in excludes, uid=category, on_click=on_only, menu=menu_only)
             gui.add_menu_item(label, gui.MenuItemType.CHECK, category in excludes,
                               category not in onlies, uid=category, on_click=on_exclude, menu=menu_exclude)
-        menu_sort = gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT, {sort: getattr(
-            cls.strings, f'FIVEHUNREDPXLEGACY_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).get_submenu()
-        gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_FEATURE, {
-            feature: getattr(cls.strings, f'FIVEHUNREDPXLEGACY_FEATURE_{feature}') for feature in
+        menu_sort = gui.add_mapped_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_SORT, {sort: getattr(
+            cls.STRINGS, f'FIVEHUNREDPXLEGACY_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).get_submenu()
+        gui.add_mapped_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_FEATURE, {
+            feature: getattr(cls.STRINGS, f'FIVEHUNREDPXLEGACY_FEATURE_{feature}') for feature in
             FEATURES}, cls.CURRENT_CONFIG, CONFIG_FEATURE, on_click=functools.partial(cls._on_feature, menu_sort), position=0)
         cls._last_feature = cls.CURRENT_CONFIG[CONFIG_FEATURE]
-        gui.add_mapped_submenu(cls.strings.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
-            sort_direction: getattr(cls.strings, f'FIVEHUNREDPXLEGACY_SORT_DIRECTION_{sort_direction}')
+        gui.add_mapped_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
+            sort_direction: getattr(cls.STRINGS, f'FIVEHUNREDPXLEGACY_SORT_DIRECTION_{sort_direction}')
             for sort_direction in SORT_DIRECTIONS}, cls.CURRENT_CONFIG, CONFIG_SORT_DIRECTION)
 
     @classmethod

@@ -8,7 +8,7 @@ from libs import isocodes
 from . import ben
 from . import eng
 
-DEFAULT = eng
+DEFAULT: ModuleType = eng
 
 
 def _getattr(name: str) -> str:

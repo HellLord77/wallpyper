@@ -10,31 +10,28 @@ from .. import _com
 class _CoreWebView2Getter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> CoreWebView2:
         with ctyped.interface.COM[WebView2.ICoreWebView2]() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return CoreWebView2(obj)
 
 
 class _CoreWebView2WebResourceRequestGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> CoreWebView2WebResourceRequest:
         with ctyped.interface.COM[WebView2.ICoreWebView2WebResourceRequest]() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return CoreWebView2WebResourceRequest(obj)
 
 
 class _CoreWebView2WebResourceResponseGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> CoreWebView2WebResourceResponse:
         with ctyped.interface.COM[WebView2.ICoreWebView2WebResourceResponse]() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return CoreWebView2WebResourceResponse(obj)
 
 
 class _CoreWebView2WebResourceResponseSetter(_com.Setter):
     def __set__(self, instance: _com.Unknown, value: CoreWebView2WebResourceResponse):
         # noinspection PyProtectedMember
-        getattr(instance._obj, self._setter)(value._obj)
+        self._setter(instance)(value._obj)
 
 
 class _CoreWebView2WebResourceResponseGetterSetter(_CoreWebView2WebResourceResponseSetter, _CoreWebView2WebResourceResponseGetter):

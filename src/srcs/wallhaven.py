@@ -93,44 +93,44 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     @classmethod
     def create_menu(cls):
         with gui.set_menu(menu_category := gui.add_submenu(
-                cls.strings.WALLHAVEN_MENU_CATEGORY).get_submenu()):
+                cls.STRINGS.WALLHAVEN_MENU_CATEGORY).get_submenu()):
             for index, category in enumerate(CATEGORIES):
                 gui.add_menu_item(getattr(
-                    cls.strings, f'WALLHAVEN_CATEGORY_{category}'), gui.MenuItemType.CHECK,
+                    cls.STRINGS, f'WALLHAVEN_CATEGORY_{category}'), gui.MenuItemType.CHECK,
                     cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
                     on_click=functools.partial(cls._on_category, menu_category))
         cls._on_category(menu_category)
-        with gui.set_menu(menu_purity := gui.add_submenu(cls.strings.WALLHAVEN_MENU_PURITY).get_submenu()):
+        with gui.set_menu(menu_purity := gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY).get_submenu()):
             for index, purity in enumerate(PURITIES):
                 gui.add_menu_item(getattr(
-                    cls.strings, f'WALLHAVEN_PURITY_{purity}'), gui.MenuItemType.CHECK,
+                    cls.STRINGS, f'WALLHAVEN_PURITY_{purity}'), gui.MenuItemType.CHECK,
                     cls.CURRENT_CONFIG[CONFIG_PURITY][index] == '1',
                     uid=purity, on_click=functools.partial(cls._on_purity, menu_purity))
         cls._on_purity(menu_purity)
-        item_sorting = gui.add_submenu(cls.strings.WALLHAVEN_MENU_SORTING)
-        gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_ORDER, {
-            order: getattr(cls.strings, f'WALLHAVEN_ORDER_{order}')
+        item_sorting = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_SORTING)
+        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_ORDER, {
+            order: getattr(cls.STRINGS, f'WALLHAVEN_ORDER_{order}')
             for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
-        enable_range = gui.add_mapped_submenu(cls.strings.WALLHAVEN_MENU_RANGE, {
-            range_: getattr(cls.strings, f'WALLHAVEN_RANGE_{range_}')
+        enable_range = gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_RANGE, {
+            range_: getattr(cls.STRINGS, f'WALLHAVEN_RANGE_{range_}')
             for range_ in RANGES}, cls.CURRENT_CONFIG, CONFIG_RANGE).enable
         gui.add_mapped_submenu(item_sorting, {
-            sorting: getattr(cls.strings, f'WALLHAVEN_SORTING_{sorting}')
+            sorting: getattr(cls.STRINGS, f'WALLHAVEN_SORTING_{sorting}')
             for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
                                on_click=functools.partial(cls._on_sorting, enable_range))
         cls._on_sorting(enable_range, cls.CURRENT_CONFIG[CONFIG_SORTING])
         ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
-        with gui.set_menu(menu_ratio := gui.add_submenu(cls.strings.WALLHAVEN_MENU_RATIO).get_submenu()):
+        with gui.set_menu(menu_ratio := gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_RATIO).get_submenu()):
             for ratio in RATIOS:
                 gui.add_menu_item(getattr(
-                    cls.strings, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
+                    cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
                     uid=ratio, on_click=functools.partial(cls._on_ratio, menu_ratio))
         cls._on_ratio(menu_ratio)
         gui.add_separator(6, menu_ratio)
         colors = {color: colornames.get_nearest_color(color)[
-            1] if color else cls.strings.WALLHAVEN_COLOR_ for color in COLORS}
+            1] if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}
         for item, color in zip(gui.add_mapped_submenu(
-                cls.strings.WALLHAVEN_MENU_COLOR, colors,
+                cls.STRINGS.WALLHAVEN_MENU_COLOR, colors,
                 cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
             if color:
                 rgb = colornames.hex_to_rgb(color)

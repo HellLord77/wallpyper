@@ -69,21 +69,21 @@ class FiveHundredPx(Source):
     @classmethod
     def create_menu(cls):
         categories = cls.CURRENT_CONFIG[CONFIG_CATEGORIES].split('-')
-        with gui.set_menu(gui.add_submenu(cls.strings.FIVEHUNDREDPX_MENU_CATEGORY)) as menu_category:
+        with gui.set_menu(gui.add_submenu(cls.STRINGS.FIVEHUNDREDPX_MENU_CATEGORY)) as menu_category:
             for category in CATEGORIES:
                 gui.add_menu_item(
                     f'FIVEHUNDREDPX_CATEGORY_{"".join(filter(str.isalnum, category))}', gui.MenuItemType.CHECK, category in categories,
                     uid=category, on_click=functools.partial(cls._on_category, menu_category, ), args=(gui.MenuItemProperty.UID,))
         _on_category(menu_category)
-        enable_follower = gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_FOLLOWER, {follower: getattr(
-            cls.strings, f'FIVEHUNDREDPX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWER).enable
-        enable_sort = gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_SORT, {sort: getattr(
-            cls.strings, f'FIVEHUNDREDPX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
-        gui.add_mapped_submenu(cls.strings.FIVEHUNDREDPX_MENU_DISCOVER, {discover: getattr(
-            cls.strings, f'FIVEHUNDREDPX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CURRENT_CONFIG, CONFIG_DISCOVER,
+        enable_follower = gui.add_mapped_submenu(cls.STRINGS.FIVEHUNDREDPX_MENU_FOLLOWER, {follower: getattr(
+            cls.STRINGS, f'FIVEHUNDREDPX_FOLLOWER_{follower}') for follower in FOLLOWERS}, cls.CURRENT_CONFIG, CONFIG_FOLLOWER).enable
+        enable_sort = gui.add_mapped_submenu(cls.STRINGS.FIVEHUNDREDPX_MENU_SORT, {sort: getattr(
+            cls.STRINGS, f'FIVEHUNDREDPX_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
+        gui.add_mapped_submenu(cls.STRINGS.FIVEHUNDREDPX_MENU_DISCOVER, {discover: getattr(
+            cls.STRINGS, f'FIVEHUNDREDPX_DISCOVER_{discover}') for discover in DISCOVERS}, cls.CURRENT_CONFIG, CONFIG_DISCOVER,
                                on_click=functools.partial(cls._on_discover, enable_follower, enable_sort), position=0)
         cls._on_discover(enable_follower, enable_sort, cls.CURRENT_CONFIG[CONFIG_DISCOVER])
-        gui.add_mapped_menu_item(cls.strings.FIVEHUNDREDPX_MENU_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
+        gui.add_mapped_menu_item(cls.STRINGS.FIVEHUNDREDPX_MENU_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:

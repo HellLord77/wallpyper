@@ -40,7 +40,7 @@ win32.display.ANIMATION_POLL_INTERVAL = 0
 win32.gui.FLAG_CACHE_BITMAP = True
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 
-STRINGS = srcs.Source.strings = langs.DEFAULT
+STRINGS = srcs.Source.STRINGS = langs.DEFAULT
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = utils.MutableBool()
 PROGRESS = utils.MutableFloat()

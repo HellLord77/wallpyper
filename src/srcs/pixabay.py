@@ -79,26 +79,26 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_LANG, {lang: re.split('[,;]', isocodes.ISO6392.get(
+        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_LANG, {lang: re.split('[,;]', isocodes.ISO6392.get(
             alpha_2=lang).name)[0] for lang in LANGS}, cls.CURRENT_CONFIG, CONFIG_LANG)
-        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_TYPE, {type_: getattr(
-            cls.strings, f'PIXABAY_TYPE_{type_}') for type_ in TYPES}, cls.CURRENT_CONFIG, CONFIG_TYPE)
-        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_ORIENTATION, {orientation: getattr(
-            cls.strings, f'PIXABAY_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_TYPE, {type_: getattr(
+            cls.STRINGS, f'PIXABAY_TYPE_{type_}') for type_ in TYPES}, cls.CURRENT_CONFIG, CONFIG_TYPE)
+        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_ORIENTATION, {orientation: getattr(
+            cls.STRINGS, f'PIXABAY_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
                                cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
-        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_CATEGORY, {category: getattr(
-            cls.strings, f'PIXABAY_CATEGORY_{category}') for category in CATEGORIES}, cls.CURRENT_CONFIG, CONFIG_CATEGORY)
+        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_CATEGORY, {category: getattr(
+            cls.STRINGS, f'PIXABAY_CATEGORY_{category}') for category in CATEGORIES}, cls.CURRENT_CONFIG, CONFIG_CATEGORY)
         colors = cls.CURRENT_CONFIG[CONFIG_COLORS].split(',')
-        menu_color = gui.add_submenu(cls.strings.PIXABAY_MENU_COLORS).get_submenu()
+        menu_color = gui.add_submenu(cls.STRINGS.PIXABAY_MENU_COLORS).get_submenu()
         for color in COLORS:
-            gui.add_menu_item(getattr(cls.strings, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
+            gui.add_menu_item(getattr(cls.STRINGS, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
                               uid=color, on_click=functools.partial(cls._on_color, menu_color), menu=menu_color)
         gui.add_separator(2, menu_color)
         cls._on_color(menu_color)
-        gui.add_mapped_menu_item(cls.strings.PIXABAY_LABEL_EDITOR, cls.CURRENT_CONFIG, CONFIG_EDITOR)
-        gui.add_mapped_menu_item(cls.strings.PIXABAY_LABEL_SAFE, cls.CURRENT_CONFIG, CONFIG_SAFE)
-        gui.add_mapped_submenu(cls.strings.PIXABAY_MENU_ORDER, {order: getattr(
-            cls.strings, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+        gui.add_mapped_menu_item(cls.STRINGS.PIXABAY_LABEL_EDITOR, cls.CURRENT_CONFIG, CONFIG_EDITOR)
+        gui.add_mapped_menu_item(cls.STRINGS.PIXABAY_LABEL_SAFE, cls.CURRENT_CONFIG, CONFIG_SAFE)
+        gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_ORDER, {order: getattr(
+            cls.STRINGS, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:

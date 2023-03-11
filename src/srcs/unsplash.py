@@ -61,19 +61,19 @@ class Unsplash(Source):  # https://unsplash.com/documentation
 
     @classmethod
     def create_menu(cls):
-        menu_order = gui.add_mapped_submenu(cls.strings.UNSPLASH_MENU_ORDER, {order: getattr(
-            cls.strings, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_}, cls.CURRENT_CONFIG, CONFIG_ORDER).get_submenu()
-        item_search = gui.add_submenu(cls.strings.UNSPLASH_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
-        gui.add_mapped_menu_item(cls.strings.UNSPLASH_LABEL_EDITORIAL, cls.CURRENT_CONFIG, CONFIG_EDITORIAL,
+        menu_order = gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORDER, {order: getattr(
+            cls.STRINGS, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_}, cls.CURRENT_CONFIG, CONFIG_ORDER).get_submenu()
+        item_search = gui.add_submenu(cls.STRINGS.UNSPLASH_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
+        gui.add_mapped_menu_item(cls.STRINGS.UNSPLASH_LABEL_EDITORIAL, cls.CURRENT_CONFIG, CONFIG_EDITORIAL,
                                  on_click=functools.partial(cls._on_editorial, item_search, menu_order), position=0)
         cls._on_editorial(item_search, menu_order, cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         with gui.set_menu(item_search):
-            gui.add_mapped_submenu(cls.strings.UNSPLASH_MENU_FILTER, {filter_: getattr(
-                cls.strings, f'UNSPLASH_FILTER_{filter_}') for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
-            gui.add_mapped_submenu(cls.strings.UNSPLASH_MENU_COLOR, {color: getattr(
-                cls.strings, f'UNSPLASH_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.strings.UNSPLASH_MENU_ORIENTATION, {orientation: getattr(
-                cls.strings, f'UNSPLASH_ORIENTATION_{orientation}') for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_FILTER, {filter_: getattr(
+                cls.STRINGS, f'UNSPLASH_FILTER_{filter_}') for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
+            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_COLOR, {color: getattr(
+                cls.STRINGS, f'UNSPLASH_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
+            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORIENTATION, {orientation: getattr(
+                cls.STRINGS, f'UNSPLASH_ORIENTATION_{orientation}') for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:

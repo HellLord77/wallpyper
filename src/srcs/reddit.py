@@ -112,18 +112,18 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def create_menu(cls):
-        item_time_enable = gui.add_mapped_submenu(cls.strings.REDDIT_MENU_TIME, {time_: getattr(
-            cls.strings, f'REDDIT_TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
-        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_SORT, {sort: getattr(
-            cls.strings, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
+        item_time_enable = gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_TIME, {time_: getattr(
+            cls.STRINGS, f'REDDIT_TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
+        gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_SORT, {sort: getattr(
+            cls.STRINGS, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
                                CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
         _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
-        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_ADULT, {adult: getattr(
-            cls.strings, f'REDDIT_ADULT_{adult}') for adult in ADULTS}, cls.CURRENT_CONFIG, CONFIG_ADULT)
-        gui.add_mapped_submenu(cls.strings.REDDIT_MENU_ORIENTATION, {orientation: getattr(
-            cls.strings, f'REDDIT_ORIENTATION_{orientation}') for orientation
+        gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_ADULT, {adult: getattr(
+            cls.STRINGS, f'REDDIT_ADULT_{adult}') for adult in ADULTS}, cls.CURRENT_CONFIG, CONFIG_ADULT)
+        gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_ORIENTATION, {orientation: getattr(
+            cls.STRINGS, f'REDDIT_ORIENTATION_{orientation}') for orientation
             in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
-        gui.add_mapped_menu_item(cls.strings.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
+        gui.add_mapped_menu_item(cls.STRINGS.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:

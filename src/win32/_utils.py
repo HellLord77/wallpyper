@@ -21,16 +21,14 @@ HINSTANCE = kernel32.GetModuleHandleW(None)
 class BSTRGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> Optional[str]:
         with get_bstr() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return ctyped.type.c_wchar_p.from_buffer(obj).value
 
 
 class BSTRSetter(_com.Setter):
     def __set__(self, instance: _com.Unknown, value: str):
-        with get_bstr(value) as value:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._setter)(value)
+        with get_bstr(value) as obj:
+            self._setter(instance)(obj)
 
 
 class BSTRGetterSetter(BSTRSetter, BSTRGetter):

@@ -11,24 +11,21 @@ from .. import _com, _utils
 class _HTMLDocument2Getter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLDocument2:
         with ctyped.interface.COM[MsHTML.IHTMLDocument2]() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return HTMLDocument2(obj)
 
 
 class _HTMLElementGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElement:
         with ctyped.interface.COM[MsHTML.IHTMLElement]() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return HTMLElement(obj)
 
 
 class _HTMLElementCollectionGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElementCollection:
         with ctyped.interface.COM[MsHTML.IHTMLElementCollection]() as obj:
-            # noinspection PyProtectedMember
-            getattr(instance._obj, self._getter)(ctyped.byref(obj))
+            self._getter(instance)(ctyped.byref(obj))
             return HTMLElementCollection(obj)
 
 
@@ -113,19 +110,20 @@ class HTMLElement(_com.Unknown):
     inner_text = _utils.BSTRGetterSetter('innerText')
     outer_html = _utils.BSTRGetterSetter('outerHTML')
     outer_text = _utils.BSTRGetterSetter('outerText')
-    _to_string = _utils.BSTRGetter('toString')
 
     def to_string(self) -> str:
-        return self._to_string
+        with _utils.get_bstr() as bstr:
+            self._obj.toString(ctyped.byref(bstr))
+            return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
 
 class HTMLElementCollection(_com.Unknown):
     _obj: MsHTML.IHTMLElementCollection
 
-    _to_string = _utils.BSTRGetter('toString')
-
     def to_string(self) -> str:
-        return self._to_string
+        with _utils.get_bstr() as bstr:
+            self._obj.toString(ctyped.byref(bstr))
+            return ctyped.type.c_wchar_p.from_buffer(bstr).value
 
     length = _com.CLongGetterSetter('length')
 

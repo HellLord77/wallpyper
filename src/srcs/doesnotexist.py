@@ -29,8 +29,8 @@ class ThisDoesNotExist(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.strings.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
-            cls.strings, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
+        gui.add_mapped_submenu(cls.STRINGS.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
+            cls.STRINGS, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
