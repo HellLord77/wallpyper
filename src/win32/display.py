@@ -648,10 +648,10 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: Style = St
                      flip: Flip = Flip.NONE, transition: Transition = Transition.DISABLED,
                      duration: float = 1.0, easing: Callable[[float], float] = lambda x: x) -> bool:
     if image := _gdiplus.Bitmap.from_file(path):
-        width = image.get_width()
-        height = image.get_height()
         if rotate is not Rotate.NONE or flip is not Flip.NONE:
             image.rotate_flip(_get_rotate_flip(rotate, flip))
+        width = image.get_width()
+        height = image.get_height()
         if style in (Style.TILE, Style.SPAN):
             monitor = 'DISPLAY'
             monitor_x_y_w_h = 0, 0, *get_display_size()
