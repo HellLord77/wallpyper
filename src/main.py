@@ -82,7 +82,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
-    consts.CONFIG_ACTIVE_SOURCE: next(reversed(srcs.SOURCES)),
+    consts.CONFIG_ACTIVE_SOURCE: next(itertools.islice(reversed(srcs.SOURCES), 1)),
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_AUTOSTART: False,
     consts.CONFIG_AUTO_SAVE: False,
@@ -723,14 +723,14 @@ def pin_to_start() -> bool:
                          show=pyinstall.FROZEN)
 
 
-def on_pin_to_start(item_unpin_enable: Callable, item_pin_enable: Callable) -> bool:
+def on_pin_to_start(enable_unpin: Callable, enable_pin: Callable) -> bool:
     pinned = False
     if not pin_to_start.is_running():
-        item_pin_enable(False)
-        item_unpin_enable(False)
+        enable_pin(False)
+        enable_unpin(False)
         pinned = pin_to_start()
-        item_unpin_enable()
-        item_pin_enable()
+        enable_unpin()
+        enable_pin()
     if not pinned:
         try_show_notification(STRINGS.LABEL_PIN_START, STRINGS.FAIL_PIN_START)
     return pinned
@@ -770,8 +770,8 @@ def on_restart():
     on_quit()
 
 
-def on_transition_style(item_duration_enable: Callable[[bool], bool], transition: str):
-    item_duration_enable(transition != win32.display.Transition.DISABLED.name)
+def on_transition_style(enable: Callable[[bool], bool], transition: str):
+    enable(transition != win32.display.Transition.DISABLED.name)
 
 
 def on_source(item: win32.gui.MenuItem, name: str):

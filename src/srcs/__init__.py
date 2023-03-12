@@ -67,4 +67,5 @@ from . import (
     reddit,
     spotlight,
     unsplash,
-    wallhaven)  # NOQA: E402
+    wallhaven,
+    wallhere)  # NOQA: E402

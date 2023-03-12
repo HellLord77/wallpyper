@@ -11,6 +11,7 @@ import fractions
 import ipaddress
 import os
 import pathlib
+import pprint
 import re
 import sys
 import time
@@ -21,7 +22,7 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, typed, request
+from libs import ctyped, config, typed
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 from win32 import _utils
@@ -594,11 +595,18 @@ def _test_winrt():
             os.remove(dst)
 
 
+data = {'id': 1064221034, 'created_at': '2023-03-12T09:07:26+00:00', 'privacy': False, 'profile': True, 'url': '/photo/1064221034/A-cloudy-day-by-Juan-Madriz', 'user_id': 1004092780, 'status': 1, 'width': 8000, 'height': 3403, 'rating': 98.1, 'highest_rating': 98.1, 'highest_rating_date': '2023-03-12T16:47:16+00:00', 'image_format': 'jpg', 'images': [{'format': 'jpeg', 'size': 4096, 'url': 'https://drscdn.500px.org/photo/1064221034/m%3D4096/v2?sig=d1235223c9895200ad32d8bf54f8048c8a4b63feb84f2703f7b6a5d7e50bcb94', 'https_url': 'https://drscdn.500px.org/photo/1064221034/m%3D4096/v2?sig=d1235223c9895200ad32d8bf54f8048c8a4b63feb84f2703f7b6a5d7e50bcb94'}], 'image_url': ['https://drscdn.500px.org/photo/1064221034/m%3D4096/v2?sig=d1235223c9895200ad32d8bf54f8048c8a4b63feb84f2703f7b6a5d7e50bcb94'], 'name': 'A cloudy day', 'description': '                               ', 'category': 8, 'taken_at': None, 'shutter_speed': '1/400', 'focal_length': '25', 'aperture': '10.0', 'camera': '',
+        'lens': '', 'iso': '100', 'location': '19186 El Cubillo de Uceda, Guadalajara, España', 'latitude': 40.8232716, 'longitude': -3.4075713, 'nsfw': False, 'privacy_level': 2, 'watermark': False, 'show_exif_data': True, 'has_nsfw_tags': False, 'liked': None, 'voted': None, 'comments': [], 'comments_count': 21, 'votes_count': 376, 'positive_votes_count': 376, 'times_viewed': 4555, 'user': {'id': 1004092780, 'username': 'jos500px', 'fullname': 'Juan Madriz', 'avatar_version': 3, 'registration_date': '2020-07-15T08:22:39+00:00',
+                                                                                                                                                                                                                                                                                                                                                                                                            'avatars': {'tiny': {'https': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D85_w%3D30_h%3D30/v2?webp=true&v=3&sig=86413fd699cf9688b755892b4a8258a9ceed51bc57d1b5be8128f7ddc19fa76a'}, 'small': {'https': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D85_w%3D50_h%3D50/v2?webp=true&v=3&sig=dd2deca00a93ae770392988111f3b3c46e01f6382a3b9b5c1199d6b5aaa12458'}, 'large': {'https': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D85_w%3D100_h%3D100/v2?webp=true&v=3&sig=deb3a952445e1563ce7b440c347fb6da61d329a27ba2d00eb38efa14e587e6a6'},
+                                                                                                                                                                                                                                                                                                                                                                                                                        'cover': {'https': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D65_m%3D2048/v2?webp=true&v=3&sig=9c0d4c87ea4d5318bf1e9ba80f6061404e8456d31a9bda6355da2dc848f63871'}, 'default': {'https': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D85_w%3D300_h%3D300/v2?webp=true&v=3&sig=c149ac4a2c76ecd1fbd6faf6f80188873bdd6f434319c21e298886d8bd0f4bb4'}}, 'userpic_url': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D85_w%3D300_h%3D300/v2?webp=true&v=3&sig=c149ac4a2c76ecd1fbd6faf6f80188873bdd6f434319c21e298886d8bd0f4bb4',
+                                                                                                                                                                                                                                                                                                                                                                                                            'userpic_https_url': 'https://drscdn.500px.org/user_avatar/1004092780/q%3D85_w%3D300_h%3D300/v2?webp=true&v=3&sig=c149ac4a2c76ecd1fbd6faf6f80188873bdd6f434319c21e298886d8bd0f4bb4', 'usertype': 0, 'active': 1, 'firstname': 'Juan', 'lastname': 'Madriz',
+                                                                                                                                                                                                                                                                                                                                                                                                            'about': 'Photography is one of the most beautiful hobbies in the world. I am a photography lover and I like all disciplines, although I feel the need to learn every day. At the moment, I am interested in nature photography, especially landscape, wildlife, macro, street and conceptual photography.\nOne of my most exciting hobbies is using old lenses from analogue cameras, which are technically imperfect nowadays, but many of these lenses show a strong personality and force the photographer to develop ingenuity and creativity.\n', 'city': 'Madrid', 'state': '', 'country': 'Spain',
+                                                                                                                                                                                                                                                                                                                                                                                                            'cover_url': 'https://drscdn.500px.org/user_cover/1004092780/q%3D65_m%3D2048/v2?webp=true&v=6&sig=0682816e327a146a5def72af31b7e1a4b26471ded555ef360e67b4958523dfa0', 'upgrade_status': 0, 'affection': 259033, 'followers_count': 0, 'following': False}, 'editors_choice': False, 'editors_choice_date': None, 'editored_by': None, 'feature': 'popular', 'feature_date': '2023-03-12T09:20:09+00:00',
+        'fill_switch': {'access_deleted': False, 'access_private': False, 'include_deleted': False, 'exclude_private': False, 'exclude_nude': False, 'always_exclude_nude': False, 'exclude_block': True, 'current_user_id': None, 'only_user_active': True, 'include_tags': False, 'include_geo': False, 'include_licensing': False, 'include_admin_locks': False, 'include_like_by': False, 'include_comments': True, 'include_user_info': False, 'include_follow_info': False, 'include_equipment_info': False}}
+
+
 def _test():
-    url = r'https://wallhere.com/en/wallpapers?format=json'
-    resp = request.get(url)
-    if resp:
-        print(resp.text)
+    pprint.pprint(data, sort_dicts=False)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

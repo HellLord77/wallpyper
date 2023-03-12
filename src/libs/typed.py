@@ -304,7 +304,7 @@ def _update_mapping(self: MutableMapping, val, cls, callback, key):
 
 def intersection_update(self: MutableMapping, other: Mapping, cls,
                         callback: Callable[[Any], Any] = copy.deepcopy):
-    assert isinstance_ex(other, cls)
+    assert isinstance_ex(other, cls), other
     if _issubclass_typeddict(cls):
         for key, cls_ in typing.get_type_hints(cls).items():
             _update_mapping(self, other[key], cls_, callback, key)

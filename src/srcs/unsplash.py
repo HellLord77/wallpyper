@@ -78,7 +78,6 @@ class Unsplash(Source):  # https://unsplash.com/documentation
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         results: Optional[list] = None
-        total_pages = 1
         if params.pop(CONFIG_EDITORIAL):
             url = URL_EDITORIAL
             params = {
@@ -90,12 +89,12 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         params['per_page'] = '30'
         while True:
             if not results:
-                params['page'] = str(int(params['page']) % total_pages + 1)
                 response = request.get(url, params=params)
                 if response:
                     json = response.json()
-                    total_pages = sys.maxsize if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else int(json['total_pages'])
                     results = json if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else json['results']
+                    params['page'] = str(int(params['page']) % (sys.maxsize if cls.CURRENT_CONFIG[
+                        CONFIG_EDITORIAL] else int(json['total_pages'])) + 1)
             result = results.pop(0)
             yield files.File(result['request']['raw'], files.replace_ext(result['id'], 'jpg'))
 

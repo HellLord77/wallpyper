@@ -7,7 +7,7 @@ import consts
 import gui
 import validator
 import win32.browser
-from libs import files, minihtml, request, utils
+from libs import files, request, soup, utils
 from . import Source
 
 _TIMEOUT = 30
@@ -29,8 +29,8 @@ FOLLOWERS = '', 'undiscovered'
 SORTS = '', 'created_at'
 
 
-def _iter_images(browser: win32.browser.Browser) -> Iterator[minihtml.Element]:
-    return minihtml.find_elements(minihtml.loads(
+def _iter_images(browser: win32.browser.Browser) -> Iterator[soup.Element]:
+    return soup.find_elements(soup.loads(
         browser.get_html()).iter_all_children(), 'img', {'class': _PATTERN})
 
 

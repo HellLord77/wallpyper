@@ -104,6 +104,7 @@ class File:
 class ImageFile(File):
     width: int = 0
     height: int = 0
+    sketchy: bool = False
     nsfw: bool = False
 
     def asdict(self) -> dict[str, Any]:
@@ -126,6 +127,9 @@ class ImageFile(File):
 
     def is_landscape(self) -> bool:
         return self.width > self.height
+
+    def is_sfw(self) -> bool:
+        return not self.sketchy and not self.nsfw
 
 
 def replace_ext(path: str, ext: str) -> str:

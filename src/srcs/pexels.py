@@ -1,6 +1,6 @@
 import functools
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
@@ -29,8 +29,8 @@ LOCALES = (
     'cs-CZ', 'da-DK', 'fi-FI', 'uk-UA', 'el-GR', 'ro-RO', 'nb-NO', 'sk-SK', 'tr-TR', 'ru-RU')
 
 
-def _on_curated(menu: gui.MenuItem, curated: bool):
-    menu.enable(not curated)
+def _on_curated(enable: Callable[[bool], bool], curated: bool):
+    enable(not curated)
 
 
 def _authenticate(key: str) -> bool:
@@ -68,7 +68,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
     def create_menu(cls):
         item_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
         gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
-                                 on_click=functools.partial(_on_curated, item_search), position=0)
+                                 on_click=functools.partial(_on_curated, item_search.enable), position=0)
         with gui.set_menu(item_search):
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')

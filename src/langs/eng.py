@@ -508,3 +508,19 @@ WALLHAVEN_RATIO_4x3 = '4 × 3\tSquare'
 WALLHAVEN_RATIO_5x4 = '5 × 4\tSquare'
 
 WALLHAVEN_COLOR_ = 'Any'
+
+WALLHERE_LABEL_RANDOM = 'Random'
+WALLHERE_LABEL_NSFW = 'NSFW'
+
+WALLHERE_MENU_ORDER = 'Order by'
+WALLHERE_MENU_ORIENTATION = 'Orientation'
+WALLHERE_MENU_COLOR = 'Color'
+
+WALLHERE_ORDER_latest = 'Newest / Latest'
+WALLHERE_ORDER_popular = 'Hot / Popular'
+
+WALLHERE_ORIENTATION_ = 'Any'
+WALLHERE_ORIENTATION_horizontal = 'Horizontal'
+WALLHERE_ORIENTATION_vertical = 'Vertical'
+
+WALLHERE_COLOR_ = 'Any'

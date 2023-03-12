@@ -6,6 +6,10 @@ import validator
 from libs import files, request
 from . import Source
 
+_PARAMS = {
+    'ids': '',
+    'image_size': '4096'}
+
 URL_BASE = request.join('https://api.500px.com', 'v1', 'photos')
 URL_SEARCH = request.join(URL_BASE, 'search')
 
@@ -30,7 +34,7 @@ def _get_sort(feature: str) -> str:
 
 class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-documentation
     NAME = '500px Legacy'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     ICON = 'png'
     URL = 'https://500px.com'
     TCONFIG = TypedDict('TCONFIG', {
@@ -88,24 +92,23 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         photos: Optional[list] = None
         params['rpp'] = '100'
-        json = {
-            'current_page': 1,
-            'total_pages': 1}
         while True:
             if not photos:
-                params['page'] = str(json['current_page'] % json['total_pages'] + 1)
                 response = request.get(URL_BASE, params=params)
                 if response:
                     json = response.json()
-                    response = request.get(request.join(URL_BASE), params={'ids': ','.join(str(
-                        photo['id']) for photo in json['photos']), 'image_size': '4096'})
+                    _PARAMS['ids'] = ','.join(str(photo['id']) for photo in json['photos'])
+                    response = request.get(URL_BASE, params=_PARAMS)
                     if response:
                         photos = list(response.json()['photos'].values())
+                        params['page'] = str(json['current_page'] % json['total_pages'] + 1)
                 if not photos:
                     yield
                     continue
             photo = photos.pop(0)
-            yield files.File(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}')
+            yield files.ImageFile(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}',
+                                  width=photo['width'], height=photo[
+                    'height'], sketchy=photo['has_nsfw_tags'], nsfw=photo['nsfw'])
 
     @classmethod
     def _on_category(cls, key: str, menu: gui.Menu, menu_other: gui.Menu):

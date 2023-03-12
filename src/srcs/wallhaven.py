@@ -146,26 +146,24 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
-        meta: dict[str, Optional[int | str]] = {
-            'current_page': 1,
-            'last_page': 1,
-            'seed': None}
         while True:
             if not datas:
-                params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
-                params['seed'] = meta['seed']
                 response = request.get(URL_SEARCH, params=params)
                 if response:
                     json = response.json()
                     datas = json['data']
                     meta = json['meta']
+                    params['page'] = str(meta['current_page'] % meta['last_page'] + 1)
+                    params['seed'] = meta['seed']
                 if not datas:
                     yield
                     continue
             data = datas.pop(0)
             url = data['path']
-            yield files.ImageFile(url, os.path.basename(url), data['file_size'], width=data[
-                'dimension_x'], height=data['dimension_y'], nsfw=data['purity'] != PURITIES[0])
+            purity = data['purity']
+            yield files.ImageFile(url, os.path.basename(url), data['file_size'],
+                                  width=data['dimension_x'], height=data['dimension_y'],
+                                  sketchy=purity == PURITIES[1], nsfw=purity == PURITIES[2])
 
     @classmethod
     def _on_category(cls, menu: gui.Menu):

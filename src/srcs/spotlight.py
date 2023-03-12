@@ -49,7 +49,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         params['fmt'] = 'json'
         params['cdm'] = '1'
         params['lo'] = '80217'
-        params['ctry'] = CONFIG_LOCALE.split('-')[-1].lower()
+        params['ctry'] = 'us'
         while True:
             if not items:
                 response = request.get(URL_BASE, params=params)
