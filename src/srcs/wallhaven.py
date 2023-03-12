@@ -12,9 +12,10 @@ from . import Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
-URL_BASE = request.join('https://wallhaven.cc', 'api', 'v1')
-URL_SEARCH = request.join(URL_BASE, 'search')
-URL_SETTINGS = request.join(URL_BASE, 'settings')
+URL_BASE = 'https://wallhaven.cc'
+URL_API = request.join(URL_BASE, 'api', 'v1')
+URL_SEARCH = request.join(URL_API, 'search')
+URL_SETTINGS = request.join(URL_API, 'settings')
 
 CONFIG_KEY = 'apikey'
 CONFIG_CATEGORY = 'categories'
@@ -51,7 +52,7 @@ def _authenticate(key: str) -> bool:
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
     NAME = 'wallhaven'
     VERSION = '0.0.4'
-    URL = 'https://wallhaven.cc'
+    URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_KEY: str,
         'q': str,

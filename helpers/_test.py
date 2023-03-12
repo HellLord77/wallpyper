@@ -21,7 +21,7 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, typed, files
+from libs import ctyped, config, typed, request
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 from win32 import _utils
@@ -595,10 +595,10 @@ def _test_winrt():
 
 
 def _test():
-    # print(typing.get_type_hints(files.ImageFile))
-    print(typed.type_ex({'a': 2, 'b': 3, '3': 1.0}))
-    th = typed.type_dataclass_asdict(files.ImageFile)
-    print(th)
+    url = r'https://wallhere.com/en/wallpapers?format=json'
+    resp = request.get(url)
+    if resp:
+        print(resp.text)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

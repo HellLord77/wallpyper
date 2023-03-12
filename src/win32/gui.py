@@ -779,11 +779,14 @@ class MenuItem(_Control):
     def _prep_image(self, res_or_path_or_bitmap: int | str | _gdiplus.Bitmap, index: int, resize: bool) -> int:
         if not isinstance(res_or_path_or_bitmap, int):  # FIXME checkable item cannot have image/icon
             bitmap = _load_bitmap(res_or_path_or_bitmap)
-            if resize and not (bitmap.get_width() == bitmap.get_height() == _MENU_ITEM_IMAGE_SIZE):
-                bitmap = _gdiplus.bitmap_from_resized_bitmap(bitmap, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
-            res_or_path_or_bitmap = bitmap.get_hbitmap()
-            self._hbmps[index] = res_or_path_or_bitmap
-            res_or_path_or_bitmap = res_or_path_or_bitmap.value
+            if bitmap:
+                if resize and not (bitmap.get_width() == bitmap.get_height() == _MENU_ITEM_IMAGE_SIZE):
+                    bitmap = _gdiplus.bitmap_from_resized_bitmap(bitmap, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
+                res_or_path_or_bitmap = bitmap.get_hbitmap()
+                self._hbmps[index] = res_or_path_or_bitmap
+                res_or_path_or_bitmap = res_or_path_or_bitmap.value
+            else:
+                res_or_path_or_bitmap = 0
         return res_or_path_or_bitmap
 
     def _get_datas(self, miim: int, info: Optional[ctyped.struct.MENUITEMINFOW] = None) -> Optional[tuple]:

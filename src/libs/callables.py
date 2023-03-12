@@ -140,10 +140,11 @@ class ReducedCallable(_Callable):
         super().__init__(func)
 
     def __call__(self, *args, **kwargs):
-        kwargs = kwargs if self._kwargs is None else {
-            key: value for key, value in kwargs.items() if key in self._kwargs}
-        return self.__func__(*itertools.islice(
-            args, None, max(0, self._args - len(kwargs))), **kwargs)
+        if (stop := self._args - len(args)) >= 0:
+            args = itertools.islice(args, None, stop)
+        if self._kwargs is not None:
+            kwargs = {key: value for key, value in kwargs.items() if key in self._kwargs}
+        return self.__func__(*args, **kwargs)
 
 
 class QueueCallable(_Callable, _RunningQueryable):

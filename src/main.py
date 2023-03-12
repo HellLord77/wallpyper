@@ -286,7 +286,7 @@ def get_image() -> Optional[files.File]:
         next_image = next(source.get_image(**params))
         if filter_image(next_image) and source.filter_image(next_image):
             return next_image
-        print(f'[#] Filter: {next_image}')
+        print(f'[❌] Filter: {next_image}')
         if first_image is None:
             first_image = next_image
         elif first_image == next_image:
@@ -398,7 +398,7 @@ def print_progress():
     while (progress := PROGRESS.get()) != -1:
         print(f'[{next(spinner)}] [{utils.get_progress(progress, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
         time.sleep(interval)
-    print(f'[#] [{utils.get_progress(1, 32)}] 100%')
+    print(f'[✅] [{utils.get_progress(1, 32)}] 100%')
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
@@ -409,7 +409,7 @@ def download_image(image: files.File, query_callback: Optional[Callable[[float],
     with _download_lock(image.url), gui.try_animate_icon(STRINGS.STATUS_DOWNLOAD):
         path = os.path.join(TEMP_DIR, image.name)
         PROGRESS.clear()
-        print(f'[#] Download: {image}')
+        print(f'[🔽] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         try:
@@ -488,7 +488,7 @@ def on_copy_url(url: str) -> bool:
 
 
 def on_search(url: str, engine: str) -> bool:
-    if not (opened := webbrowser.open(lens.get(engine, url))):
+    if not (opened := lens.Engine[engine].open(url)):
         try_show_notification(STRINGS.LABEL_SEARCH, STRINGS.FAIL_SEARCH)
     return opened
 
@@ -597,6 +597,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_path(
                             image.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
+                            # noinspection PyUnresolvedReferences
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
                                               on_click=functools.partial(on_search, image.url),
                                               args=(gui.MenuItemProperty.UID,)).set_icon(
