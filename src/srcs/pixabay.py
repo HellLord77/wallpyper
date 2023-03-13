@@ -2,12 +2,14 @@ import functools
 import http
 import os.path
 import re
-from typing import Iterator, Optional, TypedDict
+from typing import ItemsView, Iterator, Optional, TypedDict
 
 import gui
 import validator
 from libs import files, isocodes, request
 from . import Source
+
+_CONTENT_END = b'[ERROR 400] "page" is out of valid range.'
 
 URL_BASE = 'https://pixabay.com/api'
 
@@ -90,11 +92,12 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             cls.STRINGS, f'PIXABAY_CATEGORY_{category}') for category in CATEGORIES}, cls.CURRENT_CONFIG, CONFIG_CATEGORY)
         colors = cls.CURRENT_CONFIG[CONFIG_COLORS].split(',')
         menu_color = gui.add_submenu(cls.STRINGS.PIXABAY_MENU_COLORS).get_submenu()
+        items_color = gui.get_menu_items(menu_color).items()
         for color in COLORS:
             gui.add_menu_item(getattr(cls.STRINGS, f'PIXABAY_COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
-                              uid=color, on_click=functools.partial(cls._on_color, menu_color), menu=menu_color)
+                              uid=color, on_click=functools.partial(cls._on_color, items_color), menu=menu_color)
         gui.add_separator(2, menu_color)
-        cls._on_color(menu_color)
+        cls._on_color(items_color)
         gui.add_mapped_menu_item(cls.STRINGS.PIXABAY_LABEL_EDITOR, cls.CURRENT_CONFIG, CONFIG_EDITOR)
         gui.add_mapped_menu_item(cls.STRINGS.PIXABAY_LABEL_SAFE, cls.CURRENT_CONFIG, CONFIG_SAFE)
         gui.add_mapped_submenu(cls.STRINGS.PIXABAY_MENU_ORDER, {order: getattr(
@@ -107,10 +110,9 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         params['per_page'] = '200'
         while True:
             if not hits:
-                pass
                 response = request.get(URL_BASE, params=params)
                 if (http.HTTPStatus.BAD_REQUEST == response.status and
-                        response.content == b'[ERROR 400] "page" is out of valid range.'):
+                        response.content == _CONTENT_END):
                     params['page'] = '1'
                     continue
                 if response:
@@ -123,6 +125,6 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             yield files.File(hit['largeImageURL'], f'{name[:name.rfind("_")]}{name[name.rfind("."):]}')
 
     @classmethod
-    def _on_color(cls, menu: gui.Menu):
+    def _on_color(cls, items: ItemsView[str, gui.MenuItem]):
         cls.CURRENT_CONFIG[CONFIG_COLORS] = ','.join(
-            color for color, item in gui.get_menu_items(menu).items() if item.is_checked())
+            color for color, item in items if item.is_checked())

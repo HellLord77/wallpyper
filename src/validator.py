@@ -22,7 +22,7 @@ def ensure_max_len(current: dict, default: dict, key: str,
     return False
 
 
-def ensure_unique(current: dict, _: str, key: str,
+def ensure_unique(current: dict, _: dict, key: str,
                   func: Optional[Callable[[Any], Hashable]] = None) -> bool:
     val: MutableSequence = current[key]
     keep = {item if func is None else func(item): index

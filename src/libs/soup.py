@@ -65,11 +65,17 @@ class Element:
         return str(self) == str(other)
 
     def __str__(self):
-        if self.attributes:
-            attributes = ' ' + ' '.join(f'{name}="{value}"' for name, value in self.attributes.items())
-        else:
-            attributes = ''
-        return f'<{self.name}{attributes}>{"".join(str(children) for children in self.children)}</{self.name}>'
+        attributes = ''
+        for name, value in self.attributes.items():
+            attributes += f' {name}="{value}"'
+        return f'<{self.name}{attributes}>{"".join(map(str, self.children))}</{self.name}>' \
+            if self.children or self.name not in _VOIDS else f'<{self.name}{attributes}/>'
+
+    def get_child(self, index: int = 0) -> Optional[Element]:
+        try:
+            return self.children[index]
+        except IndexError:
+            pass
 
     def iter_all_children(self, depth: int = -1) -> Iterator[Element]:
         if depth:

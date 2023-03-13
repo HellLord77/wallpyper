@@ -24,7 +24,7 @@ POLL_INTERVAL = 0.1
 @dataclasses.dataclass
 class File:
     url: str
-    name: str
+    name: str = ''
     size: int = 0
     sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
     md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
@@ -35,6 +35,8 @@ class File:
         cls.__eq__ = cls.__eq__
 
     def __post_init__(self):
+        if not self.name:
+            self.name = os.path.basename(self.url)
         for algorithm, hash_ in self._iter_hashes():
             if isinstance(hash_, str):
                 setattr(self, algorithm, bytes.fromhex(hash_))

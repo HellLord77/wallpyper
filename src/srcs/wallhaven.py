@@ -1,8 +1,7 @@
 import colorsys
 import functools
-import os.path
 import re
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable, Iterator, Optional, TypedDict, ValuesView
 
 import gui
 import validator
@@ -51,7 +50,7 @@ def _authenticate(key: str) -> bool:
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
     NAME = 'wallhaven'
-    VERSION = '0.0.4'
+    VERSION = '0.0.5'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_KEY: str,
@@ -93,21 +92,27 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
 
     @classmethod
     def create_menu(cls):
-        with gui.set_menu(menu_category := gui.add_submenu(
-                cls.STRINGS.WALLHAVEN_MENU_CATEGORY).get_submenu()):
+        with gui.set_menu(gui.add_submenu(
+                cls.STRINGS.WALLHAVEN_MENU_CATEGORY)) as menu_category:
             for index, category in enumerate(CATEGORIES):
                 gui.add_menu_item(getattr(
                     cls.STRINGS, f'WALLHAVEN_CATEGORY_{category}'), gui.MenuItemType.CHECK,
-                    cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category,
-                    on_click=functools.partial(cls._on_category, menu_category))
-        cls._on_category(menu_category)
-        with gui.set_menu(menu_purity := gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY).get_submenu()):
+                    cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category)
+        values_category = gui.get_menu_items(menu_category).values()
+        on_category = functools.partial(cls._on_category, values_category)
+        for item_category in values_category:
+            gui.set_on_click(item_category, on_category)
+        on_category()
+        with gui.set_menu(gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY)) as menu_purity:
             for index, purity in enumerate(PURITIES):
                 gui.add_menu_item(getattr(
                     cls.STRINGS, f'WALLHAVEN_PURITY_{purity}'), gui.MenuItemType.CHECK,
-                    cls.CURRENT_CONFIG[CONFIG_PURITY][index] == '1',
-                    uid=purity, on_click=functools.partial(cls._on_purity, menu_purity))
-        cls._on_purity(menu_purity)
+                    cls.CURRENT_CONFIG[CONFIG_PURITY][index] == '1', uid=purity)
+        values_purity = gui.get_menu_items(menu_purity).values()
+        on_purity = functools.partial(cls._on_purity, values_purity)
+        for item_purity in values_purity:
+            gui.set_on_click(item_purity, on_purity)
+        on_purity()
         item_sorting = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_SORTING)
         gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_ORDER, {
             order: getattr(cls.STRINGS, f'WALLHAVEN_ORDER_{order}')
@@ -121,11 +126,12 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                                on_click=functools.partial(cls._on_sorting, enable_range))
         cls._on_sorting(enable_range, cls.CURRENT_CONFIG[CONFIG_SORTING])
         ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
-        with gui.set_menu(menu_ratio := gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_RATIO).get_submenu()):
+        with gui.set_menu(gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_RATIO)) as menu_ratio:
+            on_ratio = functools.partial(cls._on_ratio, menu_ratio)
             for ratio in RATIOS:
                 gui.add_menu_item(getattr(
-                    cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK, ratio in ratios,
-                    uid=ratio, on_click=functools.partial(cls._on_ratio, menu_ratio))
+                    cls.STRINGS, f'WALLHAVEN_RATIO_{ratio}'), gui.MenuItemType.CHECK,
+                    ratio in ratios, uid=ratio, on_click=on_ratio)
         cls._on_ratio(menu_ratio)
         gui.add_separator(6, menu_ratio)
         colors = {color: colornames.get_nearest_color(color)[
@@ -161,23 +167,26 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             data = datas.pop(0)
             url = data['path']
             purity = data['purity']
-            yield files.ImageFile(url, os.path.basename(url), data['file_size'],
-                                  width=data['dimension_x'], height=data['dimension_y'],
+            yield files.ImageFile(url, size=data['file_size'], width=data[
+                'dimension_x'], height=data['dimension_y'],
                                   sketchy=purity == PURITIES[1], nsfw=purity == PURITIES[2])
 
     @classmethod
-    def _on_category(cls, menu: gui.Menu):
-        cls.CURRENT_CONFIG[CONFIG_CATEGORY] = ''.join(str(int(item.is_checked())) for item in gui.get_menu_items(menu).values())
+    def _on_category(cls, items: ValuesView[gui.MenuItem]):
+        cls.CURRENT_CONFIG[CONFIG_CATEGORY] = ''.join(str(int(
+            item.is_checked())) for item in items)
         disable = cls.CURRENT_CONFIG[CONFIG_CATEGORY].count('1') == 1
-        for item in gui.get_menu_items(menu).values():
+        for item in items:
             item.enable(not disable or not item.is_checked())
 
     @classmethod
-    def _on_purity(cls, menu: gui.Menu):
-        cls.CURRENT_CONFIG[CONFIG_PURITY] = ''.join(str(int(item.is_checked())) for item in gui.get_menu_items(menu).values())
+    def _on_purity(cls, items: ValuesView[gui.MenuItem]):
+        cls.CURRENT_CONFIG[CONFIG_PURITY] = ''.join(str(int(
+            item.is_checked())) for item in items)
         disable = cls.CURRENT_CONFIG[CONFIG_PURITY].count('1') == 1
-        for index, item in enumerate(gui.get_menu_items(menu).values()):
-            item.enable((not disable or not item.is_checked()) and (index != 2 or bool(cls.CURRENT_CONFIG[CONFIG_KEY])))
+        for index, item in enumerate(items):
+            item.enable((not disable or not item.is_checked()) and (
+                    index != 2 or bool(cls.CURRENT_CONFIG[CONFIG_KEY])))
 
     @classmethod
     def _on_ratio(cls, menu: gui.Menu):
@@ -191,5 +200,5 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls.CURRENT_CONFIG[CONFIG_RATIO] = ','.join(ratios)
 
     @classmethod
-    def _on_sorting(cls, enable_range: Callable[[bool], bool], sorting: str):
-        enable_range(sorting == SORTINGS[5])
+    def _on_sorting(cls, enable: Callable[[bool], bool], sorting: str):
+        enable(sorting == SORTINGS[5])

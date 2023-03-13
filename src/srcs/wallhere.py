@@ -1,7 +1,6 @@
 import colorsys
 import functools
 import json
-import os.path
 from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
@@ -34,6 +33,10 @@ ORIENTATIONS = '', 'horizontal', 'vertical'
 COLORS = (
     '', 'FF2000', 'A24615', 'FF7C00', 'FF9F9C', 'FFFA00', 'FFCF00', '90E200',
     '00AB00', '00B2D4', '0062C6', '8C20BA', 'F52394', 'FFFFFF', '7C7C7C', '000000')
+
+
+def _on_random(enable: Callable[[bool], bool], random: bool):
+    enable(not random)
 
 
 def _on_color_right(_: int, item_color: gui.MenuItem):
@@ -70,12 +73,13 @@ class WallHere(Source):
 
     @classmethod
     def create_menu(cls):
+        enable_order = gui.add_mapped_submenu(cls.STRINGS.WALLHERE_MENU_ORDER, {
+            order: getattr(cls.STRINGS, f'WALLHERE_ORDER_{order}')
+            for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER).enable
         gui.add_mapped_menu_item(
             cls.STRINGS.WALLHERE_LABEL_RANDOM, cls.CURRENT_CONFIG, CONFIG_RANDOM,
-            on_click=functools.partial(cls._on_random, gui.add_mapped_submenu(
-                cls.STRINGS.WALLHERE_MENU_ORDER, {order: getattr(
-                    cls.STRINGS, f'WALLHERE_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG,
-                CONFIG_ORDER, not cls.CURRENT_CONFIG[CONFIG_RANDOM]).enable), position=0)
+            on_click=functools.partial(_on_random, enable_order), position=0)
+        _on_random(enable_order, cls.CURRENT_CONFIG[CONFIG_RANDOM])
         gui.add_mapped_submenu(cls.STRINGS.WALLHERE_MENU_ORIENTATION, {
             orientation: getattr(cls.STRINGS, f'WALLHERE_ORIENTATION_{orientation}')
             for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
@@ -118,20 +122,15 @@ class WallHere(Source):
                     yield
                     continue
             item = items.pop(0)
-            response = request.get(request.join(
-                URL_WALLPAPER, item.children[0].children[0].attributes['href']))
-            if not response:
+            response_item = request.get(request.join(
+                URL_WALLPAPER, item.get_child().get_child().attributes['href']))
+            if not response_item:
                 items.insert(0, item)
                 yield
                 continue
             classes = item.attributes['class'].split()
             data = json.loads(soup.find_element(soup.loads(
-                response.text).iter_all_children(), 'script', _ATTRS).datas[0])
+                response_item.text).iter_all_children(), 'script', _ATTRS).datas[0])
             content_url = data['contentUrl']
-            yield files.ImageFile(content_url, os.path.basename(content_url), width=int(
-                data['width'][:-2]), height=int(data['height'][:-2]),
-                                  sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)
-
-    @classmethod
-    def _on_random(cls, enable: Callable[[bool], bool], random: bool):
-        enable(not random)
+            yield files.ImageFile(content_url, width=int(data['width'][:-2]), height=int(
+                data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)

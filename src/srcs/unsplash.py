@@ -1,6 +1,6 @@
 import functools
 import sys
-from typing import Iterator, Optional, TypedDict
+from typing import Callable, ItemsView, Iterator, Optional, TypedDict
 
 import gui
 import validator
@@ -61,19 +61,23 @@ class Unsplash(Source):  # https://unsplash.com/documentation
 
     @classmethod
     def create_menu(cls):
-        menu_order = gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_}, cls.CURRENT_CONFIG, CONFIG_ORDER).get_submenu()
+        items_order = gui.get_menu_items(gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORDER, {
+            order: getattr(cls.STRINGS, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_},
+                                                                cls.CURRENT_CONFIG, CONFIG_ORDER)).items()
         item_search = gui.add_submenu(cls.STRINGS.UNSPLASH_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         gui.add_mapped_menu_item(cls.STRINGS.UNSPLASH_LABEL_EDITORIAL, cls.CURRENT_CONFIG, CONFIG_EDITORIAL,
-                                 on_click=functools.partial(cls._on_editorial, item_search, menu_order), position=0)
-        cls._on_editorial(item_search, menu_order, cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
+                                 on_click=functools.partial(cls._on_editorial, item_search.enable, items_order), position=0)
+        cls._on_editorial(item_search.enable, items_order, cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         with gui.set_menu(item_search):
-            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_FILTER, {filter_: getattr(
-                cls.STRINGS, f'UNSPLASH_FILTER_{filter_}') for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
-            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_COLOR, {color: getattr(
-                cls.STRINGS, f'UNSPLASH_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORIENTATION, {orientation: getattr(
-                cls.STRINGS, f'UNSPLASH_ORIENTATION_{orientation}') for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_FILTER, {
+                filter_: getattr(cls.STRINGS, f'UNSPLASH_FILTER_{filter_}')
+                for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
+            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_COLOR, {
+                color: getattr(cls.STRINGS, f'UNSPLASH_COLOR_{color}')
+                for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
+            gui.add_mapped_submenu(cls.STRINGS.UNSPLASH_MENU_ORIENTATION, {
+                orientation: getattr(cls.STRINGS, f'UNSPLASH_ORIENTATION_{orientation}')
+                for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
@@ -104,9 +108,9 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
 
     @classmethod
-    def _on_editorial(cls, item_search: gui.MenuItem, menu_order: gui.Menu, editorial: bool):
-        item_search.enable(not editorial)
+    def _on_editorial(cls, enable: Callable[[bool], bool], items: ItemsView[str, gui.MenuItem], editorial: bool):
+        enable(not editorial)
         cls._fix_order()
-        for order, item in gui.get_menu_items(menu_order).items():
+        for order, item in items:
             item.check(cls.CURRENT_CONFIG[CONFIG_ORDER] == order)
             item.enable(order in (ORDERS if editorial else ORDERS_))

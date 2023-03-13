@@ -66,9 +66,10 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
 
     @classmethod
     def create_menu(cls):
-        item_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_CURATED])
+        item_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH)
         gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
                                  on_click=functools.partial(_on_curated, item_search.enable), position=0)
+        _on_curated(item_search.enable, cls.CURRENT_CONFIG[CONFIG_CURATED])
         with gui.set_menu(item_search):
             gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
                                    {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')

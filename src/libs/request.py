@@ -280,7 +280,7 @@ HEADERS = {
     Header.USER_AGENT: f'{__name__}/{__version__}'}
 
 
-class _Response:
+class Response:
     chunk_size = _MIN_CHUNK
 
     def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
@@ -310,7 +310,7 @@ class _Response:
 
     def json(self) -> Any:
         with contextlib.suppress(json_.decoder.JSONDecodeError):
-            return json_.loads(self.text)
+            return json_.loads(self.content)
 
     def read(self, n: int) -> bytes:
         return self.response.read(n)
@@ -404,7 +404,7 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
 
 def extend_param(url: str, params: Optional[_TParams] = None) -> str:
     parts = urllib.parse.urlparse(url)
-    query = urllib.parse.parse_qs(parts.query)
+    query = urllib.parse.parse_qs(parts.query, True)
     if params is not None:
         for key, val in params.items():
             if val is not None:
@@ -420,7 +420,7 @@ def extend_param(url: str, params: Optional[_TParams] = None) -> str:
 def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
             params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
             files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-            timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
+            timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     if data is not None or files is not None or json is not None:
         mime, data = encode_data(data, files, json)
     else:
@@ -430,7 +430,7 @@ def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = 
     try:
         _request = urllib.request.Request(url, data, HEADERS, method=str(method))
     except ValueError as exc:
-        return _Response(urllib.error.URLError(exc))
+        return Response(urllib.error.URLError(exc))
     else:
         _request.add_header(Header.CONTENT_TYPE, mime)
         if auth is not None:
@@ -444,9 +444,9 @@ def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = 
             urllib.request.install_opener(_OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
             _response = urllib.request.urlopen(_request, timeout=timeout)
         except urllib.error.URLError as _response:
-            return _Response(_response)
+            return Response(_response)
         else:
-            response = _Response(_response)
+            response = Response(_response)
             if not stream:
                 _ = response.content
             return response
@@ -455,21 +455,21 @@ def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = 
 def get(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-        timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
+        timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.GET, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
 def head(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
+         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.HEAD, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
 def post(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> _Response:
+         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.POST, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 

@@ -524,3 +524,33 @@ WALLHERE_ORIENTATION_horizontal = 'Horizontal'
 WALLHERE_ORIENTATION_vertical = 'Vertical'
 
 WALLHERE_COLOR_ = 'Any'
+
+ZEROCHAN_MENU_SORT = 'Sort by'
+ZEROCHAN_MENU_TIME = 'Sort Range'
+ZEROCHAN_MENU_DIMENSION = 'Dimension'
+ZEROCHAN_MENU_COLOR = 'Color'
+
+ZEROCHAN_SORT_id = 'Recent'
+ZEROCHAN_SORT_fav = 'Popular'
+
+ZEROCHAN_TIME_0 = 'All Time'
+ZEROCHAN_TIME_1 = 'Last Week'
+ZEROCHAN_TIME_2 = 'Last 3 Months'
+
+ZEROCHAN_DIMENSION_ = 'All'
+ZEROCHAN_DIMENSION_large = 'Large'
+ZEROCHAN_DIMENSION_huge = 'Huge'
+ZEROCHAN_DIMENSION_landscape = 'Landscape'
+ZEROCHAN_DIMENSION_portrait = 'Portrait'
+ZEROCHAN_DIMENSION_square = 'Square'
+
+ZEROCHAN_COLOR_ = 'Any'
+ZEROCHAN_COLOR_black = 'Black'
+ZEROCHAN_COLOR_blue = 'Blue'
+ZEROCHAN_COLOR_brown = 'Brown'
+ZEROCHAN_COLOR_green = 'Green'
+ZEROCHAN_COLOR_pink = 'Pink'
+ZEROCHAN_COLOR_purple = 'Purple'
+ZEROCHAN_COLOR_red = 'Red'
+ZEROCHAN_COLOR_white = 'White'
+ZEROCHAN_COLOR_yellow = 'Yellow'

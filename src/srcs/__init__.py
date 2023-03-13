@@ -4,7 +4,7 @@ __version__ = '0.1.3'
 
 import os
 from types import ModuleType
-from typing import Any, Callable, Iterator, Optional, TypedDict
+from typing import Any, Callable, Iterator, Optional, TypedDict, final
 
 import langs
 from libs import callables, files
@@ -35,6 +35,7 @@ class Source:
         SOURCES[uid] = cls
 
     @classmethod
+    @final
     def _fix_config(cls, validator: Callable, key: str, *args, **kwargs) -> bool:
         return validator(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
 
@@ -68,4 +69,5 @@ from . import (
     spotlight,
     unsplash,
     wallhaven,
-    wallhere)  # NOQA: E402
+    wallhere,
+    zerochan)  # NOQA: E402

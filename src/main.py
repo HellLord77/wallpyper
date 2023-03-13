@@ -82,7 +82,7 @@ DEFAULT_CONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
-    consts.CONFIG_ACTIVE_SOURCE: next(itertools.islice(reversed(srcs.SOURCES), 1)),
+    consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_AUTOSTART: False,
     consts.CONFIG_AUTO_SAVE: False,
