@@ -1,6 +1,7 @@
 import collections
 import contextlib
 import functools
+import http
 import itertools
 import multiprocessing
 import os.path
@@ -469,8 +470,10 @@ on_save_image = functools.partial(save_image, select=True)
 def search_image(path: str) -> bool:
     searched = False
     with gui.try_animate_icon(STRINGS.STATUS_SEARCH):
-        if location := request.post(consts.URL_GOOGLE, files={'encoded_image': path},
-                                    allow_redirects=False).getheader(request.Header.LOCATION):
+        response = request.post(consts.URL_GOOGLE, files={
+            'encoded_image': path}, allow_redirects=False)
+        if response.status == http.HTTPStatus.FOUND and (
+                location := response.getheader(request.Header.LOCATION)):
             searched = webbrowser.open(location)
     return searched
 
@@ -593,7 +596,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     if consts.FEATURE_SEARCH_GOOGLE:
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=functools.partial(
                             on_image_func, search_image, image, STRINGS.LABEL_GOOGLE,
-                            STRINGS.FAIL_SEARCH, )).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
+                            STRINGS.FAIL_SEARCH)).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
                     with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_path(
                             image.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
@@ -628,7 +631,7 @@ def on_modify_save(set_tooltip: Callable, path: Optional[str] = None) -> bool:
         path = win32.dialog.open_folder(CURRENT_CONFIG[consts.CONFIG_SAVE_DIR], STRINGS.LABEL_SAVE_DIR)
     if path:
         CURRENT_CONFIG[consts.CONFIG_SAVE_DIR] = path
-        set_tooltip(STRINGS.TOOLTIP_SAVE_DIR_TEMPLATE.format(path))
+        set_tooltip(STRINGS.TOOLTIP_TEMPLATE_SAVE_DIR.format(path))
     else:
         try_show_notification(STRINGS.LABEL_SAVE_DIR, STRINGS.FAIL_SAVE_DIR)
     return bool(path)

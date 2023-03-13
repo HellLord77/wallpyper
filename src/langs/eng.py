@@ -88,7 +88,7 @@ MENU_IF_MAXIMIZED = 'If Other App Maximized'
 
 TOOLTIP_CHANGE_START = 'Automatically change wallpaper on starting Wallpyper'
 TOOLTIP_AUTO_SAVE = 'Automatically save the applied image to the selected folder'
-TOOLTIP_SAVE_DIR_TEMPLATE = 'Save location: {}'
+TOOLTIP_TEMPLATE_SAVE_DIR = 'Save location: {}'
 
 STATUS_CHANGE = 'Changing Wallpaper...'
 STATUS_FETCH = 'Fetching Image List...'
@@ -416,6 +416,10 @@ REDDIT_TIME_week = 'Past Week'
 REDDIT_TIME_month = 'Past Month'
 REDDIT_TIME_year = 'Past Year'
 REDDIT_TIME_all = 'All Time'
+
+SIMPLEDESKTOPS_LABEL_RESET = 'Reset Pagination'
+
+SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE = 'Current page: {}'
 
 SPOTLIGHT_MENU_LOCALE = 'Locale'
 SPOTLIGHT_MENU_ORIENTATION = 'Orientation'

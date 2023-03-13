@@ -11,7 +11,7 @@ from libs import files, request, soup, utils
 from . import Source
 
 _TIMEOUT = 30
-_PATTERN = re.compile('^Elements__Image.*')
+_ATTRS = {'class': re.compile('^Elements__Image.*')}
 
 CONFIG_NSFW = '_nsfw'
 CONFIG_CATEGORIES = 'categories'
@@ -31,7 +31,7 @@ SORTS = '', 'created_at'
 
 def _iter_images(browser: win32.browser.Browser) -> Iterator[soup.Element]:
     return soup.find_elements(soup.loads(
-        browser.get_html()).iter_all_children(), 'img', {'class': _PATTERN})
+        browser.get_html()).iter_all_children(), 'img', _ATTRS)
 
 
 def _on_category(menu: gui.Menu) -> tuple[str, ...]:

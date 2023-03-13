@@ -1,12 +1,14 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import html.parser
 import itertools
 import re
 import shutil
-from typing import Callable, Iterable, Iterator, Mapping, Optional, IO
+from typing import Callable, Container, IO, Iterable, Iterator, Mapping, Optional
+
+_TPattern = str | re.Pattern | Container[str] | Callable[[str], bool]
 
 _VOIDS = (
     'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
@@ -18,41 +20,43 @@ MAX_CHUNK = shutil.COPY_BUFSIZE
 
 class _Parser(html.parser.HTMLParser):
     def __init__(self):
-        self._elements = []
+        self._elems = []
         self.root = None
         self.decls = []
         super().__init__()
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]):
-        element = Element(tag, dict(attrs), self._elements[-1] if self._elements else None)
-        if tag not in _VOIDS:
-            self._elements.append(element)
+        element = Element(tag, dict(reversed(
+            attrs)), self._elems[-1] if self._elems else None)
+        # if tag not in _VOIDS:
+        self._elems.append(element)
         if self.root is None:
-            self.root = self._elements[0]
+            self.root = self._elems[0]
         if self.decls:
-            self._elements[-1].decls = tuple(self.decls)
+            self._elems[-1].decls = tuple(self.decls)
             self.decls.clear()
 
     def handle_endtag(self, tag: str):
-        if tag not in _VOIDS:
-            del self._elements[-1]
+        # if tag not in _VOIDS:
+        if self._elems[-1].name == tag:
+            del self._elems[-1]
 
     def handle_data(self, data: str):
-        if self._elements:
-            self._elements[-1].datas.append(data)
+        if self._elems:
+            self._elems[-1].datas.append(data)
 
     def handle_comment(self, data: str):
-        if self._elements:
-            self._elements[-1].comments.append(data)
+        if self._elems:
+            self._elems[-1].comments.append(data)
 
     def handle_decl(self, decl: str):
         self.decls.append(decl)
 
 
 class Element:
-    def __init__(self, tag: str, attrs: dict[str, Optional[str]], parent: Optional[Element]):
-        self.name = tag
-        self.attributes = attrs
+    def __init__(self, name: str, attributes: dict[str, Optional[str]], parent: Optional[Element]):
+        self.name = name
+        self.attributes = attributes
         self.parent = parent
         self.children = []
         self.datas = []
@@ -66,7 +70,7 @@ class Element:
 
     def __str__(self):
         attributes = ''
-        for name, value in self.attributes.items():
+        for name, value in sorted(self.attributes.items()):
             attributes += f' {name}="{value}"'
         return f'<{self.name}{attributes}>{"".join(map(str, self.children))}</{self.name}>' \
             if self.children or self.name not in _VOIDS else f'<{self.name}{attributes}/>'
@@ -105,7 +109,7 @@ class Element:
             return itertools.islice(self.parent.children, None, self.parent.children.index(self))
 
 
-def _match(pattern: Optional[str | re.Pattern | Callable[[str], bool]], string: Optional[str]) -> bool:
+def _match(pattern: Optional[_TPattern], string: Optional[str]) -> bool:
     if pattern is None:
         return True
     elif string is None:
@@ -114,23 +118,27 @@ def _match(pattern: Optional[str | re.Pattern | Callable[[str], bool]], string: 
         return string == pattern
     elif isinstance(pattern, re.Pattern):
         return bool(pattern.fullmatch(string))
+    elif isinstance(pattern, Container):
+        return string in pattern
     else:
         return pattern(string)
 
 
 # noinspection PyShadowingBuiltins
-def find_element(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str], bool]] = None,
-                 attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str], bool]]]] = None,
+def find_element(parent_or_elements: Element | Iterable[Element], name: Optional[_TPattern] = None,
+                 attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
                  filter: Optional[Callable[[Element], bool]] = None) -> Optional[Element]:
-    for element in find_elements(elements, name, attributes, filter):
+    for element in find_elements(parent_or_elements, name, attributes, filter):
         return element
 
 
 # noinspection PyShadowingBuiltins
-def find_elements(elements: Iterable[Element], name: Optional[str | re.Pattern | Callable[[str], bool]] = None,
-                  attributes: Optional[Mapping[str, Optional[str | re.Pattern | Callable[[str], bool]]]] = None,
+def find_elements(parent_or_elements: Element | Iterable[Element], name: Optional[_TPattern] = None,
+                  attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
                   filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Iterator[Element]:
-    for element in elements:
+    if isinstance(parent_or_elements, Element):
+        parent_or_elements = parent_or_elements.children
+    for element in parent_or_elements:
         if not count:
             break
         if not _match(name, element.name):

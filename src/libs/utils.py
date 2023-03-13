@@ -1,4 +1,4 @@
-__version__ = '0.0.23'
+__version__ = '0.0.24'
 
 import ast
 import binascii
@@ -71,6 +71,71 @@ class _Mutable:
 
     def __bytes__(self):
         return bytes(self._data)
+
+    def __iadd__(self, other):
+        self._data += other
+        self._changed.set()
+        return self
+
+    def __isub__(self, other):
+        self._data -= other
+        self._changed.set()
+        return self
+
+    def __imul__(self, other):
+        self._data *= other
+        self._changed.set()
+        return self
+
+    def __imatmul__(self, other):
+        self._data @= other
+        self._changed.set()
+        return self
+
+    def __itruediv__(self, other):
+        self._data /= other
+        self._changed.set()
+        return self
+
+    def __ifloordiv__(self, other):
+        self._data //= other
+        self._changed.set()
+        return self
+
+    def __imod__(self, other):
+        self._data %= other
+        self._changed.set()
+        return self
+
+    def __ipow__(self, other):
+        self._data **= other
+        self._changed.set()
+        return self
+
+    def __ilshift__(self, other):
+        self._data <<= other
+        self._changed.set()
+        return self
+
+    def __irshift__(self, other):
+        self._data >>= other
+        self._changed.set()
+        return self
+
+    def __iand__(self, other):
+        self._data &= other
+        self._changed.set()
+        return self
+
+    def __ixor__(self, other):
+        self._data ^= other
+        self._changed.set()
+        return self
+
+    def __ior__(self, other):
+        self._data |= other
+        self._changed.set()
+        return self
 
     def get(self):
         return self._data

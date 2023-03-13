@@ -1,6 +1,7 @@
 import enum
 import os.path
 import re
+import sys
 from typing import Any, AnyStr, Callable, Hashable, Iterable, MutableSequence, Optional
 
 
@@ -58,6 +59,18 @@ def ensure_iterable(current: dict, default: dict, key: str,
             return True
     current[key] = default[key]
     return False
+
+
+# noinspection PyShadowingBuiltins
+def ensure_positive(current: dict, default: dict, key: str,
+                    max: int = sys.maxsize) -> bool:
+    return ensure_iterable(current, default, key, range(1, max))
+
+
+# noinspection PyShadowingBuiltins
+def ensure_negative(current: dict, default: dict, key: str,
+                    min: int = -sys.maxsize) -> bool:
+    return ensure_iterable(current, default, key, range(-1, min, -1))
 
 
 # noinspection PyShadowingNames

@@ -66,6 +66,7 @@ from . import (
     pexels,
     pixabay,
     reddit,
+    simpledesktops,
     spotlight,
     unsplash,
     wallhaven,
