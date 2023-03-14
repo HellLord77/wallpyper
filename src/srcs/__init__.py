@@ -71,4 +71,5 @@ from . import (
     unsplash,
     wallhaven,
     wallhere,
+    yandere,
     zerochan)  # NOQA: E402

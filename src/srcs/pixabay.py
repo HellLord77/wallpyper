@@ -111,7 +111,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         while True:
             if not hits:
                 response = request.get(URL_BASE, params=params)
-                if (http.HTTPStatus.BAD_REQUEST == response.status and
+                if (http.HTTPStatus.BAD_REQUEST == response.status_code and
                         response.content == _CONTENT_END):
                     params['page'] = '1'
                     continue

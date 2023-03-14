@@ -1,9 +1,10 @@
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 import base64
 import contextlib
 import http.client
 import io
+import itertools
 import json as json_
 import os
 import sys
@@ -285,12 +286,15 @@ class Response:
 
     def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self.response = response
+        self.status_code = http.HTTPStatus(getattr(
+            response, 'status', None) or http.HTTPStatus.IM_A_TEAPOT)
+        self.headers = getattr(response, 'headers', {})
+        self.local = response.fp.name if isinstance(getattr(
+            self.response, 'file', None), io.BufferedReader) else None
         self.getheader = getattr(response, 'getheader', self._getheader)
-        self.status = http.HTTPStatus(getattr(response, 'status', None) or http.HTTPStatus.IM_A_TEAPOT)
-        self.local = response.fp.name if isinstance(getattr(self.response, 'file', None), io.BufferedReader) else None
 
     def __bool__(self) -> bool:
-        return self.status == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
+        return self.status_code == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
 
     def __iter__(self) -> Iterator[bytes]:
         while chunk := self.response.read(self.chunk_size):
@@ -421,27 +425,24 @@ def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = 
             params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
             files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
             timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    if data is not None or files is not None or json is not None:
-        mime, data = encode_data(data, files, json)
-    else:
-        mime = ''
     if params is not None:
         url = extend_param(url, params)
     try:
-        _request = urllib.request.Request(url, data, HEADERS, method=str(method))
+        _request = urllib.request.Request(url, data, headers=HEADERS, method=str(method))
     except ValueError as exc:
         return Response(urllib.error.URLError(exc))
     else:
-        _request.add_header(Header.CONTENT_TYPE, mime)
+        if data is not None or files is not None or json is not None:
+            mime, _request.data = encode_data(data, files, json)
+            _request.add_header(Header.CONTENT_TYPE, mime)
         if auth is not None:
             _request.add_header(Header.AUTHORIZATION,
                                 f'Bearer {auth}' if isinstance(auth, str) else
                                 f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
         if headers is not None:
-            for header in headers.items():
-                _request.add_header(*header)
+            itertools.starmap(_request.add_header, headers.items())
+        urllib.request.install_opener(_OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
         try:
-            urllib.request.install_opener(_OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
             _response = urllib.request.urlopen(_request, timeout=timeout)
         except urllib.error.URLError as _response:
             return Response(_response)

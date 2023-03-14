@@ -5,9 +5,10 @@ import sys
 from typing import Any, AnyStr, Callable, Hashable, Iterable, MutableSequence, Optional
 
 
-def ensure_truthy(current: dict, default: dict, key: str) -> bool:
+def ensure_truthy(current: dict, default: dict, key: str,
+                  func: Callable[[Any], bool] = bool) -> bool:
     val = current[key]
-    if val:
+    if func(val):
         return True
     current[key] = default[key]
     return False

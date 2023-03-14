@@ -285,7 +285,8 @@ def get_image() -> Optional[files.File]:
     first_image = None
     while True:
         next_image = next(source.get_image(**params))
-        if filter_image(next_image) and source.filter_image(next_image):
+        if next_image is None or (filter_image(
+                next_image) and source.filter_image(next_image)):
             return next_image
         print(f'[❌] Filter: {next_image}')
         if first_image is None:
@@ -472,7 +473,7 @@ def search_image(path: str) -> bool:
     with gui.try_animate_icon(STRINGS.STATUS_SEARCH):
         response = request.post(consts.URL_GOOGLE, files={
             'encoded_image': path}, allow_redirects=False)
-        if response.status == http.HTTPStatus.FOUND and (
+        if response.status_code == http.HTTPStatus.FOUND and (
                 location := response.getheader(request.Header.LOCATION)):
             searched = webbrowser.open(location)
     return searched

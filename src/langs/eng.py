@@ -529,6 +529,17 @@ WALLHERE_ORIENTATION_vertical = 'Vertical'
 
 WALLHERE_COLOR_ = 'Any'
 
+YANDERE_MENU_RATING = 'Rating'
+YANDERE_MENU_ORIENTATION = 'Orientation'
+
+YANDERE_RATING__safe = 'Safe'
+YANDERE_RATING__questionable = 'Questionable'
+YANDERE_RATING__explicit = 'Explicit'
+
+YANDERE_ORIENTATION_any = 'Any'
+YANDERE_ORIENTATION_landscape = 'Landscape'
+YANDERE_ORIENTATION_portrait = 'Portrait'
+
 ZEROCHAN_MENU_SORT = 'Sort by'
 ZEROCHAN_MENU_TIME = 'Sort Range'
 ZEROCHAN_MENU_DIMENSION = 'Dimension'

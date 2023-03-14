@@ -94,7 +94,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         while True:
             if not items:
                 response = request.get(url, params=params)
-                if (http.HTTPStatus.FORBIDDEN == response.status and
+                if (response.status_code == http.HTTPStatus.FORBIDDEN and
                         response.content == _CONTENT_END):
                     params['p'] = '1'
                     continue

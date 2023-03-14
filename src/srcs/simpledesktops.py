@@ -51,7 +51,7 @@ class SimpleDesktops(Source):
                 cls._set_tooltip(
                     cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(_PAGE))
                 response = request.get(request.join(URL_BROWSE, str(_PAGE)))
-                if response.status == http.HTTPStatus.NOT_FOUND:
+                if response.status_code == http.HTTPStatus.NOT_FOUND:
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
                     continue
                 if response:

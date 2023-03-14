@@ -12,6 +12,7 @@ import os
 import shutil
 import sys
 import time
+import urllib.parse
 from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Optional
 
 import _hashlib
@@ -36,7 +37,7 @@ class File:
 
     def __post_init__(self):
         if not self.name:
-            self.name = os.path.basename(self.url)
+            self.name = urllib.parse.unquote(os.path.basename(self.url))
         for algorithm, hash_ in self._iter_hashes():
             if isinstance(hash_, str):
                 setattr(self, algorithm, bytes.fromhex(hash_))
