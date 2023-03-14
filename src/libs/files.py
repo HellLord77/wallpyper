@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.15'
+__version__ = '0.0.16'
 
 import contextlib
 import dataclasses
@@ -9,6 +9,7 @@ import glob
 import hashlib
 import math
 import os
+import re
 import shutil
 import sys
 import time
@@ -16,6 +17,8 @@ import urllib.parse
 from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Optional
 
 import _hashlib
+
+_PATTERN_SIZE = re.compile(r' size=\d*, ')
 
 # noinspection PyUnresolvedReferences
 MAX_CHUNK = shutil.COPY_BUFSIZE
@@ -39,18 +42,21 @@ class File:
         if not self.name:
             self.name = urllib.parse.unquote(os.path.basename(self.url))
         for algorithm, hash_ in self._iter_hashes():
-            if isinstance(hash_, str):
+            if not isinstance(hash_, bytes):
                 setattr(self, algorithm, bytes.fromhex(hash_))
 
     def __hash__(self):
         return hash(self.url)
+
+    def __str__(self):
+        return _PATTERN_SIZE.sub(f' size={Size(self.size)}, ', repr(self), 1)
 
     def __eq__(self, other):
         if isinstance(other, File):
             return self.url == other.url
         return NotImplemented
 
-    def _iter_hashes(self) -> Iterable[tuple[str, bytes]]:
+    def _iter_hashes(self) -> Iterable[tuple[str, bytes | str]]:
         for algorithm in hashlib.algorithms_available:
             if hasattr(self, algorithm):
                 yield algorithm, getattr(self, algorithm)
@@ -133,6 +139,65 @@ class ImageFile(File):
 
     def is_sfw(self) -> bool:
         return not self.sketchy and not self.nsfw
+
+
+class Size(int):
+    unit = 1024 if sys.platform == 'win32' else 1000
+    _units = 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'
+
+    def __new__(cls, b: Optional[int] = None,
+                kb: Optional[float] = None, mb: Optional[float] = None,
+                gb: Optional[float] = None, tb: Optional[float] = None,
+                pb: Optional[float] = None, eb: Optional[float] = None,
+                zb: Optional[float] = None, yb: Optional[float] = None) -> Size:
+        byte = 0 if b is None else b
+        for index, unit in enumerate((kb, mb, gb, tb, pb, eb, zb, yb), 1):
+            if unit is not None:
+                byte += unit * cls.unit ** index
+        return super().__new__(cls, byte)
+
+    def __repr__(self):
+        if self < self.unit:
+            return f'{super().__repr__()}{self._units[0]}'
+        else:
+            index = int(math.log(self, self.unit))
+            return f'{self / self.unit ** index:.2f}{self._units[index]}'
+
+    @property
+    def byte(self) -> int:
+        return self
+
+    @property
+    def kilo_byte(self) -> float:
+        return self / self.unit
+
+    @property
+    def mega_byte(self) -> float:
+        return self.kilo_byte / self.unit
+
+    @property
+    def giga_byte(self) -> float:
+        return self.mega_byte / self.unit
+
+    @property
+    def tera_byte(self) -> float:
+        return self.giga_byte / self.unit
+
+    @property
+    def peta_byte(self) -> float:
+        return self.tera_byte / self.unit
+
+    @property
+    def exa_byte(self) -> float:
+        return self.peta_byte / self.unit
+
+    @property
+    def zetta_byte(self) -> float:
+        return self.exa_byte / self.unit
+
+    @property
+    def yotta_byte(self) -> float:
+        return self.zetta_byte / self.unit
 
 
 def replace_ext(path: str, ext: str) -> str:

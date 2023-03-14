@@ -81,7 +81,7 @@ def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = N
         args = ()
 
     @functools.wraps(on_click)
-    def wrapped(_: int, menu_item_: win32.gui.MenuItem):
+    def on_click_(_: int, menu_item_: win32.gui.MenuItem):
         args_ = []
         for arg in args:
             if arg in MenuItemMethod:
@@ -91,8 +91,8 @@ def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = N
         on_click(*args_)
 
     if on_thread:
-        wrapped = callables.ThreadedCallable(wrapped)
-    menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, wrapped)
+        on_click_ = callables.ThreadedCallable(on_click_)
+    menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, on_click_)
 
 
 def _get_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> win32.gui.Menu:
@@ -227,10 +227,11 @@ def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem,
         on_click_ = mapping.__setitem__
     else:
         @functools.wraps(on_click)
-        def on_click_(uid: str):
-            mapping[key] = uid
+        def on_click_(key_: str, uid: str):
+            mapping[key_] = uid
             return on_click(uid)
     val = mapping[key]
+    on_click_ = functools.partial(on_click_, key)
     submenu = submenu_item.get_submenu()
     for uid_, label in items.items():
         add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_,
