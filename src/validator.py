@@ -15,13 +15,42 @@ def ensure_truthy(current: dict, default: dict, key: str,
 
 
 # noinspection PyShadowingBuiltins
+def ensure_min_len(current: dict, default: dict, key: str,
+                   min: int, keep: bool = True) -> bool:
+    val: MutableSequence = current[key]
+    if min <= len(val):
+        return True
+    if keep:
+        for index in range(len(val), min):
+            val.append(default[key][index])
+    else:
+        val.clear()
+        val.extend(default[key])
+    return False
+
+
+# noinspection PyShadowingBuiltins
 def ensure_max_len(current: dict, default: dict, key: str,
-                   max: int, trunc: bool = True, right: bool = False) -> bool:
-    val = current[key]
+                   max: int, keep: bool = True, right: bool = False) -> bool:
+    val: MutableSequence = current[key]
     if max >= len(val):
         return True
-    current[key] = val[slice(-max, None) if right else slice(max)] if trunc else default[key]
+    if keep:
+        index = 0 if right else -1
+        for _ in range(len(val) - max):
+            del val[index]
+    else:
+        val.clear()
+        val.extend(default[key])
     return False
+
+
+# noinspection PyShadowingBuiltins
+def ensure_len(current: dict, default: dict, key: str,
+               len: int, keep: bool = True, right: bool = False) -> bool:
+    min_len = ensure_min_len(current, default, key, len, keep)
+    max_len = ensure_max_len(current, default, key, len, keep, right)
+    return min_len and max_len
 
 
 def ensure_unique(current: dict, _: dict, key: str,

@@ -67,18 +67,18 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
 
     @classmethod
     def create_menu(cls):
-        enable_time = gui.add_mapped_submenu(cls.STRINGS.ZEROCHAN_MENU_TIME, {
+        enable_time = gui.add_submenu_radio(cls.STRINGS.ZEROCHAN_MENU_TIME, {
             time: getattr(cls.STRINGS, f'ZEROCHAN_TIME_{time}')
             for time in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
-        gui.add_mapped_submenu(cls.STRINGS.ZEROCHAN_MENU_SORT, {
+        gui.add_submenu_radio(cls.STRINGS.ZEROCHAN_MENU_SORT, {
             sort: getattr(cls.STRINGS, f'ZEROCHAN_SORT_{sort}') for sort in SORTS},
-                               cls.CURRENT_CONFIG, CONFIG_SORT, on_click=functools.partial(
+                              cls.CURRENT_CONFIG, CONFIG_SORT, on_click=functools.partial(
                 _on_sort, enable_time), position=0)
         _on_sort(enable_time, cls.CURRENT_CONFIG[CONFIG_SORT])
-        gui.add_mapped_submenu(cls.STRINGS.ZEROCHAN_MENU_DIMENSION, {
+        gui.add_submenu_radio(cls.STRINGS.ZEROCHAN_MENU_DIMENSION, {
             dimension: getattr(cls.STRINGS, f'ZEROCHAN_DIMENSION_{dimension}')
             for dimension in DIMENSIONS}, cls.CURRENT_CONFIG, CONFIG_DIMENSION)
-        gui.add_mapped_submenu(cls.STRINGS.ZEROCHAN_MENU_COLOR, {
+        gui.add_submenu_radio(cls.STRINGS.ZEROCHAN_MENU_COLOR, {
             color: getattr(cls.STRINGS, f'ZEROCHAN_COLOR_{color}')
             for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
 

@@ -67,20 +67,20 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
     @classmethod
     def create_menu(cls):
         item_search = gui.add_submenu(cls.STRINGS.PEXELS_MENU_SEARCH)
-        gui.add_mapped_menu_item(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
-                                 on_click=functools.partial(_on_curated, item_search.enable), position=0)
+        gui.add_menu_item_check(cls.STRINGS.PEXELS_LABEL_CURATED, cls.CURRENT_CONFIG, CONFIG_CURATED,
+                                on_click=functools.partial(_on_curated, item_search.enable), position=0)
         _on_curated(item_search.enable, cls.CURRENT_CONFIG[CONFIG_CURATED])
         with gui.set_menu(item_search):
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_ORIENTATION,
-                                   {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
-                                    for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_SIZE, {size: getattr(
+            gui.add_submenu_radio(cls.STRINGS.PEXELS_MENU_ORIENTATION,
+                                  {orientation: getattr(cls.STRINGS, f'PEXELS_ORIENTATION_{orientation}')
+                                   for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+            gui.add_submenu_radio(cls.STRINGS.PEXELS_MENU_SIZE, {size: getattr(
                 cls.STRINGS, f'PEXELS_SIZE_{size}') for size in SIZES}, cls.CURRENT_CONFIG, CONFIG_SIZE)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_COLOR, {color: getattr(
+            gui.add_submenu_radio(cls.STRINGS.PEXELS_MENU_COLOR, {color: getattr(
                 cls.STRINGS, f'PEXELS_COLOR_{color}') for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
-            gui.add_mapped_submenu(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: isocodes.ISO31661.get(
+            gui.add_submenu_radio(cls.STRINGS.PEXELS_MENU_LOCALE, {locale: isocodes.ISO31661.get(
                 locale[locale.find('-') + 1:]).name if locale else cls.STRINGS.PEXELS_LOCALE_
-                                                                    for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
+                                                                   for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:

@@ -192,63 +192,63 @@ def create_menu():
             multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(STRINGS.MENU_SETTINGS, icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_AUTO, icon=RES_TEMPLATE.format(consts.RES_AUTO))):
-            gui.add_mapped_menu_item(STRINGS.LABEL_CHANGE_START, CURRENT_CONFIG,
-                                     consts.CONFIG_CHANGE_START).set_tooltip(STRINGS.TOOLTIP_CHANGE_START)
+            gui.add_menu_item_check(STRINGS.LABEL_CHANGE_START, CURRENT_CONFIG,
+                                    consts.CONFIG_CHANGE_START).set_tooltip(STRINGS.TOOLTIP_CHANGE_START)
             gui.add_separator()
-            gui.add_mapped_submenu(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
-                STRINGS, f'INTERVAL_{interval}') for interval in CHANGE_INTERVALS}, CURRENT_CONFIG,
-                                   consts.CONFIG_CHANGE_INTERVAL,
-                                   on_click=on_auto_change, icon=RES_TEMPLATE.format(consts.RES_INTERVAL))
-            gui.add_mapped_submenu(STRINGS.MENU_IF_MAXIMIZED, {action: getattr(
+            gui.add_submenu_radio(STRINGS.MENU_AUTO_CHANGE, {interval: getattr(
+                STRINGS, f'INTERVAL_{interval}') for interval in CHANGE_INTERVALS},
+                                  CURRENT_CONFIG, consts.CONFIG_CHANGE_INTERVAL,
+                                  on_click=on_auto_change, icon=RES_TEMPLATE.format(consts.RES_INTERVAL))
+            gui.add_submenu_radio(STRINGS.MENU_IF_MAXIMIZED, {action: getattr(
                 STRINGS, f'MAXIMIZED_{action}') for action in MAXIMIZED_ACTIONS}, CURRENT_CONFIG,
-                                   consts.CONFIG_MAXIMIZED_ACTION, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
+                                  consts.CONFIG_MAXIMIZED_ACTION, icon=RES_TEMPLATE.format(consts.RES_MAXIMIZED))
             gui.add_separator()
-            gui.add_mapped_menu_item(STRINGS.LABEL_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(
+            gui.add_menu_item_check(STRINGS.LABEL_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_AUTO_SAVE).set_tooltip(
                 STRINGS.TOOLTIP_AUTO_SAVE)
             item_dir = gui.add_menu_item(STRINGS.LABEL_SAVE_DIR, on_click=on_modify_save,
                                          args=(gui.MenuItemMethod.SET_TOOLTIP,))
             item_dir.set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
             on_modify_save(item_dir.set_tooltip, CURRENT_CONFIG[consts.CONFIG_SAVE_DIR])
         if consts.FEATURE_ROTATE_IMAGE:
-            gui.add_mapped_submenu(STRINGS.MENU_ROTATE, {rotate.name: getattr(
+            gui.add_submenu_radio(STRINGS.MENU_ROTATE, {rotate.name: getattr(
                 STRINGS, f'ROTATE_{rotate.name}') for rotate in win32.display.Rotate},
-                                   CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
-                                   on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ROTATE))
+                                  CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
+                                  on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ROTATE))
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_FLIP, icon=RES_TEMPLATE.format(consts.RES_FLIP))):
-            gui.add_mapped_menu_item(STRINGS.FLIP_HORIZONTAL, CURRENT_CONFIG,
-                                     consts.CONFIG_FLIP_HORIZONTAL, on_click=try_reapply_wallpaper)
-            gui.add_mapped_menu_item(STRINGS.FLIP_VERTICAL, CURRENT_CONFIG,
-                                     consts.CONFIG_FLIP_VERTICAL, on_click=try_reapply_wallpaper)
-        gui.add_mapped_submenu(STRINGS.MENU_ALIGNMENT, {style.name: getattr(
+            gui.add_menu_item_check(STRINGS.FLIP_HORIZONTAL, CURRENT_CONFIG,
+                                    consts.CONFIG_FLIP_HORIZONTAL, on_click=try_reapply_wallpaper)
+            gui.add_menu_item_check(STRINGS.FLIP_VERTICAL, CURRENT_CONFIG,
+                                    consts.CONFIG_FLIP_VERTICAL, on_click=try_reapply_wallpaper)
+        gui.add_submenu_radio(STRINGS.MENU_ALIGNMENT, {style.name: getattr(
             STRINGS, f'ALIGNMENT_{style.name}') for style in win32.display.Style}, CURRENT_CONFIG, consts.CONFIG_FIT_STYLE,
-                               on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
+                              on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_ALIGNMENT))
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_TRANSITION, icon=RES_TEMPLATE.format(consts.RES_TRANSITION))):
-            item_duration_enable = gui.add_mapped_submenu(
+            item_duration_enable = gui.add_submenu_radio(
                 STRINGS.MENU_TRANSITION_DURATION, {duration: getattr(STRINGS, f'DURATION_{int(duration)}')
                                                    for duration in TRANSITION_DURATIONS}, CURRENT_CONFIG, consts.CONFIG_TRANSITION_DURATION,
                 CURRENT_CONFIG[consts.CONFIG_TRANSITION_STYLE] != win32.display.Transition.DISABLED.name,
                 icon=RES_TEMPLATE.format(consts.RES_TRANSITION_DURATION)).enable
-            gui.add_mapped_submenu(STRINGS.MENU_TRANSITION_STYLE, {transition.name: getattr(
+            gui.add_submenu_radio(STRINGS.MENU_TRANSITION_STYLE, {transition.name: getattr(
                 STRINGS, f'TRANSITION_{transition.name}') for transition in win32.display.Transition},
-                                   CURRENT_CONFIG, consts.CONFIG_TRANSITION_STYLE,
-                                   on_click=functools.partial(on_transition_style, item_duration_enable),
-                                   position=-1, icon=RES_TEMPLATE.format(consts.RES_TRANSITION_STYLE))
+                                  CURRENT_CONFIG, consts.CONFIG_TRANSITION_STYLE,
+                                  on_click=functools.partial(on_transition_style, item_duration_enable),
+                                  position=-1, icon=RES_TEMPLATE.format(consts.RES_TRANSITION_STYLE))
             gui.add_separator()
-            item_ease_enable = gui.add_mapped_submenu(
+            item_ease_enable = gui.add_submenu_radio(
                 STRINGS.MENU_EASE, {ease.name: getattr(STRINGS, f'EASE_{ease.name}')
                                     for ease in itertools.islice(easings.Ease, None, 7)},
                 CURRENT_CONFIG, consts.CONFIG_TRANSITION_EASE, CURRENT_CONFIG[consts.CONFIG_EASE_IN] or CURRENT_CONFIG[
                     consts.CONFIG_EASE_OUT], on_click=try_reapply_wallpaper, icon=RES_TEMPLATE.format(consts.RES_EASE)).enable
             with gui.set_menu(gui.add_submenu(STRINGS.MENU_EASE_TIMING, position=-1,
                                               icon=RES_TEMPLATE.format(consts.RES_EASE_TIMING))):
-                gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_IN, CURRENT_CONFIG, consts.CONFIG_EASE_IN,
-                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
-                gui.add_mapped_menu_item(STRINGS.EASE_DIRECTION_OUT, CURRENT_CONFIG, consts.CONFIG_EASE_OUT,
-                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
-        item_sources = gui.add_mapped_submenu(STRINGS.MENU_SOURCE, {
+                gui.add_menu_item_check(STRINGS.EASE_DIRECTION_IN, CURRENT_CONFIG, consts.CONFIG_EASE_IN,
+                                        on_click=functools.partial(on_easing_direction, item_ease_enable))
+                gui.add_menu_item_check(STRINGS.EASE_DIRECTION_OUT, CURRENT_CONFIG, consts.CONFIG_EASE_OUT,
+                                        on_click=functools.partial(on_easing_direction, item_ease_enable))
+        item_sources = gui.add_submenu_radio(STRINGS.MENU_SOURCE, {
             name: source.NAME for name, source in sorted(
                 srcs.SOURCES.items(), key=lambda source: source[1].NAME.casefold())},
-                                              CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE, on_click=functools.partial(
+                                             CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE, on_click=functools.partial(
                 on_source, item_source), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
         if not consts.FEATURE_SOURCE_DEV:
             for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
@@ -259,22 +259,22 @@ def create_menu():
         on_display_change(item_display, 0)
         gui.add_separator()
         with gui.set_menu(gui.add_submenu(STRINGS.MENU_NOTIFICATIONS, icon=RES_TEMPLATE.format(consts.RES_NOTIFICATION))):
-            gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_ERROR, CURRENT_CONFIG, consts.CONFIG_NOTIFY_ERROR)
-            gui.add_mapped_menu_item(STRINGS.LABEL_NOTIFY_BLOCKED, CURRENT_CONFIG,
-                                     consts.CONFIG_NOTIFY_BLOCKED, on_click=on_blocked)
-        gui.add_mapped_submenu(STRINGS.MENU_COLORS, {mode.name: getattr(
+            gui.add_menu_item_check(STRINGS.LABEL_NOTIFY_ERROR, CURRENT_CONFIG, consts.CONFIG_NOTIFY_ERROR)
+            gui.add_menu_item_check(STRINGS.LABEL_NOTIFY_BLOCKED, CURRENT_CONFIG,
+                                    consts.CONFIG_NOTIFY_BLOCKED, on_click=on_blocked)
+        gui.add_submenu_radio(STRINGS.MENU_COLORS, {mode.name: getattr(
             STRINGS, f'COLOR_MODE_{mode.name}') for mode in itertools.islice(
             win32.ColorMode, 1, None)}, CURRENT_CONFIG, consts.CONFIG_MENU_COLOR,
-                               on_click=win32.set_color_mode, icon=RES_TEMPLATE.format(consts.RES_THEME))
+                              on_click=win32.set_color_mode, icon=RES_TEMPLATE.format(consts.RES_THEME))
         win32.set_color_mode(CURRENT_CONFIG[consts.CONFIG_MENU_COLOR])
-        gui.add_mapped_menu_item(STRINGS.LABEL_ANIMATE, CURRENT_CONFIG,
-                                 consts.CONFIG_ANIMATE_ICON, on_click=gui.enable_animated_icon)
-        gui.add_mapped_menu_item(STRINGS.LABEL_SKIP, CURRENT_CONFIG, consts.CONFIG_SKIP_RECENT)
-        gui.add_mapped_menu_item(STRINGS.LABEL_REAPPLY, CURRENT_CONFIG, consts.CONFIG_REAPPLY_IMAGE)
-        gui.add_mapped_menu_item(STRINGS.LABEL_RESTORE, CURRENT_CONFIG, consts.CONFIG_RESTORE_IMAGE)
-        gui.add_mapped_menu_item(STRINGS.LABEL_CACHE, CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
-        gui.add_mapped_menu_item(STRINGS.LABEL_START, CURRENT_CONFIG, consts.CONFIG_AUTOSTART)
-        gui.add_mapped_menu_item(STRINGS.LABEL_SETTINGS_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
+        gui.add_menu_item_check(STRINGS.LABEL_ANIMATE, CURRENT_CONFIG,
+                                consts.CONFIG_ANIMATE_ICON, on_click=gui.enable_animated_icon)
+        gui.add_menu_item_check(STRINGS.LABEL_SKIP, CURRENT_CONFIG, consts.CONFIG_SKIP_RECENT)
+        gui.add_menu_item_check(STRINGS.LABEL_REAPPLY, CURRENT_CONFIG, consts.CONFIG_REAPPLY_IMAGE)
+        gui.add_menu_item_check(STRINGS.LABEL_RESTORE, CURRENT_CONFIG, consts.CONFIG_RESTORE_IMAGE)
+        gui.add_menu_item_check(STRINGS.LABEL_CACHE, CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
+        gui.add_menu_item_check(STRINGS.LABEL_START, CURRENT_CONFIG, consts.CONFIG_AUTOSTART)
+        gui.add_menu_item_check(STRINGS.LABEL_SETTINGS_AUTO_SAVE, CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
     gui.add_menu_item(STRINGS.LABEL_QUIT, on_click=on_quit, on_thread=False).set_icon(
         RES_TEMPLATE.format(consts.RES_QUIT))
 
@@ -664,7 +664,7 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{langs.to_str(index, STRINGS)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{langs.to_str(DISPLAYS[monitor][1][0], STRINGS)} × {DISPLAYS[monitor][1][1]}')
-        gui.add_mapped_submenu(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=on_blocked)
+        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=on_blocked)
         enable = len(DISPLAYS) > 1
         for submenu_item in submenu:
             submenu_item.enable(enable)

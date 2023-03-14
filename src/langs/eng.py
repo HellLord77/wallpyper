@@ -200,20 +200,6 @@ COLOR_MODE_AUTO = 'System'
 COLOR_MODE_LIGHT = 'Light'
 COLOR_MODE_DARK = 'Dark'
 
-LOCAL_MENU_DIR = 'Choose Folder...'
-LOCAL_MENU_RECURSE = 'Scan Recursively'
-LOCAL_MENU_SORT = 'Sort Image by'
-LOCAL_MENU_ORDER = 'Image Sort Order'
-
-LOCAL_SORT_name = 'Name'
-LOCAL_SORT_size = 'Size'
-LOCAL_SORT_created = 'Creation Time'
-LOCAL_SORT_modified = 'Last Modified'
-LOCAL_SORT_accessed = 'Access Time'
-
-LOCAL_ORDER_ascending = 'Ascending'
-LOCAL_ORDER_descending = 'Descending'
-
 BING_MENU_DAY = 'Start from'
 BING_MENU_MARKET = 'Location'
 BING_MENU_RESOLUTION = 'Resolution'
@@ -295,6 +281,20 @@ FIVEHUNREDPXLEGACY_SORT_taken_at = 'Taken Date'
 
 FIVEHUNREDPXLEGACY_SORT_DIRECTION_asc = 'Ascending'
 FIVEHUNREDPXLEGACY_SORT_DIRECTION_desc = 'Descending'
+
+LOCAL_MENU_DIR = 'Choose Folder...'
+LOCAL_MENU_RECURSE = 'Scan Recursively'
+LOCAL_MENU_SORT = 'Sort Image by'
+LOCAL_MENU_ORDER = 'Image Sort Order'
+
+LOCAL_SORT_name = 'Name'
+LOCAL_SORT_size = 'Size'
+LOCAL_SORT_created = 'Creation Time'
+LOCAL_SORT_modified = 'Last Modified'
+LOCAL_SORT_accessed = 'Access Time'
+
+LOCAL_ORDER_ascending = 'Ascending'
+LOCAL_ORDER_descending = 'Descending'
 
 PEXELS_LABEL_CURATED = 'Curated Photos'
 
@@ -391,18 +391,17 @@ PIXABAY_ORDER_latest = 'Latest'
 
 REDDIT_LABEL_STATIC = 'Skip Animated'
 
-REDDIT_MENU_ADULT = 'Over 18'
-REDDIT_MENU_ORIENTATION = 'Orientation'
+REDDIT_MENU_ORIENTATIONS = 'Orientation'
+REDDIT_MENU_RATINGS = 'Rating'
+
 REDDIT_MENU_SORT = 'Sort by'
 REDDIT_MENU_TIME = 'Sort Limit'
 
-REDDIT_ADULT_include = 'Include'
-REDDIT_ADULT_exclude = 'Exclude'
-REDDIT_ADULT_only = 'Only'
+REDDIT_ORIENTATION_0 = 'Landscape'
+REDDIT_ORIENTATION_1 = 'Portrait'
 
-REDDIT_ORIENTATION_any = 'Any'
-REDDIT_ORIENTATION_landscape = 'Landscape'
-REDDIT_ORIENTATION_portrait = 'Portrait'
+REDDIT_RATING_0 = 'SFW'
+REDDIT_RATING_1 = 'NSFW'
 
 REDDIT_SORT_hot = 'Hot'
 REDDIT_SORT_new = 'New'
@@ -469,9 +468,9 @@ WALLHAVEN_MENU_RANGE = 'Toplist Range'
 WALLHAVEN_MENU_RATIO = 'Ratio'
 WALLHAVEN_MENU_COLOR = 'Color'
 
-WALLHAVEN_CATEGORY_general = 'General'
-WALLHAVEN_CATEGORY_anime = 'Anime'
-WALLHAVEN_CATEGORY_people = 'People'
+WALLHAVEN_CATEGORY_0 = 'General'
+WALLHAVEN_CATEGORY_1 = 'Anime'
+WALLHAVEN_CATEGORY_2 = 'People'
 
 WALLHAVEN_PURITY_sfw = 'SFW'
 WALLHAVEN_PURITY_sketchy = 'Sketchy'
@@ -529,16 +528,15 @@ WALLHERE_ORIENTATION_vertical = 'Vertical'
 
 WALLHERE_COLOR_ = 'Any'
 
-YANDERE_MENU_RATING = 'Rating'
-YANDERE_MENU_ORIENTATION = 'Orientation'
+YANDERE_MENU_ORIENTATIONS = 'Orientation'
+YANDERE_MENU_RATINGS = 'Rating'
 
-YANDERE_RATING__safe = 'Safe'
-YANDERE_RATING__questionable = 'Questionable'
-YANDERE_RATING__explicit = 'Explicit'
+YANDERE_RATING_0 = 'Safe'
+YANDERE_RATING_1 = 'Questionable'
+YANDERE_RATING_2 = 'Explicit'
 
-YANDERE_ORIENTATION_any = 'Any'
-YANDERE_ORIENTATION_landscape = 'Landscape'
-YANDERE_ORIENTATION_portrait = 'Portrait'
+YANDERE_ORIENTATION_0 = 'Landscape'
+YANDERE_ORIENTATION_1 = 'Portrait'
 
 ZEROCHAN_MENU_SORT = 'Sort by'
 ZEROCHAN_MENU_TIME = 'Sort Range'

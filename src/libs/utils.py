@@ -11,6 +11,7 @@ import inspect
 import io
 import itertools
 import math
+import operator
 import os
 import pickle
 import pprint
@@ -339,6 +340,14 @@ def to_str(string: str) -> str:
 
 def to_tuple(string: str) -> tuple:
     return _to_type(string, tuple)
+
+
+def iter_and(it1: Iterable, it2: Iterable, func: Callable = zip) -> Iterator:
+    return itertools.starmap(operator.and_, func(it1, it2))
+
+
+def iter_or(it1: Iterable, it2: Iterable, func: Callable = zip) -> Iterator:
+    return itertools.starmap(operator.or_, func(it1, it2))
 
 
 def hexdigest(digest: bytes) -> str:

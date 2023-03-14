@@ -47,11 +47,11 @@ class LocalFolder(Source):
     def create_menu(cls):
         gui.add_menu_item(cls.STRINGS.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, args=(
             gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
-        gui.add_mapped_menu_item(cls.STRINGS.LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
+        gui.add_menu_item_check(cls.STRINGS.LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()
-        gui.add_mapped_submenu(cls.STRINGS.LOCAL_MENU_SORT, {sort: getattr(
+        gui.add_submenu_radio(cls.STRINGS.LOCAL_MENU_SORT, {sort: getattr(
             cls.STRINGS, f'LOCAL_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
-        gui.add_mapped_submenu(cls.STRINGS.LOCAL_MENU_ORDER, {order: getattr(
+        gui.add_submenu_radio(cls.STRINGS.LOCAL_MENU_ORDER, {order: getattr(
             cls.STRINGS, f'LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod

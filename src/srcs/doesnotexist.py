@@ -29,7 +29,7 @@ class ThisDoesNotExist(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
+        gui.add_submenu_radio(cls.STRINGS.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
             cls.STRINGS, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
 
     @classmethod

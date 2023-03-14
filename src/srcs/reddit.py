@@ -6,7 +6,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import callables, files, request
+from libs import callables, files, request, utils
 from . import Source
 
 _TOKEN_TOLERANCE = 30.0
@@ -19,15 +19,13 @@ URL_TOKEN = request.join('https://www.reddit.com', 'api', 'v1', 'access_token')
 URL_IMAGE = request.join('https://i.redd.it')
 
 CONFIG_ID = '_client_id'
-CONFIG_ADULT = '_over_18'
-CONFIG_ORIENTATION = '_orientation'
+CONFIG_ORIENTATIONS = '_orientations'
+CONFIG_RATINGS = '_ratings'
 CONFIG_STATIC = '_skip_animated'
 CONFIG_SUBS = 'subreddits'
 CONFIG_SORT = 'sort'
 CONFIG_TIME = 't'
 
-ADULTS = 'include', 'exclude', 'only'
-ORIENTATIONS = 'any', 'landscape', 'portrait'
 SORTS = 'hot', 'new', 'top', 'controversial', 'rising'
 TIMES = 'hour', 'day', 'week', 'month', 'year', 'all'
 
@@ -83,21 +81,21 @@ def _authenticate(client_id: str) -> bool:
 
 class Reddit(Source):  # https://www.reddit.com/dev/api
     NAME = 'reddit'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     ICON = 'png'
     URL = 'https://reddit.com'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ID: str,
-        CONFIG_ADULT: str,
-        CONFIG_ORIENTATION: str,
+        CONFIG_ORIENTATIONS: list[bool],
+        CONFIG_RATINGS: list[bool],
         CONFIG_STATIC: bool,
         CONFIG_SUBS: str,
         CONFIG_SORT: str,
         CONFIG_TIME: str})
     DEFAULT_CONFIG = {
         CONFIG_ID: '',
-        CONFIG_ADULT: ADULTS[1],
-        CONFIG_ORIENTATION: ORIENTATIONS[0],
+        CONFIG_ORIENTATIONS: [True, True],
+        CONFIG_RATINGS: [True, False],
         CONFIG_STATIC: True,
         CONFIG_SUBS: 'wallpaper',
         CONFIG_SORT: SORTS[0],
@@ -105,25 +103,28 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_ADULT, ADULTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS, 2)
+        cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
+        cls._fix_config(validator.ensure_len, CONFIG_RATINGS, 2)
+        cls._fix_config(validator.ensure_truthy, CONFIG_RATINGS, any)
         cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_iterable, CONFIG_TIME, TIMES)
 
     @classmethod
     def create_menu(cls):
-        item_time_enable = gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_TIME, {time_: getattr(
+        item_time_enable = gui.add_submenu_radio(cls.STRINGS.REDDIT_MENU_TIME, {time_: getattr(
             cls.STRINGS, f'REDDIT_TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
-        gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_SORT, {sort: getattr(
+        gui.add_submenu_radio(cls.STRINGS.REDDIT_MENU_SORT, {sort: getattr(
             cls.STRINGS, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
-                               CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
+                              CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
         _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
-        gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_ADULT, {adult: getattr(
-            cls.STRINGS, f'REDDIT_ADULT_{adult}') for adult in ADULTS}, cls.CURRENT_CONFIG, CONFIG_ADULT)
-        gui.add_mapped_submenu(cls.STRINGS.REDDIT_MENU_ORIENTATION, {orientation: getattr(
-            cls.STRINGS, f'REDDIT_ORIENTATION_{orientation}') for orientation
-            in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
-        gui.add_mapped_menu_item(cls.STRINGS.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
+        gui.add_submenu_check(cls.STRINGS.REDDIT_MENU_ORIENTATIONS, (getattr(
+            cls.STRINGS, f'REDDIT_ORIENTATION_{orientation}') for orientation in range(2)),
+                              (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
+        gui.add_submenu_check(cls.STRINGS.REDDIT_MENU_RATINGS, (getattr(
+            cls.STRINGS, f'REDDIT_RATING_{rating}') for rating in range(2)),
+                              (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
+        gui.add_menu_item_check(cls.STRINGS.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
@@ -153,11 +154,11 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def filter_image(cls, image: files.ImageFile) -> bool:
-        if cls.CURRENT_CONFIG[CONFIG_ADULT] not in (
-                ADULTS[0], ADULTS[image.nsfw + 1]):
+        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_ORIENTATIONS], (
+                image.is_landscape(), image.is_portrait()))):
             return False
-        if cls.CURRENT_CONFIG[CONFIG_ORIENTATION] not in (
-                ORIENTATIONS[0], ORIENTATIONS[image.is_portrait() + 1]):
+        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_RATINGS], (
+                image.is_sfw(), image.nsfw))):
             return False
         if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
             return False

@@ -78,15 +78,15 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
                               category not in excludes, uid=category, on_click=on_only, menu=menu_only)
             gui.add_menu_item(label, gui.MenuItemType.CHECK, category in excludes,
                               category not in onlies, uid=category, on_click=on_exclude, menu=menu_exclude)
-        menu_sort = gui.add_mapped_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_SORT, {
+        menu_sort = gui.add_submenu_radio(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_SORT, {
             sort: getattr(cls.STRINGS, f'FIVEHUNREDPXLEGACY_SORT_{sort}')
             for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).get_submenu()
-        gui.add_mapped_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_FEATURE, {feature: getattr(
+        gui.add_submenu_radio(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_FEATURE, {feature: getattr(
             cls.STRINGS, f'FIVEHUNREDPXLEGACY_FEATURE_{feature}')
             for feature in FEATURES}, cls.CURRENT_CONFIG, CONFIG_FEATURE,
-                               on_click=functools.partial(cls._on_feature, menu_sort), position=0)
+                              on_click=functools.partial(cls._on_feature, menu_sort), position=0)
         cls._last_feature = cls.CURRENT_CONFIG[CONFIG_FEATURE]
-        gui.add_mapped_submenu(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
+        gui.add_submenu_radio(cls.STRINGS.FIVEHUNREDPXLEGACY_MENU_SORT_DIRECTION, {
             sort_direction: getattr(cls.STRINGS, f'FIVEHUNREDPXLEGACY_SORT_DIRECTION_{sort_direction}')
             for sort_direction in SORT_DIRECTIONS}, cls.CURRENT_CONFIG, CONFIG_SORT_DIRECTION)
 

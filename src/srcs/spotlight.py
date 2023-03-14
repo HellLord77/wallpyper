@@ -10,11 +10,11 @@ from . import Source
 
 URL_BASE = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
-CONFIG_LOCALE = 'pl'
 CONFIG_ORIENTATION = '_orientation'
+CONFIG_LOCALE = 'pl'
 
-LOCALES = 'en-US', 'de-DE', 'fr-FR', 'zh-CN', 'es-ES', 'ru-RU', 'en-GB', 'bn-IN', 'da-DK'
 ORIENTATIONS = 'landscape', 'portrait'
+LOCALES = 'en-US', 'de-DE', 'fr-FR', 'zh-CN', 'es-ES', 'ru-RU', 'en-GB', 'bn-IN', 'da-DK'
 
 
 class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloader
@@ -23,11 +23,11 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
     ICON = 'png'
     URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_LOCALE: str,
-        CONFIG_ORIENTATION: str})
+        CONFIG_ORIENTATION: str,
+        CONFIG_LOCALE: str})
     DEFAULT_CONFIG = {
-        CONFIG_LOCALE: LOCALES[0],
-        CONFIG_ORIENTATION: ORIENTATIONS[0]}
+        CONFIG_ORIENTATION: ORIENTATIONS[0],
+        CONFIG_LOCALE: LOCALES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -36,11 +36,11 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
 
     @classmethod
     def create_menu(cls):
-        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
+        gui.add_submenu_radio(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
             locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
-        gui.add_mapped_submenu(cls.STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
+        gui.add_submenu_radio(cls.STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
             cls.STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
-                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
+                              cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:

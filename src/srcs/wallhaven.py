@@ -17,7 +17,7 @@ URL_SEARCH = request.join(URL_API, 'search')
 URL_SETTINGS = request.join(URL_API, 'settings')
 
 CONFIG_KEY = 'apikey'
-CONFIG_CATEGORY = 'categories'
+CONFIG_CATEGORIES = 'categories'
 CONFIG_PURITY = 'purity'
 CONFIG_SORTING = 'sorting'
 CONFIG_ORDER = 'order'
@@ -25,7 +25,6 @@ CONFIG_RANGE = 'topRange'
 CONFIG_RATIO = 'ratios'
 CONFIG_COLORS = 'colors'
 
-CATEGORIES = 'general', 'anime', 'people'
 PURITIES = 'sfw', 'sketchy', 'nsfw'
 SORTINGS = 'date_added', 'relevance', 'random', 'views', 'favorites', 'toplist', 'hot'
 ORDERS = 'desc', 'asc'
@@ -37,7 +36,7 @@ COLORS = (
     '', '660000', '990000', 'cc0000', 'cc3333', 'ea4c88', '993399', '663399', '333399', '0066cc',
     '0099cc', '66cccc', '77cc33', '669900', '336600', '666600', '999900', 'cccc33', 'ffff00', 'ffcc33',
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
-PATTERN_CATEGORY_PURITY = re.compile('(?!000)[01]{3}')
+PATTERN_PURITY = re.compile('(?!000)[01]{3}')
 
 
 def _on_color_right(_: int, item_color: gui.MenuItem):
@@ -50,12 +49,12 @@ def _authenticate(key: str) -> bool:
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
     NAME = 'wallhaven'
-    VERSION = '0.0.5'
+    VERSION = '0.0.6'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_KEY: str,
         'q': str,
-        CONFIG_CATEGORY: str,
+        CONFIG_CATEGORIES: list[bool],
         CONFIG_PURITY: str,
         CONFIG_SORTING: str,
         CONFIG_ORDER: str,
@@ -67,7 +66,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     DEFAULT_CONFIG = {
         CONFIG_KEY: '',
         'q': '',
-        CONFIG_CATEGORY: '111',
+        CONFIG_CATEGORIES: [True, True, True],
         CONFIG_PURITY: '100',
         CONFIG_SORTING: SORTINGS[0],
         CONFIG_ORDER: ORDERS[0],
@@ -79,8 +78,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_pattern, CONFIG_CATEGORY, PATTERN_CATEGORY_PURITY)
-        cls._fix_config(validator.ensure_pattern, CONFIG_PURITY, PATTERN_CATEGORY_PURITY)
+        cls._fix_config(validator.ensure_len, CONFIG_CATEGORIES, 3)
+        cls._fix_config(validator.ensure_truthy, CONFIG_CATEGORIES, any)
+        cls._fix_config(validator.ensure_pattern, CONFIG_PURITY, PATTERN_PURITY)
         cls._fix_config(validator.ensure_iterable, CONFIG_SORTING, SORTINGS)
         cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
         cls._fix_config(validator.ensure_iterable, CONFIG_RANGE, RANGES)
@@ -92,17 +92,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
 
     @classmethod
     def create_menu(cls):
-        with gui.set_menu(gui.add_submenu(
-                cls.STRINGS.WALLHAVEN_MENU_CATEGORY)) as menu_category:
-            for index, category in enumerate(CATEGORIES):
-                gui.add_menu_item(getattr(
-                    cls.STRINGS, f'WALLHAVEN_CATEGORY_{category}'), gui.MenuItemType.CHECK,
-                    cls.CURRENT_CONFIG[CONFIG_CATEGORY][index] == '1', uid=category)
-        values_category = gui.get_menu_items(menu_category).values()
-        on_category = functools.partial(cls._on_category, values_category)
-        for item_category in values_category:
-            gui.set_on_click(item_category, on_category)
-        on_category()
+        gui.add_submenu_check(cls.STRINGS.WALLHAVEN_MENU_CATEGORY, (getattr(
+            cls.STRINGS, f'WALLHAVEN_CATEGORY_{rating}') for rating in range(3)),
+                              (1, None), cls.CURRENT_CONFIG, CONFIG_CATEGORIES)
         with gui.set_menu(gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY)) as menu_purity:
             for index, purity in enumerate(PURITIES):
                 gui.add_menu_item(getattr(
@@ -114,16 +106,16 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             gui.set_on_click(item_purity, on_purity)
         on_purity()
         item_sorting = gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_SORTING)
-        gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_ORDER, {
+        gui.add_submenu_radio(cls.STRINGS.WALLHAVEN_MENU_ORDER, {
             order: getattr(cls.STRINGS, f'WALLHAVEN_ORDER_{order}')
             for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
-        enable_range = gui.add_mapped_submenu(cls.STRINGS.WALLHAVEN_MENU_RANGE, {
+        enable_range = gui.add_submenu_radio(cls.STRINGS.WALLHAVEN_MENU_RANGE, {
             range_: getattr(cls.STRINGS, f'WALLHAVEN_RANGE_{range_}')
             for range_ in RANGES}, cls.CURRENT_CONFIG, CONFIG_RANGE).enable
-        gui.add_mapped_submenu(item_sorting, {
+        gui.add_submenu_radio(item_sorting, {
             sorting: getattr(cls.STRINGS, f'WALLHAVEN_SORTING_{sorting}')
             for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
-                               on_click=functools.partial(cls._on_sorting, enable_range))
+                              on_click=functools.partial(cls._on_sorting, enable_range))
         cls._on_sorting(enable_range, cls.CURRENT_CONFIG[CONFIG_SORTING])
         ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
         with gui.set_menu(gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_RATIO)) as menu_ratio:
@@ -136,7 +128,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         gui.add_separator(6, menu_ratio)
         colors = {color: colornames.get_nearest_color(color)[
             1] if color else cls.STRINGS.WALLHAVEN_COLOR_ for color in COLORS}
-        for item, color in zip(gui.add_mapped_submenu(
+        for item, color in zip(gui.add_submenu_radio(
                 cls.STRINGS.WALLHAVEN_MENU_COLOR, colors,
                 cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
             if color:
@@ -152,6 +144,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
+        params[CONFIG_CATEGORIES] = ''.join(map(str, map(int, params[CONFIG_CATEGORIES])))
         while True:
             if not datas:
                 response = request.get(URL_SEARCH, params=params)
@@ -170,14 +163,6 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             yield files.ImageFile(url, size=data['file_size'], width=data[
                 'dimension_x'], height=data['dimension_y'],
                                   sketchy=purity == PURITIES[1], nsfw=purity == PURITIES[2])
-
-    @classmethod
-    def _on_category(cls, items: ValuesView[gui.MenuItem]):
-        cls.CURRENT_CONFIG[CONFIG_CATEGORY] = ''.join(str(int(
-            item.is_checked())) for item in items)
-        disable = cls.CURRENT_CONFIG[CONFIG_CATEGORY].count('1') == 1
-        for item in items:
-            item.enable(not disable or not item.is_checked())
 
     @classmethod
     def _on_purity(cls, items: ValuesView[gui.MenuItem]):
