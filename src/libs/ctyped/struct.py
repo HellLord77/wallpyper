@@ -516,6 +516,15 @@ class POINT:
 
 
 @_struct
+class MINMAXINFO:
+    ptReserved: POINT
+    ptMaxSize: POINT
+    ptMaxPosition: POINT
+    ptMinTrackSize: POINT
+    ptMaxTrackSize: POINT
+
+
+@_struct
 class MSG:
     hwnd: _type.HWND
     message: _type.UINT
@@ -4327,6 +4336,24 @@ class _Struct(_ctypes.Structure):
             if val is not None and name not in kwargs:
                 kwargs[name] = val
         super().__init__(*args, **kwargs)
+
+    def __iter__(self):
+        return (name for name, *_ in self._fields_)
+
+    def __contains__(self, item):
+        return item in self.__iter__()
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def keys(self):
+        return self.__iter__()
+
+    def values(self):
+        return (self.__getitem__(name) for name in self)
+
+    def items(self):
+        return zip(self.keys(), self.values())
 
     __repr__ = _fields_repr
 

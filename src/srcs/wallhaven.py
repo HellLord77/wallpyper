@@ -39,8 +39,8 @@ COLORS = (
 PATTERN_PURITY = re.compile('(?!000)[01]{3}')
 
 
-def _on_color_right(_: int, item_color: gui.MenuItem):
-    win32.clipboard.copy_text(f'#{item_color.get_uid().upper()}')
+def _on_color_right(event):
+    win32.clipboard.copy_text(f'#{event.control.get_uid().upper()}')
 
 
 def _authenticate(key: str) -> bool:

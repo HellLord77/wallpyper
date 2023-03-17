@@ -470,10 +470,7 @@ function Write-Build {
 	}
 
 	if ($MainManifest) {
-		$TempPath = Join-Path $env:TEMP (New-Guid)
-		Copy-File $ExePath $TempPath $CopyTimeout
-		MergeManifest $TempPath $MainManifest
-		Move-Item $TempPath -Destination $ExePath -Force
+		MergeManifest $ExePath $MainManifest
 	}
 
 	if ($CythonizeRemove) {

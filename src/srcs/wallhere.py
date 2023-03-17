@@ -39,8 +39,8 @@ def _on_random(enable: Callable[[bool], bool], random: bool):
     enable(not random)
 
 
-def _on_color_right(_: int, item_color: gui.MenuItem):
-    win32.clipboard.copy_text(f'#{item_color.get_uid().upper()}')
+def _on_color_right(event):
+    win32.clipboard.copy_text(f'#{event.control.get_uid().upper()}')
 
 
 class WallHere(Source):

@@ -58,16 +58,6 @@ def HRESULT_FROM_WIN32(x: int) -> int:
 
 
 # noinspection PyPep8Naming
-def MAKEWORD(a: int, b: int) -> int:
-    return (a & 0xff) | (b & 0xff) << 8
-
-
-# noinspection PyPep8Naming
-def MAKELONG(a: int, b: int) -> int:
-    return (a & 0xffff) | (b & 0xffff) << 16
-
-
-# noinspection PyPep8Naming
 def MAKEWPARAM(l_: int, h: int) -> int:
     return _cast_int(_cast_int(MAKELONG(l_, h), _type.DWORD), _type.WPARAM)
 
@@ -90,6 +80,16 @@ def MAKEINTATOMA(i: int) -> _type.LPSTR:
 # noinspection PyPep8Naming
 def MAKEINTATOMW(i: int) -> _type.LPWSTR:
     return _type.LPWSTR(_cast_int(_cast_int(i, _type.WORD), _type.ULONG_PTR))
+
+
+# noinspection PyPep8Naming
+def MAKEWORD(a: int, b: int) -> int:
+    return (a & 0xff) | (b & 0xff) << 8
+
+
+# noinspection PyPep8Naming
+def MAKELONG(a: int, b: int) -> int:
+    return (a & 0xffff) | (b & 0xffff) << 16
 
 
 # noinspection PyPep8Naming
@@ -159,12 +159,12 @@ def IS_INTRESOURCE(_r: int) -> bool:
 
 # noinspection PyPep8Naming
 def GET_X_LPARAM(lp: int) -> int:
-    return LOWORD(lp)
+    return _cast_int(LOWORD(lp), _type.c_short)
 
 
 # noinspection PyPep8Naming
 def GET_Y_LPARAM(lp: int) -> int:
-    return HIWORD(lp)
+    return _cast_int(HIWORD(lp), _type.c_short)
 
 
 # noinspection PyPep8Naming

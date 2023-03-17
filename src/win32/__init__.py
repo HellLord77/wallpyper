@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import contextlib
 import enum
@@ -15,7 +15,7 @@ from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import oaidl, objidl, ocidl, propsys, ShObjIdl, ShObjIdl_core, strmif
 from libs.ctyped.interface.winrt.Windows import System as Windows_System
 from libs.ctyped.lib import kernel32, user32, uxtheme, shell32, ole32, ntdll, oleaut32, setupapi
-from . import _gdiplus, _utils, browser, clipboard, console, dialog, display, gui
+from . import _gdiplus, _utils, browser, clipboard, console, dialog, display, gui, window
 from ._utils import sanitize_filename
 
 _PIN_TIMEOUT = 3

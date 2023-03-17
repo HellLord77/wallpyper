@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-from typing import Optional as _Optional
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.lib import combase, gdi32, user32
@@ -27,6 +27,10 @@ class HBRUSH(ctyped.type.HBRUSH):
         gdi32.DeleteObject(self)
 
     @classmethod
+    def from_stock(cls, index: int) -> HBRUSH:
+        return cls(gdi32.GetStockObject(index))
+
+    @classmethod
     def from_rgb(cls, r: int = 0, g: int = 0, b: int = 0) -> HBRUSH:
         return cls(gdi32.CreateSolidBrush(ctyped.macro.RGB(r, g, b)))
 
@@ -34,7 +38,7 @@ class HBRUSH(ctyped.type.HBRUSH):
     def from_color(cls, index: int) -> HBRUSH:
         return cls(user32.GetSysColorBrush(index))
 
-    def get_rgb(self) -> _Optional[tuple[int, int, int]]:
+    def get_rgb(self) -> Optional[tuple[int, int, int]]:
         brush = ctyped.struct.LOGBRUSH()
         if gdi32.GetObjectW(self, ctyped.sizeof(brush), ctyped.byref(brush)):
             return ctyped.macro.GetRValue(brush.lbColor), ctyped.macro.GetGValue(
@@ -52,7 +56,7 @@ class HDC(ctyped.type.HDC):
             gdi32.DeleteDC(self)
 
     @classmethod
-    def from_hwnd(cls, hwnd: _Optional[ctyped.type.HWND] = None) -> HDC:
+    def from_hwnd(cls, hwnd: Optional[ctyped.type.HWND] = None) -> HDC:
         return cls(user32.GetDC(hwnd))
 
     @classmethod
@@ -67,8 +71,11 @@ class HCURSOR(ctyped.type.HCURSOR):
         user32.DestroyCursor(self)
 
     @classmethod
-    def from_idc(cls, idc: int, hinstance: _Optional[ctyped.type.HINSTANCE] = None) -> HCURSOR:
+    def from_idc(cls, idc: int, hinstance: Optional[ctyped.type.HINSTANCE] = None) -> HCURSOR:
         return cls(user32.LoadCursorW(hinstance, ctyped.macro.MAKEINTRESOURCEW(idc)))
+
+    def set(self) -> bool:
+        return bool(user32.SetCursor(self))
 
 
 class HICON(ctyped.type.HICON):
@@ -76,38 +83,17 @@ class HICON(ctyped.type.HICON):
         user32.DestroyIcon(self)
 
     @classmethod
-    def from_idi(cls, idi: int, hinstance: _Optional[ctyped.type.HINSTANCE] = None) -> HICON:
+    def from_idi(cls, idi: int, hinstance: Optional[ctyped.type.HINSTANCE] = None) -> HICON:
         return cls(user32.LoadIconW(hinstance, ctyped.macro.MAKEINTRESOURCEW(idi)))
 
 
 class HBITMAP(ctyped.type.HBITMAP):
-    _width = None
-    _height = None
-
     def __del__(self):
         gdi32.DeleteObject(self.value)
-
-    @property
-    def width(self) -> int:
-        if self._width is None:
-            self._fill_dimensions()
-        return self._width
-
-    @property
-    def height(self) -> int:
-        if self._height is None:
-            self._fill_dimensions()
-        return self._height
 
     @classmethod
     def from_dimension(cls, width: int = 0, height: int = 0, byte: int = 4) -> HBITMAP:
         return cls(gdi32.CreateBitmap(width, height, 1, byte * 8, None))
-
-    def _fill_dimensions(self):
-        bitmap = ctyped.struct.BITMAP()
-        if not gdi32.GetObjectW(self, ctyped.sizeof(ctyped.struct.BITMAP), ctyped.byref(bitmap)):
-            self._width = bitmap.bmWidth
-            self._height = bitmap.bmHeight
 
     def get_hdc(self) -> HDC:
         return HDC.from_hbitmap(self)
@@ -130,7 +116,7 @@ class HMENU(ctyped.type.HMENU):
         return self
 
     @classmethod
-    def from_idm(cls, idm: int, hinstance: _Optional[ctyped.type.HINSTANCE] = None) -> HMENU:
+    def from_idm(cls, idm: int, hinstance: Optional[ctyped.type.HINSTANCE] = None) -> HMENU:
         return cls(user32.LoadMenuW(hinstance, ctyped.macro.MAKEINTRESOURCEW(idm)))
 
     def set_hwnd(self, hwnd: ctyped.type.HWND) -> bool:
@@ -172,8 +158,8 @@ class HMENU(ctyped.type.HMENU):
     def set_default_item(self, id_or_pos: int, by_pos: bool = False) -> bool:
         return bool(user32.SetMenuDefaultItem(self, id_or_pos, by_pos))
 
-    def set_item_bitmaps(self, id_or_pos: int, checked: _Optional[ctyped.type.HBITMAP] = None,
-                         unchecked: _Optional[ctyped.type.HBITMAP] = None, by_pos: bool = False) -> bool:
+    def set_item_bitmaps(self, id_or_pos: int, checked: Optional[ctyped.type.HBITMAP] = None,
+                         unchecked: Optional[ctyped.type.HBITMAP] = None, by_pos: bool = False) -> bool:
         return bool(user32.SetMenuItemBitmaps(self, id_or_pos, _HMENU_MF[by_pos], checked, unchecked))
 
     def check_radio_item(self, id_or_pos: int, id_or_pos_first: int, id_or_pos_last: int, by_pos: bool = False) -> bool:
@@ -225,14 +211,92 @@ class HWND(ctyped.type.HWND):
     def __del__(self):
         user32.DestroyWindow(self)
 
-    def is_visible(self) -> bool:
-        return bool(user32.IsWindowVisible(self))
+    @classmethod
+    def from_child(cls, child: ctyped.type.HWND) -> HWND:
+        return cls(user32.GetParent(child))
+
+    # noinspection PyShadowingBuiltins
+    def get_message(self, msg_ref: ctyped.Pointer[ctyped.struct.MSG],
+                    min: int = 0, max: int = 0, remove: bool = True) -> int:
+        try:
+            return user32.GetMessageW(msg_ref, self, min, max)
+        finally:
+            if remove:
+                user32.TranslateMessage(msg_ref)
+                user32.DispatchMessageW(msg_ref)
 
     def send_message(self, msg: int, wparam: int = 0, lparam: int = 0, wait: bool = True) -> int:
         return (user32.SendMessageW if wait else user32.PostMessageW)(self, msg, wparam, lparam)
 
-    def show(self, cmd: int = ctyped.const.SW_SHOW) -> bool:
-        return bool(user32.ShowWindow(self, cmd))
+    def show(self, cmd: int = ctyped.const.SW_SHOW, wait: bool = True) -> bool:
+        return bool((user32.ShowWindow if wait else user32.ShowWindowAsync)(self, cmd))
+
+    def flash(self, flash: bool = True) -> bool:
+        return bool(user32.FlashWindow(self, flash))
+
+    def open_icon(self) -> bool:
+        return bool(user32.OpenIcon(self))
+
+    def close(self) -> bool:
+        return bool(user32.CloseWindow(self))
+
+    def _get_x_y_cx_cy(self, x: Optional[int], y: Optional[int], cx: Optional[int], cy: Optional[int]) -> tuple[int, int, int, int]:
+        if None in (x, y, cx, cy):
+            rect = self.get_rect()
+            if x is None:
+                x = rect.left
+            if y is None:
+                y = rect.top
+            if cx is None:
+                cx = rect.right - rect.left
+            if cy is None:
+                cy = rect.bottom - rect.top
+        return x, y, cx, cy
+
+    def move(self, x: Optional[int] = None, y: Optional[int] = None,
+             cx: Optional[int] = None, cy: Optional[int] = None, repaint: bool = True) -> bool:
+        return bool(user32.MoveWindow(self, *self._get_x_y_cx_cy(x, y, cx, cy), repaint))
+
+    def set_pos(self, x: Optional[int] = None, y: Optional[int] = None,
+                cx: Optional[int] = None, cy: Optional[int] = None, flags: int = 0) -> bool:
+        return bool(user32.SetWindowPos(self, 0, *self._get_x_y_cx_cy(x, y, cx, cy), flags))
+
+    def is_visible(self) -> bool:
+        return bool(user32.IsWindowVisible(self))
+
+    def is_iconic(self) -> bool:
+        return bool(user32.IsIconic(self))
+
+    def bring_to_top(self) -> bool:
+        return bool(user32.BringWindowToTop(self))
+
+    def is_zoomed(self) -> bool:
+        return bool(user32.IsZoomed(self))
 
     def update(self) -> bool:
         return bool(user32.UpdateWindow(self))
+
+    def set_active(self) -> bool:
+        return bool(user32.SetActiveWindow(self))
+
+    def set_foreground(self) -> bool:
+        return bool(user32.SetForegroundWindow(self))
+
+    def invalidate_rect(self, rect: Optional[ctyped.Pointer[ctyped.struct.RECT]] = None, erase: bool = True) -> bool:
+        return bool(user32.InvalidateRect(self, rect, erase))
+
+    def invalidate_region(self, region: Optional[ctyped.type.HRGN] = None, erase: bool = True) -> bool:
+        return bool(user32.InvalidateRgn(self, region, erase))
+
+    def set_title(self, title: Optional[str] = None) -> bool:
+        return bool(user32.SetWindowTextW(self, title))
+
+    def get_client_rect(self) -> ctyped.struct.RECT:
+        rect = ctyped.struct.RECT()
+        user32.GetClientRect(self, ctyped.byref(rect))
+        return rect
+
+    def get_rect(self) -> ctyped.struct.RECT:
+        rect = ctyped.struct.RECT()
+        user32.GetWindowRect(self, ctyped.byref(rect))
+        return rect

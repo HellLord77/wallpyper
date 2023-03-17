@@ -24,7 +24,7 @@ import win32
 from libs import ctyped, typed, config
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
-from win32 import _utils
+from win32 import _utils, gui
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -597,7 +597,36 @@ def _test_winrt():
 
 
 def _test():
-    pass
+    gi = gui.Gui()
+    wnd = win32.window.ImageWindow(r'D:\Hu.Tao.full.3910507.jpg', topmost=True)
+    wnd.show()
+    wnd.get_window().bind(gui.WindowEvent.CLOSE, lambda _: gi.exit_mainloop())
+
+    # win = gui.Window('Sexy Window', width=300, height=200)
+    # win.show()
+    #
+    # def f(*args):
+    #     print(args)
+    #     gi.exit_mainloop()
+    #
+    # def in_(*args):
+    #     print('in', args)
+    #
+    # def out(*args):
+    #     print('out', args)
+    #
+    # def paint(_, wnd: gui.Window):
+    #     print('paint')
+    #     with wnd.paint() as dst:
+    #         dst.draw_image(img)
+    #
+    # win.bind(gui.WindowEvent.CLOSE, f)
+    # win.bind(gui.WindowEvent.MOUSE_WHEEL_FORWARD, in_)
+    # win.bind(gui.WindowEvent.MOUSE_WHEEL_BACKWARD, out)
+    # win.bind(gui.WindowEvent.PAINT, paint)
+    # img = _gdiplus.Bitmap.from_file(r'D:\Dehya.full.3905901.png')
+    gi.mainloop()
+    gi.destroy()
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

@@ -9,7 +9,6 @@ import glob
 import hashlib
 import math
 import os
-import re
 import shutil
 import sys
 import time
@@ -17,8 +16,6 @@ import urllib.parse
 from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Optional
 
 import _hashlib
-
-_PATTERN_SIZE = re.compile(r' size=\d*, ')
 
 # noinspection PyUnresolvedReferences
 MAX_CHUNK = shutil.COPY_BUFSIZE
@@ -49,7 +46,7 @@ class File:
         return hash(self.url)
 
     def __str__(self):
-        return _PATTERN_SIZE.sub(f' size={Size(self.size)}, ', repr(self), 1)
+        return repr(self).replace(f' size={self.size}, ', f' size={Size(self.size)}, ', 1)
 
     def __eq__(self, other):
         if isinstance(other, File):
@@ -145,11 +142,12 @@ class Size(int):
     unit = 1024 if sys.platform == 'win32' else 1000
     _units = 'B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'
 
-    def __new__(cls, b: Optional[int] = None,
-                kb: Optional[float] = None, mb: Optional[float] = None,
-                gb: Optional[float] = None, tb: Optional[float] = None,
-                pb: Optional[float] = None, eb: Optional[float] = None,
-                zb: Optional[float] = None, yb: Optional[float] = None) -> Size:
+    @classmethod
+    def from_size(cls, b: Optional[int] = None,
+                  kb: Optional[float] = None, mb: Optional[float] = None,
+                  gb: Optional[float] = None, tb: Optional[float] = None,
+                  pb: Optional[float] = None, eb: Optional[float] = None,
+                  zb: Optional[float] = None, yb: Optional[float] = None) -> Size:
         byte = 0 if b is None else b
         for index, unit in enumerate((kb, mb, gb, tb, pb, eb, zb, yb), 1):
             if unit is not None:

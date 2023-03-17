@@ -270,6 +270,9 @@ CheckRadioButton: _Callable[[_type.HWND,
 ClientToScreen: _Callable[[_type.HWND,
                            _Pointer[_struct.POINT]],
                           _type.BOOL]
+ScreenToClient: _Callable[[_type.HWND,
+                           _Pointer[_struct.POINT]],
+                          _type.BOOL]
 CloseClipboard: _Callable[[],
                           _type.BOOL]
 CloseWindow: _Callable[[_type.HWND],
@@ -729,6 +732,14 @@ IntersectRect: _Callable[[_Pointer[_struct.RECT],
                           _Pointer[_struct.RECT],
                           _Pointer[_struct.RECT]],
                          _type.BOOL]
+InvalidateRect: _Callable[[_type.HWND,
+                           _Optional[_Pointer[_struct.RECT]],
+                           _type.BOOL],
+                          _type.BOOL]
+InvalidateRgn: _Callable[[_type.HWND,
+                          _Optional[_type.HRGN],
+                          _type.BOOL],
+                         _type.BOOL]
 IsChild: _Callable[[_type.HWND,
                     _type.HWND],
                    _type.BOOL]
@@ -973,6 +984,16 @@ SendNotifyMessageW: _Callable[[_type.HWND,
                               _type.BOOL]
 SetActiveWindow: _Callable[[_type.HWND],
                            _type.BOOL]
+FrameRect: _Callable[[_type.HDC,
+                      _Pointer[_struct.RECT],
+                      _type.HBRUSH],
+                     _type.BOOL]
+GetCapture: _Callable[[],
+                      _type.HWND]
+SetCapture: _Callable[[_type.HWND],
+                      _type.HWND]
+ReleaseCapture: _Callable[[],
+                          _type.BOOL]
 SetClipboardData: _Callable[[_type.UINT,
                              _type.HANDLE],
                             _type.HANDLE]

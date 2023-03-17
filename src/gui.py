@@ -19,6 +19,7 @@ _ANIMATIONS: collections.deque[tuple[str, str]] = collections.deque()
 _MAIN_MENU = object()
 _MAIN_MENUS: dict[int, list[gui.Menu]] = {threading.get_ident(): [MENU]}
 
+Event = win32.gui.Event
 GuiEvent = win32.gui.GuiEvent
 SystemTrayIcon = win32.gui.SystemTrayIcon
 MenuItemType = win32.gui.MenuItemType
@@ -81,18 +82,18 @@ def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = N
         args = ()
 
     @functools.wraps(on_click)
-    def on_click_(_: int, menu_item_: win32.gui.MenuItem):
+    def wrapped(event: Event):
         args_ = []
         for arg in args:
             if arg in MenuItemMethod:
-                args_.append(getattr(menu_item_, arg))
+                args_.append(getattr(event.control, arg))
             elif arg in MenuItemProperty:
-                args_.append(getattr(menu_item_, arg)())
+                args_.append(getattr(event.control, arg)())
         on_click(*args_)
 
     if on_thread:
-        on_click_ = callables.ThreadedCallable(on_click_)
-    menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, on_click_)
+        wrapped = callables.ThreadedCallable(wrapped)
+    menu_item.bind(win32.gui.MenuItemEvent.LEFT_UP, wrapped)
 
 
 def _get_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> win32.gui.Menu:
@@ -156,14 +157,14 @@ def add_menu_item_check(label: str, mapping: MutableMapping[str, bool], key: str
                         enable: bool = True, on_click: Optional[Callable] = None, position: Optional[int] = None,
                         menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     if on_click is None:
-        on_click_ = mapping.__setitem__
+        wrapped = mapping.__setitem__
     else:
         @functools.wraps(on_click)
-        def on_click_(key_: str, checked: bool):
+        def wrapped(key_: str, checked: bool):
             mapping[key_] = checked
             return on_click(checked)
     return add_menu_item(label, win32.gui.MenuItemType.CHECK, mapping[key], enable, on_click=functools.partial(
-        on_click_, key), args=(MenuItemProperty.CHECKED,), position=position, menu=menu)
+        wrapped, key), args=(MenuItemProperty.CHECKED,), position=position, menu=menu)
 
 
 def _get_submenu(label_or_submenu_item: str | win32.gui.MenuItem, enable: bool = True,
@@ -186,7 +187,7 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
 
-    def on_click__():
+    def wrapped_():
         unchecked_checked = [], []
         for index_, item in enumerate(submenu):
             item.enable(True)
@@ -199,12 +200,12 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
                     item_.enable(False)
 
     if on_click is None:
-        on_click_ = on_click__
+        wrapped = wrapped_
         args = ()
     else:
         @functools.wraps(on_click)
-        def on_click_(uid: int):
-            on_click__()
+        def wrapped(uid: int):
+            wrapped_()
             return on_click(uid)
 
         args = MenuItemProperty.UID,
@@ -212,8 +213,8 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
     submenu = submenu_item.get_submenu()
     for index, label in enumerate(labels):
         add_menu_item(label, win32.gui.MenuItemType.CHECK, val[index], uid=index,
-                      on_click=on_click_, args=args, menu=submenu)
-    on_click__()
+                      on_click=wrapped, args=args, menu=submenu)
+    wrapped_()
     return submenu_item
 
 
@@ -224,18 +225,18 @@ def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
     if on_click is None:
-        on_click_ = mapping.__setitem__
+        wrapped = mapping.__setitem__
     else:
         @functools.wraps(on_click)
-        def on_click_(key_: str, uid: str):
+        def wrapped(key_: str, uid: str):
             mapping[key_] = uid
             return on_click(uid)
     val = mapping[key]
-    on_click_ = functools.partial(on_click_, key)
+    wrapped = functools.partial(wrapped, key)
     submenu = submenu_item.get_submenu()
     for uid_, label in items.items():
         add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_,
-                      uid=uid_, on_click=on_click_, args=(MenuItemProperty.UID,), menu=submenu)
+                      uid=uid_, on_click=wrapped, args=(MenuItemProperty.UID,), menu=submenu)
     return submenu_item
 
 
@@ -261,9 +262,9 @@ def start_loop(icon: str, tooltip: Optional[str] = None, callback: Optional[Call
     SYSTEM_TRAY.set_tooltip(tooltip)
     if callback is not None:
         SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.LEFT_DOUBLE,
-                         functools.wraps(callback)(lambda _, __: callback()))
-    SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.RIGHT_DOWN, lambda _, __: MENU.show())
-    GUI.bind(win32.gui.GuiEvent.QUERY_END_SESSION, stop_loop)  # TODO fix shutdown
+                         functools.wraps(callback)(lambda _: callback()))
+    SYSTEM_TRAY.bind(win32.gui.SystemTrayEvent.RIGHT_DOWN, lambda _: MENU.show())
+    # GUI.bind(win32.gui.GuiEvent.QUERY_END_SESSION, stop_loop)  # TODO fix shutdown
     SYSTEM_TRAY.show()
     GUI.mainloop()
 

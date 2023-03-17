@@ -362,7 +362,7 @@ def try_alert_error(exc: BaseException, force: bool = False):
 
 
 @timer.on_thread
-def on_shown(*_):
+def on_shown(_: gui.Event):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
         CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_show_notification(
             STRINGS.FIRST_TITLE, STRINGS.FIRST_TEXT, RES_TEMPLATE.format(consts.RES_ICON), True)
