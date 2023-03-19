@@ -74,7 +74,7 @@ class _InterfaceBase(_type.c_void_p):
                 return mro
 
     def __dir__(self):
-        return *self.__dict__, *self._fields
+        return self._fields
 
 
 class _Interface(_InterfaceBase):

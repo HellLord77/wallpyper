@@ -40,7 +40,7 @@ def _calc_src_x_y_w_h(from_w: int, from_h: int, to_w: int, to_h: int,
         return 0, (from_h - h) / 2, from_w, h
 
 
-class _GdiplusToken(ctyped.type.ULONG_PTR):
+class _Token(ctyped.type.ULONG_PTR):
     _count = 0
     _lock = threading.Lock()
 
@@ -49,39 +49,34 @@ class _GdiplusToken(ctyped.type.ULONG_PTR):
             if not self._count:
                 GdiPlus.GdiplusStartup(ctyped.byref(self), ctyped.byref(
                     ctyped.struct.GdiplusStartupInput()), None)
-            _GdiplusToken._count += 1
+            _Token._count += 1
 
     def __del__(self):
         with self._lock:
-            _GdiplusToken._count -= 1
+            _Token._count -= 1
             if not self._count:
                 GdiPlus.GdiplusShutdown(self)
 
 
-class _GdiplusBase:
+class _Base:
     def __init__(self):
-        self._token = _GdiplusToken()
+        self._token = _Token()
+        self._ = self.__del__  # FIXME https://docs.python.org/3/reference/datamodel.html#object.__del__
 
     def __del__(self):
         if self:
             self.dispose()
-            self.value = None
             self._token = None
+            self.value = None
 
     def __hash__(self):
         return id(self)
-
-    def __enter__(self) -> _GdiplusBase:
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.__del__()
 
     def dispose(self):
         raise NotImplementedError
 
 
-class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
+class Graphics(_Base, ctyped.type.GpGraphics):
     @classmethod
     def from_hdc(cls, hdc: ctyped.type.HDC) -> Graphics:
         self = cls()
@@ -336,7 +331,7 @@ class Graphics(_GdiplusBase, ctyped.type.GpGraphics):
             self, src, x, y, w, h, src_x, src_y, src_w, src_h, ctyped.enum.GpUnit.Pixel, image_attrs, draw_abort, None)
 
 
-class Brush(_GdiplusBase, ctyped.type.GpBrush):
+class Brush(_Base, ctyped.type.GpBrush):
     @classmethod
     def from_brush(cls, brush: ctyped.type.GpBrush) -> Brush:
         self = cls()
@@ -368,7 +363,7 @@ class SolidBrush(Brush, ctyped.type.GpSolidFill):
         return _OK == GdiPlus.GdipSetSolidFillColor(self, color)
 
 
-class Pen(_GdiplusBase, ctyped.type.GpPen):
+class Pen(_Base, ctyped.type.GpPen):
     @classmethod
     def from_color(cls, color: ctyped.type.ARGB, width: float = 1,
                    unit: ctyped.enum.GpUnit = ctyped.enum.GpUnit.Pixel) -> Pen:
@@ -523,7 +518,7 @@ class Pen(_GdiplusBase, ctyped.type.GpPen):
         GdiPlus.GdipDeletePen(self)
 
 
-class Image(_GdiplusBase, ctyped.type.GpImage):
+class Image(_Base, ctyped.type.GpImage):
     @classmethod
     def from_file(cls, path: str, embedded_color_management: bool = False) -> Image:
         self = cls()
@@ -765,7 +760,7 @@ class Bitmap(Image, ctyped.type.GpBitmap):
         return _OK == GdiPlus.GdipBitmapSetResolution(self, x_dpi, y_dpi)
 
 
-class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
+class ImageAttributes(_Base, ctyped.type.GpImageAttributes):
     @classmethod
     def from_empty(cls) -> ImageAttributes:
         self = cls()
@@ -875,7 +870,7 @@ class ImageAttributes(_GdiplusBase, ctyped.type.GpImageAttributes):
         GdiPlus.GdipDisposeImageAttributes(self)
 
 
-class Region(_GdiplusBase, ctyped.type.GpRegion):
+class Region(_Base, ctyped.type.GpRegion):
     @classmethod
     def from_empty(cls) -> Region:
         self = cls()
@@ -1003,7 +998,7 @@ class Region(_GdiplusBase, ctyped.type.GpRegion):
         GdiPlus.GdipDeleteRegion(self)
 
 
-class FontFamily(_GdiplusBase, ctyped.type.GpFontFamily):
+class FontFamily(_Base, ctyped.type.GpFontFamily):
     @classmethod
     def from_name(cls, name: str, collection: Optional[FontCollection] = None) -> FontFamily:
         self = cls()
@@ -1050,7 +1045,7 @@ class FontFamily(_GdiplusBase, ctyped.type.GpFontFamily):
         GdiPlus.GdipDeleteFontFamily(self)
 
 
-class Font(_GdiplusBase, ctyped.type.GpFont):
+class Font(_Base, ctyped.type.GpFont):
     @classmethod
     def from_hdc(cls, hdc: ctyped.type.HDC) -> Font:
         self = cls()
@@ -1105,7 +1100,7 @@ class Font(_GdiplusBase, ctyped.type.GpFont):
         GdiPlus.GdipDeleteFont(self)
 
 
-class StringFormat(_GdiplusBase, ctyped.type.GpStringFormat):
+class StringFormat(_Base, ctyped.type.GpStringFormat):
     @classmethod
     def from_default(cls) -> StringFormat:
         self = cls()
@@ -1189,7 +1184,7 @@ class StringFormat(_GdiplusBase, ctyped.type.GpStringFormat):
         GdiPlus.GdipDeleteStringFormat(self)
 
 
-class FontCollection(_GdiplusBase, ctyped.type.GpFontCollection):
+class FontCollection(_Base, ctyped.type.GpFontCollection):
     def get_family_count(self) -> Optional[int]:
         count = ctyped.type.INT()
         if _OK == GdiPlus.GdipGetFontCollectionFamilyCount(self, ctyped.byref(count)):
@@ -1219,7 +1214,7 @@ class InstalledFontCollection(FontCollection, ctyped.type.GpInstalledFontCollect
 
 class PrivateFontCollection(FontCollection, ctyped.type.GpPrivateFontCollection):
     @classmethod
-    def from_empty(cls) -> PrivateFontCollection:
+    def from_private(cls) -> PrivateFontCollection:
         self = cls()
         GdiPlus.GdipNewPrivateFontCollection(ctyped.byref(self))
         return self
@@ -1243,7 +1238,7 @@ class ImageCodec:
     @contextlib.contextmanager
     def get_decoders(cls, count: Optional[int] = None,
                      size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
-        _ = _GdiplusToken()
+        _ = _Token()
         if count is None or size is None:
             count, size = cls.get_decoders_count_and_size()
         with ctyped.buffer(size) as buffer:
@@ -1265,7 +1260,7 @@ class ImageCodec:
     @contextlib.contextmanager
     def get_encoders(cls, count: Optional[int] = None,
                      size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
-        _ = _GdiplusToken()
+        _ = _Token()
         if count is None or size is None:
             count, size = cls.get_encoders_count_and_size()
         with ctyped.buffer(size) as buffer:
@@ -1405,7 +1400,7 @@ def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[
 def bitmap_from_string(string: str = _string.printable.replace(_string.whitespace, '', 1), size: int = 1024,
                        r: int = 0, g: int = 0, b: int = 0, font_name_or_path: str = 'Segoe UI') -> Bitmap:
     if ntpath.isfile(font_name_or_path):
-        collection = PrivateFontCollection.from_empty()
+        collection = PrivateFontCollection.from_private()
         collection.add_new_font(font_name_or_path)
         font = Font.from_font_family(collection.get_font_families()[0], size)
     else:

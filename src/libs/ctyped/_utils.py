@@ -187,9 +187,9 @@ def _resolve_type(annot, args: _Optional[dict] = None) -> _Any:
     if isinstance(annot, _typing._CallableType):
         annot = [_ctypes.c_void_p]
     elif isinstance(annot, _typing._CallableGenericAlias):
-        args_res = _typing.get_args(annot)
-        annot = [_resolve_type(args_res[1], args), *(
-            _resolve_type(arg, args) for arg in args_res[0])]
+        args, res = _typing.get_args(annot)
+        annot = [_resolve_type(res, args), *(
+            _resolve_type(arg, args) for arg in args)]
     else:
         # noinspection PyUnresolvedReferences,PyProtectedMember
         if isinstance(annot, _typing._UnionGenericAlias):

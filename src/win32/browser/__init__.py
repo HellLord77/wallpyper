@@ -1,6 +1,5 @@
 from __future__ import annotations as _
 
-import atexit
 import contextlib
 import math
 import ntpath
@@ -176,7 +175,6 @@ class _BrowserEx:
         with ctyped.interface.create_handler(
                 self._controller_created, WebView2.ICoreWebView2CreateCoreWebView2ControllerCompletedHandler) as handler:
             self._environment.create_core_web_view_2_controller(self._hwnd, handler)
-        atexit.register(self.destroy)
 
     def _controller_created(self, hr: ctyped.type.HRESULT,
                             ctrl: WebView2.ICoreWebView2Controller) -> ctyped.type.HRESULT:
@@ -185,7 +183,6 @@ class _BrowserEx:
         return hr
 
     def destroy(self):
-        atexit.unregister(self.destroy)
         if self._controller:
             self._controller.close()
         self._hwnd = None

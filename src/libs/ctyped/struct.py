@@ -4327,7 +4327,7 @@ class _NamespaceMeta(type):
         return super().__getattribute__(name)
 
     def __dir__(self):
-        return *self.__dict__, *self._vars
+        return self._vars
 
 
 class _Struct(_ctypes.Structure):

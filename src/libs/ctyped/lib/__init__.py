@@ -29,11 +29,10 @@ class _CLib(_ModuleType):
             func.__name__ = name
             func.__doc__ = _func_doc(name, func.restype, func.argtypes, _fmt_annot(annot))
             setattr(self, name, func)
-            return func
         return super().__getattribute__(name)
 
     def __dir__(self):
-        return *self.__dict__, *self._annots
+        return self._annots
 
     @_functools.cached_property
     def _lib(self) -> _ctypes.CDLL:
