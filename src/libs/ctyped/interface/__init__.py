@@ -275,8 +275,7 @@ class WinRT(_COMBase):
             super().__init__(activatable_class_id_or_winrt_or_interface)
 
     # noinspection PyTypeChecker
-    def __getitem__(self, interface: type[_UInterface]) -> \
-            _Optional[WinRT[_UInterface]]:
+    def __getitem__(self, interface: type[_UInterface]) -> _Optional[WinRT[_UInterface]]:
         if self:
             return WinRT[interface](self)
 

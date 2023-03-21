@@ -23,7 +23,8 @@ import pipe
 import srcs
 import validator
 import win32
-from libs import callables, config, easings, files, lens, log, pyinstall, request, singleton, spinners, timer, typed, utils
+from libs import (callables, config, easings, files, lens, log, pyinstall,
+                  request, singleton, spinners, timer, typed, utils)
 
 UUID = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -39,7 +40,6 @@ MAXIMIZED_ACTIONS: tuple[
     str, str, str] = consts.MAXIMIZED_ACTION_IGNORE, consts.MAXIMIZED_ACTION_POSTPONE, consts.MAXIMIZED_ACTION_SKIP
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
-win32.gui.FLAG_CACHE_BITMAP = True
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 
 STRINGS = srcs.Source.STRINGS = langs.DEFAULT
@@ -505,20 +505,20 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
     if auto_change:
         if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != consts.MAXIMIZED_ACTION_IGNORE and all(
                 win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
-            while CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
-                consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_POSTPONE and \
-                    all(win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
+            while (CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
+                consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_POSTPONE and
+                   all(win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values())):
                 time.sleep(consts.POLL_SLOW_SEC)
-            if not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or \
-                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_SKIP:
+            if (not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or
+                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_SKIP):
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
     if not changed and not change_wallpaper.is_running():
         enable(False)
         item_recent.enable(False)
         with gui.try_animate_icon(STRINGS.STATUS_CHANGE):
-            if (changed := change_wallpaper(image, query_callback)) \
-                    and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE] and RECENT:
+            if ((changed := change_wallpaper(image, query_callback))
+                    and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE] and RECENT):
                 on_image_func(save_image, RECENT[0], STRINGS.LABEL_SAVE, STRINGS.FAIL_SAVE)
         _update_recent_menu(item_recent)
         enable(True)

@@ -21,10 +21,10 @@ from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tupl
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, typed, config
+from libs import ctyped, typed, config, easings
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
-from win32 import _utils, gui
+from win32 import _utils, gui, _gdiplus
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -629,10 +629,15 @@ def _test():
     gi.destroy()
 
 
+def _test_graph():
+    gph = _gdiplus.bitmap_from_graph(easings.in_bounce, graph_pc=0.95)
+    _gdiplus.image_save(gph, r'D:\test.png')
+
+
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg()
     # _test_cfg_json()
     # _test_inst()
     # _test_winrt()
-    _test()
+    _test_graph()
     sys.exit()

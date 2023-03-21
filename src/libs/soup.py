@@ -72,8 +72,8 @@ class Element:
         attributes = ''
         for name, value in sorted(self.attributes.items()):
             attributes += f' {name}="{value}"'
-        return f'<{self.name}{attributes}>{"".join(map(str, self.children))}</{self.name}>' \
-            if self.children or self.name not in _VOIDS else f'<{self.name}{attributes}/>'
+        return (f'<{self.name}{attributes}>{"".join(map(str, self.children))}</{self.name}>'
+                if self.children or self.name not in _VOIDS else f'<{self.name}{attributes}/>')
 
     def get_child(self, index: int = 0) -> Optional[Element]:
         try:

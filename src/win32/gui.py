@@ -1,4 +1,4 @@
-from __future__ import annotations as _  # TODO WeakValueDictionary
+from __future__ import annotations as _
 
 import collections
 import contextlib
@@ -47,7 +47,6 @@ _MIIM_TO_FIELDS = {
     ctyped.const.MIIM_BITMAP: ('hbmpItem',),
     ctyped.const.MIIM_FTYPE: ('fType',)}
 
-FLAG_CACHE_BITMAP = False
 FLAG_MENU_ITEM_RESHOW_TOOLTIP = False
 WINDOW_MIN_WIDTH = 516
 WINDOW_MIN_HEIGHT = 509
@@ -199,13 +198,8 @@ class _IDGenerator:
             return False
 
 
-_bitmap_from_file = functools.lru_cache(_gdiplus.Bitmap.from_file)
-
-
 def _load_bitmap(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
-    if not FLAG_CACHE_BITMAP:
-        _bitmap_from_file.cache_clear()
-    return _bitmap_from_file(path_or_bitmap) if isinstance(
+    return _gdiplus.Bitmap.from_file(path_or_bitmap) if isinstance(
         path_or_bitmap, str) else path_or_bitmap
 
 
@@ -320,8 +314,8 @@ class Gui(_EventEmitter):
             hbrBackground=_handle.HBRUSH(ctyped.const.COLOR_WINDOW))
         if not user32.RegisterClassExW(ctyped.byref(self._class)):
             raise RuntimeError(f'Cannot initialize {type(self).__name__}')
-        self._window = Window(_gui=self)
-        super().__init__(self._window.get_id())
+        self._message_window = Window(_gui=self)
+        super().__init__(self._message_window.get_id())
         self._menu_item_tooltip_window = Window(
             style=ctyped.const.TTS_NOPREFIX, name=ctyped.const.TOOLTIPS_CLASS,
             ex_style=ctyped.const.WS_EX_TOPMOST, _gui=self)
@@ -339,14 +333,14 @@ class Gui(_EventEmitter):
                        w: int = 0, h: int = 0, parent: Optional[int] = None) -> _handle.HWND:
         return _handle.HWND(user32.CreateWindowExW(
             ex_style, cls if cls else self._class.lpszClassName, wnd, style,
-            x, y, w, h, self._window if parent is None else parent, None, _utils.HINSTANCE, None))
+            x, y, w, h, self._message_window if parent is None else parent, None, _utils.HINSTANCE, None))
 
     def destroy(self) -> bool:
         user32.KillTimer(self._id, _TID_MENU_ITEM_TOOLTIP)
         while self._attached:
             self._attached.pop().destroy()
         self._menu_item_tooltip_window = None
-        self._window = None
+        self._message_window = None
         user32.UnregisterClassW(self._class.lpszClassName, _utils.HINSTANCE)
         return super().destroy()
 
@@ -380,13 +374,13 @@ class Gui(_EventEmitter):
             elif message == _WM_SYS_TRAY_MSG:
                 skipped = SystemTray.get(wparam).trigger(lparam)
             elif message in (ctyped.const.WM_INITMENUPOPUP, ctyped.const.WM_UNINITMENUPOPUP):
-                self._window.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, 1)
+                self._message_window.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, 1)
                 skipped = Menu.get(wparam).trigger(message, (wparam, lparam))
             elif message in (ctyped.const.WM_MENUSELECT,
                              ctyped.const.WM_MENUCOMMAND, ctyped.const.WM_MENURBUTTONUP):
                 # FIXME WM_MENUSELECT is triggered again after auto closing a submenu (seq: select, close, select)
                 is_command = int(message == ctyped.const.WM_MENUCOMMAND)
-                self._window.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, is_command)
+                self._message_window.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE, is_command)
                 if lparam:
                     is_select = message == ctyped.const.WM_MENUSELECT
                     item = Menu.get(lparam).get_item(ctyped.macro.LOWORD(wparam), by_pos=not is_select or (
@@ -412,7 +406,7 @@ class Gui(_EventEmitter):
         self._menu_item_tooltip.lpszText = text
         self._menu_item_tooltip_title = ctyped.char_array(title)
         lparam = ctyped.addressof(self._menu_item_tooltip)
-        self._window.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE)
+        self._message_window.send_message(_WM_MENU_ITEM_TOOLTIP_HIDE)
         self._menu_item_tooltip_window.send_message(
             ctyped.const.TTM_UPDATETIPTEXTW, lparam=lparam)
         self._menu_item_tooltip_window.send_message(
@@ -443,7 +437,7 @@ class Gui(_EventEmitter):
             return msg.wParam
 
     def exit_mainloop(self) -> bool:
-        return bool(self._window.send_message(ctyped.const.WM_CLOSE, wait=False))
+        return bool(self._message_window.send_message(ctyped.const.WM_CLOSE, wait=False))
 
 
 class _Control(_EventEmitter):
@@ -537,8 +531,8 @@ class SystemTray(_Control):
     _id_gen = _IDGenerator()
 
     _show = False
-    _hicon = None
-    _balloon_hicon = None
+    _hicon: Optional[_handle.HICON] = None
+    _balloon_hicon: Optional[_handle.HICON] = None
     _animation_frames = None
     _animation_speed = 1
 
@@ -557,6 +551,8 @@ class SystemTray(_Control):
     def destroy(self) -> bool:
         self.stop_animation()
         self.hide()
+        self._balloon_hicon = None
+        self._hicon = None
         return super().destroy()
 
     def _force_update(self) -> bool:
@@ -664,7 +660,7 @@ class SystemTray(_Control):
 class Menu(_Control):
     _selves: dict[int, Menu]
 
-    _hbrush = None
+    _hbrush: Optional[_handle.HBRUSH] = None
 
     def __init__(self, *, _gui: Optional[Gui] = None):
         self._hwnd = self._attach(_gui)
@@ -701,6 +697,7 @@ class Menu(_Control):
     def destroy(self) -> bool:
         self._items.clear()
         self._hmenu = None
+        self._hbrush = None
         return super().destroy()
 
     def get_item_count(self) -> int:
@@ -855,7 +852,7 @@ class MenuItem(_Control):
 
     _tooltip_text: str = ''
     _tooltip_title: str = ''
-    _tooltip_icon: int | _handle.HICON = MenuItemTooltipIcon.NONE
+    _tooltip_icon: Optional[int | _handle.HICON] = None
     _uid: int | str = 0
 
     def __init__(self, menu: Menu, type_: int, *, gui: Optional[Gui] = None):
@@ -868,6 +865,7 @@ class MenuItem(_Control):
 
     def destroy(self) -> bool:
         self._menu.remove_item(self)
+        self._tooltip_icon = None
         return super().destroy()
 
     def _show_tooltip(self, *_):
@@ -893,12 +891,14 @@ class MenuItem(_Control):
     def get_type(self) -> int:
         return self._type
 
-    def _get_image(self, res_or_path_or_bitmap: int | str | _gdiplus.Bitmap, index: int, resize: bool) -> int:
+    def _get_image(self, res_or_path_or_bitmap: int | str | _gdiplus.Bitmap,
+                   index: int, resize: bool) -> int:
         if not isinstance(res_or_path_or_bitmap, int):  # FIXME checkable item cannot have image/icon
             bitmap = _load_bitmap(res_or_path_or_bitmap)
             if bitmap:
                 if resize and not (bitmap.get_width() == bitmap.get_height() == _MENU_ITEM_IMAGE_SIZE):
-                    bitmap = _gdiplus.bitmap_from_resized_bitmap(bitmap, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
+                    bitmap = _gdiplus.bitmap_from_bitmap(
+                        bitmap, _MENU_ITEM_IMAGE_SIZE, _MENU_ITEM_IMAGE_SIZE)
                 res_or_path_or_bitmap = bitmap.get_hbitmap()
                 self._hbmps[index] = res_or_path_or_bitmap
                 res_or_path_or_bitmap = res_or_path_or_bitmap.value
@@ -1085,7 +1085,7 @@ class MenuItem(_Control):
         self._tooltip_text = text
         self._tooltip_title = title
         if not isinstance(icon_res_or_path_or_bitmap, int):
-            icon_res_or_path_or_bitmap = _gdiplus.bitmap_from_resized_bitmap(
+            icon_res_or_path_or_bitmap = _gdiplus.bitmap_from_bitmap(
                 _load_bitmap(icon_res_or_path_or_bitmap),
                 _TOOLTIP_ICON_SIZE, _TOOLTIP_ICON_SIZE, True).get_hicon()
             if not icon_res_or_path_or_bitmap:

@@ -63,7 +63,7 @@ class LocalFolder(Source):
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
                 results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
             path = results.pop(0)
-            yield files.File(request.from_path(path))
+            yield files.File(request.from_path(path), size=os.path.getsize(path))
 
     @classmethod
     def _on_modify_dir(cls, set_tooltip: Callable) -> bool:

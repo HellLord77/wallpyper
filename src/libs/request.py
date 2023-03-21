@@ -483,8 +483,8 @@ def retrieve(url: str, path: AnyStr, size: int = 0, chunk_size: Optional[int] = 
     response = get(url)
     if response:
         if not size:
-            size = int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize)) \
-                if response.local is None else os.path.getsize(response.local)
+            size = (int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize))
+                    if response.local is None else os.path.getsize(response.local))
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)

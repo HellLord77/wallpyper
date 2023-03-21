@@ -1,11 +1,12 @@
 from __future__ import annotations as _
 
 import contextlib
+import itertools
 import math
 import ntpath
 import string as _string
 import threading
-from typing import Callable, ContextManager, Iterator, Literal, Optional
+from typing import Any, Callable, ContextManager, Iterator, Literal, Optional
 
 from libs import ctyped
 from libs.ctyped.interface.um import d2d1_3, d2d1svg, objidlbase
@@ -22,7 +23,7 @@ _TAG_TYPE_TO_TYPE = {
     ctyped.const.PropertyTagTypeSLONG: ctyped.type.c_long}
 
 
-def _get_obj(float_obj: Callable, int_obj: Callable, *decimals: Optional[int | float]) -> Callable:
+def _get_obj(float_obj, int_obj, *decimals: Optional[int | float]) -> Any:
     for number in decimals:
         if isinstance(number, float):
             return float_obj
@@ -59,12 +60,14 @@ class _Token(ctyped.type.ULONG_PTR):
 
 
 class _Base:
+    value: Optional[int]
+
     def __init__(self):
         self._token = _Token()
         self._ = self.__del__  # FIXME https://docs.python.org/3/reference/datamodel.html#object.__del__
 
     def __del__(self):
-        if self:
+        if self.value:
             self.dispose()
             self._token = None
             self.value = None
@@ -244,6 +247,42 @@ class Graphics(_Base, ctyped.type.GpGraphics):
                  start_angle: float, sweep_angle: float) -> bool:
         return _OK == _get_obj(GdiPlus.GdipDrawPie, GdiPlus.GdipDrawPieI,
                                x, y, width, height)(self, pen, x, y, width, height, start_angle, sweep_angle)
+
+    def draw_curve(self, pen: ctyped.type.GpPen, *points: tuple[int | float, int | float],
+                   count: Optional[int] = None) -> bool:
+        if count is None:
+            count = len(points)
+        float_ = _get_obj(True, False, *itertools.chain.from_iterable(points))
+        points_ = ctyped.array(
+            type=ctyped.struct.PointF if float_ else ctyped.struct.Point, size=count)
+        for point_, point in zip(points_, points):
+            point_.X, point_.Y = point
+        return _OK == (GdiPlus.GdipDrawCurve if float_ else GdiPlus.GdipDrawCurveI)(
+            self, pen, points_, count)
+
+    def draw_curve_2(self, pen: ctyped.type.GpPen, *points: tuple[int | float, int | float],
+                     tension: float = 0.5, count: Optional[int] = None) -> bool:
+        if count is None:
+            count = len(points)
+        float_ = _get_obj(True, False, *itertools.chain.from_iterable(points))
+        points_ = ctyped.array(
+            type=ctyped.struct.PointF if float_ else ctyped.struct.Point, size=count)
+        for point_, point in zip(points_, points):
+            point_.X, point_.Y = point
+        return _OK == (GdiPlus.GdipDrawCurve2 if float_ else GdiPlus.GdipDrawCurve2I)(
+            self, pen, points_, count, tension)
+
+    def draw_curve_3(self, pen: ctyped.type.GpPen, *points: tuple[int | float, int | float],
+                     offset: int, number_of_segments: int, tension: float = 0.5, count: Optional[int] = None) -> bool:
+        if count is None:
+            count = len(points)
+        float_ = _get_obj(True, False, *itertools.chain.from_iterable(points))
+        points_ = ctyped.array(
+            type=ctyped.struct.PointF if float_ else ctyped.struct.Point, size=count)
+        for point_, point in zip(points_, points):
+            point_.X, point_.Y = point
+        return _OK == (GdiPlus.GdipDrawCurve3 if float_ else GdiPlus.GdipDrawCurve3I)(
+            self, pen, points_, count, offset, number_of_segments, tension)
 
     def clear(self, color: ctyped.type.ARGB) -> bool:
         return _OK == GdiPlus.GdipGraphicsClear(self, color)
@@ -880,9 +919,11 @@ class Region(_Base, ctyped.type.GpRegion):
     @classmethod
     def from_rect(cls, x: int | float, y: int | float, width: int | float, height: int | float) -> Region:
         self = cls()
-        _get_obj(GdiPlus.GdipCreateRegionRect, GdiPlus.GdipCreateRegionRectI, x, y, width, height)(
-            ctyped.byref(self), ctyped.byref(_get_obj(
-                ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(x, y, width, height)))
+        float_ = _get_obj(True, False, x, y, width, height)
+        # noinspection PyTypeChecker,PyArgumentList
+        (GdiPlus.GdipCreateRegionRect if float_ else GdiPlus.GdipCreateRegionRectI)(
+            ctyped.byref((ctyped.struct.RectF if float_ else ctyped.struct.Rect)(
+                x, y, width, height)), ctyped.byref(self))
         return self
 
     @classmethod
@@ -904,45 +945,50 @@ class Region(_Base, ctyped.type.GpRegion):
         return _OK == GdiPlus.GdipSetEmpty(self)
 
     def intersect_rect(self, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipCombineRegionRect, GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
-            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+        float_ = _get_obj(True, False, x, y, width, height)
+        # noinspection PyTypeChecker,PyArgumentList
+        return _OK == (GdiPlus.GdipCombineRegionRect if float_ else GdiPlus.GdipCombineRegionRectI)(
+            self, ctyped.byref((ctyped.struct.RectF if float_ else ctyped.struct.Rect)(
                 x, y, width, height)), ctyped.enum.CombineMode.Intersect)
 
     def intersect_region(self, region: Region) -> bool:
         return _OK == GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Intersect)
 
     def union_rect(self, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipCombineRegionRect, GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
-            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+        float_ = _get_obj(True, False, x, y, width, height)
+        # noinspection PyTypeChecker,PyArgumentList
+        return _OK == (GdiPlus.GdipCombineRegionRect if float_ else GdiPlus.GdipCombineRegionRectI)(
+            self, ctyped.byref((ctyped.struct.RectF if float_ else ctyped.struct.Rect)(
                 x, y, width, height)), ctyped.enum.CombineMode.Union)
 
     def union_region(self, region: Region) -> bool:
         return _OK == GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Union)
 
     def xor_rect(self, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipCombineRegionRect, GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
-            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+        float_ = _get_obj(True, False, x, y, width, height)
+        # noinspection PyTypeChecker,PyArgumentList
+        return _OK == (GdiPlus.GdipCombineRegionRect if float_ else GdiPlus.GdipCombineRegionRectI)(
+            self, ctyped.byref((ctyped.struct.RectF if float_ else ctyped.struct.Rect)(
                 x, y, width, height)), ctyped.enum.CombineMode.Xor)
 
     def xor_region(self, region: Region) -> bool:
         return _OK == GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Xor)
 
     def exclude_rect(self, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipCombineRegionRect, GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
-            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+        float_ = _get_obj(True, False, x, y, width, height)
+        # noinspection PyTypeChecker,PyArgumentList
+        return _OK == (GdiPlus.GdipCombineRegionRect if float_ else GdiPlus.GdipCombineRegionRectI)(
+            self, ctyped.byref((ctyped.struct.RectF if float_ else ctyped.struct.Rect)(
                 x, y, width, height)), ctyped.enum.CombineMode.Exclude)
 
     def exclude_region(self, region: Region) -> bool:
         return _OK == GdiPlus.GdipCombineRegionRegion(self, region, ctyped.enum.CombineMode.Exclude)
 
     def complement_rect(self, x: int | float, y: int | float, width: int | float, height: int | float) -> bool:
-        return _OK == _get_obj(
-            GdiPlus.GdipCombineRegionRect, GdiPlus.GdipCombineRegionRectI, x, y, width, height)(
-            self, ctyped.byref(_get_obj(ctyped.struct.RectF, ctyped.struct.Rect, x, y, width, height)(
+        float_ = _get_obj(True, False, x, y, width, height)
+        # noinspection PyTypeChecker,PyArgumentList
+        return _OK == (GdiPlus.GdipCombineRegionRect if float_ else GdiPlus.GdipCombineRegionRectI)(
+            self, ctyped.byref((ctyped.struct.RectF if float_ else ctyped.struct.Rect)(
                 x, y, width, height)), ctyped.enum.CombineMode.Complement)
 
     def complement_region(self, region: Region) -> bool:
@@ -1066,10 +1112,10 @@ class Font(_Base, ctyped.type.GpFont):
         GdiPlus.GdipCloneFont(font, ctyped.byref(self))
         return self
 
-    def get_font_family(self) -> FontFamily:
-        family = ctyped.type.GpFontFamily()
+    def get_family(self) -> FontFamily:
+        family = FontFamily()
         GdiPlus.GdipGetFamily(self, ctyped.byref(family))
-        return FontFamily.from_font_family(family)
+        return family
 
     def get_style(self) -> Optional[ctyped.enum.FontStyle]:
         style = ctyped.type.INT()
@@ -1190,7 +1236,7 @@ class FontCollection(_Base, ctyped.type.GpFontCollection):
         if _OK == GdiPlus.GdipGetFontCollectionFamilyCount(self, ctyped.byref(count)):
             return count.value
 
-    def get_font_families(self, count: Optional[int] = None) -> Optional[tuple[FontFamily]]:
+    def get_families(self, count: Optional[int] = None) -> Optional[tuple[FontFamily]]:
         if count is None:
             count = self.get_family_count()
         if count is not None:
@@ -1206,7 +1252,7 @@ class FontCollection(_Base, ctyped.type.GpFontCollection):
 
 class InstalledFontCollection(FontCollection, ctyped.type.GpInstalledFontCollection):
     @classmethod
-    def from_installed(cls) -> InstalledFontCollection:
+    def from_empty(cls) -> InstalledFontCollection:
         self = cls()
         GdiPlus.GdipNewInstalledFontCollection(ctyped.byref(self))
         return self
@@ -1214,12 +1260,12 @@ class InstalledFontCollection(FontCollection, ctyped.type.GpInstalledFontCollect
 
 class PrivateFontCollection(FontCollection, ctyped.type.GpPrivateFontCollection):
     @classmethod
-    def from_private(cls) -> PrivateFontCollection:
+    def from_empty(cls) -> PrivateFontCollection:
         self = cls()
         GdiPlus.GdipNewPrivateFontCollection(ctyped.byref(self))
         return self
 
-    def add_new_font(self, path: str):
+    def add_font_file(self, path: str):
         return _OK == GdiPlus.GdipPrivateAddFontFile(self, path)
 
     def dispose(self):
@@ -1361,20 +1407,85 @@ def image_get_property(image: Image, tag: int) -> Optional[ctyped.Pointer]:
                 _TAG_TYPE_TO_TYPE.get(property_item.type, ctyped.type.c_void)))
 
 
-def image_attributes_from_alpha(alpha: float = 1) -> ImageAttributes:
-    matrix = ctyped.struct.ColorMatrix()
-    for index in range(5):
-        matrix.m[index][index] = 1
-    matrix.m[3][3] = alpha
-    self = ImageAttributes.from_empty()
-    self.set_color_matrix(matrix)
-    return self
-
-
 def bitmap_from_color(color: ctyped.type.ARGB, width: int = 512, height: int = 512) -> Optional[Bitmap]:
-    if bitmap := Bitmap.from_dimension(width, height):
-        if Graphics.from_image(bitmap).fill_rectangle(SolidBrush.from_color(color), 0, 0, width, height):
-            return bitmap
+    if (bitmap := Bitmap.from_dimension(width, height)) and Graphics.from_image(
+            bitmap).fill_rectangle(SolidBrush.from_color(color), 0, 0, width, height):
+        return bitmap
+
+
+def bitmap_from_bitmap(bitmap: Bitmap, width: int, height: int, fit: bool = False, crop_to_fit: bool = False) -> Bitmap:
+    src_w = bitmap.get_width()
+    src_h = bitmap.get_height()
+    resized_bitmap = bitmap.from_dimension(width, height, bitmap.get_pixel_format())
+    resized_bitmap.set_resolution(bitmap.get_horizontal_resolution(), bitmap.get_vertical_resolution())
+    graphics = Graphics.from_image(resized_bitmap)
+    graphics.set_interpolation_mode(ctyped.enum.InterpolationMode.HighQualityBicubic)
+    if fit:
+        x, y, w, h = _calc_src_x_y_w_h(
+            src_w, src_h, width, height, crop_to_fit ^ (width / src_w > height / src_h))
+        graphics.scale_transform(width / w, height / h)
+        graphics.draw_image_from_rect(bitmap, -min(0.0, x), -min(0.0, y), max(0.0, x), max(0.0, y))
+    else:
+        graphics.scale_transform(width / src_w, height / src_h)
+        graphics.draw_image(bitmap)
+    return resized_bitmap
+
+
+def bitmap_from_graph(func: Callable[[float], float], title: Optional[str] = None,
+                      labels: tuple[Optional[str], Optional[str]] = (None, None),
+                      bg_color: ctyped.type.ARGB = Color.from_rgba(255, 255, 255),
+                      fg_color: ctyped.type.ARGB = Color.from_rgba(0, 0, 0), line_width: int = 4,
+                      font_size: int = 64, dimension: int = 1024, graph_pc: float = 0.8) -> Bitmap:
+    dim_start = dimension * ((1 - graph_pc) / 2)
+    dim_end = dimension - dim_start
+    pen_fg = Pen.from_color(fg_color, line_width)
+    bitmap = bitmap_from_color(bg_color, dimension, dimension)
+    graphics = Graphics.from_image(bitmap)
+    graphics.translate_transform(dim_start, dim_start)
+    graphics.scale_transform(graph_pc, graph_pc)
+    graphics.draw_curve(pen_fg, *zip(range(dimension), (round(dimension * (
+            1 - func(x / dimension))) for x in range(dimension))))
+    graphics.reset_transform()
+    graphics.draw_line(pen_fg, dim_start, dim_start, dim_start, dim_end)
+    graphics.draw_line(pen_fg, dim_start, dim_end, dim_end, dim_end)
+    if title or any(labels):
+        font = font_from_name('Segoe UI', font_size)
+        brush_fg = SolidBrush.from_color(fg_color)
+        if title:
+            (*_, w, h), *_ = graphics.measure_string(title, font)
+            graphics.draw_string(title, font, brush_fg, (dimension - w) / 2, (dim_start - h) / 2)
+        if labels[0]:
+            (*_, w, h), *_ = graphics.measure_string(labels[0], font)
+            graphics.rotate_transform(-90)
+            graphics.draw_string(labels[0], font, brush_fg, -(
+                    dimension + w) / 2, (dim_start - h) / 2)
+            graphics.rotate_transform(90)
+        if labels[1]:
+            (*_, w, h), *_ = graphics.measure_string(labels[1], font)
+            graphics.draw_string(labels[1], font, brush_fg, (
+                    dimension - w) / 2, dim_end + (dim_start - h) / 2)
+    return bitmap
+
+
+def bitmap_from_string(string: str = _string.printable.replace(_string.whitespace, '', 1), size: int = 1024,
+                       r: int = 0, g: int = 0, b: int = 0, font_name_or_path: str = 'Segoe UI') -> Bitmap:
+    if ntpath.isfile(font_name_or_path):
+        collection = PrivateFontCollection.from_empty()
+        collection.add_font_file(font_name_or_path)
+        font = Font.from_font_family(collection.get_families()[0], size)
+    else:
+        font = font_from_name(font_name_or_path, size)
+        if font is None:
+            return Bitmap()
+    format_ = StringFormat.from_typographic()
+    format_.set_flags(ctyped.enum.StringFormatFlags.NoFontFallback | ctyped.enum.StringFormatFlags.NoWrap)
+    format_.set_measurable_character_ranges((0, len(string)))
+    graphics = Graphics.from_image(Bitmap.from_dimension(1, 1, ctyped.const.PixelFormat32bppARGB))
+    bounds = graphics.measure_character_ranges(string, font, 1, format=format_)[0].get_bounds(graphics)
+    bitmap = Bitmap.from_dimension(math.ceil(bounds[2]), math.ceil(bounds[3]), ctyped.const.PixelFormat32bppARGB)
+    graphics = Graphics.from_image(bitmap)
+    graphics.draw_string(string, font, SolidBrush.from_color(Color.from_rgba(r, g, b)), format=format_)
+    return bitmap
 
 
 def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[Bitmap]:
@@ -1397,43 +1508,17 @@ def bitmap_from_svg(path: str, width: int = 512, height: int = 512) -> Optional[
                                         return bitmap
 
 
-def bitmap_from_string(string: str = _string.printable.replace(_string.whitespace, '', 1), size: int = 1024,
-                       r: int = 0, g: int = 0, b: int = 0, font_name_or_path: str = 'Segoe UI') -> Bitmap:
-    if ntpath.isfile(font_name_or_path):
-        collection = PrivateFontCollection.from_private()
-        collection.add_new_font(font_name_or_path)
-        font = Font.from_font_family(collection.get_font_families()[0], size)
-    else:
-        for family in InstalledFontCollection.from_installed().get_font_families():
-            if font_name_or_path == family.get_name():
-                font = Font.from_font_family(family, size)
-                break
-        else:
-            return Bitmap()
-    format_ = StringFormat.from_typographic()
-    format_.set_flags(ctyped.enum.StringFormatFlags.NoFontFallback | ctyped.enum.StringFormatFlags.NoWrap)
-    format_.set_measurable_character_ranges((0, len(string)))
-    graphics = Graphics.from_image(Bitmap.from_dimension(1, 1, ctyped.const.PixelFormat32bppARGB))
-    bounds = graphics.measure_character_ranges(string, font, 1, format=format_)[0].get_bounds(graphics)
-    bitmap = Bitmap.from_dimension(math.ceil(bounds[2]), math.ceil(bounds[3]), ctyped.const.PixelFormat32bppARGB)
-    graphics = Graphics.from_image(bitmap)
-    graphics.draw_string(string, font, SolidBrush.from_color(Color.from_rgba(r, g, b)), format=format_)
-    return bitmap
+def image_attributes_from_alpha(alpha: float = 1) -> ImageAttributes:
+    matrix = ctyped.struct.ColorMatrix()
+    for index in range(5):
+        matrix.m[index][index] = 1
+    matrix.m[3][3] = alpha
+    self = ImageAttributes.from_empty()
+    self.set_color_matrix(matrix)
+    return self
 
 
-def bitmap_from_resized_bitmap(bitmap: Bitmap, width: int, height: int, fit: bool = False, crop_to_fit: bool = False) -> Bitmap:
-    src_w = bitmap.get_width()
-    src_h = bitmap.get_height()
-    resized_bitmap = bitmap.from_dimension(width, height, bitmap.get_pixel_format())
-    resized_bitmap.set_resolution(bitmap.get_horizontal_resolution(), bitmap.get_vertical_resolution())
-    graphics = Graphics.from_image(resized_bitmap)
-    graphics.set_interpolation_mode(ctyped.enum.InterpolationMode.HighQualityBicubic)
-    if fit:
-        x, y, w, h = _calc_src_x_y_w_h(
-            src_w, src_h, width, height, crop_to_fit ^ (width / src_w > height / src_h))
-        graphics.scale_transform(width / w, height / h)
-        graphics.draw_image_from_rect(bitmap, -min(0.0, x), -min(0.0, y), max(0.0, x), max(0.0, y))
-    else:
-        graphics.scale_transform(width / src_w, height / src_h)
-        graphics.draw_image(bitmap)
-    return resized_bitmap
+def font_from_name(name: str, size: int = 16) -> Optional[Font]:
+    for family in InstalledFontCollection.from_empty().get_families():
+        if name == family.get_name():
+            return Font.from_font_family(family, size)

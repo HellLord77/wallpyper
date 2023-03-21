@@ -9,9 +9,9 @@ import validator
 from libs import files, request
 from . import Source
 
-_CONTENT_END = b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; ' \
-               b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" ' \
-               b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n'
+_CONTENT_END = (b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
+                b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
+                b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
 _PARAMS = {'json': ''}
 _PATTERN_HTML = re.compile(r'<div.*</div>', re.DOTALL)
 

@@ -25,8 +25,8 @@ class Timer:
         self.target = target
         self.once = once
         self._running = 0
-        self._name = f'{__name__}-{__version__}-{type(self).__name__}(' \
-                     f'{(target.func if isinstance(target, functools.partial) else target).__name__})'
+        self._name = (f'{__name__}-{__version__}-{type(self).__name__}'
+                      f'({(target.func if isinstance(target, functools.partial) else target).__name__})')
         self._timers: list[threading.Timer] = []
         self._selves.append(self)
         if start:
