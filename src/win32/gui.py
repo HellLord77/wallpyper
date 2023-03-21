@@ -6,7 +6,7 @@ import dataclasses
 import functools
 import itertools
 import threading
-from typing import Any, Callable, ContextManager, Iterable, Iterator, Optional, Sequence
+from typing import Any, Callable, ContextManager, Iterable, Iterator, Optional
 
 from libs import ctyped
 from libs.ctyped.lib import user32, shell32
@@ -764,7 +764,7 @@ class Menu(_Control):
             count += self.remove_item(item)
         return count
 
-    def show(self, pos: Optional[Sequence[int, int]] = None, timeout: Optional[float] = None) -> bool:
+    def show(self, pos: Optional[Iterable[int, int]] = None, timeout: Optional[float] = None) -> bool:
         if pos is None:
             point = ctyped.struct.POINT()
             user32.GetCursorPos(ctyped.byref(point))

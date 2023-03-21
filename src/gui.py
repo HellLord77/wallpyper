@@ -2,7 +2,8 @@ import collections
 import contextlib
 import functools
 import threading
-from typing import Callable, ContextManager, Iterable, Mapping, MutableMapping, MutableSequence, Optional
+from typing import (Any, Callable, ContextManager, Iterable,
+                    Mapping, MutableMapping, MutableSequence, Optional)
 
 import win32
 from libs import callables, utils
@@ -257,7 +258,7 @@ def init(name: str):
     MENU.__init__()
 
 
-def start_loop(icon: str, tooltip: Optional[str] = None, callback: Optional[Callable] = None):
+def start_loop(icon: str, tooltip: Optional[str] = None, callback: Optional[Callable[[], Any]] = None):
     SYSTEM_TRAY.set_icon(icon)
     SYSTEM_TRAY.set_tooltip(tooltip)
     if callback is not None:
@@ -276,7 +277,6 @@ def stop_loop(*_):
 def disable_events():
     SYSTEM_TRAY.unbind(win32.gui.SystemTrayEvent.LEFT_DOUBLE)
     SYSTEM_TRAY.unbind(win32.gui.SystemTrayEvent.RIGHT_DOWN)
-    GUI.unbind(win32.gui.GuiEvent.DISPLAY_CHANGE)
 
 
 def _animate_icon():

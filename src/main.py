@@ -36,8 +36,7 @@ TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir()
 
 CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
-MAXIMIZED_ACTIONS: tuple[
-    str, str, str] = consts.MAXIMIZED_ACTION_IGNORE, consts.MAXIMIZED_ACTION_POSTPONE, consts.MAXIMIZED_ACTION_SKIP
+MAXIMIZED_ACTIONS: tuple[str, str, str] = 'ignore', 'postpone', 'skip'
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
@@ -503,14 +502,14 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
               image: Optional[files.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if auto_change:
-        if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != consts.MAXIMIZED_ACTION_IGNORE and all(
+        if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != MAXIMIZED_ACTIONS[0] and all(
                 win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
             while (CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
-                consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_POSTPONE and
+                consts.CONFIG_MAXIMIZED_ACTION] == MAXIMIZED_ACTIONS[1] and
                    all(win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values())):
                 time.sleep(consts.POLL_SLOW_SEC)
             if (not CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] or
-                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == consts.MAXIMIZED_ACTION_SKIP):
+                    CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] == MAXIMIZED_ACTIONS[2]):
                 changed = True
         on_auto_change(CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL])
     if not changed and not change_wallpaper.is_running():
@@ -798,8 +797,10 @@ def on_about():
 @timer.on_thread
 def on_quit():
     TIMER.stop()
+    gui.GUI.unbind(win32.gui.GuiEvent.DISPLAY_CHANGE)
     gui.disable_events()
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
+    time.sleep(consts.POLL_FAST_SEC)
     if threading.active_count() > max_threads:
         gui.try_animate_icon(STRINGS.STATUS_QUIT).__enter__()
         try_show_notification(STRINGS.LABEL_QUIT, STRINGS.FAIL_QUIT, force=True)
