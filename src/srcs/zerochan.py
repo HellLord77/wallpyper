@@ -50,7 +50,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         CONFIG_DIMENSION: str,
         CONFIG_COLOR: str,
         CONFIG_STRICT: bool})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_FILTER: '',
         CONFIG_SORT: SORTS[0],
         CONFIG_TIME: TIMES[2],

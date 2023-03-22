@@ -92,7 +92,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         CONFIG_SUBS: str,
         CONFIG_SORT: str,
         CONFIG_TIME: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ID: '',
         CONFIG_ORIENTATIONS: [True, True],
         CONFIG_RATINGS: [True, False],

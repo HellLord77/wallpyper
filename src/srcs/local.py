@@ -31,7 +31,7 @@ class LocalFolder(Source):
         CONFIG_RECURSE: bool,
         CONFIG_SORT: str,
         CONFIG_ORDER: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_DIR: win32.PICTURES_DIR,
         CONFIG_RECURSE: True,
         CONFIG_SORT: next(iter(SORTS)),

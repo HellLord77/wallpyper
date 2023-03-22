@@ -55,7 +55,7 @@ class WallHere(Source):
         CONFIG_HEIGHT: str,
         CONFIG_COLOR: str,
         CONFIG_NSFW: bool})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_RANDOM: False,
         CONFIG_QUERY: '',
         CONFIG_ORDER: ORDERS[1],

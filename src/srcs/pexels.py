@@ -48,7 +48,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         CONFIG_SIZE: str,
         CONFIG_COLOR: str,
         CONFIG_LOCALE: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_KEY: '',
         CONFIG_CURATED: False,
         'query': '',

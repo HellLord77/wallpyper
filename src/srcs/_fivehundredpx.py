@@ -51,7 +51,7 @@ class FiveHundredPx(Source):
         CONFIG_DISCOVER: str,
         CONFIG_FOLLOWER: str,
         CONFIG_SORT: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_NSFW: False,
         CONFIG_CATEGORIES: CATEGORIES[0],
         CONFIG_DISCOVER: DISCOVERS[0],

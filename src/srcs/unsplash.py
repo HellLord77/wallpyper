@@ -42,7 +42,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         CONFIG_FILTER: str,
         CONFIG_COLOR: str,
         CONFIG_ORIENTATION: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ID: '',
         CONFIG_EDITORIAL: True,
         'query': '',

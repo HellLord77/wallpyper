@@ -54,7 +54,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
         CONFIG_LICENSE: tuple[str, str, str],
         CONFIG_SAFE: str,
         CONFIG_SORT: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_KEY: '',
         CONFIG_SECRET: '',
         'query': '',

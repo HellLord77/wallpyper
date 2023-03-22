@@ -25,7 +25,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATION: str,
         CONFIG_LOCALE: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATION: ORIENTATIONS[0],
         CONFIG_LOCALE: LOCALES[0]}
 

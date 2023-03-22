@@ -63,7 +63,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         'resolutions': str,
         CONFIG_RATIO: str,
         CONFIG_COLORS: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_KEY: '',
         'q': '',
         CONFIG_CATEGORIES: [True, True, True],

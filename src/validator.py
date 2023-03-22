@@ -78,7 +78,7 @@ def ensure_pattern(current: dict, default: dict, key: str,
 def ensure_iterable(current: dict, default: dict, key: str,
                     iterable: Iterable, casefold: bool = True) -> bool:
     val = current[key]
-    if isinstance(val, str) and casefold:
+    if casefold and isinstance(val, str):
         val = val.casefold()
         for item in iterable:
             if val == item.casefold():

@@ -27,7 +27,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         CONFIG_RESOLUTION: str,
         CONFIG_DAY: int,
         CONFIG_MARKET: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_RESOLUTION: RESOLUTIONS[5],
         CONFIG_DAY: next(iter(DAYS)),
         CONFIG_MARKET: MARKETS[5]}

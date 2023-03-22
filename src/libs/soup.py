@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 import html.parser
 import itertools
@@ -26,10 +26,10 @@ class _Parser(html.parser.HTMLParser):
         super().__init__()
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]):
-        element = Element(tag, dict(reversed(
-            attrs)), self._elems[-1] if self._elems else None)
-        # if tag not in _VOIDS:
-        self._elems.append(element)
+        elem = Element(tag, {name: '' if value is None else value for name, value in reversed(
+            attrs)}, self._elems[-1] if self._elems else None)
+        if tag not in _VOIDS:
+            self._elems.append(elem)
         if self.root is None:
             self.root = self._elems[0]
         if self.decls:
@@ -54,7 +54,7 @@ class _Parser(html.parser.HTMLParser):
 
 
 class Element:
-    def __init__(self, name: str, attributes: dict[str, Optional[str]], parent: Optional[Element]):
+    def __init__(self, name: str, attributes: dict[str, str], parent: Optional[Element]):
         self.name = name
         self.attributes = attributes
         self.parent = parent
@@ -78,6 +78,12 @@ class Element:
     def get_child(self, index: int = 0) -> Optional[Element]:
         try:
             return self.children[index]
+        except IndexError:
+            pass
+
+    def get_data(self, index: int = 0) -> Optional[str]:
+        try:
+            return self.datas[index]
         except IndexError:
             pass
 

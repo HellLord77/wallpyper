@@ -24,7 +24,7 @@ class YandeRe(Source):
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_RATINGS: list[bool],
         CONFIG_TAGS: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
         CONFIG_RATINGS: [True, True, True],
         CONFIG_TAGS: ''}

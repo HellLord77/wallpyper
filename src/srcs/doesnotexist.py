@@ -20,7 +20,7 @@ class ThisDoesNotExist(Source):
     URL = URL_BASE_TEMPLATE.format(VARIANTS[0])
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_VARIANT: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_VARIANT: VARIANTS[0]}
 
     @classmethod

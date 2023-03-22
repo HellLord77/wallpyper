@@ -58,7 +58,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         CONFIG_EDITOR: bool,
         CONFIG_SAFE: bool,
         CONFIG_ORDER: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_KEY: '',
         'q': '',
         CONFIG_LANG: LANGS[3],

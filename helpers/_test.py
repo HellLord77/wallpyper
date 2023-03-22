@@ -11,20 +11,21 @@ import fractions
 import ipaddress
 import os
 import pathlib
+import pprint
 import re
 import sys
 import time
 import typing
 import uuid
-from types import ModuleType, NoneType
-from typing import AnyStr, Callable, ItemsView, Literal, Mapping, Optional, Tuple, TypeVar, TypedDict, List, Dict, Iterator
+from types import ModuleType
+from typing import AnyStr, Callable, Optional, TypeVar
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, typed, config, easings
+from libs import ctyped, config, request
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
-from win32 import _utils, gui, _gdiplus
+from win32 import _utils
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -528,64 +529,6 @@ def _test_cfg_json():
     print(config_ == config__)
 
 
-class TD(typing.TypedDict):
-    a: int
-    b: str
-
-
-class TD2(TD, total=False):
-    c: str
-
-
-class CT(tuple):
-    pass
-
-
-def _test_inst():
-    lst = [1, 2, 3]
-    print(typed.isinstance_ex(lst, list[int]))
-    tp = list[tuple[int] | list[str]]
-    print(typed.isinstance_ex([(1,), (2,), ['3']], tp))
-    ct = CT((1, 2, 3))
-    print(typed.isinstance_ex(ct, CT[int, int, int]))
-    tp2 = Mapping[str, int]
-    print(typed.isinstance_ex({'d': 2}, tp2))
-    tp3 = dict[str, int]
-    print(typed.isinstance_ex({'d': 6}, tp3))
-    tp4 = Tuple[int, str]
-    print(typed.isinstance_ex((2, '2'), tp4))
-    d: dict[int, str] = {1: '1'}
-    i = d.items()
-    print('ItemsView', typed.isinstance_ex(i, ItemsView[int, str]))
-    tp5 = str | NoneType
-    print(typed.isinstance_ex(None, tp5))
-    tp6 = Optional[str]
-    print(typed.isinstance_ex(None, tp6))
-    td = TD(a=1, b='2')
-    print(typed.isinstance_ex(td, TD))
-    # noinspection PyArgumentList
-    nt = TNT(1, 2, 3, NT(4, 5, 6))
-    print(typed.isinstance_ex(nt, TNT))
-    nnt = 1, 2, 3
-    print('nnt', typed.isinstance_ex(nnt, TNT))
-    tp = tuple[int, ...]
-    print(typed.isinstance_ex((1, 2, 3), tp))
-    ltt = Literal[1, 2, 3]
-    print('Literal', typed.isinstance_ex(1, ltt))
-    print('Literal', typed.isinstance_ex('2', ltt))
-    minitd = TypedDict('minitd', {'a': int, 'b': str})
-    print('TypedDict', typed.isinstance_ex(td, minitd))
-    print('TypedDict', typed.isinstance_ex({}, minitd))
-    print(typed.isinstance_ex(TD2(a=1, b='2'), TD2))
-    # print(typed.is_instance(v, Callable[[int], float]))
-    print(typed.isinstance_ex([{'x': 3}], List[Dict[str, int]]))
-    print(typed.isinstance_ex([{'x': 3}, {'y': 7.5}], List[Dict[str, int]]))
-    print(typed.isinstance_ex([{'x': 3}], list[dict[str, int]]))
-    print(typed.isinstance_ex([{'x': 3}, {'y': 7.5}], list[dict[str, int]]))
-    print(typed.isinstance_ex(iter([1, 2, 3]), Iterator[int]))
-    print(typed.isinstance_ex([1, 2, 3], Iterator[int]))
-
-
 def _test_winrt():
     src = r'D:\MMDs\洛天依  -  倾杯.mp4'
     dst = r'D:\test.mp4'
@@ -596,48 +539,96 @@ def _test_winrt():
             os.remove(dst)
 
 
+def _test_500px():
+    url = 'https://api.500px.com/graphql'
+    data = {
+        "operationName": "DiscoverQueryRendererQuery",
+        "variables": {
+            "filters": [
+                {
+                    "key": "FEATURE_NAME",
+                    "value": "popular"
+                },
+                {
+                    "key": "FOLLOWERS_COUNT",
+                    "value": "gte:0"
+                }
+            ],
+            "sort": "POPULAR_PULSE"
+        },
+        "query": "query DiscoverQueryRendererQuery($filters: [PhotoDiscoverSearchFilter!], $sort: PhotoDiscoverSort) {\n"
+                 "  ...DiscoverPaginationContainer_query_1OEZSy\n"
+                 "}\n"
+                 "\n"
+                 "fragment DiscoverPaginationContainer_query_1OEZSy on Query {\n"
+                 "  photos: photoDiscoverSearch(first: 50, filters: $filters, sort: $sort) {\n"
+                 "    edges {\n"
+                 "      node {\n"
+                 "        id\n"
+                 "        legacyId\n"
+                 "        canonicalPath\n"
+                 "        name\n"
+                 "        description\n"
+                 "        category\n"
+                 "        uploadedAt\n"
+                 "        location\n"
+                 "        width\n"
+                 "        height\n"
+                 "        isLikedByMe\n"
+                 "        notSafeForWork\n"
+                 "        tags\n"
+                 "        photographer: uploader {\n"
+                 "          id\n"
+                 "          legacyId\n"
+                 "          username\n"
+                 "          displayName\n"
+                 "          canonicalPath\n"
+                 "          avatar {\n"
+                 "            images {\n"
+                 "              url\n"
+                 "              id\n"
+                 "            }\n"
+                 "            id\n"
+                 "          }\n"
+                 "          followedBy {\n"
+                 "            totalCount\n"
+                 "            isFollowedByMe\n"
+                 "          }\n"
+                 "        }\n"
+                 "        images(sizes: [33, 35]) {\n"
+                 "          size\n"
+                 "          url\n"
+                 "          jpegUrl\n"
+                 "          webpUrl\n"
+                 "          id\n"
+                 "        }\n"
+                 "        pulse {\n"
+                 "          highest\n"
+                 "          id\n"
+                 "        }\n"
+                 "        __typename\n"
+                 "      }\n"
+                 "      cursor\n"
+                 "    }\n"
+                 "    totalCount\n"
+                 "    pageInfo {\n"
+                 "      endCursor\n"
+                 "      hasNextPage\n"
+                 "    }\n"
+                 "  }\n"
+                 "}\n"}
+    resp = request.post(url, json=data)
+    if resp:
+        pprint.pprint(resp.json(), sort_dicts=False)
+
+
 def _test():
-    gi = gui.Gui()
-    wnd = win32.window.ImageWindow(r'D:\Hu.Tao.full.3910507.jpg', topmost=True)
-    wnd.show()
-    wnd.get_window().bind(gui.WindowEvent.CLOSE, lambda _: gi.exit_mainloop())
-
-    # win = gui.Window('Sexy Window', width=300, height=200)
-    # win.show()
-    #
-    # def f(*args):
-    #     print(args)
-    #     gi.exit_mainloop()
-    #
-    # def in_(*args):
-    #     print('in', args)
-    #
-    # def out(*args):
-    #     print('out', args)
-    #
-    # def paint(_, wnd: gui.Window):
-    #     print('paint')
-    #     with wnd.paint() as dst:
-    #         dst.draw_image(img)
-    #
-    # win.bind(gui.WindowEvent.CLOSE, f)
-    # win.bind(gui.WindowEvent.MOUSE_WHEEL_FORWARD, in_)
-    # win.bind(gui.WindowEvent.MOUSE_WHEEL_BACKWARD, out)
-    # win.bind(gui.WindowEvent.PAINT, paint)
-    # img = _gdiplus.Bitmap.from_file(r'D:\Dehya.full.3905901.png')
-    gi.mainloop()
-    gi.destroy()
-
-
-def _test_graph():
-    gph = _gdiplus.bitmap_from_graph(easings.in_bounce, graph_pc=0.95)
-    _gdiplus.image_save(gph, r'D:\test.png')
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg()
     # _test_cfg_json()
-    # _test_inst()
     # _test_winrt()
-    _test_graph()
+    _test()
     sys.exit()

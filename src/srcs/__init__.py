@@ -61,7 +61,7 @@ from . import (
     _shutterstock,
     bing,
     doesnotexist,
-    fivehundredpxlegacy,
+    fivehundredpx_legacy,
     local,
     pexels,
     pixabay,
@@ -71,5 +71,6 @@ from . import (
     unsplash,
     wallhaven,
     wallhere,
+    wallpaperflare,
     yandere,
     zerochan)  # NOQA: E402

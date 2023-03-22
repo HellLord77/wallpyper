@@ -23,7 +23,7 @@ class SimpleDesktops(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_PAGE: int})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_PAGE: 1}
 
     _set_tooltip: Optional[Callable[[str], bool]] = None
