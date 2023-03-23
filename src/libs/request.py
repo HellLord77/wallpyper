@@ -1,4 +1,4 @@
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 import base64
 import contextlib
@@ -7,13 +7,14 @@ import io
 import itertools
 import json as json_
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 import urllib.response
 import uuid
-from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, Optional
+from typing import Any, AnyStr, BinaryIO, Callable, IO, Iterator, Iterable, Mapping, Optional
 
 _TJSON = int | bool | float | str | tuple | list | dict
 _TParams = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
@@ -25,15 +26,27 @@ _TAuth = str | tuple[str, str]
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(*_):
+    def redirect_request(self, req: urllib.request.Request, fp: IO[bytes],
+                         code: int, msg: str, headers: http.client.HTTPMessage,
+                         newurl: str) -> Optional[urllib.request.Request]:
         pass
 
 
 _MIN_CHUNK = 32 * 1024
 _CRLF = '\r\n'
-_FILE_URI = 'file'
+_FILE_SCHEME = 'file'
+_HTTP_SCHEME = 'http'
+_HTTPS_SCHEME = 'https'
+_NORMALIZABLE_SCHEMES = '', _HTTP_SCHEME, _HTTPS_SCHEME
+_RE_ENCODED = re.compile(r"%[a-fA-F0-9]{2}")
 _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
+
+UNRESERVED_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
+SUB_DELIM_CHARS = "!$&'()*+,;="
+USERINFO_CHARS = UNRESERVED_CHARS + SUB_DELIM_CHARS + ':'
+PATH_CHARS = UNRESERVED_CHARS + '@/'
+QUERY_CHARS = FRAGMENT_CHARS = UNRESERVED_CHARS + PATH_CHARS + '?'
 
 
 class Header:
@@ -324,22 +337,22 @@ def _str(o: AnyStr) -> str:
     return o.decode() if isinstance(o, bytes) else o
 
 
-def is_path(url: str) -> bool:
-    return urllib.parse.urlparse(url).scheme == _FILE_URI
+def is_path(url: AnyStr) -> bool:
+    return _FILE_SCHEME == _str(urllib.parse.urlsplit(url).scheme)
 
 
 def from_path(path: str) -> str:
-    return urllib.parse.urljoin(f'{_FILE_URI}:', urllib.request.pathname2url(path))
+    # noinspection PyArgumentList
+    return urllib.parse.SplitResult(_FILE_SCHEME, '', urllib.request.pathname2url(path), '', '').geturl()
 
 
 def strip(url: str) -> str:
-    parts = urllib.parse.urlparse(url)
-    return f'{parts.scheme}://{parts.netloc}{parts.path}'
+    return urllib.parse.urlsplit(url)._replace(query='', fragment='').geturl()
 
 
 def join(base: str, *paths: str) -> str:
     if not base.endswith('/'):
-        base = f'{base}/'
+        base += '/'
     for path in paths:
         if path:
             base = f'{urllib.parse.urljoin(base, path)}/'
@@ -347,14 +360,46 @@ def join(base: str, *paths: str) -> str:
 
 
 def get_params(url: str) -> dict[str, list[str]]:
-    return urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+    return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+
+
+def _upper_encoded(match: re.Match) -> str:
+    return match.group(0).upper()
+
+
+def _encode_component(component: str, valid: str) -> str:
+    component, count_encoded = _RE_ENCODED.subn(_upper_encoded, component)
+    component_ = component.encode(errors='surrogatepass')
+    pc_encoded = count_encoded == component_.count(37)
+    encoded = b''
+    for ord_ in component_:
+        if (pc_encoded and ord_ == 37) or (ord_ < 128 and chr(ord_) in valid):
+            encoded += chr(ord_).encode()
+        else:
+            encoded += b'%' + hex(ord_)[2:].encode().zfill(2).upper()
+    return encoded.decode()
+
+
+def encode_url(url: AnyStr) -> str:
+    components = urllib.parse.urlsplit(_str(url))
+    if components.scheme in _NORMALIZABLE_SCHEMES:
+        if components.path:
+            components = components._replace(
+                path=_encode_component(components.path, PATH_CHARS))
+        if components.query:
+            components = components._replace(
+                query=_encode_component(components.query, QUERY_CHARS))
+        if components.fragment:
+            components = components._replace(
+                fragment=_encode_component(components.fragment, FRAGMENT_CHARS))
+    return components.geturl()
 
 
 def encode_params(params: Optional[AnyStr | Mapping]) -> str:
     if params is None:
         return ''
     elif isinstance(params, (bytes, str)):
-        return params
+        return _str(params)
     else:
         return urllib.parse.urlencode(params, True)
 
@@ -406,9 +451,9 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
         return MIMEType.JSON, json_.dumps(json, allow_nan=False).encode()
 
 
-def extend_param(url: str, params: Optional[_TParams] = None) -> str:
-    parts = urllib.parse.urlparse(url)
-    query = urllib.parse.parse_qs(parts.query, True)
+def extend_param(url: AnyStr, params: Optional[_TParams] = None) -> AnyStr:
+    components = urllib.parse.urlsplit(url)
+    query = urllib.parse.parse_qs(components.query, True)
     if params is not None:
         for key, val in params.items():
             if val is not None:
@@ -418,67 +463,68 @@ def extend_param(url: str, params: Optional[_TParams] = None) -> str:
                     query[key].append(val)
                 else:
                     query[key].extend(val)
-    return urllib.parse.urlunparse(parts._replace(query=encode_params(query)))
+    # noinspection PyProtectedMember
+    return components._replace(query=_str(encode_params(query))).geturl()
 
 
-def request(method: str | http.HTTPMethod, url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
+def request(method: str | http.HTTPMethod, url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
             params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
             files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
             timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     if params is not None:
         url = extend_param(url, params)
     try:
-        _request = urllib.request.Request(url, data, headers=HEADERS, method=str(method))
+        request_ = urllib.request.Request(encode_url(url), data, headers=HEADERS, method=str(method))
     except ValueError as exc:
         return Response(urllib.error.URLError(exc))
     else:
         if data is not None or files is not None or json is not None:
-            mime, _request.data = encode_data(data, files, json)
-            _request.add_header(Header.CONTENT_TYPE, mime)
+            mime, request_.data = encode_data(data, files, json)
+            request_.add_header(Header.CONTENT_TYPE, mime)
         if auth is not None:
-            _request.add_header(Header.AUTHORIZATION,
+            request_.add_header(Header.AUTHORIZATION,
                                 f'Bearer {auth}' if isinstance(auth, str) else
                                 f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
         if headers is not None:
-            itertools.starmap(_request.add_header, headers.items())
+            itertools.starmap(request_.add_header, headers.items())
         urllib.request.install_opener(_OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
         try:
-            _response = urllib.request.urlopen(_request, timeout=timeout)
+            _response = urllib.request.urlopen(request_, timeout=timeout)
         except urllib.error.URLError as _response:
             return Response(_response)
         else:
             response = Response(_response)
-            if not stream:
+            if not stream:  # TODO probably exhausts the stream
                 _ = response.content
             return response
 
 
-def get(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
+def get(url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.GET, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
-def head(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
+def head(url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.HEAD, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
-def post(url: str, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
+def post(url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.POST, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
 
 
-def sizeof(url: str) -> int:
+def sizeof(url: AnyStr) -> int:
     return int(head(url).getheader(Header.CONTENT_LENGTH, 0))
 
 
-def retrieve(url: str, path: AnyStr, size: int = 0, chunk_size: Optional[int] = None,
+def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int] = None,
              chunk_count: Optional[int] = None, query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     response = get(url)
     if response:
