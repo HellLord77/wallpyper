@@ -622,11 +622,16 @@ def _test_hook():
     proc.free_console()
 
 
-def _test():
+def _test_request():
     import requests
     resp = requests.get('https://www.google.com')
     print(resp.content)
     print(resp.content)
+
+
+def _test():
+    from libs import urischemes
+    print(urischemes.get('http'))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

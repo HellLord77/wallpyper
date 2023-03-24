@@ -17,7 +17,7 @@ def dump(file: IO = sys.stdout):
     buff = io.StringIO(data.decode())
     last_header = ''
     reader = csv.reader(buff)
-    next(reader)
+    next(reader, None)
     for code, name, comment, header in reader:
         if last_header != header:
             file.write(f'\n# {header}\n')

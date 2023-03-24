@@ -52,6 +52,8 @@ $CodeRunBeforeRemote = @(
 	"from src.libs.mimetype import _download"
 	"_download()"
 	"from src.libs.spinners import _download"
+	"_download()"
+	"from src.libs.urischemes import _download"
 	"_download()")
 $CodeRunAfter = @(
 	"from os import remove"

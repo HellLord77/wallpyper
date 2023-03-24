@@ -53,12 +53,12 @@ class File:
             return self.url == other.url
         return NotImplemented
 
-    def _iter_hashes(self) -> Iterable[tuple[str, bytes | str]]:
+    def _iter_hashes(self) -> Iterator[tuple[str, bytes | str]]:
         for algorithm in hashlib.algorithms_available:
             if hasattr(self, algorithm):
                 yield algorithm, getattr(self, algorithm)
 
-    def _iter_filled_hashes(self) -> Iterable[tuple[str, bytes]]:
+    def _iter_filled_hashes(self) -> Iterator[tuple[str, bytes]]:
         for algorithm, hash_ in self._iter_hashes():
             if hash_:
                 yield algorithm, hash_
