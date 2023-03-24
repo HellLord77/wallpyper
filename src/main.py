@@ -434,7 +434,8 @@ def change_wallpaper(image: Optional[files.File] = None,
             except BaseException as exc:
                 try_alert_error(exc, True)
     if image is not None:
-        image.name = win32.sanitize_filename(image.name)
+        image.name = utils.shrink_string_mid(
+            win32.sanitize_filename(image.name), consts.MAX_FILENAME_LEN)
         if not image.size:
             image.size = request.sizeof(image.url)
         with contextlib.suppress(ValueError):

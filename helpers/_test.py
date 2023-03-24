@@ -623,7 +623,10 @@ def _test_hook():
 
 
 def _test():
-    pass
+    import requests
+    resp = requests.get('https://www.google.com')
+    print(resp.content)
+    print(resp.content)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

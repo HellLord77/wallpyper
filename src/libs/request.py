@@ -42,11 +42,12 @@ _RE_ENCODED = re.compile(r"%[a-fA-F0-9]{2}")
 _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
-UNRESERVED_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
-SUB_DELIM_CHARS = "!$&'()*+,;="
-USERINFO_CHARS = UNRESERVED_CHARS + SUB_DELIM_CHARS + ':'
-PATH_CHARS = UNRESERVED_CHARS + '@/'
-QUERY_CHARS = FRAGMENT_CHARS = UNRESERVED_CHARS + PATH_CHARS + '?'
+UNRESERVED_CHARS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
+SUB_DELIM_CHARS = b"!$&'()*+,;"
+USERINFO_CHARS = UNRESERVED_CHARS + SUB_DELIM_CHARS + b':'
+PATH_CHARS = USERINFO_CHARS + b'@/'
+QUERY_CHARS = UNRESERVED_CHARS + PATH_CHARS + b'?'
+FRAGMENT_CHARS = QUERY_CHARS
 
 
 class Header:
@@ -309,6 +310,9 @@ class Response:
     def __bool__(self) -> bool:
         return self.status_code == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
 
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__}: <{self.status_code.name}>>'
+
     def __iter__(self) -> Iterator[bytes]:
         while chunk := self.response.read(self.chunk_size):
             yield chunk
@@ -367,13 +371,13 @@ def _upper_encoded(match: re.Match) -> str:
     return match.group(0).upper()
 
 
-def _encode_component(component: str, valid: str) -> str:
+def _encode_component(component: str, valid: bytes) -> str:
     component, count_encoded = _RE_ENCODED.subn(_upper_encoded, component)
     component_ = component.encode(errors='surrogatepass')
     pc_encoded = count_encoded == component_.count(37)
     encoded = b''
     for ord_ in component_:
-        if (pc_encoded and ord_ == 37) or (ord_ < 128 and chr(ord_) in valid):
+        if (pc_encoded and ord_ == 37) or ord_ in valid:
             encoded += chr(ord_).encode()
         else:
             encoded += b'%' + hex(ord_)[2:].encode().zfill(2).upper()

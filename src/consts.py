@@ -4,6 +4,7 @@ URL_GOOGLE = 'https://www.google.com/searchbyimage/upload'
 MAX_NOTIFY_LEN = 256
 MAX_LABEL_LEN = 25
 MAX_RECENT_LEN = 9
+MAX_FILENAME_LEN = 100
 MAX_CACHE_PC = 0.0001
 POLL_SLOW_SEC = 1.0
 POLL_FAST_SEC = 0.01

@@ -6,6 +6,7 @@ import html.parser
 import itertools
 import re
 import shutil
+import typing
 from typing import Callable, Container, IO, Iterable, Iterator, Mapping, Optional
 
 _TPattern = str | re.Pattern | Container[str] | Callable[[str], bool]
@@ -86,6 +87,24 @@ class Element:
             return self.datas[index]
         except IndexError:
             pass
+
+    @typing.overload
+    def get_class(self) -> set[str]:
+        pass
+
+    @typing.overload
+    def get_class(self, index: int = 0) -> Optional[str]:
+        pass
+
+    def get_class(self, index=None):
+        classes = self.attributes.get('class', '').split()
+        if index is None:
+            return set(classes)
+        else:
+            try:
+                return classes[index]
+            except IndexError:
+                pass
 
     def iter_all_children(self, depth: int = -1) -> Iterator[Element]:
         if depth:

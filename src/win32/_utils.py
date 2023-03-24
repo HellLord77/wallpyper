@@ -107,9 +107,10 @@ def delete_key(key: winreg.HKEYType, name: str) -> bool:
     return False
 
 
-def sanitize_filename(name: str) -> Optional[str]:
+# noinspection PyShadowingBuiltins
+def sanitize_filename(name: str, dir: Optional[str] = None) -> Optional[str]:
     buff = ctyped.type.PWSTR(name)
-    if shell32.PathCleanupSpec(None, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
+    if shell32.PathCleanupSpec(dir, buff) & ctyped.const.PCS_FATAL != ctyped.const.PCS_FATAL:
         return buff.value
 
 

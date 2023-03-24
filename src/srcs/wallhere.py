@@ -128,9 +128,9 @@ class WallHere(Source):
                 items.insert(0, item)
                 yield
                 continue
-            classes = item.attributes['class'].split()
             data = json.loads(soup.find_element(soup.loads(
                 response_item.text).iter_all_children(), 'script', _ATTRS).datas[0])
             content_url = data['contentUrl']
+            classes = item.get_class()
             yield files.ImageFile(content_url, width=int(data['width'][:-2]), height=int(
                 data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)
