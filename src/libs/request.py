@@ -42,6 +42,7 @@ _RE_ENCODED = re.compile(r"%[a-fA-F0-9]{2}")
 _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
+FLAG_REREAD_RESPONSE = True
 UNRESERVED_CHARS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
 SUB_DELIM_CHARS = b"!$&'()*+,;"
 USERINFO_CHARS = UNRESERVED_CHARS + SUB_DELIM_CHARS + b':'
@@ -295,7 +296,12 @@ HEADERS = {
     Header.USER_AGENT: f'{__name__}/{__version__}'}
 
 
+def _getheader(_: str, default=None):
+    return default
+
+
 class Response:
+    _content = b''
     chunk_size = _MIN_CHUNK
 
     def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
@@ -305,7 +311,7 @@ class Response:
         self.headers = getattr(response, 'headers', {})
         self.local = response.fp.name if isinstance(getattr(
             self.response, 'file', None), io.BufferedReader) else None
-        self.getheader = getattr(response, 'getheader', self._getheader)
+        self.getheader = getattr(response, 'getheader', _getheader)
 
     def __bool__(self) -> bool:
         return self.status_code == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
@@ -315,15 +321,13 @@ class Response:
 
     def __iter__(self) -> Iterator[bytes]:
         while chunk := self.response.read(self.chunk_size):
+            if FLAG_REREAD_RESPONSE:
+                self._content += chunk
             yield chunk
-
-    @staticmethod
-    def _getheader(_: str, default=None):
-        return default
 
     @property
     def content(self) -> bytes:
-        return self.response.read()
+        return b''.join(self) or self._content
 
     @property
     def text(self) -> str:
@@ -332,9 +336,6 @@ class Response:
     def json(self) -> Any:
         with contextlib.suppress(json_.decoder.JSONDecodeError):
             return json_.loads(self.content)
-
-    def read(self, n: int) -> bytes:
-        return self.response.read(n)
 
 
 def _str(o: AnyStr) -> str:

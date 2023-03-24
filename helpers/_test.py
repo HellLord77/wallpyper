@@ -22,7 +22,7 @@ from typing import AnyStr, Callable, Optional, TypeVar
 from xml.etree import ElementTree
 
 import win32
-from libs import ctyped, config, request
+from libs import ctyped, config, request, soup
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 from win32 import _utils
@@ -622,16 +622,54 @@ def _test_hook():
     proc.free_console()
 
 
+html = '''
+<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" >
+<HTML>
+<!--This is a comment. Comments are not displayed in the browser-->
+<HEAD>
+
+    <TITLE>Your Title Here</TITLE>
+
+</HEAD>
+
+<BODY BGCOLOR="FFFFFF">
+
+    <CENTER><IMG SRC="clouds.jpg" ALIGN="BOTTOM"> </CENTER>
+
+    <HR>
+
+    <a href="http://somegreatsite.com">Link Name</a>
+
+    is a link to another nifty site
+
+    <H1>This is a Header</H1>
+
+    <H2>This is a Medium Header</H2>
+
+    Send me mail at <a href="mailto:support@yourcompany.com">
+
+        support@yourcompany.com</a>.
+
+    <P> This is a new paragraph!
+
+    <P> <B>This is a new paragraph!</B>
+
+        <BR> <B><I class="" prop2>This is a new sentence without a paragraph break, in bold italics.</I></B>
+
+        <HR>
+
+</BODY>
+
+</HTML>
+'''
+
+
 def _test_request():
-    import requests
-    resp = requests.get('https://www.google.com')
-    print(resp.content)
-    print(resp.content)
-
-
-def _test():
-    from libs import urischemes
-    print(urischemes.get('http'))
+    s = soup.loads(html)
+    print(s.decls)
+    print(s)
+    print(soup.find_element(s.iter_all_children()).get_doctype())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
@@ -639,5 +677,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _test()
+    _test_request()
     sys.exit()

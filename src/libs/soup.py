@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import html.parser
 import itertools
@@ -21,37 +21,36 @@ MAX_CHUNK = shutil.COPY_BUFSIZE
 
 class _Parser(html.parser.HTMLParser):
     def __init__(self):
-        self._elems = []
         self.root = None
+        self.elems = []
         self.decls = []
+        self.handle_decl = self.decls.append
         super().__init__()
+
+    def __del__(self):
+        if self.root is not None:
+            self.root.decls = tuple(self.decls)
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]):
         elem = Element(tag, {name: '' if value is None else value for name, value in reversed(
-            attrs)}, self._elems[-1] if self._elems else None)
-        if tag not in _VOIDS:
-            self._elems.append(elem)
+            attrs)}, self.elems[-1] if self.elems else None)
         if self.root is None:
-            self.root = self._elems[0]
-        if self.decls:
-            self._elems[-1].decls = tuple(self.decls)
-            self.decls.clear()
+            self.root = elem
+        if tag not in _VOIDS:
+            self.elems.append(elem)
 
     def handle_endtag(self, tag: str):
         # if tag not in _VOIDS:
-        if self._elems[-1].name == tag:
-            del self._elems[-1]
+        if self.elems[-1].name == tag:
+            del self.elems[-1]
 
     def handle_data(self, data: str):
-        if self._elems:
-            self._elems[-1].datas.append(data)
+        if self.elems:
+            self.elems[-1].datas.append(data)
 
     def handle_comment(self, data: str):
-        if self._elems:
-            self._elems[-1].comments.append(data)
-
-    def handle_decl(self, decl: str):
-        self.decls.append(decl)
+        if self.elems:
+            self.elems[-1].comments.append(data)
 
 
 class Element:
@@ -72,9 +71,17 @@ class Element:
     def __str__(self):
         attributes = ''
         for name, value in sorted(self.attributes.items()):
-            attributes += f' {name}="{value}"'
-        return (f'<{self.name}{attributes}>{"".join(map(str, self.children))}</{self.name}>'
-                if self.children or self.name not in _VOIDS else f'<{self.name}{attributes}/>')
+            attributes += f' {name}'
+            if value:
+                attributes += f'="{value}"'
+        start = f'<{self.name}{attributes}'
+        inner = self.children or self.datas
+        return ''.join(f'<!{decl}>' for decl in self.decls) + (
+            f'{start}>{"".join(map(str, inner))}</{self.name}>'
+            if inner or self.name not in _VOIDS else f'{start}/>')
+
+    def get_root(self) -> Element:
+        return self if self.parent is None else self.parent.get_root()
 
     def get_child(self, index: int = 0) -> Optional[Element]:
         try:
@@ -105,6 +112,11 @@ class Element:
                 return classes[index]
             except IndexError:
                 pass
+
+    def get_doctype(self) -> Optional[str]:
+        for decl in self.get_root().decls:
+            if decl[:7].upper() == 'DOCTYPE':
+                return decl[7:].strip()
 
     def iter_all_children(self, depth: int = -1) -> Iterator[Element]:
         if depth:
