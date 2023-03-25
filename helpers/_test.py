@@ -623,7 +623,20 @@ def _test_hook():
 
 
 def _test():
-    pass
+    url = r'https://www.wallpaperflare.com/~anime-anime-boys-picture-in-picture-kimetsu-no-yaiba-kamado-tanjirō-wallpaper-udebl?wallpaper=1040004'
+    encoded = request.encode_url(url)
+    url2 = br'https://google.com/da ad'
+    print(encoded)
+    print(request.encode_url(url2))
+    exit()
+
+    import requests
+    import cloudscraper
+    url = r'https://wallpapersmug.com/'
+    scraper = cloudscraper.create_scraper()
+    response = scraper.get(url)
+    response = requests.get(url)
+    print(response.text)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

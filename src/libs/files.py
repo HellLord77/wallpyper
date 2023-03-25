@@ -37,7 +37,7 @@ class File:
 
     def __post_init__(self):
         if not self.name:
-            self.name = urllib.parse.unquote(os.path.basename(self.url))
+            self.name = urllib.parse.unquote_plus(os.path.basename(self.url))
         for algorithm, hash_ in self._iter_hashes():
             if not isinstance(hash_, bytes):
                 setattr(self, algorithm, bytes.fromhex(hash_))

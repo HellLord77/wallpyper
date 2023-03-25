@@ -1,24 +1,32 @@
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 import base64
+import calendar
 import contextlib
 import http.client
+import http.cookiejar
+import http.cookies
 import io
 import itertools
 import json as json_
 import os
 import re
 import sys
+import time
+import typing
 import urllib.error
 import urllib.parse
 import urllib.request
 import urllib.response
 import uuid
-from typing import Any, AnyStr, BinaryIO, Callable, IO, Iterator, Iterable, Mapping, Optional
+from typing import Any, AnyStr, BinaryIO, Callable, IO, Iterator, Iterable, Mapping, Optional, TypeVar
 
+_TResult = TypeVar('_TResult', urllib.parse.DefragResult, urllib.parse.SplitResult, urllib.parse.ParseResult,
+                   urllib.parse.ParseResultBytes, urllib.parse.SplitResultBytes, urllib.parse.DefragResultBytes)
 _TJSON = int | bool | float | str | tuple | list | dict
 _TParams = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
 _THeaders = Mapping[str, str]
+_TCookie = tuple[str, str] | http.cookies.Morsel | http.cookiejar.Cookie | http.cookiejar.CookieJar
 _TFiles = Mapping[str, AnyStr | BinaryIO | tuple[
     AnyStr | BinaryIO] | tuple[AnyStr | BinaryIO, AnyStr] | tuple[
                       AnyStr | BinaryIO, AnyStr, Mapping[str, Optional[str]]]]
@@ -37,18 +45,19 @@ _CRLF = '\r\n'
 _FILE_SCHEME = 'file'
 _HTTP_SCHEME = 'http'
 _HTTPS_SCHEME = 'https'
+_MIME_JSON = 'application/json'
+_MIME_FORM = 'application/x-www-form-urlencoded'
 _NORMALIZABLE_SCHEMES = '', _HTTP_SCHEME, _HTTPS_SCHEME
 _RE_ENCODED = re.compile(r"%[a-fA-F0-9]{2}")
 _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
 FLAG_REREAD_RESPONSE = True
-UNRESERVED_CHARS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
-SUB_DELIM_CHARS = b"!$&'()*+,;"
-USERINFO_CHARS = UNRESERVED_CHARS + SUB_DELIM_CHARS + b':'
-PATH_CHARS = USERINFO_CHARS + b'@/'
-QUERY_CHARS = UNRESERVED_CHARS + PATH_CHARS + b'?'
-FRAGMENT_CHARS = QUERY_CHARS
+SUB_DELIM_BYTES = b"!$&'()*+,;="
+USERINFO_BYTES = SUB_DELIM_BYTES + b':'
+PATH_BYTES = USERINFO_BYTES + b'@/'
+QUERY_BYTES = PATH_BYTES + b'?'
+FRAGMENT_BYTES = QUERY_BYTES
 
 
 class Header:
@@ -214,82 +223,6 @@ class Header:
     X_ROBOTS_TAG = 'X-Robots-Tag'
 
 
-class MIMEType:
-    AAC = 'audio/aac'
-    ABW = 'application/x-abiword'
-    ARC = 'application/x-freearc'
-    AVIF = 'image/avif'
-    AVI = 'video/x-msvideo'
-    AZW = 'application/vnd.amazon.ebook'
-    BIN = 'application/octet-stream'
-    BMP = 'image/bmp'
-    BZ = 'application/x-bzip'
-    BZ2 = 'application/x-bzip2'
-    CDA = 'application/x-cdf'
-    CSH = 'application/x-csh'
-    CSS = 'text/css'
-    CSV = 'text/csv'
-    DOC = 'application/msword'
-    DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    EOT = 'application/vnd.ms-fontobject'
-    EPUB = 'application/epub+zip'
-    GZ = 'application/gzip'
-    GIF = 'image/gif'
-    HTM = HTML = 'text/html'
-    ICO = 'image/vnd.microsoft.icon'
-    ICS = 'text/calendar'
-    JAR = 'application/java-archive'
-    JPEG = JPG = 'image/jpeg'
-    JS = 'text/javascript'
-    JSONLD = 'application/ld+json'
-    MID = MIDI = 'audio/midi'
-    MJS = 'text/javascript'
-    MP3 = 'audio/mpeg'
-    MP4 = 'video/mp4'
-    MPEG = 'video/mpeg'
-    MPKG = 'application/vnd.apple.installer+xml'
-    ODP = 'application/vnd.oasis.opendocument.presentation'
-    ODS = 'application/vnd.oasis.opendocument.spreadsheet'
-    ODT = 'application/vnd.oasis.opendocument.text'
-    OGA = 'audio/ogg'
-    OGV = 'video/ogg'
-    OGX = 'application/ogg'
-    OPUS = 'audio/opus'
-    OTF = 'font/otf'
-    PNG = 'image/png'
-    PDF = 'application/pdf'
-    PHP = 'application/x-httpd-php'
-    PPT = 'application/vnd.ms-powerpoint'
-    PPTX = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    RAR = 'application/vnd.rar'
-    RTF = 'application/rtf'
-    SH = 'application/x-sh'
-    SVG = 'image/svg+xml'
-    TAR = 'application/x-tar'
-    TIF = TIFF = 'image/tiff'
-    TS = 'video/mp2t'
-    TTF = 'font/ttf'
-    TXT = 'text/plain'
-    VSD = 'application/vnd.visio'
-    WAV = 'audio/wav'
-    WEBA = 'audio/webm'
-    WEBM = 'video/webm'
-    WEBP = 'image/webp'
-    WOFF = 'font/woff'
-    WOFF2 = 'font/woff2'
-    XHTML = 'application/xhtml+xml'
-    XLS = 'application/vnd.ms-excel'
-    XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    XML = 'application/xml'
-    XUL = 'application/vnd.mozilla.xul+xml'
-    ZIP = 'application/zip'
-    _3GP = 'video/3gpp'
-    _3G2 = 'video/3gpp2'
-    _7Z = 'application/x-7z-compressed'
-    FORM = 'application/x-www-form-urlencoded'
-    JSON = 'application/json'
-
-
 MAX_CHUNK = 1024 * 1024
 HEADERS = {
     Header.ACCEPT_LANGUAGE: 'en-US',
@@ -342,6 +275,11 @@ def _str(o: AnyStr) -> str:
     return o.decode() if isinstance(o, bytes) else o
 
 
+def _replace(namedtuple: _TResult, **kwargs) -> _TResult:
+    # noinspection PyProtectedMember
+    return namedtuple._replace(**kwargs)
+
+
 def is_path(url: AnyStr) -> bool:
     return _FILE_SCHEME == _str(urllib.parse.urlsplit(url).scheme)
 
@@ -352,7 +290,7 @@ def from_path(path: str) -> str:
 
 
 def strip(url: str) -> str:
-    return urllib.parse.urlsplit(url)._replace(query='', fragment='').geturl()
+    return _replace(urllib.parse.urlsplit(url), query='', fragment='').geturl()
 
 
 def join(base: str, *paths: str) -> str:
@@ -364,40 +302,114 @@ def join(base: str, *paths: str) -> str:
     return base[:-1]
 
 
+@typing.overload
+def get_params(url: bytes) -> dict[bytes, list[bytes]]:
+    pass
+
+
+@typing.overload
 def get_params(url: str) -> dict[str, list[str]]:
+    pass
+
+
+def get_params(url):
     return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
 
 
-def _upper_encoded(match: re.Match) -> str:
+@typing.overload
+def get_cookie(morsel_or_name: http.cookies.Morsel) -> http.cookiejar.Cookie:
+    pass
+
+
+@typing.overload
+def get_cookie(morsel_or_name: str, value: Optional[str] = None, version: int = 0, port: Optional[str] = None,
+               domain: str = '', path: str = '/', secure: bool = False, expires: Optional[int] = None,
+               discard: bool = True, comment: Optional[str] = None, comment_url: Optional[str] = None,
+               rest: Optional[dict[str, str]] = None, rfc2109: bool = False) -> http.cookiejar.Cookie:
+    pass
+
+
+def get_cookie(morsel_or_name, value=None, version=0, port=None, domain='',
+               path='/', secure=False, expires=None, discard=True, comment=None,
+               comment_url=None, rest=None, rfc2109=False) -> http.cookiejar.Cookie:
+    if isinstance(morsel_or_name, http.cookies.Morsel):
+        morsel = morsel_or_name
+        expires = None
+        if morsel["max-age"]:
+            expires = int(time.time() + int(morsel['max-age']))
+        elif morsel['expires']:
+            expires = calendar.timegm(time.strptime(morsel['expires'], '%a, %d-%b-%Y %H:%M:%S GMT'))
+        return get_cookie(morsel.key, morsel.value, morsel['version'], None, morsel['domain'], morsel['path'],
+                          bool(morsel['secure']), expires, False, morsel['comment'], None, None, False)
+    else:
+        if rest is None:
+            rest = {'HttpOnly': None}
+        port_specified = bool(port)
+        domain_specified = bool(domain)
+        domain_initial_dot = domain.startswith('.')
+        path_specified = bool(path)
+        return http.cookiejar.Cookie(
+            version, morsel_or_name, value, port, port_specified, domain, domain_specified, domain_initial_dot,
+            path, path_specified, secure, expires, discard, comment, comment_url, rest, rfc2109)
+
+
+def merge_params(url: AnyStr, params: Optional[_TParams] = None) -> AnyStr:
+    components = urllib.parse.urlsplit(url)
+    query = urllib.parse.parse_qs(components.query, True)
+    if params is not None:
+        for key, val in params.items():
+            if val is not None:
+                if key not in query:
+                    query[key] = []
+                if isinstance(val, (bytes, str)):
+                    query[key].append(val)
+                else:
+                    query[key].extend(val)
+    return _replace(components, query=encode_params(query)).geturl()
+
+
+def merge_cookies(*cookies: _TCookie,
+                  cookie_jar: Optional[http.cookiejar.CookieJar] = None) -> http.cookiejar.CookieJar:
+    if cookie_jar is None:
+        cookie_jar = http.cookiejar.CookieJar()
+    for cookie in cookies:
+        if isinstance(cookie, http.cookiejar.CookieJar):
+            for cookie_ in cookie:
+                cookie_jar.set_cookie(cookie_)
+        else:
+            if isinstance(cookie, http.cookies.Morsel):
+                cookie = get_cookie(cookie)
+            elif isinstance(cookie, tuple):
+                cookie = get_cookie(*cookie)
+            cookie_jar.set_cookie(cookie)
+    return cookie_jar
+
+
+def _upper_encoded(match: re.Match) -> AnyStr:
     return match.group(0).upper()
 
 
-def _encode_component(component: str, valid: bytes) -> str:
+def _encode_component(component: str, valid: AnyStr) -> str:
     component, count_encoded = _RE_ENCODED.subn(_upper_encoded, component)
-    component_ = component.encode(errors='surrogatepass')
-    pc_encoded = count_encoded == component_.count(37)
-    encoded = b''
-    for ord_ in component_:
-        if (pc_encoded and ord_ == 37) or ord_ in valid:
-            encoded += chr(ord_).encode()
-        else:
-            encoded += b'%' + hex(ord_)[2:].encode().zfill(2).upper()
-    return encoded.decode()
+    if count_encoded == component.count('%'):
+        valid += b'%'
+    return urllib.parse.quote_plus(component, safe=valid)
 
 
 def encode_url(url: AnyStr) -> str:
     components = urllib.parse.urlsplit(_str(url))
     if components.scheme in _NORMALIZABLE_SCHEMES:
-        if components.path:
-            components = components._replace(
-                path=_encode_component(components.path, PATH_CHARS))
-        if components.query:
-            components = components._replace(
-                query=_encode_component(components.query, QUERY_CHARS))
-        if components.fragment:
-            components = components._replace(
-                fragment=_encode_component(components.fragment, FRAGMENT_CHARS))
+        components = _replace(components, path=_encode_component(
+            components.path, PATH_BYTES), query=_encode_component(
+            components.query, QUERY_BYTES), fragment=_encode_component(
+            components.fragment, FRAGMENT_BYTES))
     return components.geturl()
+
+
+def encode_cookies(cookies: http.cookiejar.CookieJar, url: str) -> dict[str, str]:
+    request_ = urllib.request.Request(url)
+    cookies.add_cookie_header(request_)
+    return request_.unredirected_hdrs
 
 
 def encode_params(params: Optional[AnyStr | Mapping]) -> str:
@@ -409,16 +421,16 @@ def encode_params(params: Optional[AnyStr | Mapping]) -> str:
         return urllib.parse.urlencode(params, True)
 
 
-def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = None,
+def encode_body(data: Optional[_TParams] = None, files: Optional[_TFiles] = None,
                 json: Optional[_TJSON] = None) -> tuple[str, bytes]:
     if files is not None:  # TODO escape quotes
-        data = []
-        if fields is not None:
-            for name, vals in fields.items():
+        body = []
+        if data is not None:
+            for name, vals in data.items():
                 if vals is not None:
                     if isinstance(vals, (bytes, str)):
                         vals = vals,
-                    data.extend(({Header.CONTENT_DISPOSITION: f'form-data; name="{_str(name)}"'},
+                    body.extend(({Header.CONTENT_DISPOSITION: f'form-data; name="{_str(name)}"'},
                                  val.encode() if isinstance(val, str) else val) for val in vals)
         for name, vals in files.items():
             if isinstance(vals, (bytes, str)):
@@ -437,11 +449,11 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
                 filename = os.path.basename(val if isinstance(val, (
                     bytes, str)) else val.name if hasattr(val, 'name') else name)
             headers[Header.CONTENT_DISPOSITION] += f'; filename="{_str(filename)}"'
-            data.append((headers, (open(val, "rb") if isinstance(
-                val, bytes | str) else val).read()))
+            body.append((headers, (open(val, 'rb') if isinstance(
+                val, (bytes, str)) else val).read()))
         lines = []
         boundary = uuid.uuid4().hex
-        for headers, val in data:
+        for headers, val in body:
             lines.append(f'--{boundary}'.encode())
             lines.extend(f'{key}: {val}'.encode()
                          for key, val in headers.items() if val is not None)
@@ -450,79 +462,99 @@ def encode_data(fields: Optional[_TParams] = None, files: Optional[_TFiles] = No
         lines.append(f'--{boundary}--'.encode())
         lines.append(b'')
         return f'multipart/form-data; boundary={boundary}', _CRLF.encode().join(lines)
-    elif fields is not None:
-        return MIMEType.FORM, encode_params(fields).encode()
+    elif data is not None:
+        return _MIME_FORM, encode_params(data).encode()
     elif json is not None:
-        return MIMEType.JSON, json_.dumps(json, allow_nan=False).encode()
+        return _MIME_JSON, json_.dumps(json, allow_nan=False).encode()
 
 
-def extend_param(url: AnyStr, params: Optional[_TParams] = None) -> AnyStr:
-    components = urllib.parse.urlsplit(url)
-    query = urllib.parse.parse_qs(components.query, True)
-    if params is not None:
-        for key, val in params.items():
-            if val is not None:
-                if key not in query:
-                    query[key] = []
-                if isinstance(val, (bytes, str)):
-                    query[key].append(val)
-                else:
-                    query[key].extend(val)
-    # noinspection PyProtectedMember
-    return components._replace(query=_str(encode_params(query))).geturl()
+def encode_auth(auth: _TAuth) -> str:
+    return (f'Bearer {auth}' if isinstance(auth, str) else
+            f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
 
 
-def request(method: str | http.HTTPMethod, url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
-            params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-            files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+def request(method: str | http.HTTPMethod, url: AnyStr, data: Optional[_TParams] = None,
+            json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+            cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
             timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     if params is not None:
-        url = extend_param(url, params)
+        url = merge_params(url, params)
     try:
-        request_ = urllib.request.Request(encode_url(url), data, headers=HEADERS, method=str(method))
+        request_ = urllib.request.Request(encode_url(
+            url), data, headers=HEADERS, method=str(method))
     except ValueError as exc:
         return Response(urllib.error.URLError(exc))
     else:
         if data is not None or files is not None or json is not None:
-            mime, request_.data = encode_data(data, files, json)
+            mime, request_.data = encode_body(data, files, json)
             request_.add_header(Header.CONTENT_TYPE, mime)
+        if cookies is not None:
+            itertools.starmap(request_.add_header, encode_cookies(
+                cookies, request_.full_url).items())
         if auth is not None:
-            request_.add_header(Header.AUTHORIZATION,
-                                f'Bearer {auth}' if isinstance(auth, str) else
-                                f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
+            request_.add_header(Header.AUTHORIZATION, encode_auth(auth))
         if headers is not None:
             itertools.starmap(request_.add_header, headers.items())
-        urllib.request.install_opener(_OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
+        urllib.request.install_opener(
+            _OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
         try:
             _response = urllib.request.urlopen(request_, timeout=timeout)
         except urllib.error.URLError as _response:
             return Response(_response)
         else:
             response = Response(_response)
-            if not stream:  # TODO probably exhausts the stream
+            if not stream:
                 _ = response.content
             return response
 
 
-def get(url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
-        params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-        files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+def get(url: AnyStr, data: Optional[_TParams] = None,
+        json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+        cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.GET, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
+    return request(http.HTTPMethod.GET, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
 
 
-def head(url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
-         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+def options(url: AnyStr, data: Optional[_TParams] = None,
+            json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+            cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+            timeout: Optional[float] = None, allow_redirects: bool = False, stream: bool = True) -> Response:
+    return request(http.HTTPMethod.OPTIONS, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+
+
+def head(url: AnyStr, data: Optional[_TParams] = None,
+         json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+         cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+         timeout: Optional[float] = None, allow_redirects: bool = False, stream: bool = True) -> Response:
+    return request(http.HTTPMethod.HEAD, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+
+
+def post(url: AnyStr, data: Optional[_TParams] = None,
+         json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+         cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.HEAD, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
+    return request(http.HTTPMethod.POST, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
 
 
-def post(url: AnyStr, data: Optional[_TParams] = None, json: Optional[_TJSON] = None,
-         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-         timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.POST, url, data, json, params, headers, files, auth, timeout, allow_redirects, stream)
+def put(url: AnyStr, data: Optional[_TParams] = None,
+        json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+        cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+        timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
+    return request(http.HTTPMethod.PUT, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+
+
+def patch(url: AnyStr, data: Optional[_TParams] = None,
+          json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+          cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
+    return request(http.HTTPMethod.PATCH, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+
+
+def delete(url: AnyStr, data: Optional[_TParams] = None,
+           json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
+           cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+           timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
+    return request(http.HTTPMethod.DELETE, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
 
 
 def sizeof(url: AnyStr) -> int:
