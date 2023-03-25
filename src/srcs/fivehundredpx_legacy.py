@@ -73,7 +73,7 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
         on_only = functools.partial(cls._on_category, CONFIG_ONLY, menu_only, menu_exclude)
         on_exclude = functools.partial(cls._on_category, CONFIG_EXCLUDE, menu_exclude, menu_only)
         for category in CATEGORIES:
-            label = getattr(cls.STRINGS, f'FIVEHUNREDPX_LEGACY_CATEGORY_{category.replace(" ", "_")}')
+            label = getattr(cls.STRINGS, f'FIVEHUNREDPX_LEGACY_CATEGORY_{category}')
             gui.add_menu_item(label, gui.MenuItemType.CHECK, category in onlies,
                               category not in excludes, uid=category, on_click=on_only, menu=menu_only)
             gui.add_menu_item(label, gui.MenuItemType.CHECK, category in excludes,
