@@ -30,8 +30,7 @@ SORTS = '', 'created_at'
 
 
 def _iter_images(browser: win32.browser.Browser) -> Iterator[minihtml.Element]:
-    return minihtml.find_elements(minihtml.loads(
-        browser.get_html()).iter_all_children(), 'img', _ATTRS)
+    return minihtml.loads(browser.get_html()).find_all('img', _ATTRS)
 
 
 def _on_category(menu: gui.Menu) -> tuple[str, ...]:

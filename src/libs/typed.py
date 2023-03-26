@@ -63,7 +63,7 @@ def type_dataclass_asdict(cls):
     type_hints = typing.get_type_hints(cls)
     # noinspection PyUnresolvedReferences,PyProtectedMember
     return TypedDict(cls.__name__, {name: (
-        Required if field.default is dataclasses._MISSING_TYPE else NotRequired)[
+        Required if isinstance(field.default, dataclasses._MISSING_TYPE) else NotRequired)[
         type_hints[name]] for name, field in cls.__dataclass_fields__.items()})
 
 
@@ -304,7 +304,7 @@ def _update_mapping(self: MutableMapping, val, cls, callback, key):
 
 def intersection_update(self: MutableMapping, other: Mapping, cls,
                         factory: Callable[[Any], Any] = copy.deepcopy):
-    assert isinstance_ex(other, cls), other
+    assert isinstance_ex(other, cls)
     if _issubclass_typeddict(cls):
         for key, cls_ in typing.get_type_hints(cls).items():
             _update_mapping(self, other[key], cls_, factory, key)

@@ -128,8 +128,7 @@ class WallHere(Source):
                 items.insert(0, item)
                 yield
                 continue
-            data = json.loads(minihtml.find_element(minihtml.loads(
-                response_item.text).iter_all_children(), 'script', _ATTRS).datas[0])
+            data = json.loads(minihtml.loads(response_item.text).find('script', _ATTRS).get_data())
             content_url = data['contentUrl']
             classes = item.get_class()
             yield files.ImageFile(content_url, width=int(data['width'][:-2]), height=int(

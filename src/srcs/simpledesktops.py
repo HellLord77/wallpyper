@@ -55,8 +55,7 @@ class SimpleDesktops(Source):
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
                     continue
                 if response:
-                    desktops = list(minihtml.find_elements(
-                        minihtml.loads(response.text).iter_all_children(), 'div', _ATTRS))
+                    desktops = list(minihtml.loads(response.text).find_all('div', _ATTRS))
             if not desktops:
                 yield
                 continue

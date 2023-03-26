@@ -76,24 +76,24 @@ class WallpaperFlare(Source):
             if not items:
                 response = request.get(url, params=params)
                 if response:
-                    items = list(minihtml.find_elements(minihtml.loads(
-                        f'<html>{response.text}</html>').iter_all_children(), 'li', _ATTRS_ITEM))
+                    items = list(minihtml.loads(
+                        f'<html>{response.text}</html>').find_all('li', _ATTRS_ITEM))
                     params['page'] = str(int(params['page']) + 1)
                 if not items:
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join(minihtml.find_element(
-                item.iter_all_children(), 'a', _ATTRS_URL).attributes['href'], 'download'))
+            response_item = request.get(request.join(item.find(
+                'a', _ATTRS_URL).attributes['href'], 'download'))
             if not response_item:
                 items.insert(0, item)
                 yield
                 continue
             html = minihtml.loads(response_item.text)
-            info = minihtml.find_element(html.iter_all_children(), 'div', _ATTR_INFO)
-            yield files.ImageFile(minihtml.find_element(
-                html.iter_all_children(), 'img', _ATTRS_SRC).attributes['src'], width=int(
-                info.get_child().get_child().get_data()), height=int(info.get_child(1).get_child().get_data()))
+            info = html.find('div', _ATTR_INFO)
+            yield files.ImageFile(html.find('img', _ATTRS_SRC).attributes['src'], width=int(
+                info.get_child().get_child().get_data()), height=int(
+                info.get_child(1).get_child().get_data()))
 
     @classmethod
     def _on_search(cls, enable_mobile: Callable[[bool], bool], enable_sort: Callable[[bool], bool], search: bool):

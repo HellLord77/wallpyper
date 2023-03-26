@@ -72,10 +72,8 @@ class WallpapersMug(Source):
                 response = request.get(url)
                 if response:
                     html = minihtml.loads(response.text)
-                    images = list(minihtml.find_elements(
-                        html.iter_all_children(), 'div', _ATTRS_IMAGES))
-                    if page and minihtml.find_element(
-                            html.iter_all_children(), 'span', _ATTRS_NEXT) is not None:
+                    images = list(html.find_all('div', _ATTRS_IMAGES))
+                    if page and html.find_all('span', _ATTRS_NEXT) is not None:
                         page += 1
                 if not images:
                     yield
@@ -87,10 +85,9 @@ class WallpapersMug(Source):
                 images.insert(0, image)
                 yield
                 continue
-            img = minihtml.find_element(minihtml.loads(
-                response_image.text).iter_all_children(), 'div', _ATTRS_IMAGE)
-            width, height = map(int, minihtml.find_element(
-                img.iter_all_children(), 'span', _ATTRS_RESOLUTION).get_child().get_data().strip().split('x'))
+            img = minihtml.loads(response_image.text).find('div', _ATTRS_IMAGE)
+            width, height = map(int, img.find(
+                'span', _ATTRS_RESOLUTION).get_child().get_data().strip().split('x'))
             yield files.ImageFile(img.get_child().get_child().attributes[
                                       'src'], width=width, height=height)
 

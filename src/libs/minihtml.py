@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import html.parser
 import itertools
@@ -144,6 +144,16 @@ class Element:
     def iter_previous_siblings(self) -> itertools.islice[Element]:
         if self.parent:
             return itertools.islice(self.parent.children, None, self.parent.children.index(self))
+
+    # noinspection PyShadowingBuiltins
+    def find(self, name: Optional[_TPattern] = None, attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
+             filter: Optional[Callable[[Element], bool]] = None, recursive: bool = True) -> Optional[Element]:
+        return find_element(self.iter_all_children() if recursive else self.children, name, attributes, filter)
+
+    # noinspection PyShadowingBuiltins
+    def find_all(self, name: Optional[_TPattern] = None, attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
+                 filter: Optional[Callable[[Element], bool]] = None, recursive: bool = True) -> Iterator[Element]:
+        return find_elements(self.iter_all_children() if recursive else self.children, name, attributes, filter)
 
 
 def _match(pattern: Optional[_TPattern], string: Optional[str]) -> bool:

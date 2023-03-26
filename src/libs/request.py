@@ -580,7 +580,7 @@ def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int]
         except PermissionError:
             return False
         try:
-            retrieved = size == os.path.getsize(path)
+            retrieved = size in (sys.maxsize, os.path.getsize(path))
         except OSError:
             retrieved = False
         if retrieved and query_callback is not None:

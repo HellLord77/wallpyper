@@ -1,5 +1,4 @@
 import collections
-import contextlib
 import functools
 import http
 import itertools
@@ -438,8 +437,10 @@ def change_wallpaper(image: Optional[files.File] = None,
             win32.sanitize_filename(image.name), consts.MAX_FILENAME_LEN)
         if not image.size:
             image.size = request.sizeof(image.url)
-        with contextlib.suppress(ValueError):
+        try:
             RECENT.remove(image)
+        except ValueError:
+            pass
         RECENT.appendleft(image)
         if (path := download_image(image, query_callback)) is not None:
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(

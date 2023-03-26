@@ -72,5 +72,6 @@ from . import (
     wallhaven,
     wallhere,
     wallpaperflare,
+    wallpapersmug,
     yandere,
     zerochan)  # NOQA: E402
