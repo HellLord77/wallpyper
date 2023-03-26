@@ -4,7 +4,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request, soup, utils
+from libs import files, request, minihtml, utils
 from . import Source
 
 _ATTRS = {'class': 'desktop'}
@@ -55,8 +55,8 @@ class SimpleDesktops(Source):
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
                     continue
                 if response:
-                    desktops = list(soup.find_elements(
-                        soup.loads(response.text).iter_all_children(), 'div', _ATTRS))
+                    desktops = list(minihtml.find_elements(
+                        minihtml.loads(response.text).iter_all_children(), 'div', _ATTRS))
             if not desktops:
                 yield
                 continue

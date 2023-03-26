@@ -623,19 +623,13 @@ def _test_hook():
 
 
 def _test():
-    url = r'https://www.wallpaperflare.com/~anime-anime-boys-picture-in-picture-kimetsu-no-yaiba-kamado-tanjirō-wallpaper-udebl?wallpaper=1040004'
-    encoded = request.encode_url(url)
-    url2 = br'https://google.com/da ad'
-    print(encoded)
-    print(request.encode_url(url2))
-    exit()
-
-    import requests
-    import cloudscraper
     url = r'https://wallpapersmug.com/'
-    scraper = cloudscraper.create_scraper()
-    response = scraper.get(url)
-    response = requests.get(url)
+    # scraper = cloudscraper.create_scraper()
+    # response = scraper.get(url)
+    # cookie = cloudscraper.get_cookie_string(url)
+    # print(cookie)
+    # response = requests.get(url)
+    response = request.get(url)
     print(response.text)
 
 

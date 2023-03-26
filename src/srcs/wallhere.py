@@ -6,7 +6,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 import win32
-from libs import colornames, files, request, soup
+from libs import colornames, files, request, minihtml
 from . import Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
@@ -116,7 +116,7 @@ class WallHere(Source):
             if not items:
                 response = request.get(url, params=params)
                 if response:
-                    items = soup.loads(f'<html>{response.json()["data"]}</html>').children
+                    items = minihtml.loads(f'<html>{response.json()["data"]}</html>').children
                     params['page'] = str(int(params['page']) + 1)
                 if not items:
                     yield
@@ -128,7 +128,7 @@ class WallHere(Source):
                 items.insert(0, item)
                 yield
                 continue
-            data = json.loads(soup.find_element(soup.loads(
+            data = json.loads(minihtml.find_element(minihtml.loads(
                 response_item.text).iter_all_children(), 'script', _ATTRS).datas[0])
             content_url = data['contentUrl']
             classes = item.get_class()
