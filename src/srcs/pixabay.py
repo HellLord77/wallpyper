@@ -76,7 +76,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         cls._fix_config(validator.ensure_iterable, CONFIG_TYPE, TYPES)
         cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(validator.ensure_iterable, CONFIG_CATEGORY, CATEGORIES)
-        cls._fix_config(validator.ensure_joined_iterable, CONFIG_COLORS, COLORS)
+        cls._fix_config(validator.ensure_iterables_joined, CONFIG_COLORS, COLORS)
         cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
 
     @classmethod

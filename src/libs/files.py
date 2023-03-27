@@ -2,7 +2,6 @@ from __future__ import annotations as _
 
 __version__ = '0.0.16'
 
-import contextlib
 import dataclasses
 import filecmp
 import glob
@@ -46,7 +45,8 @@ class File:
         return hash(self.url)
 
     def __str__(self):
-        return repr(self).replace(f' size={self.size}, ', f' size={Size(self.size)}, ', 1)
+        return repr(self).replace(f', size={self.size}',
+                                  f', size={Size(self.size)}' if self.size else '', 1)
 
     def __eq__(self, other):
         if isinstance(other, File):
@@ -228,29 +228,27 @@ def get_size(path: str) -> Optional[int]:
         return os.path.getsize(path)
 
 
-def copyfileobj(src: IO, dst: IO, size: Optional[int] = None, chunk_size: Optional[int] = None,
-                query_callback: Optional[Callable[[float], bool]] = None):
-    size = size or sys.maxsize
-    chunk_size = chunk_size or MAX_CHUNK
-    ratio = 0
+def copy_obj(src: IO, dst: IO, chunk_size: Optional[int] = None,
+             query_callback: Optional[Callable[[int], bool]] = None):
+    if chunk_size is None:
+        chunk_size = MAX_CHUNK
+    written = 0
     while chunk := src.read(chunk_size):
-        dst.write(chunk)
-        ratio += len(chunk) / size
-        if query_callback and not query_callback(ratio):
+        written += dst.write(chunk)
+        if query_callback is not None and not query_callback(written):
             break
 
 
-def copy(src: str, dst: str, chunk_size: Optional[int] = None,
-         query_callback: Optional[Callable[[float, ...], bool]] = None) -> bool:
-    if os.path.exists(src):
-        if not os.path.exists(dst):
-            with contextlib.suppress(PermissionError):
-                with open(src, 'rb') as src_:
-                    os.makedirs(os.path.dirname(dst), exist_ok=True)
-                    with open(dst, 'wb') as dst_:
-                        copyfileobj(src_, dst_, os.path.getsize(src), chunk_size, query_callback)
+def copy(src: AnyStr, dst: AnyStr, chunk_size: Optional[int] = None,
+         query_callback: Optional[Callable[[int], bool]] = None) -> bool:
+    try:
+        with open(src, 'rb') as src_:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            with open(dst, 'wb') as dst_:
+                copy_obj(src_, dst_, chunk_size, query_callback)
         return os.path.exists(dst) and filecmp.cmp(src, dst)
-    return False
+    except OSError:
+        return False
 
 
 def make_dir(path: str) -> bool:

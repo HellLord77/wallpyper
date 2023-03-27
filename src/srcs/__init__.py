@@ -61,6 +61,7 @@ from . import (
     _shutterstock,
     bing,
     doesnotexist,
+    facets,
     fivehundredpx_legacy,
     local,
     pexels,

@@ -48,9 +48,8 @@ def ensure_max_len(current: dict, default: dict, key: str,
 # noinspection PyShadowingBuiltins
 def ensure_len(current: dict, default: dict, key: str,
                len: int, keep: bool = True, right: bool = False) -> bool:
-    min_len = ensure_min_len(current, default, key, len, keep)
-    max_len = ensure_max_len(current, default, key, len, keep, right)
-    return min_len and max_len
+    return (ensure_min_len(current, default, key, len, keep) and
+            ensure_max_len(current, default, key, len, keep, right))
 
 
 def ensure_unique(current: dict, _: dict, key: str,
@@ -109,26 +108,35 @@ def ensure_enum_names(current: dict, default: dict, key: str,
     return ensure_iterable(current, default, key, (member.name for member in enum), casefold)
 
 
-def ensure_joined_iterable(current: dict, _: dict, key: str,
-                           iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
-    val: str = current[key]
+def ensure_iterables(current: dict, _: dict, key: str,
+                     iterable: Iterable[str], casefold: bool = True) -> bool:
+    val: list[str] = current[key]
     iterable = tuple(iterable)
     if casefold:
-        val = val.casefold()
+        val = [item.casefold() for item in val]
         iterable_ = tuple(item.casefold() for item in iterable)
     else:
         iterable_ = iterable
     vals = []
     not_fixed = True
-    for item in val.split(separator):
+    for item in val:
         try:
             index = iterable_.index(item)
         except ValueError:
             not_fixed = False
         else:
             vals.append(iterable[index])
-    current[key] = separator.join(vals)
+    current[key] = vals
     return not_fixed
+
+
+def ensure_iterables_joined(current: dict, _: dict, key: str,
+                            iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
+    current[key] = current[key].split(separator)
+    try:
+        return ensure_iterables(current, _, key, iterable, casefold)
+    finally:
+        current[key] = separator.join(current[key])
 
 
 # noinspection PyShadowingBuiltins

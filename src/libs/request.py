@@ -40,6 +40,7 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
         pass
 
 
+_UNK_SIZE = -1
 _MIN_CHUNK = 32 * 1024
 _CRLF = '\r\n'
 _FILE_SCHEME = 'file'
@@ -566,21 +567,22 @@ def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int]
     response = get(url)
     if response:
         if not size:
-            size = (int(response.getheader(Header.CONTENT_LENGTH, sys.maxsize))
+            size = (int(response.getheader(Header.CONTENT_LENGTH, _UNK_SIZE))
                     if response.local is None else os.path.getsize(response.local))
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, 'wb') as file:
-                ratio = 0
+                ratio = 0.0
                 for chunk in response:
-                    ratio += file.write(chunk) / size
+                    if size != _UNK_SIZE:
+                        ratio += file.write(chunk) / size
                     if query_callback is not None and not query_callback(ratio):
                         return False
         except PermissionError:
             return False
         try:
-            retrieved = size in (sys.maxsize, os.path.getsize(path))
+            retrieved = size == _UNK_SIZE or size == os.path.getsize(path)
         except OSError:
             retrieved = False
         if retrieved and query_callback is not None:

@@ -84,7 +84,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls._fix_config(validator.ensure_iterable, CONFIG_SORTING, SORTINGS)
         cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
         cls._fix_config(validator.ensure_iterable, CONFIG_RANGE, RANGES)
-        cls._fix_config(validator.ensure_joined_iterable, CONFIG_RATIO, RATIOS)
+        cls._fix_config(validator.ensure_iterables_joined, CONFIG_RATIO, RATIOS)
         cls._fix_config(validator.ensure_truthy, CONFIG_RATIO)
         cls._fix_config(validator.ensure_iterable, CONFIG_COLORS, COLORS)
         if not cls.CURRENT_CONFIG[CONFIG_KEY]:
