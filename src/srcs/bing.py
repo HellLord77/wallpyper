@@ -58,7 +58,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
                 images_ = []
                 for day in range(params[CONFIG_DAY], DAYS.stop):
                     params[CONFIG_DAY] = str(day)
-                    response = request.get(URL_ARCHIVE, params=params)
+                    response = request.get(URL_ARCHIVE, params)
                     if response:
                         for image in response.json()['images']:
                             if image not in images_:

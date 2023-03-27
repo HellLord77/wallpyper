@@ -96,11 +96,11 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
         params['rpp'] = '100'
         while True:
             if not photos:
-                response = request.get(URL_BASE, params=params)
+                response = request.get(URL_BASE, params)
                 if response:
                     json = response.json()
                     _PARAMS['ids'] = ','.join(str(photo['id']) for photo in json['photos'])
-                    response = request.get(URL_BASE, params=_PARAMS)
+                    response = request.get(URL_BASE, _PARAMS)
                     if response:
                         photos = list(response.json()['photos'].values())
                         params['page'] = str(json['current_page'] % json['total_pages'] + 1)

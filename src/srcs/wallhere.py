@@ -114,7 +114,7 @@ class WallHere(Source):
         params['format'] = 'json'
         while True:
             if not items:
-                response = request.get(url, params=params)
+                response = request.get(url, params)
                 if response:
                     items = minihtml.loads(f'<html>{response.json()["data"]}</html>').children
                     params['page'] = str(int(params['page']) + 1)

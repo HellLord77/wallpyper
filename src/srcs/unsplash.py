@@ -26,7 +26,7 @@ ORIENTATIONS = '', 'landscape', 'portrait', 'squarish'
 
 
 def _authenticate(id_: str) -> bool:
-    return bool(request.get(URL_EDITORIAL, params={CONFIG_ID: id_}))
+    return bool(request.get(URL_EDITORIAL, {CONFIG_ID: id_}))
 
 
 class Unsplash(Source):  # https://unsplash.com/documentation
@@ -93,7 +93,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         params['per_page'] = '30'
         while True:
             if not results:
-                response = request.get(url, params=params)
+                response = request.get(url, params)
                 if response:
                     json = response.json()
                     results = json if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else json['results']

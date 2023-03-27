@@ -138,7 +138,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
             if not children:
                 auth = next(_get_auth(cls.CURRENT_CONFIG[CONFIG_ID]))
                 if auth is not None:
-                    response = request.get(url, params=params, auth=auth)
+                    response = request.get(url, params, auth=auth)
                     if response:
                         data = response.json()['data']
                         params['after'] = data['after']

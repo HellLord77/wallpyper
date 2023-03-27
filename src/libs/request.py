@@ -1,4 +1,4 @@
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 import base64
 import calendar
@@ -23,7 +23,6 @@ from typing import Any, AnyStr, BinaryIO, Callable, IO, Iterator, Iterable, Mapp
 
 _TResult = TypeVar('_TResult', urllib.parse.DefragResult, urllib.parse.SplitResult, urllib.parse.ParseResult,
                    urllib.parse.ParseResultBytes, urllib.parse.SplitResultBytes, urllib.parse.DefragResultBytes)
-_TJSON = int | bool | float | str | tuple | list | dict
 _TParams = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
 _THeaders = Mapping[str, str]
 _TCookie = tuple[str, str] | http.cookies.Morsel | http.cookiejar.Cookie | http.cookiejar.CookieJar
@@ -31,6 +30,7 @@ _TFiles = Mapping[str, AnyStr | BinaryIO | tuple[
     AnyStr | BinaryIO] | tuple[AnyStr | BinaryIO, AnyStr] | tuple[
                       AnyStr | BinaryIO, AnyStr, Mapping[str, Optional[str]]]]
 _TAuth = str | tuple[str, str]
+_TJSON = int | bool | float | str | tuple | list | dict
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -42,21 +42,13 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 _UNK_SIZE = -1
 _MIN_CHUNK = 32 * 1024
-_CRLF = '\r\n'
 _FILE_SCHEME = 'file'
-_HTTP_SCHEME = 'http'
-_HTTPS_SCHEME = 'https'
-_MIME_JSON = 'application/json'
-_MIME_FORM = 'application/x-www-form-urlencoded'
-_NORMALIZABLE_SCHEMES = '', _HTTP_SCHEME, _HTTPS_SCHEME
 _RE_ENCODED = re.compile(r"%[a-fA-F0-9]{2}")
 _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
 
 FLAG_REREAD_RESPONSE = True
-SUB_DELIM_BYTES = b"!$&'()*+,;="
-USERINFO_BYTES = SUB_DELIM_BYTES + b':'
-PATH_BYTES = USERINFO_BYTES + b'@/'
+PATH_BYTES = b"!$&'()*+,;=:@/"
 QUERY_BYTES = PATH_BYTES + b'?'
 FRAGMENT_BYTES = QUERY_BYTES
 
@@ -335,11 +327,12 @@ def get_cookie(morsel_or_name, value=None, version=0, port=None, domain='',
                comment_url=None, rest=None, rfc2109=False) -> http.cookiejar.Cookie:
     if isinstance(morsel_or_name, http.cookies.Morsel):
         morsel = morsel_or_name
-        expires = None
-        if morsel["max-age"]:
+        if morsel['max-age']:
             expires = int(time.time() + int(morsel['max-age']))
         elif morsel['expires']:
             expires = calendar.timegm(time.strptime(morsel['expires'], '%a, %d-%b-%Y %H:%M:%S GMT'))
+        else:
+            expires = None
         return get_cookie(morsel.key, morsel.value, morsel['version'], None, morsel['domain'], morsel['path'],
                           bool(morsel['secure']), expires, False, morsel['comment'], None, None, False)
     else:
@@ -399,7 +392,7 @@ def _encode_component(component: str, valid: AnyStr) -> str:
 
 def encode_url(url: AnyStr) -> str:
     components = urllib.parse.urlsplit(_str(url))
-    if components.scheme in _NORMALIZABLE_SCHEMES:
+    if components.scheme in ('', 'http', 'https'):
         components = _replace(components, path=_encode_component(
             components.path, PATH_BYTES), query=_encode_component(
             components.query, QUERY_BYTES), fragment=_encode_component(
@@ -462,11 +455,11 @@ def encode_body(data: Optional[_TParams] = None, files: Optional[_TFiles] = None
             lines.append(val)
         lines.append(f'--{boundary}--'.encode())
         lines.append(b'')
-        return f'multipart/form-data; boundary={boundary}', _CRLF.encode().join(lines)
+        return f'multipart/form-data; boundary={boundary}', '\r\n'.encode().join(lines)
     elif data is not None:
-        return _MIME_FORM, encode_params(data).encode()
+        return 'application/x-www-form-urlencoded', encode_params(data).encode()
     elif json is not None:
-        return _MIME_JSON, json_.dumps(json, allow_nan=False).encode()
+        return 'application/json', json_.dumps(json, allow_nan=False).encode()
 
 
 def encode_auth(auth: _TAuth) -> str:
@@ -474,10 +467,10 @@ def encode_auth(auth: _TAuth) -> str:
             f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
 
 
-def request(method: str | http.HTTPMethod, url: AnyStr, data: Optional[_TParams] = None,
-            json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-            cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-            timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
+def request(method: str | http.HTTPMethod, url: AnyStr, params: Optional[_TParams] = None,
+            data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+            files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+            allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
     if params is not None:
         url = merge_params(url, params)
     try:
@@ -509,53 +502,53 @@ def request(method: str | http.HTTPMethod, url: AnyStr, data: Optional[_TParams]
             return response
 
 
-def get(url: AnyStr, data: Optional[_TParams] = None,
-        json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-        cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-        timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.GET, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+def get(url: AnyStr, params: Optional[_TParams] = None,
+        data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+        files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+        allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
+    return request(http.HTTPMethod.GET, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
-def options(url: AnyStr, data: Optional[_TParams] = None,
-            json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-            cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-            timeout: Optional[float] = None, allow_redirects: bool = False, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.OPTIONS, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+def options(url: AnyStr, params: Optional[_TParams] = None,
+            data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+            files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+            allow_redirects: bool = False, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
+    return request(http.HTTPMethod.OPTIONS, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
-def head(url: AnyStr, data: Optional[_TParams] = None,
-         json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-         cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-         timeout: Optional[float] = None, allow_redirects: bool = False, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.HEAD, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+def head(url: AnyStr, params: Optional[_TParams] = None,
+         data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+         allow_redirects: bool = False, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
+    return request(http.HTTPMethod.HEAD, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def post(url: AnyStr, data: Optional[_TParams] = None,
          json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.POST, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+    return request(http.HTTPMethod.POST, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def put(url: AnyStr, data: Optional[_TParams] = None,
-        json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-        cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-        timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.PUT, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+        params: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+        files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+        allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None, ) -> Response:
+    return request(http.HTTPMethod.PUT, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def patch(url: AnyStr, data: Optional[_TParams] = None,
-          json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-          cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.PATCH, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+          params: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+          allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None, ) -> Response:
+    return request(http.HTTPMethod.PATCH, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
-def delete(url: AnyStr, data: Optional[_TParams] = None,
-           json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
-           cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
-           timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
-    return request(http.HTTPMethod.DELETE, url, data, json, params, headers, cookies, files, auth, timeout, allow_redirects, stream)
+def delete(url: AnyStr, params: Optional[_TParams] = None,
+           data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+           files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
+           allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
+    return request(http.HTTPMethod.DELETE, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def sizeof(url: AnyStr) -> int:

@@ -34,7 +34,7 @@ def _on_curated(enable: Callable[[bool], bool], curated: bool):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.get(URL_CURATED, params={'per_page': '1'}, headers={request.Header.AUTHORIZATION: key}))
+    return bool(request.get(URL_CURATED, {'per_page': '1'}, headers={request.Header.AUTHORIZATION: key}))
 
 
 class Pexels(Source):  # https://www.pexels.com/api/documentation
@@ -95,7 +95,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
         params['per_page'] = '80'
         while True:
             if not photos:
-                response = request.get(url, params=params, headers=headers)
+                response = request.get(url, params, headers=headers)
                 if response:
                     json = response.json()
                     photos = json.get('photos')

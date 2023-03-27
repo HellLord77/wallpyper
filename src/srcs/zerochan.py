@@ -93,7 +93,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         params['json'] = ''
         while True:
             if not items:
-                response = request.get(url, params=params)
+                response = request.get(url, params)
                 if (response.status_code == http.HTTPStatus.FORBIDDEN and
                         response.content == _CONTENT_END):
                     params['p'] = '1'
@@ -104,7 +104,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join(URL_BASE, str(item['id'])), params=_PARAMS)
+            response_item = request.get(request.join(URL_BASE, str(item['id'])), _PARAMS)
             if not response_item:
                 items.insert(0, item)
                 yield

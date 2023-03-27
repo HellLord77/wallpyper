@@ -74,7 +74,7 @@ class WallpaperFlare(Source):
             params['page'] = '0'
         while True:
             if not items:
-                response = request.get(url, params=params)
+                response = request.get(url, params)
                 if response:
                     items = list(minihtml.loads(
                         f'<html>{response.text}</html>').find_all('li', _ATTRS_ITEM))

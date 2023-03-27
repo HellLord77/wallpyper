@@ -39,7 +39,7 @@ ORDERS = 'popular', 'latest'
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.get(URL_BASE, params={CONFIG_KEY: key, 'per_page': '3'}))
+    return bool(request.get(URL_BASE, {CONFIG_KEY: key, 'per_page': '3'}))
 
 
 class Pixabay(Source):  # https://pixabay.com/api/docs
@@ -110,7 +110,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         params['per_page'] = '200'
         while True:
             if not hits:
-                response = request.get(URL_BASE, params=params)
+                response = request.get(URL_BASE, params)
                 if (http.HTTPStatus.BAD_REQUEST == response.status_code and
                         response.content == _CONTENT_END):
                     params['page'] = '1'

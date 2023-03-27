@@ -52,7 +52,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
         params['ctry'] = 'us'
         while True:
             if not items:
-                response = request.get(URL_BASE, params=params)
+                response = request.get(URL_BASE, params)
                 if response:
                     items = response.json()['batchrsp']['items']
                 if not items:

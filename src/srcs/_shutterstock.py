@@ -36,7 +36,7 @@ SORTS = 'popular', 'newest', 'relevance', 'random'
 
 
 def _authenticate(key: str, secret: str) -> bool:
-    return bool(request.get(URL_IMAGES_SEARCH, params={'per_page': '1'}, auth=(key, secret)))
+    return bool(request.get(URL_IMAGES_SEARCH, {'per_page': '1'}, auth=(key, secret)))
 
 
 class ShutterStock(Source):  # https://api-reference.shutterstock.com
@@ -77,7 +77,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
         params['per_page'] = '500'
         while True:
             if not datas:
-                response = request.get(URL_IMAGES_SEARCH, params=params, auth=auth)
+                response = request.get(URL_IMAGES_SEARCH, params, auth=auth)
                 if response:
                     datas = response.json()['data']
             yield

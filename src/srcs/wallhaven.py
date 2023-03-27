@@ -44,7 +44,7 @@ def _on_color_right(event):
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.get(URL_SETTINGS, params={'apikey': key}))
+    return bool(request.get(URL_SETTINGS, {'apikey': key}))
 
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
@@ -147,7 +147,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         params[CONFIG_CATEGORIES] = ''.join(map(str, map(int, params[CONFIG_CATEGORIES])))
         while True:
             if not datas:
-                response = request.get(URL_SEARCH, params=params)
+                response = request.get(URL_SEARCH, params)
                 if response:
                     json = response.json()
                     datas = json['data']
