@@ -12,6 +12,12 @@ class _Property:
     def __init__(self, name: str):
         self._name = name
 
+    def __get__(self, instance: _Interface, owner: type[_Interface]):
+        raise AttributeError(f'property {self._name!r} of {owner.__name__!r} object has no getter')
+
+    def __set__(self, instance: _Interface, value):
+        raise AttributeError(f'property {self._name!r} of {type(instance).__name__!r} object has no setter')
+
 
 class Getter(_Property):
     def __get__(self, instance: _Interface, owner: type[_Interface]):
@@ -19,18 +25,12 @@ class Getter(_Property):
         self._getter(instance)(ctyped.byref(obj))
         return obj.value
 
-    def __set__(self, instance: _Interface, value):
-        raise AttributeError(f'property {self._name!r} of {type(instance).__name__!r} object has no setter')
-
     def _getter(self, instance: _Interface) -> Callable:
         # noinspection PyProtectedMember
         return getattr(instance._obj, f'get_{self._name}')
 
 
 class Setter(_Property):
-    def __get__(self, instance: _Interface, owner: type[_Interface]):
-        raise AttributeError(f'property {self._name!r} of {owner.__name__!r} object has no getter')
-
     def __set__(self, instance: _Interface, value):
         self._setter(instance)(value)
 
