@@ -2,6 +2,7 @@ __version__ = '0.0.24'
 
 import ast
 import binascii
+import collections
 import contextlib
 import ctypes
 import datetime
@@ -422,6 +423,10 @@ def consume(it: Iterable, count: int = -1) -> int:
             if count == index:
                 break
     return next(count_)
+
+
+def consume_all(it: Iterable):
+    collections.deque(it, maxlen=0)
 
 
 def consume_ex(it: Iterable, item) -> Optional[int]:

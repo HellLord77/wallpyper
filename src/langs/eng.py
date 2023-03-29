@@ -91,7 +91,7 @@ TOOLTIP_AUTO_SAVE = 'Automatically save the applied image to the selected folder
 TOOLTIP_TEMPLATE_SAVE_DIR = 'Save location: {}'
 
 STATUS_CHANGE = 'Changing Wallpaper...'
-STATUS_FETCH = 'Fetching Image List...'
+STATUS_FETCH = 'Fetching Image...'
 STATUS_DOWNLOAD = 'Downloading Image...'
 STATUS_SEARCH = 'Uploading Image...'
 STATUS_QUIT = 'Quitting Wallpyper...'
@@ -298,7 +298,7 @@ FIVEHUNREDPX_LEGACY_MENU_SORT_DIRECTION = 'Image Sort Order'
 FIVEHUNREDPX_LEGACY_FEATURE_popular = 'Popular'
 FIVEHUNREDPX_LEGACY_FEATURE_highest_rated = 'Highly Rated'
 FIVEHUNREDPX_LEGACY_FEATURE_upcoming = 'Upcoming'
-FIVEHUNREDPX_LEGACY_FEATURE_editors = 'Editor\'s Choice'
+FIVEHUNREDPX_LEGACY_FEATURE_editors = "Editor's Choice"
 FIVEHUNREDPX_LEGACY_FEATURE_fresh_today = 'Fresh Today'
 FIVEHUNREDPX_LEGACY_FEATURE_fresh_yesterday = 'Fresh Yesterday'
 FIVEHUNREDPX_LEGACY_FEATURE_fresh_week = 'Fresh This Week'
@@ -391,7 +391,7 @@ PEXELS_COLOR_white = 'White'
 
 PEXELS_LOCALE_ = 'Any'
 
-PIXABAY_LABEL_EDITOR = 'Editor\'s Choice'
+PIXABAY_LABEL_EDITOR = "Editor's Choice"
 PIXABAY_LABEL_SAFE = 'SafeSearch'
 
 PIXABAY_MENU_LANG = 'Language'

@@ -623,14 +623,11 @@ def _test_hook():
 
 
 def _test():
-    url = r'https://wallpapersmug.com/'
-    # scraper = cloudscraper.create_scraper()
-    # response = scraper.get(url)
-    # cookie = cloudscraper.get_cookie_string(url)
-    # print(cookie)
-    # response = requests.get(url)
-    response = request.get(url)
-    print(response.text)
+    url = r'https://api.github.com/users/kennethreitz/repos?page=1&per_page=10'
+    # response = requests.head(url)
+    response = request.head(url)
+    # print(requests.utils.parse_header_links(head))
+    print(response.url)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

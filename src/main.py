@@ -1,6 +1,5 @@
 import collections
 import functools
-import http
 import itertools
 import multiprocessing
 import os.path
@@ -474,9 +473,8 @@ def search_image(path: str) -> bool:
     with gui.try_animate_icon(STRINGS.STATUS_SEARCH):
         response = request.post(consts.URL_GOOGLE, files={
             'encoded_image': path}, allow_redirects=False)
-        if response.status_code == http.HTTPStatus.FOUND and (
-                location := response.getheader(request.Header.LOCATION)):
-            searched = webbrowser.open(location)
+        if response.is_redirect:
+            searched = webbrowser.open(response.headers[request.Header.LOCATION])
     return searched
 
 
@@ -610,7 +608,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
             item_image = menu.insert_item(index, utils.shrink_string(
                 image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.TEMPLATE_RES_DIGIT.format(index + 1)), submenu=submenu)
-            item_image.set_tooltip(image.url, image.name, os.path.join(
+            item_image.set_tooltip(image.url, f'{image.name} ({files.Size(image.size)})', os.path.join(
                 TEMP_DIR, image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.url)
     for uid, item_image in items.items():

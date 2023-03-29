@@ -1,4 +1,6 @@
-__version__ = '0.1.6'
+from __future__ import annotations as _
+
+__version__ = '0.1.7'
 
 import base64
 import calendar
@@ -7,7 +9,6 @@ import http.client
 import http.cookiejar
 import http.cookies
 import io
-import itertools
 import json as json_
 import os
 import re
@@ -23,14 +24,17 @@ from typing import Any, AnyStr, BinaryIO, Callable, IO, Iterator, Iterable, Mapp
 
 _TResult = TypeVar('_TResult', urllib.parse.DefragResult, urllib.parse.SplitResult, urllib.parse.ParseResult,
                    urllib.parse.ParseResultBytes, urllib.parse.SplitResultBytes, urllib.parse.DefragResultBytes)
+_TMethod = str | http.HTTPMethod
 _TParams = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
+_TData = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
 _THeaders = Mapping[str, str]
 _TCookie = tuple[str, str] | http.cookies.Morsel | http.cookiejar.Cookie | http.cookiejar.CookieJar
+_TCookies = Mapping[str, str] | http.cookiejar.CookieJar
 _TFiles = Mapping[str, AnyStr | BinaryIO | tuple[
     AnyStr | BinaryIO] | tuple[AnyStr | BinaryIO, AnyStr] | tuple[
                       AnyStr | BinaryIO, AnyStr, Mapping[str, Optional[str]]]]
 _TAuth = str | tuple[str, str]
-_TJSON = int | bool | float | str | tuple | list | dict
+_TJSON = bool | int | float | str | tuple | list | dict
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -42,15 +46,16 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 _UNK_SIZE = -1
 _MIN_CHUNK = 32 * 1024
+_BYTES_PATH = b"!$&'()*+,;=:@/"
+_BYTES_QUERY = _BYTES_PATH + b'?'
+_BYTES_FRAGMENT = _BYTES_QUERY
 _FILE_SCHEME = 'file'
+_STATUS_CODES_REDIRECT = (
+    http.HTTPStatus.MOVED_PERMANENTLY, http.HTTPStatus.FOUND, http.HTTPStatus.SEE_OTHER,
+    http.HTTPStatus.TEMPORARY_REDIRECT, http.HTTPStatus.PERMANENT_REDIRECT)
 _RE_ENCODED = re.compile(r"%[a-fA-F0-9]{2}")
 _OPENER_DEFAULT = urllib.request.build_opener()
 _OPENER_NO_REDIRECT = urllib.request.build_opener(_HTTPRedirectHandler)
-
-FLAG_REREAD_RESPONSE = True
-PATH_BYTES = b"!$&'()*+,;=:@/"
-QUERY_BYTES = PATH_BYTES + b'?'
-FRAGMENT_BYTES = QUERY_BYTES
 
 
 class Header:
@@ -216,28 +221,25 @@ class Header:
     X_ROBOTS_TAG = 'X-Robots-Tag'
 
 
-MAX_CHUNK = 1024 * 1024
 HEADERS = {
-    Header.ACCEPT_LANGUAGE: 'en-US',
-    Header.USER_AGENT: f'{__name__}/{__version__}'}
-
-
-def _getheader(_: str, default=None):
-    return default
+    Header.USER_AGENT: f'{__name__}/{__version__}',
+    Header.ACCEPT: '*/*',
+    Header.CONNECTION: 'keep-alive'}
 
 
 class Response:
-    _content = b''
     chunk_size = _MIN_CHUNK
 
-    def __init__(self, response: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
-        self.response = response
+    def __init__(self, resp: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self.status_code = http.HTTPStatus(getattr(
-            response, 'status', None) or http.HTTPStatus.IM_A_TEAPOT)
-        self.headers = getattr(response, 'headers', {})
-        self.local = response.fp.name if isinstance(getattr(
+            resp, 'status', None) or http.HTTPStatus.IM_A_TEAPOT)
+        self.headers = getattr(resp, 'headers', {})
+        self.url = getattr(resp, 'url', '')
+        self.reason = getattr(resp, 'reason', '')
+
+        self.response = resp
+        self.local = resp.fp.name if isinstance(getattr(
             self.response, 'file', None), io.BufferedReader) else None
-        self.getheader = getattr(response, 'getheader', _getheader)
 
     def __bool__(self) -> bool:
         return self.status_code == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
@@ -247,13 +249,30 @@ class Response:
 
     def __iter__(self) -> Iterator[bytes]:
         while chunk := self.response.read(self.chunk_size):
-            if FLAG_REREAD_RESPONSE:
-                self._content += chunk
             yield chunk
+
+    def __enter__(self) -> Response:
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    @property
+    def ok(self) -> bool:
+        return not 400 <= self.status_code < 600
+
+    @property
+    def is_redirect(self) -> bool:
+        return Header.LOCATION in self.headers and self.status_code in _STATUS_CODES_REDIRECT
+
+    @property
+    def is_permanent_redirect(self) -> bool:
+        return Header.LOCATION in self.headers and self.status_code in (
+            http.HTTPStatus.MOVED_PERMANENTLY, http.HTTPStatus.PERMANENT_REDIRECT)
 
     @property
     def content(self) -> bytes:
-        return b''.join(self) or self._content
+        return b''.join(self)
 
     @property
     def text(self) -> str:
@@ -263,14 +282,20 @@ class Response:
         with contextlib.suppress(json_.decoder.JSONDecodeError):
             return json_.loads(self.content)
 
+    @property
+    def links(self):
+        links = {}
+        if Header.LINK in self.headers:
+            for url, params in get_links(self.headers[Header.LINK]).items():
+                links[params.get('rel', url)] = {'url': url, **params}
+        return links
+
+    def close(self):
+        self.response.close()
+
 
 def _str(o: AnyStr) -> str:
     return o.decode() if isinstance(o, bytes) else o
-
-
-def _replace(namedtuple: _TResult, **kwargs) -> _TResult:
-    # noinspection PyProtectedMember
-    return namedtuple._replace(**kwargs)
 
 
 def is_path(url: AnyStr) -> bool:
@@ -282,8 +307,11 @@ def from_path(path: str) -> str:
     return urllib.parse.SplitResult(_FILE_SCHEME, '', urllib.request.pathname2url(path), '', '').geturl()
 
 
-def strip(url: str) -> str:
-    return _replace(urllib.parse.urlsplit(url), query='', fragment='').geturl()
+def strip(url: AnyStr, query: bool = True, fragment: bool = True) -> AnyStr:
+    components = urllib.parse.urlsplit(url)
+    # noinspection PyProtectedMember
+    return components._replace(query='' if query else components.query,
+                               fragment='' if fragment else components.fragment).geturl()
 
 
 def join(base: str, *paths: str) -> str:
@@ -291,22 +319,19 @@ def join(base: str, *paths: str) -> str:
         base += '/'
     for path in paths:
         if path:
-            base = f'{urllib.parse.urljoin(base, path)}/'
+            base = urllib.parse.urljoin(base, path) + '/'
     return base[:-1]
 
 
-@typing.overload
-def get_params(url: bytes) -> dict[bytes, list[bytes]]:
-    pass
-
-
-@typing.overload
-def get_params(url: str) -> dict[str, list[str]]:
-    pass
-
-
-def get_params(url):
+def get_params(url: AnyStr) -> dict[AnyStr, list[AnyStr]]:
     return urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+
+
+def get_auth(url: str) -> tuple[str, str]:
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    username, password = urllib.parse.urlsplit(url)._userinfo
+    return ('' if username is None else urllib.parse.unquote(username),
+            '' if password is None else urllib.parse.unquote(password))
 
 
 @typing.overload
@@ -347,6 +372,17 @@ def get_cookie(morsel_or_name, value=None, version=0, port=None, domain='',
             path, path_specified, secure, expires, discard, comment, comment_url, rest, rfc2109)
 
 
+def get_links(header: str) -> dict[str, dict[str, str]]:
+    links = {}
+    for link in header.split(','):
+        url, *params = link.split(';')
+        query = links[url.strip('<> \'"')] = {}
+        for param in params:
+            key, *value = param.split('=', 1)
+            query[key.strip(' \'"')] = value[0].strip(' \'"') if value else ''
+    return links
+
+
 def merge_params(url: AnyStr, params: Optional[_TParams] = None) -> AnyStr:
     components = urllib.parse.urlsplit(url)
     query = urllib.parse.parse_qs(components.query, True)
@@ -359,51 +395,67 @@ def merge_params(url: AnyStr, params: Optional[_TParams] = None) -> AnyStr:
                     query[key].append(val)
                 else:
                     query[key].extend(val)
-    return _replace(components, query=encode_params(query)).geturl()
+    # noinspection PyProtectedMember
+    return components._replace(query=encode_params(query)).geturl()
 
 
-def merge_cookies(*cookies: _TCookie,
-                  cookie_jar: Optional[http.cookiejar.CookieJar] = None) -> http.cookiejar.CookieJar:
-    if cookie_jar is None:
-        cookie_jar = http.cookiejar.CookieJar()
+def merge_cookies(*cookies: _TCookie, jar: Optional[http.cookiejar.CookieJar] = None) -> http.cookiejar.CookieJar:
+    if jar is None:
+        jar = http.cookiejar.CookieJar()
     for cookie in cookies:
         if isinstance(cookie, http.cookiejar.CookieJar):
             for cookie_ in cookie:
-                cookie_jar.set_cookie(cookie_)
+                jar.set_cookie(cookie_)
         else:
-            if isinstance(cookie, http.cookies.Morsel):
-                cookie = get_cookie(cookie)
-            elif isinstance(cookie, tuple):
-                cookie = get_cookie(*cookie)
-            cookie_jar.set_cookie(cookie)
-    return cookie_jar
+            if not isinstance(cookie, http.cookiejar.Cookie):
+                cookie = get_cookie(*(cookie,) if isinstance(
+                    cookie, http.cookies.Morsel) else cookie)
+            jar.set_cookie(cookie)
+    return jar
 
 
-def _upper_encoded(match: re.Match) -> AnyStr:
+# noinspection PyShadowingNames
+def encode_method(method: _TMethod, request: Optional[urllib.request.Request] = None) -> str:
+    if isinstance(method, http.HTTPMethod):
+        method = method.value
+    method = method.upper()
+    if request is not None:
+        request.method = method
+    return method
+
+
+def _upper(match: re.Match) -> AnyStr:
     return match.group(0).upper()
 
 
 def _encode_component(component: str, valid: AnyStr) -> str:
-    component, count_encoded = _RE_ENCODED.subn(_upper_encoded, component)
+    component, count_encoded = _RE_ENCODED.subn(_upper, component)
     if count_encoded == component.count('%'):
         valid += b'%'
     return urllib.parse.quote_plus(component, safe=valid)
 
 
-def encode_url(url: AnyStr) -> str:
+# noinspection PyShadowingNames
+def encode_url(url: AnyStr, request: Optional[urllib.request.Request] = None) -> str:
     components = urllib.parse.urlsplit(_str(url))
     if components.scheme in ('', 'http', 'https'):
-        components = _replace(components, path=_encode_component(
-            components.path, PATH_BYTES), query=_encode_component(
-            components.query, QUERY_BYTES), fragment=_encode_component(
-            components.fragment, FRAGMENT_BYTES))
-    return components.geturl()
+        components = components._replace(path=_encode_component(
+            components.path, _BYTES_PATH), query=_encode_component(
+            components.query, _BYTES_QUERY), fragment=_encode_component(
+            components.fragment, _BYTES_FRAGMENT))
+    full_url = components.geturl()
+    if request is not None:
+        request.full_url = full_url
+    return full_url
 
 
-def encode_cookies(cookies: http.cookiejar.CookieJar, url: str) -> dict[str, str]:
-    request_ = urllib.request.Request(url)
-    cookies.add_cookie_header(request_)
-    return request_.unredirected_hdrs
+def encode_cookies(cookies: _TCookies, url_or_request: str | urllib.request.Request) -> dict[str, str]:
+    if not isinstance(cookies, http.cookiejar.CookieJar):
+        cookies = merge_cookies(*cookies.items())
+    if not isinstance(url_or_request, urllib.request.Request):
+        url_or_request = urllib.request.Request(url_or_request)
+    cookies.add_cookie_header(url_or_request)
+    return url_or_request.unredirected_hdrs
 
 
 def encode_params(params: Optional[AnyStr | Mapping]) -> str:
@@ -415,9 +467,10 @@ def encode_params(params: Optional[AnyStr | Mapping]) -> str:
         return urllib.parse.urlencode(params, True)
 
 
-def encode_body(data: Optional[_TParams] = None, files: Optional[_TFiles] = None,
-                json: Optional[_TJSON] = None) -> tuple[str, bytes]:
-    if files is not None:  # TODO escape quotes
+# noinspection PyShadowingNames
+def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, json: Optional[_TJSON] = None,
+                request: Optional[urllib.request.Request] = None) -> tuple[Optional[str], Optional[bytes]]:
+    if files is not None:  # TODO escape quotes + data can be iterable/readable bytes
         body = []
         if data is not None:
             for name, vals in data.items():
@@ -455,89 +508,98 @@ def encode_body(data: Optional[_TParams] = None, files: Optional[_TFiles] = None
             lines.append(val)
         lines.append(f'--{boundary}--'.encode())
         lines.append(b'')
-        return f'multipart/form-data; boundary={boundary}', '\r\n'.encode().join(lines)
+        mime = f'multipart/form-data; boundary={boundary}'
+        data = '\r\n'.encode().join(lines)
     elif data is not None:
-        return 'application/x-www-form-urlencoded', encode_params(data).encode()
+        mime = 'application/x-www-form-urlencoded'
+        data = encode_params(data).encode()
     elif json is not None:
-        return 'application/json', json_.dumps(json, allow_nan=False).encode()
+        mime = 'application/json'
+        data = json_.dumps(json, allow_nan=False).encode()
+    else:
+        mime = None
+        data = None
+    if request is not None:
+        request.add_header(Header.CONTENT_TYPE, mime)
+        request.data = data
+    return mime, data
 
 
-def encode_auth(auth: _TAuth) -> str:
-    return (f'Bearer {auth}' if isinstance(auth, str) else
+# noinspection PyShadowingNames
+def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) -> str:
+    auth = (f'Bearer {auth}' if isinstance(auth, str) else
             f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
+    if request is not None:
+        request.add_header(Header.AUTHORIZATION, auth)
+    return auth
 
 
-def request(method: str | http.HTTPMethod, url: AnyStr, params: Optional[_TParams] = None,
-            data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+def request(method: Optional[_TMethod], url: AnyStr, params: Optional[_TParams] = None,
+            data: Optional[_TData] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None,
             files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
             allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
     if params is not None:
         url = merge_params(url, params)
+    request_ = urllib.request.Request(encode_url(url), headers=HEADERS)
+    if method is not None:
+        encode_method(method, request_)
+    if data is not None or files is not None or json is not None:
+        encode_body(data, files, json, request_)
+    if cookies is not None:
+        encode_cookies(cookies, request_)
+    if auth is not None:
+        encode_auth(auth, request_)
+    if headers is not None:
+        for header in headers.items():
+            request_.add_header(*header)
     try:
-        request_ = urllib.request.Request(encode_url(
-            url), data, headers=HEADERS, method=str(method))
-    except ValueError as exc:
-        return Response(urllib.error.URLError(exc))
+        response = (_OPENER_DEFAULT if allow_redirects else
+                    _OPENER_NO_REDIRECT).open(request_, timeout=timeout)
+    except urllib.error.URLError as response:
+        return Response(response)
     else:
-        if data is not None or files is not None or json is not None:
-            mime, request_.data = encode_body(data, files, json)
-            request_.add_header(Header.CONTENT_TYPE, mime)
-        if cookies is not None:
-            itertools.starmap(request_.add_header, encode_cookies(
-                cookies, request_.full_url).items())
-        if auth is not None:
-            request_.add_header(Header.AUTHORIZATION, encode_auth(auth))
-        if headers is not None:
-            itertools.starmap(request_.add_header, headers.items())
-        urllib.request.install_opener(
-            _OPENER_DEFAULT if allow_redirects else _OPENER_NO_REDIRECT)
-        try:
-            _response = urllib.request.urlopen(request_, timeout=timeout)
-        except urllib.error.URLError as _response:
-            return Response(_response)
-        else:
-            response = Response(_response)
-            if not stream:
-                _ = response.content
-            return response
+        response_ = Response(response)
+        if not stream:
+            response_.content = response_.content
+        return response_
 
 
 def get(url: AnyStr, params: Optional[_TParams] = None,
-        data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+        data: Optional[_TData] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
         allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
     return request(http.HTTPMethod.GET, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def options(url: AnyStr, params: Optional[_TParams] = None,
-            data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+            data: Optional[_TData] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
             files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
             allow_redirects: bool = False, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
     return request(http.HTTPMethod.OPTIONS, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def head(url: AnyStr, params: Optional[_TParams] = None,
-         data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+         data: Optional[_TData] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
          files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
          allow_redirects: bool = False, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
     return request(http.HTTPMethod.HEAD, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
-def post(url: AnyStr, data: Optional[_TParams] = None,
+def post(url: AnyStr, data: Optional[_TData] = None,
          json: Optional[_TJSON] = None, params: Optional[_TParams] = None, headers: Optional[_THeaders] = None,
          cookies: Optional[_TCookie] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
          timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True) -> Response:
     return request(http.HTTPMethod.POST, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
-def put(url: AnyStr, data: Optional[_TParams] = None,
+def put(url: AnyStr, data: Optional[_TData] = None,
         params: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
         files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
         allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None, ) -> Response:
     return request(http.HTTPMethod.PUT, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
-def patch(url: AnyStr, data: Optional[_TParams] = None,
+def patch(url: AnyStr, data: Optional[_TData] = None,
           params: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
           files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
           allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None, ) -> Response:
@@ -545,14 +607,14 @@ def patch(url: AnyStr, data: Optional[_TParams] = None,
 
 
 def delete(url: AnyStr, params: Optional[_TParams] = None,
-           data: Optional[_TParams] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
+           data: Optional[_TData] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookie] = None,
            files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
            allow_redirects: bool = True, stream: bool = True, json: Optional[_TJSON] = None) -> Response:
     return request(http.HTTPMethod.DELETE, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, stream, json)
 
 
 def sizeof(url: AnyStr) -> int:
-    return int(head(url).getheader(Header.CONTENT_LENGTH, 0))
+    return int(head(url).headers.get(Header.CONTENT_LENGTH, 0))
 
 
 def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int] = None,
@@ -560,7 +622,7 @@ def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int]
     response = get(url)
     if response:
         if not size:
-            size = (int(response.getheader(Header.CONTENT_LENGTH, _UNK_SIZE))
+            size = (int(response.headers.get(Header.CONTENT_LENGTH, _UNK_SIZE))
                     if response.local is None else os.path.getsize(response.local))
         response.chunk_size = max(chunk_size or size // (chunk_count or sys.maxsize), _MIN_CHUNK)
         try:

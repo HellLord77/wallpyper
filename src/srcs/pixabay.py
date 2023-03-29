@@ -43,8 +43,7 @@ def _authenticate(key: str) -> bool:
 
 
 class Pixabay(Source):  # https://pixabay.com/api/docs
-    NAME = 'pixabay'
-    VERSION = '0.0.1'
+    NAME = '# pixabay'
     URL = 'https://pixabay.com'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {

@@ -100,7 +100,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
                     params['page'] = str(int(params['page']) % (sys.maxsize if cls.CURRENT_CONFIG[
                         CONFIG_EDITORIAL] else int(json['total_pages'])) + 1)
             result = results.pop(0)
-            yield files.File(result['request']['raw'], files.replace_ext(result['id'], 'jpg'))
+            yield files.File(result['urls']['raw'], files.replace_ext(result['id'], 'jpg'))
 
     @classmethod
     def _fix_order(cls):
