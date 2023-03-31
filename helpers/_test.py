@@ -8,6 +8,7 @@ import datetime
 import decimal
 import enum
 import fractions
+import http.cookiejar
 import ipaddress
 import os
 import pathlib
@@ -16,6 +17,7 @@ import re
 import sys
 import time
 import typing
+import urllib.request
 import uuid
 from types import ModuleType
 from typing import AnyStr, Callable, Optional, TypeVar
@@ -623,11 +625,17 @@ def _test_hook():
 
 
 def _test():
-    url = r'https://api.github.com/users/kennethreitz/repos?page=1&per_page=10'
-    # response = requests.head(url)
-    response = request.head(url)
-    # print(requests.utils.parse_header_links(head))
-    print(response.url)
+    url = r'https://google.com'
+    resp = request.get(url)
+    print(resp.headers)
+    print(resp.cookies)
+    cookie = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(cookie))
+    resp = opener.open(url)
+    if resp.status == 200:
+        print(resp.headers)
+        print(cookie)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
