@@ -13,7 +13,7 @@ URL_BASE_TEMPLATE = 'https://this{}doesnotexist.com'
 VARIANTS = 'person', 'artwork', 'cat', 'horse'
 
 
-class ThisDoesNotExist(Source):
+class DoesNotExist(Source):
     NAME = 'This Does Not Exist'
     VERSION = '0.0.1'
     ICON = 'jpg'

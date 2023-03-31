@@ -63,7 +63,7 @@ from . import (
     doesnotexist,
     facets,
     fivehundredpx_legacy,
-    local,
+    folder,
     pexels,
     pixabay,
     reddit,

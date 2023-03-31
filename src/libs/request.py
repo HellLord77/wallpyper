@@ -23,6 +23,8 @@ import urllib.response
 import uuid
 from typing import Any, AnyStr, BinaryIO, Callable, IO, Iterator, Iterable, Mapping, Optional
 
+CONTENT_CHUNK_SIZE = 10 * 1024
+
 _TMethod = str | http.HTTPMethod
 _TParams = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
 _TData = Mapping[AnyStr, Optional[AnyStr | Iterable[AnyStr]]]
@@ -321,7 +323,7 @@ class Response:
     def __init__(self, request: urllib.request.Request,
                  raw: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self.status_code = http.HTTPStatus(getattr(
-            raw, 'status', None) or http.HTTPStatus.IM_A_TEAPOT)
+            raw, 'status', None) or http.HTTPStatus.OK)
         self.headers = getattr(raw, 'headers', http.client.HTTPMessage())
         self.raw = raw
         self.url = getattr(raw, 'url', '')
@@ -332,11 +334,8 @@ class Response:
             raw, http.client.HTTPResponse) else http.cookiejar.CookieJar()
         self.request = request
 
-        self.local = raw.fp.name if isinstance(getattr(
-            self.raw, 'file', None), io.BufferedReader) else None
-
     def __bool__(self) -> bool:
-        return self.status_code == http.HTTPStatus.OK if self.local is None else os.path.isfile(self.local)
+        return self.status_code is http.HTTPStatus.OK
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__}: <{self.status_code.name}>>'
@@ -373,7 +372,7 @@ class Response:
 
     @property
     def content(self) -> bytes:
-        return b''.join(self)
+        return b''.join(self.iter_content(CONTENT_CHUNK_SIZE))
 
     @property
     def text(self) -> str:
@@ -528,23 +527,23 @@ def merge_params(url: AnyStr, params: Optional[_TParams] = None) -> AnyStr:
 
 
 def merge_cookies(*cookies: _TCookie,
-                  cookie_jar: Optional[http.cookiejar.CookieJar] = None) -> http.cookiejar.CookieJar:
-    if cookie_jar is None:
-        cookie_jar = http.cookiejar.CookieJar()
+                  jar: Optional[http.cookiejar.CookieJar] = None) -> http.cookiejar.CookieJar:
+    if jar is None:
+        jar = http.cookiejar.CookieJar()
     for cookie in cookies:
         if isinstance(cookie, http.cookiejar.CookieJar):
             for cookie_ in cookie:
-                cookie_jar.set_cookie(cookie_)
+                jar.set_cookie(cookie_)
         elif isinstance(cookie, http.client.HTTPResponse):
-            for cookie_ in cookie_jar.make_cookies(
+            for cookie_ in jar.make_cookies(
                     cookie, urllib.request.Request('http://localhost')):
-                cookie_jar.set_cookie(cookie_)
+                jar.set_cookie(cookie_)
         else:
             if not isinstance(cookie, http.cookiejar.Cookie):
                 cookie = get_cookie(*(cookie,) if isinstance(
                     cookie, http.cookies.Morsel) else cookie)
-            cookie_jar.set_cookie(cookie)
-    return cookie_jar
+            jar.set_cookie(cookie)
+    return jar
 
 
 # noinspection PyShadowingNames
@@ -687,8 +686,8 @@ def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) 
     return auth
 
 
-def request(method: Optional[_TMethod], url: AnyStr, params: Optional[_TParams] = None,
-            data: Optional[_TData] = None, headers: Optional[_THeaders] = None,
+def request(method: Optional[_TMethod], url: AnyStr,
+            params: Optional[_TParams] = None, data: Optional[_TData] = None, headers: Optional[_THeaders] = None,
             cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
             timeout: Optional[float] = None, allow_redirects: bool = True, stream: bool = True,
             json: Optional[_TJSON] = None, unredirected_headers: Optional[_THeaders] = None) -> Response:
@@ -702,7 +701,7 @@ def request(method: Optional[_TMethod], url: AnyStr, params: Optional[_TParams] 
     else:
         response_ = Response(request_, response)
         if not stream:
-            response_.content = response_.contecnt
+            response_.content = response_.content
         return response_
 
 
@@ -764,8 +763,7 @@ def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int]
     response = get(url)
     if response:
         if not size:
-            size = (int(response.headers.get(Header.CONTENT_LENGTH, _UNK_SIZE))
-                    if response.local is None else os.path.getsize(response.local))
+            size = int(response.headers.get(Header.CONTENT_LENGTH, _UNK_SIZE))
         if chunk_size is None:
             chunk_size = size // (chunk_count or sys.maxsize)
         try:

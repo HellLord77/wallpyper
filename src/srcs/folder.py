@@ -22,10 +22,10 @@ ORDERS = 'ascending', 'descending'
 
 
 class LocalFolder(Source):
-    NAME = 'Local Folder'
-    VERSION = '0.0.1'
+    NAME = 'Folder (local)'
+    VERSION = '0.0.2'
     ICON = 'png'
-    URL = request.from_path(win32.PICTURES_DIR)
+    URL = 'https://en.wikipedia.org/wiki/Directory_(computing)'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_DIR: str,
         CONFIG_RECURSE: bool,
@@ -45,14 +45,14 @@ class LocalFolder(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_menu_item(cls.STRINGS.LOCAL_MENU_DIR, on_click=cls._on_modify_dir, args=(
+        gui.add_menu_item(cls.STRINGS.FOLDER_MENU_DIR, on_click=cls._on_dir, args=(
             gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
-        gui.add_menu_item_check(cls.STRINGS.LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
+        gui.add_menu_item_check(cls.STRINGS.FOLDER_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()
-        gui.add_submenu_radio(cls.STRINGS.LOCAL_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'LOCAL_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
-        gui.add_submenu_radio(cls.STRINGS.LOCAL_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+        gui.add_submenu_radio(cls.STRINGS.FOLDER_MENU_SORT, {sort: getattr(
+            cls.STRINGS, f'FOLDER_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
+        gui.add_submenu_radio(cls.STRINGS.FOLDER_MENU_ORDER, {order: getattr(
+            cls.STRINGS, f'FOLDER_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
@@ -66,7 +66,7 @@ class LocalFolder(Source):
             yield files.File(request.from_path(path), size=os.path.getsize(path))
 
     @classmethod
-    def _on_modify_dir(cls, set_tooltip: Callable) -> bool:
+    def _on_dir(cls, set_tooltip: Callable) -> bool:
         if path := win32.dialog.open_folder(cls.CURRENT_CONFIG[CONFIG_DIR], cls.STRINGS.LOCAL_MENU_DIR):
             cls.CURRENT_CONFIG[CONFIG_DIR] = path
             set_tooltip(path)
