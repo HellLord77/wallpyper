@@ -281,7 +281,11 @@ def get_image() -> Optional[files.File]:
     params = {key: val for key, val in source.CURRENT_CONFIG.items() if not key.startswith('_')}
     first_image = None
     while True:
-        next_image = next(source.get_image(**params))
+        try:
+            next_image = next(source.get_image(**params))
+        except BaseException:
+            source.get_image.reset()
+            raise
         if next_image is None or (filter_image(
                 next_image) and source.filter_image(next_image)):
             return next_image

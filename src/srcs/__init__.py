@@ -18,8 +18,8 @@ class Source:
     ICON: str = 'ico'
     URL: str = ''
     TCONFIG: type[dict] | type[TypedDict] = dict[str, Any]
-    DEFAULT_CONFIG: dict[str, Any] = None
-    CURRENT_CONFIG: dict[str, Any] = None
+    DEFAULT_CONFIG: TCONFIG = None
+    CURRENT_CONFIG: TCONFIG = None
 
     STRINGS: ModuleType = langs.DEFAULT
 
@@ -48,6 +48,7 @@ class Source:
         pass
 
     @classmethod
+    @callables.LastCacheCallable
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         raise NotImplementedError
 
