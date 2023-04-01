@@ -408,14 +408,13 @@ def download_image(image: files.File, query_callback: Optional[Callable[[float],
     with _download_lock(image.url), gui.try_animate_icon(STRINGS.STATUS_DOWNLOAD):
         path = os.path.join(TEMP_DIR, image.name)
         PROGRESS.clear()
-        print(f'[🔽] Download: {image}')
+        print(f'[🌐] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         try:
-            if (consts.FEATURE_UNSAFE_CACHE and image.checksize(path)) or image.checksum(path) or (
-                    request.retrieve(image.url, path, image.size, chunk_count=100,
-                                     query_callback=query_callback) and os.path.isfile(path)):
-                image.fill(path)
+            if ((consts.FEATURE_UNSAFE_CACHE and image.checksize(path)) or image.checksum(path) or
+                request.retrieve(image.url, path, image.size, chunk_count=100,
+                                 query_callback=query_callback)) and image.fill(path):
                 return path
         finally:
             PROGRESS.set(-1.0)

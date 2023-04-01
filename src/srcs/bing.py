@@ -70,10 +70,10 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
                 if not images:
                     yield
                     continue
-            query = request.get_params(images.pop(0)['url'])
+            query = request.extract_params(images.pop(0)['url'])
             name, ext = os.path.splitext(query['id'][0])
             resolution = cls.CURRENT_CONFIG[CONFIG_RESOLUTION]
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{resolution}{ext}'
             width, height = (0, 0) if RESOLUTIONS[6] == resolution else map(int, resolution.split('x'))
-            yield files.ImageFile(request.merge_params(URL_IMAGE, query),
+            yield files.ImageFile(request.encode_params(URL_IMAGE, query),
                                   query['id'][0][4:], width=width, height=height)

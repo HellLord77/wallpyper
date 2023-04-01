@@ -623,11 +623,31 @@ def _test_hook():
 
 
 def _test():
-    import requests
-    session = requests.Session()
-    resp = session.get('https://www.google.com', cookies={'test': 'test'})
-    print(resp.cookies)
-    print(session.cookies)
+    # url = r'https://www.google.com'
+    # session = request.Session()
+    # resp = session.request('GET', url)
+    # print(resp.elapsed)
+    # resp = session.request('GET', url)
+    # print(resp.elapsed)
+    # session = requests.Session()
+    # resp = session.get(url)
+    # print(resp.elapsed)
+    # resp = session.get(url)
+    # print(resp.elapsed)
+
+    url = 'http://localhost/redirect/5'
+    session = request.Session(max_redirections=4)
+    resp = session.request('GET', url)
+    print(resp.status_code)
+
+    # import browser_cookie3
+    # cj = browser_cookie3.chrome()
+    # session = request.Session()
+    # resp = session.request('GET', 'https://google.com', cookies=cj)
+    # print('ratul' in resp.text)
+    # session.cookies = cj
+    # resp2 = session.request('GET', 'https://google.com')
+    # print('ratul' in resp2.text)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

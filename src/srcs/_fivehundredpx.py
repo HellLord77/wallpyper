@@ -93,7 +93,7 @@ class FiveHundredPx(Source):
             params.pop(CONFIG_DISCOVER)
         if discover != DISCOVERS[0]:
             params.pop(CONFIG_SORT)
-        browser = win32.browser.Browser(request.merge_params(url, params))
+        browser = win32.browser.Browser(request.encode_params(url, params))
         browser.wait(_TIMEOUT)
         while True:
             if not images:

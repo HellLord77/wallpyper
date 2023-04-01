@@ -58,7 +58,7 @@ class WallpapersMug(Source):
         images: Optional[list] = None
         page = 1
         if params[CONFIG_SEARCH]:
-            url = request.merge_params(URL_SORT, {CONFIG_SEARCH: params[CONFIG_SEARCH]})
+            url = request.encode_params(URL_SORT, {CONFIG_SEARCH: params[CONFIG_SEARCH]})
         elif params[CONFIG_TAG] == TAGS[24]:
             if (sort := params[CONFIG_SORT]) == SORTS[1]:
                 page = 0
