@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 import base64
 import calendar
@@ -15,6 +15,7 @@ import io
 import json as json_
 import os
 import re
+import ssl
 import sys
 import time
 import typing
@@ -206,6 +207,8 @@ _TFiles = Mapping[str, AnyStr | BinaryIO | tuple[
 _TAuth = str | tuple[str, str]
 _TJSON = bool | int | float | str | tuple | list | dict
 _TProxies = str | Iterable[tuple[str, str]] | Mapping[str, Optional[str]]
+_TVerify = bool | AnyStr | tuple[Optional[AnyStr], Optional[AnyStr]] | tuple[
+    Optional[AnyStr], Optional[AnyStr], Optional[bytes]] | ssl.SSLContext
 
 _UNK_SIZE = -1
 _MIN_CHUNK = 32 * 1024
@@ -232,7 +235,8 @@ def default_headers() -> dict[str, str]:
 
 class _HTTPErrorProcessor(urllib.request.HTTPErrorProcessor):
     # noinspection PyShadowingNames
-    def http_response(self, request: Request, response: http.client.HTTPResponse) -> Any:
+    def http_response(self, request: urllib.request.Request,
+                      response: http.client.HTTPResponse) -> Any:
         response_ = super().http_response(request, response)
         if response is not response_:
             try:
@@ -248,13 +252,27 @@ class _HTTPErrorProcessor(urllib.request.HTTPErrorProcessor):
 
 
 class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req: urllib.request.Request, fp: IO[bytes],
+    # noinspection PyShadowingNames
+    def redirect_request(self, request: urllib.request.Request, fp: IO[bytes],
                          code: int, msg: str, headers: http.client.HTTPMessage,
                          newurl: str) -> Optional[urllib.request.Request]:
-        if getattr(req, 'allow_redirects', True):
-            request_ = super().redirect_request(req, fp, code, msg, headers, newurl)
-            request_.cookies = getattr(req, 'cookies', None)
+        request_ = request.next = super().redirect_request(request, fp, code, msg, headers, newurl)
+        request_.cookies = getattr(request, 'cookies', None)
+        request_.proxies = getattr(request, 'proxies', None)
+        allow_redirects = request_.allow_redirects = getattr(request, 'allow_redirects', True)
+        if allow_redirects:
             return request_
+
+
+class _ProxyHandler(urllib.request.ProxyHandler):
+    def __init__(self):
+        super().__init__({})
+
+    # noinspection PyShadowingNames
+    def default_open(self, request: urllib.request.Request) -> Optional[urllib.request.Request]:
+        if (proxies := getattr(request, 'proxies', None)) is not None:
+            if (proxy := proxies.get(request.type)) is not None:
+                return self.proxy_open(request, proxy, request.type)
 
 
 class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
@@ -273,6 +291,26 @@ class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
 
     https_request = http_request
     https_response = http_response
+
+
+class _HTTPHandler(urllib.request.HTTPHandler):
+    # noinspection PyShadowingNames
+    def http_open(self, request: urllib.request.Request) -> http.client.HTTPResponse:
+        start = time.perf_counter()
+        response = super().http_open(request)
+        response.elapsed = time.perf_counter() - start
+        return response
+
+
+class _HTTPSHandler(urllib.request.HTTPSHandler):
+    # noinspection PyShadowingNames
+    def https_open(self, request: urllib.request.Request) -> http.client.HTTPResponse:
+        start = time.perf_counter()
+        response = self.do_open(http.client.HTTPSConnection, request,
+                                context=getattr(request, 'verify', None))
+        response.elapsed = datetime.timedelta(
+            seconds=time.perf_counter() - start)
+        return response
 
 
 @dataclasses.dataclass
@@ -346,8 +384,15 @@ class Response:
     # noinspection PyShadowingNames
     def __init__(self, request: urllib.request.Request,
                  raw: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
-        self.status_code = http.HTTPStatus(getattr(
-            raw, 'status', None) or http.HTTPStatus.OK)
+        self._next = getattr(request, 'next', None)
+        if isinstance(raw, urllib.error.URLError):
+            self.status_code = http.HTTPStatus(getattr(
+                raw, 'status', http.HTTPStatus.IM_A_TEAPOT))
+        elif isinstance(raw, urllib.response.addinfourl):
+            # noinspection PyTypeChecker
+            self.status_code = http.HTTPStatus.OK
+        else:
+            self.status_code = http.HTTPStatus(raw.status)
         self.headers = getattr(raw, 'headers', http.client.HTTPMessage())
         self.raw = raw
         self.url = getattr(raw, 'url', '')
@@ -389,6 +434,11 @@ class Response:
             http.HTTPStatus.MOVED_PERMANENTLY, http.HTTPStatus.PERMANENT_REDIRECT)
 
     @property
+    def next(self) -> Optional[urllib.request.Request]:
+        if self.is_redirect:
+            return self._next
+
+    @property
     def apparent_encoding(self) -> str:
         return 'utf-8'
 
@@ -402,14 +452,11 @@ class Response:
 
     @property
     def text(self) -> str:
-        content = self.content
-        encoding = self.encoding
-        if encoding is None:
-            encoding = self.apparent_encoding
         try:
-            return content.decode(encoding, 'replace')
+            return self.content.decode(
+                self.encoding or self.apparent_encoding, 'replace')
         except LookupError:
-            return content.decode(errors='replace')
+            return self.content.decode(errors='replace')
 
     def json(self) -> Any:
         with contextlib.suppress(json_.decoder.JSONDecodeError):
@@ -428,17 +475,19 @@ class Response:
 
 
 class Session:
-    __attrs__ = ('headers', 'auth', 'proxies', 'params', 'stream', 'trust_env',
-                 'cookies', 'timeout', 'allow_redirects', 'unredirected_hdrs')
+    __attrs__ = ('headers', 'auth', 'proxies', 'params', 'stream', 'verify', 'trust_env', 'cookies',
+                 'timeout', 'allow_redirects', 'max_repeats', 'max_redirections', 'unredirected_hdrs')
     _error_processor = _HTTPErrorProcessor()
+    _proxy_handler = _ProxyHandler()
+    _http_handler = _HTTPHandler()
+    _https_handler = _HTTPSHandler()
 
     def __init__(self, headers: Optional[_THeaders] = None, auth: Optional[_TAuth] = None,
                  proxies: Optional[_TProxies] = None, params: Optional[_TParams] = None,
-                 stream: Optional[bool] = None, trust_env: bool = True, cookies: Optional[_TCookies] = None,
-                 timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-                 max_repeats: int = urllib.request.HTTPRedirectHandler.max_repeats,
-                 max_redirections: int = urllib.request.HTTPRedirectHandler.max_redirections,
-                 unredirected_hdrs: Optional[_THeaders] = None):
+                 stream: Optional[bool] = None, verify: Optional[_TVerify] = None, trust_env: bool = True,
+                 cookies: Optional[_TCookies] = None, timeout: Optional[float] = None,
+                 allow_redirects: Optional[bool] = None, max_repeats: Optional[int] = None,
+                 max_redirections: Optional[int] = None, unredirected_hdrs: Optional[_THeaders] = None):
         self._redirect_handler = _HTTPRedirectHandler()
         self._cookie_processor = _HTTPCookieProcessor()
         if headers is None:
@@ -448,7 +497,8 @@ class Session:
         self.proxies = proxies
         self.params = params
         self.stream = stream
-        self.trust_env = trust_env  # TODO
+        self.verify = verify
+        self.trust_env = trust_env  # TODO extend
         if cookies is None:
             cookies = http.cookiejar.CookieJar()
         self.cookies = cookies
@@ -456,9 +506,10 @@ class Session:
         self.allow_redirects = allow_redirects
         self.max_redirections = max_redirections
         self.max_repeats = max_repeats
-        self._unredirected_hdrs = unredirected_hdrs
+        self.unredirected_hdrs = unredirected_hdrs
         self._opener = urllib.request.build_opener(
-            self._error_processor, self._redirect_handler, self._cookie_processor)
+            self._error_processor, self._redirect_handler, self._proxy_handler,
+            self._cookie_processor, self._http_handler, self._https_handler)
 
     def __repr__(self):
         attrs = (f'{name}={val}' for name in self.__attrs__
@@ -496,6 +547,16 @@ class Session:
         self._params = params
 
     @property
+    def verify(self) -> Optional[ssl.SSLContext]:
+        return self._verify
+
+    @verify.setter
+    def verify(self, verify: Optional[_TVerify]):
+        if verify is not None:
+            verify = encode_verify(verify)
+        self._verify = verify
+
+    @property
     def cookies(self) -> Optional[http.cookiejar.CookieJar]:
         return self._cookie_processor.cookiejar
 
@@ -510,18 +571,30 @@ class Session:
         return self._redirect_handler.max_repeats
 
     @max_repeats.setter
-    def max_repeats(self, max_repeats: int):
-        # noinspection PyClassVar
-        self._redirect_handler.max_repeats = max_repeats
+    def max_repeats(self, max_repeats: Optional[int]):
+        if max_repeats is None:
+            try:
+                del self._redirect_handler.max_repeats
+            except AttributeError:
+                pass
+        else:
+            # noinspection PyClassVar
+            self._redirect_handler.max_repeats = max_repeats
 
     @property
     def max_redirections(self) -> int:
         return self._redirect_handler.max_redirections
 
     @max_redirections.setter
-    def max_redirections(self, max_redirections: int):
-        # noinspection PyClassVar
-        self._redirect_handler.max_redirections = max_redirections
+    def max_redirections(self, max_redirections: Optional[int]):
+        if max_redirections is None:
+            try:
+                del self._redirect_handler.max_redirections
+            except AttributeError:
+                pass
+        else:
+            # noinspection PyClassVar
+            self._redirect_handler.max_redirections = max_redirections
 
     @property
     def unredirected_hdrs(self) -> Optional[dict[str, str]]:
@@ -549,113 +622,114 @@ class Session:
             cookies.append(self.cookies)
         if request.cookies is not None:
             cookies.append(encode_cookies(request.cookies))
-        request.cookies = merge_cookies(*cookies)
+        request.cookies = merge_cookies(*cookies) if cookies else None
         unredirected_hdrs = request.unredirected_hdrs
         if unredirected_hdrs is not None:
             unredirected_hdrs = encode_headers(unredirected_hdrs)
         request.unredirected_hdrs = _merge_setting(unredirected_hdrs, self.unredirected_hdrs)
         return request.prepare()
 
-    def request(self, method: Optional[_TMethod], url: AnyStr, params: Optional[_TParams] = None,
-                data: Optional[_TData] = None, headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None,
-                files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None, timeout: Optional[float] = None,
-                allow_redirects: Optional[bool] = None, proxies: Optional[_TProxies] = None, stream: Optional[bool] = None,
-                json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+    def request(self, method: Optional[_TMethod], url: AnyStr,
+                params: Optional[_TParams] = None, data: Optional[_TData] = None, headers: Optional[_THeaders] = None,
+                cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None, auth: Optional[_TAuth] = None,
+                timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, proxies: Optional[_TProxies] = None,
+                stream: Optional[bool] = None, verify: Optional[_TVerify] = None, json: Optional[_TJSON] = None,
+                unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         request_ = self.prepare_request(Request(method, url, headers, files, data, params,
                                                 auth, cookies, json, unredirected_hdrs))
         return self.send(request_, **self.merge_environment_settings(
-            proxies, stream, timeout, allow_redirects))
+            proxies, stream, verify, timeout, allow_redirects))
 
     def get(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
             headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
             auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-            proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-            unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+            proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+            json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.GET, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     def options(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
                 headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
                 auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-                proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-                unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+                proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+                json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.OPTIONS, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     def head(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
              headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
              auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-             proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-             unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+             proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+             json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.HEAD, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     def post(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
              headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
              auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-             proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-             unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+             proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+             json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.POST, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     def put(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
             headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
             auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-            proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-            unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+            proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+            json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.PUT, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     def patch(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
               headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
               auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-              proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-              unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+              proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+              json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.PATCH, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     def delete(self, url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
                headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
                auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None,
-               proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, json: Optional[_TJSON] = None,
-               unredirected_hdrs: Optional[_THeaders] = None) -> Response:
+               proxies: Optional[_TProxies] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+               json: Optional[_TJSON] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
         return self.request(http.HTTPMethod.DELETE, url, params, data, headers, cookies, files,
-                            auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                            auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     # noinspection PyShadowingNames
     def send(self, request: urllib.request.Request, proxies: Optional[_TProxies] = None, stream: Optional[bool] = None,
-             timeout: Optional[float] = None, allow_redirects: Optional[bool] = None) -> Response:
-        if proxies is None and self.trust_env:
-            proxies = urllib.request.getproxies()
+             verify: Optional[_TVerify] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None) -> Response:
         if proxies is not None:
-            for type_, host in encode_proxies(proxies).items():
-                request.set_proxy(host, type_)
+            request.proxies = proxies
         if stream is None:
             stream = False
+        if verify is not None:
+            request.verify = encode_verify(verify)
         if timeout is not None:
             request.timeout = timeout
         if allow_redirects is not None:
             request.allow_redirects = allow_redirects
-        start = time.perf_counter()
         try:
             response = self._opener.open(request)
         except urllib.error.URLError as exc:  # TODO better handling
             response_ = Response(request, exc)
         else:
-            response.elapsed = datetime.timedelta(
-                seconds=time.perf_counter() - start)
             response_ = Response(request, response)
             if not stream:
                 _ = response_.content
         return response_
 
     def merge_environment_settings(self, proxies: Optional[_TProxies] = None, stream: Optional[bool] = None,
-                                   timeout: Optional[float] = None, allow_redirects: Optional[bool] = None) -> dict[str, Any]:
+                                   verify: Optional[_TVerify] = None, timeout: Optional[float] = None,
+                                   allow_redirects: Optional[bool] = None) -> dict[str, Any]:
         if proxies is not None:
             proxies = encode_proxies(proxies)
+        if self.trust_env:
+            proxies = _merge_setting(proxies, urllib.request.getproxies())
         return {
             'proxies': _merge_setting(proxies, self.proxies),
             'stream': _merge_setting(stream, self.stream),
+            'verify': _merge_setting(verify, self.verify),
             'timeout': _merge_setting(timeout, self.timeout),
             'allow_redirects': _merge_setting(allow_redirects, self.allow_redirects)}
 
@@ -919,7 +993,7 @@ def _encode_params(params: Optional[AnyStr | Mapping]) -> str:
 # noinspection PyShadowingNames
 def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, json: Optional[_TJSON] = None,
                 request: Optional[urllib.request.Request] = None) -> tuple[Optional[str], Optional[bytes]]:
-    if files is not None:  # TODO escape quotes + data can be iterable/readable bytes
+    if files is not None:  # TODO escape quotes + iterable[bytes]/readable data
         body = []
         if data is not None:
             for name, vals in data.items():
@@ -975,19 +1049,6 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
 
 
 # noinspection PyShadowingNames
-def encode_proxies(proxies: _TProxies,
-                   request: Optional[urllib.request.Request] = None) -> dict[str, str]:
-    if not isinstance(proxies, Mapping):
-        proxies = {'http': proxies, 'https': proxies}
-    elif not isinstance(proxies, dict):
-        proxies = dict(proxies)
-    if request is not None:
-        request.set_proxy(proxies.get('http'), 'http')
-        request.set_proxy(proxies.get('https'), 'https')
-    return proxies
-
-
-# noinspection PyShadowingNames
 def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) -> str:
     auth = (f'Bearer {auth}' if isinstance(auth, str) else
             f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
@@ -996,76 +1057,112 @@ def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) 
     return auth
 
 
+def encode_proxies(proxies: _TProxies) -> dict[str, str]:
+    if not isinstance(proxies, Mapping):
+        proxies = {'http': proxies, 'https': proxies}
+    elif not isinstance(proxies, dict):
+        proxies = dict(proxies)
+    return proxies
+
+
+def encode_verify(verify: _TVerify) -> ssl.SSLContext:
+    if not isinstance(verify, ssl.SSLContext):
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.set_alpn_protocols(('http/1.1',))
+        cafile = capath = cadata = None
+        if isinstance(verify, bool):
+            context.check_hostname = verify
+            context.verify_mode = ssl.CERT_REQUIRED if verify else ssl.CERT_NONE
+        else:
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+            if isinstance(verify, (bytes, str)):
+                if os.path.isfile(verify):
+                    cafile = verify
+                else:
+                    capath = verify
+            else:
+                cafile, capath, *cadata = verify
+                cadata = cadata[0] if cadata else None
+        if verify is not False:
+            if cafile is None and capath is None and cadata is None:
+                context.load_default_certs()
+            else:
+                context.load_verify_locations(cafile, capath, cadata)
+        verify = context
+    return verify
+
+
 def request(method: Optional[_TMethod], url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
             headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
             auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = True,
-            proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+            proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
             unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return Session().request(method, url, params, data, headers, cookies, files,
-                             auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                             auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def get(url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
         headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
         auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = True,
-        proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+        proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
         unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.GET, url, params, data, headers, cookies, files,
-                   auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def options(url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
             headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
             auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = False,
-            proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+            proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
             unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.OPTIONS, url, params, data, headers, cookies,
-                   files, auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   files, auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def head(url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
          headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
          auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = False,
-         proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+         proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
          unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.HEAD, url, params, data, headers, cookies, files,
-                   auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def post(url: AnyStr, data: Optional[_TData] = None, json: Optional[_TJSON] = None, params: Optional[_TParams] = None,
          headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
          auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = True,
-         proxies: Optional[_TProxies] = None, stream: bool = True,
+         proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True,
          unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.POST, url, params, data, headers, cookies, files,
-                   auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def put(url: AnyStr, data: Optional[_TData] = None, params: Optional[_TParams] = None,
         headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
         auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = True,
-        proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+        proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
         unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.PUT, url, params, data, headers, cookies, files,
-                   auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def patch(url: AnyStr, data: Optional[_TData] = None, params: Optional[_TParams] = None,
           headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
           auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = True,
-          proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+          proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
           unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.PATCH, url, params, data, headers, cookies, files,
-                   auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def delete(url: AnyStr, params: Optional[_TParams] = None, data: Optional[_TData] = None,
            headers: Optional[_THeaders] = None, cookies: Optional[_TCookies] = None, files: Optional[_TFiles] = None,
            auth: Optional[_TAuth] = None, timeout: Optional[float] = None, allow_redirects: bool = True,
-           proxies: Optional[_TProxies] = None, stream: bool = True, json: Optional[_TJSON] = None,
+           proxies: Optional[_TProxies] = None, stream: bool = True, verify: _TVerify = True, json: Optional[_TJSON] = None,
            unredirected_hdrs: Optional[_THeaders] = None) -> Response:
     return request(http.HTTPMethod.DELETE, url, params, data, headers, cookies, files,
-                   auth, timeout, allow_redirects, proxies, stream, json, unredirected_hdrs)
+                   auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
 
 def sizeof(url: AnyStr) -> int:

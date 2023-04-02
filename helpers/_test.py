@@ -635,19 +635,12 @@ def _test():
     # resp = session.get(url)
     # print(resp.elapsed)
 
-    url = 'http://localhost/redirect/5'
-    session = request.Session(max_redirections=4)
-    resp = session.request('GET', url)
-    print(resp.status_code)
-
-    # import browser_cookie3
-    # cj = browser_cookie3.chrome()
-    # session = request.Session()
-    # resp = session.request('GET', 'https://google.com', cookies=cj)
-    # print('ratul' in resp.text)
-    # session.cookies = cj
-    # resp2 = session.request('GET', 'https://google.com')
-    # print('ratul' in resp2.text)
+    proxies = {'http': 'http://ttsewszw-rotate:5bwp2v13zr9f@p.webshare.io:9999'}
+    url = 'http://httpbin.org/redirect/1'
+    session = request.Session()
+    session.proxies = proxies
+    resp = session.get(url)
+    print(repr(resp.status_code), resp.reason, resp.history)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
