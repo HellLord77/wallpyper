@@ -1,6 +1,5 @@
 import os.path
 import os.path
-import uuid
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -8,7 +7,6 @@ import validator
 from libs import files, request
 from . import Source
 
-_SEP = uuid.uuid4().hex
 _NFT = []
 
 URL_BASE = request.join('https://facets.api.manifoldxyz.dev', 'art')
@@ -39,7 +37,7 @@ def _is_purchasable(id_: int) -> bool:
 
 class Facets(Source):
     NAME = 'FACETS'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     ICON = 'png'
     URL = 'https://facets.la'
     TCONFIG = TypedDict('TCONFIG', {
@@ -88,17 +86,22 @@ class Facets(Source):
                 yield
                 continue
             art = arts.pop(0)
-            yield files.File(art[f'path{cls.CURRENT_CONFIG[CONFIG_DEVICE]}'], name=_SEP.join(
-                (art['date'], art['series'] or '', str(art['id']),
-                 f'{art["name"]}{os.path.splitext(art["pathThumbnail"])[1]}')))
+            file = files.File(art[f'path{cls.CURRENT_CONFIG[CONFIG_DEVICE]}'],
+                              name=f'{art["name"]}{os.path.splitext(art["pathThumbnail"])[1]}')
+            file.year = int(art['date'])
+            file.series = art['series'] or ''
+            file.id = art['id']
+            yield file
 
     @classmethod
     def filter_image(cls, image: files.File) -> bool:
-        year, series, id_, image.name = image.name.split(_SEP)
-        if not cls.CURRENT_CONFIG[CONFIG_YEAR][YEARS.index(int(year))]:
+        # noinspection PyUnresolvedReferences
+        if not cls.CURRENT_CONFIG[CONFIG_YEAR][YEARS.index(image.year)]:
             return False
-        if cls.CURRENT_CONFIG[CONFIG_SERIES] not in (SERIES[0], series):
+        # noinspection PyUnresolvedReferences
+        if cls.CURRENT_CONFIG[CONFIG_SERIES] not in (SERIES[0], image.series):
             return False
-        if cls.CURRENT_CONFIG[CONFIG_PURCHASABLE] and not _is_purchasable(int(id_)):
+        # noinspection PyUnresolvedReferences
+        if cls.CURRENT_CONFIG[CONFIG_PURCHASABLE] and not _is_purchasable(image.id):
             return False
         return True
