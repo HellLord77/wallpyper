@@ -257,10 +257,10 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
                          code: int, msg: str, headers: http.client.HTTPMessage,
                          newurl: str) -> Optional[urllib.request.Request]:
         request_ = request.next = super().redirect_request(request, fp, code, msg, headers, newurl)
-        request_.cookies = getattr(request, 'cookies', None)
-        request_.proxies = getattr(request, 'proxies', None)
-        allow_redirects = request_.allow_redirects = getattr(request, 'allow_redirects', True)
-        if allow_redirects:
+        _encode_setting(request_, getattr(
+            request, '_cookies', None), getattr(request, '_proxies', None), getattr(
+            request, '_verify', None), allow_redirects := getattr(request, '_allow_redirects', None))
+        if allow_redirects is not False:
             return request_
 
 
@@ -270,7 +270,7 @@ class _ProxyHandler(urllib.request.ProxyHandler):
 
     # noinspection PyShadowingNames
     def default_open(self, request: urllib.request.Request) -> Optional[urllib.request.Request]:
-        if (proxies := getattr(request, 'proxies', None)) is not None:
+        if (proxies := getattr(request, '_proxies', None)) is not None:
             if (proxy := proxies.get(request.type)) is not None:
                 return self.proxy_open(request, proxy, request.type)
 
@@ -278,7 +278,7 @@ class _ProxyHandler(urllib.request.ProxyHandler):
 class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
     # noinspection PyShadowingNames
     def http_request(self, request: urllib.request.Request) -> urllib.request.Request:
-        if (cookies := getattr(request, 'cookies', None)) is not None:
+        if (cookies := getattr(request, '_cookies', None)) is not None:
             cookies.add_cookie_header(request)
         return request
 
@@ -307,7 +307,7 @@ class _HTTPSHandler(urllib.request.HTTPSHandler):
     def https_open(self, request: urllib.request.Request) -> http.client.HTTPResponse:
         start = time.perf_counter()
         response = self.do_open(http.client.HTTPSConnection, request,
-                                context=getattr(request, 'verify', None))
+                                context=getattr(request, '_verify', None))
         response.elapsed = datetime.timedelta(
             seconds=time.perf_counter() - start)
         return response
@@ -499,9 +499,8 @@ class Session:
         self.stream = stream
         self.verify = verify
         self.trust_env = trust_env  # TODO extend
-        if cookies is None:
-            cookies = http.cookiejar.CookieJar()
-        self.cookies = cookies
+        if cookies is not None:
+            self.cookies = cookies
         self.timeout = timeout
         self.allow_redirects = allow_redirects
         self.max_redirections = max_redirections
@@ -697,18 +696,17 @@ class Session:
                             auth, timeout, allow_redirects, proxies, stream, verify, json, unredirected_hdrs)
 
     # noinspection PyShadowingNames
-    def send(self, request: urllib.request.Request, proxies: Optional[_TProxies] = None, stream: Optional[bool] = None,
-             verify: Optional[_TVerify] = None, timeout: Optional[float] = None, allow_redirects: Optional[bool] = None) -> Response:
+    def send(self, request: urllib.request.Request, proxies: Optional[_TProxies] = None,
+             stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
+             timeout: Optional[float] = None, allow_redirects: Optional[bool] = None) -> Response:
         if proxies is not None:
-            request.proxies = proxies
-        if stream is None:
-            stream = False
+            proxies = encode_proxies(proxies)
         if verify is not None:
-            request.verify = encode_verify(verify)
+            verify = encode_verify(verify)
         if timeout is not None:
             request.timeout = timeout
-        if allow_redirects is not None:
-            request.allow_redirects = allow_redirects
+        _encode_setting(request, getattr(request, '_cookies', None),
+                        proxies, verify, allow_redirects)
         try:
             response = self._opener.open(request)
         except urllib.error.URLError as exc:  # TODO better handling
@@ -749,8 +747,17 @@ def _merge_setting(request_setting, session_setting) -> Any:
         return request_setting
 
 
-def is_path(url: AnyStr) -> bool:
-    return _FILE_SCHEME == _str(urllib.parse.urlsplit(url).scheme)
+# noinspection PyShadowingNames
+def _encode_setting(request: urllib.request.Request, cookies: Optional[_TCookies],
+                    proxies: Optional[_TProxies], verify: Optional[_TVerify], allow_redirects: Optional[bool]):
+    request._cookies = cookies
+    request._proxies = proxies
+    request._verify = verify
+    request._allow_redirects = allow_redirects
+
+
+def is_path(url: str) -> bool:
+    return _FILE_SCHEME == urllib.parse.urlsplit(url).scheme
 
 
 def from_path(path: str) -> str:
@@ -758,11 +765,20 @@ def from_path(path: str) -> str:
     return urllib.parse.SplitResult(_FILE_SCHEME, '', urllib.request.pathname2url(path), '', '').geturl()
 
 
-def strip(url: AnyStr, query: bool = True, fragment: bool = True) -> AnyStr:
+def strip(url: str, userinfo: bool = True, path: bool = False,
+          query: bool = True, fragment: bool = True) -> str:
     components = urllib.parse.urlsplit(url)
+    replace = {}
+    if userinfo:
+        replace['netloc'] = components.hostname
+    if path:
+        replace['path'] = ''
+    if query:
+        replace['query'] = ''
+    if fragment:
+        replace['fragment'] = ''
     # noinspection PyProtectedMember
-    return components._replace(query='' if query else components.query,
-                               fragment='' if fragment else components.fragment).geturl()
+    return components._replace(**replace).geturl()
 
 
 def join(base: str, *paths: str) -> str:
@@ -977,7 +993,7 @@ def encode_cookies(cookies: _TCookies,
             cookies = cookies.items()
         cookies = merge_cookies(*cookies)
     if request is not None:
-        request.cookies = cookies
+        request._cookies = cookies
     return cookies
 
 
@@ -1049,7 +1065,7 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
 
 
 # noinspection PyShadowingNames
-def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) -> str:
+def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) -> str:  # TODO revamp
     auth = (f'Bearer {auth}' if isinstance(auth, str) else
             f'Basic {base64.b64encode(":".join(auth).encode("latin1")).decode()}')
     if request is not None:

@@ -16,6 +16,8 @@ import re
 import sys
 import time
 import typing
+import urllib.parse
+import urllib.request
 import uuid
 from types import ModuleType
 from typing import AnyStr, Callable, Optional, TypeVar
@@ -635,12 +637,19 @@ def _test():
     # resp = session.get(url)
     # print(resp.elapsed)
 
-    proxies = {'http': 'http://ttsewszw-rotate:5bwp2v13zr9f@p.webshare.io:9999'}
-    url = 'http://httpbin.org/redirect/1'
+    url = 'https://abc:def@api.shutterstock.com/v2/images/search'
+    auth = 'lN6sdCQwsuAv74cXXSUIVskvXEdC0hzK', 'cv0ltmzIaZGdhiui'
+
+    print(request.strip(url, path=True))
+    man = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+    man.add_password(None, request.strip(url, path=True), *auth)
+    print(man.find_user_password(None, request.strip(url)))
+    print(man.passwd)
+    exit()
     session = request.Session()
-    session.proxies = proxies
-    resp = session.get(url)
+    resp = session.get(url, params={'per_page': '1'}, auth=auth)
     print(repr(resp.status_code), resp.reason, resp.history)
+    print(resp.request.headers)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
