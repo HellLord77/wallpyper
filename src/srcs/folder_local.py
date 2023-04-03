@@ -21,7 +21,7 @@ SORTS = {
 ORDERS = 'ascending', 'descending'
 
 
-class LocalFolder(Source):
+class FolderLocal(Source):
     NAME = 'Folder (local)'
     VERSION = '0.0.2'
     ICON = 'png'
@@ -45,14 +45,14 @@ class LocalFolder(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_menu_item(cls.STRINGS.FOLDER_MENU_DIR, on_click=cls._on_dir, args=(
+        gui.add_menu_item(cls.STRINGS.FOLDER_LOCAL_MENU_DIR, on_click=cls._on_dir, args=(
             gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
-        gui.add_menu_item_check(cls.STRINGS.FOLDER_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
+        gui.add_menu_item_check(cls.STRINGS.FOLDER_LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()
-        gui.add_submenu_radio(cls.STRINGS.FOLDER_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'FOLDER_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
-        gui.add_submenu_radio(cls.STRINGS.FOLDER_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'FOLDER_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+        gui.add_submenu_radio(cls.STRINGS.FOLDER_LOCAL_MENU_SORT, {sort: getattr(
+            cls.STRINGS, f'FOLDER_LOCAL_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
+        gui.add_submenu_radio(cls.STRINGS.FOLDER_LOCAL_MENU_ORDER, {order: getattr(
+            cls.STRINGS, f'FOLDER_LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
