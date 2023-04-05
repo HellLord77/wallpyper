@@ -24,6 +24,7 @@ CONFIG_ORDER = 'order'
 CONFIG_RANGE = 'topRange'
 CONFIG_RATIO = 'ratios'
 CONFIG_COLORS = 'colors'
+CONFIG_AI_FILTER = 'ai_art_filter'
 
 PURITIES = 'sfw', 'sketchy', 'nsfw'
 SORTINGS = 'date_added', 'relevance', 'random', 'views', 'favorites', 'toplist', 'hot'
@@ -36,6 +37,7 @@ COLORS = (
     '', '660000', '990000', 'cc0000', 'cc3333', 'ea4c88', '993399', '663399', '333399', '0066cc',
     '0099cc', '66cccc', '77cc33', '669900', '336600', '666600', '999900', 'cccc33', 'ffff00', 'ffcc33',
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
+AI_FILTERS = '0', '1'
 PATTERN_PURITY = re.compile('(?!000)[01]{3}')
 
 
@@ -49,7 +51,7 @@ def _authenticate(key: str) -> bool:
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
     NAME = 'wallhaven'
-    VERSION = '0.0.6'
+    VERSION = '0.0.7'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_KEY: str,
@@ -62,7 +64,8 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         'atleast': str,
         'resolutions': str,
         CONFIG_RATIO: str,
-        CONFIG_COLORS: str})
+        CONFIG_COLORS: str,
+        CONFIG_AI_FILTER: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_KEY: '',
         'q': '',
@@ -74,7 +77,8 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         'atleast': '',
         'resolutions': '',
         CONFIG_RATIO: f'{RATIOS[0]},{RATIOS[6]}',
-        CONFIG_COLORS: COLORS[0]}
+        CONFIG_COLORS: COLORS[0],
+        CONFIG_AI_FILTER: AI_FILTERS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -87,6 +91,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls._fix_config(validator.ensure_iterables_joined, CONFIG_RATIO, RATIOS)
         cls._fix_config(validator.ensure_truthy, CONFIG_RATIO)
         cls._fix_config(validator.ensure_iterable, CONFIG_COLORS, COLORS)
+        cls._fix_config(validator.ensure_iterable, CONFIG_AI_FILTER, AI_FILTERS)
         if not cls.CURRENT_CONFIG[CONFIG_KEY]:
             cls.CURRENT_CONFIG[CONFIG_PURITY] = f'{cls.CURRENT_CONFIG[CONFIG_PURITY][:2]}0'
 
@@ -95,6 +100,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         gui.add_submenu_check(cls.STRINGS.WALLHAVEN_MENU_CATEGORY, (getattr(
             cls.STRINGS, f'WALLHAVEN_CATEGORY_{rating}') for rating in range(3)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_CATEGORIES)
+        gui.add_menu_item_check(cls.STRINGS.WALLHAVEN_LABEL_AI_FILTER, cls.CURRENT_CONFIG,
+                                CONFIG_AI_FILTER, on_click=cls._on_ai_filter).check(
+            cls.CURRENT_CONFIG[CONFIG_AI_FILTER] == AI_FILTERS[0])
         with gui.set_menu(gui.add_submenu(cls.STRINGS.WALLHAVEN_MENU_PURITY)) as menu_purity:
             for index, purity in enumerate(PURITIES):
                 gui.add_menu_item(getattr(
@@ -144,6 +152,8 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         datas: Optional[list] = None
+        if params[CONFIG_SORTING] != SORTINGS[5]:
+            del params[CONFIG_RANGE]
         params[CONFIG_CATEGORIES] = ''.join(map(str, map(int, params[CONFIG_CATEGORIES])))
         while True:
             if not datas:
@@ -187,3 +197,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     @classmethod
     def _on_sorting(cls, enable: Callable[[bool], bool], sorting: str):
         enable(sorting == SORTINGS[5])
+
+    @classmethod
+    def _on_ai_filter(cls, checked: bool):
+        cls.CURRENT_CONFIG[CONFIG_AI_FILTER] = str(1 - int(checked))
