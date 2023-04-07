@@ -7,8 +7,8 @@ from libs import files, isocodes, request
 from . import Source
 
 URL_BASE = 'https://www.bing.com'
-URL_ARCHIVE = request.join(URL_BASE, 'HPImageArchive.aspx')
-URL_IMAGE = request.join(URL_BASE, 'th')
+URL_ARCHIVE = request.join_url(URL_BASE, 'HPImageArchive.aspx')
+URL_IMAGE = request.join_url(URL_BASE, 'th')
 
 CONFIG_RESOLUTION = '_resolution'
 CONFIG_DAY = 'idx'

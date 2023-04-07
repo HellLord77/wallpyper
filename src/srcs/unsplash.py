@@ -8,8 +8,8 @@ from libs import files, request
 from . import Source
 
 URL_BASE = 'https://api.unsplash.com'
-URL_EDITORIAL = request.join(URL_BASE, 'photos')
-URL_SEARCH = request.join(URL_BASE, 'search', 'photos')
+URL_EDITORIAL = request.join_url(URL_BASE, 'photos')
+URL_SEARCH = request.join_url(URL_BASE, 'search', 'photos')
 
 CONFIG_ID = 'client_id'
 CONFIG_EDITORIAL = 'editorial'

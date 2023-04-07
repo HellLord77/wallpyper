@@ -36,6 +36,6 @@ class DoesNotExist(Source):
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
-            url = request.join(url, 'image')
+            url = request.join_url(url, 'image')
         while True:
             yield files.File(url, f'{uuid.uuid4()}.jpg')

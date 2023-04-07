@@ -9,7 +9,7 @@ from . import Source
 _CONTENT_END = b'[]'
 
 URL_BASE = 'https://yande.re'
-URL_POSTS = request.join(URL_BASE, 'post.json')
+URL_POSTS = request.join_url(URL_BASE, 'post.json')
 
 CONFIG_ORIENTATIONS = '_orientations'
 CONFIG_RATINGS = '_ratings'

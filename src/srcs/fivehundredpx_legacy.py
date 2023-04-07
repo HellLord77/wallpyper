@@ -10,8 +10,8 @@ _PARAMS = {
     'ids': '',
     'image_size': '4096'}
 
-URL_BASE = request.join('https://api.500px.com', 'v1', 'photos')
-URL_SEARCH = request.join(URL_BASE, 'search')
+URL_BASE = request.join_url('https://api.500px.com', 'v1', 'photos')
+URL_SEARCH = request.join_url(URL_BASE, 'search')
 
 CONFIG_FEATURE = 'feature'
 CONFIG_ONLY = 'only'

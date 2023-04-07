@@ -7,9 +7,9 @@ import validator
 from libs import files, isocodes, request
 from . import Source
 
-URL_BASE = request.join('https://api.pexels.com', 'v1')
-URL_CURATED = request.join(URL_BASE, 'curated')
-URL_SEARCH = request.join(URL_BASE, 'search')
+URL_BASE = request.join_url('https://api.pexels.com', 'v1')
+URL_CURATED = request.join_url(URL_BASE, 'curated')
+URL_SEARCH = request.join_url(URL_BASE, 'search')
 
 CONFIG_KEY = 'key'
 CONFIG_CURATED = 'curated'
@@ -104,4 +104,4 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                     yield
                     continue
             url_photo = photos.pop(0)['src']['original']
-            yield files.File(url_photo, os.path.basename(request.strip(url_photo)))
+            yield files.File(url_photo, os.path.basename(request.strip_url(url_photo)))

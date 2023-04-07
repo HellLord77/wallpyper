@@ -16,8 +16,8 @@ _ATTRS_SRC = {'itemprop': 'contentUrl'}
 _ATTR_INFO = {'class': 'dld_info'}
 
 URL_BASE = 'https://www.wallpaperflare.com'
-URL_INDEX = request.join(URL_BASE, 'index.php')
-URL_SEARCH = request.join(URL_BASE, 'search')
+URL_INDEX = request.join_url(URL_BASE, 'index.php')
+URL_SEARCH = request.join_url(URL_BASE, 'search')
 
 CONFIG_SEARCH = 'search'
 CONFIG_WALLPAPER = 'wallpaper'
@@ -83,7 +83,7 @@ class WallpaperFlare(Source):
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join(item.find(
+            response_item = request.get(request.join_url(item.find(
                 'a', _ATTRS_URL).attributes['href'], 'download'))
             if not response_item:
                 items.insert(0, item)

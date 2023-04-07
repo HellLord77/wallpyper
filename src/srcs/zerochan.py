@@ -85,7 +85,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         items: Optional[list] = None
-        url = request.join(URL_BASE, params.pop(CONFIG_FILTER))
+        url = request.join_url(URL_BASE, params.pop(CONFIG_FILTER))
         if params.pop(CONFIG_STRICT):
             params['strict'] = ''
         params['p'] = '1'
@@ -104,7 +104,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join(URL_BASE, str(item['id'])), _PARAMS)
+            response_item = request.get(request.join_url(URL_BASE, str(item['id'])), _PARAMS)
             if not response_item:
                 items.insert(0, item)
                 yield

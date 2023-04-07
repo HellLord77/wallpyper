@@ -13,11 +13,11 @@ _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 _ATTRS = {'type': 'application/ld+json'}
 
 URL_BASE = 'https://wallhere.com'
-URL_API = request.join(URL_BASE, 'en')
-URL_WALLPAPERS = request.join(URL_API, 'wallpapers')
-URL_RANDOM = request.join(URL_WALLPAPERS, 'random')
-URL_WALLPAPER = request.join(URL_API, 'wallpaper')
-URL_PHOTO = request.join('https://get.wallhere.com', 'photo')
+URL_API = request.join_url(URL_BASE, 'en')
+URL_WALLPAPERS = request.join_url(URL_API, 'wallpapers')
+URL_RANDOM = request.join_url(URL_WALLPAPERS, 'random')
+URL_WALLPAPER = request.join_url(URL_API, 'wallpaper')
+URL_PHOTO = request.join_url('https://get.wallhere.com', 'photo')
 
 CONFIG_RANDOM = 'random'
 CONFIG_QUERY = 'q'
@@ -122,7 +122,7 @@ class WallHere(Source):
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join(
+            response_item = request.get(request.join_url(
                 URL_WALLPAPER, item.get_child().get_child().attributes['href']))
             if not response_item:
                 items.insert(0, item)

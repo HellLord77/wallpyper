@@ -12,7 +12,7 @@ _PAGE = utils.MutableInt()
 
 # noinspection HttpUrlsUsage
 URL_BASE = 'http://simpledesktops.com'
-URL_BROWSE = request.join(URL_BASE, 'browse')
+URL_BROWSE = request.join_url(URL_BASE, 'browse')
 
 CONFIG_PAGE = 'page'
 
@@ -50,7 +50,7 @@ class SimpleDesktops(Source):
             if not desktops:
                 cls._set_tooltip(
                     cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(_PAGE))
-                response = request.get(request.join(URL_BROWSE, str(_PAGE)))
+                response = request.get(request.join_url(URL_BROWSE, str(_PAGE)))
                 if response.status_code == http.HTTPStatus.NOT_FOUND:
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
                     continue

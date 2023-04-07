@@ -8,7 +8,7 @@ import validator
 from libs import files, isocodes, request
 from . import Source
 
-URL_BASE = request.join('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
+URL_BASE = request.join_url('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
 CONFIG_ORIENTATION = '_orientation'
 CONFIG_LOCALE = 'pl'
@@ -62,5 +62,5 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
                 f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
             yield files.ImageFile(url, files.replace_ext(os.path.basename(
-                request.strip(url)), 'jpg'), int(image['fileSize']), width=int(
+                request.strip_url(url)), 'jpg'), int(image['fileSize']), width=int(
                 image['w']), height=int(image['h']), sha256=base64.b64decode(image['sha256']))

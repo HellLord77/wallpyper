@@ -14,9 +14,9 @@ _TOKEN_DATA = {
     'grant_type': 'https://oauth.reddit.com/grants/installed_client',
     'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
 
-URL_BASE = request.join('https://oauth.reddit.com', 'r')
-URL_TOKEN = request.join('https://www.reddit.com', 'api', 'v1', 'access_token')
-URL_IMAGE = request.join('https://i.redd.it')
+URL_BASE = request.join_url('https://oauth.reddit.com', 'r')
+URL_TOKEN = request.join_url('https://www.reddit.com', 'api', 'v1', 'access_token')
+URL_IMAGE = request.join_url('https://i.redd.it')
 
 CONFIG_ID = '_client_id'
 CONFIG_ORIENTATIONS = '_orientations'
@@ -65,7 +65,7 @@ def _iter_children(children: list[dict]) -> Iterator[dict]:
                     data = gallery['data']
                     data['preview'] = {'images': [{'source': {
                         'width': s['x'], 'height': s['y']}}]}
-                    data['url'] = request.join(
+                    data['url'] = request.join_url(
                         URL_IMAGE, f'{media_id}.{os.path.basename(media["m"])}')
                     data['title'] = f'{title} ({index})'
                     yield gallery
@@ -130,7 +130,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
     def get_image(cls, **params) -> Iterator[Optional[files.File]]:
         children: Optional[list] = None
         sort = params.pop(CONFIG_SORT)
-        url = request.join(URL_BASE, params.pop(CONFIG_SUBS), sort)
+        url = request.join_url(URL_BASE, params.pop(CONFIG_SUBS), sort)
         if sort not in (SORTS[2], SORTS[4]):
             del params[CONFIG_TIME]
         params['limit'] = '100'

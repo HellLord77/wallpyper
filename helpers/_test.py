@@ -16,8 +16,6 @@ import re
 import sys
 import time
 import typing
-import urllib.parse
-import urllib.request
 import uuid
 from types import ModuleType
 from typing import AnyStr, Callable, Optional, TypeVar
@@ -637,19 +635,31 @@ def _test():
     # resp = session.get(url)
     # print(resp.elapsed)
 
-    url = 'https://abc:def@api.shutterstock.com/v2/images/search'
-    auth = 'lN6sdCQwsuAv74cXXSUIVskvXEdC0hzK', 'cv0ltmzIaZGdhiui'
+    # url = 'http://localhost/redirect/3'
+    # resp = request.get(url)
+    # print(resp.url, resp.status_code, resp.reason, resp.is_redirect, resp.history, resp.next)
+    # for h in resp.history:
+    #     print(h.url, h.history)
+    # resp = request.get(url, allow_redirects=False)
+    # print(resp.url, resp.status_code, resp.reason, resp.is_redirect, resp.history, resp.next)
+    # resp = requests.get(url)
+    # print(resp.url, resp.status_code, resp.reason, resp.is_redirect, resp.history, resp.next)
+    # for h in resp.history:
+    #     print(h.url)
+    # resp = requests.get(url, allow_redirects=False)
+    # print(resp.url, resp.status_code, resp.reason, resp.is_redirect, resp.history, resp.next)
 
-    print(request.strip(url, path=True))
-    man = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-    man.add_password(None, request.strip(url, path=True), *auth)
-    print(man.find_user_password(None, request.strip(url)))
-    print(man.passwd)
-    exit()
-    session = request.Session()
-    resp = session.get(url, params={'per_page': '1'}, auth=auth)
-    print(repr(resp.status_code), resp.reason, resp.history)
-    print(resp.request.headers)
+    # url = 'http://localhost/basic-auth/user/passwd'
+    # auth = 'user', 'passwd'
+    # session = request.Session(auth=auth)
+    # resp = session.get(url, params={'per_page': '1'})
+    # print(repr(resp.status_code), resp.reason, resp.history)
+    # resp = session.get(url, params={'per_page': '1'}, force_auth=False)
+    # print(repr(resp.status_code), resp.reason, resp.history)
+
+    url = 'http://localhost/digest-auth/md5/user/passwd'
+    resp = request.get(url, auth=request.HTTPDigestAuth('user', 'passwd'))
+    print(resp.request, resp.raw, resp.request.unredirected_hdrs, resp)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

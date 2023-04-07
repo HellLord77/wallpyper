@@ -9,7 +9,7 @@ from . import Source
 
 _NFT = []
 
-URL_BASE = request.join('https://facets.api.manifoldxyz.dev', 'art')
+URL_BASE = request.join_url('https://facets.api.manifoldxyz.dev', 'art')
 
 CONFIG_YEAR = '_year'
 CONFIG_SERIES = '_series'
@@ -88,20 +88,20 @@ class Facets(Source):
             art = arts.pop(0)
             file = files.File(art[f'path{cls.CURRENT_CONFIG[CONFIG_DEVICE]}'],
                               name=f'{art["name"]}{os.path.splitext(art["pathThumbnail"])[1]}')
-            file.year = int(art['date'])
-            file.series = art['series'] or ''
-            file.id = art['id']
+            file._year = int(art['date'])
+            file._series = art['series'] or ''
+            file._id = art['id']
             yield file
 
     @classmethod
     def filter_image(cls, image: files.File) -> bool:
-        # noinspection PyUnresolvedReferences
-        if not cls.CURRENT_CONFIG[CONFIG_YEAR][YEARS.index(image.year)]:
+        if ((year := getattr(image, '_year', None)) is not None and
+                not cls.CURRENT_CONFIG[CONFIG_YEAR][YEARS.index(year)]):
             return False
-        # noinspection PyUnresolvedReferences
-        if cls.CURRENT_CONFIG[CONFIG_SERIES] not in (SERIES[0], image.series):
+        if ((series := getattr(image, '_series', None)) is not None and
+                cls.CURRENT_CONFIG[CONFIG_SERIES] not in (SERIES[0], series)):
             return False
-        # noinspection PyUnresolvedReferences
-        if cls.CURRENT_CONFIG[CONFIG_PURCHASABLE] and not _is_purchasable(image.id):
+        if ((id_ := getattr(image, '_id', None)) is not None and
+                cls.CURRENT_CONFIG[CONFIG_PURCHASABLE] and not _is_purchasable(id_)):
             return False
         return True

@@ -24,8 +24,7 @@ def ensure_min_len(current: dict, default: dict, key: str,
         for index in range(len(val), min):
             val.append(default[key][index])
     else:
-        val.clear()
-        val.extend(default[key])
+        val[:] = default[key]
     return False
 
 
@@ -40,8 +39,7 @@ def ensure_max_len(current: dict, default: dict, key: str,
         for _ in range(len(val) - max):
             del val[index]
     else:
-        val.clear()
-        val.extend(default[key])
+        val[:] = default[key]
     return False
 
 

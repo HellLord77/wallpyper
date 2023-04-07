@@ -12,8 +12,8 @@ _ATTRS_IMAGE = {'class': 'business_img'}
 _ATTRS_RESOLUTION = {'class': 'yellow-color'}
 
 URL_BASE = 'https://wallpapersmug.com'
-URL_SORT = request.join(URL_BASE, 'w', 'wallpaper')
-URL_TAG = request.join(URL_SORT, 'tag')
+URL_SORT = request.join_url(URL_BASE, 'w', 'wallpaper')
+URL_TAG = request.join_url(URL_SORT, 'tag')
 
 CONFIG_SEARCH = 'search'
 CONFIG_TAG = 'tag'
@@ -62,13 +62,13 @@ class WallpapersMug(Source):
         elif params[CONFIG_TAG] == TAGS[24]:
             if (sort := params[CONFIG_SORT]) == SORTS[1]:
                 page = 0
-            url = request.join(URL_SORT, sort)
+            url = request.join_url(URL_SORT, sort)
         else:
-            url = request.join(URL_TAG, params[CONFIG_TAG])
+            url = request.join_url(URL_TAG, params[CONFIG_TAG])
         while True:
             if not images:
                 if page:
-                    url = request.join(url, 'page', str(page))
+                    url = request.join_url(url, 'page', str(page))
                 response = request.get(url)
                 if response:
                     html = minihtml.loads(response.text)
@@ -79,7 +79,7 @@ class WallpapersMug(Source):
                     yield
                     continue
             image = images.pop(0)
-            response_image = request.get(request.join(
+            response_image = request.get(request.join_url(
                 URL_BASE, image.get_child().attributes['href'], 'download'))
             if not response_image:
                 images.insert(0, image)

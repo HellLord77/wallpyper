@@ -3,10 +3,10 @@ from typing import Iterator, Optional, TypedDict
 from libs import files, request
 from . import Source
 
-URL_BASE = request.join('https://api.shutterstock.com', 'v2')
-URL_IMAGES = request.join(URL_BASE, 'images')
-URL_IMAGES_SEARCH = request.join(URL_IMAGES, 'search')
-URL_USER = request.join(URL_BASE, 'user')
+URL_BASE = request.join_url('https://api.shutterstock.com', 'v2')
+URL_IMAGES = request.join_url(URL_BASE, 'images')
+URL_IMAGES_SEARCH = request.join_url(URL_IMAGES, 'search')
+URL_USER = request.join_url(URL_BASE, 'user')
 
 CONFIG_KEY = 'key'
 CONFIG_SECRET = 'secret'
