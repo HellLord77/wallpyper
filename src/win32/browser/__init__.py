@@ -156,7 +156,7 @@ def _create_environment(timeout: Optional[float] = None) -> _webview2.CoreWebVie
     return environment
 
 
-class _BrowserEx:
+class _BrowserEx:  # TODO
     def __init__(self):
         ctyped.interface.init_com(False)
         self._class = ctyped.struct.WNDCLASSEXW(

@@ -1,10 +1,10 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 import base64
+import bz2
 import calendar
-import contextlib
 import dataclasses
 import datetime
 import functools
@@ -13,7 +13,9 @@ import http.client
 import http.cookiejar
 import http.cookies
 import io
+import itertools
 import json as json_
+import lzma
 import os
 import re
 import socket
@@ -26,6 +28,7 @@ import urllib.parse
 import urllib.request
 import urllib.response
 import uuid
+import zlib
 from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Literal, Mapping, Optional, Sequence
 
 CONTENT_CHUNK_SIZE = 10 * 1024
@@ -194,6 +197,106 @@ class Header:
     X_ROBOTS_TAG = 'X-Robots-Tag'
 
 
+class _Decoder:
+    tokens: tuple[str, ...] = ()
+    decoders: dict[str, type[_Decoder]] = {}
+
+    def __init_subclass__(cls):
+        for token in cls.tokens:
+            cls.decoders[token] = cls
+
+    @classmethod
+    def get(cls, tokens: Optional[str | Iterable[str]] = None) -> Optional[_Decoder]:
+        if isinstance(tokens, str):
+            tokens = urllib.request.parse_http_list(tokens)
+        if tokens:
+            decoders = (cls.decoders[token.lower()]() for token in tokens)
+            return next(decoders) if len(tokens) == 1 else MultiDecoder(*decoders)
+
+    def flush(self) -> bytes:
+        return b''
+
+    def decode(self, data: bytes) -> bytes:
+        raise NotImplementedError
+
+
+class IdentityDecoder(_Decoder):
+    tokens = 'identity',
+
+    def decode(self, data: bytes) -> bytes:
+        return data
+
+
+class DeflateDecoder(_Decoder):
+    tokens = 'deflate',
+    _tried = False
+
+    def __init__(self, wbits: int = zlib.MAX_WBITS):
+        self._decoder = zlib.decompressobj(wbits)
+
+    def flush(self) -> bytes:
+        return self._decoder.flush()
+
+    def decode(self, data: bytes) -> bytes:
+        if self._tried:
+            return self._decoder.decompress(data)
+        else:
+            try:
+                data = self._decoder.decompress(data)
+            except zlib.error:
+                self.__init__(-zlib.MAX_WBITS)
+                self._tried = True
+                data = self.decode(data)
+            else:
+                if data:
+                    self._tried = True
+            return data
+
+
+class GzipDecoder(DeflateDecoder):
+    tokens = 'gzip', 'x-gzip'
+
+    def __init__(self):
+        super().__init__(16 + zlib.MAX_WBITS)
+
+    def decode(self, data: bytes) -> bytes:
+        return self._decoder.decompress(data)
+
+
+class Bzip2Decoder(_Decoder):
+    tokens = 'bzip2', 'x-bzip2'
+
+    def __init__(self):
+        self._decoder = bz2.BZ2Decompressor()
+
+    def flush(self) -> bytes:
+        return self._decoder.unused_data
+
+    def decode(self, data: bytes) -> bytes:
+        return self._decoder.decompress(data)
+
+
+class LzmaDecoder(Bzip2Decoder):
+    tokens = 'lzma', 'x-lzma'
+
+    # noinspection PyMissingConstructor
+    def __init__(self):
+        self._decoder = lzma.LZMADecompressor()
+
+
+class MultiDecoder(_Decoder):
+    def __init__(self, *decoders: _Decoder):
+        self._decoder = tuple(reversed(decoders))
+
+    def flush(self) -> bytes:
+        return self._decoder[-1].flush()
+
+    def decode(self, data: bytes) -> bytes:
+        for decoder in self._decoder:
+            data = decoder.decode(data)
+        return data
+
+
 class _HTTPAuth:
     _header = Header.AUTHORIZATION
 
@@ -244,6 +347,11 @@ class HTTPBearerAuth(_HTTPAuth):
         if request is not None:
             request.add_unredirected_header(self._header, auth)
         return auth
+
+
+@dataclasses.dataclass
+class ProxyBearerAuth(_ProxyAuth, HTTPBearerAuth):
+    pass
 
 
 @dataclasses.dataclass
@@ -404,11 +512,16 @@ def default_user_agent(name: str = __name__) -> str:
     return f'{name}/{__version__}'
 
 
+def default_accept_encoding(*encodings: str) -> str:
+    return ', '.join(itertools.chain(_Decoder.decoders, encodings))
+
+
 def default_headers() -> dict[str, str]:
     return {
         Header.USER_AGENT: default_user_agent(),
         Header.ACCEPT: '*/*',
-        Header.CONNECTION: 'keep-alive'}
+        Header.CONNECTION: 'keep-alive',
+        Header.ACCEPT_ENCODING: default_accept_encoding()}
 
 
 class _OpenerDirector(urllib.request.OpenerDirector):
@@ -673,6 +786,7 @@ class Response:
             self.cookies.extract_cookies(raw, request)
         self.elapsed = getattr(raw, 'elapsed', datetime.timedelta())
         self.request = request
+        self._decoder = _Decoder.get(self.headers.get(Header.CONTENT_ENCODING))
 
     def __bool__(self) -> bool:
         return self.status_code is http.HTTPStatus.OK
@@ -712,7 +826,7 @@ class Response:
         return 'utf-8'
 
     def iter_content(self, chunk_size: int = 1) -> Iterator[bytes]:
-        while chunk := self.raw.read(chunk_size):
+        while chunk := self.read(chunk_size):
             yield chunk
 
     @functools.cached_property
@@ -728,8 +842,7 @@ class Response:
             return self.content.decode(errors='replace')
 
     def json(self) -> Any:
-        with contextlib.suppress(json_.decoder.JSONDecodeError):
-            return json_.loads(self.text)
+        return json_.loads(self.text)
 
     @property
     def links(self):
@@ -742,21 +855,32 @@ class Response:
     def close(self):
         self.raw.close()
 
+    def read(self, amt: Optional[int] = None, decode_content: bool = True) -> bytes:
+        data = self.raw.read(amt)
+        if decode_content and self._decoder is not None:
+            data = self._decoder.decode(data)
+            if not data:
+                data = self._decoder.flush()
+        return data
+
 
 class Session:
     __attrs__ = ('headers', 'auth', 'proxies', 'params', 'stream', 'verify', 'trust_env', 'cookies',
                  'timeout', 'allow_redirects', 'force_auth', 'max_repeats', 'max_redirections', 'unredirected_hdrs')
     _handlers = (
         urllib.request.HTTPErrorProcessor(), _HTTPDefaultErrorHandler(), _ProxyHandler(),
-        urllib.request.HTTPHandler(), urllib.request.UnknownHandler(), _HTTPSHandler(), urllib.request.FileHandler(),
-        urllib.request.FTPHandler(), _HTTPBasicAuthHandler(), _HTTPBearerAuthHandler(), _HTTPDigestAuthHandler())
+        urllib.request.UnknownHandler(), urllib.request.FileHandler(), urllib.request.FTPHandler(),
+        _HTTPBasicAuthHandler(), _HTTPBearerAuthHandler(), _HTTPDigestAuthHandler())
 
-    def __init__(self, headers: Optional[_THeaders] = None, auth: Optional[_TAuth] = None, proxies: Optional[_TProxies] = None,
-                 params: Optional[_TParams] = None, stream: Optional[bool] = None, verify: Optional[_TVerify] = None,
-                 trust_env: bool = True, cookies: Optional[_TCookies] = None, timeout: Optional[float] = None,
-                 allow_redirects: Optional[bool] = None, force_auth: Optional[bool] = None, max_repeats: Optional[int] = None,
-                 max_redirections: Optional[int] = None, unredirected_hdrs: Optional[_THeaders] = None):
+    def __init__(self, headers: Optional[_THeaders] = None, auth: Optional[_TAuth] = None,
+                 proxies: Optional[_TProxies] = None, params: Optional[_TParams] = None, stream: Optional[bool] = None,
+                 verify: Optional[_TVerify] = None, trust_env: bool = True, cookies: Optional[_TCookies] = None,
+                 timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, force_auth: Optional[bool] = None,
+                 max_repeats: Optional[int] = None, max_redirections: Optional[int] = None,
+                 http_debug: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None):
         self._redirect_handler = _HTTPRedirectHandler()
+        self._http_handler = urllib.request.HTTPHandler()
+        self._https_handler = _HTTPSHandler()
         self._cookie_processor = _HTTPCookieProcessor()
         if headers is None:
             headers = default_headers()
@@ -776,8 +900,11 @@ class Session:
             self.max_repeats = max_repeats
         if max_redirections is not None:
             self.max_redirections = max_redirections
+        if http_debug is not None:
+            self.http_debug_level = http_debug
         self.unredirected_hdrs = unredirected_hdrs
-        self._opener = _OpenerDirector(*self._handlers, self._redirect_handler, self._cookie_processor)
+        self._opener = _OpenerDirector(*self._handlers, self._redirect_handler,
+                                       self._http_handler, self._https_handler, self._cookie_processor)
 
     def __repr__(self):
         attrs = (f'{name}={val}' for name in self.__attrs__
@@ -873,6 +1000,15 @@ class Session:
         else:
             # noinspection PyClassVar
             self._redirect_handler.max_redirections = max_redirections
+
+    @property
+    def http_debug_level(self) -> int:
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        return self._http_handler._debuglevel
+
+    @http_debug_level.setter
+    def http_debug_level(self, http_debug_level: bool | int):
+        self._http_handler._debuglevel = self._https_handler._debuglevel = int(http_debug_level)
 
     @property
     def unredirected_hdrs(self) -> Optional[dict[str, str]]:
@@ -1047,6 +1183,10 @@ def _merge_setting(request_setting, session_setting) -> Any:
         return request_setting
 
 
+def eq_case_insensitive(string: str, other: str) -> bool:
+    return string.lower() == other.lower()
+
+
 def startswith_case_insensitive(string: str, prefix: str) -> bool:
     return string.lower().startswith(prefix.lower())
 
@@ -1181,21 +1321,26 @@ def get_params(params, decode=True, encode=False):
     return query
 
 
-def get_headers(keep_alive: bool = True, accept_encoding: str | Iterable[str] = ('gzip', 'deflate'),
-                user_agent: Optional[str] = None, basic_auth: Optional[tuple[str, str]] = None,
-                proxy_basic_auth: Optional[tuple[str, str]] = None, disable_cache: bool = False) -> dict[str, str]:
-    if not isinstance(accept_encoding, str):
-        accept_encoding = ', '.join(accept_encoding)
-    if user_agent is None:
-        user_agent = default_user_agent()
-    headers = {
-        Header.CONNECTION: 'keep-alive' if keep_alive else 'close',
-        Header.ACCEPT_ENCODING: accept_encoding,
-        Header.USER_AGENT: user_agent}
+def get_headers(keep_alive: Optional[bool] = True, accept_encoding: bool | str | Iterable[str] = True,
+                user_agent: bool | str = True, basic_auth: Optional[tuple[bytes | str, bytes | str]] = None,
+                proxy_basic_auth: Optional[tuple[bytes | str, bytes | str]] = None, disable_cache: bool = False) -> dict[str, str]:
+    headers = {}
+    if keep_alive is not None:
+        headers[Header.CONNECTION] = 'keep-alive' if keep_alive else 'close'
+    if accept_encoding:
+        if accept_encoding is True:
+            accept_encoding = default_accept_encoding()
+        elif not isinstance(accept_encoding, str):
+            accept_encoding = ', '.join(accept_encoding)
+        headers[Header.ACCEPT_ENCODING] = accept_encoding
+    if user_agent:
+        if user_agent is True:
+            user_agent = default_user_agent()
+        headers[Header.USER_AGENT] = user_agent
     if basic_auth is not None:
-        headers[Header.AUTHORIZATION] = encode_auth(basic_auth)
+        headers[Header.AUTHORIZATION] = HTTPBasicAuth(*basic_auth).encode()
     if proxy_basic_auth is not None:
-        headers[Header.PROXY_AUTHORIZATION] = encode_auth(proxy_basic_auth)
+        headers[Header.PROXY_AUTHORIZATION] = HTTPBasicAuth(*proxy_basic_auth).encode()
     if disable_cache:
         headers[Header.CACHE_CONTROL] = 'no-cache'
     return headers
@@ -1440,7 +1585,7 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
 def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) -> AuthManager:
     if isinstance(auth, (bytes, str, _HTTPAuth, AuthManager)):
         auth = auth,
-    elif isinstance(auth, tuple) and auth and isinstance(auth[0], (bytes, str)):
+    elif isinstance(auth, tuple) and len(auth) == 2:
         auth = auth,
     return encode_auths(auth, request)
 
