@@ -31,6 +31,8 @@ import uuid
 import zlib
 from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Literal, Mapping, Optional, Sequence
 
+from . import useragent
+
 CONTENT_CHUNK_SIZE = 10 * 1024
 
 
@@ -524,6 +526,11 @@ def default_headers() -> dict[str, str]:
         Header.ACCEPT_ENCODING: default_accept_encoding()}
 
 
+def default_verify() -> ssl.SSLContext:
+    # noinspection PyUnresolvedReferences,PyProtectedMember
+    return http.client.HTTPSConnection('')._context
+
+
 class _OpenerDirector(urllib.request.OpenerDirector):
     def __init__(self, *handlers: urllib.request.BaseHandler):
         super().__init__()
@@ -889,6 +896,8 @@ class Session:
         self.proxies = proxies
         self.params = params
         self.stream = stream
+        if verify is None:
+            verify = default_verify()
         self.verify = verify
         self.trust_env = trust_env  # TODO extend
         if cookies is not None:
@@ -1150,6 +1159,22 @@ class Session:
             'timeout': _merge_setting(timeout, self.timeout),
             'allow_redirects': _merge_setting(allow_redirects, self.allow_redirects),
             'force_auth': _merge_setting(force_auth, self.force_auth)}
+
+
+class CloudflareSession(Session):
+    def __init__(self, headers: Optional[_THeaders] = None, auth: Optional[_TAuth] = None,
+                 proxies: Optional[_TProxies] = None, params: Optional[_TParams] = None, stream: Optional[bool] = None,
+                 verify: Optional[_TVerify] = None, trust_env: bool = True, cookies: Optional[_TCookies] = None,
+                 timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, force_auth: Optional[bool] = None,
+                 max_repeats: Optional[int] = None, max_redirections: Optional[int] = None,
+                 http_debug: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None):
+        super().__init__(headers, auth, proxies, params, stream, verify, trust_env, cookies, timeout,
+                         allow_redirects, force_auth, max_repeats, max_redirections, http_debug, unredirected_hdrs)
+        headers, cipher_suite = useragent.UserAgent().encode()
+        self.headers.update(headers)
+        self.verify.post_handshake_auth = False
+        self.verify.set_ciphers(':'.join(cipher_suite))
+        self.verify.set_ecdh_curve('prime256v1')
 
 
 def _bytes(o: AnyStr) -> bytes:

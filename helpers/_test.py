@@ -656,47 +656,10 @@ def _test_requests():
     print(session.get('https://wall.alphacoders.com/by_comments.php').status_code)
 
 
-def _test_httpx():
-    import httpx, ssl
-
-    ssl_ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_2)  # prefer TLS 1.2
-    ssl_ctx.set_alpn_protocols(["h2", "http/1.1"])
-    # see "openssl ciphers" command for cipher names
-    CIPHERS = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:ECDHE-ECDSA-AES256-GCM-SHA384"
-    ssl_ctx.set_ciphers(CIPHERS)
-
-    default = httpx.get("https://tools.scrapfly.io/api/fp/ja3?extended=1").json()
-    fixed = httpx.get("https://tools.scrapfly.io/api/fp/ja3?extended=1", verify=ssl_ctx).json()
-    print('Default:')
-    print(default['tls']['ciphers'])
-    print(default['ja3'])
-    print('Patched:')
-    print(fixed['tls']['ciphers'])
-    print(fixed['ja3'])
-    print(httpx.get('https://wall.alphacoders.com/by_comments.php', verify=ssl_ctx).status_code)
-
-
 def _test():
-    import cloudscraper
     url = 'https://wall.alphacoders.com/by_comments.php'
-    # url = 'https://tools.scrapfly.io/api/fp/ja3?extended=1'
-    cookies = {'ResolutionFilter': '7680x4320',
-               'ResolutionEquals': '%3D'}
-    sess = cloudscraper.create_scraper()
-    adap: cloudscraper.CipherSuiteAdapter = sess.adapters['https://']
-    print(adap.ssl_context.wrap_socket)
-    ua = sess.user_agent
-    headers = ua.headers
-    pprint.pprint(headers, sort_dicts=False)
-    print(ua.cipherSuite)
-    # sess = requests.Session()
-    # sess.mount('https://', adap)
-    # sess = request.Session(http_debug=True)
-    # sess.verify = adap.ssl_context
-    resp = sess.get(url, cookies=cookies, headers=headers)
-    print(resp.elapsed)
-    # print(resp.headers)
-    # print(resp.request.headers)
+    sess = request.CloudflareSession(http_debug=True)
+    resp = sess.get(url)
     print(repr(resp.status_code))
     # print(resp.text)
 
@@ -711,6 +674,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_winrt()
     # _test_hook()
     # _test_requests()
-    # _test_httpx()
     _test()
     sys.exit()

@@ -51,6 +51,8 @@ $CodeRunBeforeRemote = @(
 	"_download()"
 	"from src.libs.mimetype import _download"
 	"_download()"
+	"from src.libs.request.useragent import _download"
+	"_download()"
 	"from src.libs.spinners import _download"
 	"_download()"
 	"from src.libs.urischemes import _download"
@@ -63,6 +65,7 @@ $MinifyJsonRegExs = @(
 	"src/libs/colornames/colornames.min.json"
 	"src/libs/isocodes/iso_*.json"
 	"src/libs/mimetype/db.json"
+	"src/libs/request/browser.json"
 	"src/libs/spinners/spinners.json")
 
 $CodePythonBase = @(
@@ -375,7 +378,7 @@ function Install-Dependencies {
 	}
 	if ($CythonSources -or $CythonizeSourceGlobs) {
 		# FIXME https://github.com/cython/cython/milestone/58
-        # FIXME https://github.com/cython/cython/issues/5263
+		# FIXME https://github.com/cython/cython/issues/5263
 		pip install cython==3.0.0a11
 	}
 
