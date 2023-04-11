@@ -59,8 +59,7 @@ class SimpleDesktops(Source):
             if not desktops:
                 yield
                 continue
-            desktop = files.File(desktops.pop(
-                0).get_child().get_child().attributes['src'].rsplit('.', 2)[0])
+            desktop = files.File(desktops.pop(0)[0][0]['src'].rsplit('.', 2)[0])
             operator.iadd(_PAGE, not desktops)
             yield desktop
 

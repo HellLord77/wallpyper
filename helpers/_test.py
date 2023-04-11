@@ -25,7 +25,6 @@ import win32
 from libs import ctyped, config, request
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
-from libs.request import cloudflare
 from win32 import _utils
 
 
@@ -624,12 +623,9 @@ def _test_hook():
 
 
 def _test():
-    url = 'https://wall.alphacoders.com/newest_wallpapers.php'
-    sess = cloudflare.Session(http_debug=True)
-    # sess.head('https://wall.alphacoders.com')
-    resp = sess.get(url)
-    print(repr(resp.status_code))
-    # print(resp.text)
+    url = 'https://wallpapersmug.com/u/2142aa/blosoom-and-girl-genshin-impact.jpg'
+    sess = request.retrieve(url, 'D:\\test.jpg')
+    print(sess)
 
     # bro = win32.browser.Browser(url)
     # bro.wait()

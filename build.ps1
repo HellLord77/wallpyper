@@ -379,7 +379,7 @@ function Install-Dependencies {
 	}
 	if ($CythonSources -or $CythonizeSourceGlobs) {
 		# FIXME https://github.com/cython/cython/milestone/58
-		pip install cython
+		pip install --pre cython
 	}
 
 	if (Test-Path requirements.txt -PathType Leaf) {

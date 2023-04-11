@@ -1729,8 +1729,9 @@ def retrieve(url: AnyStr, path: AnyStr, size: int = 0, chunk_size: Optional[int]
             with open(path, 'wb') as file:
                 ratio = 0.0
                 for chunk in response.iter_content(max(chunk_size, _MIN_CHUNK)):
+                    written = file.write(chunk)
                     if size != _UNK_SIZE:
-                        ratio += file.write(chunk) / size
+                        ratio += written / size
                     if query_callback is not None and not query_callback(ratio):
                         return False
             retrieved = size == _UNK_SIZE or size == os.path.getsize(path)

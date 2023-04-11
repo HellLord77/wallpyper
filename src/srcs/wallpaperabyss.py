@@ -167,14 +167,11 @@ class WallpaperAbyss(Source):
                 response = session.get(url, query, cookies=cookies)
                 if response:
                     html = minihtml.loads(response.text)
-                    images = list(minihtml.find_elements(
-                        html.iter_all_children(), 'div', _ATTRS_THUMB))
+                    images = list(html.find_all('div', _ATTRS_THUMB))
                     has_next = False
-                    if (next_page := minihtml.find_element(
-                            html.iter_all_children(), 'a', _ATTRS_NEXT_PAGE)) is not None:
+                    if (next_page := html.find('a', _ATTRS_NEXT_PAGE)) is not None:
                         has_next = next_page['href'] != '#'
-                    elif (pagination := minihtml.find_element(
-                            html.iter_all_children(), 'div', _ATTRS_PAGINATION)) is not None:
+                    elif (pagination := html.find('div', _ATTRS_PAGINATION)) is not None:
                         has_next = pagination[-1].get_data() == 'Next >>'
                     if has_next:
                         query['page'] = str(int(query['page']) + 1)

@@ -122,8 +122,7 @@ class WallHere(Source):
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join_url(
-                URL_WALLPAPER, item.get_child().get_child().attributes['href']))
+            response_item = request.get(request.join_url(URL_WALLPAPER, item[0][0]['href']))
             if not response_item:
                 items.insert(0, item)
                 yield

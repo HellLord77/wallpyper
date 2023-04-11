@@ -80,16 +80,15 @@ class WallpapersMug(Source):
                     continue
             image = images.pop(0)
             response_image = request.get(request.join_url(
-                URL_BASE, image.get_child().attributes['href'], 'download'))
+                URL_BASE, image[0]['href'], 'download'))
             if not response_image:
                 images.insert(0, image)
                 yield
                 continue
             img = minihtml.loads(response_image.text).find('div', _ATTRS_IMAGE)
             width, height = map(int, img.find(
-                'span', _ATTRS_RESOLUTION).get_child().get_data().strip().split('x'))
-            yield files.ImageFile(img.get_child().get_child().attributes[
-                                      'src'], width=width, height=height)
+                'span', _ATTRS_RESOLUTION)[0].get_data().strip().split('x'))
+            yield files.ImageFile(img[0][0]['src'], width=width, height=height)
 
     @classmethod
     def _on_search(cls, enable_tag, enable_sort, search: str):
