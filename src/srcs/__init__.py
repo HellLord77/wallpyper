@@ -72,6 +72,7 @@ from . import (
     unsplash,
     wallhaven,
     wallhere,
+    wallpaperabyss,
     wallpaperflare,
     wallpapersmug,
     yandere,

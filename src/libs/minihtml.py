@@ -80,6 +80,21 @@ class Element:
             f'{start}>{"".join(map(str, inner))}</{self.name}>'
             if inner or self.name not in _VOIDS else f'{start}/>')
 
+    @typing.overload
+    def __getitem__(self, item: str) -> str:
+        pass
+
+    @typing.overload
+    def __getitem__(self, item: int) -> Element:
+        pass
+
+    @typing.overload
+    def __getitem__(self, item: slice) -> list[Element]:
+        pass
+
+    def __getitem__(self, item):
+        return (self.children if isinstance(item, int) else self.attributes)[item]
+
     def get_root(self) -> Element:
         return self if self.parent is None else self.parent.get_root()
 

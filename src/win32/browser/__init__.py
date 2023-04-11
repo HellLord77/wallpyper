@@ -76,17 +76,17 @@ class Browser:
         if stream:
             dispatch = ctyped.interface.COM[oaidl.IDispatch]()
             # noinspection PyProtectedMember
-            self._browser._obj.get_Document(~dispatch)
-            with dispatch[ocidl.IPersistStreamInit] as persist_stream:
-                persist_stream.Save(stream, ctyped.const.TRUE)
-            stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.NULLPTR)
-            stat = ctyped.struct.STATSTG()
-            stream.Stat(ctyped.byref(stat), ctyped.enum.STATFLAG.NONAME | ctyped.enum.STATFLAG.NOOPEN)
-            with ctyped.buffer(stat.cbSize.QuadPart) as buffer:
-                read = ctyped.type.ULONG()
-                stream.Read(buffer, stat.cbSize.QuadPart, ctyped.byref(read))
-                if read == stat.cbSize.QuadPart:
-                    html = ctyped.type.c_char_p(buffer).value.decode()
+            if ctyped.macro.SUCCEEDED(self._browser._obj.get_Document(~dispatch)):
+                with dispatch[ocidl.IPersistStreamInit] as persist_stream:
+                    persist_stream.Save(stream, ctyped.const.TRUE)
+                stream.Seek(ctyped.union.LARGE_INTEGER(QuadPart=0), ctyped.enum.STREAM_SEEK.SET, ctyped.NULLPTR)
+                stat = ctyped.struct.STATSTG()
+                stream.Stat(ctyped.byref(stat), ctyped.enum.STATFLAG.NONAME | ctyped.enum.STATFLAG.NOOPEN)
+                with ctyped.buffer(stat.cbSize.QuadPart) as buffer:
+                    read = ctyped.type.ULONG()
+                    stream.Read(buffer, stat.cbSize.QuadPart, ctyped.byref(read))
+                    if read == stat.cbSize.QuadPart:
+                        html = ctyped.type.c_char_p(buffer).value.decode()
             stream.Release()
         return html
 

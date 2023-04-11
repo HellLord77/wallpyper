@@ -25,6 +25,7 @@ import win32
 from libs import ctyped, config, request
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
+from libs.request import cloudflare
 from win32 import _utils
 
 
@@ -622,50 +623,17 @@ def _test_hook():
     proc.free_console()
 
 
-def _test_requests():
-    import ssl
-    import requests
-
-    from requests.adapters import HTTPAdapter
-    from urllib3.poolmanager import PoolManager
-    from urllib3.util.ssl_ import create_urllib3_context
-
-    # see "openssl ciphers" command for cipher names
-    CIPHERS = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384"
-
-    class TlsAdapter(HTTPAdapter):
-        def __init__(self, ssl_options=0, **kwargs):
-            self.ssl_options = ssl_options
-            super(TlsAdapter, self).__init__(**kwargs)
-
-        def init_poolmanager(self, *pool_args, **pool_kwargs):
-            ctx = create_urllib3_context(ciphers=CIPHERS, cert_reqs=ssl.CERT_REQUIRED, options=self.ssl_options)
-            self.poolmanager = PoolManager(*pool_args, ssl_context=ctx, **pool_kwargs)
-
-    adapter = TlsAdapter(ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1)  # prioritize TLS 1.2
-    default = requests.get("https://tools.scrapfly.io/api/fp/ja3?extended=1").json()
-    session = requests.session()
-    session.mount("https://", adapter)
-    fixed = session.get("https://tools.scrapfly.io/api/fp/ja3?extended=1").json()
-    print('Default:')
-    print(default['tls']['ciphers'])
-    print(default['ja3'])
-    print('Patched:')
-    print(fixed['tls']['ciphers'])
-    print(fixed['ja3'])
-    print(session.get('https://wall.alphacoders.com/by_comments.php').status_code)
-
-
 def _test():
-    url = 'https://wall.alphacoders.com/by_comments.php'
-    sess = request.CloudflareSession(http_debug=True)
+    url = 'https://wall.alphacoders.com/newest_wallpapers.php'
+    sess = cloudflare.Session(http_debug=True)
+    # sess.head('https://wall.alphacoders.com')
     resp = sess.get(url)
     print(repr(resp.status_code))
     # print(resp.text)
 
     # bro = win32.browser.Browser(url)
     # bro.wait()
-    # print(bro.get_static_html())
+    # print(bro.get_html())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
@@ -673,6 +641,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    # _test_requests()
     _test()
     sys.exit()

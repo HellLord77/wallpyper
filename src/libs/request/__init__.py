@@ -31,8 +31,6 @@ import uuid
 import zlib
 from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Literal, Mapping, Optional, Sequence
 
-from . import useragent
-
 CONTENT_CHUNK_SIZE = 10 * 1024
 
 
@@ -1161,22 +1159,6 @@ class Session:
             'force_auth': _merge_setting(force_auth, self.force_auth)}
 
 
-class CloudflareSession(Session):
-    def __init__(self, headers: Optional[_THeaders] = None, auth: Optional[_TAuth] = None,
-                 proxies: Optional[_TProxies] = None, params: Optional[_TParams] = None, stream: Optional[bool] = None,
-                 verify: Optional[_TVerify] = None, trust_env: bool = True, cookies: Optional[_TCookies] = None,
-                 timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, force_auth: Optional[bool] = None,
-                 max_repeats: Optional[int] = None, max_redirections: Optional[int] = None,
-                 http_debug: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None):
-        super().__init__(headers, auth, proxies, params, stream, verify, trust_env, cookies, timeout,
-                         allow_redirects, force_auth, max_repeats, max_redirections, http_debug, unredirected_hdrs)
-        headers, cipher_suite = useragent.UserAgent().encode()
-        self.headers.update(headers)
-        self.verify.post_handshake_auth = False
-        self.verify.set_ciphers(':'.join(cipher_suite))
-        self.verify.set_ecdh_curve('prime256v1')
-
-
 def _bytes(o: AnyStr) -> bytes:
     return o.encode() if isinstance(o, str) else o
 
@@ -1528,7 +1510,7 @@ def encode_headers(headers: _THeaders, unredirected: bool = False,
 
 
 # noinspection PyShadowingNames
-def encode_cookies(cookies: _TCookies,
+def encode_cookies(cookies: _TCookies,  # TODO lock simple cookies to host + same with auth (?)
                    request: Optional[urllib.request.Request] = None) -> http.cookiejar.CookieJar:
     if not isinstance(cookies, http.cookiejar.CookieJar):
         if isinstance(cookies, Mapping):

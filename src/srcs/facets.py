@@ -7,7 +7,7 @@ import validator
 from libs import files, request
 from . import Source
 
-_NFT = []
+_OWNER = '0xa52578c6ada18248d95805083ed148957573e4eb'
 
 URL_BASE = request.join_url('https://facets.api.manifoldxyz.dev', 'art')
 
@@ -28,16 +28,9 @@ SERIES = (
 DEVICES = '', 'Desktop', 'Mobile'
 
 
-def _is_purchasable(id_: int) -> bool:
-    for nft in _NFT:
-        if id_ == nft['artId']:
-            return nft['ownerAddress'] == '0xa52578c6ada18248d95805083ed148957573e4eb'
-    return False
-
-
 class Facets(Source):
     NAME = 'FACETS'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     ICON = 'png'
     URL = 'https://facets.la'
     TCONFIG = TypedDict('TCONFIG', {
@@ -50,6 +43,8 @@ class Facets(Source):
         CONFIG_SERIES: SERIES[0],
         CONFIG_PURCHASABLE: False,
         CONFIG_DEVICE: DEVICES[1]}
+
+    _purchasable: dict[int, bool]
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -81,7 +76,8 @@ class Facets(Source):
                 if response:
                     json = response.json()
                     arts = [art for art in json['art'] if art['pathThumbnail']]
-                    _NFT.extend(json['nft'])
+                    cls._purchasable = {int(
+                        nft['tokenId']): nft['ownerAddress'] == _OWNER for nft in json['nft']}
             if not arts:
                 yield
                 continue
@@ -102,6 +98,6 @@ class Facets(Source):
                 cls.CURRENT_CONFIG[CONFIG_SERIES] not in (SERIES[0], series)):
             return False
         if ((id_ := getattr(image, '_id', None)) is not None and
-                cls.CURRENT_CONFIG[CONFIG_PURCHASABLE] and not _is_purchasable(id_)):
+                cls.CURRENT_CONFIG[CONFIG_PURCHASABLE] and not cls._purchasable[id_]):
             return False
         return True

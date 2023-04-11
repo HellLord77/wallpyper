@@ -1080,7 +1080,7 @@ class MenuItem(_Control):
     def set_unchecked_icon(self, res_or_path: Optional[int | str] = None, resize: bool = True) -> bool:
         return self._set_check_icons(self._hbmps[1], res_or_path, resize)
 
-    def set_tooltip(self, text: str, title: str = '',
+    def set_tooltip(self, text: str, title: str = '',  # TODO wrong position with scrollbar
                     icon_res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = MenuItemTooltipIcon.NONE):
         self._tooltip_text = text
         self._tooltip_title = title

@@ -26,7 +26,7 @@ class SimpleDesktops(Source):
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_PAGE: 1}
 
-    _set_tooltip: Optional[Callable[[str], bool]] = None
+    _set_tooltip: Callable[[str], bool]
 
     @classmethod
     def fix_config(cls, saving: bool = False):

@@ -1,6 +1,7 @@
 $Version = "0.1.5"
 
 $Datas = @(
+	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
 	"res"
 	"srcs/res"
 	"win32/syspin.exe"
@@ -29,7 +30,8 @@ $CythonizeExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
 	"src/libs/ctyped/enum.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
 $CythonizeSourceGlobs = @(
-	"src/libs/{colornames,isocodes,spinners}/__init__.py"
+	"src/libs/request/**/*.py"
+	"src/libs/{colornames,isocodes,mimetype,spinners,urischemes}/__init__.py"
 	# "src/libs/ctyped/interface/**/*.py"
 	# "src/libs/ctyped/lib/*.py"  FIXME https://github.com/cython/cython/issues/3838
 	"src/libs/ctyped/lib/__init__.py"
@@ -51,7 +53,7 @@ $CodeRunBeforeRemote = @(
 	"_download()"
 	"from src.libs.mimetype import _download"
 	"_download()"
-	"from src.libs.request.useragent import _download"
+	"from src.libs.request.cloudflare import _download"
 	"_download()"
 	"from src.libs.spinners import _download"
 	"_download()"
@@ -65,7 +67,7 @@ $MinifyJsonRegExs = @(
 	"src/libs/colornames/colornames.min.json"
 	"src/libs/isocodes/iso_*.json"
 	"src/libs/mimetype/db.json"
-	"src/libs/request/browser.json"
+	"src/libs/request/cloudflare/browsers.json"
 	"src/libs/spinners/spinners.json")
 
 $CodePythonBase = @(
@@ -110,7 +112,6 @@ $CodeCompileCTemplate = @(
 	"objects = compiler.compile([source], include_dirs=build.include_dirs)"
 	"libraries = [f'python{version_info.major}{version_info.minor}']"
 	"compiler.link_executable(objects, splitext(source)[0], libraries=libraries, library_dirs=build.library_dirs)")
-$CopyTimeout = 9
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyJsonLocal = $False
@@ -378,8 +379,7 @@ function Install-Dependencies {
 	}
 	if ($CythonSources -or $CythonizeSourceGlobs) {
 		# FIXME https://github.com/cython/cython/milestone/58
-		# FIXME https://github.com/cython/cython/issues/5263
-		pip install cython==3.0.0a11
+		pip install cython
 	}
 
 	if (Test-Path requirements.txt -PathType Leaf) {
