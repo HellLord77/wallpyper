@@ -623,13 +623,7 @@ def _test_hook():
 
 
 def _test():
-    url = 'https://wallpapersmug.com/u/2142aa/blosoom-and-girl-genshin-impact.jpg'
-    sess = request.retrieve(url, 'D:\\test.jpg')
-    print(sess)
-
-    # bro = win32.browser.Browser(url)
-    # bro.wait()
-    # print(bro.get_html())
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

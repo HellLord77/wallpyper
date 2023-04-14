@@ -58,6 +58,8 @@ $CodeRunBeforeRemote = @(
 	"from src.libs.spinners import _download"
 	"_download()"
 	"from src.libs.urischemes import _download"
+	"_download()"
+	"from src.libs.useragents import _download"
 	"_download()")
 $CodeRunAfter = @(
 	"from os import remove"
@@ -68,7 +70,8 @@ $MinifyJsonRegExs = @(
 	"src/libs/isocodes/iso_*.json"
 	"src/libs/mimetype/db.json"
 	"src/libs/request/cloudflare/browsers.json"
-	"src/libs/spinners/spinners.json")
+	"src/libs/spinners/spinners.json"
+	"src/libs/useragents/user-agents.json")
 
 $CodePythonBase = @(
 	"from sys import base_prefix"

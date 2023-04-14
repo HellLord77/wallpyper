@@ -508,20 +508,34 @@ _RE_ENCODED = re.compile(r'%[a-fA-F0-9]{2}')
 _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
-def default_user_agent(name: str = __name__) -> str:
-    return f'{name}/{__version__}'
-
-
 def default_accept_encoding(*encodings: str) -> str:
     return ', '.join(itertools.chain(_Decoder.decoders, encodings))
 
 
+def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
+    accept_languages = []
+    for language in itertools.chain(((('en-US', 'en'), 0.9),), languages):
+        if not isinstance(language, str):
+            language, quality = language
+            if not isinstance(language, str):
+                language = ','.join(language)
+            if quality != 1.0:
+                language = f'{language};q={quality}'
+        accept_languages.append(language)
+    return ','.join(accept_languages)
+
+
+def default_user_agent(name: str = __name__) -> str:
+    return f'{name}/{__version__}'
+
+
 def default_headers() -> dict[str, str]:
     return {
-        Header.USER_AGENT: default_user_agent(),
-        Header.ACCEPT: '*/*',
         Header.CONNECTION: 'keep-alive',
-        Header.ACCEPT_ENCODING: default_accept_encoding()}
+        Header.ACCEPT: '*/*',
+        Header.ACCEPT_ENCODING: default_accept_encoding(),
+        Header.ACCEPT_LANGUAGE: default_accept_language(),
+        Header.USER_AGENT: default_user_agent()}
 
 
 def default_verify() -> ssl.SSLContext:
@@ -1202,7 +1216,7 @@ def endswith_case_insensitive(string: str, suffix: str) -> bool:
     return string.lower().endswith(suffix.lower())
 
 
-def iter_case_insensitive(iterable: Iterable[str]) -> Iterable[str]:
+def iter_case_insensitive(iterable: Iterable[str]) -> Iterator[str]:
     for key in iterable:
         yield key.lower()
 
