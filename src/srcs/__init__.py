@@ -58,6 +58,10 @@ class File:
         if request_ is not utils.DEFAULT:
             return callables.ReducedCallable(cls)(request_, **data)
 
+    @property
+    def url(self) -> str:  # TODO BasicAuth
+        return request.encode_params(self.request.url, self.request.params)
+
     def _iter_hashes(self) -> Iterator[tuple[str, bytes | str]]:
         for algorithm in hashlib.algorithms_available:
             if hasattr(self, algorithm):
@@ -110,6 +114,12 @@ class File:
                         setattr(self, algorithm, hash_.digest())
                         break
         return True
+
+    def is_simple(self) -> bool:
+        return (self.request.headers is None and self.request.files is None and
+                self.request.data is None and self.request.params is None and
+                self.request.auth is None and self.request.cookies is None and
+                self.request.json is None and self.request.unredirected_hdrs is None)
 
 
 @dataclasses.dataclass

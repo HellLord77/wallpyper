@@ -418,7 +418,7 @@ def download_image(image: srcs.File, query_callback: Optional[Callable[[float], 
         if PIPE or win32.console.is_present():
             print_progress()
         try:
-            if (image.request.url == request.from_path(path) or
+            if (image.url == request.from_path(path) or
                 (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or
                 request.retrieve(image.request, path, image.size, chunk_count=100,
                                  query_callback=query_callback)) and image.fill(path):
@@ -559,6 +559,8 @@ def _update_recent_menu(item: win32.gui.MenuItem):
     with gui.set_menu(menu):
         items = gui.get_menu_items()
         for index, image in enumerate(RECENT):
+            url = image.url
+            simple = image.is_simple()
             if image in items:
                 item_image = items[image.name]
                 submenu = item_image.get_submenu()
@@ -587,8 +589,8 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_OPEN_EXPLORER, on_click=functools.partial(
                         on_image_func, win32.open_file_path, image, STRINGS.LABEL_OPEN_EXPLORER,
                         STRINGS.FAIL_OPEN_EXPLORER)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
-                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=functools.partial(
-                        on_open_url, image.request.url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
+                    gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, enable=simple, on_click=functools.partial(
+                        on_open_url, url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=functools.partial(
                         on_image_func, win32.clipboard.copy_text, image, STRINGS.LABEL_COPY_PATH,
@@ -596,25 +598,26 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(STRINGS.LABEL_COPY, on_click=functools.partial(
                         on_image_func, win32.clipboard.copy_image, image, STRINGS.LABEL_COPY,
                         STRINGS.FAIL_COPY)).set_icon(RES_TEMPLATE.format(consts.RES_COPY))
-                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=functools.partial(
-                        on_copy_url, image.request.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
+                    gui.add_menu_item(STRINGS.LABEL_COPY_URL, enable=simple, on_click=functools.partial(
+                        on_copy_url, url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
                     if consts.FEATURE_SEARCH_GOOGLE:
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=functools.partial(
                             on_image_func, search_image, image, STRINGS.LABEL_GOOGLE,
                             STRINGS.FAIL_SEARCH)).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
-                    with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_path(
-                            image.request.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
+                    with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, simple and not request.is_path(
+                            url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             # noinspection PyUnresolvedReferences
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
-                                              on_click=functools.partial(on_search, image.request.url),
+                                              on_click=functools.partial(on_search, url),
                                               args=(gui.MenuItemProperty.UID,)).set_icon(
                                 RES_TEMPLATE.format(consts.TEMPLATE_RES_SEARCH.format(engine.name)))
             item_image = menu.insert_item(index, utils.shrink_string(
                 image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.TEMPLATE_RES_DIGIT.format(index + 1)), submenu=submenu)
-            item_image.set_tooltip(image.request.url, f'{image.name} ({files.Size(image.size)})', os.path.join(
+            tooltip = f'{image.name} ({files.Size(image.size)})'
+            item_image.set_tooltip(*(url, tooltip) if simple else (tooltip, ''), os.path.join(
                 TEMP_DIR, image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.name)
     for uid, item_image in items.items():
@@ -830,7 +833,7 @@ def start():
         log.init((r'[^\\]*\.py', utils.re_join('srcs', r'.*\.py')), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     _update_display()
-    sys.modules['files'] = sys.modules['libs.files']  # FIXME https://github.com/cython/cython/issues/3867
+    sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867
     load_config()
     gui.init(consts.NAME)
     create_menu()
