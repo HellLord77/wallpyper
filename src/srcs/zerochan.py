@@ -1,12 +1,12 @@
 import functools
-import http
 import json
 import re
 from typing import Any, Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request
+from libs import request
+from . import ImageFile
 from . import Source
 
 _CONTENT_END = (b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
@@ -83,7 +83,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
             for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         items: Optional[list] = None
         url = request.join_url(URL_BASE, params.pop(CONFIG_FILTER))
         if params.pop(CONFIG_STRICT):
@@ -94,7 +94,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         while True:
             if not items:
                 response = request.get(url, params)
-                if (response.status_code == http.HTTPStatus.FORBIDDEN and
+                if (response.status_code == request.Status.FORBIDDEN and
                         response.content == _CONTENT_END):
                     params['p'] = '1'
                     continue
@@ -111,5 +111,5 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                 continue
             json_ = _json_loads(response_item)
             url = json_['full']
-            yield files.ImageFile(url, width=json_['width'], height=json_[
+            yield ImageFile(url, width=json_['width'], height=json_[
                 'height'], sketchy='Ecchi' in json_['tags'], md5=json_['hash'])

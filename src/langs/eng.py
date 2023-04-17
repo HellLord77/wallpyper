@@ -487,6 +487,22 @@ SPOTLIGHT_MENU_ORIENTATION = 'Orientation'
 SPOTLIGHT_ORIENTATION_landscape = 'Landscape'
 SPOTLIGHT_ORIENTATION_portrait = 'Portrait'
 
+STOCKSNAP_MENU_SORT = 'Sort by'
+STOCKSNAP_MENU_ORDER = 'Sort order'
+STOCKSNAP_MENU_ORIENTATIONS = 'Orientation'
+
+STOCKSNAP_SORT_date = 'Date'
+STOCKSNAP_SORT_trending = 'Trending'
+STOCKSNAP_SORT_views = 'Views'
+STOCKSNAP_SORT_downloads = 'Downloads'
+STOCKSNAP_SORT_favorites = 'Favorites'
+
+STOCKSNAP_ORDER_desc = 'Descending'
+STOCKSNAP_ORDER_asc = 'Ascending'
+
+STOCKSNAP_ORIENTATION_0 = 'Landscape'
+STOCKSNAP_ORIENTATION_1 = 'Portrait'
+
 UNSPLASH_LABEL_EDITORIAL = 'Editorial'
 
 UNSPLASH_MENU_SEARCH = 'Search Filters'

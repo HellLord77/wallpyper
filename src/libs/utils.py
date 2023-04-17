@@ -1,16 +1,21 @@
-__version__ = '0.0.24'
+__version__ = '0.0.25'
 
 import ast
+import base64
 import binascii
+import bz2
 import collections
 import contextlib
 import ctypes
 import datetime
 import functools
+import gzip
 import hashlib
+import hmac
 import inspect
 import io
 import itertools
+import lzma
 import math
 import operator
 import os
@@ -27,7 +32,9 @@ import uuid
 import zipfile
 import zlib
 from types import NoneType
-from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Mapping, Optional
+from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Literal, Mapping, Optional
+
+import _hashlib
 
 T = typing.TypeVar('T')
 DEFAULT = object()
@@ -351,10 +358,6 @@ def iter_or(it1: Iterable, it2: Iterable, func: Callable = zip) -> Iterator:
     return itertools.starmap(operator.or_, func(it1, it2))
 
 
-def hexdigest(digest: bytes) -> str:
-    return ''.join(f'{byte:02x}' for byte in digest)
-
-
 def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
     if current < 0:
         current = 0
@@ -499,20 +502,6 @@ def pretty_vars(obj) -> str:
     return fmt
 
 
-def fix_dict_key(cur_dict: dict, key: str, vals: Iterable, default_dict: dict):
-    cur_val = cur_dict[key]
-    if isinstance(cur_val, str):
-        cur_val = cur_val.casefold()
-        for val in vals:
-            if cur_val == val.casefold():
-                cur_dict[key] = val
-                return
-    else:
-        if cur_val in vals:
-            return
-    cur_dict[key] = default_dict[key]
-
-
 # noinspection PyShadowingNames
 def clear_queue(queue: queue.Queue) -> int:
     with queue.mutex:
@@ -522,13 +511,10 @@ def clear_queue(queue: queue.Queue) -> int:
     return tasks
 
 
-def iter_stream(stream: IO, size: Optional[int] = None) -> Iterator[AnyStr]:
+def iter_stream(stream: IO[AnyStr], size: int = sys.maxsize) -> Iterator[AnyStr]:
     read = stream.read
-    size = size or sys.maxsize
-    chunk = read(size)
-    while chunk:
+    while chunk := read(size):
         yield chunk
-        chunk = read(size)
 
 
 def re_join(base: str, *child: str, sep: str = os.sep) -> str:
@@ -546,8 +532,8 @@ def strip_ansi(string: str) -> str:
     return ANSI.sub('', string)
 
 
-def split_ex(string: str, length: int = 64) -> tuple[str]:
-    return tuple(string[index: length + index] for index in range(0, len(string), length))
+def split_ex(string: str, length: int = 64) -> Iterator[str]:
+    return (string[index: length + index] for index in range(0, len(string), length))
 
 
 def shrink_string(string: str, max_len: int, filler: str = '...') -> str:
@@ -584,39 +570,67 @@ def decompress(data: bytes, *names: str, password: Optional[bytes] = None) -> Ma
     return datas
 
 
-def _get_key(key: Optional[bytes | int | str]) -> bytes:
+def _get_key(data: bytes | bytearray, key: Optional[bytes | bytearray | int | float | str],
+             hash_: Optional[str | _hashlib.HASH] | Callable) -> bytes:
     if key is None:
         key = uuid.getnode()
-    if isinstance(key, int):
+    if isinstance(key, (int, float)):
         key = str(key)
     if isinstance(key, str):
         key = key.encode()
+    if hash_ is None:
+        key = hashlib.blake2b(data, key=key).digest()
+    else:
+        key = hmac.digest(key, data, hash_)
     return key
 
 
-def encrypt(obj, key: Optional[bytes | int | str] = None, split: bool = False, proto: int = pickle.HIGHEST_PROTOCOL) -> str:
+# noinspection PyShadowingBuiltins,PyShadowingNames,PyTypeHints
+def encrypt(obj, key: Optional[bytes | bytearray | int | float | str] = None,
+            hash: Optional[str | _hashlib.HASH | Callable] = hashlib.sha256,
+            compress: Optional[Literal[zlib, gzip, bz2, lzma] | Callable] = zlib,
+            as_string: bool = False) -> Optional[bytes | str]:
     try:
-        pickled = pickle.dumps(obj, proto)
+        pickled = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
     except TypeError:
-        return ''
-    base64 = binascii.b2a_base64(zlib.compress(hashlib.blake2b(
-        pickled, key=_get_key(key)).digest() + pickled), newline=False).decode()
-    return '\n'.join(split_ex(base64)) if split else base64
-
-
-def decrypt(data: str, default=None, key: Optional[bytes | int | str] = None) -> Any:
-    try:
-        decoded = zlib.decompress(binascii.a2b_base64(''.join(data.split('\n')).encode()))
-    except (binascii.Error, zlib.error):
-        return default
-    size = hashlib.blake2b().digest_size
-    if decoded[:size] == hashlib.blake2b(decoded[size:], key=_get_key(key)).digest():
-        try:
-            return pickle.loads(decoded[size:])
-        except (AttributeError, ModuleNotFoundError, pickle.UnpicklingError):
-            return default
+        pass
     else:
-        return default
+        data = _get_key(pickled, key, hash) + pickled
+        if compress is not None:
+            if not callable(compress):
+                compress = compress.compress
+            data = compress(data)
+        if as_string:
+            data = base64.b64encode(data).decode()
+        return data
+
+
+# noinspection PyShadowingBuiltins,PyShadowingNames,PyTypeHints
+def decrypt(data: bytes | bytearray | str, default=DEFAULT,
+            key: Optional[bytes | bytearray | int | float | str] = None,
+            hash: Optional[str | _hashlib.HASH | Callable] = hashlib.sha256,
+            decompress: Optional[Literal[zlib, gzip, bz2, lzma] | Callable] = zlib) -> Any:
+    if isinstance(data, str):
+        try:
+            data = base64.b64decode(data.encode(), validate=True)
+        except binascii.Error:
+            return default
+    if decompress is not None:
+        if not callable(decompress):
+            decompress = decompress.decompress
+        try:
+            data = decompress(data)
+        except (OSError, zlib.error, gzip.BadGzipFile, lzma.LZMAError):
+            return default
+    size = hashlib.blake2b.MAX_DIGEST_SIZE if hash is None else hmac.new(
+        b'', digestmod=hash).digest_size
+    pickled = data[size:]
+    if data[:size] == _get_key(pickled, key, hash):
+        try:
+            return pickle.loads(pickled)
+        except pickle.UnpicklingError:
+            pass
+    return default
 
 
 # noinspection PyShadowingBuiltins

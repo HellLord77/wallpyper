@@ -3,7 +3,8 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request, minihtml
+from libs import request, minihtml
+from . import ImageFile
 from . import Source
 
 _ATTRS_IMAGES = {'class': 'item_img'}
@@ -54,7 +55,7 @@ class WallpapersMug(Source):
                        cls.CURRENT_CONFIG[CONFIG_SEARCH])
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         images: Optional[list] = None
         page = 1
         if params[CONFIG_SEARCH]:
@@ -88,7 +89,7 @@ class WallpapersMug(Source):
             img = minihtml.loads(response_image.text).find('div', _ATTRS_IMAGE)
             width, height = map(int, img.find(
                 'span', _ATTRS_RESOLUTION)[0].get_data().strip().split('x'))
-            yield files.ImageFile(img[0][0]['src'], width=width, height=height)
+            yield ImageFile(img[0][0]['src'], width=width, height=height)
 
     @classmethod
     def _on_search(cls, enable_tag, enable_sort, search: str):

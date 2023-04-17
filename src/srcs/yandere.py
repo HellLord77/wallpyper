@@ -1,9 +1,9 @@
-import http
 from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request, utils
+from libs import request, utils
+from . import ImageFile
 from . import Source
 
 _CONTENT_END = b'[]'
@@ -46,14 +46,14 @@ class YandeRe(Source):
                               (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         posts: Optional[list] = None
         params['page'] = '1'
         params['limit'] = '100'
         while True:
             if not posts:
                 response = request.get(URL_POSTS, params)
-                if (response.status_code == http.HTTPStatus.NOT_MODIFIED
+                if (response.status_code == request.Status.NOT_MODIFIED
                         and response.content == _CONTENT_END):
                     params['page'] = '1'
                     continue
@@ -64,12 +64,12 @@ class YandeRe(Source):
                 yield
                 continue
             post = posts.pop(0)
-            yield files.ImageFile(post['file_url'], size=post['file_size'], width=post[
+            yield ImageFile(post['file_url'], size=post['file_size'], width=post[
                 'width'], height=post['height'], sketchy=post['rating'] == 'q',
-                                  nsfw=post['rating'] == 'e', md5=post['md5'])
+                            nsfw=post['rating'] == 'e', md5=post['md5'])
 
     @classmethod
-    def filter_image(cls, image: files.ImageFile) -> bool:
+    def filter_image(cls, image: ImageFile) -> bool:
         if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_ORIENTATIONS], (
                 image.is_landscape(), image.is_portrait()))):
             return False

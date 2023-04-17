@@ -623,7 +623,12 @@ def _test_hook():
 
 
 def _test():
-    pass
+    url = r'https://stocksnap.io/photo/WSWGDBT8X9'
+    resp = request.get(url)
+    for cookie in resp.cookies:
+        print(vars(cookie))
+    from libs.request import har
+    print(har.encode(request.Request('GET', 'https://stocksnap.io/photo/WSWGDBT8X9', cookies=resp.cookies)))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

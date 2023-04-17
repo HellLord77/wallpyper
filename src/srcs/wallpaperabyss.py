@@ -6,8 +6,9 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 import win32
-from libs import colornames, files, minihtml, request
+from libs import colornames, minihtml, request
 from libs.request import cloudflare
+from . import ImageFile
 from . import Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
@@ -141,7 +142,7 @@ class WallpaperAbyss(Source):
         on_method(cls.CURRENT_CONFIG[CONFIG_METHOD])
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         images: Optional[list] = None
         url = request.join_url(URL_BASE, f'{cls.CURRENT_CONFIG[CONFIG_METHOD]}.php')
         query = {'page': '1'}
@@ -188,7 +189,7 @@ class WallpaperAbyss(Source):
                 name += '-'
             name += os.path.basename(url_image)
             width, height = map(int, image[1][0][0].get_data().split('x'))
-            yield files.ImageFile(url_image, name, width=width, height=height)
+            yield ImageFile(url_image, name, width=width, height=height)
 
     @classmethod
     def _on_method(cls, enable_resolution_filter: Callable[[bool], bool],

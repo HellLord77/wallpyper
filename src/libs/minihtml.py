@@ -7,7 +7,7 @@ import itertools
 import re
 import shutil
 import typing
-from typing import Callable, Container, IO, Iterable, Iterator, Mapping, Optional
+from typing import Callable, Container, Iterable, Iterator, Mapping, Optional, TextIO
 
 _TPattern = str | re.Pattern | Container[str] | Callable[[str], bool]
 
@@ -220,7 +220,7 @@ def find_elements(parent_or_elements: Element | Iterable[Element], name: Optiona
         count -= 1
 
 
-def load(file: IO) -> Optional[Element]:
+def load(file: TextIO) -> Optional[Element]:
     parser = _Parser()
     while buffer := file.read(MAX_CHUNK):
         parser.feed(buffer)

@@ -6,6 +6,7 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import files, isocodes, request
+from . import ImageFile
 from . import Source
 
 URL_BASE = request.join_url('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
@@ -43,7 +44,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         items: Optional[list] = None
         params['pid'] = '209567'
         params['fmt'] = 'json'
@@ -61,6 +62,6 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
             image = json.loads(items.pop(0)['item'])['ad'][
                 f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
-            yield files.ImageFile(url, files.replace_ext(os.path.basename(
+            yield ImageFile(url, files.replace_ext(os.path.basename(
                 request.strip_url(url)), 'jpg'), int(image['fileSize']), width=int(
                 image['w']), height=int(image['h']), sha256=base64.b64decode(image['sha256']))

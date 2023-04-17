@@ -1,15 +1,149 @@
 from __future__ import annotations as _
 
-__version__ = '0.1.3'
+__version__ = '0.2.0'
 
+import binascii
+import dataclasses
+import hashlib
 import os
+import tempfile
+import urllib.parse
 from types import ModuleType
 from typing import Any, Callable, Iterator, Optional, TypedDict, final
 
 import langs
-from libs import callables, files
+from libs import callables, files, request, utils
 
 SOURCES: dict[str, type[Source]] = {}
+
+
+@dataclasses.dataclass
+class File:
+    request: str | request.Request
+    name: str = ''
+    size: int = 0
+    sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
+    md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        cls.__hash__ = cls.__hash__
+        cls.__eq__ = cls.__eq__
+
+    def __post_init__(self):
+        if isinstance(self.request, str):
+            self.request = request.Request(request.Method.GET, self.request)
+        if not self.name:
+            self.name = urllib.parse.unquote_plus(
+                os.path.basename(request.strip_url(self.request.url)))
+        for algorithm, hash_ in self._iter_hashes():
+            if not isinstance(hash_, bytes):
+                setattr(self, algorithm, bytes.fromhex(hash_))
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __str__(self):
+        return repr(self).replace(f'request={self.request!r}', f'url={self.request.url}', 1).replace(
+            f', size={self.size}', f', size={files.Size(self.size)}' if self.size else '', 1)
+
+    def __eq__(self, other):
+        if isinstance(other, File):
+            return self.name == other.name
+        return NotImplemented
+
+    @classmethod
+    def fromdict(cls, data: dict[str, Any]) -> Optional[File]:
+        request_ = utils.decrypt(data.pop('request'))
+        if request_ is not utils.DEFAULT:
+            return callables.ReducedCallable(cls)(request_, **data)
+
+    def _iter_hashes(self) -> Iterator[tuple[str, bytes | str]]:
+        for algorithm in hashlib.algorithms_available:
+            if hasattr(self, algorithm):
+                yield algorithm, getattr(self, algorithm)
+
+    def _iter_filled_hashes(self) -> Iterator[tuple[str, bytes]]:
+        for algorithm, hash_ in self._iter_hashes():
+            if hash_:
+                yield algorithm, hash_
+
+    def asdict(self) -> dict[str, Any]:
+        result: dict = {'request': utils.encrypt(
+            self.request, as_string=True), 'name': self.name}
+        if self.size:
+            result['size'] = self.size
+        for algorithm, hash_ in self._iter_filled_hashes():
+            result[algorithm] = binascii.hexlify(hash_).decode()
+        return result
+
+    def checksize(self, path: str) -> bool:
+        if self.size:
+            try:
+                return self.size == os.path.getsize(path)
+            except OSError:
+                pass
+        return False
+
+    def checksum(self, path: str) -> bool:
+        for algorithm, hash_ in self._iter_filled_hashes():
+            try:
+                return files.checksum(path, hash_, algorithm)
+            except OSError:
+                break
+        return False
+
+    def fill(self, path: str) -> bool:
+        if not self.size:
+            try:
+                self.size = os.path.getsize(path)
+            except OSError:
+                return False
+        if not any(self._iter_filled_hashes()):
+            for algorithm, hash_ in self._iter_hashes():
+                if not hash_:
+                    try:
+                        hash_ = files.get_hash(path, algorithm)
+                    except OSError:
+                        return False
+                    else:
+                        setattr(self, algorithm, hash_.digest())
+                        break
+        return True
+
+
+@dataclasses.dataclass
+class ImageFile(File):
+    width: int = 0
+    height: int = 0
+    sketchy: bool = False
+    nsfw: bool = False
+
+    def asdict(self) -> dict[str, Any]:
+        result = super().asdict()
+        if self.width:
+            result['width'] = self.width
+        if self.height:
+            result['height'] = self.height
+        if self.sketchy:
+            result['sketchy'] = self.sketchy
+        if self.nsfw:
+            result['nsfw'] = self.nsfw
+        for algorithm, _ in self._iter_filled_hashes():
+            result[algorithm] = result.pop(algorithm)
+        return result
+
+    def is_animated(self) -> bool:  # TODO
+        return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
+
+    def is_portrait(self) -> bool:
+        return self.width < self.height
+
+    def is_landscape(self) -> bool:
+        return self.width > self.height
+
+    def is_sfw(self) -> bool:
+        return not self.sketchy and not self.nsfw
 
 
 class Source:
@@ -21,6 +155,7 @@ class Source:
     DEFAULT_CONFIG: TCONFIG = None
     CURRENT_CONFIG: TCONFIG = None
 
+    TEMP_DIR = tempfile.gettempdir()
     STRINGS: ModuleType = langs.DEFAULT
 
     def __init_subclass__(cls):
@@ -49,16 +184,15 @@ class Source:
 
     @classmethod
     @callables.LastCacheCallable
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         raise NotImplementedError
 
     @classmethod
-    def filter_image(cls, image: files.File) -> bool:
+    def filter_image(cls, image: File) -> bool:
         return True
 
 
 from . import (
-    _shutterstock,
     bing,
     doesnotexist,
     facets,
@@ -67,8 +201,10 @@ from . import (
     pexels,
     pixabay,
     reddit,
+    shutterstock,
     simpledesktops,
     spotlight,
+    stocksnap,
     unsplash,
     wallhaven,
     wallhere,

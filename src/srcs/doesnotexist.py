@@ -3,7 +3,8 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request
+from libs import request
+from . import File
 from . import Source
 
 CONFIG_VARIANT = 'variant'
@@ -33,9 +34,9 @@ class DoesNotExist(Source):
             cls.STRINGS, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
             url = request.join_url(url, 'image')
         while True:
-            yield files.File(url, f'{uuid.uuid4()}.jpg')
+            yield File(url, f'{uuid.uuid4()}.jpg')

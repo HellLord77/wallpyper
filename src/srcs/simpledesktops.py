@@ -1,10 +1,10 @@
-import http
 import operator
 from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request, minihtml, utils
+from libs import request, minihtml, utils
+from . import File
 from . import Source
 
 _ATTRS = {'class': 'desktop'}
@@ -43,7 +43,7 @@ class SimpleDesktops(Source):
         cls._set_tooltip(cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(_PAGE))
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         desktops: Optional[list] = None
         _PAGE.set(params.pop(CONFIG_PAGE))
         while True:
@@ -51,7 +51,7 @@ class SimpleDesktops(Source):
                 cls._set_tooltip(
                     cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(_PAGE))
                 response = request.get(request.join_url(URL_BROWSE, str(_PAGE)))
-                if response.status_code == http.HTTPStatus.NOT_FOUND:
+                if response.status_code == request.Status.NOT_FOUND:
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
                     continue
                 if response:
@@ -59,7 +59,7 @@ class SimpleDesktops(Source):
             if not desktops:
                 yield
                 continue
-            desktop = files.File(desktops.pop(0)[0][0]['src'].rsplit('.', 2)[0])
+            desktop = File(desktops.pop(0)[0][0]['src'].rsplit('.', 2)[0])
             operator.iadd(_PAGE, not desktops)
             yield desktop
 

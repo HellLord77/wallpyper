@@ -4,7 +4,8 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, isocodes, request
+from libs import isocodes, request
+from . import File
 from . import Source
 
 URL_BASE = request.join_url('https://api.pexels.com', 'v1')
@@ -83,7 +84,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                                                                    for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         photos: Optional[list] = None
         headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
@@ -104,4 +105,4 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                     yield
                     continue
             url_photo = photos.pop(0)['src']['original']
-            yield files.File(url_photo, os.path.basename(request.strip_url(url_photo)))
+            yield File(url_photo, os.path.basename(request.strip_url(url_photo)))

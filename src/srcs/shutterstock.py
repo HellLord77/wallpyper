@@ -1,6 +1,7 @@
 from typing import Iterator, Optional, TypedDict
 
-from libs import files, request
+from libs import request
+from . import File
 from . import Source
 
 URL_BASE = request.join_url('https://api.shutterstock.com', 'v2')
@@ -69,7 +70,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
         CONFIG_SORT: SORTS[0]}
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         datas: Optional[list] = None
         auth = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'

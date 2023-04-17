@@ -5,6 +5,7 @@ import gui
 import validator
 import win32
 from libs import files, request
+from . import File
 from . import Source
 
 CONFIG_DIR = 'dir'
@@ -55,7 +56,7 @@ class FolderLocal(Source):
             cls.STRINGS, f'FOLDER_LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         results: Optional[list] = None
         while True:
             if not results:
@@ -63,11 +64,12 @@ class FolderLocal(Source):
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
                 results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
             path = results.pop(0)
-            yield files.File(request.from_path(path), size=os.path.getsize(path))
+            yield File(request.from_path(path), size=os.path.getsize(path))
 
     @classmethod
     def _on_dir(cls, set_tooltip: Callable) -> bool:
-        if path := win32.dialog.open_folder(cls.CURRENT_CONFIG[CONFIG_DIR], cls.STRINGS.LOCAL_MENU_DIR):
+        if (path := win32.dialog.open_folder(
+                cls.CURRENT_CONFIG[CONFIG_DIR], cls.STRINGS.LOCAL_MENU_DIR)) is not None:
             cls.CURRENT_CONFIG[CONFIG_DIR] = path
             set_tooltip(path)
         return bool(path)

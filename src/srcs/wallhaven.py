@@ -6,7 +6,8 @@ from typing import Callable, Iterator, Optional, TypedDict, ValuesView
 import gui
 import validator
 import win32
-from libs import colornames, files, request
+from libs import colornames, request
+from . import ImageFile
 from . import Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
@@ -150,7 +151,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                 item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         datas: Optional[list] = None
         if params[CONFIG_SORTING] != SORTINGS[5]:
             del params[CONFIG_RANGE]
@@ -170,9 +171,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             data = datas.pop(0)
             url = data['path']
             purity = data['purity']
-            yield files.ImageFile(url, size=data['file_size'], width=data[
+            yield ImageFile(url, size=data['file_size'], width=data[
                 'dimension_x'], height=data['dimension_y'],
-                                  sketchy=purity == PURITIES[1], nsfw=purity == PURITIES[2])
+                            sketchy=purity == PURITIES[1], nsfw=purity == PURITIES[2])
 
     @classmethod
     def _on_purity(cls, items: ValuesView[gui.MenuItem]):

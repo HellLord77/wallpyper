@@ -3,7 +3,8 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request
+from libs import request
+from . import ImageFile
 from . import Source
 
 _PARAMS = {
@@ -91,7 +92,7 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
             for sort_direction in SORT_DIRECTIONS}, cls.CURRENT_CONFIG, CONFIG_SORT_DIRECTION)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         photos: Optional[list] = None
         params['rpp'] = '100'
         while True:
@@ -108,8 +109,8 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
                     yield
                     continue
             photo = photos.pop(0)
-            yield files.ImageFile(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}',
-                                  width=photo['width'], height=photo[
+            yield ImageFile(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}',
+                            width=photo['width'], height=photo[
                     'height'], sketchy=photo['has_nsfw_tags'], nsfw=photo['nsfw'])
 
     @classmethod

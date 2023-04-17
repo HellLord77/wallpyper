@@ -2,7 +2,6 @@ from __future__ import annotations as _
 
 __version__ = '0.0.16'
 
-import dataclasses
 import filecmp
 import glob
 import hashlib
@@ -11,7 +10,6 @@ import os
 import shutil
 import sys
 import time
-import urllib.parse
 from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Optional
 
 import _hashlib
@@ -19,123 +17,6 @@ import _hashlib
 # noinspection PyUnresolvedReferences
 MAX_CHUNK = shutil.COPY_BUFSIZE
 POLL_INTERVAL = 0.1
-
-
-@dataclasses.dataclass
-class File:
-    url: str
-    name: str = ''
-    size: int = 0
-    sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
-    md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
-
-    def __init_subclass__(cls):
-        super().__init_subclass__()
-        cls.__hash__ = cls.__hash__
-        cls.__eq__ = cls.__eq__
-
-    def __post_init__(self):
-        if not self.name:
-            self.name = urllib.parse.unquote_plus(os.path.basename(self.url))
-        for algorithm, hash_ in self._iter_hashes():
-            if not isinstance(hash_, bytes):
-                setattr(self, algorithm, bytes.fromhex(hash_))
-
-    def __hash__(self):
-        return hash(self.url)
-
-    def __str__(self):
-        return repr(self).replace(f', size={self.size}',
-                                  f', size={Size(self.size)}' if self.size else '', 1)
-
-    def __eq__(self, other):
-        if isinstance(other, File):
-            return self.url == other.url
-        return NotImplemented
-
-    def _iter_hashes(self) -> Iterator[tuple[str, bytes | str]]:
-        for algorithm in hashlib.algorithms_available:
-            if hasattr(self, algorithm):
-                yield algorithm, getattr(self, algorithm)
-
-    def _iter_filled_hashes(self) -> Iterator[tuple[str, bytes]]:
-        for algorithm, hash_ in self._iter_hashes():
-            if hash_:
-                yield algorithm, hash_
-
-    def asdict(self) -> dict[str, Any]:
-        result: dict = {'url': self.url, 'name': self.name}
-        if self.size:
-            result['size'] = self.size
-        for algorithm, hash_ in self._iter_filled_hashes():
-            result[algorithm] = ''.join(f'{b:02x}' for b in hash_)
-        return result
-
-    def checksize(self, path: str) -> bool:
-        if self.size:
-            try:
-                return self.size == os.path.getsize(path)
-            except OSError:
-                pass
-        return False
-
-    def checksum(self, path: str) -> bool:
-        for algorithm, hash_ in self._iter_filled_hashes():
-            try:
-                return checksum(path, hash_, algorithm)
-            except OSError:
-                break
-        return False
-
-    def fill(self, path: str) -> bool:
-        if not self.size:
-            try:
-                self.size = os.path.getsize(path)
-            except OSError:
-                return False
-        if not any(self._iter_filled_hashes()):
-            for algorithm, hash_ in self._iter_hashes():
-                if not hash_:
-                    try:
-                        hash_ = get_hash(path, algorithm)
-                    except OSError:
-                        return False
-                    else:
-                        setattr(self, algorithm, hash_.digest())
-                        break
-        return True
-
-
-@dataclasses.dataclass
-class ImageFile(File):
-    width: int = 0
-    height: int = 0
-    sketchy: bool = False
-    nsfw: bool = False
-
-    def asdict(self) -> dict[str, Any]:
-        result = super().asdict()
-        if self.width:
-            result['width'] = self.width
-        if self.height:
-            result['height'] = self.height
-        if self.nsfw:
-            result['nsfw'] = self.nsfw
-        for algorithm, _ in self._iter_filled_hashes():
-            result[algorithm] = result.pop(algorithm)
-        return result
-
-    def is_animated(self) -> bool:  # TODO
-        return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
-
-    def is_portrait(self) -> bool:
-        return self.width < self.height
-
-    def is_landscape(self) -> bool:
-        return self.width > self.height
-
-    def is_sfw(self) -> bool:
-        return not self.sketchy and not self.nsfw
 
 
 class Size(int):

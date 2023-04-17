@@ -3,7 +3,8 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request, minihtml
+from libs import request, minihtml
+from . import ImageFile
 from . import Source
 
 # noinspection HttpUrlsUsage
@@ -58,7 +59,7 @@ class WallpaperFlare(Source):
         on_search(cls.CURRENT_CONFIG[CONFIG_SEARCH])
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         items: Optional[list] = None
         mobile = params.pop(CONFIG_MOBILE)
         if params.pop(CONFIG_SEARCH):
@@ -91,7 +92,7 @@ class WallpaperFlare(Source):
                 continue
             html = minihtml.loads(response_item.text)
             info = html.find('div', _ATTR_INFO)
-            yield files.ImageFile(html.find('img', _ATTRS_SRC)['src'], width=int(
+            yield ImageFile(html.find('img', _ATTRS_SRC)['src'], width=int(
                 info[0][0].get_data()), height=int(info[1][0].get_data()))
 
     @classmethod

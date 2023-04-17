@@ -7,6 +7,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import callables, files, request, utils
+from . import ImageFile
 from . import Source
 
 _TOKEN_TOLERANCE = 30.0
@@ -118,6 +119,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
             cls.STRINGS, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
                               CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
         _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
+        gui.add_separator()
         gui.add_submenu_check(cls.STRINGS.REDDIT_MENU_ORIENTATIONS, (getattr(
             cls.STRINGS, f'REDDIT_ORIENTATION_{orientation}') for orientation in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
@@ -127,7 +129,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         gui.add_menu_item_check(cls.STRINGS.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         children: Optional[list] = None
         sort = params.pop(CONFIG_SORT)
         url = request.join_url(URL_BASE, params.pop(CONFIG_SUBS), sort)
@@ -149,11 +151,11 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
             data = children.pop(0)['data']
             url_child = data['url']
             source = data['preview']['images'][0]['source']
-            yield files.ImageFile(url_child, files.replace_ext(data["title"], os.path.splitext(url_child)[1]),
-                                  width=source['width'], height=source['height'], nsfw=data['over_18'])
+            yield ImageFile(url_child, files.replace_ext(data["title"], os.path.splitext(url_child)[1]),
+                            width=source['width'], height=source['height'], nsfw=data['over_18'])
 
     @classmethod
-    def filter_image(cls, image: files.ImageFile) -> bool:
+    def filter_image(cls, image: ImageFile) -> bool:
         if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_ORIENTATIONS], (
                 image.is_landscape(), image.is_portrait()))):
             return False

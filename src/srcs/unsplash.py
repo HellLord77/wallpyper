@@ -5,6 +5,7 @@ from typing import Callable, ItemsView, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import files, request
+from . import File
 from . import Source
 
 URL_BASE = 'https://api.unsplash.com'
@@ -80,7 +81,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
                 for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         results: Optional[list] = None
         if params.pop(CONFIG_EDITORIAL):
             url = URL_EDITORIAL
@@ -100,7 +101,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
                     params['page'] = str(int(params['page']) % (sys.maxsize if cls.CURRENT_CONFIG[
                         CONFIG_EDITORIAL] else int(json['total_pages'])) + 1)
             result = results.pop(0)
-            yield files.File(result['urls']['raw'], files.replace_ext(result['id'], 'jpg'))
+            yield File(result['urls']['raw'], files.replace_ext(result['id'], 'jpg'))
 
     @classmethod
     def _fix_order(cls):
@@ -108,7 +109,8 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else ORDERS_)
 
     @classmethod
-    def _on_editorial(cls, enable: Callable[[bool], bool], items: ItemsView[str, gui.MenuItem], editorial: bool):
+    def _on_editorial(cls, enable: Callable[[bool], bool],
+                      items: ItemsView[str, gui.MenuItem], editorial: bool):
         enable(not editorial)
         cls._fix_order()
         for order, item in items:

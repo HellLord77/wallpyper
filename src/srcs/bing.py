@@ -3,7 +3,8 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, isocodes, request
+from libs import isocodes, request
+from . import ImageFile
 from . import Source
 
 URL_BASE = 'https://www.bing.com'
@@ -49,7 +50,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
                                for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         images: Optional[list] = None
         params['format'] = 'js'
         params['n'] = '8'
@@ -75,5 +76,5 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
             resolution = cls.CURRENT_CONFIG[CONFIG_RESOLUTION]
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{resolution}{ext}'
             width, height = (0, 0) if RESOLUTIONS[6] == resolution else map(int, resolution.split('x'))
-            yield files.ImageFile(request.encode_params(URL_IMAGE, query),
-                                  query['id'][0][4:], width=width, height=height)
+            yield ImageFile(request.encode_params(URL_IMAGE, query),
+                            query['id'][0][4:], width=width, height=height)

@@ -4,7 +4,8 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, request
+from libs import request
+from . import File
 from . import Source
 
 _OWNER = '0xa52578c6ada18248d95805083ed148957573e4eb'
@@ -68,7 +69,7 @@ class Facets(Source):
             for device in DEVICES}, cls.CURRENT_CONFIG, CONFIG_DEVICE)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         arts: Optional[list] = None
         while True:
             if not arts:
@@ -82,15 +83,15 @@ class Facets(Source):
                 yield
                 continue
             art = arts.pop(0)
-            file = files.File(art[f'path{cls.CURRENT_CONFIG[CONFIG_DEVICE]}'],
-                              name=f'{art["name"]}{os.path.splitext(art["pathThumbnail"])[1]}')
+            file = File(art[f'path{cls.CURRENT_CONFIG[CONFIG_DEVICE]}'],
+                        name=f'{art["name"]}{os.path.splitext(art["pathThumbnail"])[1]}')
             file._year = int(art['date'])
             file._series = art['series'] or ''
             file._id = art['id']
             yield file
 
     @classmethod
-    def filter_image(cls, image: files.File) -> bool:
+    def filter_image(cls, image: File) -> bool:
         if ((year := getattr(image, '_year', None)) is not None and
                 not cls.CURRENT_CONFIG[CONFIG_YEAR][YEARS.index(year)]):
             return False

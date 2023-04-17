@@ -6,11 +6,12 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 import win32
-from libs import colornames, files, request, minihtml
+from libs import colornames, request, minihtml
+from . import ImageFile
 from . import Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS = {'type': 'application/ld+json'}
+_ATTRS_JSON = {'type': 'application/ld+json'}
 
 URL_BASE = 'https://wallhere.com'
 URL_API = request.join_url(URL_BASE, 'en')
@@ -100,7 +101,7 @@ class WallHere(Source):
         gui.add_menu_item_check(cls.STRINGS.WALLHERE_LABEL_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         items: Optional[list] = None
         if params.pop(CONFIG_RANDOM):
             url = URL_RANDOM
@@ -127,8 +128,8 @@ class WallHere(Source):
                 items.insert(0, item)
                 yield
                 continue
-            data = json.loads(minihtml.loads(response_item.text).find('script', _ATTRS).get_data())
+            data = json.loads(minihtml.loads(response_item.text).find('script', _ATTRS_JSON).get_data())
             content_url = data['contentUrl']
             classes = item.get_class()
-            yield files.ImageFile(content_url, width=int(data['width'][:-2]), height=int(
+            yield ImageFile(content_url, width=int(data['width'][:-2]), height=int(
                 data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)

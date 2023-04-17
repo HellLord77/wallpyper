@@ -30,7 +30,7 @@ CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
 LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
-TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
+TEMP_DIR = srcs.Source.TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 
 CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
@@ -44,12 +44,12 @@ DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = utils.MutableBool()
 PROGRESS = utils.MutableFloat()
 TIMER = timer.Timer.__new__(timer.Timer)
-RECENT: collections.deque[files.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
+RECENT: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}_{uuid.uuid4().hex}')
 
 TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_FIRST_RUN: bool,
-    consts.CONFIG_RECENT_IMAGES: list[typed.type_dataclass_asdict(files.ImageFile)],
+    consts.CONFIG_RECENT_IMAGES: list[typed.type_dataclass_asdict(srcs.ImageFile)],
     consts.CONFIG_ACTIVE_DISPLAY: str,
     consts.CONFIG_ACTIVE_SOURCE: str,
     consts.CONFIG_ANIMATE_ICON: bool,
@@ -133,8 +133,8 @@ def fix_config(saving: bool = False):
     if saving:
         CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
     else:
-        image_file = callables.ReducedCallable(files.ImageFile)
-        RECENT.extend(image_file(**kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])
+        RECENT.extend(filter(None, (srcs.ImageFile.fromdict(
+            kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])))
 
 
 def create_menu():
@@ -276,7 +276,7 @@ def create_menu():
         RES_TEMPLATE.format(consts.RES_QUIT))
 
 
-def get_image() -> Optional[files.File]:
+def get_image() -> Optional[srcs.File]:
     source = srcs.SOURCES[CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]]
     params = {key: val for key, val in source.CURRENT_CONFIG.items() if not key.startswith('_')}
     first_image = None
@@ -297,7 +297,7 @@ def get_image() -> Optional[files.File]:
             return next_image
 
 
-def filter_image(image: files.File) -> bool:
+def filter_image(image: srcs.File) -> bool:
     if CURRENT_CONFIG[consts.CONFIG_SKIP_RECENT] and image in RECENT:
         return False
     return True
@@ -341,7 +341,9 @@ def try_remove_temp(force: bool = False) -> bool:
         return True
 
 
-def try_show_notification(title: str, text: str, icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE, force: bool = False) -> bool:
+def try_show_notification(title: str, text: str,
+                          icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE,
+                          force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
         while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
@@ -407,17 +409,18 @@ def print_progress():
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_image(image: files.File, query_callback: Optional[Callable[[float], bool]] = None) -> Optional[str]:
+def download_image(image: srcs.File, query_callback: Optional[Callable[[float], bool]] = None) -> Optional[str]:
     try_remove_temp()
-    with _download_lock(image.url), gui.try_animate_icon(STRINGS.STATUS_DOWNLOAD):
+    with _download_lock(image.name), gui.try_animate_icon(STRINGS.STATUS_DOWNLOAD):
         path = os.path.join(TEMP_DIR, image.name)
         PROGRESS.clear()
         print(f'[🌐] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         try:
-            if ((consts.FEATURE_UNSAFE_CACHE and image.checksize(path)) or image.checksum(path) or
-                request.retrieve(image.url, path, image.size, chunk_count=100,
+            if (image.request.url == request.from_path(path) or
+                (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or
+                request.retrieve(image.request, path, image.size, chunk_count=100,
                                  query_callback=query_callback)) and image.fill(path):
                 return path
         finally:
@@ -425,7 +428,7 @@ def download_image(image: files.File, query_callback: Optional[Callable[[float],
 
 
 @callables.SingletonCallable
-def change_wallpaper(image: Optional[files.File] = None,
+def change_wallpaper(image: Optional[srcs.File] = None,
                      query_callback: Optional[Callable[[float], bool]] = None) -> bool:
     changed = False
     if image is None:
@@ -438,7 +441,7 @@ def change_wallpaper(image: Optional[files.File] = None,
         image.name = utils.shrink_string_mid(
             win32.sanitize_filename(image.name), consts.MAX_FILENAME_LEN)
         if not image.size:
-            image.size = request.sizeof(image.url)
+            image.size = request.sizeof(image.request)
         try:
             RECENT.remove(image)
         except ValueError:
@@ -502,7 +505,7 @@ def on_search(url: str, engine: str) -> bool:
 @timer.on_thread
 def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
               query_callback: Callable[[float], bool],
-              image: Optional[files.File] = None, auto_change: bool = True) -> bool:
+              image: Optional[srcs.File] = None, auto_change: bool = True) -> bool:
     changed = False
     if auto_change:
         if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != MAXIMIZED_ACTIONS[0] and all(
@@ -530,7 +533,7 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
 
 
 def on_image_func(callback: callables.SingletonCallable[[str], bool],
-                  image: files.File, title: str, text: str) -> bool:
+                  image: srcs.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -557,7 +560,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
         items = gui.get_menu_items()
         for index, image in enumerate(RECENT):
             if image in items:
-                item_image = items[image.url]
+                item_image = items[image.name]
                 submenu = item_image.get_submenu()
                 menu.remove_item(item_image)
             else:
@@ -585,7 +588,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         on_image_func, win32.open_file_path, image, STRINGS.LABEL_OPEN_EXPLORER,
                         STRINGS.FAIL_OPEN_EXPLORER)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
                     gui.add_menu_item(STRINGS.LABEL_OPEN_BROWSER, on_click=functools.partial(
-                        on_open_url, image.url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
+                        on_open_url, image.request.url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(STRINGS.LABEL_COPY_PATH, on_click=functools.partial(
                         on_image_func, win32.clipboard.copy_text, image, STRINGS.LABEL_COPY_PATH,
@@ -594,26 +597,26 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         on_image_func, win32.clipboard.copy_image, image, STRINGS.LABEL_COPY,
                         STRINGS.FAIL_COPY)).set_icon(RES_TEMPLATE.format(consts.RES_COPY))
                     gui.add_menu_item(STRINGS.LABEL_COPY_URL, on_click=functools.partial(
-                        on_copy_url, image.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
+                        on_copy_url, image.request.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
                     if consts.FEATURE_SEARCH_GOOGLE:
                         gui.add_menu_item(STRINGS.LABEL_GOOGLE, on_click=functools.partial(
                             on_image_func, search_image, image, STRINGS.LABEL_GOOGLE,
                             STRINGS.FAIL_SEARCH)).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
                     with gui.set_menu(gui.add_submenu(STRINGS.LABEL_SEARCH, not request.is_path(
-                            image.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
+                            image.request.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
                         for engine in lens.Engine:
                             # noinspection PyUnresolvedReferences
                             gui.add_menu_item(getattr(STRINGS, f'LABEL_SEARCH_{engine.name}'), uid=engine.name,
-                                              on_click=functools.partial(on_search, image.url),
+                                              on_click=functools.partial(on_search, image.request.url),
                                               args=(gui.MenuItemProperty.UID,)).set_icon(
                                 RES_TEMPLATE.format(consts.TEMPLATE_RES_SEARCH.format(engine.name)))
             item_image = menu.insert_item(index, utils.shrink_string(
                 image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.TEMPLATE_RES_DIGIT.format(index + 1)), submenu=submenu)
-            item_image.set_tooltip(image.url, f'{image.name} ({files.Size(image.size)})', os.path.join(
+            item_image.set_tooltip(image.request.url, f'{image.name} ({files.Size(image.size)})', os.path.join(
                 TEMP_DIR, image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
-            item_image.set_uid(image.url)
+            item_image.set_uid(image.name)
     for uid, item_image in items.items():
         if uid and uid not in RECENT:
             menu.remove_item(item_image)

@@ -1,12 +1,12 @@
 import functools
-import http
 import os.path
 import re
 from typing import ItemsView, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import files, isocodes, request
+from libs import isocodes, request
+from . import File
 from . import Source
 
 _CONTENT_END = b'[ERROR 400] "page" is out of valid range.'
@@ -103,14 +103,14 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             cls.STRINGS, f'PIXABAY_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[files.File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File]]:
         hits: Optional[list] = None
         params['page'] = '1'
         params['per_page'] = '200'
         while True:
             if not hits:
                 response = request.get(URL_BASE, params)
-                if (http.HTTPStatus.BAD_REQUEST == response.status_code and
+                if (request.Status.BAD_REQUEST == response.status_code and
                         response.content == _CONTENT_END):
                     params['page'] = '1'
                     continue
@@ -121,7 +121,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
                     return
             hit = hits.pop(0)
             name = os.path.basename(hit['previewURL'])
-            yield files.File(hit['largeImageURL'], f'{name[:name.rfind("_")]}{name[name.rfind("."):]}')
+            yield File(hit['largeImageURL'], f'{name[:name.rfind("_")]}{name[name.rfind("."):]}')
 
     @classmethod
     def _on_color(cls, items: ItemsView[str, gui.MenuItem]):
