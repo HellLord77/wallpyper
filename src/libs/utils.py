@@ -606,22 +606,23 @@ def encrypt(obj, key: Optional[bytes | bytearray | int | float | str] = None,
 
 
 # noinspection PyShadowingBuiltins,PyShadowingNames,PyTypeHints
-def decrypt(data: bytes | bytearray | str, default=DEFAULT,
+def decrypt(data: bytes | bytearray | str,
             key: Optional[bytes | bytearray | int | float | str] = None,
             hash: Optional[str | _hashlib.HASH | Callable] = hashlib.sha256,
-            decompress: Optional[Literal[zlib, gzip, bz2, lzma] | Callable] = zlib) -> Any:
+            decompress: Optional[Literal[zlib, gzip, bz2, lzma] | Callable] = zlib,
+            on_error=DEFAULT) -> Any:
     if isinstance(data, str):
         try:
             data = base64.b64decode(data.encode(), validate=True)
         except binascii.Error:
-            return default
+            return on_error
     if decompress is not None:
         if not callable(decompress):
             decompress = decompress.decompress
         try:
             data = decompress(data)
         except (OSError, zlib.error, gzip.BadGzipFile, lzma.LZMAError):
-            return default
+            return on_error
     size = hashlib.blake2b.MAX_DIGEST_SIZE if hash is None else hmac.new(
         b'', digestmod=hash).digest_size
     pickled = data[size:]
@@ -630,7 +631,7 @@ def decrypt(data: bytes | bytearray | str, default=DEFAULT,
             return pickle.loads(pickled)
         except pickle.UnpicklingError:
             pass
-    return default
+    return on_error
 
 
 # noinspection PyShadowingBuiltins

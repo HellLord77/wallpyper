@@ -113,20 +113,20 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def create_menu(cls):
-        item_time_enable = gui.add_submenu_radio(cls.STRINGS.REDDIT_MENU_TIME, {time_: getattr(
-            cls.STRINGS, f'REDDIT_TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
-        gui.add_submenu_radio(cls.STRINGS.REDDIT_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'REDDIT_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
-                              CONFIG_SORT, on_click=functools.partial(_on_sort, item_time_enable), position=0)
+        item_time_enable = gui.add_submenu_radio(cls._text('MENU_TIME'), {time_: cls._text(
+            f'TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
+        gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
+            f'SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT,
+                              on_click=functools.partial(_on_sort, item_time_enable), position=0)
         _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
         gui.add_separator()
-        gui.add_submenu_check(cls.STRINGS.REDDIT_MENU_ORIENTATIONS, (getattr(
-            cls.STRINGS, f'REDDIT_ORIENTATION_{orientation}') for orientation in range(2)),
+        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (
+            cls._text(f'ORIENTATION_{orientation}') for orientation in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
-        gui.add_submenu_check(cls.STRINGS.REDDIT_MENU_RATINGS, (getattr(
-            cls.STRINGS, f'REDDIT_RATING_{rating}') for rating in range(2)),
+        gui.add_submenu_check(cls._text('MENU_RATINGS'), (
+            cls._text(f'RATING_{rating}') for rating in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
-        gui.add_menu_item_check(cls.STRINGS.REDDIT_LABEL_STATIC, cls.CURRENT_CONFIG, CONFIG_STATIC)
+        gui.add_menu_item_check(cls._text('LABEL_STATIC'), cls.CURRENT_CONFIG, CONFIG_STATIC)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

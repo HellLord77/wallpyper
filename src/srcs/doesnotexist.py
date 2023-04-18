@@ -30,8 +30,8 @@ class DoesNotExist(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_radio(cls.STRINGS.DOESNOTEXIST_MENU_VARIANT, {variant: getattr(
-            cls.STRINGS, f'DOESNOTEXIST_VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
+        gui.add_submenu_radio(cls._text('MENU_VARIANT'), {variant: cls._text(
+            f'VARIANT_{variant}') for variant in VARIANTS}, cls.CURRENT_CONFIG, CONFIG_VARIANT)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:

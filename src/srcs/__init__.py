@@ -1,19 +1,20 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 import binascii
 import dataclasses
 import hashlib
 import os
-import tempfile
 import urllib.parse
-from types import ModuleType
 from typing import Any, Callable, Iterator, Optional, TypedDict, final
 
+import consts
 import langs
+import win32
 from libs import callables, files, request, utils
 
+KEY: Optional[bytes | str] = None
 SOURCES: dict[str, type[Source]] = {}
 
 
@@ -36,6 +37,10 @@ class File:
         if not self.name:
             self.name = urllib.parse.unquote_plus(
                 os.path.basename(request.strip_url(self.request.url)))
+        self.name = utils.shrink_string_mid(
+            win32.sanitize_filename(self.name), consts.MAX_FILENAME_LEN)
+        if not self.size:
+            self.size = request.sizeof(self.request)
         for algorithm, hash_ in self._iter_hashes():
             if not isinstance(hash_, bytes):
                 setattr(self, algorithm, bytes.fromhex(hash_))
@@ -45,7 +50,7 @@ class File:
 
     def __str__(self):
         return repr(self).replace(f'request={self.request!r}', f'url={self.request.url}', 1).replace(
-            f', size={self.size}', f', size={files.Size(self.size)}' if self.size else '', 1)
+            f'size={self.size}', f'size={files.Size(self.size)}' if self.size else '', 1)
 
     def __eq__(self, other):
         if isinstance(other, File):
@@ -54,30 +59,22 @@ class File:
 
     @classmethod
     def fromdict(cls, data: dict[str, Any]) -> Optional[File]:
-        request_ = utils.decrypt(data.pop('request'))
+        request_ = utils.decrypt(data.pop('request'), KEY)
         if request_ is not utils.DEFAULT:
             return callables.ReducedCallable(cls)(request_, **data)
 
-    @property
-    def url(self) -> str:  # TODO BasicAuth
-        return request.encode_params(self.request.url, self.request.params)
-
-    def _iter_hashes(self) -> Iterator[tuple[str, bytes | str]]:
+    def _iter_hashes(self, filled: bool = False) -> Iterator[tuple[str, bytes | str]]:
         for algorithm in hashlib.algorithms_available:
-            if hasattr(self, algorithm):
-                yield algorithm, getattr(self, algorithm)
-
-    def _iter_filled_hashes(self) -> Iterator[tuple[str, bytes]]:
-        for algorithm, hash_ in self._iter_hashes():
-            if hash_:
+            hash_ = getattr(self, algorithm, None)
+            if hash_ is not None and (not filled or hash_):
                 yield algorithm, hash_
 
     def asdict(self) -> dict[str, Any]:
         result: dict = {'request': utils.encrypt(
-            self.request, as_string=True), 'name': self.name}
+            self.request, KEY, as_string=True), 'name': self.name}
         if self.size:
             result['size'] = self.size
-        for algorithm, hash_ in self._iter_filled_hashes():
+        for algorithm, hash_ in self._iter_hashes(True):
             result[algorithm] = binascii.hexlify(hash_).decode()
         return result
 
@@ -90,7 +87,7 @@ class File:
         return False
 
     def checksum(self, path: str) -> bool:
-        for algorithm, hash_ in self._iter_filled_hashes():
+        for algorithm, hash_ in self._iter_hashes(True):
             try:
                 return files.checksum(path, hash_, algorithm)
             except OSError:
@@ -103,7 +100,7 @@ class File:
                 self.size = os.path.getsize(path)
             except OSError:
                 return False
-        if not any(self._iter_filled_hashes()):
+        if not any(self._iter_hashes(True)):
             for algorithm, hash_ in self._iter_hashes():
                 if not hash_:
                     try:
@@ -120,6 +117,9 @@ class File:
                 self.request.data is None and self.request.params is None and
                 self.request.auth is None and self.request.cookies is None and
                 self.request.json is None and self.request.unredirected_hdrs is None)
+
+    def get_url(self) -> str:  # TODO BasicAuth
+        return request.encode_params(self.request.url, self.request.params)
 
 
 @dataclasses.dataclass
@@ -139,7 +139,7 @@ class ImageFile(File):
             result['sketchy'] = self.sketchy
         if self.nsfw:
             result['nsfw'] = self.nsfw
-        for algorithm, _ in self._iter_filled_hashes():
+        for algorithm, _ in self._iter_hashes(True):
             result[algorithm] = result.pop(algorithm)
         return result
 
@@ -165,9 +165,6 @@ class Source:
     DEFAULT_CONFIG: TCONFIG = None
     CURRENT_CONFIG: TCONFIG = None
 
-    TEMP_DIR = tempfile.gettempdir()
-    STRINGS: ModuleType = langs.DEFAULT
-
     def __init_subclass__(cls):
         uid = cls.__module__.split('.')[-1]
         if not cls.NAME:
@@ -187,6 +184,12 @@ class Source:
     @classmethod
     def fix_config(cls, saving: bool = False):
         pass
+
+    @classmethod
+    @final
+    def _text(cls, message: int | str) -> str:
+        return langs.to_str(message, langs.DEFAULT) if isinstance(message, int) else getattr(
+            langs.DEFAULT, f'{cls.__module__.split(".", 1)[1].upper()}_{message}')
 
     @classmethod
     def create_menu(cls):

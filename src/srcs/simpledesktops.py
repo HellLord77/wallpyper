@@ -39,8 +39,8 @@ class SimpleDesktops(Source):
     @classmethod
     def create_menu(cls):
         cls._set_tooltip = gui.add_menu_item(
-            cls.STRINGS.SIMPLEDESKTOPS_LABEL_RESET, on_click=cls._on_reset).set_tooltip
-        cls._set_tooltip(cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(_PAGE))
+            cls._text('LABEL_RESET'), on_click=cls._on_reset).set_tooltip
+        cls._set_tooltip(cls._text('TOOLTIP_TEMPLATE_PAGE').format(_PAGE))
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
@@ -49,7 +49,7 @@ class SimpleDesktops(Source):
         while True:
             if not desktops:
                 cls._set_tooltip(
-                    cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(_PAGE))
+                    cls._text('TOOLTIP_TEMPLATE_PAGE').format(_PAGE))
                 response = request.get(request.join_url(URL_BROWSE, str(_PAGE)))
                 if response.status_code == request.Status.NOT_FOUND:
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
@@ -66,4 +66,4 @@ class SimpleDesktops(Source):
     @classmethod
     def _on_reset(cls):
         page = cls.CURRENT_CONFIG[CONFIG_PAGE] = cls.DEFAULT_CONFIG[CONFIG_PAGE]
-        cls._set_tooltip(cls.STRINGS.SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE.format(page))
+        cls._set_tooltip(cls._text('TOOLTIP_TEMPLATE_PAGE').format(page))

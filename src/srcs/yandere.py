@@ -38,11 +38,11 @@ class YandeRe(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_check(cls.STRINGS.YANDERE_MENU_ORIENTATIONS, (getattr(
-            cls.STRINGS, f'YANDERE_ORIENTATION_{orientation}') for orientation in range(2)),
+        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
+            f'ORIENTATION_{orientation}') for orientation in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
-        gui.add_submenu_check(cls.STRINGS.YANDERE_MENU_RATINGS, (getattr(
-            cls.STRINGS, f'YANDERE_RATING_{rating}') for rating in range(3)),
+        gui.add_submenu_check(cls._text('MENU_RATINGS'), (cls._text(
+            f'RATING_{rating}') for rating in range(3)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
 
     @classmethod

@@ -46,14 +46,14 @@ class FolderLocal(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_menu_item(cls.STRINGS.FOLDER_LOCAL_MENU_DIR, on_click=cls._on_dir, args=(
+        gui.add_menu_item(cls._text('MENU_DIR'), on_click=cls._on_dir, args=(
             gui.MenuItemMethod.SET_TOOLTIP,)).set_tooltip(cls.CURRENT_CONFIG[CONFIG_DIR])
-        gui.add_menu_item_check(cls.STRINGS.FOLDER_LOCAL_MENU_RECURSE, cls.CURRENT_CONFIG, CONFIG_RECURSE)
+        gui.add_menu_item_check(cls._text('MENU_RECURSE'), cls.CURRENT_CONFIG, CONFIG_RECURSE)
         gui.add_separator()
-        gui.add_submenu_radio(cls.STRINGS.FOLDER_LOCAL_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'FOLDER_LOCAL_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
-        gui.add_submenu_radio(cls.STRINGS.FOLDER_LOCAL_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'FOLDER_LOCAL_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+        gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
+            f'SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
+        gui.add_submenu_radio(cls._text('MENU_ORDER'), {order: cls._text(
+            f'ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
@@ -69,7 +69,7 @@ class FolderLocal(Source):
     @classmethod
     def _on_dir(cls, set_tooltip: Callable) -> bool:
         if (path := win32.dialog.open_folder(
-                cls.CURRENT_CONFIG[CONFIG_DIR], cls.STRINGS.LOCAL_MENU_DIR)) is not None:
+                cls.CURRENT_CONFIG[CONFIG_DIR], cls._text('MENU_DIR'))) is not None:
             cls.CURRENT_CONFIG[CONFIG_DIR] = path
             set_tooltip(path)
         return bool(path)

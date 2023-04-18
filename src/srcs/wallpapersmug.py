@@ -45,14 +45,14 @@ class WallpapersMug(Source):
 
     @classmethod
     def create_menu(cls):
-        enable_sort = gui.add_submenu_radio(cls.STRINGS.WALLPAPERSMUG_MENU_SORT, {
-            sort: getattr(cls.STRINGS, f'WALLPAPERSMUG_SORT_{sort}')
-            for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
-        cls._on_search(gui.add_submenu_radio(cls.STRINGS.WALLPAPERSMUG_MENU_TAG, {
-            tag: getattr(cls.STRINGS, f'WALLPAPERSMUG_TAG_{tag}')
-            for tag in TAGS}, cls.CURRENT_CONFIG, CONFIG_TAG, on_click=functools.partial(
-            cls._on_tag, enable_sort), position=0).enable, enable_sort,
-                       cls.CURRENT_CONFIG[CONFIG_SEARCH])
+        enable_sort = gui.add_submenu_radio(cls._text(
+            'MENU_SORT'), {sort: cls._text(f'SORT_{sort}')
+                           for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
+        cls._on_search(gui.add_submenu_radio(cls._text(
+            'MENU_TAG'), {tag: cls._text(f'TAG_{tag}')
+                          for tag in TAGS}, cls.CURRENT_CONFIG, CONFIG_TAG,
+            on_click=functools.partial(cls._on_tag, enable_sort),
+            position=0).enable, enable_sort, cls.CURRENT_CONFIG[CONFIG_SEARCH])
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

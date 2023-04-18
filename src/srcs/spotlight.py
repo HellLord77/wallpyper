@@ -37,10 +37,10 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_radio(cls.STRINGS.SPOTLIGHT_MENU_LOCALE, {locale: isocodes.ISO31661.get(
+        gui.add_submenu_radio(cls._text('MENU_LOCALE'), {locale: isocodes.ISO31661.get(
             locale[locale.find('-') + 1:]).name for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
-        gui.add_submenu_radio(cls.STRINGS.SPOTLIGHT_MENU_ORIENTATION, {orientation: getattr(
-            cls.STRINGS, f'SPOTLIGHT_ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
+        gui.add_submenu_radio(cls._text('MENU_ORIENTATION'), {orientation: cls._text(
+            f'ORIENTATION_{orientation}') for orientation in ORIENTATIONS},
                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod

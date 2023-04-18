@@ -20,13 +20,13 @@ def get_launch_args() -> tuple[str, ...]:
         return sys.executable, __main__.__file__
 
 
-def clean_temp(remove_base: bool = False) -> bool:
+def clean_temp() -> bool:
     cleaned = True
     base = os.path.dirname(TEMP_DIR) or tempfile.gettempdir()
     for dir_ in glob.iglob(os.path.join(base, f'_MEI{"[0-9]" * 6}')):
         path = os.path.join(base, dir_)
         if os.path.isdir(path) and path != TEMP_DIR:
-            pydll = glob.glob(os.path.join(path, f'python{"[0-9]" * 2}.dll'))
+            pydll = glob.glob(os.path.join(path, f'python[0-9]*.dll'))
             if pydll and os.path.isfile(pydll[0]):
                 try:
                     os.remove(pydll[0])
@@ -34,7 +34,7 @@ def clean_temp(remove_base: bool = False) -> bool:
                     continue
             shutil.rmtree(path, True)
             cleaned = cleaned and not os.path.exists(path)
-    if remove_base and not any(os.scandir(base)):
+    if not any(os.scandir(base)):
         os.remove(base)
         cleaned = cleaned and not os.path.exists(base)
     return cleaned

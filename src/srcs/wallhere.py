@@ -74,20 +74,20 @@ class WallHere(Source):
 
     @classmethod
     def create_menu(cls):
-        enable_order = gui.add_submenu_radio(cls.STRINGS.WALLHERE_MENU_ORDER, {
-            order: getattr(cls.STRINGS, f'WALLHERE_ORDER_{order}')
-            for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER).enable
-        gui.add_menu_item_check(
-            cls.STRINGS.WALLHERE_LABEL_RANDOM, cls.CURRENT_CONFIG, CONFIG_RANDOM,
+        enable_order = gui.add_submenu_radio(cls._text('MENU_ORDER'), {
+            order: cls._text(f'ORDER_{order}') for order in ORDERS},
+                                             cls.CURRENT_CONFIG, CONFIG_ORDER).enable
+        gui.add_menu_item_check(cls._text(
+            'LABEL_RANDOM'), cls.CURRENT_CONFIG, CONFIG_RANDOM,
             on_click=functools.partial(_on_random, enable_order), position=0)
         _on_random(enable_order, cls.CURRENT_CONFIG[CONFIG_RANDOM])
-        gui.add_submenu_radio(cls.STRINGS.WALLHERE_MENU_ORIENTATION, {
-            orientation: getattr(cls.STRINGS, f'WALLHERE_ORIENTATION_{orientation}')
+        gui.add_submenu_radio(cls._text('MENU_ORIENTATION'), {
+            orientation: cls._text(f'ORIENTATION_{orientation}')
             for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
         colors = {color: colornames.get_nearest_color(color)[
-            1] if color else cls.STRINGS.WALLHERE_COLOR_ for color in COLORS}
+            1] if color else cls._text('COLOR_') for color in COLORS}
         for item, color in zip(gui.add_submenu_radio(
-                cls.STRINGS.WALLHERE_MENU_COLOR, colors,
+                cls._text('MENU_COLOR'), colors,
                 cls.CURRENT_CONFIG, CONFIG_COLOR).get_submenu(), COLORS):
             if color:
                 rgb = colornames.hex_to_rgb(color)
@@ -98,7 +98,7 @@ class WallHere(Source):
                     colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),
                     f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
                 item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
-        gui.add_menu_item_check(cls.STRINGS.WALLHERE_LABEL_NSFW, cls.CURRENT_CONFIG, CONFIG_NSFW)
+        gui.add_menu_item_check(cls._text('LABEL_NSFW'), cls.CURRENT_CONFIG, CONFIG_NSFW)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

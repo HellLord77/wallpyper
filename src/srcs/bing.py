@@ -41,13 +41,13 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_radio(cls.STRINGS.BING_MENU_DAY, {day: getattr(
-            cls.STRINGS, f'BING_DAY_{day}') for day in DAYS}, cls.CURRENT_CONFIG, CONFIG_DAY)
-        gui.add_submenu_radio(cls.STRINGS.BING_MENU_MARKET, {market: isocodes.ISO31661.get(
+        gui.add_submenu_radio(cls._text('MENU_DAY'), {day: cls._text(
+            f'DAY_{day}') for day in DAYS}, cls.CURRENT_CONFIG, CONFIG_DAY)
+        gui.add_submenu_radio(cls._text('MENU_MARKET'), {market: isocodes.ISO31661.get(
             market[market.find('-') + 1:]).name for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
-        gui.add_submenu_radio(cls.STRINGS.BING_MENU_RESOLUTION,
-                              {resolution: getattr(cls.STRINGS, f'BING_RESOLUTION_{resolution}')
-                               for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION)
+        gui.add_submenu_radio(cls._text('MENU_RESOLUTION'), {resolution: cls._text(
+            f'RESOLUTION_{resolution}') for resolution in RESOLUTIONS},
+                              cls.CURRENT_CONFIG, CONFIG_RESOLUTION)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

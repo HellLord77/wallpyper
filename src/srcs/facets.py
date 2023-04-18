@@ -54,18 +54,17 @@ class Facets(Source):
 
     @classmethod
     def create_menu(cls):
-        for year, item in zip(YEARS, gui.add_submenu_check(
-                cls.STRINGS.FACETS_MENU_YEAR, (getattr(
-                    cls.STRINGS, f'FACETS_YEAR_{year}') for year in YEARS), (
-                        1, None), cls.CURRENT_CONFIG, CONFIG_YEAR).get_submenu()):
-            item.set_tooltip(getattr(cls.STRINGS, f'FACETS_TOOLTIP_YEAR_{year}'))
-        gui.add_submenu_radio(cls.STRINGS.FACETS_MENU_SERIES, {
-            series: getattr(cls.STRINGS, f'FACETS_SERIES_{series}')
+        for year, item in zip(YEARS, gui.add_submenu_check(cls._text(
+                'MENU_YEAR'), (cls._text(f'YEAR_{year}') for year in YEARS), (
+                1, None), cls.CURRENT_CONFIG, CONFIG_YEAR).get_submenu()):
+            item.set_tooltip(cls._text(f'TOOLTIP_YEAR_{year}'))
+        gui.add_submenu_radio(cls._text('MENU_SERIES'), {
+            series: cls._text(f'SERIES_{series}')
             for series in SERIES}, cls.CURRENT_CONFIG, CONFIG_SERIES)
-        gui.add_menu_item_check(cls.STRINGS.FACETS_LABEL_PURCHASABLE,
+        gui.add_menu_item_check(cls._text('LABEL_PURCHASABLE'),
                                 cls.CURRENT_CONFIG, CONFIG_PURCHASABLE)
-        gui.add_submenu_radio(cls.STRINGS.FACETS_MENU_DEVICE, {
-            device: getattr(cls.STRINGS, f'FACETS_DEVICE_{device}')
+        gui.add_submenu_radio(cls._text('MENU_DEVICE'), {
+            device: cls._text(f'DEVICE_{device}')
             for device in DEVICES}, cls.CURRENT_CONFIG, CONFIG_DEVICE)
 
     @classmethod

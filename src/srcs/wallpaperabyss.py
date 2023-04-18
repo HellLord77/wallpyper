@@ -103,23 +103,23 @@ class WallpaperAbyss(Source):
 
     @classmethod
     def create_menu(cls):
-        enable_resolution_filter = gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_RESOLUTION_FILTER, {
-            resolution_filter: getattr(cls.STRINGS, f'WALLPAPERABYSS_RESOLUTION_{resolution_filter}')
+        enable_resolution_filter = gui.add_submenu_radio(cls._text('MENU_RESOLUTION_FILTER'), {
+            resolution_filter: cls._text(f'RESOLUTION_{resolution_filter}')
             for resolution_filter in RESOLUTION_FILTERS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION_FILTER).enable
-        enable_resolution_equals = gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_RESOLUTION_EQUALS, {
-            resolution_equals: getattr(cls.STRINGS, f'WALLPAPERABYSS_RESOLUTION_EQUALS_{resolution_equals}')
+        enable_resolution_equals = gui.add_submenu_radio(cls._text('MENU_RESOLUTION_EQUALS'), {
+            resolution_equals: cls._text(f'RESOLUTION_EQUALS_{resolution_equals}')
             for resolution_equals in RESOLUTION_EQUALS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION_EQUALS).enable
-        enable_sort = gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_SORT, {
-            sort: getattr(cls.STRINGS, f'WALLPAPERABYSS_SORT_{sort}')
-            for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
-        enable_resolution = gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_RESOLUTION, {
-            resolution: getattr(cls.STRINGS, f'WALLPAPERABYSS_RESOLUTION_{resolution[0]}x{resolution[1]}').split('\t')[0]
+        enable_sort = gui.add_submenu_radio(cls._text(
+            'MENU_SORT'), {sort: cls._text(f'SORT_{sort}')
+                           for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
+        enable_resolution = gui.add_submenu_radio(cls._text('MENU_RESOLUTION'), {
+            resolution: cls._text(f'RESOLUTION_{resolution[0]}x{resolution[1]}').split('\t')[0]
             for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION).enable
-        enable_license = gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_LICENSE, {
-            license_: getattr(cls.STRINGS, f'WALLPAPERABYSS_LICENSE_{license_}')
+        enable_license = gui.add_submenu_radio(cls._text('MENU_LICENSE'), {
+            license_: cls._text(f'LICENSE_{license_}')
             for license_ in LICENSES}, cls.CURRENT_CONFIG, CONFIG_LICENSE).enable
         item_color = gui.add_submenu_radio(
-            cls.STRINGS.WALLPAPERABYSS_MENU_COLOR, {color: colornames.get_nearest_color(
+            cls._text('MENU_COLOR'), {color: colornames.get_nearest_color(
                 color)[1] for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
         for item, color in zip(item_color.get_submenu(), COLORS):
             rgb = colornames.hex_to_rgb(color)
@@ -130,15 +130,15 @@ class WallpaperAbyss(Source):
                 colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),
                 f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
             item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
-        enable_category = gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_CATEGORY, {
-            category: getattr(cls.STRINGS, f'WALLPAPERABYSS_CATEGORY_{category}')
+        enable_category = gui.add_submenu_radio(cls._text('MENU_CATEGORY'), {
+            category: cls._text(f'CATEGORY_{category}')
             for category in CATEGORIES}, cls.CURRENT_CONFIG, CONFIG_CATEGORY).enable
         on_method = functools.partial(
             cls._on_method, enable_resolution_filter, enable_resolution_equals,
             enable_sort, enable_resolution, enable_license, item_color.enable, enable_category)
-        gui.add_submenu_radio(cls.STRINGS.WALLPAPERABYSS_MENU_METHOD, {
-            method: getattr(cls.STRINGS, f'WALLPAPERABYSS_METHOD_{method}')
-            for method in METHODS}, cls.CURRENT_CONFIG, CONFIG_METHOD, on_click=on_method, position=0)
+        gui.add_submenu_radio(cls._text('MENU_METHOD'), {method: cls._text(
+            f'METHOD_{method}') for method in METHODS}, cls.CURRENT_CONFIG,
+                              CONFIG_METHOD, on_click=on_method, position=0)
         on_method(cls.CURRENT_CONFIG[CONFIG_METHOD])
 
     @classmethod

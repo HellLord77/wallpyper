@@ -62,22 +62,22 @@ class Unsplash(Source):  # https://unsplash.com/documentation
 
     @classmethod
     def create_menu(cls):
-        items_order = gui.get_menu_items(gui.add_submenu_radio(cls.STRINGS.UNSPLASH_MENU_ORDER, {
-            order: getattr(cls.STRINGS, f'UNSPLASH_ORDER_{order}') for order in ORDERS + ORDERS_},
-                                                               cls.CURRENT_CONFIG, CONFIG_ORDER)).items()
-        item_search = gui.add_submenu(cls.STRINGS.UNSPLASH_MENU_SEARCH, not cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
-        gui.add_menu_item_check(cls.STRINGS.UNSPLASH_LABEL_EDITORIAL, cls.CURRENT_CONFIG, CONFIG_EDITORIAL,
+        items_order = gui.get_menu_items(gui.add_submenu_radio(cls._text(
+            'MENU_ORDER'), {order: cls._text(f'ORDER_{order}')
+                            for order in ORDERS + ORDERS_}, cls.CURRENT_CONFIG, CONFIG_ORDER)).items()
+        item_search = gui.add_submenu(cls._text('MENU_SEARCH'), not cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
+        gui.add_menu_item_check(cls._text('LABEL_EDITORIAL'), cls.CURRENT_CONFIG, CONFIG_EDITORIAL,
                                 on_click=functools.partial(cls._on_editorial, item_search.enable, items_order), position=0)
         cls._on_editorial(item_search.enable, items_order, cls.CURRENT_CONFIG[CONFIG_EDITORIAL])
         with gui.set_menu(item_search):
-            gui.add_submenu_radio(cls.STRINGS.UNSPLASH_MENU_FILTER, {
-                filter_: getattr(cls.STRINGS, f'UNSPLASH_FILTER_{filter_}')
+            gui.add_submenu_radio(cls._text('MENU_FILTER'), {
+                filter_: cls._text(f'UNSPLASH_FILTER_{filter_}')
                 for filter_ in FILTERS}, cls.CURRENT_CONFIG, CONFIG_FILTER)
-            gui.add_submenu_radio(cls.STRINGS.UNSPLASH_MENU_COLOR, {
-                color: getattr(cls.STRINGS, f'UNSPLASH_COLOR_{color}')
+            gui.add_submenu_radio(cls._text('MENU_COLOR'), {
+                color: cls._text(f'UNSPLASH_COLOR_{color}')
                 for color in COLORS}, cls.CURRENT_CONFIG, CONFIG_COLOR)
-            gui.add_submenu_radio(cls.STRINGS.UNSPLASH_MENU_ORIENTATION, {
-                orientation: getattr(cls.STRINGS, f'UNSPLASH_ORIENTATION_{orientation}')
+            gui.add_submenu_radio(cls._text('MENU_ORIENTATION'), {
+                orientation: cls._text(f'UNSPLASH_ORIENTATION_{orientation}')
                 for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
 
     @classmethod

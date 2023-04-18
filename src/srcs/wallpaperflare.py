@@ -49,13 +49,13 @@ class WallpaperFlare(Source):
 
     @classmethod
     def create_menu(cls):
+        enable_sort = gui.add_submenu_radio(cls._text('MENU_SORT'), {
+            sort: cls._text(f'SORT_{sort}') for sort in SORTS},
+                                            cls.CURRENT_CONFIG, CONFIG_SORT).enable
         on_search = functools.partial(cls._on_search, gui.add_menu_item_check(
-            cls.STRINGS.WALLPAPERFLARE_LABEL_MOBILE, cls.CURRENT_CONFIG, CONFIG_MOBILE).enable,
-                                      gui.add_submenu_radio(cls.STRINGS.WALLPAPERFLARE_MENU_SORT, {
-                                          sort: getattr(cls.STRINGS, f'WALLPAPERFLARE_SORT_{sort}')
-                                          for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable)
-        gui.add_menu_item_check(cls.STRINGS.WALLPAPERFLARE_LABEL_SEARCH,
-                                cls.CURRENT_CONFIG, CONFIG_SEARCH, on_click=on_search, position=0)
+            cls._text('LABEL_MOBILE'), cls.CURRENT_CONFIG, CONFIG_MOBILE).enable, enable_sort)
+        gui.add_menu_item_check(cls._text(
+            'LABEL_SEARCH'), cls.CURRENT_CONFIG, CONFIG_SEARCH, on_click=on_search, position=0)
         on_search(cls.CURRENT_CONFIG[CONFIG_SEARCH])
 
     @classmethod

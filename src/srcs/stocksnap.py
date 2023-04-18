@@ -48,13 +48,13 @@ class StockSnap(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_radio(cls.STRINGS.STOCKSNAP_MENU_SORT, {sort: getattr(
-            cls.STRINGS, f'STOCKSNAP_SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
-        gui.add_submenu_radio(cls.STRINGS.STOCKSNAP_MENU_ORDER, {order: getattr(
-            cls.STRINGS, f'STOCKSNAP_ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
+        gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
+            f'SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
+        gui.add_submenu_radio(cls._text('MENU_ORDER'), {order: cls._text(
+            f'ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
         gui.add_separator()
-        gui.add_submenu_check(cls.STRINGS.STOCKSNAP_MENU_ORIENTATIONS, (getattr(
-            cls.STRINGS, f'STOCKSNAP_ORIENTATION_{orientation}') for orientation in range(2)),
+        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
+            f'ORIENTATION_{orientation}') for orientation in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
 
     @classmethod
