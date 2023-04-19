@@ -33,7 +33,7 @@ class Browser:
     def __init__(self, url: str = 'about:blank'):
         with ctyped.interface.COM[ExDisp.IWebBrowser2](ctyped.const.CLSID_InternetExplorer) as browser:
             self._browser = _mshtml.WebBrowser2(browser)
-        self._browser.navigate(url)
+        self.navigate(url)
 
     def __del__(self):
         if self._browser:
@@ -118,8 +118,8 @@ class Browser:
                         oleaut32.VariantClear(ctyped.byref(params.rgvarg[index]))
 
     def _eval_js(self, code: str) -> Optional[bool | int | float | str | oaidl.IDispatch]:
-        source = code.replace('"', '\\"')
-        with _temp_var(window := self._browser.document.parent_window, f'eval("{source}")') as var:
+        code = code.replace('"', '\\"')
+        with _temp_var(window := self._browser.document.parent_window, f'eval("{code}")') as var:
             disp_id = ctyped.type.DISPID()
             # noinspection PyProtectedMember
             with ctyped.interface.COM[DispEx.IDispatchEx](window._obj) as window_ex, _utils.get_bstr(var) as bstr:
@@ -158,7 +158,6 @@ def _create_environment(timeout: Optional[float] = None) -> _webview2.CoreWebVie
 
 class _BrowserEx:  # TODO
     def __init__(self):
-        ctyped.interface.init_com(False)
         self._class = ctyped.struct.WNDCLASSEXW(
             style=ctyped.const.CS_HREDRAW | ctyped.const.CS_VREDRAW,
             lpfnWndProc=ctyped.type.WNDPROC(self._wnd_proc), hInstance=_utils.HINSTANCE,
@@ -213,4 +212,5 @@ class _BrowserEx:  # TODO
         return self._controller and self._controller.core_web_view_2.navigate(url)
 
 
+ctyped.interface.init_com(False)
 os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))

@@ -86,7 +86,8 @@ class _Interface(_InterfaceBase):
     def __getattr__(self, name):
         if name in self._fields:
             # noinspection PyProtectedMember,PyUnresolvedReferences
-            struct = _get_vtbl(self._base._base).from_address(_type.c_void_p.from_address(self.value).value)
+            struct = _get_vtbl(self._base._base).from_address(
+                _type.c_void_p.from_address(self.value).value)
             for field_name in self._fields:
                 func = getattr(struct, field_name)
                 func.__name__ = field_name

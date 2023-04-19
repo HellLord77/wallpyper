@@ -1,6 +1,6 @@
 from __future__ import annotations as _
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 import base64
 import bz2
@@ -29,7 +29,7 @@ import urllib.request
 import urllib.response
 import uuid
 import zlib
-from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Literal, Mapping, Optional, Sequence
+from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, Optional, Sequence
 
 CONTENT_CHUNK_SIZE = 10 * 1024
 
@@ -481,7 +481,7 @@ class AuthManager(urllib.request.HTTPPasswordMgr):
 
 _TMethod = str | Method
 _TURL = bytes | str
-_TParams = tuple[bytes | str, Optional[bytes | str | Iterable[
+_TParams = bytes | str | tuple[bytes | str, Optional[bytes | str | Iterable[
     bytes | str]]] | Mapping[bytes | str, Optional[bytes | str | Iterable[bytes | str]]]
 _TData = bytes | str | Mapping[bytes | str, Optional[bytes | str | Iterable[bytes | str]]]
 _THeaders = bytes | str | Iterable[tuple[str, Optional[
@@ -512,7 +512,7 @@ _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
 def default_accept_encoding(*encodings: str) -> str:
-    return ', '.join(itertools.chain(_Decoder.decoders, encodings))
+    return ','.join(itertools.chain(_Decoder.decoders, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -1317,40 +1317,23 @@ def get_header_list(*headers: str) -> Iterator[tuple[str, Optional[str]]]:
         yield from words
 
 
-@typing.overload
-def get_params(params: _TParams, decode: Literal[True] = True,
-               encode: Literal[False] = False) -> dict[str, list[str]]:
-    pass
-
-
-@typing.overload
-def get_params(params: _TParams, decode: Literal[False] = True,
-               encode: Literal[True] = False) -> dict[bytes, list[bytes]]:
-    pass
-
-
-@typing.overload
-def get_params(params: _TParams, decode: Literal[False] = True,
-               encode: Literal[False] = False) -> dict[bytes | str, list[bytes | str]]:
-    pass
-
-
-def get_params(params, decode=True, encode=False):
-    assert not (decode and encode)
-    query = {}
-    for key, val in params.items() if isinstance(params, Mapping) else params:
-        if val is not None:
-            if key not in query:
-                query[key] = []
-            if isinstance(val, (bytes, str)):
-                if decode and isinstance(val, bytes):
-                    val = val.decode()
-                elif encode and isinstance(val, str):
-                    val = val.encode()
-                query[key].append(val)
-            else:
-                query[key].extend(val)
-    return query
+def get_params(params: _TParams) -> dict[bytes | str, list[bytes | str]]:
+    if isinstance(params, (bytes, str)):
+        start = b'?' if isinstance(params, bytes) else '?'
+        if start not in params:
+            params = start + params
+        return extract_params(params)
+    else:
+        query = {}
+        for key, val in params.items() if isinstance(params, Mapping) else params:
+            if val is not None:
+                if key not in query:
+                    query[key] = []
+                if isinstance(val, (bytes, str)):
+                    query[key].append(val)
+                else:
+                    query[key].extend(val)
+        return query
 
 
 def get_headers(keep_alive: Optional[bool] = True, accept_encoding: bool | str | Iterable[str] = True,
@@ -1482,7 +1465,7 @@ def encode_method(method: _TMethod, request: Optional[urllib.request.Request] = 
 
 
 def _upper(match: re.Match) -> bytes | str:
-    return match.group(0).upper()
+    return match[0].upper()
 
 
 def _encode_component(component: str, valid: bytes) -> str:
@@ -1512,7 +1495,7 @@ def encode_params(url: _TURL, params: Optional[_TParams] = None,
     if params is not None:
         components = urllib.parse.urlsplit(url)
         query = urllib.parse.parse_qs(components.query, True)
-        query.update(get_params(params, False))
+        query.update(get_params(params))
         # noinspection PyProtectedMember
         url = components._replace(query=_encode_params(query)).geturl()
     return encode_url(url, request)

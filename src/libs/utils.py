@@ -290,12 +290,13 @@ class TimeDeltaEx(datetime.timedelta):
                        ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
     _match = re.compile(f'^ *{_match} *$', re.RegexFlag.IGNORECASE).match
     # noinspection PyUnresolvedReferences,PyProtectedMember
-    _units = tuple(inspect._signature_fromstr(
-        inspect.Signature, None, inspect.getdoc(datetime.timedelta).splitlines()[2]).parameters)
+    _units = tuple(inspect._signature_fromstr(inspect.Signature, None, inspect.getdoc(
+        datetime.timedelta).splitlines()[2]).parameters)
 
     def __new__(cls, string: str):
-        matched = cls._match(string)
-        return super().__new__(cls, *(float(matched.group(unit) or 0) for unit in cls._units) if matched else ())
+        match = cls._match(string)
+        return super().__new__(cls, *(float(match[unit] or 0)
+                                      for unit in cls._units) if match else ())
 
     def __int__(self):
         return int(float(self))

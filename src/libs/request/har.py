@@ -3,19 +3,19 @@ import http.cookiejar
 import urllib.request
 from typing import AnyStr, Iterable, Mapping, MutableMapping, Optional
 
-from . import Header
-from . import Request
-from . import __name__
-from . import __version__
+from . import Header as _Header
+from . import Request as _Request
+from . import __name__ as _name
+from . import __version__ as _version
 from . import _str
-from . import extract_cookies
-from . import extract_params
-from . import strip_url
+from . import extract_cookies as _extract_cookies
+from . import extract_params as _extract_params
+from . import strip_url as _strip_url
 
-_TRequest = urllib.request.Request | Request
+_TRequest = urllib.request.Request | _Request
 
 
-def default_har(name: str = __name__, version: str = __version__) -> dict:
+def default_har(name: str = _name, version: str = _version) -> dict:
     return {'log': {'version': '1.2', 'creator': {
         'name': name, 'version': version}, 'entries': []}}
 
@@ -71,19 +71,19 @@ def encode_body(mime: str, body: bytes | str,
 
 def encode_request(request: _TRequest,
                    entry: Optional[MutableMapping] = None) -> dict:
-    if isinstance(request, Request):
+    if isinstance(request, _Request):
         request = request.prepare()
     encoded = {
         'method': request.method,
-        'url': strip_url(request.full_url, False),
+        'url': _strip_url(request.full_url, False),
         'httpVersion': 'HTTP/1.1'}
     cookies = getattr(request, '_cookies', None)
-    encode_cookies([] if cookies is None else extract_cookies(cookies), encoded)
+    encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)
     encode_headers(request.header_items(), encoded)
-    encode_params(extract_params(request.full_url), encoded)
+    encode_params(_extract_params(request.full_url), encoded)
     encoded['headersSize'] = -1
     if request.data is not None:
-        encode_body(request.headers[Header.CONTENT_TYPE], request.data, encoded)
+        encode_body(request.headers[_Header.CONTENT_TYPE], request.data, encoded)
     if entry is not None:
         entry['request'] = encoded
     return encoded

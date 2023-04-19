@@ -8,13 +8,6 @@ from libs.ctyped.lib import oleaut32
 from .. import _com, _utils
 
 
-class _HTMLDocument2Getter(_com.Getter):
-    def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLDocument2:
-        with ctyped.interface.COM[MsHTML.IHTMLDocument2]() as obj:
-            self._getter(instance)(ctyped.byref(obj))
-            return HTMLDocument2(obj)
-
-
 class _HTMLElementGetter(_com.Getter):
     def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLElement:
         with ctyped.interface.COM[MsHTML.IHTMLElement]() as obj:
@@ -27,6 +20,27 @@ class _HTMLElementCollectionGetter(_com.Getter):
         with ctyped.interface.COM[MsHTML.IHTMLElementCollection]() as obj:
             self._getter(instance)(ctyped.byref(obj))
             return HTMLElementCollection(obj)
+
+
+class _HTMLStyleSheetsCollectionGetter(_com.Getter):
+    def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLStyleSheetsCollection:
+        with ctyped.interface.COM[MsHTML.IHTMLStyleSheetsCollection]() as obj:
+            self._getter(instance)(ctyped.byref(obj))
+            return HTMLStyleSheetsCollection(obj)
+
+
+class _HTMLDocument2Getter(_com.Getter):
+    def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLDocument2:
+        with ctyped.interface.COM[MsHTML.IHTMLDocument2]() as obj:
+            self._getter(instance)(ctyped.byref(obj))
+            return HTMLDocument2(obj)
+
+
+class _HTMLWindow2Getter(_com.Getter):
+    def __get__(self, instance: _com.Unknown, owner: type[_com.Unknown]) -> HTMLWindow2:
+        with ctyped.interface.COM[MsHTML.IHTMLWindow2]() as obj:
+            self._getter(instance)(ctyped.byref(obj))
+            return HTMLWindow2(obj)
 
 
 class WebBrowser2(_com.Unknown):
@@ -148,7 +162,14 @@ class HTMLElementCollection(_com.Unknown):
 class HTMLDocument7(_com.Unknown):
     _obj: MsHTML.IHTMLDocument7
 
+    default_view = _HTMLWindow2Getter('defaultView')
     head = _HTMLElementGetter('head')
+
+
+class HTMLStyleSheetsCollection(_com.Unknown):
+    _obj: MsHTML.IHTMLStyleSheetsCollection
+
+    length = _com.CLongGetter('length')
 
 
 class HTMLDocument2(_com.Unknown):
@@ -178,11 +199,8 @@ class HTMLDocument2(_com.Unknown):
     def clear(self) -> bool:
         return ctyped.macro.SUCCEEDED(self._obj.clear())
 
-    @property
-    def parent_window(self) -> HTMLWindow2:
-        with ctyped.interface.COM[MsHTML.IHTMLWindow2]() as html_window_2:
-            self._obj.get_parentWindow(ctyped.byref(html_window_2))
-            return HTMLWindow2(html_window_2)
+    parent_window = _HTMLWindow2Getter('parentWindow')
+    style_sheets = _HTMLStyleSheetsCollectionGetter('styleSheets')
 
     def to_string(self) -> str:
         with _utils.get_bstr() as bstr:
@@ -221,8 +239,9 @@ class HTMLWindow2(_com.Unknown):
         return ctyped.macro.SUCCEEDED(self._obj.scroll(x, y))
 
     def exec_script(self, code: str, language: str = 'JScript') -> bool:
-        with _utils.get_bstr(code) as bstr, _utils.get_bstr(language) as bstr_2:
-            return ctyped.macro.SUCCEEDED(self._obj.execScript(bstr, bstr_2, ctyped.byref(ctyped.struct.VARIANT())))
+        with _utils.get_bstr(code) as bstr_code, _utils.get_bstr(language) as bstr_language:
+            return ctyped.macro.SUCCEEDED(self._obj.execScript(
+                bstr_code, bstr_language, ctyped.byref(ctyped.struct.VARIANT())))
 
     def to_string(self) -> str:
         with _utils.get_bstr() as bstr:
