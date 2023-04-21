@@ -3,6 +3,7 @@ import functools
 import os
 import pathlib
 import re
+import textwrap
 import uuid
 from typing import Iterable, Iterator, Optional, Callable
 
@@ -11,7 +12,7 @@ import clang.cindex
 from libs import ctyped
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\gdipluseffects.h'
+SOURCE_PATH = r'D:\Projects\CSDK_SampleApp\Razer\ChromaSDKPluginTypes.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -43,8 +44,8 @@ MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt')
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
-ENUM = False
-FUNCTION = True
+ENUM = True
+FUNCTION = False
 INTERFACE = False
 GUID = False
 
@@ -52,6 +53,7 @@ CLANG = False
 MSVC = True
 VCPKG = False
 
+FUNCTION_COMMENT = True
 INDENT = ' ' * 4
 ENUM_DECL = 'class {}(_Enum):'
 ENUM_CONSTANT_DECL = '{} = {}'
@@ -106,6 +108,8 @@ _TYPE_KIND = {
     clang.cindex.TypeKind.ULONGLONG: 'c_ulonglong',
     clang.cindex.TypeKind.LONGLONG: 'c_longlong',
     clang.cindex.TypeKind.LONGDOUBLE: 'c_longdouble'}
+
+_TFunctionData = tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]], Optional[str]]
 
 
 # noinspection PyShadowingBuiltins
@@ -328,25 +332,26 @@ def print_enums(unit: clang.cindex.TranslationUnit):
         print(str_enum(spelling, data))
 
 
-def _get_function_types(cursor: clang.cindex.Cursor) -> tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]]]:
+def _get_function_data(cursor: clang.cindex.Cursor) -> _TFunctionData:
     result, arguments = cursor.result_type, []
     for argument in cursor.get_arguments():
         arguments.append((argument.type, argument.spelling))
-    return result, arguments
+    return result, arguments, cursor.brief_comment
 
 
-def get_functions(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]]]]:
+def get_functions(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, _TFunctionData]:
     functions = {}
     for cursor in find_cursors(cursor.get_children(), clang.cindex.CursorKind.FUNCTION_DECL, **kwargs):
-        functions[cursor.spelling] = _get_function_types(cursor)
+        functions[cursor.spelling] = _get_function_data(cursor)
     return functions
 
 
-def str_function(spelling: str, data: tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]]], depth: int = 0) -> str:
-    formatted = f'{INDENT * depth}{FUNCTION_DECL_START.format(spelling)}'
+def str_function(spelling: str, data: _TFunctionData, depth: int = 0) -> str:
+    indent = INDENT * depth
+    formatted = f'{indent}{FUNCTION_DECL_START.format(spelling)}'
     args = data[1]
     if args:
-        formatted_args = f'\n{INDENT * depth}'.join(
+        formatted_args = f'\n{indent}'.join(
             f'{str_type(arg_type)},{f"  # {arg_name}" if arg_name else ""}' for arg_type, arg_name in args[:-1])
         formatted += formatted_args + '\n' * bool(formatted_args)
         formatted += INDENT * (depth * bool(formatted_args))
@@ -354,7 +359,10 @@ def str_function(spelling: str, data: tuple[clang.cindex.Type, list[tuple[clang.
         formatted += f'{str_type(args[-1][0])}],{f"  # {arg_name}" if arg_name else ""}\n'
     else:
         formatted += '],\n'
-    formatted += f'{INDENT * depth}{FUNCTION_DECL_END.format(str_type(data[0]))}\n'
+    formatted += f'{indent}{FUNCTION_DECL_END.format(str_type(data[0]))}\n'
+    if data[2]:
+        formatted += textwrap.indent('"""\n' + '\n'.join(
+            textwrap.wrap(data[2], 80)) + '\n"""', indent) + '\n'
     return formatted[:-1]
 
 
@@ -363,18 +371,18 @@ def print_functions(unit: clang.cindex.TranslationUnit):
         print(str_function(spelling, data))
 
 
-def get_interfaces(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[Optional[clang.cindex.Type], dict[str, tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]]]]]]:
+def get_interfaces(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[Optional[clang.cindex.Type], dict[str, _TFunctionData]]]:
     interfaces = {}
     for cursor in find_cursors(cursor.get_children(), clang.cindex.CursorKind.STRUCT_DECL, filter=is_interface, **kwargs):
         base = find_cursor(cursor.get_children(), clang.cindex.CursorKind.CXX_BASE_SPECIFIER)
         _, interface = interfaces[cursor.spelling] = (None if base is None else base.type), {}
         for cursor_method in find_cursors(cursor.get_children(), type=clang.cindex.TypeKind.FUNCTIONPROTO,
                                           filter=clang.cindex.Cursor.is_pure_virtual_method):
-            interface[cursor_method.spelling] = _get_function_types(cursor_method)
+            interface[cursor_method.spelling] = _get_function_data(cursor_method)
     return interfaces
 
 
-def str_interface(spelling: str, data: tuple[Optional[clang.cindex.Type], dict[str, tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]]]]], depth: int = 0) -> str:
+def str_interface(spelling: str, data: tuple[Optional[clang.cindex.Type], dict[str, _TFunctionData]], depth: int = 0) -> str:
     is_delegate = len(data[1]) == 1 and next(iter(data[1])) == 'Invoke'
     base = data[0]
     if base is None:
@@ -443,12 +451,17 @@ def main():
         args.append(f'-cxx-isystem{include_dir}')
     for macro, value in DEFINITIONS.items():
         args.append(f'-D{macro}={value}')
+    if FUNCTION_COMMENT:
+        args.append('-fparse-all-comments')
     with open(SOURCE_PATH) as file:
         source = file.read()
     for include in INCLUDES:
         source = f'#include {include}\n{source}'
     flags = (clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD |
+             clang.cindex.TranslationUnit.PARSE_INCOMPLETE |
              clang.cindex.TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
+    if FUNCTION_COMMENT:
+        flags |= clang.cindex.TranslationUnit.PARSE_INCLUDE_BRIEF_COMMENTS_IN_CODE_COMPLETION
     unit = index.parse(SOURCE_PATH, args, ((SOURCE_PATH, source),), flags)
     if ENUM:
         print_enums(unit)

@@ -18,8 +18,8 @@ class AppName(enum.StrEnum):
 
 
 class EffectiveType(enum.StrEnum):
-    G3 = '3g'
-    G4 = '4g'
+    ET_3G = '3g'
+    ET_4G = '4g'
 
 
 class Type(enum.StrEnum):

@@ -6,7 +6,7 @@ from typing import Optional as _Optional
 from . import type as _type
 from ._utils import _CT
 
-_AUTO = object()
+_AUTO = object()  # TODO remove
 
 if None:
     class _EnumMeta(_enum.EnumMeta):
@@ -4934,23 +4934,23 @@ class D3D12_BARRIER_TYPE(_Enum):
 
 # noinspection PyPep8Naming
 class D3D12_TEXTURE_BARRIER_FLAGS(_Enum):
-    D3D12_TEXTURE_BARRIER_FLAG_NONE = 0
-    D3D12_TEXTURE_BARRIER_FLAG_DISCARD = 1
+    NONE = 0
+    DISCARD = 1
 
 
 # noinspection PyPep8Naming
 class D3D12_SHADER_CACHE_KIND_FLAGS(_Enum):
-    D3D12_SHADER_CACHE_KIND_FLAG_IMPLICIT_D3D_CACHE_FOR_DRIVER = 1
-    D3D12_SHADER_CACHE_KIND_FLAG_IMPLICIT_D3D_CONVERSIONS = 2
-    D3D12_SHADER_CACHE_KIND_FLAG_IMPLICIT_DRIVER_MANAGED = 4
-    D3D12_SHADER_CACHE_KIND_FLAG_APPLICATION_MANAGED = 8
+    IMPLICIT_D3D_CACHE_FOR_DRIVER = 1
+    IMPLICIT_D3D_CONVERSIONS = 2
+    IMPLICIT_DRIVER_MANAGED = 4
+    APPLICATION_MANAGED = 8
 
 
 # noinspection PyPep8Naming
 class D3D12_SHADER_CACHE_CONTROL_FLAGS(_Enum):
-    D3D12_SHADER_CACHE_CONTROL_FLAG_DISABLE = 1
-    D3D12_SHADER_CACHE_CONTROL_FLAG_ENABLE = 2
-    D3D12_SHADER_CACHE_CONTROL_FLAG_CLEAR = 4
+    DISABLE = 1
+    ENABLE = 2
+    CLEAR = 4
 
 
 # noinspection PyPep8Naming
@@ -74499,6 +74499,339 @@ class Windows:
                     """
 
 
+# WebView2
+# noinspection PyPep8Naming
+class COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT(_Enum):
+    PNG = 0
+    JPEG = 1
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_COOKIE_SAME_SITE_KIND(_Enum):
+    NONE = 0
+    LAX = 1
+    STRICT = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND(_Enum):
+    DENY = 0
+    ALLOW = 1
+    DENY_CORS = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_SCRIPT_DIALOG_KIND(_Enum):
+    ALERT = 0
+    CONFIRM = 1
+    PROMPT = 2
+    BEFOREUNLOAD = 3
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PROCESS_FAILED_KIND(_Enum):
+    BROWSER_PROCESS_EXITED = 0
+    RENDER_PROCESS_EXITED = 1
+    RENDER_PROCESS_UNRESPONSIVE = 2
+    FRAME_RENDER_PROCESS_EXITED = 3
+    UTILITY_PROCESS_EXITED = 4
+    SANDBOX_HELPER_PROCESS_EXITED = 5
+    GPU_PROCESS_EXITED = 6
+    PPAPI_PLUGIN_PROCESS_EXITED = 7
+    PPAPI_BROKER_PROCESS_EXITED = 8
+    UNKNOWN_PROCESS_EXITED = 9
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PROCESS_FAILED_REASON(_Enum):
+    UNEXPECTED = 0
+    UNRESPONSIVE = 1
+    TERMINATED = 2
+    CRASHED = 3
+    LAUNCH_FAILED = 4
+    OUT_OF_MEMORY = 5
+    PROFILE_DELETED = 6
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PERMISSION_KIND(_Enum):
+    UNKNOWN_PERMISSION = 0
+    MICROPHONE = 1
+    CAMERA = 2
+    GEOLOCATION = 3
+    NOTIFICATIONS = 4
+    OTHER_SENSORS = 5
+    CLIPBOARD_READ = 6
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PERMISSION_STATE(_Enum):
+    DEFAULT = 0
+    ALLOW = 1
+    DENY = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_WEB_ERROR_STATUS(_Enum):
+    UNKNOWN = 0
+    CERTIFICATE_COMMON_NAME_IS_INCORRECT = 1
+    CERTIFICATE_EXPIRED = 2
+    CLIENT_CERTIFICATE_CONTAINS_ERRORS = 3
+    CERTIFICATE_REVOKED = 4
+    CERTIFICATE_IS_INVALID = 5
+    SERVER_UNREACHABLE = 6
+    TIMEOUT = 7
+    ERROR_HTTP_INVALID_SERVER_RESPONSE = 8
+    CONNECTION_ABORTED = 9
+    CONNECTION_RESET = 10
+    DISCONNECTED = 11
+    CANNOT_CONNECT = 12
+    HOST_NAME_NOT_RESOLVED = 13
+    OPERATION_CANCELED = 14
+    REDIRECT_FAILED = 15
+    UNEXPECTED_ERROR = 16
+    VALID_AUTHENTICATION_CREDENTIALS_REQUIRED = 17
+    VALID_PROXY_AUTHENTICATION_REQUIRED = 18
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_WEB_RESOURCE_CONTEXT(_Enum):
+    ALL = 0
+    DOCUMENT = 1
+    STYLESHEET = 2
+    IMAGE = 3
+    MEDIA = 4
+    FONT = 5
+    SCRIPT = 6
+    XML_HTTP_REQUEST = 7
+    FETCH = 8
+    TEXT_TRACK = 9
+    EVENT_SOURCE = 10
+    WEBSOCKET = 11
+    MANIFEST = 12
+    SIGNED_EXCHANGE = 13
+    PING = 14
+    CSP_VIOLATION_REPORT = 15
+    OTHER = 16
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_MOVE_FOCUS_REASON(_Enum):
+    PROGRAMMATIC = 0
+    NEXT = 1
+    PREVIOUS = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_KEY_EVENT_KIND(_Enum):
+    KEY_DOWN = 0
+    KEY_UP = 1
+    SYSTEM_KEY_DOWN = 2
+    SYSTEM_KEY_UP = 3
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND(_Enum):
+    NORMAL = 0
+    FAILED = 1
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_MOUSE_EVENT_KIND(_Enum):
+    HORIZONTAL_WHEEL = 526
+    LEFT_BUTTON_DOUBLE_CLICK = 515
+    LEFT_BUTTON_DOWN = 513
+    LEFT_BUTTON_UP = 514
+    LEAVE = 675
+    MIDDLE_BUTTON_DOUBLE_CLICK = 521
+    MIDDLE_BUTTON_DOWN = 519
+    MIDDLE_BUTTON_UP = 520
+    MOVE = 512
+    RIGHT_BUTTON_DOUBLE_CLICK = 518
+    RIGHT_BUTTON_DOWN = 516
+    RIGHT_BUTTON_UP = 517
+    WHEEL = 522
+    X_BUTTON_DOUBLE_CLICK = 525
+    X_BUTTON_DOWN = 523
+    X_BUTTON_UP = 524
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_MOUSE_EVENT_VIRTUAL_KEYS(_Enum):
+    NONE = 0
+    LEFT_BUTTON = 1
+    RIGHT_BUTTON = 2
+    SHIFT = 4
+    CONTROL = 8
+    MIDDLE_BUTTON = 16
+    X_BUTTON1 = 32
+    X_BUTTON2 = 64
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_POINTER_EVENT_KIND(_Enum):
+    ACTIVATE = 587
+    DOWN = 582
+    ENTER = 585
+    LEAVE = 586
+    UP = 583
+    UPDATE = 581
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_BOUNDS_MODE(_Enum):
+    USE_RAW_PIXELS = 0
+    USE_RASTERIZATION_SCALE = 1
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_CLIENT_CERTIFICATE_KIND(_Enum):
+    SMART_CARD = 0
+    PIN = 1
+    OTHER = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_DOWNLOAD_STATE(_Enum):
+    IN_PROGRESS = 0
+    INTERRUPTED = 1
+    COMPLETED = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON(_Enum):
+    NONE = 0
+    FILE_FAILED = 1
+    FILE_ACCESS_DENIED = 2
+    FILE_NO_SPACE = 3
+    FILE_NAME_TOO_LONG = 4
+    FILE_TOO_LARGE = 5
+    FILE_MALICIOUS = 6
+    FILE_TRANSIENT_ERROR = 7
+    FILE_BLOCKED_BY_POLICY = 8
+    FILE_SECURITY_CHECK_FAILED = 9
+    FILE_TOO_SHORT = 10
+    FILE_HASH_MISMATCH = 11
+    NETWORK_FAILED = 12
+    NETWORK_TIMEOUT = 13
+    NETWORK_DISCONNECTED = 14
+    NETWORK_SERVER_DOWN = 15
+    NETWORK_INVALID_REQUEST = 16
+    SERVER_FAILED = 17
+    SERVER_NO_RANGE = 18
+    SERVER_BAD_CONTENT = 19
+    SERVER_UNAUTHORIZED = 20
+    SERVER_CERTIFICATE_PROBLEM = 21
+    SERVER_FORBIDDEN = 22
+    SERVER_UNEXPECTED_RESPONSE = 23
+    SERVER_CONTENT_LENGTH_MISMATCH = 24
+    SERVER_CROSS_ORIGIN_REDIRECT = 25
+    USER_CANCELED = 26
+    USER_SHUTDOWN = 27
+    USER_PAUSED = 28
+    DOWNLOAD_PROCESS_CRASHED = 29
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PRINT_ORIENTATION(_Enum):
+    PORTRAIT = 0
+    LANDSCAPE = 1
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT(_Enum):
+    TOP_LEFT = 0
+    TOP_RIGHT = 1
+    BOTTOM_LEFT = 2
+    BOTTOM_RIGHT = 3
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PROCESS_KIND(_Enum):
+    BROWSER = 0
+    RENDERER = 1
+    UTILITY = 2
+    SANDBOX_HELPER = 3
+    GPU = 4
+    PPAPI_PLUGIN = 5
+    PPAPI_BROKER = 6
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PDF_TOOLBAR_ITEMS(_Enum):
+    NONE = 0
+    SAVE = 1
+    PRINT = 2
+    SAVE_AS = 4
+    ZOOM_IN = 8
+    ZOOM_OUT = 16
+    ROTATE = 32
+    FIT_PAGE = 64
+    PAGE_LAYOUT = 128
+    BOOKMARKS = 256
+    PAGE_SELECTOR = 512
+    SEARCH = 1024
+    FULL_SCREEN = 2048
+    MORE_SETTINGS = 4096
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND(_Enum):
+    PAGE = 0
+    IMAGE = 1
+    SELECTED_TEXT = 2
+    AUDIO = 3
+    VIDEO = 4
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND(_Enum):
+    COMMAND = 0
+    CHECK_BOX = 1
+    RADIO = 2
+    SEPARATOR = 3
+    SUBMENU = 4
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_PREFERRED_COLOR_SCHEME(_Enum):
+    AUTO = 0
+    LIGHT = 1
+    DARK = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_BROWSING_DATA_KINDS(_Enum):
+    FILE_SYSTEMS = 1
+    INDEXED_DB = 2
+    LOCAL_STORAGE = 4
+    WEB_SQL = 8
+    CACHE_STORAGE = 16
+    ALL_DOM_STORAGE = 32
+    COOKIES = 64
+    ALL_SITE = 128
+    DISK_CACHE = 256
+    DOWNLOAD_HISTORY = 512
+    GENERAL_AUTOFILL = 1024
+    PASSWORD_AUTOSAVE = 2048
+    BROWSING_HISTORY = 4096
+    SETTINGS = 8192
+    ALL_PROFILE = 16384
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION(_Enum):
+    ALWAYS_ALLOW = 0
+    CANCEL = 1
+    DEFAULT = 2
+
+
+# noinspection PyPep8Naming
+class COREWEBVIEW2_FAVICON_IMAGE_FORMAT(_Enum):
+    PNG = 0
+    JPEG = 1
+
+
 # libclang
 # CXCompilationDatabase
 # noinspection PyPep8Naming
@@ -75431,334 +75764,607 @@ class CXIndexOptFlags(_Enum):
     SkipParsedBodiesInSession = 16
 
 
-# WebView2
-# noinspection PyPep8Naming
-class COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT(_Enum):
-    PNG = 0
-    JPEG = 1
+# ChromaSDK
+class ChromaSDK:
+    # RzChromaSDKTypes
+    # noinspection PyPep8Naming
+    class EFFECT_TYPE(_Enum):
+        NONE = 0
+        WAVE = 1
+        SPECTRUMCYCLING = 2
+        BREATHING = 3
+        REACTIVE = 4
+        STATIC = 5
+        CUSTOM = 6
+        RESERVED = 7
+        INVALID = 8
 
+    # noinspection PyPep8Naming
+    class DEVICE_INFO_TYPE:
+        class DeviceType(_Enum):
+            KEYBOARD = 1
+            MOUSE = 2
+            HEADSET = 3
+            MOUSEPAD = 4
+            KEYPAD = 5
+            SYSTEM = 6
+            SPEAKERS = 7
+            INVALID = 8
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_COOKIE_SAME_SITE_KIND(_Enum):
-    NONE = 0
-    LAX = 1
-    STRICT = 2
+    # noinspection PyPep8Naming
+    class BREATHING_EFFECT_TYPE:
+        class Type(_Enum):
+            ONE_COLOR = 1
+            TWO_COLORS = 2
+            RANDOM_COLORS = 3
 
+    # noinspection PyPep8Naming
+    class REACTIVE_EFFECT_TYPE:
+        class Duration(_Enum):
+            SHORT = 1
+            MEDIUM = 2
+            LONG = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND(_Enum):
-    DENY = 0
-    ALLOW = 1
-    DENY_CORS = 2
+    # noinspection PyPep8Naming
+    class STARLIGHT_EFFECT_TYPE:
+        class Type(_Enum):
+            TWO_COLORS = 1
+            RANDOM_COLORS = 2
 
+        class Duration(_Enum):
+            SHORT = 1
+            MEDIUM = 2
+            LONG = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_SCRIPT_DIALOG_KIND(_Enum):
-    ALERT = 0
-    CONFIRM = 1
-    PROMPT = 2
-    BEFOREUNLOAD = 3
+    # noinspection PyPep8Naming
+    class WAVE_EFFECT_TYPE:
+        class Direction(_Enum):
+            LEFT_TO_RIGHT = 1
+            RIGHT_TO_LEFT = 2
+            FRONT_TO_BACK = 3
+            BACTO_FRONT = 4
 
+    class Keyboard:
+        class RZKEY(_Enum):
+            RZKEY_ESC = 0x0001
+            RZKEY_F1 = 0x0003
+            RZKEY_F2 = 0x0004
+            RZKEY_F3 = 0x0005
+            RZKEY_F4 = 0x0006
+            RZKEY_F5 = 0x0007
+            RZKEY_F6 = 0x0008
+            RZKEY_F7 = 0x0009
+            RZKEY_F8 = 0x000A
+            RZKEY_F9 = 0x000B
+            RZKEY_F10 = 0x000C
+            RZKEY_F11 = 0x000D
+            RZKEY_F12 = 0x000E
+            RZKEY_1 = 0x0102
+            RZKEY_2 = 0x0103
+            RZKEY_3 = 0x0104
+            RZKEY_4 = 0x0105
+            RZKEY_5 = 0x0106
+            RZKEY_6 = 0x0107
+            RZKEY_7 = 0x0108
+            RZKEY_8 = 0x0109
+            RZKEY_9 = 0x010A
+            RZKEY_0 = 0x010B
+            RZKEY_A = 0x0302
+            RZKEY_B = 0x0407
+            RZKEY_C = 0x0405
+            RZKEY_D = 0x0304
+            RZKEY_E = 0x0204
+            RZKEY_F = 0x0305
+            RZKEY_G = 0x0306
+            RZKEY_H = 0x0307
+            RZKEY_I = 0x0209
+            RZKEY_J = 0x0308
+            RZKEY_K = 0x0309
+            RZKEY_L = 0x030A
+            RZKEY_M = 0x0409
+            RZKEY_N = 0x0408
+            RZKEY_O = 0x020A
+            RZKEY_P = 0x020B
+            RZKEY_Q = 0x0202
+            RZKEY_R = 0x0205
+            RZKEY_S = 0x0303
+            RZKEY_T = 0x0206
+            RZKEY_U = 0x0208
+            RZKEY_V = 0x0406
+            RZKEY_W = 0x0203
+            RZKEY_X = 0x0404
+            RZKEY_Y = 0x0207
+            RZKEY_Z = 0x0403
+            RZKEY_NUMLOCK = 0x0112
+            RZKEY_NUMPAD0 = 0x0513
+            RZKEY_NUMPAD1 = 0x0412
+            RZKEY_NUMPAD2 = 0x0413
+            RZKEY_NUMPAD3 = 0x0414
+            RZKEY_NUMPAD4 = 0x0312
+            RZKEY_NUMPAD5 = 0x0313
+            RZKEY_NUMPAD6 = 0x0314
+            RZKEY_NUMPAD7 = 0x0212
+            RZKEY_NUMPAD8 = 0x0213
+            RZKEY_NUMPAD9 = 0x0214
+            RZKEY_NUMPAD_DIVIDE = 0x0113
+            RZKEY_NUMPAD_MULTIPLY = 0x0114
+            RZKEY_NUMPAD_SUBTRACT = 0x0115
+            RZKEY_NUMPAD_ADD = 0x0215
+            RZKEY_NUMPAD_ENTER = 0x0415
+            RZKEY_NUMPAD_DECIMAL = 0x0514
+            RZKEY_PRINTSCREEN = 0x000F
+            RZKEY_SCROLL = 0x0010
+            RZKEY_PAUSE = 0x0011
+            RZKEY_INSERT = 0x010F
+            RZKEY_HOME = 0x0110
+            RZKEY_PAGEUP = 0x0111
+            RZKEY_DELETE = 0x020f
+            RZKEY_END = 0x0210
+            RZKEY_PAGEDOWN = 0x0211
+            RZKEY_UP = 0x0410
+            RZKEY_LEFT = 0x050F
+            RZKEY_DOWN = 0x0510
+            RZKEY_RIGHT = 0x0511
+            RZKEY_TAB = 0x0201
+            RZKEY_CAPSLOCK = 0x0301
+            RZKEY_BACKSPACE = 0x010E
+            RZKEY_ENTER = 0x030E
+            RZKEY_LCTRL = 0x0501
+            RZKEY_LWIN = 0x0502
+            RZKEY_LALT = 0x0503
+            RZKEY_SPACE = 0x0507
+            RZKEY_RALT = 0x050B
+            RZKEY_FN = 0x050C
+            RZKEY_RMENU = 0x050D
+            RZKEY_RCTRL = 0x050E
+            RZKEY_LSHIFT = 0x0401
+            RZKEY_RSHIFT = 0x040E
+            RZKEY_MACRO1 = 0x0100
+            RZKEY_MACRO2 = 0x0200
+            RZKEY_MACRO3 = 0x0300
+            RZKEY_MACRO4 = 0x0400
+            RZKEY_MACRO5 = 0x0500
+            RZKEY_OEM_1 = 0x0101
+            RZKEY_OEM_2 = 0x010C
+            RZKEY_OEM_3 = 0x010D
+            RZKEY_OEM_4 = 0x020C
+            RZKEY_OEM_5 = 0x020D
+            RZKEY_OEM_6 = 0x020E
+            RZKEY_OEM_7 = 0x030B
+            RZKEY_OEM_8 = 0x030C
+            RZKEY_OEM_9 = 0x040A
+            RZKEY_OEM_10 = 0x040B
+            RZKEY_OEM_11 = 0x040C
+            RZKEY_EUR_1 = 0x030D
+            RZKEY_EUR_2 = 0x0402
+            RZKEY_JPN_1 = 0x0015
+            RZKEY_JPN_2 = 0x040D
+            RZKEY_JPN_3 = 0x0504
+            RZKEY_JPN_4 = 0x0509
+            RZKEY_JPN_5 = 0x050A
+            RZKEY_KOR_1 = 0x0015
+            RZKEY_KOR_2 = 0x030D
+            RZKEY_KOR_3 = 0x0402
+            RZKEY_KOR_4 = 0x040D
+            RZKEY_KOR_5 = 0x0504
+            RZKEY_KOR_6 = 0x0509
+            RZKEY_KOR_7 = 0x050A
+            RZKEY_INVALID = 0xFFFF
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PROCESS_FAILED_KIND(_Enum):
-    BROWSER_PROCESS_EXITED = 0
-    RENDER_PROCESS_EXITED = 1
-    RENDER_PROCESS_UNRESPONSIVE = 2
-    FRAME_RENDER_PROCESS_EXITED = 3
-    UTILITY_PROCESS_EXITED = 4
-    SANDBOX_HELPER_PROCESS_EXITED = 5
-    GPU_PROCESS_EXITED = 6
-    PPAPI_PLUGIN_PROCESS_EXITED = 7
-    PPAPI_BROKER_PROCESS_EXITED = 8
-    UNKNOWN_PROCESS_EXITED = 9
+        class RZLED(_Enum):
+            LOGO = 0x0014
 
+        # noinspection PyPep8Naming
+        class EFFECT_TYPE(_Enum):
+            NONE = 0
+            BREATHING = 1
+            CUSTOM = 2
+            REACTIVE = 3
+            STATIC = 4
+            SPECTRUMCYCLING = 5
+            WAVE = 6
+            RESERVED = 7
+            CUSTOM_KEY = 8
+            CUSTOM2 = 9
+            INVALID = 10
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PROCESS_FAILED_REASON(_Enum):
-    UNEXPECTED = 0
-    UNRESPONSIVE = 1
-    TERMINATED = 2
-    CRASHED = 3
-    LAUNCH_FAILED = 4
-    OUT_OF_MEMORY = 5
-    PROFILE_DELETED = 6
+        # noinspection PyPep8Naming
+        class BREATHING_EFFECT_TYPE:
+            class Type(_Enum):
+                TWO_COLORS = 0
+                RANDOM_COLORS = 1
+                INVALID = 2
 
+        # noinspection PyPep8Naming
+        class REACTIVE_EFFECT_TYPE:
+            class Duration(_Enum):
+                NONE = 0
+                SHORT = 1
+                MEDIUM = 2
+                LONG = 3
+                INVALID = 4
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PERMISSION_KIND(_Enum):
-    UNKNOWN_PERMISSION = 0
-    MICROPHONE = 1
-    CAMERA = 2
-    GEOLOCATION = 3
-    NOTIFICATIONS = 4
-    OTHER_SENSORS = 5
-    CLIPBOARD_READ = 6
+        # noinspection PyPep8Naming
+        class STARLIGHT_EFFECT_TYPE:
+            class Type(_Enum):
+                TWO_COLORS = 1
+                RANDOM_COLORS = 2
 
+            class Duration(_Enum):
+                SHORT = 1
+                MEDIUM = 2
+                LONG = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PERMISSION_STATE(_Enum):
-    DEFAULT = 0
-    ALLOW = 1
-    DENY = 2
+        # noinspection PyPep8Naming
+        class WAVE_EFFECT_TYPE:
+            class Direction(_Enum):
+                NONE = 0
+                LEFT_TO_RIGHT = 1
+                RIGHT_TO_LEFT = 2
+                INVALID = 3
 
+    class Mouse:
+        class RZLED(_Enum):
+            NONE = 0
+            SCROLLWHEEL = 1
+            LOGO = 2
+            BACKLIGHT = 3
+            SIDE_STRIP1 = 4
+            SIDE_STRIP2 = 5
+            SIDE_STRIP3 = 6
+            SIDE_STRIP4 = 7
+            SIDE_STRIP5 = 8
+            SIDE_STRIP6 = 9
+            SIDE_STRIP7 = 10
+            SIDE_STRIP8 = 11
+            SIDE_STRIP9 = 12
+            SIDE_STRIP10 = 13
+            SIDE_STRIP11 = 14
+            SIDE_STRIP12 = 15
+            SIDE_STRIP13 = 16
+            SIDE_STRIP14 = 17
+            ALL = 0xFFFF
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_WEB_ERROR_STATUS(_Enum):
-    UNKNOWN = 0
-    CERTIFICATE_COMMON_NAME_IS_INCORRECT = 1
-    CERTIFICATE_EXPIRED = 2
-    CLIENT_CERTIFICATE_CONTAINS_ERRORS = 3
-    CERTIFICATE_REVOKED = 4
-    CERTIFICATE_IS_INVALID = 5
-    SERVER_UNREACHABLE = 6
-    TIMEOUT = 7
-    ERROR_HTTP_INVALID_SERVER_RESPONSE = 8
-    CONNECTION_ABORTED = 9
-    CONNECTION_RESET = 10
-    DISCONNECTED = 11
-    CANNOT_CONNECT = 12
-    HOST_NAME_NOT_RESOLVED = 13
-    OPERATION_CANCELED = 14
-    REDIRECT_FAILED = 15
-    UNEXPECTED_ERROR = 16
-    VALID_AUTHENTICATION_CREDENTIALS_REQUIRED = 17
-    VALID_PROXY_AUTHENTICATION_REQUIRED = 18
+        class RZLED2(_Enum):
+            SCROLLWHEEL = 0x0203
+            LOGO = 0x0703
+            BACKLIGHT = 0x0403
+            LEFT_SIDE1 = 0x0100
+            LEFT_SIDE2 = 0x0200
+            LEFT_SIDE3 = 0x0300
+            LEFT_SIDE4 = 0x0400
+            LEFT_SIDE5 = 0x0500
+            LEFT_SIDE6 = 0x0600
+            LEFT_SIDE7 = 0x0700
+            BOTTOM1 = 0x0801
+            BOTTOM2 = 0x0802
+            BOTTOM3 = 0x0803
+            BOTTOM4 = 0x0804
+            BOTTOM5 = 0x0805
+            RIGHT_SIDE1 = 0x0106
+            RIGHT_SIDE2 = 0x0206
+            RIGHT_SIDE3 = 0x0306
+            RIGHT_SIDE4 = 0x0406
+            RIGHT_SIDE5 = 0x0506
+            RIGHT_SIDE6 = 0x0606
+            RIGHT_SIDE7 = 0x0706
 
+        # noinspection PyPep8Naming
+        class EFFECT_TYPE(_Enum):
+            NONE = 0
+            BLINKING = 1
+            BREATHING = 2
+            CUSTOM = 3
+            REACTIVE = 4
+            SPECTRUMCYCLING = 5
+            STATIC = 6
+            WAVE = 7
+            CUSTOM2 = 8
+            INVALID = 9
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_WEB_RESOURCE_CONTEXT(_Enum):
-    ALL = 0
-    DOCUMENT = 1
-    STYLESHEET = 2
-    IMAGE = 3
-    MEDIA = 4
-    FONT = 5
-    SCRIPT = 6
-    XML_HTTP_REQUEST = 7
-    FETCH = 8
-    TEXT_TRACK = 9
-    EVENT_SOURCE = 10
-    WEBSOCKET = 11
-    MANIFEST = 12
-    SIGNED_EXCHANGE = 13
-    PING = 14
-    CSP_VIOLATION_REPORT = 15
-    OTHER = 16
+        # noinspection PyPep8Naming
+        class BREATHING_EFFECT_TYPE:
+            class Type(_Enum):
+                ONE_COLOR = 0
+                TWO_COLORS = 1
+                RANDOM_COLORS = 2
+                INVALID = 3
 
+        # noinspection PyPep8Naming
+        class REACTIVE_EFFECT_TYPE:
+            class Duration(_Enum):
+                NONE = 0
+                SHORT = 1
+                MEDIUM = 2
+                LONG = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_MOVE_FOCUS_REASON(_Enum):
-    PROGRAMMATIC = 0
-    NEXT = 1
-    PREVIOUS = 2
+        # noinspection PyPep8Naming
+        class WAVE_EFFECT_TYPE:
+            class Direction(_Enum):
+                FRONT_TO_BACK = 0
+                BACK_TO_FRONT = 1
 
+    class Headset:
+        # noinspection PyPep8Naming
+        class EFFECT_TYPE(_Enum):
+            NOONE = 0
+            STATIC = 1
+            BREATHING = 2
+            SPECTRUMCYCLING = 3
+            CUSTOM = 4
+            INVALID = 5
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_KEY_EVENT_KIND(_Enum):
-    KEY_DOWN = 0
-    KEY_UP = 1
-    SYSTEM_KEY_DOWN = 2
-    SYSTEM_KEY_UP = 3
+    class Mousepad:
+        # noinspection PyPep8Naming
+        class EFFECT_TYPE(_Enum):
+            NONE = 0
+            BREATHING = 1
+            CUSTOM = 2
+            SPECTRUMCYCLING = 3
+            STATIC = 4
+            WAVE = 5
+            CUSTOM2 = 6
+            INVALID = 7
 
+        # noinspection PyPep8Naming
+        class BREATHING_EFFECT_TYPE:
+            class Type(_Enum):
+                TWO_COLORS = 1
+                RANDOM_COLORS = 2
+                INVALID = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND(_Enum):
-    NORMAL = 0
-    FAILED = 1
+        # noinspection PyPep8Naming
+        class WAVE_EFFECT_TYPE:
+            class Direction(_Enum):
+                NONE = 0
+                LEFT_TO_RIGHT = 1
+                RIGHT_TO_LEFT = 2
+                INVALID = 3
 
+    class Keypad:
+        # noinspection PyPep8Naming
+        class EFFECT_TYPE(_Enum):
+            NONE = 0
+            BREATHING = 1
+            CUSTOM = 2
+            REACTIVE = 3
+            SPECTRUMCYCLING = 4
+            STATIC = 5
+            WAVE = 6
+            INVALID = 7
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_MOUSE_EVENT_KIND(_Enum):
-    HORIZONTAL_WHEEL = 526
-    LEFT_BUTTON_DOUBLE_CLICK = 515
-    LEFT_BUTTON_DOWN = 513
-    LEFT_BUTTON_UP = 514
-    LEAVE = 675
-    MIDDLE_BUTTON_DOUBLE_CLICK = 521
-    MIDDLE_BUTTON_DOWN = 519
-    MIDDLE_BUTTON_UP = 520
-    MOVE = 512
-    RIGHT_BUTTON_DOUBLE_CLICK = 518
-    RIGHT_BUTTON_DOWN = 516
-    RIGHT_BUTTON_UP = 517
-    WHEEL = 522
-    X_BUTTON_DOUBLE_CLICK = 525
-    X_BUTTON_DOWN = 523
-    X_BUTTON_UP = 524
+        # noinspection PyPep8Naming
+        class BREATHING_EFFECT_TYPE:
+            class Type(_Enum):
+                TWO_COLORS = 1
+                RANDOM_COLORS = 2
+                INVALID = 3
 
+        # noinspection PyPep8Naming
+        class REACTIVE_EFFECT_TYPE:
+            class Duration(_Enum):
+                NONE = 0
+                SHORT = 1
+                MEDIUM = 2
+                LONG = 3
+                INVALID = 4
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_MOUSE_EVENT_VIRTUAL_KEYS(_Enum):
-    NONE = 0
-    LEFT_BUTTON = 1
-    RIGHT_BUTTON = 2
-    SHIFT = 4
-    CONTROL = 8
-    MIDDLE_BUTTON = 16
-    X_BUTTON1 = 32
-    X_BUTTON2 = 64
+        # noinspection PyPep8Naming
+        class WAVE_EFFECT_TYPE:
+            class Direction(_Enum):
+                NONE = 0
+                LEFT_TO_RIGHT = 1
+                RIGHT_TO_LEFT = 2
+                INVALID = 3
 
+    class ChromaLink:
+        # noinspection PyPep8Naming
+        class EFFECT_TYPE(_Enum):
+            NONE = 0
+            CUSTOM = 1
+            STATIC = 2
+            INVALID = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_POINTER_EVENT_KIND(_Enum):
-    ACTIVATE = 587
-    DOWN = 582
-    ENTER = 585
-    LEAVE = 586
-    UP = 583
-    UPDATE = 581
+    # CChromEditor
+    # RzChromaSDKTypes
+    class Stream:
+        class StreamStatusType(_Enum):
+            READY = 0
+            AUTHORIZING = 1
+            BROADCASTING = 2
+            WATCHING = 3
+            NOT_AUTHORIZED = 4
+            BROADCAST_DUPLICATE = 5
+            SERVICE_OFFLINE = 6
 
+    # ChromaSDKPluginTypes
+    class EChromaSDKDeviceTypeEnum(_Enum):
+        DE_1D = 0
+        DE_2D = 1
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_BOUNDS_MODE(_Enum):
-    USE_RAW_PIXELS = 0
-    USE_RASTERIZATION_SCALE = 1
+    class EChromaSDKDevice1DEnum(_Enum):
+        ChromaLink = 0
+        Headset = 1
+        Mousepad = 2
 
+    class EChromaSDKDevice2DEnum(_Enum):
+        Keyboard = 0
+        Keypad = 1
+        Mouse = 2
+        KeyboardExtended = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_CLIENT_CERTIFICATE_KIND(_Enum):
-    SMART_CARD = 0
-    PIN = 1
-    OTHER = 2
+    class EChromaSDKDeviceEnum(_Enum):
+        ChromaLink = 0
+        Headset = 1
+        Keyboard = 2
+        Keypad = 3
+        Mouse = 4
+        Mousepad = 5
+        KeyboardExtended = 6
+        MAX = 7
 
+    class EChromaSDKKeyboardKey(_Enum):
+        KK_ESC = 0
+        KK_F1 = 1
+        KK_F2 = 2
+        KK_F3 = 3
+        KK_F4 = 4
+        KK_F5 = 5
+        KK_F6 = 6
+        KK_F7 = 7
+        KK_F8 = 8
+        KK_F9 = 9
+        KK_F10 = 10
+        KK_F11 = 11
+        KK_F12 = 12
+        KK_1 = 13
+        KK_2 = 14
+        KK_3 = 15
+        KK_4 = 16
+        KK_5 = 17
+        KK_6 = 18
+        KK_7 = 19
+        KK_8 = 20
+        KK_9 = 21
+        KK_0 = 22
+        KK_A = 23
+        KK_B = 24
+        KK_C = 25
+        KK_D = 26
+        KK_E = 27
+        KK_F = 28
+        KK_G = 29
+        KK_H = 30
+        KK_I = 31
+        KK_J = 32
+        KK_K = 33
+        KK_L = 34
+        KK_M = 35
+        KK_N = 36
+        KK_O = 37
+        KK_P = 38
+        KK_Q = 39
+        KK_R = 40
+        KK_S = 41
+        KK_T = 42
+        KK_U = 43
+        KK_V = 44
+        KK_W = 45
+        KK_X = 46
+        KK_Y = 47
+        KK_Z = 48
+        KK_NUMLOCK = 49
+        KK_NUMPAD0 = 50
+        KK_NUMPAD1 = 51
+        KK_NUMPAD2 = 52
+        KK_NUMPAD3 = 53
+        KK_NUMPAD4 = 54
+        KK_NUMPAD5 = 55
+        KK_NUMPAD6 = 56
+        KK_NUMPAD7 = 57
+        KK_NUMPAD8 = 58
+        KK_NUMPAD9 = 59
+        KK_NUMPAD_DIVIDE = 60
+        KK_NUMPAD_MULTIPLY = 61
+        KK_NUMPAD_SUBTRACT = 62
+        KK_NUMPAD_ADD = 63
+        KK_NUMPAD_ENTER = 64
+        KK_NUMPAD_DECIMAL = 65
+        KK_PRINTSCREEN = 66
+        KK_SCROLL = 67
+        KK_PAUSE = 68
+        KK_INSERT = 69
+        KK_HOME = 70
+        KK_PAGEUP = 71
+        KK_DELETE = 72
+        KK_END = 73
+        KK_PAGEDOWN = 74
+        KK_UP = 75
+        KK_LEFT = 76
+        KK_DOWN = 77
+        KK_RIGHT = 78
+        KK_TAB = 79
+        KK_CAPSLOCK = 80
+        KK_BACKSPACE = 81
+        KK_ENTER = 82
+        KK_LCTRL = 83
+        KK_LWIN = 84
+        KK_LALT = 85
+        KK_SPACE = 86
+        KK_RALT = 87
+        KK_FN = 88
+        KK_RMENU = 89
+        KK_RCTRL = 90
+        KK_LSHIFT = 91
+        KK_RSHIFT = 92
+        KK_MACRO1 = 93
+        KK_MACRO2 = 94
+        KK_MACRO3 = 95
+        KK_MACRO4 = 96
+        KK_MACRO5 = 97
+        KK_OEM_1 = 98
+        KK_OEM_2 = 99
+        KK_OEM_3 = 100
+        KK_OEM_4 = 101
+        KK_OEM_5 = 102
+        KK_OEM_6 = 103
+        KK_OEM_7 = 104
+        KK_OEM_8 = 105
+        KK_OEM_9 = 106
+        KK_OEM_10 = 107
+        KK_OEM_11 = 108
+        KK_EUR_1 = 109
+        KK_EUR_2 = 110
+        KK_JPN_1 = 111
+        KK_JPN_2 = 112
+        KK_JPN_3 = 113
+        KK_JPN_4 = 114
+        KK_JPN_5 = 115
+        KK_KOR_1 = 116
+        KK_KOR_2 = 117
+        KK_KOR_3 = 118
+        KK_KOR_4 = 119
+        KK_KOR_5 = 120
+        KK_KOR_6 = 121
+        KK_KOR_7 = 122
+        KK_LOGO = 123
+        KK_INVALID = 124
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_DOWNLOAD_STATE(_Enum):
-    IN_PROGRESS = 0
-    INTERRUPTED = 1
-    COMPLETED = 2
+    class EChromaSDKMouseLED(_Enum):
+        SCROLLWHEEL = 0
+        LOGO = 1
+        BACKLIGHT = 2
+        LEFT_SIDE1 = 3
+        LEFT_SIDE2 = 4
+        LEFT_SIDE3 = 5
+        LEFT_SIDE4 = 6
+        LEFT_SIDE5 = 7
+        LEFT_SIDE6 = 8
+        LEFT_SIDE7 = 9
+        BOTTOM1 = 10
+        BOTTOM2 = 11
+        BOTTOM3 = 12
+        BOTTOM4 = 13
+        BOTTOM5 = 14
+        RIGHT_SIDE1 = 15
+        RIGHT_SIDE2 = 16
+        RIGHT_SIDE3 = 17
+        RIGHT_SIDE4 = 18
+        RIGHT_SIDE5 = 19
+        RIGHT_SIDE6 = 20
+        RIGHT_SIDE7 = 21
 
+    class EChromaSDKSceneBlend(_Enum):
+        None_ = 0
+        Invert = 1
+        Threshold = 2
+        Lerp = 3
 
-# noinspection PyPep8Naming
-class COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON(_Enum):
-    NONE = 0
-    FILE_FAILED = 1
-    FILE_ACCESS_DENIED = 2
-    FILE_NO_SPACE = 3
-    FILE_NAME_TOO_LONG = 4
-    FILE_TOO_LARGE = 5
-    FILE_MALICIOUS = 6
-    FILE_TRANSIENT_ERROR = 7
-    FILE_BLOCKED_BY_POLICY = 8
-    FILE_SECURITY_CHECK_FAILED = 9
-    FILE_TOO_SHORT = 10
-    FILE_HASH_MISMATCH = 11
-    NETWORK_FAILED = 12
-    NETWORK_TIMEOUT = 13
-    NETWORK_DISCONNECTED = 14
-    NETWORK_SERVER_DOWN = 15
-    NETWORK_INVALID_REQUEST = 16
-    SERVER_FAILED = 17
-    SERVER_NO_RANGE = 18
-    SERVER_BAD_CONTENT = 19
-    SERVER_UNAUTHORIZED = 20
-    SERVER_CERTIFICATE_PROBLEM = 21
-    SERVER_FORBIDDEN = 22
-    SERVER_UNEXPECTED_RESPONSE = 23
-    SERVER_CONTENT_LENGTH_MISMATCH = 24
-    SERVER_CROSS_ORIGIN_REDIRECT = 25
-    USER_CANCELED = 26
-    USER_SHUTDOWN = 27
-    USER_PAUSED = 28
-    DOWNLOAD_PROCESS_CRASHED = 29
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PRINT_ORIENTATION(_Enum):
-    PORTRAIT = 0
-    LANDSCAPE = 1
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT(_Enum):
-    TOP_LEFT = 0
-    TOP_RIGHT = 1
-    BOTTOM_LEFT = 2
-    BOTTOM_RIGHT = 3
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PROCESS_KIND(_Enum):
-    BROWSER = 0
-    RENDERER = 1
-    UTILITY = 2
-    SANDBOX_HELPER = 3
-    GPU = 4
-    PPAPI_PLUGIN = 5
-    PPAPI_BROKER = 6
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PDF_TOOLBAR_ITEMS(_Enum):
-    NONE = 0
-    SAVE = 1
-    PRINT = 2
-    SAVE_AS = 4
-    ZOOM_IN = 8
-    ZOOM_OUT = 16
-    ROTATE = 32
-    FIT_PAGE = 64
-    PAGE_LAYOUT = 128
-    BOOKMARKS = 256
-    PAGE_SELECTOR = 512
-    SEARCH = 1024
-    FULL_SCREEN = 2048
-    MORE_SETTINGS = 4096
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND(_Enum):
-    PAGE = 0
-    IMAGE = 1
-    SELECTED_TEXT = 2
-    AUDIO = 3
-    VIDEO = 4
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND(_Enum):
-    COMMAND = 0
-    CHECK_BOX = 1
-    RADIO = 2
-    SEPARATOR = 3
-    SUBMENU = 4
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_PREFERRED_COLOR_SCHEME(_Enum):
-    AUTO = 0
-    LIGHT = 1
-    DARK = 2
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_BROWSING_DATA_KINDS(_Enum):
-    FILE_SYSTEMS = 1
-    INDEXED_DB = 2
-    LOCAL_STORAGE = 4
-    WEB_SQL = 8
-    CACHE_STORAGE = 16
-    ALL_DOM_STORAGE = 32
-    COOKIES = 64
-    ALL_SITE = 128
-    DISK_CACHE = 256
-    DOWNLOAD_HISTORY = 512
-    GENERAL_AUTOFILL = 1024
-    PASSWORD_AUTOSAVE = 2048
-    BROWSING_HISTORY = 4096
-    SETTINGS = 8192
-    ALL_PROFILE = 16384
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION(_Enum):
-    ALWAYS_ALLOW = 0
-    CANCEL = 1
-    DEFAULT = 2
-
-
-# noinspection PyPep8Naming
-class COREWEBVIEW2_FAVICON_IMAGE_FORMAT(_Enum):
-    PNG = 0
-    JPEG = 1
+    class EChromaSDKSceneMode(_Enum):
+        Replace = 0
+        Max = 1
+        Min = 2
+        Average = 3
+        Multiply = 4
+        Add = 5
+        Subtract = 6

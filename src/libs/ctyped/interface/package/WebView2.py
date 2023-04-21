@@ -2,13 +2,13 @@ from __future__ import annotations as _
 
 from typing import Callable as _Callable
 
-from ...um import Unknwnbase as _Unknwnbase
-from ...um import objidl as _objidl
-from ...um import objidlbase as _objidlbase
-from .... import enum as _enum
-from .... import struct as _struct
-from .... import type as _type
-from ...._utils import _Pointer
+from ..um import Unknwnbase as _Unknwnbase
+from ..um import objidl as _objidl
+from ..um import objidlbase as _objidlbase
+from ... import enum as _enum
+from ... import struct as _struct
+from ... import type as _type
+from ..._utils import _Pointer
 
 
 class ICoreWebView2AcceleratorKeyPressedEventArgs(_Unknwnbase.IUnknown):

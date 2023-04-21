@@ -461,6 +461,15 @@ HCRYPTPROV = ULONG_PTR
 HCRYPTKEY = ULONG_PTR
 HCRYPTHASH = ULONG_PTR
 
+# ChromaSDK
+# RzChromaSDKTypes
+RZRESULT = LONG
+RZDURATION = c_uint
+RZSIZE = c_size_t
+PRZPARAM = c_void_p
+RZID = DWORD
+RZCOLOR = DWORD
+
 ABORTPROC = _Callable[[HDC, c_int], BOOL]
 APPLICATION_RECOVERY_CALLBACK = _Callable[[PVOID], DWORD]
 BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
@@ -519,6 +528,9 @@ IViewObject_Draw_pfnContinue = _Callable[[ULONG_PTR], BOOL]
 DrawImageAbort = ImageAbort
 GetThumbnailImageAbort = ImageAbort
 WAITORTIMERCALLBACK = WAITORTIMERCALLBACKFUNC
+
+# CChromaEditor
+DebugLogPtr = _Callable[[c_char_p], c_void]
 
 
 def _setattr(self: _PyCSimpleType, name: str, value):

@@ -4311,6 +4311,292 @@ class CXIdxEntityRefInfo:
     role: _enum.CXSymbolRole
 
 
+# RzChromaSDKTypes
+RZEFFECTID = GUID
+RZDEVICEID = GUID
+
+
+class ChromaSDK:
+    @_struct
+    class Author:
+        Name: _type.TCHAR * 256
+        Contact: _type.TCHAR * 256
+
+    @_struct
+    class APPINFOTYPE:
+        Title: _type.TCHAR * 256
+        Description: _type.TCHAR * 1024
+        Author: ChromaSDK.Author
+        SupportedDevice: _type.DWORD
+        Category: _type.DWORD
+
+    # noinspection PyPep8Naming
+    @_struct
+    class DEVICE_INFO_TYPE:
+        DeviceType: _enum.ChromaSDK.DEVICE_INFO_TYPE.DeviceType
+        Connected: _type.DWORD
+
+    # noinspection PyPep8Naming
+    @_struct
+    class BLINKING_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Color: _type.COLORREF
+
+    # noinspection PyPep8Naming
+    @_struct
+    class BREATHING_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Type: _enum.ChromaSDK.BREATHING_EFFECT_TYPE.Type
+        Color1: _type.COLORREF
+        Color2: _type.COLORREF
+
+    # noinspection PyPep8Naming
+    @_struct
+    class CUSTOM_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Color: _type.RZCOLOR * _const.ChromaSDK.MAX_ROW * _const.ChromaSDK.MAX_COLUMN
+
+    # noinspection PyPep8Naming
+    @_struct
+    class NO_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+
+    # noinspection PyPep8Naming
+    @_struct
+    class REACTIVE_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Duration: _enum.ChromaSDK.REACTIVE_EFFECT_TYPE.Duration
+        Color: _type.COLORREF
+
+    # noinspection PyPep8Naming
+    @_struct
+    class SPECTRUMCYCLING_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+
+    # noinspection PyPep8Naming
+    @_struct
+    class STARLIGHT_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Type: _enum.ChromaSDK.STARLIGHT_EFFECT_TYPE.Type
+        Color1: _type.COLORREF
+        Color2: _type.COLORREF
+        Duration: _enum.ChromaSDK.STARLIGHT_EFFECT_TYPE.Duration
+
+    # noinspection PyPep8Naming
+    @_struct
+    class STATIC_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Color: _type.COLORREF
+
+    # noinspection PyPep8Naming
+    @_struct
+    class WAVE_EFFECT_TYPE:
+        Size: _type.RZSIZE
+        Param: _type.DWORD
+        Direction: _enum.ChromaSDK.WAVE_EFFECT_TYPE.Direction
+
+    class Keyboard:
+        # noinspection PyPep8Naming
+        @_struct
+        class BREATHING_EFFECT_TYPE:
+            Type: _enum.ChromaSDK.Keyboard.BREATHING_EFFECT_TYPE.Type
+            Color1: _type.COLORREF
+            Color2: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Keyboard.MAX_ROW * _const.ChromaSDK.Keyboard.MAX_COLUMN
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_KEY_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Keyboard.MAX_ROW * _const.ChromaSDK.Keyboard.MAX_COLUMN
+            Key: _type.COLORREF * _const.ChromaSDK.Keyboard.MAX_ROW * _const.ChromaSDK.Keyboard.MAX_COLUMN
+
+        # noinspection PyPep8Naming
+        @_struct
+        class REACTIVE_EFFECT_TYPE:
+            Duration: _enum.ChromaSDK.Keyboard.REACTIVE_EFFECT_TYPE.Duration
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class STARLIGHT_EFFECT_TYPE:
+            Type: _enum.ChromaSDK.Keyboard.STARLIGHT_EFFECT_TYPE.Type
+            Color1: _type.COLORREF
+            Color2: _type.COLORREF
+            Duration: _enum.ChromaSDK.Keyboard.STARLIGHT_EFFECT_TYPE.Duration
+
+        # noinspection PyPep8Naming
+        @_struct
+        class STATIC_EFFECT_TYPE:
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class WAVE_EFFECT_TYPE:
+            Direction: _enum.ChromaSDK.Keyboard.WAVE_EFFECT_TYPE.Direction
+
+        # noinspection PyPep8Naming
+        class v2:
+            # noinspection PyPep8Naming
+            class CUSTOM_EFFECT_TYPE:
+                Color: _type.RZCOLOR * _const.ChromaSDK.Keyboard.v2.MAX_ROW * _const.ChromaSDK.Keyboard.v2.MAX_COLUMN
+                Key: _type.COLORREF * _const.ChromaSDK.Keyboard.MAX_ROW * _const.ChromaSDK.Keyboard.MAX_COLUMN
+
+    class Mouse:
+        # noinspection PyPep8Naming
+        @_struct
+        class STATIC_EFFECT_TYPE:
+            LEDId: _enum.ChromaSDK.Mouse.RZLED
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class BLINKING_EFFECT_TYPE:
+            LEDId: _enum.ChromaSDK.Mouse.RZLED
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class BREATHING_EFFECT_TYPE:
+            LEDId: _enum.ChromaSDK.Mouse.RZLED
+            Type: _enum.ChromaSDK.Mouse.BREATHING_EFFECT_TYPE.Type
+            Color1: _type.COLORREF
+            Color2: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Mouse.MAX_LEDS
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE2:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Mouse.MAX_ROW * _const.ChromaSDK.Mouse.MAX_COLUMN
+
+        # noinspection PyPep8Naming
+        @_struct
+        class REACTIVE_EFFECT_TYPE:
+            LEDId: _enum.ChromaSDK.Mouse.RZLED
+            Duration: _enum.ChromaSDK.Mouse.REACTIVE_EFFECT_TYPE.Duration
+            Color: _type.RZCOLOR
+
+        # noinspection PyPep8Naming
+        @_struct
+        class NO_EFFECT_TYPE:
+            LEDId: _enum.ChromaSDK.Mouse.RZLED
+
+        # noinspection PyPep8Naming
+        @_struct
+        class SPECTRUMCYCLING_EFFECT_TYPE:
+            LEDId: _enum.ChromaSDK.Mouse.RZLED
+
+        # noinspection PyPep8Naming
+        @_struct
+        class WAVE_EFFECT_TYPE:
+            Direction: _enum.ChromaSDK.Mouse.WAVE_EFFECT_TYPE.Direction
+
+    class Headset:
+        # noinspection PyPep8Naming
+        @_struct
+        class STATIC_EFFECT_TYPE:
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class BREATHING_EFFECT_TYPE:
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Headset.MAX_LEDS
+
+    class Mousepad:
+        # noinspection PyPep8Naming
+        @_struct
+        class BREATHING_EFFECT_TYPE:
+            Type: _enum.ChromaSDK.Mousepad.BREATHING_EFFECT_TYPE.Type
+            Color1: _type.COLORREF
+            Color2: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Mousepad.MAX_LEDS
+
+        # noinspection PyPep8Naming
+        @_struct
+        class STATIC_EFFECT_TYPE:
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class WAVE_EFFECT_TYPE:
+            Direction: _enum.ChromaSDK.Mousepad.WAVE_EFFECT_TYPE.Direction
+
+        # noinspection PyPep8Naming
+        class v2:
+            # noinspection PyPep8Naming
+            @_struct
+            class CUSTOM_EFFECT_TYPE:
+                Color: _type.RZCOLOR * _const.ChromaSDK.Mousepad.v2.MAX_LEDS
+
+    class Keypad:
+        # noinspection PyPep8Naming
+        @_struct
+        class BREATHING_EFFECT_TYPE:
+            Type: _enum.ChromaSDK.Keypad.BREATHING_EFFECT_TYPE.Type
+            Color1: _type.COLORREF
+            Color2: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.Keypad.MAX_ROW * _const.ChromaSDK.Keypad.MAX_COLUMN
+
+        # noinspection PyPep8Naming
+        @_struct
+        class REACTIVE_EFFECT_TYPE:
+            Duration: _enum.ChromaSDK.Keypad.REACTIVE_EFFECT_TYPE.Duration
+            Color: _type.COLORREF
+
+        # noinspection PyPep8Naming
+        @_struct
+        class STATIC_EFFECT_TYPE:
+            Color: _type.RZCOLOR
+
+        # noinspection PyPep8Naming
+        @_struct
+        class WAVE_EFFECT_TYPE:
+            Direction: _enum.ChromaSDK.Keypad.WAVE_EFFECT_TYPE.Direction
+
+    class ChromaLink:
+        # noinspection PyPep8Naming
+        @_struct
+        class CUSTOM_EFFECT_TYPE:
+            Color: _type.RZCOLOR * _const.ChromaSDK.ChromaLink.MAX_LEDS
+
+        # noinspection PyPep8Naming
+        @_struct
+        class STATIC_EFFECT_TYPE:
+            Color: _type.RZCOLOR
+
+    @_struct
+    class FChromaSDKGuid:
+        Data: RZEFFECTID
+
+
 class _NamespaceMeta(type):
     def __new__(mcs, *args, **kwargs):
         cls = super().__new__(mcs, *args, **kwargs)
@@ -4373,7 +4659,7 @@ def _init(item: str, var: _Optional[type] = None) -> type:
             var, field[0], None)) is _SIZE else val) for field in fields)
         return struct
     else:
-        return _NamespaceMeta(item, (), dict(vars(var)))
+        return _NamespaceMeta(item, (), vars(var).copy())
 
 
 _globals = _Globals(globals())
