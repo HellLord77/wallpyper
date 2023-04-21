@@ -1,12 +1,12 @@
 from __future__ import annotations as _
 
-__version__ = '0.0.1'  # https://github.com/intoli/user-agents
+__version__ = '0.0.2'  # https://github.com/intoli/user-agents
 
-import dataclasses
 import enum
 import json
 import os
 import random
+import typing
 from typing import Container, Iterator, MutableMapping, Optional
 
 _PATH = 'user-agents.json'
@@ -60,8 +60,7 @@ PLATFORM_LINUX = {Platform.LINUX_AAARCH64, Platform.LINUX_ARMV7L,
 PLATFORM_WINDOWS = {Platform.WIN32, Platform.WINDOWS}
 
 
-@dataclasses.dataclass(frozen=True)
-class Connection:
+class Connection(typing.NamedTuple):
     downlink: Optional[int | float]
     downlink_max: Optional[int | float]
     effective_type: Optional[EffectiveType]
@@ -69,8 +68,7 @@ class Connection:
     type: Optional[Type]
 
 
-@dataclasses.dataclass(frozen=True)
-class UserAgent:
+class UserAgent(typing.NamedTuple):
     app_name: AppName
     connection: Optional[Connection]
     platform: Platform

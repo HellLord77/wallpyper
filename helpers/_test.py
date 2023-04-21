@@ -26,7 +26,6 @@ from libs import ctyped, config, request
 from libs.ctyped.const import error
 from libs.ctyped.lib import kernel32, oleaut32, user32, python
 from win32 import _utils
-from win32 import chroma
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -624,11 +623,8 @@ def _test_hook():
 
 
 def _test():
-    from win32.chroma import animation as chroma_animation
-    info = chroma.app_info('wallpyper', 'Python Wallpaper Changer!', 'HellLord', 'ratul.debnath.year@gmail.com')
-    chroma_animation.init(info)
-    with chroma_animation.Animation25:
-        time.sleep(10)
+    from libs import useragents
+    print(useragents.get_random())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
