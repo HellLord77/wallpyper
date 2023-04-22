@@ -4,6 +4,7 @@ import ctypes as _ctypes
 import functools as _functools
 import sys as _sys
 from types import ModuleType as _ModuleType
+from typing import Optional as _Optional
 
 from . import kernel32 as _kernel32
 from .. import const as _const
@@ -14,11 +15,14 @@ from .._utils import _fmt_annot, _func_doc, _resolve_type
 class _CLib(_ModuleType):
     _loader = _ctypes.CDLL
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, _name: _Optional[str] = None):
         super().__init__(name)
         module = _sys.modules[name]
-        self._dict = module.__dict__
         self._annots = module.__annotations__
+        self._dict = module.__dict__
+        if _name is None:
+            _name = name.removeprefix(f'{__name__}.')
+        self._name = _name
         _sys.modules[name] = self
 
     def __getattr__(self, name: str):
@@ -36,7 +40,7 @@ class _CLib(_ModuleType):
 
     @_functools.cached_property
     def _lib(self) -> _ctypes.CDLL:
-        return self._loader(self.__name__.removeprefix(f'{__name__}.'))
+        return self._loader(self._name)
 
 
 class _OleLib(_CLib):

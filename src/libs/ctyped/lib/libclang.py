@@ -3,10 +3,10 @@ from __future__ import annotations as _
 from typing import Callable as _Callable
 
 from . import _CLib
-from .. import enum as _enum
 from .. import struct as _struct
 from .. import type as _type
 from .._utils import _Pointer
+from ..enum import libclang as _enum_libclang
 
 # BuildSystem
 clang_getBuildSessionTimestamp: _Callable[[],
@@ -23,14 +23,14 @@ clang_VirtualFileOverlay_dispose().
 clang_VirtualFileOverlay_addFileMapping: _Callable[[_type.CXVirtualFileOverlay,
                                                     _type.c_char_p,  # virtualPath
                                                     _type.c_char_p],  # realPath
-                                                   _enum.CXErrorCode]
+                                                   _enum_libclang.CXErrorCode]
 """
 Map an absolute virtual file path to an absolute real one. The virtual path must
 be canonicalized (not contain "."/"..").
 """
 clang_VirtualFileOverlay_setCaseSensitivity: _Callable[[_type.CXVirtualFileOverlay,
                                                         _type.c_int],  # caseSensitive
-                                                       _enum.CXErrorCode]
+                                                       _enum_libclang.CXErrorCode]
 """
 Set the case sensitivity for the CXVirtualFileOverlay object. The
 CXVirtualFileOverlay object is case-sensitive by default, this option can be
@@ -40,7 +40,7 @@ clang_VirtualFileOverlay_writeToBuffer: _Callable[[_type.CXVirtualFileOverlay,
                                                    _type.c_uint,  # options
                                                    _Pointer[_type.c_char_p],  # out_buffer_ptr
                                                    _Pointer[_type.c_uint]],  # out_buffer_size
-                                                  _enum.CXErrorCode]
+                                                  _enum_libclang.CXErrorCode]
 """
 Write out the CXVirtualFileOverlay object to a char buffer.
 """
@@ -63,13 +63,13 @@ clang_ModuleMapDescriptor_dispose().
 """
 clang_ModuleMapDescriptor_setFrameworkModuleName: _Callable[[_type.CXModuleMapDescriptor,
                                                              _type.c_char_p],  # name
-                                                            _enum.CXErrorCode]
+                                                            _enum_libclang.CXErrorCode]
 """
 Sets the framework module name that the module.map describes.
 """
 clang_ModuleMapDescriptor_setUmbrellaHeader: _Callable[[_type.CXModuleMapDescriptor,
                                                         _type.c_char_p],  # name
-                                                       _enum.CXErrorCode]
+                                                       _enum_libclang.CXErrorCode]
 """
 Sets the umbrella header name that the module.map describes.
 """
@@ -77,7 +77,7 @@ clang_ModuleMapDescriptor_writeToBuffer: _Callable[[_type.CXModuleMapDescriptor,
                                                     _type.c_uint,  # options
                                                     _Pointer[_type.c_char_p],  # out_buffer_ptr
                                                     _Pointer[_type.c_uint]],  # out_buffer_size
-                                                   _enum.CXErrorCode]
+                                                   _enum_libclang.CXErrorCode]
 """
 Write out the CXModuleMapDescriptor object to a char buffer.
 """
@@ -88,7 +88,7 @@ Dispose a CXModuleMapDescriptor object.
 """
 # CXCompilationDatabase
 clang_CompilationDatabase_fromDirectory: _Callable[[_type.c_char_p,  # BuildDir
-                                                    _Pointer[_enum.CXCompilationDatabase_Error]],  # ErrorCode
+                                                    _Pointer[_enum_libclang.CXCompilationDatabase_Error]],  # ErrorCode
                                                    _type.CXCompilationDatabase]
 """
 Creates a compilation database from the database found in directory buildDir.
@@ -190,7 +190,7 @@ Given a cursor that represents a documentable entity (e.g., declaration), return
 the associated parsed comment as a CXComment_FullComment AST node.
 """
 clang_Comment_getKind: _Callable[[_struct.CXComment],  # Comment
-                                 _enum.CXCommentKind]
+                                 _enum_libclang.CXCommentKind]
 """
 Returns the type of the AST node.
 """
@@ -228,7 +228,7 @@ clang_InlineCommandComment_getCommandName: _Callable[[_struct.CXComment],  # Com
 Returns name of the inline command.
 """
 clang_InlineCommandComment_getRenderKind: _Callable[[_struct.CXComment],  # Comment
-                                                    _enum.CXCommentInlineCommandRenderKind]
+                                                    _enum_libclang.CXCommentInlineCommandRenderKind]
 """
 Returns the most appropriate rendering mode, chosen on command semantics in
 Doxygen.
@@ -316,7 +316,7 @@ Returns non-zero if parameter passing direction was specified explicitly in the
 comment.
 """
 clang_ParamCommandComment_getDirection: _Callable[[_struct.CXComment],  # Comment
-                                                  _enum.CXCommentParamPassDirection]
+                                                  _enum_libclang.CXCommentParamPassDirection]
 """
 Returns parameter passing direction.
 """
@@ -599,7 +599,7 @@ clang_getDiagnosticInSet: _Callable[[_type.CXDiagnosticSet,  # Diags
 Retrieve a diagnostic associated with the given CXDiagnosticSet.
 """
 clang_loadDiagnostics: _Callable[[_type.c_char_p,  # file
-                                  _Pointer[_enum.CXLoadDiag_Error],  # error
+                                  _Pointer[_enum_libclang.CXLoadDiag_Error],  # error
                                   _Pointer[_struct.CXString]],  # errorString
                                  _type.CXDiagnosticSet]
 """
@@ -649,7 +649,7 @@ Retrieve the set of display options most similar to the default behavior of the
 clang compiler.
 """
 clang_getDiagnosticSeverity: _Callable[[_type.CXDiagnostic],
-                                       _enum.CXDiagnosticSeverity]
+                                       _enum_libclang.CXDiagnosticSeverity]
 """
 Determine the severity of the given diagnostic.
 """
@@ -735,7 +735,7 @@ CXTranslationUnit, without further detailed error codes.
 clang_createTranslationUnit2: _Callable[[_type.CXIndex,  # CIdx
                                          _type.c_char_p,  # ast_filename
                                          _Pointer[_type.CXTranslationUnit]],  # out_TU
-                                        _enum.CXErrorCode]
+                                        _enum_libclang.CXErrorCode]
 """
 Create a translation unit from an AST file ( -emit-ast).
 """
@@ -766,7 +766,7 @@ clang_parseTranslationUnit2: _Callable[[_type.CXIndex,  # CIdx
                                         _type.c_uint,  # num_unsaved_files
                                         _type.c_uint,  # options
                                         _Pointer[_type.CXTranslationUnit]],  # out_TU
-                                       _enum.CXErrorCode]
+                                       _enum_libclang.CXErrorCode]
 """
 Parse the given source file and the translation unit corresponding to that file.
 """
@@ -778,7 +778,7 @@ clang_parseTranslationUnit2FullArgv: _Callable[[_type.CXIndex,  # CIdx
                                                 _type.c_uint,  # num_unsaved_files
                                                 _type.c_uint,  # options
                                                 _Pointer[_type.CXTranslationUnit]],  # out_TU
-                                               _enum.CXErrorCode]
+                                               _enum_libclang.CXErrorCode]
 """
 Same as clang_parseTranslationUnit2 but requires a full command line for
 command_line_args including argv[0]. This is useful if the standard library
@@ -820,7 +820,7 @@ clang_reparseTranslationUnit: _Callable[[_type.CXTranslationUnit,  # TU
 """
 Reparse the source files that produced this translation unit.
 """
-clang_getTUResourceUsageName: _Callable[[_enum.CXTUResourceUsageKind],  # kind
+clang_getTUResourceUsageName: _Callable[[_enum_libclang.CXTUResourceUsageKind],  # kind
                                         _type.c_char_p]
 """
 Returns the human-readable null-terminated C string that represents the name of
@@ -881,11 +881,11 @@ clang_hashCursor: _Callable[[_struct.CXCursor],
 Compute a hash value for the given cursor.
 """
 clang_getCursorKind: _Callable[[_struct.CXCursor],
-                               _enum.CXCursorKind]
+                               _enum_libclang.CXCursorKind]
 """
 Retrieve the kind of the given cursor.
 """
-clang_isDeclaration: _Callable[[_enum.CXCursorKind],
+clang_isDeclaration: _Callable[[_enum_libclang.CXCursorKind],
                                _type.c_uint]
 """
 Determine whether the given cursor kind represents a declaration.
@@ -895,22 +895,22 @@ clang_isInvalidDeclaration: _Callable[[_struct.CXCursor],
 """
 Determine whether the given declaration is invalid.
 """
-clang_isReference: _Callable[[_enum.CXCursorKind],
+clang_isReference: _Callable[[_enum_libclang.CXCursorKind],
                              _type.c_uint]
 """
 Determine whether the given cursor kind represents a simple reference.
 """
-clang_isExpression: _Callable[[_enum.CXCursorKind],
+clang_isExpression: _Callable[[_enum_libclang.CXCursorKind],
                               _type.c_uint]
 """
 Determine whether the given cursor kind represents an expression.
 """
-clang_isStatement: _Callable[[_enum.CXCursorKind],
+clang_isStatement: _Callable[[_enum_libclang.CXCursorKind],
                              _type.c_uint]
 """
 Determine whether the given cursor kind represents a statement.
 """
-clang_isAttribute: _Callable[[_enum.CXCursorKind],
+clang_isAttribute: _Callable[[_enum_libclang.CXCursorKind],
                              _type.c_uint]
 """
 Determine whether the given cursor kind represents an attribute.
@@ -920,40 +920,40 @@ clang_Cursor_hasAttrs: _Callable[[_struct.CXCursor],  # C
 """
 Determine whether the given cursor has any attributes.
 """
-clang_isInvalid: _Callable[[_enum.CXCursorKind],
+clang_isInvalid: _Callable[[_enum_libclang.CXCursorKind],
                            _type.c_uint]
 """
 Determine whether the given cursor kind represents an invalid cursor.
 """
-clang_isTranslationUnit: _Callable[[_enum.CXCursorKind],
+clang_isTranslationUnit: _Callable[[_enum_libclang.CXCursorKind],
                                    _type.c_uint]
 """
 Determine whether the given cursor kind represents a translation unit.
 """
-clang_isPreprocessing: _Callable[[_enum.CXCursorKind],
+clang_isPreprocessing: _Callable[[_enum_libclang.CXCursorKind],
                                  _type.c_uint]
 """
 * Determine whether the given cursor represents a preprocessing element, such as
 a preprocessor directive or macro instantiation.
 """
-clang_isUnexposed: _Callable[[_enum.CXCursorKind],
+clang_isUnexposed: _Callable[[_enum_libclang.CXCursorKind],
                              _type.c_uint]
 """
 * Determine whether the given cursor represents a currently unexposed piece of
 the AST (e.g., CXCursor_UnexposedStmt).
 """
 clang_getCursorLinkage: _Callable[[_struct.CXCursor],  # cursor
-                                  _enum.CXLinkageKind]
+                                  _enum_libclang.CXLinkageKind]
 """
 Determine the linkage of the entity referred to by a given cursor.
 """
 clang_getCursorVisibility: _Callable[[_struct.CXCursor],  # cursor
-                                     _enum.CXVisibilityKind]
+                                     _enum_libclang.CXVisibilityKind]
 """
 Describe the visibility of the entity referred to by a cursor.
 """
 clang_getCursorAvailability: _Callable[[_struct.CXCursor],  # cursor
-                                       _enum.CXAvailabilityKind]
+                                       _enum_libclang.CXAvailabilityKind]
 """
 Determine the availability of the entity that this cursor refers to, taking the
 current target platform into account.
@@ -976,12 +976,12 @@ clang_disposeCXPlatformAvailability: _Callable[[_Pointer[_struct.CXPlatformAvail
 Free the memory associated with a CXPlatformAvailability structure.
 """
 clang_getCursorLanguage: _Callable[[_struct.CXCursor],  # cursor
-                                   _enum.CXLanguageKind]
+                                   _enum_libclang.CXLanguageKind]
 """
 Determine the "language" of the entity referred to by a given cursor.
 """
 clang_getCursorTLSKind: _Callable[[_struct.CXCursor],  # cursor
-                                  _enum.CXTLSKind]
+                                  _enum_libclang.CXTLSKind]
 """
 Determine the "thread-local storage (TLS) kind" of the declaration referred to
 by a cursor.
@@ -1116,7 +1116,7 @@ specialization.
 """
 clang_Cursor_getTemplateArgumentKind: _Callable[[_struct.CXCursor,  # C
                                                  _type.c_uint],  # I
-                                                _enum.CXTemplateArgumentKind]
+                                                _enum_libclang.CXTemplateArgumentKind]
 """
 Retrieve the kind of the I'th template argument of the CXCursor C.
 """
@@ -1216,13 +1216,13 @@ clang_Type_getObjCEncoding: _Callable[[_struct.CXType],  # type
 """
 Returns the Objective-C type encoding for the specified CXType.
 """
-clang_getTypeKindSpelling: _Callable[[_enum.CXTypeKind],  # K
+clang_getTypeKindSpelling: _Callable[[_enum_libclang.CXTypeKind],  # K
                                      _struct.CXString]
 """
 Retrieve the spelling of a given CXTypeKind.
 """
 clang_getFunctionTypeCallingConv: _Callable[[_struct.CXType],  # T
-                                            _enum.CXCallingConv]
+                                            _enum_libclang.CXCallingConv]
 """
 Retrieve the calling convention associated with a function type.
 """
@@ -1327,7 +1327,7 @@ clang_Type_isTransparentTagTypedef: _Callable[[_struct.CXType],  # T
 Determine if a typedef is 'transparent' tag.
 """
 clang_Type_getNullability: _Callable[[_struct.CXType],  # T
-                                     _enum.CXTypeNullabilityKind]
+                                     _enum_libclang.CXTypeNullabilityKind]
 """
 Retrieve the nullability kind of a pointer type.
 """
@@ -1397,7 +1397,7 @@ Returns the type template argument of a template class specialization at given
 index.
 """
 clang_Type_getCXXRefQualifier: _Callable[[_struct.CXType],  # T
-                                         _enum.CXRefQualifierKind]
+                                         _enum_libclang.CXRefQualifierKind]
 """
 Retrieve the ref-qualifier kind of a function or method.
 """
@@ -1413,12 +1413,12 @@ Returns 1 if the base class specified by the cursor with kind
 CX_CXXBaseSpecifier is virtual.
 """
 clang_getCXXAccessSpecifier: _Callable[[_struct.CXCursor],
-                                       _enum.CX_CXXAccessSpecifier]
+                                       _enum_libclang.CX_CXXAccessSpecifier]
 """
 Returns the access control level for the referenced object.
 """
 clang_Cursor_getStorageClass: _Callable[[_struct.CXCursor],
-                                        _enum.CX_StorageClass]
+                                        _enum_libclang.CX_StorageClass]
 """
 Returns the storage class for a function or variable declaration.
 """
@@ -1508,13 +1508,13 @@ methods and Objective-C message expressions, there are multiple pieces for each
 selector identifier.
 """
 clang_PrintingPolicy_getProperty: _Callable[[_type.CXPrintingPolicy,  # Policy
-                                             _enum.CXPrintingPolicyProperty],  # Property
+                                             _enum_libclang.CXPrintingPolicyProperty],  # Property
                                             _type.c_uint]
 """
 Get a property value for the given printing policy.
 """
 clang_PrintingPolicy_setProperty: _Callable[[_type.CXPrintingPolicy,  # Policy
-                                             _enum.CXPrintingPolicyProperty,  # Property
+                                             _enum_libclang.CXPrintingPolicyProperty,  # Property
                                              _type.c_uint],  # Value
                                             _type.c_void]
 """
@@ -1782,7 +1782,7 @@ Determine if a C++ member function or member function template is declared
 'const'.
 """
 clang_getTemplateCursorKind: _Callable[[_struct.CXCursor],  # C
-                                       _enum.CXCursorKind]
+                                       _enum_libclang.CXCursorKind]
 """
 Given a cursor that represents a template, determine the cursor kind of the
 specializations would be generated by instantiating the template.
@@ -1809,7 +1809,7 @@ clang_getToken: _Callable[[_type.CXTranslationUnit,  # TU
 Get the raw lexical token starting with the given location.
 """
 clang_getTokenKind: _Callable[[_struct.CXToken],
-                              _enum.CXTokenKind]
+                              _enum_libclang.CXTokenKind]
 """
 Determine the kind of the given token.
 """
@@ -1855,7 +1855,7 @@ clang_disposeTokens: _Callable[[_type.CXTranslationUnit,  # TU
 """
 Free the given set of tokens.
 """
-clang_getCursorKindSpelling: _Callable[[_enum.CXCursorKind],  # Kind
+clang_getCursorKindSpelling: _Callable[[_enum_libclang.CXCursorKind],  # Kind
                                        _struct.CXString]
 """
 for debug/testing
@@ -1876,7 +1876,7 @@ clang_executeOnThread: _Callable[[_type.c_void_p,  # fn
                                  _type.c_void]
 clang_getCompletionChunkKind: _Callable[[_type.CXCompletionString,  # completion_string
                                          _type.c_uint],  # chunk_number
-                                        _enum.CXCompletionChunkKind]
+                                        _enum_libclang.CXCompletionChunkKind]
 """
 Determine the kind of a particular chunk within a completion string.
 """
@@ -1904,7 +1904,7 @@ clang_getCompletionPriority: _Callable[[_type.CXCompletionString],  # completion
 Determine the priority of this code completion.
 """
 clang_getCompletionAvailability: _Callable[[_type.CXCompletionString],  # completion_string
-                                           _enum.CXAvailabilityKind]
+                                           _enum_libclang.CXAvailabilityKind]
 """
 Determine the availability of the entity that this code-completion string refers
 to.
@@ -1921,7 +1921,7 @@ clang_getCompletionAnnotation: _Callable[[_type.CXCompletionString,  # completio
 Retrieve the annotation associated with the given completion string.
 """
 clang_getCompletionParent: _Callable[[_type.CXCompletionString,  # completion_string
-                                      _Pointer[_enum.CXCursorKind]],  # kind
+                                      _Pointer[_enum_libclang.CXCursorKind]],  # kind
                                      _struct.CXString]
 """
 Retrieve the parent context of the given completion string.
@@ -2001,7 +2001,7 @@ completion.
 """
 clang_codeCompleteGetContainerKind: _Callable[[_Pointer[_struct.CXCodeCompleteResults],  # Results
                                                _Pointer[_type.c_uint]],  # IsIncomplete
-                                              _enum.CXCursorKind]
+                                              _enum_libclang.CXCursorKind]
 """
 Returns the cursor kind for the container for the current code completion
 context. The container is only guaranteed to be set for contexts where a
@@ -2052,7 +2052,7 @@ variable, tries to evaluate its initializer, into its corresponding type. If
 it's an expression, tries to evaluate the expression.
 """
 clang_EvalResult_getKind: _Callable[[_type.CXEvalResult],  # E
-                                    _enum.CXEvalResultKind]
+                                    _enum_libclang.CXEvalResultKind]
 """
 Returns the kind of the evaluated result.
 """
@@ -2129,18 +2129,18 @@ Dispose the remapping.
 clang_findReferencesInFile: _Callable[[_struct.CXCursor,  # cursor
                                        _type.CXFile,  # file
                                        _struct.CXCursorAndRangeVisitor],  # visitor
-                                      _enum.CXResult]
+                                      _enum_libclang.CXResult]
 """
 Find references of a declaration in a specific file.
 """
 clang_findIncludesInFile: _Callable[[_type.CXTranslationUnit,  # TU
                                      _type.CXFile,  # file
                                      _struct.CXCursorAndRangeVisitor],  # visitor
-                                    _enum.CXResult]
+                                    _enum_libclang.CXResult]
 """
 Find #import/#include directives in a specific file.
 """
-clang_index_isEntityObjCContainerKind: _Callable[[_enum.CXIdxEntityKind],
+clang_index_isEntityObjCContainerKind: _Callable[[_enum_libclang.CXIdxEntityKind],
                                                  _type.c_int]
 clang_index_getObjCContainerDeclInfo: _Callable[[_Pointer[_struct.CXIdxDeclInfo]],
                                                 _Pointer[_struct.CXIdxObjCContainerDeclInfo]]

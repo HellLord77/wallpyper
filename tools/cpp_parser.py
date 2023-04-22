@@ -1,5 +1,6 @@
 import contextlib
 import functools
+import itertools
 import os
 import pathlib
 import re
@@ -10,9 +11,10 @@ from typing import Iterable, Iterator, Optional, Callable
 import clang.cindex
 
 from libs import ctyped
+from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'D:\Projects\CSDK_SampleApp\Razer\ChromaSDKPluginTypes.h'
+SOURCE_PATH = r'D:\Downloads\Aurora-corsair_wrapper\Project-Aurora\Aurora-CorsairWrapper\CgSDK.x64_2015.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -44,16 +46,17 @@ MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt')
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
-ENUM = True
-FUNCTION = False
+ENUM = False
+FUNCTION = True
 INTERFACE = False
 GUID = False
+AST = False
 
 CLANG = False
 MSVC = True
 VCPKG = False
 
-FUNCTION_COMMENT = True
+COMMENT = True
 INDENT = ' ' * 4
 ENUM_DECL = 'class {}(_Enum):'
 ENUM_CONSTANT_DECL = '{} = {}'
@@ -113,7 +116,7 @@ _TFunctionData = tuple[clang.cindex.Type, list[tuple[clang.cindex.Type, str]], O
 
 
 # noinspection PyShadowingBuiltins
-def find_cursor(cursors: Iterable[clang.cindex.Cursor],
+def find_cursor(cursors: clang.cindex.Cursor | Iterable[clang.cindex.Cursor],
                 kind: Optional[int | clang.cindex.CursorKind | Callable[[clang.cindex.CursorKind], bool]] = None,
                 spelling: Optional[str | re.Pattern | Callable[[str], bool]] = None,
                 location: Optional[str | clang.cindex.SourceLocation | Callable[[clang.cindex.SourceLocation], bool]] = None,
@@ -125,13 +128,15 @@ def find_cursor(cursors: Iterable[clang.cindex.Cursor],
 
 
 # noinspection PyShadowingBuiltins
-def find_cursors(cursors: Iterable[clang.cindex.Cursor],
+def find_cursors(cursors: clang.cindex.Cursor | Iterable[clang.cindex.Cursor],
                  kind: Optional[int | clang.cindex.CursorKind | Callable[[clang.cindex.CursorKind], bool]] = None,
                  spelling: Optional[str | re.Pattern | Callable[[str], bool]] = None,
                  location: Optional[str | clang.cindex.SourceLocation | Callable[[clang.cindex.SourceLocation], bool]] = None,
                  type: Optional[int | clang.cindex.TypeKind | Callable[[clang.cindex.Type], bool]] = None,
                  filter: Optional[Callable[[clang.cindex.Cursor], bool]] = None,
                  recursive: bool = True) -> Iterator[clang.cindex.Cursor]:
+    if isinstance(cursors, clang.cindex.Cursor):
+        cursors = cursors.get_children()
     for cursor in cursors:
         skip = False
         if not skip and kind is not None:
@@ -182,14 +187,14 @@ def _eval_literal(cursor: ctyped.struct.CXCursor | clang.cindex.Cursor) -> Optio
     res = libclang.clang_Cursor_Evaluate(cursor)
     try:
         kind = libclang.clang_EvalResult_getKind(res)
-        if kind == ctyped.enum.CXEvalResultKind.Int:
+        if kind == enum_libclang.CXEvalResultKind.Int:
             if libclang.clang_EvalResult_isUnsignedInt(res):
                 return libclang.clang_EvalResult_getAsUnsigned(res)
             else:
                 return libclang.clang_EvalResult_getAsLongLong(res)
-        elif kind == ctyped.enum.CXEvalResultKind.Float:
+        elif kind == enum_libclang.CXEvalResultKind.Float:
             return libclang.clang_EvalResult_getAsDouble(res)
-        elif kind == ctyped.enum.CXEvalResultKind.StrLiteral:
+        elif kind == enum_libclang.CXEvalResultKind.StrLiteral:
             return libclang.clang_EvalResult_getAsStr(res)
     finally:
         if res:
@@ -226,6 +231,21 @@ def is_interface(cursor: clang.cindex.Cursor) -> bool:
 @functools.lru_cache
 def _interface_location(path: str) -> str:
     return pathlib.Path(path).resolve().stem
+
+
+def get_comment(raw_comment: str | Iterable[str]) -> str:
+    if not isinstance(raw_comment, str):
+        raw_comment = '\n'.join(raw_comment)
+    index = clang.cindex.Index.create()
+    unit = index.parse('comment.h', ('-fparse-all-comments',), (
+        ('comment.h', f'{raw_comment}\nvoid comment();'),),
+                       clang.cindex.TranslationUnit.PARSE_INCLUDE_BRIEF_COMMENTS_IN_CODE_COMPLETION)
+    return find_cursor(unit.cursor, spelling='comment').brief_comment
+
+
+def str_comment(comment: str, indent: str = INDENT) -> str:
+    return textwrap.indent('"""\n' + '\n'.join(
+        textwrap.wrap(comment, 80)) + '\n"""', indent) + '\n'
 
 
 def _str_pointer(spelling: str, count: int) -> str:
@@ -305,24 +325,38 @@ def str_type(type: clang.cindex.Type) -> str:
     return f'TODO {_str_pointer(str(spelling), count_pointer)}'
 
 
-def get_enums(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, dict[str, int]]:
+def get_enums(cursor: clang.cindex.Cursor, **kwargs) -> dict[str, tuple[dict[str, tuple[int, Optional[str]]], Optional[str]]]:
     enums = {}
     for cursor in find_cursors(cursor.get_children(), clang.cindex.CursorKind.ENUM_DECL, **kwargs):
         if not cursor.spelling:
             cursor._spelling = f'_{uuid.uuid4().hex}'
-        enum = enums[cursor.spelling] = {}
+        enum = {}
+        comment = cursor.brief_comment
+        if COMMENT and not comment:
+            raw_comment = []
+            for token in itertools.islice(cursor.get_tokens(), 2, None):
+                if token.kind == clang.cindex.TokenKind.COMMENT:
+                    raw_comment.append(token.spelling)
+                else:
+                    break
+            comment = get_comment(raw_comment)
+        enums[cursor.spelling] = enum, comment
         for cursor_enum in find_cursors(cursor.get_children(), clang.cindex.CursorKind.ENUM_CONSTANT_DECL, recursive=False):
-            enum[cursor_enum.spelling] = cursor_enum.enum_value
+            enum[cursor_enum.spelling] = cursor_enum.enum_value, cursor_enum.brief_comment
     return enums
 
 
-def str_enum(spelling: str, data: dict[str, int]) -> str:
+def str_enum(spelling: str, data: tuple[dict[str, tuple[int, Optional[str]]], Optional[str]]) -> str:
     prefix = f'{spelling}_'
     formatted = f'{ENUM_DECL.format(spelling)}\n'
-    if data:
-        for enum_spelling, value in data.items():
+    if data[1]:
+        formatted += str_comment(data[1])
+    if data[0]:
+        for enum_spelling, (value, comment) in data[0].items():
             formatted += f'{INDENT}{ENUM_CONSTANT_DECL.format(enum_spelling.removeprefix(prefix).removeprefix(spelling), value)}\n'
-    else:
+            if comment:
+                formatted += str_comment(comment)
+    if not any(data):
         formatted += f'{INDENT}pass\n'
     return formatted[:-1]
 
@@ -361,8 +395,7 @@ def str_function(spelling: str, data: _TFunctionData, depth: int = 0) -> str:
         formatted += '],\n'
     formatted += f'{indent}{FUNCTION_DECL_END.format(str_type(data[0]))}\n'
     if data[2]:
-        formatted += textwrap.indent('"""\n' + '\n'.join(
-            textwrap.wrap(data[2], 80)) + '\n"""', indent) + '\n'
+        formatted += str_comment(data[2], indent)
     return formatted[:-1]
 
 
@@ -436,6 +469,20 @@ def print_guids(unit: clang.cindex.TranslationUnit):
         print(str_guid(spelling, data))
 
 
+def str_ast(cursor: clang.cindex.Cursor, depth: int = 0):
+    spelling = cursor.spelling or '<spelling>'
+    location = cursor.location
+    file = location.file
+    name = file.name if file is not None else '<file>'
+    return f'{INDENT * depth}{cursor.kind.name} {spelling} {name} [{location.line}:{location.column}]'
+
+
+def print_ast(cursor: clang.cindex.Cursor, depth: int = 0):
+    print(str_ast(cursor, depth))
+    for child in find_cursors(cursor.get_children(), location=functools.partial(_same_location, SOURCE_PATH), recursive=False):
+        print_ast(child, depth + 1)
+
+
 def main():
     os.add_dll_directory(CLANG_DIR)
     index = clang.cindex.Index.create()
@@ -451,16 +498,16 @@ def main():
         args.append(f'-cxx-isystem{include_dir}')
     for macro, value in DEFINITIONS.items():
         args.append(f'-D{macro}={value}')
-    if FUNCTION_COMMENT:
+    if COMMENT:
         args.append('-fparse-all-comments')
-    with open(SOURCE_PATH) as file:
+    with open(SOURCE_PATH, encoding='utf-8') as file:
         source = file.read()
     for include in INCLUDES:
         source = f'#include {include}\n{source}'
     flags = (clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD |
              clang.cindex.TranslationUnit.PARSE_INCOMPLETE |
              clang.cindex.TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
-    if FUNCTION_COMMENT:
+    if COMMENT:
         flags |= clang.cindex.TranslationUnit.PARSE_INCLUDE_BRIEF_COMMENTS_IN_CODE_COMPLETION
     unit = index.parse(SOURCE_PATH, args, ((SOURCE_PATH, source),), flags)
     if ENUM:
@@ -471,6 +518,8 @@ def main():
         print_interfaces(unit)
     if GUID:
         print_guids(unit)
+    if AST:
+        print_ast(unit.cursor)
 
     # for cursor in find_cursors(unit.cursor.get_children()):
     #     if cursor.spelling == 'MEDIASUBTYPE_None':

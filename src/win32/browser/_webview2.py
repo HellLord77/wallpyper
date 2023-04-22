@@ -3,6 +3,7 @@ from __future__ import annotations as _
 from typing import Optional
 
 from libs import ctyped
+from libs.ctyped.enum import WebView2 as enum_WebView2
 from libs.ctyped.interface.package import WebView2
 from .. import _com
 
@@ -123,7 +124,7 @@ class CoreWebView2Controller(_com.Unknown):
     def set_bounds_and_zoom_factor(self, bounds: ctyped.struct.RECT, zoom_factor: float) -> bool:
         return ctyped.macro.SUCCEEDED(self._obj.SetBoundsAndZoomFactor(bounds, zoom_factor))
 
-    def move_focus(self, reason: ctyped.enum.COREWEBVIEW2_MOVE_FOCUS_REASON) -> bool:
+    def move_focus(self, reason: enum_WebView2.COREWEBVIEW2_MOVE_FOCUS_REASON) -> bool:
         return ctyped.macro.SUCCEEDED(self._obj.MoveFocus(reason))
 
     parent_window = _com.HWNDGetterSetter('ParentWindow')
@@ -188,7 +189,7 @@ class CoreWebView2WebResourceRequestedEventArgs(_com.Unknown):
     response = _CoreWebView2WebResourceResponseGetterSetter('Response')
 
     @property
-    def resource_context(self) -> ctyped.enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT:
-        corewebview2_web_resource_context = ctyped.enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT()
+    def resource_context(self) -> enum_WebView2.COREWEBVIEW2_WEB_RESOURCE_CONTEXT:
+        corewebview2_web_resource_context = enum_WebView2.COREWEBVIEW2_WEB_RESOURCE_CONTEXT()
         self._obj.get_ResourceContext(ctyped.byref(corewebview2_web_resource_context))
         return corewebview2_web_resource_context

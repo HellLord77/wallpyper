@@ -623,8 +623,10 @@ def _test_hook():
 
 
 def _test():
-    from libs import useragents
-    print(useragents.get_random())
+    from win32.cue import game as cue_game
+    game = cue_game.Common()
+    if game and game.Profile.SDKL_PoliceLightsFull.set():
+        time.sleep(10)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

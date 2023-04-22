@@ -2235,7 +2235,7 @@ GdipEnumerateMetafileSrcRectDestPointsI: _Callable[[_type.GpGraphics,  # graphic
                                                     _type.GpImageAttributes],  # imageAttributes
                                                    _enum.GpStatus]
 GdipPlayMetafileRecord: _Callable[[_type.GpMetafile,  # metafile
-                                   _type.EmfPlusRecordType,  # recordType
+                                   _enum.EmfPlusRecordType,  # recordType
                                    _type.UINT,  # flags
                                    _type.UINT,  # dataSize
                                    _Pointer[_type.BYTE]],  # data

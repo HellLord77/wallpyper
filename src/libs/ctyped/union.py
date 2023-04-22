@@ -291,6 +291,27 @@ class D2D_MATRIX_5X4_F_U:
     m: (_type.FLOAT * 4) * 5
 
 
+# iCUESDK
+# iCUESDK
+# noinspection PyPep8Naming
+@_union
+class CorsairEvent_U:
+    deviceConnectionStatusChangedEvent: _Pointer[_struct.CorsairDeviceConnectionStatusChangedEvent]
+    keyEvent: _Pointer[_struct.CorsairKeyEvent]
+
+
+@_union
+class CorsairDataValue:
+    boolean: _type.c_bool
+    int32: _type.c_int
+    float64: _type.c_double
+    string: _type.c_char_p
+    boolean_array: _struct.CorsairDataType_BooleanArray
+    int32_array: _struct.CorsairDataType_Int32Array
+    float64_array: _struct.CorsairDataType_Float64Array
+    string_array: _struct.CorsairDataType_StringArray
+
+
 class _Union(_ctypes.Union):
     __repr__ = _fields_repr
 

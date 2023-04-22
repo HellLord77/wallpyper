@@ -5,14 +5,14 @@ from typing import Callable as _Callable
 from ..um import Unknwnbase as _Unknwnbase
 from ..um import objidl as _objidl
 from ..um import objidlbase as _objidlbase
-from ... import enum as _enum
 from ... import struct as _struct
 from ... import type as _type
 from ..._utils import _Pointer
+from ...enum import WebView2 as _enum_WebView2
 
 
 class ICoreWebView2AcceleratorKeyPressedEventArgs(_Unknwnbase.IUnknown):
-    get_KeyEventKind: _Callable[[_Pointer[_enum.COREWEBVIEW2_KEY_EVENT_KIND]],  # keyEventKind
+    get_KeyEventKind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_KEY_EVENT_KIND]],  # keyEventKind
                                 _type.HRESULT]
     get_VirtualKey: _Callable[[_Pointer[_type.UINT]],  # virtualKey
                               _type.HRESULT]
@@ -152,7 +152,7 @@ class ICoreWebView2(_Unknwnbase.IUnknown):
     ExecuteScript: _Callable[[_type.LPCWSTR,  # javaScript
                               ICoreWebView2ExecuteScriptCompletedHandler],  # handler
                              _type.HRESULT]
-    CapturePreview: _Callable[[_enum.COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT,  # imageFormat
+    CapturePreview: _Callable[[_enum_WebView2.COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT,  # imageFormat
                                _objidlbase.IStream,  # imageStream
                                ICoreWebView2CapturePreviewCompletedHandler],  # handler
                               _type.HRESULT]
@@ -218,10 +218,10 @@ class ICoreWebView2(_Unknwnbase.IUnknown):
     remove_WebResourceRequested: _Callable[[_struct.EventRegistrationToken],  # token
                                            _type.HRESULT]
     AddWebResourceRequestedFilter: _Callable[[_type.LPCWSTR,  # uri
-                                              _enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT],  # resourceContext
+                                              _enum_WebView2.COREWEBVIEW2_WEB_RESOURCE_CONTEXT],  # resourceContext
                                              _type.HRESULT]
     RemoveWebResourceRequestedFilter: _Callable[[_type.LPCWSTR,  # uri
-                                                 _enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT],  # resourceContext
+                                                 _enum_WebView2.COREWEBVIEW2_WEB_RESOURCE_CONTEXT],  # resourceContext
                                                 _type.HRESULT]
     add_WindowCloseRequested: _Callable[[ICoreWebView2WindowCloseRequestedEventHandler,  # eventHandler
                                          _Pointer[_struct.EventRegistrationToken]],  # token
@@ -260,7 +260,7 @@ class ICoreWebView2_3(ICoreWebView2_2):
                                _type.HRESULT]
     SetVirtualHostNameToFolderMapping: _Callable[[_type.LPCWSTR,  # hostName
                                                   _type.LPCWSTR,  # folderPath
-                                                  _enum.COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND],  # accessKind
+                                                  _enum_WebView2.COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND],  # accessKind
                                                  _type.HRESULT]
     ClearVirtualHostNameToFolderMapping: _Callable[[_type.LPCWSTR],  # hostName
                                                    _type.HRESULT]
@@ -336,9 +336,9 @@ class ICoreWebView2_9(ICoreWebView2_8):
                                          _type.HRESULT]
     CloseDefaultDownloadDialog: _Callable[[],
                                           _type.HRESULT]
-    get_DefaultDownloadDialogCornerAlignment: _Callable[[_Pointer[_enum.COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT]],  # value
+    get_DefaultDownloadDialogCornerAlignment: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT]],  # value
                                                         _type.HRESULT]
-    put_DefaultDownloadDialogCornerAlignment: _Callable[[_enum.COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT],  # value
+    put_DefaultDownloadDialogCornerAlignment: _Callable[[_enum_WebView2.COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT],  # value
                                                         _type.HRESULT]
     get_DefaultDownloadDialogMargin: _Callable[[_Pointer[_struct.POINT]],  # value
                                                _type.HRESULT]
@@ -428,7 +428,7 @@ class ICoreWebView2BasicAuthenticationResponse(_Unknwnbase.IUnknown):
 
 
 class ICoreWebView2BrowserProcessExitedEventArgs(_Unknwnbase.IUnknown):
-    get_BrowserProcessExitKind: _Callable[[_Pointer[_enum.COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND]],  # browserProcessExitKind
+    get_BrowserProcessExitKind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND]],  # browserProcessExitKind
                                           _type.HRESULT]
     get_BrowserProcessId: _Callable[[_Pointer[_type.UINT32]],  # value
                                     _type.HRESULT]
@@ -469,12 +469,12 @@ class ICoreWebView2CompositionController(_Unknwnbase.IUnknown):
                                     _type.HRESULT]
     put_RootVisualTarget: _Callable[[_Unknwnbase.IUnknown],  # target
                                     _type.HRESULT]
-    SendMouseInput: _Callable[[_enum.COREWEBVIEW2_MOUSE_EVENT_KIND,  # eventKind
-                               _enum.COREWEBVIEW2_MOUSE_EVENT_VIRTUAL_KEYS,  # virtualKeys
+    SendMouseInput: _Callable[[_enum_WebView2.COREWEBVIEW2_MOUSE_EVENT_KIND,  # eventKind
+                               _enum_WebView2.COREWEBVIEW2_MOUSE_EVENT_VIRTUAL_KEYS,  # virtualKeys
                                _type.UINT32,  # mouseData
                                _struct.POINT],  # point
                               _type.HRESULT]
-    SendPointerInput: _Callable[[_enum.COREWEBVIEW2_POINTER_EVENT_KIND,  # eventKind
+    SendPointerInput: _Callable[[_enum_WebView2.COREWEBVIEW2_POINTER_EVENT_KIND,  # eventKind
                                  ICoreWebView2PointerInfo],  # pointerInfo
                                 _type.HRESULT]
     get_Cursor: _Callable[[_Pointer[_type.HCURSOR]],  # cursor
@@ -533,7 +533,7 @@ class ICoreWebView2Controller(_Unknwnbase.IUnknown):
     SetBoundsAndZoomFactor: _Callable[[_struct.RECT,  # bounds
                                        _type.c_double],  # zoomFactor
                                       _type.HRESULT]
-    MoveFocus: _Callable[[_enum.COREWEBVIEW2_MOVE_FOCUS_REASON],  # reason
+    MoveFocus: _Callable[[_enum_WebView2.COREWEBVIEW2_MOVE_FOCUS_REASON],  # reason
                          _type.HRESULT]
     add_MoveFocusRequested: _Callable[[ICoreWebView2MoveFocusRequestedEventHandler,  # eventHandler
                                        _Pointer[_struct.EventRegistrationToken]],  # token
@@ -588,9 +588,9 @@ class ICoreWebView2Controller3(ICoreWebView2Controller2):
                                              _type.HRESULT]
     remove_RasterizationScaleChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                                 _type.HRESULT]
-    get_BoundsMode: _Callable[[_Pointer[_enum.COREWEBVIEW2_BOUNDS_MODE]],  # boundsMode
+    get_BoundsMode: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_BOUNDS_MODE]],  # boundsMode
                               _type.HRESULT]
-    put_BoundsMode: _Callable[[_enum.COREWEBVIEW2_BOUNDS_MODE],  # boundsMode
+    put_BoundsMode: _Callable[[_enum_WebView2.COREWEBVIEW2_BOUNDS_MODE],  # boundsMode
                               _type.HRESULT]
 
 
@@ -687,9 +687,9 @@ class ICoreWebView2Cookie(_Unknwnbase.IUnknown):
                               _type.HRESULT]
     put_IsHttpOnly: _Callable[[_type.BOOL],  # isHttpOnly
                               _type.HRESULT]
-    get_SameSite: _Callable[[_Pointer[_enum.COREWEBVIEW2_COOKIE_SAME_SITE_KIND]],  # sameSite
+    get_SameSite: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_COOKIE_SAME_SITE_KIND]],  # sameSite
                             _type.HRESULT]
-    put_SameSite: _Callable[[_enum.COREWEBVIEW2_COOKIE_SAME_SITE_KIND],  # sameSite
+    put_SameSite: _Callable[[_enum_WebView2.COREWEBVIEW2_COOKIE_SAME_SITE_KIND],  # sameSite
                             _type.HRESULT]
     get_IsSecure: _Callable[[_Pointer[_type.BOOL]],  # isSecure
                             _type.HRESULT]
@@ -771,7 +771,7 @@ class ICoreWebView2ClientCertificate(_Unknwnbase.IUnknown):
                              _type.HRESULT]
     get_PemEncodedIssuerCertificateChain: _Callable[[_Pointer[ICoreWebView2StringCollection]],  # value
                                                     _type.HRESULT]
-    get_Kind: _Callable[[_Pointer[_enum.COREWEBVIEW2_CLIENT_CERTIFICATE_KIND]],  # value
+    get_Kind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_CLIENT_CERTIFICATE_KIND]],  # value
                         _type.HRESULT]
 
 
@@ -858,7 +858,7 @@ class ICoreWebView2ContextMenuItem(_Unknwnbase.IUnknown):
                                           _type.HRESULT]
     get_Icon: _Callable[[_Pointer[_objidlbase.IStream]],  # value
                         _type.HRESULT]
-    get_Kind: _Callable[[_Pointer[_enum.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND]],  # value
+    get_Kind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND]],  # value
                         _type.HRESULT]
     put_IsEnabled: _Callable[[_type.BOOL],  # value
                              _type.HRESULT]
@@ -891,7 +891,7 @@ class ICoreWebView2ContextMenuItemCollection(_Unknwnbase.IUnknown):
 
 
 class ICoreWebView2ContextMenuTarget(_Unknwnbase.IUnknown):
-    get_Kind: _Callable[[_Pointer[_enum.COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND]],  # value
+    get_Kind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND]],  # value
                         _type.HRESULT]
     get_IsEditable: _Callable[[_Pointer[_type.BOOL]],  # value
                               _type.HRESULT]
@@ -1126,9 +1126,9 @@ class ICoreWebView2DownloadOperation(_Unknwnbase.IUnknown):
                                     _type.HRESULT]
     get_ResultFilePath: _Callable[[_Pointer[_type.LPWSTR]],  # resultFilePath
                                   _type.HRESULT]
-    get_State: _Callable[[_Pointer[_enum.COREWEBVIEW2_DOWNLOAD_STATE]],  # downloadState
+    get_State: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_DOWNLOAD_STATE]],  # downloadState
                          _type.HRESULT]
-    get_InterruptReason: _Callable[[_Pointer[_enum.COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON]],  # interruptReason
+    get_InterruptReason: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON]],  # interruptReason
                                    _type.HRESULT]
     Cancel: _Callable[[],
                       _type.HRESULT]
@@ -1247,7 +1247,7 @@ class ICoreWebView2Environment8(ICoreWebView2Environment7):
 class ICoreWebView2Environment9(ICoreWebView2Environment8):
     CreateContextMenuItem: _Callable[[_type.LPCWSTR,  # label
                                       _objidlbase.IStream,  # iconStream
-                                      _enum.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND,  # kind
+                                      _enum_WebView2.COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND,  # kind
                                       _Pointer[ICoreWebView2ContextMenuItem]],  # item
                                      _type.HRESULT]
 
@@ -1656,7 +1656,7 @@ class ICoreWebView2IsDefaultDownloadDialogOpenChangedEventHandler_impl(_ICoreWeb
 
 
 class ICoreWebView2MoveFocusRequestedEventArgs(_Unknwnbase.IUnknown):
-    get_Reason: _Callable[[_Pointer[_enum.COREWEBVIEW2_MOVE_FOCUS_REASON]],  # reason
+    get_Reason: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_MOVE_FOCUS_REASON]],  # reason
                           _type.HRESULT]
     get_Handled: _Callable[[_Pointer[_type.BOOL]],  # value
                            _type.HRESULT]
@@ -1682,7 +1682,7 @@ class ICoreWebView2MoveFocusRequestedEventHandler_impl(_ICoreWebView2MoveFocusRe
 class ICoreWebView2NavigationCompletedEventArgs(_Unknwnbase.IUnknown):
     get_IsSuccess: _Callable[[_Pointer[_type.BOOL]],  # isSuccess
                              _type.HRESULT]
-    get_WebErrorStatus: _Callable[[_Pointer[_enum.COREWEBVIEW2_WEB_ERROR_STATUS]],  # webErrorStatus
+    get_WebErrorStatus: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_WEB_ERROR_STATUS]],  # webErrorStatus
                                   _type.HRESULT]
     get_NavigationId: _Callable[[_Pointer[_type.UINT64]],  # navigationId
                                 _type.HRESULT]
@@ -1804,13 +1804,13 @@ class ICoreWebView2NewWindowRequestedEventHandler_impl(_ICoreWebView2NewWindowRe
 class ICoreWebView2PermissionRequestedEventArgs(_Unknwnbase.IUnknown):
     get_Uri: _Callable[[_Pointer[_type.LPWSTR]],  # uri
                        _type.HRESULT]
-    get_PermissionKind: _Callable[[_Pointer[_enum.COREWEBVIEW2_PERMISSION_KIND]],  # permissionKind
+    get_PermissionKind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PERMISSION_KIND]],  # permissionKind
                                   _type.HRESULT]
     get_IsUserInitiated: _Callable[[_Pointer[_type.BOOL]],  # isUserInitiated
                                    _type.HRESULT]
-    get_State: _Callable[[_Pointer[_enum.COREWEBVIEW2_PERMISSION_STATE]],  # state
+    get_State: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PERMISSION_STATE]],  # state
                          _type.HRESULT]
-    put_State: _Callable[[_enum.COREWEBVIEW2_PERMISSION_STATE],  # state
+    put_State: _Callable[[_enum_WebView2.COREWEBVIEW2_PERMISSION_STATE],  # state
                          _type.HRESULT]
     GetDeferral: _Callable[[_Pointer[ICoreWebView2Deferral]],  # deferral
                            _type.HRESULT]
@@ -1954,9 +1954,9 @@ class ICoreWebView2PointerInfo(_Unknwnbase.IUnknown):
 
 
 class ICoreWebView2PrintSettings(_Unknwnbase.IUnknown):
-    get_Orientation: _Callable[[_Pointer[_enum.COREWEBVIEW2_PRINT_ORIENTATION]],  # orientation
+    get_Orientation: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PRINT_ORIENTATION]],  # orientation
                                _type.HRESULT]
-    put_Orientation: _Callable[[_enum.COREWEBVIEW2_PRINT_ORIENTATION],  # orientation
+    put_Orientation: _Callable[[_enum_WebView2.COREWEBVIEW2_PRINT_ORIENTATION],  # orientation
                                _type.HRESULT]
     get_ScaleFactor: _Callable[[_Pointer[_type.c_double]],  # scaleFactor
                                _type.HRESULT]
@@ -2024,12 +2024,12 @@ class ICoreWebView2PrintToPdfCompletedHandler_impl(_ICoreWebView2PrintToPdfCompl
 
 
 class ICoreWebView2ProcessFailedEventArgs(_Unknwnbase.IUnknown):
-    get_ProcessFailedKind: _Callable[[_Pointer[_enum.COREWEBVIEW2_PROCESS_FAILED_KIND]],  # processFailedKind
+    get_ProcessFailedKind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PROCESS_FAILED_KIND]],  # processFailedKind
                                      _type.HRESULT]
 
 
 class ICoreWebView2ProcessFailedEventArgs2(ICoreWebView2ProcessFailedEventArgs):
-    get_Reason: _Callable[[_Pointer[_enum.COREWEBVIEW2_PROCESS_FAILED_REASON]],  # reason
+    get_Reason: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PROCESS_FAILED_REASON]],  # reason
                           _type.HRESULT]
     get_ExitCode: _Callable[[_Pointer[_type.c_int]],  # exitCode
                             _type.HRESULT]
@@ -2065,17 +2065,17 @@ class ICoreWebView2Profile(_Unknwnbase.IUnknown):
                                              _type.HRESULT]
     put_DefaultDownloadFolderPath: _Callable[[_type.LPCWSTR],  # value
                                              _type.HRESULT]
-    get_PreferredColorScheme: _Callable[[_Pointer[_enum.COREWEBVIEW2_PREFERRED_COLOR_SCHEME]],  # value
+    get_PreferredColorScheme: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PREFERRED_COLOR_SCHEME]],  # value
                                         _type.HRESULT]
-    put_PreferredColorScheme: _Callable[[_enum.COREWEBVIEW2_PREFERRED_COLOR_SCHEME],  # value
+    put_PreferredColorScheme: _Callable[[_enum_WebView2.COREWEBVIEW2_PREFERRED_COLOR_SCHEME],  # value
                                         _type.HRESULT]
 
 
 class ICoreWebView2Profile2(ICoreWebView2Profile):
-    ClearBrowsingData: _Callable[[_enum.COREWEBVIEW2_BROWSING_DATA_KINDS,  # dataKinds
+    ClearBrowsingData: _Callable[[_enum_WebView2.COREWEBVIEW2_BROWSING_DATA_KINDS,  # dataKinds
                                   ICoreWebView2ClearBrowsingDataCompletedHandler],  # handler
                                  _type.HRESULT]
-    ClearBrowsingDataInTimeRange: _Callable[[_enum.COREWEBVIEW2_BROWSING_DATA_KINDS,  # dataKinds
+    ClearBrowsingDataInTimeRange: _Callable[[_enum_WebView2.COREWEBVIEW2_BROWSING_DATA_KINDS,  # dataKinds
                                              _type.c_double,  # startTime
                                              _type.c_double,  # endTime
                                              ICoreWebView2ClearBrowsingDataCompletedHandler],  # handler
@@ -2100,15 +2100,15 @@ class ICoreWebView2RasterizationScaleChangedEventHandler_impl(_ICoreWebView2Rast
 
 
 class ICoreWebView2ServerCertificateErrorDetectedEventArgs(_Unknwnbase.IUnknown):
-    get_ErrorStatus: _Callable[[_Pointer[_enum.COREWEBVIEW2_WEB_ERROR_STATUS]],  # value
+    get_ErrorStatus: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_WEB_ERROR_STATUS]],  # value
                                _type.HRESULT]
     get_RequestUri: _Callable[[_Pointer[_type.LPWSTR]],  # value
                               _type.HRESULT]
     get_ServerCertificate: _Callable[[_Pointer[ICoreWebView2Certificate]],  # value
                                      _type.HRESULT]
-    get_Action: _Callable[[_Pointer[_enum.COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION]],  # value
+    get_Action: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION]],  # value
                           _type.HRESULT]
-    put_Action: _Callable[[_enum.COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION],  # value
+    put_Action: _Callable[[_enum_WebView2.COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION],  # value
                           _type.HRESULT]
     GetDeferral: _Callable[[_Pointer[ICoreWebView2Deferral]],  # deferral
                            _type.HRESULT]
@@ -2132,7 +2132,7 @@ class ICoreWebView2ServerCertificateErrorDetectedEventHandler_impl(_ICoreWebView
 class ICoreWebView2ScriptDialogOpeningEventArgs(_Unknwnbase.IUnknown):
     get_Uri: _Callable[[_Pointer[_type.LPWSTR]],  # uri
                        _type.HRESULT]
-    get_Kind: _Callable[[_Pointer[_enum.COREWEBVIEW2_SCRIPT_DIALOG_KIND]],  # kind
+    get_Kind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_SCRIPT_DIALOG_KIND]],  # kind
                         _type.HRESULT]
     get_Message: _Callable[[_Pointer[_type.LPWSTR]],  # message
                            _type.HRESULT]
@@ -2242,9 +2242,9 @@ class ICoreWebView2Settings6(ICoreWebView2Settings5):
 
 
 class ICoreWebView2Settings7(ICoreWebView2Settings6):
-    get_HiddenPdfToolbarItems: _Callable[[_Pointer[_enum.COREWEBVIEW2_PDF_TOOLBAR_ITEMS]],  # hidden_pdf_toolbar_items
+    get_HiddenPdfToolbarItems: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PDF_TOOLBAR_ITEMS]],  # hidden_pdf_toolbar_items
                                          _type.HRESULT]
-    put_HiddenPdfToolbarItems: _Callable[[_enum.COREWEBVIEW2_PDF_TOOLBAR_ITEMS],  # hidden_pdf_toolbar_items
+    put_HiddenPdfToolbarItems: _Callable[[_enum_WebView2.COREWEBVIEW2_PDF_TOOLBAR_ITEMS],  # hidden_pdf_toolbar_items
                                          _type.HRESULT]
 
 
@@ -2363,7 +2363,7 @@ class ICoreWebView2WebResourceRequestedEventArgs(_Unknwnbase.IUnknown):
                             _type.HRESULT]
     GetDeferral: _Callable[[_Pointer[ICoreWebView2Deferral]],  # deferral
                            _type.HRESULT]
-    get_ResourceContext: _Callable[[_Pointer[_enum.COREWEBVIEW2_WEB_RESOURCE_CONTEXT]],  # context
+    get_ResourceContext: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_WEB_RESOURCE_CONTEXT]],  # context
                                    _type.HRESULT]
 
 
@@ -2533,7 +2533,7 @@ class ICoreWebView2IsDocumentPlayingAudioChangedEventHandler_impl(_ICoreWebView2
 class ICoreWebView2ProcessInfo(_Unknwnbase.IUnknown):
     get_ProcessId: _Callable[[_Pointer[_type.INT32]],  # value
                              _type.HRESULT]
-    get_Kind: _Callable[[_Pointer[_enum.COREWEBVIEW2_PROCESS_KIND]],  # kind
+    get_Kind: _Callable[[_Pointer[_enum_WebView2.COREWEBVIEW2_PROCESS_KIND]],  # kind
                         _type.HRESULT]
 
 
@@ -2610,6 +2610,6 @@ class ICoreWebView2_15(ICoreWebView2_14):
                                      _type.HRESULT]
     get_FaviconUri: _Callable[[_Pointer[_type.LPWSTR]],  # value
                               _type.HRESULT]
-    GetFavicon: _Callable[[_enum.COREWEBVIEW2_FAVICON_IMAGE_FORMAT,  # format
+    GetFavicon: _Callable[[_enum_WebView2.COREWEBVIEW2_FAVICON_IMAGE_FORMAT,  # format
                            ICoreWebView2GetFaviconCompletedHandler],  # completedHandler
                           _type.HRESULT]

@@ -8,6 +8,7 @@ from .. import struct as _struct
 from .. import type as _type
 from .._utils import _Pointer
 
+# stdafx
 PluginAddColor: _Callable[[_type.c_int,  # color1
                            _type.c_int],  # color2
                           _type.c_int]

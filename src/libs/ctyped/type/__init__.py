@@ -6,9 +6,17 @@ from typing import Any as _Any, Callable as _Callable, Union as _Union
 
 import _ctypes as __ctypes
 
-from . import const as _const
-from . import struct as _struct
-from ._utils import _Globals, _Pointer, _PyCSimpleType, _SimpleCData, _resolve_type
+from .. import const as _const
+from .. import enum as _enum
+from .. import struct as _struct
+from .._utils import _Globals, _Pointer, _PyCSimpleType, _SimpleCData, _resolve_type
+from ..enum import iCUESDK as _enum_iCUESDK
+from ..enum import libclang as _enum_libclang
+
+
+def _callable() -> _Any:
+    pass
+
 
 c_byte: type[_ctypes.c_byte] = _Union[_ctypes.c_byte, int]
 c_char: type[_ctypes.c_char] = _Union[_ctypes.c_char, bytes]
@@ -212,18 +220,6 @@ CXIdxClientASTFile = __obj
 CXIndexAction = __obj
 # Rewrite
 CXRewriter = __obj
-
-__enum = c_int
-DebugEventLevel = __enum
-EmfPlusRecordType = __enum
-WICProgressOperation = __enum
-CXChildVisitResult = __enum
-CXVisitorResult = __enum
-
-__struct = c_void_p
-CXSourceLocation = __struct
-CXSourceRange = __struct
-CXCursor = __struct
 
 __interface = c_void_p
 IUnknown = __interface
@@ -461,6 +457,119 @@ HCRYPTPROV = ULONG_PTR
 HCRYPTKEY = ULONG_PTR
 HCRYPTHASH = ULONG_PTR
 
+ABORTPROC: _Callable[[_Callable], _Callable[
+    [HDC, c_int], BOOL]] = _callable()
+APPLICATION_RECOVERY_CALLBACK: _Callable[[_Callable], _Callable[
+    [PVOID], DWORD]] = _callable()
+BFFCALLBACK: _Callable[[_Callable], _Callable[
+    [HWND, UINT, LPARAM, LPARAM], c_int]] = _callable()
+DebugEventProc: _Callable[[_Callable], _Callable[
+    [_enum.DebugEventLevel, PCHAR], VOID]] = _callable()
+DLGPROC: _Callable[[_Callable], _Callable[
+    [HWND, UINT, WPARAM, LPARAM], INT_PTR]] = _callable()
+DLLGETVERSIONPROC: _Callable[[_Callable], _Callable[
+    [_Pointer[_struct.DLLVERSIONINFO]], HRESULT]] = _callable()
+DRAWSTATEPROC: _Callable[[_Callable], _Callable[
+    [HDC, LPARAM, WPARAM, c_int, c_int], BOOL]] = _callable()
+ENUMRESNAMEPROCA: _Callable[[_Callable], _Callable[
+    [HMODULE, LPCSTR_PROXY, LPSTR_PROXY, LONG_PTR], BOOL]] = _callable()
+ENUMRESNAMEPROCW: _Callable[[_Callable], _Callable[
+    [HMODULE, LPCWSTR_PROXY, LPWSTR_PROXY, LONG_PTR], BOOL]] = _callable()
+ENUMRESLANGPROCA: _Callable[[_Callable], _Callable[
+    [HMODULE, LPCSTR_PROXY, LPCSTR_PROXY, WORD, LONG_PTR], BOOL]] = _callable()
+ENUMRESLANGPROCW: _Callable[[_Callable], _Callable[
+    [HMODULE, LPCWSTR_PROXY, LPCWSTR_PROXY, WORD, LONG_PTR], BOOL]] = _callable()
+ENUMRESTYPEPROCA: _Callable[[_Callable], _Callable[
+    [HMODULE, LPCSTR_PROXY, LONG_PTR], BOOL]] = _callable()
+ENUMRESTYPEPROCW: _Callable[[_Callable], _Callable[
+    [HMODULE, LPCWSTR_PROXY, LONG_PTR], BOOL]] = _callable()
+GRAYSTRINGPROC: _Callable[[_Callable], _Callable[
+    [HDC, LPARAM, c_int], BOOL]] = _callable()
+HOOKPROC: _Callable[[_Callable], _Callable[
+    [c_int, WPARAM, LPARAM], LRESULT]] = _callable()
+ImageAbort: _Callable[[_Callable], _Callable[
+    [PVOID], BOOL]] = _callable()
+LPCCHOOKPROC: _Callable[[_Callable], _Callable[
+    [HWND, UINT, WPARAM, LPARAM], UINT_PTR]] = _callable()
+LPENCLAVE_ROUTINE: _Callable[[_Callable], _Callable[
+    [LPVOID], LPVOID]] = _callable()
+LPTHREAD_START_ROUTINE: _Callable[[_Callable], _Callable[
+    [LPVOID], DWORD]] = _callable()
+MONITORENUMPROC: _Callable[[_Callable], _Callable[
+    [HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]] = _callable()
+PHANDLER_ROUTINE: _Callable[[_Callable], _Callable[
+    [DWORD], BOOL]] = _callable()
+PROPENUMPROCA: _Callable[[_Callable], _Callable[
+    [HWND, LPCSTR, HANDLE], BOOL]] = _callable()
+PROPENUMPROCW: _Callable[[_Callable], _Callable[
+    [HWND, LPCWSTR, HANDLE], BOOL]] = _callable()
+PROPENUMPROCEXA: _Callable[[_Callable], _Callable[
+    [HWND, LPSTR, HANDLE, ULONG_PTR], BOOL]] = _callable()
+PROPENUMPROCEXW: _Callable[[_Callable], _Callable[
+    [HWND, LPWSTR, HANDLE, ULONG_PTR], BOOL]] = _callable()
+PTIMERAPCROUTINE: _Callable[[_Callable], _Callable[
+    [LPVOID, DWORD, DWORD], VOID]] = _callable()
+SENDASYNCPROC: _Callable[[_Callable], _Callable[
+    [HWND, UINT, ULONG_PTR, LRESULT], VOID]] = _callable()
+TIMERPROC: _Callable[[_Callable], _Callable[
+    [HWND, UINT, UINT_PTR, DWORD], VOID]] = _callable()
+WINEVENTPROC: _Callable[[_Callable], _Callable[
+    [HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD], VOID]] = _callable()
+WNDENUMPROC: _Callable[[_Callable], _Callable[
+    [HWND, LPARAM], BOOL]] = _callable()
+WNDPROC: _Callable[[_Callable], _Callable[
+    [HWND, UINT, WPARAM, LPARAM], LRESULT]] = _callable()
+EnumerateMetafileProc: _Callable[[_Callable], _Callable[
+    [_enum.EmfPlusRecordType, UINT, UINT, _Pointer[BYTE], PVOID], BOOL]] = _callable()
+GdiplusAbort: _Callable[[_Callable], _Callable[
+    [], HRESULT]] = _callable()
+PD2D1_EFFECT_FACTORY: _Callable[[_Callable], _Callable[
+    [_Pointer[IUnknown]], HRESULT]] = _callable()
+PFN_DESTRUCTION_CALLBACK: _Callable[[_Callable], _Callable[
+    [c_void_p], c_void]] = _callable()
+WAITORTIMERCALLBACKFUNC: _Callable[[_Callable], _Callable[
+    [PVOID, BOOLEAN], VOID]] = _callable()
+WORKERCALLBACKFUNC: _Callable[[_Callable], _Callable[
+    [PVOID], VOID]] = _callable()
+SUBCLASSPROC: _Callable[[_Callable], _Callable[
+    [HWND, UINT, WPARAM, LPARAM, UINT_PTR, DWORD_PTR], LRESULT]] = _callable()
+APC_CALLBACK_FUNCTION: _Callable[[_Callable], _Callable[
+    [DWORD, PVOID, PVOID], VOID]] = _callable()
+PFLS_CALLBACK_FUNCTION: _Callable[[_Callable], _Callable[
+    [PVOID], VOID]] = _callable()
+PSECURE_MEMORY_CACHE_CALLBACK: _Callable[[_Callable], _Callable[
+    [PVOID, SIZE_T], BOOLEAN]] = _callable()
+LPOVERLAPPED_COMPLETION_ROUTINE: _Callable[[_Callable], _Callable[
+    [DWORD, DWORD, _Pointer[_struct.OVERLAPPED]], VOID]] = _callable()
+FExecuteInAppDomainCallback: _Callable[[_Callable], _Callable[
+    [c_void_p], HRESULT]] = _callable()
+PFNProgressNotification: _Callable[[_Callable], _Callable[
+    [LPVOID, ULONG, _enum.WICProgressOperation, c_double], HRESULT]] = _callable()
+GOBJENUMPROC: _Callable[[_Callable], _Callable[
+    [LPVOID, LPARAM], c_int]] = _callable()
+LINEDDAPROC: _Callable[[_Callable], _Callable[
+    [c_int, c_int, LPARAM], VOID]] = _callable()
+ICMENUMPROCA: _Callable[[_Callable], _Callable[
+    [LPSTR, LPARAM], c_int]] = _callable()
+ICMENUMPROCW: _Callable[[_Callable], _Callable[
+    [LPWSTR, LPARAM], c_int]] = _callable()
+PFNGETACTIVATIONFACTORY: _Callable[[_Callable], _Callable[
+    [HSTRING, _Pointer[IActivationFactory]], HRESULT]] = _callable()
+CXCursorVisitor: _Callable[[_Callable], _Callable[
+    [_Pointer[_struct.CXCursor], _Pointer[_struct.CXCursor], CXClientData], _enum_libclang.CXChildVisitResult]] = _callable()
+CXInclusionVisitor: _Callable[[_Callable], _Callable[
+    [CXFile, _Pointer[_struct.CXSourceLocation], c_uint, CXClientData], c_void]] = _callable()
+CXFieldVisitor: _Callable[[_Callable], _Callable[
+    [_Pointer[_struct.CXCursor], CXClientData], _enum_libclang.CXVisitorResult]] = _callable()
+CXCursorAndRangeVisitor_visit: _Callable[[_Callable], _Callable[
+    [c_void_p, _struct.CXCursor, _struct.CXSourceRange], _enum_libclang.CXVisitorResult]] = _callable()
+IViewObject_Draw_pfnContinue: _Callable[[_Callable], _Callable[
+    [ULONG_PTR], BOOL]] = _callable()
+
+DrawImageAbort = ImageAbort
+GetThumbnailImageAbort = ImageAbort
+WAITORTIMERCALLBACK = WAITORTIMERCALLBACKFUNC
+
 # ChromaSDK
 # RzChromaSDKTypes
 RZRESULT = LONG
@@ -469,68 +578,19 @@ RZSIZE = c_size_t
 PRZPARAM = c_void_p
 RZID = DWORD
 RZCOLOR = DWORD
-
-ABORTPROC = _Callable[[HDC, c_int], BOOL]
-APPLICATION_RECOVERY_CALLBACK = _Callable[[PVOID], DWORD]
-BFFCALLBACK = _Callable[[HWND, UINT, LPARAM, LPARAM], c_int]
-DebugEventProc = _Callable[[DebugEventLevel, PCHAR], VOID]
-DLGPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], INT_PTR]
-DLLGETVERSIONPROC = _Callable[[_Pointer[_struct.DLLVERSIONINFO]], HRESULT]
-DRAWSTATEPROC = _Callable[[HDC, LPARAM, WPARAM, c_int, c_int], BOOL]
-ENUMRESNAMEPROCA = _Callable[[HMODULE, LPCSTR_PROXY, LPSTR_PROXY, LONG_PTR], BOOL]
-ENUMRESNAMEPROCW = _Callable[[HMODULE, LPCWSTR_PROXY, LPWSTR_PROXY, LONG_PTR], BOOL]
-ENUMRESLANGPROCA = _Callable[[HMODULE, LPCSTR_PROXY, LPCSTR_PROXY, WORD, LONG_PTR], BOOL]
-ENUMRESLANGPROCW = _Callable[[HMODULE, LPCWSTR_PROXY, LPCWSTR_PROXY, WORD, LONG_PTR], BOOL]
-ENUMRESTYPEPROCA = _Callable[[HMODULE, LPCSTR_PROXY, LONG_PTR], BOOL]
-ENUMRESTYPEPROCW = _Callable[[HMODULE, LPCWSTR_PROXY, LONG_PTR], BOOL]
-GRAYSTRINGPROC = _Callable[[HDC, LPARAM, c_int], BOOL]
-HOOKPROC = _Callable[[c_int, WPARAM, LPARAM], LRESULT]
-ImageAbort = _Callable[[PVOID], BOOL]
-LPCCHOOKPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], UINT_PTR]
-LPENCLAVE_ROUTINE = _Callable[[LPVOID], LPVOID]
-LPTHREAD_START_ROUTINE = _Callable[[LPVOID], DWORD]
-MONITORENUMPROC = _Callable[[HMONITOR, HDC, _Pointer[_struct.RECT], LPARAM], BOOL]
-PHANDLER_ROUTINE = _Callable[[DWORD], BOOL]
-PROPENUMPROCA = _Callable[[HWND, LPCSTR, HANDLE], BOOL]
-PROPENUMPROCW = _Callable[[HWND, LPCWSTR, HANDLE], BOOL]
-PROPENUMPROCEXA = _Callable[[HWND, LPSTR, HANDLE, ULONG_PTR], BOOL]
-PROPENUMPROCEXW = _Callable[[HWND, LPWSTR, HANDLE, ULONG_PTR], BOOL]
-PTIMERAPCROUTINE = _Callable[[LPVOID, DWORD, DWORD], VOID]
-SENDASYNCPROC = _Callable[[HWND, UINT, ULONG_PTR, LRESULT], VOID]
-TIMERPROC = _Callable[[HWND, UINT, UINT_PTR, DWORD], VOID]
-WINEVENTPROC = _Callable[[HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD], VOID]
-WNDENUMPROC = _Callable[[HWND, LPARAM], BOOL]
-WNDPROC = _Callable[[HWND, UINT, WPARAM, LPARAM], LRESULT]
-EnumerateMetafileProc = _Callable[[EmfPlusRecordType, UINT, UINT, _Pointer[BYTE], PVOID], BOOL]
-GdiplusAbort = _Callable[[], HRESULT]
-PD2D1_EFFECT_FACTORY = _Callable[[_Pointer[IUnknown]], HRESULT]
-PFN_DESTRUCTION_CALLBACK = _Callable[[c_void_p], c_void]
-WAITORTIMERCALLBACKFUNC = _Callable[[PVOID, BOOLEAN], VOID]
-WORKERCALLBACKFUNC = _Callable[[PVOID], VOID]
-SUBCLASSPROC = _Callable[[HWND, UINT, WPARAM, LPARAM, UINT_PTR, DWORD_PTR], LRESULT]
-APC_CALLBACK_FUNCTION = _Callable[[DWORD, PVOID, PVOID], VOID]
-PFLS_CALLBACK_FUNCTION = _Callable[[PVOID], VOID]
-PSECURE_MEMORY_CACHE_CALLBACK = _Callable[[PVOID, SIZE_T], BOOLEAN]
-LPOVERLAPPED_COMPLETION_ROUTINE = _Callable[[DWORD, DWORD, _Pointer[_struct.OVERLAPPED]], VOID]
-FExecuteInAppDomainCallback = _Callable[[c_void_p], HRESULT]
-PFNProgressNotification = _Callable[[LPVOID, ULONG, WICProgressOperation, c_double], HRESULT]
-GOBJENUMPROC = _Callable[[LPVOID, LPARAM], c_int]
-LINEDDAPROC = _Callable[[c_int, c_int, LPARAM], VOID]
-ICMENUMPROCA = _Callable[[LPSTR, LPARAM], c_int]
-ICMENUMPROCW = _Callable[[LPWSTR, LPARAM], c_int]
-PFNGETACTIVATIONFACTORY = _Callable[[HSTRING, _Pointer[IActivationFactory]], HRESULT]
-CXCursorVisitor = _Callable[[_Pointer[CXCursor], _Pointer[CXCursor], CXClientData], CXChildVisitResult]
-CXInclusionVisitor = _Callable[[CXFile, _Pointer[CXSourceLocation], c_uint, CXClientData], c_void]
-CXFieldVisitor = _Callable[[_Pointer[CXCursor], CXClientData], CXVisitorResult]
-CXCursorAndRangeVisitor_visit = _Callable[[c_void_p, CXCursor, CXSourceRange], CXVisitorResult]
-IViewObject_Draw_pfnContinue = _Callable[[ULONG_PTR], BOOL]
-
-DrawImageAbort = ImageAbort
-GetThumbnailImageAbort = ImageAbort
-WAITORTIMERCALLBACK = WAITORTIMERCALLBACKFUNC
-
 # CChromaEditor
-DebugLogPtr = _Callable[[c_char_p], c_void]
+DebugLogPtr: _Callable[[_Callable], _Callable[
+    [c_char_p], c_void]] = _callable()
+
+# iCUESDK
+# iCUESDK
+CorsairLedLuid = c_uint
+CorsairSessionStateChangedHandler: _Callable[[_Callable], _Callable[
+    [c_void_p, _Pointer[_struct.CorsairSessionStateChanged]], c_void]] = _callable()
+CorsairAsyncCallback: _Callable[[_Callable], _Callable[
+    [c_void_p, _Pointer[_enum_iCUESDK.CorsairError]], c_void]] = _callable()
+CorsairEventHandler: _Callable[[_Callable], _Callable[
+    [c_void_p, _Pointer[_struct.CorsairEvent]], c_void]] = _callable()
 
 
 def _setattr(self: _PyCSimpleType, name: str, value):
@@ -753,15 +813,19 @@ class _TypeMixin:
 # noinspection PyUnresolvedReferences,PyProtectedMember
 def _init(item: str) -> type[_SimpleCData] | type[_ctypes._CFuncPtr]:
     var = _globals.vars[item]
-    c_type = _resolve_type(var)
-    if isinstance(var, _typing._CallableGenericAlias):
-        c_type = _ctypes.CFUNCTYPE(*c_type)
-    elif item != c_type.__name__:
-        c_dict = _TypeMixin.__dict__.copy()
-        c_dict.update(c_type.__dict__)
-        c_dict['_proxy'] = c_type
-        c_type = type(item, (_SimpleCData,), c_dict)
+    if var is None:
+        c_type = _ctypes.CFUNCTYPE(*_resolve_type(_typing.get_args(
+            eval(__annotations__[item], _globals))[1]))
+    else:
+        c_type = _resolve_type(var)
+        if item != c_type.__name__:
+            c_dict = _TypeMixin.__dict__.copy()
+            c_dict.update(c_type.__dict__)
+            c_dict['_proxy'] = c_type
+            c_type = type(item, (_SimpleCData,), c_dict)
     return c_type
 
 
 _globals = _Globals(globals(), True)
+
+from ._ import CorsairDeviceId  # NOQA E402

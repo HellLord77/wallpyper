@@ -10,6 +10,9 @@ from . import enum as _enum
 from . import type as _type
 from . import union as _union
 from ._utils import _CT, _Globals, _Pointer, _fields_repr, _resolve_type, _sizeof
+from .const import iCUESDK as _const_iCUESDK
+from .enum import iCUESDK as _enum_iCUESDK
+from .enum import libclang as _enum_libclang
 
 if None:
     from dataclasses import dataclass as _struct
@@ -4131,7 +4134,7 @@ class CXSourceRangeList:
 
 @_struct
 class CXTUResourceUsageEntry:
-    kind: _enum.CXTUResourceUsageKind
+    kind: _enum_libclang.CXTUResourceUsageKind
     amount: _type.c_ulong
 
 
@@ -4144,7 +4147,7 @@ class CXTUResourceUsage:
 
 @_struct
 class CXCursor:
-    kind: _enum.CXCursorKind
+    kind: _enum_libclang.CXCursorKind
     xdata: _type.c_int
     data: _type.c_void_p * 3
 
@@ -4161,7 +4164,7 @@ class CXPlatformAvailability:
 
 @_struct
 class CXType:
-    kind: _enum.CXTypeKind
+    kind: _enum_libclang.CXTypeKind
     data: _type.c_void_p * 2
 
 
@@ -4173,7 +4176,7 @@ class CXToken:
 
 @_struct
 class CXCompletionResult:
-    CursorKind: _enum.CXCursorKind
+    CursorKind: _enum_libclang.CXCursorKind
     CompletionString: _type.CXCompletionString
 
 
@@ -4197,16 +4200,16 @@ class CXIdxLoc:
 
 @_struct
 class CXIdxAttrInfo:
-    kind: _enum.CXIdxAttrKind
+    kind: _enum_libclang.CXIdxAttrKind
     cursor: CXCursor
     loc: CXIdxLoc
 
 
 @_struct
 class CXIdxEntityInfo:
-    kind: _enum.CXIdxEntityKind
-    templateKind: _enum.CXIdxEntityCXXTemplateKind
-    lang: _enum.CXIdxEntityLanguage
+    kind: _enum_libclang.CXIdxEntityKind
+    templateKind: _enum_libclang.CXIdxEntityCXXTemplateKind
+    lang: _enum_libclang.CXIdxEntityLanguage
     name: _type.c_char_p
     USR: _type.c_char_p
     cursor: CXCursor
@@ -4247,7 +4250,7 @@ class CXIdxDeclInfo:
 @_struct
 class CXIdxObjCContainerDeclInfo:
     declInfo: _Pointer[CXIdxDeclInfo]
-    kind: _enum.CXIdxObjCContainerKind
+    kind: _enum_libclang.CXIdxObjCContainerKind
 
 
 @_struct
@@ -4302,15 +4305,139 @@ class CXIdxCXXClassDeclInfo:
 
 @_struct
 class CXIdxEntityRefInfo:
-    kind: _enum.CXIdxEntityRefKind
+    kind: _enum_libclang.CXIdxEntityRefKind
     cursor: CXCursor
     loc: CXIdxLoc
     referencedEntity: _Pointer[CXIdxEntityInfo]
     parentEntity: _Pointer[CXIdxEntityInfo]
     container: _Pointer[CXIdxContainerInfo]
-    role: _enum.CXSymbolRole
+    role: _enum_libclang.CXSymbolRole
 
 
+# iCUESDK
+# iCUESDK
+@_struct
+class CorsairVersion:
+    major: _type.c_int
+    minor: _type.c_int
+    patch: _type.c_int
+
+
+@_struct
+class CorsairSessionDetails:
+    clientVersion: CorsairVersion
+    serverVersion: CorsairVersion
+    serverHostVersion: CorsairVersion
+
+
+@_struct
+class CorsairSessionStateChanged:
+    state: _enum_iCUESDK.CorsairSessionState
+    details: CorsairSessionDetails
+
+
+@_struct
+class CorsairDeviceInfo:
+    type: _enum_iCUESDK.CorsairDeviceType
+    id: _type.CorsairDeviceId
+    serial: _type.c_char * _const_iCUESDK.CORSAIR_STRING_SIZE_M
+    model: _type.c_char * _const_iCUESDK.CORSAIR_STRING_SIZE_M
+    ledCount: _type.c_int
+    channelCount: _type.c_int
+
+
+@_struct
+class CorsairLedPosition:
+    id: _type.CorsairLedLuid
+    cx: _type.c_double
+    cy: _type.c_double
+
+
+@_struct
+class CorsairDeviceFilter:
+    deviceTypeMask: _type.c_int
+
+
+@_struct
+class CorsairDeviceConnectionStatusChangedEvent:
+    deviceId: _type.CorsairDeviceId
+    isConnected: _type.c_bool
+
+
+@_struct
+class CorsairKeyEvent:
+    deviceId: _type.CorsairDeviceId
+    keyId: _enum_iCUESDK.CorsairMacroKeyId
+    isPressed: _type.c_bool
+
+
+@_struct
+class CorsairEvent:
+    id: _enum_iCUESDK.CorsairEventId
+    U: _union.CorsairEvent_U
+
+
+# noinspection PyPep8Naming
+@_struct
+class CorsairDataType_BooleanArray:
+    items: _Pointer[_type.c_bool]
+    count: _type.c_uint
+
+
+# noinspection PyPep8Naming
+@_struct
+class CorsairDataType_Int32Array:
+    items: _Pointer[_type.c_int]
+    count: _type.c_uint
+
+
+# noinspection PyPep8Naming
+@_struct
+class CorsairDataType_Float64Array:
+    items: _Pointer[_type.c_double]
+    count: _type.c_uint
+
+
+# noinspection PyPep8Naming
+@_struct
+class CorsairDataType_StringArray:
+    items: _Pointer[_type.c_char_p]
+    count: _type.c_uint
+
+
+@_struct
+class CorsairProperty:
+    type: _enum_iCUESDK.CorsairDataType
+    value: _union.CorsairDataValue
+
+
+@_struct
+class CorsairLedColor:
+    id: _type.CorsairLedLuid
+    r: _type.c_uchar
+    g: _type.c_uchar
+    b: _type.c_uchar
+    a: _type.c_uchar
+
+
+@_struct
+class CorsairKeyEventConfiguration:
+    keyId: _enum_iCUESDK.CorsairMacroKeyId
+    isIntercepted: _type.c_bool
+
+
+# CgSDK
+# CgSDK
+@_struct
+class CorsairProtocolDetails:
+    sdkVersion: _type.c_char_p
+    serverVersion: _type.c_char_p
+    sdkProtocolVersion: _type.c_int
+    serverProtocolVersion: _type.c_int
+    breakingChanges: _type.c_bool
+
+
+# ChromaSDK
 # RzChromaSDKTypes
 RZEFFECTID = GUID
 RZDEVICEID = GUID
