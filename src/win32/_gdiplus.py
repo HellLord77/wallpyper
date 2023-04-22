@@ -64,7 +64,6 @@ class _Base:
 
     def __init__(self):
         self._token = _Token()
-        self._ = self.__del__  # FIXME https://docs.python.org/3/reference/datamodel.html#object.__del__
 
     def __del__(self):
         if self.value:

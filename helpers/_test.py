@@ -604,11 +604,8 @@ def _test_hook():
 
 
 def _test():
-    from win32.cue import game as cue_game
-    game = cue_game.FarCry5()
-    if game:
-        print(game.Profile.FC_Menu.set())
-        time.sleep(10)
+    from sys import maxsize
+    print(str(maxsize > 2 ** 32).lower())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

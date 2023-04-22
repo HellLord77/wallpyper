@@ -16,7 +16,7 @@ from libs.ctyped.lib import user32, shlwapi, oleaut32, WebView2Loader
 from . import _mshtml, _webview2
 from .. import _handle, _utils
 
-DATA_DIR = os.path.dirname(__file__)
+DATA_DIR = ntpath.dirname(__file__)
 
 
 @contextlib.contextmanager

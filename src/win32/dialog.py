@@ -1,4 +1,4 @@
-import os.path
+import ntpath
 from typing import MutableSequence, Optional
 
 from libs import ctyped
@@ -51,7 +51,7 @@ def save_file(path: Optional[str] = None, title: Optional[str] = None,
               types: Optional[dict[str, str]] = None, type_index: Optional[int] = None) -> Optional[str]:
     with ctyped.interface.COM[ShObjIdl_core.IFileSaveDialog](ctyped.const.CLSID_FileSaveDialog) as dialog:
         if dialog:
-            ext = os.path.splitext(path)[1]
+            ext = ntpath.splitext(path)[1]
             if types is None:
                 types = {_get_ext_name(ext): f'*{ext}'}
             filters = ctyped.array(type=ctyped.struct.COMDLG_FILTERSPEC, size=len(types))
@@ -68,9 +68,9 @@ def save_file(path: Optional[str] = None, title: Optional[str] = None,
                     type_index = 0
             dialog.SetFileTypeIndex(type_index + 1)
             dialog.SetOptions(ctyped.enum.FILEOPENDIALOGOPTIONS.FORCEFILESYSTEM)
-            dialog.SetFileName(os.path.basename(path))
+            dialog.SetFileName(ntpath.basename(path))
             dialog.SetDefaultExtension(ext[1:])
-            _set_folder(dialog, os.path.dirname(path))
+            _set_folder(dialog, ntpath.dirname(path))
             if title is not None:
                 dialog.SetTitle(title)
             hr = dialog.Show(ctyped.NULLPTR)

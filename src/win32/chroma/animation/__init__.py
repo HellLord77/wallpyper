@@ -8,18 +8,17 @@ from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.lib import CChromaEditorLibrary
-from .. import _SUCCESS
 
 
 def init(info: Optional[ctyped.struct.ChromaSDK.APPINFOTYPE] = None) -> bool:
     return (CChromaEditorLibrary.PluginInit() if info is None else
-            CChromaEditorLibrary.PluginInitSDK(ctyped.byref(info))) == _SUCCESS
+            CChromaEditorLibrary.PluginInitSDK(ctyped.byref(info))) == ctyped.const.RZRESULT_SUCCESS
 
 
 def cleanup() -> bool:
     CChromaEditorLibrary.PluginStopAll()
     CChromaEditorLibrary.PluginCloseAll()
-    return CChromaEditorLibrary.PluginUninit() == _SUCCESS
+    return CChromaEditorLibrary.PluginUninit() == ctyped.const.RZRESULT_SUCCESS
 
 
 def _get_base_layer(layer: str, get: bool = True) -> ctyped.type.c_char_p:
@@ -37,8 +36,8 @@ class _AnimationMeta(type):
     def __exit__(self, _, __, ___):
         cleanup()
 
-    def __call__(cls: type[_Animation], keyboard: bool = True, chroma_link: bool = True, headset: bool = True,
-                 keypad: bool = True, mousepad: bool = True, mouse: bool = True):
+    def __call__(cls: type[_Animation], keyboard: bool = True, chroma_link: bool = True,
+                 headset: bool = True, keypad: bool = True, mousepad: bool = True, mouse: bool = True):
         if keyboard:
             cls.keyboard()
         if chroma_link:

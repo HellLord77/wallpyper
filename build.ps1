@@ -1,4 +1,4 @@
-$Version = "0.1.5"
+$Version = "0.1.6"
 
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -6,6 +6,9 @@ $Datas = @(
 	"srcs/res"
 	"win32/syspin.exe"
 	"pipe.exe")
+$Datas32 = @()
+$Datas64 = @(
+	"win32/browser/WebView2Loader.dll")
 $Imports = @()
 $Excludes = @()
 $HooksDirs = @("hooks")
@@ -28,16 +31,17 @@ $MainManifest = "manifest.xml"
 $CythonSources = @("src/pipe.py")
 $CythonizeExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
-	"src/libs/ctyped/enum.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
+	"src/libs/ctyped/enum/__init__.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
 $CythonizeSourceGlobs = @(
 	"src/libs/request/**/*.py"
-	"src/libs/{colornames,isocodes,mimetype,spinners,urischemes}/__init__.py"
+	"src/libs/{colornames,isocodes,mimetype,spinners,urischemes,useragents}/__init__.py"
 	# "src/libs/ctyped/interface/**/*.py"
 	# "src/libs/ctyped/lib/*.py"  FIXME https://github.com/cython/cython/issues/3838
 	"src/libs/ctyped/lib/__init__.py"
-	"src/libs/ctyped/{const,winrt}/*.py"
-	# "src/libs/ctyped/{_utils,struct,type,union}.py"
-	"src/libs/ctyped/{__init__,enum,handle,macro}.py"
+	# "src/libs/ctyped/type/*.py"
+	"src/libs/ctyped/{const,enum,winrt}/*.py"
+	# "src/libs/ctyped/{_utils,struct,union}.py"
+	"src/libs/ctyped/{__init__,handle,macro}.py"
 	"src/win32/**/*.py"
 	"src/{langs,libs,srcs}/*.py"
 	"src/*.py")
@@ -73,6 +77,9 @@ $MinifyJsonRegExs = @(
 	"src/libs/spinners/spinners.json"
 	"src/libs/useragents/user-agents.json")
 
+$CodePythonIs64Bit = @(
+	"from sys import maxsize"
+	"print(maxsize > 2 ** 32)")
 $CodePythonBase = @(
 	"from sys import base_prefix"
 	"print(base_prefix)")
@@ -119,8 +126,6 @@ $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyJsonLocal = $False
 $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
-
-$IsGithub = Test-Path Env:GITHUB_REPOSITORY
 
 function Get-InsertedArray($Array, $Index, $Value) {
 	return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
@@ -324,7 +329,7 @@ function Get-PyInstallerArgs {
 		}
 	}
 	$BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
-	foreach ($Data in $Datas) {
+	foreach ($Data in $($Datas + $(If ($IsPython64Bit) { $Datas64 } else { $Datas32 }))) {
 		$SrcLeaf = Split-Path $Data -Leaf
 		if ($SrcLeaf.EndsWith("%") -and $SrcLeaf.EndsWith("%")) {
 			$DataSrc = (Get-Command $SrcLeaf.Substring(1, $SrcLeaf.Length - 2)).Path
@@ -511,6 +516,9 @@ function UploadToMEGA {
 		throw
 	}
 }
+
+$IsGithub = Test-Path Env:GITHUB_REPOSITORY
+$IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit))
 
 $ErrorActionPreference = "Stop"
 if ($Args) {

@@ -1,5 +1,5 @@
 import functools
-import os
+import ntpath
 from typing import Optional
 
 from libs import ctyped
@@ -25,7 +25,7 @@ class ImageWindow:
         self._src_hdc = bitmap.get_hbitmap().get_hdc()
         self._src_w = bitmap.get_width()
         self._src_h = bitmap.get_height()
-        self._title = os.path.basename(path) if title is None else path
+        self._title = ntpath.basename(path) if title is None else path
         self._window = gui.Window(self._title, width=width, height=height,
                                   ex_style=topmost * ctyped.const.WS_EX_TOPMOST)
         self._cur_pan = _handle.HCURSOR.from_idc(pan_cursor_idc)
