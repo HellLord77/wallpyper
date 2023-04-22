@@ -24,7 +24,7 @@ from xml.etree import ElementTree
 import win32
 from libs import ctyped, config, request
 from libs.ctyped.const import error
-from libs.ctyped.lib import kernel32, oleaut32, user32, python
+from libs.ctyped.lib import kernel32, user32, python
 from win32 import _utils
 
 
@@ -74,25 +74,6 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
 #                             ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
 #             target.EndDraw(ctyped.NULLPTR, ctyped.NULLPTR)
 #     gdiplus.image_save(bitmap, 'd:\\test.png')
-
-
-class BSTR(ctyped.type.BSTR):
-    # noinspection PyMissingConstructor
-    def __init__(self, string: Optional[str] = None, size: Optional[int] = None):
-        if size is not None:
-            self.value = oleaut32.SysAllocStringLen(string, size)
-        elif string is not None:
-            self.value = oleaut32.SysAllocString(string)
-
-    def __del__(self):
-        if self:
-            oleaut32.SysFreeString(self)
-
-    def __str__(self):
-        return ctyped.type.c_wchar_p.from_buffer(self).value
-
-    def __len__(self):
-        return oleaut32.SysStringLen(self)
 
 
 def _test_load_string_from_lib():
@@ -624,8 +605,9 @@ def _test_hook():
 
 def _test():
     from win32.cue import game as cue_game
-    game = cue_game.Common()
-    if game and game.Profile.SDKL_PoliceLightsFull.set():
+    game = cue_game.FarCry5()
+    if game:
+        print(game.Profile.FC_Menu.set())
         time.sleep(10)
 
 

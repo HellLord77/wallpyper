@@ -55,4 +55,4 @@ QueryDevice: _Callable[[_struct.RZDEVICEID,  # DeviceId
                         _Pointer[_struct.ChromaSDK.DEVICE_INFO_TYPE]],  # DeviceInfo
                        _type.RZRESULT]
 
-_WinLib(__name__)
+_WinLib(__name__, 'RzChromaSDK{}', arg_64='64')

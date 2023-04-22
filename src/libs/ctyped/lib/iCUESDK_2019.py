@@ -180,4 +180,4 @@ releases previously requested control for specified device. This action resets
 access level to default (shared)
 """
 
-_WinLib(__name__, 'iCUESDK.x64_2019.dll')
+_WinLib(__name__, 'iCUESDK{}_2019.dll', arg_64='.x64')

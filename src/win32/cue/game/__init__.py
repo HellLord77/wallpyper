@@ -5,7 +5,7 @@ import ntpath
 import os
 
 from libs.ctyped.enum import CgSDK as enum_CgSDK
-from libs.ctyped.lib import CgSDK_x64_2015
+from libs.ctyped.lib import CgSDK_2019
 
 
 def _bytes(o: bytes | str | enum.Enum) -> bytes:
@@ -17,37 +17,37 @@ def _bytes(o: bytes | str | enum.Enum) -> bytes:
 
 
 def handshake() -> bool:
-    details = CgSDK_x64_2015.CgSdkPerformProtocolHandshake()
+    details = CgSDK_2019.CgSdkPerformProtocolHandshake()
     return bool(details.sdkProtocolVersion) and not details.breakingChanges
 
 
 def set_game(name: bytes | str) -> bool:
-    return CgSDK_x64_2015.CgSdkSetGame(_bytes(name))
+    return CgSDK_2019.CgSdkSetGame(_bytes(name))
 
 
 def set_state(profile: bytes | str | enum.Enum) -> bool:
-    return CgSDK_x64_2015.CgSdkSetState(_bytes(profile))
+    return CgSDK_2019.CgSdkSetState(_bytes(profile))
 
 
 def set_event(profile: bytes | str | enum.Enum) -> bool:
-    return CgSDK_x64_2015.CgSdkSetEvent(_bytes(profile))
+    return CgSDK_2019.CgSdkSetEvent(_bytes(profile))
 
 
 def clear_state(*profiles: bytes | str | enum.Enum) -> bool:
-    return (all(CgSDK_x64_2015.CgSdkClearState(profile) for profile in profiles)
-            if profiles else CgSDK_x64_2015.CgSdkClearAllStates())
+    return (all(CgSDK_2019.CgSdkClearState(profile) for profile in profiles)
+            if profiles else CgSDK_2019.CgSdkClearAllStates())
 
 
 def clear_event() -> bool:
-    return CgSDK_x64_2015.CgSdkClearAllEvents()
+    return CgSDK_2019.CgSdkClearAllEvents()
 
 
 class _Control:
     def __init__(self):
-        CgSDK_x64_2015.CgSdkRequestControl(enum_CgSDK.CorsairAccessMode.ExclusiveLightingControl)
+        CgSDK_2019.CgSdkRequestControl(enum_CgSDK.CorsairAccessMode.ExclusiveLightingControl)
 
     def __del__(self):
-        CgSDK_x64_2015.CgSdkReleaseControl(enum_CgSDK.CorsairAccessMode.ExclusiveLightingControl)
+        CgSDK_2019.CgSdkReleaseControl(enum_CgSDK.CorsairAccessMode.ExclusiveLightingControl)
 
     def __enter__(self):
         pass
@@ -57,7 +57,8 @@ class _Control:
 
 
 class _Game:
-    _name: str = ''
+    _name = ''
+    _init = False
 
     def __init__(self):
         self._init = handshake()

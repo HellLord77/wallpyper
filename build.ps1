@@ -372,7 +372,7 @@ function Install-Dependencies {
 		Push-Location $TempDir
 		pip download pyinstaller --no-deps --no-binary pyinstaller
 		$Source = (Get-ChildItem -Attributes Archive).FullName
-		tar -xvf $Source
+		tar -xf $Source
 		Set-Location $Source.Substring(0, $Source.Length - ".tar.gz".Length)
 		Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
 		python setup.py build

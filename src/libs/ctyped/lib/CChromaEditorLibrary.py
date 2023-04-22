@@ -4346,4 +4346,4 @@ Set preloading animation flag, which is set to true by default. Reference
 animation by name.
 """
 
-_WinLib(__name__)
+_WinLib(__name__, 'CChromaEditorLibrary{}', arg_64='64')

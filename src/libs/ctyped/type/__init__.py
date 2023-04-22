@@ -592,6 +592,11 @@ CorsairAsyncCallback: _Callable[[_Callable], _Callable[
 CorsairEventHandler: _Callable[[_Callable], _Callable[
     [c_void_p, _Pointer[_struct.CorsairEvent]], c_void]] = _callable()
 
+# MysticLightSDK
+# MysticLight_Test(C++)
+CallbackDelegate: _Callable[[_Callable], _Callable[
+    [], c_void]] = _callable()
+
 
 def _setattr(self: _PyCSimpleType, name: str, value):
     _ctypes.cast(id(self) + type(self).__dictoffset__, _ctypes.POINTER(_ctypes.py_object)).contents.value[name] = value

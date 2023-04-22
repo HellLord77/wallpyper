@@ -15,14 +15,15 @@ from .._utils import _fmt_annot, _func_doc, _resolve_type
 class _CLib(_ModuleType):
     _loader = _ctypes.CDLL
 
-    def __init__(self, name: str, _name: _Optional[str] = None):
+    def __init__(self, name: str, name_fmt: _Optional[str] = None,
+                 arg_32: str = '', arg_64: str = ''):
         super().__init__(name)
         module = _sys.modules[name]
         self._annots = module.__annotations__
         self._dict = module.__dict__
-        if _name is None:
-            _name = name.removeprefix(f'{__name__}.')
-        self._name = _name
+        # noinspection PyProtectedMember
+        self._name = (name.removeprefix(f'{__name__}.') if name_fmt is None else
+                      name_fmt.format(arg_64 if _const._WIN64 else arg_32))
         _sys.modules[name] = self
 
     def __getattr__(self, name: str):
