@@ -3,10 +3,10 @@ from __future__ import annotations as _
 from typing import Callable as _Callable
 
 from . import _WinLib
-from .. import enum as _enum
 from .. import struct as _struct
 from .. import type as _type
 from .._utils import _Pointer
+from ..enum import CChromaEditor as _enum_CChromaEditor
 
 # stdafx
 PluginAddColor: _Callable[[_type.c_int,  # color1
@@ -884,7 +884,7 @@ PluginCopyZeroTargetAllKeysName: _Callable[[_type.c_char_p,  # sourceAnimation
 Copy nonzero color from source animation to target animation where target is
 zero for the frame. Source and target are referenced by name.
 """
-PluginCoreCreateChromaLinkEffect: _Callable[[_enum.ChromaSDK.ChromaLink.EFFECT_TYPE,  # Effect
+PluginCoreCreateChromaLinkEffect: _Callable[[_enum_CChromaEditor.ChromaSDK.ChromaLink.EFFECT_TYPE,  # Effect
                                              _type.PRZPARAM,  # pParam
                                              _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                             _type.RZRESULT]
@@ -892,42 +892,42 @@ PluginCoreCreateChromaLinkEffect: _Callable[[_enum.ChromaSDK.ChromaLink.EFFECT_T
 Direct access to low level API.
 """
 PluginCoreCreateEffect: _Callable[[_struct.RZDEVICEID,  # DeviceId
-                                   _enum.ChromaSDK.EFFECT_TYPE,  # Effect
+                                   _enum_CChromaEditor.ChromaSDK.EFFECT_TYPE,  # Effect
                                    _type.PRZPARAM,  # pParam
                                    _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                   _type.RZRESULT]
 """
 Direct access to low level API.
 """
-PluginCoreCreateHeadsetEffect: _Callable[[_enum.ChromaSDK.Headset.EFFECT_TYPE,  # Effect
+PluginCoreCreateHeadsetEffect: _Callable[[_enum_CChromaEditor.ChromaSDK.Headset.EFFECT_TYPE,  # Effect
                                           _type.PRZPARAM,  # pParam
                                           _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                          _type.RZRESULT]
 """
 Direct access to low level API.
 """
-PluginCoreCreateKeyboardEffect: _Callable[[_enum.ChromaSDK.Keyboard.EFFECT_TYPE,  # Effect
+PluginCoreCreateKeyboardEffect: _Callable[[_enum_CChromaEditor.ChromaSDK.Keyboard.EFFECT_TYPE,  # Effect
                                            _type.PRZPARAM,  # pParam
                                            _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                           _type.RZRESULT]
 """
 Direct access to low level API.
 """
-PluginCoreCreateKeypadEffect: _Callable[[_enum.ChromaSDK.Keypad.EFFECT_TYPE,  # Effect
+PluginCoreCreateKeypadEffect: _Callable[[_enum_CChromaEditor.ChromaSDK.Keypad.EFFECT_TYPE,  # Effect
                                          _type.PRZPARAM,  # pParam
                                          _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                         _type.RZRESULT]
 """
 Direct access to low level API.
 """
-PluginCoreCreateMouseEffect: _Callable[[_enum.ChromaSDK.Mouse.EFFECT_TYPE,  # Effect
+PluginCoreCreateMouseEffect: _Callable[[_enum_CChromaEditor.ChromaSDK.Mouse.EFFECT_TYPE,  # Effect
                                         _type.PRZPARAM,  # pParam
                                         _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                        _type.RZRESULT]
 """
 Direct access to low level API.
 """
-PluginCoreCreateMousepadEffect: _Callable[[_enum.ChromaSDK.Mousepad.EFFECT_TYPE,  # Effect
+PluginCoreCreateMousepadEffect: _Callable[[_enum_CChromaEditor.ChromaSDK.Mousepad.EFFECT_TYPE,  # Effect
                                            _type.PRZPARAM,  # pParam
                                            _Pointer[_struct.RZEFFECTID]],  # pEffectId
                                           _type.RZRESULT]
@@ -1037,11 +1037,11 @@ key before the window expires. StreamGetStatus() should return the READY status
 to use this method.
 """
 PluginCoreStreamGetStatus: _Callable[[],
-                                     _enum.ChromaSDK.Stream.StreamStatusType]
+                                     _enum_CChromaEditor.ChromaSDK.Stream.StreamStatusType]
 """
 Returns StreamStatus, the current status of the service
 """
-PluginCoreStreamGetStatusString: _Callable[[_enum.ChromaSDK.Stream.StreamStatusType],  # status
+PluginCoreStreamGetStatusString: _Callable[[_enum_CChromaEditor.ChromaSDK.Stream.StreamStatusType],  # status
                                            _type.c_char_p]
 """
 Convert StreamStatusType to a printable string
@@ -1111,7 +1111,7 @@ negative one upon failure. Returns the animation id upon success. Returns
 negative one upon failure.
 """
 PluginCreateEffect: _Callable[[_struct.RZDEVICEID,  # deviceId
-                               _enum.ChromaSDK.EFFECT_TYPE,  # effect
+                               _enum_CChromaEditor.ChromaSDK.EFFECT_TYPE,  # effect
                                _Pointer[_type.c_int],  # colors
                                _type.c_int,  # size
                                _Pointer[_struct.ChromaSDK.FChromaSDKGuid]],  # effectId

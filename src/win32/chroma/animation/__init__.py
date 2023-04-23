@@ -7,18 +7,20 @@ import random
 from typing import Optional
 
 from libs import ctyped
+from libs.ctyped.const import ChromaSDK as const_ChromaSDK
+from libs.ctyped.enum import CChromaEditor as enum_CCChromaEditor
 from libs.ctyped.lib import CChromaEditorLibrary
 
 
 def init(info: Optional[ctyped.struct.ChromaSDK.APPINFOTYPE] = None) -> bool:
     return (CChromaEditorLibrary.PluginInit() if info is None else
-            CChromaEditorLibrary.PluginInitSDK(ctyped.byref(info))) == ctyped.const.RZRESULT_SUCCESS
+            CChromaEditorLibrary.PluginInitSDK(ctyped.byref(info))) == const_ChromaSDK.RZRESULT_SUCCESS
 
 
 def cleanup() -> bool:
     CChromaEditorLibrary.PluginStopAll()
     CChromaEditorLibrary.PluginCloseAll()
-    return CChromaEditorLibrary.PluginUninit() == ctyped.const.RZRESULT_SUCCESS
+    return CChromaEditorLibrary.PluginUninit() == const_ChromaSDK.RZRESULT_SUCCESS
 
 
 def _get_base_layer(layer: str, get: bool = True) -> ctyped.type.c_char_p:
@@ -90,7 +92,7 @@ class Animation1(_Animation):
 
     @classmethod
     def keyboard(cls):
-        CChromaEditorLibrary.PluginUseIdleAnimation(ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.Keyboard, False)
+        CChromaEditorLibrary.PluginUseIdleAnimation(enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.Keyboard, False)
         super().keyboard()
 
 
@@ -482,7 +484,7 @@ class Animation39(_Animation):
 
 class Animation40(_Animation):
     @staticmethod
-    def _device(name: str, device: ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum = ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.MAX):
+    def _device(name: str, device: enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum = enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.MAX):
         base_layer = _get_base_layer(f'Blank_{name}')
         idle_animation = _get_base_layer(f'BlackAndWhiteRainbow_{name}', False)
         CChromaEditorLibrary.PluginSetIdleAnimationName(idle_animation)
@@ -496,27 +498,27 @@ class Animation40(_Animation):
 
     @classmethod
     def keyboard(cls):
-        cls._device('Keyboard', ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.Keyboard)
+        cls._device('Keyboard', enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.Keyboard)
 
     @classmethod
     def chroma_link(cls):
-        cls._device('ChromaLink', ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.ChromaLink)
+        cls._device('ChromaLink', enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.ChromaLink)
 
     @classmethod
     def headset(cls):
-        cls._device('Headset', ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.Headset)
+        cls._device('Headset', enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.Headset)
 
     @classmethod
     def mousepad(cls):
-        cls._device('Mousepad', ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.Mousepad)
+        cls._device('Mousepad', enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.Mousepad)
 
     @classmethod
     def mouse(cls):
-        cls._device('Mouse', ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.Mouse)
+        cls._device('Mouse', enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.Mouse)
 
     @classmethod
     def keypad(cls):
-        cls._device('Keypad', ctyped.enum.ChromaSDK.EChromaSDKDeviceEnum.Keypad)
+        cls._device('Keypad', enum_CCChromaEditor.ChromaSDK.EChromaSDKDeviceEnum.Keypad)
 
 
 class Animation41(_Animation):
@@ -532,8 +534,8 @@ class Animation41(_Animation):
         base_layer = _get_base_layer(f'Blank_Keyboard')
         frame_count = 50
         CChromaEditorLibrary.PluginMakeBlankFramesRGBName(base_layer, frame_count, 0.033, 64, 0, 64)
-        max_row = CChromaEditorLibrary.PluginGetMaxRow(ctyped.enum.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
-        max_column = CChromaEditorLibrary.PluginGetMaxColumn(ctyped.enum.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
+        max_row = CChromaEditorLibrary.PluginGetMaxRow(enum_CCChromaEditor.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
+        max_column = CChromaEditorLibrary.PluginGetMaxColumn(enum_CCChromaEditor.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
         start_column = math.floor(random.randrange(ctyped.const.RAND_MAX + 1) / ctyped.const.RAND_MAX * max_column) % 22
         start_row = math.floor(random.randrange(ctyped.const.RAND_MAX + 1) / ctyped.const.RAND_MAX * max_row) % 6
         color = CChromaEditorLibrary.PluginGetRGB(0, 255, 0)
@@ -570,8 +572,8 @@ class Animation42(_Animation):
         base_layer = _get_base_layer(f'Blank_Keyboard')
         frame_count = 1
         CChromaEditorLibrary.PluginMakeBlankFramesRGBName(base_layer, frame_count, 0.033, 64, 0, 64)
-        max_row = CChromaEditorLibrary.PluginGetMaxRow(ctyped.enum.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
-        max_column = CChromaEditorLibrary.PluginGetMaxColumn(ctyped.enum.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
+        max_row = CChromaEditorLibrary.PluginGetMaxRow(enum_CCChromaEditor.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
+        max_column = CChromaEditorLibrary.PluginGetMaxColumn(enum_CCChromaEditor.ChromaSDK.EChromaSDKDevice2DEnum.Keyboard)
         point_a_column = math.floor(random.randrange(ctyped.const.RAND_MAX + 1) / ctyped.const.RAND_MAX * max_column) % 22
         point_a_row = math.floor(random.randrange(ctyped.const.RAND_MAX + 1) / ctyped.const.RAND_MAX * max_row) % 6
         point_b_column = point_a_column
@@ -614,13 +616,13 @@ class Animation43(_Animation):
         color2 = CChromaEditorLibrary.PluginGetRGB(64, 0, 64)
         CChromaEditorLibrary.PluginMultiplyTargetColorLerpAllFramesName(base_layer, color1, color2)
         keys = ctyped.array(
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_D,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_P,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_M,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F1, type=ctyped.type.c_int)
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_D,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_P,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_M,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F1, type=ctyped.type.c_int)
         color = CChromaEditorLibrary.PluginGetRGB(0, 255, 0)
         CChromaEditorLibrary.PluginSetKeysColorAllFramesName(base_layer, keys, len(keys), color)
         CChromaEditorLibrary.PluginSetChromaCustomFlagName(base_layer, True)
@@ -648,13 +650,13 @@ class Animation44(_Animation):
         color2 = CChromaEditorLibrary.PluginGetRGB(64, 64, 64)
         CChromaEditorLibrary.PluginMultiplyTargetColorLerpAllFramesName(base_layer, color1, color2)
         keys = ctyped.array(
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_D,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_P,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_M,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F1, type=ctyped.type.c_int)
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_D,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_P,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_M,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F1, type=ctyped.type.c_int)
         CChromaEditorLibrary.PluginCopyKeysColorAllFramesName(layer2, base_layer, keys, len(keys))
         CChromaEditorLibrary.PluginSetChromaCustomFlagName(base_layer, True)
         CChromaEditorLibrary.PluginOverrideFrameDurationName(base_layer, 0.033)
@@ -681,18 +683,18 @@ class Animation45(_Animation):
         frame_count = 120
         CChromaEditorLibrary.PluginMakeBlankFramesRGBName(base_layer, frame_count, 0.1, 64, 64, 64)
         keys = ctyped.array(
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_D, type=ctyped.type.c_int)
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_D, type=ctyped.type.c_int)
         CChromaEditorLibrary.PluginSetKeysColorAllFramesRGBName(base_layer, keys, len(keys), 255, 255, 0)
         keys = ctyped.array(
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F1,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F2,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F3,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F4,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F5,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F6, type=ctyped.type.c_int)
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F1,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F2,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F3,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F4,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F5,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F6, type=ctyped.type.c_int)
         t = 0
         speed = 0.05
         for frame_id in range(frame_count):
@@ -731,18 +733,18 @@ class Animation46(_Animation):
         frame_count = 120
         CChromaEditorLibrary.PluginMakeBlankFramesRGBName(base_layer, frame_count, 0.1, 64, 64, 64)
         keys = ctyped.array(
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_D, type=ctyped.type.c_int)
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_W,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_A,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_S,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_D, type=ctyped.type.c_int)
         CChromaEditorLibrary.PluginSetKeysColorAllFramesRGBName(base_layer, keys, len(keys), 255, 0, 0)
         keys = ctyped.array(
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F7,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F8,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F9,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F10,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F11,
-            ctyped.enum.ChromaSDK.Keyboard.RZKEY.RZKEY_F12, type=ctyped.type.c_int)
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F7,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F8,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F9,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F10,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F11,
+            enum_CCChromaEditor.ChromaSDK.Keyboard.RZKEY.RZKEY_F12, type=ctyped.type.c_int)
         t = 0
         speed = 0.05
         for frame_id in range(frame_count):

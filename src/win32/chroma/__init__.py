@@ -4,9 +4,11 @@ import enum
 from typing import Callable, Iterable, Optional
 
 from libs import ctyped
+from libs.ctyped.const import ChromaSDK as const_ChromaSDK
+from libs.ctyped.enum import ChromaSDK as enum_ChromaSDK
 from libs.ctyped.lib import RzChromaSDK
 
-_SUCCESS = ctyped.const.RZRESULT_SUCCESS
+_SUCCESS = const_ChromaSDK.RZRESULT_SUCCESS
 
 
 class AppType(enum.IntEnum):
@@ -50,7 +52,7 @@ def uninit() -> bool:
 
 class Effect:
     def __init__(self, device_id: ctyped.struct.RZDEVICEID,
-                 effect_type: ctyped.enum.ChromaSDK.EFFECT_TYPE, param=None):
+                 effect_type: enum_ChromaSDK.ChromaSDK.EFFECT_TYPE, param=None):
         self._id = ctyped.struct.RZEFFECTID()
         self._init = RzChromaSDK.CreateEffect(device_id, effect_type, param, ctyped.byref(self._id))
 
@@ -60,7 +62,7 @@ class Effect:
     def __del__(self):
         if self:
             RzChromaSDK.DeleteEffect(self._id)
-            self._init = ctyped.const.RZRESULT_NOT_VALID_STATE
+            self._init = const_ChromaSDK.RZRESULT_NOT_VALID_STATE
 
     def __enter__(self) -> Optional[Effect]:
         if self:
@@ -77,7 +79,7 @@ class _DeviceEffect(Effect):
     _create: Callable
 
     # noinspection PyMissingConstructor
-    def __init__(self, effect_type: ctyped.enum.ChromaSDK.EFFECT_TYPE, param=None):
+    def __init__(self, effect_type: enum_ChromaSDK.ChromaSDK.EFFECT_TYPE, param=None):
         self._id = ctyped.struct.RZEFFECTID()
         self._init = self._create(effect_type, param, ctyped.byref(self._id))
 

@@ -604,8 +604,9 @@ def _test_hook():
 
 
 def _test():
-    from sys import maxsize
-    print(str(maxsize > 2 ** 32).lower())
+    from win32.chroma import animation as chroma_animation
+    with chroma_animation.Animation25:
+        time.sleep(5)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
