@@ -54,6 +54,49 @@ c_void = c_void_p
 c_uchar = c_ubyte
 c_wchar_t = c_wchar
 
+# stdint
+int8_t = c_char
+int16_t = c_short
+int32_t = c_int
+int64_t = c_longlong
+uint8_t = c_uchar
+uint16_t = c_ushort
+uint32_t = c_uint
+uint64_t = c_ulonglong
+int_least8_t = c_char
+int_least16_t = c_short
+int_least32_t = c_int
+int_least64_t = c_longlong
+uint_least8_t = c_uchar
+uint_least16_t = c_ushort
+uint_least32_t = c_uint
+uint_least64_t = c_ulonglong
+int_fast8_t = c_char
+int_fast16_t = c_int
+int_fast32_t = c_int
+int_fast64_t = c_longlong
+uint_fast8_t = c_uchar
+uint_fast16_t = c_uint
+uint_fast32_t = c_uint
+uint_fast64_t = c_ulonglong
+intmax_t = c_longlong
+uintmax_t = c_ulonglong
+
+# vadefs
+uintptr_t = c_uint64
+
+# vcruntime
+ptrdiff_t = c_int64
+intptr_t = c_int64
+
+# python
+# pyport
+Py_uintptr_t = uintptr_t
+Py_intptr_t = intptr_t
+Py_ssize_t = Py_intptr_t
+Py_hash_t = Py_ssize_t
+Py_uhash_t = c_size_t
+
 LPCCH = c_char_p
 LPCH = c_char_p
 LPCSTR = c_char_p
@@ -569,6 +612,13 @@ IViewObject_Draw_pfnContinue: _Callable[..., _Callable[
 DrawImageAbort = ImageAbort
 GetThumbnailImageAbort = ImageAbort
 WAITORTIMERCALLBACK = WAITORTIMERCALLBACKFUNC
+
+# brotli
+# types
+brotli_alloc_func: _Callable[..., _Callable[
+    [c_void_p, c_size_t], c_void_p]] = _callable()
+brotli_free_func: _Callable[..., _Callable[
+    [c_void_p, c_void_p], c_void]] = _callable()
 
 # ChromaSDK
 # RzChromaSDKTypes

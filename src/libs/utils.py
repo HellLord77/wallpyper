@@ -41,6 +41,14 @@ DEFAULT = object()
 ANSI = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
+# noinspection PyPep8Naming
+class staticproperty(property):
+    # noinspection PyMethodOverriding
+    def __get__(self, _, __):
+        # noinspection PyArgumentList
+        return self.fget()
+
+
 class ProgressBar:
     BLOCK_VERTICAL = ' ▁▂▃▄▅▆▇█'
     BLOCK_HORIZONTAL = ' ▏▎▍▌▋▊▉▉'

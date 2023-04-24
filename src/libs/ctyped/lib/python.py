@@ -3,9 +3,31 @@ from __future__ import annotations as _
 from typing import Callable as _Callable
 
 from . import _PyLib
+from .. import struct as _struct
 from .. import type as _type
 from .._utils import _Pointer
 
+# bytesobject
+PyBytes_FromStringAndSize: _Callable[[_type.c_char_p,
+                                      _type.Py_ssize_t],
+                                     _type.py_object]
+PyBytes_FromString: _Callable[[_type.c_char_p],
+                              _type.py_object]
+PyBytes_FromObject: _Callable[[_type.py_object],
+                              _type.py_object]
+PyBytes_Size: _Callable[[_type.py_object],
+                        _type.Py_ssize_t]
+PyBytes_AsString: _Callable[[_type.py_object],
+                            _type.c_char_p]
+PyBytes_Repr: _Callable[[_type.py_object,
+                         _type.c_int],
+                        _type.py_object]
+PyBytes_Concat: _Callable[[_Pointer[_type.py_object],
+                           _type.py_object],
+                          _type.c_void]
+PyBytes_ConcatAndDel: _Callable[[_Pointer[_type.py_object],
+                                 _type.py_object],
+                                _type.py_object]
 # ceval
 Py_MakePendingCalls: _Callable[[],
                                _type.c_int]
@@ -30,6 +52,23 @@ PyImport_GetMagicNumber: _Callable[[],
                                    _type.c_long]
 PyImport_GetMagicTag: _Callable[[],
                                 _type.c_char_p]
+# pybuffer
+PyObject_CheckBuffer: _Callable[[_type.py_object],  # obj
+                                _type.c_int]
+PyObject_GetBuffer: _Callable[[_type.py_object,  # obj
+                               _Pointer[_struct.Py_buffer],  # view
+                               _type.c_int],  # flags
+                              _type.c_int]
+PyBuffer_GetPointer: _Callable[[_Pointer[_struct.Py_buffer],  # view
+                                _Pointer[_type.Py_ssize_t]],  # indices
+                               _type.c_void_p]
+PyBuffer_SizeFromFormat: _Callable[[_type.c_char_p],  # format
+                                   _type.Py_ssize_t]
+PyObject_CopyData: _Callable[[_type.py_object,  # dest
+                              _type.py_object],  # src
+                             _type.c_int]
+PyBuffer_Release: _Callable[[_Pointer[_struct.Py_buffer]],  # view
+                            _type.c_void]
 # pyerrors
 PyErr_Clear: _Callable[[],
                        _type.c_void]

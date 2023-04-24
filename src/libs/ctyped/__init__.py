@@ -21,7 +21,9 @@ from . import union
 from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
                      _byref as byref, _cast as cast, _cast_int as cast_int,
                      _is_unsigned as is_unsigned, _pointer as pointer, _sizeof as sizeof)
+from .const import python as _const_python
 from .lib import msvcrt as _msvcrt
+from .lib import python as _python
 from .lib import shell32 as _shell32
 
 NULLPTR: _Final = None
@@ -72,6 +74,16 @@ def char_array(string='', size=None):
 def resize_array(array: Pointer[CT], size: int) -> Pointer[CT]:
     # noinspection PyProtectedMember
     return (array._type_ * size).from_address(addressof(array))
+
+
+@_contextlib.contextmanager
+def py_buffer(obj) -> _ContextManager[struct.Py_buffer]:
+    view = struct.Py_buffer()
+    _python.PyObject_GetBuffer(obj, byref(view), _const_python.PyBUF_SIMPLE)
+    try:
+        yield view
+    finally:
+        _python.PyBuffer_Release(byref(view))
 
 
 def get_interface_name(iid: str, base: _builtins.type | _ModuleType = const) -> _Optional[str]:

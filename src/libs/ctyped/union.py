@@ -6,12 +6,13 @@ import typing as _typing
 from . import const as _const
 from . import struct as _struct
 from . import type as _type
-from ._utils import _Globals, _Pointer, _fields_repr, _resolve_type
+from ._utils import _Globals, _Pointer, _CT, _fields_repr, _resolve_type
 
 if None:
     from dataclasses import dataclass as _union
 else:
-    from ._utils import _dummy as _union
+    def _union(cls: _CT) -> _CT:
+        return cls
 
 
 # noinspection PyPep8Naming

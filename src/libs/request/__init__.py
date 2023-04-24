@@ -200,20 +200,20 @@ class Header:
     X_ROBOTS_TAG = 'X-Robots-Tag'
 
 
-class _Decoder:
+class Decoder:
+    DECODERS: dict[str, type[Decoder]] = {}
     tokens: tuple[str, ...] = ()
-    decoders: dict[str, type[_Decoder]] = {}
 
     def __init_subclass__(cls):
         for token in cls.tokens:
-            cls.decoders[token] = cls
+            cls.DECODERS[token] = cls
 
     @classmethod
-    def get(cls, tokens: Optional[str | Iterable[str]] = None) -> Optional[_Decoder]:
+    def get(cls, tokens: Optional[str | Iterable[str]] = None) -> Optional[Decoder]:
         if isinstance(tokens, str):
             tokens = urllib.request.parse_http_list(tokens)
         if tokens:
-            decoders = (cls.decoders[token.lower()]() for token in tokens)
+            decoders = (cls.DECODERS[token.lower()]() for token in tokens)
             return next(decoders) if len(tokens) == 1 else MultiDecoder(*decoders)
 
     def flush(self) -> bytes:
@@ -223,14 +223,14 @@ class _Decoder:
         raise NotImplementedError
 
 
-class IdentityDecoder(_Decoder):
+class IdentityDecoder(Decoder):
     tokens = 'identity',
 
     def decode(self, data: bytes) -> bytes:
         return data
 
 
-class DeflateDecoder(_Decoder):
+class DeflateDecoder(Decoder):
     tokens = 'deflate',
     _tried = False
 
@@ -266,7 +266,7 @@ class GzipDecoder(DeflateDecoder):
         return self._decoder.decompress(data)
 
 
-class Bzip2Decoder(_Decoder):
+class Bzip2Decoder(Decoder):
     tokens = 'bzip2', 'x-bzip2'
 
     def __init__(self):
@@ -287,8 +287,8 @@ class LzmaDecoder(Bzip2Decoder):
         self._decoder = lzma.LZMADecompressor()
 
 
-class MultiDecoder(_Decoder):
-    def __init__(self, *decoders: _Decoder):
+class MultiDecoder(Decoder):
+    def __init__(self, *decoders: Decoder):
         self._decoder = tuple(reversed(decoders))
 
     def flush(self) -> bytes:
@@ -512,7 +512,7 @@ _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
 def default_accept_encoding(*encodings: str) -> str:
-    return ','.join(itertools.chain(_Decoder.decoders, encodings))
+    return ','.join(itertools.chain(Decoder.DECODERS, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -808,7 +808,7 @@ class Response:
             self.cookies.extract_cookies(raw, request)
         self.elapsed = getattr(raw, 'elapsed', datetime.timedelta())
         self.request = request
-        self._decoder = _Decoder.get(self.headers.get(Header.CONTENT_ENCODING))
+        self._decoder = Decoder.get(self.headers.get(Header.CONTENT_ENCODING))
 
     def __bool__(self) -> bool:
         return self.status_code is Status.OK

@@ -14,7 +14,7 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'D:\Downloads\Aurora-corsair_wrapper\Project-Aurora\Aurora-CorsairWrapper\CgSDK.x64_2015.h'
+SOURCE_PATH = r'D:\Projects\vcpkg\packages\brotli_x64-windows\include\brotli\encode.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -53,8 +53,8 @@ GUID = False
 AST = False
 
 CLANG = False
-MSVC = True
-VCPKG = False
+MSVC = False
+VCPKG = True
 
 COMMENT = True
 INDENT = ' ' * 4

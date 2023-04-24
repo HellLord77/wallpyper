@@ -58,7 +58,7 @@ else:
                 return str(self.value)
 
         def __str__(self):
-            return f'{type(self).__name__}({self.name}, value={self.value})'
+            return f'{type(self).__name__}<{self.name}: {self.value}>'
 
 
 # noinspection PyPep8Naming

@@ -134,10 +134,6 @@ def _cast_int(obj: int, type: _CT) -> int:
     return obj
 
 
-def _dummy(arg: _CT) -> _CT:
-    return arg
-
-
 def _fmt_annot(annot: str) -> tuple[str]:
     if annot == '_Callable':
         return '_Undefined',

@@ -604,9 +604,11 @@ def _test_hook():
 
 
 def _test():
-    from win32.chroma import animation as chroma_animation
-    with chroma_animation.Animation25:
-        time.sleep(5)
+    from libs import request
+    url = r'https://www.techpartner.in/'
+    resp = request.get(url)
+    print(resp.headers)
+    print(resp.text)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

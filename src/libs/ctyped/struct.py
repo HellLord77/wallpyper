@@ -19,7 +19,9 @@ from .enum import libclang as _enum_libclang
 if None:
     from dataclasses import dataclass as _struct
 else:
-    from ._utils import _dummy as _struct
+    def _struct(cls: _CT) -> _CT:
+        cls._struct = None
+        return cls
 
 _SIZE = object()
 
@@ -28,6 +30,24 @@ _SIZE = object()
 def _bitfield(cls: type[_CT], sz: int) -> type[_CT]:
     # noinspection PyTypeChecker
     return type(cls.__name__, (cls,), {'_bitfield': sz})
+
+
+# python
+# pybuffer
+# noinspection PyPep8Naming
+@_struct
+class Py_buffer:
+    buf: _type.c_void_p
+    obj: _type.py_object
+    len: _type.Py_ssize_t
+    itemsize: _type.Py_ssize_t
+    readonly: _type.c_int
+    ndim: _type.c_int
+    format: _type.c_char_p
+    shape: _Pointer[_type.Py_ssize_t]
+    strides: _Pointer[_type.Py_ssize_t]
+    suboffsets: _Pointer[_type.Py_ssize_t]
+    internal: _type.c_void_p
 
 
 @_struct
@@ -4316,6 +4336,25 @@ class CXIdxEntityRefInfo:
     role: _enum_libclang.CXSymbolRole
 
 
+# brotli
+# decode
+@_struct
+class BrotliDecoderStateStruct:
+    pass
+
+
+BrotliDecoderState = BrotliDecoderStateStruct
+
+
+# encode
+@_struct
+class BrotliEncoderStateStruct:
+    pass
+
+
+BrotliEncoderState = BrotliEncoderStateStruct
+
+
 # iCUESDK
 # iCUESDK
 @_struct
@@ -4776,14 +4815,12 @@ class _Struct(_ctypes.Structure):
 def _init(item: str, var: _Optional[type] = None) -> type:
     if var is None:
         var = _globals.vars[item]
-    if var.__annotations__:
+    if hasattr(var, '_struct'):
         fields = tuple((name, _resolve_type(
             hints)) for name, hints in _typing.get_type_hints(
             var, _globals, _globals).items())
-        # noinspection PyProtectedMember
-        struct = type(item, (_Struct,), {'_fields_': tuple(
-            (*field, field[1]._bitfield) if hasattr(
-                field[1], '_bitfield') else field for field in fields)})
+        struct = type(item, (_Struct,), {'_fields_': tuple(field if (bitfield := getattr(
+            field[1], '_bitfield', None)) is None else (*field, bitfield) for field in fields)})
         struct._defaults = tuple((field[0], _sizeof(struct) if (val := getattr(
             var, field[0], None)) is _SIZE else val) for field in fields)
         return struct
