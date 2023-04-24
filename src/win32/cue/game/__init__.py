@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 import enum
 import ntpath
@@ -56,9 +56,27 @@ class _Control:
         self.__del__()
 
 
+class _Profile(enum.StrEnum):
+    def __enter__(self) -> bool:
+        return self.set()
+
+    def __exit__(self, _, __, ___):
+        self.clear()
+
+    def set(self, loop: bool = True):
+        return (set_state if loop else set_event)(self)
+
+    def clear(self):
+        return clear_state(self)
+
+
 class _Game:
     _name = ''
     _init = False
+
+    # noinspection PyPep8Naming
+    class profile(_Profile):
+        pass
 
     def __init__(self):
         self._init = handshake()
@@ -82,22 +100,9 @@ class _Game:
         self.__del__()
 
 
-class _Profile(enum.StrEnum):
-    def __enter__(self) -> bool:
-        return self.set()
-
-    def __exit__(self, _, __, ___):
-        self.clear()
-
-    def set(self, loop: bool = True):
-        return (set_state if loop else set_event)(self)
-
-    def clear(self):
-        return clear_state(self)
-
-
 class AgainstTheStorm(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         ATSM_Clearance = 'ATSM_Clearance'
         ATSM_Coral = 'ATSM_Coral'
         ATSM_Drizzle = 'ATSM_Drizzle'
@@ -119,7 +124,8 @@ class AgainstTheStorm(_Game):
 
 
 class BlairWitch(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         BLW_Blackout = 'BLW_Blackout'
         BLW_Bundle = 'BLW_Bundle'
         BLW_Bye = 'BLW_Bye'
@@ -155,7 +161,8 @@ class BlairWitch(_Game):
 
 
 class Breakpoint(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         BKPT_Beat = 'BKPT_Beat'
         SDKL_AlertEdgesOrange = 'SDKL_AlertEdgesOrange'
         SDKL_DeathShock = 'SDKL_DeathShock'
@@ -178,7 +185,8 @@ class Breakpoint(_Game):
 
 
 class Chernobylite(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Alarm = 'SDKL_Alarm'
         SDKL_AlertEdgesGreen = 'SDKL_AlertEdgesGreen'
         SDKL_AlertEdgesRed = 'SDKL_AlertEdgesRed'
@@ -198,7 +206,8 @@ class Chernobylite(_Game):
 
 
 class Common(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Alarm = 'SDKL_Alarm'
         SDKL_AlertEdgesBlack = 'SDKL_AlertEdgesBlack'
         SDKL_AlertEdgesBlue = 'SDKL_AlertEdgesBlue'
@@ -527,7 +536,8 @@ class Common(_Game):
 
 
 class CoreKeeper(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         CORE_Inventory = 'CORE_Inventory'
         CORE_Menu = 'CORE_Menu'
         CORE_Mold = 'CORE_Mold'
@@ -555,7 +565,8 @@ class CoreKeeper(_Game):
 
 
 class Dwerve(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         DWVE_Build = 'DWVE_Build'
         DWVE_Combat = 'DWVE_Combat'
         DWVE_Menu = 'DWVE_Menu'
@@ -583,7 +594,8 @@ class Dwerve(_Game):
 
 
 class Embr(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         EMBR_Default = 'EMBR_Default'
         EMBR_Findr = 'EMBR_Findr'
         EMBR_Logo = 'EMBR_Logo'
@@ -606,7 +618,8 @@ class Embr(_Game):
 class FarCryNewDawn(_Game):
     _name = 'Far Cry New Dawn'
 
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         FCDN_Loot = 'FCDN_Loot'
         FCND_Base = 'FCND_Base'
         FCND_BaseStation = 'FCND_BaseStation'
@@ -667,7 +680,8 @@ class FarCryNewDawn(_Game):
 
 
 class FarCry5(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         FCHOD_Day = 'FCHOD_Day'
         FCHOD_Liberty = 'FCHOD_Liberty'
         FCHOD_Menu = 'FCHOD_Menu'
@@ -726,7 +740,8 @@ class FarCry5(_Game):
 
 
 class FarCry6(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         FC6_Death = 'FC6_Death'
         FC6_EnvCity = 'FC6_EnvCity'
         FC6_EnvFlight = 'FC6_EnvFlight'
@@ -782,7 +797,8 @@ class FarCry6(_Game):
 
 
 class FreshlyFrosted(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         FRFR_Menu = 'FRFR_Menu'
         FRFR_Play_World01 = 'FRFR_Play_World01'
         FRFR_Play_World02 = 'FRFR_Play_World02'
@@ -814,7 +830,8 @@ class FreshlyFrosted(_Game):
 
 
 class Gamedec(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         GMDC_InterrogationBase = 'GMDC_InterrogationBase'
         GMDC_InterrogationOne = 'GMDC_InterrogationOne'
         GMDC_InterrogationTwo = 'GMDC_InterrogationTwo'
@@ -853,7 +870,8 @@ class Gamedec(_Game):
 
 
 class Ghostrunner(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         GHST_Blink = 'GHST_Blink'
         GHST_CyberVoid = 'GHST_CyberVoid'
         GHST_CyberVoidDestination = 'GHST_CyberVoidDestination'
@@ -879,7 +897,8 @@ class Ghostrunner(_Game):
 
 
 class GridForce(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         GRID_Dream = 'GRID_Dream'
         GRID_Menu = 'GRID_Menu'
         SDKL_EnvBlossom = 'SDKL_EnvBlossom'
@@ -907,7 +926,8 @@ class GridForce(_Game):
 
 
 class Hyperscape(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         HYPE_Assist = 'HYPE_Assist'
         HYPE_Break = 'HYPE_Break'
         HYPE_Card = 'HYPE_Card'
@@ -981,7 +1001,8 @@ class Hyperscape(_Game):
 
 
 class INMOST(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         INMO_Menu = 'INMO_Menu'
         SDKL_DamageCenter = 'SDKL_DamageCenter'
         SDKL_EnvDark = 'SDKL_EnvDark'
@@ -997,7 +1018,8 @@ class INMOST(_Game):
 
 
 class IXION(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         IXIO_Construction = 'IXIO_Construction'
         IXIO_EKP = 'IXIO_EKP'
         IXIO_Exterior = 'IXIO_Exterior'
@@ -1029,7 +1051,8 @@ class IXION(_Game):
 
 
 class MetroExodus(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         METE_Autumn = 'METE_Autumn'
         METE_BloodSplatter = 'METE_BloodSplatter'
         METE_Charger = 'METE_Charger'
@@ -1088,7 +1111,8 @@ class MetroExodus(_Game):
 
 
 class MidnightGhostHunt(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         MNGH_Menu = 'MNGH_Menu'
         MNGH_Midnight = 'MNGH_Midnight'
         SDKL_AlertEdgesRed = 'SDKL_AlertEdgesRed'
@@ -1105,7 +1129,8 @@ class MidnightGhostHunt(_Game):
 
 
 class OldWorld(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         OLDW_MenuMain = 'OLDW_MenuMain'
         SDKL_BloodSplatter = 'SDKL_BloodSplatter'
         SDKL_EnvAutumn = 'SDKL_EnvAutumn'
@@ -1129,7 +1154,8 @@ class OldWorld(_Game):
 
 
 class Overloop(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         OVLP_BossArena = 'OVLP_BossArena'
         OVLP_Menu = 'OVLP_Menu'
         OVLP_Reactor = 'OVLP_Reactor'
@@ -1167,7 +1193,8 @@ class Overloop(_Game):
 class PHOGS(_Game):
     _name = 'PHOGS!'
 
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         PHOG_Food = 'PHOG_Food'
         PHOG_Play = 'PHOG_Play'
         PHOG_Tutorial = 'PHOG_Tutorial'
@@ -1194,7 +1221,8 @@ class PHOGS(_Game):
 
 
 class PlagueTaleRequiem(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         APTR_Menu = 'APTR_Menu'
         APTR_Rats = 'APTR_Rats'
         APTR_Sense = 'APTR_Sense'
@@ -1213,7 +1241,8 @@ class PlagueTaleRequiem(_Game):
 
 
 class ProjectWinter(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         PWIN_Ghost = 'PWIN_Ghost'
         PWIN_Menu = 'PWIN_Menu'
         PWIN_Neutral = 'PWIN_Neutral'
@@ -1245,7 +1274,8 @@ class ProjectWinter(_Game):
 
 
 class RedSolstice2(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         RSL2_Menu = 'RSL2_Menu'
         SDKL_Alarm = 'SDKL_Alarm'
         SDKL_EnvDarkGreen = 'SDKL_EnvDarkGreen'
@@ -1265,7 +1295,8 @@ class RedSolstice2(_Game):
 
 
 class SerialCleaners(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_EnvAlpine = 'SDKL_EnvAlpine'
         SDKL_EnvDark = 'SDKL_EnvDark'
         SDKL_EnvDarkBlue = 'SDKL_EnvDarkBlue'
@@ -1287,7 +1318,8 @@ class SerialCleaners(_Game):
 
 
 class SeveredSteel(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Cobalt = 'SDKL_Cobalt'
         SDKL_EnvDark = 'SDKL_EnvDark'
         SDKL_EnvDarkBlue = 'SDKL_EnvDarkBlue'
@@ -1304,7 +1336,8 @@ class SeveredSteel(_Game):
 
 
 class ShipOfFools(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_EnvDarkGreen = 'SDKL_EnvDarkGreen'
         SDKL_FadeToBlack = 'SDKL_FadeToBlack'
         SDKL_GlowRed = 'SDKL_GlowRed'
@@ -1319,7 +1352,8 @@ class ShipOfFools(_Game):
 
 
 class SIFU(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Brimstone = 'SDKL_Brimstone'
         SDKL_EnvDarkBlue = 'SDKL_EnvDarkBlue'
         SDKL_EnvDarkGrey = 'SDKL_EnvDarkGrey'
@@ -1342,7 +1376,8 @@ class SIFU(_Game):
 
 
 class Starmancer(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Brimstone = 'SDKL_Brimstone'
         SDKL_Cobalt = 'SDKL_Cobalt'
         SDKL_Crimson = 'SDKL_Crimson'
@@ -1367,7 +1402,8 @@ class Starmancer(_Game):
 
 
 class SubnauticaBZ(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Alarm = 'SDKL_Alarm'
         SDKL_AlertEdgesBlue = 'SDKL_AlertEdgesBlue'
         SDKL_AlertEdgesRed = 'SDKL_AlertEdgesRed'
@@ -1392,7 +1428,8 @@ class SubnauticaBZ(_Game):
 
 
 class SuperMagBot(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         MAGB_ChargeB1 = 'MAGB_ChargeB1'
         MAGB_ChargeB2 = 'MAGB_ChargeB2'
         MAGB_ChargeR1 = 'MAGB_ChargeR1'
@@ -1421,7 +1458,8 @@ class SuperMagBot(_Game):
 
 
 class SweetTransit(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_EnvAutumn = 'SDKL_EnvAutumn'
         SDKL_EnvDark = 'SDKL_EnvDark'
         SDKL_EnvMud = 'SDKL_EnvMud'
@@ -1437,7 +1475,8 @@ class SweetTransit(_Game):
 
 
 class TerraInvicta(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Alarm = 'SDKL_Alarm'
         SDKL_AlertEdgesRed = 'SDKL_AlertEdgesRed'
         SDKL_Explosion = 'SDKL_Explosion'
@@ -1466,7 +1505,8 @@ class TerraInvicta(_Game):
 
 
 class TheDivision2(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         DIV2_Bleed = 'DIV2_Bleed'
         DIV2_Blind = 'DIV2_Blind'
         DIV2_Confuse = 'DIV2_Confuse'
@@ -1513,7 +1553,8 @@ class TheDivision2(_Game):
 
 
 class TheMedium(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         MEDI_EnvDarkGreen_H = 'MEDI_EnvDarkGreen_H'
         MEDI_EnvDarkGreen_V = 'MEDI_EnvDarkGreen_V'
         MEDI_EnvDark_H = 'MEDI_EnvDark_H'
@@ -1537,7 +1578,8 @@ class TheMedium(_Game):
 
 
 class Thymesia(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Cutscene = 'SDKL_Cutscene'
         SDKL_EnvAutumn = 'SDKL_EnvAutumn'
         SDKL_EnvDarkGrey = 'SDKL_EnvDarkGrey'
@@ -1557,7 +1599,8 @@ class Thymesia(_Game):
 
 
 class TribesOfMidgard(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Alarm = 'SDKL_Alarm'
         SDKL_AlertEdgesRed = 'SDKL_AlertEdgesRed'
         SDKL_Bleeding = 'SDKL_Bleeding'
@@ -1599,7 +1642,8 @@ class TribesOfMidgard(_Game):
 
 
 class Vesper(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_Brimstone = 'SDKL_Brimstone'
         SDKL_Cobalt = 'SDKL_Cobalt'
         SDKL_Corrosive = 'SDKL_Corrosive'
@@ -1623,7 +1667,8 @@ class Vesper(_Game):
 
 
 class Wonderlands(_Game):
-    class Profile(_Profile):
+    # noinspection PyPep8Naming
+    class profile(_Profile):
         SDKL_EnvAlpine = 'SDKL_EnvAlpine'
         SDKL_EnvDarkGreen = 'SDKL_EnvDarkGreen'
         SDKL_EnvDarkGrey = 'SDKL_EnvDarkGrey'

@@ -21,7 +21,8 @@ def str_game(game: str, data: dict[str, int]) -> str:
     string = f'class {name}(_Game):\n'
     if game != name:
         string += f'    _name = {game!r}\n'
-    string += '    class Profile(_Profile):\n'
+    string += '    # noinspection PyPep8Naming\n'
+    string += '    class profile(_Profile):\n'
     for key in sorted(data):
         string += f'        {key} = {key!r}\n'
     return string

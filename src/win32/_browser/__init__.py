@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 import contextlib
 import math
@@ -212,5 +212,5 @@ class _BrowserEx:  # TODO
         return self._controller and self._controller.core_web_view_2.navigate(url)
 
 
-# ctyped.interface.init_com(False)
+ctyped.interface.init_com(False)
 os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))

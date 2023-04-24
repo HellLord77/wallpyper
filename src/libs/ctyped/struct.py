@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 import ctypes as _ctypes
 import functools as _functools

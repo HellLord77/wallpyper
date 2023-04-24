@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 import enum as _enum
 from typing import Optional as _Optional

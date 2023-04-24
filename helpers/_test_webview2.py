@@ -6,7 +6,7 @@ from libs import ctyped
 from libs.ctyped.interface.package import WebView2
 from libs.ctyped.lib import user32, kernel32, WebView2Loader
 from win32 import _handle
-from win32.browser import _webview2
+from win32._browser import _webview2
 
 window_class = 'DesktopApp'
 title = 'WebView sample'

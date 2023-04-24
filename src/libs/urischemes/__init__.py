@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 __version__ = '0.0.1'  # https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
 

@@ -10,13 +10,12 @@ import winreg
 from typing import ContextManager, Iterator, Mapping, Optional
 
 from libs import ctyped
-from libs import request
 from libs.ctyped import winrt
 from libs.ctyped.const import error, runtimeclass
 from libs.ctyped.interface.um import oaidl, objidl, ocidl, propsys, ShObjIdl, ShObjIdl_core, strmif
 from libs.ctyped.interface.winrt.Windows import System as Windows_System
 from libs.ctyped.lib import kernel32, user32, uxtheme, shell32, ole32, ntdll, oleaut32, setupapi
-from . import _gdiplus, _utils, brotli, browser, clipboard, console, dialog, display, gui, window
+from . import _gdiplus, _utils, clipboard, console, dialog, display, gui, window
 from ._utils import sanitize_filename
 
 _PIN_TIMEOUT = 3
@@ -545,19 +544,6 @@ def get_exe_size(path: str) -> int:
                     max_ptr = section.PointerToRawData
                     size = max_ptr + section.SizeOfRawData
     return size
-
-
-class BrotliDecoder(request.Decoder):
-    tokens = 'br',
-
-    def __init__(self):
-        self._decoder = brotli.Decompressor()
-
-    def flush(self) -> bytes:
-        return self._decoder.unused_data
-
-    def decode(self, data: bytes) -> bytes:
-        return self._decoder.decompress(data)
 
 
 ctyped.interface.init_com()

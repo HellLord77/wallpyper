@@ -7,8 +7,7 @@ $Datas = @(
 	"win32/syspin.exe"
 	"pipe.exe")
 $Datas32 = @()
-$Datas64 = @(
-	"win32/browser/WebView2Loader.dll")
+$Datas64 = @()
 $Imports = @()
 $Excludes = @()
 $HooksDirs = @("hooks")

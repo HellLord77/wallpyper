@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 import itertools
 import ntpath
@@ -277,7 +277,8 @@ def decompress_known(data: bytes, max_length: Optional[int] = None) -> bytes:
 
 
 def compress(data: bytes | str) -> bytes:
-    with (TextCompressor if isinstance(data, str) else Compressor)() as com:
+    # FIXME https://github.com/cython/cython/issues/5403
+    with TextCompressor() if isinstance(data, str) else Compressor() as com:
         return com.compress(data) + com.finish()
 
 

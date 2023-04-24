@@ -23,6 +23,7 @@ import validator
 import win32
 from libs import (callables, config, easings, files, lens, log, pyinstall,
                   request, singleton, spinners, timer, typed, utils)
+from win32 import brotli
 
 UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -861,6 +862,19 @@ def main() -> NoReturn:
         try_alert_error(exc)
         raise
     sys.exit()
+
+
+class BrotliDecoder(request.Decoder):
+    tokens = 'br',
+
+    def __init__(self):
+        self._decoder = brotli.Decompressor()
+
+    def flush(self) -> bytes:
+        return self._decoder.unused_data
+
+    def decode(self, data: bytes) -> bytes:
+        return self._decoder.decompress(data)
 
 
 if __name__ == '__main__':

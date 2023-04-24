@@ -1,4 +1,4 @@
-from __future__ import annotations as _
+from __future__ import annotations
 
 import array
 import collections.abc
@@ -83,7 +83,8 @@ def _test_load_string_from_lib():
 
 
 def _test_browser():
-    browser = win32.browser.Browser()
+    from win32 import _browser
+    browser = _browser.Browser()
     browser.navigate('https://google.com')
     browser.wait()
     print(browser._browser.width)
@@ -104,7 +105,8 @@ def _test_dispatch():
 
 
 def _test_browser_ex():
-    browser = win32.browser._BrowserEx()
+    from win32 import _browser
+    browser = _browser._BrowserEx()
     browser._mainloop()
     if browser:
         browser._hwnd.show()
