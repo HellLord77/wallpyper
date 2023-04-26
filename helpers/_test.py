@@ -607,10 +607,7 @@ def _test_hook():
 
 def _test():
     from libs import request
-    url = r'https://www.techpartner.in/'
-    resp = request.get(url)
-    print(resp.headers)
-    print(resp.text)
+    print(request.default_accept_encoding())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

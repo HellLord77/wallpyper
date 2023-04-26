@@ -200,22 +200,28 @@ class Header:
     X_ROBOTS_TAG = 'X-Robots-Tag'
 
 
-class Decoder:
-    DECODERS: dict[str, type[Decoder]] = {}
+class _DecoderMeta(type):
     tokens: tuple[str, ...] = ()
 
-    def __init_subclass__(cls):
-        for token in cls.tokens:
-            cls.DECODERS[token] = cls
+    _decoders: dict[str, _DecoderMeta] = {}
 
-    @classmethod
+    def __init__(cls, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for token in cls.tokens:
+            cls._decoders[token.lower()] = cls
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._decoders)
+
     def get(cls, tokens: Optional[str | Iterable[str]] = None) -> Optional[Decoder]:
         if isinstance(tokens, str):
             tokens = urllib.request.parse_http_list(tokens)
         if tokens:
-            decoders = (cls.DECODERS[token.lower()]() for token in tokens)
+            decoders = (cls._decoders[token.lower()]() for token in tokens)
             return next(decoders) if len(tokens) == 1 else MultiDecoder(*decoders)
 
+
+class Decoder(metaclass=_DecoderMeta):
     def flush(self) -> bytes:
         return b''
 
@@ -512,7 +518,7 @@ _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
 def default_accept_encoding(*encodings: str) -> str:
-    return ','.join(itertools.chain(Decoder.DECODERS, encodings))
+    return ','.join(itertools.chain(Decoder, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -808,7 +814,7 @@ class Response:
             self.cookies.extract_cookies(raw, request)
         self.elapsed = getattr(raw, 'elapsed', datetime.timedelta())
         self.request = request
-        self._decoder = Decoder.get(self.headers.get(Header.CONTENT_ENCODING))
+        self._decoder = _DecoderMeta.get(self.headers.get(Header.CONTENT_ENCODING))
 
     def __bool__(self) -> bool:
         return self.status_code is Status.OK
