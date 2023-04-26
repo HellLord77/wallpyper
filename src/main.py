@@ -36,6 +36,13 @@ TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir()
 CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
 MAXIMIZED_ACTIONS: tuple[str, str, str] = 'ignore', 'postpone', 'skip'
+BLOCKERS: dict[str, str] = {
+    'DPPlayer.exe': 'N0va Desktop',
+    'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
+    'lwservice.exe': 'Live2DViewerEX',
+    'RazerAxon.Player.exe': 'Razer Axon',
+    'wallpaper32.exe': 'Wallpaper Engine',
+    'wallpaper64.exe': 'Wallpaper Engine'}
 
 win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
@@ -263,7 +270,7 @@ def create_menu():
         with gui.set_menu(gui.add_submenu(_text('MENU_NOTIFICATIONS'), icon=RES_TEMPLATE.format(consts.RES_NOTIFICATION))):
             gui.add_menu_item_check(_text('LABEL_NOTIFY_ERROR'), CURRENT_CONFIG, consts.CONFIG_NOTIFY_ERROR)
             gui.add_menu_item_check(_text('LABEL_NOTIFY_BLOCKED'), CURRENT_CONFIG,
-                                    consts.CONFIG_NOTIFY_BLOCKED, on_click=on_blocked)
+                                    consts.CONFIG_NOTIFY_BLOCKED, on_click=try_notify_blocked)
         gui.add_submenu_radio(_text('MENU_COLORS'), {mode.name: _text(
             f'COLOR_MODE_{mode.name}') for mode in itertools.islice(
             win32.ColorMode, 1, None)}, CURRENT_CONFIG, consts.CONFIG_MENU_COLOR,
@@ -346,7 +353,7 @@ def try_remove_temp(force: bool = False) -> bool:
         return True
 
 
-def try_show_notification(title: str, text: str,
+def try_show_notification(title: str, text: str = '',
                           icon: int | str = win32.gui.SystemTrayIcon.BALLOON_NONE,
                           force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_ERROR]:
@@ -370,13 +377,40 @@ def try_alert_error(exc: BaseException, force: bool = False):
 
 
 @timer.on_thread
+def try_notify_blocked(*_, force: bool = False):
+    if force or not CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] and CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
+        displays = get_displays()
+        if not all(win32.display.is_desktop_unblocked(*displays).values()):
+            count = itertools.count(1)
+            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}{_get_blocker(blocker[1])}'
+                             for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if
+                             blocker is not None)
+            try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
+        elif force:
+            try_show_notification(_text('NO_BLOCKED_TEXT'), force=True)
+
+
+def _get_blocker(blocker: str) -> str:
+    if consts.FEATURE_BLOCKER_NAME:
+        blocker = os.path.basename(blocker[1])
+        try:
+            blocker = BLOCKERS[blocker]
+        except KeyError:
+            pass
+        blocker = f': {blocker}'
+    else:
+        blocker = ''
+    return blocker
+
+
+@timer.on_thread
 def on_shown(_: gui.Event):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
         CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_show_notification(
             _text('FIRST_TITLE'), _text('FIRST_TEXT'), RES_TEMPLATE.format(consts.RES_ICON), True)
         if CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
             time.sleep(consts.POLL_SLOW_SEC)
-            on_blocked()
+            try_notify_blocked()
     if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
         on_change(*TIMER.target.args)
     elif CURRENT_CONFIG[consts.CONFIG_RESTORE_IMAGE]:
@@ -390,23 +424,11 @@ def get_displays() -> Iterable[str]:
 
 
 @timer.on_thread
-def on_blocked(*_):
-    if not CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] and CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
-        displays = get_displays()
-        if not all(win32.display.is_desktop_unblocked(*displays).values()):
-            count = itertools.count(1)
-            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}'
-                             f'{f": {os.path.basename(blocker[1])}" if consts.FEATURE_BLOCKER_NAME else ""}'
-                             for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if
-                             blocker is not None)
-            try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
-
-
-@timer.on_thread
 def print_progress():
     interval, spinner = spinners.get('sand')
     while (progress := PROGRESS.get()) != -1:
-        print(f'[{next(spinner)}] [{utils.get_progress(progress, 32)}] {progress * 100:3.0f}%', end='\r', flush=True)
+        print(f'[{next(spinner)}] [{utils.get_progress(progress, 32)}]'
+              f' {progress * 100:3.0f}%', end='\r', flush=True)
         time.sleep(interval)
     print(f'[✅] [{utils.get_progress(1, 32)}] 100%')
 
@@ -673,15 +695,17 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{_text(index)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{_text(DISPLAYS[monitor][1][0])} × {_text(DISPLAYS[monitor][1][1])}')
-        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=on_blocked)
+        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=try_notify_blocked)
         enable = len(DISPLAYS) > 1
         for submenu_item in submenu:
             submenu_item.enable(enable)
-        if consts.FEATURE_UPDATE_DISPLAY:
+        if consts.FEATURE_DISPLAY_EXTRA:
             gui.add_separator()
             gui.add_menu_item(_text('LABEL_UPDATE_DISPLAY'), on_click=functools.partial(
                 on_display_change, item, 1)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_UPDATE))
-    on_blocked()
+            gui.add_menu_item(_text('LABEL_BLOCKED_DISPLAY'), on_click=functools.partial(
+                try_notify_blocked, force=True)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_BLOCKED))
+    try_notify_blocked()
 
 
 def _create_shortcut(dir_: str) -> bool:

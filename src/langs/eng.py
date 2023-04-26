@@ -8,6 +8,7 @@ FIRST_TEXT = ('👀 See the system tray icon?\n'
               'Double click to change wallpaper,\n'
               'Right click to open context menu.')
 BLOCKED_TITLE = 'Fullscreen Overlay Detected! 🚫'
+NO_BLOCKED_TEXT = 'No Fullscreen Overlay Detected. 🎉'
 
 LABEL_ABOUT = 'About Wallpyper'
 LABEL_ANIMATE = 'Animate Tray Icon'
@@ -52,6 +53,7 @@ LABEL_START_MENU = 'Add to Start Menu'
 LABEL_UNPIN = 'Unpin from Taskbar'
 LABEL_UNPIN_START = 'Unpin from Start'
 LABEL_UPDATE_DISPLAY = 'Update Display List'
+LABEL_BLOCKED_DISPLAY = 'Check Obscured Display'
 
 LABEL_SEARCH_ALAMY = 'alamy'
 LABEL_SEARCH_BING = 'Bing'

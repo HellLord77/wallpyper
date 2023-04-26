@@ -23,7 +23,7 @@ FEATURE_SOURCE_DEV = True
 FEATURE_SYSTRAY_PIN = False
 FEATURE_TOOLTIP_ICON = False
 FEATURE_UNSAFE_CACHE = True
-FEATURE_UPDATE_DISPLAY = False
+FEATURE_DISPLAY_EXTRA = True
 
 _ICON = 'windows-11-color'
 
@@ -105,6 +105,7 @@ RES_SAVE_DIR = f'{_ICON}\\save-dir.png'
 RES_ALIGNMENT = f'{_ICON}\\alignment.png'
 RES_DISPLAY = f'{_ICON}\\display.png'
 RES_DISPLAY_UPDATE = f'{_ICON}\\display-update.png'
+RES_DISPLAY_BLOCKED = f'{_ICON}\\display-blocked.png'
 RES_SOURCE = f'{_ICON}\\source.png'
 RES_ROTATE = f'{_ICON}\\rotate.png'
 RES_EASE = f'{_ICON}\\ease.png'

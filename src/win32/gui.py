@@ -632,14 +632,14 @@ class SystemTray(_Control):
         self._show = not bool(shell32.Shell_NotifyIconW(ctyped.const.NIM_DELETE, ctyped.byref(self._data)))
         return not self._show
 
-    def show_balloon(self, title: str, text: Optional[str] = None,
+    def show_balloon(self, title: str, text: str = '',
                      res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = SystemTrayIcon.BALLOON_NONE,
                      silent: bool = False) -> bool:
         flags = self._data.uFlags
         hicon = self._hicon
         self._data.uFlags = ctyped.const.NIF_INFO | ctyped.const.NIF_ICON
         self._data.hIcon = self._hicon
-        if text is None:
+        if not text:
             text = title
             title = ''
         self._data.szInfo = text
