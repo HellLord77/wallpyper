@@ -21,7 +21,7 @@ import pipe
 import srcs
 import validator
 import win32
-from libs import (callables, config, easings, files, lens, log, pyinstall,
+from libs import (callables, config, easings, files, lens, pyinstall,
                   request, singleton, spinners, timer, typed, utils)
 from win32 import brotli
 
@@ -29,7 +29,6 @@ UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
-LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
 
@@ -37,9 +36,9 @@ CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 
 TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
 MAXIMIZED_ACTIONS: tuple[str, str, str] = 'ignore', 'postpone', 'skip'
 BLOCKERS: dict[str, str] = {
-    'DPPlayer.exe': 'N0va Desktop',
-    'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
     'lwservice.exe': 'Live2DViewerEX',
+    'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
+    'DPPlayer.exe': 'N0va Desktop',
     'RazerAxon.Player.exe': 'Razer Axon',
     'wallpaper32.exe': 'Wallpaper Engine',
     'wallpaper64.exe': 'Wallpaper Engine'}
@@ -290,7 +289,8 @@ def create_menu():
 
 def get_image() -> Optional[srcs.File]:
     source = srcs.SOURCES[CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]]
-    params = {key: val for key, val in source.CURRENT_CONFIG.items() if not key.startswith('_')}
+    params = {key: val for key, val in source.CURRENT_CONFIG.items()
+              if not key.startswith('_')}
     first_image = None
     while True:
         try:
@@ -330,13 +330,26 @@ def load_config(path: str = CONFIG_PATH):
         source.fix_config()
 
 
+class BrotliDecoder(request.Decoder):
+    tokens = 'br',
+
+    def __init__(self):
+        self._decoder = brotli.Decompressor()
+
+    def flush(self) -> bytes:
+        return self._decoder.unused_data
+
+    def decode(self, data: bytes) -> bytes:
+        return self._decoder.decompress(data)
+
+
 def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_SAVE_CONFIG]:
         json = config.JSONConfig()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
             source.fix_config(True)
-            if section := {option: source.CURRENT_CONFIG[option] for option, value in sorted(
-                    source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[option] != value}:
+            if section := {opt: source.CURRENT_CONFIG[opt] for opt, val in sorted(
+                    source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[opt] != val}:
                 json[name] = section
         json.dump(path, '\t')
         return os.path.isfile(path)
@@ -382,9 +395,9 @@ def try_notify_blocked(_: Optional[bool | str] = None, force: bool = False):
         displays = DISPLAYS if force else get_displays()
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
-            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}{_get_blocker(blocker[1])}'
-                             for monitor, blocker in win32.display.get_desktop_blocker(*displays).items() if
-                             blocker is not None)
+            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}'
+                             f'{_get_blocker(blocker[1])}' for monitor, blocker in
+                             win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
             try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
         elif force:
             try_show_notification(_text('NO_BLOCKED_TEXT'), force=True)
@@ -392,9 +405,8 @@ def try_notify_blocked(_: Optional[bool | str] = None, force: bool = False):
 
 def _get_blocker(blocker: str) -> str:
     if consts.FEATURE_BLOCKER_NAME:
-        blocker = os.path.basename(blocker)
         try:
-            blocker = BLOCKERS[blocker]
+            blocker = BLOCKERS[os.path.basename(blocker)]
         except KeyError:
             pass
         blocker = f': {blocker}'
@@ -812,13 +824,16 @@ def on_source(item: win32.gui.MenuItem, name: str):
     source = srcs.SOURCES[name]
     icon = os.path.isfile(source.ICON)
     item.set_icon(source.ICON if icon else gui.MenuItemImage.NONE)
-    item.set_tooltip(f'{name}-{source.VERSION}\n{source.URL}', source.NAME,
+    tooltip = f'{name}-{source.VERSION}'
+    if source.URL is not None:
+        tooltip += f'\n{source.URL}'
+    item.set_tooltip(tooltip, source.NAME,
                      source.ICON if icon else gui.MenuItemTooltipIcon.NONE)
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_menu(submenu):
         source.create_menu()
-        item.enable(bool(len(submenu)))
+    item.enable(bool(submenu))
 
 
 def on_about():
@@ -850,9 +865,6 @@ def apply_auto_start(auto_start: bool) -> bool:
 def start():
     singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(print, 'Crash'),
                    functools.partial(print, 'Wait'), on_exit=functools.partial(print, 'Exit'))
-    if consts.FEATURE_DEBUG_MODE:
-        log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
-        log.init((r'[^\\]*\.py', utils.re_join('srcs', r'.*\.py')), level=log.Level.INFO, check_comp=False)
     pyinstall.clean_temp()
     _update_display()
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867
@@ -883,19 +895,6 @@ def main() -> NoReturn:
         try_alert_error(exc)
         raise
     sys.exit()
-
-
-class BrotliDecoder(request.Decoder):
-    tokens = 'br',
-
-    def __init__(self):
-        self._decoder = brotli.Decompressor()
-
-    def flush(self) -> bytes:
-        return self._decoder.unused_data
-
-    def decode(self, data: bytes) -> bytes:
-        return self._decoder.decompress(data)
 
 
 if __name__ == '__main__':

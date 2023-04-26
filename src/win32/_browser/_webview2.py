@@ -168,18 +168,36 @@ class CoreWebView2Settings(_com.Unknown):
     is_built_in_error_page_enabled = _com.BOOLGetterSetter('IsBuiltInErrorPageEnabled')
 
 
+class CoreWebView2Settings2(CoreWebView2Settings):
+    _obj: WebView2.ICoreWebView2Settings2
+
+    user_agent = _com.LPWSTRGetterSetter('UserAgent')
+
+
+class CoreWebView2Settings3(CoreWebView2Settings2):
+    _obj: WebView2.ICoreWebView2Settings3
+
+    are_browser_accelerator_keys_enabled = _com.BOOLGetterSetter('AreBrowserAcceleratorKeysEnabled')
+
+
+class CoreWebView2Settings4(CoreWebView2Settings3):
+    _obj: WebView2.ICoreWebView2Settings4
+
+    is_password_autosave_enabled = _com.BOOLGetterSetter('IsPasswordAutosaveEnabled')
+    is_general_autofill_enabled = _com.BOOLGetterSetter('IsGeneralAutofillEnabled')
+
+
+class CoreWebView2Settings5(CoreWebView2Settings4):
+    _obj: WebView2.ICoreWebView2Settings5
+
+    is_pinch_zoom_enabled = _com.BOOLGetterSetter('IsPinchZoomEnabled')
+
+
 class CoreWebView2WebResourceRequest(_com.Unknown):
     _obj: WebView2.ICoreWebView2WebResourceRequest
 
     uri = _com.LPWSTRGetterSetter('Uri')
     method = _com.LPWSTRGetterSetter('Method')
-
-
-class CoreWebView2WebResourceResponse(_com.Unknown):
-    _obj: WebView2.ICoreWebView2WebResourceResponse
-
-    status_code = _com.CIntGetterSetter('StatusCode')
-    reason_phrase = _com.LPWSTRGetterSetter('ReasonPhrase')
 
 
 class CoreWebView2WebResourceRequestedEventArgs(_com.Unknown):
@@ -193,3 +211,10 @@ class CoreWebView2WebResourceRequestedEventArgs(_com.Unknown):
         corewebview2_web_resource_context = enum_WebView2.COREWEBVIEW2_WEB_RESOURCE_CONTEXT()
         self._obj.get_ResourceContext(ctyped.byref(corewebview2_web_resource_context))
         return corewebview2_web_resource_context
+
+
+class CoreWebView2WebResourceResponse(_com.Unknown):
+    _obj: WebView2.ICoreWebView2WebResourceResponse
+
+    status_code = _com.CIntGetterSetter('StatusCode')
+    reason_phrase = _com.LPWSTRGetterSetter('ReasonPhrase')

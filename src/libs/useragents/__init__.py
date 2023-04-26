@@ -6,8 +6,7 @@ import enum
 import json
 import os
 import random
-import typing
-from typing import Container, Iterator, MutableMapping, Optional
+from typing import Container, Iterator, MutableMapping, NamedTuple, Optional
 
 _PATH = 'user-agents.json'
 _USERAGENTS: Optional[list[tuple[float, UserAgent]]] = None
@@ -60,7 +59,7 @@ PLATFORM_LINUX = {Platform.LINUX_AAARCH64, Platform.LINUX_ARMV7L,
 PLATFORM_WINDOWS = {Platform.WIN32, Platform.WINDOWS}
 
 
-class Connection(typing.NamedTuple):
+class Connection(NamedTuple):
     downlink: Optional[int | float]
     downlink_max: Optional[int | float]
     effective_type: Optional[EffectiveType]
@@ -68,7 +67,7 @@ class Connection(typing.NamedTuple):
     type: Optional[Type]
 
 
-class UserAgent(typing.NamedTuple):
+class UserAgent(NamedTuple):
     app_name: AppName
     connection: Optional[Connection]
     platform: Platform

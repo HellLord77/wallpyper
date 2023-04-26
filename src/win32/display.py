@@ -11,9 +11,8 @@ import string
 import tempfile
 import threading
 import time
-import typing
 import winreg
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, NamedTuple, Optional
 
 from libs import ctyped
 from libs.ctyped import winrt
@@ -683,7 +682,7 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: Style = St
     return False
 
 
-class Wallpaper(typing.NamedTuple):
+class Wallpaper(NamedTuple):
     path: str
     monitor: Optional[str] = None
     style: Style = Style.FILL

@@ -175,6 +175,7 @@ class _Interface:
     def __del__(self):
         if self._obj:
             self._obj.Release()
+            self._obj.value = None
 
     def __bool__(self):
         return bool(self._obj)
@@ -183,8 +184,8 @@ class _Interface:
 class Unknown(_Interface):
     _obj: Unknwnbase.IUnknown
 
-    def add_ref(self) -> ctyped.type.HRESULT:
-        return self._obj.AddRef()
+    def add_ref(self) -> bool:
+        return ctyped.macro.SUCCEEDED(self._obj.AddRef())
 
-    def release(self) -> ctyped.type.HRESULT:
-        return self._obj.Release()
+    def release(self) -> bool:
+        return ctyped.macro.SUCCEEDED(self._obj.Release())

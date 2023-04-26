@@ -160,18 +160,16 @@ class Source:
     NAME: str = ''
     VERSION: str = '0.0.0'
     ICON: str = 'ico'
-    URL: str = ''
-    TCONFIG: type[dict] | type[TypedDict] = dict[str, Any]
-    DEFAULT_CONFIG: TCONFIG = None
-    CURRENT_CONFIG: TCONFIG = None
+    URL: Optional[str] = None
+    TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {})
+    DEFAULT_CONFIG: TCONFIG = {}
+    CURRENT_CONFIG: TCONFIG = {}
 
     def __init_subclass__(cls):
         uid = cls.__module__.split('.')[-1]
         if not cls.NAME:
             cls.NAME = cls.__name__
         cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
-        if cls.DEFAULT_CONFIG is None:
-            cls.DEFAULT_CONFIG = {}
         cls.CURRENT_CONFIG = {}
         cls.get_image = callables.LastCacheCallable(cls.get_image)
         SOURCES[uid] = cls

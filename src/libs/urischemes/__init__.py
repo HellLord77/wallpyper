@@ -6,8 +6,7 @@ import csv
 import enum
 import functools
 import os
-import typing
-from typing import Iterator, Optional
+from typing import Iterator, NamedTuple, Optional
 
 _PATH = 'uri-schemes-1.csv'
 _URISCHEMES: Optional[tuple[URIScheme, ...]] = None
@@ -19,7 +18,7 @@ class URIStatus(enum.StrEnum):
     HISTORICAL = 'Historical'
 
 
-class URIScheme(typing.NamedTuple):
+class URIScheme(NamedTuple):
     scheme: str
     description: str
     status: str

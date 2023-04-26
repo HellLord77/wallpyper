@@ -179,7 +179,7 @@ def _match(pattern: Optional[_TPattern], string: Optional[str]) -> bool:
     elif isinstance(pattern, str):
         return string == pattern
     elif isinstance(pattern, re.Pattern):
-        return bool(pattern.fullmatch(string))
+        return bool(pattern.search(string))
     elif isinstance(pattern, Container):
         return string in pattern
     else:

@@ -26,7 +26,6 @@ class FolderLocal(Source):
     NAME = 'Folder (local)'
     VERSION = '0.0.2'
     ICON = 'png'
-    URL = 'https://en.wikipedia.org/wiki/Directory_(computing)'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_DIR: str,
         CONFIG_RECURSE: bool,

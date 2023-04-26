@@ -165,7 +165,7 @@ class _BrowserEx:  # TODO
             lpszClassName=f'{__name__}-{type(self).__name__}')
         self._environment = _create_environment()
         if not self._environment or not user32.RegisterClassExW(ctyped.byref(self._class)):
-            raise RuntimeError(f'Cannot initialize {type(self).__name__}')
+            raise RuntimeError(f'Cannot initialize {type(self).__name__!r}')
         self._hwnd = _handle.HWND(user32.CreateWindowExW(
             0, self._class.lpszClassName, type(self).__name__, ctyped.const.WS_OVERLAPPEDWINDOW,
             ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT, ctyped.const.CW_USEDEFAULT,

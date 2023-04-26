@@ -39,7 +39,7 @@ COLORS = (
     '0099cc', '66cccc', '77cc33', '669900', '336600', '666600', '999900', 'cccc33', 'ffff00', 'ffcc33',
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
 AI_FILTERS = '0', '1'
-PATTERN_PURITY = re.compile('(?!000)[01]{3}')
+PATTERN_PURITY = re.compile('^(?!000)[01]{3}$')
 
 
 def _on_color_right(event):

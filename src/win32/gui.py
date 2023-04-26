@@ -203,11 +203,12 @@ def _load_bitmap(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
         path_or_bitmap, str) else path_or_bitmap
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class Event:
     control: _EventEmitter
     event: int
     params: Optional[tuple[int, int]] = None
+
     _skip: bool = False
 
     @property
@@ -222,7 +223,7 @@ class Event:
         try:
             return self._skip
         finally:
-            object.__setattr__(self, '_skip', skip)
+            self._skip = skip
 
 
 class _EventEmitter:
@@ -313,7 +314,7 @@ class Gui(_EventEmitter):
             lpszClassName=f'{__name__}-{type(self).__name__}' if name is None else name,
             hbrBackground=_handle.HBRUSH(ctyped.const.COLOR_WINDOW))
         if not user32.RegisterClassExW(ctyped.byref(self._class)):
-            raise RuntimeError(f'Cannot initialize {type(self).__name__}')
+            raise RuntimeError(f'Cannot initialize {type(self).__name__!r}')
         self._message_window = Window(_gui=self)
         super().__init__(self._message_window.get_id())
         self._menu_item_tooltip_window = Window(
@@ -667,13 +668,16 @@ class Menu(_Control):
         self._hmenu = _handle.HMENU.from_type()
         if not user32.SetMenuInfo(self._hmenu, ctyped.byref(ctyped.struct.MENUINFO(
                 fMask=ctyped.const.MIM_STYLE, dwStyle=ctyped.const.MNS_NOTIFYBYPOS))):
-            raise RuntimeError(f"Cannot initialize '{type(self).__name__}'")
+            raise RuntimeError(f"Cannot initialize {type(self).__name__!r}")
         self._hmenu.set_hwnd(self._hwnd)
         self._items: list[MenuItem] = []
         super().__init__(self._hmenu.value)
 
     def __contains__(self, id_or_item: int | MenuItem):
         return self.get_item(id_or_item) is not None
+
+    def __bool__(self):
+        return bool(self._items)
 
     def __len__(self):
         return len(self._items)

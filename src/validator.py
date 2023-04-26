@@ -66,7 +66,7 @@ def ensure_unique(current: dict, _: dict, key: str,
 def ensure_pattern(current: dict, default: dict, key: str,
                    pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG) -> bool:
     val: AnyStr = current[key]
-    if re.fullmatch(pattern, val, flags) is not None:
+    if re.search(pattern, val, flags) is not None:
         return True
     current[key] = default[key]
     return False

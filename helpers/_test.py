@@ -15,10 +15,9 @@ import pprint
 import re
 import sys
 import time
-import typing
 import uuid
 from types import ModuleType
-from typing import AnyStr, Callable, Optional, TypeVar
+from typing import AnyStr, Callable, Optional, TypeVar, NamedTuple
 from xml.etree import ElementTree
 
 import win32
@@ -120,7 +119,7 @@ def _test_browser_ex():
 NT = collections.namedtuple('NT', ('a', 'b', 'c'))
 
 
-class TNT(typing.NamedTuple):
+class TNT(NamedTuple):
     a: int
     b: int
     c: int
@@ -606,7 +605,8 @@ def _test_hook():
 
 
 def _test():
-    pass
+    import libs.utils as utils
+    print(utils.TimeDeltaEx('5 second'))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

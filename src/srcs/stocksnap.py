@@ -34,7 +34,7 @@ class StockSnap(Source):
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_SORT: str,
         CONFIG_ORDER: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
         CONFIG_SORT: SORTS[0],
         CONFIG_ORDER: ORDERS[0]}
