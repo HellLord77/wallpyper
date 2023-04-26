@@ -101,7 +101,7 @@ DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_KEEP_CACHE: False,
     consts.CONFIG_MAXIMIZED_ACTION: MAXIMIZED_ACTIONS[0],
     consts.CONFIG_MENU_COLOR: win32.ColorMode.AUTO.name,
-    consts.CONFIG_NOTIFY_BLOCKED: True,
+    consts.CONFIG_NOTIFY_BLOCKED: False,
     consts.CONFIG_NOTIFY_ERROR: True,
     consts.CONFIG_REAPPLY_IMAGE: True,
     consts.CONFIG_RESTORE_IMAGE: False,
@@ -169,12 +169,12 @@ def create_menu():
         with gui.set_menu(gui.add_submenu(_text('MENU_LINKS'), icon=RES_TEMPLATE.format(consts.RES_LINKS))):
             gui.add_menu_item(_text('LABEL_DESKTOP'), on_click=on_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_LINK))
-            gui.add_menu_item(_text('LABEL_REMOVE_DESKTOP'), on_click=on_remove_shortcuts).set_icon(
+            gui.add_menu_item(_text('LABEL_REMOVE_DESKTOP'), on_click=on_remove_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
             gui.add_menu_item(_text('LABEL_START_MENU'), on_click=on_start_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_LINK))
-            gui.add_menu_item(_text('LABEL_REMOVE_START_MENU'), on_click=on_remove_start_shortcuts).set_icon(
+            gui.add_menu_item(_text('LABEL_REMOVE_START_MENU'), on_click=on_remove_start_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
             gui.add_menu_item(_text('LABEL_PIN'), enable=consts.FEATURE_SYSTRAY_PIN,
@@ -377,9 +377,9 @@ def try_alert_error(exc: BaseException, force: bool = False):
 
 
 @timer.on_thread
-def try_notify_blocked(*_, force: bool = False):
-    if force or not CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] and CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
-        displays = get_displays()
+def try_notify_blocked(_: Optional[bool | str] = None, force: bool = False):
+    if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
+        displays = DISPLAYS if force else get_displays()
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
             text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}{_get_blocker(blocker[1])}'
@@ -392,7 +392,7 @@ def try_notify_blocked(*_, force: bool = False):
 
 def _get_blocker(blocker: str) -> str:
     if consts.FEATURE_BLOCKER_NAME:
-        blocker = os.path.basename(blocker[1])
+        blocker = os.path.basename(blocker)
         try:
             blocker = BLOCKERS[blocker]
         except KeyError:
@@ -408,9 +408,6 @@ def on_shown(_: gui.Event):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
         CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_show_notification(
             _text('FIRST_TITLE'), _text('FIRST_TEXT'), RES_TEMPLATE.format(consts.RES_ICON), True)
-        if CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
-            time.sleep(consts.POLL_SLOW_SEC)
-            try_notify_blocked()
     if CURRENT_CONFIG[consts.CONFIG_CHANGE_START]:
         on_change(*TIMER.target.args)
     elif CURRENT_CONFIG[consts.CONFIG_RESTORE_IMAGE]:
@@ -701,9 +698,9 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
             submenu_item.enable(enable)
         if consts.FEATURE_DISPLAY_EXTRA:
             gui.add_separator()
-            gui.add_menu_item(_text('LABEL_UPDATE_DISPLAY'), on_click=functools.partial(
+            gui.add_menu_item(_text('LABEL_DISPLAY_UPDATE'), on_click=functools.partial(
                 on_display_change, item, 1)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_UPDATE))
-            gui.add_menu_item(_text('LABEL_BLOCKED_DISPLAY'), on_click=functools.partial(
+            gui.add_menu_item(_text('LABEL_DISPLAY_BLOCKED'), on_click=functools.partial(
                 try_notify_blocked, force=True)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_BLOCKED))
     try_notify_blocked()
 
@@ -720,9 +717,9 @@ def on_shortcut() -> bool:
     return created
 
 
-def on_remove_shortcuts() -> bool:
+def on_remove_shortcut() -> bool:
     if not (removed := win32.remove_shortcuts(win32.DESKTOP_DIR, UUID)):
-        try_show_notification(_text('LABEL_REMOVE_DESKTOP'), _text('FAIL_DESKTOP_REMOVE'))
+        try_show_notification(_text('LABEL_REMOVE_DESKTOP'), _text('FAIL_REMOVE_DESKTOP'))
     return removed
 
 
@@ -732,9 +729,9 @@ def on_start_shortcut() -> bool:
     return created
 
 
-def on_remove_start_shortcuts() -> bool:
+def on_remove_start_shortcut() -> bool:
     if not (removed := win32.remove_shortcuts(win32.START_DIR, UUID)):
-        try_show_notification(_text('LABEL_REMOVE_START_MENU'), _text('FAIL_START_MENU_REMOVE'))
+        try_show_notification(_text('LABEL_REMOVE_START_MENU'), _text('FAIL_REMOVE_START_MENU'))
     return removed
 
 

@@ -606,8 +606,7 @@ def _test_hook():
 
 
 def _test():
-    from libs import request
-    print(request.default_accept_encoding())
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

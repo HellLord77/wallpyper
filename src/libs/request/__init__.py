@@ -814,7 +814,7 @@ class Response:
             self.cookies.extract_cookies(raw, request)
         self.elapsed = getattr(raw, 'elapsed', datetime.timedelta())
         self.request = request
-        self._decoder = _DecoderMeta.get(self.headers.get(Header.CONTENT_ENCODING))
+        self._decoder = Decoder.get(self.headers.get(Header.CONTENT_ENCODING))
 
     def __bool__(self) -> bool:
         return self.status_code is Status.OK
