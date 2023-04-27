@@ -91,8 +91,7 @@ class File:
             try:
                 return files.checksum(path, hash_, algorithm)
             except OSError:
-                break
-        return False
+                return False
 
     def fill(self, path: str) -> bool:
         if not self.size:

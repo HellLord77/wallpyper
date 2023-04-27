@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import collections
 import contextlib
 import dataclasses
@@ -47,6 +48,7 @@ _MIIM_TO_FIELDS = {
     ctyped.const.MIIM_BITMAP: ('hbmpItem',),
     ctyped.const.MIIM_FTYPE: ('fType',)}
 
+FLAG_BITMAP_PATH_CACHE = True
 FLAG_MENU_ITEM_RESHOW_TOOLTIP = False
 WINDOW_MIN_WIDTH = 516
 WINDOW_MIN_HEIGHT = 509
@@ -198,8 +200,15 @@ class _IDGenerator:
             return False
 
 
+@functools.lru_cache
+def _bitmap_from_file(path: str) -> _gdiplus.Bitmap:
+    return _gdiplus.Bitmap.from_file(path)
+
+
 def _load_bitmap(path_or_bitmap: str | _gdiplus.Bitmap) -> _gdiplus.Bitmap:
-    return _gdiplus.Bitmap.from_file(path_or_bitmap) if isinstance(
+    if not FLAG_BITMAP_PATH_CACHE:
+        _bitmap_from_file.cache_clear()
+    return _bitmap_from_file(path_or_bitmap) if isinstance(
         path_or_bitmap, str) else path_or_bitmap
 
 
@@ -610,7 +619,8 @@ class SystemTray(_Control):
 
     def start_animation(self, path_or_bitmap: str | _gdiplus.Bitmap) -> bool:
         self.stop_animation()
-        self._animation_frames = itertools.cycle(frames := tuple(self._get_animation_frames(_load_bitmap(path_or_bitmap))))
+        self._animation_frames = itertools.cycle(frames := tuple(
+            self._get_animation_frames(_load_bitmap(path_or_bitmap))))
         if frames:
             self._set_next_frame()
         return bool(frames)
@@ -1101,3 +1111,6 @@ class MenuItem(_Control):
 
     def get_uid(self) -> int | str:
         return self._uid
+
+
+atexit.register(_bitmap_from_file.cache_clear)
