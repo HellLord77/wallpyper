@@ -1,4 +1,4 @@
-$Version = "0.1.6"
+$Version = "0.1.7"
 
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -75,6 +75,7 @@ $MinifyJsonRegExs = @(
 	"src/libs/request/cloudflare/browsers.json"
 	"src/libs/spinners/spinners.json"
 	"src/libs/useragents/user-agents.json")
+$UPXDir = ""
 
 $CodePythonIs64Bit = @(
 	"from sys import maxsize"
@@ -124,6 +125,7 @@ $CodeCompileCTemplate = @(
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyJsonLocal = $False
+$MTDir = [IO.Path]::Combine(${Env:ProgramFiles(x86)}, "Windows Kits", "10", "bin", "x64")
 $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 function Get-InsertedArray($Array, $Index, $Value) {
@@ -197,7 +199,8 @@ function MinifyJsonFile([string]$Path, [string]$OutPath) {
 function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
-	.\mt.exe -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo -verbose  # TODO remove
+	$MTPath = if (Get-Command mt -ErrorAction SilentlyContinue) { (Get-Command mt).Source } else { Join-Path $MTDir "mt.exe" }
+	& $MTPath -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo  # TODO remove
 	$TempStream = [System.IO.File]::OpenRead($TempFile)
 	$ExeStream = [System.IO.File]::OpenWrite($ExePath)
 	$TempStream.Seek($( Get-ExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null
@@ -331,7 +334,7 @@ function Get-PyInstallerArgs {
 	foreach ($Data in $($Datas + $(If ($IsPython64Bit) { $Datas64 } else { $Datas32 }))) {
 		$SrcLeaf = Split-Path $Data -Leaf
 		if ($SrcLeaf.EndsWith("%") -and $SrcLeaf.EndsWith("%")) {
-			$DataSrc = (Get-Command $SrcLeaf.Substring(1, $SrcLeaf.Length - 2)).Path
+			$DataSrc = (Get-Command $SrcLeaf.Substring(1, $SrcLeaf.Length - 2)).Source
 			$DataDst = Split-Path $Data -Parent
 		}
 		else {
@@ -349,10 +352,13 @@ function Get-PyInstallerArgs {
 		$ArgList += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
 	}
 	if ($UPX) {
-		if (!(Get-Command upx -ErrorAction SilentlyContinue)) {
-			choco install upx --verbose --yes
+		if (-not (Get-Command upx -ErrorAction SilentlyContinue)) {
+			if (-not $UPXDir) {
+				choco install upx --yes
+				$UPXDir = Split-Path (Get-Command upx).Source -Parent
+			}
 		}
-		Get-Command upx
+		$ArgList += "--upx-dir=$UPXDir"
 	}
 	else {
 		$ArgList += "--noupx"
@@ -360,7 +366,7 @@ function Get-PyInstallerArgs {
 	return $ArgList
 }
 
-function Install-Dependencies {
+function Install-Requirements {
 	python -m pip install pip --upgrade
 	python -m pip install setuptools --upgrade
 
@@ -501,7 +507,7 @@ function UploadToMEGA {
 	if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD) {
 		choco install megacmd --verbose --yes
 		$env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
-		if (!(Get-Command mega-login -ErrorAction SilentlyContinue)) {
+		if (-not (Get-Command mega-login -ErrorAction SilentlyContinue)) {
 			$Temp = Join-Path $Env:TEMP (Split-Path $MEGAcmdURL -Leaf)
 			Invoke-WebRequest $MEGAcmdURL -OutFile $Temp
 			Start-Process $Temp "/S" -Wait
@@ -523,7 +529,7 @@ $ErrorActionPreference = "Stop"
 if ($Args) {
 	switch ($Args[0]) {
 		"install" {
-			Install-Dependencies; Break
+			Install-Requirements; Break
 		}
 		"build" {
 			Write-Build; Break
