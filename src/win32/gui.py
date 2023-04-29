@@ -20,7 +20,8 @@ _NOTIFYICONDATAW_V2_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDAT
 _NOTIFYICONDATAA_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'hBalloonIcon')
 _NOTIFYICONDATAW_V3_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'hBalloonIcon')
 
-_WM_TASKBARCREATED = user32.RegisterWindowMessageW('TaskbarCreated')
+_WM_TASKBAR_CREATED = user32.RegisterWindowMessageW('TaskbarCreated')
+_WM_TASKBAR_BUTTON_CREATED = user32.RegisterWindowMessageW('TaskbarButtonCreated')
 _WM_SYS_TRAY_MSG = ctyped.const.WM_APP
 _WM_MENU_ITEM_TOOLTIP_HIDE = ctyped.const.WM_APP + 1
 _WM_WINDOW_MOUSEWHEEL_FWD = ctyped.const.WM_APP + 2
@@ -366,7 +367,7 @@ class Gui(_EventEmitter):
                 user32.PostQuitMessage(0)
             elif message == ctyped.const.WM_CLOSE:
                 user32.DestroyWindow(hwnd)
-            elif message == _WM_TASKBARCREATED:
+            elif message == _WM_TASKBAR_CREATED:
                 SystemTray.update()
             elif message in (_WM_MENU_ITEM_TOOLTIP_HIDE, ctyped.const.WM_MOUSELEAVE):
                 self._menu_item_tooltip_window.send_message(ctyped.const.TTM_TRACKACTIVATE)

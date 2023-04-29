@@ -315,3 +315,7 @@ def try_animate_icon(tooltip: Optional[str] = None, force: bool = False) -> Cont
             pass
         else:
             _animate_icon()
+
+
+def enable_menuitem_icon(enable: bool = True, *, __set_icon=win32.gui.MenuItem.set_icon):
+    win32.gui.MenuItem.set_icon = __set_icon if enable else lambda *_, **__: True

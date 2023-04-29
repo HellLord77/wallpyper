@@ -1,4 +1,5 @@
 import collections
+import datetime
 import functools
 import itertools
 import multiprocessing
@@ -46,9 +47,9 @@ BLOCKERS: dict[str, str] = {
 win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 
+PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 RESTART = utils.MutableBool()
-PROGRESS = utils.MutableFloat()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
 PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}.{uuid.uuid4().hex}')
@@ -59,7 +60,7 @@ TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_ACTIVE_DISPLAY: str,
     consts.CONFIG_ACTIVE_SOURCE: str,
     consts.CONFIG_ANIMATE_ICON: bool,
-    consts.CONFIG_AUTOSTART: bool,
+    consts.CONFIG_AUTO_START: bool,
     consts.CONFIG_AUTO_SAVE: bool,
     consts.CONFIG_CHANGE_INTERVAL: int,
     consts.CONFIG_CHANGE_START: bool,
@@ -86,9 +87,9 @@ DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
-    consts.CONFIG_ACTIVE_SOURCE: next(iter(srcs.SOURCES)),
+    consts.CONFIG_ACTIVE_SOURCE: 'folder_local',
     consts.CONFIG_ANIMATE_ICON: True,
-    consts.CONFIG_AUTOSTART: False,
+    consts.CONFIG_AUTO_START: False,
     consts.CONFIG_AUTO_SAVE: False,
     consts.CONFIG_CHANGE_INTERVAL: CHANGE_INTERVALS[0],
     consts.CONFIG_CHANGE_START: False,
@@ -153,9 +154,8 @@ def create_menu():
     item_change.set_default()
     item_change.set_icon(RES_TEMPLATE.format(consts.RES_CHANGE))
     item_recent = gui.add_submenu(_text('MENU_RECENT'), False, icon=RES_TEMPLATE.format(consts.RES_RECENT))
-    TIMER.__init__(0, functools.partial(
-        on_change, item_change.enable, item_recent, utils.call_after(PROGRESS.set)(lambda _: True)), True)
-    gui.set_on_click(item_change, functools.partial(on_change, *TIMER.target.args, None, False), on_thread=False)
+    TIMER.__init__(0, functools.partial(on_change, item_change.enable, item_recent), True)
+    gui.set_on_click(item_change, functools.partial(on_change, *TIMER.target.args, auto=False), on_thread=False)
     gui.add_separator(menu=item_recent)
     gui.add_menu_item(_text('LABEL_CLEAR'), on_click=functools.partial(
         on_clear, item_recent.enable), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
@@ -269,7 +269,7 @@ def create_menu():
         with gui.set_menu(gui.add_submenu(_text('MENU_NOTIFICATIONS'), icon=RES_TEMPLATE.format(consts.RES_NOTIFICATION))):
             gui.add_menu_item_check(_text('LABEL_NOTIFY_ERROR'), CURRENT_CONFIG, consts.CONFIG_NOTIFY_ERROR)
             gui.add_menu_item_check(_text('LABEL_NOTIFY_BLOCKED'), CURRENT_CONFIG,
-                                    consts.CONFIG_NOTIFY_BLOCKED, on_click=try_notify_blocked)
+                                    consts.CONFIG_NOTIFY_BLOCKED, on_click=notify_blocked)
         gui.add_submenu_radio(_text('MENU_COLORS'), {mode.name: _text(
             f'COLOR_MODE_{mode.name}') for mode in itertools.islice(
             win32.ColorMode, 1, None)}, CURRENT_CONFIG, consts.CONFIG_MENU_COLOR,
@@ -281,7 +281,7 @@ def create_menu():
         gui.add_menu_item_check(_text('LABEL_REAPPLY'), CURRENT_CONFIG, consts.CONFIG_REAPPLY_IMAGE)
         gui.add_menu_item_check(_text('LABEL_RESTORE'), CURRENT_CONFIG, consts.CONFIG_RESTORE_IMAGE)
         gui.add_menu_item_check(_text('LABEL_CACHE'), CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
-        gui.add_menu_item_check(_text('LABEL_START'), CURRENT_CONFIG, consts.CONFIG_AUTOSTART)
+        gui.add_menu_item_check(_text('LABEL_START'), CURRENT_CONFIG, consts.CONFIG_AUTO_START)
         gui.add_menu_item_check(_text('LABEL_SETTINGS_AUTO_SAVE'), CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
     gui.add_menu_item(_text('LABEL_QUIT'), on_click=on_quit, on_thread=False).set_icon(
         RES_TEMPLATE.format(consts.RES_QUIT))
@@ -361,7 +361,7 @@ def try_remove_temp(force: bool = False) -> bool:
         return files.remove(TEMP_DIR, True)
     else:
         files.trim_dir(TEMP_DIR, int(files.get_disk_size(TEMP_DIR) * consts.MAX_CACHE_PC))
-        if files.is_only_dirs(TEMP_DIR):
+        if files.has_no_file(TEMP_DIR):
             return try_remove_temp(True)
         return True
 
@@ -390,32 +390,6 @@ def try_alert_error(exc: BaseException, force: bool = False):
 
 
 @timer.on_thread
-def try_notify_blocked(_: Optional[bool | str] = None, force: bool = False):
-    if force or CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
-        displays = DISPLAYS if force else get_displays()
-        if not all(win32.display.is_desktop_unblocked(*displays).values()):
-            count = itertools.count(1)
-            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}'
-                             f'{_get_blocker(blocker[1])}' for monitor, blocker in
-                             win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
-            try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
-        elif force:
-            try_show_notification(_text('NO_BLOCKED_TEXT'), force=True)
-
-
-def _get_blocker(blocker: str) -> str:
-    if consts.FEATURE_BLOCKER_NAME:
-        try:
-            blocker = BLOCKERS[os.path.basename(blocker)]
-        except KeyError:
-            pass
-        blocker = f': {blocker}'
-    else:
-        blocker = ''
-    return blocker
-
-
-@timer.on_thread
 def on_shown(_: gui.Event):
     if CURRENT_CONFIG[consts.CONFIG_FIRST_RUN]:
         CURRENT_CONFIG[consts.CONFIG_FIRST_RUN] = not try_show_notification(
@@ -435,37 +409,53 @@ def get_displays() -> Iterable[str]:
 @timer.on_thread
 def print_progress():
     interval, spinner = spinners.get('sand')
-    while (progress := PROGRESS.get()) != -1:
-        print(f'[{next(spinner)}] [{utils.get_progress(progress, 32)}]'
-              f' {progress * 100:3.0f}%', end='\r', flush=True)
-        time.sleep(interval)
-    print(f'[✅] [{utils.get_progress(1, 32)}] 100%')
+    interval_indeterminate, spinner_indeterminate = spinners.get('material')
+    len_last = 0
+    start_time = time.monotonic()
+    while (completed := PROGRESS[0]) != -1:
+        indeterminate = (total := PROGRESS[1]) == request.RETRIEVE_UNKNOWN_SIZE
+        progress = (next(spinner_indeterminate) if indeterminate else
+                    utils.get_progress(completed / total, 20))
+        text = f'[{next(spinner)}] [{progress}] {files.Size(completed)}'
+        if elapsed := time.monotonic() - start_time:
+            speed = completed / elapsed
+            text += f' {files.Size(speed)}/s'
+            if not indeterminate:
+                text += f' {datetime.timedelta(seconds=round((total - completed) / speed))}'
+        print(f'\r{" " * len_last}\r{text}', end='', flush=True)
+        len_last = len(text)
+        time.sleep(interval_indeterminate if indeterminate else interval)
+    print(f'\r[✔] [{utils.get_progress(1, 20)}]')
+
+
+def query_download(completed: int, total: int) -> bool:
+    PROGRESS[:] = completed, total
+    return True
 
 
 _download_lock = functools.lru_cache(lambda _: threading.Lock())
 
 
-def download_image(image: srcs.File, query_callback: Optional[Callable[[float], bool]] = None) -> Optional[str]:
+def download_image(image: srcs.File) -> Optional[str]:
     try_remove_temp()
     with _download_lock(image.name), gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
         path = os.path.join(TEMP_DIR, image.name)
-        PROGRESS.clear()
-        print(f'[🌐] Download: {image}')
+        PROGRESS[:] = 0, request.RETRIEVE_UNKNOWN_SIZE
+        print(f'[📑] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         try:
             if (image.get_url() == request.from_path(path) or
                 (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or
                 request.retrieve(image.request, path, image.size, chunk_count=100,
-                                 query_callback=query_callback)) and image.fill(path):
+                                 query_callback=query_download)) and image.fill(path):
                 return path
         finally:
-            PROGRESS.set(-1.0)
+            PROGRESS[0] = -1
 
 
 @callables.SingletonCallable
-def change_wallpaper(image: Optional[srcs.File] = None,
-                     query_callback: Optional[Callable[[float], bool]] = None) -> bool:
+def change_wallpaper(image: Optional[srcs.File] = None) -> bool:
     changed = False
     if image is None:
         with gui.try_animate_icon(_text('STATUS_FETCH')):
@@ -479,7 +469,7 @@ def change_wallpaper(image: Optional[srcs.File] = None,
         except ValueError:
             pass
         RECENT.appendleft(image)
-        if (path := download_image(image, query_callback)) is not None:
+        if (path := download_image(image)) is not None:
             changed = win32.display.set_wallpapers_ex(*(win32.display.Wallpaper(
                 path, display, win32.display.Style[CURRENT_CONFIG[
                     consts.CONFIG_FIT_STYLE]], rotate=win32.display.Rotate[
@@ -536,10 +526,9 @@ def on_search(url: str, engine: str) -> bool:
 
 @timer.on_thread
 def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
-              query_callback: Callable[[float], bool],
-              image: Optional[srcs.File] = None, auto_change: bool = True) -> bool:
+              image: Optional[srcs.File] = None, auto: bool = True) -> bool:
     changed = False
-    if auto_change:
+    if auto:
         if CURRENT_CONFIG[consts.CONFIG_MAXIMIZED_ACTION] != MAXIMIZED_ACTIONS[0] and all(
                 win32.display.get_display_blockers(*get_displays(), full_screen_only=True).values()):
             while (CURRENT_CONFIG[consts.CONFIG_CHANGE_INTERVAL] and CURRENT_CONFIG[
@@ -554,7 +543,7 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
         enable(False)
         item_recent.enable(False)
         with gui.try_animate_icon(_text('STATUS_CHANGE')):
-            if ((changed := change_wallpaper(image, query_callback))
+            if ((changed := change_wallpaper(image))
                     and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE] and RECENT):
                 on_image_func(save_image, RECENT[0], _text('LABEL_SAVE'), _text('FAIL_SAVE'))
         _update_recent_menu(item_recent)
@@ -683,6 +672,32 @@ def on_easing_direction(enable_ease: Callable[[bool], bool], _: bool):
     try_reapply_wallpaper()
 
 
+def _get_blocker(blocker: str) -> str:
+    if consts.FEATURE_BLOCKER_NAME:
+        try:
+            blocker = BLOCKERS[os.path.basename(blocker)]
+        except KeyError:
+            pass
+        blocker = f': {blocker}'
+    else:
+        blocker = ''
+    return blocker
+
+
+@timer.on_thread
+def notify_blocked(_: Optional[bool | str] = None, auto: bool = True):
+    if not auto or CURRENT_CONFIG[consts.CONFIG_NOTIFY_BLOCKED]:
+        displays = get_displays() if auto else DISPLAYS
+        if not all(win32.display.is_desktop_unblocked(*displays).values()):
+            count = itertools.count(1)
+            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}'
+                             f'{_get_blocker(blocker[1])}' for monitor, blocker in
+                             win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
+            try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
+        elif not auto:
+            try_show_notification(_text('NO_BLOCKED_TEXT'), force=True)
+
+
 def _update_display():
     DISPLAYS.clear()
     DISPLAYS.update(win32.display.get_monitors())
@@ -704,7 +719,7 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{_text(index)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{_text(DISPLAYS[monitor][1][0])} × {_text(DISPLAYS[monitor][1][1])}')
-        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=try_notify_blocked)
+        gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=notify_blocked)
         enable = len(DISPLAYS) > 1
         for submenu_item in submenu:
             submenu_item.enable(enable)
@@ -713,8 +728,8 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
             gui.add_menu_item(_text('LABEL_DISPLAY_UPDATE'), on_click=functools.partial(
                 on_display_change, item, 1)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_UPDATE))
             gui.add_menu_item(_text('LABEL_DISPLAY_BLOCKED'), on_click=functools.partial(
-                try_notify_blocked, force=True)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_BLOCKED))
-    try_notify_blocked()
+                notify_blocked, auto=False)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_BLOCKED))
+    notify_blocked()
 
 
 def _create_shortcut(dir_: str) -> bool:
@@ -870,17 +885,18 @@ def start():
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867
     load_config()
     gui.init(consts.NAME)
+    gui.enable_menuitem_icon(consts.FEATURE_MENUITEM_ICON)
     create_menu()
     gui.enable_animated_icon(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])
-    apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTOSTART])
+    apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
     gui.GUI.bind(gui.GuiEvent.NC_RENDERING_CHANGED, on_shown, True)
     gui.start_loop(RES_TEMPLATE.format(consts.RES_TRAY), consts.NAME,
-                   functools.partial(on_change, *TIMER.target.args, None, False))
+                   functools.partial(on_change, *TIMER.target.args, auto=False))
 
 
 def stop():
     timer.Timer.kill_all()
-    apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTOSTART])
+    apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
     try_save_config()
     try_remove_temp()
 

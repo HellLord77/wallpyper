@@ -23,6 +23,7 @@ FEATURE_SYSTRAY_PIN = False
 FEATURE_TOOLTIP_ICON = False
 FEATURE_UNSAFE_CACHE = True
 FEATURE_DISPLAY_EXTRA = True
+FEATURE_MENUITEM_ICON = True
 
 _ICON = 'windows-11-color'
 
@@ -36,7 +37,7 @@ CONFIG_RECENT_IMAGES = '_recent_images'
 CONFIG_ACTIVE_DISPLAY = 'selected_display'
 CONFIG_ACTIVE_SOURCE = 'image_source'
 CONFIG_ANIMATE_ICON = 'animate_icon'
-CONFIG_AUTOSTART = 'auto_start'
+CONFIG_AUTO_START = 'auto_start'
 CONFIG_AUTO_SAVE = 'auto_save'
 CONFIG_CHANGE_INTERVAL = 'change_interval'
 CONFIG_CHANGE_START = 'start_change'

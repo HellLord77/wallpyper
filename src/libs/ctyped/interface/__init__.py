@@ -111,8 +111,8 @@ class _Interface_impl(_InterfaceBase):
     def __init__(self):
         struct = _get_vtbl(self._base)
         # noinspection PyProtectedMember
-        self._obj = _ctypes.pointer(struct(*(field_type(lambda _, *args, _func=getattr(
-            self, field_name): _func(*args)) for field_name, field_type in struct._fields_)))
+        self._obj = _ctypes.pointer(struct(*(field_type(lambda _, *args, __func=getattr(
+            self, field_name): __func(*args)) for field_name, field_type in struct._fields_)))
         super().__init__(_addressof(self._obj))
 
     def __hash__(self):

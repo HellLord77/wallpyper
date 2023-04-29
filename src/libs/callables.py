@@ -72,7 +72,7 @@ class SingletonCallable(_Callable, _RunningQueryable):
                 self._run = False
 
     def is_running(self) -> bool:
-        return bool(self._run)
+        return self._run
 
 
 class OnceCallable(_Callable):

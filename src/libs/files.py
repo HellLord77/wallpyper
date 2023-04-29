@@ -3,6 +3,7 @@ from __future__ import annotations
 __version__ = '0.0.16'
 
 import filecmp
+import functools
 import glob
 import hashlib
 import math
@@ -37,10 +38,10 @@ class Size(int):
 
     def __repr__(self):
         if self < self.unit:
-            return f'{super().__repr__()}{self._units[0]}'
+            return f'{super().__repr__()} {self._units[0]}'
         else:
             index = int(math.log(self, self.unit))
-            return f'{self / self.unit ** index:.2f}{self._units[index]}'
+            return f'{self / self.unit ** index:.2f} {self._units[index]}'
 
     @property
     def byte(self) -> int:
@@ -121,15 +122,17 @@ def copy_obj(src: IO, dst: IO, chunk_size: Optional[int] = None,
 
 
 def copy(src: AnyStr, dst: AnyStr, chunk_size: Optional[int] = None,
-         query_callback: Optional[Callable[[int], bool]] = None) -> bool:
-    try:
-        with open(src, 'rb') as src_:
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            with open(dst, 'wb') as dst_:
-                copy_obj(src_, dst_, chunk_size, query_callback)
-        return os.path.exists(dst) and filecmp.cmp(src, dst)
-    except OSError:
-        return False
+         query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:
+    size = get_size(src)
+    if query_callback is not None:
+        @functools.wraps(query_callback)
+        def query_callback(written: int, __query_callback=query_callback) -> bool:
+            return __query_callback(written, size)
+    with open(src, 'rb') as src_:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, 'wb') as dst_:
+            copy_obj(src_, dst_, chunk_size, query_callback)
+    return os.path.exists(dst) and filecmp.cmp(src, dst)
 
 
 def make_dir(path: str) -> bool:
@@ -139,16 +142,17 @@ def make_dir(path: str) -> bool:
     return os.path.isdir(path)
 
 
-def is_only_dirs(path: str, recursive: bool = True) -> bool:
+# noinspection PyShadowingBuiltins
+def has_no_file(dir: str, recursive: bool = True) -> bool:
     if recursive:
         try:
-            for dir_ in iter_dir(path):
-                if os.path.isfile(dir_) or not is_only_dirs(dir_, recursive):
+            for dir_ in iter_dir(dir):
+                if os.path.isfile(dir_) or not has_no_file(dir_, recursive):
                     return False
         except PermissionError:
             return False
         return True
-    return not any(os.scandir(path))
+    return not any(os.scandir(dir))
 
 
 def _filter_files(paths: Iterable[str]) -> Iterator[str]:

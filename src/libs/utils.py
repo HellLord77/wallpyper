@@ -367,7 +367,7 @@ def iter_or(it1: Iterable, it2: Iterable, func: Callable = zip) -> Iterator:
     return itertools.starmap(operator.or_, func(it1, it2))
 
 
-def get_progress(current: float = 0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
+def get_progress(current: float = 0.0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
     if current < 0:
         current = 0
     elif current > 1:

@@ -23,6 +23,7 @@ from xml.etree import ElementTree
 import win32
 from libs import ctyped, config, request
 from libs.ctyped.const import error
+from libs.ctyped.interface.um import ShObjIdl_core
 from libs.ctyped.lib import kernel32, user32, python
 from win32 import _utils
 
@@ -604,9 +605,17 @@ def _test_hook():
     proc.free_console()
 
 
+def _test_progress():
+    with ctyped.interface.COM[ShObjIdl_core.ITaskbarList3](ctyped.const.CLSID_TaskbarList) as taskbar:
+        print(taskbar.HrInit())
+        hwnd = user32.GetForegroundWindow()
+        print(taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.INDETERMINATE))
+        time.sleep(3)
+        taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.NOPROGRESS)
+
+
 def _test():
-    import libs.utils as utils
-    print(utils.TimeDeltaEx('5 second'))
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

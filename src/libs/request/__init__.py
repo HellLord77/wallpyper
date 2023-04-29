@@ -32,6 +32,7 @@ import zlib
 from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, Optional, Sequence
 
 CONTENT_CHUNK_SIZE = 10 * 1024
+RETRIEVE_UNKNOWN_SIZE = 0
 
 Status = http.HTTPStatus
 Method = http.HTTPMethod
@@ -505,8 +506,7 @@ _TProxies = str | Iterable[tuple[str, str]] | Mapping[str, Optional[str]]
 _TVerify = bool | bytes | str | tuple[Optional[bytes | str], Optional[bytes | str]] | tuple[
     Optional[bytes | str], Optional[bytes | str], Optional[bytes]] | ssl.SSLContext
 
-_UNK_SIZE = -1
-_MIN_CHUNK = 32 * 1024
+_RETRIEVE_CHUNK_SIZE = 64 * 1024
 _BYTES_PATH = b"!$&'()*+,;=:@/"
 _BYTES_FRAGMENT = _BYTES_QUERY = _BYTES_PATH + b'?'
 _FILE_SCHEME = 'file'
@@ -1740,30 +1740,28 @@ def sizeof(url_or_request_or_response: _TURL | Request | Response) -> int:
     return int(response.headers.get(Header.CONTENT_LENGTH, 0)) if response else 0
 
 
-def retrieve(url_or_request_or_response: _TURL | Request | Response, path: bytes | str, size: int = 0,
-             chunk_size: Optional[int] = None, chunk_count: Optional[int] = None,
-             query_callback: Optional[Callable[[float], bool]] = None) -> bool:
+def retrieve(url_or_request_or_response: _TURL | Request | Response,
+             path: bytes | str, size: int = RETRIEVE_UNKNOWN_SIZE, chunk_size: Optional[int] = None,
+             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:
     response = _get_response(url_or_request_or_response, Method.GET)
     if response:
-        if not size:
-            size = int(response.headers.get(Header.CONTENT_LENGTH, _UNK_SIZE))
+        if size == RETRIEVE_UNKNOWN_SIZE:
+            size = int(response.headers.get(Header.CONTENT_LENGTH, RETRIEVE_UNKNOWN_SIZE))
         if chunk_size is None:
             chunk_size = size // (chunk_count or sys.maxsize)
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, 'wb') as file:
-                ratio = 0.0
-                for chunk in response.iter_content(max(chunk_size, _MIN_CHUNK)):
-                    written = file.write(chunk)
+                written = 0
+                for chunk in response.iter_content(max(chunk_size, _RETRIEVE_CHUNK_SIZE)):
+                    written += file.write(chunk)
                     if query_callback is not None:
-                        if size != _UNK_SIZE:
-                            ratio += written / size
-                        if not query_callback(ratio):
+                        if not query_callback(written, size):
                             return False
-            retrieved = size == _UNK_SIZE or size == os.path.getsize(path)
-        except OSError:
+            retrieved = size == RETRIEVE_UNKNOWN_SIZE or size == os.path.getsize(path)
+        except:  # noqa E722
             retrieved = False
         if retrieved and query_callback is not None:
-            query_callback(1.0)
+            query_callback(size, size)
         return retrieved
     return False

@@ -1370,6 +1370,16 @@ class COLORSCHEME:
 
 
 @_struct
+class THUMBBUTTON:
+    dwMask: _enum.THUMBBUTTONMASK
+    iId: _type.UINT
+    iBitmap: _type.UINT
+    hIcon: _type.HICON
+    szTip: _type.WCHAR * 260
+    dwFlags: _enum.THUMBBUTTONFLAGS
+
+
+@_struct
 class DTBGOPTS:
     dwSize: _type.DWORD = _SIZE
     dwFlags: _type.DWORD = None
