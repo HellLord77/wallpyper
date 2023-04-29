@@ -1749,19 +1749,13 @@ def retrieve(url_or_request_or_response: _TURL | Request | Response,
             size = int(response.headers.get(Header.CONTENT_LENGTH, RETRIEVE_UNKNOWN_SIZE))
         if chunk_size is None:
             chunk_size = size // (chunk_count or sys.maxsize)
-        try:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, 'wb') as file:
-                written = 0
-                for chunk in response.iter_content(max(chunk_size, _RETRIEVE_CHUNK_SIZE)):
-                    written += file.write(chunk)
-                    if query_callback is not None:
-                        if not query_callback(written, size):
-                            return False
-            retrieved = size == RETRIEVE_UNKNOWN_SIZE or size == os.path.getsize(path)
-        except:  # noqa E722
-            retrieved = False
-        if retrieved and query_callback is not None:
-            query_callback(size, size)
-        return retrieved
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as file:
+            written = 0
+            for chunk in response.iter_content(max(chunk_size, _RETRIEVE_CHUNK_SIZE)):
+                written += file.write(chunk)
+                if query_callback is not None:
+                    if not query_callback(written, size):
+                        return False
+        return size == RETRIEVE_UNKNOWN_SIZE or size == os.path.getsize(path)
     return False

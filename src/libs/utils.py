@@ -31,7 +31,6 @@ import typing
 import uuid
 import zipfile
 import zlib
-from types import NoneType
 from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Literal, Mapping, Optional
 
 import _hashlib
@@ -63,9 +62,9 @@ class ProgressBar:
     CLOCK = '🌕🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛'
 
 
-class _Mutable:
+class MutableObject:
     __slots__ = '_data', '_changed'
-    _type: type = NoneType
+    _type: type = object
 
     def __init__(self, val: Optional[bool | bytes | complex | float | int | str | tuple] = None):
         self._data = self._type() if val is None else val
@@ -186,49 +185,49 @@ class _Mutable:
             return self._data == val
 
 
-class MutableBool(_Mutable):
+class MutableBool(MutableObject):
     _type = bool
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
 
 
-class MutableBytes(_Mutable):
+class MutableBytes(MutableObject):
     _type = bytes
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
 
 
-class MutableComplex(_Mutable):
+class MutableComplex(MutableObject):
     _type = complex
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
 
 
-class MutableFloat(_Mutable):
+class MutableFloat(MutableObject):
     _type = float
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
 
 
-class MutableInt(_Mutable):
+class MutableInt(MutableObject):
     _type = int
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
 
 
-class MutableStr(_Mutable):
+class MutableStr(MutableObject):
     _type = str
     get: Callable[[], _type]
     set: Callable[[_type], _type]
     clear: Callable[[], _type]
 
 
-class MutableTuple(_Mutable):
+class MutableTuple(MutableObject):
     _type = tuple
     get: Callable[[], _type]
     set: Callable[[_type], _type]

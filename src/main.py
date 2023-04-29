@@ -49,6 +49,7 @@ gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 
 PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
+STOP = utils.MutableBool()
 RESTART = utils.MutableBool()
 TIMER = timer.Timer.__new__(timer.Timer)
 RECENT: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
@@ -153,7 +154,7 @@ def create_menu():
     item_change = gui.add_menu_item(_text('LABEL_CHANGE'))
     item_change.set_default()
     item_change.set_icon(RES_TEMPLATE.format(consts.RES_CHANGE))
-    item_recent = gui.add_submenu(_text('MENU_RECENT'), False, icon=RES_TEMPLATE.format(consts.RES_RECENT))
+    item_recent = gui.add_submenu(_text('MENU_RECENT'), icon=RES_TEMPLATE.format(consts.RES_RECENT))
     TIMER.__init__(0, functools.partial(on_change, item_change.enable, item_recent), True)
     gui.set_on_click(item_change, functools.partial(on_change, *TIMER.target.args, auto=False), on_thread=False)
     gui.add_separator(menu=item_recent)
@@ -188,9 +189,8 @@ def create_menu():
                 _text('LABEL_PIN_START'), enable=consts.FEATURE_SYSTRAY_PIN, on_click=functools.partial(
                     on_pin_to_start, item_unpin_start.enable), args=(gui.MenuItemMethod.ENABLE,),
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
-        if consts.FEATURE_CONSOLE_VIEW:
-            gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
-                RES_TEMPLATE.format(consts.RES_CONSOLE))
+        gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
+            STOP.set, True)).set_icon(RES_TEMPLATE.format(consts.RES_STOP))
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
@@ -198,6 +198,9 @@ def create_menu():
             RES_TEMPLATE.format(consts.RES_SETTINGS_RESET))
         gui.add_menu_item(_text('LABEL_RESTART'), enable=bool(
             multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
+        if consts.FEATURE_CONSOLE_VIEW:
+            gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
+                RES_TEMPLATE.format(consts.RES_CONSOLE))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_TEMPLATE.format(consts.RES_AUTO))):
             gui.add_menu_item_check(_text('LABEL_CHANGE_START'), CURRENT_CONFIG,
@@ -430,20 +433,19 @@ def print_progress():
 
 def query_download(completed: int, total: int) -> bool:
     PROGRESS[:] = completed, total
-    return True
+    return not STOP.get()
 
 
-_download_lock = functools.lru_cache(lambda _: threading.Lock())
-
-
+@callables.QueueCallable
 def download_image(image: srcs.File) -> Optional[str]:
     try_remove_temp()
-    with _download_lock(image.name), gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
+    with gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
         path = os.path.join(TEMP_DIR, image.name)
         PROGRESS[:] = 0, request.RETRIEVE_UNKNOWN_SIZE
         print(f'[📑] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
+        STOP.clear()
         try:
             if (image.get_url() == request.from_path(path) or
                 (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or
@@ -867,6 +869,7 @@ def on_quit():
         try_show_notification(_text('LABEL_QUIT'), _text('FAIL_QUIT'), force=True)
         end_time = time.monotonic() + win32.get_max_shutdown_time()
         while end_time > time.monotonic() and threading.active_count() > max_threads:
+            STOP.set(True)
             time.sleep(consts.POLL_FAST_SEC)
     gui.stop_loop()
 

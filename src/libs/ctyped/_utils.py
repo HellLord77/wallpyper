@@ -176,24 +176,24 @@ def _replace_object(old, new):
                     referrer[key] = new
 
 
-def _resolve_type(annot, args: _Optional[dict] = None) -> _Any:
-    if args is not None and hasattr(annot, '_args'):
-        annot = annot.__mro__[1][tuple(args.values())]
+def _resolve_type(annot, _args: _Optional[dict] = None) -> _Any:
+    if _args is not None and hasattr(annot, '_args'):
+        annot = annot.__mro__[1][tuple(_args.values())]
     # noinspection PyUnresolvedReferences,PyProtectedMember
     if isinstance(annot, _typing._CallableType):
         annot = [_ctypes.c_void_p]
     elif isinstance(annot, _typing._CallableGenericAlias):
         args, res = _typing.get_args(annot)
-        annot = [_resolve_type(res, args), *(
-            _resolve_type(arg, args) for arg in args)]
+        annot = [_resolve_type(res, _args), *(
+            _resolve_type(arg, _args) for arg in args)]
     else:
         # noinspection PyUnresolvedReferences,PyProtectedMember
         if isinstance(annot, _typing._UnionGenericAlias):
             annot = _typing.get_args(annot)[0]
         if _typing.get_origin(annot) is _Pointer:
-            annot = _ctypes.POINTER(_resolve_type(_typing.get_args(annot)[0], args))
+            annot = _ctypes.POINTER(_resolve_type(_typing.get_args(annot)[0], _args))
     if isinstance(annot, _typing.TypeVar):
-        annot = args.get(annot, annot)
+        annot = _args.get(annot, annot)
     return annot
 
 
