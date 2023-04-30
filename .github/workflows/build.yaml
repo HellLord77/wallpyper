@@ -8,6 +8,8 @@ jobs:
     steps:
       - name: Configure command prompt
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Test mt
+        run: echo (Get-Command mt).Source
       - name: Fetch repository
         uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
