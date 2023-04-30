@@ -14,8 +14,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: .\build.ps1 install
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Build project
-        uses: ilammy/msvc-dev-cmd@v1
         run: .\build.ps1
       - name: Upload build
         #        env:
