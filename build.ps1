@@ -44,7 +44,7 @@ $CythonizeSourceGlobs = @(
 	"src/win32/**/*.py"
 	"src/{langs,libs,srcs}/*.py"
 	"src/*.py")
-# CythonizeSourceGlobs = @()
+$CythonizeSourceGlobs = @()
 $CythonizeAnnotate = $False
 $CythonizeNoDocstrings = $True
 $CythonizeRemove = $True
@@ -275,7 +275,7 @@ function Remove-Cythonized([bool] $Throw = $True) {
 function Get-ModuleGraph {
 	if ($ModuleGraphSmart) {
 		Remove-Cythonized $False
-		$TempDir = Join-Path $env:TEMP (New-Guid)
+		$TempDir = Join-Path $Env:TEMP (New-Guid)
 		New-Item $TempDir -ItemType Directory
 		$CodeModuleGraphSmartProcess = @() + $CodeModuleGraphSmartTemplate
 		$CodeModuleGraphSmartProcess[3] = $CodeModuleGraphSmartTemplate[3] -f (Split-Path $EntryPoint -Parent)
@@ -377,10 +377,7 @@ function Get-PyInstallerArgs {
 
 function Set-Environment {
 	$InstallPath = & (Install-PackageChoco "vswhere") -latest -property installationPath
-	& "${env:COMSPEC}" /s /c "`"$InstallPath\Common7\Tools\vsdevcmd.bat`" -no_logo && set" | ForEach-Object {
-		$Name, $Value = $_ -Split '=', 2
-		Set-Content env:\"$Name" $Value
-	}
+	& "${Env:COMSPEC}" /s /c "`"$InstallPath\Common7\Tools\vsdevcmd.bat`" -no_logo && set"  >> $Env:GITHUB_ENV
 }
 
 function Install-Requirements {
@@ -483,7 +480,7 @@ function Write-Build {
 	"NAME=$FullName" >> $Env:GITHUB_ENV
 
 	$CommonArgs = "--name=$FullName", $EntryPoint
-	$env:PYTHONOPTIMIZE = $OptimizationLevel
+	$Env:PYTHONOPTIMIZE = $OptimizationLevel
 	if ($Obfuscate) {
 		$PyArmorArgs = @("pack", "--output=dist", "--options=$PyInstallerArgs") + $CommonArgs
 		Write-Host "pyarmor $PyArmorArgs"
@@ -521,15 +518,15 @@ function Write-Build {
 }
 
 function Write-MEGA {
-	if (-not $env:MEGA_USERNAME -or -not $env:MEGA_PASSWORD) {
+	if (-not $Env:MEGA_USERNAME -or -not $Env:MEGA_PASSWORD) {
 		throw
 	}
 	if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
-		$env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
+		$Env:PATH += ";$( Join-Path $Env:LOCALAPPDATA "MEGAcmd" )"
 		Install-PackageChoco "megacmd" "mega-help"
 	}
-	mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
-	mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
+	mega-login $Env:MEGA_USERNAME $Env:MEGA_PASSWORD
+	mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $Env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
 	mega-logout
 }
 
