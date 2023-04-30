@@ -615,10 +615,9 @@ def _test_progress():
 
 
 class Iter:
-    def __len__(self):
-        return 10
-
     def __getitem__(self, index):
+        if index >= 5:
+            raise IndexError
         return index
 
 
