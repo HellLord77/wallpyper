@@ -614,8 +614,17 @@ def _test_progress():
         taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.NOPROGRESS)
 
 
+class Iter:
+    def __len__(self):
+        return 10
+
+    def __getitem__(self, index):
+        return index
+
+
 def _test():
-    pass
+    for i in Iter():
+        print(i)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

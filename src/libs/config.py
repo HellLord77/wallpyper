@@ -346,7 +346,7 @@ class XMLConfig(_Config):
             self.update(self._load(ElementTree.parse(file).getroot()))
 
     def loads(self, data: AnyStr):
-        self.update(self._load(ElementTree.fromstring(data)))
+        self.update(self._load(ElementTree.XML(data)))
 
 
 class INIConfig(_Config):

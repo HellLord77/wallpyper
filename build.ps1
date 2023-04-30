@@ -1,4 +1,4 @@
-$Version = "0.1.7"
+$Version = "0.1.8"
 
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -76,6 +76,7 @@ $MinifyJsonRegExs = @(
 	"src/libs/spinners/spinners.json"
 	"src/libs/useragents/user-agents.json")
 $UPXDir = ""
+$MTDir = "C:\Program Files (x86)\Windows Kits\10\bin\x64"
 
 $CodePythonIs64Bit = @(
 	"from sys import maxsize"
@@ -125,7 +126,6 @@ $CodeCompileCTemplate = @(
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyJsonLocal = $False
-$MTDir = [IO.Path]::Combine(${Env:ProgramFiles(x86)}, "Windows Kits", "10", "bin", "x64")
 $MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 function Get-InsertedArray($Array, $Index, $Value) {
@@ -200,7 +200,7 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
 	$MTPath = if (Get-Command mt -ErrorAction SilentlyContinue) { (Get-Command mt).Source } else { Join-Path $MTDir "mt.exe" }
-	& $MTPath -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo  # TODO remove
+	& $MTPath -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo
 	$TempStream = [System.IO.File]::OpenRead($TempFile)
 	$ExeStream = [System.IO.File]::OpenWrite($ExePath)
 	$TempStream.Seek($( Get-ExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null
@@ -504,22 +504,24 @@ function Write-Build {
 }
 
 function UploadToMEGA {
-	if ($env:MEGA_USERNAME -and $env:MEGA_PASSWORD) {
-		choco install megacmd --verbose --yes
-		$env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
-		if (-not (Get-Command mega-login -ErrorAction SilentlyContinue)) {
-			$Temp = Join-Path $Env:TEMP (Split-Path $MEGAcmdURL -Leaf)
-			Invoke-WebRequest $MEGAcmdURL -OutFile $Temp
-			Start-Process $Temp "/S" -Wait
-			Remove-Item $Temp -Force
-		}
-		mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
-		mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
-		mega-logout
-	}
-	else {
+	if (-not $env:MEGA_USERNAME -or -not $env:MEGA_PASSWORD) {
 		throw
 	}
+	if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
+		$env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
+		if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
+			choco install megacmd --yes
+			if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
+				$Temp = Join-Path $Env:TEMP (Split-Path $MEGAcmdURL -Leaf)
+				Invoke-WebRequest $MEGAcmdURL -OutFile $Temp
+				Start-Process $Temp "/S" -Wait
+				Remove-Item $Temp -Force
+			}
+		}
+	}
+	mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
+	mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
+	mega-logout
 }
 
 $IsGithub = Test-Path Env:GITHUB_REPOSITORY

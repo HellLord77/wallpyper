@@ -1,6 +1,7 @@
 __version__ = '0.0.2'
 
 import __main__
+import copy
 import glob
 import io
 import os
@@ -40,30 +41,6 @@ def clean_temp() -> bool:
     return cleaned
 
 
-def _xml_merges(self: ElementTree.Element, other: ElementTree.Element):
-    elements = {element.tag: element for element in self}
-    for element in other:
-        if not len(element):
-            try:
-                elements[element.tag].text = element.text
-            except KeyError:
-                elements[element.tag] = element
-                self.append(element)
-        else:
-            try:
-                _xml_merges(elements[element.tag], element)
-            except KeyError:
-                elements[element.tag] = element
-                self.append(element)
-
-
-def _xml_merge(self: str, other: str) -> str:
-    root = ElementTree.fromstring(self)
-    _xml_merges(root, ElementTree.fromstring(other))
-    ElementTree.indent(root)
-    return ElementTree.tostring(root, 'unicode')
-
-
 def _calc_winpe_size(stream: io.BytesIO) -> int:
     stream.seek(0)
     buff = stream.read(4096)
@@ -86,11 +63,27 @@ def _calc_winpe_size(stream: io.BytesIO) -> int:
     return size
 
 
+def _element_merge(self: ElementTree.Element, other: ElementTree.Element):
+    elements = {element.tag: element for element in self}
+    for element in other:
+        try:
+            if len(element):
+                _element_merge(elements[element.tag], element)
+            else:
+                elements[element.tag].text = element.text
+        except KeyError:
+            elements[element.tag] = copy.copy(element)
+            self.append(element)
+
+
 def add_manifest(path: str, manifest: str, merge: bool = True):
     winmanifest = __import__('PyInstaller.utils.win32.winmanifest', fromlist=['PyInstaller.utils.win32'])
     if merge:
-        manifest = _xml_merge(winmanifest.GetManifestResources(
-            path)[winmanifest.RT_MANIFEST][1][0].decode(), manifest)
+        root = ElementTree.XML(winmanifest.GetManifestResources(
+            path)[winmanifest.RT_MANIFEST][1][0].decode())
+        _element_merge(root, ElementTree.XML(manifest))
+        ElementTree.indent(root)
+        manifest = ElementTree.tostring(root, 'unicode')
     with tempfile.TemporaryFile() as temp:
         with open(path, 'rb') as file:
             shutil.copyfileobj(file, temp)

@@ -15,6 +15,7 @@ jobs:
       - name: Install dependencies
         run: .\build.ps1 install
       - name: Build project
+        uses: ilammy/msvc-dev-cmd@v1
         run: .\build.ps1
       - name: Upload build
         #        env:
