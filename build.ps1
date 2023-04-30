@@ -1,4 +1,4 @@
-$Version = "0.1.8"
+$Version = "0.2.0"
 
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -44,7 +44,7 @@ $CythonizeSourceGlobs = @(
 	"src/win32/**/*.py"
 	"src/{langs,libs,srcs}/*.py"
 	"src/*.py")
-$CythonizeSourceGlobs = @()
+# $CythonizeSourceGlobs = @()
 $CythonizeAnnotate = $False
 $CythonizeNoDocstrings = $True
 $CythonizeRemove = $True
@@ -76,7 +76,6 @@ $MinifyJsonRegExs = @(
 	"src/libs/spinners/spinners.json"
 	"src/libs/useragents/user-agents.json")
 $UPXDir = ""
-$MTDir = "C:\Program Files (x86)\Windows Kits\10\bin\x64"
 
 $CodePythonIs64Bit = @(
 	"from sys import maxsize"
@@ -127,35 +126,44 @@ $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyJsonLocal = $False
 
-function Get-InsertedArray($Array, $Index, $Value) {
-	return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
+function ToArray($Object) {
+	if ($Object -isnot [array]) { $Object = @($Object) }
+	return @($Object)
 }
 
-function Get-RemovedArray($Array, $Index) {
-	return $Array[0..($Index - 1)] + $Array[($Index + 1)..($Array.Length - 1)]
+function Get-InsertedArray([array]$Array, $Index, $Value) {
+	if ($Index -lt 0 -or $Index -gt $Array.Length) { throw }
+	elseif ($Index -eq 0) { $Array = $Value + $Array }
+	elseif ($Index -eq $Array.Length) { $Array = $Array + $Value }
+	else { $Array = $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)] }
+	return ToArray $Array
 }
 
-function Get-RemovedItemArray($Array, $Item, $Count = [double]::PositiveInfinity) {
+function Get-RemovedArray([array]$Array, $Index) {
+	if ($Index -lt 0 -or $Index -ge $Array.Length) { throw }
+	elseif ($Index -eq 0) { $Array = $Array[1..($Array.Length - 1)] }
+	elseif ($Index -eq ($Array.Length - 1)) { $Array = $Array[0..($Array.Length - 2)]	}
+	else { $Array = $Array[0..($Index - 1)] + $Array[($Index + 1)..($Array.Length - 1)] }
+	return ToArray $Array
+}
+
+function Get-RemovedItemArray([array]$Array, $Item, $Count = [double]::PositiveInfinity) {
 	for ($i = 0; $i -lt $Count; $i++) {
 		$Index = $Array.IndexOf($Item)
-		if ($Index -eq -1) {
-			break
-		}
-		else {
-			$Array = Get-RemovedArray $Array $Index
-		}
+		if ($Index -eq -1) { break }
+		else { $Array = Get-RemovedArray $Array $Index }
 	}
-	return $Array
+	return ToArray $Array
 }
 
-function Start-Base64Process([string] $Base64, [string] $ArgList = "") {
+function Start-Base64Process([string]$Base64, [string]$ArgList = "") {
 	$TempFile = New-TemporaryFile
 	[IO.File]::WriteAllBytes($TempFile, [Convert]::FromBase64String($Base64))
 	Start-Process $TempFile -ArgumentList $ArgList -Wait
 	$TempFile.Delete()
 }
 
-function Get-ExeSize([System.IO.FileStream] $Stream) {
+function Get-ExeSize([System.IO.FileStream]$Stream) {
 	$Buffer = [byte[]]::New(4096)
 	$Stream.Read($Buffer, 0, 4096) | Out-Null
 	$HeaderOffset = [System.BitConverter]::ToInt32($Buffer, 60)
@@ -188,18 +196,24 @@ function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0) {
 }
 
 function MinifyJsonFile([string]$Path, [string]$OutPath) {
-	if (-not $OutPath) {
-		$OutPath = $Path
-	}
+	if (-not $OutPath) { $OutPath = $Path	}
 	Write-Host "Minify $Path -> $OutPath"
 	ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Depth 100 -Compress | Set-Content $OutPath
+}
+
+function Get-DeveloperPath {
+	$InstallPath = & (Install-PackageChoco "vswhere") -latest -property installationPath
+	& "${Env:COMSPEC}" /s /c "`"$InstallPath\Common7\Tools\vsdevcmd.bat`" -no_logo && set" | ForEach-Object {
+		$Name, $Value = $_ -Split '=', 2
+		if ($Name -eq "PATH") { return $Value }
+	}
 }
 
 function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
-	$MTPath = if (Get-Command mt -ErrorAction SilentlyContinue) { (Get-Command mt).Source } else { Join-Path $MTDir "mt.exe" }
-	& $MTPath -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo
+	if (-not (Get-Command mt -ErrorAction SilentlyContinue)) { $Env:PATH += ";$(Get-DeveloperPath)"	}
+	mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo
 	$TempStream = [System.IO.File]::OpenRead($TempFile)
 	$ExeStream = [System.IO.File]::OpenWrite($ExePath)
 	$TempStream.Seek($( Get-ExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null
@@ -211,9 +225,7 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 }
 
 function Install-PackageChoco($Package, $Command = "", $Force = $False) {
-	if (-not $Command) {
-		$Command = $Package
-	}
+	if (-not $Command) { $Command = $Package	}
 	if ($Force -or -not (Get-Command $Command -ErrorAction SilentlyContinue)) {
 		Write-Host "choco -> $Package"
 		choco install $Package --yes
@@ -228,12 +240,8 @@ function Start-PythonCode([string[]]$Lines) {
 }
 
 function Get-ProjectName {
-	return Split-Path $( if ($IsGithub) {
-			$Env:GITHUB_REPOSITORY
-		}
-		else {
-			Split-Path -Path (Get-Location) -Leaf
-		} ) -Leaf
+	return Split-Path $( if ($IsGithub) { $Env:GITHUB_REPOSITORY }
+		else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
 }
 
 function Get-CythonizedSources {
@@ -258,17 +266,9 @@ function Remove-Cythonized([bool] $Throw = $True) {
 	$ExtSuffix = Start-PythonCode $CodeExtSuffix
 	foreach ($Source in Get-CythonizedSources) {
 		$Root = $Source.Substring(0, $Source.LastIndexOf("."))
-		if ($Throw -and $CythonizeRemoveC) {
-			Remove-Item "$Root.c" -Force
-		}
-		try {
-			Remove-Item "$Root$ExtSuffix" -Force
-		}
-		catch {
-			if ($Throw) {
-				throw
-			}
-		}
+		if ($Throw -and $CythonizeRemoveC) { Remove-Item "$Root.c" -Force }
+		try { Remove-Item "$Root$ExtSuffix" -Force }
+		catch { if ($Throw) { throw } }
 	}
 }
 
@@ -298,39 +298,17 @@ function Get-ModuleGraph {
 
 function Get-PyInstallerArgs {
 	$ArgList = @("--noconfirm")
-	if ($OneFile) {
-		$ArgList += "--onefile"
-	}
-	if ($Debug) {
-		$ArgList += "--debug=all"
-	}
-	if ($NoConsole) {
-		$ArgList += "--windowed"
-	}
-	if ($Manifest) {
-		$ArgList += "--manifest=$Manifest"
-	}
-	if ($ElevatedProc) {
-		$ArgList += "--uac-admin"
-	}
-	if ($RemoteProc) {
-		$ArgList += "--uac-uiaccess"
-	}
-	if ($Icon) {
-		$ArgList += "--icon=$Icon"
-	}
-	foreach ($Import in $Imports) {
-		$ArgList += "--hidden-import=$Import"
-	}
-	foreach ($Exclude in $Excludes) {
-		$ArgList += "--exclude-module=$Exclude"
-	}
-	foreach ($HooksDir in $HooksDirs) {
-		$ArgList += "--additional-hooks-dir=$HooksDir"
-	}
-	foreach ($RuntimeHook in $RuntimeHooks) {
-		$ArgList += "--runtime-hook=$RuntimeHook"
-	}
+	if ($OneFile) { $ArgList += "--onefile"	}
+	if ($Debug) { $ArgList += "--debug=all"	}
+	if ($NoConsole) { $ArgList += "--windowed"	}
+	if ($Manifest) { $ArgList += "--manifest=$Manifest"	}
+	if ($ElevatedProc) { $ArgList += "--uac-admin"	}
+	if ($RemoteProc) { $ArgList += "--uac-uiaccess"	}
+	if ($Icon) { $ArgList += "--icon=$Icon"	}
+	foreach ($Import in $Imports) { $ArgList += "--hidden-import=$Import"	}
+	foreach ($Exclude in $Excludes) { $ArgList += "--exclude-module=$Exclude"	}
+	foreach ($HooksDir in $HooksDirs) { $ArgList += "--additional-hooks-dir=$HooksDir"	}
+	foreach ($RuntimeHook in $RuntimeHooks) { $ArgList += "--runtime-hook=$RuntimeHook"	}
 	if ($AddPython) {
 		$ArgList += "--add-data=""$( Join-Path (Start-PythonCode $CodePythonBase) "python.exe" );."""
 	}
@@ -349,16 +327,10 @@ function Get-PyInstallerArgs {
 		}
 		else {
 			$DataSrc = Join-Path $BaseSrcDir $Data
-			if (Test-Path $DataSrc -PathType Leaf) {
-				$DataDst = Split-Path $Data -Parent
-			}
-			else {
-				$DataDst = $Data
-			}
+			if (Test-Path $DataSrc -PathType Leaf) { $DataDst = Split-Path $Data -Parent }
+			else { $DataDst = $Data }
 		}
-		if (-not $DataDst) {
-			$DataDst = "."
-		}
+		if (-not $DataDst) { $DataDst = "." }
 		$ArgList += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
 	}
 	if ($UPX) {
@@ -369,15 +341,8 @@ function Get-PyInstallerArgs {
 		}
 		$ArgList += "--upx-dir=$UPXDir"
 	}
-	else {
-		$ArgList += "--noupx"
-	}
+	else { $ArgList += "--noupx"	}
 	return $ArgList
-}
-
-function Set-Environment {
-	$InstallPath = & (Install-PackageChoco "vswhere") -latest -property installationPath
-	& "${Env:COMSPEC}" /s /c "`"$InstallPath\Common7\Tools\vsdevcmd.bat`" -no_logo && set"  >> $Env:GITHUB_ENV
 }
 
 function Install-Requirements {
@@ -469,12 +434,9 @@ function Write-Build {
 
 	$Name = Get-ProjectName
 	$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
-	$FullName = "$Name-$( if ($VersionLine)
-	{
+	$FullName = "$Name-$( if ($VersionLine)	{
 		($VersionLine -Split { $_ -eq '''' -or $_ -eq '"' })[1]
-	}
-	else
-	{
+	} else {
 		"0.0.0"
 	} )"
 	"NAME=$FullName" >> $Env:GITHUB_ENV
@@ -493,28 +455,18 @@ function Write-Build {
 	}
 
 	$DistPath = Join-Path "dist" $FullName
-	if ($OneFile) {
-		$ExePath = "$DistPath.exe"
-	}
+	if ($OneFile) { $ExePath = "$DistPath.exe"	}
 	else {
 		$ExePath = Join-Path $DistPath "$Name.exe"
 		Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
 	}
 
-	if ($MainManifest) {
-		MergeManifest $ExePath $MainManifest
-	}
+	if ($MainManifest) { MergeManifest $ExePath $MainManifest	}
 
-	if ($CythonizeRemove) {
-		Remove-Cythonized
-	}
+	if ($CythonizeRemove) { Remove-Cythonized	}
 
-	if ($CodeRunAfter) {
-		Start-PythonCode $CodeRunAfter
-	}
-	if ($IsGithub -and $CodeRunAfterRemote) {
-		Start-PythonCode $CodeRunAfterRemote
-	}
+	if ($CodeRunAfter) { Start-PythonCode $CodeRunAfter	}
+	if ($IsGithub -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote	}
 }
 
 function Write-MEGA {
@@ -536,23 +488,10 @@ $IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bi
 $ErrorActionPreference = "Stop"
 if ($Args) {
 	switch ($Args[0]) {
-		"configure" {
-			Set-Environment; Break
-		}
-		"install" {
-			Install-Requirements; Break
-		}
-		"build" {
-			Write-Build; Break
-		}
-		"upload" {
-			Write-MEGA; Break
-		}
-		Default {
-			throw
-		}
+		"install" { Install-Requirements; Break }
+		"build" { Write-Build; Break }
+		"upload" { Write-MEGA; Break }
+		Default { throw }
 	}
 }
-else {
-	Write-Build
-}
+else {	Write-Build }
