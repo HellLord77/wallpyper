@@ -126,7 +126,6 @@ $CodeCompileCTemplate = @(
 $ModuleGraphSmart = $True
 $CythonizeRemoveC = $False
 $MinifyJsonLocal = $False
-$MEGAcmdURL = "https://mega.nz/MEGAcmdSetup64.exe"
 
 function Get-InsertedArray($Array, $Index, $Value) {
 	return $Array[0..($Index - 1)] + $Value + $Array[$Index..($Array.Length - 1)]
@@ -209,6 +208,17 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$ExeStream.Close()
 	$TempStream.Close()
 	$TempFile.Delete()
+}
+
+function Install-PackageChoco($Package, $Command = "", $Force = $False) {
+	if (-not $Command) {
+		$Command = $Package
+	}
+	if ($Force -or -not (Get-Command $Command -ErrorAction SilentlyContinue)) {
+		Write-Host "choco -> $Package"
+		choco install $Package --yes
+	}
+	return (Get-Command $Command).Source
 }
 
 function Start-PythonCode([string[]]$Lines) {
@@ -354,8 +364,7 @@ function Get-PyInstallerArgs {
 	if ($UPX) {
 		if (-not (Get-Command upx -ErrorAction SilentlyContinue)) {
 			if (-not $UPXDir) {
-				choco install upx --yes
-				$UPXDir = Split-Path (Get-Command upx).Source -Parent
+				$UPXDir = Split-Path (Install-PackageChoco "upx") -Parent
 			}
 		}
 		$ArgList += "--upx-dir=$UPXDir"
@@ -364,6 +373,14 @@ function Get-PyInstallerArgs {
 		$ArgList += "--noupx"
 	}
 	return $ArgList
+}
+
+function Set-Environment {
+	$InstallPath = & (Install-PackageChoco "vswhere") -latest -property installationPath
+	& "${env:COMSPEC}" /s /c "`"$InstallPath\Common7\Tools\vsdevcmd.bat`" -no_logo && set" | ForEach-Object {
+		$Name, $Value = $_ -Split '=', 2
+		Set-Content env:\"$Name" $Value
+	}
 }
 
 function Install-Requirements {
@@ -503,21 +520,13 @@ function Write-Build {
 	}
 }
 
-function UploadToMEGA {
+function Write-MEGA {
 	if (-not $env:MEGA_USERNAME -or -not $env:MEGA_PASSWORD) {
 		throw
 	}
 	if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
 		$env:PATH += ";$( Join-Path $env:LOCALAPPDATA "MEGAcmd" )"
-		if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
-			choco install megacmd --yes
-			if (-not (Get-Command mega-help -ErrorAction SilentlyContinue)) {
-				$Temp = Join-Path $Env:TEMP (Split-Path $MEGAcmdURL -Leaf)
-				Invoke-WebRequest $MEGAcmdURL -OutFile $Temp
-				Start-Process $Temp "/S" -Wait
-				Remove-Item $Temp -Force
-			}
-		}
+		Install-PackageChoco "megacmd" "mega-help"
 	}
 	mega-login $env:MEGA_USERNAME $env:MEGA_PASSWORD
 	mega-put dist (Join-Path "$( Get-ProjectName )-cp$( $env:PYTHON_VERSION -Replace "\.", """" )" ((Get-Date -Format o -AsUTC) -Replace ":", "."))
@@ -530,6 +539,9 @@ $IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bi
 $ErrorActionPreference = "Stop"
 if ($Args) {
 	switch ($Args[0]) {
+		"configure" {
+			Set-Environment; Break
+		}
 		"install" {
 			Install-Requirements; Break
 		}
@@ -537,7 +549,7 @@ if ($Args) {
 			Write-Build; Break
 		}
 		"upload" {
-			UploadToMEGA; Break
+			Write-MEGA; Break
 		}
 		Default {
 			throw

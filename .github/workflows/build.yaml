@@ -4,12 +4,10 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [ '3.11' ]
+        python-version: ["3.11"]
     steps:
-      - name: Configure command prompt
-        uses: ilammy/msvc-dev-cmd@v1
-      - name: Test mt
-        run: echo (Get-Command mt).Source
+      - name: Configure environment
+        run: .\build.ps1 configure
       - name: Fetch repository
         uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
