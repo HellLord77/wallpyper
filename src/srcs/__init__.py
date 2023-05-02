@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 import binascii
 import dataclasses
+import functools
 import hashlib
 import os
 import urllib.parse
@@ -22,7 +23,8 @@ SOURCES: dict[str, type[Source]] = {}
 class File:
     request: str | request.Request
     name: str = ''
-    size: int = 0
+    # noinspection PyUnresolvedReferences
+    size: int = request.RETRIEVE_UNKNOWN_SIZE
     sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
     md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
 
@@ -39,8 +41,6 @@ class File:
                 os.path.basename(request.strip_url(self.request.url)))
         self.name = utils.shrink_string_mid(
             win32.sanitize_filename(self.name), consts.MAX_FILENAME_LEN)
-        if not self.size:
-            self.size = request.sizeof(self.request)
         for algorithm, hash_ in self._iter_hashes():
             if not isinstance(hash_, bytes):
                 setattr(self, algorithm, bytes.fromhex(hash_))
@@ -93,13 +93,14 @@ class File:
             except OSError:
                 return False
 
-    def fill(self, path: str) -> bool:
+    # noinspection PyShadowingBuiltins
+    def fill(self, path: str, hash: bool = True) -> bool:
         if not self.size:
             try:
                 self.size = os.path.getsize(path)
             except OSError:
                 return False
-        if not any(self._iter_hashes(True)):
+        if hash and not any(self._iter_hashes(True)):
             for algorithm, hash_ in self._iter_hashes():
                 if not hash_:
                     try:
@@ -119,6 +120,20 @@ class File:
 
     def get_url(self) -> str:  # TODO BasicAuth
         return request.encode_params(self.request.url, self.request.params)
+
+    # noinspection PyUnresolvedReferences
+    def _response_callback(self, query_callback: Callable[[int, int], bool],
+                           response: request.Response) -> bool:
+        if self.size == request.RETRIEVE_UNKNOWN_SIZE:
+            self.size = request.sizeof(response)
+        if not response:
+            return False
+        return query_callback(0, self.size)
+
+    def download(self, path: str, query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:
+        return request.retrieve(self.request, path, self.size, chunk_count=100,
+                                response_callback=bool if query_callback is None else functools.partial(
+                                    self._response_callback, query_callback), query_callback=query_callback)
 
 
 @dataclasses.dataclass

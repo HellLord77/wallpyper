@@ -1737,16 +1737,18 @@ def _get_response(url_or_request_or_response: _TURL | Request | Response, method
 
 def sizeof(url_or_request_or_response: _TURL | Request | Response) -> int:
     response = _get_response(url_or_request_or_response, Method.HEAD)
-    return int(response.headers.get(Header.CONTENT_LENGTH, 0)) if response else 0
+    return int(response.headers.get(
+        Header.CONTENT_LENGTH, RETRIEVE_UNKNOWN_SIZE)) if response else RETRIEVE_UNKNOWN_SIZE
 
 
-def retrieve(url_or_request_or_response: _TURL | Request | Response,
-             path: bytes | str, size: int = RETRIEVE_UNKNOWN_SIZE, chunk_size: Optional[int] = None,
-             chunk_count: Optional[int] = None, query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:
+def retrieve(url_or_request_or_response: _TURL | Request | Response, path: bytes | str,
+             size: int = RETRIEVE_UNKNOWN_SIZE, chunk_size: Optional[int] = None,
+             chunk_count: Optional[int] = None, response_callback: Callable[[Response], bool] = bool,
+             query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:
     response = _get_response(url_or_request_or_response, Method.GET)
-    if response:
+    if response_callback(response):
         if size == RETRIEVE_UNKNOWN_SIZE:
-            size = int(response.headers.get(Header.CONTENT_LENGTH, RETRIEVE_UNKNOWN_SIZE))
+            size = sizeof(response)
         if chunk_size is None:
             chunk_size = size // (chunk_count or sys.maxsize)
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1754,8 +1756,7 @@ def retrieve(url_or_request_or_response: _TURL | Request | Response,
             written = 0
             for chunk in response.iter_content(max(chunk_size, _RETRIEVE_CHUNK_SIZE)):
                 written += file.write(chunk)
-                if query_callback is not None:
-                    if not query_callback(written, size):
-                        return False
+                if query_callback is not None and not query_callback(written, size):
+                    return False
         return size == RETRIEVE_UNKNOWN_SIZE or size == os.path.getsize(path)
     return False

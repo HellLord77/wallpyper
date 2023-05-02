@@ -420,8 +420,7 @@ def print_progress():
         progress = (next(spinner_indeterminate) if indeterminate else
                     utils.get_progress(completed / total, 20))
         text = f'[{next(spinner)}] [{progress}] {files.Size(completed)}'
-        if elapsed := time.monotonic() - start_time:
-            speed = completed / elapsed
+        if (elapsed := time.monotonic() - start_time) and (speed := completed / elapsed):
             text += f' {files.Size(speed)}/s'
             if not indeterminate:
                 text += f' {datetime.timedelta(seconds=round((total - completed) / speed))}'
@@ -433,7 +432,9 @@ def print_progress():
 
 def query_download(completed: int, total: int) -> bool:
     PROGRESS[:] = completed, total
-    return not STOP.get()
+    if STOP.get():
+        return False
+    return True
 
 
 @callables.QueueCallable
@@ -448,9 +449,8 @@ def download_image(image: srcs.File) -> Optional[str]:
         STOP.clear()
         try:
             if (image.get_url() == request.from_path(path) or
-                (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or
-                request.retrieve(image.request, path, image.size, chunk_count=100,
-                                 query_callback=query_download)) and image.fill(path):
+                (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or image.download(
+                        path, query_download)) and image.fill(path, not consts.FEATURE_UNSAFE_CACHE):
                 return path
         finally:
             PROGRESS[0] = -1
