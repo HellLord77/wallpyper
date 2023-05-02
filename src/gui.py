@@ -14,9 +14,8 @@ GUI = win32.gui.Gui.__new__(win32.gui.Gui)
 SYSTEM_TRAY = win32.gui.SystemTray.__new__(win32.gui.SystemTray)
 MENU = win32.gui.Menu.__new__(win32.gui.Menu)
 
-_ENABLE_ANIMATED_ICON = utils.MutableBool(True)
+_ANIMATED_ICON = utils.MutableBool(True)
 _TOOLTIPS: collections.deque[str] = collections.deque()
-_ANIMATIONS: collections.deque[tuple[str, str]] = collections.deque()
 _MAIN_MENU = object()
 _MAIN_MENUS: dict[int, list[gui.Menu]] = {threading.get_ident(): [MENU]}
 
@@ -280,15 +279,15 @@ def disable_events():
 
 
 def _animate_icon():
-    animate_ = False
+    animate = False
     try:
         tooltip = _TOOLTIPS[-1]
     except IndexError:
         tooltip = GUI.get_name()
     else:
-        animate_ = True
+        animate = True
     SYSTEM_TRAY.set_tooltip(tooltip)
-    if animate_ and _ENABLE_ANIMATED_ICON:
+    if animate and _ANIMATED_ICON:
         if not SYSTEM_TRAY.is_animated():
             SYSTEM_TRAY.start_animation(ANIMATION_PATH)
     else:
@@ -296,7 +295,7 @@ def _animate_icon():
 
 
 def enable_animated_icon(enable: bool = True):
-    _ENABLE_ANIMATED_ICON.set(enable)
+    _ANIMATED_ICON.set(enable)
     _animate_icon()
 
 

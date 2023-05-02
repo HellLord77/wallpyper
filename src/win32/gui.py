@@ -544,8 +544,9 @@ class SystemTray(_Control):
     _show = False
     _hicon: Optional[_handle.HICON] = None
     _balloon_hicon: Optional[_handle.HICON] = None
-    _animation_frames = None
+    _animation_stop = False
     _animation_speed = 1
+    _animation_frames = None
 
     def __init__(self, icon: int | str = SystemTrayIcon.APPLICATION,
                  tooltip: Optional[str] = None, *, _gui: Optional[Gui] = None):
@@ -602,6 +603,16 @@ class SystemTray(_Control):
         self._data.szTip = tooltip
         return self._update()
 
+    def _get_animation_frames(self, bitmap: _gdiplus.Bitmap) -> \
+            Iterator[Optional[tuple[int, _handle.HICON]]]:
+        delays = _gdiplus.image_get_property(bitmap, ctyped.const.PropertyTagFrameDelay)
+        frames = tuple((delays[index] * 10, bitmap.get_hicon())
+                       for index in _gdiplus.image_iter_frames(bitmap))
+        while not self._animation_stop:
+            yield from frames
+        self.stop_animation()
+        yield
+
     def _set_next_frame(self, *_):
         try:
             delay, hicon = next(self._animation_frames)
@@ -609,31 +620,25 @@ class SystemTray(_Control):
             pass
         else:
             self._set_hicon(hicon)
-            user32.SetTimer(self._hwnd, self._id, int(delay / self._animation_speed), self._animation_proc)
+            user32.SetTimer(self._hwnd, self._id, int(
+                delay / self._animation_speed), self._animation_proc)
 
-    @staticmethod
-    def _get_animation_frames(bitmap: _gdiplus.Bitmap) -> Iterator[tuple[int, _handle.HICON]]:
-        delays: ctyped.Pointer[ctyped.type.c_long] = _gdiplus.image_get_property(
-            bitmap, ctyped.const.PropertyTagFrameDelay)
-        for index in _gdiplus.image_iter_frames(bitmap):
-            yield delays[index] * 10, bitmap.get_hicon()
-
-    def start_animation(self, path_or_bitmap: str | _gdiplus.Bitmap) -> bool:
+    def start_animation(self, path_or_bitmap: str | _gdiplus.Bitmap):
         self.stop_animation()
-        self._animation_frames = itertools.cycle(frames := tuple(
-            self._get_animation_frames(_load_bitmap(path_or_bitmap))))
-        if frames:
-            self._set_next_frame()
-        return bool(frames)
+        self._animation_stop = False
+        self._animation_frames = self._get_animation_frames(_load_bitmap(path_or_bitmap))
+        self._set_next_frame()
 
-    def stop_animation(self):
-        self._animation_frames = None
-        user32.KillTimer(self._hwnd, self._id)
-        self._set_hicon(self._hicon)
+    def stop_animation(self, force: bool = True):
+        self._animation_stop = True
+        if force:
+            self._animation_frames = None
+            user32.KillTimer(self._hwnd, self._id)
+            self._set_hicon(self._hicon)
 
     def set_animation_speed(self, factor: float) -> bool:
         self._animation_speed = factor
-        return bool(self._animation_frames)
+        return self._animation_frames is not None
 
     def show(self) -> bool:
         self._show = True

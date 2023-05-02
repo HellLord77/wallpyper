@@ -419,11 +419,14 @@ def print_progress():
         indeterminate = (total := PROGRESS[1]) == request.RETRIEVE_UNKNOWN_SIZE
         progress = (next(spinner_indeterminate) if indeterminate else
                     utils.get_progress(completed / total, 20))
-        text = f'[{next(spinner)}] [{progress}] {files.Size(completed)}'
-        if (elapsed := time.monotonic() - start_time) and (speed := completed / elapsed):
-            text += f' {files.Size(speed)}/s'
-            if not indeterminate:
-                text += f' {datetime.timedelta(seconds=round((total - completed) / speed))}'
+        text = f'[{next(spinner)}] [{progress}]'
+        if completed:
+            text += f' [{files.Size(completed)}]'
+            if elapsed := time.monotonic() - start_time:
+                speed = completed / elapsed
+                text += f' [{files.Size(speed)}/s]'
+                if not indeterminate:
+                    text += f' [{datetime.timedelta(seconds=round((total - completed) / speed))}]'
         print(f'\r{" " * len_last}\r{text}', end='', flush=True)
         len_last = len(text)
         time.sleep(interval_indeterminate if indeterminate else interval)
