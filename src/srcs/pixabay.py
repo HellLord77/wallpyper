@@ -6,8 +6,7 @@ from typing import ItemsView, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import isocodes, request
-from . import File
-from . import Source
+from . import File, Source
 
 _CONTENT_END = b'[ERROR 400] "page" is out of valid range.'
 

@@ -7,8 +7,7 @@ import gui
 import validator
 import win32
 from libs import colornames, request
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
@@ -171,7 +170,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             data = datas.pop(0)
             url = data['path']
             purity = data['purity']
-            yield ImageFile(url, size=data['file_size'], width=data[
+            yield ImageFile(url, size=data['file_size'], url=data['url'], width=data[
                 'dimension_x'], height=data['dimension_y'],
                             sketchy=purity == PURITIES[1], nsfw=purity == PURITIES[2])
 

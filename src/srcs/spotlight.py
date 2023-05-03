@@ -6,8 +6,7 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import files, isocodes, request
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 URL_BASE = request.join_url('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 

@@ -5,8 +5,7 @@ import gui
 import validator
 import win32
 from libs import files, request
-from . import File
-from . import Source
+from . import File, Source
 
 CONFIG_DIR = 'dir'
 CONFIG_RECURSE = 'recursive'
@@ -22,8 +21,8 @@ SORTS = {
 ORDERS = 'ascending', 'descending'
 
 
-class FolderLocal(Source):
-    NAME = 'Folder (local)'
+class Folder(Source):
+    NAME = 'Folder [local]'
     VERSION = '0.0.2'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {

@@ -3,13 +3,13 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request, utils
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _CONTENT_END = b'[]'
 
 URL_BASE = 'https://yande.re'
 URL_POSTS = request.join_url(URL_BASE, 'post.json')
+URL_INFO = request.join_url(URL_BASE, 'post', 'show')
 
 CONFIG_ORIENTATIONS = '_orientations'
 CONFIG_RATINGS = '_ratings'
@@ -64,8 +64,9 @@ class YandeRe(Source):
                 yield
                 continue
             post = posts.pop(0)
-            yield ImageFile(post['file_url'], size=post['file_size'], width=post[
-                'width'], height=post['height'], sketchy=post['rating'] == 'q',
+            yield ImageFile(post['file_url'], size=post['file_size'], url=request.join_url(
+                URL_INFO, str(post['id'])), width=post['width'],
+                            height=post['height'], sketchy=post['rating'] == 'q',
                             nsfw=post['rating'] == 'e', md5=post['md5'])
 
     @classmethod

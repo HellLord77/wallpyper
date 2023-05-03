@@ -4,8 +4,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request, minihtml, utils
-from . import File
-from . import Source
+from . import File, Source
 
 _ATTRS = {'class': 'desktop'}
 _PAGE = utils.MutableInt()
@@ -59,9 +58,10 @@ class SimpleDesktops(Source):
             if not desktops:
                 yield
                 continue
-            desktop = File(desktops.pop(0)[0][0]['src'].rsplit('.', 2)[0])
+            desktop = desktops.pop(0)[0]
             operator.iadd(_PAGE, not desktops)
-            yield desktop
+            yield File(desktop[0]['src'].rsplit('.', 2)[0],
+                       url=request.join_url(URL_BASE, desktop['href']))
 
     @classmethod
     def _on_reset(cls):

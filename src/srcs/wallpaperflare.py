@@ -4,8 +4,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request, minihtml
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 # noinspection HttpUrlsUsage
 _ATTRS_ITEM = {
@@ -84,18 +83,19 @@ class WallpaperFlare(Source):
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join_url(
-                item.find('a', _ATTRS_URL)['href'], 'download'))
+            url_item = request.join_url(item.find('a', _ATTRS_URL)['href'])
+            response_item = request.get(request.join_url(url_item, 'download'))
             if not response_item:
                 items.insert(0, item)
                 yield
                 continue
             html = minihtml.loads(response_item.text)
             info = html.find('div', _ATTR_INFO)
-            yield ImageFile(html.find('img', _ATTRS_SRC)['src'], width=int(
+            yield ImageFile(html.find('img', _ATTRS_SRC)['src'], url=url_item, width=int(
                 info[0][0].get_data()), height=int(info[1][0].get_data()))
 
     @classmethod
-    def _on_search(cls, enable_mobile: Callable[[bool], bool], enable_sort: Callable[[bool], bool], search: bool):
+    def _on_search(cls, enable_mobile: Callable[[bool], bool],
+                   enable_sort: Callable[[bool], bool], search: bool):
         enable_mobile(search)
         enable_sort(search)

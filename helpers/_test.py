@@ -615,9 +615,7 @@ def _test_progress():
 
 
 def _test():
-    from libs import files
-    num = 5306075
-    print(files.Size(num))
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

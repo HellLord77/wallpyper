@@ -7,8 +7,7 @@ import gui
 import validator
 import win32
 from libs import colornames, request, minihtml
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 _ATTRS_JSON = {'type': 'application/ld+json'}
@@ -123,13 +122,13 @@ class WallHere(Source):
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join_url(URL_WALLPAPER, item[0][0]['href']))
+            url_item = request.join_url(URL_WALLPAPER, item[0][0]['href'])
+            response_item = request.get(url_item)
             if not response_item:
                 items.insert(0, item)
                 yield
                 continue
             data = json.loads(minihtml.loads(response_item.text).find('script', _ATTRS_JSON).get_data())
-            content_url = data['contentUrl']
             classes = item.get_class()
-            yield ImageFile(content_url, width=int(data['width'][:-2]), height=int(
+            yield ImageFile(data['contentUrl'], url=url_item, width=int(data['width'][:-2]), height=int(
                 data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)

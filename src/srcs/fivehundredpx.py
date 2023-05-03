@@ -1,11 +1,11 @@
 import functools
+import pprint
 from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
 from libs import request
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _PARAMS = {
     'ids': '',
@@ -33,8 +33,8 @@ def _get_sort(feature: str) -> str:
     return SORTS[1] if feature == FEATURES[0] else SORTS[2] if feature == FEATURES[1] else SORTS[0]
 
 
-class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-documentation
-    NAME = '500px (legacy)'
+class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentation
+    NAME = '500px [legacy]'
     VERSION = '0.0.3'
     ICON = 'png'
     URL = 'https://500px.com'
@@ -106,10 +106,11 @@ class FiveHundredPxLegacy(Source):  # https://github.com/500px/legacy-api-docume
                 if not photos:
                     yield
                     continue
+            pprint.pprint(photos, sort_dicts=False)
             photo = photos.pop(0)
             yield ImageFile(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}',
-                            width=photo['width'], height=photo[
-                    'height'], sketchy=photo['has_nsfw_tags'], nsfw=photo['nsfw'])
+                            url=request.join_url(cls.URL, photo['url']), width=photo[
+                    'width'], height=photo['height'], sketchy=photo['has_nsfw_tags'], nsfw=photo['nsfw'])
 
     @classmethod
     def _on_category(cls, key: str, menu: gui.Menu, menu_other: gui.Menu):

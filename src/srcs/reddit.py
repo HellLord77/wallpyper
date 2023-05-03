@@ -7,8 +7,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import callables, files, request, utils
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _TOKEN_TOLERANCE = 30.0
 _TOKEN_DATA = {
@@ -59,17 +58,17 @@ def _iter_children(children: list[dict]) -> Iterator[dict]:
             title = data['title']
             for index, item in enumerate(data['gallery_data']['items'], 1):
                 media_id = item['media_id']
-                media = media_metadata[media_id]
-                if media['e'] == 'Image':
-                    s = media['s']
-                    gallery = copy.deepcopy(child)
-                    data = gallery['data']
-                    data['preview'] = {'images': [{'source': {
-                        'width': s['x'], 'height': s['y']}}]}
-                    data['url'] = request.join_url(
-                        URL_IMAGE, f'{media_id}.{os.path.basename(media["m"])}')
-                    data['title'] = f'{title} ({index})'
-                    yield gallery
+                if (media := media_metadata[media_id])['status'] == 'valid':
+                    if media['e'] == 'Image':
+                        s = media['s']
+                        gallery = copy.deepcopy(child)
+                        data = gallery['data']
+                        data['preview'] = {'images': [{'source': {
+                            'width': s['x'], 'height': s['y']}}]}
+                        data['url'] = request.join_url(
+                            URL_IMAGE, f'{media_id}.{os.path.basename(media["m"])}')
+                        data['title'] = f'{title} ({index})'
+                        yield gallery
 
 
 def _on_sort(enable: Callable[[bool], bool], sort: str):
@@ -152,6 +151,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
             url_child = data['url']
             source = data['preview']['images'][0]['source']
             yield ImageFile(url_child, files.replace_ext(data["title"], os.path.splitext(url_child)[1]),
+                            url=request.join_url(cls.URL, data['permalink']),
                             width=source['width'], height=source['height'], nsfw=data['over_18'])
 
     @classmethod

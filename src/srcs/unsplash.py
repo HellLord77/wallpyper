@@ -5,8 +5,7 @@ from typing import Callable, ItemsView, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import files, request
-from . import File
-from . import Source
+from . import File, Source
 
 URL_BASE = 'https://api.unsplash.com'
 URL_EDITORIAL = request.join_url(URL_BASE, 'photos')
@@ -22,7 +21,8 @@ CONFIG_ORIENTATION = 'orientation'
 ORDERS = 'latest', 'oldest', 'popular'
 ORDERS_ = 'latest', 'relevant'
 FILTERS = 'low', 'high'
-COLORS = '', 'black_and_white', 'black', 'white', 'yellow', 'orange', 'red', 'purple', 'magenta', 'green', 'teal', 'blue'
+COLORS = ('', 'black_and_white', 'black', 'white', 'yellow', 'orange',
+          'red', 'purple', 'magenta', 'green', 'teal', 'blue')
 ORIENTATIONS = '', 'landscape', 'portrait', 'squarish'
 
 
@@ -101,7 +101,8 @@ class Unsplash(Source):  # https://unsplash.com/documentation
                     params['page'] = str(int(params['page']) % (sys.maxsize if cls.CURRENT_CONFIG[
                         CONFIG_EDITORIAL] else int(json['total_pages'])) + 1)
             result = results.pop(0)
-            yield File(result['urls']['raw'], files.replace_ext(result['id'], 'jpg'))
+            yield File(result['urls']['raw'], files.replace_ext(
+                result['id'], 'jpg'), url=result['links']['html'])
 
     @classmethod
     def _fix_order(cls):

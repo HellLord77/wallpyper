@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 import binascii
 import dataclasses
@@ -25,6 +25,7 @@ class File:
     name: str = ''
     # noinspection PyUnresolvedReferences
     size: int = request.RETRIEVE_UNKNOWN_SIZE
+    url: Optional[str] = dataclasses.field(default=None, repr=False)
     sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
     md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
 
@@ -36,11 +37,17 @@ class File:
     def __post_init__(self):
         if isinstance(self.request, str):
             self.request = request.Request(request.Method.GET, self.request)
+        if self.request.params is not None:
+            self.request.url = request.encode_params(self.request.url, self.request.params)
+            self.request.params = None
+        # TODO BasicAuth
         if not self.name:
             self.name = urllib.parse.unquote_plus(
                 os.path.basename(request.strip_url(self.request.url)))
         self.name = utils.shrink_string_mid(
             win32.sanitize_filename(self.name), consts.MAX_FILENAME_LEN)
+        if self.url is None and self.is_simple():
+            self.url = self.request.url
         for algorithm, hash_ in self._iter_hashes():
             if not isinstance(hash_, bytes):
                 setattr(self, algorithm, bytes.fromhex(hash_))
@@ -50,7 +57,7 @@ class File:
 
     def __str__(self):
         return repr(self).replace(f'request={self.request!r}', f'url={self.request.url}', 1).replace(
-            f'size={self.size}', f'size={files.Size(self.size)}' if self.size else '', 1)
+            f', size={self.size}', f', size={files.Size(self.size)}' if self.size else '', 1)
 
     def __eq__(self, other):
         if isinstance(other, File):
@@ -72,8 +79,10 @@ class File:
     def asdict(self) -> dict[str, Any]:
         result: dict = {'request': utils.encrypt(
             self.request, KEY, as_string=True), 'name': self.name}
-        if self.size:
+        if self.size != request.RETRIEVE_UNKNOWN_SIZE:
             result['size'] = self.size
+        if self.url and self.url != self.request.url and self.is_simple():
+            result['url'] = self.url
         for algorithm, hash_ in self._iter_hashes(True):
             result[algorithm] = binascii.hexlify(hash_).decode()
         return result
@@ -113,13 +122,11 @@ class File:
         return True
 
     def is_simple(self) -> bool:
-        return (self.request.headers is None and self.request.files is None and
+        return (self.request.method == request.Method.GET and
+                self.request.headers is None and self.request.files is None and
                 self.request.data is None and self.request.params is None and
                 self.request.auth is None and self.request.cookies is None and
                 self.request.json is None and self.request.unredirected_hdrs is None)
-
-    def get_url(self) -> str:  # TODO BasicAuth
-        return request.encode_params(self.request.url, self.request.params)
 
     # noinspection PyUnresolvedReferences
     def _response_callback(self, query_callback: Callable[[int, int], bool],
@@ -219,10 +226,9 @@ class Source:
 
 from . import (
     bing,
-    doesnotexist,
     facets,
-    fivehundredpx_legacy,
-    folder_local,
+    fivehundredpx,
+    folder,
     pexels,
     pixabay,
     reddit,
@@ -230,6 +236,7 @@ from . import (
     simpledesktops,
     spotlight,
     stocksnap,
+    thisxdoesnotexist,
     unsplash,
     wallhaven,
     wallhere,

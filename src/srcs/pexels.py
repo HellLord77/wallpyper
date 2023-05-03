@@ -1,12 +1,10 @@
 import functools
-import os
 from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
 from libs import isocodes, request
-from . import File
-from . import Source
+from . import ImageFile, Source
 
 URL_BASE = request.join_url('https://api.pexels.com', 'v1')
 URL_CURATED = request.join_url(URL_BASE, 'curated')
@@ -84,7 +82,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                 'LOCALE_') for locale in LOCALES}, cls.CURRENT_CONFIG, CONFIG_LOCALE)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         photos: Optional[list] = None
         headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
@@ -104,5 +102,6 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
                 if not photos:
                     yield
                     continue
-            url_photo = photos.pop(0)['src']['original']
-            yield File(url_photo, os.path.basename(request.strip_url(url_photo)))
+            photo = photos.pop(0)
+            yield ImageFile(photo['src']['original'], url=photo['url'],
+                            width=photo['width'], height=photo['height'])

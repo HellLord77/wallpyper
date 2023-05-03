@@ -6,8 +6,7 @@ from typing import Any, Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _CONTENT_END = (b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
                 b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
@@ -109,7 +108,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                 items.insert(0, item)
                 yield
                 continue
-            json_ = _json_loads(response_item)
-            url = json_['full']
-            yield ImageFile(url, width=json_['width'], height=json_[
-                'height'], sketchy='Ecchi' in json_['tags'], md5=json_['hash'])
+            json_item = _json_loads(response_item)
+            yield ImageFile(json_item['full'], url=request.join_url(URL_BASE, str(
+                json_item['id'])), width=json_item['width'], height=json_item['height'],
+                            sketchy='Ecchi' in json_item['tags'], md5=json_item['hash'])

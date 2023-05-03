@@ -4,8 +4,7 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import isocodes, request
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 URL_BASE = 'https://www.bing.com'
 URL_ARCHIVE = request.join_url(URL_BASE, 'HPImageArchive.aspx')
@@ -76,5 +75,5 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
             resolution = cls.CURRENT_CONFIG[CONFIG_RESOLUTION]
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{resolution}{ext}'
             width, height = (0, 0) if RESOLUTIONS[6] == resolution else map(int, resolution.split('x'))
-            yield ImageFile(request.encode_params(URL_IMAGE, query),
+            yield ImageFile(request.Request(request.Method.GET, URL_IMAGE, params=query),
                             query['id'][0][4:], width=width, height=height)

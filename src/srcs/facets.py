@@ -5,8 +5,7 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request
-from . import File
-from . import Source
+from . import File, Source
 
 _OWNER = '0xa52578c6ada18248d95805083ed148957573e4eb'
 

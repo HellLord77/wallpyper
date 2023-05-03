@@ -4,8 +4,7 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request
-from . import File
-from . import Source
+from . import File, Source
 
 CONFIG_VARIANT = 'variant'
 
@@ -14,11 +13,11 @@ URL_BASE_TEMPLATE = 'https://this{}doesnotexist.com'
 VARIANTS = 'person', 'artwork', 'cat', 'horse'
 
 
-class DoesNotExist(Source):
-    NAME = 'This Does Not Exist'
-    VERSION = '0.0.1'
+class ThisXDoesNotExist(Source):
+    NAME = 'This X Does Not Exist [down]'
+    VERSION = '0.0.2'
     ICON = 'jpg'
-    URL = URL_BASE_TEMPLATE.format(VARIANTS[0])
+    URL = 'https://thisxdoesnotexist.com'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_VARIANT: str})
     DEFAULT_CONFIG: TCONFIG = {

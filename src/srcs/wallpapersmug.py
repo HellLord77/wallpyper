@@ -4,8 +4,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request, minihtml
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _ATTRS_IMAGES = {'class': 'item_img'}
 _ATTRS_NEXT = {'class': 'page next'}
@@ -80,8 +79,8 @@ class WallpapersMug(Source):
                     yield
                     continue
             image = images.pop(0)
-            response_image = request.get(request.join_url(
-                URL_BASE, image[0]['href'], 'download'))
+            url_image = request.join_url(URL_BASE, image[0]['href'])
+            response_image = request.get(request.join_url(url_image, 'download'))
             if not response_image:
                 images.insert(0, image)
                 yield
@@ -89,7 +88,7 @@ class WallpapersMug(Source):
             img = minihtml.loads(response_image.text).find('div', _ATTRS_IMAGE)
             width, height = map(int, img.find(
                 'span', _ATTRS_RESOLUTION)[0].get_data().strip().split('x'))
-            yield ImageFile(img[0][0]['src'], width=width, height=height)
+            yield ImageFile(img[0][0]['src'], url=url_image, width=width, height=height)
 
     @classmethod
     def _on_search(cls, enable_tag, enable_sort, search: str):
@@ -97,6 +96,7 @@ class WallpapersMug(Source):
         cls._on_tag(enable_sort, search=search)
 
     @classmethod
-    def _on_tag(cls, enable: Callable[[bool], bool], tag: Optional[str] = None, search: Optional[str] = None):
+    def _on_tag(cls, enable: Callable[[bool], bool],
+                tag: Optional[str] = None, search: Optional[str] = None):
         enable(not (cls.CURRENT_CONFIG[CONFIG_SEARCH] if search is None else search) and TAGS[
             24] == (cls.CURRENT_CONFIG[CONFIG_TAG] if tag is None else tag))

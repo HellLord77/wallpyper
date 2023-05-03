@@ -82,7 +82,8 @@ class StockSnap(Source):
                     yield
                     continue
             result = results.pop(0)
-            response_result = session.get(request.join_url(URL_PHOTO, result['img_id']))
+            url_result = request.join_url(URL_PHOTO, result['img_id'])
+            response_result = session.get(url_result)
             if not response_result:
                 results.insert(0, result)
                 yield
@@ -94,7 +95,7 @@ class StockSnap(Source):
                 'script', _ATTRS_JSON).get_data())['contentUrl'])
             yield ImageFile(request.Request(
                 request.Method.POST, URL_DOWNLOAD, data=data_, cookies=cookies), name,
-                width=result['img_width'], height=result['img_height'])
+                url=url_result, width=result['img_width'], height=result['img_height'])
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:

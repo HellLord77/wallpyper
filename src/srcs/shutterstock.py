@@ -1,8 +1,7 @@
 from typing import Iterator, Optional, TypedDict
 
 from libs import request
-from . import File
-from . import Source
+from . import File, Source
 
 URL_BASE = request.join_url('https://api.shutterstock.com', 'v2')
 URL_IMAGES = request.join_url(URL_BASE, 'images')

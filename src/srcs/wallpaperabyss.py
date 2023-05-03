@@ -8,8 +8,7 @@ import validator
 import win32
 from libs import colornames, minihtml, request
 from libs.request import cloudflare
-from . import ImageFile
-from . import Source
+from . import ImageFile, Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 _ATTRS_THUMB = {'class': 'thumb-container'}
@@ -17,6 +16,7 @@ _ATTRS_NEXT_PAGE = {'id': 'next_page'}
 _ATTRS_PAGINATION = {'class': 'pagination-simple center'}
 
 URL_BASE = 'https://wall.alphacoders.com'
+URL_INFO = request.join_url(URL_BASE, 'big.php')
 
 CONFIG_METHOD = 'method'
 CONFIG_SEARCH = 'search'
@@ -187,9 +187,10 @@ class WallpaperAbyss(Source):
             name = image_grid['alt'].removesuffix('HD Wallpaper | Background Image').strip()
             if name:
                 name += '-'
-            name += os.path.basename(url_image)
+            basename = os.path.basename(url_image)
             width, height = map(int, image[1][0][0].get_data().split('x'))
-            yield ImageFile(url_image, name, width=width, height=height)
+            yield ImageFile(url_image, name + basename, url=request.encode_params(
+                URL_INFO, {'i': basename.split('.', 1)[0]}), width=width, height=height)
 
     @classmethod
     def _on_method(cls, enable_resolution_filter: Callable[[bool], bool],
