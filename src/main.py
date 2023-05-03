@@ -334,7 +334,7 @@ def load_config(path: str = CONFIG_PATH):
 
 
 class BrotliDecoder(request.Decoder):
-    tokens = 'br',
+    _token_ = 'br'
 
     def __init__(self):
         self._decoder = brotli.Decompressor()

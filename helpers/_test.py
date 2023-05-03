@@ -614,16 +614,10 @@ def _test_progress():
         taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.NOPROGRESS)
 
 
-class Iter:
-    def __getitem__(self, index):
-        if index >= 5:
-            raise IndexError
-        return index
-
-
 def _test():
-    for i in Iter():
-        print(i)
+    from libs import files
+    num = 5306075
+    print(files.Size(num))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
