@@ -14,14 +14,24 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: .\build.ps1 install
+      - name: Restore cython cache
+        uses: actions/cache/restore@v3
+        with:
+          path: src/**/*.c
+          key: ${{ runner.os }}-${{ matrix.python-version }}-cython
       - name: Build project
         run: .\build.ps1
+      - name: Save cython cache
+        uses: actions/cache/save@v3
+        with:
+          path: src/**/*.c
+          key: ${{ runner.os }}-${{ matrix.python-version }}-cython
       - name: Upload ${{ env.NAME }}
-        #        env:
-        #          MEGA_USERNAME: ${{ secrets.MEGA_USERNAME }}
-        #          MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
-        #          PYTHON_VERSION: ${{ matrix.python-version }}
-        #        run: .\build.ps1 upload
+        # env:
+        #   MEGA_USERNAME: ${{ secrets.MEGA_USERNAME }}
+        #   MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
+        #   PYTHON_VERSION: ${{ matrix.python-version }}
+        # run: .\build.ps1 upload
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}

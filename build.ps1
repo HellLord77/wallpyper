@@ -142,7 +142,7 @@ function Get-InsertedArray([array]$Array, $Index, $Value) {
 function Get-RemovedArray([array]$Array, $Index) {
 	if ($Index -lt 0 -or $Index -ge $Array.Length) { throw }
 	elseif ($Index -eq 0) { $Array = $Array[1..($Array.Length - 1)] }
-	elseif ($Index -eq ($Array.Length - 1)) { $Array = $Array[0..($Array.Length - 2)]	}
+	elseif ($Index -eq ($Array.Length - 1)) { $Array = $Array[0..($Array.Length - 2)] }
 	else { $Array = $Array[0..($Index - 1)] + $Array[($Index + 1)..($Array.Length - 1)] }
 	return ToArray $Array
 }
@@ -196,7 +196,7 @@ function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0) {
 }
 
 function MinifyJsonFile([string]$Path, [string]$OutPath) {
-	if (-not $OutPath) { $OutPath = $Path	}
+	if (-not $OutPath) { $OutPath = $Path }
 	Write-Host "Minify $Path -> $OutPath"
 	ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Depth 100 -Compress | Set-Content $OutPath
 }
@@ -225,7 +225,7 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 }
 
 function Install-PackageChoco($Package, $Command = "", $Force = $False) {
-	if (-not $Command) { $Command = $Package	}
+	if (-not $Command) { $Command = $Package }
 	if ($Force -or -not (Get-Command $Command -ErrorAction SilentlyContinue)) {
 		Write-Host "choco -> $Package"
 		choco install $Package --yes
@@ -240,7 +240,7 @@ function Start-PythonCode([string[]]$Lines) {
 }
 
 function Get-ProjectName {
-	return Split-Path $( if ($IsGithub) { $Env:GITHUB_REPOSITORY }
+	return Split-Path $( if ($IsRemote) { $Env:GITHUB_REPOSITORY }
 		else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
 }
 
@@ -341,7 +341,7 @@ function Get-PyInstallerArgs {
 		}
 		$ArgList += "--upx-dir=$UPXDir"
 	}
-	else { $ArgList += "--noupx"	}
+	else { $ArgList += "--noupx" }
 	return $ArgList
 }
 
@@ -383,11 +383,11 @@ function Write-Build {
 	if ($CodeRunBefore) {
 		Start-PythonCode $CodeRunBefore
 	}
-	if ($IsGithub -and $CodeRunBeforeRemote) {
+	if ($IsRemote -and $CodeRunBeforeRemote) {
 		Start-PythonCode $CodeRunBeforeRemote
 	}
 
-	if ($MinifyJsonLocal -or $IsGithub) {
+	if ($MinifyJsonLocal -or $IsRemote) {
 		foreach ($MinifyJsonRegEx in $MinifyJsonRegExs) {
 			foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx) {
 				MinifyJsonFile $Json.FullName
@@ -398,7 +398,7 @@ function Write-Build {
 	$CodeCompileC = @() + $CodeCompileCTemplate
 	foreach ($CythonSource in $CythonSources) {
 		$CythonArgs = @("--verbose", "-3", "--embed")
-		if (-not $IsGithub -and $CythonizeAnnotate) {
+		if (-not $IsRemote -and $CythonizeAnnotate) {
 			$CythonArgs += "--annotate"
 		}
 		if ($CythonizeNoDocstrings) {
@@ -418,7 +418,7 @@ function Write-Build {
 	$PyInstallerArgs = Get-PyInstallerArgs
 	if ($CythonizeSourceGlobs) {
 		$CythonizeArgs = @("-3", "--inplace")
-		if (-not $IsGithub -and $CythonizeAnnotate) {
+		if (-not $IsRemote -and $CythonizeAnnotate) {
 			$CythonizeArgs += "--annotate"
 		}
 		if ($CythonizeNoDocstrings) {
@@ -455,18 +455,18 @@ function Write-Build {
 	}
 
 	$DistPath = Join-Path "dist" $FullName
-	if ($OneFile) { $ExePath = "$DistPath.exe"	}
+	if ($OneFile) { $ExePath = "$DistPath.exe" }
 	else {
 		$ExePath = Join-Path $DistPath "$Name.exe"
 		Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
 	}
 
-	if ($MainManifest) { MergeManifest $ExePath $MainManifest	}
+	if ($MainManifest) { MergeManifest $ExePath $MainManifest }
 
-	if ($CythonizeRemove) { Remove-Cythonized	}
+	if ($CythonizeRemove) { Remove-Cythonized }
 
 	if ($CodeRunAfter) { Start-PythonCode $CodeRunAfter	}
-	if ($IsGithub -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote	}
+	if ($IsRemote -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote }
 }
 
 function Write-MEGA {
@@ -482,7 +482,7 @@ function Write-MEGA {
 	mega-logout
 }
 
-$IsGithub = Test-Path Env:GITHUB_REPOSITORY
+$IsRemote = Test-Path Env:CI
 $IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit))
 
 $ErrorActionPreference = "Stop"
