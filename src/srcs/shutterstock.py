@@ -80,4 +80,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
                 response = request.get(URL_IMAGES_SEARCH, params, auth=auth)
                 if response:
                     datas = response.json()['data']
+                if not datas:
+                    yield
+                    continue
             yield

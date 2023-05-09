@@ -61,6 +61,9 @@ class Folder(Source):
                 results = [path for path in files.iter_files(
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
                 results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
+                if not results:
+                    yield
+                    continue
             path = results.pop(0)
             yield File(request.from_path(path), size=os.path.getsize(path))
 

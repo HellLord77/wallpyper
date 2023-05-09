@@ -77,9 +77,9 @@ class Facets(Source):
                     arts = [art for art in json['art'] if art['pathThumbnail']]
                     cls._purchasable = {int(
                         nft['tokenId']): nft['ownerAddress'] == _OWNER for nft in json['nft']}
-            if not arts:
-                yield
-                continue
+                if not arts:
+                    yield
+                    continue
             art = arts.pop(0)
             file = File(art[f'path{cls.CURRENT_CONFIG[CONFIG_DEVICE]}'],
                         name=f'{art["name"]}{os.path.splitext(art["pathThumbnail"])[1]}')

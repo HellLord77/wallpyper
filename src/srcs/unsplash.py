@@ -100,6 +100,9 @@ class Unsplash(Source):  # https://unsplash.com/documentation
                     results = json if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else json['results']
                     params['page'] = str(int(params['page']) % (sys.maxsize if cls.CURRENT_CONFIG[
                         CONFIG_EDITORIAL] else int(json['total_pages'])) + 1)
+                if not results:
+                    yield
+                    continue
             result = results.pop(0)
             yield File(result['urls']['raw'], files.replace_ext(
                 result['id'], 'jpg'), url=result['links']['html'])

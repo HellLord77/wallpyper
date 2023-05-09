@@ -225,6 +225,7 @@ class Source:
 
 
 from . import (
+    besthdwallpaper,
     bing,
     facets,
     fivehundredpx,

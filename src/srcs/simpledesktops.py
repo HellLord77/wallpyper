@@ -55,9 +55,9 @@ class SimpleDesktops(Source):
                     continue
                 if response:
                     desktops = list(minihtml.loads(response.text).find_all('div', _ATTRS))
-            if not desktops:
-                yield
-                continue
+                if not desktops:
+                    yield
+                    continue
             desktop = desktops.pop(0)[0]
             operator.iadd(_PAGE, not desktops)
             yield File(desktop[0]['src'].rsplit('.', 2)[0],

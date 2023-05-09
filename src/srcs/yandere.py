@@ -60,9 +60,9 @@ class YandeRe(Source):
                 if response:
                     posts = response.json()
                     params['page'] = str(int(params['page']) + 1)
-            if not posts:
-                yield
-                continue
+                if not posts:
+                    yield
+                    continue
             post = posts.pop(0)
             yield ImageFile(post['file_url'], size=post['file_size'], url=request.join_url(
                 URL_INFO, str(post['id'])), width=post['width'],
