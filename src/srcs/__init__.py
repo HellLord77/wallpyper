@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 import binascii
 import dataclasses
@@ -17,6 +17,11 @@ from libs import callables, files, request, utils
 
 KEY: Optional[bytes | str] = None
 SOURCES: dict[str, type[Source]] = {}
+
+CONFIG_ORIENTATIONS = '_orientations_'
+CONFIG_RATINGS = '_ratings_'
+
+_reduced = functools.cache(callables.ReducedCallable)
 
 
 @dataclasses.dataclass
@@ -68,7 +73,7 @@ class File:
     def fromdict(cls, data: dict[str, Any]) -> Optional[File]:
         request_ = utils.decrypt(data.pop('request'), KEY)
         if request_ is not utils.DEFAULT:
-            return callables.ReducedCallable(cls)(request_, **data)
+            return _reduced(cls)(request_, **data)
 
     def _iter_hashes(self, filled: bool = False) -> Iterator[tuple[str, bytes | str]]:
         for algorithm in hashlib.algorithms_available:
@@ -147,8 +152,14 @@ class File:
 class ImageFile(File):
     width: int = 0
     height: int = 0
+    ratio: float = 0.0
     sketchy: bool = False
     nsfw: bool = False
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.ratio and self.height:
+            self.ratio = self.width / self.height
 
     def asdict(self) -> dict[str, Any]:
         result = super().asdict()
@@ -156,6 +167,8 @@ class ImageFile(File):
             result['width'] = self.width
         if self.height:
             result['height'] = self.height
+        if self.ratio and (not self.height or self.ratio != self.width / self.height):
+            result['ratio'] = self.ratio
         if self.sketchy:
             result['sketchy'] = self.sketchy
         if self.nsfw:
@@ -164,14 +177,23 @@ class ImageFile(File):
             result[algorithm] = result.pop(algorithm)
         return result
 
+    # noinspection PyShadowingBuiltins
+    def fill(self, path: str, hash: bool = True, dimensions: bool = True) -> bool:
+        if super().fill(path, hash):
+            if dimensions:
+                if (dimensions_ := win32.get_dimensions_image(path)) is None:
+                    return False
+                else:
+                    if not self.width:
+                        self.width = dimensions_[0]
+                    if not self.height:
+                        self.height = dimensions_[1]
+                    if not self.ratio:
+                        self.ratio = self.width / self.height
+        return True
+
     def is_animated(self) -> bool:  # TODO
         return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
-
-    def is_portrait(self) -> bool:
-        return self.width < self.height
-
-    def is_landscape(self) -> bool:
-        return self.width > self.height
 
     def is_sfw(self) -> bool:
         return not self.sketchy and not self.nsfw
@@ -220,7 +242,33 @@ class Source:
         raise NotImplementedError
 
     @classmethod
-    def filter_image(cls, image: File) -> bool:
+    @final
+    def _filter_orientations(cls, image: ImageFile,
+                             key: str = CONFIG_ORIENTATIONS) -> bool:
+        # noinspection PyTypedDict
+        return any(utils.iter_and(cls.CURRENT_CONFIG[key], (
+            image.ratio > 1.0, image.ratio < 1.0)))
+
+    @classmethod
+    @final
+    def _filter_ratings(cls, image: ImageFile, key: str = CONFIG_RATINGS, *,
+                        nsfw: bool = True, sketchy: bool = True, sfw: bool = True) -> bool:
+        ratings = []
+        if sfw:
+            ratings.append(image.is_sfw())
+        if sketchy:
+            ratings.append(image.sketchy)
+        if nsfw:
+            ratings.append(image.nsfw)
+        # noinspection PyTypedDict
+        return any(utils.iter_and(cls.CURRENT_CONFIG[key], ratings))
+
+    @classmethod
+    def filter_image(cls, image: ImageFile) -> bool:
+        if CONFIG_ORIENTATIONS in cls.DEFAULT_CONFIG and not cls._filter_orientations(image):
+            return False
+        if CONFIG_RATINGS in cls.DEFAULT_CONFIG and not cls._filter_ratings(image):
+            return False
         return True
 
 

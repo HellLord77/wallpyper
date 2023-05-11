@@ -5,9 +5,8 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import minihtml, request, utils
-from . import ImageFile
-from . import Source
+from libs import minihtml, request
+from . import CONFIG_ORIENTATIONS, ImageFile, Source
 
 _ATTRS_DOWNLOAD = {'action': '/photo/download'}
 _ATTRS_JSON = {'type': 'application/ld+json'}
@@ -17,7 +16,6 @@ URL_PHOTOS = request.join_url(URL_BASE, 'api', 'load-photos')
 URL_PHOTO = request.join_url(URL_BASE, 'photo')
 URL_DOWNLOAD = request.join_url(URL_PHOTO, 'download')
 
-CONFIG_ORIENTATIONS = '_orientations'
 CONFIG_SORT = 'sort'
 CONFIG_ORDER = 'order'
 
@@ -96,10 +94,3 @@ class StockSnap(Source):
             yield ImageFile(request.Request(
                 request.Method.POST, URL_DOWNLOAD, data=data_, cookies=cookies), name,
                 url=url_result, width=result['img_width'], height=result['img_height'])
-
-    @classmethod
-    def filter_image(cls, image: ImageFile) -> bool:
-        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_ORIENTATIONS], (
-                image.is_landscape(), image.is_portrait()))):
-            return False
-        return True

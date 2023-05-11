@@ -6,8 +6,8 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import callables, files, request, utils
-from . import ImageFile, Source
+from libs import callables, files, request
+from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
 _TOKEN_TOLERANCE = 30.0
 _TOKEN_DATA = {
@@ -18,9 +18,8 @@ URL_BASE = request.join_url('https://oauth.reddit.com', 'r')
 URL_TOKEN = request.join_url('https://www.reddit.com', 'api', 'v1', 'access_token')
 URL_IMAGE = request.join_url('https://i.redd.it')
 
+CONFIG_RATINGS = CONFIG_RATINGS[:-1]
 CONFIG_ID = '_client_id'
-CONFIG_ORIENTATIONS = '_orientations'
-CONFIG_RATINGS = '_ratings'
 CONFIG_STATIC = '_skip_animated'
 CONFIG_SUBS = 'subreddits'
 CONFIG_SORT = 'sort'
@@ -156,12 +155,8 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:
-        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_ORIENTATIONS], (
-                image.is_landscape(), image.is_portrait()))):
-            return False
-        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_RATINGS], (
-                image.is_sfw(), image.nsfw))):
+        if not cls._filter_ratings(image, CONFIG_RATINGS, sketchy=False):
             return False
         if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
             return False
-        return True
+        return super().filter_image(image)

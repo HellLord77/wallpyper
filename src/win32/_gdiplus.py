@@ -1381,6 +1381,12 @@ def image_is_valid(path: str) -> bool:
     return bool(image and image.get_width() and image.get_height())
 
 
+def image_get_dimensions(path: str) -> Optional[tuple[int, int]]:
+    image = Image.from_file(path)
+    if image:
+        return image.get_width(), image.get_height()
+
+
 def image_save(image: Image, path: str, quality: int = 100) -> bool:
     param_val = ctyped.type.LONG(quality)
     params = ctyped.struct.EncoderParameters(1, ctyped.array(

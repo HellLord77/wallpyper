@@ -2,8 +2,8 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import request, utils
-from . import ImageFile, Source
+from libs import request
+from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
 _CONTENT_END = b'[]'
 
@@ -11,8 +11,6 @@ URL_BASE = 'https://yande.re'
 URL_POSTS = request.join_url(URL_BASE, 'post.json')
 URL_INFO = request.join_url(URL_BASE, 'post', 'show')
 
-CONFIG_ORIENTATIONS = '_orientations'
-CONFIG_RATINGS = '_ratings'
 CONFIG_TAGS = 'tags'
 
 
@@ -68,13 +66,3 @@ class YandeRe(Source):
                 URL_INFO, str(post['id'])), width=post['width'],
                             height=post['height'], sketchy=post['rating'] == 'q',
                             nsfw=post['rating'] == 'e', md5=post['md5'])
-
-    @classmethod
-    def filter_image(cls, image: ImageFile) -> bool:
-        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_ORIENTATIONS], (
-                image.is_landscape(), image.is_portrait()))):
-            return False
-        if not any(utils.iter_and(cls.CURRENT_CONFIG[CONFIG_RATINGS], (
-                image.is_sfw(), image.sketchy, image.nsfw))):
-            return False
-        return True

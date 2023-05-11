@@ -50,6 +50,7 @@ class FocusAssistState(enum.IntEnum):
 
 
 is_valid_image = _gdiplus.image_is_valid
+get_dimensions_image = _gdiplus.image_get_dimensions
 
 
 def get_colored_bitmap(r: int, g: int, b: int, width: int = 32, height: int = 32) -> _gdiplus.Bitmap:
