@@ -90,15 +90,15 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
             params.clear()
         else:
             url = URL_SEARCH
-        params['page'] = '1'
-        params['per_page'] = '80'
+        page = 1
         while True:
             if not photos:
+                params['page'] = str(page)
                 response = request.get(url, params, headers=headers)
                 if response:
                     json = response.json()
                     photos = json.get('photos')
-                    params['page'] = str(int(params['page']) + 1) if json.get('next_page') else '1'
+                    page += bool(json.get('next_page'))
                 if not photos:
                     yield
                     continue

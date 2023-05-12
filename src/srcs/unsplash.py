@@ -1,5 +1,4 @@
 import functools
-import sys
 from typing import Callable, ItemsView, Iterator, Optional, TypedDict
 
 import gui
@@ -90,16 +89,20 @@ class Unsplash(Source):  # https://unsplash.com/documentation
                 CONFIG_ORDER: params[CONFIG_ORDER]}
         else:
             url = URL_SEARCH
-        params['page'] = '1'
         params['per_page'] = '30'
+        page = 1
         while True:
             if not results:
+                params['page'] = str(page)
                 response = request.get(url, params)
                 if response:
                     json = response.json()
-                    results = json if cls.CURRENT_CONFIG[CONFIG_EDITORIAL] else json['results']
-                    params['page'] = str(int(params['page']) % (sys.maxsize if cls.CURRENT_CONFIG[
-                        CONFIG_EDITORIAL] else int(json['total_pages'])) + 1)
+                    if cls.CURRENT_CONFIG[CONFIG_EDITORIAL]:
+                        results = json
+                    else:
+                        results = json['results']
+                        page %= int(json['total_pages'])
+                    page += 1
                 if not results:
                     yield
                     continue

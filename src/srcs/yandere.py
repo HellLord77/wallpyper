@@ -11,6 +11,7 @@ URL_BASE = 'https://yande.re'
 URL_POSTS = request.join_url(URL_BASE, 'post.json')
 URL_INFO = request.join_url(URL_BASE, 'post', 'show')
 
+CONFIG_RATINGS = CONFIG_RATINGS[:-1]
 CONFIG_TAGS = 'tags'
 
 
@@ -46,18 +47,18 @@ class YandeRe(Source):
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         posts: Optional[list] = None
-        params['page'] = '1'
-        params['limit'] = '100'
+        page = 1
         while True:
             if not posts:
+                params['page'] = str(page)
                 response = request.get(URL_POSTS, params)
                 if (response.status_code == request.Status.NOT_MODIFIED
                         and response.content == _CONTENT_END):
-                    params['page'] = '1'
+                    page = 1
                     continue
                 if response:
                     posts = response.json()
-                    params['page'] = str(int(params['page']) + 1)
+                    page += 1
                 if not posts:
                     yield
                     continue
@@ -66,3 +67,9 @@ class YandeRe(Source):
                 URL_INFO, str(post['id'])), width=post['width'],
                             height=post['height'], sketchy=post['rating'] == 'q',
                             nsfw=post['rating'] == 'e', md5=post['md5'])
+
+    @classmethod
+    def filter_image(cls, image: ImageFile) -> bool:
+        if not cls._filter_ratings(image, CONFIG_RATINGS, sketchy=True):
+            return False
+        return super().filter_image(image)

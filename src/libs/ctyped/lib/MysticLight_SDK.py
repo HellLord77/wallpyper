@@ -171,11 +171,11 @@ MLAPI_MysticLightControlNotify: _Callable[[_type.CallbackDelegate],
 """
 This function register Mystic Light controlling notification.
 """
-LAPI_SetLedColorsSync: _Callable[[_type.BSTR,  # type
-                                  _type.DWORD,  # R
-                                  _type.DWORD,  # G
-                                  _type.DWORD],  # B
-                                 _type.c_int]
+MLAPI_SetLedColorsSync: _Callable[[_type.BSTR,  # type
+                                   _type.DWORD,  # R
+                                   _type.DWORD,  # G
+                                   _type.DWORD],  # B
+                                  _type.c_int]
 """
 This function sets the colors for each individual LED within LED area by its 
 name.

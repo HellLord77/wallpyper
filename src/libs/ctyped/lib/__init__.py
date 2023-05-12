@@ -16,7 +16,7 @@ class _CLib(_ModuleType):
     _loader = _ctypes.CDLL
 
     def __init__(self, name: str, name_fmt: _Optional[str] = None,
-                 arg_32: str = '', arg_64: str = ''):
+                 arg_32: str = '', arg_64: str = '', prefix: str = ''):
         super().__init__(name)
         module = _sys.modules[name]
         self._annots = module.__annotations__
@@ -24,11 +24,12 @@ class _CLib(_ModuleType):
         # noinspection PyProtectedMember
         self._name = (name.removeprefix(f'{__name__}.') if name_fmt is None else
                       name_fmt.format(arg_64 if _const._WIN64 else arg_32))
+        self._prefix = prefix
         _sys.modules[name] = self
 
     def __getattr__(self, name: str):
         if name in self._annots:
-            func = self._lib[self._dict.get(name, name)]
+            func = self._lib[self._dict.get(name, self._prefix + name)]
             annot = self._annots[name]
             func.restype, *func.argtypes = _resolve_type(eval(annot, self._dict))
             func.__name__ = name

@@ -105,7 +105,6 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
     def get_image(cls, **params) -> Iterator[Optional[File]]:
         hits: Optional[list] = None
         params['page'] = '1'
-        params['per_page'] = '200'
         while True:
             if not hits:
                 response = request.get(URL_BASE, params)

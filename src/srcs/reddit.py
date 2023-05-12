@@ -18,7 +18,6 @@ URL_BASE = request.join_url('https://oauth.reddit.com', 'r')
 URL_TOKEN = request.join_url('https://www.reddit.com', 'api', 'v1', 'access_token')
 URL_IMAGE = request.join_url('https://i.redd.it')
 
-CONFIG_RATINGS = CONFIG_RATINGS[:-1]
 CONFIG_ID = '_client_id'
 CONFIG_STATIC = '_skip_animated'
 CONFIG_SUBS = 'subreddits'
@@ -133,7 +132,6 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         url = request.join_url(URL_BASE, params.pop(CONFIG_SUBS), sort)
         if sort not in (SORTS[2], SORTS[4]):
             del params[CONFIG_TIME]
-        params['limit'] = '100'
         while True:
             if not children:
                 auth = next(_get_auth(cls.CURRENT_CONFIG[CONFIG_ID]))
@@ -155,8 +153,6 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:
-        if not cls._filter_ratings(image, CONFIG_RATINGS, sketchy=False):
-            return False
         if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
             return False
         return super().filter_image(image)

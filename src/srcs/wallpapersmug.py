@@ -26,7 +26,7 @@ SORTS = 'latest', 'random', 'popular'
 
 
 class WallpapersMug(Source):
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_SEARCH: str,
@@ -59,7 +59,7 @@ class WallpapersMug(Source):
         page = 1
         if params[CONFIG_SEARCH]:
             url = request.encode_params(URL_SORT, {CONFIG_SEARCH: params[CONFIG_SEARCH]})
-        elif params[CONFIG_TAG] == TAGS[24]:
+        elif not params[CONFIG_TAG]:
             if (sort := params[CONFIG_SORT]) == SORTS[1]:
                 page = 0
             url = request.join_url(URL_SORT, sort)
@@ -73,8 +73,11 @@ class WallpapersMug(Source):
                 if response:
                     html = minihtml.loads(response.text)
                     images = list(html.find_all('div', _ATTRS_IMAGES))
-                    if page and html.find_all('span', _ATTRS_NEXT) is not None:
-                        page += 1
+                    if page:
+                        if html.find_all('span', _ATTRS_NEXT) is None:
+                            page = 1
+                        else:
+                            page += 1
                 if not images:
                     yield
                     continue

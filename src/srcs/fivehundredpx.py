@@ -1,5 +1,4 @@
 import functools
-import pprint
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -92,7 +91,6 @@ class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentatio
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         photos: Optional[list] = None
-        params['rpp'] = '100'
         while True:
             if not photos:
                 response = request.get(URL_BASE, params)
@@ -106,7 +104,6 @@ class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentatio
                 if not photos:
                     yield
                     continue
-            pprint.pprint(photos, sort_dicts=False)
             photo = photos.pop(0)
             yield ImageFile(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}',
                             url=request.join_url(cls.URL, photo['url']), width=photo[

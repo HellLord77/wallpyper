@@ -10,6 +10,8 @@ from libs import colornames, request, minihtml
 from . import ImageFile, Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_ATTRS_ITEM = {'class': 'item'}
+_ATTRS_END = {'data-score': ''}
 _ATTRS_JSON = {'type': 'application/ld+json'}
 
 URL_BASE = 'https://wallhere.com'
@@ -44,7 +46,7 @@ def _on_color_right(event):
 
 
 class WallHere(Source):
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_RANDOM: bool,
@@ -110,14 +112,21 @@ class WallHere(Source):
             url = URL_WALLPAPERS
         if not params.pop(CONFIG_NSFW):
             params[CONFIG_NSFW] = 'off'
-        params['page'] = '1'
         params['format'] = 'json'
+        page = 1
         while True:
             if not items:
+                params['page'] = str(page)
                 response = request.get(url, params)
                 if response:
-                    items = minihtml.loads(f'<html>{response.json()["data"]}</html>').children
-                    params['page'] = str(int(params['page']) + 1)
+                    json_ = response.json()
+                    if json_['code'] == request.Status.OK:
+                        html = minihtml.loads(f'<html>{json_["data"]}</html>')
+                        items = list(html.find_all('div', _ATTRS_ITEM))
+                        if html.find('a', _ATTRS_END) is None:
+                            page += 1
+                        else:
+                            page = 1
                 if not items:
                     yield
                     continue

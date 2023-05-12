@@ -152,14 +152,8 @@ class File:
 class ImageFile(File):
     width: int = 0
     height: int = 0
-    ratio: float = 0.0
     sketchy: bool = False
     nsfw: bool = False
-
-    def __post_init__(self):
-        super().__post_init__()
-        if not self.ratio and self.height:
-            self.ratio = self.width / self.height
 
     def asdict(self) -> dict[str, Any]:
         result = super().asdict()
@@ -167,8 +161,6 @@ class ImageFile(File):
             result['width'] = self.width
         if self.height:
             result['height'] = self.height
-        if self.ratio and (not self.height or self.ratio != self.width / self.height):
-            result['ratio'] = self.ratio
         if self.sketchy:
             result['sketchy'] = self.sketchy
         if self.nsfw:
@@ -188,12 +180,13 @@ class ImageFile(File):
                         self.width = dimensions_[0]
                     if not self.height:
                         self.height = dimensions_[1]
-                    if not self.ratio:
-                        self.ratio = self.width / self.height
         return True
 
     def is_animated(self) -> bool:  # TODO
         return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
+
+    def is_square(self, tolerance: float = 0.05) -> bool:
+        return abs(self.width / self.height - 1) <= tolerance
 
     def is_sfw(self) -> bool:
         return not self.sketchy and not self.nsfw
@@ -243,16 +236,22 @@ class Source:
 
     @classmethod
     @final
-    def _filter_orientations(cls, image: ImageFile,
-                             key: str = CONFIG_ORIENTATIONS) -> bool:
+    def _filter_orientations(cls, image: ImageFile, key: str = CONFIG_ORIENTATIONS, *,
+                             landscape: bool = True, portrait: bool = True, square: bool = False) -> bool:
+        orientations = []
+        if landscape:
+            orientations.append(image.width > image.height)
+        if portrait:
+            orientations.append(image.width < image.height)
+        if square:
+            orientations.append(image.is_square())
         # noinspection PyTypedDict
-        return any(utils.iter_and(cls.CURRENT_CONFIG[key], (
-            image.ratio > 1.0, image.ratio < 1.0)))
+        return any(utils.iter_and(cls.CURRENT_CONFIG[key], orientations))
 
     @classmethod
     @final
     def _filter_ratings(cls, image: ImageFile, key: str = CONFIG_RATINGS, *,
-                        nsfw: bool = True, sketchy: bool = True, sfw: bool = True) -> bool:
+                        sfw: bool = True, sketchy: bool = False, nsfw: bool = True) -> bool:
         ratings = []
         if sfw:
             ratings.append(image.is_sfw())

@@ -6,6 +6,30 @@ import validator
 from libs import request, minihtml
 from . import ImageFile, Source
 
+_CONTENT_END = (
+    b'<html lang="en"><head><title>ERROR 404:Page not found</title><meta '
+    b'name="viewport" content="width=device-width, initial-scale=1.0, '
+    b'maximum-scale=1.0, user-scalable=0" /><meta charset="utf-8"><meta '
+    b'http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta '
+    b'name="viewport" content="width=device-width, initial-scale=1.0, '
+    b'maximum-scale=1.0, user-scalable=0" /><style>body{margin:0;padding:0;'
+    b'background:#F7F7F7;font-family:"Arial","sans-serif"}main{width:304px;'
+    b'height:500px;position:absolute;left:50%;top:50%;margin-left:-152px;'
+    b'margin-top:-270px;background:url("/public/css/404.png")no-repeat top '
+    b'center;text-align:center}p{margin-top:360px;color:#959595;font-size:24px;'
+    b'font-family:Helvetica,Arial,sans-serif}a{background:#f37b1d;display:block;'
+    b'background:linear-gradient(#f3982a,#f37b1d);box-shadow:inset 0 1px 0 '
+    b'rgba(255,255,255,.08),0 1px 0 rgba(255,255,255,.3);text-shadow:0-1px 0 '
+    b'rgba(0,0,0,.2);color:#fff;display:block;border:0px solid#C90000;'
+    b'border-radius:3px;cursor:pointer;width:304px;height:40px;line-height:40px;'
+    b'text-decoration:none;text-align:center}a:hover{background:linear-gradient('
+    b'#F45D68,#E54646);background:linear-gradient(#f3a748,#f3883c);color:#fff;'
+    b'box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 1px 0 rgba(255,255,255,.1);'
+    b'border:0px solid#C90000}a:active{background:linear-gradient(#f3982a,#f39730);'
+    b'box-shadow:inset 0 1px 2px rgba(128,0,0,.3),0 1px 0 rgba(255,255,255,.3);'
+    b'line-height:42px}</style></head><body><main align="center"><p>ERROR 404:'
+    b'Page not found</p><a role="button" href="https://www.wallpaperflare.com">'
+    b'Back to HomePage</a></main></body></html>')
 # noinspection HttpUrlsUsage
 _ATTRS_ITEM = {
     'itemprop': 'associatedMedia',
@@ -29,7 +53,7 @@ SORTS = '', 'relevance'
 
 class WallpaperFlare(Source):
     NAME = 'Wallpaper Flare'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_SEARCH: bool,
@@ -65,20 +89,29 @@ class WallpaperFlare(Source):
             url = URL_SEARCH
             if mobile:
                 params[CONFIG_MOBILE] = 'ok'
-            params['page'] = '1'
+            page = 1
         else:
             url = URL_INDEX
-            params.pop(CONFIG_SORT)
+            del params[CONFIG_SORT]
             params['c'] = 'main'
             params['m'] = 'portal_loadmore'
-            params['page'] = '0'
+            page = 0
         while True:
             if not items:
+                params['page'] = str(page)
                 response = request.get(url, params)
+                if (response.status_code == request.Status.NOT_FOUND and
+                        response.content == _CONTENT_END):
+                    page = 1
+                    continue
                 if response:
+                    text = response.text
+                    if not text:
+                        page = 0
+                        continue
                     items = list(minihtml.loads(
-                        f'<html>{response.text}</html>').find_all('li', _ATTRS_ITEM))
-                    params['page'] = str(int(params['page']) + 1)
+                        f'<html>{text}</html>').find_all('li', _ATTRS_ITEM))
+                    page += 1
                 if not items:
                     yield
                     continue

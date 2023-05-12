@@ -53,20 +53,14 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         images: Optional[list] = None
         params['format'] = 'js'
         params['n'] = '8'
+        day = 1
         while True:
             if not images:
-                images_ = []
-                for day in range(params[CONFIG_DAY], DAYS.stop):
-                    params[CONFIG_DAY] = str(day)
-                    response = request.get(URL_ARCHIVE, params)
-                    if response:
-                        for image in response.json()['images']:
-                            if image not in images_:
-                                images_.append(image)
-                    else:
-                        break
-                else:
-                    images = images_
+                params[CONFIG_DAY] = str(day)
+                response = request.get(URL_ARCHIVE, params)
+                if response:
+                    images = response.json()['images']
+                    day = day % DAYS.stop + 1
                 if not images:
                     yield
                     continue
@@ -74,6 +68,6 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
             name, ext = os.path.splitext(query['id'][0])
             resolution = cls.CURRENT_CONFIG[CONFIG_RESOLUTION]
             query['id'][0] = f'{name[:name.rfind("_") + 1]}{resolution}{ext}'
-            width, height = (0, 0) if RESOLUTIONS[6] == resolution else map(int, resolution.split('x'))
+            width, height = (0, 0) if resolution == RESOLUTIONS[6] else map(int, resolution.split('x'))
             yield ImageFile(request.Request(request.Method.GET, URL_IMAGE, params=query),
                             query['id'][0][4:], width=width, height=height)

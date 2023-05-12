@@ -8,9 +8,10 @@ import validator
 from libs import request
 from . import ImageFile, Source
 
-_CONTENT_END = (b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
-                b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
-                b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
+_CONTENT_END = (
+    b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
+    b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
+    b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
 _PARAMS = {'json': ''}
 _PATTERN_HTML = re.compile(r'<div.*</div>', re.DOTALL)
 
@@ -87,18 +88,19 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         url = request.join_url(URL_BASE, params.pop(CONFIG_FILTER))
         if params.pop(CONFIG_STRICT):
             params['strict'] = ''
-        params['p'] = '1'
-        params['l'] = '250'
         params['json'] = ''
+        page = 1
         while True:
             if not items:
+                params['p'] = str(page)
                 response = request.get(url, params)
                 if (response.status_code == request.Status.FORBIDDEN and
                         response.content == _CONTENT_END):
-                    params['p'] = '1'
+                    page = 1
                     continue
                 if response:
                     items = _json_loads(response)['items']
+                    page += 1
                 if not items:
                     yield
                     continue

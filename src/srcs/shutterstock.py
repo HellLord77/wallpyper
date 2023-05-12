@@ -74,7 +74,6 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
         auth = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'
         params['page'] = '1'
-        params['per_page'] = '500'
         while True:
             if not datas:
                 response = request.get(URL_IMAGES_SEARCH, params, auth=auth)

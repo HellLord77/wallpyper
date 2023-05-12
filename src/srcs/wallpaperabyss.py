@@ -145,7 +145,7 @@ class WallpaperAbyss(Source):
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         images: Optional[list] = None
         url = request.join_url(URL_BASE, f'{cls.CURRENT_CONFIG[CONFIG_METHOD]}.php')
-        query = {'page': '1'}
+        query = {}
         if params[CONFIG_METHOD] == METHODS[0]:
             query[CONFIG_SEARCH] = params[CONFIG_SEARCH]
         elif params[CONFIG_METHOD] == METHODS[4]:
@@ -156,15 +156,17 @@ class WallpaperAbyss(Source):
             query[CONFIG_COLOR] = cls.CURRENT_CONFIG[CONFIG_COLOR]
         elif params[CONFIG_METHOD] == METHODS[13]:
             query[CONFIG_CATEGORY] = str(cls.CURRENT_CONFIG[CONFIG_CATEGORY])
-        cookies = {'AlphaCodersElementPerPage': '90',
-                   'AlphaCodersView': 'paged',
-                   'ResolutionFilter': params[CONFIG_RESOLUTION_FILTER],
-                   'ResolutionEquals': params[CONFIG_RESOLUTION_EQUALS],
-                   'Sorting': params[CONFIG_SORT]}
+        cookies = {
+            'AlphaCodersView': 'paged',
+            'ResolutionFilter': params[CONFIG_RESOLUTION_FILTER],
+            'ResolutionEquals': params[CONFIG_RESOLUTION_EQUALS],
+            'Sorting': params[CONFIG_SORT]}
+        page = 1
         session = cloudflare.Session(user_agent=cloudflare.UserAgent(mobile=False))
         session.head(URL_BASE)
         while True:
             if not images:
+                query['page'] = str(page)
                 response = session.get(url, query, cookies=cookies)
                 if response:
                     html = minihtml.loads(response.text)
@@ -175,9 +177,7 @@ class WallpaperAbyss(Source):
                     elif (pagination := html.find('div', _ATTRS_PAGINATION)) is not None:
                         has_next = pagination[-1].get_data() == 'Next >>'
                     if has_next:
-                        query['page'] = str(int(query['page']) + 1)
-                    else:
-                        query['page'] = '1'
+                        page += 1
                 if not images:
                     yield
                     continue
