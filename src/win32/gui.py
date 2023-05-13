@@ -727,8 +727,10 @@ class Menu(_Control):
                  default=None, by_pos: bool = False) -> Optional[MenuItem]:
         if by_pos:
             if id_or_pos_or_item >= 0:
-                with contextlib.suppress(IndexError):
+                try:
                     return self._items[id_or_pos_or_item]
+                except IndexError:
+                    pass
         else:
             if isinstance(id_or_pos_or_item, int):
                 id_or_pos_or_item = MenuItem.get(id_or_pos_or_item)

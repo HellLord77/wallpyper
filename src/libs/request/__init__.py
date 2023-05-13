@@ -543,7 +543,7 @@ def default_accept_language(*languages: str | tuple[str | Iterable[str], float])
     return ','.join(accept_languages)
 
 
-def default_user_agent(name: str = __name__) -> str:
+def default_user_agent(name: str = 'python-' + __name__) -> str:
     return f'{name}/{__version__}'
 
 

@@ -5,7 +5,6 @@ import base64
 import binascii
 import bz2
 import collections
-import contextlib
 import ctypes
 import datetime
 import functools
@@ -487,8 +486,10 @@ def try_ex(*funcs: Callable, excs: Optional[Iterable[Optional[Iterable[type[Base
             funcs, () if excs is None else excs):
         if func is None:
             break
-        with contextlib.suppress(*() if func_excs is None else func_excs):
-            return func()
+        try:
+            func()
+        except () if func_excs is None else func_excs:
+            pass
 
 
 def pass_ex(*_, **__):

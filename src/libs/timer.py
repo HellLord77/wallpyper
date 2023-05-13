@@ -1,6 +1,5 @@
 __version__ = '0.0.6'  # TODO remove (?)
 
-import contextlib
 import ctypes
 import functools
 import math
@@ -55,8 +54,10 @@ class Timer:
         if self._interval != 0 and not self.once:
             self.start()
         try:
-            with contextlib.suppress(_TimerExit):
+            try:
                 self.result = self.target()
+            except _TimerExit:
+                pass
         finally:
             self._running -= 1
 

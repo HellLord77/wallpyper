@@ -1,4 +1,3 @@
-import contextlib
 import functools
 import itertools
 import os
@@ -310,14 +309,23 @@ def str_type(type: clang.cindex.Type) -> str:
         spelling = _TYPE_KIND[type.kind]
     except KeyError:
         pass
-    with contextlib.suppress(AttributeError):
+    try:
         getattr(ctyped.type, spelling)
+    except AttributeError:
+        pass
+    else:
         return _str_pointer(f'_type.{spelling}', count_pointer)
-    with contextlib.suppress(AttributeError):
+    try:
         getattr(ctyped.type, f'c_{spelling}')
+    except AttributeError:
+        pass
+    else:
         return _str_pointer(f'_type.c_{spelling}', count_pointer)
-    with contextlib.suppress(AttributeError):
+    try:
         getattr(ctyped.enum, f'_{spelling}')
+    except AttributeError:
+        pass
+    else:
         return _str_pointer(KIND_ENUM.format(spelling), count_pointer)
     if type.kind == clang.cindex.TypeKind.CONSTANTARRAY:
         return f'{str_type(type.get_array_element_type())} * {type.get_array_size()}'

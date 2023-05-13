@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import array
 import collections.abc
-import contextlib
 import dataclasses
 import datetime
 import decimal
@@ -305,8 +304,10 @@ def _test_winrt():
     try:
         print(_utils.copy_file(src, dst, print))
     finally:
-        with contextlib.suppress(BaseException):
+        try:
             os.remove(dst)
+        except FileNotFoundError:
+            pass
 
 
 def _test_500px():
@@ -615,9 +616,7 @@ def _test_progress():
 
 
 def _test():
-    resp = request.get('https://www.wallpaperflare.com/index.php?c=main&m=portal_loadmore&page=999')
-    print(resp.status_code)
-    print(resp.content)
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

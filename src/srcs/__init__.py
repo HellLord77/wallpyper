@@ -231,7 +231,7 @@ class Source:
 
     @classmethod
     @callables.LastCacheCallable
-    def get_image(cls, **params) -> Iterator[Optional[File]]:
+    def get_image(cls, **params) -> Iterator[Optional[File | ImageFile]]:
         raise NotImplementedError
 
     @classmethod

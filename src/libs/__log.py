@@ -122,9 +122,11 @@ def _format_dict(dict_: Mapping[str, Any], prefix: str = '', suffix: str = '\n')
     end = f'\n{" " * (len(_ANSI.sub("", prefix)) + sum(pads) + 6)}'
     formatted = ''
     for item, type_, size in zip(dict_.items(), types_, sizes):
-        with contextlib.suppress(AssertionError, AttributeError):
+        try:
             formatted += (f'{prefix}{f"{item[0]}: ":{pads[0] + 2}}[{type_:{pads[1]}} {size:>{pads[2]}}] '
                           f'{pprint.pformat(item[1], sort_dicts=False).replace(end[0], end)}{suffix}')
+        except (AssertionError, AttributeError):
+            pass
     return formatted
 
 
@@ -134,8 +136,10 @@ def _on_trace(frame: FrameType, event: str, arg) -> Optional[Callable]:
     else:
         frame.f_trace_lines = False
         path = frame.f_code.co_filename
-        with contextlib.suppress(ValueError):
+        try:
             path = os.path.relpath(path, _BASE)
+        except ValueError:
+            pass
         if (_INCLUDES.fullmatch(path) and not _EXCLUDES.fullmatch(path) and __name__ is not
                 frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name)):
             thread = threading.current_thread()
