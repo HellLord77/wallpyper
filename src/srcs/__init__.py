@@ -274,6 +274,7 @@ class Source:
 from . import (
     besthdwallpaper,
     bing,
+    bing_sapphire,
     facets,
     fivehundredpx,
     folder,

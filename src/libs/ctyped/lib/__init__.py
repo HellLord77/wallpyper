@@ -29,7 +29,7 @@ class _CLib(_ModuleType):
 
     def __getattr__(self, name: str):
         if name in self._annots:
-            func = self._lib[self._dict.get(name, self._prefix + name)]
+            func = self._lib[self._dict.get(name, f'{self._prefix}{name}')]
             annot = self._annots[name]
             func.restype, *func.argtypes = _resolve_type(eval(annot, self._dict))
             func.__name__ = name
