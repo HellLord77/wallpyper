@@ -16,12 +16,12 @@ CONFIG_MARKET = 'mkt'
 
 RESOLUTIONS = '800x600', '1024x768', '1280x720', '1366x768', '1920x1200', '1920x1080', 'UHD'
 DAYS = range(8)
-MARKETS = 'de-DE', 'en-AU', 'en-CA', 'en-GB', 'en-IN', 'en-US', 'fr-CA', 'fr-FR', 'ja-JP', 'zh-CN'
+MARKETS = '', 'de-DE', 'en-AU', 'en-CA', 'en-GB', 'en-IN', 'en-US', 'fr-CA', 'fr-FR', 'ja-JP', 'zh-CN'
 
 
-class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
-    NAME = 'Bing Wallpaper'
-    VERSION = '0.0.1'
+class Bing(Source):  # https://github.com/timothymctim/Bing-wallpapers
+    NAME = 'Bing'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_RESOLUTION: str,
@@ -30,7 +30,7 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_RESOLUTION: RESOLUTIONS[5],
         CONFIG_DAY: next(iter(DAYS)),
-        CONFIG_MARKET: MARKETS[5]}
+        CONFIG_MARKET: MARKETS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -43,7 +43,8 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
         gui.add_submenu_radio(cls._text('MENU_DAY'), {day: cls._text(
             f'DAY_{day}') for day in DAYS}, cls.CURRENT_CONFIG, CONFIG_DAY)
         gui.add_submenu_radio(cls._text('MENU_MARKET'), {market: isocodes.ISO31661.get(
-            market[market.find('-') + 1:]).name for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
+            market[market.find('-') + 1:]).name if market else cls._text(
+            'MARKET_') for market in MARKETS}, cls.CURRENT_CONFIG, CONFIG_MARKET)
         gui.add_submenu_radio(cls._text('MENU_RESOLUTION'), {resolution: cls._text(
             f'RESOLUTION_{resolution}') for resolution in RESOLUTIONS},
                               cls.CURRENT_CONFIG, CONFIG_RESOLUTION)
@@ -52,15 +53,15 @@ class BingWallpaper(Source):  # https://github.com/timothymctim/Bing-wallpapers
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         images: Optional[list] = None
         params['format'] = 'js'
-        params['n'] = '8'
-        day = 1
+        params['n'] = '7'
+        day = 0
         while True:
             if not images:
                 params[CONFIG_DAY] = str(day)
                 response = request.get(URL_ARCHIVE, params)
                 if response:
                     images = response.json()['images']
-                    day = day % DAYS.stop + 1
+                    day %= DAYS.stop
                 if not images:
                     yield
                     continue

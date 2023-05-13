@@ -88,7 +88,7 @@ DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
-    consts.CONFIG_ACTIVE_SOURCE: 'folder_local',
+    consts.CONFIG_ACTIVE_SOURCE: 'folder',
     consts.CONFIG_ANIMATE_ICON: True,
     consts.CONFIG_AUTO_START: False,
     consts.CONFIG_AUTO_SAVE: False,
