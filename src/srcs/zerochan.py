@@ -13,7 +13,7 @@ _CONTENT_END = (
     b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
     b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
 _PARAMS = {'json': ''}
-_PATTERN_HTML = re.compile(r'<div.*</div>', re.DOTALL)
+_RE_HTML = re.compile(r'<div.*</div>', re.DOTALL)
 
 URL_BASE = 'https://www.zerochan.net'
 
@@ -31,7 +31,7 @@ COLORS = '', 'black', 'blue', 'brown', 'green', 'pink', 'purple', 'red', 'white'
 
 
 def _json_loads(response: request.Response) -> Any:
-    return json.loads(_PATTERN_HTML.sub('', response.text, 1).replace(
+    return json.loads(_RE_HTML.sub('', response.text, 1).replace(
         'next: ', '"next": ').replace('\\', '\\\\'))
 
 

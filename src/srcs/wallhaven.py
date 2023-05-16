@@ -38,7 +38,7 @@ COLORS = (
     '0099cc', '66cccc', '77cc33', '669900', '336600', '666600', '999900', 'cccc33', 'ffff00', 'ffcc33',
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
 AI_FILTERS = '0', '1'
-PATTERN_PURITY = re.compile('^(?!000)[01]{3}$')
+RE_PURITY = re.compile('^(?!000)[01]{3}$')
 
 
 def _on_color_right(event):
@@ -84,7 +84,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     def fix_config(cls, saving: bool = False):
         cls._fix_config(validator.ensure_len, CONFIG_CATEGORIES, 3)
         cls._fix_config(validator.ensure_truthy, CONFIG_CATEGORIES, any)
-        cls._fix_config(validator.ensure_pattern, CONFIG_PURITY, PATTERN_PURITY)
+        cls._fix_config(validator.ensure_pattern, CONFIG_PURITY, RE_PURITY)
         cls._fix_config(validator.ensure_iterable, CONFIG_SORTING, SORTINGS)
         cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
         cls._fix_config(validator.ensure_iterable, CONFIG_RANGE, RANGES)
