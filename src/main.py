@@ -30,11 +30,15 @@ UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
-PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
-TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(tempfile.gettempdir(), consts.NAME)
+PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
+    sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
+TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(
+    tempfile.gettempdir(), consts.NAME)
 
-CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = 0, 300, 900, 1800, 3600, 10800, 21600
-TRANSITION_DURATIONS: tuple[float, float, float, float, float] = 0.5, 1.0, 2.5, 5.0, 10.0
+CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = (
+    0, 300, 900, 1800, 3600, 10800, 21600)
+TRANSITION_DURATIONS: tuple[float, float, float, float, float] = (
+    0.5, 1.0, 2.5, 5.0, 10.0)
 MAXIMIZED_ACTIONS: tuple[str, str, str] = 'ignore', 'postpone', 'skip'
 BLOCKERS: dict[str, str] = {
     'lwservice.exe': 'Live2DViewerEX',
@@ -52,8 +56,10 @@ DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 STOP = utils.MutableBool()
 RESTART = utils.MutableBool()
 TIMER = timer.Timer.__new__(timer.Timer)
-RECENT: collections.deque[srcs.File] = collections.deque(maxlen=consts.MAX_RECENT_LEN)
-PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(f'{UUID}.{uuid.uuid4().hex}')
+RECENT: collections.deque[srcs.File] = collections.deque(
+    maxlen=consts.MAX_RECENT_LEN)
+PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(
+    f'{UUID}.{uuid.uuid4().hex}')
 
 TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_FIRST_RUN: bool,
@@ -376,7 +382,8 @@ def try_show_notification(title: str, text: str = '',
         end_time = time.monotonic() + consts.MAX_NOTIFY_SEC
         while end_time > time.monotonic() and not gui.SYSTEM_TRAY.is_shown():
             time.sleep(consts.POLL_FAST_SEC)
-        return gui.SYSTEM_TRAY.show_balloon(title, utils.shrink_string(text, consts.MAX_NOTIFY_LEN), icon)
+        return gui.SYSTEM_TRAY.show_balloon(
+            title, utils.shrink_string(text, consts.MAX_NOTIFY_LEN), icon)
     return False
 
 
@@ -810,11 +817,14 @@ def on_unpin_from_start() -> bool:
 def on_toggle_console() -> bool:
     if PIPE:
         if toggled := not PIPE.disconnect():
-            try_show_notification(_text('LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
+            try_show_notification(_text(
+                'LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
     else:
-        win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (sys.executable, pipe.__file__), str(PIPE))
+        win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (
+            sys.executable, pipe.__file__), str(PIPE))
         if not (toggled := PIPE.connect(consts.MAX_PIPE_SEC)):
-            try_show_notification(_text('LABEL_CONSOLE'), _text('FAIL_SHOW_CONSOLE'))
+            try_show_notification(_text(
+                'LABEL_CONSOLE'), _text('FAIL_SHOW_CONSOLE'))
     return toggled
 
 
@@ -882,8 +892,8 @@ def apply_auto_start(auto_start: bool) -> bool:
 
 
 def start():
-    singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(print, 'Crash'),
-                   functools.partial(print, 'Wait'), on_exit=functools.partial(print, 'Exit'))
+    singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(
+        print, 'Crash'), functools.partial(print, 'Wait'), functools.partial(print, 'Exit'))
     pyinstall.clean_temp()
     _update_display()
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867

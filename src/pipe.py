@@ -42,6 +42,10 @@ class ctyped:
 
 # noinspection PyPep8Naming
 class kernel32:
+    SetConsoleTitleW = ctypes.windll.kernel32.SetConsoleTitleW
+    SetConsoleTitleW.restype = ctypes.c_int
+    SetConsoleTitleW.argtypes = ctypes.c_wchar_p,
+
     GetLastError = ctypes.windll.kernel32.GetLastError
     GetLastError.restype = ctypes.c_ulong
     GetLastError.argtypes = ()
@@ -214,21 +218,21 @@ class StringNamedPipeClient:
     _err = None
 
     def __init__(self, name: str):
-        self._console = StringNamedPipe(name)
+        self._pipe = StringNamedPipe(name)
 
     def __bool__(self):
-        return bool(self._console) and self._console.exists()
+        return bool(self._pipe) and self._pipe.exists()
 
     def __str__(self):
-        return str(self._console)
+        return str(self._pipe)
 
     def connect(self, timeout: float = 0.0) -> bool:
         end_time = time.monotonic() + timeout
-        while end_time > time.monotonic() and not self._console.open(False, True):
+        while end_time > time.monotonic() and not self._pipe.open(False, True):
             time.sleep(POLL_INTERVAL)
         if connected := bool(self):
-            self._out = sys.stdout = _StringWriter(self._console, sys.stdout)
-            self._err = sys.stderr = _StringWriter(self._console, sys.stderr)
+            self._out = sys.stdout = _StringWriter(self._pipe, sys.stdout)
+            self._err = sys.stderr = _StringWriter(self._pipe, sys.stderr)
         return connected
 
     def disconnect(self) -> bool:
@@ -238,7 +242,7 @@ class StringNamedPipeClient:
         if self._err is not None:
             sys.stderr = self._err.base
             self._err = None
-        return self._console.close()
+        return self._pipe.close()
 
 
 def create_server(name: str):
@@ -254,12 +258,13 @@ def create_server(name: str):
                     print(data, end='', flush=True)
             pipe.disconnect()
         pipe.close()
-    sys.exit()
 
 
 def main():
     if len(sys.argv) > 1:
-        create_server(sys.argv[1])
+        arg = sys.argv[1]
+        kernel32.SetConsoleTitleW(ntpath.basename(arg).rsplit('.', 1)[0])
+        create_server(arg)
     sys.exit()
 
 

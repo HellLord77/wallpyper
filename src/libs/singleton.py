@@ -1,9 +1,11 @@
-__version__ = '0.0.5'  # TODO send signal and kill if no reply, check error code & crash
+__version__ = '0.0.6'  # TODO send signal and kill if no reply, check error code & crash
 
 import atexit
+import enum
 import hashlib
 import multiprocessing.shared_memory
 import os
+import shutil
 import socket
 import sys
 import tempfile
@@ -12,11 +14,13 @@ from typing import AnyStr, Callable, NoReturn, Optional
 
 WAIT_INTERVAL = 5
 POLL_INTERVAL = 1
-MAX_CHUNK = 1024 * 1024
+# noinspection PyUnresolvedReferences
+MAX_CHUNK = shutil.COPY_BUFSIZE
 SUFFIX = '.lock'
 
 
-def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
+def _wait_or_exit(end_time: float, on_wait: Optional[Callable],
+                  on_exit: Optional[Callable]) -> Optional[NoReturn]:
     if end_time > time.monotonic():
         if on_wait is not None:
             on_wait()
@@ -27,7 +31,8 @@ def _wait_or_exit(end_time: float, on_wait: Optional[Callable], on_exit: Optiona
         raise SystemExit
 
 
-def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
+def _file(uid: str, wait: bool, on_crash: Optional[Callable],
+          on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -50,7 +55,8 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable], on_wait: Optional[
             break
 
 
-def _memory(uid: str, wait: bool, _, on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
+def _memory(uid: str, wait: bool, _, on_wait: Optional[Callable],
+            on_exit: Optional[Callable]) -> Optional[NoReturn]:
     end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
         try:
@@ -63,8 +69,10 @@ def _memory(uid: str, wait: bool, _, on_wait: Optional[Callable], on_exit: Optio
             break
 
 
-def _socket(uid: str, wait: bool, _, on_wait: Optional[Callable], on_exit: Optional[Callable], ) -> Optional[NoReturn]:
-    address = socket.gethostname(), int.from_bytes(uid.encode(), sys.byteorder) % 48128 + 1024
+def _socket(uid: str, wait: bool, _, on_wait: Optional[Callable],
+            on_exit: Optional[Callable], ) -> Optional[NoReturn]:
+    address = socket.gethostname(), int.from_bytes(
+        uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
@@ -77,26 +85,25 @@ def _socket(uid: str, wait: bool, _, on_wait: Optional[Callable], on_exit: Optio
             break
 
 
-class Method:
-    FILE = _file
-    MEMORY = _memory
-    SOCKET = _socket
+class Method(enum.Enum):
+    FILE = enum.member(_file)
+    MEMORY = enum.member(_memory)
+    SOCKET = enum.member(_socket)
 
 
-def _get_uid(data_or_path: AnyStr, prefix: Optional[str] = None) -> str:
-    md5 = hashlib.md5()
-    if isinstance(data_or_path, bytes):
-        md5.update(data_or_path)
-    elif os.path.isfile(data_or_path):
+def _get_uid(data_or_path: bytes, prefix: Optional[str]) -> str:
+    md5 = hashlib.md5(data_or_path)
+    if os.path.isfile(data_or_path):
         with open(data_or_path or sys.argv[0], 'rb') as file:
             while buffer := file.read(MAX_CHUNK):
                 md5.update(buffer)
-    return f'{prefix or __name__}_{md5.hexdigest()}{SUFFIX}'
+    prefix = '' if prefix is None else f'{prefix}_'
+    return f'{prefix}{md5.hexdigest()}{SUFFIX}'
 
 
-def init(uuid: AnyStr, uid_prefix: Optional[str] = None, wait: bool = False,
+def init(uuid: AnyStr, uid_prefix: Optional[str] = __name__, wait: bool = False,
          on_crash: Optional[Callable] = None, on_wait: Optional[Callable] = None,
-         on_exit: Optional[Callable] = None, method: Callable = Method.FILE) -> Optional[NoReturn]:
+         on_exit: Optional[Callable] = None, method: Method = Method.FILE) -> Optional[NoReturn]:
     if isinstance(uuid, str):
         uuid = uuid.encode()
-    method(_get_uid(uuid, uid_prefix), wait, on_crash, on_wait, on_exit)
+    method.value(_get_uid(uuid, uid_prefix), wait, on_crash, on_wait, on_exit)

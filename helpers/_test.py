@@ -15,15 +15,12 @@ import re
 import sys
 import time
 import uuid
-import xmlrpc.client
-import xmlrpc.server
 from types import ModuleType
 from typing import AnyStr, Callable, Optional, TypeVar, NamedTuple
 from xml.etree import ElementTree
 
 import win32
 from libs import ctyped, config, request
-from libs import jsonrpc
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
 from libs.ctyped.lib import kernel32, user32, python
@@ -85,8 +82,8 @@ def _test_load_string_from_lib():
 
 
 def _test_browser():
-    from win32 import _browser
-    browser = _browser.Browser()
+    from win32 import __browser
+    browser = __browser.Browser()
     browser.navigate('https://google.com')
     browser.wait()
     print(browser._browser.width)
@@ -107,8 +104,8 @@ def _test_dispatch():
 
 
 def _test_browser_ex():
-    from win32 import _browser
-    browser = _browser._BrowserEx()
+    from win32 import __browser
+    browser = __browser._BrowserEx()
     browser._mainloop()
     if browser:
         browser._hwnd.show()
@@ -618,89 +615,8 @@ def _test_progress():
         taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.NOPROGRESS)
 
 
-data = """
-{
-    "methodCall": {
-        "methodName": "system.multicall",
-        "params": [
-            [
-                {
-                    "methodName": "getData",
-                    "params": []
-                },
-                {
-                    "methodName": "pow",
-                    "params": [
-                        2,
-                        9
-                    ]
-                },
-                {
-                    "methodName": "add",
-                    "params": [
-                        1,
-                        2
-                    ]
-                }
-            ]
-        ]
-    }
-}
-"""
-data2 = """<?xml version="1.0"?>
-<methodCall><methodName>examples.getStateStruct</methodName><params><param><value><base64>JnRleHQ=</base64></value></param></params></methodCall>
-"""
-
-
 def _test():
-    from libs import jsonrpc
-    enc = jsonrpc._xml_to_json(data2)
-    dec = jsonrpc._json_to_xml(enc)
-    print(dec)
-    dat = b'{"methodCall":{"methodName":"currentTime.getCurrentTime","params":[]}}'
-    print(jsonrpc._json_to_xml(dat))
-
-
-def _server():
-    import datetime
-    class ExampleService:
-        def getData(self):
-            return '42'
-
-        class currentTime:
-            @staticmethod
-            def getCurrentTime():
-                return datetime.datetime.now()
-
-    with jsonrpc.SimpleJSONRPCServer(("localhost", 8000)) as server:
-        server.register_function(pow)
-        server.register_function(lambda x, y: x + y, 'add')
-        server.register_instance(ExampleService(), allow_dotted_names=True)
-        server.register_multicall_functions()
-        print('Serving XML-RPC on localhost port 8000')
-        print('It is advisable to run this example server within a secure, closed network.')
-        try:
-            server.serve_forever()
-        except KeyboardInterrupt:
-            print("\nKeyboard interrupt received, exiting.")
-            sys.exit(0)
-
-
-def _client():
-    server = jsonrpc.ServerProxy("http://localhost:8000")
-    try:
-        print(server.currentTime.getCurrentTime())
-    except xmlrpc.client.Error as v:
-        print("ERROR", v)
-    multi = xmlrpc.client.MultiCall(server)
-    multi.getData()
-    multi.pow(2, 9)
-    multi.add(1, 2)
-    try:
-        for response in multi():
-            print(response)
-    except xmlrpc.client.Error as v:
-        print("ERROR", v)
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
@@ -708,6 +624,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _server()
-    _client()
+    _test()
     sys.exit()

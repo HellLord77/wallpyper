@@ -10,6 +10,7 @@ from typing import Optional
 import cython
 
 COMPILED = cython.compiled
+LIBRARIES = [f'python{sys.version_info.major}{sys.version_info.minor}']
 
 
 def compile_c(source: str, output: Optional[str] = None):
@@ -18,5 +19,6 @@ def compile_c(source: str, output: Optional[str] = None):
     build = distutils.command.build_ext.build_ext(distutils.core.Distribution())
     build.finalize_options()
     compiler = distutils.ccompiler.new_compiler()
-    compiler.link_executable(compiler.compile([source], include_dirs=build.include_dirs), output, libraries=[
-        f'python{sys.version_info.major}{sys.version_info.minor}'], library_dirs=build.library_dirs)
+    compiler.link_executable(compiler.compile([
+        source], include_dirs=build.include_dirs), output,
+        libraries=LIBRARIES, library_dirs=build.library_dirs)

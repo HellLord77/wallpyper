@@ -307,7 +307,9 @@ def refresh_dir(dir: str):
 
 
 def press_keyboard(key: int) -> bool:
-    input_ = ctyped.struct.INPUT(ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_U(ki=ctyped.struct.KEYBDINPUT(key)))
+    input_ = ctyped.struct.INPUT(
+        ctyped.const.INPUT_KEYBOARD, ctyped.union.INPUT_U(
+            ki=ctyped.struct.KEYBDINPUT(key)))
     ref = ctyped.byref(input_)
     sz = ctyped.sizeof(ctyped.struct.INPUT)
     if user32.SendInput(1, ref, sz) == 1:
@@ -317,8 +319,8 @@ def press_keyboard(key: int) -> bool:
 
 
 def open_file(path: str, *args: str) -> bool:
-    return shell32.ShellExecuteW(
-        None, None, path, subprocess.list2cmdline(args), None, ctyped.const.SW_SHOW) > 32
+    return shell32.ShellExecuteW(None, None, path, subprocess.list2cmdline(
+        args), None, ctyped.const.SW_SHOW) > 32
 
 
 def open_file_path(path: str) -> bool:
