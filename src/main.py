@@ -172,6 +172,11 @@ def create_menu():
     on_source(item_source, CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
     gui.add_separator()
     with gui.set_menu(gui.add_submenu(_text('MENU_ACTIONS'), icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
+        gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
+            STOP.set, True)).set_icon(RES_TEMPLATE.format(consts.RES_STOP))
+        if consts.FEATURE_CONSOLE_VIEW:
+            gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
+                RES_TEMPLATE.format(consts.RES_CONSOLE))
         with gui.set_menu(gui.add_submenu(_text('MENU_LINKS'), icon=RES_TEMPLATE.format(consts.RES_LINKS))):
             gui.add_menu_item(_text('LABEL_DESKTOP'), on_click=on_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_LINK))
@@ -195,8 +200,7 @@ def create_menu():
                 _text('LABEL_PIN_START'), enable=consts.FEATURE_SYSTRAY_PIN, on_click=functools.partial(
                     on_pin_to_start, item_unpin_start.enable), args=(gui.MenuItemMethod.ENABLE,),
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
-        gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
-            STOP.set, True)).set_icon(RES_TEMPLATE.format(consts.RES_STOP))
+        gui.add_separator()
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
@@ -204,9 +208,6 @@ def create_menu():
             RES_TEMPLATE.format(consts.RES_SETTINGS_RESET))
         gui.add_menu_item(_text('LABEL_RESTART'), enable=bool(
             multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
-        if consts.FEATURE_CONSOLE_VIEW:
-            gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
-                RES_TEMPLATE.format(consts.RES_CONSOLE))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_TEMPLATE.format(consts.RES_AUTO))):
             gui.add_menu_item_check(_text('LABEL_CHANGE_START'), CURRENT_CONFIG,

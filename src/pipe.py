@@ -8,8 +8,6 @@ import time
 from typing import AnyStr, Optional, TextIO
 
 
-# FIXME https://github.com/cython/cython/issues/5134 [py3.11 Could not find platform independent libraries <prefix>]
-
 # noinspection PyPep8Naming
 class ctyped:
     sizeof = ctypes.sizeof

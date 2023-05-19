@@ -1,11 +1,11 @@
-$Version = "0.2.0"
+$Version = "0.2.1"
 
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
 	"res"
 	"srcs/res"
 	"win32/syspin.exe"
-	"pipe.exe")
+	"../build/pipe/pipe.exe;")
 $Datas32 = @()
 $Datas64 = @()
 $Imports = @()
@@ -21,13 +21,12 @@ $ElevatedProc = $False
 $RemoteProc = $False
 $UPX = $False
 $ModuleGraph = $True
-$AddPython = $False
 $EntryPoint = "src/init.py"
 $Icon = "src/res/icon.ico"
 # $Manifest = "manifest.xml" FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $Manifest = ""
 $MainManifest = "manifest.xml"
-$CythonSources = @("src/pipe.py")
+$CythonSources = @()
 $CythonizeExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
 	"src/libs/ctyped/enum/__init__.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
@@ -48,7 +47,16 @@ $CythonizeSourceGlobs = @(
 $CythonizeAnnotate = $False
 $CythonizeNoDocstrings = $True
 $CythonizeRemove = $True
-$CodeRunBefore = @()
+$CodeRunBefore = @(
+	"from sys import argv"
+	"from PyInstaller.utils.cliutils.makespec import run"
+	"from PyInstaller import __main__"
+	"argv.extend(('--noupx', '--icon=NONE', 'src/pipe.py'))"
+	"run()"
+	"lines = open('pipe.spec').readlines()"
+	"open('pipe.spec', 'w').writelines(lines[:lines.index('coll = COLLECT(\n')])"
+	"__main__.run(['pipe.spec'])"
+)
 $CodeRunBeforeRemote = @(
 	"from src.libs.colornames import _download"
 	"_download()"
@@ -64,9 +72,7 @@ $CodeRunBeforeRemote = @(
 	"_download()"
 	"from src.libs.useragents import _download"
 	"_download()")
-$CodeRunAfter = @(
-	"from os import remove"
-	"remove('src/pipe.exe')")
+$CodeRunAfter = @()
 $CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(
 	"src/libs/colornames/colornames.min.json"
@@ -298,20 +304,17 @@ function Get-ModuleGraph {
 
 function Get-PyInstallerArgs {
 	$ArgList = @("--noconfirm")
-	if ($OneFile) { $ArgList += "--onefile"	}
-	if ($Debug) { $ArgList += "--debug=all"	}
-	if ($NoConsole) { $ArgList += "--windowed"	}
-	if ($Manifest) { $ArgList += "--manifest=$Manifest"	}
-	if ($ElevatedProc) { $ArgList += "--uac-admin"	}
-	if ($RemoteProc) { $ArgList += "--uac-uiaccess"	}
+	if ($OneFile) { $ArgList += "--onefile" }
+	if ($Debug) { $ArgList += "--debug=all" }
+	if ($NoConsole) { $ArgList += "--windowed" }
+	if ($Manifest) { $ArgList += "--manifest=$Manifest" }
+	if ($ElevatedProc) { $ArgList += "--uac-admin" }
+	if ($RemoteProc) { $ArgList += "--uac-uiaccess" }
 	if ($Icon) { $ArgList += "--icon=$Icon"	}
-	foreach ($Import in $Imports) { $ArgList += "--hidden-import=$Import"	}
-	foreach ($Exclude in $Excludes) { $ArgList += "--exclude-module=$Exclude"	}
-	foreach ($HooksDir in $HooksDirs) { $ArgList += "--additional-hooks-dir=$HooksDir"	}
-	foreach ($RuntimeHook in $RuntimeHooks) { $ArgList += "--runtime-hook=$RuntimeHook"	}
-	if ($AddPython) {
-		$ArgList += "--add-data=""$( Join-Path (Start-PythonCode $CodePythonBase) "python.exe" );."""
-	}
+	foreach ($Import in $Imports) { $ArgList += "--hidden-import=$Import" }
+	foreach ($Exclude in $Excludes) { $ArgList += "--exclude-module=$Exclude" }
+	foreach ($HooksDir in $HooksDirs) { $ArgList += "--additional-hooks-dir=$HooksDir" }
+	foreach ($RuntimeHook in $RuntimeHooks) { $ArgList += "--runtime-hook=$RuntimeHook" }
 	if ($ModuleGraph) {
 		$_, $Modules = Get-ModuleGraph
 		foreach ($Module in $Modules) {
@@ -320,18 +323,18 @@ function Get-PyInstallerArgs {
 	}
 	$BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
 	foreach ($Data in $($Datas + $(If ($IsPython64Bit) { $Datas64 } else { $Datas32 }))) {
-		$SrcLeaf = Split-Path $Data -Leaf
-		if ($SrcLeaf.EndsWith("%") -and $SrcLeaf.EndsWith("%")) {
-			$DataSrc = (Get-Command $SrcLeaf.Substring(1, $SrcLeaf.Length - 2)).Source
-			$DataDst = Split-Path $Data -Parent
+		$DataSrc = Join-Path $BaseSrcDir $Data
+		if ($Data.Contains(";")) {
+			$DataParts = $DataSrc -Split ";"
+			$DataSrc = $DataParts[0]
+			$DataDst = $DataParts[1]
 		}
 		else {
-			$DataSrc = Join-Path $BaseSrcDir $Data
 			if (Test-Path $DataSrc -PathType Leaf) { $DataDst = Split-Path $Data -Parent }
 			else { $DataDst = $Data }
 		}
 		if (-not $DataDst) { $DataDst = "." }
-		$ArgList += "--add-data=""$DataSrc;$DataDst""" -Replace "\\", "\\"
+		$ArgList += "--add-data=""$DataSrc;$DataDst"""
 	}
 	if ($UPX) {
 		if (-not (Get-Command upx -ErrorAction SilentlyContinue)) {
@@ -395,24 +398,27 @@ function Write-Build {
 		}
 	}
 
-	$CodeCompileC = @() + $CodeCompileCTemplate
-	foreach ($CythonSource in $CythonSources) {
-		$CythonArgs = @("--verbose", "-3", "--embed")
+	if ($CythonSources) {
+		# FIXME pythonXX._pth [embeddable]
+		$CythonArgsBase = @("--verbose", "-3", "--embed")
 		if (-not $IsRemote -and $CythonizeAnnotate) {
-			$CythonArgs += "--annotate"
+			$CythonArgsBase += "--annotate"
 		}
 		if ($CythonizeNoDocstrings) {
-			$CythonArgs += "--no-docstrings"
+			$CythonArgsBase += "--no-docstrings"
 		}
-		$CythonArgs += $CythonSource
-		Write-Host "cython $CythonArgs"
-		cython $CythonArgs
-		$SourceBase = $CythonSource.Substring(0, $CythonSource.LastIndexOf("."))
-		$CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
-		Start-PythonCode $CodeCompileC
-		Remove-Item "$SourceBase.exp" -Force
-		Remove-Item "$SourceBase.lib" -Force
-		Remove-Item "$SourceBase.obj" -Force
+		$CodeCompileC = @() + $CodeCompileCTemplate
+		foreach ($CythonSource in $CythonSources) {
+			$CythonArgs = $CythonArgsBase + $CythonSource
+			Write-Host "cython $CythonArgs"
+			cython $CythonArgs
+			$SourceBase = $CythonSource.Substring(0, $CythonSource.LastIndexOf("."))
+			$CodeCompileC[8] = $CodeCompileCTemplate[8] -f "$SourceBase.c"
+			Start-PythonCode $CodeCompileC
+			Remove-Item "$SourceBase.exp" -Force
+			Remove-Item "$SourceBase.lib" -Force
+			Remove-Item "$SourceBase.obj" -Force
+		}
 	}
 
 	$PyInstallerArgs = Get-PyInstallerArgs
