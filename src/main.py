@@ -3,7 +3,7 @@ import datetime
 import functools
 import itertools
 import multiprocessing
-import os.path
+import os
 import pickle
 import sys
 import sysconfig
@@ -130,20 +130,20 @@ def _fix_config(validator: Callable, key: str, *args, **kwargs) -> bool:
 def fix_config(saving: bool = False):
     _fix_config(validator.ensure_unique, consts.CONFIG_RECENT_IMAGES, pickle.dumps)
     _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, right=True)
-    _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
-    _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
+    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
+    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
         name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
-    _fix_config(validator.ensure_iterable, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
-    _fix_config(validator.ensure_enum_names, consts.CONFIG_FIT_STYLE, win32.display.Style)
-    _fix_config(validator.ensure_iterable, consts.CONFIG_MAXIMIZED_ACTION, MAXIMIZED_ACTIONS)
-    _fix_config(validator.ensure_iterable, consts.CONFIG_MENU_COLOR, (
+    _fix_config(validator.ensure_contains, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
+    _fix_config(validator.ensure_contains_name, consts.CONFIG_FIT_STYLE, win32.display.Style)
+    _fix_config(validator.ensure_contains, consts.CONFIG_MAXIMIZED_ACTION, MAXIMIZED_ACTIONS)
+    _fix_config(validator.ensure_contains, consts.CONFIG_MENU_COLOR, (
         color.name for color in itertools.islice(win32.ColorMode, 1, None)))
-    _fix_config(validator.ensure_enum_names, consts.CONFIG_ROTATE_BY, win32.display.Rotate)
+    _fix_config(validator.ensure_contains_name, consts.CONFIG_ROTATE_BY, win32.display.Rotate)
     _fix_config(validator.ensure_truthy, consts.CONFIG_SAVE_DIR)
-    _fix_config(validator.ensure_iterable, consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
-    _fix_config(validator.ensure_iterable, consts.CONFIG_TRANSITION_EASE, (
+    _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_DURATION, TRANSITION_DURATIONS)
+    _fix_config(validator.ensure_contains, consts.CONFIG_TRANSITION_EASE, (
         ease.name for ease in itertools.islice(easings.Ease, None, 7)))
-    _fix_config(validator.ensure_enum_names, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
+    _fix_config(validator.ensure_contains_name, consts.CONFIG_TRANSITION_STYLE, win32.display.Transition)
     if saving:
         CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES] = [file.asdict() for file in RECENT]
     else:
@@ -411,7 +411,7 @@ def on_shown(_: gui.Event):
 
 
 def get_displays() -> Iterable[str]:
-    _fix_config(validator.ensure_iterable, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
+    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
     return DISPLAYS if CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY] == consts.ALL_DISPLAY else (
         CURRENT_CONFIG[consts.CONFIG_ACTIVE_DISPLAY],)
 

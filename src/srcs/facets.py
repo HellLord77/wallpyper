@@ -1,5 +1,4 @@
-import os.path
-import os.path
+import os
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -49,7 +48,7 @@ class Facets(Source):
     @classmethod
     def fix_config(cls, saving: bool = False):
         cls._fix_config(validator.ensure_len, CONFIG_YEAR, len(YEARS))
-        cls._fix_config(validator.ensure_iterable, CONFIG_SERIES, SERIES)
+        cls._fix_config(validator.ensure_contains, CONFIG_SERIES, SERIES)
 
     @classmethod
     def create_menu(cls):

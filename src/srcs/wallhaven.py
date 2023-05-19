@@ -84,14 +84,14 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     def fix_config(cls, saving: bool = False):
         cls._fix_config(validator.ensure_len, CONFIG_CATEGORIES, 3)
         cls._fix_config(validator.ensure_truthy, CONFIG_CATEGORIES, any)
-        cls._fix_config(validator.ensure_pattern, CONFIG_PURITY, RE_PURITY)
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORTING, SORTINGS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_RANGE, RANGES)
-        cls._fix_config(validator.ensure_iterables_joined, CONFIG_RATIO, RATIOS)
+        cls._fix_config(validator.ensure_search, CONFIG_PURITY, RE_PURITY)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORTING, SORTINGS)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_RANGE, RANGES)
+        cls._fix_config(validator.ensure_joined_subset, CONFIG_RATIO, RATIOS)
         cls._fix_config(validator.ensure_truthy, CONFIG_RATIO)
-        cls._fix_config(validator.ensure_iterable, CONFIG_COLORS, COLORS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_AI_FILTER, AI_FILTERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_COLORS, COLORS)
+        cls._fix_config(validator.ensure_contains, CONFIG_AI_FILTER, AI_FILTERS)
         if not cls.CURRENT_CONFIG[CONFIG_KEY]:
             cls.CURRENT_CONFIG[CONFIG_PURITY] = f'{cls.CURRENT_CONFIG[CONFIG_PURITY][:2]}0'
 

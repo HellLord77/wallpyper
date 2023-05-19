@@ -3,7 +3,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import request, minihtml
+from libs import request, sgml
 from . import ImageFile, Source
 
 _ATTRS_IMAGES = {'class': 'item_img'}
@@ -19,9 +19,10 @@ CONFIG_SEARCH = 'search'
 CONFIG_TAG = 'tag'
 CONFIG_SORT = 'sort'
 
-TAGS = ('abstract', 'animals', 'anime', 'bike', 'birds', 'cars', 'city', 'cute', 'fantasy',
-        'flowers', 'food', 'game', 'girls', 'holiday', 'close-up', 'love', 'minimal',
-        'movie', 'nature', 'space', 'sports', 'superhero', 'texture', 'tv-series', '')
+TAGS = (
+    'abstract', 'animals', 'anime', 'bike', 'birds', 'cars', 'city', 'cute', 'fantasy',
+    'flowers', 'food', 'game', 'girls', 'holiday', 'close-up', 'love', 'minimal',
+    'movie', 'nature', 'space', 'sports', 'superhero', 'texture', 'tv-series', '')
 SORTS = 'latest', 'random', 'popular'
 
 
@@ -39,8 +40,8 @@ class WallpapersMug(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_TAG, TAGS)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_TAG, TAGS)
 
     @classmethod
     def create_menu(cls):
@@ -71,7 +72,7 @@ class WallpapersMug(Source):
                     url = request.join_url(url, 'page', str(page))
                 response = request.get(url)
                 if response:
-                    html = minihtml.loads(response.text)
+                    html = sgml.loads(response.text)
                     images = list(html.find_all('div', _ATTRS_IMAGES))
                     if page:
                         if html.find_all('span', _ATTRS_NEXT) is None:
@@ -88,7 +89,7 @@ class WallpapersMug(Source):
                 images.insert(0, image)
                 yield
                 continue
-            img = minihtml.loads(response_image.text).find('div', _ATTRS_IMAGE)
+            img = sgml.loads(response_image.text).find('div', _ATTRS_IMAGE)
             width, height = map(int, img.find(
                 'span', _ATTRS_RESOLUTION)[0].get_data().strip().split('x'))
             yield ImageFile(img[0][0]['src'], url=url_image, width=width, height=height)

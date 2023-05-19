@@ -1,4 +1,4 @@
-import os.path
+import os
 from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
@@ -39,8 +39,8 @@ class Folder(Source):
     @classmethod
     def fix_config(cls, saving: bool = False):
         cls._fix_config(validator.ensure_disk, CONFIG_DIR, False)
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):
@@ -60,7 +60,8 @@ class Folder(Source):
             if not results:
                 results = [path for path in files.iter_files(
                     params[CONFIG_DIR], params[CONFIG_RECURSE]) if win32.is_valid_image(path)]
-                results.sort(key=SORTS[params[CONFIG_SORT]], reverse=params[CONFIG_ORDER] == ORDERS[1])
+                results.sort(key=SORTS[params[CONFIG_SORT]],
+                             reverse=params[CONFIG_ORDER] == ORDERS[1])
                 if not results:
                     yield
                     continue

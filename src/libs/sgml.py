@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import html.parser
 import itertools
@@ -10,10 +10,6 @@ import typing
 from typing import Callable, Container, Iterable, Iterator, Mapping, Optional, TextIO
 
 _TPattern = str | re.Pattern | Container[str] | Callable[[str], bool]
-
-_VOIDS = (
-    'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
-    'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr')
 
 # noinspection PyUnresolvedReferences
 MAX_CHUNK = shutil.COPY_BUFSIZE
@@ -36,13 +32,12 @@ class _Parser(html.parser.HTMLParser):
             attrs)}, self.elems[-1] if self.elems else None)
         if self.root is None:
             self.root = elem
-        if tag not in _VOIDS:
-            self.elems.append(elem)
+        self.elems.append(elem)
 
     def handle_endtag(self, tag: str):
-        # if tag not in _VOIDS:
-        if self.elems[-1].name == tag:
+        while self.elems[-1].name != tag:
             del self.elems[-1]
+        del self.elems[-1]
 
     def handle_data(self, data: str):
         if self.elems:
@@ -78,7 +73,7 @@ class Element:
         inner = self.children or self.datas
         return ''.join(f'<!{decl}>' for decl in self.decls) + (
             f'{start}>{"".join(map(str, inner))}</{self.name}>'
-            if inner or self.name not in _VOIDS else f'{start}/>')
+            if inner else f'{start}/>')
 
     @typing.overload
     def __getitem__(self, item: str) -> str:
@@ -127,6 +122,17 @@ class Element:
                 return classes[index]
             except IndexError:
                 pass
+
+    @typing.overload
+    def get_text(self, stop: Optional[int] = None, /) -> str:
+        pass
+
+    @typing.overload
+    def get_text(self, start: Optional[int] = None, stop: Optional[int] = None, /) -> str:
+        pass
+
+    def get_text(self, start=None, stop=None, /):
+        return ''.join(itertools.islice(self.datas, start, stop))
 
     def get_doctype(self) -> Optional[str]:
         for decl in self.get_root().decls:
@@ -224,6 +230,7 @@ def load(file: TextIO) -> Optional[Element]:
     parser = _Parser()
     while buffer := file.read(MAX_CHUNK):
         parser.feed(buffer)
+    parser.close()
     return parser.root
 
 

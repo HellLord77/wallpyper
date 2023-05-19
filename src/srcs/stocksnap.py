@@ -1,11 +1,10 @@
 import json
-import os.path
-import os.path
+import os
 from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import minihtml, request
+from libs import request, sgml
 from . import CONFIG_ORIENTATIONS, ImageFile, Source
 
 _ATTRS_DOWNLOAD = {'action': '/photo/download'}
@@ -41,8 +40,8 @@ class StockSnap(Source):
     def fix_config(cls, saving: bool = False):
         cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS, 2)
         cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):
@@ -86,7 +85,7 @@ class StockSnap(Source):
                 results.insert(0, result)
                 yield
                 continue
-            html = minihtml.loads(response_result.text)
+            html = sgml.loads(response_result.text)
             data_ = {field['name']: field['value'] for field in html.find(
                 'form', _ATTRS_DOWNLOAD).children[:2]}
             name = os.path.basename(json.loads(html.find(

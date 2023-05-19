@@ -1,6 +1,6 @@
 import copy
 import functools
-import os.path
+import os
 import time
 from typing import Callable, Iterator, Optional, TypedDict
 
@@ -15,7 +15,8 @@ _TOKEN_DATA = {
     'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
 
 URL_BASE = request.join_url('https://oauth.reddit.com', 'r')
-URL_TOKEN = request.join_url('https://www.reddit.com', 'api', 'v1', 'access_token')
+URL_TOKEN = request.join_url(
+    'https://www.reddit.com', 'api', 'v1', 'access_token')
 URL_IMAGE = request.join_url('https://i.redd.it')
 
 CONFIG_ID = '_client_id'
@@ -105,8 +106,8 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
         cls._fix_config(validator.ensure_len, CONFIG_RATINGS, 2)
         cls._fix_config(validator.ensure_truthy, CONFIG_RATINGS, any)
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_TIME, TIMES)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_TIME, TIMES)
 
     @classmethod
     def create_menu(cls):

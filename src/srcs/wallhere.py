@@ -6,7 +6,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 import win32
-from libs import colornames, request, minihtml
+from libs import colornames, request, sgml
 from . import ImageFile, Source
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
@@ -69,9 +69,9 @@ class WallHere(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_COLOR, COLORS)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
 
     @classmethod
     def create_menu(cls):
@@ -99,7 +99,8 @@ class WallHere(Source):
                     colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),
                     f'HEX: #{color.upper()} {rgb}', win32.get_colored_bitmap(*rgb))
                 item.bind(gui.MenuItemEvent.RIGHT_UP, _on_color_right)
-        gui.add_menu_item_check(cls._text('LABEL_NSFW'), cls.CURRENT_CONFIG, CONFIG_NSFW)
+        gui.add_menu_item_check(cls._text('LABEL_NSFW'),
+                                cls.CURRENT_CONFIG, CONFIG_NSFW)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
@@ -121,7 +122,7 @@ class WallHere(Source):
                 if response:
                     json_ = response.json()
                     if json_['code'] == request.Status.OK:
-                        html = minihtml.loads(f'<html>{json_["data"]}</html>')
+                        html = sgml.loads(f'<html>{json_["data"]}</html>')
                         items = list(html.find_all('div', _ATTRS_ITEM))
                         if html.find('a', _ATTRS_END) is None:
                             page += 1
@@ -137,7 +138,8 @@ class WallHere(Source):
                 items.insert(0, item)
                 yield
                 continue
-            data = json.loads(minihtml.loads(response_item.text).find('script', _ATTRS_JSON).get_data())
+            data = json.loads(sgml.loads(response_item.text).find(
+                'script', _ATTRS_JSON).get_data())
             classes = item.get_class()
             yield ImageFile(data['contentUrl'], url=url_item, width=int(data['width'][:-2]), height=int(
                 data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)

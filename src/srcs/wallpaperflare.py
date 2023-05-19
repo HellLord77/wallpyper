@@ -3,7 +3,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import request, minihtml
+from libs import request, sgml
 from . import ImageFile, Source
 
 _CONTENT_END = (
@@ -68,7 +68,7 @@ class WallpaperFlare(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
 
     @classmethod
     def create_menu(cls):
@@ -109,7 +109,7 @@ class WallpaperFlare(Source):
                     if not text:
                         page = 0
                         continue
-                    items = list(minihtml.loads(
+                    items = list(sgml.loads(
                         f'<html>{text}</html>').find_all('li', _ATTRS_ITEM))
                     page += 1
                 if not items:
@@ -122,7 +122,7 @@ class WallpaperFlare(Source):
                 items.insert(0, item)
                 yield
                 continue
-            html = minihtml.loads(response_item.text)
+            html = sgml.loads(response_item.text)
             info = html.find('div', _ATTR_INFO)
             yield ImageFile(html.find('img', _ATTRS_SRC)['src'], url=url_item, width=int(
                 info[0][0].get_data()), height=int(info[1][0].get_data()))

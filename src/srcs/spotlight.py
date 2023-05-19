@@ -1,6 +1,6 @@
 import base64
 import json
-import os.path
+import os
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -31,8 +31,8 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_LOCALE, LOCALES)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_contains, CONFIG_LOCALE, LOCALES)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
 
     @classmethod
     def create_menu(cls):

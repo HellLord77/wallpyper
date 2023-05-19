@@ -1,5 +1,5 @@
 import functools
-import os.path
+import os
 import re
 from typing import ItemsView, Iterator, Optional, TypedDict
 
@@ -70,12 +70,12 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_LANG, LANGS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_TYPE, TYPES)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORIENTATION, ORIENTATIONS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_CATEGORY, CATEGORIES)
-        cls._fix_config(validator.ensure_iterables_joined, CONFIG_COLORS, COLORS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_ORDER, ORDERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_LANG, LANGS)
+        cls._fix_config(validator.ensure_contains, CONFIG_TYPE, TYPES)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
+        cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
+        cls._fix_config(validator.ensure_joined_subset, CONFIG_COLORS, COLORS)
+        cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
 
     @classmethod
     def create_menu(cls):

@@ -60,10 +60,10 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_TIME, TIMES)
-        cls._fix_config(validator.ensure_iterable, CONFIG_DIMENSION, DIMENSIONS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_COLOR, COLORS)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_TIME, TIMES)
+        cls._fix_config(validator.ensure_contains, CONFIG_DIMENSION, DIMENSIONS)
+        cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
 
     @classmethod
     def create_menu(cls):

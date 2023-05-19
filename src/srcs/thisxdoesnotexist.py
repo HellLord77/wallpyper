@@ -25,7 +25,7 @@ class ThisXDoesNotExist(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_VARIANT, VARIANTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_VARIANT, VARIANTS)
 
     @classmethod
     def create_menu(cls):

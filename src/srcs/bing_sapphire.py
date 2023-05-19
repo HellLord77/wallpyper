@@ -1,4 +1,4 @@
-import os.path
+import os
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -25,7 +25,7 @@ class BingSapphire(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_QUALITY, QUALITIES)
+        cls._fix_config(validator.ensure_contains, CONFIG_QUALITY, QUALITIES)
 
     @classmethod
     def create_menu(cls):

@@ -1,4 +1,4 @@
-import os.path
+import os
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -34,9 +34,9 @@ class Bing(Source):  # https://github.com/timothymctim/Bing-wallpapers
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_DAY, DAYS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_MARKET, MARKETS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_RESOLUTION, RESOLUTIONS)
+        cls._fix_config(validator.ensure_contains, CONFIG_DAY, DAYS)
+        cls._fix_config(validator.ensure_contains, CONFIG_MARKET, MARKETS)
+        cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
     def create_menu(cls):

@@ -6,7 +6,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 import win32
-from libs import colornames, minihtml, request
+from libs import colornames, request, sgml
 from libs.request import cloudflare
 from . import ImageFile, Source
 
@@ -87,19 +87,19 @@ class WallpaperAbyss(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_iterable, CONFIG_METHOD, METHODS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_RESOLUTION_FILTER, RESOLUTION_FILTERS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_RESOLUTION_EQUALS, RESOLUTION_EQUALS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_SORT, SORTS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_LICENSE, LICENSES)
-        cls._fix_config(validator.ensure_iterable, CONFIG_COLOR, COLORS)
-        cls._fix_config(validator.ensure_iterable, CONFIG_CATEGORY, CATEGORIES)
+        cls._fix_config(validator.ensure_contains, CONFIG_METHOD, METHODS)
+        cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION_FILTER, RESOLUTION_FILTERS)
+        cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION_EQUALS, RESOLUTION_EQUALS)
+        cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_LICENSE, LICENSES)
+        cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
+        cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
         if saving:
-            cls._fix_config(validator.ensure_iterable, CONFIG_RESOLUTION, RESOLUTIONS)
+            cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
             cls.CURRENT_CONFIG[CONFIG_RESOLUTION] = list(cls.CURRENT_CONFIG[CONFIG_RESOLUTION])
         else:
             cls.CURRENT_CONFIG[CONFIG_RESOLUTION] = tuple(cls.CURRENT_CONFIG[CONFIG_RESOLUTION])
-            cls._fix_config(validator.ensure_iterable, CONFIG_RESOLUTION, RESOLUTIONS)
+            cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
     def create_menu(cls):
@@ -169,7 +169,7 @@ class WallpaperAbyss(Source):
                 query['page'] = str(page)
                 response = session.get(url, query, cookies=cookies)
                 if response:
-                    html = minihtml.loads(response.text)
+                    html = sgml.loads(response.text)
                     images = list(html.find_all('div', _ATTRS_THUMB))
                     has_next = False
                     if (next_page := html.find('a', _ATTRS_NEXT_PAGE)) is not None:

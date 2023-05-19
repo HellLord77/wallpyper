@@ -1,5 +1,5 @@
 import enum
-import os.path
+import os
 import re
 import sys
 from typing import Any, AnyStr, Callable, Hashable, Iterable, MutableSequence, Optional
@@ -63,8 +63,8 @@ def ensure_unique(current: dict, _: dict, key: str,
     return False
 
 
-def ensure_pattern(current: dict, default: dict, key: str,
-                   pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG) -> bool:
+def ensure_search(current: dict, default: dict, key: str,
+                  pattern: re.Pattern, flags: int | re.RegexFlag = re.NOFLAG) -> bool:
     val: AnyStr = current[key]
     if re.search(pattern, val, flags) is not None:
         return True
@@ -72,7 +72,7 @@ def ensure_pattern(current: dict, default: dict, key: str,
     return False
 
 
-def ensure_iterable(current: dict, default: dict, key: str,
+def ensure_contains(current: dict, default: dict, key: str,
                     iterable: Iterable, casefold: bool = True) -> bool:
     val = current[key]
     if casefold and isinstance(val, str):
@@ -91,23 +91,23 @@ def ensure_iterable(current: dict, default: dict, key: str,
 # noinspection PyShadowingBuiltins
 def ensure_positive(current: dict, default: dict, key: str,
                     max: int = sys.maxsize) -> bool:
-    return ensure_iterable(current, default, key, range(1, max))
+    return ensure_contains(current, default, key, range(1, max))
 
 
 # noinspection PyShadowingBuiltins
 def ensure_negative(current: dict, default: dict, key: str,
                     min: int = -sys.maxsize) -> bool:
-    return ensure_iterable(current, default, key, range(-1, min, -1))
+    return ensure_contains(current, default, key, range(-1, min, -1))
 
 
 # noinspection PyShadowingNames
-def ensure_enum_names(current: dict, default: dict, key: str,
-                      enum: type[enum.Enum], casefold: bool = True) -> bool:
-    return ensure_iterable(current, default, key, (member.name for member in enum), casefold)
+def ensure_contains_name(current: dict, default: dict, key: str,
+                         enum: type[enum.Enum], casefold: bool = True) -> bool:
+    return ensure_contains(current, default, key, (member.name for member in enum), casefold)
 
 
-def ensure_iterables(current: dict, _: dict, key: str,
-                     iterable: Iterable[str], casefold: bool = True) -> bool:
+def ensure_subset(current: dict, _: dict, key: str,
+                  iterable: Iterable[str], casefold: bool = True) -> bool:
     val: list[str] = current[key]
     iterable = tuple(iterable)
     if casefold:
@@ -128,11 +128,11 @@ def ensure_iterables(current: dict, _: dict, key: str,
     return not_fixed
 
 
-def ensure_iterables_joined(current: dict, _: dict, key: str,
-                            iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
+def ensure_joined_subset(current: dict, _: dict, key: str,
+                         iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
     current[key] = current[key].split(separator)
     try:
-        return ensure_iterables(current, _, key, iterable, casefold)
+        return ensure_subset(current, _, key, iterable, casefold)
     finally:
         current[key] = separator.join(current[key])
 

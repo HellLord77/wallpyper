@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 import binascii
 import dataclasses
@@ -152,8 +152,14 @@ class File:
 class ImageFile(File):
     width: int = 0
     height: int = 0
+    ratio: float = 0.0
     sketchy: bool = False
     nsfw: bool = False
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.ratio and self.height:
+            self.ratio = self.width / self.height
 
     def asdict(self) -> dict[str, Any]:
         result = super().asdict()
@@ -161,6 +167,9 @@ class ImageFile(File):
             result['width'] = self.width
         if self.height:
             result['height'] = self.height
+        if self.ratio and (not self.height or
+                           self.ratio != self.width / self.height):
+            result['ratio'] = self.ratio
         if self.sketchy:
             result['sketchy'] = self.sketchy
         if self.nsfw:
@@ -186,7 +195,7 @@ class ImageFile(File):
         return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
 
     def is_square(self, tolerance: float = 0.05) -> bool:
-        return abs(self.width / self.height - 1) <= tolerance
+        return self.ratio <= tolerance
 
     def is_sfw(self) -> bool:
         return not self.sketchy and not self.nsfw
@@ -240,9 +249,9 @@ class Source:
                              landscape: bool = True, portrait: bool = True, square: bool = False) -> bool:
         orientations = []
         if landscape:
-            orientations.append(image.width > image.height)
+            orientations.append(image.ratio > 1.0)
         if portrait:
-            orientations.append(image.width < image.height)
+            orientations.append(image.ratio < 1.0)
         if square:
             orientations.append(image.is_square())
         # noinspection PyTypedDict
@@ -275,6 +284,7 @@ from . import (
     besthdwallpaper,
     bing,
     bing_sapphire,
+    deviantart_rss,
     facets,
     fivehundredpx,
     folder,

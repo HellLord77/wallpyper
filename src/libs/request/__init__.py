@@ -1280,7 +1280,7 @@ def from_path(path: str) -> str:
     return urllib.parse.SplitResult(_FILE_SCHEME, '', urllib.request.pathname2url(path), '', '').geturl()
 
 
-def strip_url(url: str, userinfo: bool = True, path: bool = False,
+def strip_url(url: str, *, userinfo: bool = True, path: bool = False,
               query: bool = True, fragment: bool = True) -> str:
     components = urllib.parse.urlsplit(url)
     replace = {}
@@ -1294,6 +1294,11 @@ def strip_url(url: str, userinfo: bool = True, path: bool = False,
         replace['fragment'] = ''
     # noinspection PyProtectedMember
     return components._replace(**replace).geturl()
+
+
+def split_url(url: str) -> tuple[str, ...]:
+    return strip_url(url, path=True), *(filter(
+        None, urllib.parse.urlsplit(url).path.split('/')))
 
 
 def join_url(base: str, *paths: str) -> str:
