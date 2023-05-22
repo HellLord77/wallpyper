@@ -14,12 +14,10 @@ class ICoreAppWindowPreview(_inspectable.IInspectable):
     pass
 
 
-class ICoreAppWindowPreviewStatics(_inspectable.IInspectable):
+class ICoreAppWindowPreviewStatics(_inspectable.IInspectable, factory=True):
     GetIdFromWindow: _Callable[[_Windows_UI_WindowManagement.IAppWindow,  # window
                                 _Pointer[_type.INT32]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemNavigationCloseRequestedPreviewEventArgs(_inspectable.IInspectable):
@@ -39,8 +37,6 @@ class ISystemNavigationManagerPreview(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ISystemNavigationManagerPreviewStatics(_inspectable.IInspectable):
+class ISystemNavigationManagerPreviewStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ISystemNavigationManagerPreview]],  # loader
                                  _type.HRESULT]
-
-    _factory = True

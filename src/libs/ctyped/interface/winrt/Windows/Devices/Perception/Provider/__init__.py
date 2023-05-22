@@ -42,7 +42,7 @@ class IPerceptionStopFaceAuthenticationHandler_impl(_IPerceptionStopFaceAuthenti
     pass
 
 
-class IKnownPerceptionFrameKindStatics(_inspectable.IInspectable):
+class IKnownPerceptionFrameKindStatics(_inspectable.IInspectable, factory=True):
     Color: _Callable[[_Pointer[_type.HSTRING]],  # value
                      _type.HRESULT]
     Depth: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -50,20 +50,16 @@ class IKnownPerceptionFrameKindStatics(_inspectable.IInspectable):
     Infrared: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
-
 
 class IPerceptionControlGroup(_inspectable.IInspectable):
     FrameProviderIds: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
                                 _type.HRESULT]
 
 
-class IPerceptionControlGroupFactory(_inspectable.IInspectable):
+class IPerceptionControlGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # ids
                        _Pointer[IPerceptionControlGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionCorrelation(_inspectable.IInspectable):
@@ -75,14 +71,12 @@ class IPerceptionCorrelation(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPerceptionCorrelationFactory(_inspectable.IInspectable):
+class IPerceptionCorrelationFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # targetId
                        _struct.Windows.Foundation.Numerics.Vector3,  # position
                        _struct.Windows.Foundation.Numerics.Quaternion,  # orientation
                        _Pointer[IPerceptionCorrelation]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionCorrelationGroup(_inspectable.IInspectable):
@@ -90,12 +84,10 @@ class IPerceptionCorrelationGroup(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IPerceptionCorrelationGroupFactory(_inspectable.IInspectable):
+class IPerceptionCorrelationGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[IPerceptionCorrelation],  # relativeLocations
                        _Pointer[IPerceptionCorrelationGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionFaceAuthenticationGroup(_inspectable.IInspectable):
@@ -103,14 +95,12 @@ class IPerceptionFaceAuthenticationGroup(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IPerceptionFaceAuthenticationGroupFactory(_inspectable.IInspectable):
+class IPerceptionFaceAuthenticationGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # ids
                        IPerceptionStartFaceAuthenticationHandler,  # startHandler
                        IPerceptionStopFaceAuthenticationHandler,  # stopHandler
                        _Pointer[IPerceptionFaceAuthenticationGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionFrame(_inspectable.IInspectable):
@@ -156,7 +146,7 @@ class IPerceptionFrameProviderManager(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IPerceptionFrameProviderManagerServiceStatics(_inspectable.IInspectable):
+class IPerceptionFrameProviderManagerServiceStatics(_inspectable.IInspectable, factory=True):
     RegisterFrameProviderInfo: _Callable[[IPerceptionFrameProviderManager,  # manager
                                           IPerceptionFrameProviderInfo],  # frameProviderInfo
                                          _type.HRESULT]
@@ -188,8 +178,6 @@ class IPerceptionFrameProviderManagerServiceStatics(_inspectable.IInspectable):
                                         IPerceptionFrame],  # frame
                                        _type.HRESULT]
 
-    _factory = True
-
 
 class IPerceptionPropertyChangeRequest(_inspectable.IInspectable):
     Name: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -210,12 +198,10 @@ class IPerceptionVideoFrameAllocator(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IPerceptionVideoFrameAllocatorFactory(_inspectable.IInspectable):
+class IPerceptionVideoFrameAllocatorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # maxOutstandingFrameCountForWrite
                        _enum.Windows.Graphics.Imaging.BitmapPixelFormat,  # format
                        _struct.Windows.Foundation.Size,  # resolution
                        _enum.Windows.Graphics.Imaging.BitmapAlphaMode,  # alpha
                        _Pointer[IPerceptionVideoFrameAllocator]],  # result
                       _type.HRESULT]
-
-    _factory = True

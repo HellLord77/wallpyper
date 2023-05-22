@@ -38,11 +38,9 @@ class IMouseDevice(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IMouseDeviceStatics(_inspectable.IInspectable):
+class IMouseDeviceStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IMouseDevice]],  # mouseDevice
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMouseEventArgs(_inspectable.IInspectable):
@@ -75,11 +73,9 @@ class IPenButtonListener(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IPenButtonListenerStatics(_inspectable.IInspectable):
+class IPenButtonListenerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IPenButtonListener]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IPenDevice(_inspectable.IInspectable):
@@ -92,12 +88,10 @@ class IPenDevice2(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IPenDeviceStatics(_inspectable.IInspectable):
+class IPenDeviceStatics(_inspectable.IInspectable, factory=True):
     GetFromPointerId: _Callable[[_type.UINT32,  # pointerId
                                  _Pointer[IPenDevice]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPenDockListener(_inspectable.IInspectable):
@@ -120,11 +114,9 @@ class IPenDockListener(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPenDockListenerStatics(_inspectable.IInspectable):
+class IPenDockListenerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IPenDockListener]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IPenDockedEventArgs(_inspectable.IInspectable):
@@ -167,14 +159,12 @@ class IPointerDevice2(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IPointerDeviceStatics(_inspectable.IInspectable):
+class IPointerDeviceStatics(_inspectable.IInspectable, factory=True):
     GetPointerDevice: _Callable[[_type.UINT32,  # pointerId
                                  _Pointer[IPointerDevice]],  # pointerDevice
                                 _type.HRESULT]
     GetPointerDevices: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IPointerDevice]]],  # pointerDevices
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ITouchCapabilities(_inspectable.IInspectable):

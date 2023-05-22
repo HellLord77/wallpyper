@@ -77,7 +77,7 @@ class IClipboardHistoryItemsResult(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IClipboardStatics(_inspectable.IInspectable):
+class IClipboardStatics(_inspectable.IInspectable, factory=True):
     GetContent: _Callable[[_Pointer[IDataPackageView]],  # result
                           _type.HRESULT]
     SetContent: _Callable[[IDataPackage],  # content
@@ -92,10 +92,8 @@ class IClipboardStatics(_inspectable.IInspectable):
     remove_ContentChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IClipboardStatics2(_inspectable.IInspectable):
+class IClipboardStatics2(_inspectable.IInspectable, factory=True):
     GetHistoryItemsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IClipboardHistoryItemsResult]]],  # operation
                                     _type.HRESULT]
     ClearHistory: _Callable[[_Pointer[_type.boolean]],  # result
@@ -129,8 +127,6 @@ class IClipboardStatics2(_inspectable.IInspectable):
                                          _type.HRESULT]
     remove_HistoryEnabledChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IDataPackage(_inspectable.IInspectable):
@@ -421,38 +417,30 @@ class IDataTransferManager2(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class IDataTransferManagerStatics(_inspectable.IInspectable):
+class IDataTransferManagerStatics(_inspectable.IInspectable, factory=True):
     ShowShareUI: _Callable[[],
                            _type.HRESULT]
     GetForCurrentView: _Callable[[_Pointer[IDataTransferManager]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IDataTransferManagerStatics2(_inspectable.IInspectable):
+class IDataTransferManagerStatics2(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IDataTransferManagerStatics3(_inspectable.IInspectable):
+class IDataTransferManagerStatics3(_inspectable.IInspectable, factory=True):
     ShowShareUIWithOptions: _Callable[[IShareUIOptions],  # options
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHtmlFormatHelperStatics(_inspectable.IInspectable):
+class IHtmlFormatHelperStatics(_inspectable.IInspectable, factory=True):
     GetStaticFragment: _Callable[[_type.HSTRING,  # htmlFormat
                                   _Pointer[_type.HSTRING]],  # htmlFragment
                                  _type.HRESULT]
     CreateHtmlFormat: _Callable[[_type.HSTRING,  # htmlFragment
                                  _Pointer[_type.HSTRING]],  # htmlFormat
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IOperationCompletedEventArgs(_inspectable.IInspectable):
@@ -483,15 +471,13 @@ class IShareProvider(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IShareProviderFactory(_inspectable.IInspectable):
+class IShareProviderFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # title
                        _Windows_Storage_Streams.IRandomAccessStreamReference,  # displayIcon
                        _struct.Windows.UI.Color,  # backgroundColor
                        IShareProviderHandler,  # handler
                        _Pointer[IShareProvider]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IShareProviderOperation(_inspectable.IInspectable):
@@ -530,7 +516,7 @@ class IShareUIOptions(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ISharedStorageAccessManagerStatics(_inspectable.IInspectable):
+class ISharedStorageAccessManagerStatics(_inspectable.IInspectable, factory=True):
     AddFile: _Callable[[_Windows_Storage.IStorageFile,  # file
                         _Pointer[_type.HSTRING]],  # outToken
                        _type.HRESULT]
@@ -540,10 +526,8 @@ class ISharedStorageAccessManagerStatics(_inspectable.IInspectable):
     RemoveFile: _Callable[[_type.HSTRING],  # token
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IStandardDataFormatsStatics(_inspectable.IInspectable):
+class IStandardDataFormatsStatics(_inspectable.IInspectable, factory=True):
     get_Text: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     Uri: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -557,23 +541,17 @@ class IStandardDataFormatsStatics(_inspectable.IInspectable):
     get_StorageItems: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IStandardDataFormatsStatics2(_inspectable.IInspectable):
+class IStandardDataFormatsStatics2(_inspectable.IInspectable, factory=True):
     get_WebLink: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
     get_ApplicationLink: _Callable[[_Pointer[_type.HSTRING]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IStandardDataFormatsStatics3(_inspectable.IInspectable):
+class IStandardDataFormatsStatics3(_inspectable.IInspectable, factory=True):
     get_UserActivityJsonArray: _Callable[[_Pointer[_type.HSTRING]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ITargetApplicationChosenEventArgs(_inspectable.IInspectable):

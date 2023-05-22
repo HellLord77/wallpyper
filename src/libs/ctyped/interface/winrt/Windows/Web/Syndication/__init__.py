@@ -28,14 +28,12 @@ class ISyndicationAttribute(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ISyndicationAttributeFactory(_inspectable.IInspectable):
+class ISyndicationAttributeFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationAttribute: _Callable[[_type.HSTRING,  # attributeName
                                            _type.HSTRING,  # attributeNamespace
                                            _type.HSTRING,  # attributeValue
                                            _Pointer[ISyndicationAttribute]],  # syndicationAttribute
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationCategory(_inspectable.IInspectable):
@@ -53,7 +51,7 @@ class ISyndicationCategory(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ISyndicationCategoryFactory(_inspectable.IInspectable):
+class ISyndicationCategoryFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationCategory: _Callable[[_type.HSTRING,  # term
                                           _Pointer[ISyndicationCategory]],  # category
                                          _type.HRESULT]
@@ -62,8 +60,6 @@ class ISyndicationCategoryFactory(_inspectable.IInspectable):
                                             _type.HSTRING,  # label
                                             _Pointer[ISyndicationCategory]],  # category
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationClient(_inspectable.IInspectable):
@@ -95,12 +91,10 @@ class ISyndicationClient(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ISyndicationClientFactory(_inspectable.IInspectable):
+class ISyndicationClientFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationClient: _Callable[[_Windows_Security_Credentials.IPasswordCredential,  # serverCredential
                                         _Pointer[ISyndicationClient]],  # syndicationClient
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationContent(_inspectable.IInspectable):
@@ -110,7 +104,7 @@ class ISyndicationContent(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class ISyndicationContentFactory(_inspectable.IInspectable):
+class ISyndicationContentFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationContent: _Callable[[_type.HSTRING,  # text
                                          _enum.Windows.Web.Syndication.SyndicationTextType,  # type
                                          _Pointer[ISyndicationContent]],  # content
@@ -119,15 +113,11 @@ class ISyndicationContentFactory(_inspectable.IInspectable):
                                                       _Pointer[ISyndicationContent]],  # content
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class ISyndicationErrorStatics(_inspectable.IInspectable):
+class ISyndicationErrorStatics(_inspectable.IInspectable, factory=True):
     GetStatus: _Callable[[_type.INT32,  # hresult
                           _Pointer[_enum.Windows.Web.Syndication.SyndicationErrorStatus]],  # status
                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationFeed(_inspectable.IInspectable):
@@ -189,14 +179,12 @@ class ISyndicationFeed(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ISyndicationFeedFactory(_inspectable.IInspectable):
+class ISyndicationFeedFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationFeed: _Callable[[_type.HSTRING,  # title
                                       _type.HSTRING,  # subtitle
                                       _Windows_Foundation.IUriRuntimeClass,  # uri
                                       _Pointer[ISyndicationFeed]],  # feed
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationGenerator(_inspectable.IInspectable):
@@ -214,12 +202,10 @@ class ISyndicationGenerator(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ISyndicationGeneratorFactory(_inspectable.IInspectable):
+class ISyndicationGeneratorFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationGenerator: _Callable[[_type.HSTRING,  # text
                                            _Pointer[ISyndicationGenerator]],  # generator
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationItem(_inspectable.IInspectable):
@@ -281,14 +267,12 @@ class ISyndicationItem(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ISyndicationItemFactory(_inspectable.IInspectable):
+class ISyndicationItemFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationItem: _Callable[[_type.HSTRING,  # title
                                       ISyndicationContent,  # content
                                       _Windows_Foundation.IUriRuntimeClass,  # uri
                                       _Pointer[ISyndicationItem]],  # item
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationLink(_inspectable.IInspectable):
@@ -318,7 +302,7 @@ class ISyndicationLink(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ISyndicationLinkFactory(_inspectable.IInspectable):
+class ISyndicationLinkFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationLink: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                       _Pointer[ISyndicationLink]],  # link
                                      _type.HRESULT]
@@ -329,8 +313,6 @@ class ISyndicationLinkFactory(_inspectable.IInspectable):
                                         _type.UINT32,  # length
                                         _Pointer[ISyndicationLink]],  # link
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationNode(_inspectable.IInspectable):
@@ -363,14 +345,12 @@ class ISyndicationNode(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISyndicationNodeFactory(_inspectable.IInspectable):
+class ISyndicationNodeFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationNode: _Callable[[_type.HSTRING,  # nodeName
                                       _type.HSTRING,  # nodeNamespace
                                       _type.HSTRING,  # nodeValue
                                       _Pointer[ISyndicationNode]],  # node
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationPerson(_inspectable.IInspectable):
@@ -388,7 +368,7 @@ class ISyndicationPerson(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class ISyndicationPersonFactory(_inspectable.IInspectable):
+class ISyndicationPersonFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationPerson: _Callable[[_type.HSTRING,  # name
                                         _Pointer[ISyndicationPerson]],  # person
                                        _type.HRESULT]
@@ -397,8 +377,6 @@ class ISyndicationPersonFactory(_inspectable.IInspectable):
                                           _Windows_Foundation.IUriRuntimeClass,  # uri
                                           _Pointer[ISyndicationPerson]],  # person
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISyndicationText(_inspectable.IInspectable):
@@ -416,7 +394,7 @@ class ISyndicationText(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class ISyndicationTextFactory(_inspectable.IInspectable):
+class ISyndicationTextFactory(_inspectable.IInspectable, factory=True):
     CreateSyndicationText: _Callable[[_type.HSTRING,  # text
                                       _Pointer[ISyndicationText]],  # syndicationText
                                      _type.HRESULT]
@@ -424,5 +402,3 @@ class ISyndicationTextFactory(_inspectable.IInspectable):
                                         _enum.Windows.Web.Syndication.SyndicationTextType,  # type
                                         _Pointer[ISyndicationText]],  # syndicationText
                                        _type.HRESULT]
-
-    _factory = True

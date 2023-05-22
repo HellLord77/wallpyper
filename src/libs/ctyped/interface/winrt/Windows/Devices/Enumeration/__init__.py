@@ -34,7 +34,7 @@ class IDeviceAccessInformation(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IDeviceAccessInformationStatics(_inspectable.IInspectable):
+class IDeviceAccessInformationStatics(_inspectable.IInspectable, factory=True):
     CreateFromId: _Callable[[_type.HSTRING,  # deviceId
                              _Pointer[IDeviceAccessInformation]],  # value
                             _type.HRESULT]
@@ -44,8 +44,6 @@ class IDeviceAccessInformationStatics(_inspectable.IInspectable):
     CreateFromDeviceClass: _Callable[[_enum.Windows.Devices.Enumeration.DeviceClass,  # deviceClass
                                       _Pointer[IDeviceAccessInformation]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IDeviceConnectionChangeTriggerDetails(_inspectable.IInspectable):
@@ -131,24 +129,20 @@ class IDeviceInformationPairing2(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IDeviceInformationPairingStatics(_inspectable.IInspectable):
+class IDeviceInformationPairingStatics(_inspectable.IInspectable, factory=True):
     TryRegisterForAllInboundPairingRequests: _Callable[[_enum.Windows.Devices.Enumeration.DevicePairingKinds,  # pairingKindsSupported
                                                         _Pointer[_type.boolean]],  # result
                                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IDeviceInformationPairingStatics2(_inspectable.IInspectable):
+class IDeviceInformationPairingStatics2(_inspectable.IInspectable, factory=True):
     TryRegisterForAllInboundPairingRequestsWithProtectionLevel: _Callable[[_enum.Windows.Devices.Enumeration.DevicePairingKinds,  # pairingKindsSupported
                                                                            _enum.Windows.Devices.Enumeration.DevicePairingProtectionLevel,  # minProtectionLevel
                                                                            _Pointer[_type.boolean]],  # result
                                                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IDeviceInformationStatics(_inspectable.IInspectable):
+class IDeviceInformationStatics(_inspectable.IInspectable, factory=True):
     CreateFromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IDeviceInformation]]],  # asyncOp
                                  _type.HRESULT]
@@ -181,10 +175,8 @@ class IDeviceInformationStatics(_inspectable.IInspectable):
                                                               _Pointer[IDeviceWatcher]],  # watcher
                                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IDeviceInformationStatics2(_inspectable.IInspectable):
+class IDeviceInformationStatics2(_inspectable.IInspectable, factory=True):
     GetAqsFilterFromDeviceClass: _Callable[[_enum.Windows.Devices.Enumeration.DeviceClass,  # deviceClass
                                             _Pointer[_type.HSTRING]],  # aqsFilter
                                            _type.HRESULT]
@@ -203,8 +195,6 @@ class IDeviceInformationStatics2(_inspectable.IInspectable):
                                                                       _enum.Windows.Devices.Enumeration.DeviceInformationKind,  # kind
                                                                       _Pointer[IDeviceWatcher]],  # watcher
                                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IDeviceInformationUpdate(_inspectable.IInspectable):

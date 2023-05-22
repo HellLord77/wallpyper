@@ -157,15 +157,13 @@ class IAppWindowPresenter(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IAppWindowStatics(_inspectable.IInspectable):
+class IAppWindowStatics(_inspectable.IInspectable, factory=True):
     TryCreateAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IAppWindow]]],  # operation
                               _type.HRESULT]
     ClearAllPersistedState: _Callable[[],
                                       _type.HRESULT]
     ClearPersistedState: _Callable[[_type.HSTRING],  # key
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IAppWindowTitleBar(_inspectable.IInspectable):
@@ -272,11 +270,9 @@ class IFullScreenPresentationConfiguration(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IWindowServicesStatics(_inspectable.IInspectable):
+class IWindowServicesStatics(_inspectable.IInspectable, factory=True):
     FindAllTopLevelWindowIds: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_struct.Windows.UI.WindowId]]],  # result
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IWindowingEnvironment(_inspectable.IInspectable):
@@ -307,11 +303,9 @@ class IWindowingEnvironmentRemovedEventArgs(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IWindowingEnvironmentStatics(_inspectable.IInspectable):
+class IWindowingEnvironmentStatics(_inspectable.IInspectable, factory=True):
     FindAll: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IWindowingEnvironment]]],  # result
                        _type.HRESULT]
     FindAllWithKind: _Callable[[_enum.Windows.UI.WindowManagement.WindowingEnvironmentKind,  # kind
                                 _Pointer[_Windows_Foundation_Collections.IVectorView[IWindowingEnvironment]]],  # result
                                _type.HRESULT]
-
-    _factory = True

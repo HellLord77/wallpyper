@@ -40,20 +40,16 @@ class IPrintManager(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IPrintManagerStatic(_inspectable.IInspectable):
+class IPrintManagerStatic(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IPrintManager]],  # printingManager
                                  _type.HRESULT]
     ShowPrintUIAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IPrintManagerStatic2(_inspectable.IInspectable):
+class IPrintManagerStatic2(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintPageInfo(_inspectable.IInspectable):
@@ -86,7 +82,7 @@ class IPrintPageRange(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IPrintPageRangeFactory(_inspectable.IInspectable):
+class IPrintPageRangeFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # firstPage
                        _type.INT32,  # lastPage
                        _Pointer[IPrintPageRange]],  # result
@@ -94,8 +90,6 @@ class IPrintPageRangeFactory(_inspectable.IInspectable):
     CreateWithSinglePage: _Callable[[_type.INT32,  # page
                                      _Pointer[IPrintPageRange]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintPageRangeOptions(_inspectable.IInspectable):
@@ -284,7 +278,7 @@ class IPrintTaskTargetDeviceSupport(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class IStandardPrintTaskOptionsStatic(_inspectable.IInspectable):
+class IStandardPrintTaskOptionsStatic(_inspectable.IInspectable, factory=True):
     get_MediaSize: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
     get_MediaType: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -312,18 +306,12 @@ class IStandardPrintTaskOptionsStatic(_inspectable.IInspectable):
     get_InputBin: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IStandardPrintTaskOptionsStatic2(_inspectable.IInspectable):
+class IStandardPrintTaskOptionsStatic2(_inspectable.IInspectable, factory=True):
     get_Bordering: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IStandardPrintTaskOptionsStatic3(_inspectable.IInspectable):
+class IStandardPrintTaskOptionsStatic3(_inspectable.IInspectable, factory=True):
     get_CustomPageRanges: _Callable[[_Pointer[_type.HSTRING]],  # value
                                     _type.HRESULT]
-
-    _factory = True

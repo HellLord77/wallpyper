@@ -13,7 +13,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IKnownCameraIntrinsicsPropertiesStatics(_inspectable.IInspectable):
+class IKnownCameraIntrinsicsPropertiesStatics(_inspectable.IInspectable, factory=True):
     FocalLength: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
     PrincipalPoint: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -23,10 +23,8 @@ class IKnownCameraIntrinsicsPropertiesStatics(_inspectable.IInspectable):
     TangentialDistortion: _Callable[[_Pointer[_type.HSTRING]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionColorFrameSourcePropertiesStatics(_inspectable.IInspectable):
+class IKnownPerceptionColorFrameSourcePropertiesStatics(_inspectable.IInspectable, factory=True):
     Exposure: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     AutoExposureEnabled: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -34,19 +32,15 @@ class IKnownPerceptionColorFrameSourcePropertiesStatics(_inspectable.IInspectabl
     ExposureCompensation: _Callable[[_Pointer[_type.HSTRING]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionDepthFrameSourcePropertiesStatics(_inspectable.IInspectable):
+class IKnownPerceptionDepthFrameSourcePropertiesStatics(_inspectable.IInspectable, factory=True):
     MinDepth: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     MaxDepth: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionFrameSourcePropertiesStatics(_inspectable.IInspectable):
+class IKnownPerceptionFrameSourcePropertiesStatics(_inspectable.IInspectable, factory=True):
     Id: _Callable[[_Pointer[_type.HSTRING]],  # value
                   _type.HRESULT]
     PhysicalDeviceIds: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -58,17 +52,13 @@ class IKnownPerceptionFrameSourcePropertiesStatics(_inspectable.IInspectable):
     EnclosureLocation: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionFrameSourcePropertiesStatics2(_inspectable.IInspectable):
+class IKnownPerceptionFrameSourcePropertiesStatics2(_inspectable.IInspectable, factory=True):
     DeviceId: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionInfraredFrameSourcePropertiesStatics(_inspectable.IInspectable):
+class IKnownPerceptionInfraredFrameSourcePropertiesStatics(_inspectable.IInspectable, factory=True):
     Exposure: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     AutoExposureEnabled: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -84,10 +74,8 @@ class IKnownPerceptionInfraredFrameSourcePropertiesStatics(_inspectable.IInspect
     InterleavedIlluminationEnabled: _Callable[[_Pointer[_type.HSTRING]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionVideoFrameSourcePropertiesStatics(_inspectable.IInspectable):
+class IKnownPerceptionVideoFrameSourcePropertiesStatics(_inspectable.IInspectable, factory=True):
     VideoProfile: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
     SupportedVideoProfiles: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -99,10 +87,8 @@ class IKnownPerceptionVideoFrameSourcePropertiesStatics(_inspectable.IInspectabl
     CameraIntrinsics: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownPerceptionVideoProfilePropertiesStatics(_inspectable.IInspectable):
+class IKnownPerceptionVideoProfilePropertiesStatics(_inspectable.IInspectable, factory=True):
     BitmapPixelFormat: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     BitmapAlphaMode: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -113,8 +99,6 @@ class IKnownPerceptionVideoProfilePropertiesStatics(_inspectable.IInspectable):
                       _type.HRESULT]
     FrameDuration: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionColorFrame(_inspectable.IInspectable):
@@ -215,7 +199,7 @@ class IPerceptionColorFrameSourceRemovedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPerceptionColorFrameSourceStatics(_inspectable.IInspectable):
+class IPerceptionColorFrameSourceStatics(_inspectable.IInspectable, factory=True):
     CreateWatcher: _Callable[[_Pointer[IPerceptionColorFrameSourceWatcher]],  # watcher
                              _type.HRESULT]
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IPerceptionColorFrameSource]]]],  # result
@@ -225,8 +209,6 @@ class IPerceptionColorFrameSourceStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.Perception.PerceptionFrameSourceAccessStatus]]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionColorFrameSourceWatcher(_inspectable.IInspectable):
@@ -401,7 +383,7 @@ class IPerceptionDepthFrameSourceRemovedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPerceptionDepthFrameSourceStatics(_inspectable.IInspectable):
+class IPerceptionDepthFrameSourceStatics(_inspectable.IInspectable, factory=True):
     CreateWatcher: _Callable[[_Pointer[IPerceptionDepthFrameSourceWatcher]],  # watcher
                              _type.HRESULT]
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IPerceptionDepthFrameSource]]]],  # result
@@ -411,8 +393,6 @@ class IPerceptionDepthFrameSourceStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.Perception.PerceptionFrameSourceAccessStatus]]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionDepthFrameSourceWatcher(_inspectable.IInspectable):
@@ -544,7 +524,7 @@ class IPerceptionInfraredFrameSourceRemovedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPerceptionInfraredFrameSourceStatics(_inspectable.IInspectable):
+class IPerceptionInfraredFrameSourceStatics(_inspectable.IInspectable, factory=True):
     CreateWatcher: _Callable[[_Pointer[IPerceptionInfraredFrameSourceWatcher]],  # watcher
                              _type.HRESULT]
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IPerceptionInfraredFrameSource]]]],  # result
@@ -554,8 +534,6 @@ class IPerceptionInfraredFrameSourceStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.Perception.PerceptionFrameSourceAccessStatus]]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPerceptionInfraredFrameSourceWatcher(_inspectable.IInspectable):

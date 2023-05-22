@@ -19,13 +19,11 @@ class IMidiChannelPressureMessage(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMidiChannelPressureMessageFactory(_inspectable.IInspectable):
+class IMidiChannelPressureMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiChannelPressureMessage: _Callable[[_type.BYTE,  # channel
                                                  _type.BYTE,  # pressure
                                                  _Pointer[IMidiChannelPressureMessage]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiControlChangeMessage(_inspectable.IInspectable):
@@ -37,14 +35,12 @@ class IMidiControlChangeMessage(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IMidiControlChangeMessageFactory(_inspectable.IInspectable):
+class IMidiControlChangeMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiControlChangeMessage: _Callable[[_type.BYTE,  # channel
                                                _type.BYTE,  # controller
                                                _type.BYTE,  # controlValue
                                                _Pointer[IMidiControlChangeMessage]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiInPort(_inspectable.IInspectable):
@@ -57,14 +53,12 @@ class IMidiInPort(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMidiInPortStatics(_inspectable.IInspectable):
+class IMidiInPortStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IMidiInPort]]],  # value
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiMessage(_inspectable.IInspectable):
@@ -90,14 +84,12 @@ class IMidiNoteOffMessage(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMidiNoteOffMessageFactory(_inspectable.IInspectable):
+class IMidiNoteOffMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiNoteOffMessage: _Callable[[_type.BYTE,  # channel
                                          _type.BYTE,  # note
                                          _type.BYTE,  # velocity
                                          _Pointer[IMidiNoteOffMessage]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiNoteOnMessage(_inspectable.IInspectable):
@@ -109,14 +101,12 @@ class IMidiNoteOnMessage(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMidiNoteOnMessageFactory(_inspectable.IInspectable):
+class IMidiNoteOnMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiNoteOnMessage: _Callable[[_type.BYTE,  # channel
                                         _type.BYTE,  # note
                                         _type.BYTE,  # velocity
                                         _Pointer[IMidiNoteOnMessage]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiOutPort(_inspectable.IInspectable):
@@ -128,14 +118,12 @@ class IMidiOutPort(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMidiOutPortStatics(_inspectable.IInspectable):
+class IMidiOutPortStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IMidiOutPort]]],  # value
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiPitchBendChangeMessage(_inspectable.IInspectable):
@@ -145,13 +133,11 @@ class IMidiPitchBendChangeMessage(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IMidiPitchBendChangeMessageFactory(_inspectable.IInspectable):
+class IMidiPitchBendChangeMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiPitchBendChangeMessage: _Callable[[_type.BYTE,  # channel
                                                  _type.UINT16,  # bend
                                                  _Pointer[IMidiPitchBendChangeMessage]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiPolyphonicKeyPressureMessage(_inspectable.IInspectable):
@@ -163,14 +149,12 @@ class IMidiPolyphonicKeyPressureMessage(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMidiPolyphonicKeyPressureMessageFactory(_inspectable.IInspectable):
+class IMidiPolyphonicKeyPressureMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiPolyphonicKeyPressureMessage: _Callable[[_type.BYTE,  # channel
                                                        _type.BYTE,  # note
                                                        _type.BYTE,  # pressure
                                                        _Pointer[IMidiPolyphonicKeyPressureMessage]],  # value
                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiProgramChangeMessage(_inspectable.IInspectable):
@@ -180,13 +164,11 @@ class IMidiProgramChangeMessage(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IMidiProgramChangeMessageFactory(_inspectable.IInspectable):
+class IMidiProgramChangeMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiProgramChangeMessage: _Callable[[_type.BYTE,  # channel
                                                _type.BYTE,  # program
                                                _Pointer[IMidiProgramChangeMessage]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiSongPositionPointerMessage(_inspectable.IInspectable):
@@ -194,12 +176,10 @@ class IMidiSongPositionPointerMessage(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IMidiSongPositionPointerMessageFactory(_inspectable.IInspectable):
+class IMidiSongPositionPointerMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiSongPositionPointerMessage: _Callable[[_type.UINT16,  # beats
                                                      _Pointer[IMidiSongPositionPointerMessage]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiSongSelectMessage(_inspectable.IInspectable):
@@ -207,12 +187,10 @@ class IMidiSongSelectMessage(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IMidiSongSelectMessageFactory(_inspectable.IInspectable):
+class IMidiSongSelectMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiSongSelectMessage: _Callable[[_type.BYTE,  # song
                                             _Pointer[IMidiSongSelectMessage]],  # value
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiSynthesizer(_inspectable.IInspectable):
@@ -224,7 +202,7 @@ class IMidiSynthesizer(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IMidiSynthesizerStatics(_inspectable.IInspectable):
+class IMidiSynthesizerStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IMidiSynthesizer]]],  # value
                            _type.HRESULT]
     CreateFromAudioDeviceAsync: _Callable[[_Windows_Devices_Enumeration.IDeviceInformation,  # audioDevice
@@ -234,15 +212,11 @@ class IMidiSynthesizerStatics(_inspectable.IInspectable):
                               _Pointer[_type.boolean]],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IMidiSystemExclusiveMessageFactory(_inspectable.IInspectable):
+class IMidiSystemExclusiveMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiSystemExclusiveMessage: _Callable[[_Windows_Storage_Streams.IBuffer,  # rawData
                                                  _Pointer[IMidiMessage]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMidiTimeCodeMessage(_inspectable.IInspectable):
@@ -252,10 +226,8 @@ class IMidiTimeCodeMessage(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IMidiTimeCodeMessageFactory(_inspectable.IInspectable):
+class IMidiTimeCodeMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMidiTimeCodeMessage: _Callable[[_type.BYTE,  # frameType
                                           _type.BYTE,  # values
                                           _Pointer[IMidiTimeCodeMessage]],  # value
                                          _type.HRESULT]
-
-    _factory = True

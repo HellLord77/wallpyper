@@ -12,9 +12,7 @@ class IApplicationDataManager(_inspectable.IInspectable):
     pass
 
 
-class IApplicationDataManagerStatics(_inspectable.IInspectable):
+class IApplicationDataManagerStatics(_inspectable.IInspectable, factory=True):
     CreateForPackageFamily: _Callable[[_type.HSTRING,  # packageFamilyName
                                        _Pointer[_Windows_Storage.IApplicationData]],  # applicationData
                                       _type.HRESULT]
-
-    _factory = True

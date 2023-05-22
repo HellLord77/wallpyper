@@ -12,7 +12,7 @@ class IColorHelper(_inspectable.IInspectable):
     pass
 
 
-class IColorHelperStatics(_inspectable.IInspectable):
+class IColorHelperStatics(_inspectable.IInspectable, factory=True):
     FromArgb: _Callable[[_type.BYTE,  # a
                          _type.BYTE,  # r
                          _type.BYTE,  # g
@@ -20,22 +20,18 @@ class IColorHelperStatics(_inspectable.IInspectable):
                          _Pointer[_struct.Windows.UI.Color]],  # returnValue
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IColorHelperStatics2(_inspectable.IInspectable):
+class IColorHelperStatics2(_inspectable.IInspectable, factory=True):
     ToDisplayName: _Callable[[_struct.Windows.UI.Color,  # color
                               _Pointer[_type.HSTRING]],  # returnValue
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IColors(_inspectable.IInspectable):
     pass
 
 
-class IColorsStatics(_inspectable.IInspectable):
+class IColorsStatics(_inspectable.IInspectable, factory=True):
     get_AliceBlue: _Callable[[_Pointer[_struct.Windows.UI.Color]],  # value
                              _type.HRESULT]
     get_AntiqueWhite: _Callable[[_Pointer[_struct.Windows.UI.Color]],  # value
@@ -318,8 +314,6 @@ class IColorsStatics(_inspectable.IInspectable):
                           _type.HRESULT]
     get_YellowGreen: _Callable[[_Pointer[_struct.Windows.UI.Color]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IUIContentRoot(_inspectable.IInspectable):

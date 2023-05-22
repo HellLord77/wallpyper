@@ -17,7 +17,7 @@ class ICompressor(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ICompressorFactory(_inspectable.IInspectable):
+class ICompressorFactory(_inspectable.IInspectable, factory=True):
     CreateCompressor: _Callable[[_Windows_Storage_Streams.IOutputStream,  # underlyingStream
                                  _Pointer[ICompressor]],  # createdCompressor
                                 _type.HRESULT]
@@ -27,17 +27,13 @@ class ICompressorFactory(_inspectable.IInspectable):
                                    _Pointer[ICompressor]],  # createdCompressor
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IDecompressor(_inspectable.IInspectable):
     DetachStream: _Callable[[_Pointer[_Windows_Storage_Streams.IInputStream]],  # stream
                             _type.HRESULT]
 
 
-class IDecompressorFactory(_inspectable.IInspectable):
+class IDecompressorFactory(_inspectable.IInspectable, factory=True):
     CreateDecompressor: _Callable[[_Windows_Storage_Streams.IInputStream,  # underlyingStream
                                    _Pointer[IDecompressor]],  # createdDecompressor
                                   _type.HRESULT]
-
-    _factory = True

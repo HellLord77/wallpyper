@@ -41,7 +41,7 @@ class IFileInformationFactory(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IFileInformationFactoryFactory(_inspectable.IInspectable):
+class IFileInformationFactoryFactory(_inspectable.IInspectable, factory=True):
     CreateWithMode: _Callable[[_Windows_Storage_Search.IStorageQueryResultBase,  # queryResult
                                _enum.Windows.Storage.FileProperties.ThumbnailMode,  # mode
                                _Pointer[IFileInformationFactory]],  # value
@@ -64,8 +64,6 @@ class IFileInformationFactoryFactory(_inspectable.IInspectable):
                                                         _type.boolean,  # delayLoad
                                                         _Pointer[IFileInformationFactory]],  # value
                                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageItemInformation(_inspectable.IInspectable):

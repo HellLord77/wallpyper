@@ -15,7 +15,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IHttpBufferContentFactory(_inspectable.IInspectable):
+class IHttpBufferContentFactory(_inspectable.IInspectable, factory=True):
     CreateFromBuffer: _Callable[[_Windows_Storage_Streams.IBuffer,  # content
                                  _Pointer[IHttpContent]],  # value
                                 _type.HRESULT]
@@ -24,8 +24,6 @@ class IHttpBufferContentFactory(_inspectable.IInspectable):
                                            _type.UINT32,  # count
                                            _Pointer[IHttpContent]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpClient(_inspectable.IInspectable):
@@ -111,12 +109,10 @@ class IHttpClient3(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IHttpClientFactory(_inspectable.IInspectable):
+class IHttpClientFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Web_Http_Filters.IHttpFilter,  # filter
                        _Pointer[IHttpClient]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpContent(_inspectable.IInspectable):
@@ -163,14 +159,12 @@ class IHttpCookie(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IHttpCookieFactory(_inspectable.IInspectable):
+class IHttpCookieFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # name
                        _type.HSTRING,  # domain
                        _type.HSTRING,  # path
                        _Pointer[IHttpCookie]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpCookieManager(_inspectable.IInspectable):
@@ -188,12 +182,10 @@ class IHttpCookieManager(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IHttpFormUrlEncodedContentFactory(_inspectable.IInspectable):
+class IHttpFormUrlEncodedContentFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Foundation_Collections.IKeyValuePair[_type.HSTRING, _type.HSTRING]],  # content
                        _Pointer[IHttpContent]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpGetBufferResult(_inspectable.IInspectable):
@@ -240,15 +232,13 @@ class IHttpMethod(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IHttpMethodFactory(_inspectable.IInspectable):
+class IHttpMethodFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # method
                        _Pointer[IHttpMethod]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpMethodStatics(_inspectable.IInspectable):
+class IHttpMethodStatics(_inspectable.IInspectable, factory=True):
     get_Delete: _Callable[[_Pointer[IHttpMethod]],  # value
                           _type.HRESULT]
     get_Get: _Callable[[_Pointer[IHttpMethod]],  # value
@@ -264,15 +254,13 @@ class IHttpMethodStatics(_inspectable.IInspectable):
     get_Put: _Callable[[_Pointer[IHttpMethod]],  # value
                        _type.HRESULT]
 
-    _factory = True
-
 
 class IHttpMultipartContent(_inspectable.IInspectable):
     Add: _Callable[[IHttpContent],  # content
                    _type.HRESULT]
 
 
-class IHttpMultipartContentFactory(_inspectable.IInspectable):
+class IHttpMultipartContentFactory(_inspectable.IInspectable, factory=True):
     CreateWithSubtype: _Callable[[_type.HSTRING,  # subtype
                                   _Pointer[IHttpContent]],  # value
                                  _type.HRESULT]
@@ -280,8 +268,6 @@ class IHttpMultipartContentFactory(_inspectable.IInspectable):
                                              _type.HSTRING,  # boundary
                                              _Pointer[IHttpContent]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpMultipartFormDataContent(_inspectable.IInspectable):
@@ -296,12 +282,10 @@ class IHttpMultipartFormDataContent(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IHttpMultipartFormDataContentFactory(_inspectable.IInspectable):
+class IHttpMultipartFormDataContentFactory(_inspectable.IInspectable, factory=True):
     CreateWithBoundary: _Callable[[_type.HSTRING,  # boundary
                                    _Pointer[IHttpContent]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpRequestMessage(_inspectable.IInspectable):
@@ -332,13 +316,11 @@ class IHttpRequestMessage2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IHttpRequestMessageFactory(_inspectable.IInspectable):
+class IHttpRequestMessageFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IHttpMethod,  # method
                        _Windows_Foundation.IUriRuntimeClass,  # uri
                        _Pointer[IHttpRequestMessage]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpRequestResult(_inspectable.IInspectable):
@@ -385,23 +367,19 @@ class IHttpResponseMessage(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IHttpResponseMessageFactory(_inspectable.IInspectable):
+class IHttpResponseMessageFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Web.Http.HttpStatusCode,  # statusCode
                        _Pointer[IHttpResponseMessage]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpStreamContentFactory(_inspectable.IInspectable):
+class IHttpStreamContentFactory(_inspectable.IInspectable, factory=True):
     CreateFromInputStream: _Callable[[_Windows_Storage_Streams.IInputStream,  # content
                                       _Pointer[IHttpContent]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpStringContentFactory(_inspectable.IInspectable):
+class IHttpStringContentFactory(_inspectable.IInspectable, factory=True):
     CreateFromString: _Callable[[_type.HSTRING,  # content
                                  _Pointer[IHttpContent]],  # value
                                 _type.HRESULT]
@@ -414,8 +392,6 @@ class IHttpStringContentFactory(_inspectable.IInspectable):
                                                          _type.HSTRING,  # mediaType
                                                          _Pointer[IHttpContent]],  # value
                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpTransportInformation(_inspectable.IInspectable):

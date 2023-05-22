@@ -111,13 +111,11 @@ class IGazeInputSourcePreview(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IGazeInputSourcePreviewStatics(_inspectable.IInspectable):
+class IGazeInputSourcePreviewStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IGazeInputSourcePreview]],  # result
                                  _type.HRESULT]
     CreateWatcher: _Callable[[_Pointer[IGazeDeviceWatcherPreview]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IGazeMovedPreviewEventArgs(_inspectable.IInspectable):

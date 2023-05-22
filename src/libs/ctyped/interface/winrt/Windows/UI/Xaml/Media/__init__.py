@@ -83,7 +83,7 @@ class IAcrylicBrushFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAcrylicBrushStatics(_inspectable.IInspectable):
+class IAcrylicBrushStatics(_inspectable.IInspectable, factory=True):
     get_BackgroundSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_TintColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -95,14 +95,10 @@ class IAcrylicBrushStatics(_inspectable.IInspectable):
     get_AlwaysUseFallbackProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IAcrylicBrushStatics2(_inspectable.IInspectable):
+class IAcrylicBrushStatics2(_inspectable.IInspectable, factory=True):
     get_TintLuminosityOpacityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IArcSegment(_inspectable.IInspectable):
@@ -128,7 +124,7 @@ class IArcSegment(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IArcSegmentStatics(_inspectable.IInspectable):
+class IArcSegmentStatics(_inspectable.IInspectable, factory=True):
     get_PointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_SizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -139,8 +135,6 @@ class IArcSegmentStatics(_inspectable.IInspectable):
                                       _type.HRESULT]
     get_SweepDirectionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IBezierSegment(_inspectable.IInspectable):
@@ -158,15 +152,13 @@ class IBezierSegment(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IBezierSegmentStatics(_inspectable.IInspectable):
+class IBezierSegmentStatics(_inspectable.IInspectable, factory=True):
     get_Point1Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_Point2Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_Point3Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IBitmapCache(_inspectable.IInspectable):
@@ -201,15 +193,13 @@ class IBrushOverrides2(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IBrushStatics(_inspectable.IInspectable):
+class IBrushStatics(_inspectable.IInspectable, factory=True):
     get_OpacityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_TransformProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_RelativeTransformProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class ICacheMode(_inspectable.IInspectable):
@@ -262,7 +252,7 @@ class ICompositeTransform(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICompositeTransformStatics(_inspectable.IInspectable):
+class ICompositeTransformStatics(_inspectable.IInspectable, factory=True):
     get_CenterXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_CenterYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -282,14 +272,12 @@ class ICompositeTransformStatics(_inspectable.IInspectable):
     get_TranslateYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
-
 
 class ICompositionTarget(_inspectable.IInspectable):
     pass
 
 
-class ICompositionTargetStatics(_inspectable.IInspectable):
+class ICompositionTargetStatics(_inspectable.IInspectable, factory=True):
     add_Rendering: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
                               _Pointer[_struct.EventRegistrationToken]],  # token
                              _type.HRESULT]
@@ -301,17 +289,13 @@ class ICompositionTargetStatics(_inspectable.IInspectable):
     remove_SurfaceContentsLost: _Callable[[_struct.EventRegistrationToken],  # token
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICompositionTargetStatics3(_inspectable.IInspectable):
+class ICompositionTargetStatics3(_inspectable.IInspectable, factory=True):
     add_Rendered: _Callable[[_Windows_Foundation.IEventHandler[IRenderedEventArgs],  # handler
                              _Pointer[_struct.EventRegistrationToken]],  # token
                             _type.HRESULT]
     remove_Rendered: _Callable[[_struct.EventRegistrationToken],  # token
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IEllipseGeometry(_inspectable.IInspectable):
@@ -329,15 +313,13 @@ class IEllipseGeometry(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IEllipseGeometryStatics(_inspectable.IInspectable):
+class IEllipseGeometryStatics(_inspectable.IInspectable, factory=True):
     get_CenterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_RadiusXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_RadiusYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IFontFamily(_inspectable.IInspectable):
@@ -353,11 +335,9 @@ class IFontFamilyFactory(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IFontFamilyStatics2(_inspectable.IInspectable):
+class IFontFamilyStatics2(_inspectable.IInspectable, factory=True):
     get_XamlAutoFontFamily: _Callable[[_Pointer[IFontFamily]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGeneralTransform(_inspectable.IInspectable):
@@ -418,24 +398,20 @@ class IGeometryGroup(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IGeometryGroupStatics(_inspectable.IInspectable):
+class IGeometryGroupStatics(_inspectable.IInspectable, factory=True):
     get_FillRuleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_ChildrenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IGeometryStatics(_inspectable.IInspectable):
+class IGeometryStatics(_inspectable.IInspectable, factory=True):
     get_Empty: _Callable[[_Pointer[IGeometry]],  # value
                          _type.HRESULT]
     get_StandardFlatteningTolerance: _Callable[[_Pointer[_type.DOUBLE]],  # value
                                                _type.HRESULT]
     get_TransformProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IGradientBrush(_inspectable.IInspectable):
@@ -464,7 +440,7 @@ class IGradientBrushFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IGradientBrushStatics(_inspectable.IInspectable):
+class IGradientBrushStatics(_inspectable.IInspectable, factory=True):
     get_SpreadMethodProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_MappingModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -473,8 +449,6 @@ class IGradientBrushStatics(_inspectable.IInspectable):
                                                   _type.HRESULT]
     get_GradientStopsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IGradientStop(_inspectable.IInspectable):
@@ -488,13 +462,11 @@ class IGradientStop(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IGradientStopStatics(_inspectable.IInspectable):
+class IGradientStopStatics(_inspectable.IInspectable, factory=True):
     get_ColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_OffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IImageBrush(_inspectable.IInspectable):
@@ -514,11 +486,9 @@ class IImageBrush(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IImageBrushStatics(_inspectable.IInspectable):
+class IImageBrushStatics(_inspectable.IInspectable, factory=True):
     get_ImageSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IImageSource(_inspectable.IInspectable):
@@ -540,13 +510,11 @@ class ILineGeometry(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ILineGeometryStatics(_inspectable.IInspectable):
+class ILineGeometryStatics(_inspectable.IInspectable, factory=True):
     get_StartPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_EndPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ILineSegment(_inspectable.IInspectable):
@@ -556,11 +524,9 @@ class ILineSegment(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ILineSegmentStatics(_inspectable.IInspectable):
+class ILineSegmentStatics(_inspectable.IInspectable, factory=True):
     get_PointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ILinearGradientBrush(_inspectable.IInspectable):
@@ -574,22 +540,18 @@ class ILinearGradientBrush(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ILinearGradientBrushFactory(_inspectable.IInspectable):
+class ILinearGradientBrushFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithGradientStopCollectionAndAngle: _Callable[[_Windows_Foundation_Collections.IVector[IGradientStop],  # gradientStopCollection
                                                                  _type.DOUBLE,  # angle
                                                                  _Pointer[ILinearGradientBrush]],  # value
                                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class ILinearGradientBrushStatics(_inspectable.IInspectable):
+class ILinearGradientBrushStatics(_inspectable.IInspectable, factory=True):
     get_StartPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_EndPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ILoadedImageSourceLoadCompletedEventArgs(_inspectable.IInspectable):
@@ -611,7 +573,7 @@ class ILoadedImageSurface(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ILoadedImageSurfaceStatics(_inspectable.IInspectable):
+class ILoadedImageSurfaceStatics(_inspectable.IInspectable, factory=True):
     StartLoadFromUriWithSize: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                          _struct.Windows.Foundation.Size,  # desiredMaxSize
                                          _Pointer[ILoadedImageSurface]],  # result
@@ -627,8 +589,6 @@ class ILoadedImageSurfaceStatics(_inspectable.IInspectable):
                                     _Pointer[ILoadedImageSurface]],  # result
                                    _type.HRESULT]
 
-    _factory = True
-
 
 class IMatrix3DProjection(_inspectable.IInspectable):
     get_ProjectionMatrix: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Media.Media3D.Matrix3D]],  # value
@@ -637,18 +597,16 @@ class IMatrix3DProjection(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IMatrix3DProjectionStatics(_inspectable.IInspectable):
+class IMatrix3DProjectionStatics(_inspectable.IInspectable, factory=True):
     get_ProjectionMatrixProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IMatrixHelper(_inspectable.IInspectable):
     pass
 
 
-class IMatrixHelperStatics(_inspectable.IInspectable):
+class IMatrixHelperStatics(_inspectable.IInspectable, factory=True):
     get_Identity: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Media.Matrix]],  # value
                             _type.HRESULT]
     FromElements: _Callable[[_type.DOUBLE,  # m11
@@ -667,8 +625,6 @@ class IMatrixHelperStatics(_inspectable.IInspectable):
                           _Pointer[_struct.Windows.Foundation.Point]],  # result
                          _type.HRESULT]
 
-    _factory = True
-
 
 class IMatrixTransform(_inspectable.IInspectable):
     get_Matrix: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Media.Matrix]],  # value
@@ -677,11 +633,9 @@ class IMatrixTransform(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IMatrixTransformStatics(_inspectable.IInspectable):
+class IMatrixTransformStatics(_inspectable.IInspectable, factory=True):
     get_MatrixProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaTransportControlsThumbnailRequestedEventArgs(_inspectable.IInspectable):
@@ -720,7 +674,7 @@ class IPathFigure(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IPathFigureStatics(_inspectable.IInspectable):
+class IPathFigureStatics(_inspectable.IInspectable, factory=True):
     get_SegmentsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_StartPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -729,8 +683,6 @@ class IPathFigureStatics(_inspectable.IInspectable):
                                     _type.HRESULT]
     get_IsFilledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPathGeometry(_inspectable.IInspectable):
@@ -744,13 +696,11 @@ class IPathGeometry(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPathGeometryStatics(_inspectable.IInspectable):
+class IPathGeometryStatics(_inspectable.IInspectable, factory=True):
     get_FillRuleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_FiguresProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IPathSegment(_inspectable.IInspectable):
@@ -814,7 +764,7 @@ class IPlaneProjection(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IPlaneProjectionStatics(_inspectable.IInspectable):
+class IPlaneProjectionStatics(_inspectable.IInspectable, factory=True):
     get_LocalOffsetXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_LocalOffsetYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -842,8 +792,6 @@ class IPlaneProjectionStatics(_inspectable.IInspectable):
     get_ProjectionMatrixProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
-
 
 class IPolyBezierSegment(_inspectable.IInspectable):
     get_Points: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[_struct.Windows.Foundation.Point]]],  # value
@@ -852,11 +800,9 @@ class IPolyBezierSegment(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPolyBezierSegmentStatics(_inspectable.IInspectable):
+class IPolyBezierSegmentStatics(_inspectable.IInspectable, factory=True):
     get_PointsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPolyLineSegment(_inspectable.IInspectable):
@@ -866,11 +812,9 @@ class IPolyLineSegment(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPolyLineSegmentStatics(_inspectable.IInspectable):
+class IPolyLineSegmentStatics(_inspectable.IInspectable, factory=True):
     get_PointsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPolyQuadraticBezierSegment(_inspectable.IInspectable):
@@ -880,11 +824,9 @@ class IPolyQuadraticBezierSegment(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPolyQuadraticBezierSegmentStatics(_inspectable.IInspectable):
+class IPolyQuadraticBezierSegmentStatics(_inspectable.IInspectable, factory=True):
     get_PointsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IProjection(_inspectable.IInspectable):
@@ -909,13 +851,11 @@ class IQuadraticBezierSegment(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IQuadraticBezierSegmentStatics(_inspectable.IInspectable):
+class IQuadraticBezierSegmentStatics(_inspectable.IInspectable, factory=True):
     get_Point1Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_Point2Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IRateChangedRoutedEventArgs(_inspectable.IInspectable):
@@ -929,11 +869,9 @@ class IRectangleGeometry(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IRectangleGeometryStatics(_inspectable.IInspectable):
+class IRectangleGeometryStatics(_inspectable.IInspectable, factory=True):
     get_RectProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IRenderedEventArgs(_inspectable.IInspectable):
@@ -990,7 +928,7 @@ class IRevealBrushFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRevealBrushStatics(_inspectable.IInspectable):
+class IRevealBrushStatics(_inspectable.IInspectable, factory=True):
     get_ColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_TargetThemeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1005,8 +943,6 @@ class IRevealBrushStatics(_inspectable.IInspectable):
     GetState: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                          _Pointer[_enum.Windows.UI.Xaml.Media.RevealBrushState]],  # result
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IRotateTransform(_inspectable.IInspectable):
@@ -1024,15 +960,13 @@ class IRotateTransform(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IRotateTransformStatics(_inspectable.IInspectable):
+class IRotateTransformStatics(_inspectable.IInspectable, factory=True):
     get_CenterXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_CenterYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_AngleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IScaleTransform(_inspectable.IInspectable):
@@ -1054,7 +988,7 @@ class IScaleTransform(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IScaleTransformStatics(_inspectable.IInspectable):
+class IScaleTransformStatics(_inspectable.IInspectable, factory=True):
     get_CenterXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_CenterYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1063,8 +997,6 @@ class IScaleTransformStatics(_inspectable.IInspectable):
                                   _type.HRESULT]
     get_ScaleYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IShadow(_inspectable.IInspectable):
@@ -1094,7 +1026,7 @@ class ISkewTransform(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISkewTransformStatics(_inspectable.IInspectable):
+class ISkewTransformStatics(_inspectable.IInspectable, factory=True):
     get_CenterXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_CenterYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1104,8 +1036,6 @@ class ISkewTransformStatics(_inspectable.IInspectable):
     get_AngleYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class ISolidColorBrush(_inspectable.IInspectable):
     get_Color: _Callable[[_Pointer[_struct.Windows.UI.Color]],  # value
@@ -1114,19 +1044,15 @@ class ISolidColorBrush(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ISolidColorBrushFactory(_inspectable.IInspectable):
+class ISolidColorBrushFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithColor: _Callable[[_struct.Windows.UI.Color,  # color
                                         _Pointer[ISolidColorBrush]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class ISolidColorBrushStatics(_inspectable.IInspectable):
+class ISolidColorBrushStatics(_inspectable.IInspectable, factory=True):
     get_ColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IThemeShadow(_inspectable.IInspectable):
@@ -1163,15 +1089,13 @@ class ITileBrushFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITileBrushStatics(_inspectable.IInspectable):
+class ITileBrushStatics(_inspectable.IInspectable, factory=True):
     get_AlignmentXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_AlignmentYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ITimelineMarker(_inspectable.IInspectable):
@@ -1196,15 +1120,13 @@ class ITimelineMarkerRoutedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ITimelineMarkerStatics(_inspectable.IInspectable):
+class ITimelineMarkerStatics(_inspectable.IInspectable, factory=True):
     get_TimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_TypeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_TextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ITransform(_inspectable.IInspectable):
@@ -1224,11 +1146,9 @@ class ITransformGroup(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ITransformGroupStatics(_inspectable.IInspectable):
+class ITransformGroupStatics(_inspectable.IInspectable, factory=True):
     get_ChildrenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ITranslateTransform(_inspectable.IInspectable):
@@ -1242,20 +1162,18 @@ class ITranslateTransform(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class ITranslateTransformStatics(_inspectable.IInspectable):
+class ITranslateTransformStatics(_inspectable.IInspectable, factory=True):
     get_XProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                              _type.HRESULT]
     get_YProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IVisualTreeHelper(_inspectable.IInspectable):
     pass
 
 
-class IVisualTreeHelperStatics(_inspectable.IInspectable):
+class IVisualTreeHelperStatics(_inspectable.IInspectable, factory=True):
     FindElementsInHostCoordinatesPoint: _Callable[[_struct.Windows.Foundation.Point,  # intersectingPoint
                                                    _Windows_UI_Xaml.IUIElement,  # subtree
                                                    _Pointer[_Windows_Foundation_Collections.IIterable[_Windows_UI_Xaml.IUIElement]]],  # result
@@ -1287,23 +1205,17 @@ class IVisualTreeHelperStatics(_inspectable.IInspectable):
     DisconnectChildrenRecursive: _Callable[[_Windows_UI_Xaml.IUIElement],  # element
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IVisualTreeHelperStatics2(_inspectable.IInspectable):
+class IVisualTreeHelperStatics2(_inspectable.IInspectable, factory=True):
     GetOpenPopups: _Callable[[_Windows_UI_Xaml.IWindow,  # window
                               _Pointer[_Windows_Foundation_Collections.IVectorView[_Windows_UI_Xaml_Controls_Primitives.IPopup]]],  # result
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IVisualTreeHelperStatics3(_inspectable.IInspectable):
+class IVisualTreeHelperStatics3(_inspectable.IInspectable, factory=True):
     GetOpenPopupsForXamlRoot: _Callable[[_Windows_UI_Xaml.IXamlRoot,  # xamlRoot
                                          _Pointer[_Windows_Foundation_Collections.IVectorView[_Windows_UI_Xaml_Controls_Primitives.IPopup]]],  # result
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlCompositionBrushBase(_inspectable.IInspectable):
@@ -1334,11 +1246,9 @@ class IXamlCompositionBrushBaseProtected(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IXamlCompositionBrushBaseStatics(_inspectable.IInspectable):
+class IXamlCompositionBrushBaseStatics(_inspectable.IInspectable, factory=True):
     get_FallbackColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlLight(_inspectable.IInspectable):
@@ -1368,7 +1278,7 @@ class IXamlLightProtected(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IXamlLightStatics(_inspectable.IInspectable):
+class IXamlLightStatics(_inspectable.IInspectable, factory=True):
     AddTargetElement: _Callable[[_type.HSTRING,  # lightId
                                  _Windows_UI_Xaml.IUIElement],  # element
                                 _type.HRESULT]
@@ -1381,5 +1291,3 @@ class IXamlLightStatics(_inspectable.IInspectable):
     RemoveTargetBrush: _Callable[[_type.HSTRING,  # lightId
                                   IBrush],  # brush
                                  _type.HRESULT]
-
-    _factory = True

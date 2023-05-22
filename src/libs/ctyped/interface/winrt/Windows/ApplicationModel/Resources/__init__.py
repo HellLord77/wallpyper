@@ -21,23 +21,19 @@ class IResourceLoader2(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IResourceLoaderFactory(_inspectable.IInspectable):
+class IResourceLoaderFactory(_inspectable.IInspectable, factory=True):
     CreateResourceLoaderByName: _Callable[[_type.HSTRING,  # name
                                            _Pointer[IResourceLoader]],  # loader
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceLoaderStatics(_inspectable.IInspectable):
+class IResourceLoaderStatics(_inspectable.IInspectable, factory=True):
     GetStringForReference: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                       _Pointer[_type.HSTRING]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceLoaderStatics2(_inspectable.IInspectable):
+class IResourceLoaderStatics2(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IResourceLoader]],  # loader
                                  _type.HRESULT]
     GetForCurrentViewWithName: _Callable[[_type.HSTRING,  # name
@@ -49,20 +45,14 @@ class IResourceLoaderStatics2(_inspectable.IInspectable):
                                                  _Pointer[IResourceLoader]],  # loader
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceLoaderStatics3(_inspectable.IInspectable):
+class IResourceLoaderStatics3(_inspectable.IInspectable, factory=True):
     GetForUIContext: _Callable[[_Windows_UI.IUIContext,  # context
                                 _Pointer[IResourceLoader]],  # result
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceLoaderStatics4(_inspectable.IInspectable):
+class IResourceLoaderStatics4(_inspectable.IInspectable, factory=True):
     GetDefaultPriPath: _Callable[[_type.HSTRING,  # packageFullName
                                   _Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
-
-    _factory = True

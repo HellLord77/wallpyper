@@ -126,23 +126,19 @@ class IMapBillboard(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IMapBillboardFactory(_inspectable.IInspectable):
+class IMapBillboardFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceFromCamera: _Callable[[IMapCamera,  # camera
                                          _Pointer[IMapBillboard]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMapBillboardStatics(_inspectable.IInspectable):
+class IMapBillboardStatics(_inspectable.IInspectable, factory=True):
     get_LocationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_NormalizedAnchorPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
     get_CollisionBehaviorDesiredProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMapCamera(_inspectable.IInspectable):
@@ -168,7 +164,7 @@ class IMapCamera(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IMapCameraFactory(_inspectable.IInspectable):
+class IMapCameraFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithLocation: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # location
                                            _Pointer[IMapCamera]],  # value
                                           _type.HRESULT]
@@ -188,8 +184,6 @@ class IMapCameraFactory(_inspectable.IInspectable):
                                                                          _type.DOUBLE,  # fieldOfViewInDegrees
                                                                          _Pointer[IMapCamera]],  # value
                                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMapContextRequestedEventArgs(_inspectable.IInspectable):
@@ -628,23 +622,19 @@ class IMapControlDataHelper2(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class IMapControlDataHelperFactory(_inspectable.IInspectable):
+class IMapControlDataHelperFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[IMapControl,  # map
                                _Pointer[IMapControlDataHelper]],  # instance
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlDataHelperStatics(_inspectable.IInspectable):
+class IMapControlDataHelperStatics(_inspectable.IInspectable, factory=True):
     CreateMapControl: _Callable[[_type.boolean,  # rasterRenderMode
                                  _Pointer[IMapControl]],  # returnValue
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics(_inspectable.IInspectable):
+class IMapControlStatics(_inspectable.IInspectable, factory=True):
     get_CenterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_ChildrenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -698,10 +688,8 @@ class IMapControlStatics(_inspectable.IInspectable):
                                          _struct.Windows.Foundation.Point],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics2(_inspectable.IInspectable):
+class IMapControlStatics2(_inspectable.IInspectable, factory=True):
     get_BusinessLandmarksVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_TransitFeaturesVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -721,19 +709,15 @@ class IMapControlStatics2(_inspectable.IInspectable):
     get_SceneProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics4(_inspectable.IInspectable):
+class IMapControlStatics4(_inspectable.IInspectable, factory=True):
     get_BusinessLandmarksEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_TransitFeaturesEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics5(_inspectable.IInspectable):
+class IMapControlStatics5(_inspectable.IInspectable, factory=True):
     get_MapProjectionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_StyleSheetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -741,24 +725,18 @@ class IMapControlStatics5(_inspectable.IInspectable):
     get_ViewPaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics6(_inspectable.IInspectable):
+class IMapControlStatics6(_inspectable.IInspectable, factory=True):
     get_LayersProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics7(_inspectable.IInspectable):
+class IMapControlStatics7(_inspectable.IInspectable, factory=True):
     get_RegionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IMapControlStatics8(_inspectable.IInspectable):
+class IMapControlStatics8(_inspectable.IInspectable, factory=True):
     get_CanTiltDownProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_CanTiltUpProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -767,8 +745,6 @@ class IMapControlStatics8(_inspectable.IInspectable):
                                      _type.HRESULT]
     get_CanZoomOutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMapControlTransitFeatureClickEventArgs(_inspectable.IInspectable):
@@ -882,7 +858,7 @@ class IMapElement3D(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IMapElement3DStatics(_inspectable.IInspectable):
+class IMapElement3DStatics(_inspectable.IInspectable, factory=True):
     get_LocationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_HeadingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -893,8 +869,6 @@ class IMapElement3DStatics(_inspectable.IInspectable):
                                 _type.HRESULT]
     get_ScaleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMapElement4(_inspectable.IInspectable):
@@ -938,23 +912,19 @@ class IMapElementPointerExitedEventArgs(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMapElementStatics(_inspectable.IInspectable):
+class IMapElementStatics(_inspectable.IInspectable, factory=True):
     get_ZIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_VisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IMapElementStatics2(_inspectable.IInspectable):
+class IMapElementStatics2(_inspectable.IInspectable, factory=True):
     get_MapTabIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IMapElementStatics3(_inspectable.IInspectable):
+class IMapElementStatics3(_inspectable.IInspectable, factory=True):
     get_MapStyleSheetEntryProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_MapStyleSheetEntryStateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -962,14 +932,10 @@ class IMapElementStatics3(_inspectable.IInspectable):
     get_TagProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IMapElementStatics4(_inspectable.IInspectable):
+class IMapElementStatics4(_inspectable.IInspectable, factory=True):
     get_IsEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IMapElementsLayer(_inspectable.IInspectable):
@@ -1035,11 +1001,9 @@ class IMapElementsLayerPointerExitedEventArgs(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMapElementsLayerStatics(_inspectable.IInspectable):
+class IMapElementsLayerStatics(_inspectable.IInspectable, factory=True):
     get_MapElementsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IMapIcon(_inspectable.IInspectable):
@@ -1068,7 +1032,7 @@ class IMapIcon2(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IMapIconStatics(_inspectable.IInspectable):
+class IMapIconStatics(_inspectable.IInspectable, factory=True):
     get_LocationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_TitleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1076,14 +1040,10 @@ class IMapIconStatics(_inspectable.IInspectable):
     get_NormalizedAnchorPointProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IMapIconStatics2(_inspectable.IInspectable):
+class IMapIconStatics2(_inspectable.IInspectable, factory=True):
     get_CollisionBehaviorDesiredProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMapInputEventArgs(_inspectable.IInspectable):
@@ -1106,15 +1066,13 @@ class IMapItemsControl(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IMapItemsControlStatics(_inspectable.IInspectable):
+class IMapItemsControlStatics(_inspectable.IInspectable, factory=True):
     get_ItemsSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_ItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_ItemTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMapLayer(_inspectable.IInspectable):
@@ -1139,15 +1097,13 @@ class IMapLayerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMapLayerStatics(_inspectable.IInspectable):
+class IMapLayerStatics(_inspectable.IInspectable, factory=True):
     get_MapTabIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_VisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_ZIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IMapModel3D(_inspectable.IInspectable):
@@ -1161,7 +1117,7 @@ class IMapModel3DFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMapModel3DStatics(_inspectable.IInspectable):
+class IMapModel3DStatics(_inspectable.IInspectable, factory=True):
     CreateFrom3MFAsync: _Callable[[_Windows_Storage_Streams.IRandomAccessStreamReference,  # source
                                    _Pointer[_Windows_Foundation.IAsyncOperation[IMapModel3D]]],  # operation
                                   _type.HRESULT]
@@ -1169,8 +1125,6 @@ class IMapModel3DStatics(_inspectable.IInspectable):
                                                     _enum.Windows.UI.Xaml.Controls.Maps.MapModel3DShadingOption,  # shadingOption
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[IMapModel3D]]],  # operation
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IMapPolygon(_inspectable.IInspectable):
@@ -1201,15 +1155,13 @@ class IMapPolygon2(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IMapPolygonStatics(_inspectable.IInspectable):
+class IMapPolygonStatics(_inspectable.IInspectable, factory=True):
     get_PathProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_StrokeThicknessProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_StrokeDashedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMapPolyline(_inspectable.IInspectable):
@@ -1231,13 +1183,11 @@ class IMapPolyline(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IMapPolylineStatics(_inspectable.IInspectable):
+class IMapPolylineStatics(_inspectable.IInspectable, factory=True):
     get_PathProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_StrokeDashedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMapRightTappedEventArgs(_inspectable.IInspectable):
@@ -1278,7 +1228,7 @@ class IMapScene(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IMapSceneStatics(_inspectable.IInspectable):
+class IMapSceneStatics(_inspectable.IInspectable, factory=True):
     CreateFromBoundingBox: _Callable[[_Windows_Devices_Geolocation.IGeoboundingBox,  # bounds
                                       _Pointer[IMapScene]],  # result
                                      _type.HRESULT]
@@ -1317,14 +1267,12 @@ class IMapSceneStatics(_inspectable.IInspectable):
                                                        _Pointer[IMapScene]],  # result
                                                       _type.HRESULT]
 
-    _factory = True
-
 
 class IMapStyleSheet(_inspectable.IInspectable):
     pass
 
 
-class IMapStyleSheetEntriesStatics(_inspectable.IInspectable):
+class IMapStyleSheetEntriesStatics(_inspectable.IInspectable, factory=True):
     get_Area: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     get_Airport: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -1454,10 +1402,8 @@ class IMapStyleSheetEntriesStatics(_inspectable.IInspectable):
     get_DrivingRoute: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMapStyleSheetEntryStatesStatics(_inspectable.IInspectable):
+class IMapStyleSheetEntryStatesStatics(_inspectable.IInspectable, factory=True):
     get_Disabled: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
     get_Hover: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -1465,10 +1411,8 @@ class IMapStyleSheetEntryStatesStatics(_inspectable.IInspectable):
     get_Selected: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IMapStyleSheetStatics(_inspectable.IInspectable):
+class IMapStyleSheetStatics(_inspectable.IInspectable, factory=True):
     Aerial: _Callable[[_Pointer[IMapStyleSheet]],  # result
                       _type.HRESULT]
     AerialWithOverlay: _Callable[[_Pointer[IMapStyleSheet]],  # result
@@ -1491,8 +1435,6 @@ class IMapStyleSheetStatics(_inspectable.IInspectable):
                                  _Pointer[IMapStyleSheet],  # styleSheet
                                  _Pointer[_type.boolean]],  # returnValue
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMapTargetCameraChangedEventArgs(_inspectable.IInspectable):
@@ -1649,7 +1591,7 @@ class IMapTileSourceFactory(_inspectable.IInspectable):
                                                                       _type.HRESULT]
 
 
-class IMapTileSourceStatics(_inspectable.IInspectable):
+class IMapTileSourceStatics(_inspectable.IInspectable, factory=True):
     get_DataSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_LayerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1673,10 +1615,8 @@ class IMapTileSourceStatics(_inspectable.IInspectable):
     get_VisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IMapTileSourceStatics2(_inspectable.IInspectable):
+class IMapTileSourceStatics2(_inspectable.IInspectable, factory=True):
     get_AnimationStateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
     get_AutoPlayProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1685,8 +1625,6 @@ class IMapTileSourceStatics2(_inspectable.IInspectable):
                                       _type.HRESULT]
     get_FrameDurationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IMapTileUriRequest(_inspectable.IInspectable):
@@ -1746,7 +1684,7 @@ class IStreetsideExperience(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IStreetsideExperienceFactory(_inspectable.IInspectable):
+class IStreetsideExperienceFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithPanorama: _Callable[[IStreetsidePanorama,  # panorama
                                            _Pointer[IStreetsideExperience]],  # value
                                           _type.HRESULT]
@@ -1757,15 +1695,13 @@ class IStreetsideExperienceFactory(_inspectable.IInspectable):
                                                                      _Pointer[IStreetsideExperience]],  # value
                                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IStreetsidePanorama(_inspectable.IInspectable):
     get_Location: _Callable[[_Pointer[_Windows_Devices_Geolocation.IGeopoint]],  # value
                             _type.HRESULT]
 
 
-class IStreetsidePanoramaStatics(_inspectable.IInspectable):
+class IStreetsidePanoramaStatics(_inspectable.IInspectable, factory=True):
     FindNearbyWithLocationAsync: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # location
                                             _Pointer[_Windows_Foundation.IAsyncOperation[IStreetsidePanorama]]],  # operation
                                            _type.HRESULT]
@@ -1773,5 +1709,3 @@ class IStreetsidePanoramaStatics(_inspectable.IInspectable):
                                                      _type.DOUBLE,  # radiusInMeters
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[IStreetsidePanorama]]],  # operation
                                                     _type.HRESULT]
-
-    _factory = True

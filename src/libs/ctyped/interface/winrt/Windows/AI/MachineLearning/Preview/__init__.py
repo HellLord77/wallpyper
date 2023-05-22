@@ -46,12 +46,10 @@ class ILearningModelBindingPreview(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class ILearningModelBindingPreviewFactory(_inspectable.IInspectable):
+class ILearningModelBindingPreviewFactory(_inspectable.IInspectable, factory=True):
     CreateFromModel: _Callable[[ILearningModelPreview,  # model
                                 _Pointer[ILearningModelBindingPreview]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ILearningModelDescriptionPreview(_inspectable.IInspectable):
@@ -95,15 +93,13 @@ class ILearningModelPreview(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ILearningModelPreviewStatics(_inspectable.IInspectable):
+class ILearningModelPreviewStatics(_inspectable.IInspectable, factory=True):
     LoadModelFromStorageFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # modelFile
                                               _Pointer[_Windows_Foundation.IAsyncOperation[ILearningModelPreview]]],  # modelCreationOperation
                                              _type.HRESULT]
     LoadModelFromStreamAsync: _Callable[[_Windows_Storage_Streams.IRandomAccessStreamReference,  # modelStream
                                          _Pointer[_Windows_Foundation.IAsyncOperation[ILearningModelPreview]]],  # modelCreationOperation
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ILearningModelVariableDescriptorPreview(_inspectable.IInspectable):

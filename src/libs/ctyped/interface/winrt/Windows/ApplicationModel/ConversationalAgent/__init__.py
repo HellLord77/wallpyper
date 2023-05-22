@@ -199,11 +199,9 @@ class IConversationalAgentDetectorManager2(_inspectable.IInspectable):
                                                       _type.HRESULT]
 
 
-class IConversationalAgentDetectorManagerStatics(_inspectable.IInspectable):
+class IConversationalAgentDetectorManagerStatics(_inspectable.IInspectable, factory=True):
     get_Default: _Callable[[_Pointer[IConversationalAgentDetectorManager]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IConversationalAgentSession(_inspectable.IInspectable):
@@ -310,13 +308,11 @@ class IConversationalAgentSessionInterruptedEventArgs(_inspectable.IInspectable)
     pass
 
 
-class IConversationalAgentSessionStatics(_inspectable.IInspectable):
+class IConversationalAgentSessionStatics(_inspectable.IInspectable, factory=True):
     GetCurrentSessionAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IConversationalAgentSession]]],  # operation
                                       _type.HRESULT]
     GetCurrentSessionSync: _Callable[[_Pointer[IConversationalAgentSession]],  # result
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IConversationalAgentSignal(_inspectable.IInspectable):

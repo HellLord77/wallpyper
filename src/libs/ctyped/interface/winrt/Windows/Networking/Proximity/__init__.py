@@ -78,7 +78,7 @@ class IConnectionRequestedEventArgs(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IPeerFinderStatics(_inspectable.IInspectable):
+class IPeerFinderStatics(_inspectable.IInspectable, factory=True):
     get_AllowBluetooth: _Callable[[_Pointer[_type.boolean]],  # value
                                   _type.HRESULT]
     put_AllowBluetooth: _Callable[[_type.boolean],  # value
@@ -121,10 +121,8 @@ class IPeerFinderStatics(_inspectable.IInspectable):
                              _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Networking_Sockets.IStreamSocket]]],  # asyncOp
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IPeerFinderStatics2(_inspectable.IInspectable):
+class IPeerFinderStatics2(_inspectable.IInspectable, factory=True):
     get_Role: _Callable[[_Pointer[_enum.Windows.Networking.Proximity.PeerRole]],  # value
                         _type.HRESULT]
     put_Role: _Callable[[_enum.Windows.Networking.Proximity.PeerRole],  # value
@@ -135,8 +133,6 @@ class IPeerFinderStatics2(_inspectable.IInspectable):
                                  _type.HRESULT]
     CreateWatcher: _Callable[[_Pointer[IPeerWatcher]],  # watcher
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IPeerInformation(_inspectable.IInspectable):
@@ -244,7 +240,7 @@ class IProximityDevice(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IProximityDeviceStatics(_inspectable.IInspectable):
+class IProximityDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
     GetDefault: _Callable[[_Pointer[IProximityDevice]],  # proximityDevice
@@ -252,8 +248,6 @@ class IProximityDeviceStatics(_inspectable.IInspectable):
     FromId: _Callable[[_type.HSTRING,  # deviceId
                        _Pointer[IProximityDevice]],  # proximityDevice
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IProximityMessage(_inspectable.IInspectable):

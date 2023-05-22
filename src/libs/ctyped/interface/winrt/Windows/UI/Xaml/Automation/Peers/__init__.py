@@ -55,12 +55,10 @@ class IAutoSuggestBoxAutomationPeer(_inspectable.IInspectable):
     pass
 
 
-class IAutoSuggestBoxAutomationPeerFactory(_inspectable.IInspectable):
+class IAutoSuggestBoxAutomationPeerFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithOwner: _Callable[[_Windows_UI_Xaml_Controls.IAutoSuggestBox,  # owner
                                         _Pointer[IAutoSuggestBoxAutomationPeer]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IAutomationPeer(_inspectable.IInspectable):
@@ -221,7 +219,7 @@ class IAutomationPeerAnnotation(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAutomationPeerAnnotationFactory(_inspectable.IInspectable):
+class IAutomationPeerAnnotationFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.UI.Xaml.Automation.AnnotationType,  # type
                                _Pointer[IAutomationPeerAnnotation]],  # value
                               _type.HRESULT]
@@ -230,16 +228,12 @@ class IAutomationPeerAnnotationFactory(_inspectable.IInspectable):
                                         _Pointer[IAutomationPeerAnnotation]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IAutomationPeerAnnotationStatics(_inspectable.IInspectable):
+class IAutomationPeerAnnotationStatics(_inspectable.IInspectable, factory=True):
     get_TypeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_PeerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IAutomationPeerFactory(_inspectable.IInspectable):
@@ -380,19 +374,15 @@ class IAutomationPeerProtected(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IAutomationPeerStatics(_inspectable.IInspectable):
+class IAutomationPeerStatics(_inspectable.IInspectable, factory=True):
     ListenerExists: _Callable[[_enum.Windows.UI.Xaml.Automation.Peers.AutomationEvents,  # eventId
                                _Pointer[_type.boolean]],  # result
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IAutomationPeerStatics3(_inspectable.IInspectable):
+class IAutomationPeerStatics3(_inspectable.IInspectable, factory=True):
     GenerateRawElementProviderRuntimeId: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Automation.Peers.RawElementProviderRuntimeId]],  # result
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IButtonAutomationPeer(_inspectable.IInspectable):
@@ -594,15 +584,13 @@ class IFrameworkElementAutomationPeerFactory(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IFrameworkElementAutomationPeerStatics(_inspectable.IInspectable):
+class IFrameworkElementAutomationPeerStatics(_inspectable.IInspectable, factory=True):
     FromElement: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                             _Pointer[IAutomationPeer]],  # result
                            _type.HRESULT]
     CreatePeerForElement: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                                      _Pointer[IAutomationPeer]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IGridViewAutomationPeer(_inspectable.IInspectable):
@@ -1016,37 +1004,31 @@ class IPivotAutomationPeer(_inspectable.IInspectable):
     pass
 
 
-class IPivotAutomationPeerFactory(_inspectable.IInspectable):
+class IPivotAutomationPeerFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithOwner: _Callable[[_Windows_UI_Xaml_Controls.IPivot,  # owner
                                         _Pointer[IPivotAutomationPeer]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IPivotItemAutomationPeer(_inspectable.IInspectable):
     pass
 
 
-class IPivotItemAutomationPeerFactory(_inspectable.IInspectable):
+class IPivotItemAutomationPeerFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithOwner: _Callable[[_Windows_UI_Xaml_Controls.IPivotItem,  # owner
                                         _Pointer[IPivotItemAutomationPeer]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IPivotItemDataAutomationPeer(_inspectable.IInspectable):
     pass
 
 
-class IPivotItemDataAutomationPeerFactory(_inspectable.IInspectable):
+class IPivotItemDataAutomationPeerFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithParentAndItem: _Callable[[_inspectable.IInspectable,  # item
                                                 IPivotAutomationPeer,  # parent
                                                 _Pointer[IPivotItemDataAutomationPeer]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IProgressBarAutomationPeer(_inspectable.IInspectable):

@@ -52,7 +52,7 @@ class IControlChannelTriggerEventDetails(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IControlChannelTriggerFactory(_inspectable.IInspectable):
+class IControlChannelTriggerFactory(_inspectable.IInspectable, factory=True):
     CreateControlChannelTrigger: _Callable[[_type.HSTRING,  # channelId
                                             _type.UINT32,  # serverKeepAliveIntervalInMinutes
                                             _Pointer[IControlChannelTrigger]],  # notificationChannel
@@ -62,8 +62,6 @@ class IControlChannelTriggerFactory(_inspectable.IInspectable):
                                               _enum.Windows.Networking.Sockets.ControlChannelTriggerResourceType,  # resourceRequestType
                                               _Pointer[IControlChannelTrigger]],  # notificationChannel
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IControlChannelTriggerResetEventDetails(_inspectable.IInspectable):
@@ -191,7 +189,7 @@ class IDatagramSocketMessageReceivedEventArgs(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IDatagramSocketStatics(_inspectable.IInspectable):
+class IDatagramSocketStatics(_inspectable.IInspectable, factory=True):
     GetEndpointPairsAsync: _Callable[[_Windows_Networking.IHostName,  # remoteHostName
                                       _type.HSTRING,  # remoteServiceName
                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_Networking.IEndpointPair]]]],  # operation
@@ -201,8 +199,6 @@ class IDatagramSocketStatics(_inspectable.IInspectable):
                                                      _enum.Windows.Networking.HostNameSortOptions,  # sortOptions
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_Networking.IEndpointPair]]]],  # operation
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMessageWebSocket(_inspectable.IInspectable):
@@ -345,12 +341,10 @@ class ISocketActivityContext(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ISocketActivityContextFactory(_inspectable.IInspectable):
+class ISocketActivityContextFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Storage_Streams.IBuffer,  # data
                        _Pointer[ISocketActivityContext]],  # context
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISocketActivityInformation(_inspectable.IInspectable):
@@ -370,11 +364,9 @@ class ISocketActivityInformation(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class ISocketActivityInformationStatics(_inspectable.IInspectable):
+class ISocketActivityInformationStatics(_inspectable.IInspectable, factory=True):
     get_AllSockets: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_type.HSTRING, ISocketActivityInformation]]],  # sockets
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISocketActivityTriggerDetails(_inspectable.IInspectable):
@@ -384,12 +376,10 @@ class ISocketActivityTriggerDetails(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ISocketErrorStatics(_inspectable.IInspectable):
+class ISocketErrorStatics(_inspectable.IInspectable, factory=True):
     GetStatus: _Callable[[_type.INT32,  # hresult
                           _Pointer[_enum.Windows.Networking.Sockets.SocketErrorStatus]],  # status
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IStreamSocket(_inspectable.IInspectable):
@@ -613,7 +603,7 @@ class IStreamSocketListenerInformation(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IStreamSocketStatics(_inspectable.IInspectable):
+class IStreamSocketStatics(_inspectable.IInspectable, factory=True):
     GetEndpointPairsAsync: _Callable[[_Windows_Networking.IHostName,  # remoteHostName
                                       _type.HSTRING,  # remoteServiceName
                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_Networking.IEndpointPair]]]],  # operation
@@ -623,8 +613,6 @@ class IStreamSocketStatics(_inspectable.IInspectable):
                                                      _enum.Windows.Networking.HostNameSortOptions,  # sortOptions
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_Networking.IEndpointPair]]]],  # operation
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IStreamWebSocket(_inspectable.IInspectable):
@@ -712,12 +700,10 @@ class IWebSocketControl2(_inspectable.IInspectable):
                                                     _type.HRESULT]
 
 
-class IWebSocketErrorStatics(_inspectable.IInspectable):
+class IWebSocketErrorStatics(_inspectable.IInspectable, factory=True):
     GetStatus: _Callable[[_type.INT32,  # hresult
                           _Pointer[_enum.Windows.Web.WebErrorStatus]],  # status
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IWebSocketInformation(_inspectable.IInspectable):

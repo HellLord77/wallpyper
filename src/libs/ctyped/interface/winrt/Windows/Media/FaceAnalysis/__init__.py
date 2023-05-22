@@ -36,7 +36,7 @@ class IFaceDetector(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IFaceDetectorStatics(_inspectable.IInspectable):
+class IFaceDetectorStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IFaceDetector]]],  # returnValue
                            _type.HRESULT]
     GetSupportedBitmapPixelFormats: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Graphics.Imaging.BitmapPixelFormat]]],  # result
@@ -46,8 +46,6 @@ class IFaceDetectorStatics(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_IsSupported: _Callable[[_Pointer[_type.boolean]],  # returnValue
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IFaceTracker(_inspectable.IInspectable):
@@ -64,7 +62,7 @@ class IFaceTracker(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IFaceTrackerStatics(_inspectable.IInspectable):
+class IFaceTrackerStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IFaceTracker]]],  # returnValue
                            _type.HRESULT]
     GetSupportedBitmapPixelFormats: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Graphics.Imaging.BitmapPixelFormat]]],  # result
@@ -74,5 +72,3 @@ class IFaceTrackerStatics(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_IsSupported: _Callable[[_Pointer[_type.boolean]],  # returnValue
                                _type.HRESULT]
-
-    _factory = True

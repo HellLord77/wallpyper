@@ -53,7 +53,7 @@ class IAppInfo4(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IAppInfoStatics(_inspectable.IInspectable):
+class IAppInfoStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IAppInfo]],  # value
                            _type.HRESULT]
     GetFromAppUserModelId: _Callable[[_type.HSTRING,  # appUserModelId
@@ -63,8 +63,6 @@ class IAppInfoStatics(_inspectable.IInspectable):
                                              _type.HSTRING,  # appUserModelId
                                              _Pointer[IAppInfo]],  # result
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IAppInstallerInfo(_inspectable.IInspectable):
@@ -114,7 +112,7 @@ class IAppInstance(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IAppInstanceStatics(_inspectable.IInspectable):
+class IAppInstanceStatics(_inspectable.IInspectable, factory=True):
     get_RecommendedInstance: _Callable[[_Pointer[IAppInstance]],  # value
                                        _type.HRESULT]
     GetActivatedEventArgs: _Callable[[_Pointer[_Windows_ApplicationModel_Activation.IActivatedEventArgs]],  # result
@@ -127,21 +125,15 @@ class IAppInstanceStatics(_inspectable.IInspectable):
     GetInstances: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[IAppInstance]]],  # result
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IDesignModeStatics(_inspectable.IInspectable):
+class IDesignModeStatics(_inspectable.IInspectable, factory=True):
     get_DesignModeEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IDesignModeStatics2(_inspectable.IInspectable):
+class IDesignModeStatics2(_inspectable.IInspectable, factory=True):
     get_DesignMode2Enabled: _Callable[[_Pointer[_type.boolean]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEnteredBackgroundEventArgs(_inspectable.IInspectable):
@@ -172,12 +164,10 @@ class IFindRelatedPackagesOptions(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IFindRelatedPackagesOptionsFactory(_inspectable.IInspectable):
+class IFindRelatedPackagesOptionsFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.ApplicationModel.PackageRelationship,  # Relationship
                                _Pointer[IFindRelatedPackagesOptions]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IFullTrustProcessLaunchResult(_inspectable.IInspectable):
@@ -187,7 +177,7 @@ class IFullTrustProcessLaunchResult(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IFullTrustProcessLauncherStatics(_inspectable.IInspectable):
+class IFullTrustProcessLauncherStatics(_inspectable.IInspectable, factory=True):
     LaunchFullTrustProcessForCurrentAppAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # asyncAction
                                                         _type.HRESULT]
     LaunchFullTrustProcessForCurrentAppWithParametersAsync: _Callable[[_type.HSTRING,  # parameterGroupId
@@ -201,10 +191,8 @@ class IFullTrustProcessLauncherStatics(_inspectable.IInspectable):
                                                                 _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncAction
                                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IFullTrustProcessLauncherStatics2(_inspectable.IInspectable):
+class IFullTrustProcessLauncherStatics2(_inspectable.IInspectable, factory=True):
     LaunchFullTrustProcessForCurrentAppWithArgumentsAsync: _Callable[[_type.HSTRING,  # commandLine
                                                                       _Pointer[_Windows_Foundation.IAsyncOperation[IFullTrustProcessLaunchResult]]],  # operation
                                                                      _type.HRESULT]
@@ -212,8 +200,6 @@ class IFullTrustProcessLauncherStatics2(_inspectable.IInspectable):
                                                                _type.HSTRING,  # commandLine
                                                                _Pointer[_Windows_Foundation.IAsyncOperation[IFullTrustProcessLaunchResult]]],  # operation
                                                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILeavingBackgroundEventArgs(_inspectable.IInspectable):
@@ -230,14 +216,12 @@ class ILimitedAccessFeatureRequestResult(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class ILimitedAccessFeaturesStatics(_inspectable.IInspectable):
+class ILimitedAccessFeaturesStatics(_inspectable.IInspectable, factory=True):
     TryUnlockFeature: _Callable[[_type.HSTRING,  # featureId
                                  _type.HSTRING,  # token
                                  _type.HSTRING,  # attestation
                                  _Pointer[ILimitedAccessFeatureRequestResult]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPackage(_inspectable.IInspectable):
@@ -440,21 +424,17 @@ class IPackageCatalogRemoveResourcePackagesResult(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IPackageCatalogStatics(_inspectable.IInspectable):
+class IPackageCatalogStatics(_inspectable.IInspectable, factory=True):
     OpenForCurrentPackage: _Callable[[_Pointer[IPackageCatalog]],  # value
                                      _type.HRESULT]
     OpenForCurrentUser: _Callable[[_Pointer[IPackageCatalog]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IPackageCatalogStatics2(_inspectable.IInspectable):
+class IPackageCatalogStatics2(_inspectable.IInspectable, factory=True):
     OpenForPackage: _Callable[[IPackage,  # package
                                _Pointer[IPackageCatalog]],  # result
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPackageContentGroup(_inspectable.IInspectable):
@@ -485,11 +465,9 @@ class IPackageContentGroupStagingEventArgs(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IPackageContentGroupStatics(_inspectable.IInspectable):
+class IPackageContentGroupStatics(_inspectable.IInspectable, factory=True):
     get_RequiredGroupName: _Callable[[_Pointer[_type.HSTRING]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IPackageId(_inspectable.IInspectable):
@@ -544,11 +522,9 @@ class IPackageStagingEventArgs(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IPackageStatics(_inspectable.IInspectable):
+class IPackageStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IPackage]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPackageStatus(_inspectable.IInspectable):
@@ -643,14 +619,12 @@ class IStartupTask(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IStartupTaskStatics(_inspectable.IInspectable):
+class IStartupTaskStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentPackageAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IStartupTask]]]],  # operation
                                          _type.HRESULT]
     GetAsync: _Callable[[_type.HSTRING,  # taskId
                          _Pointer[_Windows_Foundation.IAsyncOperation[IStartupTask]]],  # operation
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ISuspendingDeferral(_inspectable.IInspectable):

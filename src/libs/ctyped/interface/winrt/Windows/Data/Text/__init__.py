@@ -74,12 +74,10 @@ class ISelectableWordsSegmenter(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ISelectableWordsSegmenterFactory(_inspectable.IInspectable):
+class ISelectableWordsSegmenterFactory(_inspectable.IInspectable, factory=True):
     CreateWithLanguage: _Callable[[_type.HSTRING,  # language
                                    _Pointer[ISelectableWordsSegmenter]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ISemanticTextQuery(_inspectable.IInspectable):
@@ -92,7 +90,7 @@ class ISemanticTextQuery(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISemanticTextQueryFactory(_inspectable.IInspectable):
+class ISemanticTextQueryFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # aqsFilter
                        _Pointer[ISemanticTextQuery]],  # result
                       _type.HRESULT]
@@ -100,8 +98,6 @@ class ISemanticTextQueryFactory(_inspectable.IInspectable):
                                    _type.HSTRING,  # filterLanguage
                                    _Pointer[ISemanticTextQuery]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ITextConversionGenerator(_inspectable.IInspectable):
@@ -118,12 +114,10 @@ class ITextConversionGenerator(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class ITextConversionGeneratorFactory(_inspectable.IInspectable):
+class ITextConversionGeneratorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # languageTag
                        _Pointer[ITextConversionGenerator]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITextPhoneme(_inspectable.IInspectable):
@@ -164,12 +158,10 @@ class ITextPredictionGenerator2(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITextPredictionGeneratorFactory(_inspectable.IInspectable):
+class ITextPredictionGeneratorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # languageTag
                        _Pointer[ITextPredictionGenerator]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITextReverseConversionGenerator(_inspectable.IInspectable):
@@ -188,15 +180,13 @@ class ITextReverseConversionGenerator2(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ITextReverseConversionGeneratorFactory(_inspectable.IInspectable):
+class ITextReverseConversionGeneratorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # languageTag
                        _Pointer[ITextReverseConversionGenerator]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IUnicodeCharactersStatics(_inspectable.IInspectable):
+class IUnicodeCharactersStatics(_inspectable.IInspectable, factory=True):
     GetCodepointFromSurrogatePair: _Callable[[_type.UINT32,  # highSurrogate
                                               _type.UINT32,  # lowSurrogate
                                               _Pointer[_type.UINT32]],  # codepoint
@@ -251,8 +241,6 @@ class IUnicodeCharactersStatics(_inspectable.IInspectable):
                                    _Pointer[_enum.Windows.Data.Text.UnicodeGeneralCategory]],  # value
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IWordSegment(_inspectable.IInspectable):
     get_Text: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -279,9 +267,7 @@ class IWordsSegmenter(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IWordsSegmenterFactory(_inspectable.IInspectable):
+class IWordsSegmenterFactory(_inspectable.IInspectable, factory=True):
     CreateWithLanguage: _Callable[[_type.HSTRING,  # language
                                    _Pointer[IWordsSegmenter]],  # result
                                   _type.HRESULT]
-
-    _factory = True

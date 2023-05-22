@@ -22,13 +22,11 @@ class IPreviewBuildsManager(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IPreviewBuildsManagerStatics(_inspectable.IInspectable):
+class IPreviewBuildsManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IPreviewBuildsManager]],  # value
                           _type.HRESULT]
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPreviewBuildsState(_inspectable.IInspectable):
@@ -135,7 +133,7 @@ class IWindowsUpdateAdministrator(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IWindowsUpdateAdministratorStatics(_inspectable.IInspectable):
+class IWindowsUpdateAdministratorStatics(_inspectable.IInspectable, factory=True):
     GetRegisteredAdministrator: _Callable[[_type.HSTRING,  # organizationName
                                            _Pointer[IWindowsUpdateGetAdministratorResult]],  # result
                                           _type.HRESULT]
@@ -153,8 +151,6 @@ class IWindowsUpdateAdministratorStatics(_inspectable.IInspectable):
                               _type.HRESULT]
     CancelRestartRequest: _Callable[[_type.HSTRING],  # requestRestartToken
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IWindowsUpdateApprovalData(_inspectable.IInspectable):
@@ -269,12 +265,10 @@ class IWindowsUpdateManager(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IWindowsUpdateManagerFactory(_inspectable.IInspectable):
+class IWindowsUpdateManagerFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # clientId
                                _Pointer[IWindowsUpdateManager]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IWindowsUpdateProgressChangedEventArgs(_inspectable.IInspectable):
@@ -315,7 +309,7 @@ class IWindowsUpdateRestartRequestOptions(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IWindowsUpdateRestartRequestOptionsFactory(_inspectable.IInspectable):
+class IWindowsUpdateRestartRequestOptionsFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # title
                                _type.HSTRING,  # description
                                _Windows_Foundation.IUriRuntimeClass,  # moreInfoUrl
@@ -323,8 +317,6 @@ class IWindowsUpdateRestartRequestOptionsFactory(_inspectable.IInspectable):
                                _type.INT32,  # complianceGracePeriodInDays
                                _Pointer[IWindowsUpdateRestartRequestOptions]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IWindowsUpdateScanCompletedEventArgs(_inspectable.IInspectable):

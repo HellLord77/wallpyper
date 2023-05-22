@@ -11,7 +11,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IGameBarStatics(_inspectable.IInspectable):
+class IGameBarStatics(_inspectable.IInspectable, factory=True):
     add_VisibilityChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
                                       _Pointer[_struct.EventRegistrationToken]],  # token
                                      _type.HRESULT]
@@ -26,8 +26,6 @@ class IGameBarStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     get_IsInputRedirected: _Callable[[_Pointer[_type.boolean]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IGameChatMessageReceivedEventArgs(_inspectable.IInspectable):
@@ -64,11 +62,9 @@ class IGameChatOverlayMessageSource(_inspectable.IInspectable):
                                                          _type.HRESULT]
 
 
-class IGameChatOverlayStatics(_inspectable.IInspectable):
+class IGameChatOverlayStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IGameChatOverlay]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IGameUIProviderActivatedEventArgs(_inspectable.IInspectable):

@@ -88,7 +88,7 @@ class ICertificateChain(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ICertificateEnrollmentManagerStatics(_inspectable.IInspectable):
+class ICertificateEnrollmentManagerStatics(_inspectable.IInspectable, factory=True):
     CreateRequestAsync: _Callable[[ICertificateRequestProperties,  # request
                                    _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # value
                                   _type.HRESULT]
@@ -105,10 +105,8 @@ class ICertificateEnrollmentManagerStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Foundation.IAsyncAction]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ICertificateEnrollmentManagerStatics2(_inspectable.IInspectable):
+class ICertificateEnrollmentManagerStatics2(_inspectable.IInspectable, factory=True):
     get_UserCertificateEnrollmentManager: _Callable[[_Pointer[IUserCertificateEnrollmentManager]],  # value
                                                     _type.HRESULT]
     ImportPfxDataToKspAsync: _Callable[[_type.HSTRING,  # pfxData
@@ -121,17 +119,13 @@ class ICertificateEnrollmentManagerStatics2(_inspectable.IInspectable):
                                         _Pointer[_Windows_Foundation.IAsyncAction]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class ICertificateEnrollmentManagerStatics3(_inspectable.IInspectable):
+class ICertificateEnrollmentManagerStatics3(_inspectable.IInspectable, factory=True):
     ImportPfxDataToKspWithParametersAsync: _Callable[[_type.HSTRING,  # pfxData
                                                       _type.HSTRING,  # password
                                                       IPfxImportParameters,  # pfxImportParameters
                                                       _Pointer[_Windows_Foundation.IAsyncAction]],  # value
                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ICertificateExtension(_inspectable.IInspectable):
@@ -153,12 +147,10 @@ class ICertificateExtension(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ICertificateFactory(_inspectable.IInspectable):
+class ICertificateFactory(_inspectable.IInspectable, factory=True):
     CreateCertificate: _Callable[[_Windows_Storage_Streams.IBuffer,  # certBlob
                                   _Pointer[ICertificate]],  # certificate
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ICertificateKeyUsages(_inspectable.IInspectable):
@@ -334,7 +326,7 @@ class ICertificateStore2(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ICertificateStoresStatics(_inspectable.IInspectable):
+class ICertificateStoresStatics(_inspectable.IInspectable, factory=True):
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[ICertificate]]]],  # value
                             _type.HRESULT]
     FindAllWithQueryAsync: _Callable[[ICertificateQuery,  # query
@@ -348,15 +340,11 @@ class ICertificateStoresStatics(_inspectable.IInspectable):
                                _Pointer[ICertificateStore]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class ICertificateStoresStatics2(_inspectable.IInspectable):
+class ICertificateStoresStatics2(_inspectable.IInspectable, factory=True):
     GetUserStoreByName: _Callable[[_type.HSTRING,  # storeName
                                    _Pointer[IUserCertificateStore]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IChainBuildingParameters(_inspectable.IInspectable):
@@ -409,22 +397,18 @@ class ICmsAttachedSignature(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ICmsAttachedSignatureFactory(_inspectable.IInspectable):
+class ICmsAttachedSignatureFactory(_inspectable.IInspectable, factory=True):
     CreateCmsAttachedSignature: _Callable[[_Windows_Storage_Streams.IBuffer,  # inputBlob
                                            _Pointer[ICmsAttachedSignature]],  # cmsSignedData
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICmsAttachedSignatureStatics(_inspectable.IInspectable):
+class ICmsAttachedSignatureStatics(_inspectable.IInspectable, factory=True):
     GenerateSignatureAsync: _Callable[[_Windows_Storage_Streams.IBuffer,  # data
                                        _Windows_Foundation_Collections.IIterable[ICmsSignerInfo],  # signers
                                        _Windows_Foundation_Collections.IIterable[ICertificate],  # certificates
                                        _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage_Streams.IBuffer]]],  # outputBlob
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICmsDetachedSignature(_inspectable.IInspectable):
@@ -437,22 +421,18 @@ class ICmsDetachedSignature(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ICmsDetachedSignatureFactory(_inspectable.IInspectable):
+class ICmsDetachedSignatureFactory(_inspectable.IInspectable, factory=True):
     CreateCmsDetachedSignature: _Callable[[_Windows_Storage_Streams.IBuffer,  # inputBlob
                                            _Pointer[ICmsDetachedSignature]],  # cmsSignedData
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICmsDetachedSignatureStatics(_inspectable.IInspectable):
+class ICmsDetachedSignatureStatics(_inspectable.IInspectable, factory=True):
     GenerateSignatureAsync: _Callable[[_Windows_Storage_Streams.IInputStream,  # data
                                        _Windows_Foundation_Collections.IIterable[ICmsSignerInfo],  # signers
                                        _Windows_Foundation_Collections.IIterable[ICertificate],  # certificates
                                        _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage_Streams.IBuffer]]],  # outputBlob
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICmsSignerInfo(_inspectable.IInspectable):
@@ -477,7 +457,7 @@ class ICmsTimestampInfo(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IKeyAlgorithmNamesStatics(_inspectable.IInspectable):
+class IKeyAlgorithmNamesStatics(_inspectable.IInspectable, factory=True):
     get_Rsa: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_Dsa: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -495,19 +475,15 @@ class IKeyAlgorithmNamesStatics(_inspectable.IInspectable):
     get_Ecdsa521: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyAlgorithmNamesStatics2(_inspectable.IInspectable):
+class IKeyAlgorithmNamesStatics2(_inspectable.IInspectable, factory=True):
     get_Ecdsa: _Callable[[_Pointer[_type.HSTRING]],  # value
                          _type.HRESULT]
     get_Ecdh: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyAttestationHelperStatics(_inspectable.IInspectable):
+class IKeyAttestationHelperStatics(_inspectable.IInspectable, factory=True):
     DecryptTpmAttestationCredentialAsync: _Callable[[_type.HSTRING,  # credential
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # value
                                                     _type.HRESULT]
@@ -515,19 +491,15 @@ class IKeyAttestationHelperStatics(_inspectable.IInspectable):
                                               _Pointer[_type.HSTRING]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyAttestationHelperStatics2(_inspectable.IInspectable):
+class IKeyAttestationHelperStatics2(_inspectable.IInspectable, factory=True):
     DecryptTpmAttestationCredentialWithContainerNameAsync: _Callable[[_type.HSTRING,  # credential
                                                                       _type.HSTRING,  # containerName
                                                                       _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # value
                                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyStorageProviderNamesStatics(_inspectable.IInspectable):
+class IKeyStorageProviderNamesStatics(_inspectable.IInspectable, factory=True):
     get_SoftwareKeyStorageProvider: _Callable[[_Pointer[_type.HSTRING]],  # value
                                               _type.HRESULT]
     get_SmartcardKeyStorageProvider: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -535,14 +507,10 @@ class IKeyStorageProviderNamesStatics(_inspectable.IInspectable):
     get_PlatformKeyStorageProvider: _Callable[[_Pointer[_type.HSTRING]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyStorageProviderNamesStatics2(_inspectable.IInspectable):
+class IKeyStorageProviderNamesStatics2(_inspectable.IInspectable, factory=True):
     get_PassportKeyStorageProvider: _Callable[[_Pointer[_type.HSTRING]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPfxImportParameters(_inspectable.IInspectable):
@@ -576,15 +544,13 @@ class IPfxImportParameters(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IStandardCertificateStoreNamesStatics(_inspectable.IInspectable):
+class IStandardCertificateStoreNamesStatics(_inspectable.IInspectable, factory=True):
     get_Personal: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
     get_TrustedRootCertificationAuthorities: _Callable[[_Pointer[_type.HSTRING]],  # value
                                                        _type.HRESULT]
     get_IntermediateCertificationAuthorities: _Callable[[_Pointer[_type.HSTRING]],  # value
                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ISubjectAlternativeNameInfo(_inspectable.IInspectable):

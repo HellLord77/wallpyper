@@ -88,15 +88,13 @@ class IGattCharacteristic3(_inspectable.IInspectable):
                                                                                _type.HRESULT]
 
 
-class IGattCharacteristicStatics(_inspectable.IInspectable):
+class IGattCharacteristicStatics(_inspectable.IInspectable, factory=True):
     ConvertShortIdToUuid: _Callable[[_type.UINT16,  # shortId
                                      _Pointer[_struct.GUID]],  # characteristicUuid
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IGattCharacteristicUuidsStatics(_inspectable.IInspectable):
+class IGattCharacteristicUuidsStatics(_inspectable.IInspectable, factory=True):
     get_BatteryLevel: _Callable[[_Pointer[_struct.GUID]],  # value
                                 _type.HRESULT]
     get_BloodPressureFeature: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -140,10 +138,8 @@ class IGattCharacteristicUuidsStatics(_inspectable.IInspectable):
     get_TemperatureType: _Callable[[_Pointer[_struct.GUID]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IGattCharacteristicUuidsStatics2(_inspectable.IInspectable):
+class IGattCharacteristicUuidsStatics2(_inspectable.IInspectable, factory=True):
     get_AlertCategoryId: _Callable[[_Pointer[_struct.GUID]],  # value
                                    _type.HRESULT]
     get_AlertCategoryIdBitMask: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -265,8 +261,6 @@ class IGattCharacteristicUuidsStatics2(_inspectable.IInspectable):
     get_UnreadAlertStatus: _Callable[[_Pointer[_struct.GUID]],  # value
                                      _type.HRESULT]
 
-    _factory = True
-
 
 class IGattCharacteristicsResult(_inspectable.IInspectable):
     get_Status: _Callable[[_Pointer[_enum.Windows.Devices.Bluetooth.GenericAttributeProfile.GattCommunicationStatus]],  # value
@@ -316,15 +310,13 @@ class IGattDescriptor2(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IGattDescriptorStatics(_inspectable.IInspectable):
+class IGattDescriptorStatics(_inspectable.IInspectable, factory=True):
     ConvertShortIdToUuid: _Callable[[_type.UINT16,  # shortId
                                      _Pointer[_struct.GUID]],  # descriptorUuid
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IGattDescriptorUuidsStatics(_inspectable.IInspectable):
+class IGattDescriptorUuidsStatics(_inspectable.IInspectable, factory=True):
     get_CharacteristicAggregateFormat: _Callable[[_Pointer[_struct.GUID]],  # value
                                                  _type.HRESULT]
     get_CharacteristicExtendedProperties: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -337,8 +329,6 @@ class IGattDescriptorUuidsStatics(_inspectable.IInspectable):
                                                      _type.HRESULT]
     get_ServerCharacteristicConfiguration: _Callable[[_Pointer[_struct.GUID]],  # value
                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IGattDescriptorsResult(_inspectable.IInspectable):
@@ -414,7 +404,7 @@ class IGattDeviceService3(_inspectable.IInspectable):
                                                             _type.HRESULT]
 
 
-class IGattDeviceServiceStatics(_inspectable.IInspectable):
+class IGattDeviceServiceStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IGattDeviceService]]],  # asyncOp
                            _type.HRESULT]
@@ -428,10 +418,8 @@ class IGattDeviceServiceStatics(_inspectable.IInspectable):
                                      _Pointer[_struct.GUID]],  # serviceUuid
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IGattDeviceServiceStatics2(_inspectable.IInspectable):
+class IGattDeviceServiceStatics2(_inspectable.IInspectable, factory=True):
     FromIdWithSharingModeAsync: _Callable[[_type.HSTRING,  # deviceId
                                            _enum.Windows.Devices.Bluetooth.GenericAttributeProfile.GattSharingMode,  # sharingMode
                                            _Pointer[_Windows_Foundation.IAsyncOperation[IGattDeviceService]]],  # operation
@@ -452,8 +440,6 @@ class IGattDeviceServiceStatics2(_inspectable.IInspectable):
                                                                           _enum.Windows.Devices.Bluetooth.BluetoothCacheMode,  # cacheMode
                                                                           _Pointer[_type.HSTRING]],  # result
                                                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IGattDeviceServicesResult(_inspectable.IInspectable):
@@ -611,14 +597,12 @@ class IGattPresentationFormat(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IGattPresentationFormatStatics(_inspectable.IInspectable):
+class IGattPresentationFormatStatics(_inspectable.IInspectable, factory=True):
     get_BluetoothSigAssignedNumbers: _Callable[[_Pointer[_type.BYTE]],  # value
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IGattPresentationFormatStatics2(_inspectable.IInspectable):
+class IGattPresentationFormatStatics2(_inspectable.IInspectable, factory=True):
     FromParts: _Callable[[_type.BYTE,  # formatType
                           _type.INT32,  # exponent
                           _type.UINT16,  # unit
@@ -627,10 +611,8 @@ class IGattPresentationFormatStatics2(_inspectable.IInspectable):
                           _Pointer[IGattPresentationFormat]],  # result
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IGattPresentationFormatTypesStatics(_inspectable.IInspectable):
+class IGattPresentationFormatTypesStatics(_inspectable.IInspectable, factory=True):
     get_Boolean: _Callable[[_Pointer[_type.BYTE]],  # value
                            _type.HRESULT]
     get_Bit2: _Callable[[_Pointer[_type.BYTE]],  # value
@@ -686,10 +668,8 @@ class IGattPresentationFormatTypesStatics(_inspectable.IInspectable):
     get_Struct: _Callable[[_Pointer[_type.BYTE]],  # value
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IGattProtocolErrorStatics(_inspectable.IInspectable):
+class IGattProtocolErrorStatics(_inspectable.IInspectable, factory=True):
     get_InvalidHandle: _Callable[[_Pointer[_type.BYTE]],  # value
                                  _type.HRESULT]
     get_ReadNotPermitted: _Callable[[_Pointer[_type.BYTE]],  # value
@@ -724,8 +704,6 @@ class IGattProtocolErrorStatics(_inspectable.IInspectable):
                                         _type.HRESULT]
     get_InsufficientResources: _Callable[[_Pointer[_type.BYTE]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IGattReadClientCharacteristicConfigurationDescriptorResult(_inspectable.IInspectable):
@@ -849,15 +827,13 @@ class IGattServiceProviderResult(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IGattServiceProviderStatics(_inspectable.IInspectable):
+class IGattServiceProviderStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[_struct.GUID,  # serviceUuid
                             _Pointer[_Windows_Foundation.IAsyncOperation[IGattServiceProviderResult]]],  # operation
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IGattServiceUuidsStatics(_inspectable.IInspectable):
+class IGattServiceUuidsStatics(_inspectable.IInspectable, factory=True):
     get_Battery: _Callable[[_Pointer[_struct.GUID]],  # value
                            _type.HRESULT]
     get_BloodPressure: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -877,10 +853,8 @@ class IGattServiceUuidsStatics(_inspectable.IInspectable):
     get_RunningSpeedAndCadence: _Callable[[_Pointer[_struct.GUID]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IGattServiceUuidsStatics2(_inspectable.IInspectable):
+class IGattServiceUuidsStatics2(_inspectable.IInspectable, factory=True):
     get_AlertNotification: _Callable[[_Pointer[_struct.GUID]],  # value
                                      _type.HRESULT]
     get_CurrentTime: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -908,8 +882,6 @@ class IGattServiceUuidsStatics2(_inspectable.IInspectable):
     get_TxPower: _Callable[[_Pointer[_struct.GUID]],  # value
                            _type.HRESULT]
 
-    _factory = True
-
 
 class IGattSession(_inspectable.IInspectable):
     get_DeviceId: _Callable[[_Pointer[_Windows_Devices_Bluetooth.IBluetoothDeviceId]],  # value
@@ -936,12 +908,10 @@ class IGattSession(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IGattSessionStatics(_inspectable.IInspectable):
+class IGattSessionStatics(_inspectable.IInspectable, factory=True):
     FromDeviceIdAsync: _Callable[[_Windows_Devices_Bluetooth.IBluetoothDeviceId,  # deviceId
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IGattSession]]],  # operation
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IGattSessionStatusChangedEventArgs(_inspectable.IInspectable):

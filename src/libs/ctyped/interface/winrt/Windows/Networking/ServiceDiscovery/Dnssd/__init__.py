@@ -62,14 +62,12 @@ class IDnssdServiceInstance(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IDnssdServiceInstanceFactory(_inspectable.IInspectable):
+class IDnssdServiceInstanceFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # dnssdServiceInstanceName
                        _Windows_Networking.IHostName,  # hostName
                        _type.UINT16,  # port
                        _Pointer[IDnssdServiceInstance]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDnssdServiceWatcher(_inspectable.IInspectable):

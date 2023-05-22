@@ -32,7 +32,7 @@ class IDiagnosticInvoker2(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class IDiagnosticInvokerStatics(_inspectable.IInspectable):
+class IDiagnosticInvokerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IDiagnosticInvoker]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
@@ -40,8 +40,6 @@ class IDiagnosticInvokerStatics(_inspectable.IInspectable):
                           _type.HRESULT]
     get_IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IProcessCpuUsage(_inspectable.IInspectable):
@@ -80,21 +78,17 @@ class IProcessDiagnosticInfo2(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IProcessDiagnosticInfoStatics(_inspectable.IInspectable):
+class IProcessDiagnosticInfoStatics(_inspectable.IInspectable, factory=True):
     GetForProcesses: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IProcessDiagnosticInfo]]],  # processes
                                _type.HRESULT]
     GetForCurrentProcess: _Callable[[_Pointer[IProcessDiagnosticInfo]],  # processes
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IProcessDiagnosticInfoStatics2(_inspectable.IInspectable):
+class IProcessDiagnosticInfoStatics2(_inspectable.IInspectable, factory=True):
     TryGetForProcessId: _Callable[[_type.UINT32,  # processId
                                    _Pointer[IProcessDiagnosticInfo]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IProcessDiskUsage(_inspectable.IInspectable):
@@ -170,21 +164,17 @@ class ISystemDiagnosticInfo(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ISystemDiagnosticInfoStatics(_inspectable.IInspectable):
+class ISystemDiagnosticInfoStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentSystem: _Callable[[_Pointer[ISystemDiagnosticInfo]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class ISystemDiagnosticInfoStatics2(_inspectable.IInspectable):
+class ISystemDiagnosticInfoStatics2(_inspectable.IInspectable, factory=True):
     IsArchitectureSupported: _Callable[[_enum.Windows.System.ProcessorArchitecture,  # type
                                         _Pointer[_type.boolean]],  # result
                                        _type.HRESULT]
     get_PreferredArchitecture: _Callable[[_Pointer[_enum.Windows.System.ProcessorArchitecture]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemMemoryUsage(_inspectable.IInspectable):

@@ -22,7 +22,7 @@ class ICustomGameControllerFactory(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IGameControllerFactoryManagerStatics(_inspectable.IInspectable):
+class IGameControllerFactoryManagerStatics(_inspectable.IInspectable, factory=True):
     RegisterCustomFactoryForGipInterface: _Callable[[ICustomGameControllerFactory,  # factory
                                                      _struct.GUID],  # interfaceId
                                                     _type.HRESULT]
@@ -35,16 +35,12 @@ class IGameControllerFactoryManagerStatics(_inspectable.IInspectable):
                                                  _enum.Windows.Gaming.Input.Custom.XusbDeviceSubtype],  # xusbSubtype
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IGameControllerFactoryManagerStatics2(_inspectable.IInspectable):
+class IGameControllerFactoryManagerStatics2(_inspectable.IInspectable, factory=True):
     TryGetFactoryControllerFromGameController: _Callable[[ICustomGameControllerFactory,  # factory
                                                           _Windows_Gaming_Input.IGameController,  # gameController
                                                           _Pointer[_Windows_Gaming_Input.IGameController]],  # factoryController
                                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IGameControllerInputSink(_inspectable.IInspectable):

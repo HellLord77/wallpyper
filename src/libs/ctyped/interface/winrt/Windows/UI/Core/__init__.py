@@ -137,13 +137,11 @@ class ICoreCursor(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ICoreCursorFactory(_inspectable.IInspectable):
+class ICoreCursorFactory(_inspectable.IInspectable, factory=True):
     CreateCursor: _Callable[[_enum.Windows.UI.Core.CoreCursorType,  # type
                              _type.UINT32,  # id
                              _Pointer[ICoreCursor]],  # cursor
                             _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreDispatcher(_inspectable.IInspectable):
@@ -203,15 +201,13 @@ class ICoreIndependentInputSourceController(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class ICoreIndependentInputSourceControllerStatics(_inspectable.IInspectable):
+class ICoreIndependentInputSourceControllerStatics(_inspectable.IInspectable, factory=True):
     CreateForVisual: _Callable[[_Windows_UI_Composition.IVisual,  # visual
                                 _Pointer[ICoreIndependentInputSourceController]],  # result
                                _type.HRESULT]
     CreateForIVisualElement: _Callable[[_Windows_UI_Composition.IVisualElement,  # visualElement
                                         _Pointer[ICoreIndependentInputSourceController]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreInputSourceBase(_inspectable.IInspectable):
@@ -532,12 +528,10 @@ class ICoreWindowDialog(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ICoreWindowDialogFactory(_inspectable.IInspectable):
+class ICoreWindowDialogFactory(_inspectable.IInspectable, factory=True):
     CreateWithTitle: _Callable[[_type.HSTRING,  # title
                                 _Pointer[ICoreWindowDialog]],  # coreWindowDialog
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreWindowEventArgs(_inspectable.IInspectable):
@@ -579,7 +573,7 @@ class ICoreWindowFlyout(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ICoreWindowFlyoutFactory(_inspectable.IInspectable):
+class ICoreWindowFlyoutFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Foundation.Point,  # position
                        _Pointer[ICoreWindowFlyout]],  # coreWindowFlyout
                       _type.HRESULT]
@@ -587,8 +581,6 @@ class ICoreWindowFlyoutFactory(_inspectable.IInspectable):
                                 _type.HSTRING,  # title
                                 _Pointer[ICoreWindowFlyout]],  # coreWindowFlyout
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreWindowPopupShowingEventArgs(_inspectable.IInspectable):
@@ -608,18 +600,14 @@ class ICoreWindowResizeManagerLayoutCapability(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class ICoreWindowResizeManagerStatics(_inspectable.IInspectable):
+class ICoreWindowResizeManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ICoreWindowResizeManager]],  # CoreWindowResizeManager
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreWindowStatic(_inspectable.IInspectable):
+class ICoreWindowStatic(_inspectable.IInspectable, factory=True):
     GetForCurrentThread: _Callable[[_Pointer[ICoreWindow]],  # ppWindow
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreWindowWithContext(_inspectable.IInspectable):
@@ -678,11 +666,9 @@ class ISystemNavigationManager2(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class ISystemNavigationManagerStatics(_inspectable.IInspectable):
+class ISystemNavigationManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ISystemNavigationManager]],  # loader
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ITouchHitTestingEventArgs(_inspectable.IInspectable):

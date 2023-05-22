@@ -88,8 +88,6 @@ class INotesWindowManagerPreviewShowNoteOptions(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class INotesWindowManagerPreviewStatics(_inspectable.IInspectable):
+class INotesWindowManagerPreviewStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentApp: _Callable[[_Pointer[INotesWindowManagerPreview]],  # current
                                 _type.HRESULT]
-
-    _factory = True

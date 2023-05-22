@@ -75,11 +75,9 @@ class IEdgeGestureEventArgs(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IEdgeGestureStatics(_inspectable.IInspectable):
+class IEdgeGestureStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IEdgeGesture]],  # current
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IGestureRecognizer(_inspectable.IInspectable):
@@ -296,11 +294,9 @@ class IKeyboardDeliveryInterceptor(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IKeyboardDeliveryInterceptorStatics(_inspectable.IInspectable):
+class IKeyboardDeliveryInterceptorStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IKeyboardDeliveryInterceptor]],  # keyboardDeliverySettings
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IManipulationCompletedEventArgs(_inspectable.IInspectable):
@@ -471,7 +467,7 @@ class IPointerPointProperties2(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IPointerPointStatics(_inspectable.IInspectable):
+class IPointerPointStatics(_inspectable.IInspectable, factory=True):
     GetCurrentPoint: _Callable[[_type.UINT32,  # pointerId
                                 _Pointer[IPointerPoint]],  # pointerPoint
                                _type.HRESULT]
@@ -486,8 +482,6 @@ class IPointerPointStatics(_inspectable.IInspectable):
                                                  IPointerPointTransform,  # transform
                                                  _Pointer[_Windows_Foundation_Collections.IVector[IPointerPoint]]],  # pointerPoints
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPointerPointTransform(_inspectable.IInspectable):
@@ -513,11 +507,9 @@ class IPointerVisualizationSettings(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IPointerVisualizationSettingsStatics(_inspectable.IInspectable):
+class IPointerVisualizationSettingsStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IPointerVisualizationSettings]],  # visualizationSettings
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IRadialController(_inspectable.IInspectable):
@@ -638,14 +630,12 @@ class IRadialControllerConfiguration2(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IRadialControllerConfigurationStatics(_inspectable.IInspectable):
+class IRadialControllerConfigurationStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IRadialControllerConfiguration]],  # configuration
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IRadialControllerConfigurationStatics2(_inspectable.IInspectable):
+class IRadialControllerConfigurationStatics2(_inspectable.IInspectable, factory=True):
     put_AppController: _Callable[[IRadialController],  # value
                                  _type.HRESULT]
     get_AppController: _Callable[[_Pointer[IRadialController]],  # value
@@ -654,8 +644,6 @@ class IRadialControllerConfigurationStatics2(_inspectable.IInspectable):
                                           _type.HRESULT]
     get_IsAppControllerEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IRadialControllerControlAcquiredEventArgs(_inspectable.IInspectable):
@@ -699,7 +687,7 @@ class IRadialControllerMenuItem(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRadialControllerMenuItemStatics(_inspectable.IInspectable):
+class IRadialControllerMenuItemStatics(_inspectable.IInspectable, factory=True):
     CreateFromIcon: _Callable[[_type.HSTRING,  # displayText
                                _Windows_Storage_Streams.IRandomAccessStreamReference,  # icon
                                _Pointer[IRadialControllerMenuItem]],  # result
@@ -709,10 +697,8 @@ class IRadialControllerMenuItemStatics(_inspectable.IInspectable):
                                     _Pointer[IRadialControllerMenuItem]],  # result
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IRadialControllerMenuItemStatics2(_inspectable.IInspectable):
+class IRadialControllerMenuItemStatics2(_inspectable.IInspectable, factory=True):
     CreateFromFontGlyph: _Callable[[_type.HSTRING,  # displayText
                                     _type.HSTRING,  # glyph
                                     _type.HSTRING,  # fontFamily
@@ -724,8 +710,6 @@ class IRadialControllerMenuItemStatics2(_inspectable.IInspectable):
                                            _Windows_Foundation.IUriRuntimeClass,  # fontUri
                                            _Pointer[IRadialControllerMenuItem]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IRadialControllerRotationChangedEventArgs(_inspectable.IInspectable):
@@ -780,13 +764,11 @@ class IRadialControllerScreenContactStartedEventArgs2(_inspectable.IInspectable)
                                            _type.HRESULT]
 
 
-class IRadialControllerStatics(_inspectable.IInspectable):
+class IRadialControllerStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
     CreateForCurrentView: _Callable[[_Pointer[IRadialController]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IRightTappedEventArgs(_inspectable.IInspectable):
@@ -824,12 +806,10 @@ class ISystemButtonEventController(_inspectable.IInspectable):
                                                          _type.HRESULT]
 
 
-class ISystemButtonEventControllerStatics(_inspectable.IInspectable):
+class ISystemButtonEventControllerStatics(_inspectable.IInspectable, factory=True):
     CreateForDispatcherQueue: _Callable[[_Windows_System.IDispatcherQueue,  # queue
                                          _Pointer[ISystemButtonEventController]],  # result
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemFunctionButtonEventArgs(_inspectable.IInspectable):

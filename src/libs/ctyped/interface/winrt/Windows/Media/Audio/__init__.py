@@ -252,20 +252,16 @@ class IAudioGraphSettings2(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IAudioGraphSettingsFactory(_inspectable.IInspectable):
+class IAudioGraphSettingsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Media.Render.AudioRenderCategory,  # audioRenderCategory
                        _Pointer[IAudioGraphSettings]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IAudioGraphStatics(_inspectable.IInspectable):
+class IAudioGraphStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[IAudioGraphSettings,  # settings
                             _Pointer[_Windows_Foundation.IAsyncOperation[ICreateAudioGraphResult]]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioGraphUnrecoverableErrorOccurredEventArgs(_inspectable.IInspectable):
@@ -375,7 +371,7 @@ class IAudioNodeEmitterDecayModel(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IAudioNodeEmitterDecayModelStatics(_inspectable.IInspectable):
+class IAudioNodeEmitterDecayModelStatics(_inspectable.IInspectable, factory=True):
     CreateNatural: _Callable[[_type.DOUBLE,  # minGain
                               _type.DOUBLE,  # maxGain
                               _type.DOUBLE,  # unityGainDistance
@@ -387,17 +383,13 @@ class IAudioNodeEmitterDecayModelStatics(_inspectable.IInspectable):
                              _Pointer[IAudioNodeEmitterDecayModel]],  # decayModel
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IAudioNodeEmitterFactory(_inspectable.IInspectable):
+class IAudioNodeEmitterFactory(_inspectable.IInspectable, factory=True):
     CreateAudioNodeEmitter: _Callable[[IAudioNodeEmitterShape,  # shape
                                        IAudioNodeEmitterDecayModel,  # decayModel
                                        _enum.Windows.Media.Audio.AudioNodeEmitterSettings,  # settings
                                        _Pointer[IAudioNodeEmitter]],  # emitter
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioNodeEmitterNaturalDecayModelProperties(_inspectable.IInspectable):
@@ -414,7 +406,7 @@ class IAudioNodeEmitterShape(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IAudioNodeEmitterShapeStatics(_inspectable.IInspectable):
+class IAudioNodeEmitterShapeStatics(_inspectable.IInspectable, factory=True):
     CreateCone: _Callable[[_type.DOUBLE,  # innerAngle
                            _type.DOUBLE,  # outerAngle
                            _type.DOUBLE,  # outerAngleGain
@@ -422,8 +414,6 @@ class IAudioNodeEmitterShapeStatics(_inspectable.IInspectable):
                           _type.HRESULT]
     CreateOmnidirectional: _Callable[[_Pointer[IAudioNodeEmitterShape]],  # shape
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioNodeListener(_inspectable.IInspectable):
@@ -479,14 +469,12 @@ class IAudioPlaybackConnectionOpenResult(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IAudioPlaybackConnectionStatics(_inspectable.IInspectable):
+class IAudioPlaybackConnectionStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     TryCreateFromId: _Callable[[_type.HSTRING,  # id
                                 _Pointer[IAudioPlaybackConnection]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioStateMonitor(_inspectable.IInspectable):
@@ -499,7 +487,7 @@ class IAudioStateMonitor(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAudioStateMonitorStatics(_inspectable.IInspectable):
+class IAudioStateMonitorStatics(_inspectable.IInspectable, factory=True):
     CreateForRenderMonitoring: _Callable[[_Pointer[IAudioStateMonitor]],  # result
                                          _type.HRESULT]
     CreateForRenderMonitoringWithCategory: _Callable[[_enum.Windows.Media.Render.AudioRenderCategory,  # category
@@ -526,8 +514,6 @@ class IAudioStateMonitorStatics(_inspectable.IInspectable):
                                                                   _type.HSTRING,  # deviceId
                                                                   _Pointer[IAudioStateMonitor]],  # result
                                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ICreateAudioDeviceInputNodeResult(_inspectable.IInspectable):
@@ -617,12 +603,10 @@ class IEchoEffectDefinition(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IEchoEffectDefinitionFactory(_inspectable.IInspectable):
+class IEchoEffectDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IAudioGraph,  # audioGraph
                        _Pointer[IEchoEffectDefinition]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEqualizerBand(_inspectable.IInspectable):
@@ -645,12 +629,10 @@ class IEqualizerEffectDefinition(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IEqualizerEffectDefinitionFactory(_inspectable.IInspectable):
+class IEqualizerEffectDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IAudioGraph,  # audioGraph
                        _Pointer[IEqualizerEffectDefinition]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IFrameInputNodeQuantumStartedEventArgs(_inspectable.IInspectable):
@@ -669,12 +651,10 @@ class ILimiterEffectDefinition(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ILimiterEffectDefinitionFactory(_inspectable.IInspectable):
+class ILimiterEffectDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IAudioGraph,  # audioGraph
                        _Pointer[ILimiterEffectDefinition]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaSourceAudioInputNode(_inspectable.IInspectable):
@@ -804,12 +784,10 @@ class IReverbEffectDefinition(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IReverbEffectDefinitionFactory(_inspectable.IInspectable):
+class IReverbEffectDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IAudioGraph,  # audioGraph
                        _Pointer[IReverbEffectDefinition]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISetDefaultSpatialAudioFormatResult(_inspectable.IInspectable):
@@ -839,12 +817,10 @@ class ISpatialAudioDeviceConfiguration(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class ISpatialAudioDeviceConfigurationStatics(_inspectable.IInspectable):
+class ISpatialAudioDeviceConfigurationStatics(_inspectable.IInspectable, factory=True):
     GetForDeviceId: _Callable[[_type.HSTRING,  # deviceId
                                _Pointer[ISpatialAudioDeviceConfiguration]],  # result
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialAudioFormatConfiguration(_inspectable.IInspectable):
@@ -860,14 +836,12 @@ class ISpatialAudioFormatConfiguration(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class ISpatialAudioFormatConfigurationStatics(_inspectable.IInspectable):
+class ISpatialAudioFormatConfigurationStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ISpatialAudioFormatConfiguration]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class ISpatialAudioFormatSubtypeStatics(_inspectable.IInspectable):
+class ISpatialAudioFormatSubtypeStatics(_inspectable.IInspectable, factory=True):
     get_WindowsSonic: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
     get_DolbyAtmosForHeadphones: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -881,11 +855,7 @@ class ISpatialAudioFormatSubtypeStatics(_inspectable.IInspectable):
     get_DTSXUltra: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class ISpatialAudioFormatSubtypeStatics2(_inspectable.IInspectable):
+class ISpatialAudioFormatSubtypeStatics2(_inspectable.IInspectable, factory=True):
     get_DTSXForHomeTheater: _Callable[[_Pointer[_type.HSTRING]],  # value
                                       _type.HRESULT]
-
-    _factory = True

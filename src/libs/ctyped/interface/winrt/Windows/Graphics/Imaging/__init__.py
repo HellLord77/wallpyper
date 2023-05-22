@@ -46,7 +46,7 @@ class IBitmapDecoder(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IBitmapDecoderStatics(_inspectable.IInspectable):
+class IBitmapDecoderStatics(_inspectable.IInspectable, factory=True):
     get_BmpDecoderId: _Callable[[_Pointer[_struct.GUID]],  # value
                                 _type.HRESULT]
     get_JpegDecoderId: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -71,16 +71,12 @@ class IBitmapDecoderStatics(_inspectable.IInspectable):
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IBitmapDecoder]]],  # asyncInfo
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapDecoderStatics2(_inspectable.IInspectable):
+class IBitmapDecoderStatics2(_inspectable.IInspectable, factory=True):
     get_HeifDecoderId: _Callable[[_Pointer[_struct.GUID]],  # value
                                  _type.HRESULT]
     get_WebpDecoderId: _Callable[[_Pointer[_struct.GUID]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IBitmapEncoder(_inspectable.IInspectable):
@@ -122,7 +118,7 @@ class IBitmapEncoder(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IBitmapEncoderStatics(_inspectable.IInspectable):
+class IBitmapEncoderStatics(_inspectable.IInspectable, factory=True):
     get_BmpEncoderId: _Callable[[_Pointer[_struct.GUID]],  # value
                                 _type.HRESULT]
     get_JpegEncoderId: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -154,14 +150,10 @@ class IBitmapEncoderStatics(_inspectable.IInspectable):
                                                       _Pointer[_Windows_Foundation.IAsyncOperation[IBitmapEncoder]]],  # asyncInfo
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapEncoderStatics2(_inspectable.IInspectable):
+class IBitmapEncoderStatics2(_inspectable.IInspectable, factory=True):
     get_HeifEncoderId: _Callable[[_Pointer[_struct.GUID]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IBitmapEncoderWithSoftwareBitmap(_inspectable.IInspectable):
@@ -263,13 +255,11 @@ class IBitmapTypedValue(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IBitmapTypedValueFactory(_inspectable.IInspectable):
+class IBitmapTypedValueFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_inspectable.IInspectable,  # value
                        _enum.Windows.Foundation.PropertyType,  # type
                        _Pointer[IBitmapTypedValue]],  # bitmapTypedValue
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPixelDataProvider(_inspectable.IInspectable):
@@ -310,7 +300,7 @@ class ISoftwareBitmap(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ISoftwareBitmapFactory(_inspectable.IInspectable):
+class ISoftwareBitmapFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Graphics.Imaging.BitmapPixelFormat,  # format
                        _type.INT32,  # width
                        _type.INT32,  # height
@@ -323,10 +313,8 @@ class ISoftwareBitmapFactory(_inspectable.IInspectable):
                                 _Pointer[ISoftwareBitmap]],  # value
                                _type.HRESULT]
 
-    _factory = True
 
-
-class ISoftwareBitmapStatics(_inspectable.IInspectable):
+class ISoftwareBitmapStatics(_inspectable.IInspectable, factory=True):
     Copy: _Callable[[ISoftwareBitmap,  # source
                      _Pointer[ISoftwareBitmap]],  # value
                     _type.HRESULT]
@@ -359,5 +347,3 @@ class ISoftwareBitmapStatics(_inspectable.IInspectable):
                                                     _enum.Windows.Graphics.Imaging.BitmapAlphaMode,  # alpha
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[ISoftwareBitmap]]],  # value
                                                    _type.HRESULT]
-
-    _factory = True

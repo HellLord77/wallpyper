@@ -8,12 +8,10 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IGameControllerProviderInfoStatics(_inspectable.IInspectable):
+class IGameControllerProviderInfoStatics(_inspectable.IInspectable, factory=True):
     GetParentProviderId: _Callable[[_Windows_Gaming_Input_Custom.IGameControllerProvider,  # provider
                                     _Pointer[_type.HSTRING]],  # value
                                    _type.HRESULT]
     GetProviderId: _Callable[[_Windows_Gaming_Input_Custom.IGameControllerProvider,  # provider
                               _Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
-
-    _factory = True

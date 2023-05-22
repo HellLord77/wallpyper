@@ -10,7 +10,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IWebAuthenticationBrokerStatics(_inspectable.IInspectable):
+class IWebAuthenticationBrokerStatics(_inspectable.IInspectable, factory=True):
     AuthenticateWithCallbackUriAsync: _Callable[[_enum.Windows.Security.Authentication.Web.WebAuthenticationOptions,  # options
                                                  _Windows_Foundation.IUriRuntimeClass,  # requestUri
                                                  _Windows_Foundation.IUriRuntimeClass,  # callbackUri
@@ -23,10 +23,8 @@ class IWebAuthenticationBrokerStatics(_inspectable.IInspectable):
     GetCurrentApplicationCallbackUri: _Callable[[_Pointer[_Windows_Foundation.IUriRuntimeClass]],  # callbackUri
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAuthenticationBrokerStatics2(_inspectable.IInspectable):
+class IWebAuthenticationBrokerStatics2(_inspectable.IInspectable, factory=True):
     AuthenticateAndContinue: _Callable[[_Windows_Foundation.IUriRuntimeClass],  # requestUri
                                        _type.HRESULT]
     AuthenticateWithCallbackUriAndContinue: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # requestUri
@@ -44,8 +42,6 @@ class IWebAuthenticationBrokerStatics2(_inspectable.IInspectable):
                                                      _enum.Windows.Security.Authentication.Web.WebAuthenticationOptions,  # options
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[IWebAuthenticationResult]]],  # asyncInfo
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IWebAuthenticationResult(_inspectable.IInspectable):

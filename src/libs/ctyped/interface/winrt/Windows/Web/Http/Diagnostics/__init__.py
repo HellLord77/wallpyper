@@ -99,12 +99,10 @@ class IHttpDiagnosticProviderResponseReceivedEventArgs(_inspectable.IInspectable
                            _type.HRESULT]
 
 
-class IHttpDiagnosticProviderStatics(_inspectable.IInspectable):
+class IHttpDiagnosticProviderStatics(_inspectable.IInspectable, factory=True):
     CreateFromProcessDiagnosticInfo: _Callable[[_Windows_System_Diagnostics.IProcessDiagnosticInfo,  # processDiagnosticInfo
                                                 _Pointer[IHttpDiagnosticProvider]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpDiagnosticSourceLocation(_inspectable.IInspectable):

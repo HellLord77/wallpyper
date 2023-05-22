@@ -26,7 +26,7 @@ class ICurrencyFormatter2(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class ICurrencyFormatterFactory(_inspectable.IInspectable):
+class ICurrencyFormatterFactory(_inspectable.IInspectable, factory=True):
     CreateCurrencyFormatterCode: _Callable[[_type.HSTRING,  # currencyCode
                                             _Pointer[ICurrencyFormatter]],  # result
                                            _type.HRESULT]
@@ -36,16 +36,12 @@ class ICurrencyFormatterFactory(_inspectable.IInspectable):
                                                    _Pointer[ICurrencyFormatter]],  # result
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IDecimalFormatterFactory(_inspectable.IInspectable):
+class IDecimalFormatterFactory(_inspectable.IInspectable, factory=True):
     CreateDecimalFormatter: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # languages
                                        _type.HSTRING,  # geographicRegion
                                        _Pointer[INumberFormatter]],  # result
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IIncrementNumberRounder(_inspectable.IInspectable):
@@ -168,30 +164,24 @@ class INumeralSystemTranslator(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class INumeralSystemTranslatorFactory(_inspectable.IInspectable):
+class INumeralSystemTranslatorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # languages
                        _Pointer[INumeralSystemTranslator]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPercentFormatterFactory(_inspectable.IInspectable):
+class IPercentFormatterFactory(_inspectable.IInspectable, factory=True):
     CreatePercentFormatter: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # languages
                                        _type.HSTRING,  # geographicRegion
                                        _Pointer[INumberFormatter]],  # result
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPermilleFormatterFactory(_inspectable.IInspectable):
+class IPermilleFormatterFactory(_inspectable.IInspectable, factory=True):
     CreatePermilleFormatter: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # languages
                                         _type.HSTRING,  # geographicRegion
                                         _Pointer[INumberFormatter]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ISignedZeroOption(_inspectable.IInspectable):

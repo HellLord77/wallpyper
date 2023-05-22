@@ -35,7 +35,7 @@ class IBatteryReport(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IBatteryStatics(_inspectable.IInspectable):
+class IBatteryStatics(_inspectable.IInspectable, factory=True):
     get_AggregateBattery: _Callable[[_Pointer[IBattery]],  # result
                                     _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -43,5 +43,3 @@ class IBatteryStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
-
-    _factory = True

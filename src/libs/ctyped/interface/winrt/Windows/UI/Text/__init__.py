@@ -38,7 +38,7 @@ class IFontWeights(_inspectable.IInspectable):
     pass
 
 
-class IFontWeightsStatics(_inspectable.IInspectable):
+class IFontWeightsStatics(_inspectable.IInspectable, factory=True):
     get_Black: _Callable[[_Pointer[_struct.Windows.UI.Text.FontWeight]],  # value
                          _type.HRESULT]
     get_Bold: _Callable[[_Pointer[_struct.Windows.UI.Text.FontWeight]],  # value
@@ -61,8 +61,6 @@ class IFontWeightsStatics(_inspectable.IInspectable):
                              _type.HRESULT]
     get_Thin: _Callable[[_Pointer[_struct.Windows.UI.Text.FontWeight]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IRichEditTextRange(_inspectable.IInspectable):
@@ -176,7 +174,7 @@ class ITextCharacterFormat(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class ITextConstantsStatics(_inspectable.IInspectable):
+class ITextConstantsStatics(_inspectable.IInspectable, factory=True):
     get_AutoColor: _Callable[[_Pointer[_struct.Windows.UI.Color]],  # value
                              _type.HRESULT]
     get_MinUnitCount: _Callable[[_Pointer[_type.INT32]],  # value
@@ -193,8 +191,6 @@ class ITextConstantsStatics(_inspectable.IInspectable):
                                         _type.HRESULT]
     get_UndefinedFontStyle: _Callable[[_Pointer[_enum.Windows.UI.Text.FontStyle]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITextDocument(_inspectable.IInspectable):

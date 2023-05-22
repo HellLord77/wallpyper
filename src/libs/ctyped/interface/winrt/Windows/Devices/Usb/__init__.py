@@ -80,7 +80,7 @@ class IUsbConfigurationDescriptor(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IUsbConfigurationDescriptorStatics(_inspectable.IInspectable):
+class IUsbConfigurationDescriptorStatics(_inspectable.IInspectable, factory=True):
     TryParse: _Callable[[IUsbDescriptor,  # descriptor
                          _Pointer[IUsbConfigurationDescriptor],  # parsed
                          _Pointer[_type.boolean]],  # success
@@ -88,8 +88,6 @@ class IUsbConfigurationDescriptorStatics(_inspectable.IInspectable):
     Parse: _Callable[[IUsbDescriptor,  # descriptor
                       _Pointer[IUsbConfigurationDescriptor]],  # parsed
                      _type.HRESULT]
-
-    _factory = True
 
 
 class IUsbControlRequestType(_inspectable.IInspectable):
@@ -162,7 +160,7 @@ class IUsbDeviceClasses(_inspectable.IInspectable):
     pass
 
 
-class IUsbDeviceClassesStatics(_inspectable.IInspectable):
+class IUsbDeviceClassesStatics(_inspectable.IInspectable, factory=True):
     get_CdcControl: _Callable[[_Pointer[IUsbDeviceClass]],  # value
                               _type.HRESULT]
     get_Physical: _Callable[[_Pointer[IUsbDeviceClass]],  # value
@@ -182,8 +180,6 @@ class IUsbDeviceClassesStatics(_inspectable.IInspectable):
     get_VendorSpecific: _Callable[[_Pointer[IUsbDeviceClass]],  # value
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IUsbDeviceDescriptor(_inspectable.IInspectable):
     get_BcdUsb: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -200,7 +196,7 @@ class IUsbDeviceDescriptor(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IUsbDeviceStatics(_inspectable.IInspectable):
+class IUsbDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_type.UINT32,  # vendorId
                                   _type.UINT32,  # productId
                                   _struct.GUID,  # winUsbInterfaceClass
@@ -220,8 +216,6 @@ class IUsbDeviceStatics(_inspectable.IInspectable):
                             _Pointer[_Windows_Foundation.IAsyncOperation[IUsbDevice]]],  # operation
                            _type.HRESULT]
 
-    _factory = True
-
 
 class IUsbEndpointDescriptor(_inspectable.IInspectable):
     get_EndpointNumber: _Callable[[_Pointer[_type.BYTE]],  # value
@@ -240,7 +234,7 @@ class IUsbEndpointDescriptor(_inspectable.IInspectable):
                                                     _type.HRESULT]
 
 
-class IUsbEndpointDescriptorStatics(_inspectable.IInspectable):
+class IUsbEndpointDescriptorStatics(_inspectable.IInspectable, factory=True):
     TryParse: _Callable[[IUsbDescriptor,  # descriptor
                          _Pointer[IUsbEndpointDescriptor],  # parsed
                          _Pointer[_type.boolean]],  # success
@@ -248,8 +242,6 @@ class IUsbEndpointDescriptorStatics(_inspectable.IInspectable):
     Parse: _Callable[[IUsbDescriptor,  # descriptor
                       _Pointer[IUsbEndpointDescriptor]],  # parsed
                      _type.HRESULT]
-
-    _factory = True
 
 
 class IUsbInterface(_inspectable.IInspectable):
@@ -282,7 +274,7 @@ class IUsbInterfaceDescriptor(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IUsbInterfaceDescriptorStatics(_inspectable.IInspectable):
+class IUsbInterfaceDescriptorStatics(_inspectable.IInspectable, factory=True):
     TryParse: _Callable[[IUsbDescriptor,  # descriptor
                          _Pointer[IUsbInterfaceDescriptor],  # parsed
                          _Pointer[_type.boolean]],  # success
@@ -290,8 +282,6 @@ class IUsbInterfaceDescriptorStatics(_inspectable.IInspectable):
     Parse: _Callable[[IUsbDescriptor,  # descriptor
                       _Pointer[IUsbInterfaceDescriptor]],  # parsed
                      _type.HRESULT]
-
-    _factory = True
 
 
 class IUsbInterfaceSetting(_inspectable.IInspectable):
@@ -388,9 +378,7 @@ class IUsbSetupPacket(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IUsbSetupPacketFactory(_inspectable.IInspectable):
+class IUsbSetupPacketFactory(_inspectable.IInspectable, factory=True):
     CreateWithEightByteBuffer: _Callable[[_Windows_Storage_Streams.IBuffer,  # eightByteBuffer
                                           _Pointer[IUsbSetupPacket]],  # value
                                          _type.HRESULT]
-
-    _factory = True

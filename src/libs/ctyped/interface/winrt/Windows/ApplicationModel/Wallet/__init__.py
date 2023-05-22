@@ -21,7 +21,7 @@ class IWalletBarcode(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IWalletBarcodeFactory(_inspectable.IInspectable):
+class IWalletBarcodeFactory(_inspectable.IInspectable, factory=True):
     CreateWalletBarcode: _Callable[[_enum.Windows.ApplicationModel.Wallet.WalletBarcodeSymbology,  # symbology
                                     _type.HSTRING,  # value
                                     _Pointer[IWalletBarcode]],  # barcode
@@ -29,8 +29,6 @@ class IWalletBarcodeFactory(_inspectable.IInspectable):
     CreateCustomWalletBarcode: _Callable[[_Windows_Storage_Streams.IRandomAccessStreamReference,  # streamToBarcodeImage
                                           _Pointer[IWalletBarcode]],  # barcode
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IWalletItem(_inspectable.IInspectable):
@@ -107,22 +105,18 @@ class IWalletItemCustomProperty(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IWalletItemCustomPropertyFactory(_inspectable.IInspectable):
+class IWalletItemCustomPropertyFactory(_inspectable.IInspectable, factory=True):
     CreateWalletItemCustomProperty: _Callable[[_type.HSTRING,  # name
                                                _type.HSTRING,  # value
                                                _Pointer[IWalletItemCustomProperty]],  # walletItemCustomProperty
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IWalletItemFactory(_inspectable.IInspectable):
+class IWalletItemFactory(_inspectable.IInspectable, factory=True):
     CreateWalletItem: _Callable[[_enum.Windows.ApplicationModel.Wallet.WalletItemKind,  # kind
                                  _type.HSTRING,  # displayName
                                  _Pointer[IWalletItem]],  # walletItem
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IWalletItemStore(_inspectable.IInspectable):
@@ -161,11 +155,9 @@ class IWalletItemStore2(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IWalletManagerStatics(_inspectable.IInspectable):
+class IWalletManagerStatics(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IWalletItemStore]]],  # operation
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IWalletRelevantLocation(_inspectable.IInspectable):
@@ -195,9 +187,7 @@ class IWalletVerb(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IWalletVerbFactory(_inspectable.IInspectable):
+class IWalletVerbFactory(_inspectable.IInspectable, factory=True):
     CreateWalletVerb: _Callable[[_type.HSTRING,  # name
                                  _Pointer[IWalletVerb]],  # WalletVerb
                                 _type.HRESULT]
-
-    _factory = True

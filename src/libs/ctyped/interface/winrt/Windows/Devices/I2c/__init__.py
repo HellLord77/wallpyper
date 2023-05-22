@@ -27,12 +27,10 @@ class II2cConnectionSettings(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class II2cConnectionSettingsFactory(_inspectable.IInspectable):
+class II2cConnectionSettingsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # slaveAddress
                        _Pointer[II2cConnectionSettings]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class II2cController(_inspectable.IInspectable):
@@ -41,14 +39,12 @@ class II2cController(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class II2cControllerStatics(_inspectable.IInspectable):
+class II2cControllerStatics(_inspectable.IInspectable, factory=True):
     GetControllersAsync: _Callable[[_Windows_Devices_I2c_Provider.II2cProvider,  # provider
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[II2cController]]]],  # operation
                                    _type.HRESULT]
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[II2cController]]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class II2cDevice(_inspectable.IInspectable):
@@ -83,7 +79,7 @@ class II2cDevice(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class II2cDeviceStatics(_inspectable.IInspectable):
+class II2cDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     GetDeviceSelectorFromFriendlyName: _Callable[[_type.HSTRING,  # friendlyName
@@ -93,5 +89,3 @@ class II2cDeviceStatics(_inspectable.IInspectable):
                             II2cConnectionSettings,  # settings
                             _Pointer[_Windows_Foundation.IAsyncOperation[II2cDevice]]],  # operation
                            _type.HRESULT]
-
-    _factory = True

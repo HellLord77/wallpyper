@@ -29,7 +29,7 @@ class IPhoneCallOrigin3(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPhoneCallOriginManagerStatics(_inspectable.IInspectable):
+class IPhoneCallOriginManagerStatics(_inspectable.IInspectable, factory=True):
     IsCurrentAppActiveCallOriginApp: _Callable[[_Pointer[_type.boolean]],  # value
                                                _type.HRESULT]
     ShowPhoneCallOriginSettingsUI: _Callable[[],
@@ -38,18 +38,12 @@ class IPhoneCallOriginManagerStatics(_inspectable.IInspectable):
                               IPhoneCallOrigin],  # callOrigin
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IPhoneCallOriginManagerStatics2(_inspectable.IInspectable):
+class IPhoneCallOriginManagerStatics2(_inspectable.IInspectable, factory=True):
     RequestSetAsActiveCallOriginAppAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IPhoneCallOriginManagerStatics3(_inspectable.IInspectable):
+class IPhoneCallOriginManagerStatics3(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                            _type.HRESULT]
-
-    _factory = True

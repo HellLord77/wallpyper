@@ -53,7 +53,7 @@ class IWorkItemHandler_impl(_IWorkItemHandler, _Unknwnbase.IUnknown_impl):
     pass
 
 
-class IThreadPoolStatics(_inspectable.IInspectable):
+class IThreadPoolStatics(_inspectable.IInspectable, factory=True):
     RunAsync: _Callable[[IWorkItemHandler,  # handler
                          _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                         _type.HRESULT]
@@ -67,8 +67,6 @@ class IThreadPoolStatics(_inspectable.IInspectable):
                                                _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                               _type.HRESULT]
 
-    _factory = True
-
 
 class IThreadPoolTimer(_inspectable.IInspectable):
     get_Period: _Callable[[_Pointer[_struct.Windows.Foundation.TimeSpan]],  # value
@@ -79,7 +77,7 @@ class IThreadPoolTimer(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IThreadPoolTimerStatics(_inspectable.IInspectable):
+class IThreadPoolTimerStatics(_inspectable.IInspectable, factory=True):
     CreatePeriodicTimer: _Callable[[ITimerElapsedHandler,  # handler
                                     _struct.Windows.Foundation.TimeSpan,  # period
                                     _Pointer[IThreadPoolTimer]],  # timer
@@ -98,5 +96,3 @@ class IThreadPoolTimerStatics(_inspectable.IInspectable):
                                           ITimerDestroyedHandler,  # destroyed
                                           _Pointer[IThreadPoolTimer]],  # timer
                                          _type.HRESULT]
-
-    _factory = True

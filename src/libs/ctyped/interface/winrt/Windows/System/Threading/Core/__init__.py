@@ -32,7 +32,7 @@ class IPreallocatedWorkItem(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IPreallocatedWorkItemFactory(_inspectable.IInspectable):
+class IPreallocatedWorkItemFactory(_inspectable.IInspectable, factory=True):
     CreateWorkItem: _Callable[[_Windows_System_Threading.IWorkItemHandler,  # handler
                                _Pointer[IPreallocatedWorkItem]],  # workItem
                               _type.HRESULT]
@@ -46,8 +46,6 @@ class IPreallocatedWorkItemFactory(_inspectable.IInspectable):
                                                      _Pointer[IPreallocatedWorkItem]],  # WorkItem
                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class ISignalNotifier(_inspectable.IInspectable):
     Enable: _Callable[[],
@@ -56,7 +54,7 @@ class ISignalNotifier(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ISignalNotifierStatics(_inspectable.IInspectable):
+class ISignalNotifierStatics(_inspectable.IInspectable, factory=True):
     AttachToEvent: _Callable[[_type.HSTRING,  # name
                               ISignalHandler,  # handler
                               _Pointer[ISignalNotifier]],  # signalNotifier
@@ -75,5 +73,3 @@ class ISignalNotifierStatics(_inspectable.IInspectable):
                                              _struct.Windows.Foundation.TimeSpan,  # timeout
                                              _Pointer[ISignalNotifier]],  # signalNotifier
                                             _type.HRESULT]
-
-    _factory = True

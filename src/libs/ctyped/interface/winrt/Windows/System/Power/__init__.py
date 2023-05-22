@@ -10,7 +10,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IBackgroundEnergyManagerStatics(_inspectable.IInspectable):
+class IBackgroundEnergyManagerStatics(_inspectable.IInspectable, factory=True):
     LowUsageLevel: _Callable[[_Pointer[_type.UINT32]],  # value
                              _type.HRESULT]
     NearMaxAcceptableUsageLevel: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -32,10 +32,8 @@ class IBackgroundEnergyManagerStatics(_inspectable.IInspectable):
     RecentEnergyUsageReturnedToLow: _Callable[[_struct.EventRegistrationToken],  # token
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IForegroundEnergyManagerStatics(_inspectable.IInspectable):
+class IForegroundEnergyManagerStatics(_inspectable.IInspectable, factory=True):
     LowUsageLevel: _Callable[[_Pointer[_type.UINT32]],  # value
                              _type.HRESULT]
     NearMaxAcceptableUsageLevel: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -53,10 +51,8 @@ class IForegroundEnergyManagerStatics(_inspectable.IInspectable):
     RecentEnergyUsageReturnedToLow: _Callable[[_struct.EventRegistrationToken],  # token
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IPowerManagerStatics(_inspectable.IInspectable):
+class IPowerManagerStatics(_inspectable.IInspectable, factory=True):
     get_EnergySaverStatus: _Callable[[_Pointer[_enum.Windows.System.Power.EnergySaverStatus]],  # value
                                      _type.HRESULT]
     add_EnergySaverStatusChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -92,5 +88,3 @@ class IPowerManagerStatics(_inspectable.IInspectable):
                                                  _type.HRESULT]
     remove_RemainingDischargeTimeChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                                     _type.HRESULT]
-
-    _factory = True

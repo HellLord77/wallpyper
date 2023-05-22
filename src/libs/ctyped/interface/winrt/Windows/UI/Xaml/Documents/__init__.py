@@ -48,7 +48,7 @@ class IBlockFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IBlockStatics(_inspectable.IInspectable):
+class IBlockStatics(_inspectable.IInspectable, factory=True):
     get_TextAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_LineHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -58,14 +58,10 @@ class IBlockStatics(_inspectable.IInspectable):
     get_MarginProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IBlockStatics2(_inspectable.IInspectable):
+class IBlockStatics2(_inspectable.IInspectable, factory=True):
     get_HorizontalTextAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IBold(_inspectable.IInspectable):
@@ -179,7 +175,7 @@ class IContentLinkProviderFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IContentLinkStatics(_inspectable.IInspectable):
+class IContentLinkStatics(_inspectable.IInspectable, factory=True):
     get_BackgroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_CursorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -208,8 +204,6 @@ class IContentLinkStatics(_inspectable.IInspectable):
                                      _type.HRESULT]
     get_TabIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IGlyphs(_inspectable.IInspectable):
@@ -258,7 +252,7 @@ class IGlyphs2(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IGlyphsStatics(_inspectable.IInspectable):
+class IGlyphsStatics(_inspectable.IInspectable, factory=True):
     get_UnicodeStringProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_IndicesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -276,16 +270,12 @@ class IGlyphsStatics(_inspectable.IInspectable):
     get_FillProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IGlyphsStatics2(_inspectable.IInspectable):
+class IGlyphsStatics2(_inspectable.IInspectable, factory=True):
     get_IsColorFontEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_ColorFontPaletteIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IHyperlink(_inspectable.IInspectable):
@@ -379,21 +369,17 @@ class IHyperlinkClickEventArgs(_inspectable.IInspectable):
     pass
 
 
-class IHyperlinkStatics(_inspectable.IInspectable):
+class IHyperlinkStatics(_inspectable.IInspectable, factory=True):
     get_NavigateUriProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IHyperlinkStatics2(_inspectable.IInspectable):
+class IHyperlinkStatics2(_inspectable.IInspectable, factory=True):
     get_UnderlineStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IHyperlinkStatics3(_inspectable.IInspectable):
+class IHyperlinkStatics3(_inspectable.IInspectable, factory=True):
     get_XYFocusLeftProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_XYFocusRightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -405,10 +391,8 @@ class IHyperlinkStatics3(_inspectable.IInspectable):
     get_ElementSoundModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IHyperlinkStatics4(_inspectable.IInspectable):
+class IHyperlinkStatics4(_inspectable.IInspectable, factory=True):
     get_FocusStateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_XYFocusUpNavigationStrategyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -420,16 +404,12 @@ class IHyperlinkStatics4(_inspectable.IInspectable):
     get_XYFocusRightNavigationStrategyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IHyperlinkStatics5(_inspectable.IInspectable):
+class IHyperlinkStatics5(_inspectable.IInspectable, factory=True):
     get_IsTabStopProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_TabIndexProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IInline(_inspectable.IInspectable):
@@ -467,11 +447,9 @@ class IParagraph(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IParagraphStatics(_inspectable.IInspectable):
+class IParagraphStatics(_inspectable.IInspectable, factory=True):
     get_TextIndentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPlaceContentLinkProvider(_inspectable.IInspectable):
@@ -489,11 +467,9 @@ class IRun(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IRunStatics(_inspectable.IInspectable):
+class IRunStatics(_inspectable.IInspectable, factory=True):
     get_FlowDirectionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISpan(_inspectable.IInspectable):
@@ -638,7 +614,7 @@ class ITextElementOverrides(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ITextElementStatics(_inspectable.IInspectable):
+class ITextElementStatics(_inspectable.IInspectable, factory=True):
     get_FontSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_FontFamilyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -656,17 +632,13 @@ class ITextElementStatics(_inspectable.IInspectable):
     get_LanguageProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ITextElementStatics2(_inspectable.IInspectable):
+class ITextElementStatics2(_inspectable.IInspectable, factory=True):
     get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ITextElementStatics3(_inspectable.IInspectable):
+class ITextElementStatics3(_inspectable.IInspectable, factory=True):
     get_AllowFocusOnInteractionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_AccessKeyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -674,10 +646,8 @@ class ITextElementStatics3(_inspectable.IInspectable):
     get_ExitDisplayModeOnAccessKeyInvokedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ITextElementStatics4(_inspectable.IInspectable):
+class ITextElementStatics4(_inspectable.IInspectable, factory=True):
     get_TextDecorationsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_IsAccessKeyScopeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -690,8 +660,6 @@ class ITextElementStatics4(_inspectable.IInspectable):
                                                   _type.HRESULT]
     get_KeyTipVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ITextHighlighter(_inspectable.IInspectable):
@@ -722,13 +690,11 @@ class ITextHighlighterFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITextHighlighterStatics(_inspectable.IInspectable):
+class ITextHighlighterStatics(_inspectable.IInspectable, factory=True):
     get_ForegroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_BackgroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITextPointer(_inspectable.IInspectable):
@@ -753,7 +719,7 @@ class ITypography(_inspectable.IInspectable):
     pass
 
 
-class ITypographyStatics(_inspectable.IInspectable):
+class ITypographyStatics(_inspectable.IInspectable, factory=True):
     get_AnnotationAlternatesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     GetAnnotationAlternates: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # element
@@ -1098,8 +1064,6 @@ class ITypographyStatics(_inspectable.IInspectable):
     SetVariants: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # element
                             _enum.Windows.UI.Xaml.FontVariants],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IUnderline(_inspectable.IInspectable):

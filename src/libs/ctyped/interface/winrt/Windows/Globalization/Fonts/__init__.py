@@ -47,9 +47,7 @@ class ILanguageFontGroup(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ILanguageFontGroupFactory(_inspectable.IInspectable):
+class ILanguageFontGroupFactory(_inspectable.IInspectable, factory=True):
     CreateLanguageFontGroup: _Callable[[_type.HSTRING,  # languageTag
                                         _Pointer[ILanguageFontGroup]],  # recommendedFonts
                                        _type.HRESULT]
-
-    _factory = True

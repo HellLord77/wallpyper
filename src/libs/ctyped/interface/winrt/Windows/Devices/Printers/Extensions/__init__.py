@@ -50,12 +50,10 @@ class IPrint3DWorkflowPrinterChangedEventArgs(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPrintExtensionContextStatic(_inspectable.IInspectable):
+class IPrintExtensionContextStatic(_inspectable.IInspectable, factory=True):
     FromDeviceId: _Callable[[_type.HSTRING,  # deviceId
                              _Pointer[_inspectable.IInspectable]],  # context
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintNotificationEventDetails(_inspectable.IInspectable):

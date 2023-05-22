@@ -53,7 +53,7 @@ class IPushNotificationChannelManagerForUser2(_inspectable.IInspectable):
                                                                                          _type.HRESULT]
 
 
-class IPushNotificationChannelManagerStatics(_inspectable.IInspectable):
+class IPushNotificationChannelManagerStatics(_inspectable.IInspectable, factory=True):
     CreatePushNotificationChannelForApplicationAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IPushNotificationChannel]]],  # operation
                                                                 _type.HRESULT]
     CreatePushNotificationChannelForApplicationAsyncWithId: _Callable[[_type.HSTRING,  # applicationId
@@ -63,32 +63,24 @@ class IPushNotificationChannelManagerStatics(_inspectable.IInspectable):
                                                                    _Pointer[_Windows_Foundation.IAsyncOperation[IPushNotificationChannel]]],  # operation
                                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IPushNotificationChannelManagerStatics2(_inspectable.IInspectable):
+class IPushNotificationChannelManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IPushNotificationChannelManagerForUser]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IPushNotificationChannelManagerStatics3(_inspectable.IInspectable):
+class IPushNotificationChannelManagerStatics3(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IPushNotificationChannelManagerForUser]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IPushNotificationChannelManagerStatics4(_inspectable.IInspectable):
+class IPushNotificationChannelManagerStatics4(_inspectable.IInspectable, factory=True):
     add_ChannelsRevoked: _Callable[[_Windows_Foundation.IEventHandler[IPushNotificationChannelsRevokedEventArgs],  # handler
                                     _Pointer[_struct.EventRegistrationToken]],  # token
                                    _type.HRESULT]
     remove_ChannelsRevoked: _Callable[[_struct.EventRegistrationToken],  # token
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPushNotificationChannelsRevokedEventArgs(_inspectable.IInspectable):

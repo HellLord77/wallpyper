@@ -98,17 +98,15 @@ class IBarcodeScannerReport(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IBarcodeScannerReportFactory(_inspectable.IInspectable):
+class IBarcodeScannerReportFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.UINT32,  # scanDataType
                                _Windows_Storage_Streams.IBuffer,  # scanData
                                _Windows_Storage_Streams.IBuffer,  # scanDataLabel
                                _Pointer[IBarcodeScannerReport]],  # result
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IBarcodeScannerStatics(_inspectable.IInspectable):
+class IBarcodeScannerStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IBarcodeScanner]]],  # result
                                _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -117,15 +115,11 @@ class IBarcodeScannerStatics(_inspectable.IInspectable):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IBarcodeScannerStatics2(_inspectable.IInspectable):
+class IBarcodeScannerStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorWithConnectionTypes: _Callable[[_enum.Windows.Devices.PointOfService.PosConnectionTypes,  # connectionTypes
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IBarcodeScannerStatusUpdatedEventArgs(_inspectable.IInspectable):
@@ -135,7 +129,7 @@ class IBarcodeScannerStatusUpdatedEventArgs(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IBarcodeSymbologiesStatics(_inspectable.IInspectable):
+class IBarcodeSymbologiesStatics(_inspectable.IInspectable, factory=True):
     get_Unknown: _Callable[[_Pointer[_type.UINT32]],  # value
                            _type.HRESULT]
     get_Ean8: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -326,14 +320,10 @@ class IBarcodeSymbologiesStatics(_inspectable.IInspectable):
                         _Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
 
-    _factory = True
 
-
-class IBarcodeSymbologiesStatics2(_inspectable.IInspectable):
+class IBarcodeSymbologiesStatics2(_inspectable.IInspectable, factory=True):
     get_Gs1DWCode: _Callable[[_Pointer[_type.UINT32]],  # value
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IBarcodeSymbologyAttributes(_inspectable.IInspectable):
@@ -450,7 +440,7 @@ class ICashDrawerEventSourceEventArgs(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICashDrawerStatics(_inspectable.IInspectable):
+class ICashDrawerStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ICashDrawer]]],  # result
                                _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -459,15 +449,11 @@ class ICashDrawerStatics(_inspectable.IInspectable):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ICashDrawerStatics2(_inspectable.IInspectable):
+class ICashDrawerStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorWithConnectionTypes: _Callable[[_enum.Windows.Devices.PointOfService.PosConnectionTypes,  # connectionTypes
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ICashDrawerStatus(_inspectable.IInspectable):
@@ -723,7 +709,7 @@ class IClaimedLineDisplayClosedEventArgs(_inspectable.IInspectable):
     pass
 
 
-class IClaimedLineDisplayStatics(_inspectable.IInspectable):
+class IClaimedLineDisplayStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IClaimedLineDisplay]]],  # operation
                            _type.HRESULT]
@@ -732,8 +718,6 @@ class IClaimedLineDisplayStatics(_inspectable.IInspectable):
     GetDeviceSelectorWithConnectionTypes: _Callable[[_enum.Windows.Devices.PointOfService.PosConnectionTypes,  # connectionTypes
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IClaimedMagneticStripeReader(_inspectable.IInspectable):
@@ -1219,7 +1203,7 @@ class ILineDisplayMarquee(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ILineDisplayStatics(_inspectable.IInspectable):
+class ILineDisplayStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ILineDisplay]]],  # operation
                            _type.HRESULT]
@@ -1231,14 +1215,10 @@ class ILineDisplayStatics(_inspectable.IInspectable):
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ILineDisplayStatics2(_inspectable.IInspectable):
+class ILineDisplayStatics2(_inspectable.IInspectable, factory=True):
     get_StatisticsCategorySelector: _Callable[[_Pointer[ILineDisplayStatisticsCategorySelector]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILineDisplayStatisticsCategorySelector(_inspectable.IInspectable):
@@ -1440,7 +1420,7 @@ class IMagneticStripeReaderCapabilities(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IMagneticStripeReaderCardTypesStatics(_inspectable.IInspectable):
+class IMagneticStripeReaderCardTypesStatics(_inspectable.IInspectable, factory=True):
     get_Unknown: _Callable[[_Pointer[_type.UINT32]],  # value
                            _type.HRESULT]
     get_Bank: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -1450,18 +1430,14 @@ class IMagneticStripeReaderCardTypesStatics(_inspectable.IInspectable):
     get_ExtendedBase: _Callable[[_Pointer[_type.UINT32]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMagneticStripeReaderEncryptionAlgorithmsStatics(_inspectable.IInspectable):
+class IMagneticStripeReaderEncryptionAlgorithmsStatics(_inspectable.IInspectable, factory=True):
     get_None: _Callable[[_Pointer[_type.UINT32]],  # value
                         _type.HRESULT]
     get_TripleDesDukpt: _Callable[[_Pointer[_type.UINT32]],  # value
                                   _type.HRESULT]
     get_ExtendedBase: _Callable[[_Pointer[_type.UINT32]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMagneticStripeReaderErrorOccurredEventArgs(_inspectable.IInspectable):
@@ -1500,7 +1476,7 @@ class IMagneticStripeReaderReport(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IMagneticStripeReaderStatics(_inspectable.IInspectable):
+class IMagneticStripeReaderStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IMagneticStripeReader]]],  # result
                                _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -1509,15 +1485,11 @@ class IMagneticStripeReaderStatics(_inspectable.IInspectable):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IMagneticStripeReaderStatics2(_inspectable.IInspectable):
+class IMagneticStripeReaderStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorWithConnectionTypes: _Callable[[_enum.Windows.Devices.PointOfService.PosConnectionTypes,  # connectionTypes
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMagneticStripeReaderStatusUpdatedEventArgs(_inspectable.IInspectable):
@@ -1598,15 +1570,13 @@ class IPosPrinterCapabilities(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPosPrinterCharacterSetIdsStatics(_inspectable.IInspectable):
+class IPosPrinterCharacterSetIdsStatics(_inspectable.IInspectable, factory=True):
     get_Utf16LE: _Callable[[_Pointer[_type.UINT32]],  # value
                            _type.HRESULT]
     get_Ascii: _Callable[[_Pointer[_type.UINT32]],  # value
                          _type.HRESULT]
     get_Ansi: _Callable[[_Pointer[_type.UINT32]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IPosPrinterFontProperty(_inspectable.IInspectable):
@@ -1688,7 +1658,7 @@ class IPosPrinterReleaseDeviceRequestedEventArgs(_inspectable.IInspectable):
     pass
 
 
-class IPosPrinterStatics(_inspectable.IInspectable):
+class IPosPrinterStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IPosPrinter]]],  # result
                                _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -1697,15 +1667,11 @@ class IPosPrinterStatics(_inspectable.IInspectable):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IPosPrinterStatics2(_inspectable.IInspectable):
+class IPosPrinterStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorWithConnectionTypes: _Callable[[_enum.Windows.Devices.PointOfService.PosConnectionTypes,  # connectionTypes
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPosPrinterStatus(_inspectable.IInspectable):
@@ -1872,12 +1838,10 @@ class IUnifiedPosErrorData(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IUnifiedPosErrorDataFactory(_inspectable.IInspectable):
+class IUnifiedPosErrorDataFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # message
                                _enum.Windows.Devices.PointOfService.UnifiedPosErrorSeverity,  # severity
                                _enum.Windows.Devices.PointOfService.UnifiedPosErrorReason,  # reason
                                _type.UINT32,  # extendedReason
                                _Pointer[IUnifiedPosErrorData]],  # result
                               _type.HRESULT]
-
-    _factory = True

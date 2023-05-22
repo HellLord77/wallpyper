@@ -28,7 +28,7 @@ class IDataProtectionInfo(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IDataProtectionManagerStatics(_inspectable.IInspectable):
+class IDataProtectionManagerStatics(_inspectable.IInspectable, factory=True):
     ProtectAsync: _Callable[[_Windows_Storage_Streams.IBuffer,  # data
                              _type.HSTRING,  # identity
                              _Pointer[_Windows_Foundation.IAsyncOperation[IBufferProtectUnprotectResult]]],  # result
@@ -52,8 +52,6 @@ class IDataProtectionManagerStatics(_inspectable.IInspectable):
                                              _Pointer[_Windows_Foundation.IAsyncOperation[IDataProtectionInfo]]],  # result
                                             _type.HRESULT]
 
-    _factory = True
-
 
 class IFileProtectionInfo(_inspectable.IInspectable):
     get_Status: _Callable[[_Pointer[_enum.Windows.Security.EnterpriseData.FileProtectionStatus]],  # value
@@ -69,7 +67,7 @@ class IFileProtectionInfo2(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class IFileProtectionManagerStatics(_inspectable.IInspectable):
+class IFileProtectionManagerStatics(_inspectable.IInspectable, factory=True):
     ProtectAsync: _Callable[[_Windows_Storage.IStorageItem,  # target
                              _type.HSTRING,  # identity
                              _Pointer[_Windows_Foundation.IAsyncOperation[IFileProtectionInfo]]],  # result
@@ -98,10 +96,8 @@ class IFileProtectionManagerStatics(_inspectable.IInspectable):
                                             _Pointer[_Windows_Foundation.IAsyncOperation[IProtectedFileCreateResult]]],  # result
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IFileProtectionManagerStatics2(_inspectable.IInspectable):
+class IFileProtectionManagerStatics2(_inspectable.IInspectable, factory=True):
     IsContainerAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                  _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                 _type.HRESULT]
@@ -115,10 +111,8 @@ class IFileProtectionManagerStatics2(_inspectable.IInspectable):
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[IProtectedContainerExportResult]]],  # result
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IFileProtectionManagerStatics3(_inspectable.IInspectable):
+class IFileProtectionManagerStatics3(_inspectable.IInspectable, factory=True):
     UnprotectAsync: _Callable[[_Windows_Storage.IStorageItem,  # target
                                _Pointer[_Windows_Foundation.IAsyncOperation[IFileProtectionInfo]]],  # result
                               _type.HRESULT]
@@ -127,10 +121,8 @@ class IFileProtectionManagerStatics3(_inspectable.IInspectable):
                                           _Pointer[_Windows_Foundation.IAsyncOperation[IFileProtectionInfo]]],  # result
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IFileRevocationManagerStatics(_inspectable.IInspectable):
+class IFileRevocationManagerStatics(_inspectable.IInspectable, factory=True):
     ProtectAsync: _Callable[[_Windows_Storage.IStorageItem,  # storageItem
                              _type.HSTRING,  # enterpriseIdentity
                              _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Security.EnterpriseData.FileProtectionStatus]]],  # result
@@ -145,8 +137,6 @@ class IFileRevocationManagerStatics(_inspectable.IInspectable):
                                _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Security.EnterpriseData.FileProtectionStatus]]],  # result
                               _type.HRESULT]
 
-    _factory = True
-
 
 class IFileUnprotectOptions(_inspectable.IInspectable):
     put_Audit: _Callable[[_type.boolean],  # value
@@ -155,12 +145,10 @@ class IFileUnprotectOptions(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IFileUnprotectOptionsFactory(_inspectable.IInspectable):
+class IFileUnprotectOptionsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.boolean,  # audit
                        _Pointer[IFileUnprotectOptions]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IProtectedAccessResumedEventArgs(_inspectable.IInspectable):
@@ -224,7 +212,7 @@ class IProtectionPolicyAuditInfo(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IProtectionPolicyAuditInfoFactory(_inspectable.IInspectable):
+class IProtectionPolicyAuditInfoFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Security.EnterpriseData.ProtectionPolicyAuditAction,  # action
                        _type.HSTRING,  # dataDescription
                        _type.HSTRING,  # sourceDescription
@@ -235,8 +223,6 @@ class IProtectionPolicyAuditInfoFactory(_inspectable.IInspectable):
                                                    _type.HSTRING,  # dataDescription
                                                    _Pointer[IProtectionPolicyAuditInfo]],  # result
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IProtectionPolicyManager(_inspectable.IInspectable):
@@ -253,7 +239,7 @@ class IProtectionPolicyManager2(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IProtectionPolicyManagerStatics(_inspectable.IInspectable):
+class IProtectionPolicyManagerStatics(_inspectable.IInspectable, factory=True):
     IsIdentityManaged: _Callable[[_type.HSTRING,  # identity
                                   _Pointer[_type.boolean]],  # result
                                  _type.HRESULT]
@@ -296,10 +282,8 @@ class IProtectionPolicyManagerStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Security.EnterpriseData.ProtectionPolicyEvaluationResult]]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IProtectionPolicyManagerStatics2(_inspectable.IInspectable):
+class IProtectionPolicyManagerStatics2(_inspectable.IInspectable, factory=True):
     HasContentBeenRevokedSince: _Callable[[_type.HSTRING,  # identity
                                            _struct.Windows.Foundation.DateTime,  # since
                                            _Pointer[_type.boolean]],  # result
@@ -329,10 +313,8 @@ class IProtectionPolicyManagerStatics2(_inspectable.IInspectable):
     get_IsProtectionEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IProtectionPolicyManagerStatics3(_inspectable.IInspectable):
+class IProtectionPolicyManagerStatics3(_inspectable.IInspectable, factory=True):
     RequestAccessWithAuditingInfoAsync: _Callable[[_type.HSTRING,  # sourceIdentity
                                                    _type.HSTRING,  # targetIdentity
                                                    IProtectionPolicyAuditInfo,  # auditInfo
@@ -360,10 +342,8 @@ class IProtectionPolicyManagerStatics3(_inspectable.IInspectable):
                               IProtectionPolicyAuditInfo],  # auditInfo
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IProtectionPolicyManagerStatics4(_inspectable.IInspectable):
+class IProtectionPolicyManagerStatics4(_inspectable.IInspectable, factory=True):
     IsRoamableProtectionEnabled: _Callable[[_type.HSTRING,  # identity
                                             _Pointer[_type.boolean]],  # value
                                            _type.HRESULT]
@@ -419,8 +399,6 @@ class IProtectionPolicyManagerStatics4(_inspectable.IInspectable):
     GetPrimaryManagedIdentityForIdentity: _Callable[[_type.HSTRING,  # identity
                                                      _Pointer[_type.HSTRING]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IThreadNetworkContext(_inspectable.IInspectable):

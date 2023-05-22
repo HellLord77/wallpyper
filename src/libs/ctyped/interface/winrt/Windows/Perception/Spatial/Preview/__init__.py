@@ -18,7 +18,7 @@ class ISpatialGraphInteropFrameOfReferencePreview(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class ISpatialGraphInteropPreviewStatics(_inspectable.IInspectable):
+class ISpatialGraphInteropPreviewStatics(_inspectable.IInspectable, factory=True):
     CreateCoordinateSystemForNode: _Callable[[_struct.GUID,  # nodeId
                                               _Pointer[_Windows_Perception_Spatial.ISpatialCoordinateSystem]],  # result
                                              _type.HRESULT]
@@ -35,10 +35,8 @@ class ISpatialGraphInteropPreviewStatics(_inspectable.IInspectable):
                                      _Pointer[_Windows_Perception_Spatial.ISpatialLocator]],  # result
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ISpatialGraphInteropPreviewStatics2(_inspectable.IInspectable):
+class ISpatialGraphInteropPreviewStatics2(_inspectable.IInspectable, factory=True):
     TryCreateFrameOfReference: _Callable[[_Windows_Perception_Spatial.ISpatialCoordinateSystem,  # coordinateSystem
                                           _Pointer[ISpatialGraphInteropFrameOfReferencePreview]],  # result
                                          _type.HRESULT]
@@ -51,5 +49,3 @@ class ISpatialGraphInteropPreviewStatics2(_inspectable.IInspectable):
                                                                     _struct.Windows.Foundation.Numerics.Quaternion,  # relativeOrientation
                                                                     _Pointer[ISpatialGraphInteropFrameOfReferencePreview]],  # result
                                                                    _type.HRESULT]
-
-    _factory = True

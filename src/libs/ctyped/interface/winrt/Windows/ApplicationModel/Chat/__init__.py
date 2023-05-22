@@ -27,7 +27,7 @@ class IChatCapabilities(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IChatCapabilitiesManagerStatics(_inspectable.IInspectable):
+class IChatCapabilitiesManagerStatics(_inspectable.IInspectable, factory=True):
     GetCachedCapabilitiesAsync: _Callable[[_type.HSTRING,  # address
                                            _Pointer[_Windows_Foundation.IAsyncOperation[IChatCapabilities]]],  # result
                                           _type.HRESULT]
@@ -35,10 +35,8 @@ class IChatCapabilitiesManagerStatics(_inspectable.IInspectable):
                                                 _Pointer[_Windows_Foundation.IAsyncOperation[IChatCapabilities]]],  # result
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IChatCapabilitiesManagerStatics2(_inspectable.IInspectable):
+class IChatCapabilitiesManagerStatics2(_inspectable.IInspectable, factory=True):
     GetCachedCapabilitiesForTransportAsync: _Callable[[_type.HSTRING,  # address
                                                        _type.HSTRING,  # transportId
                                                        _Pointer[_Windows_Foundation.IAsyncOperation[IChatCapabilities]]],  # operation
@@ -47,8 +45,6 @@ class IChatCapabilitiesManagerStatics2(_inspectable.IInspectable):
                                                             _type.HSTRING,  # transportId
                                                             _Pointer[_Windows_Foundation.IAsyncOperation[IChatCapabilities]]],  # operation
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IChatConversation(_inspectable.IInspectable):
@@ -279,22 +275,18 @@ class IChatMessageAttachment2(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IChatMessageAttachmentFactory(_inspectable.IInspectable):
+class IChatMessageAttachmentFactory(_inspectable.IInspectable, factory=True):
     CreateChatMessageAttachment: _Callable[[_type.HSTRING,  # mimeType
                                             _Windows_Storage_Streams.IRandomAccessStreamReference,  # dataStreamReference
                                             _Pointer[IChatMessageAttachment]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IChatMessageBlockingStatic(_inspectable.IInspectable):
+class IChatMessageBlockingStatic(_inspectable.IInspectable, factory=True):
     MarkMessageAsBlockedAsync: _Callable[[_type.HSTRING,  # localChatMessageId
                                           _type.boolean,  # blocked
                                           _Pointer[_Windows_Foundation.IAsyncAction]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IChatMessageChange(_inspectable.IInspectable):
@@ -332,17 +324,15 @@ class IChatMessageChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IChatMessageManager2Statics(_inspectable.IInspectable):
+class IChatMessageManager2Statics(_inspectable.IInspectable, factory=True):
     RegisterTransportAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # result
                                       _type.HRESULT]
     GetTransportAsync: _Callable[[_type.HSTRING,  # transportId
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IChatMessageTransport]]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IChatMessageManagerStatic(_inspectable.IInspectable):
+class IChatMessageManagerStatic(_inspectable.IInspectable, factory=True):
     GetTransportsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IChatMessageTransport]]]],  # value
                                   _type.HRESULT]
     RequestStoreAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IChatMessageStore]]],  # value
@@ -353,14 +343,10 @@ class IChatMessageManagerStatic(_inspectable.IInspectable):
     ShowSmsSettings: _Callable[[],
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IChatMessageManagerStatics3(_inspectable.IInspectable):
+class IChatMessageManagerStatics3(_inspectable.IInspectable, factory=True):
     RequestSyncManagerAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IChatSyncManager]]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IChatMessageNotificationTriggerDetails(_inspectable.IInspectable):
@@ -652,7 +638,7 @@ class IRcsEndUserMessageManager(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class IRcsManagerStatics(_inspectable.IInspectable):
+class IRcsManagerStatics(_inspectable.IInspectable, factory=True):
     GetEndUserMessageManager: _Callable[[_Pointer[IRcsEndUserMessageManager]],  # result
                                         _type.HRESULT]
     GetTransportsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IRcsTransport]]]],  # value
@@ -664,17 +650,13 @@ class IRcsManagerStatics(_inspectable.IInspectable):
                                        _Pointer[_Windows_Foundation.IAsyncAction]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IRcsManagerStatics2(_inspectable.IInspectable):
+class IRcsManagerStatics2(_inspectable.IInspectable, factory=True):
     add_TransportListChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
                                          _Pointer[_struct.EventRegistrationToken]],  # token
                                         _type.HRESULT]
     remove_TransportListChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IRcsServiceKindSupportedChangedEventArgs(_inspectable.IInspectable):

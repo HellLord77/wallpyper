@@ -28,22 +28,18 @@ class IPwmController(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IPwmControllerStatics(_inspectable.IInspectable):
+class IPwmControllerStatics(_inspectable.IInspectable, factory=True):
     GetControllersAsync: _Callable[[_Windows_Devices_Pwm_Provider.IPwmProvider,  # provider
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IPwmController]]]],  # operation
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IPwmControllerStatics2(_inspectable.IInspectable):
+class IPwmControllerStatics2(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IPwmController]]],  # operation
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IPwmControllerStatics3(_inspectable.IInspectable):
+class IPwmControllerStatics3(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     GetDeviceSelectorFromFriendlyName: _Callable[[_type.HSTRING,  # friendlyName
@@ -52,8 +48,6 @@ class IPwmControllerStatics3(_inspectable.IInspectable):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IPwmController]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPwmPin(_inspectable.IInspectable):

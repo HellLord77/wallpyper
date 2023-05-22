@@ -24,12 +24,10 @@ class ICompositionConditionalValue(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ICompositionConditionalValueStatics(_inspectable.IInspectable):
+class ICompositionConditionalValueStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ICompositionConditionalValue]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICompositionInteractionSource(_inspectable.IInspectable):
@@ -215,12 +213,10 @@ class IInteractionTrackerInertiaMotion(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IInteractionTrackerInertiaMotionStatics(_inspectable.IInspectable):
+class IInteractionTrackerInertiaMotionStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[IInteractionTrackerInertiaMotion]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IInteractionTrackerInertiaNaturalMotion(_inspectable.IInspectable):
@@ -234,12 +230,10 @@ class IInteractionTrackerInertiaNaturalMotion(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IInteractionTrackerInertiaNaturalMotionStatics(_inspectable.IInspectable):
+class IInteractionTrackerInertiaNaturalMotionStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[IInteractionTrackerInertiaNaturalMotion]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IInteractionTrackerInertiaRestingValue(_inspectable.IInspectable):
@@ -253,12 +247,10 @@ class IInteractionTrackerInertiaRestingValue(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IInteractionTrackerInertiaRestingValueStatics(_inspectable.IInspectable):
+class IInteractionTrackerInertiaRestingValueStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[IInteractionTrackerInertiaRestingValue]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IInteractionTrackerInertiaStateEnteredArgs(_inspectable.IInspectable):
@@ -324,7 +316,7 @@ class IInteractionTrackerRequestIgnoredArgs(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IInteractionTrackerStatics(_inspectable.IInspectable):
+class IInteractionTrackerStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[IInteractionTracker]],  # result
                       _type.HRESULT]
@@ -333,10 +325,8 @@ class IInteractionTrackerStatics(_inspectable.IInspectable):
                                 _Pointer[IInteractionTracker]],  # result
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IInteractionTrackerStatics2(_inspectable.IInspectable):
+class IInteractionTrackerStatics2(_inspectable.IInspectable, factory=True):
     SetBindingMode: _Callable[[IInteractionTracker,  # boundTracker1
                                IInteractionTracker,  # boundTracker2
                                _enum.Windows.UI.Composition.Interactions.InteractionBindingAxisModes],  # axisMode
@@ -345,8 +335,6 @@ class IInteractionTrackerStatics2(_inspectable.IInspectable):
                                IInteractionTracker,  # boundTracker2
                                _Pointer[_enum.Windows.UI.Composition.Interactions.InteractionBindingAxisModes]],  # result
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IInteractionTrackerValuesChangedArgs(_inspectable.IInspectable):
@@ -377,12 +365,10 @@ class IInteractionTrackerVector2InertiaNaturalMotion(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IInteractionTrackerVector2InertiaNaturalMotionStatics(_inspectable.IInspectable):
+class IInteractionTrackerVector2InertiaNaturalMotionStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[IInteractionTrackerVector2InertiaNaturalMotion]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IVisualInteractionSource(_inspectable.IInspectable):
@@ -462,17 +448,13 @@ class IVisualInteractionSourceObjectFactory(_inspectable.IInspectable):
     pass
 
 
-class IVisualInteractionSourceStatics(_inspectable.IInspectable):
+class IVisualInteractionSourceStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.IVisual,  # source
                        _Pointer[IVisualInteractionSource]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IVisualInteractionSourceStatics2(_inspectable.IInspectable):
+class IVisualInteractionSourceStatics2(_inspectable.IInspectable, factory=True):
     CreateFromIVisualElement: _Callable[[_Windows_UI_Composition.IVisualElement,  # source
                                          _Pointer[IVisualInteractionSource]],  # result
                                         _type.HRESULT]
-
-    _factory = True

@@ -9,7 +9,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class ICommunicationBlockingAccessManagerStatics(_inspectable.IInspectable):
+class ICommunicationBlockingAccessManagerStatics(_inspectable.IInspectable, factory=True):
     get_IsBlockingActive: _Callable[[_Pointer[_type.boolean]],  # value
                                     _type.HRESULT]
     IsBlockedNumberAsync: _Callable[[_type.HSTRING,  # number
@@ -26,20 +26,14 @@ class ICommunicationBlockingAccessManagerStatics(_inspectable.IInspectable):
     ShowBlockedMessagesUI: _Callable[[],
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class ICommunicationBlockingAppManagerStatics(_inspectable.IInspectable):
+class ICommunicationBlockingAppManagerStatics(_inspectable.IInspectable, factory=True):
     get_IsCurrentAppActiveBlockingApp: _Callable[[_Pointer[_type.boolean]],  # value
                                                  _type.HRESULT]
     ShowCommunicationBlockingSettingsUI: _Callable[[],
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class ICommunicationBlockingAppManagerStatics2(_inspectable.IInspectable):
+class ICommunicationBlockingAppManagerStatics2(_inspectable.IInspectable, factory=True):
     RequestSetAsActiveBlockingAppAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                                   _type.HRESULT]
-
-    _factory = True

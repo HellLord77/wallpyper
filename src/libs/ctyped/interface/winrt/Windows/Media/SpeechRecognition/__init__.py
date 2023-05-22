@@ -80,7 +80,7 @@ class ISpeechRecognitionGrammarFileConstraint(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ISpeechRecognitionGrammarFileConstraintFactory(_inspectable.IInspectable):
+class ISpeechRecognitionGrammarFileConstraintFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Storage.IStorageFile,  # file
                        _Pointer[ISpeechRecognitionGrammarFileConstraint]],  # constraint
                       _type.HRESULT]
@@ -88,8 +88,6 @@ class ISpeechRecognitionGrammarFileConstraintFactory(_inspectable.IInspectable):
                               _type.HSTRING,  # tag
                               _Pointer[ISpeechRecognitionGrammarFileConstraint]],  # constraint
                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISpeechRecognitionHypothesis(_inspectable.IInspectable):
@@ -107,7 +105,7 @@ class ISpeechRecognitionListConstraint(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ISpeechRecognitionListConstraintFactory(_inspectable.IInspectable):
+class ISpeechRecognitionListConstraintFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # commands
                        _Pointer[ISpeechRecognitionListConstraint]],  # constraint
                       _type.HRESULT]
@@ -115,8 +113,6 @@ class ISpeechRecognitionListConstraintFactory(_inspectable.IInspectable):
                               _type.HSTRING,  # tag
                               _Pointer[ISpeechRecognitionListConstraint]],  # constraint
                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISpeechRecognitionQualityDegradingEventArgs(_inspectable.IInspectable):
@@ -163,7 +159,7 @@ class ISpeechRecognitionTopicConstraint(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class ISpeechRecognitionTopicConstraintFactory(_inspectable.IInspectable):
+class ISpeechRecognitionTopicConstraintFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Media.SpeechRecognition.SpeechRecognitionScenario,  # scenario
                        _type.HSTRING,  # topicHint
                        _Pointer[ISpeechRecognitionTopicConstraint]],  # constraint
@@ -173,8 +169,6 @@ class ISpeechRecognitionTopicConstraintFactory(_inspectable.IInspectable):
                               _type.HSTRING,  # tag
                               _Pointer[ISpeechRecognitionTopicConstraint]],  # constraint
                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISpeechRecognitionVoiceCommandDefinitionConstraint(_inspectable.IInspectable):
@@ -222,12 +216,10 @@ class ISpeechRecognizer2(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ISpeechRecognizerFactory(_inspectable.IInspectable):
+class ISpeechRecognizerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Globalization.ILanguage,  # language
                        _Pointer[ISpeechRecognizer]],  # recognizer
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISpeechRecognizerStateChangedEventArgs(_inspectable.IInspectable):
@@ -235,7 +227,7 @@ class ISpeechRecognizerStateChangedEventArgs(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ISpeechRecognizerStatics(_inspectable.IInspectable):
+class ISpeechRecognizerStatics(_inspectable.IInspectable, factory=True):
     get_SystemSpeechLanguage: _Callable[[_Pointer[_Windows_Globalization.ILanguage]],  # language
                                         _type.HRESULT]
     get_SupportedTopicLanguages: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_Windows_Globalization.ILanguage]]],  # languages
@@ -243,15 +235,11 @@ class ISpeechRecognizerStatics(_inspectable.IInspectable):
     get_SupportedGrammarLanguages: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_Windows_Globalization.ILanguage]]],  # languages
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ISpeechRecognizerStatics2(_inspectable.IInspectable):
+class ISpeechRecognizerStatics2(_inspectable.IInspectable, factory=True):
     TrySetSystemSpeechLanguageAsync: _Callable[[_Windows_Globalization.ILanguage,  # speechLanguage
                                                 _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class ISpeechRecognizerTimeouts(_inspectable.IInspectable):
@@ -288,14 +276,12 @@ class ISpeechRecognizerUIOptions(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IVoiceCommandManager(_inspectable.IInspectable):
+class IVoiceCommandManager(_inspectable.IInspectable, factory=True):
     InstallCommandSetsFromStorageFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                                        _Pointer[_Windows_Foundation.IAsyncAction]],  # installAction
                                                       _type.HRESULT]
     InstalledCommandSets: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_type.HSTRING, IVoiceCommandSet]]],  # voiceCommandSets
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IVoiceCommandSet(_inspectable.IInspectable):

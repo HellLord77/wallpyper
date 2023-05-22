@@ -96,7 +96,7 @@ class IDialDeviceSelectedEventArgs(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IDialDeviceStatics(_inspectable.IInspectable):
+class IDialDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_type.HSTRING,  # appName
                                   _Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
@@ -106,8 +106,6 @@ class IDialDeviceStatics(_inspectable.IInspectable):
     DeviceInfoSupportsDialAsync: _Callable[[_Windows_Devices_Enumeration.IDeviceInformation,  # device
                                             _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IDialDisconnectButtonClickedEventArgs(_inspectable.IInspectable):
@@ -128,8 +126,6 @@ class IDialReceiverApp2(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IDialReceiverAppStatics(_inspectable.IInspectable):
+class IDialReceiverAppStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IDialReceiverApp]],  # value
                            _type.HRESULT]
-
-    _factory = True

@@ -29,9 +29,7 @@ class IPlaylist(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IPlaylistStatics(_inspectable.IInspectable):
+class IPlaylistStatics(_inspectable.IInspectable, factory=True):
     LoadAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                           _Pointer[_Windows_Foundation.IAsyncOperation[IPlaylist]]],  # operation
                          _type.HRESULT]
-
-    _factory = True

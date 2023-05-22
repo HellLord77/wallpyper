@@ -22,23 +22,19 @@ class IBuffer(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IBufferFactory(_inspectable.IInspectable):
+class IBufferFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # capacity
                        _Pointer[IBuffer]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IBufferStatics(_inspectable.IInspectable):
+class IBufferStatics(_inspectable.IInspectable, factory=True):
     CreateCopyFromMemoryBuffer: _Callable[[_Windows_Foundation.IMemoryBuffer,  # input
                                            _Pointer[IBuffer]],  # value
                                           _type.HRESULT]
     CreateMemoryBufferOverIBuffer: _Callable[[IBuffer,  # input
                                               _Pointer[_Windows_Foundation.IMemoryBuffer]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IContentTypeProvider(_inspectable.IInspectable):
@@ -105,20 +101,16 @@ class IDataReader(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IDataReaderFactory(_inspectable.IInspectable):
+class IDataReaderFactory(_inspectable.IInspectable, factory=True):
     CreateDataReader: _Callable[[IInputStream,  # inputStream
                                  _Pointer[IDataReader]],  # dataReader
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IDataReaderStatics(_inspectable.IInspectable):
+class IDataReaderStatics(_inspectable.IInspectable, factory=True):
     FromBuffer: _Callable[[IBuffer,  # buffer
                            _Pointer[IDataReader]],  # dataReader
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IDataWriter(_inspectable.IInspectable):
@@ -183,15 +175,13 @@ class IDataWriter(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IDataWriterFactory(_inspectable.IInspectable):
+class IDataWriterFactory(_inspectable.IInspectable, factory=True):
     CreateDataWriter: _Callable[[IOutputStream,  # outputStream
                                  _Pointer[IDataWriter]],  # dataWriter
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IFileRandomAccessStreamStatics(_inspectable.IInspectable):
+class IFileRandomAccessStreamStatics(_inspectable.IInspectable, factory=True):
     OpenAsync: _Callable[[_type.HSTRING,  # filePath
                           _enum.Windows.Storage.FileAccessMode,  # accessMode
                           _Pointer[_Windows_Foundation.IAsyncOperation[IRandomAccessStream]]],  # operation
@@ -232,8 +222,6 @@ class IFileRandomAccessStreamStatics(_inspectable.IInspectable):
                                                            _enum.Windows.Storage.Streams.FileOpenDisposition,  # openDisposition
                                                            _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage.IStorageStreamTransaction]]],  # operation
                                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IInputStream(_inspectable.IInspectable):
@@ -294,7 +282,7 @@ class IRandomAccessStreamReference(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IRandomAccessStreamReferenceStatics(_inspectable.IInspectable):
+class IRandomAccessStreamReferenceStatics(_inspectable.IInspectable, factory=True):
     CreateFromFile: _Callable[[_Windows_Storage.IStorageFile,  # file
                                _Pointer[IRandomAccessStreamReference]],  # streamReference
                               _type.HRESULT]
@@ -305,10 +293,8 @@ class IRandomAccessStreamReferenceStatics(_inspectable.IInspectable):
                                  _Pointer[IRandomAccessStreamReference]],  # streamReference
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IRandomAccessStreamStatics(_inspectable.IInspectable):
+class IRandomAccessStreamStatics(_inspectable.IInspectable, factory=True):
     CopyAsync: _Callable[[IInputStream,  # source
                           IOutputStream,  # destination
                           _Pointer[_Windows_Foundation.IAsyncOperationWithProgress[_type.UINT64, _type.UINT64]]],  # operation
@@ -322,8 +308,6 @@ class IRandomAccessStreamStatics(_inspectable.IInspectable):
                                   IOutputStream,  # destination
                                   _Pointer[_Windows_Foundation.IAsyncOperationWithProgress[_type.UINT64, _type.UINT64]]],  # operation
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IRandomAccessStreamWithContentType(_inspectable.IInspectable):

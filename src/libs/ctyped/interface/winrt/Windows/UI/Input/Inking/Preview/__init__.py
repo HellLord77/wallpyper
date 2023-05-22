@@ -13,7 +13,7 @@ class IPalmRejectionDelayZonePreview(_inspectable.IInspectable):
     pass
 
 
-class IPalmRejectionDelayZonePreviewStatics(_inspectable.IInspectable):
+class IPalmRejectionDelayZonePreviewStatics(_inspectable.IInspectable, factory=True):
     CreateForVisual: _Callable[[_Windows_UI_Composition.IVisual,  # inputPanelVisual
                                 _struct.Windows.Foundation.Rect,  # inputPanelRect
                                 _Pointer[IPalmRejectionDelayZonePreview]],  # result
@@ -24,5 +24,3 @@ class IPalmRejectionDelayZonePreviewStatics(_inspectable.IInspectable):
                                                 _struct.Windows.Foundation.Rect,  # viewportRect
                                                 _Pointer[IPalmRejectionDelayZonePreview]],  # result
                                                _type.HRESULT]
-
-    _factory = True

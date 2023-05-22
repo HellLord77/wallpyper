@@ -75,15 +75,13 @@ class ISpatialSurfaceMeshOptions(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class ISpatialSurfaceMeshOptionsStatics(_inspectable.IInspectable):
+class ISpatialSurfaceMeshOptionsStatics(_inspectable.IInspectable, factory=True):
     get_SupportedVertexPositionFormats: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Graphics.DirectX.DirectXPixelFormat]]],  # value
                                                   _type.HRESULT]
     get_SupportedTriangleIndexFormats: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Graphics.DirectX.DirectXPixelFormat]]],  # value
                                                  _type.HRESULT]
     get_SupportedVertexNormalFormats: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Graphics.DirectX.DirectXPixelFormat]]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialSurfaceObserver(_inspectable.IInspectable):
@@ -100,15 +98,11 @@ class ISpatialSurfaceObserver(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class ISpatialSurfaceObserverStatics(_inspectable.IInspectable):
+class ISpatialSurfaceObserverStatics(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Perception.Spatial.SpatialPerceptionAccessStatus]]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ISpatialSurfaceObserverStatics2(_inspectable.IInspectable):
+class ISpatialSurfaceObserverStatics2(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                            _type.HRESULT]
-
-    _factory = True

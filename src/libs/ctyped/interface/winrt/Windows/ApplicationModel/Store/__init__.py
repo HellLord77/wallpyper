@@ -27,7 +27,7 @@ class ILicenseChangedEventHandler_impl(_ILicenseChangedEventHandler, _Unknwnbase
     pass
 
 
-class ICurrentApp(_inspectable.IInspectable):
+class ICurrentApp(_inspectable.IInspectable, factory=True):
     get_LicenseInformation: _Callable[[_Pointer[ILicenseInformation]],  # value
                                       _type.HRESULT]
     get_LinkUri: _Callable[[_Pointer[_Windows_Foundation.IUriRuntimeClass]],  # value
@@ -49,10 +49,8 @@ class ICurrentApp(_inspectable.IInspectable):
                                        _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # getProductReceiptOperation
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentApp2Statics(_inspectable.IInspectable):
+class ICurrentApp2Statics(_inspectable.IInspectable, factory=True):
     GetCustomerPurchaseIdAsync: _Callable[[_type.HSTRING,  # serviceTicket
                                            _type.HSTRING,  # publisherUserId
                                            _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # operation
@@ -62,10 +60,8 @@ class ICurrentApp2Statics(_inspectable.IInspectable):
                                               _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # operation
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppSimulator(_inspectable.IInspectable):
+class ICurrentAppSimulator(_inspectable.IInspectable, factory=True):
     get_LicenseInformation: _Callable[[_Pointer[ILicenseInformation]],  # value
                                       _type.HRESULT]
     get_LinkUri: _Callable[[_Pointer[_Windows_Foundation.IUriRuntimeClass]],  # value
@@ -90,10 +86,8 @@ class ICurrentAppSimulator(_inspectable.IInspectable):
                                      _Pointer[_Windows_Foundation.IAsyncAction]],  # reloadSimulatorOperation
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppSimulatorStaticsWithFiltering(_inspectable.IInspectable):
+class ICurrentAppSimulatorStaticsWithFiltering(_inspectable.IInspectable, factory=True):
     LoadListingInformationByProductIdsAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # productIds
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[IListingInformation]]],  # loadListingOperation
                                                        _type.HRESULT]
@@ -101,17 +95,13 @@ class ICurrentAppSimulatorStaticsWithFiltering(_inspectable.IInspectable):
                                                       _Pointer[_Windows_Foundation.IAsyncOperation[IListingInformation]]],  # loadListingOperation
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppSimulatorWithCampaignId(_inspectable.IInspectable):
+class ICurrentAppSimulatorWithCampaignId(_inspectable.IInspectable, factory=True):
     GetAppPurchaseCampaignIdAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # operation
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppSimulatorWithConsumables(_inspectable.IInspectable):
+class ICurrentAppSimulatorWithConsumables(_inspectable.IInspectable, factory=True):
     ReportConsumableFulfillmentAsync: _Callable[[_type.HSTRING,  # productId
                                                  _struct.GUID,  # transactionId
                                                  _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Store.FulfillmentResult]]],  # reportConsumableFulfillmentOperation
@@ -127,10 +117,8 @@ class ICurrentAppSimulatorWithConsumables(_inspectable.IInspectable):
     GetUnfulfilledConsumablesAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IUnfulfilledConsumable]]]],  # getUnfulfilledConsumablesOperation
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppStaticsWithFiltering(_inspectable.IInspectable):
+class ICurrentAppStaticsWithFiltering(_inspectable.IInspectable, factory=True):
     LoadListingInformationByProductIdsAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # productIds
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[IListingInformation]]],  # loadListingOperation
                                                        _type.HRESULT]
@@ -140,17 +128,13 @@ class ICurrentAppStaticsWithFiltering(_inspectable.IInspectable):
     ReportProductFulfillment: _Callable[[_type.HSTRING],  # productId
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppWithCampaignId(_inspectable.IInspectable):
+class ICurrentAppWithCampaignId(_inspectable.IInspectable, factory=True):
     GetAppPurchaseCampaignIdAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # operation
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrentAppWithConsumables(_inspectable.IInspectable):
+class ICurrentAppWithConsumables(_inspectable.IInspectable, factory=True):
     ReportConsumableFulfillmentAsync: _Callable[[_type.HSTRING,  # productId
                                                  _struct.GUID,  # transactionId
                                                  _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Store.FulfillmentResult]]],  # reportConsumableFulfillmentOperation
@@ -165,8 +149,6 @@ class ICurrentAppWithConsumables(_inspectable.IInspectable):
                                                                 _type.HRESULT]
     GetUnfulfilledConsumablesAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IUnfulfilledConsumable]]]],  # getUnfulfilledConsumablesOperation
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILicenseInformation(_inspectable.IInspectable):
@@ -278,12 +260,10 @@ class IProductPurchaseDisplayProperties(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IProductPurchaseDisplayPropertiesFactory(_inspectable.IInspectable):
+class IProductPurchaseDisplayPropertiesFactory(_inspectable.IInspectable, factory=True):
     CreateProductPurchaseDisplayProperties: _Callable[[_type.HSTRING,  # name
                                                        _Pointer[IProductPurchaseDisplayProperties]],  # displayProperties
                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPurchaseResults(_inspectable.IInspectable):

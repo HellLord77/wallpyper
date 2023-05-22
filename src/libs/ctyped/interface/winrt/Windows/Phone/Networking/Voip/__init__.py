@@ -106,11 +106,9 @@ class IVoipCallCoordinator3(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IVoipCallCoordinatorStatics(_inspectable.IInspectable):
+class IVoipCallCoordinatorStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IVoipCallCoordinator]],  # coordinator
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IVoipCallCoordinatorWithAppDeterminedUpgrade(_inspectable.IInspectable):

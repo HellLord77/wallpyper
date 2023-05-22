@@ -74,12 +74,10 @@ class IUserActivityAttribution(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IUserActivityAttributionFactory(_inspectable.IInspectable):
+class IUserActivityAttributionFactory(_inspectable.IInspectable, factory=True):
     CreateWithUri: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # iconUri
                               _Pointer[IUserActivityAttribution]],  # value
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IUserActivityChannel(_inspectable.IInspectable):
@@ -103,29 +101,23 @@ class IUserActivityChannel2(_inspectable.IInspectable):
                                                           _type.HRESULT]
 
 
-class IUserActivityChannelStatics(_inspectable.IInspectable):
+class IUserActivityChannelStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IUserActivityChannel]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IUserActivityChannelStatics2(_inspectable.IInspectable):
+class IUserActivityChannelStatics2(_inspectable.IInspectable, factory=True):
     DisableAutoSessionCreation: _Callable[[],
                                           _type.HRESULT]
     TryGetForWebAccount: _Callable[[_Windows_Security_Credentials.IWebAccount,  # account
                                     _Pointer[IUserActivityChannel]],  # result
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IUserActivityChannelStatics3(_inspectable.IInspectable):
+class IUserActivityChannelStatics3(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IUserActivityChannel]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IUserActivityContentInfo(_inspectable.IInspectable):
@@ -133,20 +125,16 @@ class IUserActivityContentInfo(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IUserActivityContentInfoStatics(_inspectable.IInspectable):
+class IUserActivityContentInfoStatics(_inspectable.IInspectable, factory=True):
     FromJson: _Callable[[_type.HSTRING,  # value
                          _Pointer[IUserActivityContentInfo]],  # result
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IUserActivityFactory(_inspectable.IInspectable):
+class IUserActivityFactory(_inspectable.IInspectable, factory=True):
     CreateWithActivityId: _Callable[[_type.HSTRING,  # activityId
                                      _Pointer[IUserActivity]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IUserActivityRequest(_inspectable.IInspectable):
@@ -162,11 +150,9 @@ class IUserActivityRequestManager(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IUserActivityRequestManagerStatics(_inspectable.IInspectable):
+class IUserActivityRequestManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IUserActivityRequestManager]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IUserActivityRequestedEventArgs(_inspectable.IInspectable):
@@ -190,7 +176,7 @@ class IUserActivitySessionHistoryItem(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IUserActivityStatics(_inspectable.IInspectable):
+class IUserActivityStatics(_inspectable.IInspectable, factory=True):
     TryParseFromJson: _Callable[[_type.HSTRING,  # json
                                  _Pointer[IUserActivity]],  # result
                                 _type.HRESULT]
@@ -200,8 +186,6 @@ class IUserActivityStatics(_inspectable.IInspectable):
     ToJsonArray: _Callable[[_Windows_Foundation_Collections.IIterable[IUserActivity],  # activities
                             _Pointer[_type.HSTRING]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IUserActivityVisualElements(_inspectable.IInspectable):

@@ -172,7 +172,7 @@ class ISmsDevice2(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ISmsDevice2Statics(_inspectable.IInspectable):
+class ISmsDevice2Statics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     FromId: _Callable[[_type.HSTRING,  # deviceId
@@ -183,8 +183,6 @@ class ISmsDevice2Statics(_inspectable.IInspectable):
     FromParentId: _Callable[[_type.HSTRING,  # parentDeviceId
                              _Pointer[ISmsDevice2]],  # value
                             _type.HRESULT]
-
-    _factory = True
 
 
 class ISmsDeviceMessageStore(_inspectable.IInspectable):
@@ -204,7 +202,7 @@ class ISmsDeviceMessageStore(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ISmsDeviceStatics(_inspectable.IInspectable):
+class ISmsDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # phstrDeviceClassSelector
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -213,15 +211,11 @@ class ISmsDeviceStatics(_inspectable.IInspectable):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISmsDevice]]],  # asyncInfo
                                _type.HRESULT]
 
-    _factory = True
 
-
-class ISmsDeviceStatics2(_inspectable.IInspectable):
+class ISmsDeviceStatics2(_inspectable.IInspectable, factory=True):
     FromNetworkAccountIdAsync: _Callable[[_type.HSTRING,  # networkAccountId
                                           _Pointer[_Windows_Foundation.IAsyncOperation[ISmsDevice]]],  # asyncInfo
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISmsFilterRule(_inspectable.IInspectable):
@@ -255,12 +249,10 @@ class ISmsFilterRule(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ISmsFilterRuleFactory(_inspectable.IInspectable):
+class ISmsFilterRuleFactory(_inspectable.IInspectable, factory=True):
     CreateFilterRule: _Callable[[_enum.Windows.Devices.Sms.SmsMessageType,  # messageType
                                  _Pointer[ISmsFilterRule]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ISmsFilterRules(_inspectable.IInspectable):
@@ -270,12 +262,10 @@ class ISmsFilterRules(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ISmsFilterRulesFactory(_inspectable.IInspectable):
+class ISmsFilterRulesFactory(_inspectable.IInspectable, factory=True):
     CreateFilterRules: _Callable[[_enum.Windows.Devices.Sms.SmsFilterActionType,  # actionType
                                   _Pointer[ISmsFilterRules]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ISmsMessage(_inspectable.IInspectable):
@@ -338,15 +328,13 @@ class ISmsMessageRegistration(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ISmsMessageRegistrationStatics(_inspectable.IInspectable):
+class ISmsMessageRegistrationStatics(_inspectable.IInspectable, factory=True):
     get_AllRegistrations: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[ISmsMessageRegistration]]],  # value
                                     _type.HRESULT]
     Register: _Callable[[_type.HSTRING,  # id
                          ISmsFilterRules,  # filterRules
                          _Pointer[ISmsMessageRegistration]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ISmsReceivedEventDetails(_inspectable.IInspectable):
@@ -454,7 +442,7 @@ class ISmsTextMessage2(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISmsTextMessageStatics(_inspectable.IInspectable):
+class ISmsTextMessageStatics(_inspectable.IInspectable, factory=True):
     FromBinaryMessage: _Callable[[ISmsBinaryMessage,  # binaryMessage
                                   _Pointer[ISmsTextMessage]],  # textMessage
                                  _type.HRESULT]
@@ -463,8 +451,6 @@ class ISmsTextMessageStatics(_inspectable.IInspectable):
                                _Pointer[_type.BYTE],  # value
                                _Pointer[ISmsTextMessage]],  # textMessage
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISmsVoicemailMessage(_inspectable.IInspectable):

@@ -59,7 +59,7 @@ class IMdmSession(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IMdmSessionManagerStatics(_inspectable.IInspectable):
+class IMdmSessionManagerStatics(_inspectable.IInspectable, factory=True):
     get_SessionIds: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
                               _type.HRESULT]
     TryCreateSession: _Callable[[_Pointer[IMdmSession]],  # result
@@ -69,5 +69,3 @@ class IMdmSessionManagerStatics(_inspectable.IInspectable):
     GetSessionById: _Callable[[_type.HSTRING,  # sessionId
                                _Pointer[IMdmSession]],  # result
                               _type.HRESULT]
-
-    _factory = True

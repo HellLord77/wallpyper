@@ -67,12 +67,10 @@ class IAppExtensionCatalog(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IAppExtensionCatalogStatics(_inspectable.IInspectable):
+class IAppExtensionCatalogStatics(_inspectable.IInspectable, factory=True):
     Open: _Callable[[_type.HSTRING,  # appExtensionName
                      _Pointer[IAppExtensionCatalog]],  # value
                     _type.HRESULT]
-
-    _factory = True
 
 
 class IAppExtensionPackageInstalledEventArgs(_inspectable.IInspectable):

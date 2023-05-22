@@ -231,14 +231,12 @@ class IStoreContext4(_inspectable.IInspectable):
                                                                 _type.HRESULT]
 
 
-class IStoreContextStatics(_inspectable.IInspectable):
+class IStoreContextStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IStoreContext]],  # value
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IStoreContext]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IStoreImage(_inspectable.IInspectable):
@@ -403,12 +401,10 @@ class IStorePurchaseProperties(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IStorePurchasePropertiesFactory(_inspectable.IInspectable):
+class IStorePurchasePropertiesFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # name
                        _Pointer[IStorePurchaseProperties]],  # storePurchaseProperties
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IStorePurchaseResult(_inspectable.IInspectable):
@@ -475,14 +471,12 @@ class IStoreRateAndReviewResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IStoreRequestHelperStatics(_inspectable.IInspectable):
+class IStoreRequestHelperStatics(_inspectable.IInspectable, factory=True):
     SendRequestAsync: _Callable[[IStoreContext,  # context
                                  _type.UINT32,  # requestKind
                                  _type.HSTRING,  # parametersAsJson
                                  _Pointer[_Windows_Foundation.IAsyncOperation[IStoreSendRequestResult]]],  # operation
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IStoreSendRequestResult(_inspectable.IInspectable):

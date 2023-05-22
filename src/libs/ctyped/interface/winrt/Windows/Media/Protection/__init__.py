@@ -64,12 +64,10 @@ class IComponentLoadFailedEventArgs(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IComponentRenewalStatics(_inspectable.IInspectable):
+class IComponentRenewalStatics(_inspectable.IInspectable, factory=True):
     RenewSystemComponentsAsync: _Callable[[IRevocationAndRenewalInformation,  # information
                                            _Pointer[_Windows_Foundation.IAsyncOperationWithProgress[_enum.Windows.Media.Protection.RenewalStatus, _type.UINT32]]],  # operation
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IHdcpSession(_inspectable.IInspectable):
@@ -113,12 +111,10 @@ class IMediaProtectionPMPServer(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMediaProtectionPMPServerFactory(_inspectable.IInspectable):
+class IMediaProtectionPMPServerFactory(_inspectable.IInspectable, factory=True):
     CreatePMPServer: _Callable[[_Windows_Foundation_Collections.IPropertySet,  # pProperties
                                 _Pointer[IMediaProtectionPMPServer]],  # ppObject
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaProtectionServiceCompletion(_inspectable.IInspectable):

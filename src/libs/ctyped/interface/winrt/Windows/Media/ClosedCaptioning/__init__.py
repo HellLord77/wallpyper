@@ -9,7 +9,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IClosedCaptionPropertiesStatics(_inspectable.IInspectable):
+class IClosedCaptionPropertiesStatics(_inspectable.IInspectable, factory=True):
     get_FontColor: _Callable[[_Pointer[_enum.Windows.Media.ClosedCaptioning.ClosedCaptionColor]],  # value
                              _type.HRESULT]
     get_ComputedFontColor: _Callable[[_Pointer[_struct.Windows.UI.Color]],  # value
@@ -34,5 +34,3 @@ class IClosedCaptionPropertiesStatics(_inspectable.IInspectable):
                                        _type.HRESULT]
     get_RegionOpacity: _Callable[[_Pointer[_enum.Windows.Media.ClosedCaptioning.ClosedCaptionOpacity]],  # value
                                  _type.HRESULT]
-
-    _factory = True

@@ -80,12 +80,10 @@ class IPaymentCanMakePaymentResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPaymentCanMakePaymentResultFactory(_inspectable.IInspectable):
+class IPaymentCanMakePaymentResultFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.ApplicationModel.Payments.PaymentCanMakePaymentResultStatus,  # value
                        _Pointer[IPaymentCanMakePaymentResult]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentCurrencyAmount(_inspectable.IInspectable):
@@ -103,7 +101,7 @@ class IPaymentCurrencyAmount(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IPaymentCurrencyAmountFactory(_inspectable.IInspectable):
+class IPaymentCurrencyAmountFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # value
                        _type.HSTRING,  # currency
                        _Pointer[IPaymentCurrencyAmount]],  # result
@@ -113,8 +111,6 @@ class IPaymentCurrencyAmountFactory(_inspectable.IInspectable):
                                          _type.HSTRING,  # currencySystem
                                          _Pointer[IPaymentCurrencyAmount]],  # result
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentDetails(_inspectable.IInspectable):
@@ -136,7 +132,7 @@ class IPaymentDetails(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IPaymentDetailsFactory(_inspectable.IInspectable):
+class IPaymentDetailsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IPaymentItem,  # total
                        _Pointer[IPaymentDetails]],  # result
                       _type.HRESULT]
@@ -144,8 +140,6 @@ class IPaymentDetailsFactory(_inspectable.IInspectable):
                                        _Windows_Foundation_Collections.IIterable[IPaymentItem],  # displayItems
                                        _Pointer[IPaymentDetails]],  # result
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentDetailsModifier(_inspectable.IInspectable):
@@ -159,7 +153,7 @@ class IPaymentDetailsModifier(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IPaymentDetailsModifierFactory(_inspectable.IInspectable):
+class IPaymentDetailsModifierFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # supportedMethodIds
                        IPaymentItem,  # total
                        _Pointer[IPaymentDetailsModifier]],  # result
@@ -175,8 +169,6 @@ class IPaymentDetailsModifierFactory(_inspectable.IInspectable):
                                                             _type.HSTRING,  # jsonData
                                                             _Pointer[IPaymentDetailsModifier]],  # result
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentItem(_inspectable.IInspectable):
@@ -194,13 +186,11 @@ class IPaymentItem(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPaymentItemFactory(_inspectable.IInspectable):
+class IPaymentItemFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # label
                        IPaymentCurrencyAmount,  # amount
                        _Pointer[IPaymentItem]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentMediator(_inspectable.IInspectable):
@@ -228,12 +218,10 @@ class IPaymentMerchantInfo(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IPaymentMerchantInfoFactory(_inspectable.IInspectable):
+class IPaymentMerchantInfoFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                        _Pointer[IPaymentMerchantInfo]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentMethodData(_inspectable.IInspectable):
@@ -243,7 +231,7 @@ class IPaymentMethodData(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IPaymentMethodDataFactory(_inspectable.IInspectable):
+class IPaymentMethodDataFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # supportedMethodIds
                        _Pointer[IPaymentMethodData]],  # result
                       _type.HRESULT]
@@ -251,8 +239,6 @@ class IPaymentMethodDataFactory(_inspectable.IInspectable):
                                    _type.HSTRING,  # jsonData
                                    _Pointer[IPaymentMethodData]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentOptions(_inspectable.IInspectable):
@@ -320,7 +306,7 @@ class IPaymentRequestChangedResult(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IPaymentRequestChangedResultFactory(_inspectable.IInspectable):
+class IPaymentRequestChangedResultFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.boolean,  # changeAcceptedByMerchant
                        _Pointer[IPaymentRequestChangedResult]],  # result
                       _type.HRESULT]
@@ -328,8 +314,6 @@ class IPaymentRequestChangedResultFactory(_inspectable.IInspectable):
                                          IPaymentDetails,  # updatedPaymentDetails
                                          _Pointer[IPaymentRequestChangedResult]],  # result
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentRequestFactory(_inspectable.IInspectable):
@@ -350,7 +334,7 @@ class IPaymentRequestFactory(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IPaymentRequestFactory2(_inspectable.IInspectable):
+class IPaymentRequestFactory2(_inspectable.IInspectable, factory=True):
     CreateWithMerchantInfoOptionsAndId: _Callable[[IPaymentDetails,  # details
                                                    _Windows_Foundation_Collections.IIterable[IPaymentMethodData],  # methodData
                                                    IPaymentMerchantInfo,  # merchantInfo
@@ -358,8 +342,6 @@ class IPaymentRequestFactory2(_inspectable.IInspectable):
                                                    _type.HSTRING,  # id
                                                    _Pointer[IPaymentRequest]],  # result
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentRequestSubmitResult(_inspectable.IInspectable):
@@ -406,7 +388,7 @@ class IPaymentShippingOption(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPaymentShippingOptionFactory(_inspectable.IInspectable):
+class IPaymentShippingOptionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # label
                        IPaymentCurrencyAmount,  # amount
                        _Pointer[IPaymentShippingOption]],  # result
@@ -423,8 +405,6 @@ class IPaymentShippingOptionFactory(_inspectable.IInspectable):
                                          _Pointer[IPaymentShippingOption]],  # result
                                         _type.HRESULT]
 
-    _factory = True
-
 
 class IPaymentToken(_inspectable.IInspectable):
     get_PaymentMethodId: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -433,7 +413,7 @@ class IPaymentToken(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPaymentTokenFactory(_inspectable.IInspectable):
+class IPaymentTokenFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # paymentMethodId
                        _Pointer[IPaymentToken]],  # result
                       _type.HRESULT]
@@ -441,5 +421,3 @@ class IPaymentTokenFactory(_inspectable.IInspectable):
                                       _type.HSTRING,  # jsonDetails
                                       _Pointer[IPaymentToken]],  # result
                                      _type.HRESULT]
-
-    _factory = True

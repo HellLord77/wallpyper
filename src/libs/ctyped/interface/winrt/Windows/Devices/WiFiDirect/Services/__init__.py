@@ -108,12 +108,10 @@ class IWiFiDirectServiceAdvertiser(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IWiFiDirectServiceAdvertiserFactory(_inspectable.IInspectable):
+class IWiFiDirectServiceAdvertiserFactory(_inspectable.IInspectable, factory=True):
     CreateWiFiDirectServiceAdvertiser: _Callable[[_type.HSTRING,  # serviceName
                                                   _Pointer[IWiFiDirectServiceAdvertiser]],  # result
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IWiFiDirectServiceAutoAcceptSessionConnectedEventArgs(_inspectable.IInspectable):
@@ -191,7 +189,7 @@ class IWiFiDirectServiceSessionRequestedEventArgs(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IWiFiDirectServiceStatics(_inspectable.IInspectable):
+class IWiFiDirectServiceStatics(_inspectable.IInspectable, factory=True):
     GetSelector: _Callable[[_type.HSTRING,  # serviceName
                             _Pointer[_type.HSTRING]],  # serviceSelector
                            _type.HRESULT]
@@ -202,5 +200,3 @@ class IWiFiDirectServiceStatics(_inspectable.IInspectable):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IWiFiDirectService]]],  # asyncOp
                            _type.HRESULT]
-
-    _factory = True

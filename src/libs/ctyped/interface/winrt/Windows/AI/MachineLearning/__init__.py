@@ -36,12 +36,10 @@ class IImageFeatureValue(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IImageFeatureValueStatics(_inspectable.IInspectable):
+class IImageFeatureValueStatics(_inspectable.IInspectable, factory=True):
     CreateFromVideoFrame: _Callable[[_Windows_Media.IVideoFrame,  # image
                                      _Pointer[IImageFeatureValue]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ILearningModel(_inspectable.IInspectable):
@@ -75,12 +73,10 @@ class ILearningModelBinding(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class ILearningModelBindingFactory(_inspectable.IInspectable):
+class ILearningModelBindingFactory(_inspectable.IInspectable, factory=True):
     CreateFromSession: _Callable[[ILearningModelSession,  # session
                                   _Pointer[ILearningModelBinding]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ILearningModelDevice(_inspectable.IInspectable):
@@ -90,20 +86,16 @@ class ILearningModelDevice(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ILearningModelDeviceFactory(_inspectable.IInspectable):
+class ILearningModelDeviceFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.AI.MachineLearning.LearningModelDeviceKind,  # deviceKind
                        _Pointer[ILearningModelDevice]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class ILearningModelDeviceStatics(_inspectable.IInspectable):
+class ILearningModelDeviceStatics(_inspectable.IInspectable, factory=True):
     CreateFromDirect3D11Device: _Callable[[_Windows_Graphics_DirectX_Direct3D11.IDirect3DDevice,  # device
                                            _Pointer[ILearningModelDevice]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ILearningModelEvaluationResult(_inspectable.IInspectable):
@@ -172,14 +164,12 @@ class ILearningModelSessionFactory(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class ILearningModelSessionFactory2(_inspectable.IInspectable):
+class ILearningModelSessionFactory2(_inspectable.IInspectable, factory=True):
     CreateFromModelOnDeviceWithSessionOptions: _Callable[[ILearningModel,  # model
                                                           ILearningModelDevice,  # deviceToRunOn
                                                           ILearningModelSessionOptions,  # learningModelSessionOptions
                                                           _Pointer[ILearningModelSession]],  # value
                                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ILearningModelSessionOptions(_inspectable.IInspectable):
@@ -202,7 +192,7 @@ class ILearningModelSessionOptions3(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ILearningModelStatics(_inspectable.IInspectable):
+class ILearningModelStatics(_inspectable.IInspectable, factory=True):
     LoadFromStorageFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # modelFile
                                          _Pointer[_Windows_Foundation.IAsyncOperation[ILearningModel]]],  # operation
                                         _type.HRESULT]
@@ -232,8 +222,6 @@ class ILearningModelStatics(_inspectable.IInspectable):
                                                    _Pointer[ILearningModel]],  # result
                                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IMapFeatureDescriptor(_inspectable.IInspectable):
     get_KeyKind: _Callable[[_Pointer[_enum.Windows.AI.MachineLearning.TensorKind]],  # value
@@ -259,7 +247,7 @@ class ITensorBoolean(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ITensorBooleanStatics(_inspectable.IInspectable):
+class ITensorBooleanStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorBoolean]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -275,10 +263,8 @@ class ITensorBooleanStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorBoolean]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorBooleanStatics2(_inspectable.IInspectable):
+class ITensorBooleanStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -291,15 +277,13 @@ class ITensorBooleanStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorBoolean]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorDouble(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.DOUBLE]]],  # result
                                _type.HRESULT]
 
 
-class ITensorDoubleStatics(_inspectable.IInspectable):
+class ITensorDoubleStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorDouble]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -315,10 +299,8 @@ class ITensorDoubleStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorDouble]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorDoubleStatics2(_inspectable.IInspectable):
+class ITensorDoubleStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -330,8 +312,6 @@ class ITensorDoubleStatics2(_inspectable.IInspectable):
                                  _Windows_Storage_Streams.IBuffer,  # buffer
                                  _Pointer[ITensorDouble]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ITensorFeatureDescriptor(_inspectable.IInspectable):
@@ -351,7 +331,7 @@ class ITensorFloat16Bit(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ITensorFloat16BitStatics(_inspectable.IInspectable):
+class ITensorFloat16BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorFloat16Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -367,10 +347,8 @@ class ITensorFloat16BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorFloat16Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorFloat16BitStatics2(_inspectable.IInspectable):
+class ITensorFloat16BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -383,10 +361,8 @@ class ITensorFloat16BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorFloat16Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorFloatStatics(_inspectable.IInspectable):
+class ITensorFloatStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorFloat]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -402,10 +378,8 @@ class ITensorFloatStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorFloat]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorFloatStatics2(_inspectable.IInspectable):
+class ITensorFloatStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -418,15 +392,13 @@ class ITensorFloatStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorFloat]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorInt16Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.INT16]]],  # result
                                _type.HRESULT]
 
 
-class ITensorInt16BitStatics(_inspectable.IInspectable):
+class ITensorInt16BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorInt16Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -442,10 +414,8 @@ class ITensorInt16BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorInt16Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorInt16BitStatics2(_inspectable.IInspectable):
+class ITensorInt16BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -458,15 +428,13 @@ class ITensorInt16BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorInt16Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorInt32Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.INT32]]],  # result
                                _type.HRESULT]
 
 
-class ITensorInt32BitStatics(_inspectable.IInspectable):
+class ITensorInt32BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorInt32Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -482,10 +450,8 @@ class ITensorInt32BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorInt32Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorInt32BitStatics2(_inspectable.IInspectable):
+class ITensorInt32BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -498,15 +464,13 @@ class ITensorInt32BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorInt32Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorInt64Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.INT64]]],  # result
                                _type.HRESULT]
 
 
-class ITensorInt64BitStatics(_inspectable.IInspectable):
+class ITensorInt64BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorInt64Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -522,10 +486,8 @@ class ITensorInt64BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorInt64Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorInt64BitStatics2(_inspectable.IInspectable):
+class ITensorInt64BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -538,15 +500,13 @@ class ITensorInt64BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorInt64Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorInt8Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.BYTE]]],  # result
                                _type.HRESULT]
 
 
-class ITensorInt8BitStatics(_inspectable.IInspectable):
+class ITensorInt8BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorInt8Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -562,10 +522,8 @@ class ITensorInt8BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorInt8Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorInt8BitStatics2(_inspectable.IInspectable):
+class ITensorInt8BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -578,15 +536,13 @@ class ITensorInt8BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorInt8Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorString(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # result
                                _type.HRESULT]
 
 
-class ITensorStringStatics(_inspectable.IInspectable):
+class ITensorStringStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorString]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -602,10 +558,8 @@ class ITensorStringStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorString]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorStringStatics2(_inspectable.IInspectable):
+class ITensorStringStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -613,15 +567,13 @@ class ITensorStringStatics2(_inspectable.IInspectable):
                                                  _Pointer[ITensorString]],  # result
                                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorUInt16Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT16]]],  # result
                                _type.HRESULT]
 
 
-class ITensorUInt16BitStatics(_inspectable.IInspectable):
+class ITensorUInt16BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorUInt16Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -637,10 +589,8 @@ class ITensorUInt16BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorUInt16Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorUInt16BitStatics2(_inspectable.IInspectable):
+class ITensorUInt16BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -653,15 +603,13 @@ class ITensorUInt16BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorUInt16Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorUInt32Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # result
                                _type.HRESULT]
 
 
-class ITensorUInt32BitStatics(_inspectable.IInspectable):
+class ITensorUInt32BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorUInt32Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -677,10 +625,8 @@ class ITensorUInt32BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorUInt32Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorUInt32BitStatics2(_inspectable.IInspectable):
+class ITensorUInt32BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -693,15 +639,13 @@ class ITensorUInt32BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorUInt32Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorUInt64Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT64]]],  # result
                                _type.HRESULT]
 
 
-class ITensorUInt64BitStatics(_inspectable.IInspectable):
+class ITensorUInt64BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorUInt64Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -717,10 +661,8 @@ class ITensorUInt64BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorUInt64Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorUInt64BitStatics2(_inspectable.IInspectable):
+class ITensorUInt64BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -733,15 +675,13 @@ class ITensorUInt64BitStatics2(_inspectable.IInspectable):
                                  _Pointer[ITensorUInt64Bit]],  # result
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class ITensorUInt8Bit(_inspectable.IInspectable):
     GetAsVectorView: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.BYTE]]],  # result
                                _type.HRESULT]
 
 
-class ITensorUInt8BitStatics(_inspectable.IInspectable):
+class ITensorUInt8BitStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Pointer[ITensorUInt8Bit]],  # result
                       _type.HRESULT]
     Create2: _Callable[[_Windows_Foundation_Collections.IIterable[_type.INT64],  # shape
@@ -757,10 +697,8 @@ class ITensorUInt8BitStatics(_inspectable.IInspectable):
                                    _Pointer[ITensorUInt8Bit]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITensorUInt8BitStatics2(_inspectable.IInspectable):
+class ITensorUInt8BitStatics2(_inspectable.IInspectable, factory=True):
     CreateFromShapeArrayAndDataArray: _Callable[[_type.UINT32,  # __shapeSize
                                                  _Pointer[_type.INT64],  # shape
                                                  _type.UINT32,  # __dataSize
@@ -772,5 +710,3 @@ class ITensorUInt8BitStatics2(_inspectable.IInspectable):
                                  _Windows_Storage_Streams.IBuffer,  # buffer
                                  _Pointer[ITensorUInt8Bit]],  # result
                                 _type.HRESULT]
-
-    _factory = True

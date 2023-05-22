@@ -79,21 +79,17 @@ class IActivitySensorTrigger(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IActivitySensorTriggerFactory(_inspectable.IInspectable):
+class IActivitySensorTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # reportIntervalInMilliseconds
                        _Pointer[IActivitySensorTrigger]],  # activityTrigger
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IAlarmApplicationManagerStatics(_inspectable.IInspectable):
+class IAlarmApplicationManagerStatics(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Background.AlarmAccessStatus]]],  # operation
                                   _type.HRESULT]
     GetAccessStatus: _Callable[[_Pointer[_enum.Windows.ApplicationModel.Background.AlarmAccessStatus]],  # status
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBroadcastTrigger(_inspectable.IInspectable):
@@ -103,12 +99,10 @@ class IAppBroadcastTrigger(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IAppBroadcastTriggerFactory(_inspectable.IInspectable):
+class IAppBroadcastTriggerFactory(_inspectable.IInspectable, factory=True):
     CreateAppBroadcastTrigger: _Callable[[_type.HSTRING,  # providerKey
                                           _Pointer[IAppBroadcastTrigger]],  # broadcastTrigger
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBroadcastTriggerProviderInfo(_inspectable.IInspectable):
@@ -159,7 +153,7 @@ class IBackgroundCondition(_inspectable.IInspectable):
     pass
 
 
-class IBackgroundExecutionManagerStatics(_inspectable.IInspectable):
+class IBackgroundExecutionManagerStatics(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Background.BackgroundAccessStatus]]],  # operation
                                   _type.HRESULT]
     RequestAccessForApplicationAsync: _Callable[[_type.HSTRING,  # applicationId
@@ -175,19 +169,15 @@ class IBackgroundExecutionManagerStatics(_inspectable.IInspectable):
                                               _Pointer[_enum.Windows.ApplicationModel.Background.BackgroundAccessStatus]],  # status
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundExecutionManagerStatics2(_inspectable.IInspectable):
+class IBackgroundExecutionManagerStatics2(_inspectable.IInspectable, factory=True):
     RequestAccessKindAsync: _Callable[[_enum.Windows.ApplicationModel.Background.BackgroundAccessRequestKind,  # requestedAccess
                                        _type.HSTRING,  # reason
                                        _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundExecutionManagerStatics3(_inspectable.IInspectable):
+class IBackgroundExecutionManagerStatics3(_inspectable.IInspectable, factory=True):
     RequestAccessKindForModernStandbyAsync: _Callable[[_enum.Windows.ApplicationModel.Background.BackgroundAccessRequestKind,  # requestedAccess
                                                        _type.HSTRING,  # reason
                                                        _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
@@ -197,8 +187,6 @@ class IBackgroundExecutionManagerStatics3(_inspectable.IInspectable):
     GetAccessStatusForModernStandbyForApplication: _Callable[[_type.HSTRING,  # applicationId
                                                               _Pointer[_enum.Windows.ApplicationModel.Background.BackgroundAccessStatus]],  # result
                                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IBackgroundTask(_inspectable.IInspectable):
@@ -344,7 +332,7 @@ class IBackgroundTaskRegistrationGroup(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IBackgroundTaskRegistrationGroupFactory(_inspectable.IInspectable):
+class IBackgroundTaskRegistrationGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # id
                        _Pointer[IBackgroundTaskRegistrationGroup]],  # group
                       _type.HRESULT]
@@ -353,35 +341,27 @@ class IBackgroundTaskRegistrationGroupFactory(_inspectable.IInspectable):
                                _Pointer[IBackgroundTaskRegistrationGroup]],  # group
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundTaskRegistrationStatics(_inspectable.IInspectable):
+class IBackgroundTaskRegistrationStatics(_inspectable.IInspectable, factory=True):
     get_AllTasks: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_struct.GUID, IBackgroundTaskRegistration]]],  # tasks
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundTaskRegistrationStatics2(_inspectable.IInspectable):
+class IBackgroundTaskRegistrationStatics2(_inspectable.IInspectable, factory=True):
     get_AllTaskGroups: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_type.HSTRING, IBackgroundTaskRegistrationGroup]]],  # value
                                  _type.HRESULT]
     GetTaskGroup: _Callable[[_type.HSTRING,  # groupId
                              _Pointer[IBackgroundTaskRegistrationGroup]],  # value
                             _type.HRESULT]
 
-    _factory = True
-
 
 class IBackgroundTrigger(_inspectable.IInspectable):
     pass
 
 
-class IBackgroundWorkCostStatics(_inspectable.IInspectable):
+class IBackgroundWorkCostStatics(_inspectable.IInspectable, factory=True):
     get_CurrentBackgroundWorkCost: _Callable[[_Pointer[_enum.Windows.ApplicationModel.Background.BackgroundWorkCostValue]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothLEAdvertisementPublisherTrigger(_inspectable.IInspectable):
@@ -468,12 +448,10 @@ class IContentPrefetchTrigger(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IContentPrefetchTriggerFactory(_inspectable.IInspectable):
+class IContentPrefetchTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Foundation.TimeSpan,  # waitInterval
                        _Pointer[IContentPrefetchTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICustomSystemEventTrigger(_inspectable.IInspectable):
@@ -483,13 +461,11 @@ class ICustomSystemEventTrigger(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICustomSystemEventTriggerFactory(_inspectable.IInspectable):
+class ICustomSystemEventTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # triggerId
                        _enum.Windows.ApplicationModel.Background.CustomSystemEventTriggerRecurrence,  # recurrence
                        _Pointer[ICustomSystemEventTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDeviceConnectionChangeTrigger(_inspectable.IInspectable):
@@ -503,12 +479,10 @@ class IDeviceConnectionChangeTrigger(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IDeviceConnectionChangeTriggerStatics(_inspectable.IInspectable):
+class IDeviceConnectionChangeTriggerStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IDeviceConnectionChangeTrigger]]],  # deviceChangeTrigger
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IDeviceManufacturerNotificationTrigger(_inspectable.IInspectable):
@@ -518,13 +492,11 @@ class IDeviceManufacturerNotificationTrigger(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IDeviceManufacturerNotificationTriggerFactory(_inspectable.IInspectable):
+class IDeviceManufacturerNotificationTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # triggerQualifier
                        _type.boolean,  # oneShot
                        _Pointer[IDeviceManufacturerNotificationTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDeviceServicingTrigger(_inspectable.IInspectable):
@@ -573,13 +545,11 @@ class IGattCharacteristicNotificationTriggerFactory(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IGattCharacteristicNotificationTriggerFactory2(_inspectable.IInspectable):
+class IGattCharacteristicNotificationTriggerFactory2(_inspectable.IInspectable, factory=True):
     CreateWithEventTriggeringMode: _Callable[[_Windows_Devices_Bluetooth_GenericAttributeProfile.IGattCharacteristic,  # characteristic
                                               _enum.Windows.Devices.Bluetooth.Background.BluetoothEventTriggeringMode,  # eventTriggeringMode
                                               _Pointer[IGattCharacteristicNotificationTrigger]],  # result
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IGattServiceProviderTrigger(_inspectable.IInspectable):
@@ -600,13 +570,11 @@ class IGattServiceProviderTriggerResult(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IGattServiceProviderTriggerStatics(_inspectable.IInspectable):
+class IGattServiceProviderTriggerStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[_type.HSTRING,  # triggerId
                             _struct.GUID,  # serviceUuid
                             _Pointer[_Windows_Foundation.IAsyncOperation[IGattServiceProviderTriggerResult]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IGeovisitTrigger(_inspectable.IInspectable):
@@ -621,12 +589,10 @@ class ILocationTrigger(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ILocationTriggerFactory(_inspectable.IInspectable):
+class ILocationTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.ApplicationModel.Background.LocationTriggerType,  # triggerType
                        _Pointer[ILocationTrigger]],  # locationTrigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMaintenanceTrigger(_inspectable.IInspectable):
@@ -636,13 +602,11 @@ class IMaintenanceTrigger(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IMaintenanceTriggerFactory(_inspectable.IInspectable):
+class IMaintenanceTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # freshnessTime
                        _type.boolean,  # oneShot
                        _Pointer[IMaintenanceTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaProcessingTrigger(_inspectable.IInspectable):
@@ -662,12 +626,10 @@ class INetworkOperatorNotificationTrigger(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class INetworkOperatorNotificationTriggerFactory(_inspectable.IInspectable):
+class INetworkOperatorNotificationTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # networkAccountId
                        _Pointer[INetworkOperatorNotificationTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneTrigger(_inspectable.IInspectable):
@@ -677,21 +639,17 @@ class IPhoneTrigger(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPhoneTriggerFactory(_inspectable.IInspectable):
+class IPhoneTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.ApplicationModel.Calls.Background.PhoneTriggerType,  # type
                        _type.boolean,  # oneShot
                        _Pointer[IPhoneTrigger]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPushNotificationTriggerFactory(_inspectable.IInspectable):
+class IPushNotificationTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # applicationId
                        _Pointer[IBackgroundTrigger]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRcsEndUserMessageAvailableTrigger(_inspectable.IInspectable):
@@ -725,12 +683,10 @@ class ISensorDataThresholdTrigger(_inspectable.IInspectable):
     pass
 
 
-class ISensorDataThresholdTriggerFactory(_inspectable.IInspectable):
+class ISensorDataThresholdTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Devices_Sensors.ISensorDataThreshold,  # threshold
                        _Pointer[ISensorDataThresholdTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardTrigger(_inspectable.IInspectable):
@@ -738,20 +694,16 @@ class ISmartCardTrigger(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ISmartCardTriggerFactory(_inspectable.IInspectable):
+class ISmartCardTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Devices.SmartCards.SmartCardTriggerType,  # triggerType
                        _Pointer[ISmartCardTrigger]],  # trigger
                       _type.HRESULT]
 
-    _factory = True
 
-
-class ISmsMessageReceivedTriggerFactory(_inspectable.IInspectable):
+class ISmsMessageReceivedTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Devices_Sms.ISmsFilterRules,  # filterRules
                        _Pointer[IBackgroundTrigger]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISocketActivityTrigger(_inspectable.IInspectable):
@@ -759,19 +711,17 @@ class ISocketActivityTrigger(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class IStorageLibraryChangeTrackerTriggerFactory(_inspectable.IInspectable):
+class IStorageLibraryChangeTrackerTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Storage.IStorageLibraryChangeTracker,  # tracker
                        _Pointer[IBackgroundTrigger]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageLibraryContentChangedTrigger(_inspectable.IInspectable):
     pass
 
 
-class IStorageLibraryContentChangedTriggerStatics(_inspectable.IInspectable):
+class IStorageLibraryContentChangedTriggerStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Storage.IStorageLibrary,  # storageLibrary
                        _Pointer[IStorageLibraryContentChangedTrigger]],  # result
                       _type.HRESULT]
@@ -779,20 +729,16 @@ class IStorageLibraryContentChangedTriggerStatics(_inspectable.IInspectable):
                                     _Pointer[IStorageLibraryContentChangedTrigger]],  # result
                                    _type.HRESULT]
 
-    _factory = True
-
 
 class ISystemCondition(_inspectable.IInspectable):
     get_ConditionType: _Callable[[_Pointer[_enum.Windows.ApplicationModel.Background.SystemConditionType]],  # conditionType
                                  _type.HRESULT]
 
 
-class ISystemConditionFactory(_inspectable.IInspectable):
+class ISystemConditionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.ApplicationModel.Background.SystemConditionType,  # conditionType
                        _Pointer[ISystemCondition]],  # condition
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemTrigger(_inspectable.IInspectable):
@@ -802,13 +748,11 @@ class ISystemTrigger(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ISystemTriggerFactory(_inspectable.IInspectable):
+class ISystemTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.ApplicationModel.Background.SystemTriggerType,  # triggerType
                        _type.boolean,  # oneShot
                        _Pointer[ISystemTrigger]],  # trigger
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITimeTrigger(_inspectable.IInspectable):
@@ -818,34 +762,26 @@ class ITimeTrigger(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ITimeTriggerFactory(_inspectable.IInspectable):
+class ITimeTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # freshnessTime
                        _type.boolean,  # oneShot
                        _Pointer[ITimeTrigger]],  # trigger
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IToastNotificationActionTriggerFactory(_inspectable.IInspectable):
+class IToastNotificationActionTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # applicationId
                        _Pointer[IBackgroundTrigger]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IToastNotificationHistoryChangedTriggerFactory(_inspectable.IInspectable):
+class IToastNotificationHistoryChangedTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # applicationId
                        _Pointer[IBackgroundTrigger]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IUserNotificationChangedTriggerFactory(_inspectable.IInspectable):
+class IUserNotificationChangedTriggerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.UI.Notifications.NotificationKinds,  # notificationKinds
                        _Pointer[IBackgroundTrigger]],  # value
                       _type.HRESULT]
-
-    _factory = True

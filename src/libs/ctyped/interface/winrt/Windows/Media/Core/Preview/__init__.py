@@ -10,7 +10,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class ISoundLevelBrokerStatics(_inspectable.IInspectable):
+class ISoundLevelBrokerStatics(_inspectable.IInspectable, factory=True):
     get_SoundLevel: _Callable[[_Pointer[_enum.Windows.Media.SoundLevel]],  # value
                               _type.HRESULT]
     add_SoundLevelChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -18,5 +18,3 @@ class ISoundLevelBrokerStatics(_inspectable.IInspectable):
                                      _type.HRESULT]
     remove_SoundLevelChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                         _type.HRESULT]
-
-    _factory = True

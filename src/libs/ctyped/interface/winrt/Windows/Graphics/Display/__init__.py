@@ -98,7 +98,7 @@ class IBrightnessOverrideSettings(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IBrightnessOverrideSettingsStatics(_inspectable.IInspectable):
+class IBrightnessOverrideSettingsStatics(_inspectable.IInspectable, factory=True):
     CreateFromLevel: _Callable[[_type.DOUBLE,  # level
                                 _Pointer[IBrightnessOverrideSettings]],  # result
                                _type.HRESULT]
@@ -109,10 +109,8 @@ class IBrightnessOverrideSettingsStatics(_inspectable.IInspectable):
                                                             _Pointer[IBrightnessOverrideSettings]],  # result
                                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IBrightnessOverrideStatics(_inspectable.IInspectable):
+class IBrightnessOverrideStatics(_inspectable.IInspectable, factory=True):
     GetDefaultForSystem: _Callable[[_Pointer[IBrightnessOverride]],  # value
                                    _type.HRESULT]
     GetForCurrentView: _Callable[[_Pointer[IBrightnessOverride]],  # value
@@ -121,20 +119,16 @@ class IBrightnessOverrideStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IColorOverrideSettings(_inspectable.IInspectable):
     get_DesiredDisplayColorOverrideScenario: _Callable[[_Pointer[_enum.Windows.Graphics.Display.DisplayColorOverrideScenario]],  # value
                                                        _type.HRESULT]
 
 
-class IColorOverrideSettingsStatics(_inspectable.IInspectable):
+class IColorOverrideSettingsStatics(_inspectable.IInspectable, factory=True):
     CreateFromDisplayColorOverrideScenario: _Callable[[_enum.Windows.Graphics.Display.DisplayColorOverrideScenario,  # overrideScenario
                                                        _Pointer[IColorOverrideSettings]],  # result
                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDisplayEnhancementOverride(_inspectable.IInspectable):
@@ -187,11 +181,9 @@ class IDisplayEnhancementOverrideCapabilitiesChangedEventArgs(_inspectable.IInsp
                                 _type.HRESULT]
 
 
-class IDisplayEnhancementOverrideStatics(_inspectable.IInspectable):
+class IDisplayEnhancementOverrideStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IDisplayEnhancementOverride]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IDisplayInformation(_inspectable.IInspectable):
@@ -260,7 +252,7 @@ class IDisplayInformation5(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class IDisplayInformationStatics(_inspectable.IInspectable):
+class IDisplayInformationStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IDisplayInformation]],  # current
                                  _type.HRESULT]
     get_AutoRotationPreferences: _Callable[[_Pointer[_enum.Windows.Graphics.Display.DisplayOrientations]],  # value
@@ -273,10 +265,8 @@ class IDisplayInformationStatics(_inspectable.IInspectable):
     remove_DisplayContentsInvalidated: _Callable[[_struct.EventRegistrationToken],  # token
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IDisplayPropertiesStatics(_inspectable.IInspectable):
+class IDisplayPropertiesStatics(_inspectable.IInspectable, factory=True):
     CurrentOrientation: _Callable[[_Pointer[_enum.Windows.Graphics.Display.DisplayOrientations]],  # value
                                   _type.HRESULT]
     NativeOrientation: _Callable[[_Pointer[_enum.Windows.Graphics.Display.DisplayOrientations]],  # value
@@ -302,16 +292,12 @@ class IDisplayPropertiesStatics(_inspectable.IInspectable):
     DisplayContentsInvalidated: _Callable[[_struct.EventRegistrationToken],  # token
                                           _type.HRESULT]
 
-    _factory = True
-
 
 class IDisplayServices(_inspectable.IInspectable):
     pass
 
 
-class IDisplayServicesStatics(_inspectable.IInspectable):
+class IDisplayServicesStatics(_inspectable.IInspectable, factory=True):
     FindAll: _Callable[[_Pointer[_type.UINT32],  # __resultSize
                         _Pointer[_Pointer[_struct.Windows.Graphics.DisplayId]]],  # result
                        _type.HRESULT]
-
-    _factory = True

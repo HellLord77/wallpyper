@@ -36,7 +36,7 @@ class ILine(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class ILineStatics(_inspectable.IInspectable):
+class ILineStatics(_inspectable.IInspectable, factory=True):
     get_X1Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                               _type.HRESULT]
     get_Y1Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -45,8 +45,6 @@ class ILineStatics(_inspectable.IInspectable):
                               _type.HRESULT]
     get_Y2Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPath(_inspectable.IInspectable):
@@ -63,11 +61,9 @@ class IPathFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPathStatics(_inspectable.IInspectable):
+class IPathStatics(_inspectable.IInspectable, factory=True):
     get_DataProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPolygon(_inspectable.IInspectable):
@@ -81,13 +77,11 @@ class IPolygon(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPolygonStatics(_inspectable.IInspectable):
+class IPolygonStatics(_inspectable.IInspectable, factory=True):
     get_FillRuleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_PointsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IPolyline(_inspectable.IInspectable):
@@ -101,13 +95,11 @@ class IPolyline(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPolylineStatics(_inspectable.IInspectable):
+class IPolylineStatics(_inspectable.IInspectable, factory=True):
     get_FillRuleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_PointsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IRectangle(_inspectable.IInspectable):
@@ -121,13 +113,11 @@ class IRectangle(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IRectangleStatics(_inspectable.IInspectable):
+class IRectangleStatics(_inspectable.IInspectable, factory=True):
     get_RadiusXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_RadiusYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IShape(_inspectable.IInspectable):
@@ -191,7 +181,7 @@ class IShapeFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IShapeStatics(_inspectable.IInspectable):
+class IShapeStatics(_inspectable.IInspectable, factory=True):
     get_FillProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_StrokeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -214,5 +204,3 @@ class IShapeStatics(_inspectable.IInspectable):
                                            _type.HRESULT]
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True

@@ -91,7 +91,7 @@ class IUserDataAccountManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IUserDataAccountManagerStatics(_inspectable.IInspectable):
+class IUserDataAccountManagerStatics(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_enum.Windows.ApplicationModel.UserDataAccounts.UserDataAccountStoreAccessType,  # storeAccessType
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IUserDataAccountStore]]],  # result
                                  _type.HRESULT]
@@ -105,15 +105,11 @@ class IUserDataAccountManagerStatics(_inspectable.IInspectable):
                                               _Pointer[_Windows_Foundation.IAsyncAction]],  # result
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IUserDataAccountManagerStatics2(_inspectable.IInspectable):
+class IUserDataAccountManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IUserDataAccountManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IUserDataAccountStore(_inspectable.IInspectable):

@@ -48,13 +48,11 @@ class IAnimationController(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IAnimationControllerStatics(_inspectable.IInspectable):
+class IAnimationControllerStatics(_inspectable.IInspectable, factory=True):
     get_MaxPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],  # value
                                    _type.HRESULT]
     get_MinPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IAnimationObject(_inspectable.IInspectable):
@@ -253,11 +251,9 @@ class ICompositionCapabilities(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICompositionCapabilitiesStatics(_inspectable.IInspectable):
+class ICompositionCapabilitiesStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ICompositionCapabilities]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ICompositionClip(_inspectable.IInspectable):
@@ -378,7 +374,7 @@ class ICompositionEasingFunctionFactory(_inspectable.IInspectable):
     pass
 
 
-class ICompositionEasingFunctionStatics(_inspectable.IInspectable):
+class ICompositionEasingFunctionStatics(_inspectable.IInspectable, factory=True):
     CreateCubicBezierEasingFunction: _Callable[[ICompositor,  # owner
                                                 _struct.Windows.Foundation.Numerics.Vector2,  # controlPoint1
                                                 _struct.Windows.Foundation.Numerics.Vector2,  # controlPoint2
@@ -430,8 +426,6 @@ class ICompositionEasingFunctionStatics(_inspectable.IInspectable):
                                          _Pointer[ISineEasingFunction]],  # result
                                         _type.HRESULT]
 
-    _factory = True
-
 
 class ICompositionEffectBrush(_inspectable.IInspectable):
     GetSourceParameter: _Callable[[_type.HSTRING,  # name
@@ -456,12 +450,10 @@ class ICompositionEffectSourceParameter(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ICompositionEffectSourceParameterFactory(_inspectable.IInspectable):
+class ICompositionEffectSourceParameterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # name
                        _Pointer[ICompositionEffectSourceParameter]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICompositionEllipseGeometry(_inspectable.IInspectable):
@@ -779,7 +771,7 @@ class ICompositionObjectFactory(_inspectable.IInspectable):
     pass
 
 
-class ICompositionObjectStatics(_inspectable.IInspectable):
+class ICompositionObjectStatics(_inspectable.IInspectable, factory=True):
     StartAnimationWithIAnimationObject: _Callable[[IAnimationObject,  # target
                                                    _type.HSTRING,  # propertyName
                                                    ICompositionAnimation],  # animation
@@ -788,19 +780,15 @@ class ICompositionObjectStatics(_inspectable.IInspectable):
                                                         ICompositionAnimationBase],  # animation
                                                        _type.HRESULT]
 
-    _factory = True
-
 
 class ICompositionPath(_inspectable.IInspectable):
     pass
 
 
-class ICompositionPathFactory(_inspectable.IInspectable):
+class ICompositionPathFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Graphics.IGeometrySource2D,  # source
                        _Pointer[ICompositionPath]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICompositionPathGeometry(_inspectable.IInspectable):
@@ -863,11 +851,9 @@ class ICompositionProjectedShadowCasterCollection(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ICompositionProjectedShadowCasterCollectionStatics(_inspectable.IInspectable):
+class ICompositionProjectedShadowCasterCollectionStatics(_inspectable.IInspectable, factory=True):
     get_MaxRespectedCasters: _Callable[[_Pointer[_type.INT32]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ICompositionProjectedShadowReceiver(_inspectable.IInspectable):
@@ -1455,13 +1441,11 @@ class ICompositor8(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class ICompositorStatics(_inspectable.IInspectable):
+class ICompositorStatics(_inspectable.IInspectable, factory=True):
     get_MaxGlobalPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],  # value
                                          _type.HRESULT]
     get_MinGlobalPlaybackRate: _Callable[[_Pointer[_type.FLOAT]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ICompositorWithBlurredWallpaperBackdropBrush(_inspectable.IInspectable):
@@ -1521,7 +1505,7 @@ class IDelegatedInkTrailVisual(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IDelegatedInkTrailVisualStatics(_inspectable.IInspectable):
+class IDelegatedInkTrailVisualStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[ICompositor,  # compositor
                        _Pointer[IDelegatedInkTrailVisual]],  # result
                       _type.HRESULT]
@@ -1529,8 +1513,6 @@ class IDelegatedInkTrailVisualStatics(_inspectable.IInspectable):
                                    ICompositionSurface,  # swapChain
                                    _Pointer[IDelegatedInkTrailVisual]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IDistantLight(_inspectable.IInspectable):

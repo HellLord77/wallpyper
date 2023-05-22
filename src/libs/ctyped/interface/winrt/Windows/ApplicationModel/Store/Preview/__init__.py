@@ -23,14 +23,12 @@ class IDeliveryOptimizationSettings(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IDeliveryOptimizationSettingsStatics(_inspectable.IInspectable):
+class IDeliveryOptimizationSettingsStatics(_inspectable.IInspectable, factory=True):
     GetCurrentSettings: _Callable[[_Pointer[IDeliveryOptimizationSettings]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IStoreConfigurationStatics(_inspectable.IInspectable):
+class IStoreConfigurationStatics(_inspectable.IInspectable, factory=True):
     SetSystemConfiguration: _Callable[[_type.HSTRING,  # catalogHardwareManufacturerId
                                        _type.HSTRING,  # catalogStoreContentModifierId
                                        _struct.Windows.Foundation.DateTime,  # systemConfigurationExpiration
@@ -51,19 +49,15 @@ class IStoreConfigurationStatics(_inspectable.IInspectable):
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_enum.Windows.ApplicationModel.Store.Preview.StoreSystemFeature]]]],  # operation
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IStoreConfigurationStatics2(_inspectable.IInspectable):
+class IStoreConfigurationStatics2(_inspectable.IInspectable, factory=True):
     get_PurchasePromptingPolicy: _Callable[[_Pointer[_Windows_Foundation.IReference[_type.UINT32]]],  # value
                                            _type.HRESULT]
     put_PurchasePromptingPolicy: _Callable[[_Windows_Foundation.IReference[_type.UINT32]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IStoreConfigurationStatics3(_inspectable.IInspectable):
+class IStoreConfigurationStatics3(_inspectable.IInspectable, factory=True):
     HasStoreWebAccount: _Callable[[_Pointer[_type.boolean]],  # value
                                   _type.HRESULT]
     HasStoreWebAccountForUser: _Callable[[_Windows_System.IUser,  # user
@@ -86,10 +80,8 @@ class IStoreConfigurationStatics3(_inspectable.IInspectable):
                                                   _Windows_Foundation.IReference[_type.UINT32]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IStoreConfigurationStatics4(_inspectable.IInspectable):
+class IStoreConfigurationStatics4(_inspectable.IInspectable, factory=True):
     GetStoreWebAccountId: _Callable[[_Pointer[_type.HSTRING]],  # result
                                     _type.HRESULT]
     GetStoreWebAccountIdForUser: _Callable[[_Windows_System.IUser,  # user
@@ -111,10 +103,8 @@ class IStoreConfigurationStatics4(_inspectable.IInspectable):
                                                            _Pointer[_type.boolean]],  # result
                                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IStoreConfigurationStatics5(_inspectable.IInspectable):
+class IStoreConfigurationStatics5(_inspectable.IInspectable, factory=True):
     IsPinToDesktopSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                        _type.HRESULT]
     IsPinToTaskbarSupported: _Callable[[_Pointer[_type.boolean]],  # value
@@ -126,8 +116,6 @@ class IStoreConfigurationStatics5(_inspectable.IInspectable):
     PinToDesktopForUser: _Callable[[_Windows_System.IUser,  # user
                                     _type.HSTRING],  # appPackageFamilyName
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IStoreHardwareManufacturerInfo(_inspectable.IInspectable):
@@ -141,15 +129,13 @@ class IStoreHardwareManufacturerInfo(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IStorePreview(_inspectable.IInspectable):
+class IStorePreview(_inspectable.IInspectable, factory=True):
     RequestProductPurchaseByProductIdAndSkuIdAsync: _Callable[[_type.HSTRING,  # productId
                                                                _type.HSTRING,  # skuId
                                                                _Pointer[_Windows_Foundation.IAsyncOperation[IStorePreviewPurchaseResults]]],  # requestPurchaseBySkuIdOperation
                                                               _type.HRESULT]
     LoadAddOnProductInfosAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IStorePreviewProductInfo]]]],  # loadAddOnProductInfosOperation
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IStorePreviewProductInfo(_inspectable.IInspectable):
@@ -191,7 +177,7 @@ class IStorePreviewSkuInfo(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IWebAuthenticationCoreManagerHelper(_inspectable.IInspectable):
+class IWebAuthenticationCoreManagerHelper(_inspectable.IInspectable, factory=True):
     RequestTokenWithUIElementHostingAsync: _Callable[[_Windows_Security_Authentication_Web_Core.IWebTokenRequest,  # request
                                                       _Windows_UI_Xaml.IUIElement,  # uiElement
                                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Security_Authentication_Web_Core.IWebTokenRequestResult]]],  # asyncInfo
@@ -201,5 +187,3 @@ class IWebAuthenticationCoreManagerHelper(_inspectable.IInspectable):
                                                                    _Windows_UI_Xaml.IUIElement,  # uiElement
                                                                    _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Security_Authentication_Web_Core.IWebTokenRequestResult]]],  # asyncInfo
                                                                   _type.HRESULT]
-
-    _factory = True

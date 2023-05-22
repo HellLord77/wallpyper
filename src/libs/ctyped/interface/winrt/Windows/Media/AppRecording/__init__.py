@@ -33,11 +33,9 @@ class IAppRecordingManager(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IAppRecordingManagerStatics(_inspectable.IInspectable):
+class IAppRecordingManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAppRecordingManager]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IAppRecordingResult(_inspectable.IInspectable):

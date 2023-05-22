@@ -233,7 +233,7 @@ class IConnectivityInterval(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IConnectivityManagerStatics(_inspectable.IInspectable):
+class IConnectivityManagerStatics(_inspectable.IInspectable, factory=True):
     AcquireConnectionAsync: _Callable[[ICellularApnContext,  # cellularApnContext
                                        _Pointer[_Windows_Foundation.IAsyncOperation[IConnectionSession]]],  # operation
                                       _type.HRESULT]
@@ -241,8 +241,6 @@ class IConnectivityManagerStatics(_inspectable.IInspectable):
                                   _type.HRESULT]
     RemoveHttpRoutePolicy: _Callable[[IRoutePolicy],  # routePolicy
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IDataPlanStatus(_inspectable.IInspectable):
@@ -312,7 +310,7 @@ class INetworkAdapter(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class INetworkInformationStatics(_inspectable.IInspectable):
+class INetworkInformationStatics(_inspectable.IInspectable, factory=True):
     GetConnectionProfiles: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IConnectionProfile]]],  # value
                                      _type.HRESULT]
     GetInternetConnectionProfile: _Callable[[_Pointer[IConnectionProfile]],  # value
@@ -334,15 +332,11 @@ class INetworkInformationStatics(_inspectable.IInspectable):
     remove_NetworkStatusChanged: _Callable[[_struct.EventRegistrationToken],  # eventCookie
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class INetworkInformationStatics2(_inspectable.IInspectable):
+class INetworkInformationStatics2(_inspectable.IInspectable, factory=True):
     FindConnectionProfilesAsync: _Callable[[IConnectionProfileFilter,  # pProfileFilter
                                             _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IConnectionProfile]]]],  # value
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class INetworkItem(_inspectable.IInspectable):
@@ -415,14 +409,12 @@ class IRoutePolicy(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IRoutePolicyFactory(_inspectable.IInspectable):
+class IRoutePolicyFactory(_inspectable.IInspectable, factory=True):
     CreateRoutePolicy: _Callable[[IConnectionProfile,  # connectionProfile
                                   _Windows_Networking.IHostName,  # hostName
                                   _enum.Windows.Networking.DomainNameType,  # type
                                   _Pointer[IRoutePolicy]],  # routePolicy
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IWlanConnectionProfileDetails(_inspectable.IInspectable):

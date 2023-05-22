@@ -23,7 +23,7 @@ class IArcadeStick(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IArcadeStickStatics(_inspectable.IInspectable):
+class IArcadeStickStatics(_inspectable.IInspectable, factory=True):
     add_ArcadeStickAdded: _Callable[[_Windows_Foundation.IEventHandler[IArcadeStick],  # value
                                      _Pointer[_struct.EventRegistrationToken]],  # token
                                     _type.HRESULT]
@@ -37,15 +37,11 @@ class IArcadeStickStatics(_inspectable.IInspectable):
     get_ArcadeSticks: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IArcadeStick]]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IArcadeStickStatics2(_inspectable.IInspectable):
+class IArcadeStickStatics2(_inspectable.IInspectable, factory=True):
     FromGameController: _Callable[[IGameController,  # gameController
                                    _Pointer[IArcadeStick]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IFlightStick(_inspectable.IInspectable):
@@ -58,7 +54,7 @@ class IFlightStick(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IFlightStickStatics(_inspectable.IInspectable):
+class IFlightStickStatics(_inspectable.IInspectable, factory=True):
     add_FlightStickAdded: _Callable[[_Windows_Foundation.IEventHandler[IFlightStick],  # value
                                      _Pointer[_struct.EventRegistrationToken]],  # token
                                     _type.HRESULT]
@@ -74,8 +70,6 @@ class IFlightStickStatics(_inspectable.IInspectable):
     FromGameController: _Callable[[IGameController,  # gameController
                                    _Pointer[IFlightStick]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IGameController(_inspectable.IInspectable):
@@ -122,7 +116,7 @@ class IGamepad2(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IGamepadStatics(_inspectable.IInspectable):
+class IGamepadStatics(_inspectable.IInspectable, factory=True):
     add_GamepadAdded: _Callable[[_Windows_Foundation.IEventHandler[IGamepad],  # value
                                  _Pointer[_struct.EventRegistrationToken]],  # token
                                 _type.HRESULT]
@@ -136,15 +130,11 @@ class IGamepadStatics(_inspectable.IInspectable):
     get_Gamepads: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IGamepad]]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IGamepadStatics2(_inspectable.IInspectable):
+class IGamepadStatics2(_inspectable.IInspectable, factory=True):
     FromGameController: _Callable[[IGameController,  # gameController
                                    _Pointer[IGamepad]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IHeadset(_inspectable.IInspectable):
@@ -174,7 +164,7 @@ class IRacingWheel(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IRacingWheelStatics(_inspectable.IInspectable):
+class IRacingWheelStatics(_inspectable.IInspectable, factory=True):
     add_RacingWheelAdded: _Callable[[_Windows_Foundation.IEventHandler[IRacingWheel],  # value
                                      _Pointer[_struct.EventRegistrationToken]],  # token
                                     _type.HRESULT]
@@ -188,15 +178,11 @@ class IRacingWheelStatics(_inspectable.IInspectable):
     get_RacingWheels: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IRacingWheel]]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IRacingWheelStatics2(_inspectable.IInspectable):
+class IRacingWheelStatics2(_inspectable.IInspectable, factory=True):
     FromGameController: _Callable[[IGameController,  # gameController
                                    _Pointer[IRacingWheel]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IRawGameController(_inspectable.IInspectable):
@@ -237,7 +223,7 @@ class IRawGameController2(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IRawGameControllerStatics(_inspectable.IInspectable):
+class IRawGameControllerStatics(_inspectable.IInspectable, factory=True):
     add_RawGameControllerAdded: _Callable[[_Windows_Foundation.IEventHandler[IRawGameController],  # value
                                            _Pointer[_struct.EventRegistrationToken]],  # token
                                           _type.HRESULT]
@@ -254,8 +240,6 @@ class IRawGameControllerStatics(_inspectable.IInspectable):
                                    _Pointer[IRawGameController]],  # value
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IUINavigationController(_inspectable.IInspectable):
     GetCurrentReading: _Callable[[_Pointer[_struct.Windows.Gaming.Input.UINavigationReading]],  # value
@@ -268,7 +252,7 @@ class IUINavigationController(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IUINavigationControllerStatics(_inspectable.IInspectable):
+class IUINavigationControllerStatics(_inspectable.IInspectable, factory=True):
     add_UINavigationControllerAdded: _Callable[[_Windows_Foundation.IEventHandler[IUINavigationController],  # value
                                                 _Pointer[_struct.EventRegistrationToken]],  # token
                                                _type.HRESULT]
@@ -282,12 +266,8 @@ class IUINavigationControllerStatics(_inspectable.IInspectable):
     get_UINavigationControllers: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IUINavigationController]]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IUINavigationControllerStatics2(_inspectable.IInspectable):
+class IUINavigationControllerStatics2(_inspectable.IInspectable, factory=True):
     FromGameController: _Callable[[IGameController,  # gameController
                                    _Pointer[IUINavigationController]],  # value
                                   _type.HRESULT]
-
-    _factory = True

@@ -57,7 +57,7 @@ class IDateTimeFormatter2(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IDateTimeFormatterFactory(_inspectable.IInspectable):
+class IDateTimeFormatterFactory(_inspectable.IInspectable, factory=True):
     CreateDateTimeFormatter: _Callable[[_type.HSTRING,  # formatTemplate
                                         _Pointer[IDateTimeFormatter]],  # result
                                        _type.HRESULT]
@@ -107,10 +107,8 @@ class IDateTimeFormatterFactory(_inspectable.IInspectable):
                                                        _Pointer[IDateTimeFormatter]],  # result
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IDateTimeFormatterStatics(_inspectable.IInspectable):
+class IDateTimeFormatterStatics(_inspectable.IInspectable, factory=True):
     get_LongDate: _Callable[[_Pointer[IDateTimeFormatter]],  # value
                             _type.HRESULT]
     get_LongTime: _Callable[[_Pointer[IDateTimeFormatter]],  # value
@@ -119,5 +117,3 @@ class IDateTimeFormatterStatics(_inspectable.IInspectable):
                              _type.HRESULT]
     get_ShortTime: _Callable[[_Pointer[IDateTimeFormatter]],  # value
                              _type.HRESULT]
-
-    _factory = True

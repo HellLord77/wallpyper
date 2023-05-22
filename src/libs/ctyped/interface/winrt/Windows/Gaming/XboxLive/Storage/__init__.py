@@ -134,7 +134,7 @@ class IGameSaveProviderGetResult(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IGameSaveProviderStatics(_inspectable.IInspectable):
+class IGameSaveProviderStatics(_inspectable.IInspectable, factory=True):
     GetForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                 _type.HSTRING,  # serviceConfigId
                                 _Pointer[_Windows_Foundation.IAsyncOperation[IGameSaveProviderGetResult]]],  # operation
@@ -143,5 +143,3 @@ class IGameSaveProviderStatics(_inspectable.IInspectable):
                                             _type.HSTRING,  # serviceConfigId
                                             _Pointer[_Windows_Foundation.IAsyncOperation[IGameSaveProviderGetResult]]],  # operation
                                            _type.HRESULT]
-
-    _factory = True

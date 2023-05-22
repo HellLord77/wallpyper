@@ -11,7 +11,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class ILicenseManagerStatics(_inspectable.IInspectable):
+class ILicenseManagerStatics(_inspectable.IInspectable, factory=True):
     AddLicenseAsync: _Callable[[_Windows_Storage_Streams.IBuffer,  # license
                                 _Pointer[_Windows_Foundation.IAsyncAction]],  # action
                                _type.HRESULT]
@@ -20,15 +20,11 @@ class ILicenseManagerStatics(_inspectable.IInspectable):
                                           _Pointer[_Windows_Foundation.IAsyncOperation[ILicenseSatisfactionResult]]],  # operation
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class ILicenseManagerStatics2(_inspectable.IInspectable):
+class ILicenseManagerStatics2(_inspectable.IInspectable, factory=True):
     RefreshLicensesAsync: _Callable[[_enum.Windows.ApplicationModel.Store.LicenseManagement.LicenseRefreshOption,  # refreshOption
                                      _Pointer[_Windows_Foundation.IAsyncAction]],  # action
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ILicenseSatisfactionInfo(_inspectable.IInspectable):

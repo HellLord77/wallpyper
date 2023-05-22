@@ -113,7 +113,7 @@ class IActiveBasicDevice(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IActiveBasicDeviceStatics(_inspectable.IInspectable):
+class IActiveBasicDeviceStatics(_inspectable.IInspectable, factory=True):
     CreateBasicDeviceAsync: _Callable[[_type.HSTRING,  # deviceIdentifier
                                        _enum.Windows.Media.Streaming.DeviceTypes,  # type
                                        _Pointer[_Windows_Foundation.IAsyncOperation[IActiveBasicDevice]]],  # value
@@ -133,8 +133,6 @@ class IActiveBasicDeviceStatics(_inspectable.IInspectable):
                                                     _type.boolean,  # allowChangeRendererNetwork
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[IDevicePair]]],  # operation
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IBasicDevice(_inspectable.IInspectable):
@@ -306,7 +304,7 @@ class IMediaRendererActionInformation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMediaRendererFactory(_inspectable.IInspectable):
+class IMediaRendererFactory(_inspectable.IInspectable, factory=True):
     CreateMediaRendererAsync: _Callable[[_type.HSTRING,  # deviceIdentifier
                                          _Pointer[_Windows_Foundation.IAsyncOperation[IMediaRenderer]]],  # value
                                         _type.HRESULT]
@@ -314,10 +312,8 @@ class IMediaRendererFactory(_inspectable.IInspectable):
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[IMediaRenderer]]],  # value
                                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IStreamSelectorStatics(_inspectable.IInspectable):
+class IStreamSelectorStatics(_inspectable.IInspectable, factory=True):
     SelectBestStreamAsync: _Callable[[_Windows_Storage.IStorageFile,  # storageFile
                                       _Windows_Foundation_Collections.IPropertySet,  # selectorProperties
                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage_Streams.IRandomAccessStreamWithContentType]]],  # value
@@ -334,8 +330,6 @@ class IStreamSelectorStatics(_inspectable.IInspectable):
                                                    _Windows_Foundation_Collections.IPropertySet,  # selectorProperties
                                                    _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_Foundation_Collections.IPropertySet]]]],  # value
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ITransportParameters(_inspectable.IInspectable):

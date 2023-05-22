@@ -184,7 +184,7 @@ class INewWebUIViewCreatedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IWebUIActivationStatics(_inspectable.IInspectable):
+class IWebUIActivationStatics(_inspectable.IInspectable, factory=True):
     add_Activated: _Callable[[IActivatedEventHandler,  # handler
                               _Pointer[_struct.EventRegistrationToken]],  # token
                              _type.HRESULT]
@@ -206,10 +206,8 @@ class IWebUIActivationStatics(_inspectable.IInspectable):
     remove_Navigated: _Callable[[_struct.EventRegistrationToken],  # token
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IWebUIActivationStatics2(_inspectable.IInspectable):
+class IWebUIActivationStatics2(_inspectable.IInspectable, factory=True):
     add_LeavingBackground: _Callable[[ILeavingBackgroundEventHandler,  # handler
                                       _Pointer[_struct.EventRegistrationToken]],  # token
                                      _type.HRESULT]
@@ -223,10 +221,8 @@ class IWebUIActivationStatics2(_inspectable.IInspectable):
     EnablePrelaunch: _Callable[[_type.boolean],  # value
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IWebUIActivationStatics3(_inspectable.IInspectable):
+class IWebUIActivationStatics3(_inspectable.IInspectable, factory=True):
     RequestRestartAsync: _Callable[[_type.HSTRING,  # launchArguments
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Core.AppRestartFailureReason]]],  # operation
                                    _type.HRESULT]
@@ -235,10 +231,8 @@ class IWebUIActivationStatics3(_inspectable.IInspectable):
                                            _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Core.AppRestartFailureReason]]],  # operation
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IWebUIActivationStatics4(_inspectable.IInspectable):
+class IWebUIActivationStatics4(_inspectable.IInspectable, factory=True):
     add_NewWebUIViewCreated: _Callable[[_Windows_Foundation.IEventHandler[INewWebUIViewCreatedEventArgs],  # handler
                                         _Pointer[_struct.EventRegistrationToken]],  # token
                                        _type.HRESULT]
@@ -250,8 +244,6 @@ class IWebUIActivationStatics4(_inspectable.IInspectable):
     remove_BackgroundActivated: _Callable[[_struct.EventRegistrationToken],  # token
                                           _type.HRESULT]
 
-    _factory = True
-
 
 class IWebUIBackgroundTaskInstance(_inspectable.IInspectable):
     get_Succeeded: _Callable[[_Pointer[_type.boolean]],  # succeeded
@@ -260,11 +252,9 @@ class IWebUIBackgroundTaskInstance(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IWebUIBackgroundTaskInstanceStatics(_inspectable.IInspectable):
+class IWebUIBackgroundTaskInstanceStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IWebUIBackgroundTaskInstance]],  # backgroundTaskInstance
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IWebUINavigatedDeferral(_inspectable.IInspectable):
@@ -301,11 +291,9 @@ class IWebUIView(_inspectable.IInspectable):
                                                                           _type.HRESULT]
 
 
-class IWebUIViewStatics(_inspectable.IInspectable):
+class IWebUIViewStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IWebUIView]]],  # operation
                            _type.HRESULT]
     CreateWithUriAsync: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                    _Pointer[_Windows_Foundation.IAsyncOperation[IWebUIView]]],  # operation
                                   _type.HRESULT]
-
-    _factory = True

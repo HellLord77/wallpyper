@@ -10,7 +10,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IPlatformDiagnosticActionsStatics(_inspectable.IInspectable):
+class IPlatformDiagnosticActionsStatics(_inspectable.IInspectable, factory=True):
     IsScenarioEnabled: _Callable[[_struct.GUID,  # scenarioId
                                   _Pointer[_type.boolean]],  # isActive
                                  _type.HRESULT]
@@ -47,8 +47,6 @@ class IPlatformDiagnosticActionsStatics(_inspectable.IInspectable):
     GetKnownTraceList: _Callable[[_enum.Windows.System.Diagnostics.TraceReporting.PlatformDiagnosticTraceSlotType,  # slotType
                                   _Pointer[_Windows_Foundation_Collections.IVectorView[IPlatformDiagnosticTraceInfo]]],  # traceInfo
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IPlatformDiagnosticTraceInfo(_inspectable.IInspectable):

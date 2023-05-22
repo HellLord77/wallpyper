@@ -53,7 +53,7 @@ class IMessageDialog(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IMessageDialogFactory(_inspectable.IInspectable):
+class IMessageDialogFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # content
                        _Pointer[IMessageDialog]],  # messageDialog
                       _type.HRESULT]
@@ -61,8 +61,6 @@ class IMessageDialogFactory(_inspectable.IInspectable):
                                 _type.HSTRING,  # title
                                 _Pointer[IMessageDialog]],  # messageDialog
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IPopupMenu(_inspectable.IInspectable):
@@ -95,7 +93,7 @@ class IUICommand(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IUICommandFactory(_inspectable.IInspectable):
+class IUICommandFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # label
                        _Pointer[IUICommand]],  # instance
                       _type.HRESULT]
@@ -108,5 +106,3 @@ class IUICommandFactory(_inspectable.IInspectable):
                                        _inspectable.IInspectable,  # commandId
                                        _Pointer[IUICommand]],  # instance
                                       _type.HRESULT]
-
-    _factory = True

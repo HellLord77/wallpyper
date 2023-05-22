@@ -63,8 +63,9 @@ class _Template:
 
 
 class _InterfaceBase(_type.c_void_p):
-    def __init_subclass__(cls) -> _Iterable[type]:
-        cls._fields: set[str] = set()
+    def __init_subclass__(cls, factory: bool = False) -> _Iterable[type]:
+        cls._factory = factory
+        cls._fields = set()
         mro = iter(cls.__mro__)
         name = f'{__name__}.'
         for base in mro:
@@ -78,8 +79,8 @@ class _InterfaceBase(_type.c_void_p):
 
 
 class _Interface(_InterfaceBase):
-    def __init_subclass__(cls):
-        mro = super().__init_subclass__()
+    def __init_subclass__(cls, *args, **kwargs):
+        mro = super().__init_subclass__(*args, **kwargs)
         for interface in reversed((cls._base, *mro)):
             cls._fields.update(_inspect.get_annotations(interface))
 
@@ -97,8 +98,8 @@ class _Interface(_InterfaceBase):
 
 # noinspection PyPep8Naming
 class _Interface_impl(_InterfaceBase):
-    def __init_subclass__(cls):
-        super().__init_subclass__()
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(*args, **kwargs)
         # noinspection PyUnresolvedReferences
         cls._base: type[_Interface] = getattr(_inspect.getmodule(
             cls._base), cls._base.__name__.split('_', 1)[0])
@@ -222,9 +223,10 @@ class COM(_COMBase):
     def __init__(self, clsid_or_progid_or_com_or_interface=None, /):
         if isinstance(clsid_or_progid_or_com_or_interface, str):
             clsid_ref = _byref(_struct.CLSID())
-            if _macro.SUCCEEDED(_ole32.CLSIDFromString(clsid_or_progid_or_com_or_interface, clsid_ref)):
-                _ole32.CoCreateInstance(
-                    clsid_ref, None, _const.CLSCTX_SERVER, *_macro.IID_PPV_ARGS(self._obj))
+            if _macro.SUCCEEDED(_ole32.CLSIDFromString(
+                    clsid_or_progid_or_com_or_interface, clsid_ref)):
+                _ole32.CoCreateInstance(clsid_ref, None, _const.CLSCTX_SERVER,
+                                        *_macro.IID_PPV_ARGS(self._obj))
         else:
             super().__init__(clsid_or_progid_or_com_or_interface)
 

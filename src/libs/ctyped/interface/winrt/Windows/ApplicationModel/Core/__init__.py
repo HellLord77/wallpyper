@@ -38,7 +38,7 @@ class IAppListEntry4(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ICoreApplication(_inspectable.IInspectable):
+class ICoreApplication(_inspectable.IInspectable, factory=True):
     get_Id: _Callable[[_Pointer[_type.HSTRING]],  # value
                       _type.HRESULT]
     add_Suspending: _Callable[[_Windows_Foundation.IEventHandler[_Windows_ApplicationModel.ISuspendingEventArgs],  # handler
@@ -60,10 +60,8 @@ class ICoreApplication(_inspectable.IInspectable):
     RunWithActivationFactories: _Callable[[_Windows_Foundation.IGetActivationFactory],  # activationFactoryCallback
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreApplication2(_inspectable.IInspectable):
+class ICoreApplication2(_inspectable.IInspectable, factory=True):
     add_BackgroundActivated: _Callable[[_Windows_Foundation.IEventHandler[_Windows_ApplicationModel_Activation.IBackgroundActivatedEventArgs],  # handler
                                         _Pointer[_struct.EventRegistrationToken]],  # token
                                        _type.HRESULT]
@@ -82,10 +80,8 @@ class ICoreApplication2(_inspectable.IInspectable):
     EnablePrelaunch: _Callable[[_type.boolean],  # value
                                _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreApplication3(_inspectable.IInspectable):
+class ICoreApplication3(_inspectable.IInspectable, factory=True):
     RequestRestartAsync: _Callable[[_type.HSTRING,  # launchArguments
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Core.AppRestartFailureReason]]],  # operation
                                    _type.HRESULT]
@@ -94,10 +90,8 @@ class ICoreApplication3(_inspectable.IInspectable):
                                            _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.ApplicationModel.Core.AppRestartFailureReason]]],  # operation
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreApplicationExit(_inspectable.IInspectable):
+class ICoreApplicationExit(_inspectable.IInspectable, factory=True):
     Exit: _Callable[[],
                     _type.HRESULT]
     add_Exiting: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -106,26 +100,20 @@ class ICoreApplicationExit(_inspectable.IInspectable):
     remove_Exiting: _Callable[[_struct.EventRegistrationToken],  # token
                               _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreApplicationUnhandledError(_inspectable.IInspectable):
+class ICoreApplicationUnhandledError(_inspectable.IInspectable, factory=True):
     add_UnhandledErrorDetected: _Callable[[_Windows_Foundation.IEventHandler[IUnhandledErrorDetectedEventArgs],  # handler
                                            _Pointer[_struct.EventRegistrationToken]],  # token
                                           _type.HRESULT]
     remove_UnhandledErrorDetected: _Callable[[_struct.EventRegistrationToken],  # token
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreApplicationUseCount(_inspectable.IInspectable):
+class ICoreApplicationUseCount(_inspectable.IInspectable, factory=True):
     IncrementApplicationUseCount: _Callable[[],
                                             _type.HRESULT]
     DecrementApplicationUseCount: _Callable[[],
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreApplicationView(_inspectable.IInspectable):
@@ -194,7 +182,7 @@ class ICoreApplicationViewTitleBar(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class ICoreImmersiveApplication(_inspectable.IInspectable):
+class ICoreImmersiveApplication(_inspectable.IInspectable, factory=True):
     get_Views: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[ICoreApplicationView]]],  # value
                          _type.HRESULT]
     CreateNewView: _Callable[[_type.HSTRING,  # runtimeType
@@ -204,22 +192,16 @@ class ICoreImmersiveApplication(_inspectable.IInspectable):
     get_MainView: _Callable[[_Pointer[ICoreApplicationView]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreImmersiveApplication2(_inspectable.IInspectable):
+class ICoreImmersiveApplication2(_inspectable.IInspectable, factory=True):
     CreateNewViewFromMainView: _Callable[[_Pointer[ICoreApplicationView]],  # view
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreImmersiveApplication3(_inspectable.IInspectable):
+class ICoreImmersiveApplication3(_inspectable.IInspectable, factory=True):
     CreateNewViewWithViewSource: _Callable[[IFrameworkViewSource,  # viewSource
                                             _Pointer[ICoreApplicationView]],  # view
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IFrameworkView(_inspectable.IInspectable):

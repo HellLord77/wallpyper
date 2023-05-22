@@ -50,7 +50,7 @@ class IBluetoothAdapter3(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class IBluetoothAdapterStatics(_inspectable.IInspectable):
+class IBluetoothAdapterStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -58,8 +58,6 @@ class IBluetoothAdapterStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IBluetoothAdapter]]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothClassOfDevice(_inspectable.IInspectable):
@@ -73,7 +71,7 @@ class IBluetoothClassOfDevice(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IBluetoothClassOfDeviceStatics(_inspectable.IInspectable):
+class IBluetoothClassOfDeviceStatics(_inspectable.IInspectable, factory=True):
     FromRawValue: _Callable[[_type.UINT32,  # rawValue
                              _Pointer[IBluetoothClassOfDevice]],  # classOfDevice
                             _type.HRESULT]
@@ -82,8 +80,6 @@ class IBluetoothClassOfDeviceStatics(_inspectable.IInspectable):
                           _enum.Windows.Devices.Bluetooth.BluetoothServiceCapabilities,  # serviceCapabilities
                           _Pointer[IBluetoothClassOfDevice]],  # classOfDevice
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothDevice(_inspectable.IInspectable):
@@ -163,15 +159,13 @@ class IBluetoothDeviceId(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IBluetoothDeviceIdStatics(_inspectable.IInspectable):
+class IBluetoothDeviceIdStatics(_inspectable.IInspectable, factory=True):
     FromId: _Callable[[_type.HSTRING,  # deviceId
                        _Pointer[IBluetoothDeviceId]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IBluetoothDeviceStatics(_inspectable.IInspectable):
+class IBluetoothDeviceStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IBluetoothDevice]]],  # operation
                            _type.HRESULT]
@@ -184,10 +178,8 @@ class IBluetoothDeviceStatics(_inspectable.IInspectable):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # deviceSelector
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IBluetoothDeviceStatics2(_inspectable.IInspectable):
+class IBluetoothDeviceStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorFromPairingState: _Callable[[_type.boolean,  # pairingState
                                                   _Pointer[_type.HSTRING]],  # deviceSelector
                                                  _type.HRESULT]
@@ -204,8 +196,6 @@ class IBluetoothDeviceStatics2(_inspectable.IInspectable):
                                                    _Pointer[_type.HSTRING]],  # deviceSelector
                                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IBluetoothLEAppearance(_inspectable.IInspectable):
     get_RawValue: _Callable[[_Pointer[_type.UINT16]],  # value
@@ -216,7 +206,7 @@ class IBluetoothLEAppearance(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IBluetoothLEAppearanceCategoriesStatics(_inspectable.IInspectable):
+class IBluetoothLEAppearanceCategoriesStatics(_inspectable.IInspectable, factory=True):
     get_Uncategorized: _Callable[[_Pointer[_type.UINT16]],  # value
                                  _type.HRESULT]
     get_Phone: _Callable[[_Pointer[_type.UINT16]],  # value
@@ -262,10 +252,8 @@ class IBluetoothLEAppearanceCategoriesStatics(_inspectable.IInspectable):
     get_OutdoorSportActivity: _Callable[[_Pointer[_type.UINT16]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IBluetoothLEAppearanceStatics(_inspectable.IInspectable):
+class IBluetoothLEAppearanceStatics(_inspectable.IInspectable, factory=True):
     FromRawValue: _Callable[[_type.UINT16,  # rawValue
                              _Pointer[IBluetoothLEAppearance]],  # appearance
                             _type.HRESULT]
@@ -274,10 +262,8 @@ class IBluetoothLEAppearanceStatics(_inspectable.IInspectable):
                           _Pointer[IBluetoothLEAppearance]],  # appearance
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IBluetoothLEAppearanceSubcategoriesStatics(_inspectable.IInspectable):
+class IBluetoothLEAppearanceSubcategoriesStatics(_inspectable.IInspectable, factory=True):
     get_Generic: _Callable[[_Pointer[_type.UINT16]],  # value
                            _type.HRESULT]
     get_SportsWatch: _Callable[[_Pointer[_type.UINT16]],  # value
@@ -334,8 +320,6 @@ class IBluetoothLEAppearanceSubcategoriesStatics(_inspectable.IInspectable):
                                _type.HRESULT]
     get_LocationNavigationPod: _Callable[[_Pointer[_type.UINT16]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothLEConnectionParameters(_inspectable.IInspectable):
@@ -452,7 +436,7 @@ class IBluetoothLEDevice6(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IBluetoothLEDeviceStatics(_inspectable.IInspectable):
+class IBluetoothLEDeviceStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IBluetoothLEDevice]]],  # operation
                            _type.HRESULT]
@@ -462,10 +446,8 @@ class IBluetoothLEDeviceStatics(_inspectable.IInspectable):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IBluetoothLEDeviceStatics2(_inspectable.IInspectable):
+class IBluetoothLEDeviceStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorFromPairingState: _Callable[[_type.boolean,  # pairingState
                                                   _Pointer[_type.HSTRING]],  # deviceSelector
                                                  _type.HRESULT]
@@ -490,8 +472,6 @@ class IBluetoothLEDeviceStatics2(_inspectable.IInspectable):
                                                                   _Pointer[_Windows_Foundation.IAsyncOperation[IBluetoothLEDevice]]],  # operation
                                                                  _type.HRESULT]
 
-    _factory = True
-
 
 class IBluetoothLEPreferredConnectionParameters(_inspectable.IInspectable):
     get_LinkTimeout: _Callable[[_Pointer[_type.UINT16]],  # value
@@ -509,15 +489,13 @@ class IBluetoothLEPreferredConnectionParametersRequest(_inspectable.IInspectable
                           _type.HRESULT]
 
 
-class IBluetoothLEPreferredConnectionParametersStatics(_inspectable.IInspectable):
+class IBluetoothLEPreferredConnectionParametersStatics(_inspectable.IInspectable, factory=True):
     get_Balanced: _Callable[[_Pointer[IBluetoothLEPreferredConnectionParameters]],  # value
                             _type.HRESULT]
     get_ThroughputOptimized: _Callable[[_Pointer[IBluetoothLEPreferredConnectionParameters]],  # value
                                        _type.HRESULT]
     get_PowerOptimized: _Callable[[_Pointer[IBluetoothLEPreferredConnectionParameters]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothSignalStrengthFilter(_inspectable.IInspectable):
@@ -539,12 +517,10 @@ class IBluetoothSignalStrengthFilter(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IBluetoothUuidHelperStatics(_inspectable.IInspectable):
+class IBluetoothUuidHelperStatics(_inspectable.IInspectable, factory=True):
     FromShortId: _Callable[[_type.UINT32,  # shortId
                             _Pointer[_struct.GUID]],  # result
                            _type.HRESULT]
     TryGetShortId: _Callable[[_struct.GUID,  # uuid
                               _Pointer[_Windows_Foundation.IReference[_type.UINT32]]],  # result
                              _type.HRESULT]
-
-    _factory = True

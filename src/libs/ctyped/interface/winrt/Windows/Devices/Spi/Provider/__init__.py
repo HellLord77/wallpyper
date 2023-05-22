@@ -33,12 +33,10 @@ class IProviderSpiConnectionSettings(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IProviderSpiConnectionSettingsFactory(_inspectable.IInspectable):
+class IProviderSpiConnectionSettingsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # chipSelectLine
                        _Pointer[IProviderSpiConnectionSettings]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISpiControllerProvider(_inspectable.IInspectable):

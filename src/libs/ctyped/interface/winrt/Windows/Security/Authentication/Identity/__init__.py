@@ -27,8 +27,6 @@ class IEnterpriseKeyCredentialRegistrationManager(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IEnterpriseKeyCredentialRegistrationManagerStatics(_inspectable.IInspectable):
+class IEnterpriseKeyCredentialRegistrationManagerStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IEnterpriseKeyCredentialRegistrationManager]],  # value
                            _type.HRESULT]
-
-    _factory = True

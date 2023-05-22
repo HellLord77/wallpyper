@@ -22,7 +22,7 @@ class IPnpObject(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IPnpObjectStatics(_inspectable.IInspectable):
+class IPnpObjectStatics(_inspectable.IInspectable, factory=True):
     CreateFromIdAsync: _Callable[[_enum.Windows.Devices.Enumeration.Pnp.PnpObjectType,  # type
                                   _type.HSTRING,  # id
                                   _Windows_Foundation_Collections.IIterable[_type.HSTRING],  # requestedProperties
@@ -46,8 +46,6 @@ class IPnpObjectStatics(_inspectable.IInspectable):
                                        _type.HSTRING,  # aqsFilter
                                        _Pointer[IPnpObjectWatcher]],  # watcher
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPnpObjectUpdate(_inspectable.IInspectable):

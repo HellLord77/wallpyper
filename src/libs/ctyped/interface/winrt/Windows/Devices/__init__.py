@@ -25,7 +25,7 @@ class ILowLevelDevicesAggregateProvider(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class ILowLevelDevicesAggregateProviderFactory(_inspectable.IInspectable):
+class ILowLevelDevicesAggregateProviderFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Devices_Adc_Provider.IAdcControllerProvider,  # adc
                        _Windows_Devices_Pwm_Provider.IPwmControllerProvider,  # pwm
                        _Windows_Devices_Gpio_Provider.IGpioControllerProvider,  # gpio
@@ -34,17 +34,13 @@ class ILowLevelDevicesAggregateProviderFactory(_inspectable.IInspectable):
                        _Pointer[ILowLevelDevicesAggregateProvider]],  # value
                       _type.HRESULT]
 
-    _factory = True
-
 
 class ILowLevelDevicesController(_inspectable.IInspectable):
     pass
 
 
-class ILowLevelDevicesControllerStatics(_inspectable.IInspectable):
+class ILowLevelDevicesControllerStatics(_inspectable.IInspectable, factory=True):
     get_DefaultProvider: _Callable[[_Pointer[ILowLevelDevicesAggregateProvider]],  # value
                                    _type.HRESULT]
     put_DefaultProvider: _Callable[[ILowLevelDevicesAggregateProvider],  # value
                                    _type.HRESULT]
-
-    _factory = True

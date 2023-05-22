@@ -53,7 +53,7 @@ class IWebAccountMonitor2(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IWebAuthenticationCoreManagerStatics(_inspectable.IInspectable):
+class IWebAuthenticationCoreManagerStatics(_inspectable.IInspectable, factory=True):
     GetTokenSilentlyAsync: _Callable[[IWebTokenRequest,  # request
                                       _Pointer[_Windows_Foundation.IAsyncOperation[IWebTokenRequestResult]]],  # asyncInfo
                                      _type.HRESULT]
@@ -80,28 +80,22 @@ class IWebAuthenticationCoreManagerStatics(_inspectable.IInspectable):
                                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Security_Credentials.IWebAccountProvider]]],  # asyncInfo
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAuthenticationCoreManagerStatics2(_inspectable.IInspectable):
+class IWebAuthenticationCoreManagerStatics2(_inspectable.IInspectable, factory=True):
     FindAccountProviderWithAuthorityForUserAsync: _Callable[[_type.HSTRING,  # webAccountProviderId
                                                              _type.HSTRING,  # authority
                                                              _Windows_System.IUser,  # user
                                                              _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Security_Credentials.IWebAccountProvider]]],  # asyncInfo
                                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAuthenticationCoreManagerStatics3(_inspectable.IInspectable):
+class IWebAuthenticationCoreManagerStatics3(_inspectable.IInspectable, factory=True):
     CreateWebAccountMonitor: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Security_Credentials.IWebAccount],  # webAccounts
                                         _Pointer[IWebAccountMonitor]],  # result
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAuthenticationCoreManagerStatics4(_inspectable.IInspectable):
+class IWebAuthenticationCoreManagerStatics4(_inspectable.IInspectable, factory=True):
     FindAllAccountsAsync: _Callable[[_Windows_Security_Credentials.IWebAccountProvider,  # provider
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IFindAllAccountsResult]]],  # operation
                                     _type.HRESULT]
@@ -122,8 +116,6 @@ class IWebAuthenticationCoreManagerStatics4(_inspectable.IInspectable):
                                                                    _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Security_Credentials.IWebAccountProvider]]],  # operation
                                                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IWebProviderError(_inspectable.IInspectable):
     get_ErrorCode: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -134,13 +126,11 @@ class IWebProviderError(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IWebProviderErrorFactory(_inspectable.IInspectable):
+class IWebProviderErrorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # errorCode
                        _type.HSTRING,  # errorMessage
                        _Pointer[IWebProviderError]],  # webProviderError
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IWebTokenRequest(_inspectable.IInspectable):
@@ -168,7 +158,7 @@ class IWebTokenRequest3(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IWebTokenRequestFactory(_inspectable.IInspectable):
+class IWebTokenRequestFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Security_Credentials.IWebAccountProvider,  # provider
                        _type.HSTRING,  # scope
                        _type.HSTRING,  # clientId
@@ -187,8 +177,6 @@ class IWebTokenRequestFactory(_inspectable.IInspectable):
                                 _type.HSTRING,  # scope
                                 _Pointer[IWebTokenRequest]],  # webTokenRequest
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IWebTokenRequestResult(_inspectable.IInspectable):
@@ -213,7 +201,7 @@ class IWebTokenResponse(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IWebTokenResponseFactory(_inspectable.IInspectable):
+class IWebTokenResponseFactory(_inspectable.IInspectable, factory=True):
     CreateWithToken: _Callable[[_type.HSTRING,  # token
                                 _Pointer[IWebTokenResponse]],  # webTokenResponse
                                _type.HRESULT]
@@ -226,5 +214,3 @@ class IWebTokenResponseFactory(_inspectable.IInspectable):
                                                IWebProviderError,  # error
                                                _Pointer[IWebTokenResponse]],  # webTokenResponse
                                               _type.HRESULT]
-
-    _factory = True

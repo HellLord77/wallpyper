@@ -15,7 +15,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IKnownRemoteSystemCapabilitiesStatics(_inspectable.IInspectable):
+class IKnownRemoteSystemCapabilitiesStatics(_inspectable.IInspectable, factory=True):
     get_AppService: _Callable[[_Pointer[_type.HSTRING]],  # value
                               _type.HRESULT]
     get_LaunchUri: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -24,8 +24,6 @@ class IKnownRemoteSystemCapabilitiesStatics(_inspectable.IInspectable):
                                  _type.HRESULT]
     get_SpatialEntity: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystem(_inspectable.IInspectable):
@@ -105,14 +103,12 @@ class IRemoteSystemAppRegistration(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IRemoteSystemAppRegistrationStatics(_inspectable.IInspectable):
+class IRemoteSystemAppRegistrationStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IRemoteSystemAppRegistration]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IRemoteSystemAppRegistration]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemAuthorizationKindFilter(_inspectable.IInspectable):
@@ -120,12 +116,10 @@ class IRemoteSystemAuthorizationKindFilter(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IRemoteSystemAuthorizationKindFilterFactory(_inspectable.IInspectable):
+class IRemoteSystemAuthorizationKindFilterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.System.RemoteSystems.RemoteSystemAuthorizationKind,  # remoteSystemAuthorizationKind
                        _Pointer[IRemoteSystemAuthorizationKindFilter]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemConnectionInfo(_inspectable.IInspectable):
@@ -133,12 +127,10 @@ class IRemoteSystemConnectionInfo(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRemoteSystemConnectionInfoStatics(_inspectable.IInspectable):
+class IRemoteSystemConnectionInfoStatics(_inspectable.IInspectable, factory=True):
     TryCreateFromAppServiceConnection: _Callable[[_Windows_ApplicationModel_AppService.IAppServiceConnection,  # connection
                                                   _Pointer[IRemoteSystemConnectionInfo]],  # result
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemConnectionRequest(_inspectable.IInspectable):
@@ -156,23 +148,19 @@ class IRemoteSystemConnectionRequest3(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IRemoteSystemConnectionRequestFactory(_inspectable.IInspectable):
+class IRemoteSystemConnectionRequestFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IRemoteSystem,  # remoteSystem
                        _Pointer[IRemoteSystemConnectionRequest]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IRemoteSystemConnectionRequestStatics(_inspectable.IInspectable):
+class IRemoteSystemConnectionRequestStatics(_inspectable.IInspectable, factory=True):
     CreateForApp: _Callable[[IRemoteSystemApp,  # remoteSystemApp
                              _Pointer[IRemoteSystemConnectionRequest]],  # result
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IRemoteSystemConnectionRequestStatics2(_inspectable.IInspectable):
+class IRemoteSystemConnectionRequestStatics2(_inspectable.IInspectable, factory=True):
     CreateFromConnectionToken: _Callable[[_type.HSTRING,  # connectionToken
                                           _Pointer[IRemoteSystemConnectionRequest]],  # result
                                          _type.HRESULT]
@@ -181,20 +169,16 @@ class IRemoteSystemConnectionRequestStatics2(_inspectable.IInspectable):
                                                  _Pointer[IRemoteSystemConnectionRequest]],  # result
                                                 _type.HRESULT]
 
-    _factory = True
-
 
 class IRemoteSystemDiscoveryTypeFilter(_inspectable.IInspectable):
     get_RemoteSystemDiscoveryType: _Callable[[_Pointer[_enum.Windows.System.RemoteSystems.RemoteSystemDiscoveryType]],  # value
                                              _type.HRESULT]
 
 
-class IRemoteSystemDiscoveryTypeFilterFactory(_inspectable.IInspectable):
+class IRemoteSystemDiscoveryTypeFilterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.System.RemoteSystems.RemoteSystemDiscoveryType,  # discoveryType
                        _Pointer[IRemoteSystemDiscoveryTypeFilter]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemEnumerationCompletedEventArgs(_inspectable.IInspectable):
@@ -210,15 +194,13 @@ class IRemoteSystemKindFilter(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IRemoteSystemKindFilterFactory(_inspectable.IInspectable):
+class IRemoteSystemKindFilterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # remoteSystemKinds
                        _Pointer[IRemoteSystemKindFilter]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IRemoteSystemKindStatics(_inspectable.IInspectable):
+class IRemoteSystemKindStatics(_inspectable.IInspectable, factory=True):
     get_Phone: _Callable[[_Pointer[_type.HSTRING]],  # value
                          _type.HRESULT]
     get_Hub: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -230,18 +212,14 @@ class IRemoteSystemKindStatics(_inspectable.IInspectable):
     get_Xbox: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IRemoteSystemKindStatics2(_inspectable.IInspectable):
+class IRemoteSystemKindStatics2(_inspectable.IInspectable, factory=True):
     get_Iot: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_Tablet: _Callable[[_Pointer[_type.HSTRING]],  # value
                           _type.HRESULT]
     get_Laptop: _Callable[[_Pointer[_type.HSTRING]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemRemovedEventArgs(_inspectable.IInspectable):
@@ -286,7 +264,7 @@ class IRemoteSystemSessionController(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IRemoteSystemSessionControllerFactory(_inspectable.IInspectable):
+class IRemoteSystemSessionControllerFactory(_inspectable.IInspectable, factory=True):
     CreateController: _Callable[[_type.HSTRING,  # displayName
                                  _Pointer[IRemoteSystemSessionController]],  # value
                                 _type.HRESULT]
@@ -294,8 +272,6 @@ class IRemoteSystemSessionControllerFactory(_inspectable.IInspectable):
                                                    IRemoteSystemSessionOptions,  # options
                                                    _Pointer[IRemoteSystemSessionController]],  # value
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemSessionCreationResult(_inspectable.IInspectable):
@@ -381,7 +357,7 @@ class IRemoteSystemSessionMessageChannel(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IRemoteSystemSessionMessageChannelFactory(_inspectable.IInspectable):
+class IRemoteSystemSessionMessageChannelFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IRemoteSystemSession,  # session
                        _type.HSTRING,  # channelName
                        _Pointer[IRemoteSystemSessionMessageChannel]],  # value
@@ -391,8 +367,6 @@ class IRemoteSystemSessionMessageChannelFactory(_inspectable.IInspectable):
                                       _enum.Windows.System.RemoteSystems.RemoteSystemSessionMessageChannelReliability,  # reliability
                                       _Pointer[IRemoteSystemSessionMessageChannel]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemSessionOptions(_inspectable.IInspectable):
@@ -448,11 +422,9 @@ class IRemoteSystemSessionRemovedEventArgs(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IRemoteSystemSessionStatics(_inspectable.IInspectable):
+class IRemoteSystemSessionStatics(_inspectable.IInspectable, factory=True):
     CreateWatcher: _Callable[[_Pointer[IRemoteSystemSessionWatcher]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemSessionUpdatedEventArgs(_inspectable.IInspectable):
@@ -491,7 +463,7 @@ class IRemoteSystemSessionWatcher(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRemoteSystemStatics(_inspectable.IInspectable):
+class IRemoteSystemStatics(_inspectable.IInspectable, factory=True):
     FindByHostNameAsync: _Callable[[_Windows_Networking.IHostName,  # hostName
                                     _Pointer[_Windows_Foundation.IAsyncOperation[IRemoteSystem]]],  # operation
                                    _type.HRESULT]
@@ -503,18 +475,14 @@ class IRemoteSystemStatics(_inspectable.IInspectable):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.RemoteSystems.RemoteSystemAccessStatus]]],  # operation
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IRemoteSystemStatics2(_inspectable.IInspectable):
+class IRemoteSystemStatics2(_inspectable.IInspectable, factory=True):
     IsAuthorizationKindEnabled: _Callable[[_enum.Windows.System.RemoteSystems.RemoteSystemAuthorizationKind,  # kind
                                            _Pointer[_type.boolean]],  # result
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IRemoteSystemStatics3(_inspectable.IInspectable):
+class IRemoteSystemStatics3(_inspectable.IInspectable, factory=True):
     CreateWatcherForUser: _Callable[[_Windows_System.IUser,  # user
                                      _Pointer[IRemoteSystemWatcher]],  # result
                                     _type.HRESULT]
@@ -523,20 +491,16 @@ class IRemoteSystemStatics3(_inspectable.IInspectable):
                                                 _Pointer[IRemoteSystemWatcher]],  # result
                                                _type.HRESULT]
 
-    _factory = True
-
 
 class IRemoteSystemStatusTypeFilter(_inspectable.IInspectable):
     get_RemoteSystemStatusType: _Callable[[_Pointer[_enum.Windows.System.RemoteSystems.RemoteSystemStatusType]],  # value
                                           _type.HRESULT]
 
 
-class IRemoteSystemStatusTypeFilterFactory(_inspectable.IInspectable):
+class IRemoteSystemStatusTypeFilterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.System.RemoteSystems.RemoteSystemStatusType,  # remoteSystemStatusType
                        _Pointer[IRemoteSystemStatusTypeFilter]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteSystemUpdatedEventArgs(_inspectable.IInspectable):
@@ -594,9 +558,7 @@ class IRemoteSystemWebAccountFilter(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IRemoteSystemWebAccountFilterFactory(_inspectable.IInspectable):
+class IRemoteSystemWebAccountFilterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Security_Credentials.IWebAccount,  # account
                        _Pointer[IRemoteSystemWebAccountFilter]],  # value
                       _type.HRESULT]
-
-    _factory = True

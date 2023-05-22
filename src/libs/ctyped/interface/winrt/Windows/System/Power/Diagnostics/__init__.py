@@ -7,7 +7,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IBackgroundEnergyDiagnosticsStatics(_inspectable.IInspectable):
+class IBackgroundEnergyDiagnosticsStatics(_inspectable.IInspectable, factory=True):
     DeviceSpecificConversionFactor: _Callable[[_Pointer[_type.DOUBLE]],  # value
                                               _type.HRESULT]
     ComputeTotalEnergyUsage: _Callable[[_Pointer[_type.UINT64]],  # value
@@ -15,15 +15,11 @@ class IBackgroundEnergyDiagnosticsStatics(_inspectable.IInspectable):
     ResetTotalEnergyUsage: _Callable[[],
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IForegroundEnergyDiagnosticsStatics(_inspectable.IInspectable):
+class IForegroundEnergyDiagnosticsStatics(_inspectable.IInspectable, factory=True):
     DeviceSpecificConversionFactor: _Callable[[_Pointer[_type.DOUBLE]],  # value
                                               _type.HRESULT]
     ComputeTotalEnergyUsage: _Callable[[_Pointer[_type.UINT64]],  # value
                                        _type.HRESULT]
     ResetTotalEnergyUsage: _Callable[[],
                                      _type.HRESULT]
-
-    _factory = True

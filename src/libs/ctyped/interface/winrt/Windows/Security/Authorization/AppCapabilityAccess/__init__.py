@@ -39,7 +39,7 @@ class IAppCapabilityAccessChangedEventArgs(_inspectable.IInspectable):
     pass
 
 
-class IAppCapabilityStatics(_inspectable.IInspectable):
+class IAppCapabilityStatics(_inspectable.IInspectable, factory=True):
     RequestAccessForCapabilitiesAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # capabilityNames
                                                   _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IMapView[_type.HSTRING, _enum.Windows.Security.Authorization.AppCapabilityAccess.AppCapabilityAccessStatus]]]],  # operation
                                                  _type.HRESULT]
@@ -55,5 +55,3 @@ class IAppCapabilityStatics(_inspectable.IInspectable):
                                            _type.UINT32,  # pid
                                            _Pointer[IAppCapability]],  # result
                                           _type.HRESULT]
-
-    _factory = True

@@ -20,9 +20,7 @@ class IXsltProcessor2(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IXsltProcessorFactory(_inspectable.IInspectable):
+class IXsltProcessorFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # document
                                _Pointer[IXsltProcessor]],  # xsltProcessor
                               _type.HRESULT]
-
-    _factory = True

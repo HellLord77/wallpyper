@@ -93,11 +93,9 @@ class IGlobalSystemMediaTransportControlsSessionManager(_inspectable.IInspectabl
                                       _type.HRESULT]
 
 
-class IGlobalSystemMediaTransportControlsSessionManagerStatics(_inspectable.IInspectable):
+class IGlobalSystemMediaTransportControlsSessionManagerStatics(_inspectable.IInspectable, factory=True):
     RequestAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IGlobalSystemMediaTransportControlsSessionManager]]],  # operation
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IGlobalSystemMediaTransportControlsSessionMediaProperties(_inspectable.IInspectable):

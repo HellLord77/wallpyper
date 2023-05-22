@@ -12,7 +12,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IAsymmetricAlgorithmNamesStatics(_inspectable.IInspectable):
+class IAsymmetricAlgorithmNamesStatics(_inspectable.IInspectable, factory=True):
     get_RsaPkcs1: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
     get_RsaOaepSha1: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -50,18 +50,14 @@ class IAsymmetricAlgorithmNamesStatics(_inspectable.IInspectable):
     get_RsaSignPssSha512: _Callable[[_Pointer[_type.HSTRING]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IAsymmetricAlgorithmNamesStatics2(_inspectable.IInspectable):
+class IAsymmetricAlgorithmNamesStatics2(_inspectable.IInspectable, factory=True):
     get_EcdsaSha256: _Callable[[_Pointer[_type.HSTRING]],  # value
                                _type.HRESULT]
     get_EcdsaSha384: _Callable[[_Pointer[_type.HSTRING]],  # value
                                _type.HRESULT]
     get_EcdsaSha512: _Callable[[_Pointer[_type.HSTRING]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IAsymmetricKeyAlgorithmProvider(_inspectable.IInspectable):
@@ -96,15 +92,13 @@ class IAsymmetricKeyAlgorithmProvider2(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IAsymmetricKeyAlgorithmProviderStatics(_inspectable.IInspectable):
+class IAsymmetricKeyAlgorithmProviderStatics(_inspectable.IInspectable, factory=True):
     OpenAlgorithm: _Callable[[_type.HSTRING,  # algorithm
                               _Pointer[IAsymmetricKeyAlgorithmProvider]],  # provider
                              _type.HRESULT]
 
-    _factory = True
 
-
-class ICryptographicEngineStatics(_inspectable.IInspectable):
+class ICryptographicEngineStatics(_inspectable.IInspectable, factory=True):
     Encrypt: _Callable[[ICryptographicKey,  # key
                         _Windows_Storage_Streams.IBuffer,  # data
                         _Windows_Storage_Streams.IBuffer,  # iv
@@ -143,10 +137,8 @@ class ICryptographicEngineStatics(_inspectable.IInspectable):
                                   _Pointer[_Windows_Storage_Streams.IBuffer]],  # keyMaterial
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ICryptographicEngineStatics2(_inspectable.IInspectable):
+class ICryptographicEngineStatics2(_inspectable.IInspectable, factory=True):
     SignHashedData: _Callable[[ICryptographicKey,  # key
                                _Windows_Storage_Streams.IBuffer,  # data
                                _Pointer[_Windows_Storage_Streams.IBuffer]],  # value
@@ -170,8 +162,6 @@ class ICryptographicEngineStatics2(_inspectable.IInspectable):
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage_Streams.IBuffer]]],  # value
                                    _type.HRESULT]
 
-    _factory = True
-
 
 class ICryptographicKey(_inspectable.IInspectable):
     get_KeySize: _Callable[[_Pointer[_type.UINT32]],  # value
@@ -188,7 +178,7 @@ class ICryptographicKey(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IEccCurveNamesStatics(_inspectable.IInspectable):
+class IEccCurveNamesStatics(_inspectable.IInspectable, factory=True):
     get_BrainpoolP160r1: _Callable[[_Pointer[_type.HSTRING]],  # value
                                    _type.HRESULT]
     get_BrainpoolP160t1: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -282,8 +272,6 @@ class IEccCurveNamesStatics(_inspectable.IInspectable):
     get_AllEccCurveNames: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IEncryptedAndAuthenticatedData(_inspectable.IInspectable):
     get_EncryptedData: _Callable[[_Pointer[_Windows_Storage_Streams.IBuffer]],  # value
@@ -292,7 +280,7 @@ class IEncryptedAndAuthenticatedData(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IHashAlgorithmNamesStatics(_inspectable.IInspectable):
+class IHashAlgorithmNamesStatics(_inspectable.IInspectable, factory=True):
     get_Md5: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_Sha1: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -303,8 +291,6 @@ class IHashAlgorithmNamesStatics(_inspectable.IInspectable):
                           _type.HRESULT]
     get_Sha512: _Callable[[_Pointer[_type.HSTRING]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IHashAlgorithmProvider(_inspectable.IInspectable):
@@ -319,12 +305,10 @@ class IHashAlgorithmProvider(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IHashAlgorithmProviderStatics(_inspectable.IInspectable):
+class IHashAlgorithmProviderStatics(_inspectable.IInspectable, factory=True):
     OpenAlgorithm: _Callable[[_type.HSTRING,  # algorithm
                               _Pointer[IHashAlgorithmProvider]],  # provider
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IHashComputation(_inspectable.IInspectable):
@@ -334,7 +318,7 @@ class IHashComputation(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IKeyDerivationAlgorithmNamesStatics(_inspectable.IInspectable):
+class IKeyDerivationAlgorithmNamesStatics(_inspectable.IInspectable, factory=True):
     get_Pbkdf2Md5: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
     get_Pbkdf2Sha1: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -366,10 +350,8 @@ class IKeyDerivationAlgorithmNamesStatics(_inspectable.IInspectable):
     get_Sp80056aConcatSha512: _Callable[[_Pointer[_type.HSTRING]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyDerivationAlgorithmNamesStatics2(_inspectable.IInspectable):
+class IKeyDerivationAlgorithmNamesStatics2(_inspectable.IInspectable, factory=True):
     get_CapiKdfMd5: _Callable[[_Pointer[_type.HSTRING]],  # value
                               _type.HRESULT]
     get_CapiKdfSha1: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -381,8 +363,6 @@ class IKeyDerivationAlgorithmNamesStatics2(_inspectable.IInspectable):
     get_CapiKdfSha512: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
-
 
 class IKeyDerivationAlgorithmProvider(_inspectable.IInspectable):
     get_AlgorithmName: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -392,12 +372,10 @@ class IKeyDerivationAlgorithmProvider(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IKeyDerivationAlgorithmProviderStatics(_inspectable.IInspectable):
+class IKeyDerivationAlgorithmProviderStatics(_inspectable.IInspectable, factory=True):
     OpenAlgorithm: _Callable[[_type.HSTRING,  # algorithm
                               _Pointer[IKeyDerivationAlgorithmProvider]],  # provider
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IKeyDerivationParameters(_inspectable.IInspectable):
@@ -416,7 +394,7 @@ class IKeyDerivationParameters2(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IKeyDerivationParametersStatics(_inspectable.IInspectable):
+class IKeyDerivationParametersStatics(_inspectable.IInspectable, factory=True):
     BuildForPbkdf2: _Callable[[_Windows_Storage_Streams.IBuffer,  # pbkdf2Salt
                                _type.UINT32,  # iterationCount
                                _Pointer[IKeyDerivationParameters]],  # value
@@ -433,18 +411,14 @@ class IKeyDerivationParametersStatics(_inspectable.IInspectable):
                                  _Pointer[IKeyDerivationParameters]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IKeyDerivationParametersStatics2(_inspectable.IInspectable):
+class IKeyDerivationParametersStatics2(_inspectable.IInspectable, factory=True):
     BuildForCapi1Kdf: _Callable[[_enum.Windows.Security.Cryptography.Core.Capi1KdfTargetAlgorithm,  # capi1KdfTargetAlgorithm
                                  _Pointer[IKeyDerivationParameters]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMacAlgorithmNamesStatics(_inspectable.IInspectable):
+class IMacAlgorithmNamesStatics(_inspectable.IInspectable, factory=True):
     get_HmacMd5: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
     get_HmacSha1: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -457,8 +431,6 @@ class IMacAlgorithmNamesStatics(_inspectable.IInspectable):
                               _type.HRESULT]
     get_AesCmac: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMacAlgorithmProvider(_inspectable.IInspectable):
@@ -477,15 +449,13 @@ class IMacAlgorithmProvider2(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IMacAlgorithmProviderStatics(_inspectable.IInspectable):
+class IMacAlgorithmProviderStatics(_inspectable.IInspectable, factory=True):
     OpenAlgorithm: _Callable[[_type.HSTRING,  # algorithm
                               _Pointer[IMacAlgorithmProvider]],  # provider
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IPersistedKeyProviderStatics(_inspectable.IInspectable):
+class IPersistedKeyProviderStatics(_inspectable.IInspectable, factory=True):
     OpenKeyPairFromCertificateAsync: _Callable[[_Windows_Security_Cryptography_Certificates.ICertificate,  # certificate
                                                 _type.HSTRING,  # hashAlgorithmName
                                                 _enum.Windows.Security.Cryptography.Core.CryptographicPadding,  # padding
@@ -497,10 +467,8 @@ class IPersistedKeyProviderStatics(_inspectable.IInspectable):
                                              _Pointer[ICryptographicKey]],  # key
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ISymmetricAlgorithmNamesStatics(_inspectable.IInspectable):
+class ISymmetricAlgorithmNamesStatics(_inspectable.IInspectable, factory=True):
     get_DesCbc: _Callable[[_Pointer[_type.HSTRING]],  # value
                           _type.HRESULT]
     get_DesEcb: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -540,8 +508,6 @@ class ISymmetricAlgorithmNamesStatics(_inspectable.IInspectable):
     get_Rc4: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
 
-    _factory = True
-
 
 class ISymmetricKeyAlgorithmProvider(_inspectable.IInspectable):
     get_AlgorithmName: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -553,9 +519,7 @@ class ISymmetricKeyAlgorithmProvider(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ISymmetricKeyAlgorithmProviderStatics(_inspectable.IInspectable):
+class ISymmetricKeyAlgorithmProviderStatics(_inspectable.IInspectable, factory=True):
     OpenAlgorithm: _Callable[[_type.HSTRING,  # algorithm
                               _Pointer[ISymmetricKeyAlgorithmProvider]],  # provider
                              _type.HRESULT]
-
-    _factory = True

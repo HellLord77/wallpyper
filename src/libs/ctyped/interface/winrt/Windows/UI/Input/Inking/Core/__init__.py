@@ -28,13 +28,11 @@ class ICoreIncrementalInkStroke(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ICoreIncrementalInkStrokeFactory(_inspectable.IInspectable):
+class ICoreIncrementalInkStrokeFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Input_Inking.IInkDrawingAttributes,  # drawingAttributes
                        _struct.Windows.Foundation.Numerics.Matrix3x2,  # pointTransform
                        _Pointer[ICoreIncrementalInkStroke]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreInkIndependentInputSource(_inspectable.IInspectable):
@@ -84,12 +82,10 @@ class ICoreInkIndependentInputSource2(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ICoreInkIndependentInputSourceStatics(_inspectable.IInspectable):
+class ICoreInkIndependentInputSourceStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Input_Inking.IInkPresenter,  # inkPresenter
                        _Pointer[ICoreInkIndependentInputSource]],  # inkIndependentInputSource
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreInkPresenterHost(_inspectable.IInspectable):
@@ -142,9 +138,7 @@ class ICoreWetStrokeUpdateSource(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ICoreWetStrokeUpdateSourceStatics(_inspectable.IInspectable):
+class ICoreWetStrokeUpdateSourceStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Input_Inking.IInkPresenter,  # inkPresenter
                        _Pointer[ICoreWetStrokeUpdateSource]],  # WetStrokeUpdateSource
                       _type.HRESULT]
-
-    _factory = True

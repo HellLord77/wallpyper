@@ -85,12 +85,10 @@ class IHttpBaseProtocolFilter5(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IHttpBaseProtocolFilterStatics(_inspectable.IInspectable):
+class IHttpBaseProtocolFilterStatics(_inspectable.IInspectable, factory=True):
     CreateForUser: _Callable[[_Windows_System.IUser,  # user
                               _Pointer[IHttpBaseProtocolFilter]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpCacheControl(_inspectable.IInspectable):

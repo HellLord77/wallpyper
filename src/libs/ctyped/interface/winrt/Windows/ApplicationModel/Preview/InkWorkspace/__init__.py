@@ -15,8 +15,6 @@ class IInkWorkspaceHostedAppManager(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IInkWorkspaceHostedAppManagerStatics(_inspectable.IInspectable):
+class IInkWorkspaceHostedAppManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentApp: _Callable[[_Pointer[IInkWorkspaceHostedAppManager]],  # current
                                 _type.HRESULT]
-
-    _factory = True

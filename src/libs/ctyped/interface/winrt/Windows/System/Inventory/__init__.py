@@ -20,8 +20,6 @@ class IInstalledDesktopApp(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IInstalledDesktopAppStatics(_inspectable.IInspectable):
+class IInstalledDesktopAppStatics(_inspectable.IInspectable, factory=True):
     GetInventoryAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IInstalledDesktopApp]]]],  # operation
                                  _type.HRESULT]
-
-    _factory = True

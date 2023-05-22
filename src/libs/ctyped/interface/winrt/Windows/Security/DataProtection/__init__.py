@@ -50,14 +50,12 @@ class IUserDataProtectionManager(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class IUserDataProtectionManagerStatics(_inspectable.IInspectable):
+class IUserDataProtectionManagerStatics(_inspectable.IInspectable, factory=True):
     TryGetDefault: _Callable[[_Pointer[IUserDataProtectionManager]],  # result
                              _type.HRESULT]
     TryGetForUser: _Callable[[_Windows_System.IUser,  # user
                               _Pointer[IUserDataProtectionManager]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IUserDataStorageItemProtectionInfo(_inspectable.IInspectable):

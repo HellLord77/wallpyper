@@ -80,14 +80,12 @@ class IVoiceCommandDefinition(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IVoiceCommandDefinitionManagerStatics(_inspectable.IInspectable):
+class IVoiceCommandDefinitionManagerStatics(_inspectable.IInspectable, factory=True):
     InstallCommandDefinitionsFromStorageFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                                               _Pointer[_Windows_Foundation.IAsyncAction]],  # installAction
                                                              _type.HRESULT]
     get_InstalledCommandDefinitions: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_type.HSTRING, IVoiceCommandDefinition]]],  # voiceCommandDefinitions
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IVoiceCommandDisambiguationResult(_inspectable.IInspectable):
@@ -112,7 +110,7 @@ class IVoiceCommandResponse(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IVoiceCommandResponseStatics(_inspectable.IInspectable):
+class IVoiceCommandResponseStatics(_inspectable.IInspectable, factory=True):
     get_MaxSupportedVoiceCommandContentTiles: _Callable[[_Pointer[_type.UINT32]],  # value
                                                         _type.HRESULT]
     CreateResponse: _Callable[[IVoiceCommandUserMessage,  # userMessage
@@ -131,8 +129,6 @@ class IVoiceCommandResponseStatics(_inspectable.IInspectable):
                                                  _Windows_Foundation_Collections.IIterable[IVoiceCommandContentTile],  # contentTiles
                                                  _Pointer[IVoiceCommandResponse]],  # response
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IVoiceCommandServiceConnection(_inspectable.IInspectable):
@@ -165,12 +161,10 @@ class IVoiceCommandServiceConnection(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IVoiceCommandServiceConnectionStatics(_inspectable.IInspectable):
+class IVoiceCommandServiceConnectionStatics(_inspectable.IInspectable, factory=True):
     FromAppServiceTriggerDetails: _Callable[[_Windows_ApplicationModel_AppService.IAppServiceTriggerDetails,  # triggerDetails
                                              _Pointer[IVoiceCommandServiceConnection]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IVoiceCommandUserMessage(_inspectable.IInspectable):

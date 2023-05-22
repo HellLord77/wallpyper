@@ -24,7 +24,7 @@ class IDualSimTile(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IDualSimTileStatics(_inspectable.IInspectable):
+class IDualSimTileStatics(_inspectable.IInspectable, factory=True):
     GetTileForSim2: _Callable[[_Pointer[IDualSimTile]],  # result
                               _type.HRESULT]
     UpdateDisplayNameForSim1Async: _Callable[[_type.HSTRING,  # name
@@ -42,8 +42,6 @@ class IDualSimTileStatics(_inspectable.IInspectable):
                                           _type.HRESULT]
     CreateToastNotifierForSim2: _Callable[[_Pointer[_Windows_UI_Notifications.IToastNotifier]],  # notifier
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IToastNotificationManagerStatics3(_inspectable.IInspectable):

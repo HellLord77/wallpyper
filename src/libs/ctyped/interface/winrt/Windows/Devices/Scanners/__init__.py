@@ -166,11 +166,9 @@ class IImageScannerSourceConfiguration(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IImageScannerStatics(_inspectable.IInspectable):
+class IImageScannerStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IImageScanner]]],  # asyncInfo
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
-
-    _factory = True

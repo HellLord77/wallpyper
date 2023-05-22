@@ -210,7 +210,7 @@ class IMediaFrameSourceGroup(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IMediaFrameSourceGroupStatics(_inspectable.IInspectable):
+class IMediaFrameSourceGroupStatics(_inspectable.IInspectable, factory=True):
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IMediaFrameSourceGroup]]]],  # value
                             _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # id
@@ -218,8 +218,6 @@ class IMediaFrameSourceGroupStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaFrameSourceInfo(_inspectable.IInspectable):

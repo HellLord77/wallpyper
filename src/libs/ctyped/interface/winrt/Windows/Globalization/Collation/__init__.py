@@ -20,9 +20,7 @@ class ICharacterGroupings(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class ICharacterGroupingsFactory(_inspectable.IInspectable):
+class ICharacterGroupingsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # language
                        _Pointer[ICharacterGroupings]],  # result
                       _type.HRESULT]
-
-    _factory = True

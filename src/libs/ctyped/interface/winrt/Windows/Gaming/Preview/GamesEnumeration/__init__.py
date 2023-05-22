@@ -79,7 +79,7 @@ class IGameListEntry2(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IGameListStatics(_inspectable.IInspectable):
+class IGameListStatics(_inspectable.IInspectable, factory=True):
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IGameListEntry]]]],  # operation
                             _type.HRESULT]
     FindAllAsyncPackageFamilyName: _Callable[[_type.HSTRING,  # packageFamilyName
@@ -101,10 +101,8 @@ class IGameListStatics(_inspectable.IInspectable):
     remove_GameUpdated: _Callable[[_struct.EventRegistrationToken],  # token
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IGameListStatics2(_inspectable.IInspectable):
+class IGameListStatics2(_inspectable.IInspectable, factory=True):
     MergeEntriesAsync: _Callable[[IGameListEntry,  # left
                                   IGameListEntry,  # right
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IGameListEntry]]],  # operation
@@ -112,8 +110,6 @@ class IGameListStatics2(_inspectable.IInspectable):
     UnmergeEntryAsync: _Callable[[IGameListEntry,  # mergedEntry
                                   _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IGameListEntry]]]],  # operation
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IGameModeConfiguration(_inspectable.IInspectable):
@@ -162,8 +158,6 @@ class IGameModeUserConfiguration(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IGameModeUserConfigurationStatics(_inspectable.IInspectable):
+class IGameModeUserConfigurationStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IGameModeUserConfiguration]],  # userConfiguration
                           _type.HRESULT]
-
-    _factory = True

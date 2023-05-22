@@ -216,8 +216,6 @@ class IXamlDirectObject(_inspectable.IInspectable):
     pass
 
 
-class IXamlDirectStatics(_inspectable.IInspectable):
+class IXamlDirectStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IXamlDirect]],  # result
                           _type.HRESULT]
-
-    _factory = True

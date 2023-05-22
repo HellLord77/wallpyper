@@ -96,7 +96,7 @@ class IESimDownloadProfileMetadataResult(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IESimManagerStatics(_inspectable.IInspectable):
+class IESimManagerStatics(_inspectable.IInspectable, factory=True):
     get_ServiceInfo: _Callable[[_Pointer[IESimServiceInfo]],  # value
                                _type.HRESULT]
     TryCreateESimWatcher: _Callable[[_Pointer[IESimWatcher]],  # result
@@ -106,8 +106,6 @@ class IESimManagerStatics(_inspectable.IInspectable):
                                       _type.HRESULT]
     remove_ServiceInfoChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IESimOperationResult(_inspectable.IInspectable):
@@ -237,12 +235,10 @@ class IESimWatcher(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFdnAccessManagerStatics(_inspectable.IInspectable):
+class IFdnAccessManagerStatics(_inspectable.IInspectable, factory=True):
     RequestUnlockAsync: _Callable[[_type.HSTRING,  # contactListId
                                    _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # returnValue
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IHotspotAuthenticationContext(_inspectable.IInspectable):
@@ -280,13 +276,11 @@ class IHotspotAuthenticationContext2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IHotspotAuthenticationContextStatics(_inspectable.IInspectable):
+class IHotspotAuthenticationContextStatics(_inspectable.IInspectable, factory=True):
     TryGetAuthenticationContext: _Callable[[_type.HSTRING,  # evenToken
                                             _Pointer[IHotspotAuthenticationContext],  # context
                                             _Pointer[_type.boolean]],  # isValid
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IHotspotAuthenticationEventDetails(_inspectable.IInspectable):
@@ -305,7 +299,7 @@ class IHotspotCredentialsAuthenticationResult(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IKnownCSimFilePathsStatics(_inspectable.IInspectable):
+class IKnownCSimFilePathsStatics(_inspectable.IInspectable, factory=True):
     get_EFSpn: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                          _type.HRESULT]
     get_Gid1: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
@@ -313,10 +307,8 @@ class IKnownCSimFilePathsStatics(_inspectable.IInspectable):
     get_Gid2: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownRuimFilePathsStatics(_inspectable.IInspectable):
+class IKnownRuimFilePathsStatics(_inspectable.IInspectable, factory=True):
     get_EFSpn: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                          _type.HRESULT]
     get_Gid1: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
@@ -324,10 +316,8 @@ class IKnownRuimFilePathsStatics(_inspectable.IInspectable):
     get_Gid2: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownSimFilePathsStatics(_inspectable.IInspectable):
+class IKnownSimFilePathsStatics(_inspectable.IInspectable, factory=True):
     get_EFOns: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                          _type.HRESULT]
     get_EFSpn: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
@@ -337,10 +327,8 @@ class IKnownSimFilePathsStatics(_inspectable.IInspectable):
     get_Gid2: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownUSimFilePathsStatics(_inspectable.IInspectable):
+class IKnownUSimFilePathsStatics(_inspectable.IInspectable, factory=True):
     get_EFSpn: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                          _type.HRESULT]
     get_EFOpl: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
@@ -351,8 +339,6 @@ class IKnownUSimFilePathsStatics(_inspectable.IInspectable):
                         _type.HRESULT]
     get_Gid2: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.UINT32]]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMobileBroadbandAccount(_inspectable.IInspectable):
@@ -383,14 +369,12 @@ class IMobileBroadbandAccountEventArgs(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IMobileBroadbandAccountStatics(_inspectable.IInspectable):
+class IMobileBroadbandAccountStatics(_inspectable.IInspectable, factory=True):
     get_AvailableNetworkAccountIds: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # ppAccountIds
                                               _type.HRESULT]
     CreateFromNetworkAccountId: _Callable[[_type.HSTRING,  # networkAccountId
                                            _Pointer[IMobileBroadbandAccount]],  # ppAccount
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IMobileBroadbandAccountUpdatedEventArgs(_inspectable.IInspectable):
@@ -443,13 +427,11 @@ class IMobileBroadbandAntennaSar(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IMobileBroadbandAntennaSarFactory(_inspectable.IInspectable):
+class IMobileBroadbandAntennaSarFactory(_inspectable.IInspectable, factory=True):
     CreateWithIndex: _Callable[[_type.INT32,  # antennaIndex
                                 _type.INT32,  # sarBackoffIndex
                                 _Pointer[IMobileBroadbandAntennaSar]],  # antennaSar
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IMobileBroadbandCellCdma(_inspectable.IInspectable):
@@ -814,16 +796,14 @@ class IMobileBroadbandModemIsolation(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IMobileBroadbandModemIsolationFactory(_inspectable.IInspectable):
+class IMobileBroadbandModemIsolationFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # modemDeviceId
                        _type.HSTRING,  # ruleGroupId
                        _Pointer[IMobileBroadbandModemIsolation]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IMobileBroadbandModemStatics(_inspectable.IInspectable):
+class IMobileBroadbandModemStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     FromId: _Callable[[_type.HSTRING,  # deviceId
@@ -831,8 +811,6 @@ class IMobileBroadbandModemStatics(_inspectable.IInspectable):
                       _type.HRESULT]
     GetDefault: _Callable[[_Pointer[IMobileBroadbandModem]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IMobileBroadbandNetwork(_inspectable.IInspectable):
@@ -1182,7 +1160,7 @@ class INetworkOperatorTetheringManager(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class INetworkOperatorTetheringManagerStatics(_inspectable.IInspectable):
+class INetworkOperatorTetheringManagerStatics(_inspectable.IInspectable, factory=True):
     GetTetheringCapability: _Callable[[_type.HSTRING,  # networkAccountId
                                        _Pointer[_enum.Windows.Networking.NetworkOperators.TetheringCapability]],  # value
                                       _type.HRESULT]
@@ -1190,10 +1168,8 @@ class INetworkOperatorTetheringManagerStatics(_inspectable.IInspectable):
                                            _Pointer[INetworkOperatorTetheringManager]],  # ppManager
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class INetworkOperatorTetheringManagerStatics2(_inspectable.IInspectable):
+class INetworkOperatorTetheringManagerStatics2(_inspectable.IInspectable, factory=True):
     GetTetheringCapabilityFromConnectionProfile: _Callable[[_Windows_Networking_Connectivity.IConnectionProfile,  # profile
                                                             _Pointer[_enum.Windows.Networking.NetworkOperators.TetheringCapability]],  # result
                                                            _type.HRESULT]
@@ -1201,19 +1177,15 @@ class INetworkOperatorTetheringManagerStatics2(_inspectable.IInspectable):
                                             _Pointer[INetworkOperatorTetheringManager]],  # ppManager
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class INetworkOperatorTetheringManagerStatics3(_inspectable.IInspectable):
+class INetworkOperatorTetheringManagerStatics3(_inspectable.IInspectable, factory=True):
     CreateFromConnectionProfileWithTargetAdapter: _Callable[[_Windows_Networking_Connectivity.IConnectionProfile,  # profile
                                                              _Windows_Networking_Connectivity.INetworkAdapter,  # adapter
                                                              _Pointer[INetworkOperatorTetheringManager]],  # ppManager
                                                             _type.HRESULT]
 
-    _factory = True
 
-
-class INetworkOperatorTetheringManagerStatics4(_inspectable.IInspectable):
+class INetworkOperatorTetheringManagerStatics4(_inspectable.IInspectable, factory=True):
     IsNoConnectionsTimeoutEnabled: _Callable[[_Pointer[_type.boolean]],  # result
                                              _type.HRESULT]
     EnableNoConnectionsTimeout: _Callable[[],
@@ -1224,8 +1196,6 @@ class INetworkOperatorTetheringManagerStatics4(_inspectable.IInspectable):
                                            _type.HRESULT]
     DisableNoConnectionsTimeoutAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class INetworkOperatorTetheringOperationResult(_inspectable.IInspectable):
@@ -1259,12 +1229,10 @@ class IProvisioningAgent(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IProvisioningAgentStaticMethods(_inspectable.IInspectable):
+class IProvisioningAgentStaticMethods(_inspectable.IInspectable, factory=True):
     CreateFromNetworkAccountId: _Callable[[_type.HSTRING,  # networkAccountId
                                            _Pointer[IProvisioningAgent]],  # provisioningAgent
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ITetheringEntitlementCheckTriggerDetails(_inspectable.IInspectable):
@@ -1293,12 +1261,10 @@ class IUssdMessage(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IUssdMessageFactory(_inspectable.IInspectable):
+class IUssdMessageFactory(_inspectable.IInspectable, factory=True):
     CreateMessage: _Callable[[_type.HSTRING,  # messageText
                               _Pointer[IUssdMessage]],  # ussdMessage
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IUssdReply(_inspectable.IInspectable):
@@ -1316,12 +1282,10 @@ class IUssdSession(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class IUssdSessionStatics(_inspectable.IInspectable):
+class IUssdSessionStatics(_inspectable.IInspectable, factory=True):
     CreateFromNetworkAccountId: _Callable[[_type.HSTRING,  # networkAccountId
                                            _Pointer[IUssdSession]],  # ussdSession
                                           _type.HRESULT]
     CreateFromNetworkInterfaceId: _Callable[[_type.HSTRING,  # networkInterfaceId
                                              _Pointer[IUssdSession]],  # ussdSession
                                             _type.HRESULT]
-
-    _factory = True

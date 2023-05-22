@@ -330,13 +330,11 @@ class IAdaptiveTriggerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAdaptiveTriggerStatics(_inspectable.IInspectable):
+class IAdaptiveTriggerStatics(_inspectable.IInspectable, factory=True):
     get_MinWindowWidthProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                           _type.HRESULT]
     get_MinWindowHeightProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IApplication(_inspectable.IInspectable):
@@ -434,7 +432,7 @@ class IApplicationOverrides2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IApplicationStatics(_inspectable.IInspectable):
+class IApplicationStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IApplication]],  # value
                            _type.HRESULT]
     Start: _Callable[[IApplicationInitializationCallback],  # callback
@@ -446,8 +444,6 @@ class IApplicationStatics(_inspectable.IInspectable):
                                                   _Windows_Foundation.IUriRuntimeClass,  # resourceLocator
                                                   _enum.Windows.UI.Xaml.Controls.Primitives.ComponentResourceLocation],  # componentResourceLocation
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IBindingFailedEventArgs(_inspectable.IInspectable):
@@ -652,7 +648,7 @@ class ICornerRadiusHelper(_inspectable.IInspectable):
     pass
 
 
-class ICornerRadiusHelperStatics(_inspectable.IInspectable):
+class ICornerRadiusHelperStatics(_inspectable.IInspectable, factory=True):
     FromRadii: _Callable[[_type.DOUBLE,  # topLeft
                           _type.DOUBLE,  # topRight
                           _type.DOUBLE,  # bottomRight
@@ -662,8 +658,6 @@ class ICornerRadiusHelperStatics(_inspectable.IInspectable):
     FromUniformRadius: _Callable[[_type.DOUBLE,  # uniformRadius
                                   _Pointer[_struct.Windows.UI.Xaml.CornerRadius]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IDataContextChangedEventArgs(_inspectable.IInspectable):
@@ -717,7 +711,7 @@ class IDataTemplateKeyFactory(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IDataTemplateStatics2(_inspectable.IInspectable):
+class IDataTemplateStatics2(_inspectable.IInspectable, factory=True):
     get_ExtensionInstanceProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                              _type.HRESULT]
     GetExtensionInstance: _Callable[[IFrameworkElement,  # element
@@ -726,8 +720,6 @@ class IDataTemplateStatics2(_inspectable.IInspectable):
     SetExtensionInstance: _Callable[[IFrameworkElement,  # element
                                      IDataTemplateExtension],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IDebugSettings(_inspectable.IInspectable):
@@ -829,7 +821,7 @@ class IDependencyPropertyChangedEventArgs(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IDependencyPropertyStatics(_inspectable.IInspectable):
+class IDependencyPropertyStatics(_inspectable.IInspectable, factory=True):
     get_UnsetValue: _Callable[[_Pointer[_inspectable.IInspectable]],  # value
                               _type.HRESULT]
     Register: _Callable[[_type.HSTRING,  # name
@@ -844,8 +836,6 @@ class IDependencyPropertyStatics(_inspectable.IInspectable):
                                  IPropertyMetadata,  # defaultMetadata
                                  _Pointer[IDependencyProperty]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IDispatcherTimer(_inspectable.IInspectable):
@@ -990,7 +980,7 @@ class IDurationHelper(_inspectable.IInspectable):
     pass
 
 
-class IDurationHelperStatics(_inspectable.IInspectable):
+class IDurationHelperStatics(_inspectable.IInspectable, factory=True):
     get_Automatic: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Duration]],  # value
                              _type.HRESULT]
     get_Forever: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Duration]],  # value
@@ -1017,8 +1007,6 @@ class IDurationHelperStatics(_inspectable.IInspectable):
                          _struct.Windows.UI.Xaml.Duration,  # duration
                          _Pointer[_struct.Windows.UI.Xaml.Duration]],  # result
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IEffectiveViewportChangedEventArgs(_inspectable.IInspectable):
@@ -1080,7 +1068,7 @@ class IElementSoundPlayer(_inspectable.IInspectable):
     pass
 
 
-class IElementSoundPlayerStatics(_inspectable.IInspectable):
+class IElementSoundPlayerStatics(_inspectable.IInspectable, factory=True):
     get_Volume: _Callable[[_Pointer[_type.DOUBLE]],  # value
                           _type.HRESULT]
     put_Volume: _Callable[[_type.DOUBLE],  # value
@@ -1092,16 +1080,12 @@ class IElementSoundPlayerStatics(_inspectable.IInspectable):
     Play: _Callable[[_enum.Windows.UI.Xaml.ElementSoundKind],  # sound
                     _type.HRESULT]
 
-    _factory = True
 
-
-class IElementSoundPlayerStatics2(_inspectable.IInspectable):
+class IElementSoundPlayerStatics2(_inspectable.IInspectable, factory=True):
     get_SpatialAudioMode: _Callable[[_Pointer[_enum.Windows.UI.Xaml.ElementSpatialAudioMode]],  # value
                                     _type.HRESULT]
     put_SpatialAudioMode: _Callable[[_enum.Windows.UI.Xaml.ElementSpatialAudioMode],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IEventTrigger(_inspectable.IInspectable):
@@ -1329,7 +1313,7 @@ class IFrameworkElementProtected7(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IFrameworkElementStatics(_inspectable.IInspectable):
+class IFrameworkElementStatics(_inspectable.IInspectable, factory=True):
     get_TagProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                _type.HRESULT]
     get_LanguageProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
@@ -1365,17 +1349,13 @@ class IFrameworkElementStatics(_inspectable.IInspectable):
     get_FlowDirectionProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IFrameworkElementStatics2(_inspectable.IInspectable):
+class IFrameworkElementStatics2(_inspectable.IInspectable, factory=True):
     get_RequestedThemeProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IFrameworkElementStatics4(_inspectable.IInspectable):
+class IFrameworkElementStatics4(_inspectable.IInspectable, factory=True):
     get_AllowFocusOnInteractionProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_FocusVisualMarginProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
@@ -1391,21 +1371,15 @@ class IFrameworkElementStatics4(_inspectable.IInspectable):
     get_AllowFocusWhenDisabledProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IFrameworkElementStatics5(_inspectable.IInspectable):
+class IFrameworkElementStatics5(_inspectable.IInspectable, factory=True):
     DeferTree: _Callable[[IDependencyObject],  # element
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IFrameworkElementStatics6(_inspectable.IInspectable):
+class IFrameworkElementStatics6(_inspectable.IInspectable, factory=True):
     get_ActualThemeProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IFrameworkTemplate(_inspectable.IInspectable):
@@ -1431,7 +1405,7 @@ class IGridLengthHelper(_inspectable.IInspectable):
     pass
 
 
-class IGridLengthHelperStatics(_inspectable.IInspectable):
+class IGridLengthHelperStatics(_inspectable.IInspectable, factory=True):
     get_Auto: _Callable[[_Pointer[_struct.Windows.UI.Xaml.GridLength]],  # value
                         _type.HRESULT]
     FromPixels: _Callable[[_type.DOUBLE,  # pixels
@@ -1455,8 +1429,6 @@ class IGridLengthHelperStatics(_inspectable.IInspectable):
                        _Pointer[_type.boolean]],  # result
                       _type.HRESULT]
 
-    _factory = True
-
 
 class IMediaFailedRoutedEventArgs(_inspectable.IInspectable):
     get_ErrorTrace: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -1467,13 +1439,11 @@ class IPointHelper(_inspectable.IInspectable):
     pass
 
 
-class IPointHelperStatics(_inspectable.IInspectable):
+class IPointHelperStatics(_inspectable.IInspectable, factory=True):
     FromCoordinates: _Callable[[_type.FLOAT,  # x
                                 _type.FLOAT,  # y
                                 _Pointer[_struct.Windows.Foundation.Point]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IPropertyMetadata(_inspectable.IInspectable):
@@ -1497,7 +1467,7 @@ class IPropertyMetadataFactory(_inspectable.IInspectable):
                                                          _type.HRESULT]
 
 
-class IPropertyMetadataStatics(_inspectable.IInspectable):
+class IPropertyMetadataStatics(_inspectable.IInspectable, factory=True):
     CreateWithDefaultValue: _Callable[[_inspectable.IInspectable,  # defaultValue
                                        _Pointer[IPropertyMetadata]],  # result
                                       _type.HRESULT]
@@ -1513,27 +1483,23 @@ class IPropertyMetadataStatics(_inspectable.IInspectable):
                                              _Pointer[IPropertyMetadata]],  # result
                                             _type.HRESULT]
 
-    _factory = True
-
 
 class IPropertyPath(_inspectable.IInspectable):
     get_Path: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
 
-class IPropertyPathFactory(_inspectable.IInspectable):
+class IPropertyPathFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # path
                                _Pointer[IPropertyPath]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IRectHelper(_inspectable.IInspectable):
     pass
 
 
-class IRectHelperStatics(_inspectable.IInspectable):
+class IRectHelperStatics(_inspectable.IInspectable, factory=True):
     get_Empty: _Callable[[_Pointer[_struct.Windows.Foundation.Rect]],  # value
                          _type.HRESULT]
     FromCoordinatesAndDimensions: _Callable[[_type.FLOAT,  # x
@@ -1585,8 +1551,6 @@ class IRectHelperStatics(_inspectable.IInspectable):
                               _struct.Windows.Foundation.Rect,  # rect
                               _Pointer[_struct.Windows.Foundation.Rect]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IResourceDictionary(_inspectable.IInspectable):
@@ -1669,13 +1633,11 @@ class ISetterBaseFactory(_inspectable.IInspectable):
     pass
 
 
-class ISetterFactory(_inspectable.IInspectable):
+class ISetterFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[IDependencyProperty,  # targetProperty
                                _inspectable.IInspectable,  # value
                                _Pointer[ISetter]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISizeChangedEventArgs(_inspectable.IInspectable):
@@ -1689,7 +1651,7 @@ class ISizeHelper(_inspectable.IInspectable):
     pass
 
 
-class ISizeHelperStatics(_inspectable.IInspectable):
+class ISizeHelperStatics(_inspectable.IInspectable, factory=True):
     get_Empty: _Callable[[_Pointer[_struct.Windows.Foundation.Size]],  # value
                          _type.HRESULT]
     FromDimensions: _Callable[[_type.FLOAT,  # width
@@ -1703,8 +1665,6 @@ class ISizeHelperStatics(_inspectable.IInspectable):
                        _struct.Windows.Foundation.Size,  # value
                        _Pointer[_type.boolean]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IStateTrigger(_inspectable.IInspectable):
@@ -1730,11 +1690,9 @@ class IStateTriggerBaseProtected(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IStateTriggerStatics(_inspectable.IInspectable):
+class IStateTriggerStatics(_inspectable.IInspectable, factory=True):
     get_IsActiveProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IStyle(_inspectable.IInspectable):
@@ -1754,12 +1712,10 @@ class IStyle(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IStyleFactory(_inspectable.IInspectable):
+class IStyleFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_struct.Windows.UI.Xaml.Interop.TypeName,  # targetType
                                _Pointer[IStyle]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ITargetPropertyPath(_inspectable.IInspectable):
@@ -1773,19 +1729,17 @@ class ITargetPropertyPath(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ITargetPropertyPathFactory(_inspectable.IInspectable):
+class ITargetPropertyPathFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[IDependencyProperty,  # targetProperty
                                _Pointer[ITargetPropertyPath]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IThicknessHelper(_inspectable.IInspectable):
     pass
 
 
-class IThicknessHelperStatics(_inspectable.IInspectable):
+class IThicknessHelperStatics(_inspectable.IInspectable, factory=True):
     FromLengths: _Callable[[_type.DOUBLE,  # left
                             _type.DOUBLE,  # top
                             _type.DOUBLE,  # right
@@ -1795,8 +1749,6 @@ class IThicknessHelperStatics(_inspectable.IInspectable):
     FromUniformLength: _Callable[[_type.DOUBLE,  # uniformLength
                                   _Pointer[_struct.Windows.UI.Xaml.Thickness]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ITriggerAction(_inspectable.IInspectable):
@@ -2335,7 +2287,7 @@ class IUIElementOverrides9(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IUIElementStatics(_inspectable.IInspectable):
+class IUIElementStatics(_inspectable.IInspectable, factory=True):
     get_KeyDownEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
                                 _type.HRESULT]
     get_KeyUpEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
@@ -2417,24 +2369,18 @@ class IUIElementStatics(_inspectable.IInspectable):
     get_PointerCapturesProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics10(_inspectable.IInspectable):
+class IUIElementStatics10(_inspectable.IInspectable, factory=True):
     get_ShadowProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics2(_inspectable.IInspectable):
+class IUIElementStatics2(_inspectable.IInspectable, factory=True):
     get_CompositeModeProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics3(_inspectable.IInspectable):
+class IUIElementStatics3(_inspectable.IInspectable, factory=True):
     get_Transform3DProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_CanDragProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
@@ -2443,10 +2389,8 @@ class IUIElementStatics3(_inspectable.IInspectable):
                                            _Pointer[_type.boolean]],  # result
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics4(_inspectable.IInspectable):
+class IUIElementStatics4(_inspectable.IInspectable, factory=True):
     get_ContextFlyoutProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_ExitDisplayModeOnAccessKeyInvokedProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
@@ -2458,10 +2402,8 @@ class IUIElementStatics4(_inspectable.IInspectable):
     get_AccessKeyProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics5(_inspectable.IInspectable):
+class IUIElementStatics5(_inspectable.IInspectable, factory=True):
     get_LightsProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_KeyTipPlacementModeProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
@@ -2485,10 +2427,8 @@ class IUIElementStatics5(_inspectable.IInspectable):
     get_TabFocusNavigationProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics6(_inspectable.IInspectable):
+class IUIElementStatics6(_inspectable.IInspectable, factory=True):
     get_GettingFocusEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
                                      _type.HRESULT]
     get_LosingFocusEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
@@ -2496,10 +2436,8 @@ class IUIElementStatics6(_inspectable.IInspectable):
     get_NoFocusCandidateFoundEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics7(_inspectable.IInspectable):
+class IUIElementStatics7(_inspectable.IInspectable, factory=True):
     get_PreviewKeyDownEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
                                        _type.HRESULT]
     get_CharacterReceivedEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
@@ -2507,10 +2445,8 @@ class IUIElementStatics7(_inspectable.IInspectable):
     get_PreviewKeyUpEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics8(_inspectable.IInspectable):
+class IUIElementStatics8(_inspectable.IInspectable, factory=True):
     get_BringIntoViewRequestedEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
                                                _type.HRESULT]
     get_ContextRequestedEvent: _Callable[[_Pointer[IRoutedEvent]],  # value
@@ -2524,14 +2460,10 @@ class IUIElementStatics8(_inspectable.IInspectable):
     RegisterAsScrollPort: _Callable[[IUIElement],  # element
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IUIElementStatics9(_inspectable.IInspectable):
+class IUIElementStatics9(_inspectable.IInspectable, factory=True):
     get_CanBeScrollAnchorProperty: _Callable[[_Pointer[IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IUIElementWeakCollection(_inspectable.IInspectable):
@@ -2661,7 +2593,7 @@ class IVisualStateManagerProtected(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IVisualStateManagerStatics(_inspectable.IInspectable):
+class IVisualStateManagerStatics(_inspectable.IInspectable, factory=True):
     GetVisualStateGroups: _Callable[[IFrameworkElement,  # obj
                                      _Pointer[_Windows_Foundation_Collections.IVector[IVisualStateGroup]]],  # result
                                     _type.HRESULT]
@@ -2678,8 +2610,6 @@ class IVisualStateManagerStatics(_inspectable.IInspectable):
                           _type.boolean,  # useTransitions
                           _Pointer[_type.boolean]],  # result
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IVisualTransition(_inspectable.IInspectable):
@@ -2771,11 +2701,9 @@ class IWindowCreatedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IWindowStatics(_inspectable.IInspectable):
+class IWindowStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IWindow]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlRoot(_inspectable.IInspectable):

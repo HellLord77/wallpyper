@@ -215,18 +215,14 @@ class ICoreTextServicesManager(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ICoreTextServicesManagerStatics(_inspectable.IInspectable):
+class ICoreTextServicesManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ICoreTextServicesManager]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreTextServicesStatics(_inspectable.IInspectable):
+class ICoreTextServicesStatics(_inspectable.IInspectable, factory=True):
     get_HiddenCharacter: _Callable[[_Pointer[_type.WCHAR]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreTextTextRequest(_inspectable.IInspectable):

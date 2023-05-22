@@ -84,20 +84,16 @@ class ISceneMeshRendererComponent(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISceneMeshRendererComponentStatics(_inspectable.IInspectable):
+class ISceneMeshRendererComponentStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ISceneMeshRendererComponent]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class ISceneMeshStatics(_inspectable.IInspectable):
+class ISceneMeshStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ISceneMesh]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISceneMetallicRoughnessMaterial(_inspectable.IInspectable):
@@ -123,12 +119,10 @@ class ISceneMetallicRoughnessMaterial(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ISceneMetallicRoughnessMaterialStatics(_inspectable.IInspectable):
+class ISceneMetallicRoughnessMaterialStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ISceneMetallicRoughnessMaterial]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISceneModelTransform(_inspectable.IInspectable):
@@ -176,12 +170,10 @@ class ISceneNodeCollection(_inspectable.IInspectable):
     pass
 
 
-class ISceneNodeStatics(_inspectable.IInspectable):
+class ISceneNodeStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ISceneNode]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISceneObject(_inspectable.IInspectable):
@@ -262,12 +254,10 @@ class ISceneSurfaceMaterialInput(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ISceneSurfaceMaterialInputStatics(_inspectable.IInspectable):
+class ISceneSurfaceMaterialInputStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ISceneSurfaceMaterialInput]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISceneVisual(_inspectable.IInspectable):
@@ -277,9 +267,7 @@ class ISceneVisual(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ISceneVisualStatics(_inspectable.IInspectable):
+class ISceneVisualStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                        _Pointer[ISceneVisual]],  # result
                       _type.HRESULT]
-
-    _factory = True

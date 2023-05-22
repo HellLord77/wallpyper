@@ -55,14 +55,12 @@ class IXamlBinaryWriter(_inspectable.IInspectable):
     pass
 
 
-class IXamlBinaryWriterStatics(_inspectable.IInspectable):
+class IXamlBinaryWriterStatics(_inspectable.IInspectable, factory=True):
     Write: _Callable[[_Windows_Foundation_Collections.IVector[_Windows_Storage_Streams.IRandomAccessStream],  # inputStreams
                       _Windows_Foundation_Collections.IVector[_Windows_Storage_Streams.IRandomAccessStream],  # outputStreams
                       IXamlMetadataProvider,  # xamlMetadataProvider
                       _Pointer[_struct.Windows.UI.Xaml.Markup.XamlBinaryWriterErrorInformation]],  # result
                      _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlBindScopeDiagnostics(_inspectable.IInspectable):
@@ -75,7 +73,7 @@ class IXamlBindingHelper(_inspectable.IInspectable):
     pass
 
 
-class IXamlBindingHelperStatics(_inspectable.IInspectable):
+class IXamlBindingHelperStatics(_inspectable.IInspectable, factory=True):
     get_DataTemplateComponentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
     GetDataTemplateComponent: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # element
@@ -161,18 +159,14 @@ class IXamlBindingHelperStatics(_inspectable.IInspectable):
                                       _inspectable.IInspectable],  # value
                                      _type.HRESULT]
 
-    _factory = True
-
 
 class IXamlMarkupHelper(_inspectable.IInspectable):
     pass
 
 
-class IXamlMarkupHelperStatics(_inspectable.IInspectable):
+class IXamlMarkupHelperStatics(_inspectable.IInspectable, factory=True):
     UnloadObject: _Callable[[_Windows_UI_Xaml.IDependencyObject],  # element
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlMember(_inspectable.IInspectable):
@@ -212,15 +206,13 @@ class IXamlReader(_inspectable.IInspectable):
     pass
 
 
-class IXamlReaderStatics(_inspectable.IInspectable):
+class IXamlReaderStatics(_inspectable.IInspectable, factory=True):
     Load: _Callable[[_type.HSTRING,  # xaml
                      _Pointer[_inspectable.IInspectable]],  # result
                     _type.HRESULT]
     LoadWithInitialTemplateValidation: _Callable[[_type.HSTRING,  # xaml
                                                   _Pointer[_inspectable.IInspectable]],  # result
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlType(_inspectable.IInspectable):

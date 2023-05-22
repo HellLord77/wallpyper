@@ -48,10 +48,8 @@ class IResourceIndexerFactory(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IResourceIndexerFactory2(_inspectable.IInspectable):
+class IResourceIndexerFactory2(_inspectable.IInspectable, factory=True):
     CreateResourceIndexerWithExtension: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # projectRoot
                                                    _Windows_Foundation.IUriRuntimeClass,  # extensionDllPath
                                                    _Pointer[IResourceIndexer]],  # indexer
                                                   _type.HRESULT]
-
-    _factory = True

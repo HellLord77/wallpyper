@@ -54,12 +54,10 @@ class ICustomSensorReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ICustomSensorStatics(_inspectable.IInspectable):
+class ICustomSensorStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_struct.GUID,  # interfaceId
                                   _Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # sensorId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ICustomSensor]]],  # result
                            _type.HRESULT]
-
-    _factory = True

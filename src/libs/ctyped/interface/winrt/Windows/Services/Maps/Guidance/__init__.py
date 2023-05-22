@@ -150,18 +150,14 @@ class IGuidanceNavigator2(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IGuidanceNavigatorStatics(_inspectable.IInspectable):
+class IGuidanceNavigatorStatics(_inspectable.IInspectable, factory=True):
     GetCurrent: _Callable[[_Pointer[IGuidanceNavigator]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IGuidanceNavigatorStatics2(_inspectable.IInspectable):
+class IGuidanceNavigatorStatics2(_inspectable.IInspectable, factory=True):
     get_UseAppProvidedVoice: _Callable[[_Pointer[_type.boolean]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IGuidanceReroutedEventArgs(_inspectable.IInspectable):
@@ -225,15 +221,13 @@ class IGuidanceRoute(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IGuidanceRouteStatics(_inspectable.IInspectable):
+class IGuidanceRouteStatics(_inspectable.IInspectable, factory=True):
     CanCreateFromMapRoute: _Callable[[_Windows_Services_Maps.IMapRoute,  # mapRoute
                                       _Pointer[_type.boolean]],  # result
                                      _type.HRESULT]
     TryCreateFromMapRoute: _Callable[[_Windows_Services_Maps.IMapRoute,  # mapRoute
                                       _Pointer[IGuidanceRoute]],  # result
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IGuidanceTelemetryCollector(_inspectable.IInspectable):
@@ -253,11 +247,9 @@ class IGuidanceTelemetryCollector(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IGuidanceTelemetryCollectorStatics(_inspectable.IInspectable):
+class IGuidanceTelemetryCollectorStatics(_inspectable.IInspectable, factory=True):
     GetCurrent: _Callable[[_Pointer[IGuidanceTelemetryCollector]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IGuidanceUpdatedEventArgs(_inspectable.IInspectable):

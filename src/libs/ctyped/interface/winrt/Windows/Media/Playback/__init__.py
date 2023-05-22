@@ -21,7 +21,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IBackgroundMediaPlayerStatics(_inspectable.IInspectable):
+class IBackgroundMediaPlayerStatics(_inspectable.IInspectable, factory=True):
     Current: _Callable[[_Pointer[IMediaPlayer]],  # player
                        _type.HRESULT]
     MessageReceivedFromBackground: _Callable[[_struct.EventRegistrationToken],  # token
@@ -36,8 +36,6 @@ class IBackgroundMediaPlayerStatics(_inspectable.IInspectable):
                               _type.HRESULT]
     Shutdown: _Callable[[],
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ICurrentMediaPlaybackItemChangedEventArgs(_inspectable.IInspectable):
@@ -72,7 +70,7 @@ class IMediaBreakEndedEventArgs(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMediaBreakFactory(_inspectable.IInspectable):
+class IMediaBreakFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Media.Playback.MediaBreakInsertionMethod,  # insertionMethod
                        _Pointer[IMediaBreak]],  # result
                       _type.HRESULT]
@@ -80,8 +78,6 @@ class IMediaBreakFactory(_inspectable.IInspectable):
                                                _struct.Windows.Foundation.TimeSpan,  # presentationPosition
                                                _Pointer[IMediaBreak]],  # result
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaBreakManager(_inspectable.IInspectable):
@@ -444,7 +440,7 @@ class IMediaPlaybackItemFactory(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IMediaPlaybackItemFactory2(_inspectable.IInspectable):
+class IMediaPlaybackItemFactory2(_inspectable.IInspectable, factory=True):
     CreateWithStartTime: _Callable[[_Windows_Media_Core.IMediaSource2,  # source
                                     _struct.Windows.Foundation.TimeSpan,  # startTime
                                     _Pointer[IMediaPlaybackItem]],  # result
@@ -454,8 +450,6 @@ class IMediaPlaybackItemFactory2(_inspectable.IInspectable):
                                                     _struct.Windows.Foundation.TimeSpan,  # durationLimit
                                                     _Pointer[IMediaPlaybackItem]],  # result
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaPlaybackItemFailedEventArgs(_inspectable.IInspectable):
@@ -470,12 +464,10 @@ class IMediaPlaybackItemOpenedEventArgs(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IMediaPlaybackItemStatics(_inspectable.IInspectable):
+class IMediaPlaybackItemStatics(_inspectable.IInspectable, factory=True):
     FindFromMediaSource: _Callable[[_Windows_Media_Core.IMediaSource2,  # source
                                     _Pointer[IMediaPlaybackItem]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaPlaybackList(_inspectable.IInspectable):
@@ -985,7 +977,7 @@ class IPlaybackMediaMarker(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IPlaybackMediaMarkerFactory(_inspectable.IInspectable):
+class IPlaybackMediaMarkerFactory(_inspectable.IInspectable, factory=True):
     CreateFromTime: _Callable[[_struct.Windows.Foundation.TimeSpan,  # value
                                _Pointer[IPlaybackMediaMarker]],  # marker
                               _type.HRESULT]
@@ -994,8 +986,6 @@ class IPlaybackMediaMarkerFactory(_inspectable.IInspectable):
                        _type.HSTRING,  # text
                        _Pointer[IPlaybackMediaMarker]],  # marker
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPlaybackMediaMarkerReachedEventArgs(_inspectable.IInspectable):

@@ -23,9 +23,7 @@ class IRadialControllerIndependentInputSource2(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IRadialControllerIndependentInputSourceStatics(_inspectable.IInspectable):
+class IRadialControllerIndependentInputSourceStatics(_inspectable.IInspectable, factory=True):
     CreateForView: _Callable[[_Windows_ApplicationModel_Core.ICoreApplicationView,  # view
                               _Pointer[IRadialControllerIndependentInputSource]],  # result
                              _type.HRESULT]
-
-    _factory = True

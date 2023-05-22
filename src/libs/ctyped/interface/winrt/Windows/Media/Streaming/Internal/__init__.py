@@ -9,7 +9,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IMediaRendererBrokerStatics(_inspectable.IInspectable):
+class IMediaRendererBrokerStatics(_inspectable.IInspectable, factory=True):
     CreateMediaRendererAsync: _Callable[[_type.HSTRING,  # deviceIdentifier
                                          _inspectable.IInspectable,  # mediaSessionFactoryMF
                                          _type.HSTRING,  # applicationUserModelId
@@ -20,5 +20,3 @@ class IMediaRendererBrokerStatics(_inspectable.IInspectable):
                                                         _type.HSTRING,  # applicationUserModelId
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Media_Streaming.IMediaRenderer]]],  # value
                                                        _type.HRESULT]
-
-    _factory = True

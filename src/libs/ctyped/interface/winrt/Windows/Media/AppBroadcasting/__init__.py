@@ -53,11 +53,9 @@ class IAppBroadcastingUI(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IAppBroadcastingUIStatics(_inspectable.IInspectable):
+class IAppBroadcastingUIStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAppBroadcastingUI]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IAppBroadcastingUI]],  # result
                           _type.HRESULT]
-
-    _factory = True

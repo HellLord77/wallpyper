@@ -105,7 +105,7 @@ class ICastingDeviceSelectedEventArgs(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class ICastingDeviceStatics(_inspectable.IInspectable):
+class ICastingDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_enum.Windows.Media.Casting.CastingPlaybackTypes,  # type
                                   _Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
@@ -118,8 +118,6 @@ class ICastingDeviceStatics(_inspectable.IInspectable):
     DeviceInfoSupportsCastingAsync: _Callable[[_Windows_Devices_Enumeration.IDeviceInformation,  # device
                                                _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class ICastingSource(_inspectable.IInspectable):

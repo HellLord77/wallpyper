@@ -372,7 +372,7 @@ class IAppBarButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAppBarButtonStatics(_inspectable.IInspectable):
+class IAppBarButtonStatics(_inspectable.IInspectable, factory=True):
     get_LabelProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_IconProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -380,10 +380,8 @@ class IAppBarButtonStatics(_inspectable.IInspectable):
     get_IsCompactProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarButtonStatics3(_inspectable.IInspectable):
+class IAppBarButtonStatics3(_inspectable.IInspectable, factory=True):
     get_LabelPositionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_IsInOverflowProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -391,14 +389,10 @@ class IAppBarButtonStatics3(_inspectable.IInspectable):
     get_DynamicOverflowOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarButtonStatics4(_inspectable.IInspectable):
+class IAppBarButtonStatics4(_inspectable.IInspectable, factory=True):
     get_KeyboardAcceleratorTextOverrideProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBarElementContainer(_inspectable.IInspectable):
@@ -412,15 +406,13 @@ class IAppBarElementContainerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAppBarElementContainerStatics(_inspectable.IInspectable):
+class IAppBarElementContainerStatics(_inspectable.IInspectable, factory=True):
     get_IsCompactProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_IsInOverflowProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_DynamicOverflowOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBarFactory(_inspectable.IInspectable):
@@ -455,43 +447,33 @@ class IAppBarSeparatorFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAppBarSeparatorStatics(_inspectable.IInspectable):
+class IAppBarSeparatorStatics(_inspectable.IInspectable, factory=True):
     get_IsCompactProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarSeparatorStatics3(_inspectable.IInspectable):
+class IAppBarSeparatorStatics3(_inspectable.IInspectable, factory=True):
     get_IsInOverflowProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_DynamicOverflowOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarStatics(_inspectable.IInspectable):
+class IAppBarStatics(_inspectable.IInspectable, factory=True):
     get_IsOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_IsStickyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarStatics2(_inspectable.IInspectable):
+class IAppBarStatics2(_inspectable.IInspectable, factory=True):
     get_ClosedDisplayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarStatics4(_inspectable.IInspectable):
+class IAppBarStatics4(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBarToggleButton(_inspectable.IInspectable):
@@ -531,7 +513,7 @@ class IAppBarToggleButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAppBarToggleButtonStatics(_inspectable.IInspectable):
+class IAppBarToggleButtonStatics(_inspectable.IInspectable, factory=True):
     get_LabelProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_IconProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -539,10 +521,8 @@ class IAppBarToggleButtonStatics(_inspectable.IInspectable):
     get_IsCompactProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarToggleButtonStatics3(_inspectable.IInspectable):
+class IAppBarToggleButtonStatics3(_inspectable.IInspectable, factory=True):
     get_LabelPositionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_IsInOverflowProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -550,14 +530,10 @@ class IAppBarToggleButtonStatics3(_inspectable.IInspectable):
     get_DynamicOverflowOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IAppBarToggleButtonStatics4(_inspectable.IInspectable):
+class IAppBarToggleButtonStatics4(_inspectable.IInspectable, factory=True):
     get_KeyboardAcceleratorTextOverrideProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IAutoSuggestBox(_inspectable.IInspectable):
@@ -642,7 +618,7 @@ class IAutoSuggestBoxQuerySubmittedEventArgs(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IAutoSuggestBoxStatics(_inspectable.IInspectable):
+class IAutoSuggestBoxStatics(_inspectable.IInspectable, factory=True):
     get_MaxSuggestionListHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_IsSuggestionListOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -662,28 +638,20 @@ class IAutoSuggestBoxStatics(_inspectable.IInspectable):
     get_TextBoxStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IAutoSuggestBoxStatics2(_inspectable.IInspectable):
+class IAutoSuggestBoxStatics2(_inspectable.IInspectable, factory=True):
     get_QueryIconProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IAutoSuggestBoxStatics3(_inspectable.IInspectable):
+class IAutoSuggestBoxStatics3(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IAutoSuggestBoxStatics4(_inspectable.IInspectable):
+class IAutoSuggestBoxStatics4(_inspectable.IInspectable, factory=True):
     get_DescriptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IAutoSuggestBoxSuggestionChosenEventArgs(_inspectable.IInspectable):
@@ -700,11 +668,9 @@ class IAutoSuggestBoxTextChangedEventArgs(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IAutoSuggestBoxTextChangedEventArgsStatics(_inspectable.IInspectable):
+class IAutoSuggestBoxTextChangedEventArgsStatics(_inspectable.IInspectable, factory=True):
     get_ReasonProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IBackClickEventArgs(_inspectable.IInspectable):
@@ -753,27 +719,21 @@ class IBitmapIconSourceFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IBitmapIconSourceStatics(_inspectable.IInspectable):
+class IBitmapIconSourceStatics(_inspectable.IInspectable, factory=True):
     get_UriSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_ShowAsMonochromeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapIconStatics(_inspectable.IInspectable):
+class IBitmapIconStatics(_inspectable.IInspectable, factory=True):
     get_UriSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapIconStatics2(_inspectable.IInspectable):
+class IBitmapIconStatics2(_inspectable.IInspectable, factory=True):
     get_ShowAsMonochromeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IBorder(_inspectable.IInspectable):
@@ -818,7 +778,7 @@ class IBorder2(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IBorderStatics(_inspectable.IInspectable):
+class IBorderStatics(_inspectable.IInspectable, factory=True):
     get_BorderBrushProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_BorderThicknessProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -832,14 +792,10 @@ class IBorderStatics(_inspectable.IInspectable):
     get_ChildTransitionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IBorderStatics2(_inspectable.IInspectable):
+class IBorderStatics2(_inspectable.IInspectable, factory=True):
     get_BackgroundSizingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IButton(_inspectable.IInspectable):
@@ -853,11 +809,9 @@ class IButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IButtonStaticsWithFlyout(_inspectable.IInspectable):
+class IButtonStaticsWithFlyout(_inspectable.IInspectable, factory=True):
     get_FlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IButtonWithFlyout(_inspectable.IInspectable):
@@ -987,7 +941,7 @@ class ICalendarDatePickerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICalendarDatePickerStatics(_inspectable.IInspectable):
+class ICalendarDatePickerStatics(_inspectable.IInspectable, factory=True):
     get_DateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_IsCalendarOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1021,21 +975,15 @@ class ICalendarDatePickerStatics(_inspectable.IInspectable):
     get_IsGroupLabelVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class ICalendarDatePickerStatics2(_inspectable.IInspectable):
+class ICalendarDatePickerStatics2(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class ICalendarDatePickerStatics3(_inspectable.IInspectable):
+class ICalendarDatePickerStatics3(_inspectable.IInspectable, factory=True):
     get_DescriptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ICalendarView(_inspectable.IInspectable):
@@ -1387,13 +1335,11 @@ class ICalendarViewDayItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICalendarViewDayItemStatics(_inspectable.IInspectable):
+class ICalendarViewDayItemStatics(_inspectable.IInspectable, factory=True):
     get_IsBlackoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_DateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ICalendarViewFactory(_inspectable.IInspectable):
@@ -1410,7 +1356,7 @@ class ICalendarViewSelectedDatesChangedEventArgs(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ICalendarViewStatics(_inspectable.IInspectable):
+class ICalendarViewStatics(_inspectable.IInspectable, factory=True):
     get_CalendarIdentifierProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_DayOfWeekFormatProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1514,10 +1460,8 @@ class ICalendarViewStatics(_inspectable.IInspectable):
     get_CalendarViewDayItemStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ICalendarViewStatics2(_inspectable.IInspectable):
+class ICalendarViewStatics2(_inspectable.IInspectable, factory=True):
     get_SelectedDisabledBorderBrushProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                        _type.HRESULT]
     get_TodaySelectedInnerBorderBrushProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1567,8 +1511,6 @@ class ICalendarViewStatics2(_inspectable.IInspectable):
     get_CalendarItemCornerRadiusProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class ICandidateWindowBoundsChangedEventArgs(_inspectable.IInspectable):
     get_Bounds: _Callable[[_Pointer[_struct.Windows.Foundation.Rect]],  # value
@@ -1586,7 +1528,7 @@ class ICanvasFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICanvasStatics(_inspectable.IInspectable):
+class ICanvasStatics(_inspectable.IInspectable, factory=True):
     get_LeftProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     GetLeft: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
@@ -1612,8 +1554,6 @@ class ICanvasStatics(_inspectable.IInspectable):
                           _type.INT32],  # value
                          _type.HRESULT]
 
-    _factory = True
-
 
 class ICaptureElement(_inspectable.IInspectable):
     get_Source: _Callable[[_Pointer[_Windows_Media_Capture.IMediaCapture]],  # value
@@ -1626,13 +1566,11 @@ class ICaptureElement(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ICaptureElementStatics(_inspectable.IInspectable):
+class ICaptureElementStatics(_inspectable.IInspectable, factory=True):
     get_SourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ICheckBox(_inspectable.IInspectable):
@@ -1781,7 +1719,7 @@ class IColorPickerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IColorPickerStatics(_inspectable.IInspectable):
+class IColorPickerStatics(_inspectable.IInspectable, factory=True):
     get_ColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_PreviousColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1821,8 +1759,6 @@ class IColorPickerStatics(_inspectable.IInspectable):
     get_ColorSpectrumComponentsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
-
 
 class IColumnDefinition(_inspectable.IInspectable):
     get_Width: _Callable[[_Pointer[_struct.Windows.UI.Xaml.GridLength]],  # value
@@ -1841,15 +1777,13 @@ class IColumnDefinition(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IColumnDefinitionStatics(_inspectable.IInspectable):
+class IColumnDefinitionStatics(_inspectable.IInspectable, factory=True):
     get_WidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_MaxWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_MinWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IComboBox(_inspectable.IInspectable):
@@ -1970,16 +1904,14 @@ class IComboBoxOverrides(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IComboBoxStatics(_inspectable.IInspectable):
+class IComboBoxStatics(_inspectable.IInspectable, factory=True):
     get_IsDropDownOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
     get_MaxDropDownHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IComboBoxStatics2(_inspectable.IInspectable):
+class IComboBoxStatics2(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1987,33 +1919,25 @@ class IComboBoxStatics2(_inspectable.IInspectable):
     get_PlaceholderTextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IComboBoxStatics3(_inspectable.IInspectable):
+class IComboBoxStatics3(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_IsTextSearchEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IComboBoxStatics4(_inspectable.IInspectable):
+class IComboBoxStatics4(_inspectable.IInspectable, factory=True):
     get_SelectionChangedTriggerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IComboBoxStatics5(_inspectable.IInspectable):
+class IComboBoxStatics5(_inspectable.IInspectable, factory=True):
     get_PlaceholderForegroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IComboBoxStatics6(_inspectable.IInspectable):
+class IComboBoxStatics6(_inspectable.IInspectable, factory=True):
     get_IsEditableProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_TextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2022,8 +1946,6 @@ class IComboBoxStatics6(_inspectable.IInspectable):
                                         _type.HRESULT]
     get_DescriptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IComboBoxTextSubmittedEventArgs(_inspectable.IInspectable):
@@ -2119,31 +2041,25 @@ class ICommandBarOverflowPresenterFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICommandBarStatics(_inspectable.IInspectable):
+class ICommandBarStatics(_inspectable.IInspectable, factory=True):
     get_PrimaryCommandsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_SecondaryCommandsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class ICommandBarStatics2(_inspectable.IInspectable):
+class ICommandBarStatics2(_inspectable.IInspectable, factory=True):
     get_CommandBarOverflowPresenterStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ICommandBarStatics3(_inspectable.IInspectable):
+class ICommandBarStatics3(_inspectable.IInspectable, factory=True):
     get_DefaultLabelPositionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_OverflowButtonVisibilityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_IsDynamicOverflowEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IContainerContentChangingEventArgs(_inspectable.IInspectable):
@@ -2211,7 +2127,7 @@ class IContentControlOverrides(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IContentControlStatics(_inspectable.IInspectable):
+class IContentControlStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_ContentTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2220,8 +2136,6 @@ class IContentControlStatics(_inspectable.IInspectable):
                                                    _type.HRESULT]
     get_ContentTransitionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IContentDialog(_inspectable.IInspectable):
@@ -2388,7 +2302,7 @@ class IContentDialogOpenedEventArgs(_inspectable.IInspectable):
     pass
 
 
-class IContentDialogStatics(_inspectable.IInspectable):
+class IContentDialogStatics(_inspectable.IInspectable, factory=True):
     get_TitleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_TitleTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2412,10 +2326,8 @@ class IContentDialogStatics(_inspectable.IInspectable):
     get_IsSecondaryButtonEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IContentDialogStatics2(_inspectable.IInspectable):
+class IContentDialogStatics2(_inspectable.IInspectable, factory=True):
     get_CloseButtonTextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_CloseButtonCommandProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2430,8 +2342,6 @@ class IContentDialogStatics2(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_DefaultButtonProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IContentLinkChangedEventArgs(_inspectable.IInspectable):
@@ -2582,7 +2492,7 @@ class IContentPresenterOverrides(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IContentPresenterStatics(_inspectable.IInspectable):
+class IContentPresenterStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_ContentTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2606,26 +2516,20 @@ class IContentPresenterStatics(_inspectable.IInspectable):
     get_ForegroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IContentPresenterStatics2(_inspectable.IInspectable):
+class IContentPresenterStatics2(_inspectable.IInspectable, factory=True):
     get_OpticalMarginAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
     get_TextLineBoundsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IContentPresenterStatics3(_inspectable.IInspectable):
+class IContentPresenterStatics3(_inspectable.IInspectable, factory=True):
     get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IContentPresenterStatics4(_inspectable.IInspectable):
+class IContentPresenterStatics4(_inspectable.IInspectable, factory=True):
     get_TextWrappingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_MaxLinesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2649,14 +2553,10 @@ class IContentPresenterStatics4(_inspectable.IInspectable):
     get_VerticalContentAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IContentPresenterStatics5(_inspectable.IInspectable):
+class IContentPresenterStatics5(_inspectable.IInspectable, factory=True):
     get_BackgroundSizingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IContextMenuEventArgs(_inspectable.IInspectable):
@@ -2915,7 +2815,7 @@ class IControlProtected(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IControlStatics(_inspectable.IInspectable):
+class IControlStatics(_inspectable.IInspectable, factory=True):
     get_FontSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_FontFamilyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2957,17 +2857,13 @@ class IControlStatics(_inspectable.IInspectable):
     get_FocusStateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IControlStatics2(_inspectable.IInspectable):
+class IControlStatics2(_inspectable.IInspectable, factory=True):
     get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IControlStatics3(_inspectable.IInspectable):
+class IControlStatics3(_inspectable.IInspectable, factory=True):
     get_UseSystemFocusVisualsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
     get_IsTemplateFocusTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -2979,10 +2875,8 @@ class IControlStatics3(_inspectable.IInspectable):
                                          _type.boolean],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IControlStatics4(_inspectable.IInspectable):
+class IControlStatics4(_inspectable.IInspectable, factory=True):
     get_IsFocusEngagementEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_IsFocusEngagedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3000,10 +2894,8 @@ class IControlStatics4(_inspectable.IInspectable):
     get_ElementSoundModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IControlStatics5(_inspectable.IInspectable):
+class IControlStatics5(_inspectable.IInspectable, factory=True):
     get_DefaultStyleResourceUriProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_IsTemplateKeyTipTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3015,16 +2907,12 @@ class IControlStatics5(_inspectable.IInspectable):
                                           _type.boolean],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IControlStatics7(_inspectable.IInspectable):
+class IControlStatics7(_inspectable.IInspectable, factory=True):
     get_BackgroundSizingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_CornerRadiusProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IControlTemplate(_inspectable.IInspectable):
@@ -3225,13 +3113,11 @@ class IDatePickerFlyoutItem(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IDatePickerFlyoutItemStatics(_inspectable.IInspectable):
+class IDatePickerFlyoutItemStatics(_inspectable.IInspectable, factory=True):
     get_PrimaryTextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_SecondaryTextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IDatePickerFlyoutPresenter(_inspectable.IInspectable):
@@ -3245,14 +3131,12 @@ class IDatePickerFlyoutPresenter2(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IDatePickerFlyoutPresenterStatics2(_inspectable.IInspectable):
+class IDatePickerFlyoutPresenterStatics2(_inspectable.IInspectable, factory=True):
     get_IsDefaultShadowEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IDatePickerFlyoutStatics(_inspectable.IInspectable):
+class IDatePickerFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_CalendarIdentifierProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_DateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3268,18 +3152,14 @@ class IDatePickerFlyoutStatics(_inspectable.IInspectable):
     get_MaxYearProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IDatePickerFlyoutStatics2(_inspectable.IInspectable):
+class IDatePickerFlyoutStatics2(_inspectable.IInspectable, factory=True):
     get_DayFormatProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_MonthFormatProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_YearFormatProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDatePickerSelectedValueChangedEventArgs(_inspectable.IInspectable):
@@ -3289,7 +3169,7 @@ class IDatePickerSelectedValueChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IDatePickerStatics(_inspectable.IInspectable):
+class IDatePickerStatics(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3317,21 +3197,15 @@ class IDatePickerStatics(_inspectable.IInspectable):
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IDatePickerStatics2(_inspectable.IInspectable):
+class IDatePickerStatics2(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IDatePickerStatics3(_inspectable.IInspectable):
+class IDatePickerStatics3(_inspectable.IInspectable, factory=True):
     get_SelectedDateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IDatePickerValueChangedEventArgs(_inspectable.IInspectable):
@@ -3416,11 +3290,9 @@ class IFlipViewItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFlipViewStatics2(_inspectable.IInspectable):
+class IFlipViewStatics2(_inspectable.IInspectable, factory=True):
     get_UseTouchAnimationsForAllNavigationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IFlyout(_inspectable.IInspectable):
@@ -3459,20 +3331,16 @@ class IFlyoutPresenterFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFlyoutPresenterStatics2(_inspectable.IInspectable):
+class IFlyoutPresenterStatics2(_inspectable.IInspectable, factory=True):
     get_IsDefaultShadowEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IFlyoutStatics(_inspectable.IInspectable):
+class IFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_FlyoutPresenterStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IFocusDisengagedEventArgs(_inspectable.IInspectable):
@@ -3572,7 +3440,7 @@ class IFontIconSourceFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFontIconSourceStatics(_inspectable.IInspectable):
+class IFontIconSourceStatics(_inspectable.IInspectable, factory=True):
     get_GlyphProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_FontSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3588,10 +3456,8 @@ class IFontIconSourceStatics(_inspectable.IInspectable):
     get_MirroredWhenRightToLeftProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IFontIconStatics(_inspectable.IInspectable):
+class IFontIconStatics(_inspectable.IInspectable, factory=True):
     get_GlyphProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_FontSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3603,21 +3469,15 @@ class IFontIconStatics(_inspectable.IInspectable):
     get_FontStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IFontIconStatics2(_inspectable.IInspectable):
+class IFontIconStatics2(_inspectable.IInspectable, factory=True):
     get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IFontIconStatics3(_inspectable.IInspectable):
+class IFontIconStatics3(_inspectable.IInspectable, factory=True):
     get_MirroredWhenRightToLeftProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IFrame(_inspectable.IInspectable):
@@ -3713,7 +3573,7 @@ class IFrameFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFrameStatics(_inspectable.IInspectable):
+class IFrameStatics(_inspectable.IInspectable, factory=True):
     get_CacheSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_CanGoBackProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3727,23 +3587,17 @@ class IFrameStatics(_inspectable.IInspectable):
     get_BackStackDepthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IFrameStatics2(_inspectable.IInspectable):
+class IFrameStatics2(_inspectable.IInspectable, factory=True):
     get_BackStackProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_ForwardStackProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IFrameStatics5(_inspectable.IInspectable):
+class IFrameStatics5(_inspectable.IInspectable, factory=True):
     get_IsNavigationStackEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IGrid(_inspectable.IInspectable):
@@ -3797,7 +3651,7 @@ class IGridFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IGridStatics(_inspectable.IInspectable):
+class IGridStatics(_inspectable.IInspectable, factory=True):
     get_RowProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                _type.HRESULT]
     GetRow: _Callable[[_Windows_UI_Xaml.IFrameworkElement,  # element
@@ -3831,10 +3685,8 @@ class IGridStatics(_inspectable.IInspectable):
                               _type.INT32],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IGridStatics2(_inspectable.IInspectable):
+class IGridStatics2(_inspectable.IInspectable, factory=True):
     get_BorderBrushProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_BorderThicknessProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -3844,23 +3696,17 @@ class IGridStatics2(_inspectable.IInspectable):
     get_PaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IGridStatics3(_inspectable.IInspectable):
+class IGridStatics3(_inspectable.IInspectable, factory=True):
     get_RowSpacingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_ColumnSpacingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IGridStatics4(_inspectable.IInspectable):
+class IGridStatics4(_inspectable.IInspectable, factory=True):
     get_BackgroundSizingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IGridView(_inspectable.IInspectable):
@@ -4048,7 +3894,7 @@ class IHandwritingViewFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IHandwritingViewStatics(_inspectable.IInspectable):
+class IHandwritingViewStatics(_inspectable.IInspectable, factory=True):
     get_PlacementTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_PlacementAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4058,16 +3904,12 @@ class IHandwritingViewStatics(_inspectable.IInspectable):
     get_AreCandidatesEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IHandwritingViewStatics2(_inspectable.IInspectable):
+class IHandwritingViewStatics2(_inspectable.IInspectable, factory=True):
     get_IsSwitchToKeyboardEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                      _type.HRESULT]
     get_IsCommandBarOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IHandwritingViewTextSubmittedEventArgs(_inspectable.IInspectable):
@@ -4149,7 +3991,7 @@ class IHubSectionHeaderClickEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHubSectionStatics(_inspectable.IInspectable):
+class IHubSectionStatics(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4159,10 +4001,8 @@ class IHubSectionStatics(_inspectable.IInspectable):
     get_IsHeaderInteractiveProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IHubStatics(_inspectable.IInspectable):
+class IHubStatics(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4177,8 +4017,6 @@ class IHubStatics(_inspectable.IInspectable):
                                         _type.HRESULT]
     get_IsZoomedInViewProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IHyperlinkButton(_inspectable.IInspectable):
@@ -4195,11 +4033,9 @@ class IHyperlinkButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IHyperlinkButtonStatics(_inspectable.IInspectable):
+class IHyperlinkButtonStatics(_inspectable.IInspectable, factory=True):
     get_NavigateUriProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IIconElement(_inspectable.IInspectable):
@@ -4213,11 +4049,9 @@ class IIconElementFactory(_inspectable.IInspectable):
     pass
 
 
-class IIconElementStatics(_inspectable.IInspectable):
+class IIconElementStatics(_inspectable.IInspectable, factory=True):
     get_ForegroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IIconSource(_inspectable.IInspectable):
@@ -4241,22 +4075,18 @@ class IIconSourceElementFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IIconSourceElementStatics(_inspectable.IInspectable):
+class IIconSourceElementStatics(_inspectable.IInspectable, factory=True):
     get_IconSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IIconSourceFactory(_inspectable.IInspectable):
     pass
 
 
-class IIconSourceStatics(_inspectable.IInspectable):
+class IIconSourceStatics(_inspectable.IInspectable, factory=True):
     get_ForegroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IImage(_inspectable.IInspectable):
@@ -4296,7 +4126,7 @@ class IImage3(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IImageStatics(_inspectable.IInspectable):
+class IImageStatics(_inspectable.IInspectable, factory=True):
     get_SourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4305,8 +4135,6 @@ class IImageStatics(_inspectable.IInspectable):
                                     _type.HRESULT]
     PlayToSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IInkCanvas(_inspectable.IInspectable):
@@ -4433,13 +4261,11 @@ class IInkToolbarCustomPenButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarCustomPenButtonStatics(_inspectable.IInspectable):
+class IInkToolbarCustomPenButtonStatics(_inspectable.IInspectable, factory=True):
     get_CustomPenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_ConfigurationContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarCustomPenFactory(_inspectable.IInspectable):
@@ -4481,11 +4307,9 @@ class IInkToolbarCustomToolButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarCustomToolButtonStatics(_inspectable.IInspectable):
+class IInkToolbarCustomToolButtonStatics(_inspectable.IInspectable, factory=True):
     get_ConfigurationContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarEraserButton(_inspectable.IInspectable):
@@ -4506,11 +4330,9 @@ class IInkToolbarEraserButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarEraserButtonStatics2(_inspectable.IInspectable):
+class IInkToolbarEraserButtonStatics2(_inspectable.IInspectable, factory=True):
     get_IsClearAllVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarFactory(_inspectable.IInspectable):
@@ -4548,13 +4370,11 @@ class IInkToolbarFlyoutItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarFlyoutItemStatics(_inspectable.IInspectable):
+class IInkToolbarFlyoutItemStatics(_inspectable.IInspectable, factory=True):
     get_KindProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_IsCheckedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarHighlighterButton(_inspectable.IInspectable):
@@ -4588,11 +4408,9 @@ class IInkToolbarMenuButtonFactory(_inspectable.IInspectable):
     pass
 
 
-class IInkToolbarMenuButtonStatics(_inspectable.IInspectable):
+class IInkToolbarMenuButtonStatics(_inspectable.IInspectable, factory=True):
     get_IsExtensionGlyphShownProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarPenButton(_inspectable.IInspectable):
@@ -4624,7 +4442,7 @@ class IInkToolbarPenButtonFactory(_inspectable.IInspectable):
     pass
 
 
-class IInkToolbarPenButtonStatics(_inspectable.IInspectable):
+class IInkToolbarPenButtonStatics(_inspectable.IInspectable, factory=True):
     get_PaletteProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_MinStrokeWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4637,8 +4455,6 @@ class IInkToolbarPenButtonStatics(_inspectable.IInspectable):
                                               _type.HRESULT]
     get_SelectedStrokeWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarPenConfigurationControl(_inspectable.IInspectable):
@@ -4653,11 +4469,9 @@ class IInkToolbarPenConfigurationControlFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarPenConfigurationControlStatics(_inspectable.IInspectable):
+class IInkToolbarPenConfigurationControlStatics(_inspectable.IInspectable, factory=True):
     get_PenButtonProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarPencilButton(_inspectable.IInspectable):
@@ -4683,14 +4497,12 @@ class IInkToolbarRulerButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarRulerButtonStatics(_inspectable.IInspectable):
+class IInkToolbarRulerButtonStatics(_inspectable.IInspectable, factory=True):
     RulerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IInkToolbarStatics(_inspectable.IInspectable):
+class IInkToolbarStatics(_inspectable.IInspectable, factory=True):
     get_InitialControlsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_ChildrenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4704,10 +4516,8 @@ class IInkToolbarStatics(_inspectable.IInspectable):
     get_TargetInkCanvasProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IInkToolbarStatics2(_inspectable.IInspectable):
+class IInkToolbarStatics2(_inspectable.IInspectable, factory=True):
     get_IsStencilButtonCheckedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
     get_ButtonFlyoutPlacementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4715,14 +4525,10 @@ class IInkToolbarStatics2(_inspectable.IInspectable):
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IInkToolbarStatics3(_inspectable.IInspectable):
+class IInkToolbarStatics3(_inspectable.IInspectable, factory=True):
     get_TargetInkPresenterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarStencilButton(_inspectable.IInspectable):
@@ -4751,7 +4557,7 @@ class IInkToolbarStencilButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkToolbarStencilButtonStatics(_inspectable.IInspectable):
+class IInkToolbarStencilButtonStatics(_inspectable.IInspectable, factory=True):
     get_RulerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_ProtractorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4762,8 +4568,6 @@ class IInkToolbarStencilButtonStatics(_inspectable.IInspectable):
                                               _type.HRESULT]
     get_IsProtractorItemVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IInkToolbarToggleButton(_inspectable.IInspectable):
@@ -4788,11 +4592,9 @@ class IInkToolbarToolButtonFactory(_inspectable.IInspectable):
     pass
 
 
-class IInkToolbarToolButtonStatics(_inspectable.IInspectable):
+class IInkToolbarToolButtonStatics(_inspectable.IInspectable, factory=True):
     get_IsExtensionGlyphShownProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IInsertionPanel(_inspectable.IInspectable):
@@ -4970,7 +4772,7 @@ class IItemsControlOverrides(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IItemsControlStatics(_inspectable.IInspectable):
+class IItemsControlStatics(_inspectable.IInspectable, factory=True):
     get_ItemsSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_ItemTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -4997,8 +4799,6 @@ class IItemsControlStatics(_inspectable.IInspectable):
     ItemsControlFromItemContainer: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # container
                                               _Pointer[IItemsControl]],  # result
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IItemsPanelTemplate(_inspectable.IInspectable):
@@ -5046,7 +4846,7 @@ class IItemsPresenter2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IItemsPresenterStatics(_inspectable.IInspectable):
+class IItemsPresenterStatics(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5056,18 +4856,14 @@ class IItemsPresenterStatics(_inspectable.IInspectable):
     get_PaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IItemsPresenterStatics2(_inspectable.IInspectable):
+class IItemsPresenterStatics2(_inspectable.IInspectable, factory=True):
     get_FooterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_FooterTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
     get_FooterTransitionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IItemsStackPanel(_inspectable.IInspectable):
@@ -5110,7 +4906,7 @@ class IItemsStackPanel2(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IItemsStackPanelStatics(_inspectable.IInspectable):
+class IItemsStackPanelStatics(_inspectable.IInspectable, factory=True):
     get_GroupPaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5120,14 +4916,10 @@ class IItemsStackPanelStatics(_inspectable.IInspectable):
     get_CacheLengthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IItemsStackPanelStatics2(_inspectable.IInspectable):
+class IItemsStackPanelStatics2(_inspectable.IInspectable, factory=True):
     get_AreStickyGroupHeadersEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IItemsWrapGrid(_inspectable.IInspectable):
@@ -5178,7 +4970,7 @@ class IItemsWrapGrid2(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class IItemsWrapGridStatics(_inspectable.IInspectable):
+class IItemsWrapGridStatics(_inspectable.IInspectable, factory=True):
     get_GroupPaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5194,14 +4986,10 @@ class IItemsWrapGridStatics(_inspectable.IInspectable):
     get_CacheLengthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IItemsWrapGridStatics2(_inspectable.IInspectable):
+class IItemsWrapGridStatics2(_inspectable.IInspectable, factory=True):
     get_AreStickyGroupHeadersEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IListBox(_inspectable.IInspectable):
@@ -5242,18 +5030,14 @@ class IListBoxItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IListBoxStatics(_inspectable.IInspectable):
+class IListBoxStatics(_inspectable.IInspectable, factory=True):
     get_SelectionModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IListBoxStatics2(_inspectable.IInspectable):
+class IListBoxStatics2(_inspectable.IInspectable, factory=True):
     get_SingleSelectionFollowsFocusProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IListPickerFlyout(_inspectable.IInspectable):
@@ -5305,7 +5089,7 @@ class IListPickerFlyoutPresenter(_inspectable.IInspectable):
     pass
 
 
-class IListPickerFlyoutStatics(_inspectable.IInspectable):
+class IListPickerFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_ItemsSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_ItemTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5322,8 +5106,6 @@ class IListPickerFlyoutStatics(_inspectable.IInspectable):
                                          _type.HRESULT]
     get_SelectedValuePathProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IListView(_inspectable.IInspectable):
@@ -5496,7 +5278,7 @@ class IListViewBaseHeaderItemFactory(_inspectable.IInspectable):
     pass
 
 
-class IListViewBaseStatics(_inspectable.IInspectable):
+class IListViewBaseStatics(_inspectable.IInspectable, factory=True):
     get_SelectionModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_IsSwipeEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5526,10 +5308,8 @@ class IListViewBaseStatics(_inspectable.IInspectable):
     get_HeaderTransitionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IListViewBaseStatics2(_inspectable.IInspectable):
+class IListViewBaseStatics2(_inspectable.IInspectable, factory=True):
     get_ShowsScrollingPlaceholdersProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
     get_FooterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5539,28 +5319,20 @@ class IListViewBaseStatics2(_inspectable.IInspectable):
     get_FooterTransitionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IListViewBaseStatics3(_inspectable.IInspectable):
+class IListViewBaseStatics3(_inspectable.IInspectable, factory=True):
     get_ReorderModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IListViewBaseStatics4(_inspectable.IInspectable):
+class IListViewBaseStatics4(_inspectable.IInspectable, factory=True):
     get_IsMultiSelectCheckBoxEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IListViewBaseStatics5(_inspectable.IInspectable):
+class IListViewBaseStatics5(_inspectable.IInspectable, factory=True):
     get_SingleSelectionFollowsFocusProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IListViewFactory(_inspectable.IInspectable):
@@ -5597,7 +5369,7 @@ class IListViewPersistenceHelper(_inspectable.IInspectable):
     pass
 
 
-class IListViewPersistenceHelperStatics(_inspectable.IInspectable):
+class IListViewPersistenceHelperStatics(_inspectable.IInspectable, factory=True):
     GetRelativeScrollPosition: _Callable[[IListViewBase,  # listViewBase
                                           IListViewItemToKeyHandler,  # itemToKeyHandler
                                           _Pointer[_type.HSTRING]],  # result
@@ -5607,8 +5379,6 @@ class IListViewPersistenceHelperStatics(_inspectable.IInspectable):
                                                IListViewKeyToItemHandler,  # keyToItemHandler
                                                _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaElement(_inspectable.IInspectable):
@@ -5826,7 +5596,7 @@ class IMediaElement3(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IMediaElementStatics(_inspectable.IInspectable):
+class IMediaElementStatics(_inspectable.IInspectable, factory=True):
     get_PosterSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_SourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5894,10 +5664,8 @@ class IMediaElementStatics(_inspectable.IInspectable):
     get_ActualStereo3DVideoPackingModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaElementStatics2(_inspectable.IInspectable):
+class IMediaElementStatics2(_inspectable.IInspectable, factory=True):
     get_AreTransportControlsEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                        _type.HRESULT]
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5906,8 +5674,6 @@ class IMediaElementStatics2(_inspectable.IInspectable):
                                         _type.HRESULT]
     PlayToPreferredSourceUriProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaPlayerElement(_inspectable.IInspectable):
@@ -5952,7 +5718,7 @@ class IMediaPlayerElementFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMediaPlayerElementStatics(_inspectable.IInspectable):
+class IMediaPlayerElementStatics(_inspectable.IInspectable, factory=True):
     get_SourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_AreTransportControlsEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -5967,8 +5733,6 @@ class IMediaPlayerElementStatics(_inspectable.IInspectable):
                                         _type.HRESULT]
     get_MediaPlayerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaPlayerPresenter(_inspectable.IInspectable):
@@ -5993,15 +5757,13 @@ class IMediaPlayerPresenterFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMediaPlayerPresenterStatics(_inspectable.IInspectable):
+class IMediaPlayerPresenterStatics(_inspectable.IInspectable, factory=True):
     get_MediaPlayerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_IsFullWindowProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaTransportControls(_inspectable.IInspectable):
@@ -6152,7 +5914,7 @@ class IMediaTransportControlsHelper(_inspectable.IInspectable):
     pass
 
 
-class IMediaTransportControlsHelperStatics(_inspectable.IInspectable):
+class IMediaTransportControlsHelperStatics(_inspectable.IInspectable, factory=True):
     get_DropoutOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     GetDropoutOrder: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
@@ -6162,10 +5924,8 @@ class IMediaTransportControlsHelperStatics(_inspectable.IInspectable):
                                 _Windows_Foundation.IReference[_type.INT32]],  # value
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaTransportControlsStatics(_inspectable.IInspectable):
+class IMediaTransportControlsStatics(_inspectable.IInspectable, factory=True):
     get_IsFullWindowButtonVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                      _type.HRESULT]
     get_IsFullWindowEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6201,10 +5961,8 @@ class IMediaTransportControlsStatics(_inspectable.IInspectable):
     get_IsCompactProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaTransportControlsStatics2(_inspectable.IInspectable):
+class IMediaTransportControlsStatics2(_inspectable.IInspectable, factory=True):
     get_IsSkipForwardButtonVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
     get_IsSkipForwardEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6220,10 +5978,8 @@ class IMediaTransportControlsStatics2(_inspectable.IInspectable):
     get_FastPlayFallbackBehaviourProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaTransportControlsStatics3(_inspectable.IInspectable):
+class IMediaTransportControlsStatics3(_inspectable.IInspectable, factory=True):
     get_ShowAndHideAutomaticallyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_IsRepeatEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6231,16 +5987,12 @@ class IMediaTransportControlsStatics3(_inspectable.IInspectable):
     get_IsRepeatButtonVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaTransportControlsStatics4(_inspectable.IInspectable):
+class IMediaTransportControlsStatics4(_inspectable.IInspectable, factory=True):
     get_IsCompactOverlayButtonVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                          _type.HRESULT]
     get_IsCompactOverlayEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IMenuBar(_inspectable.IInspectable):
@@ -6282,20 +6034,16 @@ class IMenuBarItemFlyoutFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMenuBarItemStatics(_inspectable.IInspectable):
+class IMenuBarItemStatics(_inspectable.IInspectable, factory=True):
     get_TitleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_ItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IMenuBarStatics(_inspectable.IInspectable):
+class IMenuBarStatics(_inspectable.IInspectable, factory=True):
     get_ItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMenuFlyout(_inspectable.IInspectable):
@@ -6371,7 +6119,7 @@ class IMenuFlyoutItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMenuFlyoutItemStatics(_inspectable.IInspectable):
+class IMenuFlyoutItemStatics(_inspectable.IInspectable, factory=True):
     get_TextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_CommandProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6379,21 +6127,15 @@ class IMenuFlyoutItemStatics(_inspectable.IInspectable):
     get_CommandParameterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IMenuFlyoutItemStatics2(_inspectable.IInspectable):
+class IMenuFlyoutItemStatics2(_inspectable.IInspectable, factory=True):
     get_IconProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMenuFlyoutItemStatics3(_inspectable.IInspectable):
+class IMenuFlyoutItemStatics3(_inspectable.IInspectable, factory=True):
     get_KeyboardAcceleratorTextOverrideProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMenuFlyoutPresenter(_inspectable.IInspectable):
@@ -6419,11 +6161,9 @@ class IMenuFlyoutPresenterFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMenuFlyoutPresenterStatics3(_inspectable.IInspectable):
+class IMenuFlyoutPresenterStatics3(_inspectable.IInspectable, factory=True):
     get_IsDefaultShadowEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IMenuFlyoutSeparator(_inspectable.IInspectable):
@@ -6437,11 +6177,9 @@ class IMenuFlyoutSeparatorFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IMenuFlyoutStatics(_inspectable.IInspectable):
+class IMenuFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_MenuFlyoutPresenterStyleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMenuFlyoutSubItem(_inspectable.IInspectable):
@@ -6460,18 +6198,14 @@ class IMenuFlyoutSubItem2(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IMenuFlyoutSubItemStatics(_inspectable.IInspectable):
+class IMenuFlyoutSubItemStatics(_inspectable.IInspectable, factory=True):
     get_TextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMenuFlyoutSubItemStatics2(_inspectable.IInspectable):
+class IMenuFlyoutSubItemStatics2(_inspectable.IInspectable, factory=True):
     get_IconProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class INavigate(_inspectable.IInspectable):
@@ -6746,20 +6480,16 @@ class INavigationViewItemSeparatorFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class INavigationViewItemStatics(_inspectable.IInspectable):
+class INavigationViewItemStatics(_inspectable.IInspectable, factory=True):
     get_IconProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_CompactPaneLengthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class INavigationViewItemStatics2(_inspectable.IInspectable):
+class INavigationViewItemStatics2(_inspectable.IInspectable, factory=True):
     get_SelectsOnInvokedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class INavigationViewList(_inspectable.IInspectable):
@@ -6794,7 +6524,7 @@ class INavigationViewSelectionChangedEventArgs2(_inspectable.IInspectable):
                                                        _type.HRESULT]
 
 
-class INavigationViewStatics(_inspectable.IInspectable):
+class INavigationViewStatics(_inspectable.IInspectable, factory=True):
     get_IsPaneOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_CompactModeThresholdWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6840,10 +6570,8 @@ class INavigationViewStatics(_inspectable.IInspectable):
     get_MenuItemContainerStyleSelectorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                           _type.HRESULT]
 
-    _factory = True
 
-
-class INavigationViewStatics2(_inspectable.IInspectable):
+class INavigationViewStatics2(_inspectable.IInspectable, factory=True):
     get_IsBackButtonVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
     get_IsBackEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6851,10 +6579,8 @@ class INavigationViewStatics2(_inspectable.IInspectable):
     get_PaneTitleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class INavigationViewStatics3(_inspectable.IInspectable):
+class INavigationViewStatics3(_inspectable.IInspectable, factory=True):
     get_PaneDisplayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_PaneHeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6873,8 +6599,6 @@ class INavigationViewStatics3(_inspectable.IInspectable):
                                                      _type.HRESULT]
     get_OverflowLabelModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class INavigationViewTemplateSettings(_inspectable.IInspectable):
@@ -6901,7 +6625,7 @@ class INavigationViewTemplateSettingsFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class INavigationViewTemplateSettingsStatics(_inspectable.IInspectable):
+class INavigationViewTemplateSettingsStatics(_inspectable.IInspectable, factory=True):
     get_TopPaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_OverflowButtonVisibilityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -6916,8 +6640,6 @@ class INavigationViewTemplateSettingsStatics(_inspectable.IInspectable):
                                               _type.HRESULT]
     get_SingleSelectionFollowsFocusProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                        _type.HRESULT]
-
-    _factory = True
 
 
 class INotifyEventArgs(_inspectable.IInspectable):
@@ -6963,15 +6685,13 @@ class IPageOverrides(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IPageStatics(_inspectable.IInspectable):
+class IPageStatics(_inspectable.IInspectable, factory=True):
     get_FrameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_TopAppBarProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_BottomAppBarProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IPanel(_inspectable.IInspectable):
@@ -7003,15 +6723,13 @@ class IPanelFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPanelStatics(_inspectable.IInspectable):
+class IPanelStatics(_inspectable.IInspectable, factory=True):
     get_BackgroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_IsItemsHostProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_ChildrenTransitionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IParallaxView(_inspectable.IInspectable):
@@ -7084,7 +6802,7 @@ class IParallaxViewFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IParallaxViewStatics(_inspectable.IInspectable):
+class IParallaxViewStatics(_inspectable.IInspectable, factory=True):
     get_ChildProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_HorizontalSourceEndOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7113,8 +6831,6 @@ class IParallaxViewStatics(_inspectable.IInspectable):
                                                  _type.HRESULT]
     get_VerticalShiftProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IPasswordBox(_inspectable.IInspectable):
@@ -7217,7 +6933,7 @@ class IPasswordBoxPasswordChangingEventArgs(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IPasswordBoxStatics(_inspectable.IInspectable):
+class IPasswordBoxStatics(_inspectable.IInspectable, factory=True):
     get_PasswordProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_PasswordCharProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7227,10 +6943,8 @@ class IPasswordBoxStatics(_inspectable.IInspectable):
     get_MaxLengthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IPasswordBoxStatics2(_inspectable.IInspectable):
+class IPasswordBoxStatics2(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7242,10 +6956,8 @@ class IPasswordBoxStatics2(_inspectable.IInspectable):
     get_PreventKeyboardDisplayOnProgrammaticFocusProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IPasswordBoxStatics3(_inspectable.IInspectable):
+class IPasswordBoxStatics3(_inspectable.IInspectable, factory=True):
     get_PasswordRevealModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_TextReadingOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7253,18 +6965,14 @@ class IPasswordBoxStatics3(_inspectable.IInspectable):
     get_InputScopeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPasswordBoxStatics5(_inspectable.IInspectable):
+class IPasswordBoxStatics5(_inspectable.IInspectable, factory=True):
     get_CanPasteClipboardContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_SelectionFlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_DescriptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IPathIcon(_inspectable.IInspectable):
@@ -7295,18 +7003,14 @@ class IPathIconSourceFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPathIconSourceStatics(_inspectable.IInspectable):
+class IPathIconSourceStatics(_inspectable.IInspectable, factory=True):
     get_DataProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IPathIconStatics(_inspectable.IInspectable):
+class IPathIconStatics(_inspectable.IInspectable, factory=True):
     get_DataProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPersonPicture(_inspectable.IInspectable):
@@ -7359,7 +7063,7 @@ class IPersonPictureFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPersonPictureStatics(_inspectable.IInspectable):
+class IPersonPictureStatics(_inspectable.IInspectable, factory=True):
     get_BadgeNumberProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_BadgeGlyphProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7380,8 +7084,6 @@ class IPersonPictureStatics(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_ProfilePictureProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IPickerConfirmedEventArgs(_inspectable.IInspectable):
@@ -7411,13 +7113,11 @@ class IPickerFlyoutPresenter(_inspectable.IInspectable):
     pass
 
 
-class IPickerFlyoutStatics(_inspectable.IInspectable):
+class IPickerFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_ConfirmationButtonsVisibleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPivot(_inspectable.IInspectable):
@@ -7530,14 +7230,12 @@ class IPivotItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPivotItemStatics(_inspectable.IInspectable):
+class IPivotItemStatics(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IPivotStatics(_inspectable.IInspectable):
+class IPivotStatics(_inspectable.IInspectable, factory=True):
     get_TitleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_TitleTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7559,10 +7257,8 @@ class IPivotStatics(_inspectable.IInspectable):
                                          _enum.Windows.UI.Xaml.Controls.PivotSlideInAnimationGroup],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IPivotStatics2(_inspectable.IInspectable):
+class IPivotStatics2(_inspectable.IInspectable, factory=True):
     get_LeftHeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_LeftHeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7572,16 +7268,12 @@ class IPivotStatics2(_inspectable.IInspectable):
     get_RightHeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IPivotStatics3(_inspectable.IInspectable):
+class IPivotStatics3(_inspectable.IInspectable, factory=True):
     get_HeaderFocusVisualPlacementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
     get_IsHeaderItemsCarouselEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IProgressBar(_inspectable.IInspectable):
@@ -7608,15 +7300,13 @@ class IProgressBarFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IProgressBarStatics(_inspectable.IInspectable):
+class IProgressBarStatics(_inspectable.IInspectable, factory=True):
     get_IsIndeterminateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_ShowErrorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_ShowPausedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IProgressRing(_inspectable.IInspectable):
@@ -7628,11 +7318,9 @@ class IProgressRing(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IProgressRingStatics(_inspectable.IInspectable):
+class IProgressRingStatics(_inspectable.IInspectable, factory=True):
     get_IsActiveProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IRadioButton(_inspectable.IInspectable):
@@ -7649,11 +7337,9 @@ class IRadioButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRadioButtonStatics(_inspectable.IInspectable):
+class IRadioButtonStatics(_inspectable.IInspectable, factory=True):
     get_GroupNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IRatingControl(_inspectable.IInspectable):
@@ -7703,7 +7389,7 @@ class IRatingControlFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRatingControlStatics(_inspectable.IInspectable):
+class IRatingControlStatics(_inspectable.IInspectable, factory=True):
     get_CaptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_InitialSetValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7720,8 +7406,6 @@ class IRatingControlStatics(_inspectable.IInspectable):
                                     _type.HRESULT]
     get_ValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IRatingItemFontInfo(_inspectable.IInspectable):
@@ -7758,7 +7442,7 @@ class IRatingItemFontInfoFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRatingItemFontInfoStatics(_inspectable.IInspectable):
+class IRatingItemFontInfoStatics(_inspectable.IInspectable, factory=True):
     get_DisabledGlyphProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_GlyphProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7771,8 +7455,6 @@ class IRatingItemFontInfoStatics(_inspectable.IInspectable):
                                                        _type.HRESULT]
     get_UnsetGlyphProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRatingItemImageInfo(_inspectable.IInspectable):
@@ -7809,7 +7491,7 @@ class IRatingItemImageInfoFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRatingItemImageInfoStatics(_inspectable.IInspectable):
+class IRatingItemImageInfoStatics(_inspectable.IInspectable, factory=True):
     get_DisabledImageProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_ImageProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7822,8 +7504,6 @@ class IRatingItemImageInfoStatics(_inspectable.IInspectable):
                                                        _type.HRESULT]
     get_UnsetImageProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRatingItemInfo(_inspectable.IInspectable):
@@ -7862,13 +7542,11 @@ class IRefreshContainerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRefreshContainerStatics(_inspectable.IInspectable):
+class IRefreshContainerStatics(_inspectable.IInspectable, factory=True):
     get_VisualizerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_PullDirectionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IRefreshInteractionRatioChangedEventArgs(_inspectable.IInspectable):
@@ -7920,7 +7598,7 @@ class IRefreshVisualizerFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRefreshVisualizerStatics(_inspectable.IInspectable):
+class IRefreshVisualizerStatics(_inspectable.IInspectable, factory=True):
     get_InfoProviderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -7929,8 +7607,6 @@ class IRefreshVisualizerStatics(_inspectable.IInspectable):
                                    _type.HRESULT]
     get_StateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IRelativePanel(_inspectable.IInspectable):
@@ -7966,7 +7642,7 @@ class IRelativePanelFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRelativePanelStatics(_inspectable.IInspectable):
+class IRelativePanelStatics(_inspectable.IInspectable, factory=True):
     get_LeftOfProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     GetLeftOf: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
@@ -8104,14 +7780,10 @@ class IRelativePanelStatics(_inspectable.IInspectable):
     get_PaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IRelativePanelStatics2(_inspectable.IInspectable):
+class IRelativePanelStatics2(_inspectable.IInspectable, factory=True):
     get_BackgroundSizingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IRichEditBox(_inspectable.IInspectable):
@@ -8346,7 +8018,7 @@ class IRichEditBoxSelectionChangingEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IRichEditBoxStatics(_inspectable.IInspectable):
+class IRichEditBoxStatics(_inspectable.IInspectable, factory=True):
     get_IsReadOnlyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_AcceptsReturnProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8362,10 +8034,8 @@ class IRichEditBoxStatics(_inspectable.IInspectable):
     get_InputScopeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics2(_inspectable.IInspectable):
+class IRichEditBoxStatics2(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8379,35 +8049,27 @@ class IRichEditBoxStatics2(_inspectable.IInspectable):
     get_IsColorFontEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics3(_inspectable.IInspectable):
+class IRichEditBoxStatics3(_inspectable.IInspectable, factory=True):
     get_DesiredCandidateWindowAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                            _type.HRESULT]
     get_TextReadingOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics4(_inspectable.IInspectable):
+class IRichEditBoxStatics4(_inspectable.IInspectable, factory=True):
     get_ClipboardCopyFormatProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics5(_inspectable.IInspectable):
+class IRichEditBoxStatics5(_inspectable.IInspectable, factory=True):
     get_SelectionHighlightColorWhenNotFocusedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                                  _type.HRESULT]
     get_MaxLengthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics6(_inspectable.IInspectable):
+class IRichEditBoxStatics6(_inspectable.IInspectable, factory=True):
     get_HorizontalTextAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_CharacterCasingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8415,10 +8077,8 @@ class IRichEditBoxStatics6(_inspectable.IInspectable):
     get_DisabledFormattingAcceleratorsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics7(_inspectable.IInspectable):
+class IRichEditBoxStatics7(_inspectable.IInspectable, factory=True):
     get_ContentLinkForegroundColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
     get_ContentLinkBackgroundColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8430,18 +8090,14 @@ class IRichEditBoxStatics7(_inspectable.IInspectable):
     get_IsHandwritingViewEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IRichEditBoxStatics8(_inspectable.IInspectable):
+class IRichEditBoxStatics8(_inspectable.IInspectable, factory=True):
     get_SelectionFlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_ProofingMenuFlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_DescriptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IRichEditBoxTextChangingEventArgs(_inspectable.IInspectable):
@@ -8667,7 +8323,7 @@ class IRichTextBlockOverflow3(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IRichTextBlockOverflowStatics(_inspectable.IInspectable):
+class IRichTextBlockOverflowStatics(_inspectable.IInspectable, factory=True):
     get_OverflowContentTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
     get_PaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8675,24 +8331,18 @@ class IRichTextBlockOverflowStatics(_inspectable.IInspectable):
     get_HasOverflowContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockOverflowStatics2(_inspectable.IInspectable):
+class IRichTextBlockOverflowStatics2(_inspectable.IInspectable, factory=True):
     get_MaxLinesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockOverflowStatics3(_inspectable.IInspectable):
+class IRichTextBlockOverflowStatics3(_inspectable.IInspectable, factory=True):
     get_IsTextTrimmedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockStatics(_inspectable.IInspectable):
+class IRichTextBlockStatics(_inspectable.IInspectable, factory=True):
     get_FontSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_FontFamilyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8730,10 +8380,8 @@ class IRichTextBlockStatics(_inspectable.IInspectable):
     get_TextIndentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockStatics2(_inspectable.IInspectable):
+class IRichTextBlockStatics2(_inspectable.IInspectable, factory=True):
     get_MaxLinesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_TextLineBoundsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -8747,37 +8395,27 @@ class IRichTextBlockStatics2(_inspectable.IInspectable):
     get_TextReadingOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockStatics3(_inspectable.IInspectable):
+class IRichTextBlockStatics3(_inspectable.IInspectable, factory=True):
     get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockStatics4(_inspectable.IInspectable):
+class IRichTextBlockStatics4(_inspectable.IInspectable, factory=True):
     get_TextDecorationsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockStatics5(_inspectable.IInspectable):
+class IRichTextBlockStatics5(_inspectable.IInspectable, factory=True):
     get_IsTextTrimmedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_HorizontalTextAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IRichTextBlockStatics6(_inspectable.IInspectable):
+class IRichTextBlockStatics6(_inspectable.IInspectable, factory=True):
     get_SelectionFlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IRowDefinition(_inspectable.IInspectable):
@@ -8797,15 +8435,13 @@ class IRowDefinition(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IRowDefinitionStatics(_inspectable.IInspectable):
+class IRowDefinitionStatics(_inspectable.IInspectable, factory=True):
     get_HeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_MaxHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_MinHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IScrollAnchorProvider(_inspectable.IInspectable):
@@ -8887,13 +8523,11 @@ class IScrollContentPresenter2(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IScrollContentPresenterStatics2(_inspectable.IInspectable):
+class IScrollContentPresenterStatics2(_inspectable.IInspectable, factory=True):
     get_CanContentRenderOutsideBoundsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                          _type.HRESULT]
     get_SizesContentToTemplatedParentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IScrollViewer(_inspectable.IInspectable):
@@ -9088,7 +8722,7 @@ class IScrollViewer4(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IScrollViewerStatics(_inspectable.IInspectable):
+class IScrollViewerStatics(_inspectable.IInspectable, factory=True):
     get_HorizontalSnapPointsAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                          _type.HRESULT]
     get_VerticalSnapPointsAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9240,10 +8874,8 @@ class IScrollViewerStatics(_inspectable.IInspectable):
                                               _type.boolean],  # bringIntoViewOnFocusChange
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IScrollViewerStatics2(_inspectable.IInspectable):
+class IScrollViewerStatics2(_inspectable.IInspectable, factory=True):
     get_TopLeftHeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_LeftHeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9251,10 +8883,8 @@ class IScrollViewerStatics2(_inspectable.IInspectable):
     get_TopHeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IScrollViewerStatics4(_inspectable.IInspectable):
+class IScrollViewerStatics4(_inspectable.IInspectable, factory=True):
     get_ReduceViewportForCoreInputViewOcclusionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                                     _type.HRESULT]
     get_HorizontalAnchorRatioProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9269,8 +8899,6 @@ class IScrollViewerStatics4(_inspectable.IInspectable):
     SetCanContentRenderOutsideBounds: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # element
                                                  _type.boolean],  # canContentRenderOutsideBounds
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IScrollViewerView(_inspectable.IInspectable):
@@ -9384,7 +9012,7 @@ class ISearchBoxResultSuggestionChosenEventArgs(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ISearchBoxStatics(_inspectable.IInspectable):
+class ISearchBoxStatics(_inspectable.IInspectable, factory=True):
     get_SearchHistoryEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_SearchHistoryContextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9397,8 +9025,6 @@ class ISearchBoxStatics(_inspectable.IInspectable):
                                                 _type.HRESULT]
     get_ChooseSuggestionOnEnterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ISearchBoxSuggestionsRequestedEventArgs(_inspectable.IInspectable):
@@ -9518,7 +9144,7 @@ class ISemanticZoomLocation(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISemanticZoomStatics(_inspectable.IInspectable):
+class ISemanticZoomStatics(_inspectable.IInspectable, factory=True):
     get_ZoomedInViewProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_ZoomedOutViewProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9529,8 +9155,6 @@ class ISemanticZoomStatics(_inspectable.IInspectable):
                                           _type.HRESULT]
     get_IsZoomOutButtonEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ISemanticZoomViewChangedEventArgs(_inspectable.IInspectable):
@@ -9587,7 +9211,7 @@ class ISettingsFlyoutFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISettingsFlyoutStatics(_inspectable.IInspectable):
+class ISettingsFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_TitleProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_HeaderBackgroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9596,8 +9220,6 @@ class ISettingsFlyoutStatics(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_IconSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISlider(_inspectable.IInspectable):
@@ -9657,7 +9279,7 @@ class ISliderFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISliderStatics(_inspectable.IInspectable):
+class ISliderStatics(_inspectable.IInspectable, factory=True):
     get_IntermediateValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
     get_StepFrequencyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9677,16 +9299,12 @@ class ISliderStatics(_inspectable.IInspectable):
     get_ThumbToolTipValueConverterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class ISliderStatics2(_inspectable.IInspectable):
+class ISliderStatics2(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ISplitButton(_inspectable.IInspectable):
@@ -9732,15 +9350,13 @@ class ISplitButtonFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISplitButtonStatics(_inspectable.IInspectable):
+class ISplitButtonStatics(_inspectable.IInspectable, factory=True):
     get_FlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_CommandProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_CommandParameterProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class ISplitView(_inspectable.IInspectable):
@@ -9824,7 +9440,7 @@ class ISplitViewPaneClosingEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISplitViewStatics(_inspectable.IInspectable):
+class ISplitViewStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_PaneProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9844,14 +9460,10 @@ class ISplitViewStatics(_inspectable.IInspectable):
     get_PaneBackgroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ISplitViewStatics2(_inspectable.IInspectable):
+class ISplitViewStatics2(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IStackPanel(_inspectable.IInspectable):
@@ -9905,16 +9517,14 @@ class IStackPanelFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IStackPanelStatics(_inspectable.IInspectable):
+class IStackPanelStatics(_inspectable.IInspectable, factory=True):
     get_AreScrollSnapPointsRegularProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IStackPanelStatics2(_inspectable.IInspectable):
+class IStackPanelStatics2(_inspectable.IInspectable, factory=True):
     get_BorderBrushProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_BorderThicknessProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -9924,21 +9534,15 @@ class IStackPanelStatics2(_inspectable.IInspectable):
     get_PaddingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IStackPanelStatics4(_inspectable.IInspectable):
+class IStackPanelStatics4(_inspectable.IInspectable, factory=True):
     get_SpacingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IStackPanelStatics5(_inspectable.IInspectable):
+class IStackPanelStatics5(_inspectable.IInspectable, factory=True):
     get_BackgroundSizingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IStyleSelector(_inspectable.IInspectable):
@@ -10001,13 +9605,11 @@ class ISwapChainPanelFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISwapChainPanelStatics(_inspectable.IInspectable):
+class ISwapChainPanelStatics(_inspectable.IInspectable, factory=True):
     get_CompositionScaleXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
     get_CompositionScaleYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISwipeControl(_inspectable.IInspectable):
@@ -10038,7 +9640,7 @@ class ISwipeControlFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISwipeControlStatics(_inspectable.IInspectable):
+class ISwipeControlStatics(_inspectable.IInspectable, factory=True):
     get_LeftItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_RightItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10047,8 +9649,6 @@ class ISwipeControlStatics(_inspectable.IInspectable):
                                     _type.HRESULT]
     get_BottomItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ISwipeItem(_inspectable.IInspectable):
@@ -10099,7 +9699,7 @@ class ISwipeItemInvokedEventArgs(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ISwipeItemStatics(_inspectable.IInspectable):
+class ISwipeItemStatics(_inspectable.IInspectable, factory=True):
     get_IconSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_TextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10114,8 +9714,6 @@ class ISwipeItemStatics(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_BehaviorOnInvokedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISwipeItems(_inspectable.IInspectable):
@@ -10132,11 +9730,9 @@ class ISwipeItemsFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISwipeItemsStatics(_inspectable.IInspectable):
+class ISwipeItemsStatics(_inspectable.IInspectable, factory=True):
     get_ModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ISymbolIcon(_inspectable.IInspectable):
@@ -10146,12 +9742,10 @@ class ISymbolIcon(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISymbolIconFactory(_inspectable.IInspectable):
+class ISymbolIconFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithSymbol: _Callable[[_enum.Windows.UI.Xaml.Controls.Symbol,  # symbol
                                          _Pointer[ISymbolIcon]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ISymbolIconSource(_inspectable.IInspectable):
@@ -10168,18 +9762,14 @@ class ISymbolIconSourceFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ISymbolIconSourceStatics(_inspectable.IInspectable):
+class ISymbolIconSourceStatics(_inspectable.IInspectable, factory=True):
     get_SymbolProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ISymbolIconStatics(_inspectable.IInspectable):
+class ISymbolIconStatics(_inspectable.IInspectable, factory=True):
     get_SymbolProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ITextBlock(_inspectable.IInspectable):
@@ -10348,7 +9938,7 @@ class ITextBlock7(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class ITextBlockStatics(_inspectable.IInspectable):
+class ITextBlockStatics(_inspectable.IInspectable, factory=True):
     get_FontSizeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_FontFamilyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10382,10 +9972,8 @@ class ITextBlockStatics(_inspectable.IInspectable):
     get_SelectedTextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBlockStatics2(_inspectable.IInspectable):
+class ITextBlockStatics2(_inspectable.IInspectable, factory=True):
     get_SelectionHighlightColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_MaxLinesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10399,37 +9987,27 @@ class ITextBlockStatics2(_inspectable.IInspectable):
     get_TextReadingOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBlockStatics3(_inspectable.IInspectable):
+class ITextBlockStatics3(_inspectable.IInspectable, factory=True):
     get_IsTextScaleFactorEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBlockStatics5(_inspectable.IInspectable):
+class ITextBlockStatics5(_inspectable.IInspectable, factory=True):
     get_TextDecorationsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBlockStatics6(_inspectable.IInspectable):
+class ITextBlockStatics6(_inspectable.IInspectable, factory=True):
     get_IsTextTrimmedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_HorizontalTextAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBlockStatics7(_inspectable.IInspectable):
+class ITextBlockStatics7(_inspectable.IInspectable, factory=True):
     get_SelectionFlyoutProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class ITextBox(_inspectable.IInspectable):
@@ -10691,7 +10269,7 @@ class ITextBoxSelectionChangingEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ITextBoxStatics(_inspectable.IInspectable):
+class ITextBoxStatics(_inspectable.IInspectable, factory=True):
     get_TextProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_MaxLengthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10711,10 +10289,8 @@ class ITextBoxStatics(_inspectable.IInspectable):
     get_InputScopeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBoxStatics2(_inspectable.IInspectable):
+class ITextBoxStatics2(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10728,26 +10304,20 @@ class ITextBoxStatics2(_inspectable.IInspectable):
     get_IsColorFontEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBoxStatics3(_inspectable.IInspectable):
+class ITextBoxStatics3(_inspectable.IInspectable, factory=True):
     get_DesiredCandidateWindowAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                            _type.HRESULT]
     get_TextReadingOrderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBoxStatics5(_inspectable.IInspectable):
+class ITextBoxStatics5(_inspectable.IInspectable, factory=True):
     get_SelectionHighlightColorWhenNotFocusedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBoxStatics6(_inspectable.IInspectable):
+class ITextBoxStatics6(_inspectable.IInspectable, factory=True):
     get_HorizontalTextAlignmentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_CharacterCasingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10755,19 +10325,15 @@ class ITextBoxStatics6(_inspectable.IInspectable):
     get_PlaceholderForegroundProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBoxStatics7(_inspectable.IInspectable):
+class ITextBoxStatics7(_inspectable.IInspectable, factory=True):
     get_HandwritingViewProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_IsHandwritingViewEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ITextBoxStatics8(_inspectable.IInspectable):
+class ITextBoxStatics8(_inspectable.IInspectable, factory=True):
     get_CanPasteClipboardContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
     get_CanUndoProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10780,8 +10346,6 @@ class ITextBoxStatics8(_inspectable.IInspectable):
                                               _type.HRESULT]
     get_DescriptionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ITextBoxTextChangingEventArgs(_inspectable.IInspectable):
@@ -10945,22 +10509,18 @@ class ITimePickerFlyoutPresenter2(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ITimePickerFlyoutPresenterStatics2(_inspectable.IInspectable):
+class ITimePickerFlyoutPresenterStatics2(_inspectable.IInspectable, factory=True):
     get_IsDefaultShadowEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITimePickerFlyoutStatics(_inspectable.IInspectable):
+class ITimePickerFlyoutStatics(_inspectable.IInspectable, factory=True):
     get_ClockIdentifierProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     get_TimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_MinuteIncrementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class ITimePickerSelectedValueChangedEventArgs(_inspectable.IInspectable):
@@ -10970,7 +10530,7 @@ class ITimePickerSelectedValueChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ITimePickerStatics(_inspectable.IInspectable):
+class ITimePickerStatics(_inspectable.IInspectable, factory=True):
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_HeaderTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -10982,21 +10542,15 @@ class ITimePickerStatics(_inspectable.IInspectable):
     get_TimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class ITimePickerStatics2(_inspectable.IInspectable):
+class ITimePickerStatics2(_inspectable.IInspectable, factory=True):
     get_LightDismissOverlayModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class ITimePickerStatics3(_inspectable.IInspectable):
+class ITimePickerStatics3(_inspectable.IInspectable, factory=True):
     get_SelectedTimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ITimePickerValueChangedEventArgs(_inspectable.IInspectable):
@@ -11020,11 +10574,9 @@ class IToggleMenuFlyoutItemFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IToggleMenuFlyoutItemStatics(_inspectable.IInspectable):
+class IToggleMenuFlyoutItemStatics(_inspectable.IInspectable, factory=True):
     get_IsCheckedProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IToggleSplitButton(_inspectable.IInspectable):
@@ -11114,7 +10666,7 @@ class IToggleSwitchOverrides(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IToggleSwitchStatics(_inspectable.IInspectable):
+class IToggleSwitchStatics(_inspectable.IInspectable, factory=True):
     get_IsOnProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_HeaderProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11129,8 +10681,6 @@ class IToggleSwitchStatics(_inspectable.IInspectable):
                                       _type.HRESULT]
     get_OffContentTemplateProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IToolTip(_inspectable.IInspectable):
@@ -11186,7 +10736,7 @@ class IToolTipService(_inspectable.IInspectable):
     pass
 
 
-class IToolTipServiceStatics(_inspectable.IInspectable):
+class IToolTipServiceStatics(_inspectable.IInspectable, factory=True):
     get_PlacementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     GetPlacement: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # element
@@ -11212,10 +10762,8 @@ class IToolTipServiceStatics(_inspectable.IInspectable):
                            _inspectable.IInspectable],  # value
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IToolTipStatics(_inspectable.IInspectable):
+class IToolTipStatics(_inspectable.IInspectable, factory=True):
     get_HorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_IsOpenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11227,14 +10775,10 @@ class IToolTipStatics(_inspectable.IInspectable):
     get_VerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IToolTipStatics2(_inspectable.IInspectable):
+class IToolTipStatics2(_inspectable.IInspectable, factory=True):
     get_PlacementRectProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class ITreeView(_inspectable.IInspectable):
@@ -11427,7 +10971,7 @@ class ITreeViewItemInvokedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ITreeViewItemStatics(_inspectable.IInspectable):
+class ITreeViewItemStatics(_inspectable.IInspectable, factory=True):
     get_GlyphOpacityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_GlyphBrushProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11443,16 +10987,12 @@ class ITreeViewItemStatics(_inspectable.IInspectable):
     get_TreeViewItemTemplateSettingsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                         _type.HRESULT]
 
-    _factory = True
 
-
-class ITreeViewItemStatics2(_inspectable.IInspectable):
+class ITreeViewItemStatics2(_inspectable.IInspectable, factory=True):
     get_HasUnrealizedChildrenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                  _type.HRESULT]
     get_ItemsSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ITreeViewItemTemplateSettings(_inspectable.IInspectable):
@@ -11473,7 +11013,7 @@ class ITreeViewItemTemplateSettingsFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITreeViewItemTemplateSettingsStatics(_inspectable.IInspectable):
+class ITreeViewItemTemplateSettingsStatics(_inspectable.IInspectable, factory=True):
     get_ExpandedGlyphVisibilityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                    _type.HRESULT]
     get_CollapsedGlyphVisibilityProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11482,8 +11022,6 @@ class ITreeViewItemTemplateSettingsStatics(_inspectable.IInspectable):
                                        _type.HRESULT]
     get_DragItemsCountProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ITreeViewList(_inspectable.IInspectable):
@@ -11527,7 +11065,7 @@ class ITreeViewNodeFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITreeViewNodeStatics(_inspectable.IInspectable):
+class ITreeViewNodeStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_DepthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11537,17 +11075,13 @@ class ITreeViewNodeStatics(_inspectable.IInspectable):
     get_HasChildrenProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class ITreeViewStatics(_inspectable.IInspectable):
+class ITreeViewStatics(_inspectable.IInspectable, factory=True):
     get_SelectionModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class ITreeViewStatics2(_inspectable.IInspectable):
+class ITreeViewStatics2(_inspectable.IInspectable, factory=True):
     get_CanDragItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_CanReorderItemsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11564,8 +11098,6 @@ class ITreeViewStatics2(_inspectable.IInspectable):
                                                     _type.HRESULT]
     get_ItemsSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ITwoPaneView(_inspectable.IInspectable):
@@ -11621,7 +11153,7 @@ class ITwoPaneViewFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITwoPaneViewStatics(_inspectable.IInspectable):
+class ITwoPaneViewStatics(_inspectable.IInspectable, factory=True):
     get_Pane1Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_Pane2Property: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11642,8 +11174,6 @@ class ITwoPaneViewStatics(_inspectable.IInspectable):
                                             _type.HRESULT]
     get_MinTallModeHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IUIElementCollection(_inspectable.IInspectable):
@@ -11666,11 +11196,9 @@ class IUserControlFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IUserControlStatics(_inspectable.IInspectable):
+class IUserControlStatics(_inspectable.IInspectable, factory=True):
     get_ContentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IVariableSizedWrapGrid(_inspectable.IInspectable):
@@ -11700,7 +11228,7 @@ class IVariableSizedWrapGrid(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IVariableSizedWrapGridStatics(_inspectable.IInspectable):
+class IVariableSizedWrapGridStatics(_inspectable.IInspectable, factory=True):
     get_ItemHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_ItemWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11730,8 +11258,6 @@ class IVariableSizedWrapGridStatics(_inspectable.IInspectable):
                               _type.INT32],  # value
                              _type.HRESULT]
 
-    _factory = True
-
 
 class IViewbox(_inspectable.IInspectable):
     get_Child: _Callable[[_Pointer[_Windows_UI_Xaml.IUIElement]],  # value
@@ -11748,13 +11274,11 @@ class IViewbox(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IViewboxStatics(_inspectable.IInspectable):
+class IViewboxStatics(_inspectable.IInspectable, factory=True):
     get_StretchProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_StretchDirectionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IVirtualizingPanel(_inspectable.IInspectable):
@@ -11808,7 +11332,7 @@ class IVirtualizingStackPanelOverrides(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IVirtualizingStackPanelStatics(_inspectable.IInspectable):
+class IVirtualizingStackPanelStatics(_inspectable.IInspectable, factory=True):
     get_AreScrollSnapPointsRegularProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                       _type.HRESULT]
     get_OrientationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -11826,8 +11350,6 @@ class IVirtualizingStackPanelStatics(_inspectable.IInspectable):
     GetIsVirtualizing: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # o
                                   _Pointer[_type.boolean]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IWebView(_inspectable.IInspectable):
@@ -12042,11 +11564,9 @@ class IWebViewBrush(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IWebViewBrushStatics(_inspectable.IInspectable):
+class IWebViewBrushStatics(_inspectable.IInspectable, factory=True):
     get_SourceNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IWebViewContentLoadingEventArgs(_inspectable.IInspectable):
@@ -12072,12 +11592,10 @@ class IWebViewDeferredPermissionRequest(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IWebViewFactory4(_inspectable.IInspectable):
+class IWebViewFactory4(_inspectable.IInspectable, factory=True):
     CreateInstanceWithExecutionMode: _Callable[[_enum.Windows.UI.Xaml.Controls.WebViewExecutionMode,  # executionMode
                                                 _Pointer[IWebView]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IWebViewLongRunningScriptDetectedEventArgs(_inspectable.IInspectable):
@@ -12162,7 +11680,7 @@ class IWebViewSettings(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IWebViewStatics(_inspectable.IInspectable):
+class IWebViewStatics(_inspectable.IInspectable, factory=True):
     AnyScriptNotifyUri: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[_Windows_Foundation.IUriRuntimeClass]]],  # value
                                   _type.HRESULT]
     get_SourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -12172,10 +11690,8 @@ class IWebViewStatics(_inspectable.IInspectable):
     DataTransferPackageProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IWebViewStatics2(_inspectable.IInspectable):
+class IWebViewStatics2(_inspectable.IInspectable, factory=True):
     get_CanGoBackProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_CanGoForwardProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -12185,26 +11701,20 @@ class IWebViewStatics2(_inspectable.IInspectable):
     get_DefaultBackgroundColorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IWebViewStatics3(_inspectable.IInspectable):
+class IWebViewStatics3(_inspectable.IInspectable, factory=True):
     get_ContainsFullScreenElementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IWebViewStatics4(_inspectable.IInspectable):
+class IWebViewStatics4(_inspectable.IInspectable, factory=True):
     get_DefaultExecutionMode: _Callable[[_Pointer[_enum.Windows.UI.Xaml.Controls.WebViewExecutionMode]],  # value
                                         _type.HRESULT]
     ClearTemporaryWebDataAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IWebViewStatics5(_inspectable.IInspectable):
+class IWebViewStatics5(_inspectable.IInspectable, factory=True):
     get_XYFocusLeftProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_XYFocusRightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -12213,8 +11723,6 @@ class IWebViewStatics5(_inspectable.IInspectable):
                                      _type.HRESULT]
     get_XYFocusDownProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IWebViewUnsupportedUriSchemeIdentifiedEventArgs(_inspectable.IInspectable):
@@ -12276,7 +11784,7 @@ class IWrapGrid(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IWrapGridStatics(_inspectable.IInspectable):
+class IWrapGridStatics(_inspectable.IInspectable, factory=True):
     get_ItemWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_ItemHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -12289,5 +11797,3 @@ class IWrapGridStatics(_inspectable.IInspectable):
                                                      _type.HRESULT]
     get_MaximumRowsOrColumnsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
-
-    _factory = True

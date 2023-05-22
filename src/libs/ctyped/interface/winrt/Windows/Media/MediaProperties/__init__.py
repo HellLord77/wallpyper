@@ -43,7 +43,7 @@ class IAudioEncodingProperties3(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IAudioEncodingPropertiesStatics(_inspectable.IInspectable):
+class IAudioEncodingPropertiesStatics(_inspectable.IInspectable, factory=True):
     CreateAac: _Callable[[_type.UINT32,  # sampleRate
                           _type.UINT32,  # channelCount
                           _type.UINT32,  # bitrate
@@ -70,10 +70,8 @@ class IAudioEncodingPropertiesStatics(_inspectable.IInspectable):
                           _Pointer[IAudioEncodingProperties]],  # value
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IAudioEncodingPropertiesStatics2(_inspectable.IInspectable):
+class IAudioEncodingPropertiesStatics2(_inspectable.IInspectable, factory=True):
     CreateAlac: _Callable[[_type.UINT32,  # sampleRate
                            _type.UINT32,  # channelCount
                            _type.UINT32,  # bitsPerSample
@@ -84,8 +82,6 @@ class IAudioEncodingPropertiesStatics2(_inspectable.IInspectable):
                            _type.UINT32,  # bitsPerSample
                            _Pointer[IAudioEncodingProperties]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioEncodingPropertiesWithFormatUserData(_inspectable.IInspectable):
@@ -106,7 +102,7 @@ class IContainerEncodingProperties2(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IH264ProfileIdsStatics(_inspectable.IInspectable):
+class IH264ProfileIdsStatics(_inspectable.IInspectable, factory=True):
     get_ConstrainedBaseline: _Callable[[_Pointer[_type.INT32]],  # value
                                        _type.HRESULT]
     get_Baseline: _Callable[[_Pointer[_type.INT32]],  # value
@@ -128,8 +124,6 @@ class IH264ProfileIdsStatics(_inspectable.IInspectable):
     get_MultiviewHigh: _Callable[[_Pointer[_type.INT32]],  # value
                                  _type.HRESULT]
 
-    _factory = True
-
 
 class IImageEncodingProperties(_inspectable.IInspectable):
     put_Width: _Callable[[_type.UINT32],  # value
@@ -147,7 +141,7 @@ class IImageEncodingProperties2(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IImageEncodingPropertiesStatics(_inspectable.IInspectable):
+class IImageEncodingPropertiesStatics(_inspectable.IInspectable, factory=True):
     CreateJpeg: _Callable[[_Pointer[IImageEncodingProperties]],  # value
                           _type.HRESULT]
     CreatePng: _Callable[[_Pointer[IImageEncodingProperties]],  # value
@@ -155,24 +149,18 @@ class IImageEncodingPropertiesStatics(_inspectable.IInspectable):
     CreateJpegXR: _Callable[[_Pointer[IImageEncodingProperties]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IImageEncodingPropertiesStatics2(_inspectable.IInspectable):
+class IImageEncodingPropertiesStatics2(_inspectable.IInspectable, factory=True):
     CreateUncompressed: _Callable[[_enum.Windows.Media.MediaProperties.MediaPixelFormat,  # format
                                    _Pointer[IImageEncodingProperties]],  # value
                                   _type.HRESULT]
     CreateBmp: _Callable[[_Pointer[IImageEncodingProperties]],  # value
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IImageEncodingPropertiesStatics3(_inspectable.IInspectable):
+class IImageEncodingPropertiesStatics3(_inspectable.IInspectable, factory=True):
     CreateHeif: _Callable[[_Pointer[IImageEncodingProperties]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaEncodingProfile(_inspectable.IInspectable):
@@ -208,7 +196,7 @@ class IMediaEncodingProfile3(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IMediaEncodingProfileStatics(_inspectable.IInspectable):
+class IMediaEncodingProfileStatics(_inspectable.IInspectable, factory=True):
     CreateM4a: _Callable[[_enum.Windows.Media.MediaProperties.AudioEncodingQuality,  # quality
                           _Pointer[IMediaEncodingProfile]],  # value
                          _type.HRESULT]
@@ -231,10 +219,8 @@ class IMediaEncodingProfileStatics(_inspectable.IInspectable):
                                       _Pointer[_Windows_Foundation.IAsyncOperation[IMediaEncodingProfile]]],  # operation
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingProfileStatics2(_inspectable.IInspectable):
+class IMediaEncodingProfileStatics2(_inspectable.IInspectable, factory=True):
     CreateWav: _Callable[[_enum.Windows.Media.MediaProperties.AudioEncodingQuality,  # quality
                           _Pointer[IMediaEncodingProfile]],  # value
                          _type.HRESULT]
@@ -242,10 +228,8 @@ class IMediaEncodingProfileStatics2(_inspectable.IInspectable):
                           _Pointer[IMediaEncodingProfile]],  # value
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingProfileStatics3(_inspectable.IInspectable):
+class IMediaEncodingProfileStatics3(_inspectable.IInspectable, factory=True):
     CreateAlac: _Callable[[_enum.Windows.Media.MediaProperties.AudioEncodingQuality,  # quality
                            _Pointer[IMediaEncodingProfile]],  # value
                           _type.HRESULT]
@@ -255,8 +239,6 @@ class IMediaEncodingProfileStatics3(_inspectable.IInspectable):
     CreateHevc: _Callable[[_enum.Windows.Media.MediaProperties.VideoEncodingQuality,  # quality
                            _Pointer[IMediaEncodingProfile]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaEncodingProperties(_inspectable.IInspectable):
@@ -270,7 +252,7 @@ class IMediaEncodingProperties(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IMediaEncodingSubtypesStatics(_inspectable.IInspectable):
+class IMediaEncodingSubtypesStatics(_inspectable.IInspectable, factory=True):
     get_Aac: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_AacAdts: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -352,10 +334,8 @@ class IMediaEncodingSubtypesStatics(_inspectable.IInspectable):
     get_Yv12: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingSubtypesStatics2(_inspectable.IInspectable):
+class IMediaEncodingSubtypesStatics2(_inspectable.IInspectable, factory=True):
     get_Vp9: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_L8: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -365,33 +345,25 @@ class IMediaEncodingSubtypesStatics2(_inspectable.IInspectable):
     get_D16: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingSubtypesStatics3(_inspectable.IInspectable):
+class IMediaEncodingSubtypesStatics3(_inspectable.IInspectable, factory=True):
     get_Alac: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     get_Flac: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingSubtypesStatics4(_inspectable.IInspectable):
+class IMediaEncodingSubtypesStatics4(_inspectable.IInspectable, factory=True):
     get_P010: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingSubtypesStatics5(_inspectable.IInspectable):
+class IMediaEncodingSubtypesStatics5(_inspectable.IInspectable, factory=True):
     get_Heif: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaEncodingSubtypesStatics6(_inspectable.IInspectable):
+class IMediaEncodingSubtypesStatics6(_inspectable.IInspectable, factory=True):
     get_Pgs: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_Srt: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -400,8 +372,6 @@ class IMediaEncodingSubtypesStatics6(_inspectable.IInspectable):
                        _type.HRESULT]
     get_VobSub: _Callable[[_Pointer[_type.HSTRING]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaRatio(_inspectable.IInspectable):
@@ -415,7 +385,7 @@ class IMediaRatio(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IMpeg2ProfileIdsStatics(_inspectable.IInspectable):
+class IMpeg2ProfileIdsStatics(_inspectable.IInspectable, factory=True):
     get_Simple: _Callable[[_Pointer[_type.INT32]],  # value
                           _type.HRESULT]
     get_Main: _Callable[[_Pointer[_type.INT32]],  # value
@@ -426,8 +396,6 @@ class IMpeg2ProfileIdsStatics(_inspectable.IInspectable):
                                      _type.HRESULT]
     get_High: _Callable[[_Pointer[_type.INT32]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ITimedMetadataEncodingProperties(_inspectable.IInspectable):
@@ -441,7 +409,7 @@ class ITimedMetadataEncodingProperties(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class ITimedMetadataEncodingPropertiesStatics(_inspectable.IInspectable):
+class ITimedMetadataEncodingPropertiesStatics(_inspectable.IInspectable, factory=True):
     CreatePgs: _Callable[[_Pointer[IMediaEncodingProperties]],  # result
                          _type.HRESULT]
     CreateSrt: _Callable[[_Pointer[IMediaEncodingProperties]],  # result
@@ -454,8 +422,6 @@ class ITimedMetadataEncodingPropertiesStatics(_inspectable.IInspectable):
                              _Pointer[_type.BYTE],  # formatUserData
                              _Pointer[IMediaEncodingProperties]],  # result
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IVideoEncodingProperties(_inspectable.IInspectable):
@@ -505,7 +471,7 @@ class IVideoEncodingProperties5(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IVideoEncodingPropertiesStatics(_inspectable.IInspectable):
+class IVideoEncodingPropertiesStatics(_inspectable.IInspectable, factory=True):
     CreateH264: _Callable[[_Pointer[IVideoEncodingProperties]],  # value
                           _type.HRESULT]
     CreateMpeg2: _Callable[[_Pointer[IVideoEncodingProperties]],  # value
@@ -516,11 +482,7 @@ class IVideoEncodingPropertiesStatics(_inspectable.IInspectable):
                                    _Pointer[IVideoEncodingProperties]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IVideoEncodingPropertiesStatics2(_inspectable.IInspectable):
+class IVideoEncodingPropertiesStatics2(_inspectable.IInspectable, factory=True):
     CreateHevc: _Callable[[_Pointer[IVideoEncodingProperties]],  # value
                           _type.HRESULT]
-
-    _factory = True

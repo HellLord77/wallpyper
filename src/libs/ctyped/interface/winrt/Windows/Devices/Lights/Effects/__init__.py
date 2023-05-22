@@ -35,14 +35,12 @@ class ILampArrayBitmapEffect(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ILampArrayBitmapEffectFactory(_inspectable.IInspectable):
+class ILampArrayBitmapEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Devices_Lights.ILampArray,  # lampArray
                                _type.UINT32,  # __lampIndexesSize
                                _Pointer[_type.INT32],  # lampIndexes
                                _Pointer[ILampArrayBitmapEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILampArrayBitmapRequestedEventArgs(_inspectable.IInspectable):
@@ -87,14 +85,12 @@ class ILampArrayBlinkEffect(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ILampArrayBlinkEffectFactory(_inspectable.IInspectable):
+class ILampArrayBlinkEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Devices_Lights.ILampArray,  # lampArray
                                _type.UINT32,  # __lampIndexesSize
                                _Pointer[_type.INT32],  # lampIndexes
                                _Pointer[ILampArrayBlinkEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILampArrayColorRampEffect(_inspectable.IInspectable):
@@ -116,14 +112,12 @@ class ILampArrayColorRampEffect(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ILampArrayColorRampEffectFactory(_inspectable.IInspectable):
+class ILampArrayColorRampEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Devices_Lights.ILampArray,  # lampArray
                                _type.UINT32,  # __lampIndexesSize
                                _Pointer[_type.INT32],  # lampIndexes
                                _Pointer[ILampArrayColorRampEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILampArrayCustomEffect(_inspectable.IInspectable):
@@ -142,14 +136,12 @@ class ILampArrayCustomEffect(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ILampArrayCustomEffectFactory(_inspectable.IInspectable):
+class ILampArrayCustomEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Devices_Lights.ILampArray,  # lampArray
                                _type.UINT32,  # __lampIndexesSize
                                _Pointer[_type.INT32],  # lampIndexes
                                _Pointer[ILampArrayCustomEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILampArrayEffect(_inspectable.IInspectable):
@@ -184,15 +176,13 @@ class ILampArrayEffectPlaylist(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ILampArrayEffectPlaylistStatics(_inspectable.IInspectable):
+class ILampArrayEffectPlaylistStatics(_inspectable.IInspectable, factory=True):
     StartAll: _Callable[[_Windows_Foundation_Collections.IIterable[ILampArrayEffectPlaylist]],  # value
                         _type.HRESULT]
     StopAll: _Callable[[_Windows_Foundation_Collections.IIterable[ILampArrayEffectPlaylist]],  # value
                        _type.HRESULT]
     PauseAll: _Callable[[_Windows_Foundation_Collections.IIterable[ILampArrayEffectPlaylist]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ILampArraySolidEffect(_inspectable.IInspectable):
@@ -214,14 +204,12 @@ class ILampArraySolidEffect(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ILampArraySolidEffectFactory(_inspectable.IInspectable):
+class ILampArraySolidEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Devices_Lights.ILampArray,  # lampArray
                                _type.UINT32,  # __lampIndexesSize
                                _Pointer[_type.INT32],  # lampIndexes
                                _Pointer[ILampArraySolidEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILampArrayUpdateRequestedEventArgs(_inspectable.IInspectable):

@@ -8,7 +8,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IPlatformTelemetryClientStatics(_inspectable.IInspectable):
+class IPlatformTelemetryClientStatics(_inspectable.IInspectable, factory=True):
     Register: _Callable[[_type.HSTRING,  # id
                          _Pointer[IPlatformTelemetryRegistrationResult]],  # result
                         _type.HRESULT]
@@ -16,8 +16,6 @@ class IPlatformTelemetryClientStatics(_inspectable.IInspectable):
                                      IPlatformTelemetryRegistrationSettings,  # settings
                                      _Pointer[IPlatformTelemetryRegistrationResult]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPlatformTelemetryRegistrationResult(_inspectable.IInspectable):

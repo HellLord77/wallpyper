@@ -164,18 +164,14 @@ class IPageStackEntry(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IPageStackEntryFactory(_inspectable.IInspectable):
+class IPageStackEntryFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_struct.Windows.UI.Xaml.Interop.TypeName,  # sourcePageType
                                _inspectable.IInspectable,  # parameter
                                _Windows_UI_Xaml_Media_Animation.INavigationTransitionInfo,  # navigationTransitionInfo
                                _Pointer[IPageStackEntry]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IPageStackEntryStatics(_inspectable.IInspectable):
+class IPageStackEntryStatics(_inspectable.IInspectable, factory=True):
     get_SourcePageTypeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True

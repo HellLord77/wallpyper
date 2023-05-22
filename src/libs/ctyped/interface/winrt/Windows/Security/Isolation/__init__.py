@@ -133,7 +133,7 @@ class IIsolatedWindowsEnvironmentCreateResult2(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IIsolatedWindowsEnvironmentFactory(_inspectable.IInspectable):
+class IIsolatedWindowsEnvironmentFactory(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[IIsolatedWindowsEnvironmentOptions,  # options
                             _Pointer[_Windows_Foundation.IAsyncOperationWithProgress[IIsolatedWindowsEnvironmentCreateResult, _struct.Windows.Security.Isolation.IsolatedWindowsEnvironmentCreateProgress]]],  # operation
                            _type.HRESULT]
@@ -147,8 +147,6 @@ class IIsolatedWindowsEnvironmentFactory(_inspectable.IInspectable):
     FindByOwnerId: _Callable[[_type.HSTRING,  # environmentOwnerId
                               _Pointer[_Windows_Foundation_Collections.IVectorView[IIsolatedWindowsEnvironment]]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IIsolatedWindowsEnvironmentFile(_inspectable.IInspectable):
@@ -167,13 +165,11 @@ class IIsolatedWindowsEnvironmentFile2(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IIsolatedWindowsEnvironmentHostStatics(_inspectable.IInspectable):
+class IIsolatedWindowsEnvironmentHostStatics(_inspectable.IInspectable, factory=True):
     get_IsReady: _Callable[[_Pointer[_type.boolean]],  # value
                            _type.HRESULT]
     get_HostErrors: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Security.Isolation.IsolatedWindowsEnvironmentHostError]]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IIsolatedWindowsEnvironmentLaunchFileResult(_inspectable.IInspectable):
@@ -263,15 +259,13 @@ class IIsolatedWindowsEnvironmentOwnerRegistrationResult(_inspectable.IInspectab
                                  _type.HRESULT]
 
 
-class IIsolatedWindowsEnvironmentOwnerRegistrationStatics(_inspectable.IInspectable):
+class IIsolatedWindowsEnvironmentOwnerRegistrationStatics(_inspectable.IInspectable, factory=True):
     Register: _Callable[[_type.HSTRING,  # ownerName
                          IIsolatedWindowsEnvironmentOwnerRegistrationData,  # ownerRegistrationData
                          _Pointer[IIsolatedWindowsEnvironmentOwnerRegistrationResult]],  # result
                         _type.HRESULT]
     Unregister: _Callable[[_type.HSTRING],  # ownerName
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IIsolatedWindowsEnvironmentPostMessageResult(_inspectable.IInspectable):
@@ -354,7 +348,7 @@ class IIsolatedWindowsEnvironmentUserInfo2(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IIsolatedWindowsHostMessengerStatics(_inspectable.IInspectable):
+class IIsolatedWindowsHostMessengerStatics(_inspectable.IInspectable, factory=True):
     PostMessageToReceiver: _Callable[[_struct.GUID,  # receiverId
                                       _Windows_Foundation_Collections.IVectorView[_inspectable.IInspectable]],  # message
                                      _type.HRESULT]
@@ -362,14 +356,10 @@ class IIsolatedWindowsHostMessengerStatics(_inspectable.IInspectable):
                           _Pointer[_struct.GUID]],  # result
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IIsolatedWindowsHostMessengerStatics2(_inspectable.IInspectable):
+class IIsolatedWindowsHostMessengerStatics2(_inspectable.IInspectable, factory=True):
     RegisterHostMessageReceiver: _Callable[[_struct.GUID,  # receiverId
                                             IHostMessageReceivedCallback],  # hostMessageReceivedCallback
                                            _type.HRESULT]
     UnregisterHostMessageReceiver: _Callable[[_struct.GUID],  # receiverId
                                              _type.HRESULT]
-
-    _factory = True

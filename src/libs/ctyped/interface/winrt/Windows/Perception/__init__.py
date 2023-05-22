@@ -20,17 +20,13 @@ class IPerceptionTimestamp2(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IPerceptionTimestampHelperStatics(_inspectable.IInspectable):
+class IPerceptionTimestampHelperStatics(_inspectable.IInspectable, factory=True):
     FromHistoricalTargetTime: _Callable[[_struct.Windows.Foundation.DateTime,  # targetTime
                                          _Pointer[IPerceptionTimestamp]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IPerceptionTimestampHelperStatics2(_inspectable.IInspectable):
+class IPerceptionTimestampHelperStatics2(_inspectable.IInspectable, factory=True):
     FromSystemRelativeTargetTime: _Callable[[_struct.Windows.Foundation.TimeSpan,  # targetTime
                                              _Pointer[IPerceptionTimestamp]],  # value
                                             _type.HRESULT]
-
-    _factory = True

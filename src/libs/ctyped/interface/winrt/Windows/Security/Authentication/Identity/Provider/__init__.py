@@ -51,7 +51,7 @@ class ISecondaryAuthenticationFactorAuthenticationStageInfo(_inspectable.IInspec
                         _type.HRESULT]
 
 
-class ISecondaryAuthenticationFactorAuthenticationStatics(_inspectable.IInspectable):
+class ISecondaryAuthenticationFactorAuthenticationStatics(_inspectable.IInspectable, factory=True):
     ShowNotificationMessageAsync: _Callable[[_type.HSTRING,  # deviceName
                                              _enum.Windows.Security.Authentication.Identity.Provider.SecondaryAuthenticationFactorAuthenticationMessage,  # message
                                              _Pointer[_Windows_Foundation.IAsyncAction]],  # result
@@ -65,10 +65,8 @@ class ISecondaryAuthenticationFactorAuthenticationStatics(_inspectable.IInspecta
     GetAuthenticationStageInfoAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISecondaryAuthenticationFactorAuthenticationStageInfo]]],  # result
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class ISecondaryAuthenticationFactorDevicePresenceMonitoringRegistrationStatics(_inspectable.IInspectable):
+class ISecondaryAuthenticationFactorDevicePresenceMonitoringRegistrationStatics(_inspectable.IInspectable, factory=True):
     RegisterDevicePresenceMonitoringAsync: _Callable[[_type.HSTRING,  # deviceId
                                                       _type.HSTRING,  # deviceInstancePath
                                                       _enum.Windows.Security.Authentication.Identity.Provider.SecondaryAuthenticationFactorDevicePresenceMonitoringMode,  # monitoringMode
@@ -87,8 +85,6 @@ class ISecondaryAuthenticationFactorDevicePresenceMonitoringRegistrationStatics(
                                                        _type.HRESULT]
     IsDevicePresenceMonitoringSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ISecondaryAuthenticationFactorInfo(_inspectable.IInspectable):
@@ -128,7 +124,7 @@ class ISecondaryAuthenticationFactorRegistrationResult(_inspectable.IInspectable
                             _type.HRESULT]
 
 
-class ISecondaryAuthenticationFactorRegistrationStatics(_inspectable.IInspectable):
+class ISecondaryAuthenticationFactorRegistrationStatics(_inspectable.IInspectable, factory=True):
     RequestStartRegisteringDeviceAsync: _Callable[[_type.HSTRING,  # deviceId
                                                    _enum.Windows.Security.Authentication.Identity.Provider.SecondaryAuthenticationFactorDeviceCapabilities,  # capabilities
                                                    _type.HSTRING,  # deviceFriendlyName
@@ -147,5 +143,3 @@ class ISecondaryAuthenticationFactorRegistrationStatics(_inspectable.IInspectabl
                                                    _Windows_Storage_Streams.IBuffer,  # deviceConfigurationData
                                                    _Pointer[_Windows_Foundation.IAsyncAction]],  # result
                                                   _type.HRESULT]
-
-    _factory = True

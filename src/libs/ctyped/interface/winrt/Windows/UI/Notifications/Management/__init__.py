@@ -34,8 +34,6 @@ class IUserNotificationListener(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IUserNotificationListenerStatics(_inspectable.IInspectable):
+class IUserNotificationListenerStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IUserNotificationListener]],  # value
                            _type.HRESULT]
-
-    _factory = True

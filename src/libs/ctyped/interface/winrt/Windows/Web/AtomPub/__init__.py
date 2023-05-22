@@ -56,12 +56,10 @@ class IAtomPubClient(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IAtomPubClientFactory(_inspectable.IInspectable):
+class IAtomPubClientFactory(_inspectable.IInspectable, factory=True):
     CreateAtomPubClientWithCredentials: _Callable[[_Windows_Security_Credentials.IPasswordCredential,  # serverCredential
                                                    _Pointer[IAtomPubClient]],  # atomPubClient
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IResourceCollection(_inspectable.IInspectable):

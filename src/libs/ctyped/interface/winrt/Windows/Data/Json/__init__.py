@@ -26,7 +26,7 @@ class IJsonArray(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IJsonArrayStatics(_inspectable.IInspectable):
+class IJsonArrayStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IJsonArray]],  # jsonArray
                      _type.HRESULT]
@@ -35,15 +35,11 @@ class IJsonArrayStatics(_inspectable.IInspectable):
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
 
-    _factory = True
 
-
-class IJsonErrorStatics2(_inspectable.IInspectable):
+class IJsonErrorStatics2(_inspectable.IInspectable, factory=True):
     GetJsonStatus: _Callable[[_type.INT32,  # hresult
                               _Pointer[_enum.Windows.Data.Json.JsonErrorStatus]],  # status
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IJsonObject(_inspectable.IInspectable):
@@ -70,7 +66,7 @@ class IJsonObject(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IJsonObjectStatics(_inspectable.IInspectable):
+class IJsonObjectStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IJsonObject]],  # jsonObject
                      _type.HRESULT]
@@ -78,8 +74,6 @@ class IJsonObjectStatics(_inspectable.IInspectable):
                          _Pointer[IJsonObject],  # result
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IJsonObjectWithDefaultValues(_inspectable.IInspectable):
@@ -126,7 +120,7 @@ class IJsonValue(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IJsonValueStatics(_inspectable.IInspectable):
+class IJsonValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IJsonValue]],  # jsonValue
                      _type.HRESULT]
@@ -144,11 +138,7 @@ class IJsonValueStatics(_inspectable.IInspectable):
                                   _Pointer[IJsonValue]],  # jsonValue
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IJsonValueStatics2(_inspectable.IInspectable):
+class IJsonValueStatics2(_inspectable.IInspectable, factory=True):
     CreateNullValue: _Callable[[_Pointer[IJsonValue]],  # jsonValue
                                _type.HRESULT]
-
-    _factory = True

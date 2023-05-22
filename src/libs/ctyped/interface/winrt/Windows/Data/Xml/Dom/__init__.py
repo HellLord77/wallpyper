@@ -147,7 +147,7 @@ class IXmlDocumentIO2(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class IXmlDocumentStatics(_inspectable.IInspectable):
+class IXmlDocumentStatics(_inspectable.IInspectable, factory=True):
     LoadFromUriAsync: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                  _Pointer[_Windows_Foundation.IAsyncOperation[IXmlDocument]]],  # asyncInfo
                                 _type.HRESULT]
@@ -162,8 +162,6 @@ class IXmlDocumentStatics(_inspectable.IInspectable):
                                               IXmlLoadSettings,  # loadSettings
                                               _Pointer[_Windows_Foundation.IAsyncOperation[IXmlDocument]]],  # asyncInfo
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IXmlDocumentType(_inspectable.IInspectable):

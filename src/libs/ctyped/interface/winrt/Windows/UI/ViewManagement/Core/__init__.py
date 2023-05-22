@@ -41,14 +41,12 @@ class ICoreFrameworkInputViewOcclusionsChangedEventArgs(_inspectable.IInspectabl
                            _type.HRESULT]
 
 
-class ICoreFrameworkInputViewStatics(_inspectable.IInspectable):
+class ICoreFrameworkInputViewStatics(_inspectable.IInspectable, factory=True):
     GetForUIContext: _Callable[[_Windows_UI.IUIContext,  # context
                                 _Pointer[ICoreFrameworkInputView]],  # result
                                _type.HRESULT]
     GetForCurrentView: _Callable[[_Pointer[ICoreFrameworkInputView]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreInputView(_inspectable.IInspectable):
@@ -158,19 +156,15 @@ class ICoreInputViewShowingEventArgs(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ICoreInputViewStatics(_inspectable.IInspectable):
+class ICoreInputViewStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ICoreInputView]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ICoreInputViewStatics2(_inspectable.IInspectable):
+class ICoreInputViewStatics2(_inspectable.IInspectable, factory=True):
     GetForUIContext: _Callable[[_Windows_UI.IUIContext,  # context
                                 _Pointer[ICoreInputView]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreInputViewTransferringXYFocusEventArgs(_inspectable.IInspectable):
@@ -201,8 +195,6 @@ class IUISettingsController(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IUISettingsControllerStatics(_inspectable.IInspectable):
+class IUISettingsControllerStatics(_inspectable.IInspectable, factory=True):
     RequestDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IUISettingsController]]],  # operation
                                    _type.HRESULT]
-
-    _factory = True

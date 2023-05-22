@@ -27,7 +27,7 @@ class IPhoneNumberFormatter(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class IPhoneNumberFormatterStatics(_inspectable.IInspectable):
+class IPhoneNumberFormatterStatics(_inspectable.IInspectable, factory=True):
     TryCreate: _Callable[[_type.HSTRING,  # regionCode
                           _Pointer[IPhoneNumberFormatter]],  # phoneNumber
                          _type.HRESULT]
@@ -41,8 +41,6 @@ class IPhoneNumberFormatterStatics(_inspectable.IInspectable):
     WrapWithLeftToRightMarkers: _Callable[[_type.HSTRING,  # number
                                            _Pointer[_type.HSTRING]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneNumberInfo(_inspectable.IInspectable):
@@ -65,15 +63,13 @@ class IPhoneNumberInfo(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IPhoneNumberInfoFactory(_inspectable.IInspectable):
+class IPhoneNumberInfoFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # number
                        _Pointer[IPhoneNumberInfo]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPhoneNumberInfoStatics(_inspectable.IInspectable):
+class IPhoneNumberInfoStatics(_inspectable.IInspectable, factory=True):
     TryParse: _Callable[[_type.HSTRING,  # input
                          _Pointer[IPhoneNumberInfo],  # phoneNumber
                          _Pointer[_enum.Windows.Globalization.PhoneNumberFormatting.PhoneNumberParseResult]],  # result
@@ -83,5 +79,3 @@ class IPhoneNumberInfoStatics(_inspectable.IInspectable):
                                    _Pointer[IPhoneNumberInfo],  # phoneNumber
                                    _Pointer[_enum.Windows.Globalization.PhoneNumberFormatting.PhoneNumberParseResult]],  # result
                                   _type.HRESULT]
-
-    _factory = True

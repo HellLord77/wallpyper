@@ -18,24 +18,20 @@ class IItemRemovedEventArgs(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IStorageApplicationPermissionsStatics(_inspectable.IInspectable):
+class IStorageApplicationPermissionsStatics(_inspectable.IInspectable, factory=True):
     get_FutureAccessList: _Callable[[_Pointer[IStorageItemAccessList]],  # value
                                     _type.HRESULT]
     get_MostRecentlyUsedList: _Callable[[_Pointer[IStorageItemMostRecentlyUsedList]],  # value
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageApplicationPermissionsStatics2(_inspectable.IInspectable):
+class IStorageApplicationPermissionsStatics2(_inspectable.IInspectable, factory=True):
     GetFutureAccessListForUser: _Callable[[_Windows_System.IUser,  # user
                                            _Pointer[IStorageItemAccessList]],  # value
                                           _type.HRESULT]
     GetMostRecentlyUsedListForUser: _Callable[[_Windows_System.IUser,  # user
                                                _Pointer[IStorageItemMostRecentlyUsedList]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageItemAccessList(_inspectable.IInspectable):

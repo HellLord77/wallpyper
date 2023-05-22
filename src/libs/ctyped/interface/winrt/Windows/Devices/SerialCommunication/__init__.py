@@ -92,7 +92,7 @@ class ISerialDevice(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ISerialDeviceStatics(_inspectable.IInspectable):
+class ISerialDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     GetDeviceSelectorFromPortName: _Callable[[_type.HSTRING,  # portName
@@ -105,5 +105,3 @@ class ISerialDeviceStatics(_inspectable.IInspectable):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ISerialDevice]]],  # result
                            _type.HRESULT]
-
-    _factory = True

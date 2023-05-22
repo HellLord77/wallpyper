@@ -97,18 +97,14 @@ class ISearchPaneResultSuggestionChosenEventArgs(_inspectable.IInspectable):
                    _type.HRESULT]
 
 
-class ISearchPaneStatics(_inspectable.IInspectable):
+class ISearchPaneStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ISearchPane]],  # searchPane
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ISearchPaneStaticsWithHideThisApplication(_inspectable.IInspectable):
+class ISearchPaneStaticsWithHideThisApplication(_inspectable.IInspectable, factory=True):
     HideThisApplication: _Callable[[],
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ISearchPaneSuggestionsRequest(_inspectable.IInspectable):
@@ -144,14 +140,12 @@ class ISearchQueryLinguisticDetails(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class ISearchQueryLinguisticDetailsFactory(_inspectable.IInspectable):
+class ISearchQueryLinguisticDetailsFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # queryTextAlternatives
                                _type.UINT32,  # queryTextCompositionStart
                                _type.UINT32,  # queryTextCompositionLength
                                _Pointer[ISearchQueryLinguisticDetails]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISearchSuggestionCollection(_inspectable.IInspectable):

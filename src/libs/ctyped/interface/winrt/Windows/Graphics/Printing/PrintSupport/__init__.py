@@ -72,15 +72,13 @@ class IPrintSupportPrintDeviceCapabilitiesUpdatePolicy(_inspectable.IInspectable
     pass
 
 
-class IPrintSupportPrintDeviceCapabilitiesUpdatePolicyStatics(_inspectable.IInspectable):
+class IPrintSupportPrintDeviceCapabilitiesUpdatePolicyStatics(_inspectable.IInspectable, factory=True):
     CreatePeriodicRefresh: _Callable[[_struct.Windows.Foundation.TimeSpan,  # updatePeriod
                                       _Pointer[IPrintSupportPrintDeviceCapabilitiesUpdatePolicy]],  # result
                                      _type.HRESULT]
     CreatePrintJobRefresh: _Callable[[_type.UINT32,  # numberOfJobs
                                       _Pointer[IPrintSupportPrintDeviceCapabilitiesUpdatePolicy]],  # result
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintSupportPrintTicketElement(_inspectable.IInspectable):

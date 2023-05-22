@@ -35,13 +35,11 @@ class IPrint3DManager(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IPrint3DManagerStatics(_inspectable.IInspectable):
+class IPrint3DManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IPrint3DManager]],  # result
                                  _type.HRESULT]
     ShowPrintUIAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPrint3DTask(_inspectable.IInspectable):
@@ -126,12 +124,10 @@ class IPrinting3D3MFPackage2(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPrinting3D3MFPackageStatics(_inspectable.IInspectable):
+class IPrinting3D3MFPackageStatics(_inspectable.IInspectable, factory=True):
     LoadAsync: _Callable[[_Windows_Storage_Streams.IRandomAccessStream,  # value
                           _Pointer[_Windows_Foundation.IAsyncOperation[IPrinting3D3MFPackage]]],  # operation
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IPrinting3DBaseMaterial(_inspectable.IInspectable):
@@ -152,21 +148,17 @@ class IPrinting3DBaseMaterialGroup(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IPrinting3DBaseMaterialGroupFactory(_inspectable.IInspectable):
+class IPrinting3DBaseMaterialGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # MaterialGroupId
                        _Pointer[IPrinting3DBaseMaterialGroup]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPrinting3DBaseMaterialStatics(_inspectable.IInspectable):
+class IPrinting3DBaseMaterialStatics(_inspectable.IInspectable, factory=True):
     get_Abs: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_Pla: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
-
-    _factory = True
 
 
 class IPrinting3DColorMaterial(_inspectable.IInspectable):
@@ -190,12 +182,10 @@ class IPrinting3DColorMaterialGroup(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IPrinting3DColorMaterialGroupFactory(_inspectable.IInspectable):
+class IPrinting3DColorMaterialGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # MaterialGroupId
                        _Pointer[IPrinting3DColorMaterialGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPrinting3DComponent(_inspectable.IInspectable):
@@ -255,12 +245,10 @@ class IPrinting3DCompositeMaterialGroup2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IPrinting3DCompositeMaterialGroupFactory(_inspectable.IInspectable):
+class IPrinting3DCompositeMaterialGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # MaterialGroupId
                        _Pointer[IPrinting3DCompositeMaterialGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPrinting3DFaceReductionOptions(_inspectable.IInspectable):
@@ -431,12 +419,10 @@ class IPrinting3DMultiplePropertyMaterialGroup(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IPrinting3DMultiplePropertyMaterialGroupFactory(_inspectable.IInspectable):
+class IPrinting3DMultiplePropertyMaterialGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # MaterialGroupId
                        _Pointer[IPrinting3DMultiplePropertyMaterialGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPrinting3DTexture2CoordMaterial(_inspectable.IInspectable):
@@ -468,12 +454,10 @@ class IPrinting3DTexture2CoordMaterialGroup2(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPrinting3DTexture2CoordMaterialGroupFactory(_inspectable.IInspectable):
+class IPrinting3DTexture2CoordMaterialGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # MaterialGroupId
                        _Pointer[IPrinting3DTexture2CoordMaterialGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPrinting3DTextureResource(_inspectable.IInspectable):

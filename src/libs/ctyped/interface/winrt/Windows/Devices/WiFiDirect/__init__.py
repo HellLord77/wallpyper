@@ -84,12 +84,10 @@ class IWiFiDirectConnectionParameters2(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class IWiFiDirectConnectionParametersStatics(_inspectable.IInspectable):
+class IWiFiDirectConnectionParametersStatics(_inspectable.IInspectable, factory=True):
     GetDevicePairingKinds: _Callable[[_enum.Windows.Devices.WiFiDirect.WiFiDirectConfigurationMethod,  # configurationMethod
                                       _Pointer[_enum.Windows.Devices.Enumeration.DevicePairingKinds]],  # result
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IWiFiDirectConnectionRequest(_inspectable.IInspectable):
@@ -116,17 +114,15 @@ class IWiFiDirectDevice(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IWiFiDirectDeviceStatics(_inspectable.IInspectable):
+class IWiFiDirectDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # deviceSelector
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IWiFiDirectDevice]]],  # asyncOp
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IWiFiDirectDeviceStatics2(_inspectable.IInspectable):
+class IWiFiDirectDeviceStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_enum.Windows.Devices.WiFiDirect.WiFiDirectDeviceSelectorType,  # type
                                   _Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
@@ -134,8 +130,6 @@ class IWiFiDirectDeviceStatics2(_inspectable.IInspectable):
                             IWiFiDirectConnectionParameters,  # connectionParameters
                             _Pointer[_Windows_Foundation.IAsyncOperation[IWiFiDirectDevice]]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IWiFiDirectInformationElement(_inspectable.IInspectable):
@@ -153,15 +147,13 @@ class IWiFiDirectInformationElement(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IWiFiDirectInformationElementStatics(_inspectable.IInspectable):
+class IWiFiDirectInformationElementStatics(_inspectable.IInspectable, factory=True):
     CreateFromBuffer: _Callable[[_Windows_Storage_Streams.IBuffer,  # buffer
                                  _Pointer[_Windows_Foundation_Collections.IVector[IWiFiDirectInformationElement]]],  # result
                                 _type.HRESULT]
     CreateFromDeviceInformation: _Callable[[_Windows_Devices_Enumeration.IDeviceInformation,  # deviceInformation
                                             _Pointer[_Windows_Foundation_Collections.IVector[IWiFiDirectInformationElement]]],  # result
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IWiFiDirectLegacySettings(_inspectable.IInspectable):

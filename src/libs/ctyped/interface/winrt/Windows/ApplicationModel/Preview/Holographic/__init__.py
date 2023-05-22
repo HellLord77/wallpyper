@@ -10,14 +10,12 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IHolographicApplicationPreviewStatics(_inspectable.IInspectable):
+class IHolographicApplicationPreviewStatics(_inspectable.IInspectable, factory=True):
     IsCurrentViewPresentedOnHolographicDisplay: _Callable[[_Pointer[_type.boolean]],  # result
                                                           _type.HRESULT]
     IsHolographicActivation: _Callable[[_Windows_ApplicationModel_Activation.IActivatedEventArgs,  # activatedEventArgs
                                         _Pointer[_type.boolean]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IHolographicKeyboardPlacementOverridePreview(_inspectable.IInspectable):
@@ -34,8 +32,6 @@ class IHolographicKeyboardPlacementOverridePreview(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IHolographicKeyboardPlacementOverridePreviewStatics(_inspectable.IInspectable):
+class IHolographicKeyboardPlacementOverridePreviewStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IHolographicKeyboardPlacementOverridePreview]],  # result
                                  _type.HRESULT]
-
-    _factory = True

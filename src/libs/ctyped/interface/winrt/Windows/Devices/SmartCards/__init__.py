@@ -38,13 +38,11 @@ class ICardRemovedEventArgs(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IKnownSmartCardAppletIds(_inspectable.IInspectable):
+class IKnownSmartCardAppletIds(_inspectable.IInspectable, factory=True):
     get_PaymentSystemEnvironment: _Callable[[_Pointer[_Windows_Storage_Streams.IBuffer]],  # value
                                             _type.HRESULT]
     get_ProximityPaymentSystemEnvironment: _Callable[[_Pointer[_Windows_Storage_Streams.IBuffer]],  # value
                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCard(_inspectable.IInspectable):
@@ -94,15 +92,13 @@ class ISmartCardAppletIdGroup2(_inspectable.IInspectable):
                                                     _type.HRESULT]
 
 
-class ISmartCardAppletIdGroupFactory(_inspectable.IInspectable):
+class ISmartCardAppletIdGroupFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # displayName
                        _Windows_Foundation_Collections.IVector[_Windows_Storage_Streams.IBuffer],  # appletIds
                        _enum.Windows.Devices.SmartCards.SmartCardEmulationCategory,  # emulationCategory
                        _enum.Windows.Devices.SmartCards.SmartCardEmulationType,  # emulationType
                        _Pointer[ISmartCardAppletIdGroup]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardAppletIdGroupRegistration(_inspectable.IInspectable):
@@ -128,11 +124,9 @@ class ISmartCardAppletIdGroupRegistration2(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ISmartCardAppletIdGroupStatics(_inspectable.IInspectable):
+class ISmartCardAppletIdGroupStatics(_inspectable.IInspectable, factory=True):
     get_MaxAppletIds: _Callable[[_Pointer[_type.UINT16]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardAutomaticResponseApdu(_inspectable.IInspectable):
@@ -176,13 +170,11 @@ class ISmartCardAutomaticResponseApdu3(_inspectable.IInspectable):
                                                            _type.HRESULT]
 
 
-class ISmartCardAutomaticResponseApduFactory(_inspectable.IInspectable):
+class ISmartCardAutomaticResponseApduFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Storage_Streams.IBuffer,  # commandApdu
                        _Windows_Storage_Streams.IBuffer,  # responseApdu
                        _Pointer[ISmartCardAutomaticResponseApdu]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardChallengeContext(_inspectable.IInspectable):
@@ -282,18 +274,14 @@ class ISmartCardCryptogramGenerator2(_inspectable.IInspectable):
                                                             _type.HRESULT]
 
 
-class ISmartCardCryptogramGeneratorStatics(_inspectable.IInspectable):
+class ISmartCardCryptogramGeneratorStatics(_inspectable.IInspectable, factory=True):
     GetSmartCardCryptogramGeneratorAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISmartCardCryptogramGenerator]]],  # result
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ISmartCardCryptogramGeneratorStatics2(_inspectable.IInspectable):
+class ISmartCardCryptogramGeneratorStatics2(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardCryptogramGetAllCryptogramMaterialCharacteristicsResult(_inspectable.IInspectable):
@@ -495,14 +483,12 @@ class ISmartCardEmulatorConnectionProperties(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISmartCardEmulatorStatics(_inspectable.IInspectable):
+class ISmartCardEmulatorStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISmartCardEmulator]]],  # result
                                _type.HRESULT]
 
-    _factory = True
 
-
-class ISmartCardEmulatorStatics2(_inspectable.IInspectable):
+class ISmartCardEmulatorStatics2(_inspectable.IInspectable, factory=True):
     GetAppletIdGroupRegistrationsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[ISmartCardAppletIdGroupRegistration]]]],  # result
                                                   _type.HRESULT]
     RegisterAppletIdGroupAsync: _Callable[[ISmartCardAppletIdGroup,  # appletIdGroup
@@ -514,14 +500,10 @@ class ISmartCardEmulatorStatics2(_inspectable.IInspectable):
     get_MaxAppletIdGroupRegistrations: _Callable[[_Pointer[_type.UINT16]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ISmartCardEmulatorStatics3(_inspectable.IInspectable):
+class ISmartCardEmulatorStatics3(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardPinPolicy(_inspectable.IInspectable):
@@ -588,7 +570,7 @@ class ISmartCardProvisioning2(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class ISmartCardProvisioningStatics(_inspectable.IInspectable):
+class ISmartCardProvisioningStatics(_inspectable.IInspectable, factory=True):
     FromSmartCardAsync: _Callable[[ISmartCard,  # card
                                    _Pointer[_Windows_Foundation.IAsyncOperation[ISmartCardProvisioning]]],  # result
                                   _type.HRESULT]
@@ -607,10 +589,8 @@ class ISmartCardProvisioningStatics(_inspectable.IInspectable):
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class ISmartCardProvisioningStatics2(_inspectable.IInspectable):
+class ISmartCardProvisioningStatics2(_inspectable.IInspectable, factory=True):
     RequestAttestedVirtualSmartCardCreationAsync: _Callable[[_type.HSTRING,  # friendlyName
                                                              _Windows_Storage_Streams.IBuffer,  # administrativeKey
                                                              ISmartCardPinPolicy,  # pinPolicy
@@ -622,8 +602,6 @@ class ISmartCardProvisioningStatics2(_inspectable.IInspectable):
                                                                        _struct.GUID,  # cardId
                                                                        _Pointer[_Windows_Foundation.IAsyncOperation[ISmartCardProvisioning]]],  # result
                                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardReader(_inspectable.IInspectable):
@@ -649,7 +627,7 @@ class ISmartCardReader(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ISmartCardReaderStatics(_inspectable.IInspectable):
+class ISmartCardReaderStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
     GetDeviceSelectorWithKind: _Callable[[_enum.Windows.Devices.SmartCards.SmartCardReaderKind,  # kind
@@ -658,8 +636,6 @@ class ISmartCardReaderStatics(_inspectable.IInspectable):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ISmartCardReader]]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISmartCardTriggerDetails(_inspectable.IInspectable):

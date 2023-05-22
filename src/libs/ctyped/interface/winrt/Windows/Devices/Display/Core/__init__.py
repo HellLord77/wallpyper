@@ -32,12 +32,10 @@ class IDisplayAdapter(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDisplayAdapterStatics(_inspectable.IInspectable):
+class IDisplayAdapterStatics(_inspectable.IInspectable, factory=True):
     FromId: _Callable[[_struct.Windows.Graphics.DisplayAdapterId,  # id
                        _Pointer[IDisplayAdapter]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDisplayDevice(_inspectable.IInspectable):
@@ -178,12 +176,10 @@ class IDisplayManagerResultWithState(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IDisplayManagerStatics(_inspectable.IInspectable):
+class IDisplayManagerStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Devices.Display.Core.DisplayManagerOptions,  # options
                        _Pointer[IDisplayManager]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDisplayModeInfo(_inspectable.IInspectable):
@@ -290,7 +286,7 @@ class IDisplayPrimaryDescription(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDisplayPrimaryDescriptionFactory(_inspectable.IInspectable):
+class IDisplayPrimaryDescriptionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.UINT32,  # width
                                _type.UINT32,  # height
                                _enum.Windows.Graphics.DirectX.DirectXPixelFormat,  # pixelFormat
@@ -300,10 +296,8 @@ class IDisplayPrimaryDescriptionFactory(_inspectable.IInspectable):
                                _Pointer[IDisplayPrimaryDescription]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IDisplayPrimaryDescriptionStatics(_inspectable.IInspectable):
+class IDisplayPrimaryDescriptionStatics(_inspectable.IInspectable, factory=True):
     CreateWithProperties: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Foundation_Collections.IKeyValuePair[_struct.GUID, _inspectable.IInspectable]],  # extraProperties
                                      _type.UINT32,  # width
                                      _type.UINT32,  # height
@@ -313,8 +307,6 @@ class IDisplayPrimaryDescriptionStatics(_inspectable.IInspectable):
                                      _struct.Windows.Graphics.DirectX.Direct3D11.Direct3DMultisampleDescription,  # multisampleDescription
                                      _Pointer[IDisplayPrimaryDescription]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IDisplayScanout(_inspectable.IInspectable):
@@ -489,7 +481,7 @@ class IDisplayWireFormat(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDisplayWireFormatFactory(_inspectable.IInspectable):
+class IDisplayWireFormatFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.Devices.Display.Core.DisplayWireFormatPixelEncoding,  # pixelEncoding
                                _type.INT32,  # bitsPerChannel
                                _enum.Windows.Devices.Display.Core.DisplayWireFormatColorSpace,  # colorSpace
@@ -498,10 +490,8 @@ class IDisplayWireFormatFactory(_inspectable.IInspectable):
                                _Pointer[IDisplayWireFormat]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IDisplayWireFormatStatics(_inspectable.IInspectable):
+class IDisplayWireFormatStatics(_inspectable.IInspectable, factory=True):
     CreateWithProperties: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Foundation_Collections.IKeyValuePair[_struct.GUID, _inspectable.IInspectable]],  # extraProperties
                                      _enum.Windows.Devices.Display.Core.DisplayWireFormatPixelEncoding,  # pixelEncoding
                                      _type.INT32,  # bitsPerChannel
@@ -510,5 +500,3 @@ class IDisplayWireFormatStatics(_inspectable.IInspectable):
                                      _enum.Windows.Devices.Display.Core.DisplayWireFormatHdrMetadata,  # hdrMetadata
                                      _Pointer[IDisplayWireFormat]],  # result
                                     _type.HRESULT]
-
-    _factory = True

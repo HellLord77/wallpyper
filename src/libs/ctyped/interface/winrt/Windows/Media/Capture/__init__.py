@@ -287,7 +287,7 @@ class IAppBroadcastHeartbeatRequestedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IAppBroadcastManagerStatics(_inspectable.IInspectable):
+class IAppBroadcastManagerStatics(_inspectable.IInspectable, factory=True):
     GetGlobalSettings: _Callable[[_Pointer[IAppBroadcastGlobalSettings]],  # value
                                  _type.HRESULT]
     ApplyGlobalSettings: _Callable[[IAppBroadcastGlobalSettings],  # value
@@ -296,8 +296,6 @@ class IAppBroadcastManagerStatics(_inspectable.IInspectable):
                                    _type.HRESULT]
     ApplyProviderSettings: _Callable[[IAppBroadcastProviderSettings],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBroadcastMicrophoneCaptureStateChangedEventArgs(_inspectable.IInspectable):
@@ -329,14 +327,12 @@ class IAppBroadcastPlugInManager(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IAppBroadcastPlugInManagerStatics(_inspectable.IInspectable):
+class IAppBroadcastPlugInManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAppBroadcastPlugInManager]],  # ppInstance
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IAppBroadcastPlugInManager]],  # ppInstance
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IAppBroadcastPlugInStateChangedEventArgs(_inspectable.IInspectable):
@@ -740,13 +736,11 @@ class IAppCaptureFileGeneratedEventArgs(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAppCaptureManagerStatics(_inspectable.IInspectable):
+class IAppCaptureManagerStatics(_inspectable.IInspectable, factory=True):
     GetCurrentSettings: _Callable[[_Pointer[IAppCaptureSettings]],  # value
                                   _type.HRESULT]
     ApplySettings: _Callable[[IAppCaptureSettings],  # appCaptureSettings
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IAppCaptureMetadataWriter(_inspectable.IInspectable):
@@ -990,19 +984,15 @@ class IAppCaptureState(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IAppCaptureStatics(_inspectable.IInspectable):
+class IAppCaptureStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IAppCapture]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IAppCaptureStatics2(_inspectable.IInspectable):
+class IAppCaptureStatics2(_inspectable.IInspectable, factory=True):
     SetAllowedAsync: _Callable[[_type.boolean,  # allowed
                                 _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ICameraCaptureUI(_inspectable.IInspectable):
@@ -1057,11 +1047,9 @@ class ICameraCaptureUIVideoCaptureSettings(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ICameraOptionsUIStatics(_inspectable.IInspectable):
+class ICameraOptionsUIStatics(_inspectable.IInspectable, factory=True):
     Show: _Callable[[IMediaCapture],  # mediaCapture
                     _type.HRESULT]
-
-    _factory = True
 
 
 class ICapturedFrame(_inspectable.IInspectable):
@@ -1166,11 +1154,9 @@ class IGameBarServicesManagerGameBarServicesCreatedEventArgs(_inspectable.IInspe
                                    _type.HRESULT]
 
 
-class IGameBarServicesManagerStatics(_inspectable.IInspectable):
+class IGameBarServicesManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IGameBarServicesManager]],  # ppInstance
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IGameBarServicesTargetInfo(_inspectable.IInspectable):
@@ -1606,7 +1592,7 @@ class IMediaCaptureSettings3(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IMediaCaptureStatics(_inspectable.IInspectable):
+class IMediaCaptureStatics(_inspectable.IInspectable, factory=True):
     IsVideoProfileSupported: _Callable[[_type.HSTRING,  # videoDeviceId
                                         _Pointer[_type.boolean]],  # value
                                        _type.HRESULT]
@@ -1620,8 +1606,6 @@ class IMediaCaptureStatics(_inspectable.IInspectable):
                                        _enum.Windows.Media.Capture.KnownVideoProfile,  # name
                                        _Pointer[_Windows_Foundation_Collections.IVectorView[IMediaCaptureVideoProfile]]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaCaptureStopResult(_inspectable.IInspectable):

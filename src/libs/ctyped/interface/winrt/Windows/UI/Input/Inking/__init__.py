@@ -74,11 +74,9 @@ class IInkDrawingAttributesPencilProperties(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IInkDrawingAttributesStatics(_inspectable.IInspectable):
+class IInkDrawingAttributesStatics(_inspectable.IInspectable, factory=True):
     CreateForPencil: _Callable[[_Pointer[IInkDrawingAttributes]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IInkInputConfiguration(_inspectable.IInspectable):
@@ -171,7 +169,7 @@ class IInkPointFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IInkPointFactory2(_inspectable.IInspectable):
+class IInkPointFactory2(_inspectable.IInspectable, factory=True):
     CreateInkPointWithTiltAndTimestamp: _Callable[[_struct.Windows.Foundation.Point,  # position
                                                    _type.FLOAT,  # pressure
                                                    _type.FLOAT,  # tiltX
@@ -179,8 +177,6 @@ class IInkPointFactory2(_inspectable.IInspectable):
                                                    _type.UINT64,  # timestamp
                                                    _Pointer[IInkPoint]],  # result
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IInkPresenter(_inspectable.IInspectable):
@@ -265,12 +261,10 @@ class IInkPresenterProtractor(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IInkPresenterProtractorFactory(_inspectable.IInspectable):
+class IInkPresenterProtractorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IInkPresenter,  # inkPresenter
                        _Pointer[IInkPresenterProtractor]],  # inkPresenterProtractor
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IInkPresenterRuler(_inspectable.IInspectable):
@@ -295,12 +289,10 @@ class IInkPresenterRuler2(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IInkPresenterRulerFactory(_inspectable.IInspectable):
+class IInkPresenterRulerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IInkPresenter,  # inkPresenter
                        _Pointer[IInkPresenterRuler]],  # inkPresenterRuler
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IInkPresenterStencil(_inspectable.IInspectable):
@@ -601,8 +593,6 @@ class IPenAndInkSettings2(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IPenAndInkSettingsStatics(_inspectable.IInspectable):
+class IPenAndInkSettingsStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IPenAndInkSettings]],  # result
                           _type.HRESULT]
-
-    _factory = True

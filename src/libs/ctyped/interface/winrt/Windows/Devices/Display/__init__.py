@@ -60,7 +60,7 @@ class IDisplayMonitor2(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class IDisplayMonitorStatics(_inspectable.IInspectable):
+class IDisplayMonitorStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -69,5 +69,3 @@ class IDisplayMonitorStatics(_inspectable.IInspectable):
     FromInterfaceIdAsync: _Callable[[_type.HSTRING,  # deviceInterfaceId
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IDisplayMonitor]]],  # operation
                                     _type.HRESULT]
-
-    _factory = True

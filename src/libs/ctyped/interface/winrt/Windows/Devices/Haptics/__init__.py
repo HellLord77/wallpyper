@@ -11,7 +11,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IKnownSimpleHapticsControllerWaveformsStatics(_inspectable.IInspectable):
+class IKnownSimpleHapticsControllerWaveformsStatics(_inspectable.IInspectable, factory=True):
     get_Click: _Callable[[_Pointer[_type.UINT16]],  # value
                          _type.HRESULT]
     get_BuzzContinuous: _Callable[[_Pointer[_type.UINT16]],  # value
@@ -23,10 +23,8 @@ class IKnownSimpleHapticsControllerWaveformsStatics(_inspectable.IInspectable):
     get_Release: _Callable[[_Pointer[_type.UINT16]],  # value
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownSimpleHapticsControllerWaveformsStatics2(_inspectable.IInspectable):
+class IKnownSimpleHapticsControllerWaveformsStatics2(_inspectable.IInspectable, factory=True):
     get_BrushContinuous: _Callable[[_Pointer[_type.UINT16]],  # value
                                    _type.HRESULT]
     get_ChiselMarkerContinuous: _Callable[[_Pointer[_type.UINT16]],  # value
@@ -47,8 +45,6 @@ class IKnownSimpleHapticsControllerWaveformsStatics2(_inspectable.IInspectable):
                                     _type.HRESULT]
     get_Success: _Callable[[_Pointer[_type.UINT16]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISimpleHapticsController(_inspectable.IInspectable):
@@ -96,7 +92,7 @@ class IVibrationDevice(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IVibrationDeviceStatics(_inspectable.IInspectable):
+class IVibrationDeviceStatics(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.Haptics.VibrationAccessStatus]]],  # operation
                                   _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
@@ -108,5 +104,3 @@ class IVibrationDeviceStatics(_inspectable.IInspectable):
                                _type.HRESULT]
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IVibrationDevice]]]],  # operation
                             _type.HRESULT]
-
-    _factory = True

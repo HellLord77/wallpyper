@@ -21,19 +21,15 @@ class IAdvertisingManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAdvertisingManagerStatics(_inspectable.IInspectable):
+class IAdvertisingManagerStatics(_inspectable.IInspectable, factory=True):
     get_AdvertisingId: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IAdvertisingManagerStatics2(_inspectable.IInspectable):
+class IAdvertisingManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IAdvertisingManagerForUser]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IAssignedAccessSettings(_inspectable.IInspectable):
@@ -45,14 +41,12 @@ class IAssignedAccessSettings(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAssignedAccessSettingsStatics(_inspectable.IInspectable):
+class IAssignedAccessSettingsStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAssignedAccessSettings]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IAssignedAccessSettings]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IDiagnosticsSettings(_inspectable.IInspectable):
@@ -62,25 +56,21 @@ class IDiagnosticsSettings(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IDiagnosticsSettingsStatics(_inspectable.IInspectable):
+class IDiagnosticsSettingsStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IDiagnosticsSettings]],  # value
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IDiagnosticsSettings]],  # value
                           _type.HRESULT]
 
-    _factory = True
-
 
 class IFirstSignInSettings(_inspectable.IInspectable):
     pass
 
 
-class IFirstSignInSettingsStatics(_inspectable.IInspectable):
+class IFirstSignInSettingsStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IFirstSignInSettings]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IGlobalizationPreferencesForUser(_inspectable.IInspectable):
@@ -100,7 +90,7 @@ class IGlobalizationPreferencesForUser(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IGlobalizationPreferencesStatics(_inspectable.IInspectable):
+class IGlobalizationPreferencesStatics(_inspectable.IInspectable, factory=True):
     get_Calendars: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
                              _type.HRESULT]
     get_Clocks: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
@@ -114,10 +104,8 @@ class IGlobalizationPreferencesStatics(_inspectable.IInspectable):
     get_WeekStartsOn: _Callable[[_Pointer[_enum.Windows.Globalization.DayOfWeek]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IGlobalizationPreferencesStatics2(_inspectable.IInspectable):
+class IGlobalizationPreferencesStatics2(_inspectable.IInspectable, factory=True):
     TrySetHomeGeographicRegion: _Callable[[_type.HSTRING,  # region
                                            _Pointer[_type.boolean]],  # result
                                           _type.HRESULT]
@@ -125,28 +113,22 @@ class IGlobalizationPreferencesStatics2(_inspectable.IInspectable):
                                 _Pointer[_type.boolean]],  # result
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IGlobalizationPreferencesStatics3(_inspectable.IInspectable):
+class IGlobalizationPreferencesStatics3(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IGlobalizationPreferencesForUser]],  # value
                           _type.HRESULT]
 
-    _factory = True
 
-
-class ILockScreenImageFeedStatics(_inspectable.IInspectable):
+class ILockScreenImageFeedStatics(_inspectable.IInspectable, factory=True):
     RequestSetImageFeedAsync: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # syndicationFeedUri
                                          _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.UserProfile.SetImageFeedResult]]],  # value
                                         _type.HRESULT]
     TryRemoveImageFeed: _Callable[[_Pointer[_type.boolean]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ILockScreenStatics(_inspectable.IInspectable):
+class ILockScreenStatics(_inspectable.IInspectable, factory=True):
     get_OriginalImageFile: _Callable[[_Pointer[_Windows_Foundation.IUriRuntimeClass]],  # value
                                      _type.HRESULT]
     GetImageStream: _Callable[[_Pointer[_Windows_Storage_Streams.IRandomAccessStream]],  # value
@@ -158,10 +140,8 @@ class ILockScreenStatics(_inspectable.IInspectable):
                                     _Pointer[_Windows_Foundation.IAsyncAction]],  # Operation
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IUserInformationStatics(_inspectable.IInspectable):
+class IUserInformationStatics(_inspectable.IInspectable, factory=True):
     AccountPictureChangeEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                            _type.HRESULT]
     NameAccessAllowed: _Callable[[_Pointer[_type.boolean]],  # value
@@ -200,8 +180,6 @@ class IUserInformationStatics(_inspectable.IInspectable):
     GetDomainNameAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # operation
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IUserProfilePersonalizationSettings(_inspectable.IInspectable):
     TrySetLockScreenImageAsync: _Callable[[_Windows_Storage.IStorageFile,  # imageFile
@@ -212,10 +190,8 @@ class IUserProfilePersonalizationSettings(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IUserProfilePersonalizationSettingsStatics(_inspectable.IInspectable):
+class IUserProfilePersonalizationSettingsStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IUserProfilePersonalizationSettings]],  # value
                            _type.HRESULT]
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True

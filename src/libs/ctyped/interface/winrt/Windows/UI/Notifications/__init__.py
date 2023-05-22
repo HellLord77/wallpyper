@@ -41,12 +41,10 @@ class IBadgeNotification(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IBadgeNotificationFactory(_inspectable.IInspectable):
+class IBadgeNotificationFactory(_inspectable.IInspectable, factory=True):
     CreateBadgeNotification: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # content
                                         _Pointer[IBadgeNotification]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IBadgeUpdateManagerForUser(_inspectable.IInspectable):
@@ -62,7 +60,7 @@ class IBadgeUpdateManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IBadgeUpdateManagerStatics(_inspectable.IInspectable):
+class IBadgeUpdateManagerStatics(_inspectable.IInspectable, factory=True):
     CreateBadgeUpdaterForApplication: _Callable[[_Pointer[IBadgeUpdater]],  # result
                                                 _type.HRESULT]
     CreateBadgeUpdaterForApplicationWithId: _Callable[[_type.HSTRING,  # applicationId
@@ -75,15 +73,11 @@ class IBadgeUpdateManagerStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Data_Xml_Dom.IXmlDocument]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IBadgeUpdateManagerStatics2(_inspectable.IInspectable):
+class IBadgeUpdateManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IBadgeUpdateManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IBadgeUpdater(_inspectable.IInspectable):
@@ -102,7 +96,7 @@ class IBadgeUpdater(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IKnownAdaptiveNotificationHintsStatics(_inspectable.IInspectable):
+class IKnownAdaptiveNotificationHintsStatics(_inspectable.IInspectable, factory=True):
     get_Style: _Callable[[_Pointer[_type.HSTRING]],  # value
                          _type.HRESULT]
     get_Wrap: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -116,10 +110,8 @@ class IKnownAdaptiveNotificationHintsStatics(_inspectable.IInspectable):
     get_Align: _Callable[[_Pointer[_type.HSTRING]],  # value
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownAdaptiveNotificationTextStylesStatics(_inspectable.IInspectable):
+class IKnownAdaptiveNotificationTextStylesStatics(_inspectable.IInspectable, factory=True):
     get_Caption: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
     get_Body: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -159,14 +151,10 @@ class IKnownAdaptiveNotificationTextStylesStatics(_inspectable.IInspectable):
     get_HeaderNumeralSubtle: _Callable[[_Pointer[_type.HSTRING]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownNotificationBindingsStatics(_inspectable.IInspectable):
+class IKnownNotificationBindingsStatics(_inspectable.IInspectable, factory=True):
     get_ToastGeneric: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class INotification(_inspectable.IInspectable):
@@ -204,7 +192,7 @@ class INotificationData(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class INotificationDataFactory(_inspectable.IInspectable):
+class INotificationDataFactory(_inspectable.IInspectable, factory=True):
     CreateNotificationDataWithValuesAndSequenceNumber: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Foundation_Collections.IKeyValuePair[_type.HSTRING, _type.HSTRING]],  # initialValues
                                                                   _type.UINT32,  # sequenceNumber
                                                                   _Pointer[INotificationData]],  # value
@@ -212,8 +200,6 @@ class INotificationDataFactory(_inspectable.IInspectable):
     CreateNotificationDataWithValues: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Foundation_Collections.IKeyValuePair[_type.HSTRING, _type.HSTRING]],  # initialValues
                                                  _Pointer[INotificationData]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class INotificationVisual(_inspectable.IInspectable):
@@ -247,13 +233,11 @@ class IScheduledTileNotification(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IScheduledTileNotificationFactory(_inspectable.IInspectable):
+class IScheduledTileNotificationFactory(_inspectable.IInspectable, factory=True):
     CreateScheduledTileNotification: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # content
                                                 _struct.Windows.Foundation.DateTime,  # deliveryTime
                                                 _Pointer[IScheduledTileNotification]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IScheduledToastNotification(_inspectable.IInspectable):
@@ -304,7 +288,7 @@ class IScheduledToastNotification4(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IScheduledToastNotificationFactory(_inspectable.IInspectable):
+class IScheduledToastNotificationFactory(_inspectable.IInspectable, factory=True):
     CreateScheduledToastNotification: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # content
                                                  _struct.Windows.Foundation.DateTime,  # deliveryTime
                                                  _Pointer[IScheduledToastNotification]],  # value
@@ -315,8 +299,6 @@ class IScheduledToastNotificationFactory(_inspectable.IInspectable):
                                                           _type.UINT32,  # maximumSnoozeCount
                                                           _Pointer[IScheduledToastNotification]],  # value
                                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IScheduledToastNotificationShowingEventArgs(_inspectable.IInspectable):
@@ -344,15 +326,13 @@ class ITileFlyoutNotification(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ITileFlyoutNotificationFactory(_inspectable.IInspectable):
+class ITileFlyoutNotificationFactory(_inspectable.IInspectable, factory=True):
     CreateTileFlyoutNotification: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # content
                                              _Pointer[ITileFlyoutNotification]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ITileFlyoutUpdateManagerStatics(_inspectable.IInspectable):
+class ITileFlyoutUpdateManagerStatics(_inspectable.IInspectable, factory=True):
     CreateTileFlyoutUpdaterForApplication: _Callable[[_Pointer[ITileFlyoutUpdater]],  # result
                                                      _type.HRESULT]
     CreateTileFlyoutUpdaterForApplicationWithId: _Callable[[_type.HSTRING,  # applicationId
@@ -364,8 +344,6 @@ class ITileFlyoutUpdateManagerStatics(_inspectable.IInspectable):
     GetTemplateContent: _Callable[[_enum.Windows.UI.Notifications.TileFlyoutTemplateType,  # type
                                    _Pointer[_Windows_Data_Xml_Dom.IXmlDocument]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ITileFlyoutUpdater(_inspectable.IInspectable):
@@ -399,12 +377,10 @@ class ITileNotification(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class ITileNotificationFactory(_inspectable.IInspectable):
+class ITileNotificationFactory(_inspectable.IInspectable, factory=True):
     CreateTileNotification: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # content
                                        _Pointer[ITileNotification]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITileUpdateManagerForUser(_inspectable.IInspectable):
@@ -420,7 +396,7 @@ class ITileUpdateManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ITileUpdateManagerStatics(_inspectable.IInspectable):
+class ITileUpdateManagerStatics(_inspectable.IInspectable, factory=True):
     CreateTileUpdaterForApplication: _Callable[[_Pointer[ITileUpdater]],  # result
                                                _type.HRESULT]
     CreateTileUpdaterForApplicationWithId: _Callable[[_type.HSTRING,  # applicationId
@@ -433,15 +409,11 @@ class ITileUpdateManagerStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Data_Xml_Dom.IXmlDocument]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ITileUpdateManagerStatics2(_inspectable.IInspectable):
+class ITileUpdateManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[ITileUpdateManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ITileUpdater(_inspectable.IInspectable):
@@ -513,15 +485,13 @@ class IToastCollection(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IToastCollectionFactory(_inspectable.IInspectable):
+class IToastCollectionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # collectionId
                                _type.HSTRING,  # displayName
                                _type.HSTRING,  # launchArgs
                                _Windows_Foundation.IUriRuntimeClass,  # iconUri
                                _Pointer[IToastCollection]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IToastCollectionManager(_inspectable.IInspectable):
@@ -629,12 +599,10 @@ class IToastNotificationActionTriggerDetail(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IToastNotificationFactory(_inspectable.IInspectable):
+class IToastNotificationFactory(_inspectable.IInspectable, factory=True):
     CreateToastNotification: _Callable[[_Windows_Data_Xml_Dom.IXmlDocument,  # content
                                         _Pointer[IToastNotification]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IToastNotificationHistory(_inspectable.IInspectable):
@@ -712,7 +680,7 @@ class IToastNotificationManagerForUser3(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class IToastNotificationManagerStatics(_inspectable.IInspectable):
+class IToastNotificationManagerStatics(_inspectable.IInspectable, factory=True):
     CreateToastNotifier: _Callable[[_Pointer[IToastNotifier]],  # result
                                    _type.HRESULT]
     CreateToastNotifierWithId: _Callable[[_type.HSTRING,  # applicationId
@@ -722,31 +690,23 @@ class IToastNotificationManagerStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Data_Xml_Dom.IXmlDocument]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IToastNotificationManagerStatics2(_inspectable.IInspectable):
+class IToastNotificationManagerStatics2(_inspectable.IInspectable, factory=True):
     get_History: _Callable[[_Pointer[IToastNotificationHistory]],  # value
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IToastNotificationManagerStatics4(_inspectable.IInspectable):
+class IToastNotificationManagerStatics4(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IToastNotificationManagerForUser]],  # result
                           _type.HRESULT]
     ConfigureNotificationMirroring: _Callable[[_enum.Windows.UI.Notifications.NotificationMirroring],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IToastNotificationManagerStatics5(_inspectable.IInspectable):
+class IToastNotificationManagerStatics5(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IToastNotificationManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IToastNotifier(_inspectable.IInspectable):

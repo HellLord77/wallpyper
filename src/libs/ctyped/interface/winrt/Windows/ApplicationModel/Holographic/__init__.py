@@ -23,8 +23,6 @@ class IHolographicKeyboard(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IHolographicKeyboardStatics(_inspectable.IInspectable):
+class IHolographicKeyboardStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IHolographicKeyboard]],  # result
                           _type.HRESULT]
-
-    _factory = True

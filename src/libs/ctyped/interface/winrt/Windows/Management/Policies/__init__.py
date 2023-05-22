@@ -42,7 +42,7 @@ class INamedPolicyData(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class INamedPolicyStatics(_inspectable.IInspectable):
+class INamedPolicyStatics(_inspectable.IInspectable, factory=True):
     GetPolicyFromPath: _Callable[[_type.HSTRING,  # area
                                   _type.HSTRING,  # name
                                   _Pointer[INamedPolicyData]],  # result
@@ -52,5 +52,3 @@ class INamedPolicyStatics(_inspectable.IInspectable):
                                          _type.HSTRING,  # name
                                          _Pointer[INamedPolicyData]],  # result
                                         _type.HRESULT]
-
-    _factory = True

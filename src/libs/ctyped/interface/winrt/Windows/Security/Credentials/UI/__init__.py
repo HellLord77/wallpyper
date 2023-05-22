@@ -70,7 +70,7 @@ class ICredentialPickerResults(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ICredentialPickerStatics(_inspectable.IInspectable):
+class ICredentialPickerStatics(_inspectable.IInspectable, factory=True):
     PickWithOptionsAsync: _Callable[[ICredentialPickerOptions,  # options
                                      _Pointer[_Windows_Foundation.IAsyncOperation[ICredentialPickerResults]]],  # operation
                                     _type.HRESULT]
@@ -84,14 +84,10 @@ class ICredentialPickerStatics(_inspectable.IInspectable):
                                      _Pointer[_Windows_Foundation.IAsyncOperation[ICredentialPickerResults]]],  # operation
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IUserConsentVerifierStatics(_inspectable.IInspectable):
+class IUserConsentVerifierStatics(_inspectable.IInspectable, factory=True):
     CheckAvailabilityAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Security.Credentials.UI.UserConsentVerifierAvailability]]],  # result
                                       _type.HRESULT]
     RequestVerificationAsync: _Callable[[_type.HSTRING,  # message
                                          _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Security.Credentials.UI.UserConsentVerificationResult]]],  # result
                                         _type.HRESULT]
-
-    _factory = True

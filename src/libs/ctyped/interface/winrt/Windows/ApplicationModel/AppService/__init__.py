@@ -14,12 +14,10 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IAppServiceCatalogStatics(_inspectable.IInspectable):
+class IAppServiceCatalogStatics(_inspectable.IInspectable, factory=True):
     FindAppServiceProvidersAsync: _Callable[[_type.HSTRING,  # appServiceName
                                              _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_ApplicationModel.IAppInfo]]]],  # operation
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IAppServiceClosedEventArgs(_inspectable.IInspectable):
@@ -63,14 +61,12 @@ class IAppServiceConnection2(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAppServiceConnectionStatics(_inspectable.IInspectable):
+class IAppServiceConnectionStatics(_inspectable.IInspectable, factory=True):
     SendStatelessMessageAsync: _Callable[[IAppServiceConnection,  # connection
                                           _Windows_System_RemoteSystems.IRemoteSystemConnectionRequest,  # connectionRequest
                                           _Windows_Foundation_Collections.IPropertySet,  # message
                                           _Pointer[_Windows_Foundation.IAsyncOperation[IStatelessAppServiceResponse]]],  # operation
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IAppServiceDeferral(_inspectable.IInspectable):

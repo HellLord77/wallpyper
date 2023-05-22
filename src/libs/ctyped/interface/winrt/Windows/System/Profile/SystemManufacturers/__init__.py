@@ -17,11 +17,9 @@ class IOemSupportInfo(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ISmbiosInformationStatics(_inspectable.IInspectable):
+class ISmbiosInformationStatics(_inspectable.IInspectable, factory=True):
     get_SerialNumber: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemSupportDeviceInfo(_inspectable.IInspectable):
@@ -41,17 +39,13 @@ class ISystemSupportDeviceInfo(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class ISystemSupportInfoStatics(_inspectable.IInspectable):
+class ISystemSupportInfoStatics(_inspectable.IInspectable, factory=True):
     get_LocalSystemEdition: _Callable[[_Pointer[_type.HSTRING]],  # value
                                       _type.HRESULT]
     get_OemSupportInfo: _Callable[[_Pointer[IOemSupportInfo]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ISystemSupportInfoStatics2(_inspectable.IInspectable):
+class ISystemSupportInfoStatics2(_inspectable.IInspectable, factory=True):
     get_LocalDeviceInfo: _Callable[[_Pointer[ISystemSupportDeviceInfo]],  # value
                                    _type.HRESULT]
-
-    _factory = True

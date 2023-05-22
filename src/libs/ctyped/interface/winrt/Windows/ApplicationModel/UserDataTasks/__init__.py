@@ -164,14 +164,12 @@ class IUserDataTaskManager(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IUserDataTaskManagerStatics(_inspectable.IInspectable):
+class IUserDataTaskManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IUserDataTaskManager]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IUserDataTaskManager]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IUserDataTaskQueryOptions(_inspectable.IInspectable):

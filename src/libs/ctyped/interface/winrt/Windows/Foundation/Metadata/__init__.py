@@ -7,7 +7,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IApiInformationStatics(_inspectable.IInspectable):
+class IApiInformationStatics(_inspectable.IInspectable, factory=True):
     IsTypePresent: _Callable[[_type.HSTRING,  # typeName
                               _Pointer[_type.boolean]],  # result
                              _type.HRESULT]
@@ -49,5 +49,3 @@ class IApiInformationStatics(_inspectable.IInspectable):
                                                     _type.UINT16,  # minorVersion
                                                     _Pointer[_type.boolean]],  # result
                                                    _type.HRESULT]
-
-    _factory = True

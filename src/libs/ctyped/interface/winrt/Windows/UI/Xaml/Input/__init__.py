@@ -200,7 +200,7 @@ class IAccessKeyManager(_inspectable.IInspectable):
     pass
 
 
-class IAccessKeyManagerStatics(_inspectable.IInspectable):
+class IAccessKeyManagerStatics(_inspectable.IInspectable, factory=True):
     get_IsDisplayModeEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                         _type.HRESULT]
     add_IsDisplayModeEnabledChanged: _Callable[[_Windows_Foundation.ITypedEventHandler[_inspectable.IInspectable, _inspectable.IInspectable],  # handler
@@ -211,16 +211,12 @@ class IAccessKeyManagerStatics(_inspectable.IInspectable):
     ExitDisplayMode: _Callable[[],
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IAccessKeyManagerStatics2(_inspectable.IInspectable):
+class IAccessKeyManagerStatics2(_inspectable.IInspectable, factory=True):
     get_AreKeyTipsEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                      _type.HRESULT]
     put_AreKeyTipsEnabled: _Callable[[_type.boolean],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ICanExecuteRequestedEventArgs(_inspectable.IInspectable):
@@ -321,22 +317,18 @@ class IFocusManagerLostFocusEventArgs(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IFocusManagerStatics(_inspectable.IInspectable):
+class IFocusManagerStatics(_inspectable.IInspectable, factory=True):
     GetFocusedElement: _Callable[[_Pointer[_inspectable.IInspectable]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IFocusManagerStatics2(_inspectable.IInspectable):
+class IFocusManagerStatics2(_inspectable.IInspectable, factory=True):
     TryMoveFocus: _Callable[[_enum.Windows.UI.Xaml.Input.FocusNavigationDirection,  # focusNavigationDirection
                              _Pointer[_type.boolean]],  # result
                             _type.HRESULT]
 
-    _factory = True
 
-
-class IFocusManagerStatics3(_inspectable.IInspectable):
+class IFocusManagerStatics3(_inspectable.IInspectable, factory=True):
     FindNextFocusableElement: _Callable[[_enum.Windows.UI.Xaml.Input.FocusNavigationDirection,  # focusNavigationDirection
                                          _Pointer[_Windows_UI_Xaml.IUIElement]],  # result
                                         _type.HRESULT]
@@ -345,10 +337,8 @@ class IFocusManagerStatics3(_inspectable.IInspectable):
                                                  _Pointer[_Windows_UI_Xaml.IUIElement]],  # result
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IFocusManagerStatics4(_inspectable.IInspectable):
+class IFocusManagerStatics4(_inspectable.IInspectable, factory=True):
     TryMoveFocusWithOptions: _Callable[[_enum.Windows.UI.Xaml.Input.FocusNavigationDirection,  # focusNavigationDirection
                                         IFindNextElementOptions,  # focusNavigationOptions
                                         _Pointer[_type.boolean]],  # result
@@ -367,10 +357,8 @@ class IFocusManagerStatics4(_inspectable.IInspectable):
                                            _Pointer[_Windows_UI_Xaml.IDependencyObject]],  # result
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IFocusManagerStatics5(_inspectable.IInspectable):
+class IFocusManagerStatics5(_inspectable.IInspectable, factory=True):
     TryFocusAsync: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # element
                               _enum.Windows.UI.Xaml.FocusState,  # value
                               _Pointer[_Windows_Foundation.IAsyncOperation[IFocusMovementResult]]],  # operation
@@ -383,10 +371,8 @@ class IFocusManagerStatics5(_inspectable.IInspectable):
                                              _Pointer[_Windows_Foundation.IAsyncOperation[IFocusMovementResult]]],  # operation
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IFocusManagerStatics6(_inspectable.IInspectable):
+class IFocusManagerStatics6(_inspectable.IInspectable, factory=True):
     add_GotFocus: _Callable[[_Windows_Foundation.IEventHandler[IFocusManagerGotFocusEventArgs],  # handler
                              _Pointer[_struct.EventRegistrationToken]],  # token
                             _type.HRESULT]
@@ -408,15 +394,11 @@ class IFocusManagerStatics6(_inspectable.IInspectable):
     remove_LosingFocus: _Callable[[_struct.EventRegistrationToken],  # token
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IFocusManagerStatics7(_inspectable.IInspectable):
+class IFocusManagerStatics7(_inspectable.IInspectable, factory=True):
     GetFocusedElement: _Callable[[_Windows_UI_Xaml.IXamlRoot,  # xamlRoot
                                   _Pointer[_inspectable.IInspectable]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IFocusMovementResult(_inspectable.IInspectable):
@@ -519,12 +501,10 @@ class IInputScopeName(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IInputScopeNameFactory(_inspectable.IInspectable):
+class IInputScopeNameFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.UI.Xaml.Input.InputScopeNameValue,  # nameValue
                                _Pointer[IInputScopeName]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IKeyRoutedEventArgs(_inspectable.IInspectable):
@@ -593,7 +573,7 @@ class IKeyboardAcceleratorInvokedEventArgs2(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IKeyboardAcceleratorStatics(_inspectable.IInspectable):
+class IKeyboardAcceleratorStatics(_inspectable.IInspectable, factory=True):
     get_KeyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                _type.HRESULT]
     get_ModifiersProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -602,8 +582,6 @@ class IKeyboardAcceleratorStatics(_inspectable.IInspectable):
                                      _type.HRESULT]
     get_ScopeOwnerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ILosingFocusEventArgs(_inspectable.IInspectable):
@@ -724,13 +702,11 @@ class IManipulationPivot(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IManipulationPivotFactory(_inspectable.IInspectable):
+class IManipulationPivotFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithCenterAndRadius: _Callable[[_struct.Windows.Foundation.Point,  # center
                                                   _type.DOUBLE,  # radius
                                                   _Pointer[IManipulationPivot]],  # value
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IManipulationStartedRoutedEventArgs(_inspectable.IInspectable):
@@ -865,11 +841,9 @@ class IStandardUICommandFactory(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IStandardUICommandStatics(_inspectable.IInspectable):
+class IStandardUICommandStatics(_inspectable.IInspectable, factory=True):
     get_KindProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class ITappedRoutedEventArgs(_inspectable.IInspectable):
@@ -928,7 +902,7 @@ class IXamlUICommandFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IXamlUICommandStatics(_inspectable.IInspectable):
+class IXamlUICommandStatics(_inspectable.IInspectable, factory=True):
     get_LabelProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_IconSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -941,5 +915,3 @@ class IXamlUICommandStatics(_inspectable.IInspectable):
                                        _type.HRESULT]
     get_CommandProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True

@@ -257,12 +257,10 @@ class IAudioDeviceModulesManager(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IAudioDeviceModulesManagerFactory(_inspectable.IInspectable):
+class IAudioDeviceModulesManagerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # deviceId
                        _Pointer[IAudioDeviceModulesManager]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICallControl(_inspectable.IInspectable):
@@ -310,14 +308,12 @@ class ICallControl(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class ICallControlStatics(_inspectable.IInspectable):
+class ICallControlStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ICallControl]],  # callControl
                           _type.HRESULT]
     FromId: _Callable[[_type.HSTRING,  # deviceId
                        _Pointer[ICallControl]],  # callControl
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICameraOcclusionInfo(_inspectable.IInspectable):
@@ -742,7 +738,7 @@ class IMediaDeviceController(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class IMediaDeviceStatics(_inspectable.IInspectable):
+class IMediaDeviceStatics(_inspectable.IInspectable, factory=True):
     GetAudioCaptureSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
                                        _type.HRESULT]
     GetAudioRenderSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
@@ -765,8 +761,6 @@ class IMediaDeviceStatics(_inspectable.IInspectable):
                                                    _type.HRESULT]
     remove_DefaultAudioRenderDeviceChanged: _Callable[[_struct.EventRegistrationToken],  # cookie
                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IModuleCommandResult(_inspectable.IInspectable):

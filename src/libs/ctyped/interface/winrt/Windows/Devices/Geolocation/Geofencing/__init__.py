@@ -29,7 +29,7 @@ class IGeofence(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IGeofenceFactory(_inspectable.IInspectable):
+class IGeofenceFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # id
                        _Windows_Devices_Geolocation.IGeoshape,  # geoshape
                        _Pointer[IGeofence]],  # geofence
@@ -57,8 +57,6 @@ class IGeofenceFactory(_inspectable.IInspectable):
                                                                      _Pointer[IGeofence]],  # geofence
                                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IGeofenceMonitor(_inspectable.IInspectable):
     get_Status: _Callable[[_Pointer[_enum.Windows.Devices.Geolocation.Geofencing.GeofenceMonitorStatus]],  # value
@@ -81,11 +79,9 @@ class IGeofenceMonitor(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IGeofenceMonitorStatics(_inspectable.IInspectable):
+class IGeofenceMonitorStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IGeofenceMonitor]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IGeofenceStateChangeReport(_inspectable.IInspectable):

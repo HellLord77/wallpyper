@@ -46,7 +46,7 @@ class IRfcommDeviceService3(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IRfcommDeviceServiceStatics(_inspectable.IInspectable):
+class IRfcommDeviceServiceStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IRfcommDeviceService]]],  # asyncOp
                            _type.HRESULT]
@@ -54,10 +54,8 @@ class IRfcommDeviceServiceStatics(_inspectable.IInspectable):
                                   _Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IRfcommDeviceServiceStatics2(_inspectable.IInspectable):
+class IRfcommDeviceServiceStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelectorForBluetoothDevice: _Callable[[_Windows_Devices_Bluetooth.IBluetoothDevice,  # bluetoothDevice
                                                     _Pointer[_type.HSTRING]],  # selector
                                                    _type.HRESULT]
@@ -74,8 +72,6 @@ class IRfcommDeviceServiceStatics2(_inspectable.IInspectable):
                                                                              _enum.Windows.Devices.Bluetooth.BluetoothCacheMode,  # cacheMode
                                                                              _Pointer[_type.HSTRING]],  # selector
                                                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IRfcommDeviceServicesResult(_inspectable.IInspectable):
@@ -94,7 +90,7 @@ class IRfcommServiceId(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IRfcommServiceIdStatics(_inspectable.IInspectable):
+class IRfcommServiceIdStatics(_inspectable.IInspectable, factory=True):
     FromUuid: _Callable[[_struct.GUID,  # uuid
                          _Pointer[IRfcommServiceId]],  # serviceId
                         _type.HRESULT]
@@ -114,8 +110,6 @@ class IRfcommServiceIdStatics(_inspectable.IInspectable):
     get_GenericFileTransfer: _Callable[[_Pointer[IRfcommServiceId]],  # serviceId
                                        _type.HRESULT]
 
-    _factory = True
-
 
 class IRfcommServiceProvider(_inspectable.IInspectable):
     get_ServiceId: _Callable[[_Pointer[IRfcommServiceId]],  # value
@@ -134,9 +128,7 @@ class IRfcommServiceProvider2(_inspectable.IInspectable):
                                                         _type.HRESULT]
 
 
-class IRfcommServiceProviderStatics(_inspectable.IInspectable):
+class IRfcommServiceProviderStatics(_inspectable.IInspectable, factory=True):
     CreateAsync: _Callable[[IRfcommServiceId,  # serviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IRfcommServiceProvider]]],  # asyncOp
                            _type.HRESULT]
-
-    _factory = True

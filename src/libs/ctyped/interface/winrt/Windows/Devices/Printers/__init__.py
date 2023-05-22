@@ -63,7 +63,7 @@ class IIppAttributeValue(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IIppAttributeValueStatics(_inspectable.IInspectable):
+class IIppAttributeValueStatics(_inspectable.IInspectable, factory=True):
     CreateUnsupported: _Callable[[_Pointer[IIppAttributeValue]],  # result
                                  _type.HRESULT]
     CreateUnknown: _Callable[[_Pointer[IIppAttributeValue]],  # result
@@ -179,8 +179,6 @@ class IIppAttributeValueStatics(_inspectable.IInspectable):
                                      _Pointer[IIppAttributeValue]],  # result
                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IIppIntegerRange(_inspectable.IInspectable):
     get_Start: _Callable[[_Pointer[_type.INT32]],  # value
@@ -189,13 +187,11 @@ class IIppIntegerRange(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IIppIntegerRangeFactory(_inspectable.IInspectable):
+class IIppIntegerRangeFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.INT32,  # start
                                _type.INT32,  # end
                                _Pointer[IIppIntegerRange]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IIppPrintDevice(_inspectable.IInspectable):
@@ -229,7 +225,7 @@ class IIppPrintDevice2(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IIppPrintDeviceStatics(_inspectable.IInspectable):
+class IIppPrintDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromId: _Callable[[_type.HSTRING,  # deviceId
@@ -242,8 +238,6 @@ class IIppPrintDeviceStatics(_inspectable.IInspectable):
                              _Pointer[_type.boolean]],  # result
                             _type.HRESULT]
 
-    _factory = True
-
 
 class IIppResolution(_inspectable.IInspectable):
     get_Width: _Callable[[_Pointer[_type.INT32]],  # value
@@ -254,14 +248,12 @@ class IIppResolution(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IIppResolutionFactory(_inspectable.IInspectable):
+class IIppResolutionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.INT32,  # width
                                _type.INT32,  # height
                                _enum.Windows.Devices.Printers.IppResolutionUnit,  # unit
                                _Pointer[IIppResolution]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IIppSetAttributesResult(_inspectable.IInspectable):
@@ -278,13 +270,11 @@ class IIppTextWithLanguage(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IIppTextWithLanguageFactory(_inspectable.IInspectable):
+class IIppTextWithLanguageFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # language
                                _type.HSTRING,  # text
                                _Pointer[IIppTextWithLanguage]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPageConfigurationSettings(_inspectable.IInspectable):
@@ -329,14 +319,12 @@ class IPrint3DDevice(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPrint3DDeviceStatics(_inspectable.IInspectable):
+class IPrint3DDeviceStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IPrint3DDevice]]],  # operation
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintSchema(_inspectable.IInspectable):

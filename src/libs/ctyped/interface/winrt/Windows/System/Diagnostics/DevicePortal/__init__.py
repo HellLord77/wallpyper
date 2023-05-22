@@ -39,12 +39,10 @@ class IDevicePortalConnectionRequestReceivedEventArgs(_inspectable.IInspectable)
                                    _type.HRESULT]
 
 
-class IDevicePortalConnectionStatics(_inspectable.IInspectable):
+class IDevicePortalConnectionStatics(_inspectable.IInspectable, factory=True):
     GetForAppServiceConnection: _Callable[[_Windows_ApplicationModel_AppService.IAppServiceConnection,  # appServiceConnection
                                            _Pointer[IDevicePortalConnection]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IDevicePortalWebSocketConnection(_inspectable.IInspectable):

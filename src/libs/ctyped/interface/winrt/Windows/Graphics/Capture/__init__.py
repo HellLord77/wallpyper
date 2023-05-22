@@ -42,7 +42,7 @@ class IDirect3D11CaptureFramePool(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IDirect3D11CaptureFramePoolStatics(_inspectable.IInspectable):
+class IDirect3D11CaptureFramePoolStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Graphics_DirectX_Direct3D11.IDirect3DDevice,  # device
                        _enum.Windows.Graphics.DirectX.DirectXPixelFormat,  # pixelFormat
                        _type.INT32,  # numberOfBuffers
@@ -50,10 +50,8 @@ class IDirect3D11CaptureFramePoolStatics(_inspectable.IInspectable):
                        _Pointer[IDirect3D11CaptureFramePool]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IDirect3D11CaptureFramePoolStatics2(_inspectable.IInspectable):
+class IDirect3D11CaptureFramePoolStatics2(_inspectable.IInspectable, factory=True):
     CreateFreeThreaded: _Callable[[_Windows_Graphics_DirectX_Direct3D11.IDirect3DDevice,  # device
                                    _enum.Windows.Graphics.DirectX.DirectXPixelFormat,  # pixelFormat
                                    _type.INT32,  # numberOfBuffers
@@ -61,15 +59,11 @@ class IDirect3D11CaptureFramePoolStatics2(_inspectable.IInspectable):
                                    _Pointer[IDirect3D11CaptureFramePool]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IGraphicsCaptureAccessStatics(_inspectable.IInspectable):
+class IGraphicsCaptureAccessStatics(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_enum.Windows.Graphics.Capture.GraphicsCaptureAccessKind,  # request
                                    _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Security.Authorization.AppCapabilityAccess.AppCapabilityAccessStatus]]],  # operation
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IGraphicsCaptureItem(_inspectable.IInspectable):
@@ -84,23 +78,19 @@ class IGraphicsCaptureItem(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IGraphicsCaptureItemStatics(_inspectable.IInspectable):
+class IGraphicsCaptureItemStatics(_inspectable.IInspectable, factory=True):
     CreateFromVisual: _Callable[[_Windows_UI_Composition.IVisual,  # visual
                                  _Pointer[IGraphicsCaptureItem]],  # result
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IGraphicsCaptureItemStatics2(_inspectable.IInspectable):
+class IGraphicsCaptureItemStatics2(_inspectable.IInspectable, factory=True):
     TryCreateFromWindowId: _Callable[[_struct.Windows.UI.WindowId,  # windowId
                                       _Pointer[IGraphicsCaptureItem]],  # result
                                      _type.HRESULT]
     TryCreateFromDisplayId: _Callable[[_struct.Windows.Graphics.DisplayId,  # displayId
                                        _Pointer[IGraphicsCaptureItem]],  # result
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGraphicsCapturePicker(_inspectable.IInspectable):
@@ -127,8 +117,6 @@ class IGraphicsCaptureSession3(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IGraphicsCaptureSessionStatics(_inspectable.IInspectable):
+class IGraphicsCaptureSessionStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True

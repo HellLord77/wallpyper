@@ -37,8 +37,6 @@ class ITwoPanelHingedDevicePosturePreviewReadingChangedEventArgs(_inspectable.II
                        _type.HRESULT]
 
 
-class ITwoPanelHingedDevicePosturePreviewStatics(_inspectable.IInspectable):
+class ITwoPanelHingedDevicePosturePreviewStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ITwoPanelHingedDevicePosturePreview]]],  # result
                                _type.HRESULT]
-
-    _factory = True

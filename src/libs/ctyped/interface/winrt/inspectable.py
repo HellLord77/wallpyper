@@ -21,8 +21,6 @@ class _IInspectable:
     GetTrustLevel: _Callable[[_Pointer[_enum.TrustLevel]],  # trustLevel
                              _type.HRESULT]
 
-    _factory = False
-
 
 class IInspectable(_IInspectable, _Unknwnbase.IUnknown):
     pass

@@ -17,12 +17,10 @@ class IAdaptiveCard(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IAdaptiveCardBuilderStatics(_inspectable.IInspectable):
+class IAdaptiveCardBuilderStatics(_inspectable.IInspectable, factory=True):
     CreateAdaptiveCardFromJson: _Callable[[_type.HSTRING,  # value
                                            _Pointer[IAdaptiveCard]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IFocusSession(_inspectable.IInspectable):
@@ -52,13 +50,11 @@ class IFocusSessionManager(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IFocusSessionManagerStatics(_inspectable.IInspectable):
+class IFocusSessionManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IFocusSessionManager]],  # result
                           _type.HRESULT]
     get_IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ISecurityAppManager(_inspectable.IInspectable):
@@ -107,11 +103,9 @@ class IShareWindowCommandSource(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IShareWindowCommandSourceStatics(_inspectable.IInspectable):
+class IShareWindowCommandSourceStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IShareWindowCommandSource]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ITaskbarManager(_inspectable.IInspectable):
@@ -143,8 +137,6 @@ class ITaskbarManager2(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ITaskbarManagerStatics(_inspectable.IInspectable):
+class ITaskbarManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ITaskbarManager]],  # result
                           _type.HRESULT]
-
-    _factory = True

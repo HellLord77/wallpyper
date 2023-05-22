@@ -52,20 +52,16 @@ class ISpatialAnchorExporter(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ISpatialAnchorExporterStatics(_inspectable.IInspectable):
+class ISpatialAnchorExporterStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ISpatialAnchorExporter]],  # value
                           _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Perception.Spatial.SpatialPerceptionAccessStatus]]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ISpatialAnchorManagerStatics(_inspectable.IInspectable):
+class ISpatialAnchorManagerStatics(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISpatialAnchorStore]]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialAnchorRawCoordinateSystemAdjustedEventArgs(_inspectable.IInspectable):
@@ -73,7 +69,7 @@ class ISpatialAnchorRawCoordinateSystemAdjustedEventArgs(_inspectable.IInspectab
                                                                            _type.HRESULT]
 
 
-class ISpatialAnchorStatics(_inspectable.IInspectable):
+class ISpatialAnchorStatics(_inspectable.IInspectable, factory=True):
     TryCreateRelativeTo: _Callable[[ISpatialCoordinateSystem,  # coordinateSystem
                                     _Pointer[ISpatialAnchor]],  # value
                                    _type.HRESULT]
@@ -86,8 +82,6 @@ class ISpatialAnchorStatics(_inspectable.IInspectable):
                                                               _struct.Windows.Foundation.Numerics.Quaternion,  # orientation
                                                               _Pointer[ISpatialAnchor]],  # value
                                                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialAnchorStore(_inspectable.IInspectable):
@@ -103,7 +97,7 @@ class ISpatialAnchorStore(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class ISpatialAnchorTransferManagerStatics(_inspectable.IInspectable):
+class ISpatialAnchorTransferManagerStatics(_inspectable.IInspectable, factory=True):
     TryImportAnchorsAsync: _Callable[[_Windows_Storage_Streams.IInputStream,  # stream
                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IMapView[_type.HSTRING, ISpatialAnchor]]]],  # operation
                                      _type.HRESULT]
@@ -114,14 +108,12 @@ class ISpatialAnchorTransferManagerStatics(_inspectable.IInspectable):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Perception.Spatial.SpatialPerceptionAccessStatus]]],  # result
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class ISpatialBoundingVolume(_inspectable.IInspectable):
     pass
 
 
-class ISpatialBoundingVolumeStatics(_inspectable.IInspectable):
+class ISpatialBoundingVolumeStatics(_inspectable.IInspectable, factory=True):
     FromBox: _Callable[[ISpatialCoordinateSystem,  # coordinateSystem
                         _struct.Windows.Perception.Spatial.SpatialBoundingBox,  # box
                         _Pointer[ISpatialBoundingVolume]],  # value
@@ -138,8 +130,6 @@ class ISpatialBoundingVolumeStatics(_inspectable.IInspectable):
                             _struct.Windows.Perception.Spatial.SpatialBoundingFrustum,  # frustum
                             _Pointer[ISpatialBoundingVolume]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialCoordinateSystem(_inspectable.IInspectable):
@@ -162,7 +152,7 @@ class ISpatialEntityAddedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISpatialEntityFactory(_inspectable.IInspectable):
+class ISpatialEntityFactory(_inspectable.IInspectable, factory=True):
     CreateWithSpatialAnchor: _Callable[[ISpatialAnchor,  # spatialAnchor
                                         _Pointer[ISpatialEntity]],  # value
                                        _type.HRESULT]
@@ -170,8 +160,6 @@ class ISpatialEntityFactory(_inspectable.IInspectable):
                                                      _Windows_Foundation_Collections.IPropertySet,  # propertySet
                                                      _Pointer[ISpatialEntity]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialEntityRemovedEventArgs(_inspectable.IInspectable):
@@ -190,14 +178,12 @@ class ISpatialEntityStore(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ISpatialEntityStoreStatics(_inspectable.IInspectable):
+class ISpatialEntityStoreStatics(_inspectable.IInspectable, factory=True):
     get_IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                _type.HRESULT]
     TryGetForRemoteSystemSession: _Callable[[_Windows_System_RemoteSystems.IRemoteSystemSession,  # session
                                              _Pointer[ISpatialEntityStore]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialEntityUpdatedEventArgs(_inspectable.IInspectable):
@@ -329,11 +315,9 @@ class ISpatialLocatorPositionalTrackingDeactivatingEventArgs(_inspectable.IInspe
                             _type.HRESULT]
 
 
-class ISpatialLocatorStatics(_inspectable.IInspectable):
+class ISpatialLocatorStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ISpatialLocator]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialStageFrameOfReference(_inspectable.IInspectable):
@@ -352,7 +336,7 @@ class ISpatialStageFrameOfReference(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ISpatialStageFrameOfReferenceStatics(_inspectable.IInspectable):
+class ISpatialStageFrameOfReferenceStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[ISpatialStageFrameOfReference]],  # value
                            _type.HRESULT]
     add_CurrentChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -362,8 +346,6 @@ class ISpatialStageFrameOfReferenceStatics(_inspectable.IInspectable):
                                      _type.HRESULT]
     RequestNewStageAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISpatialStageFrameOfReference]]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialStationaryFrameOfReference(_inspectable.IInspectable):

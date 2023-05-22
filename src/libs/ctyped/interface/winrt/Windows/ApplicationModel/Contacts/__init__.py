@@ -376,7 +376,7 @@ class IContactField(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IContactFieldFactory(_inspectable.IInspectable):
+class IContactFieldFactory(_inspectable.IInspectable, factory=True):
     CreateField_Default: _Callable[[_type.HSTRING,  # value
                                     _enum.Windows.ApplicationModel.Contacts.ContactFieldType,  # type
                                     _Pointer[IContactField]],  # field
@@ -392,8 +392,6 @@ class IContactFieldFactory(_inspectable.IInspectable):
                                    _enum.Windows.ApplicationModel.Contacts.ContactFieldCategory,  # category
                                    _Pointer[IContactField]],  # field
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IContactGroup(_inspectable.IInspectable):
@@ -431,7 +429,7 @@ class IContactInstantMessageField(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IContactInstantMessageFieldFactory(_inspectable.IInspectable):
+class IContactInstantMessageFieldFactory(_inspectable.IInspectable, factory=True):
     CreateInstantMessage_Default: _Callable[[_type.HSTRING,  # userName
                                              _Pointer[IContactInstantMessageField]],  # field
                                             _type.HRESULT]
@@ -446,8 +444,6 @@ class IContactInstantMessageFieldFactory(_inspectable.IInspectable):
                                          _Windows_Foundation.IUriRuntimeClass,  # verb
                                          _Pointer[IContactInstantMessageField]],  # field
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IContactJobInfo(_inspectable.IInspectable):
@@ -485,7 +481,7 @@ class IContactJobInfo(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IContactLaunchActionVerbsStatics(_inspectable.IInspectable):
+class IContactLaunchActionVerbsStatics(_inspectable.IInspectable, factory=True):
     get_Call: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     get_Message: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -496,8 +492,6 @@ class IContactLaunchActionVerbsStatics(_inspectable.IInspectable):
                         _type.HRESULT]
     get_VideoCall: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IContactList(_inspectable.IInspectable):
@@ -740,7 +734,7 @@ class IContactLocationField(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IContactLocationFieldFactory(_inspectable.IInspectable):
+class IContactLocationFieldFactory(_inspectable.IInspectable, factory=True):
     CreateLocation_Default: _Callable[[_type.HSTRING,  # unstructuredAddress
                                        _Pointer[IContactLocationField]],  # field
                                       _type.HRESULT]
@@ -757,8 +751,6 @@ class IContactLocationFieldFactory(_inspectable.IInspectable):
                                    _type.HSTRING,  # postalCode
                                    _Pointer[IContactLocationField]],  # field
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IContactManagerForUser(_inspectable.IInspectable):
@@ -796,7 +788,7 @@ class IContactManagerForUser2(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IContactManagerStatics(_inspectable.IInspectable):
+class IContactManagerStatics(_inspectable.IInspectable, factory=True):
     ShowContactCard: _Callable[[IContact,  # contact
                                 _struct.Windows.Foundation.Rect],  # selection
                                _type.HRESULT]
@@ -810,17 +802,13 @@ class IContactManagerStatics(_inspectable.IInspectable):
                                            _Pointer[IContactCardDelayedDataLoader]],  # dataLoader
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IContactManagerStatics2(_inspectable.IInspectable):
+class IContactManagerStatics2(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IContactStore]]],  # store
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IContactManagerStatics3(_inspectable.IInspectable):
+class IContactManagerStatics3(_inspectable.IInspectable, factory=True):
     ConvertContactToVCardAsync: _Callable[[IContact,  # contact
                                            _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage_Streams.IRandomAccessStreamReference]]],  # vCard
                                           _type.HRESULT]
@@ -864,26 +852,20 @@ class IContactManagerStatics3(_inspectable.IInspectable):
     put_SystemSortOrder: _Callable[[_enum.Windows.ApplicationModel.Contacts.ContactNameOrder],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IContactManagerStatics4(_inspectable.IInspectable):
+class IContactManagerStatics4(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IContactManagerForUser]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IContactManagerStatics5(_inspectable.IInspectable):
+class IContactManagerStatics5(_inspectable.IInspectable, factory=True):
     IsShowFullContactCardSupportedAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                                    _type.HRESULT]
     get_IncludeMiddleNameInSystemDisplayAndSort: _Callable[[_Pointer[_type.boolean]],  # value
                                                            _type.HRESULT]
     put_IncludeMiddleNameInSystemDisplayAndSort: _Callable[[_type.boolean],  # value
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IContactMatchReason(_inspectable.IInspectable):
@@ -1007,14 +989,12 @@ class IContactPicker3(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IContactPickerStatics(_inspectable.IInspectable):
+class IContactPickerStatics(_inspectable.IInspectable, factory=True):
     CreateForUser: _Callable[[_Windows_System.IUser,  # user
                               _Pointer[IContactPicker]],  # result
                              _type.HRESULT]
     IsSupportedAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IContactQueryOptions(_inspectable.IInspectable):
@@ -1038,7 +1018,7 @@ class IContactQueryOptions(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IContactQueryOptionsFactory(_inspectable.IInspectable):
+class IContactQueryOptionsFactory(_inspectable.IInspectable, factory=True):
     CreateWithText: _Callable[[_type.HSTRING,  # text
                                _Pointer[IContactQueryOptions]],  # result
                               _type.HRESULT]
@@ -1046,8 +1026,6 @@ class IContactQueryOptionsFactory(_inspectable.IInspectable):
                                         _enum.Windows.ApplicationModel.Contacts.ContactQuerySearchFields,  # fields
                                         _Pointer[IContactQueryOptions]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IContactQueryTextSearch(_inspectable.IInspectable):
@@ -1168,7 +1146,7 @@ class IFullContactCardOptions(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IKnownContactFieldStatics(_inspectable.IInspectable):
+class IKnownContactFieldStatics(_inspectable.IInspectable, factory=True):
     Email: _Callable[[_Pointer[_type.HSTRING]],  # value
                      _type.HRESULT]
     PhoneNumber: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -1183,8 +1161,6 @@ class IKnownContactFieldStatics(_inspectable.IInspectable):
     ConvertTypeToName: _Callable[[_enum.Windows.ApplicationModel.Contacts.ContactFieldType,  # type
                                   _Pointer[_type.HSTRING]],  # name
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IPinnedContactIdsQueryResult(_inspectable.IInspectable):
@@ -1220,7 +1196,7 @@ class IPinnedContactManager(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IPinnedContactManagerStatics(_inspectable.IInspectable):
+class IPinnedContactManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IPinnedContactManager]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
@@ -1228,5 +1204,3 @@ class IPinnedContactManagerStatics(_inspectable.IInspectable):
                           _type.HRESULT]
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True

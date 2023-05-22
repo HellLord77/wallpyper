@@ -21,11 +21,9 @@ class ILockApplicationHost(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class ILockApplicationHostStatics(_inspectable.IInspectable):
+class ILockApplicationHostStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ILockApplicationHost]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ILockScreenBadge(_inspectable.IInspectable):

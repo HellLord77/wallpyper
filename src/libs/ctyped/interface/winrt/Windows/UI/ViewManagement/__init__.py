@@ -148,45 +148,37 @@ class IApplicationViewConsolidatedEventArgs2(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IApplicationViewFullscreenStatics(_inspectable.IInspectable):
+class IApplicationViewFullscreenStatics(_inspectable.IInspectable, factory=True):
     TryUnsnapToFullscreen: _Callable[[_Pointer[_type.boolean]],  # success
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewInteropStatics(_inspectable.IInspectable):
+class IApplicationViewInteropStatics(_inspectable.IInspectable, factory=True):
     GetApplicationViewIdForWindow: _Callable[[_Windows_UI_Core.ICoreWindow,  # window
                                               _Pointer[_type.INT32]],  # id
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IApplicationViewScaling(_inspectable.IInspectable):
     pass
 
 
-class IApplicationViewScalingStatics(_inspectable.IInspectable):
+class IApplicationViewScalingStatics(_inspectable.IInspectable, factory=True):
     get_DisableLayoutScaling: _Callable[[_Pointer[_type.boolean]],  # value
                                         _type.HRESULT]
     TrySetDisableLayoutScaling: _Callable[[_type.boolean,  # disableLayoutScaling
                                            _Pointer[_type.boolean]],  # success
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewStatics(_inspectable.IInspectable):
+class IApplicationViewStatics(_inspectable.IInspectable, factory=True):
     Value: _Callable[[_Pointer[_enum.Windows.UI.ViewManagement.ApplicationViewState]],  # value
                      _type.HRESULT]
     TryUnsnap: _Callable[[_Pointer[_type.boolean]],  # success
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewStatics2(_inspectable.IInspectable):
+class IApplicationViewStatics2(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IApplicationView]],  # current
                                  _type.HRESULT]
     get_TerminateAppOnFinalViewClose: _Callable[[_Pointer[_type.boolean]],  # value
@@ -194,10 +186,8 @@ class IApplicationViewStatics2(_inspectable.IInspectable):
     put_TerminateAppOnFinalViewClose: _Callable[[_type.boolean],  # value
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewStatics3(_inspectable.IInspectable):
+class IApplicationViewStatics3(_inspectable.IInspectable, factory=True):
     get_PreferredLaunchWindowingMode: _Callable[[_Pointer[_enum.Windows.UI.ViewManagement.ApplicationViewWindowingMode]],  # value
                                                 _type.HRESULT]
     put_PreferredLaunchWindowingMode: _Callable[[_enum.Windows.UI.ViewManagement.ApplicationViewWindowingMode],  # value
@@ -207,19 +197,15 @@ class IApplicationViewStatics3(_inspectable.IInspectable):
     put_PreferredLaunchViewSize: _Callable[[_struct.Windows.Foundation.Size],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewStatics4(_inspectable.IInspectable):
+class IApplicationViewStatics4(_inspectable.IInspectable, factory=True):
     ClearAllPersistedState: _Callable[[],
                                       _type.HRESULT]
     ClearPersistedState: _Callable[[_type.HSTRING],  # key
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewSwitcherStatics(_inspectable.IInspectable):
+class IApplicationViewSwitcherStatics(_inspectable.IInspectable, factory=True):
     DisableShowingMainViewOnActivation: _Callable[[],
                                                   _type.HRESULT]
     TryShowAsStandaloneAsync: _Callable[[_type.INT32,  # viewId
@@ -253,17 +239,13 @@ class IApplicationViewSwitcherStatics(_inspectable.IInspectable):
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewSwitcherStatics2(_inspectable.IInspectable):
+class IApplicationViewSwitcherStatics2(_inspectable.IInspectable, factory=True):
     DisableSystemViewActivationPolicy: _Callable[[],
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationViewSwitcherStatics3(_inspectable.IInspectable):
+class IApplicationViewSwitcherStatics3(_inspectable.IInspectable, factory=True):
     TryShowAsViewModeAsync: _Callable[[_type.INT32,  # viewId
                                        _enum.Windows.UI.ViewManagement.ApplicationViewMode,  # viewMode
                                        _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
@@ -273,8 +255,6 @@ class IApplicationViewSwitcherStatics3(_inspectable.IInspectable):
                                                       IViewModePreferences,  # viewModePreferences
                                                       _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IApplicationViewTitleBar(_inspectable.IInspectable):
@@ -335,11 +315,9 @@ class IApplicationViewTransferContext(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IApplicationViewTransferContextStatics(_inspectable.IInspectable):
+class IApplicationViewTransferContextStatics(_inspectable.IInspectable, factory=True):
     get_DataPackageFormatId: _Callable[[_Pointer[_type.HSTRING]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IApplicationViewWithContext(_inspectable.IInspectable):
@@ -376,19 +354,15 @@ class IInputPaneControl(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IInputPaneStatics(_inspectable.IInspectable):
+class IInputPaneStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IInputPane]],  # inputPane
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IInputPaneStatics2(_inspectable.IInspectable):
+class IInputPaneStatics2(_inspectable.IInspectable, factory=True):
     GetForUIContext: _Callable[[_Windows_UI.IUIContext,  # context
                                 _Pointer[IInputPane]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IInputPaneVisibilityEventArgs(_inspectable.IInspectable):
@@ -400,7 +374,7 @@ class IInputPaneVisibilityEventArgs(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class IProjectionManagerStatics(_inspectable.IInspectable):
+class IProjectionManagerStatics(_inspectable.IInspectable, factory=True):
     StartProjectingAsync: _Callable[[_type.INT32,  # projectionViewId
                                      _type.INT32,  # anchorViewId
                                      _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
@@ -421,10 +395,8 @@ class IProjectionManagerStatics(_inspectable.IInspectable):
     remove_ProjectionDisplayAvailableChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IProjectionManagerStatics2(_inspectable.IInspectable):
+class IProjectionManagerStatics2(_inspectable.IInspectable, factory=True):
     StartProjectingWithDeviceInfoAsync: _Callable[[_type.INT32,  # projectionViewId
                                                    _type.INT32,  # anchorViewId
                                                    _Windows_Devices_Enumeration.IDeviceInformation,  # displayDeviceInfo
@@ -443,8 +415,6 @@ class IProjectionManagerStatics2(_inspectable.IInspectable):
                                                         _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IStatusBar(_inspectable.IInspectable):
@@ -495,11 +465,9 @@ class IStatusBarProgressIndicator(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IStatusBarStatics(_inspectable.IInspectable):
+class IStatusBarStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IStatusBar]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IUISettings(_inspectable.IInspectable):
@@ -603,11 +571,9 @@ class IUIViewSettings(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IUIViewSettingsStatics(_inspectable.IInspectable):
+class IUIViewSettingsStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IUIViewSettings]],  # current
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IViewModePreferences(_inspectable.IInspectable):
@@ -621,9 +587,7 @@ class IViewModePreferences(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IViewModePreferencesStatics(_inspectable.IInspectable):
+class IViewModePreferencesStatics(_inspectable.IInspectable, factory=True):
     CreateDefault: _Callable[[_enum.Windows.UI.ViewManagement.ApplicationViewMode,  # mode
                               _Pointer[IViewModePreferences]],  # result
                              _type.HRESULT]
-
-    _factory = True

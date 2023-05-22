@@ -12,14 +12,12 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class ICredentialFactory(_inspectable.IInspectable):
+class ICredentialFactory(_inspectable.IInspectable, factory=True):
     CreatePasswordCredential: _Callable[[_type.HSTRING,  # resource
                                          _type.HSTRING,  # userName
                                          _type.HSTRING,  # password
                                          _Pointer[IPasswordCredential]],  # credential
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IKeyCredential(_inspectable.IInspectable):
@@ -46,7 +44,7 @@ class IKeyCredentialAttestationResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IKeyCredentialManagerStatics(_inspectable.IInspectable):
+class IKeyCredentialManagerStatics(_inspectable.IInspectable, factory=True):
     IsSupportedAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # value
                                 _type.HRESULT]
     RenewAttestationAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # operation
@@ -61,8 +59,6 @@ class IKeyCredentialManagerStatics(_inspectable.IInspectable):
     DeleteAsync: _Callable[[_type.HSTRING,  # name
                             _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IKeyCredentialOperationResult(_inspectable.IInspectable):
@@ -141,14 +137,12 @@ class IWebAccount2(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IWebAccountFactory(_inspectable.IInspectable):
+class IWebAccountFactory(_inspectable.IInspectable, factory=True):
     CreateWebAccount: _Callable[[IWebAccountProvider,  # webAccountProvider
                                  _type.HSTRING,  # userName
                                  _enum.Windows.Security.Credentials.WebAccountState,  # state
                                  _Pointer[IWebAccount]],  # instance
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IWebAccountProvider(_inspectable.IInspectable):
@@ -177,11 +171,9 @@ class IWebAccountProvider4(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IWebAccountProviderFactory(_inspectable.IInspectable):
+class IWebAccountProviderFactory(_inspectable.IInspectable, factory=True):
     CreateWebAccountProvider: _Callable[[_type.HSTRING,  # id
                                          _type.HSTRING,  # displayName
                                          _Windows_Foundation.IUriRuntimeClass,  # iconUri
                                          _Pointer[IWebAccountProvider]],  # instance
                                         _type.HRESULT]
-
-    _factory = True

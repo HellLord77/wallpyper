@@ -2,6 +2,7 @@ import contextlib
 import functools
 import glob
 import io
+import ntpath
 import os
 import re
 import sys
@@ -13,7 +14,7 @@ import markdown
 
 from libs import ctyped
 
-SDK_PATH = os.path.join(os.environ['ProgramFiles(x86)'], 'Windows Kits', '10', 'Include', '10.0.22621.0')
+SDK_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0'
 DOC_DIR = r'D:\Projects\winrt-api'
 TYPE_MAP = {
     'IUnknown': '_Unknwnbase.IUnknown',
@@ -565,12 +566,12 @@ def print_enum(enums: dict, __namespaces: Optional[list[str]] = None):
         __namespaces = []
     indent = '    ' * len(__namespaces)
     namespace = '.'.join(__namespaces)
-    doc_dir = os.path.join(DOC_DIR, namespace)
+    doc_dir = ntpath.join(DOC_DIR, namespace)
     for name, value in enums.items():
         if isinstance(next(iter(value.values())), str):
             docs = None
             print(f'{indent}class {name}(_Enum):')
-            if GEN_DOC and (doc_ := get_doc(os.path.join(doc_dir, f'{name}.md'))):
+            if GEN_DOC and (doc_ := get_doc(ntpath.join(doc_dir, f'{name}.md'))):
                 doc = ''
                 if doc_[0]:
                     doc += f'\n**Description:**\n    {doc_[0]}\n\n'
@@ -623,7 +624,13 @@ def print_interface(interfaces: dict, runtimeclasses: dict, folder: str, depth: 
     for name, value in interfaces.items():
         if isinstance(name, tuple):
             is_delegate = name[1] == 'IUnknown' and len(value) == 1 and 'Invoke' in value
-            print(f'class {"_" * is_delegate}{name[0]}{f"({TYPE_MAP[name[1]]})" * (not is_delegate)}:')
+            if is_delegate:
+                print(f'class _{name[0]}:')
+            else:
+                print(f'class {name[0]}({TYPE_MAP[name[1]]}', end='')
+                if f'{_CURRENT[-1]}.{name[0]}' in _FACTORIES:
+                    print(', factory=True', end='')
+                print('):')
             for func, (args, res) in value.items():
                 q_final = f'    {func}: _Callable[[' + f',\n        '.join(
                     resolve_type(val, "interface", __interfaces, runtimeclasses) for val in args.values()) + '],'
@@ -635,9 +642,7 @@ def print_interface(interfaces: dict, runtimeclasses: dict, folder: str, depth: 
                     s_final += q_final + '\n'
                 print(f'{s_final}        {resolve_type(res, "interface", __interfaces, runtimeclasses)}]')
             print()
-            if f'{_CURRENT[-1]}.{name[0]}' in _FACTORIES:
-                print('    _factory = True')
-            elif not value:
+            if not value:
                 print('    pass')
             if is_delegate:
                 print(f'class {name[0]}(_{name[0]}, {TYPE_MAP[name[1]]}):')
@@ -646,11 +651,11 @@ def print_interface(interfaces: dict, runtimeclasses: dict, folder: str, depth: 
                 print(f'class {name[0]}_impl(_{name[0]}, {TYPE_MAP[name[1]]}_impl):')
                 print(f'    pass')
         else:
-            n_folder = os.path.join(folder, name)
+            n_folder = ntpath.join(folder, name)
             n_depth = depth + 1
             os.makedirs(n_folder, exist_ok=True)
             _CURRENT.append('.'.join(n_folder.rsplit(os.sep, n_depth)[-n_depth:]))
-            with contextlib.redirect_stdout(open(os.path.join(n_folder, '__init__.py'), 'w')):
+            with contextlib.redirect_stdout(open(ntpath.join(n_folder, '__init__.py'), 'w')):
                 try:
                     print(DATA_INTERFACE[_CURRENT[-1]])
                 except KeyError:
@@ -674,9 +679,9 @@ def gen_rel_imports(interfaces: dict, __interfaces: Optional[list[str]] = None):
 def patch_imports(folder: str):
     for cur_folder in _REL_IMPORTS:
         cur_ns = cur_folder.split('.')
-        cur_dir = os.path.join(folder, *cur_ns)
-        cur_path = os.path.join(cur_dir, '__init__.py')
-        if os.path.getsize(cur_path):
+        cur_dir = ntpath.join(folder, *cur_ns)
+        cur_path = ntpath.join(cur_dir, '__init__.py')
+        if ntpath.getsize(cur_path):
             imports = ABS_IMPORTS.copy()
             for ex_import in EX_IMPORTS:
                 imports.append(f'from {"." * len(cur_ns)}{ex_import}')
@@ -687,8 +692,8 @@ def patch_imports(folder: str):
                     with open(cur_path) as cur:
                         if f'{import_as}.' not in cur.read():
                             continue
-                    import_dir = os.path.join(folder, *import_ns)
-                    rel_parts = os.path.relpath(import_dir, cur_path).split(os.sep)
+                    import_dir = ntpath.join(folder, *import_ns)
+                    rel_parts = ntpath.relpath(import_dir, cur_path).split(os.sep)
                     if rel_parts[-1] == '..':
                         rel_parts.append('..')
                     else:
@@ -716,8 +721,8 @@ def print_runtimeclass(runtimeclasses: dict, __namespaces: Optional[list[str]] =
         __namespaces = []
     indent = '    ' * len(__namespaces)
     namespace = '.'.join(__namespaces)
-    doc_dir = os.path.join(DOC_DIR, namespace)
-    if GEN_DOC and (doc_ := get_doc(os.path.join(doc_dir, f'{namespace.replace(".", "_")}.md'))):
+    doc_dir = ntpath.join(DOC_DIR, namespace)
+    if GEN_DOC and (doc_ := get_doc(ntpath.join(doc_dir, f'{namespace.replace(".", "_")}.md'))):
         doc = ''
         if doc_[0]:
             doc += f'\n**Description:**\n    {doc_[0]}\n\n'
@@ -735,7 +740,7 @@ def print_runtimeclass(runtimeclasses: dict, __namespaces: Optional[list[str]] =
             print(f"{indent}{name} = '{runtimeclass}'")
             if GEN_DOC:
                 doc = ''
-                if doc_ := get_doc(os.path.join(doc_dir, f'{name}.md')):
+                if doc_ := get_doc(ntpath.join(doc_dir, f'{name}.md')):
                     if doc_[0]:
                         doc += f'\n**Description:**\n    {doc_[0]}\n\n'
                     # if doc_[1]:
@@ -763,8 +768,8 @@ def dump(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False,
          p_iid: bool = False, p_interface: bool = False, p_runtimeclass: bool = False, o_interface: str = ''):
     data = ''
     assert pattern.endswith('.idl')
-    for file in glob.glob(os.path.join(SDK_PATH, 'winrt', pattern)):  # TODO include form import
-        if '.' in os.path.splitext(os.path.basename(file))[0]:
+    for file in glob.glob(ntpath.join(SDK_PATH, 'winrt', pattern)):  # TODO include form import
+        if '.' in ntpath.splitext(ntpath.basename(file))[0]:
             with open(file) as stream:
                 data += f'\n{stream.read()}'
 
@@ -899,7 +904,7 @@ def dump(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False,
     if p_iid:
         print_iid(iids)
     if p_interface:
-        o_interface = os.path.realpath(o_interface)
+        o_interface = ntpath.realpath(o_interface)
         gen_rel_imports(interfaces)
         print_interface(interfaces, runtimeclasses, o_interface)
         patch_imports(o_interface)
@@ -910,12 +915,12 @@ def dump(pattern: str = '*.idl', p_enum: bool = False, p_struct: bool = False,
 
 
 def main():
-    with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
-        # dump(p_enum=True)
-        # dump(p_struct=True)
-        dump(p_iid=True)
-        # dump(p_runtimeclass=True)
-    # dump(p_interface=True, o_interface='winrt')
+    # with open('idl.py', 'w', encoding='utf-8') as file, contextlib.redirect_stdout(file):
+    #     # dump(p_enum=True)
+    #     # dump(p_struct=True)
+    #     dump(p_iid=True)
+    #     # dump(p_runtimeclass=True)
+    dump(p_interface=True, o_interface='winrt')
 
 
 if __name__ == '__main__':

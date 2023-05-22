@@ -64,14 +64,12 @@ class IEmailAttachmentFactory(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IEmailAttachmentFactory2(_inspectable.IInspectable):
+class IEmailAttachmentFactory2(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # fileName
                        _Windows_Storage_Streams.IRandomAccessStreamReference,  # data
                        _type.HSTRING,  # mimeType
                        _Pointer[IEmailAttachment]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEmailConversation(_inspectable.IInspectable):
@@ -232,13 +230,11 @@ class IEmailIrmInfo(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IEmailIrmInfoFactory(_inspectable.IInspectable):
+class IEmailIrmInfoFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Foundation.DateTime,  # expiration
                        IEmailIrmTemplate,  # irmTemplate
                        _Pointer[IEmailIrmInfo]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEmailIrmTemplate(_inspectable.IInspectable):
@@ -256,14 +252,12 @@ class IEmailIrmTemplate(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IEmailIrmTemplateFactory(_inspectable.IInspectable):
+class IEmailIrmTemplateFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # id
                        _type.HSTRING,  # name
                        _type.HSTRING,  # description
                        _Pointer[IEmailIrmTemplate]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEmailItemCounts(_inspectable.IInspectable):
@@ -696,28 +690,22 @@ class IEmailManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IEmailManagerStatics(_inspectable.IInspectable):
+class IEmailManagerStatics(_inspectable.IInspectable, factory=True):
     ShowComposeNewEmailAsync: _Callable[[IEmailMessage,  # message
                                          _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncAction
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IEmailManagerStatics2(_inspectable.IInspectable):
+class IEmailManagerStatics2(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_enum.Windows.ApplicationModel.Email.EmailStoreAccessType,  # accessType
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IEmailStore]]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IEmailManagerStatics3(_inspectable.IInspectable):
+class IEmailManagerStatics3(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IEmailManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IEmailMeetingInfo(_inspectable.IInspectable):
@@ -945,7 +933,7 @@ class IEmailQueryOptions(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IEmailQueryOptionsFactory(_inspectable.IInspectable):
+class IEmailQueryOptionsFactory(_inspectable.IInspectable, factory=True):
     CreateWithText: _Callable[[_type.HSTRING,  # text
                                _Pointer[IEmailQueryOptions]],  # result
                               _type.HRESULT]
@@ -953,8 +941,6 @@ class IEmailQueryOptionsFactory(_inspectable.IInspectable):
                                         _enum.Windows.ApplicationModel.Email.EmailQuerySearchFields,  # fields
                                         _Pointer[IEmailQueryOptions]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IEmailQueryTextSearch(_inspectable.IInspectable):
@@ -983,7 +969,7 @@ class IEmailRecipient(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IEmailRecipientFactory(_inspectable.IInspectable):
+class IEmailRecipientFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # address
                        _Pointer[IEmailRecipient]],  # result
                       _type.HRESULT]
@@ -991,8 +977,6 @@ class IEmailRecipientFactory(_inspectable.IInspectable):
                                _type.HSTRING,  # name
                                _Pointer[IEmailRecipient]],  # result
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IEmailRecipientResolutionResult(_inspectable.IInspectable):

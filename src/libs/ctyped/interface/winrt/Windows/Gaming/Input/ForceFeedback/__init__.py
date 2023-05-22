@@ -23,12 +23,10 @@ class IConditionForceEffect(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IConditionForceEffectFactory(_inspectable.IInspectable):
+class IConditionForceEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.Gaming.Input.ForceFeedback.ConditionForceEffectKind,  # effectKind
                                _Pointer[IForceFeedbackEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IConstantForceEffect(_inspectable.IInspectable):
@@ -115,12 +113,10 @@ class IPeriodicForceEffect(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IPeriodicForceEffectFactory(_inspectable.IInspectable):
+class IPeriodicForceEffectFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.Gaming.Input.ForceFeedback.PeriodicForceEffectKind,  # effectKind
                                _Pointer[IForceFeedbackEffect]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IRampForceEffect(_inspectable.IInspectable):

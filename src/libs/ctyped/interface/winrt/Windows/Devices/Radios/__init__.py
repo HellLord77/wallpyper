@@ -28,7 +28,7 @@ class IRadio(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IRadioStatics(_inspectable.IInspectable):
+class IRadioStatics(_inspectable.IInspectable, factory=True):
     GetRadiosAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IRadio]]]],  # value
                               _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # deviceSelector
@@ -38,5 +38,3 @@ class IRadioStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.Radios.RadioAccessStatus]]],  # value
                                   _type.HRESULT]
-
-    _factory = True

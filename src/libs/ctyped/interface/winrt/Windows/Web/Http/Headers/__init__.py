@@ -53,7 +53,7 @@ class IHttpChallengeHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpChallengeHeaderValueFactory(_inspectable.IInspectable):
+class IHttpChallengeHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromScheme: _Callable[[_type.HSTRING,  # scheme
                                  _Pointer[IHttpChallengeHeaderValue]],  # value
                                 _type.HRESULT]
@@ -62,10 +62,8 @@ class IHttpChallengeHeaderValueFactory(_inspectable.IInspectable):
                                           _Pointer[IHttpChallengeHeaderValue]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpChallengeHeaderValueStatics(_inspectable.IInspectable):
+class IHttpChallengeHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpChallengeHeaderValue]],  # result
                      _type.HRESULT]
@@ -73,8 +71,6 @@ class IHttpChallengeHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpChallengeHeaderValue],  # challengeHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpConnectionOptionHeaderValue(_inspectable.IInspectable):
@@ -90,15 +86,13 @@ class IHttpConnectionOptionHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpConnectionOptionHeaderValueFactory(_inspectable.IInspectable):
+class IHttpConnectionOptionHeaderValueFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # token
                        _Pointer[IHttpConnectionOptionHeaderValue]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpConnectionOptionHeaderValueStatics(_inspectable.IInspectable):
+class IHttpConnectionOptionHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpConnectionOptionHeaderValue]],  # result
                      _type.HRESULT]
@@ -106,8 +100,6 @@ class IHttpConnectionOptionHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpConnectionOptionHeaderValue],  # connectionOptionHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpContentCodingHeaderValue(_inspectable.IInspectable):
@@ -123,15 +115,13 @@ class IHttpContentCodingHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpContentCodingHeaderValueFactory(_inspectable.IInspectable):
+class IHttpContentCodingHeaderValueFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # contentCoding
                        _Pointer[IHttpContentCodingHeaderValue]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpContentCodingHeaderValueStatics(_inspectable.IInspectable):
+class IHttpContentCodingHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpContentCodingHeaderValue]],  # result
                      _type.HRESULT]
@@ -139,8 +129,6 @@ class IHttpContentCodingHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpContentCodingHeaderValue],  # contentCodingHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpContentCodingWithQualityHeaderValue(_inspectable.IInspectable):
@@ -158,7 +146,7 @@ class IHttpContentCodingWithQualityHeaderValueCollection(_inspectable.IInspectab
                            _type.HRESULT]
 
 
-class IHttpContentCodingWithQualityHeaderValueFactory(_inspectable.IInspectable):
+class IHttpContentCodingWithQualityHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromValue: _Callable[[_type.HSTRING,  # contentCoding
                                 _Pointer[IHttpContentCodingWithQualityHeaderValue]],  # value
                                _type.HRESULT]
@@ -167,10 +155,8 @@ class IHttpContentCodingWithQualityHeaderValueFactory(_inspectable.IInspectable)
                                            _Pointer[IHttpContentCodingWithQualityHeaderValue]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpContentCodingWithQualityHeaderValueStatics(_inspectable.IInspectable):
+class IHttpContentCodingWithQualityHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpContentCodingWithQualityHeaderValue]],  # result
                      _type.HRESULT]
@@ -178,8 +164,6 @@ class IHttpContentCodingWithQualityHeaderValueStatics(_inspectable.IInspectable)
                          _Pointer[IHttpContentCodingWithQualityHeaderValue],  # contentCodingWithQualityHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpContentDispositionHeaderValue(_inspectable.IInspectable):
@@ -207,15 +191,13 @@ class IHttpContentDispositionHeaderValue(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IHttpContentDispositionHeaderValueFactory(_inspectable.IInspectable):
+class IHttpContentDispositionHeaderValueFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # dispositionType
                        _Pointer[IHttpContentDispositionHeaderValue]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpContentDispositionHeaderValueStatics(_inspectable.IInspectable):
+class IHttpContentDispositionHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpContentDispositionHeaderValue]],  # result
                      _type.HRESULT]
@@ -223,8 +205,6 @@ class IHttpContentDispositionHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpContentDispositionHeaderValue],  # contentDispositionHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpContentHeaderCollection(_inspectable.IInspectable):
@@ -286,7 +266,7 @@ class IHttpContentRangeHeaderValue(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IHttpContentRangeHeaderValueFactory(_inspectable.IInspectable):
+class IHttpContentRangeHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromLength: _Callable[[_type.UINT64,  # length
                                  _Pointer[IHttpContentRangeHeaderValue]],  # value
                                 _type.HRESULT]
@@ -300,10 +280,8 @@ class IHttpContentRangeHeaderValueFactory(_inspectable.IInspectable):
                                           _Pointer[IHttpContentRangeHeaderValue]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpContentRangeHeaderValueStatics(_inspectable.IInspectable):
+class IHttpContentRangeHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpContentRangeHeaderValue]],  # result
                      _type.HRESULT]
@@ -311,8 +289,6 @@ class IHttpContentRangeHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpContentRangeHeaderValue],  # contentRangeHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpCookiePairHeaderValue(_inspectable.IInspectable):
@@ -332,7 +308,7 @@ class IHttpCookiePairHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpCookiePairHeaderValueFactory(_inspectable.IInspectable):
+class IHttpCookiePairHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromName: _Callable[[_type.HSTRING,  # name
                                _Pointer[IHttpCookiePairHeaderValue]],  # value
                               _type.HRESULT]
@@ -341,10 +317,8 @@ class IHttpCookiePairHeaderValueFactory(_inspectable.IInspectable):
                                         _Pointer[IHttpCookiePairHeaderValue]],  # cookiePairHeaderValue
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpCookiePairHeaderValueStatics(_inspectable.IInspectable):
+class IHttpCookiePairHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpCookiePairHeaderValue]],  # result
                      _type.HRESULT]
@@ -352,8 +326,6 @@ class IHttpCookiePairHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpCookiePairHeaderValue],  # cookiePairHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpCredentialsHeaderValue(_inspectable.IInspectable):
@@ -365,7 +337,7 @@ class IHttpCredentialsHeaderValue(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IHttpCredentialsHeaderValueFactory(_inspectable.IInspectable):
+class IHttpCredentialsHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromScheme: _Callable[[_type.HSTRING,  # scheme
                                  _Pointer[IHttpCredentialsHeaderValue]],  # value
                                 _type.HRESULT]
@@ -374,10 +346,8 @@ class IHttpCredentialsHeaderValueFactory(_inspectable.IInspectable):
                                           _Pointer[IHttpCredentialsHeaderValue]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpCredentialsHeaderValueStatics(_inspectable.IInspectable):
+class IHttpCredentialsHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpCredentialsHeaderValue]],  # result
                      _type.HRESULT]
@@ -385,8 +355,6 @@ class IHttpCredentialsHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpCredentialsHeaderValue],  # credentialsHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpDateOrDeltaHeaderValue(_inspectable.IInspectable):
@@ -396,7 +364,7 @@ class IHttpDateOrDeltaHeaderValue(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IHttpDateOrDeltaHeaderValueStatics(_inspectable.IInspectable):
+class IHttpDateOrDeltaHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpDateOrDeltaHeaderValue]],  # result
                      _type.HRESULT]
@@ -404,8 +372,6 @@ class IHttpDateOrDeltaHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpDateOrDeltaHeaderValue],  # dateOrDeltaHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpExpectationHeaderValue(_inspectable.IInspectable):
@@ -427,7 +393,7 @@ class IHttpExpectationHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpExpectationHeaderValueFactory(_inspectable.IInspectable):
+class IHttpExpectationHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromName: _Callable[[_type.HSTRING,  # name
                                _Pointer[IHttpExpectationHeaderValue]],  # value
                               _type.HRESULT]
@@ -436,10 +402,8 @@ class IHttpExpectationHeaderValueFactory(_inspectable.IInspectable):
                                         _Pointer[IHttpExpectationHeaderValue]],  # expectationHeaderValue
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpExpectationHeaderValueStatics(_inspectable.IInspectable):
+class IHttpExpectationHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpExpectationHeaderValue]],  # result
                      _type.HRESULT]
@@ -447,8 +411,6 @@ class IHttpExpectationHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpExpectationHeaderValue],  # expectationHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpLanguageHeaderValueCollection(_inspectable.IInspectable):
@@ -474,7 +436,7 @@ class IHttpLanguageRangeWithQualityHeaderValueCollection(_inspectable.IInspectab
                            _type.HRESULT]
 
 
-class IHttpLanguageRangeWithQualityHeaderValueFactory(_inspectable.IInspectable):
+class IHttpLanguageRangeWithQualityHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromLanguageRange: _Callable[[_type.HSTRING,  # languageRange
                                         _Pointer[IHttpLanguageRangeWithQualityHeaderValue]],  # value
                                        _type.HRESULT]
@@ -483,10 +445,8 @@ class IHttpLanguageRangeWithQualityHeaderValueFactory(_inspectable.IInspectable)
                                                    _Pointer[IHttpLanguageRangeWithQualityHeaderValue]],  # value
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpLanguageRangeWithQualityHeaderValueStatics(_inspectable.IInspectable):
+class IHttpLanguageRangeWithQualityHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpLanguageRangeWithQualityHeaderValue]],  # result
                      _type.HRESULT]
@@ -494,8 +454,6 @@ class IHttpLanguageRangeWithQualityHeaderValueStatics(_inspectable.IInspectable)
                          _Pointer[IHttpLanguageRangeWithQualityHeaderValue],  # languageRangeWithQualityHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpMediaTypeHeaderValue(_inspectable.IInspectable):
@@ -511,15 +469,13 @@ class IHttpMediaTypeHeaderValue(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IHttpMediaTypeHeaderValueFactory(_inspectable.IInspectable):
+class IHttpMediaTypeHeaderValueFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # mediaType
                        _Pointer[IHttpMediaTypeHeaderValue]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpMediaTypeHeaderValueStatics(_inspectable.IInspectable):
+class IHttpMediaTypeHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpMediaTypeHeaderValue]],  # result
                      _type.HRESULT]
@@ -527,8 +483,6 @@ class IHttpMediaTypeHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpMediaTypeHeaderValue],  # mediaTypeHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpMediaTypeWithQualityHeaderValue(_inspectable.IInspectable):
@@ -556,7 +510,7 @@ class IHttpMediaTypeWithQualityHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpMediaTypeWithQualityHeaderValueFactory(_inspectable.IInspectable):
+class IHttpMediaTypeWithQualityHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromMediaType: _Callable[[_type.HSTRING,  # mediaType
                                     _Pointer[IHttpMediaTypeWithQualityHeaderValue]],  # value
                                    _type.HRESULT]
@@ -565,10 +519,8 @@ class IHttpMediaTypeWithQualityHeaderValueFactory(_inspectable.IInspectable):
                                                _Pointer[IHttpMediaTypeWithQualityHeaderValue]],  # value
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpMediaTypeWithQualityHeaderValueStatics(_inspectable.IInspectable):
+class IHttpMediaTypeWithQualityHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpMediaTypeWithQualityHeaderValue]],  # result
                      _type.HRESULT]
@@ -576,8 +528,6 @@ class IHttpMediaTypeWithQualityHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpMediaTypeWithQualityHeaderValue],  # mediaTypeWithQualityHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpMethodHeaderValueCollection(_inspectable.IInspectable):
@@ -597,7 +547,7 @@ class IHttpNameValueHeaderValue(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IHttpNameValueHeaderValueFactory(_inspectable.IInspectable):
+class IHttpNameValueHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromName: _Callable[[_type.HSTRING,  # name
                                _Pointer[IHttpNameValueHeaderValue]],  # value
                               _type.HRESULT]
@@ -606,10 +556,8 @@ class IHttpNameValueHeaderValueFactory(_inspectable.IInspectable):
                                         _Pointer[IHttpNameValueHeaderValue]],  # nameValueHeaderValue
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpNameValueHeaderValueStatics(_inspectable.IInspectable):
+class IHttpNameValueHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpNameValueHeaderValue]],  # result
                      _type.HRESULT]
@@ -617,8 +565,6 @@ class IHttpNameValueHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpNameValueHeaderValue],  # nameValueHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpProductHeaderValue(_inspectable.IInspectable):
@@ -628,7 +574,7 @@ class IHttpProductHeaderValue(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpProductHeaderValueFactory(_inspectable.IInspectable):
+class IHttpProductHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromName: _Callable[[_type.HSTRING,  # productName
                                _Pointer[IHttpProductHeaderValue]],  # value
                               _type.HRESULT]
@@ -637,10 +583,8 @@ class IHttpProductHeaderValueFactory(_inspectable.IInspectable):
                                           _Pointer[IHttpProductHeaderValue]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpProductHeaderValueStatics(_inspectable.IInspectable):
+class IHttpProductHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpProductHeaderValue]],  # result
                      _type.HRESULT]
@@ -648,8 +592,6 @@ class IHttpProductHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpProductHeaderValue],  # productHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpProductInfoHeaderValue(_inspectable.IInspectable):
@@ -667,7 +609,7 @@ class IHttpProductInfoHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpProductInfoHeaderValueFactory(_inspectable.IInspectable):
+class IHttpProductInfoHeaderValueFactory(_inspectable.IInspectable, factory=True):
     CreateFromComment: _Callable[[_type.HSTRING,  # productComment
                                   _Pointer[IHttpProductInfoHeaderValue]],  # value
                                  _type.HRESULT]
@@ -676,10 +618,8 @@ class IHttpProductInfoHeaderValueFactory(_inspectable.IInspectable):
                                           _Pointer[IHttpProductInfoHeaderValue]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpProductInfoHeaderValueStatics(_inspectable.IInspectable):
+class IHttpProductInfoHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpProductInfoHeaderValue]],  # result
                      _type.HRESULT]
@@ -687,8 +627,6 @@ class IHttpProductInfoHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpProductInfoHeaderValue],  # productInfoHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IHttpRequestHeaderCollection(_inspectable.IInspectable):
@@ -808,15 +746,13 @@ class IHttpTransferCodingHeaderValueCollection(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHttpTransferCodingHeaderValueFactory(_inspectable.IInspectable):
+class IHttpTransferCodingHeaderValueFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # input
                        _Pointer[IHttpTransferCodingHeaderValue]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IHttpTransferCodingHeaderValueStatics(_inspectable.IInspectable):
+class IHttpTransferCodingHeaderValueStatics(_inspectable.IInspectable, factory=True):
     Parse: _Callable[[_type.HSTRING,  # input
                       _Pointer[IHttpTransferCodingHeaderValue]],  # result
                      _type.HRESULT]
@@ -824,5 +760,3 @@ class IHttpTransferCodingHeaderValueStatics(_inspectable.IInspectable):
                          _Pointer[IHttpTransferCodingHeaderValue],  # transferCodingHeaderValue
                          _Pointer[_type.boolean]],  # succeeded
                         _type.HRESULT]
-
-    _factory = True

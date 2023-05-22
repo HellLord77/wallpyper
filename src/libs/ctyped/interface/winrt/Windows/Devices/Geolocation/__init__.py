@@ -37,7 +37,7 @@ class IGeoboundingBox(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IGeoboundingBoxFactory(_inspectable.IInspectable):
+class IGeoboundingBoxFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Devices.Geolocation.BasicGeoposition,  # northwestCorner
                        _struct.Windows.Devices.Geolocation.BasicGeoposition,  # southeastCorner
                        _Pointer[IGeoboundingBox]],  # value
@@ -54,10 +54,8 @@ class IGeoboundingBoxFactory(_inspectable.IInspectable):
                                                                _Pointer[IGeoboundingBox]],  # value
                                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IGeoboundingBoxStatics(_inspectable.IInspectable):
+class IGeoboundingBoxStatics(_inspectable.IInspectable, factory=True):
     TryCompute: _Callable[[_Windows_Foundation_Collections.IIterable[_struct.Windows.Devices.Geolocation.BasicGeoposition],  # positions
                            _Pointer[IGeoboundingBox]],  # value
                           _type.HRESULT]
@@ -71,8 +69,6 @@ class IGeoboundingBoxStatics(_inspectable.IInspectable):
                                                                    _Pointer[IGeoboundingBox]],  # value
                                                                   _type.HRESULT]
 
-    _factory = True
-
 
 class IGeocircle(_inspectable.IInspectable):
     get_Center: _Callable[[_Pointer[_struct.Windows.Devices.Geolocation.BasicGeoposition]],  # value
@@ -81,7 +77,7 @@ class IGeocircle(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IGeocircleFactory(_inspectable.IInspectable):
+class IGeocircleFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Devices.Geolocation.BasicGeoposition,  # position
                        _type.DOUBLE,  # radius
                        _Pointer[IGeocircle]],  # value
@@ -97,8 +93,6 @@ class IGeocircleFactory(_inspectable.IInspectable):
                                                                        _type.UINT32,  # spatialReferenceId
                                                                        _Pointer[IGeocircle]],  # value
                                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGeocoordinate(_inspectable.IInspectable):
@@ -196,7 +190,7 @@ class IGeolocator2(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class IGeolocatorStatics(_inspectable.IInspectable):
+class IGeolocatorStatics(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.Geolocation.GeolocationAccessStatus]]],  # result
                                   _type.HRESULT]
     GetGeopositionHistoryAsync: _Callable[[_struct.Windows.Foundation.DateTime,  # startTime
@@ -207,18 +201,14 @@ class IGeolocatorStatics(_inspectable.IInspectable):
                                                        _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IGeoposition]]]],  # result
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IGeolocatorStatics2(_inspectable.IInspectable):
+class IGeolocatorStatics2(_inspectable.IInspectable, factory=True):
     get_IsDefaultGeopositionRecommended: _Callable[[_Pointer[_type.boolean]],  # value
                                                    _type.HRESULT]
     put_DefaultGeoposition: _Callable[[_Windows_Foundation.IReference[_struct.Windows.Devices.Geolocation.BasicGeoposition]],  # value
                                       _type.HRESULT]
     get_DefaultGeoposition: _Callable[[_Pointer[_Windows_Foundation.IReference[_struct.Windows.Devices.Geolocation.BasicGeoposition]]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGeolocatorWithScalarAccuracy(_inspectable.IInspectable):
@@ -233,7 +223,7 @@ class IGeopath(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IGeopathFactory(_inspectable.IInspectable):
+class IGeopathFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Foundation_Collections.IIterable[_struct.Windows.Devices.Geolocation.BasicGeoposition],  # positions
                        _Pointer[IGeopath]],  # value
                       _type.HRESULT]
@@ -247,15 +237,13 @@ class IGeopathFactory(_inspectable.IInspectable):
                                                                _Pointer[IGeopath]],  # value
                                                               _type.HRESULT]
 
-    _factory = True
-
 
 class IGeopoint(_inspectable.IInspectable):
     get_Position: _Callable[[_Pointer[_struct.Windows.Devices.Geolocation.BasicGeoposition]],  # value
                             _type.HRESULT]
 
 
-class IGeopointFactory(_inspectable.IInspectable):
+class IGeopointFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Devices.Geolocation.BasicGeoposition,  # position
                        _Pointer[IGeopoint]],  # value
                       _type.HRESULT]
@@ -268,8 +256,6 @@ class IGeopointFactory(_inspectable.IInspectable):
                                                                        _type.UINT32,  # spatialReferenceId
                                                                        _Pointer[IGeopoint]],  # value
                                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGeoposition(_inspectable.IInspectable):
@@ -316,11 +302,9 @@ class IGeovisitMonitor(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IGeovisitMonitorStatics(_inspectable.IInspectable):
+class IGeovisitMonitorStatics(_inspectable.IInspectable, factory=True):
     GetLastReportAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IGeovisit]]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IGeovisitStateChangedEventArgs(_inspectable.IInspectable):

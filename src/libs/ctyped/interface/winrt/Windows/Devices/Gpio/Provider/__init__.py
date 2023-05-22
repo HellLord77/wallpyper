@@ -52,12 +52,10 @@ class IGpioPinProviderValueChangedEventArgs(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IGpioPinProviderValueChangedEventArgsFactory(_inspectable.IInspectable):
+class IGpioPinProviderValueChangedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Devices.Gpio.Provider.ProviderGpioPinEdge,  # edge
                        _Pointer[IGpioPinProviderValueChangedEventArgs]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGpioProvider(_inspectable.IInspectable):

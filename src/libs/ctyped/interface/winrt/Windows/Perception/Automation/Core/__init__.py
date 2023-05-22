@@ -7,8 +7,6 @@ from ..... import inspectable as _inspectable
 from ....... import type as _type
 
 
-class ICorePerceptionAutomationStatics(_inspectable.IInspectable):
+class ICorePerceptionAutomationStatics(_inspectable.IInspectable, factory=True):
     SetActivationFactoryProvider: _Callable[[_Windows_Foundation.IGetActivationFactory],  # provider
                                             _type.HRESULT]
-
-    _factory = True

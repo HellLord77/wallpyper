@@ -39,10 +39,8 @@ class IRemoteTextConnection(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IRemoteTextConnectionFactory(_inspectable.IInspectable):
+class IRemoteTextConnectionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_struct.GUID,  # connectionId
                                IRemoteTextConnectionDataHandler,  # pduForwarder
                                _Pointer[IRemoteTextConnection]],  # value
                               _type.HRESULT]
-
-    _factory = True

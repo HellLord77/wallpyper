@@ -7,12 +7,10 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IClassicAppManagerStatics(_inspectable.IInspectable):
+class IClassicAppManagerStatics(_inspectable.IInspectable, factory=True):
     FindInstalledApp: _Callable[[_type.HSTRING,  # appUninstallKey
                                  _Pointer[IInstalledClassicAppInfo]],  # result
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IInstalledClassicAppInfo(_inspectable.IInspectable):

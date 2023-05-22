@@ -56,14 +56,12 @@ class IAppDiagnosticInfo3(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IAppDiagnosticInfoStatics(_inspectable.IInspectable):
+class IAppDiagnosticInfoStatics(_inspectable.IInspectable, factory=True):
     RequestInfoAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVector[IAppDiagnosticInfo]]]],  # operation
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IAppDiagnosticInfoStatics2(_inspectable.IInspectable):
+class IAppDiagnosticInfoStatics2(_inspectable.IInspectable, factory=True):
     CreateWatcher: _Callable[[_Pointer[IAppDiagnosticInfoWatcher]],  # watcher
                              _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.DiagnosticAccessStatus]]],  # operation
@@ -76,8 +74,6 @@ class IAppDiagnosticInfoStatics2(_inspectable.IInspectable):
     RequestInfoForAppUserModelId: _Callable[[_type.HSTRING,  # appUserModelId
                                              _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVector[IAppDiagnosticInfo]]]],  # operation
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IAppDiagnosticInfoWatcher(_inspectable.IInspectable):
@@ -257,12 +253,10 @@ class IAppUriHandlerHost2(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IAppUriHandlerHostFactory(_inspectable.IInspectable):
+class IAppUriHandlerHostFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # name
                                _Pointer[IAppUriHandlerHost]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IAppUriHandlerRegistration(_inspectable.IInspectable):
@@ -299,17 +293,15 @@ class IAppUriHandlerRegistrationManager2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IAppUriHandlerRegistrationManagerStatics(_inspectable.IInspectable):
+class IAppUriHandlerRegistrationManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAppUriHandlerRegistrationManager]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[IUser,  # user
                            _Pointer[IAppUriHandlerRegistrationManager]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IAppUriHandlerRegistrationManagerStatics2(_inspectable.IInspectable):
+class IAppUriHandlerRegistrationManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForPackage: _Callable[[_type.HSTRING,  # packageFamilyName
                               _Pointer[IAppUriHandlerRegistrationManager]],  # result
                              _type.HRESULT]
@@ -318,14 +310,10 @@ class IAppUriHandlerRegistrationManagerStatics2(_inspectable.IInspectable):
                                      _Pointer[IAppUriHandlerRegistrationManager]],  # result
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IDateTimeSettingsStatics(_inspectable.IInspectable):
+class IDateTimeSettingsStatics(_inspectable.IInspectable, factory=True):
     SetSystemDateTime: _Callable[[_struct.Windows.Foundation.DateTime],  # utcDateTime
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IDispatcherQueue(_inspectable.IInspectable):
@@ -362,11 +350,9 @@ class IDispatcherQueueController(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IDispatcherQueueControllerStatics(_inspectable.IInspectable):
+class IDispatcherQueueControllerStatics(_inspectable.IInspectable, factory=True):
     CreateOnDedicatedThread: _Callable[[_Pointer[IDispatcherQueueController]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IDispatcherQueueShutdownStartingEventArgs(_inspectable.IInspectable):
@@ -374,11 +360,9 @@ class IDispatcherQueueShutdownStartingEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IDispatcherQueueStatics(_inspectable.IInspectable):
+class IDispatcherQueueStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentThread: _Callable[[_Pointer[IDispatcherQueue]],  # result
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IDispatcherQueueTimer(_inspectable.IInspectable):
@@ -408,7 +392,7 @@ class IFolderLauncherOptions(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IKnownUserPropertiesStatics(_inspectable.IInspectable):
+class IKnownUserPropertiesStatics(_inspectable.IInspectable, factory=True):
     get_DisplayName: _Callable[[_Pointer[_type.HSTRING]],  # value
                                _type.HRESULT]
     get_FirstName: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -428,14 +412,10 @@ class IKnownUserPropertiesStatics(_inspectable.IInspectable):
     get_SessionInitiationProtocolUri: _Callable[[_Pointer[_type.HSTRING]],  # value
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownUserPropertiesStatics2(_inspectable.IInspectable):
+class IKnownUserPropertiesStatics2(_inspectable.IInspectable, factory=True):
     get_AgeEnforcementRegion: _Callable[[_Pointer[_type.HSTRING]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ILaunchUriResult(_inspectable.IInspectable):
@@ -499,7 +479,7 @@ class ILauncherOptions4(_inspectable.IInspectable):
                                                             _type.HRESULT]
 
 
-class ILauncherStatics(_inspectable.IInspectable):
+class ILauncherStatics(_inspectable.IInspectable, factory=True):
     LaunchFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                 _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                _type.HRESULT]
@@ -515,10 +495,8 @@ class ILauncherStatics(_inspectable.IInspectable):
                                           _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class ILauncherStatics2(_inspectable.IInspectable):
+class ILauncherStatics2(_inspectable.IInspectable, factory=True):
     LaunchUriForResultsAsync: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                          ILauncherOptions,  # options
                                          _Pointer[_Windows_Foundation.IAsyncOperation[ILaunchUriResult]]],  # operation
@@ -560,10 +538,8 @@ class ILauncherStatics2(_inspectable.IInspectable):
                                       _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_ApplicationModel.IAppInfo]]]],  # operation
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class ILauncherStatics3(_inspectable.IInspectable):
+class ILauncherStatics3(_inspectable.IInspectable, factory=True):
     LaunchFolderAsync: _Callable[[_Windows_Storage.IStorageFolder,  # folder
                                   _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                  _type.HRESULT]
@@ -572,10 +548,8 @@ class ILauncherStatics3(_inspectable.IInspectable):
                                              _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ILauncherStatics4(_inspectable.IInspectable):
+class ILauncherStatics4(_inspectable.IInspectable, factory=True):
     QueryAppUriSupportAsync: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uri
                                         _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.LaunchQuerySupportStatus]]],  # operation
                                        _type.HRESULT]
@@ -613,10 +587,8 @@ class ILauncherStatics4(_inspectable.IInspectable):
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[ILaunchUriResult]]],  # operation
                                                        _type.HRESULT]
 
-    _factory = True
 
-
-class ILauncherStatics5(_inspectable.IInspectable):
+class ILauncherStatics5(_inspectable.IInspectable, factory=True):
     LaunchFolderPathAsync: _Callable[[_type.HSTRING,  # path
                                       _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                      _type.HRESULT]
@@ -633,8 +605,6 @@ class ILauncherStatics5(_inspectable.IInspectable):
                                                         IFolderLauncherOptions,  # options
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ILauncherUIOptions(_inspectable.IInspectable):
@@ -659,7 +629,7 @@ class ILauncherViewOptions(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IMemoryManagerStatics(_inspectable.IInspectable):
+class IMemoryManagerStatics(_inspectable.IInspectable, factory=True):
     get_AppMemoryUsage: _Callable[[_Pointer[_type.UINT64]],  # value
                                   _type.HRESULT]
     get_AppMemoryUsageLimit: _Callable[[_Pointer[_type.UINT64]],  # value
@@ -682,31 +652,23 @@ class IMemoryManagerStatics(_inspectable.IInspectable):
     remove_AppMemoryUsageLimitChanging: _Callable[[_struct.EventRegistrationToken],  # token
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IMemoryManagerStatics2(_inspectable.IInspectable):
+class IMemoryManagerStatics2(_inspectable.IInspectable, factory=True):
     GetAppMemoryReport: _Callable[[_Pointer[IAppMemoryReport]],  # memoryReport
                                   _type.HRESULT]
     GetProcessMemoryReport: _Callable[[_Pointer[IProcessMemoryReport]],  # memoryReport
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IMemoryManagerStatics3(_inspectable.IInspectable):
+class IMemoryManagerStatics3(_inspectable.IInspectable, factory=True):
     TrySetAppMemoryUsageLimit: _Callable[[_type.UINT64,  # value
                                           _Pointer[_type.boolean]],  # result
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IMemoryManagerStatics4(_inspectable.IInspectable):
+class IMemoryManagerStatics4(_inspectable.IInspectable, factory=True):
     get_ExpectedAppMemoryUsageLimit: _Callable[[_Pointer[_type.UINT64]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IProcessLauncherOptions(_inspectable.IInspectable):
@@ -733,7 +695,7 @@ class IProcessLauncherResult(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IProcessLauncherStatics(_inspectable.IInspectable):
+class IProcessLauncherStatics(_inspectable.IInspectable, factory=True):
     RunToCompletionAsync: _Callable[[_type.HSTRING,  # fileName
                                      _type.HSTRING,  # args
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IProcessLauncherResult]]],  # asyncOperationResult
@@ -743,8 +705,6 @@ class IProcessLauncherStatics(_inspectable.IInspectable):
                                                 IProcessLauncherOptions,  # options
                                                 _Pointer[_Windows_Foundation.IAsyncOperation[IProcessLauncherResult]]],  # asyncOperationResult
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IProcessMemoryReport(_inspectable.IInspectable):
@@ -768,7 +728,7 @@ class IRemoteLauncherOptions(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IRemoteLauncherStatics(_inspectable.IInspectable):
+class IRemoteLauncherStatics(_inspectable.IInspectable, factory=True):
     LaunchUriAsync: _Callable[[_Windows_System_RemoteSystems.IRemoteSystemConnectionRequest,  # remoteSystemConnectionRequest
                                _Windows_Foundation.IUriRuntimeClass,  # uri
                                _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.RemoteLaunchUriStatus]]],  # operation
@@ -785,20 +745,16 @@ class IRemoteLauncherStatics(_inspectable.IInspectable):
                                        _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.RemoteLaunchUriStatus]]],  # operation
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IShutdownManagerStatics(_inspectable.IInspectable):
+class IShutdownManagerStatics(_inspectable.IInspectable, factory=True):
     BeginShutdown: _Callable[[_enum.Windows.System.ShutdownKind,  # shutdownKind
                               _struct.Windows.Foundation.TimeSpan],  # timeout
                              _type.HRESULT]
     CancelShutdown: _Callable[[],
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IShutdownManagerStatics2(_inspectable.IInspectable):
+class IShutdownManagerStatics2(_inspectable.IInspectable, factory=True):
     IsPowerStateSupported: _Callable[[_enum.Windows.System.PowerState,  # powerState
                                       _Pointer[_type.boolean]],  # value
                                      _type.HRESULT]
@@ -808,10 +764,8 @@ class IShutdownManagerStatics2(_inspectable.IInspectable):
                                             _struct.Windows.Foundation.TimeSpan],  # wakeUpAfter
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class ITimeZoneSettingsStatics(_inspectable.IInspectable):
+class ITimeZoneSettingsStatics(_inspectable.IInspectable, factory=True):
     get_CurrentTimeZoneDisplayName: _Callable[[_Pointer[_type.HSTRING]],  # value
                                               _type.HRESULT]
     get_SupportedTimeZoneDisplayNames: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
@@ -821,15 +775,11 @@ class ITimeZoneSettingsStatics(_inspectable.IInspectable):
     ChangeTimeZoneByDisplayName: _Callable[[_type.HSTRING],  # timeZoneDisplayName
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class ITimeZoneSettingsStatics2(_inspectable.IInspectable):
+class ITimeZoneSettingsStatics2(_inspectable.IInspectable, factory=True):
     AutoUpdateTimeZoneAsync: _Callable[[_struct.Windows.Foundation.TimeSpan,  # timeout
                                         _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.System.AutoUpdateTimeZoneStatus]]],  # operation
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IUser(_inspectable.IInspectable):
@@ -891,7 +841,7 @@ class IUserDeviceAssociationChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IUserDeviceAssociationStatics(_inspectable.IInspectable):
+class IUserDeviceAssociationStatics(_inspectable.IInspectable, factory=True):
     FindUserFromDeviceId: _Callable[[_type.HSTRING,  # deviceId
                                      _Pointer[IUser]],  # user
                                     _type.HRESULT]
@@ -900,8 +850,6 @@ class IUserDeviceAssociationStatics(_inspectable.IInspectable):
                                                 _type.HRESULT]
     remove_UserDeviceAssociationChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IUserPicker(_inspectable.IInspectable):
@@ -917,14 +865,12 @@ class IUserPicker(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IUserPickerStatics(_inspectable.IInspectable):
+class IUserPickerStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IUserStatics(_inspectable.IInspectable):
+class IUserStatics(_inspectable.IInspectable, factory=True):
     CreateWatcher: _Callable[[_Pointer[IUserWatcher]],  # result
                              _type.HRESULT]
     FindAllAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IUser]]]],  # operation
@@ -940,14 +886,10 @@ class IUserStatics(_inspectable.IInspectable):
                           _Pointer[IUser]],  # result
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IUserStatics2(_inspectable.IInspectable):
+class IUserStatics2(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IUserWatcher(_inspectable.IInspectable):

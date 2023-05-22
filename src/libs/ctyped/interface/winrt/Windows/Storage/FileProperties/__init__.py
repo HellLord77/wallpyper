@@ -37,7 +37,7 @@ class IDocumentProperties(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IGeotagHelperStatics(_inspectable.IInspectable):
+class IGeotagHelperStatics(_inspectable.IInspectable, factory=True):
     GetGeotagAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Devices_Geolocation.IGeopoint]]],  # operation
                               _type.HRESULT]
@@ -49,8 +49,6 @@ class IGeotagHelperStatics(_inspectable.IInspectable):
                                _Windows_Devices_Geolocation.IGeopoint,  # geopoint
                                _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IImageProperties(_inspectable.IInspectable):

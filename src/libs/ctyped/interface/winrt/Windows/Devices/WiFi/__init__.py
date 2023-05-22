@@ -57,7 +57,7 @@ class IWiFiAdapter2(_inspectable.IInspectable):
                                                                             _type.HRESULT]
 
 
-class IWiFiAdapterStatics(_inspectable.IInspectable):
+class IWiFiAdapterStatics(_inspectable.IInspectable, factory=True):
     FindAllAdaptersAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IWiFiAdapter]]]],  # value
                                     _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # deviceSelector
@@ -67,8 +67,6 @@ class IWiFiAdapterStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Devices.WiFi.WiFiAccessStatus]]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IWiFiAvailableNetwork(_inspectable.IInspectable):
@@ -164,12 +162,10 @@ class IWiFiOnDemandHotspotNetworkProperties(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IWiFiOnDemandHotspotNetworkStatics(_inspectable.IInspectable):
+class IWiFiOnDemandHotspotNetworkStatics(_inspectable.IInspectable, factory=True):
     GetOrCreateById: _Callable[[_struct.GUID,  # networkId
                                 _Pointer[IWiFiOnDemandHotspotNetwork]],  # result
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IWiFiWpsConfigurationResult(_inspectable.IInspectable):

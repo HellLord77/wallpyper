@@ -26,13 +26,11 @@ class IVpnAppId(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IVpnAppIdFactory(_inspectable.IInspectable):
+class IVpnAppIdFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Networking.Vpn.VpnAppIdType,  # type
                        _type.HSTRING,  # value
                        _Pointer[IVpnAppId]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnChannel(_inspectable.IInspectable):
@@ -217,12 +215,10 @@ class IVpnChannelConfiguration2(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IVpnChannelStatics(_inspectable.IInspectable):
+class IVpnChannelStatics(_inspectable.IInspectable, factory=True):
     ProcessEventAsync: _Callable[[_inspectable.IInspectable,  # thirdPartyPlugIn
                                   _inspectable.IInspectable],  # @event
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnCredential(_inspectable.IInspectable):
@@ -373,15 +369,13 @@ class IVpnDomainNameInfo2(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IVpnDomainNameInfoFactory(_inspectable.IInspectable):
+class IVpnDomainNameInfoFactory(_inspectable.IInspectable, factory=True):
     CreateVpnDomainNameInfo: _Callable[[_type.HSTRING,  # name
                                         _enum.Windows.Networking.Vpn.VpnDomainNameType,  # nameType
                                         _Windows_Foundation_Collections.IIterable[_Windows_Networking.IHostName],  # dnsServerList
                                         _Windows_Foundation_Collections.IIterable[_Windows_Networking.IHostName],  # proxyServerList
                                         _Pointer[IVpnDomainNameInfo]],  # domainNameInfo
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnForegroundActivatedEventArgs(_inspectable.IInspectable):
@@ -404,13 +398,11 @@ class IVpnInterfaceId(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IVpnInterfaceIdFactory(_inspectable.IInspectable):
+class IVpnInterfaceIdFactory(_inspectable.IInspectable, factory=True):
     CreateVpnInterfaceId: _Callable[[_type.UINT32,  # __addressSize
                                      _Pointer[_type.BYTE],  # address
                                      _Pointer[IVpnInterfaceId]],  # vpnInterfaceId
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnManagementAgent(_inspectable.IInspectable):
@@ -469,14 +461,12 @@ class IVpnNamespaceInfo(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IVpnNamespaceInfoFactory(_inspectable.IInspectable):
+class IVpnNamespaceInfoFactory(_inspectable.IInspectable, factory=True):
     CreateVpnNamespaceInfo: _Callable[[_type.HSTRING,  # name
                                        _Windows_Foundation_Collections.IVector[_Windows_Networking.IHostName],  # dnsServerList
                                        _Windows_Foundation_Collections.IVector[_Windows_Networking.IHostName],  # proxyServerList
                                        _Pointer[IVpnNamespaceInfo]],  # namespaceInfo
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnNativeProfile(_inspectable.IInspectable):
@@ -538,14 +528,12 @@ class IVpnPacketBuffer3(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IVpnPacketBufferFactory(_inspectable.IInspectable):
+class IVpnPacketBufferFactory(_inspectable.IInspectable, factory=True):
     CreateVpnPacketBuffer: _Callable[[IVpnPacketBuffer,  # parentBuffer
                                       _type.UINT32,  # offset
                                       _type.UINT32,  # length
                                       _Pointer[IVpnPacketBuffer]],  # vpnPacketBuffer
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnPacketBufferList(_inspectable.IInspectable):
@@ -685,13 +673,11 @@ class IVpnRouteAssignment(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IVpnRouteFactory(_inspectable.IInspectable):
+class IVpnRouteFactory(_inspectable.IInspectable, factory=True):
     CreateVpnRoute: _Callable[[_Windows_Networking.IHostName,  # address
                                _type.BYTE,  # prefixSize
                                _Pointer[IVpnRoute]],  # route
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IVpnSystemHealth(_inspectable.IInspectable):
@@ -737,9 +723,7 @@ class IVpnTrafficFilterAssignment(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IVpnTrafficFilterFactory(_inspectable.IInspectable):
+class IVpnTrafficFilterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IVpnAppId,  # appId
                        _Pointer[IVpnTrafficFilter]],  # result
                       _type.HRESULT]
-
-    _factory = True

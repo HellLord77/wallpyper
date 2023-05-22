@@ -48,7 +48,7 @@ class IOnlineIdServiceTicketRequest(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IOnlineIdServiceTicketRequestFactory(_inspectable.IInspectable):
+class IOnlineIdServiceTicketRequestFactory(_inspectable.IInspectable, factory=True):
     CreateOnlineIdServiceTicketRequest: _Callable[[_type.HSTRING,  # service
                                                    _type.HSTRING,  # policy
                                                    _Pointer[IOnlineIdServiceTicketRequest]],  # onlineIdServiceTicketRequest
@@ -56,8 +56,6 @@ class IOnlineIdServiceTicketRequestFactory(_inspectable.IInspectable):
     CreateOnlineIdServiceTicketRequestAdvanced: _Callable[[_type.HSTRING,  # service
                                                            _Pointer[IOnlineIdServiceTicketRequest]],  # onlineIdServiceTicketRequest
                                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IOnlineIdSystemAuthenticatorForUser(_inspectable.IInspectable):
@@ -72,14 +70,12 @@ class IOnlineIdSystemAuthenticatorForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IOnlineIdSystemAuthenticatorStatics(_inspectable.IInspectable):
+class IOnlineIdSystemAuthenticatorStatics(_inspectable.IInspectable, factory=True):
     get_Default: _Callable[[_Pointer[IOnlineIdSystemAuthenticatorForUser]],  # value
                            _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IOnlineIdSystemAuthenticatorForUser]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IOnlineIdSystemIdentity(_inspectable.IInspectable):

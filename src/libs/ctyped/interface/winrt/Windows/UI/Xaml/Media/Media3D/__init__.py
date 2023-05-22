@@ -60,7 +60,7 @@ class ICompositeTransform3D(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICompositeTransform3DStatics(_inspectable.IInspectable):
+class ICompositeTransform3DStatics(_inspectable.IInspectable, factory=True):
     get_CenterXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_CenterYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -86,14 +86,12 @@ class ICompositeTransform3DStatics(_inspectable.IInspectable):
     get_TranslateZProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
-
 
 class IMatrix3DHelper(_inspectable.IInspectable):
     pass
 
 
-class IMatrix3DHelperStatics(_inspectable.IInspectable):
+class IMatrix3DHelperStatics(_inspectable.IInspectable, factory=True):
     get_Identity: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Media.Media3D.Matrix3D]],  # value
                             _type.HRESULT]
     Multiply: _Callable[[_struct.Windows.UI.Xaml.Media.Media3D.Matrix3D,  # matrix1
@@ -128,8 +126,6 @@ class IMatrix3DHelperStatics(_inspectable.IInspectable):
                        _Pointer[_struct.Windows.UI.Xaml.Media.Media3D.Matrix3D]],  # result
                       _type.HRESULT]
 
-    _factory = True
-
 
 class IPerspectiveTransform3D(_inspectable.IInspectable):
     get_Depth: _Callable[[_Pointer[_type.DOUBLE]],  # value
@@ -146,15 +142,13 @@ class IPerspectiveTransform3D(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPerspectiveTransform3DStatics(_inspectable.IInspectable):
+class IPerspectiveTransform3DStatics(_inspectable.IInspectable, factory=True):
     get_DepthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_OffsetXProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_OffsetYProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ITransform3D(_inspectable.IInspectable):

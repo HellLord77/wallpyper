@@ -99,12 +99,10 @@ class ISpatialGestureRecognizer(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ISpatialGestureRecognizerFactory(_inspectable.IInspectable):
+class ISpatialGestureRecognizerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.UI.Input.Spatial.SpatialGestureSettings,  # settings
                        _Pointer[ISpatialGestureRecognizer]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialHoldCanceledEventArgs(_inspectable.IInspectable):
@@ -223,19 +221,15 @@ class ISpatialInteractionManager(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class ISpatialInteractionManagerStatics(_inspectable.IInspectable):
+class ISpatialInteractionManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ISpatialInteractionManager]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ISpatialInteractionManagerStatics2(_inspectable.IInspectable):
+class ISpatialInteractionManagerStatics2(_inspectable.IInspectable, factory=True):
     IsSourceKindSupported: _Callable[[_enum.Windows.UI.Input.Spatial.SpatialInteractionSourceKind,  # kind
                                       _Pointer[_type.boolean]],  # result
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialInteractionSource(_inspectable.IInspectable):
@@ -448,13 +442,11 @@ class ISpatialPointerPose3(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ISpatialPointerPoseStatics(_inspectable.IInspectable):
+class ISpatialPointerPoseStatics(_inspectable.IInspectable, factory=True):
     TryGetAtTimestamp: _Callable[[_Windows_Perception_Spatial.ISpatialCoordinateSystem,  # coordinateSystem
                                   _Windows_Perception.IPerceptionTimestamp,  # timestamp
                                   _Pointer[ISpatialPointerPose]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ISpatialRecognitionEndedEventArgs(_inspectable.IInspectable):

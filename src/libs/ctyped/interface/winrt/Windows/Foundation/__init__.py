@@ -210,12 +210,10 @@ class IDeferral(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IDeferralFactory(_inspectable.IInspectable):
+class IDeferralFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IDeferralCompletedHandler,  # handler
                        _Pointer[IDeferral]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGetActivationFactory(_inspectable.IInspectable):
@@ -224,7 +222,7 @@ class IGetActivationFactory(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IGuidHelperStatics(_inspectable.IInspectable):
+class IGuidHelperStatics(_inspectable.IInspectable, factory=True):
     CreateNewGuid: _Callable[[_Pointer[_struct.GUID]],  # result
                              _type.HRESULT]
     get_Empty: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -234,20 +232,16 @@ class IGuidHelperStatics(_inspectable.IInspectable):
                        _Pointer[_type.boolean]],  # result
                       _type.HRESULT]
 
-    _factory = True
-
 
 class IMemoryBuffer(_inspectable.IInspectable):
     CreateReference: _Callable[[_Pointer[IMemoryBufferReference]],  # reference
                                _type.HRESULT]
 
 
-class IMemoryBufferFactory(_inspectable.IInspectable):
+class IMemoryBufferFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # capacity
                        _Pointer[IMemoryBuffer]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMemoryBufferReference(_inspectable.IInspectable):
@@ -360,7 +354,7 @@ class IPropertyValue(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IPropertyValueStatics(_inspectable.IInspectable):
+class IPropertyValueStatics(_inspectable.IInspectable, factory=True):
     CreateEmpty: _Callable[[_Pointer[_inspectable.IInspectable]],  # propertyValue
                            _type.HRESULT]
     CreateUInt8: _Callable[[_type.BYTE,  # value
@@ -497,23 +491,19 @@ class IPropertyValueStatics(_inspectable.IInspectable):
                                 _Pointer[_inspectable.IInspectable]],  # propertyValue
                                _type.HRESULT]
 
-    _factory = True
-
 
 class IStringable(_inspectable.IInspectable):
     ToString: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
 
-class IUriEscapeStatics(_inspectable.IInspectable):
+class IUriEscapeStatics(_inspectable.IInspectable, factory=True):
     UnescapeComponent: _Callable[[_type.HSTRING,  # toUnescape
                                   _Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     EscapeComponent: _Callable[[_type.HSTRING,  # toEscape
                                 _Pointer[_type.HSTRING]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IUriRuntimeClass(_inspectable.IInspectable):
@@ -555,7 +545,7 @@ class IUriRuntimeClass(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IUriRuntimeClassFactory(_inspectable.IInspectable):
+class IUriRuntimeClassFactory(_inspectable.IInspectable, factory=True):
     CreateUri: _Callable[[_type.HSTRING,  # uri
                           _Pointer[IUriRuntimeClass]],  # instance
                          _type.HRESULT]
@@ -563,8 +553,6 @@ class IUriRuntimeClassFactory(_inspectable.IInspectable):
                                       _type.HSTRING,  # relativeUri
                                       _Pointer[IUriRuntimeClass]],  # instance
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IUriRuntimeClassWithAbsoluteCanonicalUri(_inspectable.IInspectable):
@@ -587,9 +575,7 @@ class IWwwFormUrlDecoderRuntimeClass(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IWwwFormUrlDecoderRuntimeClassFactory(_inspectable.IInspectable):
+class IWwwFormUrlDecoderRuntimeClassFactory(_inspectable.IInspectable, factory=True):
     CreateWwwFormUrlDecoder: _Callable[[_type.HSTRING,  # query
                                         _Pointer[IWwwFormUrlDecoderRuntimeClass]],  # instance
                                        _type.HRESULT]
-
-    _factory = True

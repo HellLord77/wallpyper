@@ -42,7 +42,7 @@ class IOfflineMapPackageStartDownloadResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IOfflineMapPackageStatics(_inspectable.IInspectable):
+class IOfflineMapPackageStatics(_inspectable.IInspectable, factory=True):
     FindPackagesAsync: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # queryPoint
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IOfflineMapPackageQueryResult]]],  # result
                                  _type.HRESULT]
@@ -52,5 +52,3 @@ class IOfflineMapPackageStatics(_inspectable.IInspectable):
     FindPackagesInGeocircleAsync: _Callable[[_Windows_Devices_Geolocation.IGeocircle,  # queryCircle
                                              _Pointer[_Windows_Foundation.IAsyncOperation[IOfflineMapPackageQueryResult]]],  # result
                                             _type.HRESULT]
-
-    _factory = True

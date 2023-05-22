@@ -181,11 +181,9 @@ class IHolographicDisplay3(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IHolographicDisplayStatics(_inspectable.IInspectable):
+class IHolographicDisplayStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IHolographicDisplay]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IHolographicFrame(_inspectable.IInspectable):
@@ -285,7 +283,7 @@ class IHolographicQuadLayer(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IHolographicQuadLayerFactory(_inspectable.IInspectable):
+class IHolographicQuadLayerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Foundation.Size,  # size
                        _Pointer[IHolographicQuadLayer]],  # value
                       _type.HRESULT]
@@ -293,8 +291,6 @@ class IHolographicQuadLayerFactory(_inspectable.IInspectable):
                                       _enum.Windows.Graphics.DirectX.DirectXPixelFormat,  # pixelFormat
                                       _Pointer[IHolographicQuadLayer]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IHolographicQuadLayerUpdateParameters(_inspectable.IInspectable):
@@ -376,15 +372,13 @@ class IHolographicSpaceCameraRemovedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IHolographicSpaceStatics(_inspectable.IInspectable):
+class IHolographicSpaceStatics(_inspectable.IInspectable, factory=True):
     CreateForCoreWindow: _Callable[[_Windows_UI_Core.ICoreWindow,  # window
                                     _Pointer[IHolographicSpace]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IHolographicSpaceStatics2(_inspectable.IInspectable):
+class IHolographicSpaceStatics2(_inspectable.IInspectable, factory=True):
     get_IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                _type.HRESULT]
     get_IsAvailable: _Callable[[_Pointer[_type.boolean]],  # value
@@ -395,14 +389,10 @@ class IHolographicSpaceStatics2(_inspectable.IInspectable):
     remove_IsAvailableChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IHolographicSpaceStatics3(_inspectable.IInspectable):
+class IHolographicSpaceStatics3(_inspectable.IInspectable, factory=True):
     get_IsConfigured: _Callable[[_Pointer[_type.boolean]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IHolographicViewConfiguration(_inspectable.IInspectable):

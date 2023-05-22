@@ -20,7 +20,7 @@ class IOcrEngine(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IOcrEngineStatics(_inspectable.IInspectable):
+class IOcrEngineStatics(_inspectable.IInspectable, factory=True):
     get_MaxImageDimension: _Callable[[_Pointer[_type.UINT32]],  # value
                                      _type.HRESULT]
     get_AvailableRecognizerLanguages: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_Windows_Globalization.ILanguage]]],  # value
@@ -33,8 +33,6 @@ class IOcrEngineStatics(_inspectable.IInspectable):
                                      _type.HRESULT]
     TryCreateFromUserProfileLanguages: _Callable[[_Pointer[IOcrEngine]],  # result
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IOcrLine(_inspectable.IInspectable):

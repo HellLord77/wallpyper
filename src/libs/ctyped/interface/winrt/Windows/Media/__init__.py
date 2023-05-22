@@ -31,12 +31,10 @@ class IAudioFrame(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IAudioFrameFactory(_inspectable.IInspectable):
+class IAudioFrameFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT32,  # capacity
                        _Pointer[IAudioFrame]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAutoRepeatModeChangeRequestedEventArgs(_inspectable.IInspectable):
@@ -55,7 +53,7 @@ class IImageDisplayProperties(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMediaControl(_inspectable.IInspectable):
+class IMediaControl(_inspectable.IInspectable, factory=True):
     SoundLevelChanged: _Callable[[_struct.EventRegistrationToken],  # cookie
                                  _type.HRESULT]
     PlayPressed: _Callable[[_struct.EventRegistrationToken],  # cookie
@@ -90,8 +88,6 @@ class IMediaControl(_inspectable.IInspectable):
                          _type.HRESULT]
     AlbumArt: _Callable[[_Pointer[_Windows_Foundation.IUriRuntimeClass]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaExtension(_inspectable.IInspectable):
@@ -194,11 +190,9 @@ class IMediaMarker(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IMediaMarkerTypesStatics(_inspectable.IInspectable):
+class IMediaMarkerTypesStatics(_inspectable.IInspectable, factory=True):
     get_Bookmark: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaMarkers(_inspectable.IInspectable):
@@ -457,11 +451,9 @@ class ISystemMediaTransportControlsPropertyChangedEventArgs(_inspectable.IInspec
                             _type.HRESULT]
 
 
-class ISystemMediaTransportControlsStatics(_inspectable.IInspectable):
+class ISystemMediaTransportControlsStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ISystemMediaTransportControls]],  # mediaControl
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemMediaTransportControlsTimelineProperties(_inspectable.IInspectable):
@@ -503,11 +495,9 @@ class IVideoDisplayProperties2(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IVideoEffectsStatics(_inspectable.IInspectable):
+class IVideoEffectsStatics(_inspectable.IInspectable, factory=True):
     get_VideoStabilization: _Callable[[_Pointer[_type.HSTRING]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IVideoFrame(_inspectable.IInspectable):
@@ -528,7 +518,7 @@ class IVideoFrame2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IVideoFrameFactory(_inspectable.IInspectable):
+class IVideoFrameFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Graphics.Imaging.BitmapPixelFormat,  # format
                        _type.INT32,  # width
                        _type.INT32,  # height
@@ -541,10 +531,8 @@ class IVideoFrameFactory(_inspectable.IInspectable):
                                 _Pointer[IVideoFrame]],  # value
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IVideoFrameStatics(_inspectable.IInspectable):
+class IVideoFrameStatics(_inspectable.IInspectable, factory=True):
     CreateAsDirect3D11SurfaceBacked: _Callable[[_enum.Windows.Graphics.DirectX.DirectXPixelFormat,  # format
                                                 _type.INT32,  # width
                                                 _type.INT32,  # height
@@ -562,5 +550,3 @@ class IVideoFrameStatics(_inspectable.IInspectable):
     CreateWithDirect3D11Surface: _Callable[[_Windows_Graphics_DirectX_Direct3D11.IDirect3DSurface,  # surface
                                             _Pointer[IVideoFrame]],  # result
                                            _type.HRESULT]
-
-    _factory = True

@@ -392,7 +392,7 @@ class IAppointmentManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAppointmentManagerStatics(_inspectable.IInspectable):
+class IAppointmentManagerStatics(_inspectable.IInspectable, factory=True):
     ShowAddAppointmentAsync: _Callable[[IAppointment,  # appointment
                                         _struct.Windows.Foundation.Rect,  # selection
                                         _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # operation
@@ -440,10 +440,8 @@ class IAppointmentManagerStatics(_inspectable.IInspectable):
                                    _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncAction
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IAppointmentManagerStatics2(_inspectable.IInspectable):
+class IAppointmentManagerStatics2(_inspectable.IInspectable, factory=True):
     ShowAppointmentDetailsAsync: _Callable[[_type.HSTRING,  # appointmentId
                                             _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncAction
                                            _type.HRESULT]
@@ -458,15 +456,11 @@ class IAppointmentManagerStatics2(_inspectable.IInspectable):
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IAppointmentStore]]],  # operation
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IAppointmentManagerStatics3(_inspectable.IInspectable):
+class IAppointmentManagerStatics3(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IAppointmentManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IAppointmentParticipant(_inspectable.IInspectable):
@@ -480,7 +474,7 @@ class IAppointmentParticipant(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IAppointmentPropertiesStatics(_inspectable.IInspectable):
+class IAppointmentPropertiesStatics(_inspectable.IInspectable, factory=True):
     get_Subject: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
     get_Location: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -528,18 +522,14 @@ class IAppointmentPropertiesStatics(_inspectable.IInspectable):
     get_DefaultProperties: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[_type.HSTRING]]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IAppointmentPropertiesStatics2(_inspectable.IInspectable):
+class IAppointmentPropertiesStatics2(_inspectable.IInspectable, factory=True):
     get_ChangeNumber: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
     get_RemoteChangeNumber: _Callable[[_Pointer[_type.HSTRING]],  # value
                                       _type.HRESULT]
     get_DetailsKind: _Callable[[_Pointer[_type.HSTRING]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IAppointmentRecurrence(_inspectable.IInspectable):

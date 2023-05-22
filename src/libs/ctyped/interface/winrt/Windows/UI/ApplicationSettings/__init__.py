@@ -93,33 +93,27 @@ class IAccountsSettingsPaneEventDeferral(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IAccountsSettingsPaneStatics(_inspectable.IInspectable):
+class IAccountsSettingsPaneStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IAccountsSettingsPane]],  # current
                                  _type.HRESULT]
     Show: _Callable[[],
                     _type.HRESULT]
 
-    _factory = True
 
-
-class IAccountsSettingsPaneStatics2(_inspectable.IInspectable):
+class IAccountsSettingsPaneStatics2(_inspectable.IInspectable, factory=True):
     ShowManageAccountsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                        _type.HRESULT]
     ShowAddAccountAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IAccountsSettingsPaneStatics3(_inspectable.IInspectable):
+class IAccountsSettingsPaneStatics3(_inspectable.IInspectable, factory=True):
     ShowManageAccountsForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                                _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                               _type.HRESULT]
     ShowAddAccountForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                            _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ICredentialCommand(_inspectable.IInspectable):
@@ -129,7 +123,7 @@ class ICredentialCommand(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ICredentialCommandFactory(_inspectable.IInspectable):
+class ICredentialCommandFactory(_inspectable.IInspectable, factory=True):
     CreateCredentialCommand: _Callable[[_Windows_Security_Credentials.IPasswordCredential,  # passwordCredential
                                         _Pointer[ICredentialCommand]],  # instance
                                        _type.HRESULT]
@@ -138,24 +132,18 @@ class ICredentialCommandFactory(_inspectable.IInspectable):
                                                    _Pointer[ICredentialCommand]],  # instance
                                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ISettingsCommandFactory(_inspectable.IInspectable):
+class ISettingsCommandFactory(_inspectable.IInspectable, factory=True):
     CreateSettingsCommand: _Callable[[_inspectable.IInspectable,  # settingsCommandId
                                       _type.HSTRING,  # label
                                       _Windows_UI_Popups.IUICommandInvokedHandler,  # handler
                                       _Pointer[_Windows_UI_Popups.IUICommand]],  # instance
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class ISettingsCommandStatics(_inspectable.IInspectable):
+class ISettingsCommandStatics(_inspectable.IInspectable, factory=True):
     get_AccountsCommand: _Callable[[_Pointer[_Windows_UI_Popups.IUICommand]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ISettingsPane(_inspectable.IInspectable):
@@ -173,15 +161,13 @@ class ISettingsPaneCommandsRequestedEventArgs(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class ISettingsPaneStatics(_inspectable.IInspectable):
+class ISettingsPaneStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ISettingsPane]],  # current
                                  _type.HRESULT]
     Show: _Callable[[],
                     _type.HRESULT]
     Edge: _Callable[[_Pointer[_enum.Windows.UI.ApplicationSettings.SettingsEdgeLocation]],  # value
                     _type.HRESULT]
-
-    _factory = True
 
 
 class IWebAccountCommand(_inspectable.IInspectable):
@@ -193,14 +179,12 @@ class IWebAccountCommand(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IWebAccountCommandFactory(_inspectable.IInspectable):
+class IWebAccountCommandFactory(_inspectable.IInspectable, factory=True):
     CreateWebAccountCommand: _Callable[[_Windows_Security_Credentials.IWebAccount,  # webAccount
                                         IWebAccountCommandInvokedHandler,  # invoked
                                         _enum.Windows.UI.ApplicationSettings.SupportedWebAccountActions,  # actions
                                         _Pointer[IWebAccountCommand]],  # instance
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IWebAccountInvokedArgs(_inspectable.IInspectable):
@@ -215,10 +199,8 @@ class IWebAccountProviderCommand(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IWebAccountProviderCommandFactory(_inspectable.IInspectable):
+class IWebAccountProviderCommandFactory(_inspectable.IInspectable, factory=True):
     CreateWebAccountProviderCommand: _Callable[[_Windows_Security_Credentials.IWebAccountProvider,  # webAccountProvider
                                                 IWebAccountProviderCommandInvokedHandler,  # invoked
                                                 _Pointer[IWebAccountProviderCommand]],  # instance
                                                _type.HRESULT]
-
-    _factory = True

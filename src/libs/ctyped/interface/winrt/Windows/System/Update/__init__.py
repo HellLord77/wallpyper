@@ -39,7 +39,7 @@ class ISystemUpdateLastErrorInfo(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ISystemUpdateManagerStatics(_inspectable.IInspectable):
+class ISystemUpdateManagerStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
     get_State: _Callable[[_Pointer[_enum.Windows.System.Update.SystemUpdateManagerState]],  # value
@@ -94,5 +94,3 @@ class ISystemUpdateManagerStatics(_inspectable.IInspectable):
                                        _type.HRESULT]
     StartCancelUpdates: _Callable[[],
                                   _type.HRESULT]
-
-    _factory = True

@@ -63,13 +63,11 @@ class IPlayToManager(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IPlayToManagerStatics(_inspectable.IInspectable):
+class IPlayToManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IPlayToManager]],  # playToManager
                                  _type.HRESULT]
     ShowPlayToUI: _Callable[[],
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayToReceiver(_inspectable.IInspectable):

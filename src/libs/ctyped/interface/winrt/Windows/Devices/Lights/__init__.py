@@ -109,14 +109,12 @@ class ILampArray(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ILampArrayStatics(_inspectable.IInspectable):
+class ILampArrayStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ILampArray]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ILampAvailabilityChangedEventArgs(_inspectable.IInspectable):
@@ -148,7 +146,7 @@ class ILampInfo(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ILampStatics(_inspectable.IInspectable):
+class ILampStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
@@ -156,5 +154,3 @@ class ILampStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ILamp]]],  # operation
                                _type.HRESULT]
-
-    _factory = True

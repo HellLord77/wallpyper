@@ -112,7 +112,7 @@ class IHidDevice(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IHidDeviceStatics(_inspectable.IInspectable):
+class IHidDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_type.UINT16,  # usagePage
                                   _type.UINT16,  # usageId
                                   _Pointer[_type.HSTRING]],  # selector
@@ -127,8 +127,6 @@ class IHidDeviceStatics(_inspectable.IInspectable):
                             _enum.Windows.Storage.FileAccessMode,  # accessMode
                             _Pointer[_Windows_Foundation.IAsyncOperation[IHidDevice]]],  # hidDevice
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IHidFeatureReport(_inspectable.IInspectable):

@@ -106,30 +106,24 @@ class IAccelerometerShakenEventArgs(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IAccelerometerStatics(_inspectable.IInspectable):
+class IAccelerometerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAccelerometer]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IAccelerometerStatics2(_inspectable.IInspectable):
+class IAccelerometerStatics2(_inspectable.IInspectable, factory=True):
     GetDefaultWithAccelerometerReadingType: _Callable[[_enum.Windows.Devices.Sensors.AccelerometerReadingType,  # readingType
                                                        _Pointer[IAccelerometer]],  # result
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IAccelerometerStatics3(_inspectable.IInspectable):
+class IAccelerometerStatics3(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IAccelerometer]]],  # operation
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_enum.Windows.Devices.Sensors.AccelerometerReadingType,  # readingType
                                   _Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IActivitySensor(_inspectable.IInspectable):
@@ -171,7 +165,7 @@ class IActivitySensorReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IActivitySensorStatics(_inspectable.IInspectable):
+class IActivitySensorStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IActivitySensor]]],  # result
                                _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -186,8 +180,6 @@ class IActivitySensorStatics(_inspectable.IInspectable):
                                                   _struct.Windows.Foundation.TimeSpan,  # duration
                                                   _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IActivitySensorReading]]]],  # result
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IActivitySensorTriggerDetails(_inspectable.IInspectable):
@@ -241,11 +233,9 @@ class IAltimeterReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IAltimeterStatics(_inspectable.IInspectable):
+class IAltimeterStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAltimeter]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IBarometer(_inspectable.IInspectable):
@@ -306,21 +296,17 @@ class IBarometerReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IBarometerStatics(_inspectable.IInspectable):
+class IBarometerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IBarometer]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IBarometerStatics2(_inspectable.IInspectable):
+class IBarometerStatics2(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IBarometer]]],  # operation
                            _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ICompass(_inspectable.IInspectable):
@@ -398,21 +384,17 @@ class ICompassReadingHeadingAccuracy(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ICompassStatics(_inspectable.IInspectable):
+class ICompassStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ICompass]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICompassStatics2(_inspectable.IInspectable):
+class ICompassStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ICompass]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IGyrometer(_inspectable.IInspectable):
@@ -495,21 +477,17 @@ class IGyrometerReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IGyrometerStatics(_inspectable.IInspectable):
+class IGyrometerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IGyrometer]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IGyrometerStatics2(_inspectable.IInspectable):
+class IGyrometerStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IGyrometer]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IHingeAngleReading(_inspectable.IInspectable):
@@ -544,7 +522,7 @@ class IHingeAngleSensorReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHingeAngleSensorStatics(_inspectable.IInspectable):
+class IHingeAngleSensorStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IHingeAngleSensor]]],  # result
@@ -556,8 +534,6 @@ class IHingeAngleSensorStatics(_inspectable.IInspectable):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IHingeAngleSensor]]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IHumanPresenceFeatures(_inspectable.IInspectable):
@@ -605,7 +581,7 @@ class IHumanPresenceSensorReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IHumanPresenceSensorStatics(_inspectable.IInspectable):
+class IHumanPresenceSensorStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # sensorId
@@ -613,8 +589,6 @@ class IHumanPresenceSensorStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IHumanPresenceSensor]]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IHumanPresenceSettings(_inspectable.IInspectable):
@@ -648,7 +622,7 @@ class IHumanPresenceSettings(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class IHumanPresenceSettingsStatics(_inspectable.IInspectable):
+class IHumanPresenceSettingsStatics(_inspectable.IInspectable, factory=True):
     GetCurrentSettingsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IHumanPresenceSettings]]],  # operation
                                        _type.HRESULT]
     GetCurrentSettings: _Callable[[_Pointer[IHumanPresenceSettings]],  # result
@@ -671,8 +645,6 @@ class IHumanPresenceSettingsStatics(_inspectable.IInspectable):
                                    _type.HRESULT]
     remove_SettingsChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IInclinometer(_inspectable.IInspectable):
@@ -762,37 +734,29 @@ class IInclinometerReadingYawAccuracy(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IInclinometerStatics(_inspectable.IInspectable):
+class IInclinometerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IInclinometer]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IInclinometerStatics2(_inspectable.IInspectable):
+class IInclinometerStatics2(_inspectable.IInspectable, factory=True):
     GetDefaultForRelativeReadings: _Callable[[_Pointer[IInclinometer]],  # result
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IInclinometerStatics3(_inspectable.IInspectable):
+class IInclinometerStatics3(_inspectable.IInspectable, factory=True):
     GetDefaultWithSensorReadingType: _Callable[[_enum.Windows.Devices.Sensors.SensorReadingType,  # sensorReadingtype
                                                 _Pointer[IInclinometer]],  # result
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IInclinometerStatics4(_inspectable.IInspectable):
+class IInclinometerStatics4(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_enum.Windows.Devices.Sensors.SensorReadingType,  # readingType
                                   _Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IInclinometer]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ILightSensor(_inspectable.IInspectable):
@@ -860,21 +824,17 @@ class ILightSensorReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ILightSensorStatics(_inspectable.IInspectable):
+class ILightSensorStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ILightSensor]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class ILightSensorStatics2(_inspectable.IInspectable):
+class ILightSensorStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ILightSensor]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMagnetometer(_inspectable.IInspectable):
@@ -959,21 +919,17 @@ class IMagnetometerReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IMagnetometerStatics(_inspectable.IInspectable):
+class IMagnetometerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IMagnetometer]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IMagnetometerStatics2(_inspectable.IInspectable):
+class IMagnetometerStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IMagnetometer]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IOrientationSensor(_inspectable.IInspectable):
@@ -1041,21 +997,17 @@ class IOrientationSensorReadingYawAccuracy(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IOrientationSensorStatics(_inspectable.IInspectable):
+class IOrientationSensorStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IOrientationSensor]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IOrientationSensorStatics2(_inspectable.IInspectable):
+class IOrientationSensorStatics2(_inspectable.IInspectable, factory=True):
     GetDefaultForRelativeReadings: _Callable[[_Pointer[IOrientationSensor]],  # result
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IOrientationSensorStatics3(_inspectable.IInspectable):
+class IOrientationSensorStatics3(_inspectable.IInspectable, factory=True):
     GetDefaultWithSensorReadingType: _Callable[[_enum.Windows.Devices.Sensors.SensorReadingType,  # sensorReadingtype
                                                 _Pointer[IOrientationSensor]],  # result
                                                _type.HRESULT]
@@ -1064,10 +1016,8 @@ class IOrientationSensorStatics3(_inspectable.IInspectable):
                                                                          _Pointer[IOrientationSensor]],  # result
                                                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IOrientationSensorStatics4(_inspectable.IInspectable):
+class IOrientationSensorStatics4(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_enum.Windows.Devices.Sensors.SensorReadingType,  # readingType
                                   _Pointer[_type.HSTRING]],  # result
                                  _type.HRESULT]
@@ -1078,8 +1028,6 @@ class IOrientationSensorStatics4(_inspectable.IInspectable):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IOrientationSensor]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPedometer(_inspectable.IInspectable):
@@ -1105,13 +1053,11 @@ class IPedometer2(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IPedometerDataThresholdFactory(_inspectable.IInspectable):
+class IPedometerDataThresholdFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IPedometer,  # sensor
                        _type.INT32,  # stepGoal
                        _Pointer[ISensorDataThreshold]],  # threshold
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPedometerReading(_inspectable.IInspectable):
@@ -1130,7 +1076,7 @@ class IPedometerReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IPedometerStatics(_inspectable.IInspectable):
+class IPedometerStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IPedometer]]],  # operation
                            _type.HRESULT]
@@ -1146,15 +1092,11 @@ class IPedometerStatics(_inspectable.IInspectable):
                                                   _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IPedometerReading]]]],  # operation
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IPedometerStatics2(_inspectable.IInspectable):
+class IPedometerStatics2(_inspectable.IInspectable, factory=True):
     GetReadingsFromTriggerDetails: _Callable[[ISensorDataThresholdTriggerDetails,  # triggerDetails
                                               _Pointer[_Windows_Foundation_Collections.IVectorView[IPedometerReading]]],  # result
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IProximitySensor(_inspectable.IInspectable):
@@ -1175,12 +1117,10 @@ class IProximitySensor(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IProximitySensorDataThresholdFactory(_inspectable.IInspectable):
+class IProximitySensorDataThresholdFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IProximitySensor,  # sensor
                        _Pointer[ISensorDataThreshold]],  # threshold
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IProximitySensorReading(_inspectable.IInspectable):
@@ -1197,22 +1137,18 @@ class IProximitySensorReadingChangedEventArgs(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IProximitySensorStatics(_inspectable.IInspectable):
+class IProximitySensorStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     FromId: _Callable[[_type.HSTRING,  # sensorId
                        _Pointer[IProximitySensor]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IProximitySensorStatics2(_inspectable.IInspectable):
+class IProximitySensorStatics2(_inspectable.IInspectable, factory=True):
     GetReadingsFromTriggerDetails: _Callable[[ISensorDataThresholdTriggerDetails,  # triggerDetails
                                               _Pointer[_Windows_Foundation_Collections.IVectorView[IProximitySensorReading]]],  # result
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class ISensorDataThreshold(_inspectable.IInspectable):
@@ -1287,18 +1223,14 @@ class ISimpleOrientationSensorOrientationChangedEventArgs(_inspectable.IInspecta
                                _type.HRESULT]
 
 
-class ISimpleOrientationSensorStatics(_inspectable.IInspectable):
+class ISimpleOrientationSensorStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ISimpleOrientationSensor]],  # result
                           _type.HRESULT]
 
-    _factory = True
 
-
-class ISimpleOrientationSensorStatics2(_inspectable.IInspectable):
+class ISimpleOrientationSensorStatics2(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[ISimpleOrientationSensor]]],  # result
                            _type.HRESULT]
-
-    _factory = True

@@ -51,14 +51,12 @@ class IBluetoothLEAdvertisementBytePattern(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IBluetoothLEAdvertisementBytePatternFactory(_inspectable.IInspectable):
+class IBluetoothLEAdvertisementBytePatternFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.BYTE,  # dataType
                        _type.INT16,  # offset
                        _Windows_Storage_Streams.IBuffer,  # data
                        _Pointer[IBluetoothLEAdvertisementBytePattern]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothLEAdvertisementDataSection(_inspectable.IInspectable):
@@ -72,16 +70,14 @@ class IBluetoothLEAdvertisementDataSection(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IBluetoothLEAdvertisementDataSectionFactory(_inspectable.IInspectable):
+class IBluetoothLEAdvertisementDataSectionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.BYTE,  # dataType
                        _Windows_Storage_Streams.IBuffer,  # data
                        _Pointer[IBluetoothLEAdvertisementDataSection]],  # value
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IBluetoothLEAdvertisementDataTypesStatics(_inspectable.IInspectable):
+class IBluetoothLEAdvertisementDataTypesStatics(_inspectable.IInspectable, factory=True):
     get_Flags: _Callable[[_Pointer[_type.BYTE]],  # value
                          _type.HRESULT]
     get_IncompleteService16BitUuids: _Callable[[_Pointer[_type.BYTE]],  # value
@@ -126,8 +122,6 @@ class IBluetoothLEAdvertisementDataTypesStatics(_inspectable.IInspectable):
                                        _type.HRESULT]
     get_ManufacturerSpecificData: _Callable[[_Pointer[_type.BYTE]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothLEAdvertisementFilter(_inspectable.IInspectable):
@@ -174,12 +168,10 @@ class IBluetoothLEAdvertisementPublisher2(_inspectable.IInspectable):
                                              _type.HRESULT]
 
 
-class IBluetoothLEAdvertisementPublisherFactory(_inspectable.IInspectable):
+class IBluetoothLEAdvertisementPublisherFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IBluetoothLEAdvertisement,  # advertisement
                        _Pointer[IBluetoothLEAdvertisementPublisher]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothLEAdvertisementPublisherStatusChangedEventArgs(_inspectable.IInspectable):
@@ -270,12 +262,10 @@ class IBluetoothLEAdvertisementWatcher2(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class IBluetoothLEAdvertisementWatcherFactory(_inspectable.IInspectable):
+class IBluetoothLEAdvertisementWatcherFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IBluetoothLEAdvertisementFilter,  # advertisementFilter
                        _Pointer[IBluetoothLEAdvertisementWatcher]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IBluetoothLEAdvertisementWatcherStoppedEventArgs(_inspectable.IInspectable):
@@ -294,10 +284,8 @@ class IBluetoothLEManufacturerData(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IBluetoothLEManufacturerDataFactory(_inspectable.IInspectable):
+class IBluetoothLEManufacturerDataFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.UINT16,  # companyId
                        _Windows_Storage_Streams.IBuffer,  # data
                        _Pointer[IBluetoothLEManufacturerData]],  # value
                       _type.HRESULT]
-
-    _factory = True

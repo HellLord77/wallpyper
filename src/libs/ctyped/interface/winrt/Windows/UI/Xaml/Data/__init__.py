@@ -136,13 +136,11 @@ class IBindingOperations(_inspectable.IInspectable):
     pass
 
 
-class IBindingOperationsStatics(_inspectable.IInspectable):
+class IBindingOperationsStatics(_inspectable.IInspectable, factory=True):
     SetBinding: _Callable[[_Windows_UI_Xaml.IDependencyObject,  # target
                            _Windows_UI_Xaml.IDependencyProperty,  # dp
                            IBindingBase],  # binding
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ICollectionView(_inspectable.IInspectable):
@@ -216,7 +214,7 @@ class ICollectionViewSource(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class ICollectionViewSourceStatics(_inspectable.IInspectable):
+class ICollectionViewSourceStatics(_inspectable.IInspectable, factory=True):
     get_SourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
     get_ViewProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -225,8 +223,6 @@ class ICollectionViewSourceStatics(_inspectable.IInspectable):
                                            _type.HRESULT]
     get_ItemsPathProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ICurrentChangingEventArgs(_inspectable.IInspectable):

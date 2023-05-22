@@ -26,7 +26,7 @@ class IWebAccountClientView(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IWebAccountClientViewFactory(_inspectable.IInspectable):
+class IWebAccountClientViewFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Security.Authentication.Web.Provider.WebAccountClientViewType,  # viewType
                        _Windows_Foundation.IUriRuntimeClass,  # applicationCallbackUri
                        _Pointer[IWebAccountClientView]],  # view
@@ -37,10 +37,8 @@ class IWebAccountClientViewFactory(_inspectable.IInspectable):
                                      _Pointer[IWebAccountClientView]],  # view
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAccountManagerStatics(_inspectable.IInspectable):
+class IWebAccountManagerStatics(_inspectable.IInspectable, factory=True):
     UpdateWebAccountPropertiesAsync: _Callable[[_Windows_Security_Credentials.IWebAccount,  # webAccount
                                                 _type.HSTRING,  # webAccountUserName
                                                 _Windows_Foundation_Collections.IMapView[_type.HSTRING, _type.HSTRING],  # additionalProperties
@@ -79,19 +77,15 @@ class IWebAccountManagerStatics(_inspectable.IInspectable):
                                             _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAccountManagerStatics2(_inspectable.IInspectable):
+class IWebAccountManagerStatics2(_inspectable.IInspectable, factory=True):
     PullCookiesAsync: _Callable[[_type.HSTRING,  # uriString
                                  _type.HSTRING,  # callerPFN
                                  _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAccountManagerStatics3(_inspectable.IInspectable):
+class IWebAccountManagerStatics3(_inspectable.IInspectable, factory=True):
     FindAllProviderWebAccountsForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                                        _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_Windows_Security_Credentials.IWebAccount]]]],  # operation
                                                       _type.HRESULT]
@@ -117,20 +111,16 @@ class IWebAccountManagerStatics3(_inspectable.IInspectable):
                                                          _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Security_Credentials.IWebAccount]]],  # operation
                                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAccountManagerStatics4(_inspectable.IInspectable):
+class IWebAccountManagerStatics4(_inspectable.IInspectable, factory=True):
     InvalidateAppCacheForAllAccountsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                                      _type.HRESULT]
     InvalidateAppCacheForAccountAsync: _Callable[[_Windows_Security_Credentials.IWebAccount,  # webAccount
                                                   _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IWebAccountMapManagerStatics(_inspectable.IInspectable):
+class IWebAccountMapManagerStatics(_inspectable.IInspectable, factory=True):
     AddWebAccountWithScopeAndMapAsync: _Callable[[_type.HSTRING,  # webAccountId
                                                   _type.HSTRING,  # webAccountUserName
                                                   _Windows_Foundation_Collections.IMapView[_type.HSTRING, _type.HSTRING],  # props
@@ -148,8 +138,6 @@ class IWebAccountMapManagerStatics(_inspectable.IInspectable):
     ClearPerUserFromPerAppAccountAsync: _Callable[[_Windows_Security_Credentials.IWebAccount,  # perAppAccount
                                                    _Pointer[_Windows_Foundation.IAsyncAction]],  # asyncInfo
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IWebAccountProviderAddAccountOperation(_inspectable.IInspectable):
@@ -236,7 +224,7 @@ class IWebAccountProviderUIReportOperation(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IWebAccountScopeManagerStatics(_inspectable.IInspectable):
+class IWebAccountScopeManagerStatics(_inspectable.IInspectable, factory=True):
     AddWebAccountWithScopeAsync: _Callable[[_type.HSTRING,  # webAccountId
                                             _type.HSTRING,  # webAccountUserName
                                             _Windows_Foundation_Collections.IMapView[_type.HSTRING, _type.HSTRING],  # props
@@ -250,8 +238,6 @@ class IWebAccountScopeManagerStatics(_inspectable.IInspectable):
     GetScope: _Callable[[_Windows_Security_Credentials.IWebAccount,  # webAccount
                          _Pointer[_enum.Windows.Security.Authentication.Web.Provider.WebAccountScope]],  # scope
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IWebProviderTokenRequest(_inspectable.IInspectable):
@@ -291,9 +277,7 @@ class IWebProviderTokenResponse(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IWebProviderTokenResponseFactory(_inspectable.IInspectable):
+class IWebProviderTokenResponseFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Security_Authentication_Web_Core.IWebTokenResponse,  # webTokenResponse
                        _Pointer[IWebProviderTokenResponse]],  # webProviderTokenResponse
                       _type.HRESULT]
-
-    _factory = True

@@ -13,21 +13,17 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IAnalyticsInfoStatics(_inspectable.IInspectable):
+class IAnalyticsInfoStatics(_inspectable.IInspectable, factory=True):
     get_VersionInfo: _Callable[[_Pointer[IAnalyticsVersionInfo]],  # value
                                _type.HRESULT]
     get_DeviceForm: _Callable[[_Pointer[_type.HSTRING]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IAnalyticsInfoStatics2(_inspectable.IInspectable):
+class IAnalyticsInfoStatics2(_inspectable.IInspectable, factory=True):
     GetSystemPropertiesAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # attributeNames
                                          _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IMapView[_type.HSTRING, _type.HSTRING]]]],  # operation
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IAnalyticsVersionInfo(_inspectable.IInspectable):
@@ -42,27 +38,21 @@ class IAnalyticsVersionInfo2(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IAppApplicabilityStatics(_inspectable.IInspectable):
+class IAppApplicabilityStatics(_inspectable.IInspectable, factory=True):
     GetUnsupportedAppRequirements: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # capabilities
                                               _Pointer[_Windows_Foundation_Collections.IVectorView[IUnsupportedAppRequirement]]],  # result
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IEducationSettingsStatics(_inspectable.IInspectable):
+class IEducationSettingsStatics(_inspectable.IInspectable, factory=True):
     get_IsEducationEnvironment: _Callable[[_Pointer[_type.boolean]],  # value
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IHardwareIdentificationStatics(_inspectable.IInspectable):
+class IHardwareIdentificationStatics(_inspectable.IInspectable, factory=True):
     GetPackageSpecificToken: _Callable[[_Windows_Storage_Streams.IBuffer,  # nonce
                                         _Pointer[IHardwareToken]],  # packageSpecificHardwareToken
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IHardwareToken(_inspectable.IInspectable):
@@ -74,7 +64,7 @@ class IHardwareToken(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IKnownRetailInfoPropertiesStatics(_inspectable.IInspectable):
+class IKnownRetailInfoPropertiesStatics(_inspectable.IInspectable, factory=True):
     get_RetailAccessCode: _Callable[[_Pointer[_type.HSTRING]],  # value
                                     _type.HRESULT]
     get_ManufacturerName: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -120,10 +110,8 @@ class IKnownRetailInfoPropertiesStatics(_inspectable.IInspectable):
     get_WindowsEdition: _Callable[[_Pointer[_type.HSTRING]],  # value
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class IPlatformDiagnosticsAndUsageDataSettingsStatics(_inspectable.IInspectable):
+class IPlatformDiagnosticsAndUsageDataSettingsStatics(_inspectable.IInspectable, factory=True):
     get_CollectionLevel: _Callable[[_Pointer[_enum.Windows.System.Profile.PlatformDataCollectionLevel]],  # value
                                    _type.HRESULT]
     add_CollectionLevelChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -135,33 +123,25 @@ class IPlatformDiagnosticsAndUsageDataSettingsStatics(_inspectable.IInspectable)
                                       _Pointer[_type.boolean]],  # result
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IRetailInfoStatics(_inspectable.IInspectable):
+class IRetailInfoStatics(_inspectable.IInspectable, factory=True):
     get_IsDemoModeEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                                      _type.HRESULT]
     get_Properties: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_type.HSTRING, _inspectable.IInspectable]]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class ISharedModeSettingsStatics(_inspectable.IInspectable):
+class ISharedModeSettingsStatics(_inspectable.IInspectable, factory=True):
     get_IsEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class ISharedModeSettingsStatics2(_inspectable.IInspectable):
+class ISharedModeSettingsStatics2(_inspectable.IInspectable, factory=True):
     get_ShouldAvoidLocalStorage: _Callable[[_Pointer[_type.boolean]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class ISmartAppControlPolicyStatics(_inspectable.IInspectable):
+class ISmartAppControlPolicyStatics(_inspectable.IInspectable, factory=True):
     get_IsEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                              _type.HRESULT]
     add_Changed: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -169,8 +149,6 @@ class ISmartAppControlPolicyStatics(_inspectable.IInspectable):
                            _type.HRESULT]
     remove_Changed: _Callable[[_struct.EventRegistrationToken],  # token
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemIdentificationInfo(_inspectable.IInspectable):
@@ -180,17 +158,15 @@ class ISystemIdentificationInfo(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISystemIdentificationStatics(_inspectable.IInspectable):
+class ISystemIdentificationStatics(_inspectable.IInspectable, factory=True):
     GetSystemIdForPublisher: _Callable[[_Pointer[ISystemIdentificationInfo]],  # result
                                        _type.HRESULT]
     GetSystemIdForUser: _Callable[[_Windows_System.IUser,  # user
                                    _Pointer[ISystemIdentificationInfo]],  # result
                                   _type.HRESULT]
 
-    _factory = True
 
-
-class ISystemSetupInfoStatics(_inspectable.IInspectable):
+class ISystemSetupInfoStatics(_inspectable.IInspectable, factory=True):
     get_OutOfBoxExperienceState: _Callable[[_Pointer[_enum.Windows.System.Profile.SystemOutOfBoxExperienceState]],  # value
                                            _type.HRESULT]
     add_OutOfBoxExperienceStateChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
@@ -198,8 +174,6 @@ class ISystemSetupInfoStatics(_inspectable.IInspectable):
                                                   _type.HRESULT]
     remove_OutOfBoxExperienceStateChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IUnsupportedAppRequirement(_inspectable.IInspectable):
@@ -209,7 +183,7 @@ class IUnsupportedAppRequirement(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IWindowsIntegrityPolicyStatics(_inspectable.IInspectable):
+class IWindowsIntegrityPolicyStatics(_inspectable.IInspectable, factory=True):
     get_IsEnabled: _Callable[[_Pointer[_type.boolean]],  # value
                              _type.HRESULT]
     get_IsEnabledForTrial: _Callable[[_Pointer[_type.boolean]],  # value
@@ -223,5 +197,3 @@ class IWindowsIntegrityPolicyStatics(_inspectable.IInspectable):
                                  _type.HRESULT]
     remove_PolicyChanged: _Callable[[_struct.EventRegistrationToken],  # token
                                     _type.HRESULT]
-
-    _factory = True

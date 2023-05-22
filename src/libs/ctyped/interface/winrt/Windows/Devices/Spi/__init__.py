@@ -45,12 +45,10 @@ class ISpiConnectionSettings(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ISpiConnectionSettingsFactory(_inspectable.IInspectable):
+class ISpiConnectionSettingsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # chipSelectLine
                        _Pointer[ISpiConnectionSettings]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISpiController(_inspectable.IInspectable):
@@ -59,14 +57,12 @@ class ISpiController(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ISpiControllerStatics(_inspectable.IInspectable):
+class ISpiControllerStatics(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[ISpiController]]],  # operation
                                _type.HRESULT]
     GetControllersAsync: _Callable[[_Windows_Devices_Spi_Provider.ISpiProvider,  # provider
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[ISpiController]]]],  # operation
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ISpiDevice(_inspectable.IInspectable):
@@ -92,7 +88,7 @@ class ISpiDevice(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ISpiDeviceStatics(_inspectable.IInspectable):
+class ISpiDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
     GetDeviceSelectorFromFriendlyName: _Callable[[_type.HSTRING,  # friendlyName
@@ -105,5 +101,3 @@ class ISpiDeviceStatics(_inspectable.IInspectable):
                             ISpiConnectionSettings,  # settings
                             _Pointer[_Windows_Foundation.IAsyncOperation[ISpiDevice]]],  # operation
                            _type.HRESULT]
-
-    _factory = True

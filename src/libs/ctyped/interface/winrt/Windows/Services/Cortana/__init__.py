@@ -48,14 +48,12 @@ class ICortanaActionableInsightsOptions(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ICortanaActionableInsightsStatics(_inspectable.IInspectable):
+class ICortanaActionableInsightsStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ICortanaActionableInsights]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[ICortanaActionableInsights]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ICortanaPermissionsManager(_inspectable.IInspectable):
@@ -72,11 +70,9 @@ class ICortanaPermissionsManager(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ICortanaPermissionsManagerStatics(_inspectable.IInspectable):
+class ICortanaPermissionsManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ICortanaPermissionsManager]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ICortanaSettings(_inspectable.IInspectable):
@@ -86,10 +82,8 @@ class ICortanaSettings(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class ICortanaSettingsStatics(_inspectable.IInspectable):
+class ICortanaSettingsStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # value
                            _type.HRESULT]
     GetDefault: _Callable[[_Pointer[ICortanaSettings]],  # result
                           _type.HRESULT]
-
-    _factory = True

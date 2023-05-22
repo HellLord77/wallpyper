@@ -26,9 +26,7 @@ class ICompositionDebugSettings(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ICompositionDebugSettingsStatics(_inspectable.IInspectable):
+class ICompositionDebugSettingsStatics(_inspectable.IInspectable, factory=True):
     TryGetSettings: _Callable[[_Windows_UI_Composition.ICompositor,  # compositor
                                _Pointer[ICompositionDebugSettings]],  # result
                               _type.HRESULT]
-
-    _factory = True

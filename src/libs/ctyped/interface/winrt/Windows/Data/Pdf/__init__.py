@@ -22,7 +22,7 @@ class IPdfDocument(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IPdfDocumentStatics(_inspectable.IInspectable):
+class IPdfDocumentStatics(_inspectable.IInspectable, factory=True):
     LoadFromFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IPdfDocument]]],  # asyncInfo
                                  _type.HRESULT]
@@ -37,8 +37,6 @@ class IPdfDocumentStatics(_inspectable.IInspectable):
                                                 _type.HSTRING,  # password
                                                 _Pointer[_Windows_Foundation.IAsyncOperation[IPdfDocument]]],  # asyncInfo
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IPdfPage(_inspectable.IInspectable):

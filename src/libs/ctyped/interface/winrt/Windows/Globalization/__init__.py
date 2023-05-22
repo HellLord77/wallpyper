@@ -11,7 +11,7 @@ from ..... import type as _type
 from ....._utils import _Pointer
 
 
-class IApplicationLanguagesStatics(_inspectable.IInspectable):
+class IApplicationLanguagesStatics(_inspectable.IInspectable, factory=True):
     get_PrimaryLanguageOverride: _Callable[[_Pointer[_type.HSTRING]],  # value
                                            _type.HRESULT]
     put_PrimaryLanguageOverride: _Callable[[_type.HSTRING],  # value
@@ -21,15 +21,11 @@ class IApplicationLanguagesStatics(_inspectable.IInspectable):
     get_ManifestLanguages: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationLanguagesStatics2(_inspectable.IInspectable):
+class IApplicationLanguagesStatics2(_inspectable.IInspectable, factory=True):
     GetLanguagesForUser: _Callable[[_Windows_System.IUser,  # user
                                     _Pointer[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ICalendar(_inspectable.IInspectable):
@@ -258,7 +254,7 @@ class ICalendarFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ICalendarFactory2(_inspectable.IInspectable):
+class ICalendarFactory2(_inspectable.IInspectable, factory=True):
     CreateCalendarWithTimeZone: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # languages
                                            _type.HSTRING,  # calendar
                                            _type.HSTRING,  # clock
@@ -266,10 +262,8 @@ class ICalendarFactory2(_inspectable.IInspectable):
                                            _Pointer[ICalendar]],  # result
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class ICalendarIdentifiersStatics(_inspectable.IInspectable):
+class ICalendarIdentifiersStatics(_inspectable.IInspectable, factory=True):
     get_Gregorian: _Callable[[_Pointer[_type.HSTRING]],  # value
                              _type.HRESULT]
     get_Hebrew: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -289,17 +283,13 @@ class ICalendarIdentifiersStatics(_inspectable.IInspectable):
     get_UmAlQura: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
 
-    _factory = True
 
-
-class ICalendarIdentifiersStatics2(_inspectable.IInspectable):
+class ICalendarIdentifiersStatics2(_inspectable.IInspectable, factory=True):
     get_Persian: _Callable[[_Pointer[_type.HSTRING]],  # value
                            _type.HRESULT]
 
-    _factory = True
 
-
-class ICalendarIdentifiersStatics3(_inspectable.IInspectable):
+class ICalendarIdentifiersStatics3(_inspectable.IInspectable, factory=True):
     get_ChineseLunar: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
     get_JapaneseLunar: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -311,16 +301,12 @@ class ICalendarIdentifiersStatics3(_inspectable.IInspectable):
     get_VietnameseLunar: _Callable[[_Pointer[_type.HSTRING]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IClockIdentifiersStatics(_inspectable.IInspectable):
+class IClockIdentifiersStatics(_inspectable.IInspectable, factory=True):
     get_TwelveHour: _Callable[[_Pointer[_type.HSTRING]],  # value
                               _type.HRESULT]
     get_TwentyFourHour: _Callable[[_Pointer[_type.HSTRING]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ICurrencyAmount(_inspectable.IInspectable):
@@ -330,16 +316,14 @@ class ICurrencyAmount(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ICurrencyAmountFactory(_inspectable.IInspectable):
+class ICurrencyAmountFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # amount
                        _type.HSTRING,  # currency
                        _Pointer[ICurrencyAmount]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrencyIdentifiersStatics(_inspectable.IInspectable):
+class ICurrencyIdentifiersStatics(_inspectable.IInspectable, factory=True):
     get_AED: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_AFN: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -655,17 +639,13 @@ class ICurrencyIdentifiersStatics(_inspectable.IInspectable):
     get_ZWL: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrencyIdentifiersStatics2(_inspectable.IInspectable):
+class ICurrencyIdentifiersStatics2(_inspectable.IInspectable, factory=True):
     get_BYN: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
 
-    _factory = True
 
-
-class ICurrencyIdentifiersStatics3(_inspectable.IInspectable):
+class ICurrencyIdentifiersStatics3(_inspectable.IInspectable, factory=True):
     get_MRU: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
     get_SSP: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -674,8 +654,6 @@ class ICurrencyIdentifiersStatics3(_inspectable.IInspectable):
                        _type.HRESULT]
     get_VES: _Callable[[_Pointer[_type.HSTRING]],  # value
                        _type.HRESULT]
-
-    _factory = True
 
 
 class IGeographicRegion(_inspectable.IInspectable):
@@ -695,20 +673,16 @@ class IGeographicRegion(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IGeographicRegionFactory(_inspectable.IInspectable):
+class IGeographicRegionFactory(_inspectable.IInspectable, factory=True):
     CreateGeographicRegion: _Callable[[_type.HSTRING,  # geographicRegionCode
                                        _Pointer[IGeographicRegion]],  # result
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IGeographicRegionStatics(_inspectable.IInspectable):
+class IGeographicRegionStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_type.HSTRING,  # geographicRegionCode
                             _Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IJapanesePhoneme(_inspectable.IInspectable):
@@ -720,7 +694,7 @@ class IJapanesePhoneme(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IJapanesePhoneticAnalyzerStatics(_inspectable.IInspectable):
+class IJapanesePhoneticAnalyzerStatics(_inspectable.IInspectable, factory=True):
     GetWords: _Callable[[_type.HSTRING,  # input
                          _Pointer[_Windows_Foundation_Collections.IVectorView[IJapanesePhoneme]]],  # result
                         _type.HRESULT]
@@ -728,8 +702,6 @@ class IJapanesePhoneticAnalyzerStatics(_inspectable.IInspectable):
                                            _type.boolean,  # monoRuby
                                            _Pointer[_Windows_Foundation_Collections.IVectorView[IJapanesePhoneme]]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ILanguage(_inspectable.IInspectable):
@@ -759,41 +731,33 @@ class ILanguageExtensionSubtags(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class ILanguageFactory(_inspectable.IInspectable):
+class ILanguageFactory(_inspectable.IInspectable, factory=True):
     CreateLanguage: _Callable[[_type.HSTRING,  # languageTag
                                _Pointer[ILanguage]],  # result
                               _type.HRESULT]
 
-    _factory = True
 
-
-class ILanguageStatics(_inspectable.IInspectable):
+class ILanguageStatics(_inspectable.IInspectable, factory=True):
     IsWellFormed: _Callable[[_type.HSTRING,  # languageTag
                              _Pointer[_type.boolean]],  # result
                             _type.HRESULT]
     get_CurrentInputMethodLanguageTag: _Callable[[_Pointer[_type.HSTRING]],  # value
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ILanguageStatics2(_inspectable.IInspectable):
+class ILanguageStatics2(_inspectable.IInspectable, factory=True):
     TrySetInputMethodLanguageTag: _Callable[[_type.HSTRING,  # languageTag
                                              _Pointer[_type.boolean]],  # result
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class ILanguageStatics3(_inspectable.IInspectable):
+class ILanguageStatics3(_inspectable.IInspectable, factory=True):
     GetMuiCompatibleLanguageListFromLanguageTags: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # languageTags
                                                              _Pointer[_Windows_Foundation_Collections.IVector[_type.HSTRING]]],  # result
                                                             _type.HRESULT]
 
-    _factory = True
 
-
-class INumeralSystemIdentifiersStatics(_inspectable.IInspectable):
+class INumeralSystemIdentifiersStatics(_inspectable.IInspectable, factory=True):
     get_Arab: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     get_ArabExt: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -867,10 +831,8 @@ class INumeralSystemIdentifiersStatics(_inspectable.IInspectable):
     get_Vaii: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
 
-    _factory = True
 
-
-class INumeralSystemIdentifiersStatics2(_inspectable.IInspectable):
+class INumeralSystemIdentifiersStatics2(_inspectable.IInspectable, factory=True):
     get_Brah: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
     get_Osma: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -895,8 +857,6 @@ class INumeralSystemIdentifiersStatics2(_inspectable.IInspectable):
                             _type.HRESULT]
     get_ZmthMono: _Callable[[_Pointer[_type.HSTRING]],  # value
                             _type.HRESULT]
-
-    _factory = True
 
 
 class ITimeZoneOnCalendar(_inspectable.IInspectable):

@@ -332,7 +332,7 @@ class IAdaptiveMediaSourcePlaybackBitrateChangedEventArgs(_inspectable.IInspecta
                              _type.HRESULT]
 
 
-class IAdaptiveMediaSourceStatics(_inspectable.IInspectable):
+class IAdaptiveMediaSourceStatics(_inspectable.IInspectable, factory=True):
     IsContentTypeSupported: _Callable[[_type.HSTRING,  # contentType
                                        _Pointer[_type.boolean]],  # result
                                       _type.HRESULT]
@@ -354,5 +354,3 @@ class IAdaptiveMediaSourceStatics(_inspectable.IInspectable):
                                                     _Windows_Web_Http.IHttpClient,  # httpClient
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[IAdaptiveMediaSourceCreationResult]]],  # result
                                                    _type.HRESULT]
-
-    _factory = True

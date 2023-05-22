@@ -13,7 +13,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class ILocalCategoriesStatics(_inspectable.IInspectable):
+class ILocalCategoriesStatics(_inspectable.IInspectable, factory=True):
     get_BankAndCreditUnions: _Callable[[_Pointer[_type.HSTRING]],  # value
                                        _type.HRESULT]
     get_EatDrink: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -30,8 +30,6 @@ class ILocalCategoriesStatics(_inspectable.IInspectable):
                          _type.HRESULT]
     get_Shop: _Callable[[_Pointer[_type.HSTRING]],  # value
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ILocalLocation(_inspectable.IInspectable):
@@ -67,15 +65,13 @@ class ILocalLocationFinderResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ILocalLocationFinderStatics(_inspectable.IInspectable):
+class ILocalLocationFinderStatics(_inspectable.IInspectable, factory=True):
     FindLocalLocationsAsync: _Callable[[_type.HSTRING,  # searchTerm
                                         _Windows_Devices_Geolocation.IGeocircle,  # searchArea
                                         _type.HSTRING,  # localCategory
                                         _type.UINT32,  # maxResults
                                         _Pointer[_Windows_Foundation.IAsyncOperation[ILocalLocationFinderResult]]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ILocalLocationHoursOfOperationItem(_inspectable.IInspectable):
@@ -96,9 +92,7 @@ class ILocalLocationRatingInfo(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IPlaceInfoHelperStatics(_inspectable.IInspectable):
+class IPlaceInfoHelperStatics(_inspectable.IInspectable, factory=True):
     CreateFromLocalLocation: _Callable[[ILocalLocation,  # location
                                         _Pointer[_Windows_Services_Maps.IPlaceInfo]],  # resultValue
                                        _type.HRESULT]
-
-    _factory = True

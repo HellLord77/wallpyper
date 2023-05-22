@@ -22,13 +22,11 @@ class IEyesPose(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IEyesPoseStatics(_inspectable.IInspectable):
+class IEyesPoseStatics(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
     RequestAccessAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.UI.Input.GazeInputAccessStatus]]],  # operation
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IHandMeshObserver(_inspectable.IInspectable):

@@ -136,7 +136,7 @@ class IPhoneCall(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IPhoneCallBlockingStatics(_inspectable.IInspectable):
+class IPhoneCallBlockingStatics(_inspectable.IInspectable, factory=True):
     get_BlockUnknownNumbers: _Callable[[_Pointer[_type.boolean]],  # value
                                        _type.HRESULT]
     put_BlockUnknownNumbers: _Callable[[_type.boolean],  # value
@@ -148,8 +148,6 @@ class IPhoneCallBlockingStatics(_inspectable.IInspectable):
     SetCallBlockingListAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # phoneNumberList
                                          _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneCallHistoryEntry(_inspectable.IInspectable):
@@ -242,13 +240,11 @@ class IPhoneCallHistoryEntryAddress(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IPhoneCallHistoryEntryAddressFactory(_inspectable.IInspectable):
+class IPhoneCallHistoryEntryAddressFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # rawAddress
                        _enum.Windows.ApplicationModel.Calls.PhoneCallHistoryEntryRawAddressKind,  # rawAddressKind
                        _Pointer[IPhoneCallHistoryEntryAddress]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneCallHistoryEntryQueryOptions(_inspectable.IInspectable):
@@ -273,20 +269,16 @@ class IPhoneCallHistoryManagerForUser(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IPhoneCallHistoryManagerStatics(_inspectable.IInspectable):
+class IPhoneCallHistoryManagerStatics(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_enum.Windows.ApplicationModel.Calls.PhoneCallHistoryStoreAccessType,  # accessType
                                   _Pointer[_Windows_Foundation.IAsyncOperation[IPhoneCallHistoryStore]]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IPhoneCallHistoryManagerStatics2(_inspectable.IInspectable):
+class IPhoneCallHistoryManagerStatics2(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IPhoneCallHistoryManagerForUser]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneCallHistoryStore(_inspectable.IInspectable):
@@ -340,15 +332,13 @@ class IPhoneCallInfo(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IPhoneCallManagerStatics(_inspectable.IInspectable):
+class IPhoneCallManagerStatics(_inspectable.IInspectable, factory=True):
     ShowPhoneCallUI: _Callable[[_type.HSTRING,  # phoneNumber
                                 _type.HSTRING],  # displayName
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IPhoneCallManagerStatics2(_inspectable.IInspectable):
+class IPhoneCallManagerStatics2(_inspectable.IInspectable, factory=True):
     add_CallStateChanged: _Callable[[_Windows_Foundation.IEventHandler[_inspectable.IInspectable],  # handler
                                      _Pointer[_struct.EventRegistrationToken]],  # token
                                     _type.HRESULT]
@@ -363,15 +353,11 @@ class IPhoneCallManagerStatics2(_inspectable.IInspectable):
     RequestStoreAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IPhoneCallStore]]],  # result
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IPhoneCallStatics(_inspectable.IInspectable):
+class IPhoneCallStatics(_inspectable.IInspectable, factory=True):
     GetFromId: _Callable[[_type.HSTRING,  # callId
                           _Pointer[IPhoneCall]],  # result
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneCallStore(_inspectable.IInspectable):
@@ -389,12 +375,10 @@ class IPhoneCallVideoCapabilities(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IPhoneCallVideoCapabilitiesManagerStatics(_inspectable.IInspectable):
+class IPhoneCallVideoCapabilitiesManagerStatics(_inspectable.IInspectable, factory=True):
     GetCapabilitiesAsync: _Callable[[_type.HSTRING,  # phoneNumber
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IPhoneCallVideoCapabilities]]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneCallsResult(_inspectable.IInspectable):
@@ -521,12 +505,10 @@ class IPhoneLineDialResult(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPhoneLineStatics(_inspectable.IInspectable):
+class IPhoneLineStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_struct.GUID,  # lineId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IPhoneLine]]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneLineTransportDevice(_inspectable.IInspectable):
@@ -569,7 +551,7 @@ class IPhoneLineTransportDevice2(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class IPhoneLineTransportDeviceStatics(_inspectable.IInspectable):
+class IPhoneLineTransportDeviceStatics(_inspectable.IInspectable, factory=True):
     FromId: _Callable[[_type.HSTRING,  # id
                        _Pointer[IPhoneLineTransportDevice]],  # result
                       _type.HRESULT]
@@ -578,8 +560,6 @@ class IPhoneLineTransportDeviceStatics(_inspectable.IInspectable):
     GetDeviceSelectorForPhoneLineTransport: _Callable[[_enum.Windows.ApplicationModel.Calls.PhoneLineTransport,  # transport
                                                        _Pointer[_type.HSTRING]],  # result
                                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPhoneLineWatcher(_inspectable.IInspectable):
@@ -724,11 +704,9 @@ class IVoipCallCoordinator4(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class IVoipCallCoordinatorStatics(_inspectable.IInspectable):
+class IVoipCallCoordinatorStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IVoipCallCoordinator]],  # coordinator
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IVoipPhoneCall(_inspectable.IInspectable):

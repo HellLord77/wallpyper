@@ -293,12 +293,10 @@ class IPrintTaskOptionDetails2(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IPrintTaskOptionDetailsStatic(_inspectable.IInspectable):
+class IPrintTaskOptionDetailsStatic(_inspectable.IInspectable, factory=True):
     GetFromPrintTaskOptions: _Callable[[_Windows_Graphics_Printing.IPrintTaskOptionsCore,  # printTaskOptions
                                         _Pointer[IPrintTaskOptionDetails]],  # printTaskOptionDetails
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintTextOptionDetails(_inspectable.IInspectable):

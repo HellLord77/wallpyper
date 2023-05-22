@@ -15,12 +15,10 @@ class ISysStorageProviderEventReceivedEventArgs(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class ISysStorageProviderEventReceivedEventArgsFactory(_inspectable.IInspectable):
+class ISysStorageProviderEventReceivedEventArgsFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # json
                                _Pointer[ISysStorageProviderEventReceivedEventArgs]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISysStorageProviderEventSource(_inspectable.IInspectable):

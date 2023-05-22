@@ -28,7 +28,7 @@ class ICustomDevice(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ICustomDeviceStatics(_inspectable.IInspectable):
+class ICustomDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_struct.GUID,  # classGuid
                                   _Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
@@ -37,8 +37,6 @@ class ICustomDeviceStatics(_inspectable.IInspectable):
                             _enum.Windows.Devices.Custom.DeviceSharingMode,  # sharingMode
                             _Pointer[_Windows_Foundation.IAsyncOperation[ICustomDevice]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IIOControlCode(_inspectable.IInspectable):
@@ -54,7 +52,7 @@ class IIOControlCode(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IIOControlCodeFactory(_inspectable.IInspectable):
+class IIOControlCodeFactory(_inspectable.IInspectable, factory=True):
     CreateIOControlCode: _Callable[[_type.UINT16,  # deviceType
                                     _type.UINT16,  # function
                                     _enum.Windows.Devices.Custom.IOControlAccessMode,  # accessMode
@@ -62,11 +60,7 @@ class IIOControlCodeFactory(_inspectable.IInspectable):
                                     _Pointer[IIOControlCode]],  # instance
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownDeviceTypesStatics(_inspectable.IInspectable):
+class IKnownDeviceTypesStatics(_inspectable.IInspectable, factory=True):
     get_Unknown: _Callable[[_Pointer[_type.UINT16]],  # value
                            _type.HRESULT]
-
-    _factory = True

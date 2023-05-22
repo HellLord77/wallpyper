@@ -41,14 +41,12 @@ class INDClient(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class INDClientFactory(_inspectable.IInspectable):
+class INDClientFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[INDDownloadEngine,  # downloadEngine
                                INDStreamParser,  # streamParser
                                INDMessenger,  # pMessenger
                                _Pointer[INDClient]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class INDClosedCaptionDataReceivedEventArgs(_inspectable.IInspectable):
@@ -70,15 +68,13 @@ class INDCustomData(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class INDCustomDataFactory(_inspectable.IInspectable):
+class INDCustomDataFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.UINT32,  # __customDataTypeIDBytesSize
                                _Pointer[_type.BYTE],  # customDataTypeIDBytes
                                _type.UINT32,  # __customDataBytesSize
                                _Pointer[_type.BYTE],  # customDataBytes
                                _Pointer[INDCustomData]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class INDDownloadEngine(_inspectable.IInspectable):
@@ -137,15 +133,13 @@ class INDLicenseFetchDescriptor(_inspectable.IInspectable):
                                                _type.HRESULT]
 
 
-class INDLicenseFetchDescriptorFactory(_inspectable.IInspectable):
+class INDLicenseFetchDescriptorFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.Media.Protection.PlayReady.NDContentIDType,  # contentIDType
                                _type.UINT32,  # __contentIDBytesSize
                                _Pointer[_type.BYTE],  # contentIDBytes
                                INDCustomData,  # licenseFetchChallengeCustomData
                                _Pointer[INDLicenseFetchDescriptor]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class INDLicenseFetchResult(_inspectable.IInspectable):
@@ -254,13 +248,11 @@ class INDStreamParserNotifier(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class INDTCPMessengerFactory(_inspectable.IInspectable):
+class INDTCPMessengerFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # remoteHostName
                                _type.UINT32,  # remoteHostPort
                                _Pointer[INDMessenger]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class INDTransmitterProperties(_inspectable.IInspectable):
@@ -348,7 +340,7 @@ class IPlayReadyContentHeaderFactory(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IPlayReadyContentHeaderFactory2(_inspectable.IInspectable):
+class IPlayReadyContentHeaderFactory2(_inspectable.IInspectable, factory=True):
     CreateInstanceFromComponents2: _Callable[[_type.UINT32,  # dwFlags
                                               _type.UINT32,  # __contentKeyIdsSize
                                               _Pointer[_struct.GUID],  # contentKeyIds
@@ -362,15 +354,11 @@ class IPlayReadyContentHeaderFactory2(_inspectable.IInspectable):
                                               _Pointer[IPlayReadyContentHeader]],  # instance
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IPlayReadyContentResolver(_inspectable.IInspectable):
+class IPlayReadyContentResolver(_inspectable.IInspectable, factory=True):
     ServiceRequest: _Callable[[IPlayReadyContentHeader,  # contentHeader
                                _Pointer[IPlayReadyServiceRequest]],  # serviceRequest
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayReadyDomain(_inspectable.IInspectable):
@@ -386,12 +374,10 @@ class IPlayReadyDomain(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IPlayReadyDomainIterableFactory(_inspectable.IInspectable):
+class IPlayReadyDomainIterableFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_struct.GUID,  # domainAccountId
                                _Pointer[_Windows_Foundation_Collections.IIterable[IPlayReadyDomain]]],  # domainIterable
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayReadyDomainJoinServiceRequest(_inspectable.IInspectable):
@@ -486,21 +472,17 @@ class IPlayReadyLicenseAcquisitionServiceRequest3(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IPlayReadyLicenseIterableFactory(_inspectable.IInspectable):
+class IPlayReadyLicenseIterableFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[IPlayReadyContentHeader,  # contentHeader
                                _type.boolean,  # fullyEvaluated
                                _Pointer[_Windows_Foundation_Collections.IIterable[IPlayReadyLicense]]],  # instance
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IPlayReadyLicenseManagement(_inspectable.IInspectable):
+class IPlayReadyLicenseManagement(_inspectable.IInspectable, factory=True):
     DeleteLicenses: _Callable[[IPlayReadyContentHeader,  # contentHeader
                                _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayReadyLicenseSession(_inspectable.IInspectable):
@@ -517,12 +499,10 @@ class IPlayReadyLicenseSession2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IPlayReadyLicenseSessionFactory(_inspectable.IInspectable):
+class IPlayReadyLicenseSessionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Foundation_Collections.IPropertySet,  # configuration
                                _Pointer[IPlayReadyLicenseSession]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayReadyMeteringReportServiceRequest(_inspectable.IInspectable):
@@ -538,13 +518,11 @@ class IPlayReadyRevocationServiceRequest(_inspectable.IInspectable):
     pass
 
 
-class IPlayReadySecureStopIterableFactory(_inspectable.IInspectable):
+class IPlayReadySecureStopIterableFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.UINT32,  # __publisherCertBytesSize
                                _Pointer[_type.BYTE],  # publisherCertBytes
                                _Pointer[_Windows_Foundation_Collections.IIterable[IPlayReadySecureStopServiceRequest]]],  # instance
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayReadySecureStopServiceRequest(_inspectable.IInspectable):
@@ -561,7 +539,7 @@ class IPlayReadySecureStopServiceRequest(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IPlayReadySecureStopServiceRequestFactory(_inspectable.IInspectable):
+class IPlayReadySecureStopServiceRequestFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.UINT32,  # __publisherCertBytesSize
                                _Pointer[_type.BYTE],  # publisherCertBytes
                                _Pointer[IPlayReadySecureStopServiceRequest]],  # instance
@@ -571,8 +549,6 @@ class IPlayReadySecureStopServiceRequestFactory(_inspectable.IInspectable):
                                             _Pointer[_type.BYTE],  # publisherCertBytes
                                             _Pointer[IPlayReadySecureStopServiceRequest]],  # instance
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPlayReadyServiceRequest(_inspectable.IInspectable):
@@ -608,7 +584,7 @@ class IPlayReadySoapMessage(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IPlayReadyStatics(_inspectable.IInspectable):
+class IPlayReadyStatics(_inspectable.IInspectable, factory=True):
     get_DomainJoinServiceRequestType: _Callable[[_Pointer[_struct.GUID]],  # value
                                                 _type.HRESULT]
     get_DomainLeaveServiceRequestType: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -626,41 +602,31 @@ class IPlayReadyStatics(_inspectable.IInspectable):
     get_PlayReadySecurityVersion: _Callable[[_Pointer[_type.UINT32]],  # value
                                             _type.HRESULT]
 
-    _factory = True
 
-
-class IPlayReadyStatics2(_inspectable.IInspectable):
+class IPlayReadyStatics2(_inspectable.IInspectable, factory=True):
     get_PlayReadyCertificateSecurityLevel: _Callable[[_Pointer[_type.UINT32]],  # value
                                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IPlayReadyStatics3(_inspectable.IInspectable):
+class IPlayReadyStatics3(_inspectable.IInspectable, factory=True):
     get_SecureStopServiceRequestType: _Callable[[_Pointer[_struct.GUID]],  # value
                                                 _type.HRESULT]
     CheckSupportedHardware: _Callable[[_enum.Windows.Media.Protection.PlayReady.PlayReadyHardwareDRMFeatures,  # hwdrmFeature
                                        _Pointer[_type.boolean]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPlayReadyStatics4(_inspectable.IInspectable):
+class IPlayReadyStatics4(_inspectable.IInspectable, factory=True):
     get_InputTrustAuthorityToCreate: _Callable[[_Pointer[_type.HSTRING]],  # value
                                                _type.HRESULT]
     get_ProtectionSystemId: _Callable[[_Pointer[_struct.GUID]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IPlayReadyStatics5(_inspectable.IInspectable):
+class IPlayReadyStatics5(_inspectable.IInspectable, factory=True):
     get_HardwareDRMDisabledAtTime: _Callable[[_Pointer[_Windows_Foundation.IReference[_struct.Windows.Foundation.DateTime]]],  # value
                                              _type.HRESULT]
     get_HardwareDRMDisabledUntilTime: _Callable[[_Pointer[_Windows_Foundation.IReference[_struct.Windows.Foundation.DateTime]]],  # value
                                                 _type.HRESULT]
     ResetHardwareDRMDisabled: _Callable[[],
                                         _type.HRESULT]
-
-    _factory = True

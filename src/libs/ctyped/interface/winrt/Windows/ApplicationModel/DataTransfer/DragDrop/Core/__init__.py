@@ -24,11 +24,9 @@ class ICoreDragDropManager(_inspectable.IInspectable):
                                                   _type.HRESULT]
 
 
-class ICoreDragDropManagerStatics(_inspectable.IInspectable):
+class ICoreDragDropManagerStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[ICoreDragDropManager]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreDragInfo(_inspectable.IInspectable):

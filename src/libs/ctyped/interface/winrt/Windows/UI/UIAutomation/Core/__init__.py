@@ -31,14 +31,12 @@ class ICoreAutomationConnectionBoundObjectProvider(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class ICoreAutomationRegistrarStatics(_inspectable.IInspectable):
+class ICoreAutomationRegistrarStatics(_inspectable.IInspectable, factory=True):
     RegisterAnnotationType: _Callable[[_struct.GUID,  # guid
                                        _Pointer[_struct.Windows.UI.UIAutomation.Core.AutomationAnnotationTypeRegistration]],  # result
                                       _type.HRESULT]
     UnregisterAnnotationType: _Callable[[_struct.Windows.UI.UIAutomation.Core.AutomationAnnotationTypeRegistration],  # registration
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class ICoreAutomationRemoteOperation(_inspectable.IInspectable):
@@ -113,7 +111,7 @@ class IRemoteAutomationClientSession(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IRemoteAutomationClientSessionFactory(_inspectable.IInspectable):
+class IRemoteAutomationClientSessionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # name
                                _Pointer[IRemoteAutomationClientSession]],  # value
                               _type.HRESULT]
@@ -121,8 +119,6 @@ class IRemoteAutomationClientSessionFactory(_inspectable.IInspectable):
                                 _struct.GUID,  # sessionId
                                 _Pointer[IRemoteAutomationClientSession]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteAutomationConnectionRequestedEventArgs(_inspectable.IInspectable):
@@ -137,11 +133,9 @@ class IRemoteAutomationDisconnectedEventArgs(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IRemoteAutomationServerStatics(_inspectable.IInspectable):
+class IRemoteAutomationServerStatics(_inspectable.IInspectable, factory=True):
     ReportSession: _Callable[[_struct.GUID],  # sessionId
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoteAutomationWindow(_inspectable.IInspectable):

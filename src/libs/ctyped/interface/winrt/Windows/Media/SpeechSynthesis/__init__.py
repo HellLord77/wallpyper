@@ -11,21 +11,17 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IInstalledVoicesStatic(_inspectable.IInspectable):
+class IInstalledVoicesStatic(_inspectable.IInspectable, factory=True):
     get_AllVoices: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IVoiceInformation]]],  # value
                              _type.HRESULT]
     get_DefaultVoice: _Callable[[_Pointer[IVoiceInformation]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IInstalledVoicesStatic2(_inspectable.IInspectable):
+class IInstalledVoicesStatic2(_inspectable.IInspectable, factory=True):
     TrySetDefaultVoiceAsync: _Callable[[IVoiceInformation,  # voice
                                         _Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # result
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ISpeechSynthesisStream(_inspectable.IInspectable):

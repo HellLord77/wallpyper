@@ -25,11 +25,9 @@ class IBackEase(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IBackEaseStatics(_inspectable.IInspectable):
+class IBackEaseStatics(_inspectable.IInspectable, factory=True):
     get_AmplitudeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IBasicConnectedAnimationConfiguration(_inspectable.IInspectable):
@@ -50,11 +48,9 @@ class IBeginStoryboard(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IBeginStoryboardStatics(_inspectable.IInspectable):
+class IBeginStoryboardStatics(_inspectable.IInspectable, factory=True):
     get_StoryboardProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IBounceEase(_inspectable.IInspectable):
@@ -68,13 +64,11 @@ class IBounceEase(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IBounceEaseStatics(_inspectable.IInspectable):
+class IBounceEaseStatics(_inspectable.IInspectable, factory=True):
     get_BouncesProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
     get_BouncinessProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ICircleEase(_inspectable.IInspectable):
@@ -104,7 +98,7 @@ class IColorAnimation(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IColorAnimationStatics(_inspectable.IInspectable):
+class IColorAnimationStatics(_inspectable.IInspectable, factory=True):
     get_FromProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_ToProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -116,8 +110,6 @@ class IColorAnimationStatics(_inspectable.IInspectable):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IColorAnimationUsingKeyFrames(_inspectable.IInspectable):
     get_KeyFrames: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[IColorKeyFrame]]],  # value
@@ -128,11 +120,9 @@ class IColorAnimationUsingKeyFrames(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IColorAnimationUsingKeyFramesStatics(_inspectable.IInspectable):
+class IColorAnimationUsingKeyFramesStatics(_inspectable.IInspectable, factory=True):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IColorKeyFrame(_inspectable.IInspectable):
@@ -153,13 +143,11 @@ class IColorKeyFrameFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IColorKeyFrameStatics(_inspectable.IInspectable):
+class IColorKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_ValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_KeyTimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class ICommonNavigationTransitionInfo(_inspectable.IInspectable):
@@ -169,7 +157,7 @@ class ICommonNavigationTransitionInfo(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class ICommonNavigationTransitionInfoStatics(_inspectable.IInspectable):
+class ICommonNavigationTransitionInfoStatics(_inspectable.IInspectable, factory=True):
     get_IsStaggeringEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
     get_IsStaggerElementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -180,8 +168,6 @@ class ICommonNavigationTransitionInfoStatics(_inspectable.IInspectable):
     SetIsStaggerElement: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                                     _type.boolean],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IConnectedAnimation(_inspectable.IInspectable):
@@ -244,11 +230,9 @@ class IConnectedAnimationService(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IConnectedAnimationServiceStatics(_inspectable.IInspectable):
+class IConnectedAnimationServiceStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IConnectedAnimationService]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IContentThemeTransition(_inspectable.IInspectable):
@@ -262,13 +246,11 @@ class IContentThemeTransition(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IContentThemeTransitionStatics(_inspectable.IInspectable):
+class IContentThemeTransitionStatics(_inspectable.IInspectable, factory=True):
     get_HorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_VerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IContinuumNavigationTransitionInfo(_inspectable.IInspectable):
@@ -278,7 +260,7 @@ class IContinuumNavigationTransitionInfo(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IContinuumNavigationTransitionInfoStatics(_inspectable.IInspectable):
+class IContinuumNavigationTransitionInfoStatics(_inspectable.IInspectable, factory=True):
     get_ExitElementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
     get_IsEntranceElementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -305,8 +287,6 @@ class IContinuumNavigationTransitionInfoStatics(_inspectable.IInspectable):
     SetExitElementContainer: _Callable[[_Windows_UI_Xaml_Controls.IListViewBase,  # element
                                         _type.boolean],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ICubicEase(_inspectable.IInspectable):
@@ -363,7 +343,7 @@ class IDoubleAnimation(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IDoubleAnimationStatics(_inspectable.IInspectable):
+class IDoubleAnimationStatics(_inspectable.IInspectable, factory=True):
     get_FromProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_ToProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -375,8 +355,6 @@ class IDoubleAnimationStatics(_inspectable.IInspectable):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IDoubleAnimationUsingKeyFrames(_inspectable.IInspectable):
     get_KeyFrames: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[IDoubleKeyFrame]]],  # value
@@ -387,11 +365,9 @@ class IDoubleAnimationUsingKeyFrames(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IDoubleAnimationUsingKeyFramesStatics(_inspectable.IInspectable):
+class IDoubleAnimationUsingKeyFramesStatics(_inspectable.IInspectable, factory=True):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IDoubleKeyFrame(_inspectable.IInspectable):
@@ -412,13 +388,11 @@ class IDoubleKeyFrameFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDoubleKeyFrameStatics(_inspectable.IInspectable):
+class IDoubleKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_ValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_KeyTimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IDragItemThemeAnimation(_inspectable.IInspectable):
@@ -428,11 +402,9 @@ class IDragItemThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDragItemThemeAnimationStatics(_inspectable.IInspectable):
+class IDragItemThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDragOverThemeAnimation(_inspectable.IInspectable):
@@ -450,15 +422,13 @@ class IDragOverThemeAnimation(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IDragOverThemeAnimationStatics(_inspectable.IInspectable):
+class IDragOverThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_ToOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
     get_DirectionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IDrillInNavigationTransitionInfo(_inspectable.IInspectable):
@@ -484,7 +454,7 @@ class IDrillInThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDrillInThemeAnimationStatics(_inspectable.IInspectable):
+class IDrillInThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_EntranceTargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_EntranceTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -493,8 +463,6 @@ class IDrillInThemeAnimationStatics(_inspectable.IInspectable):
                                           _type.HRESULT]
     get_ExitTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDrillOutThemeAnimation(_inspectable.IInspectable):
@@ -516,7 +484,7 @@ class IDrillOutThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDrillOutThemeAnimationStatics(_inspectable.IInspectable):
+class IDrillOutThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_EntranceTargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_EntranceTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -526,8 +494,6 @@ class IDrillOutThemeAnimationStatics(_inspectable.IInspectable):
     get_ExitTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
 
-    _factory = True
-
 
 class IDropTargetItemThemeAnimation(_inspectable.IInspectable):
     get_TargetName: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -536,11 +502,9 @@ class IDropTargetItemThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IDropTargetItemThemeAnimationStatics(_inspectable.IInspectable):
+class IDropTargetItemThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEasingColorKeyFrame(_inspectable.IInspectable):
@@ -550,11 +514,9 @@ class IEasingColorKeyFrame(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IEasingColorKeyFrameStatics(_inspectable.IInspectable):
+class IEasingColorKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_EasingFunctionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IEasingDoubleKeyFrame(_inspectable.IInspectable):
@@ -564,11 +526,9 @@ class IEasingDoubleKeyFrame(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IEasingDoubleKeyFrameStatics(_inspectable.IInspectable):
+class IEasingDoubleKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_EasingFunctionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IEasingFunctionBase(_inspectable.IInspectable):
@@ -585,11 +545,9 @@ class IEasingFunctionBaseFactory(_inspectable.IInspectable):
     pass
 
 
-class IEasingFunctionBaseStatics(_inspectable.IInspectable):
+class IEasingFunctionBaseStatics(_inspectable.IInspectable, factory=True):
     get_EasingModeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IEasingPointKeyFrame(_inspectable.IInspectable):
@@ -599,11 +557,9 @@ class IEasingPointKeyFrame(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IEasingPointKeyFrameStatics(_inspectable.IInspectable):
+class IEasingPointKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_EasingFunctionProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IEdgeUIThemeTransition(_inspectable.IInspectable):
@@ -613,11 +569,9 @@ class IEdgeUIThemeTransition(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IEdgeUIThemeTransitionStatics(_inspectable.IInspectable):
+class IEdgeUIThemeTransitionStatics(_inspectable.IInspectable, factory=True):
     get_EdgeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IElasticEase(_inspectable.IInspectable):
@@ -631,20 +585,18 @@ class IElasticEase(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IElasticEaseStatics(_inspectable.IInspectable):
+class IElasticEaseStatics(_inspectable.IInspectable, factory=True):
     get_OscillationsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                         _type.HRESULT]
     get_SpringinessProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IEntranceNavigationTransitionInfo(_inspectable.IInspectable):
     pass
 
 
-class IEntranceNavigationTransitionInfoStatics(_inspectable.IInspectable):
+class IEntranceNavigationTransitionInfoStatics(_inspectable.IInspectable, factory=True):
     get_IsTargetElementProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
     GetIsTargetElement: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
@@ -653,8 +605,6 @@ class IEntranceNavigationTransitionInfoStatics(_inspectable.IInspectable):
     SetIsTargetElement: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                                    _type.boolean],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IEntranceThemeTransition(_inspectable.IInspectable):
@@ -672,15 +622,13 @@ class IEntranceThemeTransition(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IEntranceThemeTransitionStatics(_inspectable.IInspectable):
+class IEntranceThemeTransitionStatics(_inspectable.IInspectable, factory=True):
     get_FromHorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_FromVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_IsStaggeringEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class IExponentialEase(_inspectable.IInspectable):
@@ -690,11 +638,9 @@ class IExponentialEase(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IExponentialEaseStatics(_inspectable.IInspectable):
+class IExponentialEaseStatics(_inspectable.IInspectable, factory=True):
     get_ExponentProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IFadeInThemeAnimation(_inspectable.IInspectable):
@@ -704,11 +650,9 @@ class IFadeInThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFadeInThemeAnimationStatics(_inspectable.IInspectable):
+class IFadeInThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IFadeOutThemeAnimation(_inspectable.IInspectable):
@@ -718,11 +662,9 @@ class IFadeOutThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IFadeOutThemeAnimationStatics(_inspectable.IInspectable):
+class IFadeOutThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGravityConnectedAnimationConfiguration(_inspectable.IInspectable):
@@ -758,12 +700,10 @@ class IKeyTimeHelper(_inspectable.IInspectable):
     pass
 
 
-class IKeyTimeHelperStatics(_inspectable.IInspectable):
+class IKeyTimeHelperStatics(_inspectable.IInspectable, factory=True):
     FromTimeSpan: _Callable[[_struct.Windows.Foundation.TimeSpan,  # timeSpan
                              _Pointer[_struct.Windows.UI.Xaml.Media.Animation.KeyTime]],  # result
                             _type.HRESULT]
-
-    _factory = True
 
 
 class ILinearColorKeyFrame(_inspectable.IInspectable):
@@ -785,11 +725,9 @@ class INavigationThemeTransition(_inspectable.IInspectable):
                                                    _type.HRESULT]
 
 
-class INavigationThemeTransitionStatics(_inspectable.IInspectable):
+class INavigationThemeTransitionStatics(_inspectable.IInspectable, factory=True):
     get_DefaultNavigationTransitionInfoProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                            _type.HRESULT]
-
-    _factory = True
 
 
 class INavigationTransitionInfo(_inspectable.IInspectable):
@@ -819,11 +757,9 @@ class IObjectAnimationUsingKeyFrames(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IObjectAnimationUsingKeyFramesStatics(_inspectable.IInspectable):
+class IObjectAnimationUsingKeyFramesStatics(_inspectable.IInspectable, factory=True):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IObjectKeyFrame(_inspectable.IInspectable):
@@ -844,13 +780,11 @@ class IObjectKeyFrameFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IObjectKeyFrameStatics(_inspectable.IInspectable):
+class IObjectKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_ValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_KeyTimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IPaneThemeTransition(_inspectable.IInspectable):
@@ -860,11 +794,9 @@ class IPaneThemeTransition(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IPaneThemeTransitionStatics(_inspectable.IInspectable):
+class IPaneThemeTransitionStatics(_inspectable.IInspectable, factory=True):
     get_EdgeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IPointAnimation(_inspectable.IInspectable):
@@ -890,7 +822,7 @@ class IPointAnimation(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IPointAnimationStatics(_inspectable.IInspectable):
+class IPointAnimationStatics(_inspectable.IInspectable, factory=True):
     get_FromProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                 _type.HRESULT]
     get_ToProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -902,8 +834,6 @@ class IPointAnimationStatics(_inspectable.IInspectable):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
 
-    _factory = True
-
 
 class IPointAnimationUsingKeyFrames(_inspectable.IInspectable):
     get_KeyFrames: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[IPointKeyFrame]]],  # value
@@ -914,11 +844,9 @@ class IPointAnimationUsingKeyFrames(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IPointAnimationUsingKeyFramesStatics(_inspectable.IInspectable):
+class IPointAnimationUsingKeyFramesStatics(_inspectable.IInspectable, factory=True):
     get_EnableDependentAnimationProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPointKeyFrame(_inspectable.IInspectable):
@@ -939,13 +867,11 @@ class IPointKeyFrameFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPointKeyFrameStatics(_inspectable.IInspectable):
+class IPointKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_ValueProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
     get_KeyTimeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IPointerDownThemeAnimation(_inspectable.IInspectable):
@@ -955,11 +881,9 @@ class IPointerDownThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPointerDownThemeAnimationStatics(_inspectable.IInspectable):
+class IPointerDownThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPointerUpThemeAnimation(_inspectable.IInspectable):
@@ -969,11 +893,9 @@ class IPointerUpThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPointerUpThemeAnimationStatics(_inspectable.IInspectable):
+class IPointerUpThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPopInThemeAnimation(_inspectable.IInspectable):
@@ -991,15 +913,13 @@ class IPopInThemeAnimation(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IPopInThemeAnimationStatics(_inspectable.IInspectable):
+class IPopInThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_FromHorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_FromVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPopOutThemeAnimation(_inspectable.IInspectable):
@@ -1009,11 +929,9 @@ class IPopOutThemeAnimation(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPopOutThemeAnimationStatics(_inspectable.IInspectable):
+class IPopOutThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IPopupThemeTransition(_inspectable.IInspectable):
@@ -1027,13 +945,11 @@ class IPopupThemeTransition(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IPopupThemeTransitionStatics(_inspectable.IInspectable):
+class IPopupThemeTransitionStatics(_inspectable.IInspectable, factory=True):
     get_FromHorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_FromVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPowerEase(_inspectable.IInspectable):
@@ -1043,11 +959,9 @@ class IPowerEase(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IPowerEaseStatics(_inspectable.IInspectable):
+class IPowerEaseStatics(_inspectable.IInspectable, factory=True):
     get_PowerProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IQuadraticEase(_inspectable.IInspectable):
@@ -1070,7 +984,7 @@ class IRepeatBehaviorHelper(_inspectable.IInspectable):
     pass
 
 
-class IRepeatBehaviorHelperStatics(_inspectable.IInspectable):
+class IRepeatBehaviorHelperStatics(_inspectable.IInspectable, factory=True):
     get_Forever: _Callable[[_Pointer[_struct.Windows.UI.Xaml.Media.Animation.RepeatBehavior]],  # value
                            _type.HRESULT]
     FromCount: _Callable[[_type.DOUBLE,  # count
@@ -1090,8 +1004,6 @@ class IRepeatBehaviorHelperStatics(_inspectable.IInspectable):
                        _Pointer[_type.boolean]],  # result
                       _type.HRESULT]
 
-    _factory = True
-
 
 class IRepositionThemeAnimation(_inspectable.IInspectable):
     get_TargetName: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -1108,15 +1020,13 @@ class IRepositionThemeAnimation(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IRepositionThemeAnimationStatics(_inspectable.IInspectable):
+class IRepositionThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_FromHorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_FromVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IRepositionThemeTransition(_inspectable.IInspectable):
@@ -1130,11 +1040,9 @@ class IRepositionThemeTransition2(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IRepositionThemeTransitionStatics2(_inspectable.IInspectable):
+class IRepositionThemeTransitionStatics2(_inspectable.IInspectable, factory=True):
     get_IsStaggeringEnabledProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                _type.HRESULT]
-
-    _factory = True
 
 
 class ISineEase(_inspectable.IInspectable):
@@ -1152,11 +1060,9 @@ class ISlideNavigationTransitionInfo2(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ISlideNavigationTransitionInfoStatics2(_inspectable.IInspectable):
+class ISlideNavigationTransitionInfoStatics2(_inspectable.IInspectable, factory=True):
     get_EffectProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ISplineColorKeyFrame(_inspectable.IInspectable):
@@ -1166,11 +1072,9 @@ class ISplineColorKeyFrame(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class ISplineColorKeyFrameStatics(_inspectable.IInspectable):
+class ISplineColorKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_KeySplineProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISplineDoubleKeyFrame(_inspectable.IInspectable):
@@ -1180,11 +1084,9 @@ class ISplineDoubleKeyFrame(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class ISplineDoubleKeyFrameStatics(_inspectable.IInspectable):
+class ISplineDoubleKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_KeySplineProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISplinePointKeyFrame(_inspectable.IInspectable):
@@ -1194,11 +1096,9 @@ class ISplinePointKeyFrame(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class ISplinePointKeyFrameStatics(_inspectable.IInspectable):
+class ISplinePointKeyFrameStatics(_inspectable.IInspectable, factory=True):
     get_KeySplineProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class ISplitCloseThemeAnimation(_inspectable.IInspectable):
@@ -1248,7 +1148,7 @@ class ISplitCloseThemeAnimation(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class ISplitCloseThemeAnimationStatics(_inspectable.IInspectable):
+class ISplitCloseThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_OpenedTargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_OpenedTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1271,8 +1171,6 @@ class ISplitCloseThemeAnimationStatics(_inspectable.IInspectable):
                                                        _type.HRESULT]
     get_ContentTranslationOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ISplitOpenThemeAnimation(_inspectable.IInspectable):
@@ -1322,7 +1220,7 @@ class ISplitOpenThemeAnimation(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class ISplitOpenThemeAnimationStatics(_inspectable.IInspectable):
+class ISplitOpenThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_OpenedTargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_OpenedTargetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -1345,8 +1243,6 @@ class ISplitOpenThemeAnimationStatics(_inspectable.IInspectable):
                                                        _type.HRESULT]
     get_ContentTranslationOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IStoryboard(_inspectable.IInspectable):
@@ -1372,7 +1268,7 @@ class IStoryboard(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IStoryboardStatics(_inspectable.IInspectable):
+class IStoryboardStatics(_inspectable.IInspectable, factory=True):
     get_TargetPropertyProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
     GetTargetProperty: _Callable[[ITimeline,  # element
@@ -1392,8 +1288,6 @@ class IStoryboardStatics(_inspectable.IInspectable):
     SetTarget: _Callable[[ITimeline,  # timeline
                           _Windows_UI_Xaml.IDependencyObject],  # target
                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISuppressNavigationTransitionInfo(_inspectable.IInspectable):
@@ -1415,15 +1309,13 @@ class ISwipeBackThemeAnimation(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class ISwipeBackThemeAnimationStatics(_inspectable.IInspectable):
+class ISwipeBackThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_FromHorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
     get_FromVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class ISwipeHintThemeAnimation(_inspectable.IInspectable):
@@ -1441,15 +1333,13 @@ class ISwipeHintThemeAnimation(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ISwipeHintThemeAnimationStatics(_inspectable.IInspectable):
+class ISwipeHintThemeAnimationStatics(_inspectable.IInspectable, factory=True):
     get_TargetNameProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_ToHorizontalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                               _type.HRESULT]
     get_ToVerticalOffsetProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class ITimeline(_inspectable.IInspectable):
@@ -1491,7 +1381,7 @@ class ITimelineFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class ITimelineStatics(_inspectable.IInspectable):
+class ITimelineStatics(_inspectable.IInspectable, factory=True):
     get_AllowDependentAnimations: _Callable[[_Pointer[_type.boolean]],  # value
                                             _type.HRESULT]
     put_AllowDependentAnimations: _Callable[[_type.boolean],  # value
@@ -1508,8 +1398,6 @@ class ITimelineStatics(_inspectable.IInspectable):
                                         _type.HRESULT]
     get_RepeatBehaviorProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ITransition(_inspectable.IInspectable):

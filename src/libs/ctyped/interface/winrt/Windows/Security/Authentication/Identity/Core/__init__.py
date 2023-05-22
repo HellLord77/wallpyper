@@ -54,11 +54,9 @@ class IMicrosoftAccountMultiFactorAuthenticationManager(_inspectable.IInspectabl
                                 _type.HRESULT]
 
 
-class IMicrosoftAccountMultiFactorAuthenticatorStatics(_inspectable.IInspectable):
+class IMicrosoftAccountMultiFactorAuthenticatorStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IMicrosoftAccountMultiFactorAuthenticationManager]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMicrosoftAccountMultiFactorGetSessionsResult(_inspectable.IInspectable):

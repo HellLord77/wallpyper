@@ -38,7 +38,7 @@ class ISocialFeedUpdater(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ISocialInfoProviderManagerStatics(_inspectable.IInspectable):
+class ISocialInfoProviderManagerStatics(_inspectable.IInspectable, factory=True):
     CreateSocialFeedUpdaterAsync: _Callable[[_enum.Windows.ApplicationModel.SocialInfo.SocialFeedKind,  # kind
                                              _enum.Windows.ApplicationModel.SocialInfo.SocialFeedUpdateMode,  # mode
                                              _type.HSTRING,  # ownerRemoteId
@@ -57,5 +57,3 @@ class ISocialInfoProviderManagerStatics(_inspectable.IInspectable):
                               _type.HRESULT]
     DeprovisionAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                 _type.HRESULT]
-
-    _factory = True

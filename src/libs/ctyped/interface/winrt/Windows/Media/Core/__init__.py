@@ -48,12 +48,10 @@ class IAudioStreamDescriptor3(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IAudioStreamDescriptorFactory(_inspectable.IInspectable):
+class IAudioStreamDescriptorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Media_MediaProperties.IAudioEncodingProperties,  # encodingProperties
                        _Pointer[IAudioStreamDescriptor]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioTrack(_inspectable.IInspectable):
@@ -116,7 +114,7 @@ class ICodecQuery(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ICodecSubtypesStatics(_inspectable.IInspectable):
+class ICodecSubtypesStatics(_inspectable.IInspectable, factory=True):
     get_VideoFormatDV25: _Callable[[_Pointer[_type.HSTRING]],  # value
                                    _type.HRESULT]
     get_VideoFormatDV50: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -220,8 +218,6 @@ class ICodecSubtypesStatics(_inspectable.IInspectable):
     get_AudioFormatWMAudioV9: _Callable[[_Pointer[_type.HSTRING]],  # value
                                         _type.HRESULT]
 
-    _factory = True
-
 
 class IDataCue(_inspectable.IInspectable):
     put_Data: _Callable[[_Windows_Storage_Streams.IBuffer],  # value
@@ -315,7 +311,7 @@ class ILowLightFusionResult(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ILowLightFusionStatics(_inspectable.IInspectable):
+class ILowLightFusionStatics(_inspectable.IInspectable, factory=True):
     get_SupportedBitmapPixelFormats: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[_enum.Windows.Graphics.Imaging.BitmapPixelFormat]]],  # value
                                                _type.HRESULT]
     get_MaxSupportedFrameCount: _Callable[[_Pointer[_type.INT32]],  # value
@@ -323,8 +319,6 @@ class ILowLightFusionStatics(_inspectable.IInspectable):
     FuseAsync: _Callable[[_Windows_Foundation_Collections.IIterable[_Windows_Graphics_Imaging.ISoftwareBitmap],  # frameSet
                           _Pointer[_Windows_Foundation.IAsyncOperationWithProgress[ILowLightFusionResult, _type.DOUBLE]]],  # result
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaBinder(_inspectable.IInspectable):
@@ -455,12 +449,10 @@ class IMediaSourceAppServiceConnection(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class IMediaSourceAppServiceConnectionFactory(_inspectable.IInspectable):
+class IMediaSourceAppServiceConnectionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_ApplicationModel_AppService.IAppServiceConnection,  # appServiceConnection
                        _Pointer[IMediaSourceAppServiceConnection]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaSourceError(_inspectable.IInspectable):
@@ -480,7 +472,7 @@ class IMediaSourceStateChangedEventArgs(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMediaSourceStatics(_inspectable.IInspectable):
+class IMediaSourceStatics(_inspectable.IInspectable, factory=True):
     CreateFromAdaptiveMediaSource: _Callable[[_Windows_Media_Streaming_Adaptive.IAdaptiveMediaSource,  # mediaSource
                                               _Pointer[IMediaSource2]],  # result
                                              _type.HRESULT]
@@ -508,31 +500,23 @@ class IMediaSourceStatics(_inspectable.IInspectable):
                               _Pointer[IMediaSource2]],  # result
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaSourceStatics2(_inspectable.IInspectable):
+class IMediaSourceStatics2(_inspectable.IInspectable, factory=True):
     CreateFromMediaBinder: _Callable[[IMediaBinder,  # binder
                                       _Pointer[IMediaSource2]],  # result
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaSourceStatics3(_inspectable.IInspectable):
+class IMediaSourceStatics3(_inspectable.IInspectable, factory=True):
     CreateFromMediaFrameSource: _Callable[[_Windows_Media_Capture_Frames.IMediaFrameSource,  # frameSource
                                            _Pointer[IMediaSource2]],  # result
                                           _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaSourceStatics4(_inspectable.IInspectable):
+class IMediaSourceStatics4(_inspectable.IInspectable, factory=True):
     CreateFromDownloadOperation: _Callable[[_Windows_Networking_BackgroundTransfer.IDownloadOperation,  # downloadOperation
                                             _Pointer[IMediaSource2]],  # result
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaStreamDescriptor(_inspectable.IInspectable):
@@ -613,7 +597,7 @@ class IMediaStreamSampleProtectionProperties(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IMediaStreamSampleStatics(_inspectable.IInspectable):
+class IMediaStreamSampleStatics(_inspectable.IInspectable, factory=True):
     CreateFromBuffer: _Callable[[_Windows_Storage_Streams.IBuffer,  # buffer
                                  _struct.Windows.Foundation.TimeSpan,  # timestamp
                                  _Pointer[IMediaStreamSample]],  # value
@@ -624,16 +608,12 @@ class IMediaStreamSampleStatics(_inspectable.IInspectable):
                                       _Pointer[_Windows_Foundation.IAsyncOperation[IMediaStreamSample]]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaStreamSampleStatics2(_inspectable.IInspectable):
+class IMediaStreamSampleStatics2(_inspectable.IInspectable, factory=True):
     CreateFromDirect3D11Surface: _Callable[[_Windows_Graphics_DirectX_Direct3D11.IDirect3DSurface,  # surface
                                             _struct.Windows.Foundation.TimeSpan,  # timestamp
                                             _Pointer[IMediaStreamSample]],  # result
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaStreamSource(_inspectable.IInspectable):
@@ -733,7 +713,7 @@ class IMediaStreamSourceClosedRequest(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IMediaStreamSourceFactory(_inspectable.IInspectable):
+class IMediaStreamSourceFactory(_inspectable.IInspectable, factory=True):
     CreateFromDescriptor: _Callable[[IMediaStreamDescriptor,  # descriptor
                                      _Pointer[IMediaStreamSource]],  # result
                                     _type.HRESULT]
@@ -741,8 +721,6 @@ class IMediaStreamSourceFactory(_inspectable.IInspectable):
                                       IMediaStreamDescriptor,  # descriptor2
                                       _Pointer[IMediaStreamSource]],  # result
                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaStreamSourceSampleRenderedEventArgs(_inspectable.IInspectable):
@@ -941,12 +919,10 @@ class IMseStreamSource2(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IMseStreamSourceStatics(_inspectable.IInspectable):
+class IMseStreamSourceStatics(_inspectable.IInspectable, factory=True):
     IsContentTypeSupported: _Callable[[_type.HSTRING,  # contentType
                                        _Pointer[_type.boolean]],  # value
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISceneAnalysisEffect(_inspectable.IInspectable):
@@ -1014,12 +990,10 @@ class ITimedMetadataStreamDescriptor(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class ITimedMetadataStreamDescriptorFactory(_inspectable.IInspectable):
+class ITimedMetadataStreamDescriptorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Media_MediaProperties.IMediaEncodingProperties,  # encodingProperties
                        _Pointer[IMediaStreamDescriptor]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITimedMetadataTrack(_inspectable.IInspectable):
@@ -1066,14 +1040,12 @@ class ITimedMetadataTrackError(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class ITimedMetadataTrackFactory(_inspectable.IInspectable):
+class ITimedMetadataTrackFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # id
                        _type.HSTRING,  # language
                        _enum.Windows.Media.Core.TimedMetadataKind,  # kind
                        _Pointer[ITimedMetadataTrack]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ITimedMetadataTrackFailedEventArgs(_inspectable.IInspectable):
@@ -1208,7 +1180,7 @@ class ITimedTextSourceResolveResultEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class ITimedTextSourceStatics(_inspectable.IInspectable):
+class ITimedTextSourceStatics(_inspectable.IInspectable, factory=True):
     CreateFromStream: _Callable[[_Windows_Storage_Streams.IRandomAccessStream,  # stream
                                  _Pointer[ITimedTextSource]],  # value
                                 _type.HRESULT]
@@ -1224,10 +1196,8 @@ class ITimedTextSourceStatics(_inspectable.IInspectable):
                                           _Pointer[ITimedTextSource]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class ITimedTextSourceStatics2(_inspectable.IInspectable):
+class ITimedTextSourceStatics2(_inspectable.IInspectable, factory=True):
     CreateFromStreamWithIndex: _Callable[[_Windows_Storage_Streams.IRandomAccessStream,  # stream
                                           _Windows_Storage_Streams.IRandomAccessStream,  # indexStream
                                           _Pointer[ITimedTextSource]],  # result
@@ -1246,8 +1216,6 @@ class ITimedTextSourceStatics2(_inspectable.IInspectable):
                                                   _type.HSTRING,  # defaultLanguage
                                                   _Pointer[ITimedTextSource]],  # result
                                                  _type.HRESULT]
-
-    _factory = True
 
 
 class ITimedTextStyle(_inspectable.IInspectable):
@@ -1381,12 +1349,10 @@ class IVideoStreamDescriptor2(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IVideoStreamDescriptorFactory(_inspectable.IInspectable):
+class IVideoStreamDescriptorFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Media_MediaProperties.IVideoEncodingProperties,  # encodingProperties
                        _Pointer[IVideoStreamDescriptor]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IVideoTrack(_inspectable.IInspectable):

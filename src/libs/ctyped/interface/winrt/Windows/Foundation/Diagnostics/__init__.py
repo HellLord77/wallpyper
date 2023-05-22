@@ -11,7 +11,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IAsyncCausalityTracerStatics(_inspectable.IInspectable):
+class IAsyncCausalityTracerStatics(_inspectable.IInspectable, factory=True):
     TraceOperationCreation: _Callable[[_enum.Windows.Foundation.Diagnostics.CausalityTraceLevel,  # traceLevel
                                        _enum.Windows.Foundation.Diagnostics.CausalitySource,  # source
                                        _struct.GUID,  # platformId
@@ -47,8 +47,6 @@ class IAsyncCausalityTracerStatics(_inspectable.IInspectable):
     remove_TracingStatusChanged: _Callable[[_struct.EventRegistrationToken],  # cookie
                                            _type.HRESULT]
 
-    _factory = True
-
 
 class IErrorDetails(_inspectable.IInspectable):
     get_Description: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -59,12 +57,10 @@ class IErrorDetails(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IErrorDetailsStatics(_inspectable.IInspectable):
+class IErrorDetailsStatics(_inspectable.IInspectable, factory=True):
     CreateFromHResultAsync: _Callable[[_type.INT32,  # errorCode
                                        _Pointer[_Windows_Foundation.IAsyncOperation[IErrorDetails]]],  # operation
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IErrorReportingSettings(_inspectable.IInspectable):
@@ -93,12 +89,10 @@ class IFileLoggingSession(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IFileLoggingSessionFactory(_inspectable.IInspectable):
+class IFileLoggingSessionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # name
                        _Pointer[IFileLoggingSession]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ILogFileGeneratedEventArgs(_inspectable.IInspectable):
@@ -127,7 +121,7 @@ class ILoggingActivity2(_inspectable.IInspectable):
                                                 _type.HRESULT]
 
 
-class ILoggingActivityFactory(_inspectable.IInspectable):
+class ILoggingActivityFactory(_inspectable.IInspectable, factory=True):
     CreateLoggingActivity: _Callable[[_type.HSTRING,  # activityName
                                       ILoggingChannel,  # loggingChannel
                                       _Pointer[ILoggingActivity]],  # loggingActivity
@@ -137,8 +131,6 @@ class ILoggingActivityFactory(_inspectable.IInspectable):
                                                _enum.Windows.Foundation.Diagnostics.LoggingLevel,  # level
                                                _Pointer[ILoggingActivity]],  # loggingActivity
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class ILoggingChannel(_inspectable.IInspectable):
@@ -178,7 +170,7 @@ class ILoggingChannelFactory(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class ILoggingChannelFactory2(_inspectable.IInspectable):
+class ILoggingChannelFactory2(_inspectable.IInspectable, factory=True):
     CreateWithOptions: _Callable[[_type.HSTRING,  # name
                                   ILoggingChannelOptions,  # options
                                   _Pointer[ILoggingChannel]],  # result
@@ -189,8 +181,6 @@ class ILoggingChannelFactory2(_inspectable.IInspectable):
                                        _Pointer[ILoggingChannel]],  # result
                                       _type.HRESULT]
 
-    _factory = True
-
 
 class ILoggingChannelOptions(_inspectable.IInspectable):
     get_Group: _Callable[[_Pointer[_struct.GUID]],  # value
@@ -199,12 +189,10 @@ class ILoggingChannelOptions(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class ILoggingChannelOptionsFactory(_inspectable.IInspectable):
+class ILoggingChannelOptionsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.GUID,  # group
                        _Pointer[ILoggingChannelOptions]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ILoggingFields(_inspectable.IInspectable):
@@ -741,12 +729,10 @@ class ILoggingOptions(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class ILoggingOptionsFactory(_inspectable.IInspectable):
+class ILoggingOptionsFactory(_inspectable.IInspectable, factory=True):
     CreateWithKeywords: _Callable[[_type.INT64,  # keywords
                                    _Pointer[ILoggingOptions]],  # result
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class ILoggingSession(_inspectable.IInspectable):
@@ -765,12 +751,10 @@ class ILoggingSession(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class ILoggingSessionFactory(_inspectable.IInspectable):
+class ILoggingSessionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # name
                        _Pointer[ILoggingSession]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class ILoggingTarget(_inspectable.IInspectable):

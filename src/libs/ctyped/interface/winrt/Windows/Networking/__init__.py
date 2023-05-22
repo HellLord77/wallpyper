@@ -28,15 +28,13 @@ class IEndpointPair(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IEndpointPairFactory(_inspectable.IInspectable):
+class IEndpointPairFactory(_inspectable.IInspectable, factory=True):
     CreateEndpointPair: _Callable[[IHostName,  # localHostName
                                    _type.HSTRING,  # localServiceName
                                    IHostName,  # remoteHostName
                                    _type.HSTRING,  # remoteServiceName
                                    _Pointer[IEndpointPair]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IHostName(_inspectable.IInspectable):
@@ -55,18 +53,14 @@ class IHostName(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IHostNameFactory(_inspectable.IInspectable):
+class IHostNameFactory(_inspectable.IInspectable, factory=True):
     CreateHostName: _Callable[[_type.HSTRING,  # hostName
                                _Pointer[IHostName]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IHostNameStatics(_inspectable.IInspectable):
+class IHostNameStatics(_inspectable.IInspectable, factory=True):
     Compare: _Callable[[_type.HSTRING,  # value1
                         _type.HSTRING,  # value2
                         _Pointer[_type.INT32]],  # result
                        _type.HRESULT]
-
-    _factory = True

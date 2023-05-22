@@ -26,9 +26,7 @@ class IDataProtectionProvider(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IDataProtectionProviderFactory(_inspectable.IInspectable):
+class IDataProtectionProviderFactory(_inspectable.IInspectable, factory=True):
     CreateOverloadExplicit: _Callable[[_type.HSTRING,  # protectionDescriptor
                                        _Pointer[IDataProtectionProvider]],  # value
                                       _type.HRESULT]
-
-    _factory = True

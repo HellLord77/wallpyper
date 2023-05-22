@@ -19,13 +19,11 @@ class IEnhancedWaypoint(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IEnhancedWaypointFactory(_inspectable.IInspectable):
+class IEnhancedWaypointFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # point
                        _enum.Windows.Services.Maps.WaypointKind,  # kind
                        _Pointer[IEnhancedWaypoint]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IManeuverWarning(_inspectable.IInspectable):
@@ -91,7 +89,7 @@ class IMapLocationFinderResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IMapLocationFinderStatics(_inspectable.IInspectable):
+class IMapLocationFinderStatics(_inspectable.IInspectable, factory=True):
     FindLocationsAtAsync: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # queryPoint
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IMapLocationFinderResult]]],  # result
                                     _type.HRESULT]
@@ -105,25 +103,19 @@ class IMapLocationFinderStatics(_inspectable.IInspectable):
                                                _Pointer[_Windows_Foundation.IAsyncOperation[IMapLocationFinderResult]]],  # result
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IMapLocationFinderStatics2(_inspectable.IInspectable):
+class IMapLocationFinderStatics2(_inspectable.IInspectable, factory=True):
     FindLocationsAtWithAccuracyAsync: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # queryPoint
                                                  _enum.Windows.Services.Maps.MapLocationDesiredAccuracy,  # accuracy
                                                  _Pointer[_Windows_Foundation.IAsyncOperation[IMapLocationFinderResult]]],  # result
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMapManagerStatics(_inspectable.IInspectable):
+class IMapManagerStatics(_inspectable.IInspectable, factory=True):
     ShowDownloadedMapsUI: _Callable[[],
                                     _type.HRESULT]
     ShowMapsUpdateUI: _Callable[[],
                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IMapRoute(_inspectable.IInspectable):
@@ -198,7 +190,7 @@ class IMapRouteFinderResult2(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IMapRouteFinderStatics(_inspectable.IInspectable):
+class IMapRouteFinderStatics(_inspectable.IInspectable, factory=True):
     GetDrivingRouteAsync: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # startPoint
                                      _Windows_Devices_Geolocation.IGeopoint,  # endPoint
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IMapRouteFinderResult]]],  # result
@@ -247,20 +239,16 @@ class IMapRouteFinderStatics(_inspectable.IInspectable):
                                                   _Pointer[_Windows_Foundation.IAsyncOperation[IMapRouteFinderResult]]],  # result
                                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IMapRouteFinderStatics2(_inspectable.IInspectable):
+class IMapRouteFinderStatics2(_inspectable.IInspectable, factory=True):
     GetDrivingRouteWithOptionsAsync: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # startPoint
                                                 _Windows_Devices_Geolocation.IGeopoint,  # endPoint
                                                 IMapRouteDrivingOptions,  # options
                                                 _Pointer[_Windows_Foundation.IAsyncOperation[IMapRouteFinderResult]]],  # result
                                                _type.HRESULT]
 
-    _factory = True
 
-
-class IMapRouteFinderStatics3(_inspectable.IInspectable):
+class IMapRouteFinderStatics3(_inspectable.IInspectable, factory=True):
     GetDrivingRouteFromEnhancedWaypointsAsync: _Callable[[_Windows_Foundation_Collections.IIterable[IEnhancedWaypoint],  # waypoints
                                                           _Pointer[_Windows_Foundation.IAsyncOperation[IMapRouteFinderResult]]],  # result
                                                          _type.HRESULT]
@@ -268,8 +256,6 @@ class IMapRouteFinderStatics3(_inspectable.IInspectable):
                                                                      IMapRouteDrivingOptions,  # options
                                                                      _Pointer[_Windows_Foundation.IAsyncOperation[IMapRouteFinderResult]]],  # result
                                                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IMapRouteLeg(_inspectable.IInspectable):
@@ -321,36 +307,28 @@ class IMapRouteManeuver3(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IMapServiceStatics(_inspectable.IInspectable):
+class IMapServiceStatics(_inspectable.IInspectable, factory=True):
     put_ServiceToken: _Callable[[_type.HSTRING],  # value
                                 _type.HRESULT]
     get_ServiceToken: _Callable[[_Pointer[_type.HSTRING]],  # value
                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IMapServiceStatics2(_inspectable.IInspectable):
+class IMapServiceStatics2(_inspectable.IInspectable, factory=True):
     get_WorldViewRegionCode: _Callable[[_Pointer[_type.HSTRING]],  # value
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IMapServiceStatics3(_inspectable.IInspectable):
+class IMapServiceStatics3(_inspectable.IInspectable, factory=True):
     get_DataAttributions: _Callable[[_Pointer[_type.HSTRING]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IMapServiceStatics4(_inspectable.IInspectable):
+class IMapServiceStatics4(_inspectable.IInspectable, factory=True):
     put_DataUsagePreference: _Callable[[_enum.Windows.Services.Maps.MapServiceDataUsagePreference],  # value
                                        _type.HRESULT]
     get_DataUsagePreference: _Callable[[_Pointer[_enum.Windows.Services.Maps.MapServiceDataUsagePreference]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IPlaceInfo(_inspectable.IInspectable):
@@ -380,7 +358,7 @@ class IPlaceInfoCreateOptions(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IPlaceInfoStatics(_inspectable.IInspectable):
+class IPlaceInfoStatics(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_Windows_Devices_Geolocation.IGeopoint,  # referencePoint
                        _Pointer[IPlaceInfo]],  # resultValue
                       _type.HRESULT]
@@ -402,10 +380,8 @@ class IPlaceInfoStatics(_inspectable.IInspectable):
     get_IsShowSupported: _Callable[[_Pointer[_type.boolean]],  # value
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IPlaceInfoStatics2(_inspectable.IInspectable):
+class IPlaceInfoStatics2(_inspectable.IInspectable, factory=True):
     CreateFromAddress: _Callable[[_type.HSTRING,  # displayAddress
                                   _Pointer[IPlaceInfo]],  # resultValue
                                  _type.HRESULT]
@@ -413,5 +389,3 @@ class IPlaceInfoStatics2(_inspectable.IInspectable):
                                           _type.HSTRING,  # displayName
                                           _Pointer[IPlaceInfo]],  # resultValue
                                          _type.HRESULT]
-
-    _factory = True

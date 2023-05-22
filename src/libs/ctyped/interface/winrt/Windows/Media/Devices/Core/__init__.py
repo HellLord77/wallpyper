@@ -65,7 +65,7 @@ class ICameraIntrinsics2(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ICameraIntrinsicsFactory(_inspectable.IInspectable):
+class ICameraIntrinsicsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_struct.Windows.Foundation.Numerics.Vector2,  # focalLength
                        _struct.Windows.Foundation.Numerics.Vector2,  # principalPoint
                        _struct.Windows.Foundation.Numerics.Vector3,  # radialDistortion
@@ -74,8 +74,6 @@ class ICameraIntrinsicsFactory(_inspectable.IInspectable):
                        _type.UINT32,  # imageHeight
                        _Pointer[ICameraIntrinsics]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDepthCorrelatedCoordinateMapper(_inspectable.IInspectable):

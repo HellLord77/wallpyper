@@ -38,12 +38,10 @@ class IDesignerAppManager(_inspectable.IInspectable):
                                       _type.HRESULT]
 
 
-class IDesignerAppManagerFactory(_inspectable.IInspectable):
+class IDesignerAppManagerFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # appUserModelId
                        _Pointer[IDesignerAppManager]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IDesignerAppView(_inspectable.IInspectable):
@@ -104,7 +102,7 @@ class IElementCompositionPreview(_inspectable.IInspectable):
     pass
 
 
-class IElementCompositionPreviewStatics(_inspectable.IInspectable):
+class IElementCompositionPreviewStatics(_inspectable.IInspectable, factory=True):
     GetElementVisual: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                                  _Pointer[_Windows_UI_Composition.IVisual]],  # result
                                 _type.HRESULT]
@@ -118,10 +116,8 @@ class IElementCompositionPreviewStatics(_inspectable.IInspectable):
                                                        _Pointer[_Windows_UI_Composition.ICompositionPropertySet]],  # result
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IElementCompositionPreviewStatics2(_inspectable.IInspectable):
+class IElementCompositionPreviewStatics2(_inspectable.IInspectable, factory=True):
     SetImplicitShowAnimation: _Callable[[_Windows_UI_Xaml.IUIElement,  # element
                                          _Windows_UI_Composition.ICompositionAnimationBase],  # animation
                                         _type.HRESULT]
@@ -135,10 +131,8 @@ class IElementCompositionPreviewStatics2(_inspectable.IInspectable):
                                               _Pointer[_Windows_UI_Composition.ICompositionPropertySet]],  # result
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IElementCompositionPreviewStatics3(_inspectable.IInspectable):
+class IElementCompositionPreviewStatics3(_inspectable.IInspectable, factory=True):
     SetAppWindowContent: _Callable[[_Windows_UI_WindowManagement.IAppWindow,  # appWindow
                                     _Windows_UI_Xaml.IUIElement],  # xamlContent
                                    _type.HRESULT]
@@ -146,18 +140,14 @@ class IElementCompositionPreviewStatics3(_inspectable.IInspectable):
                                     _Pointer[_Windows_UI_Xaml.IUIElement]],  # result
                                    _type.HRESULT]
 
-    _factory = True
-
 
 class IWindowsXamlManager(_inspectable.IInspectable):
     pass
 
 
-class IWindowsXamlManagerStatics(_inspectable.IInspectable):
+class IWindowsXamlManagerStatics(_inspectable.IInspectable, factory=True):
     InitializeForCurrentThread: _Callable[[_Pointer[IWindowsXamlManager]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlSourceFocusNavigationRequest(_inspectable.IInspectable):
@@ -169,7 +159,7 @@ class IXamlSourceFocusNavigationRequest(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IXamlSourceFocusNavigationRequestFactory(_inspectable.IInspectable):
+class IXamlSourceFocusNavigationRequestFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.UI.Xaml.Hosting.XamlSourceFocusNavigationReason,  # reason
                                _Pointer[IXamlSourceFocusNavigationRequest]],  # value
                               _type.HRESULT]
@@ -183,20 +173,16 @@ class IXamlSourceFocusNavigationRequestFactory(_inspectable.IInspectable):
                                                            _Pointer[IXamlSourceFocusNavigationRequest]],  # value
                                                           _type.HRESULT]
 
-    _factory = True
-
 
 class IXamlSourceFocusNavigationResult(_inspectable.IInspectable):
     get_WasFocusMoved: _Callable[[_Pointer[_type.boolean]],  # value
                                  _type.HRESULT]
 
 
-class IXamlSourceFocusNavigationResultFactory(_inspectable.IInspectable):
+class IXamlSourceFocusNavigationResultFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.boolean,  # focusMoved
                                _Pointer[IXamlSourceFocusNavigationResult]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlUIPresenter(_inspectable.IInspectable):
@@ -240,7 +226,7 @@ class IXamlUIPresenterHost3(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IXamlUIPresenterStatics(_inspectable.IInspectable):
+class IXamlUIPresenterStatics(_inspectable.IInspectable, factory=True):
     get_CompleteTimelinesAutomatically: _Callable[[_Pointer[_type.boolean]],  # value
                                                   _type.HRESULT]
     put_CompleteTimelinesAutomatically: _Callable[[_type.boolean],  # value
@@ -250,10 +236,8 @@ class IXamlUIPresenterStatics(_inspectable.IInspectable):
     NotifyWindowSizeChanged: _Callable[[],
                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IXamlUIPresenterStatics2(_inspectable.IInspectable):
+class IXamlUIPresenterStatics2(_inspectable.IInspectable, factory=True):
     GetFlyoutPlacementTargetInfo: _Callable[[_Windows_UI_Xaml.IFrameworkElement,  # placementTarget
                                              _enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode,  # preferredPlacement
                                              _Pointer[_enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode],  # targetPreferredPlacement
@@ -269,5 +253,3 @@ class IXamlUIPresenterStatics2(_inspectable.IInspectable):
                                    _Pointer[_enum.Windows.UI.Xaml.Controls.Primitives.FlyoutPlacementMode],  # chosenPlacement
                                    _Pointer[_struct.Windows.Foundation.Rect]],  # returnValue
                                   _type.HRESULT]
-
-    _factory = True

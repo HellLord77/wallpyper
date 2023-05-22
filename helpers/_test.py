@@ -628,7 +628,10 @@ def _test_progress():
 
 
 def _test():
-    pass
+    from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
+    typ = ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
+        'Windows.Storage.StorageFile')
+    print(typ, bool(typ))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

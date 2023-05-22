@@ -73,14 +73,12 @@ class IContentIndexerQueryOperations(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IContentIndexerStatics(_inspectable.IInspectable):
+class IContentIndexerStatics(_inspectable.IInspectable, factory=True):
     GetIndexerWithName: _Callable[[_type.HSTRING,  # indexName
                                    _Pointer[IContentIndexer]],  # index
                                   _type.HRESULT]
     GetIndexer: _Callable[[_Pointer[IContentIndexer]],  # index
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IIndexableContent(_inspectable.IInspectable):
@@ -142,7 +140,7 @@ class IQueryOptions(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IQueryOptionsFactory(_inspectable.IInspectable):
+class IQueryOptionsFactory(_inspectable.IInspectable, factory=True):
     CreateCommonFileQuery: _Callable[[_enum.Windows.Storage.Search.CommonFileQuery,  # query
                                       _Windows_Foundation_Collections.IIterable[_type.HSTRING],  # fileTypeFilter
                                       _Pointer[IQueryOptions]],  # queryOptions
@@ -150,8 +148,6 @@ class IQueryOptionsFactory(_inspectable.IInspectable):
     CreateCommonFolderQuery: _Callable[[_enum.Windows.Storage.Search.CommonFolderQuery,  # query
                                         _Pointer[IQueryOptions]],  # queryOptions
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IQueryOptionsWithProviderFilter(_inspectable.IInspectable):

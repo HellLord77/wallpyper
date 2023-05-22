@@ -64,14 +64,12 @@ class IAppDataPaths(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class IAppDataPathsStatics(_inspectable.IInspectable):
+class IAppDataPathsStatics(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IAppDataPaths]],  # result
                           _type.HRESULT]
     GetDefault: _Callable[[_Pointer[IAppDataPaths]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IApplicationData(_inspectable.IInspectable):
@@ -140,32 +138,26 @@ class IApplicationDataContainer(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IApplicationDataStatics(_inspectable.IInspectable):
+class IApplicationDataStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IApplicationData]],  # value
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IApplicationDataStatics2(_inspectable.IInspectable):
+class IApplicationDataStatics2(_inspectable.IInspectable, factory=True):
     GetForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                 _Pointer[_Windows_Foundation.IAsyncOperation[IApplicationData]]],  # getForUserOperation
                                _type.HRESULT]
 
-    _factory = True
 
-
-class ICachedFileManagerStatics(_inspectable.IInspectable):
+class ICachedFileManagerStatics(_inspectable.IInspectable, factory=True):
     DeferUpdates: _Callable[[IStorageFile],  # file
                             _type.HRESULT]
     CompleteUpdatesAsync: _Callable[[IStorageFile,  # file
                                      _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Storage.Provider.FileUpdateStatus]]],  # operation
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IDownloadsFolderStatics(_inspectable.IInspectable):
+class IDownloadsFolderStatics(_inspectable.IInspectable, factory=True):
     CreateFileAsync: _Callable[[_type.HSTRING,  # desiredName
                                 _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFile]]],  # operation
                                _type.HRESULT]
@@ -181,10 +173,8 @@ class IDownloadsFolderStatics(_inspectable.IInspectable):
                                                      _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFolder]]],  # operation
                                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IDownloadsFolderStatics2(_inspectable.IInspectable):
+class IDownloadsFolderStatics2(_inspectable.IInspectable, factory=True):
     CreateFileForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                        _type.HSTRING,  # desiredName
                                        _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFile]]],  # operation
@@ -204,10 +194,8 @@ class IDownloadsFolderStatics2(_inspectable.IInspectable):
                                                             _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFolder]]],  # operation
                                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IFileIOStatics(_inspectable.IInspectable):
+class IFileIOStatics(_inspectable.IInspectable, factory=True):
     ReadTextAsync: _Callable[[IStorageFile,  # file
                               _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # textOperation
                              _type.HRESULT]
@@ -271,31 +259,23 @@ class IFileIOStatics(_inspectable.IInspectable):
                                 _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersCameraRollStatics(_inspectable.IInspectable):
+class IKnownFoldersCameraRollStatics(_inspectable.IInspectable, factory=True):
     get_CameraRoll: _Callable[[_Pointer[IStorageFolder]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersPlaylistsStatics(_inspectable.IInspectable):
+class IKnownFoldersPlaylistsStatics(_inspectable.IInspectable, factory=True):
     get_Playlists: _Callable[[_Pointer[IStorageFolder]],  # value
                              _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersSavedPicturesStatics(_inspectable.IInspectable):
+class IKnownFoldersSavedPicturesStatics(_inspectable.IInspectable, factory=True):
     get_SavedPictures: _Callable[[_Pointer[IStorageFolder]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersStatics(_inspectable.IInspectable):
+class IKnownFoldersStatics(_inspectable.IInspectable, factory=True):
     get_MusicLibrary: _Callable[[_Pointer[IStorageFolder]],  # value
                                 _type.HRESULT]
     get_PicturesLibrary: _Callable[[_Pointer[IStorageFolder]],  # value
@@ -311,10 +291,8 @@ class IKnownFoldersStatics(_inspectable.IInspectable):
     get_MediaServerDevices: _Callable[[_Pointer[IStorageFolder]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersStatics2(_inspectable.IInspectable):
+class IKnownFoldersStatics2(_inspectable.IInspectable, factory=True):
     get_Objects3D: _Callable[[_Pointer[IStorageFolder]],  # value
                              _type.HRESULT]
     get_AppCaptures: _Callable[[_Pointer[IStorageFolder]],  # value
@@ -322,19 +300,15 @@ class IKnownFoldersStatics2(_inspectable.IInspectable):
     get_RecordedCalls: _Callable[[_Pointer[IStorageFolder]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersStatics3(_inspectable.IInspectable):
+class IKnownFoldersStatics3(_inspectable.IInspectable, factory=True):
     GetFolderForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                       _enum.Windows.Storage.KnownFolderId,  # folderId
                                       _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFolder]]],  # operation
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IKnownFoldersStatics4(_inspectable.IInspectable):
+class IKnownFoldersStatics4(_inspectable.IInspectable, factory=True):
     RequestAccessAsync: _Callable[[_enum.Windows.Storage.KnownFolderId,  # folderId
                                    _Pointer[_Windows_Foundation.IAsyncOperation[_enum.Windows.Storage.KnownFoldersAccessStatus]]],  # operation
                                   _type.HRESULT]
@@ -346,10 +320,8 @@ class IKnownFoldersStatics4(_inspectable.IInspectable):
                                _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFolder]]],  # operation
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IPathIOStatics(_inspectable.IInspectable):
+class IPathIOStatics(_inspectable.IInspectable, factory=True):
     ReadTextAsync: _Callable[[_type.HSTRING,  # absolutePath
                               _Pointer[_Windows_Foundation.IAsyncOperation[_type.HSTRING]]],  # textOperation
                              _type.HRESULT]
@@ -412,8 +384,6 @@ class IPathIOStatics(_inspectable.IInspectable):
                                 _Pointer[_type.BYTE],  # buffer
                                 _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class ISetVersionDeferral(_inspectable.IInspectable):
@@ -487,7 +457,7 @@ class IStorageFilePropertiesWithAvailability(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IStorageFileStatics(_inspectable.IInspectable):
+class IStorageFileStatics(_inspectable.IInspectable, factory=True):
     GetFileFromPathAsync: _Callable[[_type.HSTRING,  # path
                                      _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFile]]],  # operation
                                     _type.HRESULT]
@@ -515,16 +485,12 @@ class IStorageFileStatics(_inspectable.IInspectable):
                                                     _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFile]]],  # operation
                                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageFileStatics2(_inspectable.IInspectable):
+class IStorageFileStatics2(_inspectable.IInspectable, factory=True):
     GetFileFromPathForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                             _type.HSTRING,  # path
                                             _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFile]]],  # operation
                                            _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageFolder(_inspectable.IInspectable):
@@ -570,21 +536,17 @@ class IStorageFolder3(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IStorageFolderStatics(_inspectable.IInspectable):
+class IStorageFolderStatics(_inspectable.IInspectable, factory=True):
     GetFolderFromPathAsync: _Callable[[_type.HSTRING,  # path
                                        _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFolder]]],  # operation
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageFolderStatics2(_inspectable.IInspectable):
+class IStorageFolderStatics2(_inspectable.IInspectable, factory=True):
     GetFolderFromPathForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                               _type.HSTRING,  # path
                                               _Pointer[_Windows_Foundation.IAsyncOperation[IStorageFolder]]],  # operation
                                              _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageItem(_inspectable.IInspectable):
@@ -746,28 +708,22 @@ class IStorageLibraryLastChangeId(_inspectable.IInspectable):
     pass
 
 
-class IStorageLibraryLastChangeIdStatics(_inspectable.IInspectable):
+class IStorageLibraryLastChangeIdStatics(_inspectable.IInspectable, factory=True):
     get_Unknown: _Callable[[_Pointer[_type.UINT64]],  # value
                            _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageLibraryStatics(_inspectable.IInspectable):
+class IStorageLibraryStatics(_inspectable.IInspectable, factory=True):
     GetLibraryAsync: _Callable[[_enum.Windows.Storage.KnownLibraryId,  # libraryId
                                 _Pointer[_Windows_Foundation.IAsyncOperation[IStorageLibrary]]],  # operation
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageLibraryStatics2(_inspectable.IInspectable):
+class IStorageLibraryStatics2(_inspectable.IInspectable, factory=True):
     GetLibraryForUserAsync: _Callable[[_Windows_System.IUser,  # user
                                        _enum.Windows.Storage.KnownLibraryId,  # libraryId
                                        _Pointer[_Windows_Foundation.IAsyncOperation[IStorageLibrary]]],  # operation
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageProvider(_inspectable.IInspectable):
@@ -835,11 +791,9 @@ class ISystemDataPaths(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ISystemDataPathsStatics(_inspectable.IInspectable):
+class ISystemDataPathsStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ISystemDataPaths]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemGPSProperties(_inspectable.IInspectable):
@@ -903,7 +857,7 @@ class ISystemPhotoProperties(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class ISystemProperties(_inspectable.IInspectable):
+class ISystemProperties(_inspectable.IInspectable, factory=True):
     get_Author: _Callable[[_Pointer[_type.HSTRING]],  # value
                           _type.HRESULT]
     get_Comment: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -930,8 +884,6 @@ class ISystemProperties(_inspectable.IInspectable):
                          _type.HRESULT]
     get_Image: _Callable[[_Pointer[ISystemImageProperties]],  # value
                          _type.HRESULT]
-
-    _factory = True
 
 
 class ISystemVideoProperties(_inspectable.IInspectable):
@@ -988,11 +940,9 @@ class IUserDataPaths(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IUserDataPathsStatics(_inspectable.IInspectable):
+class IUserDataPathsStatics(_inspectable.IInspectable, factory=True):
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IUserDataPaths]],  # result
                           _type.HRESULT]
     GetDefault: _Callable[[_Pointer[IUserDataPaths]],  # result
                           _type.HRESULT]
-
-    _factory = True

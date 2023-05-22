@@ -10,7 +10,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IServiceDeviceStatics(_inspectable.IInspectable):
+class IServiceDeviceStatics(_inspectable.IInspectable, factory=True):
     GetDeviceSelector: _Callable[[_enum.Windows.Devices.Portable.ServiceDeviceType,  # serviceType
                                   _Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
@@ -18,14 +18,10 @@ class IServiceDeviceStatics(_inspectable.IInspectable):
                                                _Pointer[_type.HSTRING]],  # selector
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageDeviceStatics(_inspectable.IInspectable):
+class IStorageDeviceStatics(_inspectable.IInspectable, factory=True):
     FromId: _Callable[[_type.HSTRING,  # deviceId
                        _Pointer[_Windows_Storage.IStorageFolder]],  # deviceRoot
                       _type.HRESULT]
     GetDeviceSelector: _Callable[[_Pointer[_type.HSTRING]],  # selector
                                  _type.HRESULT]
-
-    _factory = True

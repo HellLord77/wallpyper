@@ -9,9 +9,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class IInputActivationListenerPreviewStatics(_inspectable.IInspectable):
+class IInputActivationListenerPreviewStatics(_inspectable.IInspectable, factory=True):
     CreateForApplicationWindow: _Callable[[_Windows_UI_WindowManagement.IAppWindow,  # window
                                            _Pointer[_Windows_UI_Input.IInputActivationListener]],  # result
                                           _type.HRESULT]
-
-    _factory = True

@@ -113,8 +113,6 @@ class IPrintDocumentFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IPrintDocumentStatics(_inspectable.IInspectable):
+class IPrintDocumentStatics(_inspectable.IInspectable, factory=True):
     get_DocumentSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                           _type.HRESULT]
-
-    _factory = True

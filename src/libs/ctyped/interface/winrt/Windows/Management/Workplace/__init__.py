@@ -8,7 +8,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IMdmAllowPolicyStatics(_inspectable.IInspectable):
+class IMdmAllowPolicyStatics(_inspectable.IInspectable, factory=True):
     IsBrowserAllowed: _Callable[[_Pointer[_type.boolean]],  # value
                                 _type.HRESULT]
     IsCameraAllowed: _Callable[[_Pointer[_type.boolean]],  # value
@@ -18,18 +18,12 @@ class IMdmAllowPolicyStatics(_inspectable.IInspectable):
     IsStoreAllowed: _Callable[[_Pointer[_type.boolean]],  # value
                               _type.HRESULT]
 
-    _factory = True
 
-
-class IMdmPolicyStatics2(_inspectable.IInspectable):
+class IMdmPolicyStatics2(_inspectable.IInspectable, factory=True):
     GetMessagingSyncPolicy: _Callable[[_Pointer[_enum.Windows.Management.Workplace.MessagingSyncPolicy]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IWorkplaceSettingsStatics(_inspectable.IInspectable):
+class IWorkplaceSettingsStatics(_inspectable.IInspectable, factory=True):
     get_IsMicrosoftAccountOptional: _Callable[[_Pointer[_type.boolean]],  # value
                                               _type.HRESULT]
-
-    _factory = True

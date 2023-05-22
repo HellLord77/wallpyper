@@ -95,13 +95,11 @@ class IAppInstallerManager(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IAppInstallerManagerStatics(_inspectable.IInspectable):
+class IAppInstallerManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAppInstallerManager]],  # result
                           _type.HRESULT]
     GetForSystem: _Callable[[_Pointer[IAppInstallerManager]],  # result
                             _type.HRESULT]
-
-    _factory = True
 
 
 class IAutoUpdateSettingsOptions(_inspectable.IInspectable):
@@ -151,12 +149,10 @@ class IAutoUpdateSettingsOptions(_inspectable.IInspectable):
                                        _type.HRESULT]
 
 
-class IAutoUpdateSettingsOptionsStatics(_inspectable.IInspectable):
+class IAutoUpdateSettingsOptionsStatics(_inspectable.IInspectable, factory=True):
     CreateFromAppInstallerInfo: _Callable[[_Windows_ApplicationModel.IAppInstallerInfo,  # appInstallerInfo
                                            _Pointer[IAutoUpdateSettingsOptions]],  # result
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class ICreateSharedPackageContainerOptions(_inspectable.IInspectable):
@@ -711,7 +707,7 @@ class ISharedPackageContainerManager(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class ISharedPackageContainerManagerStatics(_inspectable.IInspectable):
+class ISharedPackageContainerManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[ISharedPackageContainerManager]],  # result
                           _type.HRESULT]
     GetForUser: _Callable[[_type.HSTRING,  # userSid
@@ -720,20 +716,16 @@ class ISharedPackageContainerManagerStatics(_inspectable.IInspectable):
     GetForProvisioning: _Callable[[_Pointer[ISharedPackageContainerManager]],  # result
                                   _type.HRESULT]
 
-    _factory = True
-
 
 class ISharedPackageContainerMember(_inspectable.IInspectable):
     get_PackageFamilyName: _Callable[[_Pointer[_type.HSTRING]],  # value
                                      _type.HRESULT]
 
 
-class ISharedPackageContainerMemberFactory(_inspectable.IInspectable):
+class ISharedPackageContainerMemberFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # packageFamilyName
                                _Pointer[ISharedPackageContainerMember]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IStagePackageOptions(_inspectable.IInspectable):

@@ -51,19 +51,15 @@ class IFileOpenPicker3(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IFileOpenPickerStatics(_inspectable.IInspectable):
+class IFileOpenPickerStatics(_inspectable.IInspectable, factory=True):
     ResumePickSingleFileAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Storage.IStorageFile]]],  # operation
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IFileOpenPickerStatics2(_inspectable.IInspectable):
+class IFileOpenPickerStatics2(_inspectable.IInspectable, factory=True):
     CreateForUser: _Callable[[_Windows_System.IUser,  # user
                               _Pointer[IFileOpenPicker]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IFileOpenPickerWithOperationId(_inspectable.IInspectable):
@@ -122,12 +118,10 @@ class IFileSavePicker4(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IFileSavePickerStatics(_inspectable.IInspectable):
+class IFileSavePickerStatics(_inspectable.IInspectable, factory=True):
     CreateForUser: _Callable[[_Windows_System.IUser,  # user
                               _Pointer[IFileSavePicker]],  # result
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IFolderPicker(_inspectable.IInspectable):
@@ -165,9 +159,7 @@ class IFolderPicker3(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IFolderPickerStatics(_inspectable.IInspectable):
+class IFolderPickerStatics(_inspectable.IInspectable, factory=True):
     CreateForUser: _Callable[[_Windows_System.IUser,  # user
                               _Pointer[IFolderPicker]],  # result
                              _type.HRESULT]
-
-    _factory = True

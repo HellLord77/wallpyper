@@ -29,12 +29,10 @@ class IGpioChangeCounter(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class IGpioChangeCounterFactory(_inspectable.IInspectable):
+class IGpioChangeCounterFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IGpioPin,  # pin
                        _Pointer[IGpioChangeCounter]],  # value
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IGpioChangeReader(_inspectable.IInspectable):
@@ -69,7 +67,7 @@ class IGpioChangeReader(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IGpioChangeReaderFactory(_inspectable.IInspectable):
+class IGpioChangeReaderFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IGpioPin,  # pin
                        _Pointer[IGpioChangeReader]],  # value
                       _type.HRESULT]
@@ -77,8 +75,6 @@ class IGpioChangeReaderFactory(_inspectable.IInspectable):
                                    _type.INT32,  # minCapacity
                                    _Pointer[IGpioChangeReader]],  # value
                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IGpioController(_inspectable.IInspectable):
@@ -99,21 +95,17 @@ class IGpioController(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IGpioControllerStatics(_inspectable.IInspectable):
+class IGpioControllerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IGpioController]],  # value
                           _type.HRESULT]
 
-    _factory = True
 
-
-class IGpioControllerStatics2(_inspectable.IInspectable):
+class IGpioControllerStatics2(_inspectable.IInspectable, factory=True):
     GetControllersAsync: _Callable[[_Windows_Devices_Gpio_Provider.IGpioProvider,  # provider
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IGpioController]]]],  # operation
                                    _type.HRESULT]
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IGpioController]]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IGpioPin(_inspectable.IInspectable):

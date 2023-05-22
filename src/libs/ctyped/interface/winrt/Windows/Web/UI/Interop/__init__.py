@@ -54,12 +54,10 @@ class IWebViewControlProcess(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IWebViewControlProcessFactory(_inspectable.IInspectable):
+class IWebViewControlProcessFactory(_inspectable.IInspectable, factory=True):
     CreateWithOptions: _Callable[[IWebViewControlProcessOptions,  # processOptions
                                   _Pointer[IWebViewControlProcess]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IWebViewControlProcessOptions(_inspectable.IInspectable):

@@ -26,11 +26,9 @@ class IPaymentAppManager(_inspectable.IInspectable):
                                _type.HRESULT]
 
 
-class IPaymentAppManagerStatics(_inspectable.IInspectable):
+class IPaymentAppManagerStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IPaymentAppManager]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IPaymentTransaction(_inspectable.IInspectable):
@@ -66,9 +64,7 @@ class IPaymentTransactionAcceptResult(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IPaymentTransactionStatics(_inspectable.IInspectable):
+class IPaymentTransactionStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # id
                             _Pointer[_Windows_Foundation.IAsyncOperation[IPaymentTransaction]]],  # result
                            _type.HRESULT]
-
-    _factory = True

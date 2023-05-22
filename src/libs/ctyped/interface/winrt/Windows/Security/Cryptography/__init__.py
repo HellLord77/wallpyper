@@ -9,7 +9,7 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class ICryptographicBufferStatics(_inspectable.IInspectable):
+class ICryptographicBufferStatics(_inspectable.IInspectable, factory=True):
     Compare: _Callable[[_Windows_Storage_Streams.IBuffer,  # object1
                         _Windows_Storage_Streams.IBuffer,  # object2
                         _Pointer[_type.boolean]],  # isEqual
@@ -47,5 +47,3 @@ class ICryptographicBufferStatics(_inspectable.IInspectable):
                                       _Windows_Storage_Streams.IBuffer,  # buffer
                                       _Pointer[_type.HSTRING]],  # value
                                      _type.HRESULT]
-
-    _factory = True

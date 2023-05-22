@@ -24,13 +24,11 @@ class IAnimationDescription(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IAnimationDescriptionFactory(_inspectable.IInspectable):
+class IAnimationDescriptionFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_enum.Windows.UI.Core.AnimationMetrics.AnimationEffect,  # effect
                                _enum.Windows.UI.Core.AnimationMetrics.AnimationEffectTarget,  # target
                                _Pointer[IAnimationDescription]],  # animation
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IOpacityAnimation(_inspectable.IInspectable):

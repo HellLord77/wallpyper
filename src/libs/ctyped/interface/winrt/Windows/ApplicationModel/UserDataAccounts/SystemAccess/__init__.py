@@ -193,15 +193,13 @@ class IDeviceAccountConfiguration2(_inspectable.IInspectable):
                                                  _type.HRESULT]
 
 
-class IUserDataAccountSystemAccessManagerStatics(_inspectable.IInspectable):
+class IUserDataAccountSystemAccessManagerStatics(_inspectable.IInspectable, factory=True):
     AddAndShowDeviceAccountsAsync: _Callable[[_Windows_Foundation_Collections.IIterable[IDeviceAccountConfiguration],  # accounts
                                               _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[_type.HSTRING]]]],  # result
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IUserDataAccountSystemAccessManagerStatics2(_inspectable.IInspectable):
+class IUserDataAccountSystemAccessManagerStatics2(_inspectable.IInspectable, factory=True):
     SuppressLocalAccountWithAccountAsync: _Callable[[_type.HSTRING,  # userDataAccountId
                                                      _Pointer[_Windows_Foundation.IAsyncAction]],  # result
                                                     _type.HRESULT]
@@ -214,5 +212,3 @@ class IUserDataAccountSystemAccessManagerStatics2(_inspectable.IInspectable):
     GetDeviceAccountConfigurationAsync: _Callable[[_type.HSTRING,  # accountId
                                                    _Pointer[_Windows_Foundation.IAsyncOperation[IDeviceAccountConfiguration]]],  # result
                                                   _type.HRESULT]
-
-    _factory = True

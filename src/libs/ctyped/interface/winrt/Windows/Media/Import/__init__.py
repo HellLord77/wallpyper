@@ -189,15 +189,13 @@ class IPhotoImportItemImportedEventArgs(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IPhotoImportManagerStatics(_inspectable.IInspectable):
+class IPhotoImportManagerStatics(_inspectable.IInspectable, factory=True):
     IsSupportedAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_type.boolean]]],  # operation
                                 _type.HRESULT]
     FindAllSourcesAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IPhotoImportSource]]]],  # operation
                                    _type.HRESULT]
     GetPendingOperations: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IPhotoImportOperation]]],  # result
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IPhotoImportOperation(_inspectable.IInspectable):
@@ -302,15 +300,13 @@ class IPhotoImportSource(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IPhotoImportSourceStatics(_inspectable.IInspectable):
+class IPhotoImportSourceStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # sourceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IPhotoImportSource]]],  # operation
                            _type.HRESULT]
     FromFolderAsync: _Callable[[_Windows_Storage.IStorageFolder,  # sourceRootFolder
                                 _Pointer[_Windows_Foundation.IAsyncOperation[IPhotoImportSource]]],  # operation
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IPhotoImportStorageMedium(_inspectable.IInspectable):

@@ -77,7 +77,7 @@ class IAllJoynAboutDataView(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IAllJoynAboutDataViewStatics(_inspectable.IInspectable):
+class IAllJoynAboutDataViewStatics(_inspectable.IInspectable, factory=True):
     GetDataBySessionPortAsync: _Callable[[_type.HSTRING,  # uniqueName
                                           IAllJoynBusAttachment,  # busAttachment
                                           _type.UINT16,  # sessionPort
@@ -89,8 +89,6 @@ class IAllJoynAboutDataViewStatics(_inspectable.IInspectable):
                                                       _Windows_Globalization.ILanguage,  # language
                                                       _Pointer[_Windows_Foundation.IAsyncOperation[IAllJoynAboutDataView]]],  # operation
                                                      _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynAcceptSessionJoiner(_inspectable.IInspectable):
@@ -113,7 +111,7 @@ class IAllJoynAcceptSessionJoinerEventArgs(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IAllJoynAcceptSessionJoinerEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynAcceptSessionJoinerEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # uniqueName
                        _type.UINT16,  # sessionPort
                        _enum.Windows.Devices.AllJoyn.AllJoynTrafficType,  # trafficType
@@ -121,8 +119,6 @@ class IAllJoynAcceptSessionJoinerEventArgsFactory(_inspectable.IInspectable):
                        IAllJoynAcceptSessionJoiner,  # acceptSessionJoiner
                        _Pointer[IAllJoynAcceptSessionJoinerEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynAuthenticationCompleteEventArgs(_inspectable.IInspectable):
@@ -176,12 +172,10 @@ class IAllJoynBusAttachment2(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IAllJoynBusAttachmentFactory(_inspectable.IInspectable):
+class IAllJoynBusAttachmentFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # connectionSpecification
                        _Pointer[IAllJoynBusAttachment]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynBusAttachmentStateChangedEventArgs(_inspectable.IInspectable):
@@ -191,14 +185,12 @@ class IAllJoynBusAttachmentStateChangedEventArgs(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IAllJoynBusAttachmentStatics(_inspectable.IInspectable):
+class IAllJoynBusAttachmentStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IAllJoynBusAttachment]],  # defaultBusAttachment
                           _type.HRESULT]
     GetWatcher: _Callable[[_Windows_Foundation_Collections.IIterable[_type.HSTRING],  # requiredInterfaces
                            _Pointer[_Windows_Devices_Enumeration.IDeviceWatcher]],  # deviceWatcher
                           _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynBusObject(_inspectable.IInspectable):
@@ -216,7 +208,7 @@ class IAllJoynBusObject(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IAllJoynBusObjectFactory(_inspectable.IInspectable):
+class IAllJoynBusObjectFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # objectPath
                        _Pointer[IAllJoynBusObject]],  # result
                       _type.HRESULT]
@@ -225,20 +217,16 @@ class IAllJoynBusObjectFactory(_inspectable.IInspectable):
                                         _Pointer[IAllJoynBusObject]],  # result
                                        _type.HRESULT]
 
-    _factory = True
-
 
 class IAllJoynBusObjectStoppedEventArgs(_inspectable.IInspectable):
     Status: _Callable[[_Pointer[_type.INT32]],  # value
                       _type.HRESULT]
 
 
-class IAllJoynBusObjectStoppedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynBusObjectStoppedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # status
                        _Pointer[IAllJoynBusObjectStoppedEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynCredentials(_inspectable.IInspectable):
@@ -289,12 +277,10 @@ class IAllJoynMessageInfo(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IAllJoynMessageInfoFactory(_inspectable.IInspectable):
+class IAllJoynMessageInfoFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # senderUniqueName
                        _Pointer[IAllJoynMessageInfo]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynProducer(_inspectable.IInspectable):
@@ -307,12 +293,10 @@ class IAllJoynProducerStoppedEventArgs(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IAllJoynProducerStoppedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynProducerStoppedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # status
                        _Pointer[IAllJoynProducerStoppedEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynServiceInfo(_inspectable.IInspectable):
@@ -324,14 +308,12 @@ class IAllJoynServiceInfo(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IAllJoynServiceInfoFactory(_inspectable.IInspectable):
+class IAllJoynServiceInfoFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # uniqueName
                        _type.HSTRING,  # objectPath
                        _type.UINT16,  # sessionPort
                        _Pointer[IAllJoynServiceInfo]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynServiceInfoRemovedEventArgs(_inspectable.IInspectable):
@@ -339,20 +321,16 @@ class IAllJoynServiceInfoRemovedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IAllJoynServiceInfoRemovedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynServiceInfoRemovedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # uniqueName
                        _Pointer[IAllJoynServiceInfoRemovedEventArgs]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IAllJoynServiceInfoStatics(_inspectable.IInspectable):
+class IAllJoynServiceInfoStatics(_inspectable.IInspectable, factory=True):
     FromIdAsync: _Callable[[_type.HSTRING,  # deviceId
                             _Pointer[_Windows_Foundation.IAsyncOperation[IAllJoynServiceInfo]]],  # operation
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynSession(_inspectable.IInspectable):
@@ -376,12 +354,10 @@ class IAllJoynSessionJoinedEventArgs(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IAllJoynSessionJoinedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynSessionJoinedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IAllJoynSession,  # session
                        _Pointer[IAllJoynSessionJoinedEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynSessionLostEventArgs(_inspectable.IInspectable):
@@ -389,12 +365,10 @@ class IAllJoynSessionLostEventArgs(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class IAllJoynSessionLostEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynSessionLostEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_enum.Windows.Devices.AllJoyn.AllJoynSessionLostReason,  # reason
                        _Pointer[IAllJoynSessionLostEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynSessionMemberAddedEventArgs(_inspectable.IInspectable):
@@ -402,12 +376,10 @@ class IAllJoynSessionMemberAddedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IAllJoynSessionMemberAddedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynSessionMemberAddedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # uniqueName
                        _Pointer[IAllJoynSessionMemberAddedEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IAllJoynSessionMemberRemovedEventArgs(_inspectable.IInspectable):
@@ -415,15 +387,13 @@ class IAllJoynSessionMemberRemovedEventArgs(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IAllJoynSessionMemberRemovedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynSessionMemberRemovedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # uniqueName
                        _Pointer[IAllJoynSessionMemberRemovedEventArgs]],  # result
                       _type.HRESULT]
 
-    _factory = True
 
-
-class IAllJoynSessionStatics(_inspectable.IInspectable):
+class IAllJoynSessionStatics(_inspectable.IInspectable, factory=True):
     GetFromServiceInfoAsync: _Callable[[IAllJoynServiceInfo,  # serviceInfo
                                         _Pointer[_Windows_Foundation.IAsyncOperation[IAllJoynSession]]],  # operation
                                        _type.HRESULT]
@@ -432,10 +402,8 @@ class IAllJoynSessionStatics(_inspectable.IInspectable):
                                                         _Pointer[_Windows_Foundation.IAsyncOperation[IAllJoynSession]]],  # operation
                                                        _type.HRESULT]
 
-    _factory = True
 
-
-class IAllJoynStatusStatics(_inspectable.IInspectable):
+class IAllJoynStatusStatics(_inspectable.IInspectable, factory=True):
     Ok: _Callable[[_Pointer[_type.INT32]],  # value
                   _type.HRESULT]
     Fail: _Callable[[_Pointer[_type.INT32]],  # value
@@ -473,17 +441,13 @@ class IAllJoynStatusStatics(_inspectable.IInspectable):
     InvalidArgument8: _Callable[[_Pointer[_type.INT32]],  # value
                                 _type.HRESULT]
 
-    _factory = True
-
 
 class IAllJoynWatcherStoppedEventArgs(_inspectable.IInspectable):
     Status: _Callable[[_Pointer[_type.INT32]],  # value
                       _type.HRESULT]
 
 
-class IAllJoynWatcherStoppedEventArgsFactory(_inspectable.IInspectable):
+class IAllJoynWatcherStoppedEventArgsFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.INT32,  # status
                        _Pointer[IAllJoynWatcherStoppedEventArgs]],  # result
                       _type.HRESULT]
-
-    _factory = True

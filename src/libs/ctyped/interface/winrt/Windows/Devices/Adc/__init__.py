@@ -41,16 +41,12 @@ class IAdcController(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IAdcControllerStatics(_inspectable.IInspectable):
+class IAdcControllerStatics(_inspectable.IInspectable, factory=True):
     GetControllersAsync: _Callable[[_Windows_Devices_Adc_Provider.IAdcProvider,  # provider
                                     _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IAdcController]]]],  # operation
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IAdcControllerStatics2(_inspectable.IInspectable):
+class IAdcControllerStatics2(_inspectable.IInspectable, factory=True):
     GetDefaultAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IAdcController]]],  # operation
                                _type.HRESULT]
-
-    _factory = True

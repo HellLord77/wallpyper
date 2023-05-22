@@ -49,7 +49,7 @@ class IJumpListItem(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IJumpListItemStatics(_inspectable.IInspectable):
+class IJumpListItemStatics(_inspectable.IInspectable, factory=True):
     CreateWithArguments: _Callable[[_type.HSTRING,  # arguments
                                     _type.HSTRING,  # displayName
                                     _Pointer[IJumpListItem]],  # result
@@ -57,16 +57,12 @@ class IJumpListItemStatics(_inspectable.IInspectable):
     CreateSeparator: _Callable[[_Pointer[IJumpListItem]],  # result
                                _type.HRESULT]
 
-    _factory = True
 
-
-class IJumpListStatics(_inspectable.IInspectable):
+class IJumpListStatics(_inspectable.IInspectable, factory=True):
     LoadCurrentAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IJumpList]]],  # result
                                 _type.HRESULT]
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class ISecondaryTile(_inspectable.IInspectable):
@@ -173,7 +169,7 @@ class ISecondaryTileFactory(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class ISecondaryTileFactory2(_inspectable.IInspectable):
+class ISecondaryTileFactory2(_inspectable.IInspectable, factory=True):
     CreateMinimalTile: _Callable[[_type.HSTRING,  # tileId
                                   _type.HSTRING,  # displayName
                                   _type.HSTRING,  # arguments
@@ -182,10 +178,8 @@ class ISecondaryTileFactory2(_inspectable.IInspectable):
                                   _Pointer[ISecondaryTile]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class ISecondaryTileStatics(_inspectable.IInspectable):
+class ISecondaryTileStatics(_inspectable.IInspectable, factory=True):
     Exists: _Callable[[_type.HSTRING,  # tileId
                        _Pointer[_type.boolean]],  # exists
                       _type.HRESULT]
@@ -196,8 +190,6 @@ class ISecondaryTileStatics(_inspectable.IInspectable):
                                           _type.HRESULT]
     FindAllForPackageAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[ISecondaryTile]]]],  # operation
                                       _type.HRESULT]
-
-    _factory = True
 
 
 class ISecondaryTileVisualElements(_inspectable.IInspectable):
@@ -281,14 +273,12 @@ class IStartScreenManager2(_inspectable.IInspectable):
                                            _type.HRESULT]
 
 
-class IStartScreenManagerStatics(_inspectable.IInspectable):
+class IStartScreenManagerStatics(_inspectable.IInspectable, factory=True):
     GetDefault: _Callable[[_Pointer[IStartScreenManager]],  # value
                           _type.HRESULT]
     GetForUser: _Callable[[_Windows_System.IUser,  # user
                            _Pointer[IStartScreenManager]],  # result
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ITileMixedRealityModel(_inspectable.IInspectable):

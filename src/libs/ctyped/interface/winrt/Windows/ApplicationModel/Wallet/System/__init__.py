@@ -35,8 +35,6 @@ class IWalletItemSystemStore2(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IWalletManagerSystemStatics(_inspectable.IInspectable):
+class IWalletManagerSystemStatics(_inspectable.IInspectable, factory=True):
     RequestStoreAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[IWalletItemSystemStore]]],  # operation
                                  _type.HRESULT]
-
-    _factory = True

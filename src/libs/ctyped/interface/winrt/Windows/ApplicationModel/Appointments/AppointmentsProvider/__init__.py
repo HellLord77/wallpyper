@@ -25,7 +25,7 @@ class IAddAppointmentOperation(_inspectable.IInspectable):
                          _type.HRESULT]
 
 
-class IAppointmentsProviderLaunchActionVerbsStatics(_inspectable.IInspectable):
+class IAppointmentsProviderLaunchActionVerbsStatics(_inspectable.IInspectable, factory=True):
     get_AddAppointment: _Callable[[_Pointer[_type.HSTRING]],  # value
                                   _type.HRESULT]
     get_ReplaceAppointment: _Callable[[_Pointer[_type.HSTRING]],  # value
@@ -35,14 +35,10 @@ class IAppointmentsProviderLaunchActionVerbsStatics(_inspectable.IInspectable):
     get_ShowTimeFrame: _Callable[[_Pointer[_type.HSTRING]],  # value
                                  _type.HRESULT]
 
-    _factory = True
 
-
-class IAppointmentsProviderLaunchActionVerbsStatics2(_inspectable.IInspectable):
+class IAppointmentsProviderLaunchActionVerbsStatics2(_inspectable.IInspectable, factory=True):
     get_ShowAppointmentDetails: _Callable[[_Pointer[_type.HSTRING]],  # value
                                           _type.HRESULT]
-
-    _factory = True
 
 
 class IRemoveAppointmentOperation(_inspectable.IInspectable):

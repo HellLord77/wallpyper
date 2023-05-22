@@ -61,38 +61,30 @@ class IBackgroundDownloader3(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IBackgroundDownloaderFactory(_inspectable.IInspectable):
+class IBackgroundDownloaderFactory(_inspectable.IInspectable, factory=True):
     CreateWithCompletionGroup: _Callable[[IBackgroundTransferCompletionGroup,  # completionGroup
                                           _Pointer[IBackgroundDownloader]],  # backgroundDownloader
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundDownloaderStaticMethods(_inspectable.IInspectable):
+class IBackgroundDownloaderStaticMethods(_inspectable.IInspectable, factory=True):
     GetCurrentDownloadsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IDownloadOperation]]]],  # operation
                                         _type.HRESULT]
     GetCurrentDownloadsForGroupAsync: _Callable[[_type.HSTRING,  # group
                                                  _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IDownloadOperation]]]],  # operation
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundDownloaderStaticMethods2(_inspectable.IInspectable):
+class IBackgroundDownloaderStaticMethods2(_inspectable.IInspectable, factory=True):
     GetCurrentDownloadsForTransferGroupAsync: _Callable[[IBackgroundTransferGroup,  # group
                                                          _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IDownloadOperation]]]],  # operation
                                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundDownloaderUserConsent(_inspectable.IInspectable):
+class IBackgroundDownloaderUserConsent(_inspectable.IInspectable, factory=True):
     RequestUnconstrainedDownloadsAsync: _Callable[[_Windows_Foundation_Collections.IIterable[IDownloadOperation],  # operations
                                                    _Pointer[_Windows_Foundation.IAsyncOperation[IUnconstrainedTransferRequestResult]]],  # operation
                                                   _type.HRESULT]
-
-    _factory = True
 
 
 class IBackgroundTransferBase(_inspectable.IInspectable):
@@ -145,7 +137,7 @@ class IBackgroundTransferContentPart(_inspectable.IInspectable):
                        _type.HRESULT]
 
 
-class IBackgroundTransferContentPartFactory(_inspectable.IInspectable):
+class IBackgroundTransferContentPartFactory(_inspectable.IInspectable, factory=True):
     CreateWithName: _Callable[[_type.HSTRING,  # name
                                _Pointer[IBackgroundTransferContentPart]],  # value
                               _type.HRESULT]
@@ -154,15 +146,11 @@ class IBackgroundTransferContentPartFactory(_inspectable.IInspectable):
                                           _Pointer[IBackgroundTransferContentPart]],  # value
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundTransferErrorStaticMethods(_inspectable.IInspectable):
+class IBackgroundTransferErrorStaticMethods(_inspectable.IInspectable, factory=True):
     GetStatus: _Callable[[_type.INT32,  # hresult
                           _Pointer[_enum.Windows.Web.WebErrorStatus]],  # status
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IBackgroundTransferGroup(_inspectable.IInspectable):
@@ -174,12 +162,10 @@ class IBackgroundTransferGroup(_inspectable.IInspectable):
                                     _type.HRESULT]
 
 
-class IBackgroundTransferGroupStatics(_inspectable.IInspectable):
+class IBackgroundTransferGroupStatics(_inspectable.IInspectable, factory=True):
     CreateGroup: _Callable[[_type.HSTRING,  # name
                             _Pointer[IBackgroundTransferGroup]],  # value
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IBackgroundTransferOperation(_inspectable.IInspectable):
@@ -272,41 +258,33 @@ class IBackgroundUploader3(_inspectable.IInspectable):
                                    _type.HRESULT]
 
 
-class IBackgroundUploaderFactory(_inspectable.IInspectable):
+class IBackgroundUploaderFactory(_inspectable.IInspectable, factory=True):
     CreateWithCompletionGroup: _Callable[[IBackgroundTransferCompletionGroup,  # completionGroup
                                           _Pointer[IBackgroundUploader]],  # backgroundUploader
                                          _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundUploaderStaticMethods(_inspectable.IInspectable):
+class IBackgroundUploaderStaticMethods(_inspectable.IInspectable, factory=True):
     GetCurrentUploadsAsync: _Callable[[_Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IUploadOperation]]]],  # operation
                                       _type.HRESULT]
     GetCurrentUploadsForGroupAsync: _Callable[[_type.HSTRING,  # group
                                                _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IUploadOperation]]]],  # operation
                                               _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundUploaderStaticMethods2(_inspectable.IInspectable):
+class IBackgroundUploaderStaticMethods2(_inspectable.IInspectable, factory=True):
     GetCurrentUploadsForTransferGroupAsync: _Callable[[IBackgroundTransferGroup,  # group
                                                        _Pointer[_Windows_Foundation.IAsyncOperation[_Windows_Foundation_Collections.IVectorView[IUploadOperation]]]],  # operation
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IBackgroundUploaderUserConsent(_inspectable.IInspectable):
+class IBackgroundUploaderUserConsent(_inspectable.IInspectable, factory=True):
     RequestUnconstrainedUploadsAsync: _Callable[[_Windows_Foundation_Collections.IIterable[IUploadOperation],  # operations
                                                  _Pointer[_Windows_Foundation.IAsyncOperation[IUnconstrainedTransferRequestResult]]],  # operation
                                                 _type.HRESULT]
 
-    _factory = True
 
-
-class IContentPrefetcher(_inspectable.IInspectable):
+class IContentPrefetcher(_inspectable.IInspectable, factory=True):
     get_ContentUris: _Callable[[_Pointer[_Windows_Foundation_Collections.IVector[_Windows_Foundation.IUriRuntimeClass]]],  # value
                                _type.HRESULT]
     put_IndirectContentUri: _Callable[[_Windows_Foundation.IUriRuntimeClass],  # value
@@ -314,14 +292,10 @@ class IContentPrefetcher(_inspectable.IInspectable):
     get_IndirectContentUri: _Callable[[_Pointer[_Windows_Foundation.IUriRuntimeClass]],  # value
                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IContentPrefetcherTime(_inspectable.IInspectable):
+class IContentPrefetcherTime(_inspectable.IInspectable, factory=True):
     get_LastSuccessfulPrefetchTime: _Callable[[_Pointer[_Windows_Foundation.IReference[_struct.Windows.Foundation.DateTime]]],  # value
                                               _type.HRESULT]
-
-    _factory = True
 
 
 class IDownloadOperation(_inspectable.IInspectable):

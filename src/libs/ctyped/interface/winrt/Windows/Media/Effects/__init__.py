@@ -38,7 +38,7 @@ class IAudioEffectDefinition(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IAudioEffectDefinitionFactory(_inspectable.IInspectable):
+class IAudioEffectDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # activatableClassId
                        _Pointer[IAudioEffectDefinition]],  # value
                       _type.HRESULT]
@@ -47,10 +47,8 @@ class IAudioEffectDefinitionFactory(_inspectable.IInspectable):
                                      _Pointer[IAudioEffectDefinition]],  # value
                                     _type.HRESULT]
 
-    _factory = True
 
-
-class IAudioEffectsManagerStatics(_inspectable.IInspectable):
+class IAudioEffectsManagerStatics(_inspectable.IInspectable, factory=True):
     CreateAudioRenderEffectsManager: _Callable[[_type.HSTRING,  # deviceId
                                                 _enum.Windows.Media.Render.AudioRenderCategory,  # category
                                                 _Pointer[IAudioRenderEffectsManager]],  # value
@@ -69,8 +67,6 @@ class IAudioEffectsManagerStatics(_inspectable.IInspectable):
                                                          _enum.Windows.Media.AudioProcessing,  # mode
                                                          _Pointer[IAudioCaptureEffectsManager]],  # value
                                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IAudioRenderEffectsManager(_inspectable.IInspectable):
@@ -174,7 +170,7 @@ class IVideoCompositorDefinition(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IVideoCompositorDefinitionFactory(_inspectable.IInspectable):
+class IVideoCompositorDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # activatableClassId
                        _Pointer[IVideoCompositorDefinition]],  # value
                       _type.HRESULT]
@@ -182,8 +178,6 @@ class IVideoCompositorDefinitionFactory(_inspectable.IInspectable):
                                      _Windows_Foundation_Collections.IPropertySet,  # props
                                      _Pointer[IVideoCompositorDefinition]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IVideoEffectDefinition(_inspectable.IInspectable):
@@ -193,7 +187,7 @@ class IVideoEffectDefinition(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IVideoEffectDefinitionFactory(_inspectable.IInspectable):
+class IVideoEffectDefinitionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # activatableClassId
                        _Pointer[IVideoEffectDefinition]],  # value
                       _type.HRESULT]
@@ -201,8 +195,6 @@ class IVideoEffectDefinitionFactory(_inspectable.IInspectable):
                                      _Windows_Foundation_Collections.IPropertySet,  # props
                                      _Pointer[IVideoEffectDefinition]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IVideoTransformEffectDefinition(_inspectable.IInspectable):

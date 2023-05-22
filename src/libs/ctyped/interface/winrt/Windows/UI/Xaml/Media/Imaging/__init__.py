@@ -86,15 +86,13 @@ class IBitmapImage3(_inspectable.IInspectable):
                     _type.HRESULT]
 
 
-class IBitmapImageFactory(_inspectable.IInspectable):
+class IBitmapImageFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithUriSource: _Callable[[_Windows_Foundation.IUriRuntimeClass,  # uriSource
                                             _Pointer[IBitmapImage]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapImageStatics(_inspectable.IInspectable):
+class IBitmapImageStatics(_inspectable.IInspectable, factory=True):
     get_CreateOptionsProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                          _type.HRESULT]
     get_UriSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -104,25 +102,19 @@ class IBitmapImageStatics(_inspectable.IInspectable):
     get_DecodePixelHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                              _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapImageStatics2(_inspectable.IInspectable):
+class IBitmapImageStatics2(_inspectable.IInspectable, factory=True):
     get_DecodePixelTypeProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                            _type.HRESULT]
 
-    _factory = True
 
-
-class IBitmapImageStatics3(_inspectable.IInspectable):
+class IBitmapImageStatics3(_inspectable.IInspectable, factory=True):
     get_IsAnimatedBitmapProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                             _type.HRESULT]
     get_IsPlayingProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_AutoPlayProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class IBitmapSource(_inspectable.IInspectable):
@@ -144,13 +136,11 @@ class IBitmapSourceFactory(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IBitmapSourceStatics(_inspectable.IInspectable):
+class IBitmapSourceStatics(_inspectable.IInspectable, factory=True):
     get_PixelWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_PixelHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class IDownloadProgressEventArgs(_inspectable.IInspectable):
@@ -177,13 +167,11 @@ class IRenderTargetBitmap(_inspectable.IInspectable):
                               _type.HRESULT]
 
 
-class IRenderTargetBitmapStatics(_inspectable.IInspectable):
+class IRenderTargetBitmapStatics(_inspectable.IInspectable, factory=True):
     get_PixelWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                       _type.HRESULT]
     get_PixelHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                        _type.HRESULT]
-
-    _factory = True
 
 
 class ISoftwareBitmapSource(_inspectable.IInspectable):
@@ -261,7 +249,7 @@ class ISvgImageSourceOpenedEventArgs(_inspectable.IInspectable):
     pass
 
 
-class ISvgImageSourceStatics(_inspectable.IInspectable):
+class ISvgImageSourceStatics(_inspectable.IInspectable, factory=True):
     get_UriSourceProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                      _type.HRESULT]
     get_RasterizePixelWidthProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
@@ -269,14 +257,12 @@ class ISvgImageSourceStatics(_inspectable.IInspectable):
     get_RasterizePixelHeightProperty: _Callable[[_Pointer[_Windows_UI_Xaml.IDependencyProperty]],  # value
                                                 _type.HRESULT]
 
-    _factory = True
-
 
 class IVirtualSurfaceImageSource(_inspectable.IInspectable):
     pass
 
 
-class IVirtualSurfaceImageSourceFactory(_inspectable.IInspectable):
+class IVirtualSurfaceImageSourceFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithDimensions: _Callable[[_type.INT32,  # pixelWidth
                                              _type.INT32,  # pixelHeight
                                              _Pointer[IVirtualSurfaceImageSource]],  # value
@@ -287,8 +273,6 @@ class IVirtualSurfaceImageSourceFactory(_inspectable.IInspectable):
                                                        _Pointer[IVirtualSurfaceImageSource]],  # value
                                                       _type.HRESULT]
 
-    _factory = True
-
 
 class IWriteableBitmap(_inspectable.IInspectable):
     get_PixelBuffer: _Callable[[_Pointer[_Windows_Storage_Streams.IBuffer]],  # value
@@ -297,13 +281,11 @@ class IWriteableBitmap(_inspectable.IInspectable):
                           _type.HRESULT]
 
 
-class IWriteableBitmapFactory(_inspectable.IInspectable):
+class IWriteableBitmapFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceWithDimensions: _Callable[[_type.INT32,  # pixelWidth
                                              _type.INT32,  # pixelHeight
                                              _Pointer[IWriteableBitmap]],  # value
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IXamlRenderingBackgroundTask(_inspectable.IInspectable):

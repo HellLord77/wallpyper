@@ -10,7 +10,7 @@ from ....... import type as _type
 from ......._utils import _Pointer
 
 
-class ICoreUserActivityManagerStatics(_inspectable.IInspectable):
+class ICoreUserActivityManagerStatics(_inspectable.IInspectable, factory=True):
     CreateUserActivitySessionInBackground: _Callable[[_Windows_ApplicationModel_UserActivities.IUserActivity,  # activity
                                                       _Pointer[_Windows_ApplicationModel_UserActivities.IUserActivitySession]],  # result
                                                      _type.HRESULT]
@@ -19,5 +19,3 @@ class ICoreUserActivityManagerStatics(_inspectable.IInspectable):
                                                            _struct.Windows.Foundation.DateTime,  # endTime
                                                            _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                                                           _type.HRESULT]
-
-    _factory = True

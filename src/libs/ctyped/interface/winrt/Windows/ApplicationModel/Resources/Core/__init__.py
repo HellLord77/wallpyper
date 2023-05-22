@@ -76,15 +76,13 @@ class IResourceContext(_inspectable.IInspectable):
                              _type.HRESULT]
 
 
-class IResourceContextStatics(_inspectable.IInspectable):
+class IResourceContextStatics(_inspectable.IInspectable, factory=True):
     CreateMatchingContext: _Callable[[_Windows_Foundation_Collections.IIterable[IResourceQualifier],  # result
                                       _Pointer[IResourceContext]],  # value
                                      _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceContextStatics2(_inspectable.IInspectable):
+class IResourceContextStatics2(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IResourceContext]],  # value
                                  _type.HRESULT]
     SetGlobalQualifierValue: _Callable[[_type.HSTRING,  # key
@@ -97,24 +95,18 @@ class IResourceContextStatics2(_inspectable.IInspectable):
     GetForViewIndependentUse: _Callable[[_Pointer[IResourceContext]],  # loader
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceContextStatics3(_inspectable.IInspectable):
+class IResourceContextStatics3(_inspectable.IInspectable, factory=True):
     SetGlobalQualifierValueWithPersistence: _Callable[[_type.HSTRING,  # key
                                                        _type.HSTRING,  # value
                                                        _enum.Windows.ApplicationModel.Resources.Core.ResourceQualifierPersistence],  # persistence
                                                       _type.HRESULT]
 
-    _factory = True
 
-
-class IResourceContextStatics4(_inspectable.IInspectable):
+class IResourceContextStatics4(_inspectable.IInspectable, factory=True):
     GetForUIContext: _Callable[[_Windows_UI.IUIContext,  # context
                                 _Pointer[IResourceContext]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IResourceManager(_inspectable.IInspectable):
@@ -141,14 +133,12 @@ class IResourceManager2(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IResourceManagerStatics(_inspectable.IInspectable):
+class IResourceManagerStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[IResourceManager]],  # value
                            _type.HRESULT]
     IsResourceReference: _Callable[[_type.HSTRING,  # resourceReference
                                     _Pointer[_type.boolean]],  # isReference
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IResourceMap(_inspectable.IInspectable):

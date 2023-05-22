@@ -38,7 +38,7 @@ class IXboxLiveDeviceAddress(_inspectable.IInspectable):
                                      _type.HRESULT]
 
 
-class IXboxLiveDeviceAddressStatics(_inspectable.IInspectable):
+class IXboxLiveDeviceAddressStatics(_inspectable.IInspectable, factory=True):
     CreateFromSnapshotBase64: _Callable[[_type.HSTRING,  # base64
                                          _Pointer[IXboxLiveDeviceAddress]],  # value
                                         _type.HRESULT]
@@ -53,8 +53,6 @@ class IXboxLiveDeviceAddressStatics(_inspectable.IInspectable):
                         _type.HRESULT]
     get_MaxSnapshotBytesSize: _Callable[[_Pointer[_type.UINT32]],  # value
                                         _type.HRESULT]
-
-    _factory = True
 
 
 class IXboxLiveEndpointPair(_inspectable.IInspectable):
@@ -105,7 +103,7 @@ class IXboxLiveEndpointPairStateChangedEventArgs(_inspectable.IInspectable):
                             _type.HRESULT]
 
 
-class IXboxLiveEndpointPairStatics(_inspectable.IInspectable):
+class IXboxLiveEndpointPairStatics(_inspectable.IInspectable, factory=True):
     FindEndpointPairBySocketAddressBytes: _Callable[[_type.UINT32,  # __localSocketAddressSize
                                                      _Pointer[_type.BYTE],  # localSocketAddress
                                                      _type.UINT32,  # __remoteSocketAddressSize
@@ -118,8 +116,6 @@ class IXboxLiveEndpointPairStatics(_inspectable.IInspectable):
                                                     _type.HSTRING,  # remotePort
                                                     _Pointer[IXboxLiveEndpointPair]],  # endpointPair
                                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IXboxLiveEndpointPairTemplate(_inspectable.IInspectable):
@@ -162,14 +158,12 @@ class IXboxLiveEndpointPairTemplate(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IXboxLiveEndpointPairTemplateStatics(_inspectable.IInspectable):
+class IXboxLiveEndpointPairTemplateStatics(_inspectable.IInspectable, factory=True):
     GetTemplateByName: _Callable[[_type.HSTRING,  # name
                                   _Pointer[IXboxLiveEndpointPairTemplate]],  # namedTemplate
                                  _type.HRESULT]
     get_Templates: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IXboxLiveEndpointPairTemplate]]],  # value
                              _type.HRESULT]
-
-    _factory = True
 
 
 class IXboxLiveInboundEndpointPairCreatedEventArgs(_inspectable.IInspectable):
@@ -217,7 +211,7 @@ class IXboxLiveQualityOfServiceMeasurement(_inspectable.IInspectable):
                                          _type.HRESULT]
 
 
-class IXboxLiveQualityOfServiceMeasurementStatics(_inspectable.IInspectable):
+class IXboxLiveQualityOfServiceMeasurementStatics(_inspectable.IInspectable, factory=True):
     PublishPrivatePayloadBytes: _Callable[[_type.UINT32,  # __payloadSize
                                            _Pointer[_type.BYTE]],  # payload
                                           _type.HRESULT]
@@ -241,8 +235,6 @@ class IXboxLiveQualityOfServiceMeasurementStatics(_inspectable.IInspectable):
                                            _type.HRESULT]
     get_MaxPrivatePayloadSize: _Callable[[_Pointer[_type.UINT32]],  # value
                                          _type.HRESULT]
-
-    _factory = True
 
 
 class IXboxLiveQualityOfServiceMetricResult(_inspectable.IInspectable):

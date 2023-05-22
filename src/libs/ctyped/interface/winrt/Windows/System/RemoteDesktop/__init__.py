@@ -7,8 +7,6 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class IInteractiveSessionStatics(_inspectable.IInspectable):
+class IInteractiveSessionStatics(_inspectable.IInspectable, factory=True):
     get_IsRemote: _Callable[[_Pointer[_type.boolean]],  # value
                             _type.HRESULT]
-
-    _factory = True

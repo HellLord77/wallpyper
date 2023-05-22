@@ -37,11 +37,9 @@ class IHdmiDisplayInformation(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IHdmiDisplayInformationStatics(_inspectable.IInspectable):
+class IHdmiDisplayInformationStatics(_inspectable.IInspectable, factory=True):
     GetForCurrentView: _Callable[[_Pointer[IHdmiDisplayInformation]],  # result
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IHdmiDisplayMode(_inspectable.IInspectable):

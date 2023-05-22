@@ -12,9 +12,7 @@ class IWindowManagementPreview(_inspectable.IInspectable):
     pass
 
 
-class IWindowManagementPreviewStatics(_inspectable.IInspectable):
+class IWindowManagementPreviewStatics(_inspectable.IInspectable, factory=True):
     SetPreferredMinSize: _Callable[[_Windows_UI_WindowManagement.IAppWindow,  # window
                                     _struct.Windows.Foundation.Size],  # preferredFrameMinSize
                                    _type.HRESULT]
-
-    _factory = True

@@ -48,15 +48,13 @@ class IBackgroundAudioTrack(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IBackgroundAudioTrackStatics(_inspectable.IInspectable):
+class IBackgroundAudioTrackStatics(_inspectable.IInspectable, factory=True):
     CreateFromEmbeddedAudioTrack: _Callable[[IEmbeddedAudioTrack,  # embeddedAudioTrack
                                              _Pointer[IBackgroundAudioTrack]],  # value
                                             _type.HRESULT]
     CreateFromFileAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                                     _Pointer[_Windows_Foundation.IAsyncOperation[IBackgroundAudioTrack]]],  # operation
                                    _type.HRESULT]
-
-    _factory = True
 
 
 class IEmbeddedAudioTrack(_inspectable.IInspectable):
@@ -103,7 +101,7 @@ class IMediaClip(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IMediaClipStatics(_inspectable.IInspectable):
+class IMediaClipStatics(_inspectable.IInspectable, factory=True):
     CreateFromColor: _Callable[[_struct.Windows.UI.Color,  # color
                                 _struct.Windows.Foundation.TimeSpan,  # originalDuration
                                 _Pointer[IMediaClip]],  # value
@@ -116,16 +114,12 @@ class IMediaClipStatics(_inspectable.IInspectable):
                                          _Pointer[_Windows_Foundation.IAsyncOperation[IMediaClip]]],  # operation
                                         _type.HRESULT]
 
-    _factory = True
 
-
-class IMediaClipStatics2(_inspectable.IInspectable):
+class IMediaClipStatics2(_inspectable.IInspectable, factory=True):
     CreateFromSurface: _Callable[[_Windows_Graphics_DirectX_Direct3D11.IDirect3DSurface,  # surface
                                   _struct.Windows.Foundation.TimeSpan,  # originalDuration
                                   _Pointer[IMediaClip]],  # value
                                  _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaComposition(_inspectable.IInspectable):
@@ -184,12 +178,10 @@ class IMediaComposition2(_inspectable.IInspectable):
                                  _type.HRESULT]
 
 
-class IMediaCompositionStatics(_inspectable.IInspectable):
+class IMediaCompositionStatics(_inspectable.IInspectable, factory=True):
     LoadAsync: _Callable[[_Windows_Storage.IStorageFile,  # file
                           _Pointer[_Windows_Foundation.IAsyncOperation[IMediaComposition]]],  # operation
                          _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaOverlay(_inspectable.IInspectable):
@@ -215,7 +207,7 @@ class IMediaOverlay(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IMediaOverlayFactory(_inspectable.IInspectable):
+class IMediaOverlayFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[IMediaClip,  # clip
                        _Pointer[IMediaOverlay]],  # mediaOverlay
                       _type.HRESULT]
@@ -224,8 +216,6 @@ class IMediaOverlayFactory(_inspectable.IInspectable):
                                              _type.DOUBLE,  # opacity
                                              _Pointer[IMediaOverlay]],  # mediaOverlay
                                             _type.HRESULT]
-
-    _factory = True
 
 
 class IMediaOverlayLayer(_inspectable.IInspectable):
@@ -237,9 +227,7 @@ class IMediaOverlayLayer(_inspectable.IInspectable):
                                               _type.HRESULT]
 
 
-class IMediaOverlayLayerFactory(_inspectable.IInspectable):
+class IMediaOverlayLayerFactory(_inspectable.IInspectable, factory=True):
     CreateWithCompositorDefinition: _Callable[[_Windows_Media_Effects.IVideoCompositorDefinition,  # compositorDefinition
                                                _Pointer[IMediaOverlayLayer]],  # mediaOverlayLayer
                                               _type.HRESULT]
-
-    _factory = True

@@ -62,11 +62,9 @@ class IGattServiceProviderConnection(_inspectable.IInspectable):
                      _type.HRESULT]
 
 
-class IGattServiceProviderConnectionStatics(_inspectable.IInspectable):
+class IGattServiceProviderConnectionStatics(_inspectable.IInspectable, factory=True):
     get_AllServices: _Callable[[_Pointer[_Windows_Foundation_Collections.IMapView[_type.HSTRING, IGattServiceProviderConnection]]],  # value
                                _type.HRESULT]
-
-    _factory = True
 
 
 class IGattServiceProviderTriggerDetails(_inspectable.IInspectable):

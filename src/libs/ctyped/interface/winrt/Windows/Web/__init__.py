@@ -16,9 +16,7 @@ class IUriToStreamResolver(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IWebErrorStatics(_inspectable.IInspectable):
+class IWebErrorStatics(_inspectable.IInspectable, factory=True):
     GetStatus: _Callable[[_type.INT32,  # hresult
                           _Pointer[_enum.Windows.Web.WebErrorStatus]],  # status
                          _type.HRESULT]
-
-    _factory = True

@@ -151,12 +151,10 @@ class IPrintWorkflowObjectModelSourceFileContent(_inspectable.IInspectable):
     pass
 
 
-class IPrintWorkflowObjectModelSourceFileContentFactory(_inspectable.IInspectable):
+class IPrintWorkflowObjectModelSourceFileContentFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_Windows_Storage_Streams.IInputStream,  # xpsStream
                                _Pointer[IPrintWorkflowObjectModelSourceFileContent]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IPrintWorkflowObjectModelTargetPackage(_inspectable.IInspectable):

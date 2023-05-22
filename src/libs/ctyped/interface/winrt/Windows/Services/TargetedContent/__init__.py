@@ -60,12 +60,10 @@ class ITargetedContentContainer(_inspectable.IInspectable):
                                   _type.HRESULT]
 
 
-class ITargetedContentContainerStatics(_inspectable.IInspectable):
+class ITargetedContentContainerStatics(_inspectable.IInspectable, factory=True):
     GetAsync: _Callable[[_type.HSTRING,  # contentId
                          _Pointer[_Windows_Foundation.IAsyncOperation[ITargetedContentContainer]]],  # asyncOperation
                         _type.HRESULT]
-
-    _factory = True
 
 
 class ITargetedContentImage(_inspectable.IInspectable):
@@ -150,15 +148,13 @@ class ITargetedContentSubscriptionOptions(_inspectable.IInspectable):
                       _type.HRESULT]
 
 
-class ITargetedContentSubscriptionStatics(_inspectable.IInspectable):
+class ITargetedContentSubscriptionStatics(_inspectable.IInspectable, factory=True):
     GetAsync: _Callable[[_type.HSTRING,  # subscriptionId
                          _Pointer[_Windows_Foundation.IAsyncOperation[ITargetedContentSubscription]]],  # asyncOperation
                         _type.HRESULT]
     GetOptions: _Callable[[_type.HSTRING,  # subscriptionId
                            _Pointer[ITargetedContentSubscriptionOptions]],  # value
                           _type.HRESULT]
-
-    _factory = True
 
 
 class ITargetedContentValue(_inspectable.IInspectable):

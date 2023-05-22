@@ -13,15 +13,13 @@ from ...... import type as _type
 from ......_utils import _Pointer
 
 
-class ICachedFileUpdaterStatics(_inspectable.IInspectable):
+class ICachedFileUpdaterStatics(_inspectable.IInspectable, factory=True):
     SetUpdateInformation: _Callable[[_Windows_Storage.IStorageFile,  # file
                                      _type.HSTRING,  # contentId
                                      _enum.Windows.Storage.Provider.ReadActivationMode,  # readMode
                                      _enum.Windows.Storage.Provider.WriteActivationMode,  # writeMode
                                      _enum.Windows.Storage.Provider.CachedFileOptions],  # options
                                     _type.HRESULT]
-
-    _factory = True
 
 
 class ICachedFileUpdaterUI(_inspectable.IInspectable):
@@ -91,13 +89,11 @@ class IStorageProviderFileTypeInfo(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IStorageProviderFileTypeInfoFactory(_inspectable.IInspectable):
+class IStorageProviderFileTypeInfoFactory(_inspectable.IInspectable, factory=True):
     CreateInstance: _Callable[[_type.HSTRING,  # fileExtension
                                _type.HSTRING,  # iconResource
                                _Pointer[IStorageProviderFileTypeInfo]],  # value
                               _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageProviderGetContentInfoForPathResult(_inspectable.IInspectable):
@@ -126,13 +122,11 @@ class IStorageProviderGetPathForContentUriResult(_inspectable.IInspectable):
                         _type.HRESULT]
 
 
-class IStorageProviderItemPropertiesStatics(_inspectable.IInspectable):
+class IStorageProviderItemPropertiesStatics(_inspectable.IInspectable, factory=True):
     SetAsync: _Callable[[_Windows_Storage.IStorageItem,  # item
                          _Windows_Foundation_Collections.IIterable[IStorageProviderItemProperty],  # itemProperties
                          _Pointer[_Windows_Foundation.IAsyncAction]],  # operation
                         _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageProviderItemProperty(_inspectable.IInspectable):
@@ -331,7 +325,7 @@ class IStorageProviderSyncRootInfo3(_inspectable.IInspectable):
                                         _type.HRESULT]
 
 
-class IStorageProviderSyncRootManagerStatics(_inspectable.IInspectable):
+class IStorageProviderSyncRootManagerStatics(_inspectable.IInspectable, factory=True):
     Register: _Callable[[IStorageProviderSyncRootInfo],  # syncRootInformation
                         _type.HRESULT]
     Unregister: _Callable[[_type.HSTRING],  # id
@@ -345,14 +339,10 @@ class IStorageProviderSyncRootManagerStatics(_inspectable.IInspectable):
     GetCurrentSyncRoots: _Callable[[_Pointer[_Windows_Foundation_Collections.IVectorView[IStorageProviderSyncRootInfo]]],  # result
                                    _type.HRESULT]
 
-    _factory = True
 
-
-class IStorageProviderSyncRootManagerStatics2(_inspectable.IInspectable):
+class IStorageProviderSyncRootManagerStatics2(_inspectable.IInspectable, factory=True):
     IsSupported: _Callable[[_Pointer[_type.boolean]],  # result
                            _type.HRESULT]
-
-    _factory = True
 
 
 class IStorageProviderUICommand(_inspectable.IInspectable):

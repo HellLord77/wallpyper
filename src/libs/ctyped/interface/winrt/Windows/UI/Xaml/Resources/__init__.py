@@ -27,10 +27,8 @@ class ICustomXamlResourceLoaderOverrides(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class ICustomXamlResourceLoaderStatics(_inspectable.IInspectable):
+class ICustomXamlResourceLoaderStatics(_inspectable.IInspectable, factory=True):
     get_Current: _Callable[[_Pointer[ICustomXamlResourceLoader]],  # value
                            _type.HRESULT]
     put_Current: _Callable[[ICustomXamlResourceLoader],  # value
                            _type.HRESULT]
-
-    _factory = True

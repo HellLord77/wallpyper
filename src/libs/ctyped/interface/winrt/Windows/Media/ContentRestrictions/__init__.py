@@ -44,14 +44,12 @@ class IRatedContentDescription(_inspectable.IInspectable):
                            _type.HRESULT]
 
 
-class IRatedContentDescriptionFactory(_inspectable.IInspectable):
+class IRatedContentDescriptionFactory(_inspectable.IInspectable, factory=True):
     Create: _Callable[[_type.HSTRING,  # id
                        _type.HSTRING,  # title
                        _enum.Windows.Media.ContentRestrictions.RatedContentCategory,  # category
                        _Pointer[IRatedContentDescription]],  # RatedContentDescription
                       _type.HRESULT]
-
-    _factory = True
 
 
 class IRatedContentRestrictions(_inspectable.IInspectable):
@@ -70,9 +68,7 @@ class IRatedContentRestrictions(_inspectable.IInspectable):
                                           _type.HRESULT]
 
 
-class IRatedContentRestrictionsFactory(_inspectable.IInspectable):
+class IRatedContentRestrictionsFactory(_inspectable.IInspectable, factory=True):
     CreateWithMaxAgeRating: _Callable[[_type.UINT32,  # maxAgeRating
                                        _Pointer[IRatedContentRestrictions]],  # ratedContentRestrictions
                                       _type.HRESULT]
-
-    _factory = True

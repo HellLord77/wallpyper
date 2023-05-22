@@ -41,12 +41,10 @@ class IInjectedInputGamepadInfo(_inspectable.IInspectable):
                                 _type.HRESULT]
 
 
-class IInjectedInputGamepadInfoFactory(_inspectable.IInspectable):
+class IInjectedInputGamepadInfoFactory(_inspectable.IInspectable, factory=True):
     CreateInstanceFromGamepadReading: _Callable[[_struct.Windows.Gaming.Input.GamepadReading,  # reading
                                                  _Pointer[IInjectedInputGamepadInfo]],  # value
                                                 _type.HRESULT]
-
-    _factory = True
 
 
 class IInjectedInputKeyboardInfo(_inspectable.IInspectable):
@@ -171,15 +169,11 @@ class IInputInjector2(_inspectable.IInspectable):
                                             _type.HRESULT]
 
 
-class IInputInjectorStatics(_inspectable.IInspectable):
+class IInputInjectorStatics(_inspectable.IInspectable, factory=True):
     TryCreate: _Callable[[_Pointer[IInputInjector]],  # instance
                          _type.HRESULT]
 
-    _factory = True
 
-
-class IInputInjectorStatics2(_inspectable.IInspectable):
+class IInputInjectorStatics2(_inspectable.IInspectable, factory=True):
     TryCreateForAppBroadcastOnly: _Callable[[_Pointer[IInputInjector]],  # instance
                                             _type.HRESULT]
-
-    _factory = True
