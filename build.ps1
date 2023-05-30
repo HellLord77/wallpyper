@@ -1,4 +1,4 @@
-$Version = "0.3.0"
+$Version = "0.3.1"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -46,6 +46,9 @@ $CythonRemove = $True
 
 $NuitkaSources = @()
 $NuitkaRemove = $True
+
+$mypycSources = @()  # TODO
+$mypycRemove = $True
 
 $CodeRunBefore = @(
 	"from sys import argv"
@@ -112,12 +115,15 @@ $CodeModuleGraphSmartTemplate = @(
 	"graph.add_script(r'{0}')"
 	"graph.process_post_graph_hooks(analysis)"
 	"print(';'.join(module.identifier for module in graph.iter_graph()))")
+$MinifyJsonLocal = $False
 $ModuleGraphSmart = $True
 $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
-$MinifyJsonLocal = $False
+$mypycCacheDir = ".mypy_cache"
 ################################################################################
-$CythonSources = [System.Collections.ArrayList]@()
+$IsPython64Bit = $null
+$ExtSuffix = $null
+$CythonSources = $null
 
 function ToArray($Object) {
 	if ($Object -isnot [array]) { $Object = @($Object) }
@@ -237,10 +243,25 @@ function Get-ProjectName {
 		else { Split-Path -Path (Get-Location) -Leaf } ) -Leaf
 }
 
+function Get-IsPython64Bit {
+	if ($null -eq $Global:IsPython64Bit) {
+		$Global:IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit))
+	}
+	return $Global:IsPython64Bit
+}
+
+function Get-ExtSuffix {
+	if ($null -eq $Global:ExtSuffix) {
+		$Global:ExtSuffix = Start-PythonCode $CodeExtSuffix
+	}
+	return $Global:ExtSuffix
+}
+
 function Get-ModuleGraph {
 	if ($ModuleGraphSmart) {
 		Remove-Cython $False
 		Remove-Nuitka $False
+		Remove-mypyc $False
 		$TempDir = Join-Path $Env:TEMP (New-Guid)
 		New-Item $TempDir -ItemType Directory
 		$CodeModuleGraphSmartProcess = @() + $CodeModuleGraphSmartTemplate
@@ -282,7 +303,7 @@ function Get-PyInstallerArgs {
 		}
 	}
 	$BaseSrcDir = Split-Path (Split-Path $EntryPoint -Parent) -Leaf
-	foreach ($Data in $($Datas + $(If ($IsPython64Bit) { $Datas64 } else { $Datas32 }))) {
+	foreach ($Data in $($Datas + $(If (Get-IsPython64Bit) { $Datas64 } else { $Datas32 }))) {
 		$DataSrc = Join-Path $BaseSrcDir $Data
 		if ($Data.Contains(";")) {
 			$DataParts = $DataSrc -Split ";"
@@ -308,34 +329,42 @@ function Get-PyInstallerArgs {
 	return $ArgList
 }
 
+function Remove-pyd([string[]]$Sources, [bool]$Throw) {
+	foreach ($Source in $Sources) {
+		$Root = $Source.Substring(0, $Source.LastIndexOf("."))
+		try { Remove-Item "$Root$(Get-ExtSuffix)" -Force }
+		catch { if ($Throw) { throw } }
+	}
+}
+
 function Get-CythonSources {
-	if (-not $CythonSources) {
+	if ($null -eq $Global:CythonSources) {
+		$Global:CythonSources = @()
 		$CodeGlob = @() + $CodeGlobTemplate
 		foreach ($CythonSourceGlob in $CythonSourceGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonSourceGlob
 			foreach ($Source in (Start-PythonCode $CodeGlob) -Split ";") {
-				$CythonSources.Add(($Source -Replace "\\", "/")) | Out-Null
+				# $CythonSources.Add(($Source -Replace "\\", "/")) | Out-Null
+				$Global:CythonSources += $Source -Replace "\\", "/"
 			}
 		}
 		foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonExcludeGlob
 			foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";") {
-				$CythonSources.Remove(($Exclude -Replace "\\", "/")) | Out-Null
+				# $CythonSources.Remove(($Exclude -Replace "\\", "/")) | Out-Null
+				$Global:CythonSources = Get-RemovedItemArray $Global:CythonSources ($Exclude -Replace "\\", "/")
 			}
 		}
 	}
-	return ToArray $CythonSources.ToArray()
+	return $Global:CythonSources
 }
 
 function Remove-Cython([bool]$Throw = $True) {
-	$ExtSuffix = Start-PythonCode $CodeExtSuffix
-	foreach ($Source in Get-CythonSources) {
-		$Root = $Source.Substring(0, $Source.LastIndexOf("."))
-		try { 
-			if ($CythonRemoveC) { Remove-Item "$Root.c" -Force -ErrorAction SilentlyContinue }
-			Remove-Item "$Root$ExtSuffix" -Force
+	Remove-pyd (Get-CythonSources) $Throw
+	if ($CythonRemoveC) {
+		foreach ($Source in Get-CythonSources) {
+			Remove-Item "$(Source.Substring(0, $Source.LastIndexOf("."))).c" -Force -ErrorAction SilentlyContinue 
 		}
-		catch { if ($Throw) { throw } }
 	}
 }
 
@@ -351,17 +380,22 @@ function Get-CythonArgs {
 }
 
 function Remove-Nuitka([bool]$Throw = $True) {
-	$ExtSuffix = Start-PythonCode $CodeExtSuffix
-	foreach ($Source in $NuitkaSources) {
-		$Root = $Source.Substring(0, $Source.LastIndexOf("."))
-		try { Remove-Item "$Root$ExtSuffix" -Force }
-		catch { if ($Throw) { throw } }
-	}
+	Remove-pyd $NuitkaSources $Throw
 }
 
 function Get-NuitkaArgs {
 	$ArgList = @("--assume-yes-for-downloads", "--no-pyi-file", "--module")
 	if ($NuitkaRemoveBuild) { $ArgList += "--remove-output" }
+	return $ArgList
+}
+
+function Remove-mypyc([bool]$Throw = $True) {
+	Remove-pyd $mypycSources $Throw
+}
+
+function Get-mypycArgs {
+	$ArgList = @("--install-types", "--non-interactive")
+	if ($mypycCacheDir) { $ArgList += "--cache-dir=$(Join-Path $PSScriptRoot $mypycCacheDir)" }
 	return $ArgList
 }
 
@@ -386,6 +420,7 @@ function Install-Requirements {
 
 	if ($CythonSourceGlobs) { pip install cython==3.0.0b2 }  # FIXME https://github.com/cython/cython/milestone/58
 	if ($NuitkaSources) { pip install nuitka }
+	if ($mypycSources) { pip install mypy }
 
 	if (Test-Path requirements.txt -PathType Leaf) { pip install -r requirements.txt }
 }
@@ -420,6 +455,16 @@ function Write-Build {
 			nuitka $NuitkaArgs
 		}
 	}
+	if ($mypycSources) {
+		$mypycArgsBase = Get-mypycArgs
+		foreach ($Source in $mypycSources) {
+			Push-Location (Split-Path $Source -Parent)
+			$mypycArgs = $mypycArgsBase + @(Split-Path $Source -Leaf)
+			Write-Host "mypyc $mypycArgs"
+			mypyc $mypycArgs
+			Pop-Location
+		}
+	}
 
 	$Name = Get-ProjectName
 	$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
@@ -445,6 +490,7 @@ function Write-Build {
 
 	if ($CythonRemove) { Remove-Cython }
 	if ($NuitkaRemove) { Remove-Nuitka }
+	if ($mypycRemove) { Remove-mypyc }
 
 	if ($CodeRunAfter) { Start-PythonCode $CodeRunAfter }
 	if ($IsRemote -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote }
@@ -464,7 +510,6 @@ function Write-MEGA {
 }
 
 $IsRemote = Test-Path Env:CI
-$IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit))
 
 $ErrorActionPreference = "Stop"
 if ($Args) {
