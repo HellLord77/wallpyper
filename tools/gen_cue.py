@@ -3,7 +3,7 @@ import glob
 import os
 import re
 
-PATH = r'C:\ProgramData\Corsair\CUE4\GameSdkEffects'
+PATH = r'C:\ProgramData\Corsair\CUE5\GameSdkEffects'
 GAMES: dict[str, dict[str, int]] = {}
 RE_NAME = re.compile('[^_0-9a-zA-Z]+')
 
@@ -23,8 +23,8 @@ def str_game(game: str, data: dict[str, int]) -> str:
         string += f'    _name = {game!r}\n'
     string += '    # noinspection PyPep8Naming\n'
     string += '    class profile(_Profile):\n'
-    for key in sorted(data):
-        string += f'        {key} = {key!r}\n'
+    for key, value in sorted(data.items()):
+        string += f'        {key} = {value}\n'
     return string
 
 

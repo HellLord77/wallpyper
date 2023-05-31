@@ -627,11 +627,18 @@ def _test_progress():
         taskbar.SetProgressState(hwnd, ctyped.enum.TBPFLAG.NOPROGRESS)
 
 
-def _test():
+def _test_inheritance():
     from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
     typ = ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
         'Windows.Storage.StorageFile')
     print(typ, bool(typ))
+
+
+def _test():
+    from win32.cue import game
+    with game.FarCry6() as far_cry_6:
+        far_cry_6.profile.FC6_MenuMap.set()
+        time.sleep(5)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
