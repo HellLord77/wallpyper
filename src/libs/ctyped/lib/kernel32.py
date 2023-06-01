@@ -287,187 +287,399 @@ SetThreadErrorMode: _Callable[[_type.DWORD,  # dwNewMode
 TerminateProcessOnMemoryExhaustion: _Callable[[_type.SIZE_T],  # FailedAllocationSize
                                               _type.VOID]
 # fileapi
+CompareFileTime: _Callable[[_Pointer[_struct.FILETIME],  # lpFileTime1
+                            _Pointer[_struct.FILETIME]],  # lpFileTime2
+                           _type.LONG]
+CreateDirectoryA: _Callable[[_type.LPCSTR,  # lpPathName
+                             _Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpSecurityAttributes
+                            _type.BOOL]
+CreateDirectoryW: _Callable[[_type.LPCWSTR,  # lpPathName
+                             _Pointer[_struct.SECURITY_ATTRIBUTES]],  # lpSecurityAttributes
+                            _type.BOOL]
+CreateFileA: _Callable[[_type.LPCSTR,  # lpFileName
+                        _type.DWORD,  # dwDesiredAccess
+                        _type.DWORD,  # dwShareMode
+                        _Pointer[_struct.SECURITY_ATTRIBUTES],  # lpSecurityAttributes
+                        _type.DWORD,  # dwCreationDisposition
+                        _type.DWORD,  # dwFlagsAndAttributes
+                        _type.HANDLE],  # hTemplateFile
+                       _type.HANDLE]
+CreateFileW: _Callable[[_type.LPCWSTR,  # lpFileName
+                        _type.DWORD,  # dwDesiredAccess
+                        _type.DWORD,  # dwShareMode
+                        _Pointer[_struct.SECURITY_ATTRIBUTES],  # lpSecurityAttributes
+                        _type.DWORD,  # dwCreationDisposition
+                        _type.DWORD,  # dwFlagsAndAttributes
+                        _type.HANDLE],  # hTemplateFile
+                       _type.HANDLE]
+DefineDosDeviceW: _Callable[[_type.DWORD,  # dwFlags
+                             _type.LPCWSTR,  # lpDeviceName
+                             _type.LPCWSTR],  # lpTargetPath
+                            _type.BOOL]
+DeleteFileA: _Callable[[_type.LPCSTR],  # lpFileName
+                       _type.BOOL]
+DeleteFileW: _Callable[[_type.LPCWSTR],  # lpFileName
+                       _type.BOOL]
+DeleteVolumeMountPointW: _Callable[[_type.LPCWSTR],  # lpszVolumeMountPoint
+                                   _type.BOOL]
+FileTimeToLocalFileTime: _Callable[[_Pointer[_struct.FILETIME],  # lpFileTime
+                                    _Pointer[_struct.FILETIME]],  # lpLocalFileTime
+                                   _type.BOOL]
+FindClose: _Callable[[_type.HANDLE],  # hFindFile
+                     _type.BOOL]
+FindCloseChangeNotification: _Callable[[_type.HANDLE],  # hChangeHandle
+                                       _type.BOOL]
+FindFirstChangeNotificationA: _Callable[[_type.LPCSTR,  # lpPathName
+                                         _type.BOOL,  # bWatchSubtree
+                                         _type.DWORD],  # dwNotifyFilter
+                                        _type.HANDLE]
+FindFirstChangeNotificationW: _Callable[[_type.LPCWSTR,  # lpPathName
+                                         _type.BOOL,  # bWatchSubtree
+                                         _type.DWORD],  # dwNotifyFilter
+                                        _type.HANDLE]
+FindFirstFileA: _Callable[[_type.LPCSTR,  # lpFileName
+                           _Pointer[_struct.WIN32_FIND_DATAA]],  # lpFindFileData
+                          _type.HANDLE]
+FindFirstFileW: _Callable[[_type.LPCWSTR,  # lpFileName
+                           _Pointer[_struct.WIN32_FIND_DATAW]],  # lpFindFileData
+                          _type.HANDLE]
+FindFirstFileExA: _Callable[[_type.LPCSTR,  # lpFileName
+                             _enum.FINDEX_INFO_LEVELS,  # fInfoLevelId
+                             _type.LPVOID,  # lpFindFileData
+                             _enum.FINDEX_SEARCH_OPS,  # fSearchOp
+                             _type.LPVOID,  # lpSearchFilter
+                             _type.DWORD],  # dwAdditionalFlags
+                            _type.HANDLE]
+FindFirstFileExW: _Callable[[_type.LPCWSTR,  # lpFileName
+                             _enum.FINDEX_INFO_LEVELS,  # fInfoLevelId
+                             _type.LPVOID,  # lpFindFileData
+                             _enum.FINDEX_SEARCH_OPS,  # fSearchOp
+                             _type.LPVOID,  # lpSearchFilter
+                             _type.DWORD],  # dwAdditionalFlags
+                            _type.HANDLE]
+FindFirstVolumeW: _Callable[[_type.LPWSTR,  # lpszVolumeName
+                             _type.DWORD],  # cchBufferLength
+                            _type.HANDLE]
+FindNextChangeNotification: _Callable[[_type.HANDLE],  # hChangeHandle
+                                      _type.BOOL]
+FindNextFileA: _Callable[[_type.HANDLE,  # hFindFile
+                          _Pointer[_struct.WIN32_FIND_DATAA]],  # lpFindFileData
+                         _type.BOOL]
+FindNextFileW: _Callable[[_type.HANDLE,  # hFindFile
+                          _Pointer[_struct.WIN32_FIND_DATAW]],  # lpFindFileData
+                         _type.BOOL]
+FindNextVolumeW: _Callable[[_type.HANDLE,  # hFindVolume
+                            _type.LPWSTR,  # lpszVolumeName
+                            _type.DWORD],  # cchBufferLength
+                           _type.BOOL]
+FindVolumeClose: _Callable[[_type.HANDLE],  # hFindVolume
+                           _type.BOOL]
 FlushFileBuffers: _Callable[[_type.HANDLE],  # hFile
                             _type.BOOL]
+GetDiskFreeSpaceA: _Callable[[_type.LPCSTR,  # lpRootPathName
+                              _Pointer[_type.DWORD],  # lpSectorsPerCluster
+                              _Pointer[_type.DWORD],  # lpBytesPerSector
+                              _Pointer[_type.DWORD],  # lpNumberOfFreeClusters
+                              _Pointer[_type.DWORD]],  # lpTotalNumberOfClusters
+                             _type.BOOL]
+GetDiskFreeSpaceW: _Callable[[_type.LPCWSTR,  # lpRootPathName
+                              _Pointer[_type.DWORD],  # lpSectorsPerCluster
+                              _Pointer[_type.DWORD],  # lpBytesPerSector
+                              _Pointer[_type.DWORD],  # lpNumberOfFreeClusters
+                              _Pointer[_type.DWORD]],  # lpTotalNumberOfClusters
+                             _type.BOOL]
+GetDiskFreeSpaceExA: _Callable[[_type.LPCSTR,  # lpDirectoryName
+                                _Pointer[_union.ULARGE_INTEGER],  # lpFreeBytesAvailableToCaller
+                                _Pointer[_union.ULARGE_INTEGER],  # lpTotalNumberOfBytes
+                                _Pointer[_union.ULARGE_INTEGER]],  # lpTotalNumberOfFreeBytes
+                               _type.BOOL]
+GetDiskFreeSpaceExW: _Callable[[_type.LPCWSTR,  # lpDirectoryName
+                                _Pointer[_union.ULARGE_INTEGER],  # lpFreeBytesAvailableToCaller
+                                _Pointer[_union.ULARGE_INTEGER],  # lpTotalNumberOfBytes
+                                _Pointer[_union.ULARGE_INTEGER]],  # lpTotalNumberOfFreeBytes
+                               _type.BOOL]
+GetDiskSpaceInformationA: _Callable[[_type.LPCSTR,  # rootPath
+                                     _Pointer[_struct.DISK_SPACE_INFORMATION]],  # diskSpaceInfo
+                                    _type.HRESULT]
+GetDiskSpaceInformationW: _Callable[[_type.LPCWSTR,  # rootPath
+                                     _Pointer[_struct.DISK_SPACE_INFORMATION]],  # diskSpaceInfo
+                                    _type.HRESULT]
+GetDriveTypeA: _Callable[[_type.LPCSTR],  # lpRootPathName
+                         _type.UINT]
+GetDriveTypeW: _Callable[[_type.LPCWSTR],  # lpRootPathName
+                         _type.UINT]
+GetFileAttributesA: _Callable[[_type.LPCSTR],  # lpFileName
+                              _type.DWORD]
+GetFileAttributesW: _Callable[[_type.LPCWSTR],  # lpFileName
+                              _type.DWORD]
+GetFileAttributesExA: _Callable[[_type.LPCSTR,  # lpFileName
+                                 _enum.GET_FILEEX_INFO_LEVELS,  # fInfoLevelId
+                                 _type.LPVOID],  # lpFileInformation
+                                _type.BOOL]
+GetFileAttributesExW: _Callable[[_type.LPCWSTR,  # lpFileName
+                                 _enum.GET_FILEEX_INFO_LEVELS,  # fInfoLevelId
+                                 _type.LPVOID],  # lpFileInformation
+                                _type.BOOL]
+GetFileInformationByHandle: _Callable[[_type.HANDLE,  # hFile
+                                       _Pointer[_struct.BY_HANDLE_FILE_INFORMATION]],  # lpFileInformation
+                                      _type.BOOL]
+GetFileSize: _Callable[[_type.HANDLE,  # hFile
+                        _Pointer[_type.DWORD]],  # lpFileSizeHigh
+                       _type.DWORD]
+GetFileSizeEx: _Callable[[_type.HANDLE,  # hFile
+                          _Pointer[_struct.LARGE_INTEGER]],  # lpFileSize
+                         _type.BOOL]
+GetFileType: _Callable[[_type.HANDLE],  # hFile
+                       _type.DWORD]
+GetFinalPathNameByHandleA: _Callable[[_type.HANDLE,  # hFile
+                                      _type.LPSTR,  # lpszFilePath
+                                      _type.DWORD,  # cchFilePath
+                                      _type.DWORD],  # dwFlags
+                                     _type.DWORD]
+GetFinalPathNameByHandleW: _Callable[[_type.HANDLE,  # hFile
+                                      _type.LPWSTR,  # lpszFilePath
+                                      _type.DWORD,  # cchFilePath
+                                      _type.DWORD],  # dwFlags
+                                     _type.DWORD]
+GetFileTime: _Callable[[_type.HANDLE,  # hFile
+                        _Pointer[_struct.FILETIME],  # lpCreationTime
+                        _Pointer[_struct.FILETIME],  # lpLastAccessTime
+                        _Pointer[_struct.FILETIME]],  # lpLastWriteTime
+                       _type.BOOL]
+GetFullPathNameW: _Callable[[_type.LPCWSTR,  # lpFileName
+                             _type.DWORD,  # nBufferLength
+                             _type.LPWSTR,  # lpBuffer
+                             _Pointer[_type.LPWSTR]],  # lpFilePart
+                            _type.DWORD]
+GetFullPathNameA: _Callable[[_type.LPCSTR,  # lpFileName
+                             _type.DWORD,  # nBufferLength
+                             _type.LPSTR,  # lpBuffer
+                             _Pointer[_type.LPSTR]],  # lpFilePart
+                            _type.DWORD]
+GetLogicalDrives: _Callable[[],
+                            _type.DWORD]
+GetLogicalDriveStringsW: _Callable[[_type.DWORD,  # nBufferLength
+                                    _type.LPWSTR],  # lpBuffer
+                                   _type.DWORD]
+GetLongPathNameA: _Callable[[_type.LPCSTR,  # lpszShortPath
+                             _type.LPSTR,  # lpszLongPath
+                             _type.DWORD],  # cchBuffer
+                            _type.DWORD]
+GetLongPathNameW: _Callable[[_type.LPCWSTR,  # lpszShortPath
+                             _type.LPWSTR,  # lpszLongPath
+                             _type.DWORD],  # cchBuffer
+                            _type.DWORD]
+AreShortNamesEnabled: _Callable[[_type.HANDLE,  # Handle
+                                 _Pointer[_type.BOOL]],  # Enabled
+                                _type.BOOL]
+GetShortPathNameW: _Callable[[_type.LPCWSTR,  # lpszLongPath
+                              _type.LPWSTR,  # lpszShortPath
+                              _type.DWORD],  # cchBuffer
+                             _type.DWORD]
+GetTempFileNameW: _Callable[[_type.LPCWSTR,  # lpPathName
+                             _type.LPCWSTR,  # lpPrefixString
+                             _type.UINT,  # uUnique
+                             _type.LPWSTR],  # lpTempFileName
+                            _type.UINT]
+GetVolumeInformationByHandleW: _Callable[[_type.HANDLE,  # hFile
+                                          _type.LPWSTR,  # lpVolumeNameBuffer
+                                          _type.DWORD,  # nVolumeNameSize
+                                          _Pointer[_type.DWORD],  # lpVolumeSerialNumber
+                                          _Pointer[_type.DWORD],  # lpMaximumComponentLength
+                                          _Pointer[_type.DWORD],  # lpFileSystemFlags
+                                          _type.LPWSTR,  # lpFileSystemNameBuffer
+                                          _type.DWORD],  # nFileSystemNameSize
+                                         _type.BOOL]
+GetVolumeInformationW: _Callable[[_type.LPCWSTR,  # lpRootPathName
+                                  _type.LPWSTR,  # lpVolumeNameBuffer
+                                  _type.DWORD,  # nVolumeNameSize
+                                  _Pointer[_type.DWORD],  # lpVolumeSerialNumber
+                                  _Pointer[_type.DWORD],  # lpMaximumComponentLength
+                                  _Pointer[_type.DWORD],  # lpFileSystemFlags
+                                  _type.LPWSTR,  # lpFileSystemNameBuffer
+                                  _type.DWORD],  # nFileSystemNameSize
+                                 _type.BOOL]
+GetVolumePathNameW: _Callable[[_type.LPCWSTR,  # lpszFileName
+                               _type.LPWSTR,  # lpszVolumePathName
+                               _type.DWORD],  # cchBufferLength
+                              _type.BOOL]
+LocalFileTimeToFileTime: _Callable[[_Pointer[_struct.FILETIME],  # lpLocalFileTime
+                                    _Pointer[_struct.FILETIME]],  # lpFileTime
+                                   _type.BOOL]
+LockFile: _Callable[[_type.HANDLE,  # hFile
+                     _type.DWORD,  # dwFileOffsetLow
+                     _type.DWORD,  # dwFileOffsetHigh
+                     _type.DWORD,  # nNumberOfBytesToLockLow
+                     _type.DWORD],  # nNumberOfBytesToLockHigh
+                    _type.BOOL]
+LockFileEx: _Callable[[_type.HANDLE,  # hFile
+                       _type.DWORD,  # dwFlags
+                       _type.DWORD,  # dwReserved
+                       _type.DWORD,  # nNumberOfBytesToLockLow
+                       _type.DWORD,  # nNumberOfBytesToLockHigh
+                       _Pointer[_struct.OVERLAPPED]],  # lpOverlapped
+                      _type.BOOL]
+QueryDosDeviceW: _Callable[[_type.LPCWSTR,  # lpDeviceName
+                            _type.LPWSTR,  # lpTargetPath
+                            _type.DWORD],  # ucchMax
+                           _type.DWORD]
+ReadFile: _Callable[[_type.HANDLE,  # hFile
+                     _type.LPVOID,  # lpBuffer
+                     _type.DWORD,  # nNumberOfBytesToRead
+                     _Pointer[_type.DWORD],  # lpNumberOfBytesRead
+                     _Pointer[_struct.OVERLAPPED]],  # lpOverlapped
+                    _type.BOOL]
+ReadFileEx: _Callable[[_type.HANDLE,  # hFile
+                       _type.LPVOID,  # lpBuffer
+                       _type.DWORD,  # nNumberOfBytesToRead
+                       _Pointer[_struct.OVERLAPPED],  # lpOverlapped
+                       _type.LPOVERLAPPED_COMPLETION_ROUTINE],  # lpCompletionRoutine
+                      _type.BOOL]
+ReadFileScatter: _Callable[[_type.HANDLE,  # hFile
+                            _Pointer[_union.FILE_SEGMENT_ELEMENT],  # aSegmentArray
+                            _type.DWORD,  # nNumberOfBytesToRead
+                            _Pointer[_type.DWORD],  # lpReserved
+                            _Pointer[_struct.OVERLAPPED]],  # lpOverlapped
+                           _type.BOOL]
+RemoveDirectoryA: _Callable[[_type.LPCSTR],  # lpPathName
+                            _type.BOOL]
+RemoveDirectoryW: _Callable[[_type.LPCWSTR],  # lpPathName
+                            _type.BOOL]
+SetEndOfFile: _Callable[[_type.HANDLE],  # hFile
+                        _type.BOOL]
+SetFileAttributesA: _Callable[[_type.LPCSTR,  # lpFileName
+                               _type.DWORD],  # dwFileAttributes
+                              _type.BOOL]
+SetFileAttributesW: _Callable[[_type.LPCWSTR,  # lpFileName
+                               _type.DWORD],  # dwFileAttributes
+                              _type.BOOL]
+SetFileInformationByHandle: _Callable[[_type.HANDLE,  # hFile
+                                       _enum.FILE_INFO_BY_HANDLE_CLASS,  # FileInformationClass
+                                       _type.LPVOID,  # lpFileInformation
+                                       _type.DWORD],  # dwBufferSize
+                                      _type.BOOL]
+SetFilePointer: _Callable[[_type.HANDLE,  # hFile
+                           _type.LONG,  # lDistanceToMove
+                           _Pointer[_type.LONG],  # lpDistanceToMoveHigh
+                           _type.DWORD],  # dwMoveMethod
+                          _type.DWORD]
+SetFilePointerEx: _Callable[[_type.HANDLE,  # hFile
+                             _union.LARGE_INTEGER,  # liDistanceToMove
+                             _Pointer[_union.LARGE_INTEGER],  # lpNewFilePointer
+                             _type.DWORD],  # dwMoveMethod
+                            _type.BOOL]
+SetFileTime: _Callable[[_type.HANDLE,  # hFile
+                        _Pointer[_struct.FILETIME],  # lpCreationTime
+                        _Pointer[_struct.FILETIME],  # lpLastAccessTime
+                        _Pointer[_struct.FILETIME]],  # lpLastWriteTime
+                       _type.BOOL]
+SetFileValidData: _Callable[[_type.HANDLE,  # hFile
+                             _type.LONGLONG],  # ValidDataLength
+                            _type.BOOL]
+UnlockFile: _Callable[[_type.HANDLE,  # hFile
+                       _type.DWORD,  # dwFileOffsetLow
+                       _type.DWORD,  # dwFileOffsetHigh
+                       _type.DWORD,  # nNumberOfBytesToUnlockLow
+                       _type.DWORD],  # nNumberOfBytesToUnlockHigh
+                      _type.BOOL]
+UnlockFileEx: _Callable[[_type.HANDLE,  # hFile
+                         _type.DWORD,  # dwReserved
+                         _type.DWORD,  # nNumberOfBytesToUnlockLow
+                         _type.DWORD,  # nNumberOfBytesToUnlockHigh
+                         _Pointer[_struct.OVERLAPPED]],  # lpOverlapped
+                        _type.BOOL]
 WriteFile: _Callable[[_type.HANDLE,  # hFile
                       _type.LPCVOID,  # lpBuffer
                       _type.DWORD,  # nNumberOfBytesToWrite
-                      _Optional[_Pointer[_type.DWORD]],  # lpNumberOfBytesWritten
-                      _Optional[_Pointer[_struct.OVERLAPPED]]],  # lpOverlapped
+                      _Pointer[_type.DWORD],  # lpNumberOfBytesWritten
+                      _Pointer[_struct.OVERLAPPED]],  # lpOverlapped
                      _type.BOOL]
-# TODO
-AreShortNamesEnabled: _Callable[[_type.HANDLE,
-                                 _Pointer[_type.BOOL]],
-                                _type.BOOL]
-CreateFileA: _Callable[[_type.LPCSTR,
-                        _type.DWORD,
-                        _type.DWORD,
-                        _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                        _type.DWORD,
-                        _type.DWORD,
-                        _Optional[_type.HANDLE]],
-                       _type.HANDLE]
-CreateFileW: _Callable[[_type.LPCWSTR,
-                        _type.DWORD,
-                        _type.DWORD,
-                        _Optional[_Pointer[_struct.SECURITY_ATTRIBUTES]],
-                        _type.DWORD,
-                        _type.DWORD,
-                        _Optional[_type.HANDLE]],
-                       _type.HANDLE]
-DeleteFileA: _Callable[[_type.LPCSTR],
+WriteFileEx: _Callable[[_type.HANDLE,  # hFile
+                        _type.LPCVOID,  # lpBuffer
+                        _type.DWORD,  # nNumberOfBytesToWrite
+                        _Pointer[_struct.OVERLAPPED],  # lpOverlapped
+                        _type.LPOVERLAPPED_COMPLETION_ROUTINE],  # lpCompletionRoutine
                        _type.BOOL]
-DeleteFileW: _Callable[[_type.LPCWSTR],
-                       _type.BOOL]
-FindFirstVolumeW: _Callable[[_type.LPWSTR,
-                             _type.DWORD],
+WriteFileGather: _Callable[[_type.HANDLE,  # hFile
+                            _Pointer[_union.FILE_SEGMENT_ELEMENT],  # aSegmentArray
+                            _type.DWORD,  # nNumberOfBytesToWrite
+                            _Pointer[_type.DWORD],  # lpReserved
+                            _Pointer[_struct.OVERLAPPED]],  # lpOverlapped
+                           _type.BOOL]
+GetTempPathW: _Callable[[_type.DWORD,  # nBufferLength
+                         _type.LPWSTR],  # lpBuffer
+                        _type.DWORD]
+GetVolumeNameForVolumeMountPointW: _Callable[[_type.LPCWSTR,  # lpszVolumeMountPoint
+                                              _type.LPWSTR,  # lpszVolumeName
+                                              _type.DWORD],  # cchBufferLength
+                                             _type.BOOL]
+GetVolumePathNamesForVolumeNameW: _Callable[[_type.LPCWSTR,  # lpszVolumeName
+                                             _type.LPWCH,  # lpszVolumePathNames
+                                             _type.DWORD,  # cchBufferLength
+                                             _Pointer[_type.DWORD]],  # lpcchReturnLength
+                                            _type.BOOL]
+CreateFile2: _Callable[[_type.LPCWSTR,  # lpFileName
+                        _type.DWORD,  # dwDesiredAccess
+                        _type.DWORD,  # dwShareMode
+                        _type.DWORD,  # dwCreationDisposition
+                        _Pointer[_struct.CREATEFILE2_EXTENDED_PARAMETERS]],  # pCreateExParams
+                       _type.HANDLE]
+SetFileIoOverlappedRange: _Callable[[_type.HANDLE,  # FileHandle
+                                     _Pointer[_type.UCHAR],  # OverlappedRangeStart
+                                     _type.ULONG],  # Length
+                                    _type.BOOL]
+GetCompressedFileSizeA: _Callable[[_type.LPCSTR,  # lpFileName
+                                   _Pointer[_type.DWORD]],  # lpFileSizeHigh
+                                  _type.DWORD]
+GetCompressedFileSizeW: _Callable[[_type.LPCWSTR,  # lpFileName
+                                   _Pointer[_type.DWORD]],  # lpFileSizeHigh
+                                  _type.DWORD]
+FindFirstStreamW: _Callable[[_type.LPCWSTR,  # lpFileName
+                             _enum.STREAM_INFO_LEVELS,  # InfoLevel
+                             _type.LPVOID,  # lpFindStreamData
+                             _type.DWORD],  # dwFlags
                             _type.HANDLE]
-FindNextVolumeW: _Callable[[_type.HANDLE,
-                            _type.LPWSTR,
-                            _type.DWORD],
+FindNextStreamW: _Callable[[_type.HANDLE,  # hFindStream
+                            _type.LPVOID],  # lpFindStreamData
                            _type.BOOL]
-FindVolumeClose: _Callable[[_type.HANDLE],
+AreFileApisANSI: _Callable[[],
                            _type.BOOL]
-GetDiskFreeSpaceA: _Callable[[_type.LPCSTR,
-                              _Optional[_Pointer[_type.DWORD]],
-                              _Optional[_Pointer[_type.DWORD]],
-                              _Optional[_Pointer[_type.DWORD]],
-                              _Optional[_Pointer[_type.DWORD]]],
+GetTempPathA: _Callable[[_type.DWORD,  # nBufferLength
+                         _type.LPSTR],  # lpBuffer
+                        _type.DWORD]
+FindFirstFileNameW: _Callable[[_type.LPCWSTR,  # lpFileName
+                               _type.DWORD,  # dwFlags
+                               _Pointer[_type.DWORD],  # StringLength
+                               _type.PWSTR],  # LinkName
+                              _type.HANDLE]
+FindNextFileNameW: _Callable[[_type.HANDLE,  # hFindStream
+                              _Pointer[_type.DWORD],  # StringLength
+                              _type.PWSTR],  # LinkName
                              _type.BOOL]
-GetDiskFreeSpaceW: _Callable[[_type.LPCWSTR,
-                              _Optional[_Pointer[_type.DWORD]],
-                              _Optional[_Pointer[_type.DWORD]],
-                              _Optional[_Pointer[_type.DWORD]],
-                              _Optional[_Pointer[_type.DWORD]]],
-                             _type.BOOL]
-GetDiskFreeSpaceExA: _Callable[[_type.LPCSTR,
-                                _Optional[_Pointer[_union.ULARGE_INTEGER]],
-                                _Optional[_Pointer[_union.ULARGE_INTEGER]],
-                                _Optional[_Pointer[_union.ULARGE_INTEGER]]],
-                               _type.BOOL]
-GetDiskFreeSpaceExW: _Callable[[_type.LPCWSTR,
-                                _Optional[_Pointer[_union.ULARGE_INTEGER]],
-                                _Optional[_Pointer[_union.ULARGE_INTEGER]],
-                                _Optional[_Pointer[_union.ULARGE_INTEGER]]],
-                               _type.BOOL]
-GetDiskSpaceInformationA: _Callable[[_Optional[_type.LPCSTR],
-                                     _Pointer[_struct.DISK_SPACE_INFORMATION]],
-                                    _type.BOOL]
-GetDiskSpaceInformationW: _Callable[[_Optional[_type.LPCWSTR],
-                                     _Pointer[_struct.DISK_SPACE_INFORMATION]],
-                                    _type.BOOL]
-GetDriveTypeA: _Callable[[_type.LPCSTR],
-                         _type.UINT]
-GetDriveTypeW: _Callable[[_type.LPCWSTR],
-                         _type.UINT]
-GetFileAttributesA: _Callable[[_type.LPCSTR],
-                              _type.DWORD]
-GetFileAttributesW: _Callable[[_type.LPCWSTR],
-                              _type.DWORD]
-GetFileSize: _Callable[[_type.HANDLE,
-                        _Optional[_Pointer[_type.DWORD]]],
-                       _type.DWORD]
-GetFileSizeEx: _Callable[[_type.HANDLE,
-                          _Pointer[_union.LARGE_INTEGER]],
-                         _type.BOOL]
-GetFileTime: _Callable[[_type.HANDLE,
-                        _Optional[_Pointer[_struct.FILETIME]],
-                        _Optional[_Pointer[_struct.FILETIME]],
-                        _Optional[_Pointer[_struct.FILETIME]]],
-                       _type.BOOL]
-GetFileType: _Callable[[_type.HANDLE],
-                       _type.DWORD]
-GetFinalPathNameByHandleA: _Callable[[_type.HANDLE,
-                                      _type.LPSTR,
-                                      _type.DWORD,
-                                      _type.DWORD],
-                                     _type.DWORD]
-GetFinalPathNameByHandleW: _Callable[[_type.HANDLE,
-                                      _type.LPWSTR,
-                                      _type.DWORD,
-                                      _type.DWORD],
-                                     _type.DWORD]
-GetLogicalDrives: _Callable[[],
-                            _type.DWORD]
-GetLogicalDriveStringsA: _Callable[[_type.DWORD,
-                                    _Optional[_type.LPSTR]],
-                                   _type.DWORD]
-GetLogicalDriveStringsW: _Callable[[_type.DWORD,
-                                    _Optional[_type.LPWSTR]],
-                                   _type.DWORD]
-GetLongPathNameA: _Callable[[_type.LPCSTR,
-                             _Optional[_type.LPSTR],
-                             _type.DWORD],
-                            _type.DWORD]
-GetLongPathNameW: _Callable[[_type.LPCWSTR,
-                             _Optional[_type.LPWSTR],
-                             _type.DWORD],
-                            _type.DWORD]
-GetShortPathNameW: _Callable[[_type.LPCWSTR,
-                              _Optional[_type.LPWSTR],
-                              _type.DWORD],
-                             _type.DWORD]
-GetTempFileNameW: _Callable[[_type.LPCWSTR,
-                             _type.LPCWSTR,
-                             _type.UINT,
-                             _type.LPWSTR],
+GetVolumeInformationA: _Callable[[_type.LPCSTR,  # lpRootPathName
+                                  _type.LPSTR,  # lpVolumeNameBuffer
+                                  _type.DWORD,  # nVolumeNameSize
+                                  _Pointer[_type.DWORD],  # lpVolumeSerialNumber
+                                  _Pointer[_type.DWORD],  # lpMaximumComponentLength
+                                  _Pointer[_type.DWORD],  # lpFileSystemFlags
+                                  _type.LPSTR,  # lpFileSystemNameBuffer
+                                  _type.DWORD],  # nFileSystemNameSize
+                                 _type.BOOL]
+GetTempFileNameA: _Callable[[_type.LPCSTR,  # lpPathName
+                             _type.LPCSTR,  # lpPrefixString
+                             _type.UINT,  # uUnique
+                             _type.LPSTR],  # lpTempFileName
                             _type.UINT]
-GetTempPathA: _Callable[[_type.DWORD,
-                         _type.LPSTR],
-                        _type.DWORD]
-GetTempPathW: _Callable[[_type.DWORD,
-                         _type.LPWSTR],
-                        _type.DWORD]
-GetTempPath2A: _Callable[[_type.DWORD,
-                          _type.LPSTR],
+SetFileApisToOEM: _Callable[[],
+                            _type.c_void]
+SetFileApisToANSI: _Callable[[],
+                             _type.c_void]
+GetTempPath2W: _Callable[[_type.DWORD,  # BufferLength
+                          _type.LPWSTR],  # Buffer
                          _type.DWORD]
-GetTempPath2W: _Callable[[_type.DWORD,
-                          _type.LPWSTR],
+GetTempPath2A: _Callable[[_type.DWORD,  # BufferLength
+                          _type.LPSTR],  # Buffer
                          _type.DWORD]
-GetVolumePathNameW: _Callable[[_type.LPCWSTR,
-                               _type.LPWSTR,
-                               _type.DWORD],
-                              _type.DWORD]
-LocalFileTimeToFileTime: _Callable[[_Pointer[_struct.FILETIME],
-                                    _Pointer[_struct.FILETIME]],
-                                   _type.BOOL]
-LockFile: _Callable[[_type.HANDLE,
-                     _type.DWORD,
-                     _type.DWORD,
-                     _type.DWORD,
-                     _type.DWORD],
-                    _type.BOOL]
-QueryDosDeviceW: _Callable[[_Optional[_type.LPCWSTR],
-                            _type.LPWSTR,
-                            _type.DWORD],
-                           _type.DWORD]
-ReadFile: _Callable[[_type.HANDLE,
-                     _Optional[_type.LPVOID],
-                     _type.DWORD,
-                     _Optional[_Pointer[_type.DWORD]],
-                     _Optional[_Pointer[_struct.OVERLAPPED]]],
-                    _type.BOOL]
-RemoveDirectoryA: _Callable[[_type.LPCSTR],
-                            _type.BOOL]
-RemoveDirectoryW: _Callable[[_type.LPCWSTR],
-                            _type.BOOL]
-SetEndOfFile: _Callable[[_type.HANDLE],
-                        _type.BOOL]
-SetFileAttributesA: _Callable[[_type.LPCSTR,
-                               _type.DWORD],
-                              _type.BOOL]
-SetFileAttributesW: _Callable[[_type.LPCWSTR,
-                               _type.DWORD],
-                              _type.BOOL]
-SetFileValidData: _Callable[[_type.HANDLE,
-                             _type.LONGLONG],
-                            _type.BOOL]
-UnlockFile: _Callable[[_type.HANDLE,
-                       _type.DWORD,
-                       _type.DWORD,
-                       _type.DWORD,
-                       _type.DWORD],
-                      _type.BOOL]
 # handleapi
 CloseHandle: _Callable[[_type.HANDLE],
                        _type.BOOL]
@@ -1232,6 +1444,56 @@ SetComputerNameW: _Callable[[_type.LPCWSTR],  # lpComputerName
 SetComputerNameExA: _Callable[[_enum.COMPUTER_NAME_FORMAT,  # NameType
                                _type.LPCSTR],  # lpBuffer
                               _type.BOOL]
+# timezoneapi
+SystemTimeToTzSpecificLocalTime: _Callable[[_Pointer[_struct.TIME_ZONE_INFORMATION],  # lpTimeZoneInformation
+                                            _Pointer[_struct.SYSTEMTIME],  # lpUniversalTime
+                                            _Pointer[_struct.SYSTEMTIME]],  # lpLocalTime
+                                           _type.BOOL]
+TzSpecificLocalTimeToSystemTime: _Callable[[_Pointer[_struct.TIME_ZONE_INFORMATION],  # lpTimeZoneInformation
+                                            _Pointer[_struct.SYSTEMTIME],  # lpLocalTime
+                                            _Pointer[_struct.SYSTEMTIME]],  # lpUniversalTime
+                                           _type.BOOL]
+FileTimeToSystemTime: _Callable[[_Pointer[_struct.FILETIME],  # lpFileTime
+                                 _Pointer[_struct.SYSTEMTIME]],  # lpSystemTime
+                                _type.BOOL]
+SystemTimeToFileTime: _Callable[[_Pointer[_struct.SYSTEMTIME],  # lpSystemTime
+                                 _Pointer[_struct.FILETIME]],  # lpFileTime
+                                _type.BOOL]
+GetTimeZoneInformation: _Callable[[_Pointer[_struct.TIME_ZONE_INFORMATION]],  # lpTimeZoneInformation
+                                  _type.DWORD]
+SetTimeZoneInformation: _Callable[[_Pointer[_struct.TIME_ZONE_INFORMATION]],  # lpTimeZoneInformation
+                                  _type.BOOL]
+SetDynamicTimeZoneInformation: _Callable[[_Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION]],  # lpTimeZoneInformation
+                                         _type.BOOL]
+GetDynamicTimeZoneInformation: _Callable[[_Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION]],  # pTimeZoneInformation
+                                         _type.DWORD]
+GetTimeZoneInformationForYear: _Callable[[_type.USHORT,  # wYear
+                                          _Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION],  # pdtzi
+                                          _Pointer[_struct.TIME_ZONE_INFORMATION]],  # ptzi
+                                         _type.BOOL]
+EnumDynamicTimeZoneInformation: _Callable[[_type.DWORD,  # dwIndex
+                                           _Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION]],  # lpTimeZoneInformation
+                                          _type.DWORD]
+GetDynamicTimeZoneInformationEffectiveYears: _Callable[[_Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION],  # lpTimeZoneInformation
+                                                        _Pointer[_type.DWORD],  # FirstYear
+                                                        _Pointer[_type.DWORD]],  # LastYear
+                                                       _type.DWORD]
+SystemTimeToTzSpecificLocalTimeEx: _Callable[[_Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION],  # lpTimeZoneInformation
+                                              _Pointer[_struct.SYSTEMTIME],  # lpUniversalTime
+                                              _Pointer[_struct.SYSTEMTIME]],  # lpLocalTime
+                                             _type.BOOL]
+TzSpecificLocalTimeToSystemTimeEx: _Callable[[_Pointer[_struct.DYNAMIC_TIME_ZONE_INFORMATION],  # lpTimeZoneInformation
+                                              _Pointer[_struct.SYSTEMTIME],  # lpLocalTime
+                                              _Pointer[_struct.SYSTEMTIME]],  # lpUniversalTime
+                                             _type.BOOL]
+LocalFileTimeToLocalSystemTime: _Callable[[_Pointer[_struct.TIME_ZONE_INFORMATION],  # timeZoneInformation
+                                           _Pointer[_struct.FILETIME],  # localFileTime
+                                           _Pointer[_struct.SYSTEMTIME]],  # localSystemTime
+                                          _type.BOOL]
+LocalSystemTimeToLocalFileTime: _Callable[[_Pointer[_struct.TIME_ZONE_INFORMATION],  # timeZoneInformation
+                                           _Pointer[_struct.SYSTEMTIME],  # localSystemTime
+                                           _Pointer[_struct.FILETIME]],  # localFileTime
+                                          _type.BOOL]
 # utilapiset
 Beep: _Callable[[_type.DWORD,  # dwFreq
                  _type.DWORD],  # dwDuration

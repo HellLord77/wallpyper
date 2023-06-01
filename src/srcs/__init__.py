@@ -138,9 +138,7 @@ class File:
                            response: request.Response) -> bool:
         if self.size == request.RETRIEVE_UNKNOWN_SIZE:
             self.size = request.sizeof(response)
-        if not response:
-            return False
-        return query_callback(0, self.size)
+        return query_callback(0, self.size) if response else False
 
     def download(self, path: str, query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:
         return request.retrieve(self.request, path, self.size, chunk_count=100,

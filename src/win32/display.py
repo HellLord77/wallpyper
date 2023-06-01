@@ -22,7 +22,6 @@ from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_Sy
 from libs.ctyped.lib import user32, kernel32, gdi32, msimg32, dwmapi, psapi, shell32
 from . import _gdiplus, _handle, _utils
 
-_DELETE_AFTER = 0.5
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 
 ANIMATION_POLL_INTERVAL = 0.01
@@ -674,11 +673,8 @@ def set_wallpaper_ex(path: str, monitor: Optional[str] = None, style: Style = St
             # noinspection PyTypeChecker
             _draw_on_workerw(image, *monitor_x_y_w_h, *_get_src_x_y_w_h(*monitor_x_y_w_h[2:], width, height, style),
                              temp_path, _gdiplus.Color.from_rgba(*rgb), transition, duration, easing)
-            try:
-                return _set_wallpaper_idesktopwallpaper(
-                    temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
-            finally:
-                threading.Timer(_DELETE_AFTER, kernel32.DeleteFileW, (temp_path,)).start()
+            return _set_wallpaper_idesktopwallpaper(
+                temp_path, monitor, style=style if style in (Style.TILE, Style.SPAN) else Style.FILL)
     return False
 
 

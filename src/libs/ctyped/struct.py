@@ -1621,6 +1621,32 @@ class SYSTEMTIME:
     wMilliseconds: _type.WORD
 
 
+# noinspection PyPep8Naming
+@_struct
+class TIME_ZONE_INFORMATION:
+    Bias: _type.LONG
+    StandardName: _type.WCHAR * 32
+    StandardDate: SYSTEMTIME
+    StandardBias: _type.LONG
+    DaylightName: _type.WCHAR * 32
+    DaylightDate: SYSTEMTIME
+    DaylightBias: _type.LONG
+
+
+# noinspection PyPep8Naming
+@_struct
+class DYNAMIC_TIME_ZONE_INFORMATION:
+    Bias: _type.LONG
+    StandardName: _type.WCHAR * 32
+    StandardDate: SYSTEMTIME
+    StandardBias: _type.LONG
+    DaylightName: _type.WCHAR * 32
+    DaylightDate: SYSTEMTIME
+    DaylightBias: _type.LONG
+    TimeZoneKeyName: _type.WCHAR * 128
+    DynamicDaylightTimeDisabled: _type.BOOLEAN
+
+
 @_struct
 class OSVERSIONINFOA:
     dwOSVersionInfoSize: _type.DWORD = _SIZE
