@@ -3,6 +3,7 @@ from __future__ import annotations
 __version__ = '0.0.6'
 
 import html.parser
+import io
 import itertools
 import re
 import shutil
@@ -235,6 +236,4 @@ def load(file: TextIO) -> Optional[Element]:
 
 
 def loads(data: str) -> Optional[Element]:
-    parser = _Parser()
-    parser.feed(data)
-    return parser.root
+    return load(io.StringIO(data))
