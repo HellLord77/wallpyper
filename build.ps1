@@ -1,4 +1,4 @@
-$Version = "0.3.1"
+$Version = "0.3.2"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -148,6 +148,7 @@ function Get-RemovedArray([array]$Array, $Index) {
 
 function Get-RemovedItemArray([array]$Array, $Item, $Count = [double]::PositiveInfinity) {
 	for ($i = 0; $i -lt $Count; $i++) {
+		if (-not $Array) { break }
 		$Index = $Array.IndexOf($Item)
 		if ($Index -eq -1) { break }
 		else { $Array = Get-RemovedArray $Array $Index }
@@ -191,7 +192,7 @@ function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0) {
 	do {
 		Copy-Item $Source -Destination $Destination -ErrorAction SilentlyContinue
 		Start-Sleep 0.01
-	} while (($EndTime -ge ([int](Get-Date -UFormat %s))) -and -not(Test-Path $Destination -PathType Leaf))
+	} while (($EndTime -ge ([int](Get-Date -UFormat %s))) -and -not (Test-Path $Destination -PathType Leaf))
 }
 
 function MinifyJsonFile([string]$Path, [string]$OutPath) {
@@ -344,14 +345,12 @@ function Get-CythonSources {
 		foreach ($CythonSourceGlob in $CythonSourceGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonSourceGlob
 			foreach ($Source in (Start-PythonCode $CodeGlob) -Split ";") {
-				# $CythonSources.Add(($Source -Replace "\\", "/")) | Out-Null
 				$Global:CythonSources += $Source -Replace "\\", "/"
 			}
 		}
 		foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonExcludeGlob
 			foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";") {
-				# $CythonSources.Remove(($Exclude -Replace "\\", "/")) | Out-Null
 				$Global:CythonSources = Get-RemovedItemArray $Global:CythonSources ($Exclude -Replace "\\", "/")
 			}
 		}
@@ -401,9 +400,9 @@ function Get-mypycArgs {
 
 function Install-Requirements {
 	python -m pip install pip --upgrade
-	python -m pip install setuptools --upgrade
-
+	pip install setuptools --upgrade
 	pip install wheel --upgrade
+
 	# $TempDir = Join-Path $Env:TEMP (New-Guid) FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
 	$TempDir = Join-Path (Split-Path (Get-Location) -Qualifier) (Get-Random)
 	New-Item $TempDir -ItemType Directory
