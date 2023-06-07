@@ -691,8 +691,10 @@ class Wallpaper(NamedTuple):
 
 
 def set_wallpapers_ex(*wallpapers: Wallpaper):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = tuple(executor.submit(set_wallpaper_ex, *wallpaper) for wallpaper in wallpapers)
+    with concurrent.futures.ThreadPoolExecutor(
+            thread_name_prefix=set_wallpaper_ex.__name__) as executor:
+        futures = tuple(executor.submit(
+            set_wallpaper_ex, *wallpaper) for wallpaper in wallpapers)
     return all(future.result() for future in futures)
 
 

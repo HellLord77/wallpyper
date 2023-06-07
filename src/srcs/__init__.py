@@ -294,6 +294,7 @@ from . import (
     spotlight,
     stocksnap,
     thisxdoesnotexist,
+    ubuntu,
     unsplash,
     wallhaven,
     wallhere,
