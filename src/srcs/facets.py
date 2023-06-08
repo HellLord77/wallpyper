@@ -27,9 +27,28 @@ SERIES = (
 DEVICES = '', 'Desktop', 'Mobile'
 
 
+def _get_json() -> Iterator[dict]:
+    last_etag = ''
+    json = {}
+    while True:
+        response = request.head(URL_BASE)
+        if response:
+            if last_etag != response.headers[request.Header.ETAG]:
+                response = request.get(URL_BASE)
+                if response:
+                    last_etag = response.headers[request.Header.ETAG]
+                    json = response.json()
+                else:
+                    json = {}
+        yield json
+
+
+_GET_JSON = _get_json()
+
+
 class Facets(Source):
     NAME = 'FACETS'
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
     ICON = 'png'
     URL = 'https://facets.la'
     TCONFIG = TypedDict('TCONFIG', {
@@ -70,12 +89,10 @@ class Facets(Source):
         arts: Optional[list] = None
         while True:
             if not arts:
-                response = request.get(URL_BASE)
-                if response:
-                    json = response.json()
-                    arts = [art for art in json['art'] if art['pathThumbnail']]
-                    cls._purchasable = {int(
-                        nft['tokenId']): nft['ownerAddress'] == _OWNER for nft in json['nft']}
+                json = next(_GET_JSON)
+                arts = [art for art in json['art'] if art['pathThumbnail']]
+                cls._purchasable = {int(
+                    nft['tokenId']): nft['ownerAddress'] == _OWNER for nft in json['nft']}
                 if not arts:
                     yield
                     continue

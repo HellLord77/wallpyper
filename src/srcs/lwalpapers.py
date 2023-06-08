@@ -6,7 +6,7 @@ import validator
 from libs import request
 from . import File, Source
 
-URL_TREE = request.join_url('https://api.github.com', 'repos', 'whoisYoges',
+URL_BASE = request.join_url('https://api.github.com', 'repos', 'whoisYoges',
                             'lwalpapers', 'contents', 'wallpapers')
 
 CONFIG_SORT = 'sort'
@@ -19,9 +19,28 @@ SORTS = {
     'random': lambda x: random.sample(x, k=len(x))}
 
 
+def _get_json() -> Iterator[dict]:
+    last_etag = ''
+    json = {}
+    while True:
+        response = request.head(URL_BASE)
+        if response:
+            if last_etag != response.headers[request.Header.ETAG]:
+                response = request.get(URL_BASE)
+                if response:
+                    last_etag = response.headers[request.Header.ETAG]
+                    json = response.json()
+                else:
+                    json = {}
+        yield json
+
+
+_GET_JSON = _get_json()
+
+
 class Lwalpapers(Source):
     NAME = 'lwalpapers'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     ICON = 'png'
     URL = 'https://wallpaper.castorisdead.xyz'
     TCONFIG = TypedDict('TCONFIG', {
@@ -43,9 +62,7 @@ class Lwalpapers(Source):
         tree: Optional[list] = None
         while True:
             if not tree:
-                response = request.get(URL_TREE)
-                if response:
-                    tree = list(SORTS[params[CONFIG_SORT]](response.json()))
+                tree = list(SORTS[params[CONFIG_SORT]](next(_GET_JSON)))
                 if not tree:
                     yield
                     continue

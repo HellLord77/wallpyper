@@ -8,8 +8,9 @@ import validator
 from libs import request, sgml
 from . import File, Source
 
-URL_PLAIN = request.join_url('https://git.launchpad.net', 'ubuntu', '+source', 'ubuntu-wallpapers', 'plain')
-URL_CONTEST = request.join_url(URL_PLAIN, 'contest')
+URL_BASE = request.join_url('https://git.launchpad.net', 'ubuntu',
+                            '+source', 'ubuntu-wallpapers', 'plain')
+URL_CONTEST = request.join_url(URL_BASE, 'contest')
 
 CONFIG_CONTEST = 'contest'
 CONFIG_SORT = 'sort'
@@ -67,4 +68,4 @@ class UbuntuWallpapers(Source):
                     yield
                     continue
             yield File(request.join_url(
-                URL_PLAIN, os.path.basename(files_.pop(0).get_text())))
+                URL_BASE, os.path.basename(files_.pop(0).get_text())))
