@@ -635,27 +635,8 @@ def _test_inheritance():
     print(typ, bool(typ))
 
 
-CONTESTS = (
-    'karmic', 'lucid', 'maverick', 'natty', 'oneiric', 'precise',
-    'quantal', 'raring', 'saucy', 'trusty', 'utopic', 'vivid', 'wily',
-    'xenial', 'yakkety', 'zesty', 'artful', 'bionic', 'cosmic', 'disco',
-    'eoan', 'focal', 'groovy', 'hirsute', 'impish', 'jammy', 'kinetic', 'lunar')
-
-
 def _test():
-    from libs import sgml
-    base = r'D:\Projects\ubuntu-wallpapers\contest'
-    data = ''
-    for name in os.listdir(base):
-        if name.removesuffix('.xml') not in CONTESTS:
-            print(name)
-        path = os.path.join(base, name)
-        with open(path, 'r', encoding='utf-8') as file:
-            data += file.read()
-    xml = sgml.loads(f'<xml>{data}</xml>')
-    files = tuple(file.get_text() for file in xml.find_all('file'))
-    print(files)
-    print(len(files))
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

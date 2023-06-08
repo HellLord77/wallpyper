@@ -1,4 +1,4 @@
-__version__ = '0.0.6'  # TODO send signal and kill if no reply, check error code & crash
+__version__ = '0.0.7'  # TODO send signal and kill if no reply, check error code & crash
 
 import atexit
 import enum
@@ -10,6 +10,7 @@ import socket
 import sys
 import tempfile
 import time
+import uuid
 from typing import AnyStr, Callable, NoReturn, Optional
 
 WAIT_INTERVAL = 5
@@ -19,20 +20,20 @@ MAX_CHUNK = shutil.COPY_BUFSIZE
 SUFFIX = '.lock'
 
 
-def _wait_or_exit(end_time: float, on_wait: Optional[Callable],
-                  on_exit: Optional[Callable]) -> Optional[NoReturn]:
+def _not_crashed(end_time: float, on_waiting: Optional[Callable],
+                 on_exiting: Optional[Callable]) -> Optional[NoReturn]:
     if end_time > time.monotonic():
-        if on_wait is not None:
-            on_wait()
+        if on_waiting is not None:
+            on_waiting()
         time.sleep(POLL_INTERVAL)
     else:
-        if on_exit is not None:
-            on_exit()
+        if on_exiting is not None:
+            on_exiting()
         raise SystemExit
 
 
-def _file(uid: str, wait: bool, on_crash: Optional[Callable],
-          on_wait: Optional[Callable], on_exit: Optional[Callable]) -> Optional[NoReturn]:
+def _file(uid: str, wait: bool, on_crashed: Optional[Callable],
+          on_waiting: Optional[Callable], on_exiting: Optional[Callable]) -> Optional[NoReturn]:
     temp_dir = tempfile.gettempdir()
     os.makedirs(temp_dir, exist_ok=True)
     path = os.path.join(temp_dir, uid)
@@ -45,32 +46,32 @@ def _file(uid: str, wait: bool, on_crash: Optional[Callable],
             try:
                 os.remove(path)
             except PermissionError:
-                _wait_or_exit(end_time, on_wait, on_exit)
+                _not_crashed(end_time, on_waiting, on_exiting)
             else:
-                if on_crash is not None:
-                    on_crash()
+                if on_crashed is not None:
+                    on_crashed()
         else:
             atexit.register(os.remove, path)
             atexit.register(os.close, file)
             break
 
 
-def _memory(uid: str, wait: bool, _, on_wait: Optional[Callable],
-            on_exit: Optional[Callable]) -> Optional[NoReturn]:
+def _memory(uid: str, wait: bool, _, on_waiting: Optional[Callable],
+            on_exiting: Optional[Callable]) -> Optional[NoReturn]:
     end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:
         try:
             memory = multiprocessing.shared_memory.SharedMemory(uid, True, 1)
         except FileExistsError:
-            _wait_or_exit(end_time, on_wait, on_exit)
+            _not_crashed(end_time, on_waiting, on_exiting)
         else:
             atexit.register(memory.unlink)
             atexit.register(memory.close)
             break
 
 
-def _socket(uid: str, wait: bool, _, on_wait: Optional[Callable],
-            on_exit: Optional[Callable], ) -> Optional[NoReturn]:
+def _socket(uid: str, wait: bool, _, on_waiting: Optional[Callable],
+            on_exiting: Optional[Callable]) -> Optional[NoReturn]:
     address = socket.gethostname(), int.from_bytes(
         uid.encode(), sys.byteorder) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -79,7 +80,7 @@ def _socket(uid: str, wait: bool, _, on_wait: Optional[Callable],
         try:
             server.bind(address)
         except OSError:
-            _wait_or_exit(end_time, on_wait, on_exit)
+            _not_crashed(end_time, on_waiting, on_exiting)
         else:
             atexit.register(server.close)
             break
@@ -91,7 +92,7 @@ class Method(enum.Enum):
     SOCKET = enum.member(_socket)
 
 
-def _get_uid(data_or_path: bytes, prefix: Optional[str]) -> str:
+def _get_uid(data_or_path: bytes | bytearray, prefix: Optional[str]) -> str:
     md5 = hashlib.md5(data_or_path)
     if os.path.isfile(data_or_path):
         with open(data_or_path or sys.argv[0], 'rb') as file:
@@ -101,9 +102,11 @@ def _get_uid(data_or_path: bytes, prefix: Optional[str]) -> str:
     return f'{prefix}{md5.hexdigest()}{SUFFIX}'
 
 
-def init(uuid: AnyStr, uid_prefix: Optional[str] = __name__, wait: bool = False,
-         on_crash: Optional[Callable] = None, on_wait: Optional[Callable] = None,
-         on_exit: Optional[Callable] = None, method: Method = Method.FILE) -> Optional[NoReturn]:
-    if isinstance(uuid, str):
-        uuid = uuid.encode()
-    method.value(_get_uid(uuid, uid_prefix), wait, on_crash, on_wait, on_exit)
+def init(uid: bytearray | uuid.UUID | AnyStr, uid_prefix: Optional[str] = __name__,
+         wait: bool = False, on_crashed: Optional[Callable] = None, on_waiting: Optional[Callable] = None,
+         on_exiting: Optional[Callable] = None, method: Method = Method.FILE) -> Optional[NoReturn]:
+    if isinstance(uid, uuid.UUID):
+        uid = uid.bytes
+    elif isinstance(uid, str):
+        uid = uid.encode()
+    method.value(_get_uid(uid, uid_prefix), wait, on_crashed, on_waiting, on_exiting)
