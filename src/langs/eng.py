@@ -750,6 +750,7 @@ THISXDOESNOTEXIST_VARIANT_cat = 'Cat'
 THISXDOESNOTEXIST_VARIANT_horse = 'Horse'
 
 UBUNTU_MENU_CONTESTS = 'Releases'
+UBUNTU_MENU_SORT = 'Sort by'
 
 UBUNTU_CONTEST_karmic = 'Karmic Koala\t9.10'
 UBUNTU_CONTEST_lucid = 'Lucid Lynx\t10.04'
@@ -779,6 +780,10 @@ UBUNTU_CONTEST_impish = 'Impish Indri\t21.10'
 UBUNTU_CONTEST_jammy = 'Jammy Jellyfish\t22.04'
 UBUNTU_CONTEST_kinetic = 'Kinetic Kudu\t22.10'
 UBUNTU_CONTEST_lunar = 'Lunar Lemur\t23.04'
+
+UBUNTU_SORT_oldest = 'Oldest'
+UBUNTU_SORT_newest = 'Newest'
+UBUNTU_SORT_random = 'Random'
 
 UNSPLASH_LABEL_EDITORIAL = 'Editorial'
 
