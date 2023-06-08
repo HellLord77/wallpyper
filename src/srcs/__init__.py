@@ -286,6 +286,7 @@ from . import (
     facets,
     fivehundredpx,
     folder,
+    lwalpapers,
     pexels,
     pixabay,
     reddit,

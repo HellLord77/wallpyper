@@ -35,7 +35,7 @@ class UbuntuWallpapers(Source):
         CONFIG_SORT: str})
     DEFAULT_CONFIG = {
         CONFIG_CONTEST: [True] * len(CONTESTS),
-        CONFIG_SORT: next(itertools.islice(SORTS, 1, None))}
+        CONFIG_SORT: tuple(SORTS)[1]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

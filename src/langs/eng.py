@@ -596,6 +596,14 @@ FOLDER_SORT_accessed = 'Access Time'
 FOLDER_ORDER_ascending = 'Ascending'
 FOLDER_ORDER_descending = 'Descending'
 
+LWALPAPERS_MENU_SORT = 'Sort by'
+
+LWALPAPERS_SORT_oldest = 'Date\tAscending'
+LWALPAPERS_SORT_newest = 'Date\tDescending'
+LWALPAPERS_SORT_smallest = 'Size\tAscending'
+LWALPAPERS_SORT_largest = 'Size\tDescending'
+LWALPAPERS_SORT_random = 'Random'
+
 PEXELS_LABEL_CURATED = 'Curated Photos'
 
 PEXELS_MENU_SEARCH = 'Search Filters'
