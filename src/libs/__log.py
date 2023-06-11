@@ -1,7 +1,6 @@
 __version__ = '0.0.13'
 
 import atexit
-import contextlib
 import datetime
 import functools
 import io

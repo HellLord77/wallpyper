@@ -58,8 +58,7 @@ $CodeRunBefore = @(
 	"run()"
 	"lines = open('pipe.spec').readlines()"
 	"open('pipe.spec', 'w').writelines(lines[:lines.index('coll = COLLECT(\n')])"
-	"__main__.run(['pipe.spec'])"
-)
+	"__main__.run(['pipe.spec'])")
 $CodeRunBeforeRemote = @(
 	"from src.libs.colornames import _download"
 	"_download()"
