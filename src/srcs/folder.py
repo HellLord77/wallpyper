@@ -22,7 +22,7 @@ ORDERS = 'ascending', 'descending'
 
 
 class Folder(Source):
-    NAME = 'Folder [local]'
+    NAME = 'Folder [offline]'
     VERSION = '0.0.2'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {

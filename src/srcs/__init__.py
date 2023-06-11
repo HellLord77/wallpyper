@@ -6,6 +6,7 @@ import binascii
 import dataclasses
 import functools
 import hashlib
+import itertools
 import os
 import urllib.parse
 from typing import Any, Callable, Iterator, Optional, TypedDict, final
@@ -253,7 +254,7 @@ class Source:
         if square:
             orientations.append(image.is_square())
         # noinspection PyTypedDict
-        return any(utils.iter_and(cls.CURRENT_CONFIG[key], orientations))
+        return any(itertools.compress(orientations, cls.CURRENT_CONFIG[key]))
 
     @classmethod
     @final
@@ -267,7 +268,7 @@ class Source:
         if nsfw:
             ratings.append(image.nsfw)
         # noinspection PyTypedDict
-        return any(utils.iter_and(cls.CURRENT_CONFIG[key], ratings))
+        return any(itertools.compress(ratings, cls.CURRENT_CONFIG[key]))
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:

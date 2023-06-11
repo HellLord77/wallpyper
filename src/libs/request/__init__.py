@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.5'
+__version__ = '0.2.6'
 
 import base64
 import bz2
@@ -29,7 +29,7 @@ import urllib.request
 import urllib.response
 import uuid
 import zlib
-from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, Optional, Sequence
+from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, NoReturn, Optional, Sequence
 
 CONTENT_CHUNK_SIZE = 10 * 1024
 RETRIEVE_UNKNOWN_SIZE = 0
@@ -202,13 +202,13 @@ class Header:
 
 
 class _DecoderMeta(type):
-    _token_: str | tuple[str, ...]
+    _token_: str | Iterable[str]
 
     _decoders: dict[str, _DecoderMeta] = {}
 
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not isinstance(cls._token_, tuple):
+        if isinstance(cls._token_, str):
             cls._token_ = cls._token_,
         for token in cls._token_:
             cls._decoders[token.lower()] = cls
@@ -225,7 +225,7 @@ class _DecoderMeta(type):
 
 
 class Decoder(metaclass=_DecoderMeta):
-    _token_: str | tuple[str, ...] = ()
+    _token_: str | Iterable[str] = ()
 
     def flush(self) -> bytes:
         return b''
@@ -826,7 +826,7 @@ class Response:
         self._decoder = Decoder.get(self.headers.get(Header.CONTENT_ENCODING))
 
     def __bool__(self) -> bool:
-        return self.status_code is Status.OK
+        return self.ok
 
     def __repr__(self) -> str:
         return f'<{type(self).__name__}: {self.status_code!r}>'
@@ -842,7 +842,12 @@ class Response:
 
     @property
     def ok(self) -> bool:
-        return not 400 <= self.status_code < 600
+        try:
+            self.raise_for_status()
+        except urllib.error.HTTPError:
+            return False
+        else:
+            return True
 
     @property
     def is_redirect(self) -> bool:
@@ -888,6 +893,11 @@ class Response:
             for url, params in get_links(self.headers[Header.LINK], self.url).items():
                 links[params.get('rel', url)] = {'url': url, **params}
         return links
+
+    def raise_for_status(self) -> Optional[NoReturn]:
+        if 400 <= self.status_code < 600:
+            raise urllib.error.HTTPError(
+                self.url, self.status_code, self.reason, self.headers, self.raw)
 
     def close(self):
         self.raw.close()

@@ -75,7 +75,7 @@ def encode_request(request: _TRequest,
         request = request.prepare()
     encoded = {
         'method': request.method,
-        'url': _strip_url(request.full_url, False),
+        'url': _strip_url(request.full_url, fragment=False),
         'httpVersion': 'HTTP/1.1'}
     cookies = getattr(request, '_cookies', None)
     encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)

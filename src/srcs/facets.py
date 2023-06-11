@@ -10,9 +10,9 @@ _OWNER = '0xa52578c6ada18248d95805083ed148957573e4eb'
 
 URL_BASE = request.join_url('https://facets.api.manifoldxyz.dev', 'art')
 
-CONFIG_YEAR = '_year'
-CONFIG_SERIES = '_series'
-CONFIG_PURCHASABLE = '_purchasable'
+CONFIG_YEAR = 'year'
+CONFIG_SERIES = 'series'
+CONFIG_PURCHASABLE = 'purchasable'
 CONFIG_DEVICE = '_device'
 
 YEARS = 2013, 2014, 2022, 2023
@@ -28,18 +28,15 @@ DEVICES = '', 'Desktop', 'Mobile'
 
 
 def _get_json() -> Iterator[dict]:
-    last_etag = ''
+    etag = ''
     json = {}
     while True:
-        response = request.head(URL_BASE)
+        response = request.get(URL_BASE)
         if response:
-            if last_etag != response.headers[request.Header.ETAG]:
-                response = request.get(URL_BASE)
-                if response:
-                    last_etag = response.headers[request.Header.ETAG]
-                    json = response.json()
-                else:
-                    json = {}
+            if etag != (etag := response.headers[request.Header.ETAG]):
+                json = response.json()
+        else:
+            json = {}
         yield json
 
 
@@ -48,7 +45,7 @@ _GET_JSON = _get_json()
 
 class Facets(Source):
     NAME = 'FACETS'
-    VERSION = '0.0.4'
+    VERSION = '0.0.5'
     ICON = 'png'
     URL = 'https://facets.la'
     TCONFIG = TypedDict('TCONFIG', {
@@ -80,6 +77,7 @@ class Facets(Source):
             for series in SERIES}, cls.CURRENT_CONFIG, CONFIG_SERIES)
         gui.add_menu_item_check(cls._text('LABEL_PURCHASABLE'),
                                 cls.CURRENT_CONFIG, CONFIG_PURCHASABLE)
+        gui.add_separator()
         gui.add_submenu_radio(cls._text('MENU_DEVICE'), {
             device: cls._text(f'DEVICE_{device}')
             for device in DEVICES}, cls.CURRENT_CONFIG, CONFIG_DEVICE)

@@ -1,4 +1,5 @@
 import os
+import pprint
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -73,14 +74,14 @@ class DeviantArt(Source):
                     yield
                     continue
             item = items.pop(0)
-            title = item.find('title').get_data()
+            pprint.pprint(item, sort_dicts=False)
             content = item.find('media:content')
             url_content = content['url']
             url_original = request.join_url(*request.split_url(url_content)[:4])
             yield ImageFile(request.encode_params(url_original, request.extract_params(
-                url_content)), title + os.path.splitext(url_original)[1], url=item.find(
-                'link').get_data(), ratio=int(content['width']) / int(content['height']),
-                            nsfw=item.find('media:rating').get_data() == 'adult')
+                url_content)), item.find('title').get_data() + os.path.splitext(
+                url_original)[1], url=item.find('link').get_data(), ratio=int(content['width']) / int(
+                content['height']), nsfw=item.find('media:rating').get_data() == 'adult')
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:

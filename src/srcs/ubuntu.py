@@ -1,7 +1,8 @@
+import functools
 import itertools
 import os
 import random
-from typing import Iterator, Optional, TypedDict
+from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
@@ -28,7 +29,7 @@ SORTS = {
 
 class UbuntuWallpapers(Source):
     NAME = 'ubuntu-wallpapers'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     ICON = 'png'
     URL = 'https://launchpad.net/ubuntu-wallpapers'
     TCONFIG = TypedDict('TCONFIG', {
@@ -47,10 +48,11 @@ class UbuntuWallpapers(Source):
     @classmethod
     def create_menu(cls):
         gui.add_submenu_check(cls._text('MENU_CONTESTS'), (cls._text(
-            f'CONTEST_{contest}') for contest in CONTESTS),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_CONTEST)
-        gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
-            f'SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT)
+            f'CONTEST_{contest}') for contest in CONTESTS), (1, None), cls.CURRENT_CONFIG,
+                              CONFIG_CONTEST, on_click=functools.partial(
+                cls._on_contest, gui.add_submenu_radio(cls._text('MENU_SORT'), {
+                    sort: cls._text(f'SORT_{sort}') for sort in
+                    SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable), position=0)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
@@ -69,3 +71,7 @@ class UbuntuWallpapers(Source):
                     continue
             yield File(request.join_url(
                 URL_BASE, os.path.basename(files_.pop(0).get_text())))
+
+    @classmethod
+    def _on_contest(cls, enable: Callable[[bool], bool], _: int):
+        enable(sum(cls.CURRENT_CONFIG[CONFIG_CONTEST]) != 1)

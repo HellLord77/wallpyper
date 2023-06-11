@@ -6,7 +6,7 @@ from typing import ItemsView, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import isocodes, request
-from . import File, Source
+from . import ImageFile, Source
 
 _CONTENT_END = b'[ERROR 400] "page" is out of valid range.'
 
@@ -36,13 +36,15 @@ COLORS = (
     'turquoise', 'blue', 'lilac', 'pink', 'white', 'gray', 'black', 'brown')
 ORDERS = 'popular', 'latest'
 
+_BOOL = 'false', 'true'
+
 
 def _authenticate(key: str) -> bool:
     return bool(request.get(URL_BASE, {CONFIG_KEY: key, 'per_page': '3'}))
 
 
 class Pixabay(Source):  # https://pixabay.com/api/docs
-    NAME = '# pixabay'
+    NAME = '# pixabay [recaptcha]'
     URL = 'https://pixabay.com'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
@@ -102,8 +104,10 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             f'ORDER_{order}') for order in ORDERS}, cls.CURRENT_CONFIG, CONFIG_ORDER)
 
     @classmethod
-    def get_image(cls, **params) -> Iterator[Optional[File]]:
+    def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         hits: Optional[list] = None
+        params[CONFIG_EDITOR] = _BOOL[params[CONFIG_EDITOR]]
+        params[CONFIG_SAFE] = _BOOL[params[CONFIG_SAFE]]
         params['page'] = '1'
         while True:
             if not hits:
@@ -119,7 +123,9 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
                     return
             hit = hits.pop(0)
             name = os.path.basename(hit['previewURL'])
-            yield File(hit['largeImageURL'], f'{name[:name.rfind("_")]}{name[name.rfind("."):]}')
+            yield ImageFile(hit['largeImageURL'], name[:name.rfind('_')] +
+                            name[name.rfind('.'):], url=hit[
+                'pageURL'], width=hit['imageWidth'], height=hit['imageHeight'])
 
     @classmethod
     def _on_color(cls, items: ItemsView[str, gui.MenuItem]):

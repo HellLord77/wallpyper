@@ -20,18 +20,15 @@ SORTS = {
 
 
 def _get_json() -> Iterator[dict]:
-    last_etag = ''
+    etag = ''
     json = {}
     while True:
-        response = request.head(URL_BASE)
+        response = request.get(URL_BASE)
         if response:
-            if last_etag != response.headers[request.Header.ETAG]:
-                response = request.get(URL_BASE)
-                if response:
-                    last_etag = response.headers[request.Header.ETAG]
-                    json = response.json()
-                else:
-                    json = {}
+            if etag != (etag := response.headers[request.Header.ETAG]):
+                json = response.json()
+        else:
+            json = {}
         yield json
 
 

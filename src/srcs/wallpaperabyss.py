@@ -61,8 +61,8 @@ def _on_color_right(event):
 
 
 class WallpaperAbyss(Source):
-    NAME = 'Wallpaper Abyss'
-    VERSION = '0.0.1'
+    NAME = '# Wallpaper Abyss [cloudflare]'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_METHOD: str,
@@ -163,7 +163,6 @@ class WallpaperAbyss(Source):
             'Sorting': params[CONFIG_SORT]}
         page = 1
         session = cloudflare.Session(user_agent=cloudflare.UserAgent(mobile=False))
-        session.head(URL_BASE)
         while True:
             if not images:
                 query['page'] = str(page)
@@ -178,18 +177,18 @@ class WallpaperAbyss(Source):
                         has_next = pagination[-1].get_data() == 'Next >>'
                     if has_next:
                         page += 1
+                    else:
+                        page = 1
                 if not images:
                     yield
                     continue
             image = images.pop(0)
             image_grid = image[0][0][0][3]
             url_image = image_grid['src'].replace('thumbbig-', '', 1)
-            name = image_grid['alt'].removesuffix('HD Wallpaper | Background Image').strip()
-            if name:
-                name += '-'
             basename = os.path.basename(url_image)
             width, height = map(int, image[1][0][0].get_data().split('x'))
-            yield ImageFile(url_image, name + basename, url=request.encode_params(
+            yield ImageFile(url_image, image_grid['alt'].removesuffix(
+                'HD Wallpaper | Background Image').strip() + basename, url=request.encode_params(
                 URL_INFO, {'i': basename.split('.', 1)[0]}), width=width, height=height)
 
     @classmethod
