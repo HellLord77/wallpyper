@@ -303,5 +303,6 @@ from . import (
     wallpaperabyss,
     wallpaperflare,
     wallpapersmug,
+    wallscloud,
     yandere,
     zerochan)  # NOQA: E402

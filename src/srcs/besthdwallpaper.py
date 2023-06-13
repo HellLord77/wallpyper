@@ -35,7 +35,7 @@ RESOLUTIONS = '', 'hd-wallpapers', '2k', '4k-uhd', '5k', '6k', '8k-ultra-hd', 'i
 
 def _get_resolution(element: sgml.Element) -> tuple[int, int]:
     # noinspection PyTypeChecker
-    return tuple(map(int, element[0].get_data().strip().split('x')))
+    return tuple(map(int, element[0].get_data().split('x')))
 
 
 def _key(resolution: tuple[int, int], element: sgml.Element) -> int:

@@ -1765,6 +1765,12 @@ def sizeof(url_or_request_or_response: _TURL | Request | Response) -> int:
         Header.CONTENT_LENGTH, RETRIEVE_UNKNOWN_SIZE)) if response else RETRIEVE_UNKNOWN_SIZE
 
 
+def filename(url_or_request_or_response: _TURL | Request | Response) -> str:
+    response = _get_response(url_or_request_or_response, Method.HEAD)
+    return dict(get_header_list(response.headers.get(
+        Header.CONTENT_DISPOSITION, ''))).get('filename', '') if response else ''
+
+
 def retrieve(url_or_request_or_response: _TURL | Request | Response, path: bytes | str,
              size: int = RETRIEVE_UNKNOWN_SIZE, chunk_size: Optional[int] = None,
              chunk_count: Optional[int] = None, response_callback: Callable[[Response], bool] = bool,

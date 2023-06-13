@@ -98,7 +98,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
     @classmethod
     def create_menu(cls):
         gui.add_submenu_check(cls._text('MENU_CATEGORY'), (
-            cls._text(f'CATEGORY_{rating}') for rating in range(3)),
+            cls._text(f'CATEGORY_{category}') for category in range(3)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_CATEGORIES)
         gui.add_menu_item_check(cls._text('LABEL_AI_FILTER'), cls.CURRENT_CONFIG,
                                 CONFIG_AI_FILTER, on_click=cls._on_ai_filter).check(

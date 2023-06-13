@@ -91,7 +91,7 @@ class WallpapersMug(Source):
                 continue
             img = sgml.loads(response_image.text).find('div', _ATTRS_IMAGE)
             width, height = map(int, img.find(
-                'span', _ATTRS_RESOLUTION)[0].get_data().strip().split('x'))
+                'span', _ATTRS_RESOLUTION)[0].get_data().split('x'))
             yield ImageFile(img[0][0]['src'], url=url_image, width=width, height=height)
 
     @classmethod
