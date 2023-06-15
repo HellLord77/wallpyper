@@ -162,7 +162,7 @@ class Wallscloud(Source):
             wall_link = wall_links.pop(0)
             url = wall_link['href']
             request_ = request.join_url(url, 'original', 'download')
-            if not (name := request.filename(request_)):
+            if not (name := request.get_filename(request_)):
                 wall_links.insert(0, wall_link)
                 continue
             width, height = map(int, wall_link.find(

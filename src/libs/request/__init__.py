@@ -1759,13 +1759,13 @@ def _get_response(url_or_request_or_response: _TURL | Request | Response, method
     return url_or_request_or_response
 
 
-def sizeof(url_or_request_or_response: _TURL | Request | Response) -> int:
+def get_size(url_or_request_or_response: _TURL | Request | Response) -> int:
     response = _get_response(url_or_request_or_response, Method.HEAD)
     return int(response.headers.get(
         Header.CONTENT_LENGTH, RETRIEVE_UNKNOWN_SIZE)) if response else RETRIEVE_UNKNOWN_SIZE
 
 
-def filename(url_or_request_or_response: _TURL | Request | Response) -> str:
+def get_filename(url_or_request_or_response: _TURL | Request | Response) -> str:
     response = _get_response(url_or_request_or_response, Method.HEAD)
     return dict(get_header_list(response.headers.get(
         Header.CONTENT_DISPOSITION, ''))).get('filename', '') if response else ''
@@ -1778,7 +1778,7 @@ def retrieve(url_or_request_or_response: _TURL | Request | Response, path: bytes
     response = _get_response(url_or_request_or_response, Method.GET)
     if response_callback(response):
         if size == RETRIEVE_UNKNOWN_SIZE:
-            size = sizeof(response)
+            size = get_size(response)
         if chunk_size is None:
             chunk_size = size // (chunk_count or sys.maxsize)
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -1789,4 +1789,5 @@ def retrieve(url_or_request_or_response: _TURL | Request | Response, path: bytes
                 if query_callback is not None and not query_callback(written, size):
                     return False
         return size == RETRIEVE_UNKNOWN_SIZE or size == os.path.getsize(path)
-    return False
+    else:
+        return False

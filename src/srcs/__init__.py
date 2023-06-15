@@ -138,7 +138,7 @@ class File:
     def _response_callback(self, query_callback: Callable[[int, int], bool],
                            response: request.Response) -> bool:
         if self.size == request.RETRIEVE_UNKNOWN_SIZE:
-            self.size = request.sizeof(response)
+            self.size = request.get_size(response)
         return query_callback(0, self.size) if response else False
 
     def download(self, path: str, query_callback: Optional[Callable[[int, int], bool]] = None) -> bool:

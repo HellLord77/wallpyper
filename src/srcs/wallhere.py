@@ -120,14 +120,12 @@ class WallHere(Source):
                 params['page'] = str(page)
                 response = request.get(url, params)
                 if response:
-                    json_ = response.json()
-                    if json_['code'] == request.Status.OK:
-                        html = sgml.loads(f'<html>{json_["data"]}</html>')
-                        items = list(html.find_all('div', _ATTRS_ITEM))
-                        if html.find('a', _ATTRS_END) is None:
-                            page += 1
-                        else:
-                            page = 1
+                    html = sgml.loads(f'<html>{response.json()["data"]}</html>')
+                    items = list(html.find_all('div', _ATTRS_ITEM))
+                    if html.find('a', _ATTRS_END) is None:
+                        page += 1
+                    else:
+                        page = 1
                 if not items:
                     yield
                     continue
