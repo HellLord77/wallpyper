@@ -311,7 +311,7 @@ def get_image() -> Optional[srcs.File]:
         if next_image is None or (filter_image(
                 next_image) and source.filter_image(next_image)):
             return next_image
-        print(f'[❌] Filter: {next_image}')
+        print(f'[❎] Filter: {next_image}')
         if first_image is None:
             first_image = next_image
         elif first_image == next_image:
@@ -438,7 +438,7 @@ def print_progress():
         print(f'\r{" " * len_last}\r{text}', end='', flush=True)
         len_last = len(text)
         time.sleep(interval_indeterminate if indeterminate else interval)
-    print(f'\r[✔] [{utils.get_progress(1, 20)}]')
+    print(f'\r[✅] [{utils.get_progress(1, 20)}]')
 
 
 def query_download(completed: int, total: int) -> bool:
@@ -454,7 +454,7 @@ def download_image(image: srcs.File) -> Optional[str]:
     with gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
         path = os.path.join(TEMP_DIR, image.name)
         PROGRESS[:] = 0, request.RETRIEVE_UNKNOWN_SIZE
-        print(f'[📑] Download: {image}')
+        print(f'[🟩] Download: {image}')
         if PIPE or win32.console.is_present():
             print_progress()
         STOP.clear()
@@ -817,7 +817,7 @@ def on_unpin_from_start() -> bool:
 @callables.SingletonCallable
 def on_toggle_console() -> bool:
     if PIPE:
-        if toggled := not PIPE.disconnect():
+        if not (toggled := PIPE.disconnect()):
             try_show_notification(_text(
                 'LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
     else:
