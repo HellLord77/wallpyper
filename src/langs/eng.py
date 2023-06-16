@@ -951,6 +951,14 @@ UNSPLASH_ORIENTATION_landscape = 'Landscape'
 UNSPLASH_ORIENTATION_portrait = 'Portrait'
 UNSPLASH_ORIENTATION_squarish = 'Square'
 
+WALLHA_MENU_LIST = 'List'
+
+WALLHA_LIST_featured = 'Featured'
+WALLHA_LIST_latest = 'Latest'
+WALLHA_LIST_toplist = 'Toplist'
+WALLHA_LIST_random = 'Random'
+WALLHA_LIST_search = 'Search'
+
 WALLHAVEN_LABEL_AI_FILTER = 'AI Art'
 
 WALLHAVEN_MENU_CATEGORY = 'Categories'

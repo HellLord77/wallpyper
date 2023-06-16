@@ -304,6 +304,7 @@ from . import (
     thisxdoesnotexist,
     ubuntu,
     unsplash,
+    wallha,
     wallhaven,
     wallhere,
     wallpaperabyss,

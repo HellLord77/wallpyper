@@ -636,7 +636,16 @@ def _test_inheritance():
 
 
 def _test():
-    pass
+    from libs import sgml
+    # url = r'https://wallha.com/featured/1000'
+    url = r'https://wallha.com/wallpaper/vehicles-plymouth-barracuda-864572'
+    response = request.get(url)
+    print(response)
+    if response:
+        html = sgml.loads(response.text)
+        base = 'https://wallha.com'
+        print(html.find('a', {'href': re.compile(request.join_url(base, 'download'))})['href'])
+        print(response.text)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

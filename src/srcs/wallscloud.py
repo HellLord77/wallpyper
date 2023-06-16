@@ -161,13 +161,14 @@ class Wallscloud(Source):
                     continue
             wall_link = wall_links.pop(0)
             url = wall_link['href']
-            request_ = request.join_url(url, 'original', 'download')
-            if not (name := request.get_filename(request_)):
+            url_wall_link = request.join_url(url, 'original', 'download')
+            if not (name := request.get_filename(url_wall_link)):
                 wall_links.insert(0, wall_link)
+                yield
                 continue
             width, height = map(int, wall_link.find(
                 'div', _ATTRS_SIZE).get_data().split('x'))
-            yield ImageFile(request_, name, url=url, width=width, height=height)
+            yield ImageFile(url_wall_link, name, url=url, width=width, height=height)
 
     @classmethod
     def _on_mode(cls, enable_category: Callable[[bool], bool], enable_top: Callable[[bool], bool],
