@@ -6,11 +6,6 @@ import validator
 from libs import request, sgml
 from . import ImageFile, Source
 
-_ATTRS_IMAGES = {'class': 'item_img'}
-_ATTRS_NEXT = {'class': 'page next'}
-_ATTRS_IMAGE = {'class': 'business_img'}
-_ATTRS_RESOLUTION = {'class': 'yellow-color'}
-
 URL_BASE = 'https://wallpapersmug.com'
 URL_SORT = request.join_url(URL_BASE, 'w', 'wallpaper')
 URL_TAG = request.join_url(URL_SORT, 'tag')
@@ -24,6 +19,11 @@ TAGS = (
     'flowers', 'food', 'game', 'girls', 'holiday', 'close-up', 'love', 'minimal',
     'movie', 'nature', 'space', 'sports', 'superhero', 'texture', 'tv-series', '')
 SORTS = 'latest', 'random', 'popular'
+
+_ATTRS_IMAGES = {'class': 'item_img'}
+_ATTRS_NEXT = {'class': 'page next'}
+_ATTRS_IMAGE = {'class': 'business_img'}
+_ATTRS_RESOLUTION = {'class': 'yellow-color'}
 
 
 class WallpapersMug(Source):

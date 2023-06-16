@@ -7,9 +7,6 @@ import validator
 from libs import request, sgml
 from . import CONFIG_ORIENTATIONS, ImageFile, Source
 
-_ATTRS_DOWNLOAD = {'action': '/photo/download'}
-_ATTRS_JSON = {'type': 'application/ld+json'}
-
 URL_BASE = 'https://stocksnap.io'
 URL_PHOTOS = request.join_url(URL_BASE, 'api', 'load-photos')
 URL_PHOTO = request.join_url(URL_BASE, 'photo')
@@ -20,6 +17,9 @@ CONFIG_ORDER = 'order'
 
 SORTS = 'date', 'trending', 'views', 'downloads', 'favorites'
 ORDERS = 'desc', 'asc'
+
+_ATTRS_DOWNLOAD = {'action': '/photo/download'}
+_ATTRS_JSON = {'type': 'application/ld+json'}
 
 
 class StockSnap(Source):

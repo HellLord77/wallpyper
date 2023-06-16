@@ -7,8 +7,6 @@ import validator
 from libs import isocodes, request
 from . import ImageFile, Source
 
-_CONTENT_END = b'[]'
-
 URL_BASE = 'https://backiee.com'
 URL_LIST = request.join_url(URL_BASE, 'api', 'wallpaper', 'list.php')
 
@@ -62,6 +60,8 @@ COUNTRY = (
     'ES', 'LK', 'MF', 'SD', 'SJ', 'SE', 'CH', 'SY', 'TZ', 'TH', 'BS', 'GM',
     'TT', 'TN', 'TR', 'TR', 'TM', 'TC', 'TV', 'VI', 'UG', 'UA', 'AE', 'GB',
     'US', 'UZ', 'VU', 'VA', 'VE', 'VN', 'EH', 'YE', 'ZM', 'ZW')
+
+_CONTENT_END = b'[]'
 
 
 class Backiee(Source):

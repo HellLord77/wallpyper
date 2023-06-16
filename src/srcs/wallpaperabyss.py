@@ -10,11 +10,6 @@ from libs import colornames, request, sgml
 from libs.request import cloudflare
 from . import ImageFile, Source
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS_THUMB = {'class': 'thumb-container'}
-_ATTRS_NEXT_PAGE = {'id': 'next_page'}
-_ATTRS_PAGINATION = {'class': 'pagination-simple center'}
-
 URL_BASE = 'https://wall.alphacoders.com'
 URL_INFO = request.join_url(URL_BASE, 'big.php')
 
@@ -54,6 +49,11 @@ COLORS = (
 CATEGORIES = (
     1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 14, 15, 13, 16, 17, 18,
     19, 20, 22, 24, 25, 26, 27, 28, 30, 29, 31, 32, 34, 33)
+
+_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_ATTRS_THUMB = {'class': 'thumb-container'}
+_ATTRS_NEXT_PAGE = {'id': 'next_page'}
+_ATTRS_PAGINATION = {'class': 'pagination-simple center'}
 
 
 def _on_color_right(event):

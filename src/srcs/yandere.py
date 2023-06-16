@@ -5,14 +5,14 @@ import validator
 from libs import request
 from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
-_CONTENT_END = b'[]'
-
 URL_BASE = 'https://yande.re'
 URL_POSTS = request.join_url(URL_BASE, 'post.json')
 URL_INFO = request.join_url(URL_BASE, 'post', 'show')
 
 CONFIG_RATINGS = CONFIG_RATINGS[:-1]
 CONFIG_TAGS = 'tags'
+
+_CONTENT_END = b'[]'
 
 
 class YandeRe(Source):

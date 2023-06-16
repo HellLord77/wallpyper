@@ -6,14 +6,14 @@ import validator
 from libs import request, sgml, utils
 from . import File, Source
 
-_ATTRS = {'class': 'desktop'}
-_PAGE = utils.MutableInt()
-
 # noinspection HttpUrlsUsage
 URL_BASE = 'http://simpledesktops.com'
 URL_BROWSE = request.join_url(URL_BASE, 'browse')
 
 CONFIG_PAGE = 'page'
+
+_ATTRS = {'class': 'desktop'}
+_PAGE = utils.MutableInt()
 
 
 class SimpleDesktops(Source):

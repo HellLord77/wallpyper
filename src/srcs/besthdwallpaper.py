@@ -7,8 +7,6 @@ import validator
 from libs import request, sgml
 from . import CONFIG_ORIENTATIONS, ImageFile, Source
 
-_PARAMS = {'lang': 'en-US'}
-
 URL_BASE = 'https://www.besthdwallpaper.com'
 URL_DETAILS = request.join_url(URL_BASE, 'Wallpaper', 'WallpaperDetail')
 
@@ -31,6 +29,8 @@ CATEGORIES = (
     '11', '82', '39', '83', '84', '85', '38', '86', '87', '88', '97', '89', '81', '90', '91', '92', '93', '94', '95',
     '96', '113', '98', '99', '101', '107', '100', '108', '102', '104', '105', '103', '106', '80', '194')
 RESOLUTIONS = '', 'hd-wallpapers', '2k', '4k-uhd', '5k', '6k', '8k-ultra-hd', 'iphone', 'ipad'
+
+_PARAMS = {'lang': 'en-US'}
 
 
 def _get_resolution(element: sgml.Element) -> tuple[int, int]:

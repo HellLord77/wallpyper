@@ -9,8 +9,6 @@ import win32
 from libs import colornames, request
 from . import ImageFile, Source
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-
 URL_BASE = 'https://wallhaven.cc'
 URL_API = request.join_url(URL_BASE, 'api', 'v1')
 URL_SEARCH = request.join_url(URL_API, 'search')
@@ -39,6 +37,8 @@ COLORS = (
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
 AI_FILTERS = '0', '1'
 RE_PURITY = re.compile('^(?!000)[01]{3}$')
+
+_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
 
 def _on_color_right(event):

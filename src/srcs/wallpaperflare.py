@@ -6,6 +6,17 @@ import validator
 from libs import request, sgml
 from . import ImageFile, Source
 
+URL_BASE = 'https://www.wallpaperflare.com'
+URL_INDEX = request.join_url(URL_BASE, 'index.php')
+URL_SEARCH = request.join_url(URL_BASE, 'search')
+
+CONFIG_SEARCH = 'search'
+CONFIG_WALLPAPER = 'wallpaper'
+CONFIG_MOBILE = 'mobile'
+CONFIG_SORT = 'sort'
+
+SORTS = '', 'relevance'
+
 _CONTENT_END = (
     b'<html lang="en"><head><title>ERROR 404:Page not found</title><meta '
     b'name="viewport" content="width=device-width, initial-scale=1.0, '
@@ -38,17 +49,6 @@ _ATTRS_ITEM = {
 _ATTRS_URL = {'itemprop': 'url'}
 _ATTRS_SRC = {'itemprop': 'contentUrl'}
 _ATTR_INFO = {'class': 'dld_info'}
-
-URL_BASE = 'https://www.wallpaperflare.com'
-URL_INDEX = request.join_url(URL_BASE, 'index.php')
-URL_SEARCH = request.join_url(URL_BASE, 'search')
-
-CONFIG_SEARCH = 'search'
-CONFIG_WALLPAPER = 'wallpaper'
-CONFIG_MOBILE = 'mobile'
-CONFIG_SORT = 'sort'
-
-SORTS = '', 'relevance'
 
 
 class WallpaperFlare(Source):

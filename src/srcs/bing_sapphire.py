@@ -6,8 +6,8 @@ import validator
 from libs import request
 from . import File, Source
 
-URL = request.join_url('https://wallpaper.sapphire.microsoftapp.net',
-                       'api', 'v1', 'app', 'photo', 'list', 'bing')
+URL_LIST = request.join_url('https://wallpaper.sapphire.microsoftapp.net',
+                            'api', 'v1', 'app', 'photo', 'list', 'bing')
 
 CONFIG_QUALITY = '_quality'
 
@@ -38,7 +38,7 @@ class BingSapphire(Source):
         page = 1
         while True:
             if not data:
-                response = request.get(request.join_url(URL, str(page)))
+                response = request.get(request.join_url(URL_LIST, str(page)))
                 if response:
                     json = response.json()
                     if json['code'] == 0:

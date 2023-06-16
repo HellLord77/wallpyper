@@ -7,8 +7,6 @@ import validator
 from libs import request, sgml
 from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
-_ATTRS_NEXT = {'rel': 'next'}
-
 URL_BASE = request.join_url('https://backend.deviantart.com', 'rss.xml')
 
 CONFIG_STATIC = '_skip_animated'
@@ -16,6 +14,8 @@ CONFIG_QUERY = 'q'
 CONFIG_ORDER = 'order'
 
 ORDERS = '5', '14', '15', '9',
+
+_ATTRS_NEXT = {'rel': 'next'}
 
 
 class DeviantArt(Source):

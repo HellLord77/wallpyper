@@ -6,8 +6,6 @@ import validator
 from libs import request
 from . import File, Source
 
-_OWNER = '0xa52578c6ada18248d95805083ed148957573e4eb'
-
 URL_BASE = request.join_url('https://facets.api.manifoldxyz.dev', 'art')
 
 CONFIG_YEAR = 'year'
@@ -25,6 +23,8 @@ SERIES = (
     'Essence', 'Relics', 'The Deep', 'Anima', 'Deus', 'Poem', 'Spores',
     'Drama', 'Liquid Dreams')
 DEVICES = '', 'Desktop', 'Mobile'
+
+_OWNER = '0xa52578c6ada18248d95805083ed148957573e4eb'
 
 
 def _get_json() -> Iterator[dict]:

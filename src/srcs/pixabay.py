@@ -8,8 +8,6 @@ import validator
 from libs import isocodes, request
 from . import ImageFile, Source
 
-_CONTENT_END = b'[ERROR 400] "page" is out of valid range.'
-
 URL_BASE = 'https://pixabay.com/api'
 
 CONFIG_KEY = 'key'
@@ -36,7 +34,7 @@ COLORS = (
     'turquoise', 'blue', 'lilac', 'pink', 'white', 'gray', 'black', 'brown')
 ORDERS = 'popular', 'latest'
 
-_BOOL = 'false', 'true'
+_CONTENT_END = b'[ERROR 400] "page" is out of valid range.'
 
 
 def _authenticate(key: str) -> bool:
@@ -106,8 +104,8 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         hits: Optional[list] = None
-        params[CONFIG_EDITOR] = _BOOL[params[CONFIG_EDITOR]]
-        params[CONFIG_SAFE] = _BOOL[params[CONFIG_SAFE]]
+        params[CONFIG_EDITOR] = str(params[CONFIG_EDITOR]).lower()
+        params[CONFIG_SAFE] = str(params[CONFIG_SAFE]).lower()
         params['page'] = '1'
         while True:
             if not hits:

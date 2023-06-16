@@ -6,10 +6,6 @@ import validator
 from libs import request
 from . import ImageFile, Source
 
-_PARAMS = {
-    'ids': '',
-    'image_size': '4096'}
-
 URL_BASE = request.join_url('https://api.500px.com', 'v1', 'photos')
 URL_SEARCH = request.join_url(URL_BASE, 'search')
 
@@ -26,6 +22,8 @@ CATEGORIES = (
     'Performing Arts', 'Sport', 'Still Life', 'Street', 'Transportation', 'Travel', 'Underwater', 'Urban Exploration', 'Wedding')
 SORTS = 'created_at', 'rating', 'highest_rating', 'times_viewed', 'votes_count', 'comments_count', 'taken_at'
 SORT_DIRECTIONS = 'desc', 'asc'
+
+_PARAMS = {'ids': '', 'image_size': '4096'}
 
 
 def _get_sort(feature: str) -> str:

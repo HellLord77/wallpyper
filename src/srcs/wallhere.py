@@ -9,11 +9,6 @@ import win32
 from libs import colornames, request, sgml
 from . import ImageFile, Source
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS_ITEM = {'class': 'item'}
-_ATTRS_END = {'data-score': ''}
-_ATTRS_JSON = {'type': 'application/ld+json'}
-
 URL_BASE = 'https://wallhere.com'
 URL_API = request.join_url(URL_BASE, 'en')
 URL_WALLPAPERS = request.join_url(URL_API, 'wallpapers')
@@ -35,6 +30,11 @@ ORIENTATIONS = '', 'horizontal', 'vertical'
 COLORS = (
     '', 'FF2000', 'A24615', 'FF7C00', 'FF9F9C', 'FFFA00', 'FFCF00', '90E200',
     '00AB00', '00B2D4', '0062C6', '8C20BA', 'F52394', 'FFFFFF', '7C7C7C', '000000')
+
+_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_ATTRS_ITEM = {'class': 'item'}
+_ATTRS_END = {'data-score': ''}
+_ATTRS_JSON = {'type': 'application/ld+json'}
 
 
 def _on_random(enable: Callable[[bool], bool], random: bool):

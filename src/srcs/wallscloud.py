@@ -8,10 +8,6 @@ import win32
 from libs import colornames, request, sgml
 from . import ImageFile, Source
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS_WALL_LINK = {'class': 'wall_link'}
-_ATTRS_SIZE = {'class': 'size'}
-
 URL_BASE = request.join_url('https://wallscloud.net', 'en')
 URL_CATEGORY = request.join_url(URL_BASE, 'category')
 URL_TOP = request.join_url(URL_BASE, 'wallpapers')
@@ -43,6 +39,10 @@ ORIENTATIONS = 'all', 'portrait', 'landscape'
 TIMES = 'all', 'today', '7days', '30days', '60days'
 SORTS = 'latest', 'views', 'downloads', 'favorites', 'rating', 'color'
 ORDERS = 'desc', 'asc'
+
+_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_ATTRS_WALL_LINK = {'class': 'wall_link'}
+_ATTRS_SIZE = {'class': 'size'}
 
 
 def _on_color_right(event):

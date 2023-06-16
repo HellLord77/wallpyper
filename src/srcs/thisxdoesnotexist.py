@@ -6,9 +6,9 @@ import validator
 from libs import request
 from . import File, Source
 
-CONFIG_VARIANT = 'variant'
-
 URL_BASE_TEMPLATE = 'https://this{}doesnotexist.com'
+
+CONFIG_VARIANT = 'variant'
 
 VARIANTS = 'person', 'artwork', 'cat', 'horse'
 

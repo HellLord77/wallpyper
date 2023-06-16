@@ -8,13 +8,6 @@ import validator
 from libs import request
 from . import ImageFile, Source
 
-_CONTENT_END = (
-    b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
-    b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
-    b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
-_PARAMS = {'json': ''}
-_RE_HTML = re.compile(r'<div.*</div>', re.DOTALL)
-
 URL_BASE = 'https://www.zerochan.net'
 
 CONFIG_FILTER = 'q'
@@ -28,6 +21,13 @@ SORTS = 'id', 'fav'
 TIMES = '1', '2', '0'
 DIMENSIONS = '', 'large', 'huge', 'landscape', 'portrait', 'square'
 COLORS = '', 'black', 'blue', 'brown', 'green', 'pink', 'purple', 'red', 'white', 'yellow'
+
+_CONTENT_END = (
+    b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
+    b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
+    b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
+_PARAMS = {'json': ''}
+_RE_HTML = re.compile(r'<div.*</div>', re.DOTALL)
 
 
 def _json_loads(response: request.Response) -> Any:

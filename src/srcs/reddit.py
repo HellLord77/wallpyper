@@ -9,11 +9,6 @@ import validator
 from libs import callables, files, request
 from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
-_TOKEN_TOLERANCE = 30.0
-_TOKEN_DATA = {
-    'grant_type': 'https://oauth.reddit.com/grants/installed_client',
-    'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
-
 URL_BASE = request.join_url('https://oauth.reddit.com', 'r')
 URL_TOKEN = request.join_url(
     'https://www.reddit.com', 'api', 'v1', 'access_token')
@@ -27,6 +22,11 @@ CONFIG_TIME = 't'
 
 SORTS = 'hot', 'new', 'top', 'controversial', 'rising'
 TIMES = 'hour', 'day', 'week', 'month', 'year', 'all'
+
+_TOKEN_TOLERANCE = 30.0
+_TOKEN_DATA = {
+    'grant_type': 'https://oauth.reddit.com/grants/installed_client',
+    'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
 
 
 @callables.LastCacheCallable
