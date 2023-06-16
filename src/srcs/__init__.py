@@ -4,6 +4,7 @@ __version__ = '0.2.5'
 
 import binascii
 import dataclasses
+import fractions
 import functools
 import hashlib
 import itertools
@@ -160,6 +161,10 @@ class ImageFile(File):
         if not self.ratio and self.height:
             self.ratio = self.width / self.height
 
+    def __str__(self):
+        ratio = fractions.Fraction(self.ratio).limit_denominator(100)
+        return super().__str__().replace(f'ratio={self.ratio}', f'ratio={ratio.numerator}:{ratio.denominator}', 1)
+
     def asdict(self) -> dict[str, Any]:
         result = super().asdict()
         if self.width:
@@ -280,6 +285,7 @@ class Source:
 
 
 from . import (
+    backiee,
     besthdwallpaper,
     bing,
     bing_sapphire,

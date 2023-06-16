@@ -181,13 +181,13 @@ def _get_submenu(label_or_submenu_item: str | win32.gui.MenuItem, enable: bool =
 
 def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
                       labels: Iterable[str], min_max: tuple[Optional[int], Optional[int]],
-                      mapping: MutableMapping[str, MutableSequence[bool]],
-                      key: str, enable: bool = True, on_click: Optional[Callable] = None,
+                      mapping: MutableMapping[str, MutableSequence[bool]], key: str, enable: bool = True,
+                      on_click: Optional[Callable] = None, args: Optional[Iterable[str]] = None,
                       position: Optional[int] = None, icon: Optional[int | str] = None,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
 
-    def wrapped_():
+    def wrapped():
         unchecked_checked = [], []
         for index_, item in enumerate(submenu):
             item.enable(True)
@@ -200,27 +200,26 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
                     item_.enable(False)
 
     if on_click is None:
-        wrapped = wrapped_
+        on_click_ = wrapped
         args = ()
     else:
         @functools.wraps(on_click)
-        def wrapped(uid: int):
-            wrapped_()
-            return on_click(uid)
-
-        args = MenuItemProperty.UID,
+        def on_click_(uid_: int, *args_):
+            wrapped()
+            return on_click(uid_, *args_)
+        args = MenuItemProperty.UID, *(() if args is None else args)
     val = mapping[key]
     submenu = submenu_item.get_submenu()
-    for index, label in enumerate(labels):
-        add_menu_item(label, win32.gui.MenuItemType.CHECK, val[index], uid=index,
-                      on_click=wrapped, args=args, menu=submenu)
-    wrapped_()
+    for uid, label in enumerate(labels):
+        add_menu_item(label, win32.gui.MenuItemType.CHECK, val[uid], uid=uid,
+                      on_click=on_click_, args=args, menu=submenu)
+    wrapped()
     return submenu_item
 
 
-def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem,
-                      items: Mapping[str, str], mapping: MutableMapping[str, str],
-                      key: str, enable: bool = True, on_click: Optional[Callable] = None,
+def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem, items: Mapping[str, str],
+                      mapping: MutableMapping[str, str], key: str, enable: bool = True,
+                      on_click: Optional[Callable] = None, args: Optional[Iterable[str]] = None,
                       position: Optional[int] = None, icon: Optional[int | str] = None,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
@@ -228,15 +227,16 @@ def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem,
         wrapped = mapping.__setitem__
     else:
         @functools.wraps(on_click)
-        def wrapped(key_: str, uid: str):
+        def wrapped(key_: str, uid: str, *args_):
             mapping[key_] = uid
-            return on_click(uid)
+            return on_click(uid, *args_)
     val = mapping[key]
-    wrapped = functools.partial(wrapped, key)
+    on_click_ = functools.partial(wrapped, key)
+    args = MenuItemProperty.UID, *(() if args is None else args)
     submenu = submenu_item.get_submenu()
     for uid_, label in items.items():
-        add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_,
-                      uid=uid_, on_click=wrapped, args=(MenuItemProperty.UID,), menu=submenu)
+        add_menu_item(label, win32.gui.MenuItemType.RADIO, val == uid_, uid=uid_,
+                      on_click=on_click_, args=args, menu=submenu)
     return submenu_item
 
 
