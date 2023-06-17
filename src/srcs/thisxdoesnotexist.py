@@ -3,19 +3,18 @@ from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
-from libs import request
 from . import File, Source
-
-URL_BASE_TEMPLATE = 'https://this{}doesnotexist.com'
 
 CONFIG_VARIANT = 'variant'
 
-VARIANTS = 'person', 'artwork', 'cat', 'horse'
+VARIANTS = 'person',
+
+_TEMPLATE_URL = 'https://this{}doesnotexist.com'
 
 
 class ThisXDoesNotExist(Source):
-    NAME = 'This X Does Not Exist [down]'
-    VERSION = '0.0.2'
+    NAME = 'This X Does Not Exist'
+    VERSION = '0.0.3'
     ICON = 'jpg'
     URL = 'https://thisxdoesnotexist.com'
     TCONFIG = TypedDict('TCONFIG', {
@@ -34,8 +33,6 @@ class ThisXDoesNotExist(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        url = URL_BASE_TEMPLATE.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
-        if cls.CURRENT_CONFIG[CONFIG_VARIANT] == VARIANTS[0]:
-            url = request.join_url(url, 'image')
+        url = _TEMPLATE_URL.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         while True:
             yield File(url, f'{uuid.uuid4()}.jpg')
