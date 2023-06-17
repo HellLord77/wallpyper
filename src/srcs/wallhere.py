@@ -17,7 +17,7 @@ URL_WALLPAPER = request.join_url(URL_API, 'wallpaper')
 URL_PHOTO = request.join_url('https://get.wallhere.com', 'photo')
 
 CONFIG_RANDOM = 'random'
-CONFIG_QUERY = 'q'
+CONFIG_SEARCH = 'q'
 CONFIG_ORDER = 'order'
 CONFIG_ORIENTATION = 'direction'
 CONFIG_WIDTH = 'min_width'
@@ -50,7 +50,7 @@ class WallHere(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_RANDOM: bool,
-        CONFIG_QUERY: str,
+        CONFIG_SEARCH: str,
         CONFIG_ORDER: str,
         CONFIG_ORIENTATION: str,
         CONFIG_WIDTH: str,
@@ -59,7 +59,7 @@ class WallHere(Source):
         CONFIG_NSFW: bool})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_RANDOM: False,
-        CONFIG_QUERY: '',
+        CONFIG_SEARCH: '',
         CONFIG_ORDER: ORDERS[1],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
         CONFIG_WIDTH: '',
@@ -107,7 +107,7 @@ class WallHere(Source):
         items: Optional[list] = None
         if params.pop(CONFIG_RANDOM):
             url = URL_RANDOM
-            del params[CONFIG_QUERY]
+            del params[CONFIG_SEARCH]
             del params[CONFIG_ORDER]
         else:
             url = URL_WALLPAPERS

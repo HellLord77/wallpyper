@@ -1,6 +1,5 @@
 import base64
 import json
-import os
 from typing import Iterator, Optional, TypedDict
 
 import gui
@@ -61,6 +60,6 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
             image = json.loads(items.pop(0)['item'])['ad'][
                 f'image_fullscreen_001_{cls.CURRENT_CONFIG[CONFIG_ORIENTATION]}']
             url = image['u']
-            yield ImageFile(url, files.replace_ext(os.path.basename(
-                request.strip_url(url)), 'jpg'), int(image['fileSize']), width=int(
+            yield ImageFile(url, files.replace_ext(request.split_url(
+                request.strip_url(url))[-1], 'jpg'), int(image['fileSize']), width=int(
                 image['w']), height=int(image['h']), sha256=base64.b64decode(image['sha256']))

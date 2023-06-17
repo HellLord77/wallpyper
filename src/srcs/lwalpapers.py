@@ -42,7 +42,7 @@ class Lwalpapers(Source):
     URL = 'https://wallpaper.castorisdead.xyz'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_SORT: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_SORT: tuple(SORTS)[1]}
 
     @classmethod

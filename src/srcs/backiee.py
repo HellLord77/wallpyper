@@ -81,7 +81,7 @@ class Backiee(Source):
         CONFIG_RESOLUTION: str,
         CONFIG_PUBLISHER: int,
         CONFIG_SEARCH: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATION: ORIENTATIONS[0],
         CONFIG_LIST: LISTS[1],
         CONFIG_RESOLUTIONS: [False, False, False],

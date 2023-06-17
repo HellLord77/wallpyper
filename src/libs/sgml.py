@@ -194,20 +194,18 @@ def _match(pattern: Optional[_TPattern], string: Optional[str]) -> bool:
 
 
 # noinspection PyShadowingBuiltins
-def find_element(parent_or_elements: Element | Iterable[Element], name: Optional[_TPattern] = None,
+def find_element(elements: Iterable[Element], name: Optional[_TPattern] = None,
                  attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
                  filter: Optional[Callable[[Element], bool]] = None) -> Optional[Element]:
-    for element in find_elements(parent_or_elements, name, attributes, filter):
+    for element in find_elements(elements, name, attributes, filter):
         return element
 
 
 # noinspection PyShadowingBuiltins
-def find_elements(parent_or_elements: Element | Iterable[Element], name: Optional[_TPattern] = None,
+def find_elements(elements: Iterable[Element], name: Optional[_TPattern] = None,
                   attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
                   filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Iterator[Element]:
-    if isinstance(parent_or_elements, Element):
-        parent_or_elements = parent_or_elements.children
-    for element in parent_or_elements:
+    for element in elements:
         if not count:
             break
         if not _match(name, element.name):

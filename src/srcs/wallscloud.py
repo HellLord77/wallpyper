@@ -17,7 +17,7 @@ URL_SEARCH = request.join_url(URL_BASE, 'search')
 CONFIG_MODE = 'mode'
 CONFIG_CATEGORY = 'category'
 CONFIG_TOP = 'top'
-CONFIG_QUERY = 'q'
+CONFIG_SEARCH = 'q'
 CONFIG_COLOR = 'color'
 CONFIG_ORIENTATION = 'orientation'
 CONFIG_TIME = 'time'
@@ -56,17 +56,17 @@ class Wallscloud(Source):
         CONFIG_MODE: str,
         CONFIG_CATEGORY: str,
         CONFIG_TOP: str,
-        CONFIG_QUERY: str,
+        CONFIG_SEARCH: str,
         CONFIG_COLOR: str,
         CONFIG_ORIENTATION: str,
         CONFIG_TIME: str,
         CONFIG_SORT: str,
         CONFIG_ORDER: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_MODE: MODES[1],
         CONFIG_CATEGORY: CATEGORIES[0],
         CONFIG_TOP: TOPS[0],
-        CONFIG_QUERY: '',
+        CONFIG_SEARCH: '',
         CONFIG_COLOR: COLORS[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
         CONFIG_TIME: TIMES[0],
@@ -134,7 +134,7 @@ class Wallscloud(Source):
         top = params.pop(CONFIG_TOP)
         if mode == MODES[0]:
             url = request.join_url(URL_CATEGORY, category)
-            del params[CONFIG_QUERY]
+            del params[CONFIG_SEARCH]
             del params[CONFIG_COLOR]
         elif mode == MODES[1]:
             url = request.join_url(URL_TOP, top)

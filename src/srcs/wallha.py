@@ -24,7 +24,7 @@ class Wallha(Source):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_LIST: str,
         CONFIG_SEARCH: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_LIST: LISTS[0],
         CONFIG_SEARCH: ''}
 

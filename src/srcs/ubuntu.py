@@ -35,7 +35,7 @@ class UbuntuWallpapers(Source):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_CONTEST: list[bool],
         CONFIG_SORT: str})
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG: TCONFIG = {
         CONFIG_CONTEST: [True] * len(CONTESTS),
         CONFIG_SORT: tuple(SORTS)[1]}
 

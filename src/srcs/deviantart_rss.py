@@ -10,7 +10,7 @@ from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 URL_BASE = request.join_url('https://backend.deviantart.com', 'rss.xml')
 
 CONFIG_STATIC = '_skip_animated'
-CONFIG_QUERY = 'q'
+CONFIG_SEARCH = 'q'
 CONFIG_ORDER = 'order'
 
 ORDERS = '5', '14', '15', '9',
@@ -26,13 +26,13 @@ class DeviantArt(Source):
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_RATINGS: list[bool],
         CONFIG_STATIC: bool,
-        CONFIG_QUERY: str,
+        CONFIG_SEARCH: str,
         CONFIG_ORDER: str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
         CONFIG_RATINGS: [True, True],
         CONFIG_STATIC: True,
-        CONFIG_QUERY: '',
+        CONFIG_SEARCH: '',
         CONFIG_ORDER: ORDERS[3]}
 
     @classmethod

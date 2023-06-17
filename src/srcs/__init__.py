@@ -310,6 +310,7 @@ from . import (
     wallpaperabyss,
     wallpaperflare,
     wallpapersmug,
+    wallpapertip,
     wallscloud,
     yandere,
     zerochan)  # NOQA: E402
