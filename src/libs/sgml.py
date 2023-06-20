@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 import html.parser
 import io
@@ -60,9 +60,6 @@ class Element:
         self.decls = ()
         if parent:
             parent.children.append(self)
-
-    def __eq__(self, other):
-        return str(self) == str(other)
 
     def __str__(self):
         attributes = ''
@@ -151,26 +148,26 @@ class Element:
             yield self.parent
             yield from self.parent.iter_all_parents(height - 1)
 
-    def get_next_sibling(self) -> Optional[Element]:
-        for sibling in self.iter_next_siblings():
-            return sibling
+    def get_next_sibling(self, index: int = 0) -> Optional[Element]:
+        return next(itertools.islice(self.iter_next_siblings(), index, None), None)
 
-    def get_previous_sibling(self) -> Optional[Element]:
-        for sibling in self.iter_previous_siblings():
-            return sibling
+    def get_previous_sibling(self, index: int = 0) -> Optional[Element]:
+        return next(itertools.islice(self.iter_previous_siblings(), index, None), None)
 
-    def iter_next_siblings(self) -> itertools.islice[Element]:
+    def iter_next_siblings(self) -> Iterator[Element]:
         if self.parent:
-            return itertools.islice(self.parent.children, self.parent.children.index(self) + 1, None)
+            yield from itertools.islice(
+                self.parent.children, self.parent.children.index(self) + 1, None)
 
-    def iter_previous_siblings(self) -> itertools.islice[Element]:
+    def iter_previous_siblings(self) -> Iterator[Element]:
         if self.parent:
-            return itertools.islice(self.parent.children, None, self.parent.children.index(self))
+            yield from itertools.islice(reversed(self.parent.children), len(
+                self.parent.children) - self.parent.children.index(self), None)
 
     # noinspection PyShadowingBuiltins
     def find(self, name: Optional[_TPattern] = None, attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
-             filter: Optional[Callable[[Element], bool]] = None, recursive: bool = True) -> Optional[Element]:
-        return find_element(self.iter_all_children() if recursive else self.children, name, attributes, filter)
+             filter: Optional[Callable[[Element], bool]] = None, recursive: bool = True, index: int = 0) -> Optional[Element]:
+        return find_element(self.iter_all_children() if recursive else self.children, name, attributes, filter, index)
 
     # noinspection PyShadowingBuiltins
     def find_all(self, name: Optional[_TPattern] = None, attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
@@ -196,9 +193,8 @@ def _match(pattern: Optional[_TPattern], string: Optional[str]) -> bool:
 # noinspection PyShadowingBuiltins
 def find_element(elements: Iterable[Element], name: Optional[_TPattern] = None,
                  attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
-                 filter: Optional[Callable[[Element], bool]] = None) -> Optional[Element]:
-    for element in find_elements(elements, name, attributes, filter):
-        return element
+                 filter: Optional[Callable[[Element], bool]] = None, index: int = 0) -> Optional[Element]:
+    return next(itertools.islice(find_elements(elements, name, attributes, filter), index, None), None)
 
 
 # noinspection PyShadowingBuiltins
@@ -210,15 +206,9 @@ def find_elements(elements: Iterable[Element], name: Optional[_TPattern] = None,
             break
         if not _match(name, element.name):
             continue
-        if attributes is not None:
-            not_match = True
-            for name_, value in attributes.items():
-                if not _match(value, element.attributes.get(name_)):
-                    break
-            else:
-                not_match = False
-            if not_match:
-                continue
+        if attributes is not None and not all(_match(value, element.attributes.get(
+                attribute)) for attribute, value in attributes.items()):
+            continue
         if filter is not None and not filter(element):
             continue
         yield element
