@@ -15,7 +15,7 @@ _TEMPLATE_URL = 'https://this{}doesnotexist.com'
 class ThisXDoesNotExist(Source):
     NAME = 'This X Does Not Exist'
     VERSION = '0.0.3'
-    ICON = 'jpg'
+    ICON = 'png'
     URL = 'https://thisxdoesnotexist.com'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_VARIANT: str})
