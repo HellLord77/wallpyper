@@ -103,7 +103,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        hits: Optional[list] = None
+        hits = []
         params[CONFIG_EDITOR] = str(params[CONFIG_EDITOR]).lower()
         params[CONFIG_SAFE] = str(params[CONFIG_SAFE]).lower()
         params['page'] = '1'

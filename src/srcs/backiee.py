@@ -145,7 +145,7 @@ class Backiee(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        wallpapers: Optional[list] = None
+        wallpapers = []
         list_ = params[CONFIG_LIST]
         for res, check in zip(RESOLUTIONS, params.pop(CONFIG_RESOLUTIONS)):
             params[res] = str(check).lower()

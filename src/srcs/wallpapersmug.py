@@ -56,7 +56,7 @@ class WallpapersMug(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        images: Optional[list] = None
+        images = []
         page = 1
         if params[CONFIG_SEARCH]:
             url = request.encode_params(URL_SORT, {CONFIG_SEARCH: params[CONFIG_SEARCH]})

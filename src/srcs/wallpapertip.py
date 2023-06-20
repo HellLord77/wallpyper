@@ -79,7 +79,7 @@ class WallpaperTip(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        items: Optional[list] = None
+        items = []
         search = MODES[1] == params.pop(CONFIG_MODE)
         if not search:
             params.clear()

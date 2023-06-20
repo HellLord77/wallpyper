@@ -143,7 +143,7 @@ class WallpaperAbyss(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        images: Optional[list] = None
+        images = []
         url = request.join_url(URL_BASE, f'{cls.CURRENT_CONFIG[CONFIG_METHOD]}.php')
         query = {}
         if params[CONFIG_METHOD] == METHODS[0]:
@@ -161,8 +161,8 @@ class WallpaperAbyss(Source):
             'ResolutionFilter': params[CONFIG_RESOLUTION_FILTER],
             'ResolutionEquals': params[CONFIG_RESOLUTION_EQUALS],
             'Sorting': params[CONFIG_SORT]}
-        page = 1
         session = cloudflare.Session(user_agent=cloudflare.UserAgent(mobile=False))
+        page = 1
         while True:
             if not images:
                 query['page'] = str(page)

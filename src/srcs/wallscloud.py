@@ -128,7 +128,7 @@ class Wallscloud(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        wall_links: Optional[list] = None
+        wall_links = []
         mode = params.pop(CONFIG_MODE)
         category = params.pop(CONFIG_CATEGORY)
         top = params.pop(CONFIG_TOP)

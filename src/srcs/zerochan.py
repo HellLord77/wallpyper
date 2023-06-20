@@ -35,10 +35,6 @@ def _json_loads(response: request.Response) -> Any:
         'next: ', '"next": ').replace('\\', '\\\\'))
 
 
-def _on_sort(enable: Callable[[bool], bool], sort: str):
-    enable(sort == SORTS[1])
-
-
 class ZeroChan(Source):  # https://www.zerochan.net/api
     NAME = 'zerochan'
     VERSION = '0.0.1'
@@ -70,11 +66,11 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         enable_time = gui.add_submenu_radio(cls._text(
             'MENU_TIME'), {time: cls._text(f'TIME_{time}')
                            for time in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
+        on_sort = functools.partial(cls._on_sort, enable_time)
         gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
             f'SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG,
-                              CONFIG_SORT, on_click=functools.partial(
-                _on_sort, enable_time), position=0)
-        _on_sort(enable_time, cls.CURRENT_CONFIG[CONFIG_SORT])
+                              CONFIG_SORT, on_click=on_sort, position=0)
+        on_sort(cls.CURRENT_CONFIG[CONFIG_SORT])
         gui.add_submenu_radio(cls._text('MENU_DIMENSION'), {
             dimension: cls._text(f'DIMENSION_{dimension}')
             for dimension in DIMENSIONS}, cls.CURRENT_CONFIG, CONFIG_DIMENSION)
@@ -84,7 +80,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        items: Optional[list] = None
+        items = []
         url = request.join_url(URL_BASE, params.pop(CONFIG_FILTER))
         if params.pop(CONFIG_STRICT):
             params['strict'] = ''
@@ -114,3 +110,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
             yield ImageFile(json_item['full'], url=request.join_url(URL_BASE, str(
                 json_item['id'])), width=json_item['width'], height=json_item['height'],
                             sketchy='Ecchi' in json_item['tags'], md5=json_item['hash'])
+
+    @classmethod
+    def _on_sort(cls, enable: Callable[[bool], bool], sort: str):
+        enable(sort == SORTS[1])

@@ -34,7 +34,7 @@ class BingSapphire(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        data: Optional[list] = None
+        data = []
         page = 1
         while True:
             if not data:

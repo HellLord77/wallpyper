@@ -39,7 +39,7 @@ class Wallha(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        images: Optional[list] = None
+        images = []
         list_ = params.pop(CONFIG_LIST)
         url = request.join_url(URL_BASE, list_)
         search = list_ == LISTS[4]

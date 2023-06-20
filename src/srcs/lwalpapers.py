@@ -56,7 +56,7 @@ class Lwalpapers(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        tree: Optional[list] = None
+        tree = []
         while True:
             if not tree:
                 tree = list(SORTS[params[CONFIG_SORT]](next(_GET_JSON)))

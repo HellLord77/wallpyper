@@ -151,7 +151,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        datas: Optional[list] = None
+        datas = []
         if params[CONFIG_SORTING] != SORTINGS[5]:
             del params[CONFIG_RANGE]
         params[CONFIG_CATEGORIES] = ''.join(map(str, map(int, params[CONFIG_CATEGORIES])))

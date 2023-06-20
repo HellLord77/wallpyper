@@ -70,17 +70,13 @@ def _iter_children(children: list[dict]) -> Iterator[dict]:
                         yield gallery
 
 
-def _on_sort(enable: Callable[[bool], bool], sort: str):
-    enable(sort in (SORTS[2], SORTS[3]))
-
-
 def _authenticate(client_id: str) -> bool:
     return next(_get_auth(client_id)) is not None
 
 
 class Reddit(Source):  # https://www.reddit.com/dev/api
     NAME = 'reddit'
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
     ICON = 'png'
     URL = 'https://reddit.com'
     TCONFIG = TypedDict('TCONFIG', {
@@ -111,12 +107,13 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def create_menu(cls):
-        item_time_enable = gui.add_submenu_radio(cls._text('MENU_TIME'), {time_: cls._text(
+        enable_time = gui.add_submenu_radio(cls._text('MENU_TIME'), {time_: cls._text(
             f'TIME_{time_}') for time_ in TIMES}, cls.CURRENT_CONFIG, CONFIG_TIME).enable
+        on_sort = functools.partial(cls._on_sort, enable_time)
         gui.add_submenu_radio(cls._text('MENU_SORT'), {sort: cls._text(
             f'SORT_{sort}') for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT,
-                              on_click=functools.partial(_on_sort, item_time_enable), position=0)
-        _on_sort(item_time_enable, cls.CURRENT_CONFIG[CONFIG_SORT])
+                              on_click=on_sort, position=0)
+        on_sort(cls.CURRENT_CONFIG[CONFIG_SORT])
         gui.add_separator()
         gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (
             cls._text(f'ORIENTATION_{orientation}') for orientation in range(2)),
@@ -128,7 +125,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        children: Optional[list] = None
+        children = []
         sort = params.pop(CONFIG_SORT)
         url = request.join_url(URL_BASE, params.pop(CONFIG_SUBS), sort)
         if sort not in (SORTS[2], SORTS[4]):
@@ -157,3 +154,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
             return False
         return super().filter_image(image)
+
+    @classmethod
+    def _on_sort(cls, enable: Callable[[bool], bool], sort: str):
+        enable(sort in (SORTS[2], SORTS[3]))

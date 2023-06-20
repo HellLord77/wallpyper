@@ -702,8 +702,8 @@ def notify_blocked(_: Optional[bool | str] = None, auto: bool = True):
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
             text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}'
-                             f'{_get_blocker(blocker[1])}' for monitor, blocker in
-                             win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
+                             f'{_get_blocker(blocker[1])}' for monitor, blocker
+                             in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
             try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
         elif not auto:
             try_show_notification(_text('NO_BLOCKED_TEXT'), force=True)

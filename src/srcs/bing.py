@@ -51,7 +51,7 @@ class Bing(Source):  # https://github.com/timothymctim/Bing-wallpapers
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        images: Optional[list] = None
+        images = []
         params['format'] = 'js'
         params['n'] = '7'
         day = 0

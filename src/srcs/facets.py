@@ -84,7 +84,7 @@ class Facets(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        arts: Optional[list] = None
+        arts = []
         while True:
             if not arts:
                 json = next(_GET_JSON)

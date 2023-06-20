@@ -16,13 +16,13 @@ def ensure_truthy(current: dict, default: dict, key: str,
 
 # noinspection PyShadowingBuiltins
 def ensure_min_len(current: dict, default: dict, key: str,
-                   min: int, keep: bool = True) -> bool:
+                   min: int, keep: bool = True, unique: bool = False) -> bool:
     val: MutableSequence = current[key]
     if min <= len(val):
         return True
     if keep:
-        for index in range(len(val), min):
-            val.append(default[key][index])
+        val.extend((set(default[key]) - set(val))
+                   if unique else default[key][len(val):min])
     else:
         val[:] = default[key]
     return False
@@ -135,6 +135,13 @@ def ensure_joined_subset(current: dict, _: dict, key: str,
         return ensure_subset(current, _, key, iterable, casefold)
     finally:
         current[key] = separator.join(current[key])
+
+
+def ensure_unordered(current: dict, default: dict, key: str,
+                     casefold: bool = True) -> bool:
+    not_fixed = ensure_unique(current, default, key, str.casefold if casefold else None)
+    not_fixed = ensure_subset(current, default, key, default[key], casefold) or not_fixed
+    return ensure_min_len(current, default, key, len(default[key]), unique=True) or not_fixed
 
 
 # noinspection PyShadowingBuiltins

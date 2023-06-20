@@ -88,7 +88,7 @@ class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentatio
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        photos: Optional[list] = None
+        photos = []
         while True:
             if not photos:
                 response = request.get(URL_BASE, params)

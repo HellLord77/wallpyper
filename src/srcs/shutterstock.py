@@ -70,7 +70,7 @@ class ShutterStock(Source):  # https://api-reference.shutterstock.com
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        datas: Optional[list] = None
+        datas = []
         auth = params.pop(CONFIG_KEY), params.pop(CONFIG_SECRET)
         params['spellcheck_query'] = 'false'
         params['page'] = '1'

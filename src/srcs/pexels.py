@@ -28,16 +28,12 @@ LOCALES = (
     'cs-CZ', 'da-DK', 'fi-FI', 'uk-UA', 'el-GR', 'ro-RO', 'nb-NO', 'sk-SK', 'tr-TR', 'ru-RU')
 
 
-def _on_curated(enable: Callable[[bool], bool], curated: bool):
-    enable(not curated)
-
-
 def _authenticate(key: str) -> bool:
     return bool(request.get(URL_CURATED, {'per_page': '1'}, headers={request.Header.AUTHORIZATION: key}))
 
 
 class Pexels(Source):  # https://www.pexels.com/api/documentation
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     URL = 'https://www.pexels.com'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_KEY: str,
@@ -66,9 +62,10 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
     @classmethod
     def create_menu(cls):
         item_search = gui.add_submenu(cls._text('MENU_SEARCH'))
+        on_curated = functools.partial(cls._on_curated, item_search.enable)
         gui.add_menu_item_check(cls._text('LABEL_CURATED'), cls.CURRENT_CONFIG, CONFIG_CURATED,
-                                on_click=functools.partial(_on_curated, item_search.enable), position=0)
-        _on_curated(item_search.enable, cls.CURRENT_CONFIG[CONFIG_CURATED])
+                                on_click=on_curated, position=0)
+        on_curated(cls.CURRENT_CONFIG[CONFIG_CURATED])
         with gui.set_menu(item_search):
             gui.add_submenu_radio(cls._text('MENU_ORIENTATION'), {
                 orientation: cls._text(f'ORIENTATION_{orientation}')
@@ -83,7 +80,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        photos: Optional[list] = None
+        photos = []
         headers = {request.Header.AUTHORIZATION: params.pop(CONFIG_KEY)}
         if params.pop(CONFIG_CURATED):
             url = URL_CURATED
@@ -105,3 +102,7 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
             photo = photos.pop(0)
             yield ImageFile(photo['src']['original'], url=photo['url'],
                             width=photo['width'], height=photo['height'])
+
+    @classmethod
+    def _on_curated(cls, enable: Callable[[bool], bool], curated: bool):
+        enable(not curated)

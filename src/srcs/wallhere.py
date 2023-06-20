@@ -37,10 +37,6 @@ _ATTRS_END = {'data-score': ''}
 _ATTRS_JSON = {'type': 'application/ld+json'}
 
 
-def _on_random(enable: Callable[[bool], bool], random: bool):
-    enable(not random)
-
-
 def _on_color_right(event):
     win32.clipboard.copy_text(f'#{event.control.get_uid().upper()}')
 
@@ -78,10 +74,11 @@ class WallHere(Source):
         enable_order = gui.add_submenu_radio(cls._text('MENU_ORDER'), {
             order: cls._text(f'ORDER_{order}') for order in ORDERS},
                                              cls.CURRENT_CONFIG, CONFIG_ORDER).enable
+        on_random = functools.partial(cls._on_random, enable_order)
         gui.add_menu_item_check(cls._text(
-            'LABEL_RANDOM'), cls.CURRENT_CONFIG, CONFIG_RANDOM,
-            on_click=functools.partial(_on_random, enable_order), position=0)
-        _on_random(enable_order, cls.CURRENT_CONFIG[CONFIG_RANDOM])
+            'LABEL_RANDOM'), cls.CURRENT_CONFIG,
+            CONFIG_RANDOM, on_click=on_random, position=0)
+        on_random(cls.CURRENT_CONFIG[CONFIG_RANDOM])
         gui.add_submenu_radio(cls._text('MENU_ORIENTATION'), {
             orientation: cls._text(f'ORIENTATION_{orientation}')
             for orientation in ORIENTATIONS}, cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
@@ -104,7 +101,7 @@ class WallHere(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        items: Optional[list] = None
+        items = []
         if params.pop(CONFIG_RANDOM):
             url = URL_RANDOM
             del params[CONFIG_SEARCH]
@@ -141,3 +138,7 @@ class WallHere(Source):
             classes = item.get_class()
             yield ImageFile(data['contentUrl'], url=url_item, width=int(data['width'][:-2]), height=int(
                 data['height'][:-2]), sketchy='item-sketchy' in classes, nsfw='item-nsfw' in classes)
+
+    @classmethod
+    def _on_random(cls, enable: Callable[[bool], bool], random: bool):
+        enable(not random)

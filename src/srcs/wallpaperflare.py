@@ -83,7 +83,7 @@ class WallpaperFlare(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        items: Optional[list] = None
+        items = []
         mobile = params.pop(CONFIG_MOBILE)
         if params.pop(CONFIG_SEARCH):
             url = URL_SEARCH

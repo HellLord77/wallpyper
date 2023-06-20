@@ -59,7 +59,7 @@ class DeviantArt(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        items: Optional[list] = None
+        items = []
         params['type'] = 'deviation'
         while True:
             if not items:

@@ -56,10 +56,10 @@ class StockSnap(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        results: Optional[list] = None
-        session = request.Session()
+        results = []
         url = request.join_url(URL_PHOTOS, params[CONFIG_SORT], params[CONFIG_ORDER])
         cookies = {}
+        session = request.Session()
         page = 1
         while True:
             if not results:

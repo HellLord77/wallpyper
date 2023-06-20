@@ -310,6 +310,7 @@ from . import (
     wallpaperabyss,
     wallpaperflare,
     wallpapersmug,
+    wallpaperswide,
     wallpapertip,
     wallscloud,
     yandere,

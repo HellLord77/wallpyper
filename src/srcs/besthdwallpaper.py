@@ -83,7 +83,7 @@ class BestHDWallpaper(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        data: Optional[list] = None
+        data = []
         url = request.join_url(
             URL_BASE, f'most-{params.pop(CONFIG_SORT)}-wallpapers')
         params['isJson'] = 'true'

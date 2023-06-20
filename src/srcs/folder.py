@@ -55,7 +55,7 @@ class Folder(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        results: Optional[list] = None
+        results = []
         while True:
             if not results:
                 results = [path for path in files.iter_files(

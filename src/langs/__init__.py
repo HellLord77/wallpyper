@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import functools
 import keyword
@@ -28,9 +28,8 @@ def _getattr(module: ModuleType, name: str) -> str:
 
 
 def to_str(num: int, lang: ModuleType, pad: Optional[int] = None) -> str:
-    # noinspection PyProtectedMember
-    return (f'{"".join(lang._DIGITS[int(char)] for char in str(num)):{lang._DIGITS[0]}>{pad or 0}}'
-            if hasattr(lang, '_DIGITS') else _getattr(f'{num:0>{pad or 0}}'))
+    return (f'{"".join(lang.__DIGITS__[int(char)] for char in str(num)):{lang.__DIGITS__[0]}>{pad or 0}}'
+            if hasattr(lang, '__DIGITS__') else _getattr(DEFAULT, f'{num:0>{pad or 0}}'))
 
 
 def _init():

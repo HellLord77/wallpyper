@@ -46,7 +46,7 @@ class YandeRe(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        posts: Optional[list] = None
+        posts = []
         page = 1
         while True:
             if not posts:

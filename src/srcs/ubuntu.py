@@ -51,12 +51,12 @@ class UbuntuWallpapers(Source):
             f'CONTEST_{contest}') for contest in CONTESTS), (1, None), cls.CURRENT_CONFIG,
                               CONFIG_CONTEST, on_click=functools.partial(
                 cls._on_contest, gui.add_submenu_radio(cls._text('MENU_SORT'), {
-                    sort: cls._text(f'SORT_{sort}') for sort in
-                    SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable), position=0)
+                    sort: cls._text(f'SORT_{sort}') for sort
+                    in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable), position=0)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        files_: Optional[list] = None
+        files_ = []
         contests = itertools.cycle(SORTS[params.pop(CONFIG_SORT)](tuple(
             itertools.compress(CONTESTS, params.pop(CONFIG_CONTEST)))))
         while True:

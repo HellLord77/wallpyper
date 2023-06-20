@@ -230,7 +230,7 @@ class WallpapersWide(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        wallpapers: Optional[list] = None
+        wallpapers = []
         gallery = params.pop(CONFIG_GALLERY)
         if gallery in GALLERIES[1:6]:
             url = request.join_url(URL_BASE, f'{gallery}_wallpapers')

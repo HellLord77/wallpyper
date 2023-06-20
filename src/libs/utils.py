@@ -291,8 +291,8 @@ class PointedList:
 
 
 class TimeDeltaEx(datetime.timedelta):
-    _search = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit in
-                        ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
+    _search = " *".join(f"(?:(?P<{unit}s>[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)) *{unit}s?)?" for unit
+                        in ("week", "day", "hour", "minute", "second", "millisecond", "microsecond"))
     _search = re.compile(f'^ *{_search} *$', re.RegexFlag.IGNORECASE).search
     # noinspection PyUnresolvedReferences,PyProtectedMember
     _units = tuple(inspect._signature_fromstr(inspect.Signature, None, inspect.getdoc(

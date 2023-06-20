@@ -43,7 +43,7 @@ class SimpleDesktops(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        desktops: Optional[list] = None
+        desktops = []
         _PAGE.set(params.pop(CONFIG_PAGE))
         while True:
             if not desktops:

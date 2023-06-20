@@ -81,7 +81,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        results: Optional[list] = None
+        results = []
         if params.pop(CONFIG_EDITORIAL):
             url = URL_EDITORIAL
             params = {

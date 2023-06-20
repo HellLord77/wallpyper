@@ -43,7 +43,7 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        items: Optional[list] = None
+        items = []
         params['pid'] = '209567'
         params['fmt'] = 'json'
         params['cdm'] = '1'
