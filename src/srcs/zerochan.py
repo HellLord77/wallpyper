@@ -6,6 +6,7 @@ from typing import Any, Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request
+from libs.request import cloudflare
 from . import ImageFile, Source
 
 URL_BASE = 'https://www.zerochan.net'
@@ -37,7 +38,7 @@ def _json_loads(response: request.Response) -> Any:
 
 class ZeroChan(Source):  # https://www.zerochan.net/api
     NAME = 'zerochan'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_FILTER: str,
@@ -85,11 +86,12 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
         if params.pop(CONFIG_STRICT):
             params['strict'] = ''
         params['json'] = ''
+        session = cloudflare.Session()
         page = 1
         while True:
             if not items:
                 params['p'] = str(page)
-                response = request.get(url, params)
+                response = session.get(url, params)
                 if (response.status_code == request.Status.FORBIDDEN and
                         response.content == _CONTENT_END):
                     page = 1
@@ -101,7 +103,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                     yield
                     continue
             item = items.pop(0)
-            response_item = request.get(request.join_url(URL_BASE, str(item['id'])), _PARAMS)
+            response_item = session.get(request.join_url(URL_BASE, str(item['id'])), _PARAMS)
             if not response_item:
                 items.insert(0, item)
                 yield

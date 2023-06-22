@@ -159,7 +159,7 @@ class WallpaperAbyss(Source):
             'ResolutionFilter': params[CONFIG_RESOLUTION_FILTER],
             'ResolutionEquals': params[CONFIG_RESOLUTION_EQUALS],
             'Sorting': params[CONFIG_SORT]}
-        session = cloudflare.Session(user_agent=cloudflare.UserAgent(mobile=False))
+        session = cloudflare.Session()
         page = 1
         while True:
             if not images:

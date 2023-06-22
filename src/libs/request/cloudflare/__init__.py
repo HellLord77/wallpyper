@@ -99,7 +99,7 @@ class Session(_Session):
     @user_agent.setter
     def user_agent(self, user_agent: Optional[_TUserAgent] = None):
         if user_agent is None:
-            user_agent = UserAgent()
+            user_agent = UserAgent(mobile=False)
         if isinstance(user_agent, UserAgent):
             user_agent = user_agent.encode()
         self.headers.update(user_agent[0])
