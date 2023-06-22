@@ -21,6 +21,8 @@ from xml.etree import ElementTree
 
 import win32
 from libs import ctyped, config, request
+# noinspection PyUnresolvedReferences
+from libs import sgml
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
 from libs.ctyped.lib import kernel32, user32, python
@@ -636,7 +638,11 @@ def _test_inheritance():
 
 
 def _test():
-    pass
+    url = 'https://www.fonstola.ru/food/'
+    resp = request.get(url)
+    print(resp.text)
+    html = sgml.loads(resp.text)
+    # print(html.find('div', classes='twelve')[0].get_text())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

@@ -293,6 +293,7 @@ from . import (
     facets,
     fivehundredpx,
     folder,
+    fonstola,
     lwalpapers,
     pexels,
     pixabay,
