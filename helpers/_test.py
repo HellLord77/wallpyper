@@ -638,11 +638,7 @@ def _test_inheritance():
 
 
 def _test():
-    url = 'https://www.fonstola.ru/food/'
-    resp = request.get(url)
-    print(resp.text)
-    html = sgml.loads(resp.text)
-    # print(html.find('div', classes='twelve')[0].get_text())
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

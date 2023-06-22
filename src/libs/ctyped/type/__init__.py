@@ -494,6 +494,9 @@ GLvoid = c_void
 # hstring
 HSTRING_BUFFER = HANDLE
 
+# wincontypes
+HPCON = HANDLE
+
 # wincrypt
 ALG_ID = c_uint
 HCRYPTPROV = ULONG_PTR
@@ -609,9 +612,13 @@ CXCursorAndRangeVisitor_visit: _Callable[..., _Callable[
 IViewObject_Draw_pfnContinue: _Callable[..., _Callable[
     [ULONG_PTR], BOOL]] = _callable()
 
-DrawImageAbort = ImageAbort
-GetThumbnailImageAbort = ImageAbort
-WAITORTIMERCALLBACK = WAITORTIMERCALLBACKFUNC
+# TODO
+DrawImageAbort: _Callable[..., _Callable[
+    [PVOID], BOOL]] = ImageAbort
+GetThumbnailImageAbort: _Callable[..., _Callable[
+    [PVOID], BOOL]] = ImageAbort
+WAITORTIMERCALLBACK: _Callable[..., _Callable[
+    [PVOID, BOOLEAN], VOID]] = WAITORTIMERCALLBACKFUNC
 
 # brotli
 # types

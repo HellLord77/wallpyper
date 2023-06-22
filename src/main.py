@@ -23,7 +23,7 @@ import srcs
 import validator
 import win32
 from libs import (callables, config, easings, files, lens, pyinstall,
-                  request, singleton, spinners, timer, typed, utils)
+                  request, singleton, spinners, timer, typed, utils, vt100)
 from win32 import brotli
 
 UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
@@ -419,26 +419,32 @@ def get_displays() -> Iterable[str]:
 
 @timer.on_thread
 def print_progress():
+    print(vt100.show_cursor(False) + vt100.progress(
+        vt100.ProgressState.INDETERMINATE), end='')
     interval, spinner = spinners.get('sand')
-    interval_indeterminate, spinner_indeterminate = spinners.get('material')
-    len_last = 0
+    len_mid = 0
     start_time = time.monotonic()
     while (completed := PROGRESS[0]) != -1:
         indeterminate = (total := PROGRESS[1]) == request.RETRIEVE_UNKNOWN_SIZE
-        progress = (next(spinner_indeterminate) if indeterminate else
-                    utils.get_progress(completed / total, 20))
-        text = f'[{next(spinner)}] [{progress}]'
+        pre = f'[{next(spinner)}] ['
+        post = ']'
         if completed:
-            text += f' [{files.Size(completed)}]'
+            post += f' [{files.Size(completed)}]'
             if elapsed := time.monotonic() - start_time:
                 speed = completed / elapsed
-                text += f' [{files.Size(speed)}/s]'
+                post += f' [{files.Size(speed)}/s]'
                 if not indeterminate:
-                    text += f' [{datetime.timedelta(seconds=round((total - completed) / speed))}]'
-        print(f'\r{" " * len_last}\r{text}', end='', flush=True)
-        len_last = len(text)
-        time.sleep(interval_indeterminate if indeterminate else interval)
-    print(f'\r[✅] [{utils.get_progress(1, 20)}]')
+                    post += f' [{datetime.timedelta(seconds=round((total - completed) / speed))}]'
+        current = 0.0 if indeterminate else (completed / total)
+        columns = os.get_terminal_size().columns
+        len_mid = max(0, columns - len(pre) - len(post))
+        mid = utils.get_progress(current, len_mid) + (vt100.progress(
+            vt100.ProgressState.INDETERMINATE) if indeterminate else vt100.progress(
+            vt100.ProgressState.NORMAL, round(current * 100)))
+        print(f'\r{pre}{mid}{post}', end='', flush=True)
+        time.sleep(interval)
+    print(f'\r[✅] [{utils.get_progress(1, (len_mid or (os.get_terminal_size() - 6)) - 1)}'
+          f'{vt100.progress(vt100.ProgressState.NOPROGRESS)}]{vt100.show_cursor()}')
 
 
 def query_download(completed: int, total: int) -> bool:

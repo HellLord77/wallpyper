@@ -13,7 +13,7 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\timezoneapi.h'
+SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\WinBase.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -52,8 +52,8 @@ GUID = False
 AST = False
 
 CLANG = False
-MSVC = False
-VCPKG = True
+MSVC = True
+VCPKG = False
 
 COMMENT = True
 INDENT = ' ' * 4
@@ -89,6 +89,8 @@ _TYPE_PTR = {
     'PBOOL': 'BOOL',
     'PBOOLEAN': 'BOOLEAN',
     'PDWORDLONG': 'DWORDLONG',
+    'PULONGLONG': 'ULONGLONG',
+    'PDWORD64': 'DWORD64',
     'PHKEY': 'HKEY',
     'LPGUID': 'GUID',
     'LPCGUID': 'GUID',
@@ -103,7 +105,13 @@ _TYPE_PTR = {
     'LPSIZE': 'SIZE',
     'LPCSIZE': 'SIZE',
     'LPSIZEL': 'SIZEL',
-    'LPCSIZEL': 'SIZEL'}
+    'LPCSIZEL': 'SIZEL',
+    'PSIZE_T': 'SIZE_T',
+    'PHANDLE': 'HANDLE',
+    'LPHANDLE': 'HANDLE',
+    'PULONG_PTR': 'ULONG_PTR',
+    'PLONG_PTR': 'LONG_PTR',
+    'PDWORD_PTR': 'DWORD_PTR'}
 _TYPE_KIND = {
     clang.cindex.TypeKind.UINT: 'c_uint',
     clang.cindex.TypeKind.ULONG: 'c_ulong',
