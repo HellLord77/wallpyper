@@ -435,12 +435,17 @@ def print_progress():
                 post += f' [{files.Size(speed)}/s]'
                 if not indeterminate:
                     post += f' [{datetime.timedelta(seconds=round((total - completed) / speed))}]'
-        current = 0.0 if indeterminate else (completed / total)
-        columns = os.get_terminal_size().columns
+        try:
+            columns = os.get_terminal_size().columns
+        except (OSError, ValueError):  # TODO remote console
+            columns = 120
         len_mid = max(0, columns - len(pre) - len(post))
-        mid = utils.get_progress(current, len_mid) + (vt100.progress(
-            vt100.ProgressState.INDETERMINATE) if indeterminate else vt100.progress(
-            vt100.ProgressState.NORMAL, round(current * 100)))
+        if indeterminate:
+            mid = ' ' * len_mid + vt100.progress(vt100.ProgressState.INDETERMINATE)
+        else:
+            current = completed / total
+            mid = utils.get_progress(current, len_mid) + vt100.progress(
+                vt100.ProgressState.NORMAL, round(current * 100))
         print(f'\r{pre}{mid}{post}', end='', flush=True)
         time.sleep(interval)
     print(f'\r[✅] [{utils.get_progress(1, (len_mid or (os.get_terminal_size() - 6)) - 1)}'
