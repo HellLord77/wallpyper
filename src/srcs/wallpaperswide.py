@@ -131,7 +131,6 @@ CATEGORIES = (
     'travel', 'africa', 'america', 'antarctica', 'asia', 'europe', 'islands',
     'maps', 'oceania', 'other', 'vintage')
 
-_ATTRS_WALLPAPERS = {'class': 'wallpapers'}
 _ATTRS_RESOLUTIONS = {'id': 'wallpaper-resolutions'}
 
 
@@ -139,22 +138,14 @@ def _is_resolution(data: str) -> bool:
     return not data.isdigit()
 
 
-def _match_data(data: str, element: sgml.Element) -> bool:
-    return element.get_data() == data
-
-
 def _get_resolution(ratios: list[str], quality: str, resolutions: sgml.Element) -> str:
     for ratio in ratios:
-        if (header := resolutions.find('h3', filter=functools.partial(
-                _match_data, ratio))) is not None:
+        if (header := resolutions.find('h3', text=ratio)) is not None:
             if quality == QUALITIES[0]:
                 return header.get_next_sibling(1).get_data()
             else:
                 return sgml.find_element(
                     header.iter_next_siblings(), 'br').get_previous_sibling().get_data()
-
-
-_IS_NEXT = functools.partial(_match_data, 'Next »')
 
 
 class WallpapersWide(Source):
@@ -261,8 +252,8 @@ class WallpapersWide(Source):
                 response = session.get(request.join_url(url, 'page', str(page)))
                 if response:
                     html = sgml.loads(response.text)
-                    wallpapers = html.find('ul', _ATTRS_WALLPAPERS).children
-                    if html.find('a', filter=_IS_NEXT) is None:
+                    wallpapers = html.find('ul', classes='wallpapers').children
+                    if html.find('a', text='Next »') is None:
                         page = 1
                     else:
                         page += 1

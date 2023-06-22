@@ -29,7 +29,7 @@ from xml.etree import ElementTree
 
 _T = typing.TypeVar('_T')
 _TIO = BinaryIO | TextIO
-_TPath = bytes | int | str | os.PathLike[bytes] | os.PathLike[str]
+_TPath = int | bytes | str | os.PathLike[bytes] | os.PathLike[str]
 
 _CONFIG = '_'
 

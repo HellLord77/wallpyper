@@ -48,7 +48,6 @@ _ATTRS_ITEM = {
     'itemtype': 'http://schema.org/ImageObject'}
 _ATTRS_URL = {'itemprop': 'url'}
 _ATTRS_SRC = {'itemprop': 'contentUrl'}
-_ATTR_INFO = {'class': 'dld_info'}
 
 
 class WallpaperFlare(Source):
@@ -123,7 +122,7 @@ class WallpaperFlare(Source):
                 yield
                 continue
             html = sgml.loads(response_item.text)
-            info = html.find('div', _ATTR_INFO)
+            info = html.find('div', classes='dld_info')
             yield ImageFile(html.find('img', _ATTRS_SRC)['src'], url=url_item, width=int(
                 info[0][0].get_data()), height=int(info[1][0].get_data()))
 

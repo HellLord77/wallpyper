@@ -81,7 +81,7 @@ class DeviantArt(Source):
             yield ImageFile(request.encode_params(url_original, request.extract_params(
                 url_content)), item.find('title').get_data() + os.path.splitext(
                 url_original)[1], url=item.find('link').get_data(), ratio=int(content['width']) / int(
-                content['height']), nsfw=item.find('media:rating').get_data() == 'adult')
+                content['height']), nsfw=item.find('media:rating').get_text() == 'adult')
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:

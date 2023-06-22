@@ -28,11 +28,6 @@ COLORS = (
 
 _TEMPLATE_TOP = f'{URL_BASE}/top/{{}}/'
 _TEMPLATE_PICTURE = f'{URL_BASE}/wpic/{{}}_{{}}/'
-_ATTRS = {'class': 'item'}
-
-
-def _is_next(element: sgml.Element) -> bool:
-    return element.get_data() == 'Next'
 
 
 class WallpaperTip(Source):
@@ -91,8 +86,8 @@ class WallpaperTip(Source):
                                        _TEMPLATE_TOP.format(params.pop('page')), params)
                 if response:
                     html = sgml.loads(response.text)
-                    items = list(html.find_all('div', _ATTRS))
-                    if html.find('a', filter=_is_next) is None:
+                    items = list(html.find_all('div', classes='item'))
+                    if html.find('a', text='Next') is None:
                         page = 1
                     else:
                         if search:

@@ -32,7 +32,6 @@ COLORS = (
     '00AB00', '00B2D4', '0062C6', '8C20BA', 'F52394', 'FFFFFF', '7C7C7C', '000000')
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS_ITEM = {'class': 'item'}
 _ATTRS_END = {'data-score': ''}
 _ATTRS_JSON = {'type': 'application/ld+json'}
 
@@ -118,7 +117,7 @@ class WallHere(Source):
                 response = request.get(url, params)
                 if response:
                     html = sgml.loads(f'<html>{response.json()["data"]}</html>')
-                    items = list(html.find_all('div', _ATTRS_ITEM))
+                    items = list(html.find_all('div', classes='item'))
                     if html.find('a', _ATTRS_END) is None:
                         page += 1
                     else:

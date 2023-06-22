@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 import html.parser
 import io
@@ -10,7 +10,8 @@ import shutil
 import typing
 from typing import Callable, Container, Iterable, Iterator, Mapping, Optional, TextIO
 
-_TPattern = str | re.Pattern | Container[str] | Callable[[str], bool]
+_TPattern = (bool | int | bytes | str | re.Pattern |
+             Iterable['_TPattern'] | Container[str] | Callable[[str], bool])
 
 # noinspection PyUnresolvedReferences
 MAX_CHUNK = shutil.COPY_BUFSIZE
@@ -86,7 +87,7 @@ class Element:
         pass
 
     def __getitem__(self, item):
-        return (self.children if isinstance(item, int) else self.attributes)[item]
+        return (self.attributes if isinstance(item, str) else self.children)[item]
 
     def get_root(self) -> Element:
         return self if self.parent is None else self.parent.get_root()
@@ -104,17 +105,21 @@ class Element:
             pass
 
     @typing.overload
-    def get_class(self) -> set[str]:
+    def get_class(self) -> list[str]:
         pass
 
     @typing.overload
     def get_class(self, index: int = 0) -> Optional[str]:
         pass
 
+    @typing.overload
+    def get_class(self, index: slice) -> list[str]:
+        pass
+
     def get_class(self, index=None):
         classes = self.attributes.get('class', '').split()
         if index is None:
-            return set(classes)
+            return classes
         else:
             try:
                 return classes[index]
@@ -130,7 +135,7 @@ class Element:
         pass
 
     def get_text(self, start=None, stop=None, /):
-        return ''.join(itertools.islice(self.datas, start, stop))
+        return ''.join(itertools.islice(self.datas, start, stop)).strip()
 
     def get_doctype(self) -> Optional[str]:
         for decl in self.get_root().decls:
@@ -165,49 +170,70 @@ class Element:
                 self.parent.children) - self.parent.children.index(self), None)
 
     # noinspection PyShadowingBuiltins
-    def find(self, name: Optional[_TPattern] = None, attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
-             filter: Optional[Callable[[Element], bool]] = None, recursive: bool = True, index: int = 0) -> Optional[Element]:
-        return find_element(self.iter_all_children() if recursive else self.children, name, attributes, filter, index)
+    def find(self, name: Optional[_TPattern] = None,
+             attributes: Optional[Mapping[str, _TPattern]] = None, classes: Optional[_TPattern] = None,
+             text: Optional[_TPattern] = None, filter: Optional[Callable[[Element], bool]] = None,
+             recursive: bool = True, index: int = 0) -> Optional[Element]:
+        return find_element(self.iter_all_children() if recursive
+                            else self.children, name, attributes, classes, text, filter, index)
 
     # noinspection PyShadowingBuiltins
-    def find_all(self, name: Optional[_TPattern] = None, attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
-                 filter: Optional[Callable[[Element], bool]] = None, recursive: bool = True) -> Iterator[Element]:
-        return find_elements(self.iter_all_children() if recursive else self.children, name, attributes, filter)
+    def find_all(self, name: Optional[_TPattern] = None,
+                 attributes: Optional[Mapping[str, _TPattern]] = None, classes: Optional[_TPattern] = None,
+                 text: Optional[_TPattern] = None, filter: Optional[Callable[[Element], bool]] = None,
+                 recursive: bool = True, count: int = -1) -> Iterator[Element]:
+        return find_elements(self.iter_all_children() if recursive
+                             else self.children, name, attributes, classes, text, filter, count)
 
 
-def _match(pattern: Optional[_TPattern], string: Optional[str]) -> bool:
-    if pattern is None:
+def _match(pattern: _TPattern, string: Optional[str]) -> bool:
+    if pattern is True:
         return True
     elif string is None:
-        return False
+        return pattern is False
+    elif isinstance(pattern, int):
+        return pattern == len(string)
+    elif isinstance(pattern, bytes):
+        return pattern == string.encode()
     elif isinstance(pattern, str):
-        return string == pattern
+        return pattern == string
     elif isinstance(pattern, re.Pattern):
         return bool(pattern.search(string))
+    elif isinstance(pattern, Iterable):
+        return any(_match(pattern_, string) for pattern_ in pattern)
     elif isinstance(pattern, Container):
         return string in pattern
-    else:
+    elif callable(pattern):
         return pattern(string)
+    else:
+        raise TypeError(f'{type(pattern).__name__} is not subclass of {_TPattern}')
 
 
 # noinspection PyShadowingBuiltins
 def find_element(elements: Iterable[Element], name: Optional[_TPattern] = None,
-                 attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
-                 filter: Optional[Callable[[Element], bool]] = None, index: int = 0) -> Optional[Element]:
-    return next(itertools.islice(find_elements(elements, name, attributes, filter), index, None), None)
+                 attributes: Optional[Mapping[str, _TPattern]] = None, classes: Optional[_TPattern] = None,
+                 text: Optional[_TPattern] = None, filter: Optional[Callable[[Element], bool]] = None,
+                 index: int = 0) -> Optional[Element]:
+    return next(itertools.islice(find_elements(elements, name, attributes, classes, text, filter), index, None), None)
 
 
 # noinspection PyShadowingBuiltins
 def find_elements(elements: Iterable[Element], name: Optional[_TPattern] = None,
-                  attributes: Optional[Mapping[str, Optional[_TPattern]]] = None,
-                  filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Iterator[Element]:
+                  attributes: Optional[Mapping[str, _TPattern]] = None, classes: Optional[_TPattern] = None,
+                  text: Optional[_TPattern] = None, filter: Optional[Callable[[Element], bool]] = None,
+                  count: int = -1) -> Iterator[Element]:
     for element in elements:
         if not count:
             break
-        if not _match(name, element.name):
+        if name is not None and not _match(name, element.name):
             continue
         if attributes is not None and not all(_match(value, element.attributes.get(
                 attribute)) for attribute, value in attributes.items()):
+            continue
+        if classes is not None and not any(_match(
+                classes, class_) for class_ in element.get_class()):
+            continue
+        if text is not None and not _match(text, element.get_text() or None):
             continue
         if filter is not None and not filter(element):
             continue

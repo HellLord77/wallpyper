@@ -20,11 +20,6 @@ TAGS = (
     'movie', 'nature', 'space', 'sports', 'superhero', 'texture', 'tv-series', '')
 SORTS = 'latest', 'random', 'popular'
 
-_ATTRS_IMAGES = {'class': 'item_img'}
-_ATTRS_NEXT = {'class': 'page next'}
-_ATTRS_IMAGE = {'class': 'business_img'}
-_ATTRS_RESOLUTION = {'class': 'yellow-color'}
-
 
 class WallpapersMug(Source):
     VERSION = '0.0.2'
@@ -73,9 +68,9 @@ class WallpapersMug(Source):
                 response = request.get(url)
                 if response:
                     html = sgml.loads(response.text)
-                    images = list(html.find_all('div', _ATTRS_IMAGES))
+                    images = list(html.find_all('div', classes='item_img'))
                     if page:
-                        if html.find_all('span', _ATTRS_NEXT) is None:
+                        if html.find_all('span', classes='next') is None:
                             page = 1
                         else:
                             page += 1
@@ -89,9 +84,9 @@ class WallpapersMug(Source):
                 images.insert(0, image)
                 yield
                 continue
-            img = sgml.loads(response_image.text).find('div', _ATTRS_IMAGE)
+            img = sgml.loads(response_image.text).find('div', classes='business_img')
             width, height = map(int, img.find(
-                'span', _ATTRS_RESOLUTION)[0].get_data().split('x'))
+                'span', classes='yellow-color')[0].get_data().split('x'))
             yield ImageFile(img[0][0]['src'], url=url_image, width=width, height=height)
 
     @classmethod

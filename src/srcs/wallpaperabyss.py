@@ -51,9 +51,7 @@ CATEGORIES = (
     19, 20, 22, 24, 25, 26, 27, 28, 30, 29, 31, 32, 34, 33)
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS_THUMB = {'class': 'thumb-container'}
 _ATTRS_NEXT_PAGE = {'id': 'next_page'}
-_ATTRS_PAGINATION = {'class': 'pagination-simple center'}
 
 
 def _on_color_right(event):
@@ -169,12 +167,12 @@ class WallpaperAbyss(Source):
                 response = session.get(url, query, cookies=cookies)
                 if response:
                     html = sgml.loads(response.text)
-                    images = list(html.find_all('div', _ATTRS_THUMB))
+                    images = list(html.find_all('div', classes='thumb-container'))
                     has_next = False
                     if (next_page := html.find('a', _ATTRS_NEXT_PAGE)) is not None:
                         has_next = next_page['href'] != '#'
-                    elif (pagination := html.find('div', _ATTRS_PAGINATION)) is not None:
-                        has_next = pagination[-1].get_data() == 'Next >>'
+                    elif (pagination := html.find('div', classes='pagination-simple')) is not None:
+                        has_next = pagination[-1].get_text() == 'Next >>'
                     if has_next:
                         page += 1
                     else:

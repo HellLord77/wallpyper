@@ -41,8 +41,6 @@ SORTS = 'latest', 'views', 'downloads', 'favorites', 'rating', 'color'
 ORDERS = 'desc', 'asc'
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
-_ATTRS_WALL_LINK = {'class': 'wall_link'}
-_ATTRS_SIZE = {'class': 'size'}
 
 
 def _on_color_right(event):
@@ -154,7 +152,7 @@ class Wallscloud(Source):
                 if response:
                     json = response.json()
                     wall_links = list(sgml.loads(
-                        f'<html>{json["html"]}</html>').find_all('a', _ATTRS_WALL_LINK))
+                        f'<html>{json["html"]}</html>').find_all('a', classes='wall_link'))
                     page = page % (json['total_pages'] or 1) + 1
                 if not wall_links:
                     yield
@@ -167,7 +165,7 @@ class Wallscloud(Source):
                 yield
                 continue
             width, height = map(int, wall_link.find(
-                'div', _ATTRS_SIZE).get_data().split('x'))
+                'div', classes='size').get_data().split('x'))
             yield ImageFile(url_wall_link, name, url=url, width=width, height=height)
 
     @classmethod

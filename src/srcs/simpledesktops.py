@@ -12,7 +12,6 @@ URL_BROWSE = request.join_url(URL_BASE, 'browse')
 
 CONFIG_PAGE = 'page'
 
-_ATTRS = {'class': 'desktop'}
 _PAGE = utils.MutableInt()
 
 
@@ -54,7 +53,7 @@ class SimpleDesktops(Source):
                     _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
                     continue
                 if response:
-                    desktops = list(sgml.loads(response.text).find_all('div', _ATTRS))
+                    desktops = list(sgml.loads(response.text).find_all('div', classes='desktop'))
                 if not desktops:
                     yield
                     continue
