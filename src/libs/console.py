@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import enum
 
@@ -138,6 +138,10 @@ def set_window_title(title: str) -> str:
 def cursor_move(x: int = 0, y: int = 0) -> str:
     return (cursor_forward(x) if x > 0 else cursor_backward(
         -x)) + (cursor_down(y) if y > 0 else cursor_up(-y))
+
+
+def color(text: str, red: int = 0, green: int = 0, blue: int = 0, bg: bool = False) -> str:
+    return f'{ESC}[{38 if not bg else 48};2;{red};{green};{blue}m{text}{ESC}[0m'
 
 
 class ProgressState(enum.IntEnum):

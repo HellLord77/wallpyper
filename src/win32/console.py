@@ -29,7 +29,8 @@ def set_title(title: AnyStr) -> bool:
 
 
 def _get_handle(error: bool) -> int:
-    return kernel32.GetStdHandle(ctyped.const.STD_ERROR_HANDLE if error else ctyped.const.STD_OUTPUT_HANDLE)
+    return kernel32.GetStdHandle(
+        ctyped.const.STD_ERROR_HANDLE if error else ctyped.const.STD_OUTPUT_HANDLE)
 
 
 def write(text: AnyStr, error: bool = False) -> int:

@@ -60,20 +60,20 @@ $CodeRunBefore = @(
 	"open('pipe.spec', 'w').writelines(lines[:lines.index('coll = COLLECT(\n')])"
 	"__main__.run(['pipe.spec'])")
 $CodeRunBeforeRemote = @(
-	"from src.libs.colornames import _download"
-	"_download()"
-	"from src.libs.isocodes import _download"
-	"_download()"
-	"from src.libs.mimetype import _download"
-	"_download()"
-	"from src.libs.request.cloudflare import _download"
-	"_download()"
-	"from src.libs.spinners import _download"
-	"_download()"
-	"from src.libs.urischemes import _download"
-	"_download()"
-	"from src.libs.useragents import _download"
-	"_download()")
+	"from src.libs.colornames import download"
+	"download()"
+	"from src.libs.isocodes import download"
+	"download()"
+	"from src.libs.mimetype import download"
+	"download()"
+	"from src.libs.request.cloudflare import download"
+	"download()"
+	"from src.libs.spinners import download"
+	"download()"
+	"from src.libs.urischemes import download"
+	"download()"
+	"from src.libs.useragents import download"
+	"download()")
 $CodeRunAfter = @()
 $CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(

@@ -1,5 +1,5 @@
 # https://github.com/venomous/cloudscraper
-
+import functools
 import json
 import os
 import random
@@ -16,7 +16,6 @@ from .. import _TProxies
 from .. import _TVerify
 
 _PATH = 'browsers.json'
-_BROWSERS: Optional[dict[str, dict]] = None
 
 
 class UserAgent:
@@ -53,14 +52,11 @@ class UserAgent:
         self.allow_brotli = allow_brotli
 
     def encode(self, request: Optional[urllib.request.Request] = None) -> tuple[dict[str, str], tuple[str, ...]]:
-        global _BROWSERS
-        if _BROWSERS is None:
-            with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-                _BROWSERS = json.load(file)
-        headers = _BROWSERS['headers'][self.browser].copy()
-        cipher_suite = tuple(_BROWSERS['cipherSuite'][self.browser])
+        browsers = load()
+        headers = browsers['headers'][self.browser].copy()
+        cipher_suite = tuple(browsers['cipherSuite'][self.browser])
         headers[_Header.USER_AGENT] = random.choice(
-            _BROWSERS['user_agents'][self.device][self.platform][self.browser])
+            browsers['user_agents'][self.device][self.platform][self.browser])
         if not self.allow_brotli:
             encodings = urllib.request.parse_http_list(headers[_Header.ACCEPT_ENCODING])
             try:
@@ -108,12 +104,18 @@ class Session(_Session):
         self.verify.set_ecdh_curve('prime256v1')
 
 
+@functools.cache
+def load() -> dict[str, dict]:
+    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
+        return json.load(file)
+
+
 if __debug__:
-    def _download():
+    def download():
         import urllib.parse
         import urllib.request
-        path = os.path.join(os.path.dirname(__file__), _PATH)
         urllib.request.urlretrieve(urllib.parse.urljoin(
-            'https://raw.githubusercontent.com/VeNoMouS/cloudscraper/master/cloudscraper/user_agent/', _PATH), path)
-        with open(path, encoding='utf-8') as file:
-            json.load(file)
+            'https://raw.githubusercontent.com/VeNoMouS/cloudscraper/master/cloudscraper/user_agent',
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+        load.cache_clear()
+        load()

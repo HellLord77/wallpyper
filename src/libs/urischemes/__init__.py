@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-__version__ = '0.0.1'  # https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
+__version__ = '0.0.2'  # https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
 
 import csv
 import enum
@@ -9,7 +7,6 @@ import os
 from typing import Iterator, NamedTuple, Optional
 
 _PATH = 'uri-schemes-1.csv'
-_URISCHEMES: Optional[tuple[URIScheme, ...]] = None
 
 
 class URIStatus(enum.StrEnum):
@@ -31,15 +28,9 @@ def get_scheme(uri: bytes | str) -> str:
 
 
 def _iter(status: Optional[URIStatus] = None) -> Iterator[URIScheme]:
-    global _URISCHEMES
-    if _URISCHEMES is None:
-        with open(os.path.join(os.path.dirname(__file__), _PATH)) as file:
-            reader = csv.reader(file)
-            next(reader, None)
-            _URISCHEMES = tuple(URIScheme(row[0], row[
-                2], URIStatus(row[3])) for row in reader)
-    return iter(_URISCHEMES) if status is None else (
-        scheme for scheme in _URISCHEMES if scheme.status is status)
+    urischemes = load()
+    return iter(urischemes) if status is None else (
+        scheme for scheme in urischemes if scheme.status is status)
 
 
 def iter_permanent() -> Iterator[URIScheme]:
@@ -57,17 +48,26 @@ def iter_historical() -> Iterator[URIScheme]:
 @functools.lru_cache
 def get(scheme_or_uri: bytes | str) -> Optional[URIScheme]:
     scheme_or_uri = get_scheme(scheme_or_uri)
-    for scheme in _iter():
+    for scheme in load():
         if scheme.scheme == scheme_or_uri:
             return scheme
 
 
+@functools.cache
+def load() -> tuple[URIScheme, ...]:
+    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
+        reader = csv.reader(file)
+        next(reader)
+        return tuple(URIScheme(row[0], row[
+            2], URIStatus(row[3])) for row in reader)
+
+
 if __debug__:
-    def _download():
+    def download():
         import urllib.parse
         import urllib.request
-        path = os.path.join(os.path.dirname(__file__), _PATH)
         urllib.request.urlretrieve(urllib.parse.urljoin(
-            'https://www.iana.org/assignments/uri-schemes/', _PATH), path)
-        with open(path) as file:
-            all(csv.reader(file))
+            'https://www.iana.org/assignments/uri-schemes',
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+        load.cache_clear()
+        load()

@@ -1,4 +1,4 @@
-__version__ = '0.0.1'  # https://github.com/jshttp/mime-types
+__version__ = '0.0.2'  # https://github.com/jshttp/mime-types
 
 import functools
 import json
@@ -6,19 +6,15 @@ import os
 from typing import Any, Iterator, Optional
 
 _PATH = 'db.json'
-_MIMETYPES: Optional[dict[str, dict[str, bool | str | list[str]]]] = None
 
 
 def _iter(key: str, default=None, type_: Optional[str] = None) -> Iterator[tuple[str, Any]]:
-    global _MIMETYPES
-    if _MIMETYPES is None:
-        with open(os.path.join(os.path.dirname(__file__), _PATH)) as file:
-            _MIMETYPES = json.load(file)
+    mimetypes = load()
     if type_ is None:
-        for type_, mimetype in _MIMETYPES.items():
+        for type_, mimetype in mimetypes.items():
             yield type_, mimetype.get(key, default)
     else:
-        yield type_, _MIMETYPES.get(type_, {}).get(key, default)
+        yield type_, mimetypes.get(type_, {}).get(key, default)
 
 
 # noinspection PyShadowingBuiltins
@@ -36,7 +32,7 @@ def get_charset(type: str) -> Optional[str]:
 # noinspection PyShadowingBuiltins
 def is_compressible(type: str) -> bool:
     compressible = next(_iter('compressible', False, type))[1]
-    _ = _MIMETYPES[type]
+    _ = load()[type]
     return compressible
 
 
@@ -66,12 +62,18 @@ def get_type(path_or_extension: str = None) -> Optional[str]:
     return next(iter_types(path_or_extension), None)
 
 
+@functools.cache
+def load() -> dict[str, dict[str, bool | str | list[str]]]:
+    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
+        return json.load(file)
+
+
 if __debug__:
-    def _download():
+    def download():
         import urllib.parse
         import urllib.request
-        path = os.path.join(os.path.dirname(__file__), _PATH)
         urllib.request.urlretrieve(urllib.parse.urljoin(
-            'https://raw.githubusercontent.com/jshttp/mime-db/master/', _PATH), path)
-        with open(path, encoding='utf-8') as file:
-            json.load(file)
+            'https://raw.githubusercontent.com/jshttp/mime-db/master',
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+        load.cache_clear()
+        load()

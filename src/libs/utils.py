@@ -7,6 +7,7 @@ import bz2
 import collections
 import ctypes
 import datetime
+import enum
 import functools
 import gzip
 import hashlib
@@ -46,7 +47,7 @@ class staticproperty(property):
         return self.fget()
 
 
-class ProgressBar:
+class ProgressBar(enum.StrEnum):
     BLOCK_VERTICAL = ' ▁▂▃▄▅▆▇█'
     BLOCK_HORIZONTAL = ' ▏▎▍▌▋▊▉▉'
     BLOCK_SHADE = ' ░▒▓█'
@@ -356,7 +357,10 @@ def to_tuple(string: str) -> tuple:
     return _to_type(string, tuple)
 
 
-def get_progress(current: float = 0.0, width: int = 100, bars: str = ProgressBar.BLOCK_HORIZONTAL) -> str:
+def get_progress(current: float = 0.0, width: int = 100,
+                 bars: str | ProgressBar = ProgressBar.BLOCK_HORIZONTAL) -> str:
+    if isinstance(bars, ProgressBar):
+        bars = bars.value
     if current < 0:
         current = 0
     elif current > 1:
@@ -364,7 +368,8 @@ def get_progress(current: float = 0.0, width: int = 100, bars: str = ProgressBar
     each = 1 / width
     filled = int(current / each)
     index = int((len(bars) - 1) / each * (current - filled * each))
-    return f'{bars[-1] * filled}{bars[index] * bool(index)}{bars[0] * (width - filled - bool(index))}'
+    return (bars[-1] * filled) + (bars[index] * bool(
+        index)) + (bars[0] * (width - filled - bool(index)))
 
 
 def len_ex(it: Iterable) -> int:

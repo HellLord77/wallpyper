@@ -22,8 +22,8 @@ import pipe
 import srcs
 import validator
 import win32
-from libs import (callables, config, easings, files, lens, pyinstall,
-                  request, singleton, spinners, timer, typed, utils, vt100)
+from libs import (callables, config, console, easings, files, lens, pyinstall,
+                  request, singleton, spinners, timer, typed, utils)
 from win32 import brotli
 
 UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
@@ -419,8 +419,8 @@ def get_displays() -> Iterable[str]:
 
 @timer.on_thread
 def print_progress():
-    print(vt100.show_cursor(False) + vt100.progress(
-        vt100.ProgressState.INDETERMINATE), end='')
+    print(console.show_cursor(False) + console.progress(
+        console.ProgressState.INDETERMINATE), end='')
     interval, spinner = spinners.get('sand')
     len_mid = 0
     start_time = time.monotonic()
@@ -441,15 +441,15 @@ def print_progress():
             columns = 120
         len_mid = max(0, columns - len(pre) - len(post))
         if indeterminate:
-            mid = ' ' * len_mid + vt100.progress(vt100.ProgressState.INDETERMINATE)
+            mid = ' ' * len_mid + console.progress(console.ProgressState.INDETERMINATE)
         else:
             current = completed / total
-            mid = utils.get_progress(current, len_mid) + vt100.progress(
-                vt100.ProgressState.NORMAL, round(current * 100))
+            mid = utils.get_progress(current, len_mid) + console.progress(
+                console.ProgressState.NORMAL, round(current * 100))
         print(f'\r{pre}{mid}{post}', end='', flush=True)
         time.sleep(interval)
     print(f'\r[✅] [{utils.get_progress(1, (len_mid or (os.get_terminal_size() - 6)) - 1)}'
-          f'{vt100.progress(vt100.ProgressState.NOPROGRESS)}]{vt100.show_cursor()}')
+          f'{console.progress(console.ProgressState.NOPROGRESS)}]{console.show_cursor()}')
 
 
 def query_download(completed: int, total: int) -> bool:
@@ -872,7 +872,10 @@ def on_source(item: win32.gui.MenuItem, name: str):
     submenu = item.get_submenu()
     submenu.clear_items()
     with gui.set_menu(submenu):
-        source.create_menu()
+        try:
+            source.create_menu()
+        except BaseException as exc:
+            try_alert_error(exc, True)
     item.enable(bool(submenu))
 
 

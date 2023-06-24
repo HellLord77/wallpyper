@@ -1,6 +1,7 @@
 __version__ = '0.0.5'  # https://salsa.debian.org/iso-codes-team/iso-codes
 
 import collections
+import functools
 import json
 import os
 from typing import Optional
@@ -9,39 +10,36 @@ from typing import Optional
 class _ISOMeta(type):
     _BASE_: collections.namedtuple
 
-    _items = None
-
     def __iter__(cls):
-        if cls._items is None:
-            path = cls._path()
-            with open(path, encoding='utf-8') as file:
-                cls._items = json.load(file)[os.path.basename(path)[4:-5]]
         # noinspection PyProtectedMember
-        return (item[cls._BASE_._fields[0]] for item in cls._items)
+        return (item[cls._BASE_._fields[0]] for item in cls.load())
 
     def __getitem__(cls, key: str):
         return cls.get(key)
 
-    def _path(cls) -> str:
-        return os.path.join(os.path.dirname(__file__), f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json')
-
     def get(cls, *args, **kwargs):
-        _ = iter(cls)
         # noinspection PyProtectedMember
         fields = cls._BASE_._fields
         kwargs.update(zip(fields, args))
+        isocodes = cls.load()
         for key in fields:
             if val := kwargs.get(key):
-                for index, item in enumerate(cls._items):
+                for index, item in enumerate(isocodes):
                     if isinstance(item, dict):
                         if item.get(key, '') == val:
                             item_ = cls._BASE_(**item)
-                            cls._items[index] = item_
+                            isocodes[index] = item_
                             return item_
                     elif getattr(item, key) == val:
                         return item
                 break
         raise KeyError(kwargs)
+
+    @functools.cache
+    def load(cls) -> list[dict[str, str]]:
+        path = os.path.join(os.path.dirname(__file__), f'iso_{cls._BASE_.__name__[4:].replace("_", "-")}.json')
+        with open(path, encoding='utf-8') as file:
+            return json.load(file)[os.path.basename(path)[4:-5]]
 
 
 class ISO6392(metaclass=_ISOMeta):
@@ -139,15 +137,17 @@ class ISO15924(metaclass=_ISOMeta):
 
 
 if __debug__:
-    def _download():
+    def download():
         import gc
         import urllib.parse
         import urllib.request
         for obj in gc.get_objects():
             if isinstance(obj, _ISOMeta):
                 # noinspection PyProtectedMember
-                path = obj._path()
+                path = os.path.join(os.path.dirname(__file__),
+                                    f'iso_{obj._BASE_.__name__[4:].replace("_", "-")}.json')
                 urllib.request.urlretrieve(urllib.parse.urljoin(
-                    'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/', os.path.basename(path)), path)
-                with open(path, encoding='utf-8') as file:
-                    json.load(file)
+                    'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data',
+                    os.path.basename(path)), path)
+                obj.load.cache_clear()
+                obj.load()

@@ -1,17 +1,12 @@
-from __future__ import annotations
-
-__version__ = '0.0.6'  # https://github.com/meodai/color-names/
+__version__ = '0.0.7'  # https://github.com/meodai/color-names/
 
 import functools
 import json
 import math
 import os
-from typing import Literal, Optional
+from typing import Literal
 
 _PATH = 'colornames.min.json'
-_HEX_TO_NAME: Optional[dict[str, str]] = None
-_RGB_TO_HEX: Optional[dict[tuple[int, int, int], str]] = None
-_LAB_TO_HEX: dict[tuple[float, float, float], str] = {}
 
 
 def xyz_to_srgb(x: float, y: float, z: float) -> tuple[float, float, float]:
@@ -152,6 +147,10 @@ def hex_to_rgb(h: str) -> tuple[int, int, int]:
     return int(h[:2], 16), int(h[2:4], 16), int(h[4:], 16)
 
 
+def lab_to_hex(l: float, a: float, b: float) -> str:  # NOQA: E741
+    return rgb_to_hex(*(round(color * 255) for color in xyz_to_srgb(*lab_to_xyz(l, a, b))))
+
+
 def format_cmyk(c: float, m: float, y: float, k: float) -> str:
     return f'{"%, ".join(str(round(c_ * 100)) for c_ in (c, m, y, k))}%'
 
@@ -165,61 +164,70 @@ def format_hls(h: float, l: float, s: float) -> str:  # NOQA: E741
 
 
 def get(color: str) -> str:
-    global _HEX_TO_NAME
-    if _HEX_TO_NAME is None:
-        with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
-            _HEX_TO_NAME = json.load(file)
     color = color.strip().lstrip('#').lower()
     try:
-        return _HEX_TO_NAME[color]
+        return load()[color]
     except KeyError:
         return f'#{color.upper()}'
 
 
+@functools.cache
+def _rgb_to_hex() -> dict[tuple[int, int, int], str]:
+    return {hex_to_rgb(hex_color): hex_color for hex_color in load()}
+
+
 @functools.lru_cache
 def get_nearest_color(color: str) -> tuple[str, str]:
-    global _RGB_TO_HEX
     if not (name := get(color)).startswith('#'):
         return color.upper(), name
-    if _RGB_TO_HEX is None:
-        _RGB_TO_HEX = {hex_to_rgb(hex_color): hex_color for hex_color in _HEX_TO_NAME}
+    rgb_to_hex_ = _rgb_to_hex()
     rgb_color = hex_to_rgb(color)
     min_distance = math.inf
     nearest_color_rgb = 0, 0, 0
-    for cur_color in _RGB_TO_HEX:
+    for cur_color in rgb_to_hex_:
         distance = sum((rgb_color[i] - cur_color[i]) ** 2 for i in range(3))
         if min_distance > distance:
             min_distance = distance
             nearest_color_rgb = cur_color
-    nearest_color = _RGB_TO_HEX[nearest_color_rgb]
-    return f'#{nearest_color.upper()}', _HEX_TO_NAME[nearest_color]
+    nearest_color = rgb_to_hex_[nearest_color_rgb]
+    return f'#{nearest_color.upper()}', load()[nearest_color]
+
+
+@functools.cache
+def _lab_to_hex() -> dict[tuple[float, float, float], str]:
+    return {xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(
+        hex_color)))): hex_color for hex_color in load()}
 
 
 @functools.lru_cache
 def get_nearest_color_lab(color: str) -> tuple[str, str]:
     if not (name := get(color)).startswith('#'):
         return color.upper(), name
-    if not _LAB_TO_HEX:
-        for hex_color in _HEX_TO_NAME:
-            _LAB_TO_HEX[xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(hex_color))))] = hex_color
+    lab_to_hex_ = _lab_to_hex()
     lab_color = xyz_to_lab(*srgb_to_xyz(*(color / 255 for color in hex_to_rgb(color))))
     min_distance = math.inf
     nearest_color_rgb = 0.0, 0.0, 0.0
-    for cur_color in _LAB_TO_HEX:
+    for cur_color in lab_to_hex_:
         distance = ciede2000(*lab_color, *cur_color)
         if min_distance > distance:
             min_distance = distance
             nearest_color_rgb = cur_color
-    nearest_color = _LAB_TO_HEX[nearest_color_rgb]
-    return f'#{nearest_color.upper()}', _HEX_TO_NAME[nearest_color]
+    nearest_color = lab_to_hex_[nearest_color_rgb]
+    return f'#{nearest_color.upper()}', load()[nearest_color]
+
+
+@functools.cache
+def load() -> dict[str, str]:
+    with open(os.path.join(os.path.dirname(__file__), _PATH), encoding='utf-8') as file:
+        return json.load(file)
 
 
 if __debug__:
-    def _download():
+    def download():
         import urllib.parse
         import urllib.request
-        path = os.path.join(os.path.dirname(__file__), _PATH)
         urllib.request.urlretrieve(urllib.parse.urljoin(
-            'https://raw.githubusercontent.com/meodai/color-names/master/dist/', _PATH), path)
-        with open(path, encoding='utf-8') as file:
-            json.load(file)
+            'https://raw.githubusercontent.com/meodai/color-names/master/dist',
+            _PATH), os.path.join(os.path.dirname(__file__), _PATH))
+        load.cache_clear()
+        load()
