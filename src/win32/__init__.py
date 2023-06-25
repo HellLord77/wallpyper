@@ -513,8 +513,8 @@ def _get_manifest_callback(hmodule, lptype, lpname, lparam):
 
 
 def get_manifest(path: Optional[str] = None) -> str:
-    hmodule = kernel32.GetModuleHandleW(
-        None) if path is None else kernel32.LoadLibraryExW(path, 0, ctyped.const.LOAD_LIBRARY_AS_DATAFILE)
+    hmodule = (kernel32.GetModuleHandleW(None) if path is None else
+               kernel32.LoadLibraryExW(path, 0, ctyped.const.LOAD_LIBRARY_AS_DATAFILE))
     if hmodule:
         manifest = ctyped.struct.STRING()
         kernel32.EnumResourceNamesW(hmodule, ctyped.macro.MAKEINTRESOURCEW(

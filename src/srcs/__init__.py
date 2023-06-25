@@ -289,6 +289,7 @@ from . import (
     besthdwallpaper,
     bing,
     bing_sapphire,
+    color,
     deviantart_rss,
     facets,
     fivehundredpx,

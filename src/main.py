@@ -530,7 +530,7 @@ def search_image(path: str) -> bool:
     return searched
 
 
-def on_open_url(url: str) -> bool:
+def on_open_url(url: str) -> bool:  # TODO file:// opens in Photos
     if not (opened := webbrowser.open(url)):
         try_show_notification(_text('LABEL_OPEN_URL'), _text('FAIL_OPEN_URL'))
     return opened
