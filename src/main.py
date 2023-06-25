@@ -32,8 +32,6 @@ CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
     sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
-TEMP_DIR = win32.display.TEMP_WALLPAPER_DIR = os.path.join(
-    tempfile.gettempdir(), consts.NAME)
 
 CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = (
     0, 300, 900, 1800, 3600, 10800, 21600)
@@ -297,6 +295,10 @@ def create_menu():
         RES_TEMPLATE.format(consts.RES_QUIT))
 
 
+def _temp(*paths: str) -> str:
+    return os.path.join(tempfile.gettempdir(), consts.NAME, *paths)
+
+
 def get_image() -> Optional[srcs.File]:
     source = srcs.SOURCES[CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]]
     params = {key: val for key, val in source.CURRENT_CONFIG.items()
@@ -367,11 +369,12 @@ def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
 
 
 def try_remove_temp(force: bool = False) -> bool:
+    temp = _temp()
     if force or not CURRENT_CONFIG[consts.CONFIG_KEEP_CACHE]:
-        return files.remove(TEMP_DIR, True)
+        return files.remove(temp, True)
     else:
-        files.trim_dir(TEMP_DIR, int(files.get_disk_size(TEMP_DIR) * consts.MAX_CACHE_PC))
-        if files.has_no_file(TEMP_DIR):
+        files.trim_dir(temp, int(files.get_disk_size(temp) * consts.MAX_CACHE_PC))
+        if files.has_no_file(temp):
             return try_remove_temp(True)
         return True
 
@@ -463,7 +466,7 @@ def query_download(completed: int, total: int) -> bool:
 def download_image(image: srcs.File) -> Optional[str]:
     try_remove_temp()
     with gui.try_animate_icon(_text('STATUS_DOWNLOAD')):
-        path = os.path.join(TEMP_DIR, image.name)
+        path = _temp(image.name)
         PROGRESS[:] = 0, request.RETRIEVE_UNKNOWN_SIZE
         print(f'[🟩] Download: {image}')
         if PIPE or win32.console.is_present():
@@ -660,8 +663,8 @@ def _update_recent_menu(item: win32.gui.MenuItem):
             item_image = menu.insert_item(index, utils.shrink_string(
                 image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.TEMPLATE_RES_DIGIT.format(index + 1)), submenu=submenu)
-            item_image.set_tooltip(f'{image.name} ({files.Size(image.size)})', icon_res_or_path_or_bitmap=os.path.join(
-                TEMP_DIR, image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
+            item_image.set_tooltip(f'{image.name} ({files.Size(image.size)})', icon_res_or_path_or_bitmap=_temp(
+                image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.name)
     for uid, item_image in items.items():
         if uid and uid not in RECENT:
@@ -909,6 +912,7 @@ def apply_auto_start(auto_start: bool) -> bool:
 def start():
     singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(
         print, 'Crash'), functools.partial(print, 'Wait'), functools.partial(print, 'Exit'))
+    win32.display.TEMP_WALLPAPER_DIR = _temp()
     pyinstall.clean_temp()
     _update_display()
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867

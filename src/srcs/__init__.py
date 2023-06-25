@@ -9,6 +9,7 @@ import functools
 import hashlib
 import itertools
 import os
+import tempfile
 import urllib.parse
 from typing import Any, Callable, Iterator, Optional, TypedDict, final
 
@@ -241,6 +242,12 @@ class Source:
     @classmethod
     def create_menu(cls):
         pass
+
+    @classmethod
+    @final
+    def _temp(cls, *paths: str) -> str:
+        return os.path.join(tempfile.gettempdir(), consts.NAME,
+                            cls.__module__.split(".", 1)[1], *paths)
 
     @classmethod
     @callables.LastCacheCallable

@@ -57,6 +57,10 @@ def get_colored_bitmap(r: int, g: int, b: int, width: int = 32, height: int = 32
     return _gdiplus.bitmap_from_color(_gdiplus.Color.from_rgba(r, g, b), width, height)
 
 
+def save_bitmap(bitmap: _gdiplus.Image, path: str, quality: int = 100) -> bool:
+    return _gdiplus.image_save(bitmap, path, quality)
+
+
 def set_color_mode(mode: int | str | ColorMode = ColorMode.DEFAULT, flush: bool = True):
     if isinstance(mode, str):
         mode = ColorMode[mode.upper()]

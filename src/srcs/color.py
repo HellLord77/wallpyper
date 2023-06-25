@@ -4,7 +4,6 @@ import random
 from typing import Iterator, Optional, TypedDict
 
 import gui
-import main
 import validator
 import win32
 from libs import colornames, request
@@ -21,7 +20,7 @@ HEIGHTS = 360, 480, 600, 720, 768, 800, 864, 900, 1024, 1050, 1080, 1152, 1200, 
 
 class Color(Source):
     NAME = 'Color [offline]'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_LUMINANCES: list[bool, bool],
@@ -52,17 +51,19 @@ class Color(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
+        width = params.pop(CONFIG_WIDTH)
+        height = params.pop(CONFIG_HEIGHT)
         while True:
+            file = None
             rgb = random.randrange(256), random.randrange(256), random.randrange(256)
-            path = os.path.join(main.TEMP_DIR, colornames.get_nearest_color_lab(
-                colornames.rgb_to_hex(*rgb))[1] + '.jpg')
-            if win32.save_hbitmap(win32.get_colored_bitmap(
-                    *rgb, params[CONFIG_WIDTH], params[CONFIG_HEIGHT]).get_hbitmap(), path):
-                file = ImageFile(request.from_path(path))
-                file._rgb = rgb
-                yield file
-            else:
-                yield
+            if bitmap := win32.get_colored_bitmap(*rgb, width, height):
+                path = cls._temp(colornames.get_nearest_color_lab(
+                    colornames.rgb_to_hex(*rgb))[1] + '.png')
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                if win32.save_bitmap(bitmap, path):
+                    file = ImageFile(request.from_path(path), width=width, height=height)
+                    file._rgb = rgb
+            yield file
 
     @classmethod
     def _filter_luminances(cls, rgb: tuple[int, int, int]) -> bool:
