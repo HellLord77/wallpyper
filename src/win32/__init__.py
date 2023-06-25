@@ -322,11 +322,6 @@ def press_keyboard(key: int) -> bool:
     return False
 
 
-def open_file(path: str, *args: str) -> bool:
-    return shell32.ShellExecuteW(None, None, path, subprocess.list2cmdline(
-        args), None, ctyped.const.SW_SHOW) > 32
-
-
 def open_file_path(path: str) -> bool:
     with _utils.get_itemidlist(path) as pidl:
         return ctyped.macro.SUCCEEDED(shell32.SHOpenFolderAndSelectItems(pidl[0], 0, None, 0))

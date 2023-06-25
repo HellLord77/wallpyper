@@ -46,6 +46,8 @@ BLOCKERS: dict[str, str] = {
     'wallpaper32.exe': 'Wallpaper Engine',
     'wallpaper64.exe': 'Wallpaper Engine'}
 
+# webbrowser.WindowsDefault = type('WindowsDefault', (  # FIXME picks edge
+#     webbrowser.BaseBrowser,), {'open': lambda self, *_, **__: False})
 win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 
@@ -533,7 +535,7 @@ def search_image(path: str) -> bool:
     return searched
 
 
-def on_open_url(url: str) -> bool:  # TODO file:// opens in Photos
+def on_open_url(url: str) -> bool:
     if not (opened := webbrowser.open(url)):
         try_show_notification(_text('LABEL_OPEN_URL'), _text('FAIL_OPEN_URL'))
     return opened
@@ -627,7 +629,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                         _text('FAIL_SAVE'))).set_icon(RES_TEMPLATE.format(consts.RES_SAVE_AS))
                     gui.add_separator()
                     gui.add_menu_item(_text('LABEL_OPEN'), on_click=functools.partial(
-                        on_image_func, win32.open_file, image, _text('LABEL_OPEN'),
+                        on_image_func, os.startfile, image, _text('LABEL_OPEN'),
                         _text('FAIL_OPEN'))).set_icon(RES_TEMPLATE.format(consts.RES_OPEN))
                     if consts.FEATURE_OPEN_WITH:
                         gui.add_menu_item(_text('LABEL_OPEN_WITH'), on_click=functools.partial(
@@ -835,8 +837,10 @@ def on_toggle_console() -> bool:
             try_show_notification(_text(
                 'LABEL_CONSOLE'), _text('FAIL_HIDE_CONSOLE'))
     else:
-        win32.open_file(*(PIPE_PATH,) if pyinstall.FROZEN else (
-            sys.executable, pipe.__file__), str(PIPE))
+        args = *((PIPE_PATH,) if pyinstall.FROZEN else (
+            sys.executable, pipe.__file__)), str(PIPE)
+        # noinspection PyArgumentList
+        os.startfile(args[0], arguments=' '.join(args[1:]))
         if not (toggled := PIPE.connect(consts.MAX_PIPE_SEC)):
             try_show_notification(_text(
                 'LABEL_CONSOLE'), _text('FAIL_SHOW_CONSOLE'))
