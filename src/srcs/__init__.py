@@ -294,6 +294,7 @@ from . import (
     fivehundredpx,
     folder,
     fonstola,
+    infinitynewtab,
     livestartpage,
     lwalpapers,
     pexels,
