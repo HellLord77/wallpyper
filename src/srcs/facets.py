@@ -69,7 +69,7 @@ class Facets(Source):
     @classmethod
     def create_menu(cls):
         for year, item in zip(YEARS, gui.add_submenu_check(cls._text(
-                'MENU_YEAR'), (cls._text(f'YEAR_{year}') for year in YEARS), (
+                'MENU_YEAR'), (cls._text(year) for year in YEARS), (
                 1, None), cls.CURRENT_CONFIG, CONFIG_YEAR).get_submenu()):
             item.set_tooltip(cls._text(f'TOOLTIP_YEAR_{year}'))
         gui.add_submenu_radio(cls._text('MENU_SERIES'), {

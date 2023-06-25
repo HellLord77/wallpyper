@@ -151,8 +151,8 @@ def fix_config(saving: bool = False):
             kwargs) for kwargs in CURRENT_CONFIG[consts.CONFIG_RECENT_IMAGES])))
 
 
-def _text(message: int | str) -> str:
-    return langs.to_str(message, langs.DEFAULT) if isinstance(
+def _text(message: int | str, number: bool = False) -> str:
+    return langs.int(message, langs.DEFAULT) if number or isinstance(
         message, int) else getattr(langs.DEFAULT, message)
 
 

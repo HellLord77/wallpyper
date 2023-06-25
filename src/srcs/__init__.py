@@ -234,8 +234,8 @@ class Source:
 
     @classmethod
     @final
-    def _text(cls, message: int | str) -> str:
-        return langs.to_str(message, langs.DEFAULT) if isinstance(message, int) else getattr(
+    def _text(cls, message: int | str, number: bool = False) -> str:
+        return langs.int(message, langs.DEFAULT) if number or isinstance(message, int) else getattr(
             langs.DEFAULT, f'{cls.__module__.split(".", 1)[1].upper()}_{message}')
 
     @classmethod

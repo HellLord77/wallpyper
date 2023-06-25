@@ -1,5 +1,6 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
+import builtins
 import functools
 import keyword
 import re
@@ -10,6 +11,7 @@ from libs import isocodes
 from . import ben
 from . import eng
 
+_SPLIT_DIGIT = re.compile(r'(\d+)').split
 _SUB_INVALID = re.compile(r'[^a-zA-Z0-9_]').sub
 
 DEFAULT: ModuleType = eng
@@ -27,8 +29,11 @@ def _getattr(module: ModuleType, name: str) -> str:
         return f'<{name}>'
 
 
-def to_str(num: int, lang: ModuleType, pad: Optional[int] = None) -> str:
-    return (f'{"".join(lang.__DIGITS__[int(char)] for char in str(num)):{lang.__DIGITS__[0]}>{pad or 0}}'
+# noinspection PyShadowingBuiltins
+def int(num: int | str, lang: ModuleType, pad: Optional[int] = None) -> str:
+    if isinstance(num, str):
+        return ''.join(int(builtins.int(part), lang) if part.isdigit() else part for part in _SPLIT_DIGIT(num))
+    return (f'{"".join(lang.__DIGITS__[builtins.int(char)] for char in str(num)):{lang.__DIGITS__[0]}>{pad or 0}}'
             if hasattr(lang, '__DIGITS__') else _getattr(DEFAULT, f'{num:0>{pad or 0}}'))
 
 

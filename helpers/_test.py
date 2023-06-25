@@ -638,7 +638,9 @@ def _test_inheritance():
 
 
 def _test():
-    pass
+    import langs
+    print(langs.int(23, langs.ben))
+    print(langs.int('1920x1080', langs.ben))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
