@@ -294,6 +294,7 @@ from . import (
     fivehundredpx,
     folder,
     fonstola,
+    livestartpage,
     lwalpapers,
     pexels,
     pixabay,
