@@ -60,7 +60,7 @@ class Color(Source):
                 path = cls._temp(colornames.get_nearest_color_lab(
                     colornames.rgb_to_hex(*rgb))[1] + '.png')
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                if win32.save_bitmap(bitmap, path):
+                if win32.save_image(bitmap, path):
                     file = ImageFile(request.from_path(path), width=width, height=height)
                     file._rgb = rgb
             yield file

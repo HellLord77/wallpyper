@@ -712,6 +712,7 @@ FOLDER_MENU_DIR = 'Choose Folder...'
 FOLDER_MENU_RECURSE = 'Scan Recursively'
 FOLDER_MENU_SORT = 'Sort Image by'
 FOLDER_MENU_ORDER = 'Image Sort Order'
+FOLDER_MENU_ORIENTATIONS = 'Orientation'
 
 FOLDER_SORT_name = 'Name'
 FOLDER_SORT_size = 'Size'
@@ -721,6 +722,9 @@ FOLDER_SORT_accessed = 'Access Time'
 
 FOLDER_ORDER_ascending = 'Ascending'
 FOLDER_ORDER_descending = 'Descending'
+
+FOLDER_ORIENTATION_0 = 'Landscape'
+FOLDER_ORIENTATION_1 = 'Portrait'
 
 FONSTOLA_MENU_LIST = 'List'
 FONSTOLA_MENU_SORT = 'Sorting'
