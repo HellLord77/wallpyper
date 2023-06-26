@@ -1,7 +1,7 @@
 import functools
 import itertools
 import operator
-import os.path
+import os
 from typing import Callable, Iterator, Optional, TypedDict
 
 import gui

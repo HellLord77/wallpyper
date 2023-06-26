@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import itertools
-import ntpath
 import os
 from typing import Optional
 
@@ -26,8 +25,7 @@ class Error(Exception):
 
 
 class DecompressionError(Error):
-    def __init__(self,
-                 code: enum_brotli.BrotliDecoderResult):
+    def __init__(self, code: enum_brotli.BrotliDecoderResult):
         super().__init__(f'Error during decompression [{code.name}]', code)
 
 
@@ -110,8 +108,8 @@ class TextDecompressor(Decompressor):
 
 
 class _Compressor:
-    def __init__(self, mode: Optional[enum_brotli.BrotliEncoderMode] = None,
-                 quality: Optional[int] = None, lgwin: Optional[int] = None, lgblock: Optional[int] = None):
+    def __init__(self, mode: Optional[enum_brotli.BrotliEncoderMode] = None, quality: Optional[int] = None,
+                 lgwin: Optional[int] = None, lgblock: Optional[int] = None):
         self._obj = brotlienc.BrotliEncoderCreateInstance(_ALLOC, _FREE, None)
         if mode is not None:
             self._set_mode(mode)
@@ -305,4 +303,4 @@ def compress_known(data: bytes | str, max_length: Optional[int] = None,
     return ret
 
 
-os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))
+os.add_dll_directory(os.path.join(os.path.dirname(__file__)))
