@@ -24,7 +24,9 @@ import sys
 import typing
 import uuid
 from types import NoneType
-from typing import Any, AnyStr, BinaryIO, Callable, ContextManager, Iterable, Iterator, Mapping, Optional, TextIO
+from typing import (
+    Any, AnyStr, BinaryIO, Callable, ContextManager,
+    Iterable, Iterator, Mapping, Optional, TextIO)
 from xml.etree import ElementTree
 
 _T = typing.TypeVar('_T')

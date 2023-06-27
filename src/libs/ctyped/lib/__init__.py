@@ -21,15 +21,14 @@ class _CLib(_ModuleType):
         module = _sys.modules[name]
         self._annots = module.__annotations__
         self._dict = module.__dict__
-        # noinspection PyProtectedMember
         self._name = (name.removeprefix(f'{__name__}.') if name_fmt is None else
-                      name_fmt.format(arg_64 if _const._WIN64 else arg_32))
+                      name_fmt.format(arg_32 if _const.is_32bits else arg_64))
         self._prefix = prefix
         _sys.modules[name] = self
 
     def __getattr__(self, name: str):
         if name in self._annots:
-            func = self._lib[self._dict.get(name, f'{self._prefix}{name}')]
+            func = self._lib[self._dict.get(name, self._prefix + name)]
             annot = self._annots[name]
             func.restype, *func.argtypes = _resolve_type(eval(annot, self._dict))
             func.__name__ = name

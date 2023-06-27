@@ -7,7 +7,9 @@ import pkgutil as _pkgutil
 import sys as _sys
 import typing as _typing
 from types import ModuleType as _ModuleType
-from typing import Any as _Any, Generic as _Generic, Iterator as _Iterator, Optional as _Optional, Sequence as _Sequence
+from typing import (
+    Any as _Any, Generic as _Generic, Iterator as _Iterator,
+    Optional as _Optional, Sequence as _Sequence)
 
 import _ctypes as __ctypes
 

@@ -2,8 +2,9 @@ import collections
 import contextlib
 import functools
 import threading
-from typing import (Any, Callable, ContextManager, Iterable,
-                    Mapping, MutableMapping, MutableSequence, Optional)
+from typing import (
+    Any, Callable, ContextManager, Iterable, Mapping,
+    MutableMapping, MutableSequence, Optional)
 
 import win32
 from libs import callables, utils
@@ -207,6 +208,7 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
         def on_click_(uid_: int, *args_):
             wrapped()
             return on_click(uid_, *args_)
+
         args = MenuItemProperty.UID, *(() if args is None else args)
     val = mapping[key]
     submenu = submenu_item.get_submenu()

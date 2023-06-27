@@ -1,4 +1,8 @@
 import ctypes as _ctypes
+import sys as _sys
+
+is_32bits = _sys.maxsize > 2 ** 16
+is_64bits = _sys.maxsize > 2 ** 32
 
 _CHAR_UNSIGNED = 0
 _WIN32_WCE = 0
@@ -7,8 +11,8 @@ _WIN32_WINDOWS = 0x0410
 _SHELL_EXPORTS_INTERNALAPI_H_ = 0
 _MAC = 0
 _MAC_INT_64 = 0
-_WIN32 = 1
-_WIN64 = _ctypes.sizeof(_ctypes.c_void_p) == 8
+_WIN32 = int(is_32bits)
+_WIN64 = int(is_64bits)
 _USE_32BIT_TIME_T = 0
 UNICODE = 1
 WIN32 = 1
