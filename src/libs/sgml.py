@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 import html.parser
 import io
@@ -43,9 +43,9 @@ class _Parser(html.parser.HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]):
         if tag not in self.ignore:
-            elem = Element(tag, {name: '' if value is None else value
-                                 for name, value in reversed(attrs)},
-                           self.elems[-1] if self.elems else None)
+            elem = Element(tag, {
+                name: '' if value is None else value for name, value in reversed(
+                    attrs)}, self.elems[-1] if self.elems else None)
             if self.root is None:
                 self.root = elem
             if tag not in self.void:
@@ -75,10 +75,10 @@ class Element:
         self.datas = []
         self.comments = []
         self.decls = ()
-        if parent:
+        if parent is not None:
             parent.children.append(self)
 
-    def __str__(self):
+    def __unicode__(self):
         attributes = ''
         for name, value in sorted(self.attributes.items()):
             attributes += f' {name}'
@@ -89,6 +89,17 @@ class Element:
         return ''.join(f'<!{decl}>' for decl in self.decls) + (
             f'{start}>{"".join(map(str, inner))}</{self.name}>'
             if inner else f'{start}/>')
+
+    __str__ = __repr__ = __unicode__
+
+    def __contains__(self, item: Element) -> bool:
+        return item in self.children
+
+    def __len__(self) -> int:
+        return len(self.children)
+
+    def __iter__(self) -> Iterator[Element]:
+        return iter(self.children)
 
     @typing.overload
     def __getitem__(self, item: str) -> str:
@@ -105,20 +116,35 @@ class Element:
     def __getitem__(self, item):
         return (self.attributes if isinstance(item, str) else self.children)[item]
 
-    def get_root(self) -> Element:
-        return self if self.parent is None else self.parent.get_root()
+    @typing.overload
+    def __setitem__(self, item: str, value: str):
+        pass
 
-    def get_child(self, index: int = 0) -> Optional[Element]:
-        try:
-            return self.children[index]
-        except IndexError:
-            pass
+    @typing.overload
+    def __setitem__(self, item: int, value: Element):
+        pass
 
-    def get_data(self, index: int = 0) -> Optional[str]:
-        try:
-            return self.datas[index]
-        except IndexError:
-            pass
+    @typing.overload
+    def __setitem__(self, item: slice, value: Iterable[Element]):
+        pass
+
+    def __setitem__(self, item, value):
+        (self.attributes if isinstance(item, str) else self.children)[item] = value
+
+    @typing.overload
+    def __delitem__(self, item: str):
+        pass
+
+    @typing.overload
+    def __delitem__(self, item: int):
+        pass
+
+    @typing.overload
+    def __delitem__(self, item: slice):
+        pass
+
+    def __delitem__(self, item):
+        del (self.attributes if isinstance(item, str) else self.children)[item]
 
     @typing.overload
     def get_class(self) -> list[str]:
@@ -142,21 +168,23 @@ class Element:
             except IndexError:
                 pass
 
-    @typing.overload
-    def get_text(self, stop: Optional[int] = None, /) -> str:
-        pass
+    @property
+    def root(self) -> Element:
+        root = self
+        while (parent := root.parent) is not None:
+            root = parent
+        return root
 
-    @typing.overload
-    def get_text(self, start: Optional[int] = None, stop: Optional[int] = None, /) -> str:
-        pass
+    def iter_all_parents(self, height: int = -1) -> Iterator[Element]:
+        if height and self.parent is not None:
+            yield self.parent
+            yield from self.parent.iter_all_parents(height - 1)
 
-    def get_text(self, start=None, stop=None, /):
-        return ''.join(map(str.strip, itertools.islice(self.datas, start, stop)))
-
-    def get_doctype(self) -> Optional[str]:
-        for decl in self.get_root().decls:
-            if decl[:7].upper() == 'DOCTYPE':
-                return decl[7:].strip()
+    def get_child(self, index: int = 0) -> Optional[Element]:
+        try:
+            return self.children[index]
+        except IndexError:
+            pass
 
     def iter_all_children(self, depth: int = -1) -> Iterator[Element]:
         if depth:
@@ -164,26 +192,55 @@ class Element:
                 yield child
                 yield from child.iter_all_children(depth - 1)
 
-    def iter_all_parents(self, height: int = -1) -> Iterator[Element]:
-        if height and self.parent:
-            yield self.parent
-            yield from self.parent.iter_all_parents(height - 1)
+    def iter_next_siblings(self, start: Optional[int] = None,
+                           stop: Optional[int] = None, step: int = 1) -> Iterator[Element]:
+        if self.parent is not None:
+            index = self.parent.children.index(self) + 1
+            if start is not None:
+                start += index
+            if stop is not None:
+                stop += index
+            yield from itertools.islice(self.parent.children, start, stop, step)
+
+    def iter_previous_siblings(self, start: Optional[int] = None,
+                               stop: Optional[int] = None, step: int = 1) -> Iterator[Element]:
+        if self.parent is not None:
+            index = len(self.parent.children) - self.parent.children.index(self)
+            if start is not None:
+                start += index
+            if stop is not None:
+                stop += index
+            yield from itertools.islice(reversed(self.parent.children), start, stop, step)
 
     def get_next_sibling(self, index: int = 0) -> Optional[Element]:
-        return next(itertools.islice(self.iter_next_siblings(), index, None), None)
+        return next(self.iter_next_siblings(index), None)
 
     def get_previous_sibling(self, index: int = 0) -> Optional[Element]:
-        return next(itertools.islice(self.iter_previous_siblings(), index, None), None)
+        return next(self.iter_previous_siblings(index), None)
 
-    def iter_next_siblings(self) -> Iterator[Element]:
-        if self.parent:
-            yield from itertools.islice(
-                self.parent.children, self.parent.children.index(self) + 1, None)
+    def get_data(self, index: int = 0) -> Optional[str]:
+        try:
+            return self.datas[index]
+        except IndexError:
+            pass
 
-    def iter_previous_siblings(self) -> Iterator[Element]:
-        if self.parent:
-            yield from itertools.islice(reversed(self.parent.children), len(
-                self.parent.children) - self.parent.children.index(self), None)
+    @typing.overload
+    def get_text(self, stop: Optional[int] = None, /, sep: str = ' ') -> str:
+        pass
+
+    @typing.overload
+    def get_text(self, start: Optional[int] = None, stop: Optional[int] = None,
+                 step: Optional[int] = None, /, sep: str = ' ') -> str:
+        pass
+
+    def get_text(self, start=None, stop=None, step=None, /, sep=' '):
+        return sep.join(map(str.strip, self.datas[start:stop:step]))
+
+    @property
+    def doctype(self) -> Optional[str]:
+        for decl in self.root.decls:
+            if decl[:7].upper() == 'DOCTYPE':
+                return decl[7:].strip()
 
     # noinspection PyShadowingBuiltins
     def find(self, name: Optional[_TPattern] = None,
