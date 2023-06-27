@@ -13,11 +13,12 @@ URL_BROWSE = request.join_url(URL_BASE, 'browse')
 CONFIG_PAGE = 'page'
 
 _PAGE = utils.MutableInt()
+_IGNORE = 'li',
 
 
 class SimpleDesktops(Source):
     NAME = 'Simple Desktops'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_PAGE: int})
@@ -49,11 +50,13 @@ class SimpleDesktops(Source):
                 cls._set_tooltip(
                     cls._text('TOOLTIP_TEMPLATE_PAGE').format(_PAGE))
                 response = request.get(request.join_url(URL_BROWSE, str(_PAGE)))
-                if response.status_code == request.Status.NOT_FOUND:
-                    _PAGE.set(cls.DEFAULT_CONFIG[CONFIG_PAGE])
+                if int(_PAGE) != 1 and response.status_code == request.Status.NOT_FOUND:
+                    _PAGE.set(1)
                     continue
                 if response:
-                    desktops = list(sgml.loads(response.text).find_all('div', classes='desktop'))
+                    desktops = list(sgml.loads(
+                        response.text, ignore=_IGNORE).find_all(
+                        'div', classes='desktop'))
                 if not desktops:
                     yield
                     continue
@@ -64,5 +67,5 @@ class SimpleDesktops(Source):
 
     @classmethod
     def _on_reset(cls):
-        page = cls.CURRENT_CONFIG[CONFIG_PAGE] = cls.DEFAULT_CONFIG[CONFIG_PAGE]
-        cls._set_tooltip(cls._text('TOOLTIP_TEMPLATE_PAGE').format(page))
+        cls.CURRENT_CONFIG[CONFIG_PAGE] = 1
+        cls._set_tooltip(cls._text('TOOLTIP_TEMPLATE_PAGE').format(1))

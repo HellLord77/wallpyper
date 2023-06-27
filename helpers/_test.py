@@ -638,6 +638,8 @@ def _test_inheritance():
 
 
 def _test():
+    d = ['adwad ', 'ad wd', ' dawdaw ']
+    print(''.join(map(str.strip, d)))
     pass
 
 

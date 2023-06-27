@@ -52,7 +52,7 @@ class YandeRe(Source):
             if not posts:
                 params['page'] = str(page)
                 response = request.get(URL_POSTS, params)
-                if (response.status_code == request.Status.NOT_MODIFIED
+                if (page != 1 and response.status_code == request.Status.NOT_MODIFIED
                         and response.content == _CONTENT_END):
                     page = 1
                     continue

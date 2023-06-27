@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 import html.parser
 import io
@@ -16,9 +16,21 @@ _TPattern = (bool | int | bytes | str | re.Pattern |
 # noinspection PyUnresolvedReferences
 MAX_CHUNK = shutil.COPY_BUFSIZE
 
+VOID_HTML4 = {
+    'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr',
+    'img', 'input', 'isindex', 'link', 'meta', 'param'}
+VOID_HTML401 = {
+    'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr',
+    'img', 'input', 'isindex', 'link', 'meta', 'param'}
+VOID_HTML5 = {
+    'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
+    'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'}
+
 
 class _Parser(html.parser.HTMLParser):
-    def __init__(self):
+    def __init__(self, void: Container[str], ignore: Container[str]):
+        self.void = void
+        self.ignore = ignore
         self.root = None
         self.elems = []
         self.decls = []
@@ -30,16 +42,20 @@ class _Parser(html.parser.HTMLParser):
             self.root.decls = tuple(self.decls)
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]):
-        elem = Element(tag, {name: '' if value is None else value for name, value in reversed(
-            attrs)}, self.elems[-1] if self.elems else None)
-        if self.root is None:
-            self.root = elem
-        self.elems.append(elem)
+        if tag not in self.ignore:
+            elem = Element(tag, {name: '' if value is None else value
+                                 for name, value in reversed(attrs)},
+                           self.elems[-1] if self.elems else None)
+            if self.root is None:
+                self.root = elem
+            if tag not in self.void:
+                self.elems.append(elem)
 
     def handle_endtag(self, tag: str):
-        while self.elems[-1].name != tag:
+        if tag not in self.void and tag not in self.ignore:
+            while self.elems[-1].name != tag:
+                del self.elems[-1]
             del self.elems[-1]
-        del self.elems[-1]
 
     def handle_data(self, data: str):
         if self.elems:
@@ -135,7 +151,7 @@ class Element:
         pass
 
     def get_text(self, start=None, stop=None, /):
-        return ''.join(itertools.islice(self.datas, start, stop)).strip()
+        return ''.join(map(str.strip, itertools.islice(self.datas, start, stop)))
 
     def get_doctype(self) -> Optional[str]:
         for decl in self.get_root().decls:
@@ -211,17 +227,17 @@ def _match(pattern: _TPattern, string: Optional[str]) -> bool:
 
 # noinspection PyShadowingBuiltins
 def find_element(elements: Iterable[Element], name: Optional[_TPattern] = None,
-                 attributes: Optional[Mapping[str, _TPattern]] = None, classes: Optional[_TPattern] = None,
-                 text: Optional[_TPattern] = None, filter: Optional[Callable[[Element], bool]] = None,
-                 index: int = 0) -> Optional[Element]:
+                 attributes: Optional[Mapping[str, _TPattern]] = None,
+                 classes: Optional[_TPattern] = None, text: Optional[_TPattern] = None,
+                 filter: Optional[Callable[[Element], bool]] = None, index: int = 0) -> Optional[Element]:
     return next(itertools.islice(find_elements(elements, name, attributes, classes, text, filter), index, None), None)
 
 
 # noinspection PyShadowingBuiltins
 def find_elements(elements: Iterable[Element], name: Optional[_TPattern] = None,
-                  attributes: Optional[Mapping[str, _TPattern]] = None, classes: Optional[_TPattern] = None,
-                  text: Optional[_TPattern] = None, filter: Optional[Callable[[Element], bool]] = None,
-                  count: int = -1) -> Iterator[Element]:
+                  attributes: Optional[Mapping[str, _TPattern]] = None,
+                  classes: Optional[_TPattern] = None, text: Optional[_TPattern] = None,
+                  filter: Optional[Callable[[Element], bool]] = None, count: int = -1) -> Iterator[Element]:
     for element in elements:
         if not count:
             break
@@ -241,13 +257,15 @@ def find_elements(elements: Iterable[Element], name: Optional[_TPattern] = None,
         count -= 1
 
 
-def load(file: TextIO) -> Optional[Element]:
-    parser = _Parser()
+def load(file: TextIO, void: Container[str] = (),
+         ignore: Container[str] = ()) -> Optional[Element]:
+    parser = _Parser(void, ignore)
     while buffer := file.read(MAX_CHUNK):
         parser.feed(buffer)
     parser.close()
     return parser.root
 
 
-def loads(data: str) -> Optional[Element]:
-    return load(io.StringIO(data))
+def loads(data: str, void: Container[str] = (),
+          ignore: Container[str] = ()) -> Optional[Element]:
+    return load(io.StringIO(data), void, ignore)

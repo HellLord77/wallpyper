@@ -106,16 +106,18 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         hits = []
         params[CONFIG_EDITOR] = str(params[CONFIG_EDITOR]).lower()
         params[CONFIG_SAFE] = str(params[CONFIG_SAFE]).lower()
-        params['page'] = '1'
+        page = 1
         while True:
             if not hits:
+                params['page'] = str(page)
                 response = request.get(URL_BASE, params)
-                if (request.Status.BAD_REQUEST == response.status_code and
-                        response.content == _CONTENT_END):
-                    params['page'] = '1'
+                if (page != 1 and response.status_code == request.Status.BAD_REQUEST
+                        and response.content == _CONTENT_END):
+                    page = 1
                     continue
                 if response:
                     hits = response.json()['hits']
+                    page += 1
                 if not hits:
                     yield
                     return

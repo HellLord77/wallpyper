@@ -5,6 +5,7 @@ from typing import Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request, sgml
+from libs.request import cloudflare
 from . import CONFIG_ORIENTATIONS, ImageFile, Source
 
 URL_BASE = 'https://stocksnap.io'
@@ -24,7 +25,7 @@ _ATTRS_JSON = {'type': 'application/ld+json'}
 
 class StockSnap(Source):
     NAME = 'StockSnap'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     ICON = 'png'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
@@ -59,7 +60,7 @@ class StockSnap(Source):
         results = []
         url = request.join_url(URL_PHOTOS, params[CONFIG_SORT], params[CONFIG_ORDER])
         cookies = {}
-        session = request.Session()
+        session = cloudflare.Session()
         page = 1
         while True:
             if not results:
@@ -80,16 +81,17 @@ class StockSnap(Source):
                     continue
             result = results.pop(0)
             url_result = request.join_url(URL_PHOTO, result['img_id'])
-            response_result = session.get(url_result)
-            if not response_result:
+            response = session.get(url_result)
+            if not response:
                 results.insert(0, result)
                 yield
                 continue
-            html = sgml.loads(response_result.text)
+            html = sgml.loads(response.text, void=sgml.VOID_HTML5)
             data_ = {field['name']: field['value'] for field in html.find(
                 'form', _ATTRS_DOWNLOAD).children[:2]}
             name = os.path.basename(json.loads(html.find(
                 'script', _ATTRS_JSON).get_data())['contentUrl'])
             yield ImageFile(request.Request(
-                request.Method.POST, URL_DOWNLOAD, data=data_, cookies=cookies), name,
-                url=url_result, width=result['img_width'], height=result['img_height'])
+                request.Method.POST, URL_DOWNLOAD, headers=session.headers,
+                data=data_, cookies=cookies), name, url=url_result,
+                width=result['img_width'], height=result['img_height'])

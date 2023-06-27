@@ -99,8 +99,8 @@ class WallpaperFlare(Source):
             if not items:
                 params['page'] = str(page)
                 response = request.get(url, params)
-                if (response.status_code == request.Status.NOT_FOUND and
-                        response.content == _CONTENT_END):
+                if (page != 1 and response.status_code == request.Status.NOT_FOUND
+                        and response.content == _CONTENT_END):
                     page = 1
                     continue
                 if response:
@@ -116,12 +116,12 @@ class WallpaperFlare(Source):
                     continue
             item = items.pop(0)
             url_item = request.join_url(item.find('a', _ATTRS_URL)['href'])
-            response_item = request.get(request.join_url(url_item, 'download'))
-            if not response_item:
+            response = request.get(request.join_url(url_item, 'download'))
+            if not response:
                 items.insert(0, item)
                 yield
                 continue
-            html = sgml.loads(response_item.text)
+            html = sgml.loads(response.text)
             info = html.find('div', classes='dld_info')
             yield ImageFile(html.find('img', _ATTRS_SRC)['src'], url=url_item, width=int(
                 info[0][0].get_data()), height=int(info[1][0].get_data()))

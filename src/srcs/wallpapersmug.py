@@ -79,12 +79,12 @@ class WallpapersMug(Source):
                     continue
             image = images.pop(0)
             url_image = request.join_url(URL_BASE, image[0]['href'])
-            response_image = request.get(request.join_url(url_image, 'download'))
-            if not response_image:
+            response = request.get(request.join_url(url_image, 'download'))
+            if not response:
                 images.insert(0, image)
                 yield
                 continue
-            img = sgml.loads(response_image.text).find('div', classes='business_img')
+            img = sgml.loads(response.text).find('div', classes='business_img')
             width, height = map(int, img.find(
                 'span', classes='yellow-color')[0].get_data().split('x'))
             yield ImageFile(img[0][0]['src'], url=url_image, width=width, height=height)

@@ -127,12 +127,12 @@ class WallHere(Source):
                     continue
             item = items.pop(0)
             url_item = request.join_url(URL_WALLPAPER, item[0][0]['href'])
-            response_item = request.get(url_item)
-            if not response_item:
+            response = request.get(url_item)
+            if not response:
                 items.insert(0, item)
                 yield
                 continue
-            data = json.loads(sgml.loads(response_item.text).find(
+            data = json.loads(sgml.loads(response.text).find(
                 'script', _ATTRS_JSON).get_data())
             classes = item.get_class()
             yield ImageFile(data['contentUrl'], url=url_item, width=int(data['width'][:-2]), height=int(

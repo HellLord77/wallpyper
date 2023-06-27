@@ -176,8 +176,8 @@ class Backiee(Source):
             if not wallpapers:
                 params['page'] = str(page)
                 response = request.get(URL_LIST, params)
-                if (response.status_code == request.Status.OK and
-                        response.content == _CONTENT_END and page):
+                if (page != 0 and response.status_code == request.Status.OK
+                        and response.content == _CONTENT_END):
                     page = 0
                     continue
                 if response:

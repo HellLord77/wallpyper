@@ -92,8 +92,8 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
             if not items:
                 params['p'] = str(page)
                 response = session.get(url, params)
-                if (response.status_code == request.Status.FORBIDDEN and
-                        response.content == _CONTENT_END):
+                if (page != 1 and response.status_code == request.Status.FORBIDDEN
+                        and response.content == _CONTENT_END):
                     page = 1
                     continue
                 if response:
@@ -103,12 +103,12 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                     yield
                     continue
             item = items.pop(0)
-            response_item = session.get(request.join_url(URL_BASE, str(item['id'])), _PARAMS)
-            if not response_item:
+            response = session.get(request.join_url(URL_BASE, str(item['id'])), _PARAMS)
+            if not response:
                 items.insert(0, item)
                 yield
                 continue
-            json_item = _json_loads(response_item)
+            json_item = _json_loads(response)
             yield ImageFile(json_item['full'], url=request.join_url(URL_BASE, str(
                 json_item['id'])), width=json_item['width'], height=json_item['height'],
                             sketchy='Ecchi' in json_item['tags'], md5=json_item['hash'])

@@ -45,7 +45,7 @@ def _key(resolution: tuple[int, int], element: sgml.Element) -> int:
 
 class BestHDWallpaper(Source):
     NAME = 'Best HD Wallpaper'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
@@ -95,18 +95,18 @@ class BestHDWallpaper(Source):
                 if response:
                     json = response.json()
                     data = json['data']
-                    page = page % json['pagingInfo']['pageCount'] + 1
+                    page = page % json['psf']['pageCount'] + 1
                 if not data:
                     yield
                     continue
             photo = data.pop(0)
-            response_photo = request.get(request.join_url(
+            response = request.get(request.join_url(
                 URL_DETAILS, str(photo['photoID'])), _PARAMS)
-            if not response_photo:
+            if not response:
                 data.insert(0, photo)
                 yield
                 continue
-            option = max(sgml.loads(response_photo.text).find_all('optgroup'),
+            option = max(sgml.loads(response.text).find_all('optgroup'),
                          key=functools.partial(_key, (photo['imWidth'], photo['imHeight'])))
             resolution = _get_resolution(option)
             yield ImageFile(option[0]['data-download'], url=request.join_url(

@@ -52,21 +52,22 @@ class Wallha(Source):
                 params['page'] = str(page)
                 response = request.get(url if search else request.join_url(
                     url, params.pop('page')), params, headers=_HEADERS)
-                if response.status_code == request.Status.NOT_FOUND and page != 1:
+                if page != 1 and response.status_code == request.Status.NOT_FOUND:
                     page = 1
                     continue
                 if response:
                     images = response.json()
+                    page += 1
                 if not images:
                     yield
                     continue
             image = images.pop(0)
             url = image['url']
-            response_image = request.get(url)
-            if not response_image:
+            response = request.get(url)
+            if not response:
                 images.insert(0, image)
                 yield
                 continue
             width, height = map(int, image['res'].split('x'))
-            yield ImageFile(sgml.loads(response_image.text).find('a', _ATTRS)[
+            yield ImageFile(sgml.loads(response.text).find('a', _ATTRS)[
                                 'href'], url=url, width=width, height=height)

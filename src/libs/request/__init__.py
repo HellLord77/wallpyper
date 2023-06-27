@@ -527,7 +527,7 @@ _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
 def default_accept_encoding(*encodings: str) -> str:
-    return ','.join(itertools.chain(Decoder, encodings))
+    return ', '.join(itertools.chain(Decoder, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -536,11 +536,11 @@ def default_accept_language(*languages: str | tuple[str | Iterable[str], float])
         if not isinstance(language, str):
             language, quality = language
             if not isinstance(language, str):
-                language = ','.join(language)
+                language = ', '.join(language)
             if quality != 1.0:
                 language = f'{language};q={quality}'
         accept_languages.append(language)
-    return ','.join(accept_languages)
+    return ', '.join(accept_languages)
 
 
 def default_user_agent(name: str = 'python-' + __name__) -> str:
@@ -1541,7 +1541,7 @@ def encode_headers(headers: _THeaders, unredirected: bool = False,
             headers = http.client.parse_headers(headers)
         else:
             headers = dict(headers)
-    headers = {key.capitalize(): val for key, val in headers.items() if val is not None}
+    headers = {key: val for key, val in headers.items() if val is not None}
     if request is not None:
         (request.unredirected_hdrs if unredirected else request.headers).update(headers)
     return headers

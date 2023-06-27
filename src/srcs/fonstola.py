@@ -145,12 +145,12 @@ class Fonstola(Source):
                     continue
             dribble = dribbles.pop(0)
             url_dribble = request.join_url(URL_BASE, dribble['href'])
-            response_dribble = session.get(url_dribble)
-            if not response_dribble:
+            response = session.get(url_dribble)
+            if not response:
                 dribbles.insert(0, dribble)
                 yield
                 continue
-            resolution = sgml.loads(response_dribble.text).find(
+            resolution = sgml.loads(response.text).find(
                 'h3', text='Оригинал').get_next_sibling()[0]
             path = resolution['href']
             width, height = map(int, resolution.get_data().split()[0].split('х'))

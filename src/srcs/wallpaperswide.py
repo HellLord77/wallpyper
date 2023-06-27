@@ -144,12 +144,12 @@ def _get_resolution(ratios: list[str], quality: str, resolutions: sgml.Element) 
             if quality == QUALITIES[0]:
                 return header.get_next_sibling(1).get_data()
             else:
-                return sgml.find_element(
-                    header.iter_next_siblings(), 'br').get_previous_sibling().get_data()
+                return sgml.find_element(header.iter_next_siblings(
+                ), 'br').get_previous_sibling().get_data()
 
 
 class WallpapersWide(Source):
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORDER: list[str],
@@ -252,7 +252,7 @@ class WallpapersWide(Source):
                 response = session.get(request.join_url(url, 'page', str(page)))
                 if response:
                     html = sgml.loads(response.text)
-                    wallpapers = html.find('ul', classes='wallpapers').children
+                    wallpapers = list(html.find_all('div', classes='thumb'))
                     if html.find('a', text='Next »') is None:
                         page = 1
                     else:
@@ -261,16 +261,16 @@ class WallpapersWide(Source):
                     yield
                     continue
             wallpaper = wallpapers.pop(0)
-            link = wallpaper[0][0][0]
+            link = wallpaper[0][0]
             path = link['href']
             url_wallpaper = request.join_url(URL_BASE, path)
-            response_wallpaper = session.get(url_wallpaper)
-            if not response_wallpaper:
+            response = session.get(url_wallpaper)
+            if not response:
                 wallpapers.insert(0, wallpaper)
                 yield
                 continue
             resolution = _get_resolution(cls.CURRENT_CONFIG[CONFIG_ORDER], cls.CURRENT_CONFIG[
-                CONFIG_QUALITY], sgml.loads(response_wallpaper.text).find('div', _ATTRS_RESOLUTIONS))
+                CONFIG_QUALITY], sgml.loads(response.text).find('div', _ATTRS_RESOLUTIONS))
             width, height = map(int, resolution.split('x'))
             yield ImageFile(request.join_url(URL_DOWNLOAD, f'{path[1:-6]}-{resolution}.jpg'),
                             f'{link[0].get_data()}.jpg', url=url_wallpaper, width=width, height=height)
