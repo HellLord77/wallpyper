@@ -303,6 +303,7 @@ from . import (
     folder,
     fonstola,
     infinitynewtab,
+    kekaiart,
     livestartpage,
     lwalpapers,
     pexels,

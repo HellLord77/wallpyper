@@ -833,6 +833,19 @@ INFINITYNEWTAB_SOURCE_Startup_Stock_Photos = 'Startup Stock Photos'
 INFINITYNEWTAB_SOURCE_Barn_Images = 'Barn Images'
 INFINITYNEWTAB_SOURCE_Picography = 'Picography'
 
+KEKAIART_LABEL_RANDOM = 'Random'
+
+KEKAIART_MENU_GALLERY = 'Gallery'
+KEKAIART_MENU_ORIENTATIONS = 'Orientation'
+
+KEKAIART_GALLERY_freelance = 'Freelance'
+KEKAIART_GALLERY_personal = 'Personal'
+KEKAIART_GALLERY_guild_wars_2 = 'Guild Wars 2'
+KEKAIART_GALLERY_guild_wars = 'Guild Wars'
+
+KEKAIART_ORIENTATION_0 = 'Landscape'
+KEKAIART_ORIENTATION_1 = 'Portrait'
+
 LIVESTARTPAGE_LABEL_RANDOM = 'Random'
 LIVESTARTPAGE_LABEL_RESET = 'Reset Cursor'
 
