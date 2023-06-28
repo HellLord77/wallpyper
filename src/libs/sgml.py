@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
+import functools
 import html.parser
 import io
 import itertools
 import re
 import shutil
+import textwrap
 import typing
 from typing import Callable, Container, Iterable, Iterator, Mapping, Optional, TextIO
 
@@ -78,19 +80,27 @@ class Element:
         if parent is not None:
             parent.children.append(self)
 
-    def __unicode__(self):
+    def prettify(self, filler: Optional[str] = '', indent: int | str = 4, end: str = '\n') -> str:
+        if isinstance(indent, int):
+            indent = ' ' * indent
         attributes = ''
         for name, value in sorted(self.attributes.items()):
             attributes += f' {name}'
             if value:
-                attributes += f'="{value}"'
-        start = f'<{self.name}{attributes}'
-        inner = self.children or self.datas
-        return ''.join(f'<!{decl}>' for decl in self.decls) + (
-            f'{start}>{"".join(map(str, inner))}</{self.name}>'
-            if inner else f'{start}/>')
+                attributes += f'={value!r}'
+        start = ''.join(f'<!{decl}>{end}' for decl in self.decls) + '<' + self.name + attributes
+        if self.children:
+            inner = textwrap.indent(end.join(child.prettify(
+                filler, indent, end) for child in self.children), indent)
+            return f'{start}>{end}{inner}{end}</{self.name}>'
+        elif self.datas:
+            if filler is None:
+                filler = self.get_text()
+            return f'{start}>{filler}</{self.name}>'
+        else:
+            return start + ' />'
 
-    __str__ = __repr__ = __unicode__
+    __str__ = __repr__ = functools.partialmethod(prettify, None, 0)
 
     def __contains__(self, item: Element) -> bool:
         return item in self.children

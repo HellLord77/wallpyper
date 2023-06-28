@@ -59,8 +59,8 @@ def _on_color_right(event):
 
 
 class WallpaperAbyss(Source):
-    NAME = '# Wallpaper Abyss [cloudflare]'
-    VERSION = '0.0.2'
+    NAME = 'Wallpaper Abyss [cloudflare]'
+    VERSION = '0.0.3'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_METHOD: str,
@@ -166,7 +166,7 @@ class WallpaperAbyss(Source):
                 query['page'] = str(page)
                 response = session.get(url, query, cookies=cookies)
                 if response:
-                    html = sgml.loads(response.text)
+                    html = sgml.loads(response.text, sgml.VOID_HTML5)
                     images = list(html.find_all('div', classes='thumb-container'))
                     has_next = False
                     if (next_page := html.find('a', _ATTRS_NEXT_PAGE)) is not None:
