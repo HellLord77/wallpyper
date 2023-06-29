@@ -29,36 +29,37 @@ SORTS = {
 
 class UbuntuWallpapers(Source):
     NAME = 'ubuntu-wallpapers'
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
     ICON = 'png'
     URL = 'https://launchpad.net/ubuntu-wallpapers'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_CONTEST: list[bool],
+        CONFIG_CONTEST: list[str],
         CONFIG_SORT: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_CONTEST: [True] * len(CONTESTS),
+        CONFIG_CONTEST: list(CONTESTS),
         CONFIG_SORT: tuple(SORTS)[1]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_len, CONFIG_CONTEST, len(CONTESTS))
-        cls._fix_config(validator.ensure_truthy, CONFIG_CONTEST, any)
+        cls._fix_config(validator.ensure_subset, CONFIG_CONTEST, CONTESTS)
+        cls._fix_config(validator.ensure_truthy, CONFIG_CONTEST)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_check(cls._text('MENU_CONTESTS'), (cls._text(
-            f'CONTEST_{contest}') for contest in CONTESTS), (1, None), cls.CURRENT_CONFIG,
+        enable_sort = gui.add_submenu_radio(cls._text('MENU_SORT'), {
+            sort: cls._text(f'SORT_{sort}') for sort
+            in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
+        gui.add_submenu_check(cls._text('MENU_CONTESTS'), {contest: cls._text(
+            f'CONTEST_{contest}') for contest in CONTESTS}, (1, None), cls.CURRENT_CONFIG,
                               CONFIG_CONTEST, on_click=functools.partial(
-                cls._on_contest, gui.add_submenu_radio(cls._text('MENU_SORT'), {
-                    sort: cls._text(f'SORT_{sort}') for sort
-                    in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable), position=0)
+                cls._on_contest, enable_sort), position=0)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
         files_ = []
-        contests = itertools.cycle(SORTS[params.pop(CONFIG_SORT)](tuple(
-            itertools.compress(CONTESTS, params.pop(CONFIG_CONTEST)))))
+        contests = itertools.cycle(SORTS[params.pop(
+            CONFIG_SORT)](tuple(params.pop(CONFIG_CONTEST))))
         while True:
             if not files_:
                 response = request.get(request.join_url(
@@ -73,5 +74,5 @@ class UbuntuWallpapers(Source):
                 URL_BASE, os.path.basename(files_.pop(0).get_text())))
 
     @classmethod
-    def _on_contest(cls, enable: Callable[[bool], bool], _: int):
-        enable(sum(cls.CURRENT_CONFIG[CONFIG_CONTEST]) != 1)
+    def _on_contest(cls, enable: Callable[[bool], bool], _: str):
+        enable(len(cls.CURRENT_CONFIG[CONFIG_CONTEST]) != 1)

@@ -180,10 +180,7 @@ class Element:
 
     @property
     def root(self) -> Element:
-        root = self
-        while (parent := root.parent) is not None:
-            root = parent
-        return root
+        return self if self.parent is None else self.parent.root
 
     def iter_all_parents(self, height: int = -1) -> Iterator[Element]:
         if height and self.parent is not None:

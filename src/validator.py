@@ -107,7 +107,7 @@ def ensure_contains_name(current: dict, default: dict, key: str,
 
 
 def ensure_subset(current: dict, _: dict, key: str,
-                  iterable: Iterable[str], casefold: bool = True) -> bool:
+                  iterable: Iterable[str], unique: bool = True, casefold: bool = True) -> bool:
     val: list[str] = current[key]
     iterable = tuple(iterable)
     if casefold:
@@ -116,7 +116,8 @@ def ensure_subset(current: dict, _: dict, key: str,
     else:
         iterable_ = iterable
     vals = []
-    not_fixed = True
+    not_fixed = not unique or ensure_unique(
+        current, _, key, str.casefold if casefold else None)
     for item in val:
         try:
             index = iterable_.index(item)
@@ -128,20 +129,10 @@ def ensure_subset(current: dict, _: dict, key: str,
     return not_fixed
 
 
-def ensure_joined_subset(current: dict, _: dict, key: str,
-                         iterable: Iterable[str], separator: str = ',', casefold: bool = True) -> bool:
-    current[key] = current[key].split(separator)
-    try:
-        return ensure_subset(current, _, key, iterable, casefold)
-    finally:
-        current[key] = separator.join(current[key])
-
-
 def ensure_unordered(current: dict, default: dict, key: str,
-                     casefold: bool = True) -> bool:
-    not_fixed = ensure_unique(current, default, key, str.casefold if casefold else None)
-    not_fixed = ensure_subset(current, default, key, default[key], casefold) or not_fixed
-    return ensure_min_len(current, default, key, len(default[key]), unique=True) or not_fixed
+                     unique: bool = True, casefold: bool = True) -> bool:
+    not_fixed = ensure_subset(current, default, key, default[key], unique, casefold)
+    return ensure_min_len(current, default, key, len(default[key]), unique=unique) or not_fixed
 
 
 # noinspection PyShadowingBuiltins

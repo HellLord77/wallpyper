@@ -22,7 +22,7 @@ CONFIG_ORDER = 'order'
 CONFIG_RANGE = 'topRange'
 CONFIG_RATIO = 'ratios'
 CONFIG_COLORS = 'colors'
-CONFIG_AI_FILTER = 'ai_art_filter'
+CONFIG_AI = 'ai_art'
 
 PURITIES = 'sfw', 'sketchy', 'nsfw'
 SORTINGS = 'date_added', 'relevance', 'random', 'views', 'favorites', 'toplist', 'hot'
@@ -35,7 +35,6 @@ COLORS = (
     '', '660000', '990000', 'cc0000', 'cc3333', 'ea4c88', '993399', '663399', '333399', '0066cc',
     '0099cc', '66cccc', '77cc33', '669900', '336600', '666600', '999900', 'cccc33', 'ffff00', 'ffcc33',
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
-AI_FILTERS = '0', '1'
 RE_PURITY = re.compile('^(?!000)[01]{3}$')
 
 _TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
@@ -51,7 +50,7 @@ def _authenticate(key: str) -> bool:
 
 class Wallhaven(Source):  # https://wallhaven.cc/help/api
     NAME = 'wallhaven'
-    VERSION = '0.0.7'
+    VERSION = '0.0.8'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_KEY: str,
@@ -63,9 +62,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         CONFIG_RANGE: str,
         'atleast': str,
         'resolutions': str,
-        CONFIG_RATIO: str,
+        CONFIG_RATIO: list[str],
         CONFIG_COLORS: str,
-        CONFIG_AI_FILTER: str})
+        CONFIG_AI: bool})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_KEY: '',
         'q': '',
@@ -76,9 +75,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         CONFIG_RANGE: RANGES[3],
         'atleast': '',
         'resolutions': '',
-        CONFIG_RATIO: f'{RATIOS[0]},{RATIOS[6]}',
+        CONFIG_RATIO: [RATIOS[0], RATIOS[6]],
         CONFIG_COLORS: COLORS[0],
-        CONFIG_AI_FILTER: AI_FILTERS[0]}
+        CONFIG_AI: True}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -88,10 +87,9 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         cls._fix_config(validator.ensure_contains, CONFIG_SORTING, SORTINGS)
         cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
         cls._fix_config(validator.ensure_contains, CONFIG_RANGE, RANGES)
-        cls._fix_config(validator.ensure_joined_subset, CONFIG_RATIO, RATIOS)
+        cls._fix_config(validator.ensure_subset, CONFIG_RATIO, RATIOS)
         cls._fix_config(validator.ensure_truthy, CONFIG_RATIO)
         cls._fix_config(validator.ensure_contains, CONFIG_COLORS, COLORS)
-        cls._fix_config(validator.ensure_contains, CONFIG_AI_FILTER, AI_FILTERS)
         if not cls.CURRENT_CONFIG[CONFIG_KEY]:
             cls.CURRENT_CONFIG[CONFIG_PURITY] = f'{cls.CURRENT_CONFIG[CONFIG_PURITY][:2]}0'
 
@@ -100,9 +98,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         gui.add_submenu_check(cls._text('MENU_CATEGORY'), (
             cls._text(f'CATEGORY_{category}') for category in range(3)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_CATEGORIES)
-        gui.add_menu_item_check(cls._text('LABEL_AI_FILTER'), cls.CURRENT_CONFIG,
-                                CONFIG_AI_FILTER, on_click=cls._on_ai_filter).check(
-            cls.CURRENT_CONFIG[CONFIG_AI_FILTER] == AI_FILTERS[0])
+        gui.add_menu_item_check(cls._text('LABEL_AI'), cls.CURRENT_CONFIG, CONFIG_AI)
         with gui.set_menu(gui.add_submenu(cls._text('MENU_PURITY'))) as menu_purity:
             for index, purity in enumerate(PURITIES):
                 gui.add_menu_item(
@@ -120,25 +116,20 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         enable_range = gui.add_submenu_radio(cls._text('MENU_RANGE'), {
             range_: cls._text(f'RANGE_{range_}')
             for range_ in RANGES}, cls.CURRENT_CONFIG, CONFIG_RANGE).enable
-        gui.add_submenu_radio(item_sorting, {
-            sorting: cls._text(f'SORTING_{sorting}')
-            for sorting in SORTINGS}, cls.CURRENT_CONFIG, CONFIG_SORTING,
-                              on_click=functools.partial(cls._on_sorting, enable_range))
-        cls._on_sorting(enable_range, cls.CURRENT_CONFIG[CONFIG_SORTING])
-        ratios = cls.CURRENT_CONFIG[CONFIG_RATIO].split(',')
-        with gui.set_menu(gui.add_submenu(cls._text('MENU_RATIO'))) as menu_ratio:
-            on_ratio = functools.partial(cls._on_ratio, menu_ratio)
-            for ratio in RATIOS:
-                gui.add_menu_item(
-                    cls._text(f'RATIO_{ratio}'), gui.MenuItemType.CHECK,
-                    ratio in ratios, uid=ratio, on_click=on_ratio)
-        cls._on_ratio(menu_ratio)
+        on_sorting = functools.partial(cls._on_sorting, enable_range)
+        gui.add_submenu_radio(item_sorting, {sorting: cls._text(
+            f'SORTING_{sorting}') for sorting in SORTINGS}, cls.CURRENT_CONFIG,
+                              CONFIG_SORTING, on_click=on_sorting)
+        on_sorting(cls.CURRENT_CONFIG[CONFIG_SORTING])
+        menu_ratio = gui.add_submenu_check(cls._text('MENU_RATIO'), {
+            ratio: cls._text(f'RATIO_{ratio}') for ratio in RATIOS}, (1, None),
+                                           cls.CURRENT_CONFIG, CONFIG_RATIO).get_submenu()
         gui.add_separator(6, menu_ratio)
         colors = {color: colornames.get_nearest_color(color)[
             1] if color else cls._text('COLOR_') for color in COLORS}
-        for item, color in zip(gui.add_submenu_radio(
-                cls._text('MENU_COLOR'), colors,
-                cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu(), colors):
+        for item, color in zip(gui.add_submenu_radio(cls._text(
+                'MENU_COLOR'), colors, cls.CURRENT_CONFIG,
+                CONFIG_COLORS).get_submenu(), colors):
             if color:
                 rgb = colornames.hex_to_rgb(color)
                 srgb = tuple(c / 255 for c in rgb)
@@ -155,6 +146,8 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
         if params[CONFIG_SORTING] != SORTINGS[5]:
             del params[CONFIG_RANGE]
         params[CONFIG_CATEGORIES] = ''.join(map(str, map(int, params[CONFIG_CATEGORIES])))
+        params[CONFIG_RATIO] = ','.join(params[CONFIG_RATIO])
+        params['ai_art_filter'] = str(int(not params.pop(CONFIG_AI)))
         while True:
             if not datas:
                 response = request.get(URL_SEARCH, params)
@@ -184,20 +177,5 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
                     index != 2 or bool(cls.CURRENT_CONFIG[CONFIG_KEY])))
 
     @classmethod
-    def _on_ratio(cls, menu: gui.Menu):
-        ratios = []
-        for ratio, item in gui.get_menu_items(menu).items():
-            item.enable()
-            if item.is_checked():
-                ratios.append(ratio)
-        if len(ratios) == 1:
-            gui.get_menu_item_by_uid(ratios[0], False, menu).enable(False)
-        cls.CURRENT_CONFIG[CONFIG_RATIO] = ','.join(ratios)
-
-    @classmethod
     def _on_sorting(cls, enable: Callable[[bool], bool], sorting: str):
         enable(sorting == SORTINGS[5])
-
-    @classmethod
-    def _on_ai_filter(cls, checked: bool):
-        cls.CURRENT_CONFIG[CONFIG_AI_FILTER] = str(1 - int(checked))

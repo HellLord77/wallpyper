@@ -325,5 +325,6 @@ from . import (
     wallpaperswide,
     wallpapertip,
     wallscloud,
+    wallup,
     yandere,
     zerochan)  # NOQA: E402

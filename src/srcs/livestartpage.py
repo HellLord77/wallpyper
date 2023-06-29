@@ -1,5 +1,4 @@
 import functools
-import itertools
 import operator
 import os
 from typing import Callable, Iterator, Optional, TypedDict
@@ -23,14 +22,14 @@ _CURSOR = utils.MutableInt()
 
 class LiveStartPage(Source):
     NAME = 'Live Start Page'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_CATEGORY: list[bool],
+        CONFIG_CATEGORY: list[int],
         CONFIG_RANDOM: bool,
         CONFIG_CURSOR: int})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_CATEGORY: [True] * len(CATEGORIES),
+        CONFIG_CATEGORY: list(CATEGORIES),
         CONFIG_RANDOM: True,
         CONFIG_CURSOR: 0}
 
@@ -38,6 +37,8 @@ class LiveStartPage(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
+        cls._fix_config(validator.ensure_subset,
+                        CONFIG_CATEGORY, CATEGORIES, casefold=False)
         cls._fix_config(validator.ensure_truthy, CONFIG_CATEGORY)
         if saving:
             cls.CURRENT_CONFIG[CONFIG_CURSOR] = _CURSOR.get()
@@ -46,8 +47,8 @@ class LiveStartPage(Source):
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_check(cls._text('MENU_CATEGORY'), (cls._text(
-            f'CATEGORY_{category}') for category in CATEGORIES),
+        gui.add_submenu_check(cls._text('MENU_CATEGORY'), {category: cls._text(
+            f'CATEGORY_{category}') for category in CATEGORIES},
                               (1, None), cls.CURRENT_CONFIG, CONFIG_CATEGORY)
         item_random = gui.add_menu_item(
             cls._text('LABEL_RESET'), on_click=cls._on_reset)
@@ -60,8 +61,7 @@ class LiveStartPage(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
-        params[CONFIG_CATEGORY] = ','.join(map(
-            str, itertools.compress(CATEGORIES, params[CONFIG_CATEGORY])))
+        params[CONFIG_CATEGORY] = ','.join(map(str, params[CONFIG_CATEGORY]))
         random = params.pop(CONFIG_RANDOM)
         if random:
             params[CONFIG_RANDOM] = 'random'

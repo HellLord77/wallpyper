@@ -155,7 +155,7 @@ class Fonstola(Source):
             path = resolution['href']
             width, height = map(int, resolution.get_data().split()[0].split('х'))
             yield ImageFile(request.join_url(URL_BASE, path),
-                            f"{dribble[0].get_data()}.{path.split('.', 3)[-1]}",
+                            f'{dribble[0].get_data()}.{path.split(".", 3)[-1]}',
                             url=url_dribble, width=width, height=height)
 
     @classmethod

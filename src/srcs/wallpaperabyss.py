@@ -32,11 +32,11 @@ RESOLUTION_FILTERS = (
 RESOLUTION_EQUALS = '%3E%3D', '%3D'
 SORTS = 'newest', 'rating'
 RESOLUTIONS = (
-    (1600, 900), (1600, 1000), (1600, 1200), (1680, 1050), (1920, 1080), (1920, 1200),
-    (1920, 1280), (1920, 1440), (2000, 1125), (2000, 1333), (2048, 1152), (2048, 1365),
-    (2048, 1366), (2048, 1367), (2048, 1536), (2560, 1440), (2560, 1600), (2560, 1707),
-    (2560, 1920), (2880, 1800), (2894, 2412), (3000, 2000), (3840, 2160), (3840, 2400),
-    (5120, 2880), (5184, 3456), (5616, 3744), (5760, 3840), (6000, 4000), (7680, 4320))
+    '1600x900', '1600x1000', '1600x1200', '1680x1050', '1920x1080', '1920x1200',
+    '1920x1280', '1920x1440', '2000x1125', '2000x1333', '2048x1152', '2048x1365',
+    '2048x1366', '2048x1367', '2048x1536', '2560x1440', '2560x1600', '2560x1707',
+    '2560x1920', '2880x1800', '2894x2412', '3000x2000', '3840x2160', '3840x2400',
+    '5120x2880', '5184x3456', '5616x3744', '5760x3840', '6000x4000', '7680x4320')
 LICENSES = 0, 6, 10, 7, 11, 9, 8, 4
 COLORS = (
     '000000', '1c1c1c', '383838', '555555', '717171', '8d8d8d', 'aaaaaa', 'c6c6c6', 'e2e2e2', 'ffffff',
@@ -60,7 +60,7 @@ def _on_color_right(event):
 
 class WallpaperAbyss(Source):
     NAME = 'Wallpaper Abyss [cloudflare]'
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_METHOD: str,
@@ -68,7 +68,7 @@ class WallpaperAbyss(Source):
         CONFIG_RESOLUTION_FILTER: str,
         CONFIG_RESOLUTION_EQUALS: str,
         CONFIG_SORT: str,
-        CONFIG_RESOLUTION: list[int],
+        CONFIG_RESOLUTION: str,
         CONFIG_LICENSE: int,
         CONFIG_COLOR: str,
         CONFIG_CATEGORY: int})
@@ -78,7 +78,7 @@ class WallpaperAbyss(Source):
         CONFIG_RESOLUTION_FILTER: RESOLUTION_FILTERS[0],
         CONFIG_RESOLUTION_EQUALS: RESOLUTION_EQUALS[0],
         CONFIG_SORT: SORTS[0],
-        CONFIG_RESOLUTION: list(RESOLUTIONS[4]),
+        CONFIG_RESOLUTION: RESOLUTIONS[4],
         CONFIG_LICENSE: LICENSES[7],
         CONFIG_COLOR: COLORS[67],
         CONFIG_CATEGORY: CATEGORIES[0]}
@@ -89,15 +89,10 @@ class WallpaperAbyss(Source):
         cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION_FILTER, RESOLUTION_FILTERS)
         cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION_EQUALS, RESOLUTION_EQUALS)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
+        cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_LICENSE, LICENSES)
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
-        if saving:
-            cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
-            cls.CURRENT_CONFIG[CONFIG_RESOLUTION] = list(cls.CURRENT_CONFIG[CONFIG_RESOLUTION])
-        else:
-            cls.CURRENT_CONFIG[CONFIG_RESOLUTION] = tuple(cls.CURRENT_CONFIG[CONFIG_RESOLUTION])
-            cls._fix_config(validator.ensure_contains, CONFIG_RESOLUTION, RESOLUTIONS)
 
     @classmethod
     def create_menu(cls):
@@ -111,7 +106,7 @@ class WallpaperAbyss(Source):
             'MENU_SORT'), {sort: cls._text(f'SORT_{sort}')
                            for sort in SORTS}, cls.CURRENT_CONFIG, CONFIG_SORT).enable
         enable_resolution = gui.add_submenu_radio(cls._text('MENU_RESOLUTION'), {
-            resolution: cls._text(f'RESOLUTION_{resolution[0]}x{resolution[1]}').split('\t')[0]
+            resolution: cls._text(f'RESOLUTION_{resolution}').split('\t')[0]
             for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION).enable
         enable_license = gui.add_submenu_radio(cls._text('MENU_LICENSE'), {
             license_: cls._text(f'LICENSE_{license_}')
@@ -142,23 +137,24 @@ class WallpaperAbyss(Source):
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         images = []
-        url = request.join_url(URL_BASE, f'{cls.CURRENT_CONFIG[CONFIG_METHOD]}.php')
+        method = params.pop(CONFIG_METHOD)
+        url = request.join_url(URL_BASE, method + '.php')
         query = {}
-        if params[CONFIG_METHOD] == METHODS[0]:
-            query[CONFIG_SEARCH] = params[CONFIG_SEARCH]
-        elif params[CONFIG_METHOD] == METHODS[4]:
-            query['w'], query['h'] = cls.CURRENT_CONFIG[CONFIG_RESOLUTION]
-        elif params[CONFIG_METHOD] == METHODS[6]:
-            query[CONFIG_LICENSE] = str(cls.CURRENT_CONFIG[CONFIG_LICENSE])
-        elif params[CONFIG_METHOD] == METHODS[12]:
-            query[CONFIG_COLOR] = cls.CURRENT_CONFIG[CONFIG_COLOR]
-        elif params[CONFIG_METHOD] == METHODS[13]:
-            query[CONFIG_CATEGORY] = str(cls.CURRENT_CONFIG[CONFIG_CATEGORY])
+        if method == METHODS[0]:
+            query[CONFIG_SEARCH] = params.pop(CONFIG_SEARCH)
+        elif method == METHODS[4]:
+            query['w'], query['h'] = params.pop(CONFIG_RESOLUTION).split('x')
+        elif method == METHODS[6]:
+            query[CONFIG_LICENSE] = str(params.pop(CONFIG_LICENSE))
+        elif method == METHODS[12]:
+            query[CONFIG_COLOR] = params.pop(CONFIG_COLOR)
+        elif method == METHODS[13]:
+            query[CONFIG_CATEGORY] = str(params.pop(CONFIG_CATEGORY))
         cookies = {
             'AlphaCodersView': 'paged',
-            'ResolutionFilter': params[CONFIG_RESOLUTION_FILTER],
-            'ResolutionEquals': params[CONFIG_RESOLUTION_EQUALS],
-            'Sorting': params[CONFIG_SORT]}
+            'ResolutionFilter': params.pop(CONFIG_RESOLUTION_FILTER),
+            'ResolutionEquals': params.pop(CONFIG_RESOLUTION_EQUALS),
+            'Sorting': params.pop(CONFIG_SORT)}
         session = cloudflare.Session()
         page = 1
         while True:

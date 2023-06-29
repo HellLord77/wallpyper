@@ -1,7 +1,6 @@
-import functools
 import os
 import re
-from typing import ItemsView, Iterator, Optional, TypedDict
+from typing import Iterator, Optional, TypedDict
 
 import gui
 import validator
@@ -52,7 +51,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         CONFIG_TYPE: str,
         CONFIG_ORIENTATION: str,
         CONFIG_CATEGORY: str,
-        CONFIG_COLORS: str,
+        CONFIG_COLORS: list[str],
         CONFIG_EDITOR: bool,
         CONFIG_SAFE: bool,
         CONFIG_ORDER: str})
@@ -63,7 +62,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         CONFIG_TYPE: TYPES[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
         CONFIG_CATEGORY: CATEGORIES[0],
-        CONFIG_COLORS: '',
+        CONFIG_COLORS: [],
         CONFIG_EDITOR: False,
         CONFIG_SAFE: False,
         CONFIG_ORDER: ORDERS[0]}
@@ -74,7 +73,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
         cls._fix_config(validator.ensure_contains, CONFIG_TYPE, TYPES)
         cls._fix_config(validator.ensure_contains, CONFIG_ORIENTATION, ORIENTATIONS)
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
-        cls._fix_config(validator.ensure_joined_subset, CONFIG_COLORS, COLORS)
+        cls._fix_config(validator.ensure_subset, CONFIG_COLORS, COLORS)
         cls._fix_config(validator.ensure_contains, CONFIG_ORDER, ORDERS)
 
     @classmethod
@@ -88,14 +87,9 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
                               cls.CURRENT_CONFIG, CONFIG_ORIENTATION)
         gui.add_submenu_radio(cls._text('MENU_CATEGORY'), {category: cls._text(
             f'CATEGORY_{category}') for category in CATEGORIES}, cls.CURRENT_CONFIG, CONFIG_CATEGORY)
-        colors = cls.CURRENT_CONFIG[CONFIG_COLORS].split(',')
-        menu_color = gui.add_submenu(cls._text('MENU_COLORS')).get_submenu()
-        items_color = gui.get_menu_items(menu_color).items()
-        for color in COLORS:
-            gui.add_menu_item(cls._text(f'COLOR_{color}'), gui.MenuItemType.CHECK, color in colors,
-                              uid=color, on_click=functools.partial(cls._on_color, items_color), menu=menu_color)
+        menu_color = gui.add_submenu_check(cls._text('MENU_COLORS'), {color: cls._text(
+            f'COLOR_{color}') for color in COLORS}, (None, None), cls.CURRENT_CONFIG, CONFIG_COLORS).get_submenu()
         gui.add_separator(2, menu_color)
-        cls._on_color(items_color)
         gui.add_menu_item_check(cls._text('LABEL_EDITOR'), cls.CURRENT_CONFIG, CONFIG_EDITOR)
         gui.add_menu_item_check(cls._text('LABEL_SAFE'), cls.CURRENT_CONFIG, CONFIG_SAFE)
         gui.add_submenu_radio(cls._text('MENU_ORDER'), {order: cls._text(
@@ -104,6 +98,7 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         hits = []
+        params[CONFIG_COLORS] = ','.join(params[CONFIG_COLORS])
         params[CONFIG_EDITOR] = str(params[CONFIG_EDITOR]).lower()
         params[CONFIG_SAFE] = str(params[CONFIG_SAFE]).lower()
         page = 1
@@ -126,8 +121,3 @@ class Pixabay(Source):  # https://pixabay.com/api/docs
             yield ImageFile(hit['largeImageURL'], name[:name.rfind('_')] +
                             name[name.rfind('.'):], url=hit[
                 'pageURL'], width=hit['imageWidth'], height=hit['imageHeight'])
-
-    @classmethod
-    def _on_color(cls, items: ItemsView[str, gui.MenuItem]):
-        cls.CURRENT_CONFIG[CONFIG_COLORS] = ','.join(
-            color for color, item in items if item.is_checked())

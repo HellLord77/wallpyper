@@ -1,5 +1,6 @@
 import collections
 import contextlib
+import enum
 import functools
 import threading
 from typing import (
@@ -33,24 +34,11 @@ Menu = win32.gui.Menu
 MenuItem = win32.gui.MenuItem
 
 
-class _MenuItemArgMeta(type):
-    def __new__(mcs, *args, **kwargs):
-        cls = super().__new__(mcs, *args, **kwargs)
-        cls._values = set(getattr(cls, var) for var in dir(cls) if not var.startswith('_'))
-        return cls
-
-    def __contains__(cls, item):
-        return item in cls._values
+class MenuItemAttribute(enum.StrEnum):
+    pass
 
 
-class MenuItemMethod(metaclass=_MenuItemArgMeta):
-    ENABLE = win32.gui.MenuItem.enable.__name__
-    SET_ICON = win32.gui.MenuItem.set_icon.__name__
-    SET_LABEL = win32.gui.MenuItem.set_text.__name__
-    SET_TOOLTIP = win32.gui.MenuItem.set_tooltip.__name__
-
-
-class MenuItemProperty(metaclass=_MenuItemArgMeta):
+class MenuItemProperty(MenuItemAttribute):
     MENU = win32.gui.MenuItem.get_menu.__name__
     ENABLED = win32.gui.MenuItem.is_enabled.__name__
     CHECKED = win32.gui.MenuItem.is_checked.__name__
@@ -58,6 +46,13 @@ class MenuItemProperty(metaclass=_MenuItemArgMeta):
     SUBMENU = win32.gui.MenuItem.get_submenu.__name__
     POSITION = win32.gui.MenuItem.get_pos.__name__
     UID = win32.gui.MenuItem.get_uid.__name__
+
+
+class MenuItemMethod(MenuItemAttribute):
+    ENABLE = win32.gui.MenuItem.enable.__name__
+    SET_ICON = win32.gui.MenuItem.set_icon.__name__
+    SET_LABEL = win32.gui.MenuItem.set_text.__name__
+    SET_TOOLTIP = win32.gui.MenuItem.set_tooltip.__name__
 
 
 @contextlib.contextmanager
@@ -78,17 +73,19 @@ def set_menu(menu: win32.gui.Menu | win32.gui.MenuItem) -> ContextManager[win32.
 
 
 def set_on_click(menu_item: win32.gui.MenuItem, on_click: Optional[Callable] = None,
-                 args: Optional[Iterable[str]] = None, on_thread: bool = True):
+                 args: Optional[MenuItemAttribute | Iterable[MenuItemAttribute]] = None, on_thread: bool = True):
     if args is None:
         args = ()
+    elif isinstance(args, MenuItemAttribute):
+        args = args,
 
     @functools.wraps(on_click)
     def wrapped(event: Event):
         args_ = []
         for arg in args:
-            if arg in MenuItemMethod:
+            if isinstance(arg, MenuItemMethod):
                 args_.append(getattr(event.control, arg))
-            elif arg in MenuItemProperty:
+            elif isinstance(arg, MenuItemProperty):
                 args_.append(getattr(event.control, arg)())
         on_click(*args_)
 
@@ -118,7 +115,7 @@ def _get_position(position: Optional[int], menu: win32.gui.Menu) -> int:
 
 def add_menu_item(label: str = '', kind: int = win32.gui.MenuItemType.NORMAL, check: bool = False,
                   enable: bool = True, uid: Optional[int | str] = None, on_click: Optional[Callable] = None,
-                  args: Optional[Iterable[str]] = None, on_thread: bool = True, position: Optional[int] = None,
+                  args: Optional[Iterable[MenuItemAttribute]] = None, on_thread: bool = True, position: Optional[int] = None,
                   menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     menu = _get_menu(menu)
     menu_item = menu.insert_item(_get_position(position, menu), label, enable=enable, check=check, type=kind)
@@ -181,9 +178,9 @@ def _get_submenu(label_or_submenu_item: str | win32.gui.MenuItem, enable: bool =
 
 
 def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
-                      labels: Iterable[str], min_max: tuple[Optional[int], Optional[int]],
-                      mapping: MutableMapping[str, MutableSequence[bool]], key: str, enable: bool = True,
-                      on_click: Optional[Callable] = None, args: Optional[Iterable[str]] = None,
+                      labels: Iterable[str] | Mapping[int | str, str], min_max: tuple[Optional[int], Optional[int]],
+                      mapping: MutableMapping[str, MutableSequence[bool | int | str]], key: str, enable: bool = True,
+                      on_click: Optional[Callable] = None, args: Optional[Iterable[MenuItemAttribute]] = None,
                       position: Optional[int] = None, icon: Optional[int | str] = None,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)
@@ -192,7 +189,17 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
         unchecked_checked = [], []
         for index_, item in enumerate(submenu):
             item.enable(True)
-            checked = val[index_] = item.is_checked()
+            checked = item.is_checked()
+            if mapped:
+                uid_ = item.get_uid()
+                try:
+                    val.remove(uid_)
+                except ValueError:
+                    pass
+                if checked:
+                    val.append(uid_)
+            else:
+                val[index_] = checked
             unchecked_checked[checked].append(item)
         count_checked = len(unchecked_checked[1])
         for count, items in zip(min_max, reversed(unchecked_checked)):
@@ -205,23 +212,24 @@ def add_submenu_check(label_or_submenu_item: str | win32.gui.MenuItem,
         args = ()
     else:
         @functools.wraps(on_click)
-        def on_click_(uid_: int, *args_):
+        def on_click_(uid_: int | str, *args_):
             wrapped()
             return on_click(uid_, *args_)
 
         args = MenuItemProperty.UID, *(() if args is None else args)
     val = mapping[key]
     submenu = submenu_item.get_submenu()
-    for uid, label in enumerate(labels):
-        add_menu_item(label, win32.gui.MenuItemType.CHECK, val[uid], uid=uid,
-                      on_click=on_click_, args=args, menu=submenu)
+    mapped = isinstance(labels, Mapping)
+    for uid, label in labels.items() if mapped else enumerate(labels):
+        add_menu_item(label, win32.gui.MenuItemType.CHECK, uid in val if mapped else val[
+            uid], uid=uid, on_click=on_click_, args=args, menu=submenu)
     wrapped()
     return submenu_item
 
 
 def add_submenu_radio(label_or_submenu_item: str | win32.gui.MenuItem, items: Mapping[str, str],
                       mapping: MutableMapping[str, str], key: str, enable: bool = True,
-                      on_click: Optional[Callable] = None, args: Optional[Iterable[str]] = None,
+                      on_click: Optional[Callable] = None, args: Optional[Iterable[MenuItemAttribute]] = None,
                       position: Optional[int] = None, icon: Optional[int | str] = None,
                       menu: win32.gui.Menu | win32.gui.MenuItem = _MAIN_MENU) -> win32.gui.MenuItem:
     submenu_item = _get_submenu(label_or_submenu_item, enable, position, icon, menu)

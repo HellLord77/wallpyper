@@ -115,13 +115,13 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
                               on_click=on_sort, position=0)
         on_sort(cls.CURRENT_CONFIG[CONFIG_SORT])
         gui.add_separator()
+        gui.add_menu_item_check(cls._text('LABEL_STATIC'), cls.CURRENT_CONFIG, CONFIG_STATIC)
         gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (
             cls._text(f'ORIENTATION_{orientation}') for orientation in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
         gui.add_submenu_check(cls._text('MENU_RATINGS'), (
             cls._text(f'RATING_{rating}') for rating in range(2)),
                               (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
-        gui.add_menu_item_check(cls._text('LABEL_STATIC'), cls.CURRENT_CONFIG, CONFIG_STATIC)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
