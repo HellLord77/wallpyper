@@ -500,7 +500,7 @@ def print_ast(cursor: clang.cindex.Cursor, depth: int = 0):
 
 
 def main():
-    os.add_dll_directory(CLANG_DIR)
+    ctyped.lib.add_path(CLANG_DIR)
     index = clang.cindex.Index.create()
     args = ['-x', 'c++']
     include_dirs = [os.path.dirname(SOURCE_PATH), *INCLUDE_DIRS]

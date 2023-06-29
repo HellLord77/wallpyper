@@ -1,4 +1,3 @@
-import os
 import sys
 import threading
 
@@ -62,7 +61,7 @@ def _create_environment_completed(result: ctyped.type.HRESULT, environment: WebV
 
 
 def webview():
-    os.add_dll_directory(r'D:\Projects\wallpyper\helpers')
+    ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers')
     data_path = r'D:\Projects\wallpyper\helpers\WebView2'
     with ctyped.interface.create_handler(
             _create_environment_completed, WebView2.ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler) as handler:

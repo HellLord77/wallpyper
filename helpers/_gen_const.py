@@ -294,7 +294,7 @@ class GdiPlus:
             type_ = '_type.c_void_p'
         if '.' not in type_:
             type_ = f'# TODO {type_}'
-        for i in range(ptr - (type_.startswith('_type.Gp') or type_.startswith('_interface.'))):
+        for i in range(ptr - (type_.startswith(('_type.Gp', '_interface.')))):
             type_ = f'_Pointer[{type_}]'
         return type_
 

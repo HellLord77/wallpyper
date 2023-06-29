@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import ntpath
-import os
 import random
 from typing import Optional
 
@@ -1694,4 +1693,4 @@ class Animation47(_Animation):
             115, 0, 20, 138, 114, 0, 19, 143, 115, 0, type=ctyped.type.BYTE))
 
 
-os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))
+ctyped.lib.add_path(ntpath.join(ntpath.dirname(__file__)))

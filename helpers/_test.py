@@ -471,7 +471,7 @@ class RemoteProcess(ctyped.type.HANDLE):
     def load_lib(self, lib: ModuleType) -> bool:
         getattr(lib, '_', None)
         lib = getattr(lib, '_module', lib)
-        lib_path = ctyped.lib.get_path(lib).encode() + b'\0'
+        lib_path = lib.__file__.encode() + b'\0'
         arg_addr = self.alloc_mem(
             len(lib_path), ctyped.const.PAGE_EXECUTE_READWRITE)
         if arg_addr:

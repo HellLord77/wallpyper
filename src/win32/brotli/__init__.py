@@ -303,4 +303,4 @@ def compress_known(data: bytes | str, max_length: Optional[int] = None,
     return ret
 
 
-os.add_dll_directory(os.path.join(os.path.dirname(__file__)))
+ctyped.lib.add_path(os.path.join(os.path.dirname(__file__)))

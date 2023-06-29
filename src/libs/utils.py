@@ -63,6 +63,7 @@ class ProgressBar(enum.StrEnum):
 
 class MutableObject:
     __slots__ = '_data', '_changed'
+
     _type: type = object
 
     def __init__(self, val: Optional[bool | bytes | complex | float | int | str | tuple] = None):

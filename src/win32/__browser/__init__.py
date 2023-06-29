@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import math
 import ntpath
-import os
 import threading
 import time
 import uuid
@@ -213,4 +212,4 @@ class _BrowserEx:  # TODO
 
 
 ctyped.interface.init_com(False)
-os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))
+ctyped.lib.add_path(ntpath.join(ntpath.dirname(__file__)))

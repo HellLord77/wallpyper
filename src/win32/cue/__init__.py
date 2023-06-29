@@ -1,5 +1,4 @@
 import ntpath
-import os
 import threading
 from typing import Optional
 
@@ -44,4 +43,4 @@ def get_devices(filter: enum_iCUESDK.CorsairDeviceType = enum_iCUESDK.CorsairDev
         return devices[:size.value]
 
 
-os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))
+ctyped.lib.add_path(ntpath.join(ntpath.dirname(__file__)))

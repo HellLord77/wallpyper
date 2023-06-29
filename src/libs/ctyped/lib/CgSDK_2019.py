@@ -56,4 +56,4 @@ CgSdkClearAllStates: _Callable[[],
 CgSdkClearAllEvents: _Callable[[],
                                _type.c_bool]
 
-_WinLib(__name__, 'CgSDK.x64_2019.dll')
+_WinLib(__name__, 'CgSDK.x64_2019')

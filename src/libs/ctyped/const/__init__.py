@@ -3,6 +3,11 @@ import sys as _sys
 
 is_32bits = _sys.maxsize > 2 ** 16
 is_64bits = _sys.maxsize > 2 ** 32
+is_aix = _sys.platform.startswith('aix')
+is_darwin = _sys.platform == 'darwin'
+is_freebsd = _sys.platform.startswith('freebsd')
+is_linux = _sys.platform.startswith('linux')
+is_windows = _sys.platform == 'win32'
 
 _CHAR_UNSIGNED = 0
 _WIN32_WCE = 0

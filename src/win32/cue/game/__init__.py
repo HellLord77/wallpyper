@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import enum
 import ntpath
-import os
 
+from libs import ctyped
 from libs.ctyped.enum import CgSDK as enum_CgSDK
 from libs.ctyped.lib import CgSDK_2019
 
@@ -83,11 +83,15 @@ class _Game:
     class profile(_Profile):
         pass
 
+    def __init_subclass__(cls):
+        if not cls._name:
+            cls._name = cls.__name__
+
     def __init__(self):
         self._init = handshake()
         if self._init:
             self._control = _Control()
-            self._init = set_game(self._name or type(self).__name__)
+            self._init = set_game(self._name)
 
     def __del__(self):
         if self:
@@ -1846,4 +1850,4 @@ class Wonderlands(_Game):
         TTWL_ShadowsActive = 130
 
 
-os.add_dll_directory(ntpath.join(ntpath.dirname(__file__)))
+ctyped.lib.add_path(ntpath.join(ntpath.dirname(__file__)))
