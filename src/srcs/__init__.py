@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.5'
+__version__ = '0.2.6'
 
 import binascii
 import dataclasses
@@ -14,7 +14,9 @@ import urllib.parse
 from typing import Any, Callable, Iterator, Optional, TypedDict, final
 
 import consts
+import gui
 import langs
+import validator
 import win32
 from libs import callables, files, request, utils
 
@@ -211,9 +213,14 @@ class Source:
     VERSION: str = '0.0.0'
     ICON: str = 'ico'
     URL: Optional[str] = None
-    TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {})
+    TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {
+        CONFIG_ORIENTATIONS: list[bool],
+        CONFIG_RATINGS: list[bool]}, total=False)
     DEFAULT_CONFIG: TCONFIG = {}
     CURRENT_CONFIG: TCONFIG = {}
+
+    _orientations: bool
+    _ratings: bool
 
     def __init_subclass__(cls):
         uid = cls.__module__.split('.')[-1]
@@ -221,17 +228,35 @@ class Source:
             cls.NAME = cls.__name__
         cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
         cls.CURRENT_CONFIG = {}
+        cls._orientations = CONFIG_ORIENTATIONS in cls.DEFAULT_CONFIG
+        cls._ratings = CONFIG_RATINGS in cls.DEFAULT_CONFIG
         cls.get_image = callables.LastCacheCallable(cls.get_image)
         SOURCES[uid] = cls
 
+    # noinspection PyShadowingNames
     @classmethod
     @final
     def _fix_config(cls, validator: Callable, key: str, *args, **kwargs) -> bool:
         return validator(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
 
     @classmethod
+    @final
+    def _fix_orientations(cls, key: str = CONFIG_ORIENTATIONS):
+        cls._fix_config(validator.ensure_len, key, len(cls.DEFAULT_CONFIG[key]))
+        cls._fix_config(validator.ensure_truthy, key, any)
+
+    @classmethod
+    @final
+    def _fix_ratings(cls, key: str = CONFIG_RATINGS):
+        cls._fix_config(validator.ensure_len, key, len(cls.DEFAULT_CONFIG[key]))
+        cls._fix_config(validator.ensure_truthy, key, any)
+
+    @classmethod
     def fix_config(cls, saving: bool = False):
-        pass
+        if cls._orientations:
+            cls._fix_orientations()
+        if cls._ratings:
+            cls._fix_ratings()
 
     @classmethod
     @final
@@ -240,8 +265,25 @@ class Source:
             langs.DEFAULT, f'{cls.__module__.split(".", 1)[1].upper()}_{message}')
 
     @classmethod
+    @final
+    def _create_orientations(cls, key: str = CONFIG_ORIENTATIONS):
+        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
+            f'ORIENTATION_{orientation}') for orientation in range(
+            len(cls.DEFAULT_CONFIG[key]))), (1, None), cls.CURRENT_CONFIG, key)
+
+    @classmethod
+    @final
+    def _create_ratings(cls, key: str = CONFIG_RATINGS):
+        gui.add_submenu_check(cls._text('MENU_RATINGS'), (cls._text(
+            f'RATING_{rating}') for rating in range(
+            len(cls.DEFAULT_CONFIG[key]))), (1, None), cls.CURRENT_CONFIG, key)
+
+    @classmethod
     def create_menu(cls):
-        pass
+        if cls._orientations:
+            cls._create_orientations()
+        if cls._ratings:
+            cls._create_ratings()
 
     @classmethod
     @final
@@ -265,7 +307,6 @@ class Source:
             orientations.append(image.ratio < 1.0)
         if square:
             orientations.append(image.is_square())
-        # noinspection PyTypedDict
         return any(itertools.compress(orientations, cls.CURRENT_CONFIG[key]))
 
     @classmethod
@@ -279,14 +320,13 @@ class Source:
             ratings.append(image.sketchy)
         if nsfw:
             ratings.append(image.nsfw)
-        # noinspection PyTypedDict
         return any(itertools.compress(ratings, cls.CURRENT_CONFIG[key]))
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:
-        if CONFIG_ORIENTATIONS in cls.DEFAULT_CONFIG and not cls._filter_orientations(image):
+        if cls._orientations and not cls._filter_orientations(image):
             return False
-        if CONFIG_RATINGS in cls.DEFAULT_CONFIG and not cls._filter_ratings(image):
+        if cls._ratings and not cls._filter_ratings(image):
             return False
         return True
 

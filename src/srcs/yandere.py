@@ -1,7 +1,5 @@
 from typing import Iterator, Optional, TypedDict
 
-import gui
-import validator
 from libs import request
 from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
@@ -15,7 +13,7 @@ CONFIG_TAGS = 'tags'
 _CONTENT_END = b'[]'
 
 
-class YandeRe(Source):
+class YandeRe(Source):  # https://yande.re/help/api
     NAME = 'yande.re'
     VERSION = '0.0.2'
     URL = URL_BASE
@@ -30,19 +28,13 @@ class YandeRe(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS, 2)
-        cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
-        cls._fix_config(validator.ensure_len, CONFIG_RATINGS, 3)
-        cls._fix_config(validator.ensure_truthy, CONFIG_RATINGS, any)
+        cls._fix_ratings(CONFIG_RATINGS)
+        super().fix_config(saving)
 
     @classmethod
     def create_menu(cls):
-        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
-            f'ORIENTATION_{orientation}') for orientation in range(2)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
-        gui.add_submenu_check(cls._text('MENU_RATINGS'), (cls._text(
-            f'RATING_{rating}') for rating in range(3)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
+        super().create_menu()
+        cls._create_ratings(CONFIG_RATINGS)
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

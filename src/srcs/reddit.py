@@ -98,12 +98,9 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS, 2)
-        cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
-        cls._fix_config(validator.ensure_len, CONFIG_RATINGS, 2)
-        cls._fix_config(validator.ensure_truthy, CONFIG_RATINGS, any)
         cls._fix_config(validator.ensure_contains, CONFIG_SORT, SORTS)
         cls._fix_config(validator.ensure_contains, CONFIG_TIME, TIMES)
+        super().fix_config(saving)
 
     @classmethod
     def create_menu(cls):
@@ -116,12 +113,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
         on_sort(cls.CURRENT_CONFIG[CONFIG_SORT])
         gui.add_separator()
         gui.add_menu_item_check(cls._text('LABEL_STATIC'), cls.CURRENT_CONFIG, CONFIG_STATIC)
-        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (
-            cls._text(f'ORIENTATION_{orientation}') for orientation in range(2)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
-        gui.add_submenu_check(cls._text('MENU_RATINGS'), (
-            cls._text(f'RATING_{rating}') for rating in range(2)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
+        super().create_menu()
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

@@ -30,9 +30,8 @@ class KekaiKotaki(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS, 2)
-        cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
         cls._fix_config(validator.ensure_contains, CONFIG_GALLERY, GALLERIES)
+        super().fix_config(saving)
 
     @classmethod
     def create_menu(cls):
@@ -41,9 +40,7 @@ class KekaiKotaki(Source):
                               cls.CURRENT_CONFIG, CONFIG_GALLERY)
         gui.add_separator()
         gui.add_menu_item_check(cls._text('LABEL_RANDOM'), cls.CURRENT_CONFIG, CONFIG_RANDOM)
-        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
-            f'ORIENTATION_{orientation}') for orientation in range(2)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
+        super().create_menu()
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

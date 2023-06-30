@@ -62,11 +62,10 @@ class BestHDWallpaper(Source):
 
     @classmethod
     def fix_config(cls, saving: bool = False):
-        cls._fix_config(validator.ensure_len, CONFIG_ORIENTATIONS, 2)
-        cls._fix_config(validator.ensure_truthy, CONFIG_ORIENTATIONS, any)
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
         cls._fix_config(validator.ensure_contains,
                         CONFIG_RESOLUTION, RESOLUTIONS)
+        super().fix_config(saving)
 
     @classmethod
     def create_menu(cls):
@@ -77,9 +76,7 @@ class BestHDWallpaper(Source):
         gui.add_submenu_radio(cls._text('MENU_RESOLUTION'), {resolution: cls._text(
             f'RESOLUTION_{resolution}') for resolution in RESOLUTIONS}, cls.CURRENT_CONFIG, CONFIG_RESOLUTION)
         gui.add_separator()
-        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
-            f'ORIENTATION_{orientation}') for orientation in range(2)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
+        super().create_menu()
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:

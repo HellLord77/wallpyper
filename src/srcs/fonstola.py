@@ -39,7 +39,7 @@ def _on_color_right(event):
 
 
 class Fonstola(Source):
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
@@ -65,6 +65,7 @@ class Fonstola(Source):
         cls._fix_config(validator.ensure_contains, CONFIG_COLOR, COLORS)
         cls._fix_config(validator.ensure_contains, CONFIG_PERIOD, PERIODS)
         cls._fix_config(validator.ensure_contains, CONFIG_CATEGORY, CATEGORIES)
+        super().fix_config(saving)
 
     @classmethod
     def create_menu(cls):
@@ -95,9 +96,7 @@ class Fonstola(Source):
             in LISTS}, cls.CURRENT_CONFIG, CONFIG_LIST, on_click=on_list, position=0)
         on_list(cls.CURRENT_CONFIG[CONFIG_LIST])
         gui.add_separator()
-        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
-            f'ORIENTATION_{orientation}') for orientation in range(2)),
-                              (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
+        super().create_menu()
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
