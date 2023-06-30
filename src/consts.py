@@ -25,6 +25,8 @@ FEATURE_UNSAFE_CACHE = True
 FEATURE_DISPLAY_EXTRA = True
 FEATURE_MENUITEM_ICON = True
 
+FEATURE_RESTART_PROCESS: bool
+
 _ICON = 'windows-11-color'
 
 AUTHOR = 'HellLord'
@@ -61,11 +63,15 @@ CONFIG_TRANSITION_DURATION = 'transition_duration'
 CONFIG_TRANSITION_EASE = 'transition_ease'
 CONFIG_TRANSITION_STYLE = 'transition_style'
 
+UID_SOURCE_SETTINGS = 'source_settings'
+
 RES_BUSY = 'busy.gif'
 RES_TRAY = 'tray.png'
 RES_ICON = 'icon.ico'
 RES_SETTINGS = f'{_ICON}\\settings.png'
-RES_SETTINGS_RESET = f'{_ICON}\\settings-reset.png'
+RES_RESET_SOURCE = f'{_ICON}\\reset-source.png'
+RES_RESET = f'{_ICON}\\reset.png'
+RES_RESET_ALL = f'{_ICON}\\reset-all.png'
 RES_CONSOLE = f'{_ICON}\\console.png'
 RES_QUIT = f'{_ICON}\\quit.png'
 RES_RESTART = f'{_ICON}\\restart.png'

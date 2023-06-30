@@ -1,4 +1,5 @@
 import collections
+import copy
 import datetime
 import functools
 import itertools
@@ -52,6 +53,7 @@ win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_TEMPLATE.format(consts.RES_BUSY)
 
 PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
+RESET: list[str] = []
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 STOP = utils.MutableBool()
 RESTART = utils.MutableBool()
@@ -119,7 +121,7 @@ DEFAULT_CONFIG: TCONFIG = {
     consts.CONFIG_TRANSITION_DURATION: TRANSITION_DURATIONS[2],
     consts.CONFIG_TRANSITION_EASE: easings.Ease.CUBIC.name,
     consts.CONFIG_TRANSITION_STYLE: win32.display.Transition.FADE.name}
-CURRENT_CONFIG = {}
+CURRENT_CONFIG: TCONFIG = {}
 
 
 # noinspection PyShadowingNames
@@ -168,8 +170,7 @@ def create_menu():
         on_clear, item_recent.enable), menu=item_recent).set_icon(RES_TEMPLATE.format(consts.RES_CLEAR))
     _update_recent_menu(item_recent)
     gui.add_separator()
-    item_source = gui.add_submenu(_text('MENU_SOURCE_SETTINGS'))
-    on_source(item_source, CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
+    gui.add_submenu(_text('MENU_SOURCE_SETTINGS'), uid=consts.UID_SOURCE_SETTINGS)
     gui.add_separator()
     with gui.set_menu(gui.add_submenu(_text('MENU_ACTIONS'), icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
         gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
@@ -201,13 +202,18 @@ def create_menu():
                     on_pin_to_start, item_unpin_start.enable), args=(gui.MenuItemMethod.ENABLE,),
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         gui.add_separator()
+        gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
+            on_reset, False)).set_icon(RES_TEMPLATE.format(consts.RES_RESET_SOURCE))
+        gui.add_menu_item(_text('LABEL_RESET'), enable=consts.FEATURE_RESTART_PROCESS, on_click=functools.partial(
+            on_reset, source=False)).set_icon(RES_TEMPLATE.format(consts.RES_RESET))
+        gui.add_menu_item(_text('LABEL_RESET_ALL'), enable=consts.FEATURE_RESTART_PROCESS,
+                          on_click=on_reset).set_icon(RES_TEMPLATE.format(consts.RES_RESET_ALL))
+        gui.add_separator()
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
-        gui.add_menu_item(_text('LABEL_SETTINGS_RESET'), on_click=on_reset).set_icon(
-            RES_TEMPLATE.format(consts.RES_SETTINGS_RESET))
-        gui.add_menu_item(_text('LABEL_RESTART'), enable=bool(
-            multiprocessing.parent_process()), on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
+        gui.add_menu_item(_text('LABEL_RESTART'), enable=consts.FEATURE_RESTART_PROCESS,
+                          on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_TEMPLATE.format(consts.RES_AUTO))):
             gui.add_menu_item_check(_text('LABEL_CHANGE_START'), CURRENT_CONFIG,
@@ -266,8 +272,9 @@ def create_menu():
         item_sources = gui.add_submenu_radio(_text('MENU_SOURCE'), {
             name: source.NAME for name, source in sorted(
                 srcs.SOURCES.items(), key=lambda source: source[1].NAME.casefold())},
-                                             CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE, on_click=functools.partial(
-                on_source, item_source), icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+                                             CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
+                                             on_click=on_source, icon=RES_TEMPLATE.format(consts.RES_SOURCE))
+        on_source(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
         if not consts.FEATURE_SOURCE_DEV:
             for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
                 if source.VERSION == srcs.Source.VERSION:
@@ -337,11 +344,13 @@ def load_config(path: str = CONFIG_PATH):
         except BaseException as exc:
             try_alert_error(exc, True)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
-        current_config = json.get(name)
-        if isinstance(current_config, dict):
-            source.CURRENT_CONFIG.update(current_config)
+        if name not in RESET:
+            current_config = json.get(name)
+            if isinstance(current_config, dict):
+                source.CURRENT_CONFIG.update(current_config)
         typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
         source.fix_config()
+    RESET.clear()
 
 
 class BrotliDecoder(request.Decoder):
@@ -362,8 +371,8 @@ def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
         json = config.JSONConfig()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
             source.fix_config(True)
-            if section := {opt: source.CURRENT_CONFIG[opt] for opt, val in sorted(
-                    source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[opt] != val}:
+            if section := {var: source.CURRENT_CONFIG[var] for var, val in sorted(
+                    source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[var] != val}:
                 json[name] = section
         json.dump(path, '\t')
         return os.path.isfile(path)
@@ -574,7 +583,7 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
         with gui.try_animate_icon(_text('STATUS_CHANGE')):
             if ((changed := change_wallpaper(image))
                     and CURRENT_CONFIG[consts.CONFIG_AUTO_SAVE] and RECENT):
-                on_image_func(save_image, RECENT[0], _text('LABEL_SAVE'), _text('FAIL_SAVE'))
+                on_image(save_image, RECENT[0], _text('LABEL_SAVE'), _text('FAIL_SAVE'))
         _update_recent_menu(item_recent)
         enable(True)
     if not changed:
@@ -582,8 +591,8 @@ def on_change(enable: Callable[[bool], bool], item_recent: win32.gui.MenuItem,
     return changed
 
 
-def on_image_func(callback: callables.SingletonCallable[[str], bool],
-                  image: srcs.File, title: str, text: str) -> bool:
+def on_image(callback: callables.SingletonCallable[[str], bool],
+             image: srcs.File, title: str, text: str) -> bool:
     success = False
     try:
         running = callback.is_running()
@@ -619,40 +628,40 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(_text('LABEL_SET'), on_click=functools.partial(on_change, *TIMER.target.args, image, False),
                                       on_thread=False).set_icon(RES_TEMPLATE.format(consts.RES_SET))
                     gui.add_menu_item(_text('LABEL_SET_LOCK'), on_click=functools.partial(
-                        on_image_func, win32.display.set_lock_background, image, _text('LABEL_SET_LOCK'),
+                        on_image, win32.display.set_lock_background, image, _text('LABEL_SET_LOCK'),
                         _text('FAIL_CHANGE_LOCK'))).set_icon(RES_TEMPLATE.format(consts.RES_SET_LOCK))
                     gui.add_menu_item(_text('LABEL_SAVE'), on_click=functools.partial(
-                        on_image_func, save_image, image, _text('LABEL_SAVE'),
+                        on_image, save_image, image, _text('LABEL_SAVE'),
                         _text('FAIL_SAVE'))).set_icon(RES_TEMPLATE.format(consts.RES_SAVE))
                     gui.add_menu_item(_text('LABEL_SAVE_AS'), on_click=functools.partial(
-                        on_image_func, on_save_image, image, _text('LABEL_SAVE'),
+                        on_image, on_save_image, image, _text('LABEL_SAVE'),
                         _text('FAIL_SAVE'))).set_icon(RES_TEMPLATE.format(consts.RES_SAVE_AS))
                     gui.add_separator()
                     gui.add_menu_item(_text('LABEL_OPEN'), on_click=functools.partial(
-                        on_image_func, os.startfile, image, _text('LABEL_OPEN'),
+                        on_image, os.startfile, image, _text('LABEL_OPEN'),
                         _text('FAIL_OPEN'))).set_icon(RES_TEMPLATE.format(consts.RES_OPEN))
                     if consts.FEATURE_OPEN_WITH:
                         gui.add_menu_item(_text('LABEL_OPEN_WITH'), on_click=functools.partial(
-                            on_image_func, win32.open_file_with_ex, image, _text('LABEL_OPEN_WITH'),
+                            on_image, win32.open_file_with_ex, image, _text('LABEL_OPEN_WITH'),
                             _text('FAIL_OPEN_WITH'))).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_WITH))
                     gui.add_menu_item(_text('LABEL_OPEN_PATH'), on_click=functools.partial(
-                        on_image_func, win32.open_file_path, image, _text('LABEL_OPEN_PATH'),
+                        on_image, win32.open_file_path, image, _text('LABEL_OPEN_PATH'),
                         _text('FAIL_OPEN_PATH'))).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_EXPLORER))
                     gui.add_menu_item(_text('LABEL_OPEN_URL'), enable=bool(image.url), on_click=functools.partial(
                         on_open_url, image.url)).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_BROWSER))
                     gui.add_separator()
                     gui.add_menu_item(_text('LABEL_COPY_PATH'), on_click=functools.partial(
-                        on_image_func, win32.clipboard.copy_text, image, _text('LABEL_COPY_PATH'),
+                        on_image, win32.clipboard.copy_text, image, _text('LABEL_COPY_PATH'),
                         _text('FAIL_COPY_PATH'))).set_icon(RES_TEMPLATE.format(consts.RES_COPY_PATH))
                     gui.add_menu_item(_text('LABEL_COPY'), on_click=functools.partial(
-                        on_image_func, win32.clipboard.copy_image, image, _text('LABEL_COPY'),
+                        on_image, win32.clipboard.copy_image, image, _text('LABEL_COPY'),
                         _text('FAIL_COPY'))).set_icon(RES_TEMPLATE.format(consts.RES_COPY))
                     gui.add_menu_item(_text('LABEL_COPY_URL'), enable=simple, on_click=functools.partial(
                         on_copy_url, image.request.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
                     if consts.FEATURE_SEARCH_GOOGLE:
                         gui.add_menu_item(_text('LABEL_GOOGLE'), on_click=functools.partial(
-                            on_image_func, search_image, image, _text('LABEL_GOOGLE'),
+                            on_image, search_image, image, _text('LABEL_GOOGLE'),
                             _text('FAIL_SEARCH'))).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
                     with gui.set_menu(gui.add_submenu(_text('LABEL_SEARCH'), simple and not request.is_path(
                             image.request.url), icon=RES_TEMPLATE.format(consts.RES_SEARCH))):
@@ -853,9 +862,17 @@ def on_clear_cache() -> bool:
     return cleared
 
 
-def on_reset():
-    files.remove(CONFIG_PATH)
-    on_restart()
+def on_reset(main_: bool = True, source: bool = True):
+    if main_:
+        RESET.append(consts.NAME)
+        if source:
+            RESET.append(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
+        on_restart()
+    elif source:
+        name = CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]
+        source = srcs.SOURCES[name]
+        source.CURRENT_CONFIG = copy.deepcopy(source.DEFAULT_CONFIG)
+        on_source(name)
 
 
 def on_restart():
@@ -867,7 +884,8 @@ def on_transition_style(enable: Callable[[bool], bool], transition: str):
     enable(transition != win32.display.Transition.DISABLED.name)
 
 
-def on_source(item: win32.gui.MenuItem, name: str):
+def on_source(name: str):
+    item = gui.get_menu_item_by_uid(consts.UID_SOURCE_SETTINGS, False, gui.MENU)
     source = srcs.SOURCES[name]
     icon = os.path.isfile(source.ICON)
     item.set_icon(source.ICON if icon else gui.MenuItemImage.NONE)
@@ -897,7 +915,7 @@ def on_quit():
     gui.disable_events()
     max_threads = 1 + (threading.current_thread() is not threading.main_thread())
     time.sleep(consts.POLL_FAST_SEC)
-    if threading.active_count() > max_threads:
+    if threading.active_count() > max_threads:  # TODO better
         gui.try_animate_icon(_text('STATUS_QUIT')).__enter__()
         try_show_notification(_text('LABEL_QUIT'), _text('FAIL_QUIT'), force=True)
         end_time = time.monotonic() + win32.get_max_shutdown_time()
@@ -916,6 +934,7 @@ def apply_auto_start(auto_start: bool) -> bool:
 def start():
     singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(
         print, 'Crash'), functools.partial(print, 'Wait'), functools.partial(print, 'Exit'))
+    consts.FEATURE_RESTART_PROCESS = bool(multiprocessing.parent_process())
     win32.display.TEMP_WALLPAPER_DIR = _temp()
     pyinstall.clean_temp()
     _update_display()

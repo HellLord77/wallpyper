@@ -3,7 +3,7 @@ __copyright__ = ''
 __credits__ = ['HellLord']
 
 __license__ = ''
-__version__ = '0.2.5'
+__version__ = '0.2.6'
 __maintainer__ = 'HellLord'
 __email__ = 'ratul.debnath.year@gmail.com'
 __status__ = 'Development'
@@ -11,30 +11,36 @@ __status__ = 'Development'
 import ctypes
 import itertools
 import multiprocessing
+import multiprocessing.managers
 import sys
 
 import consts
 
 
-def target(restart: ctypes.c_bool):
+# noinspection PyUnresolvedReferences
+def target(reset: multiprocessing.managers.ListProxy,
+           restart: multiprocessing.managers.ValueProxy):
     import main
+    main.RESET = reset[:]
     try:
         main.main()
     except SystemExit:
+        reset[:] = main.RESET
         restart.value = main.RESTART.get()
 
 
 def main():
     multiprocessing.freeze_support()
-    restart = multiprocessing.Value(ctypes.c_bool, False)
-    restart.value = True
     counter = itertools.count(1)
+    manager = multiprocessing.Manager()
+    reset = manager.list()
+    restart = manager.Value(ctypes.c_bool, True)
     exitcode = -1
     while restart.value:
         restart.value = False
         process = multiprocessing.Process(
             target=target, name=f'{consts.NAME}-{__version__}-{next(counter)}',
-            args=(restart,), daemon=True)
+            args=(reset, restart), daemon=True)
         process.start()
         process.join()
         exitcode = process.exitcode
