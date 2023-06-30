@@ -35,8 +35,8 @@ $CythonSourceGlobs = @(
 	"src/libs/ctyped/{const,enum,winrt}/*.py"
 	# "src/libs/ctyped/{_utils,struct,union}.py"
 	"src/libs/ctyped/{__init__,handle,macro}.py"
-	"src/win32/**/*.py"
-	"src/{langs,libs,srcs}/*.py"
+	"src/{plat,win32}/**/*.py"
+	"src/{exts,langs,libs,srcs}/*.py"
 	"src/*.py")
 $CythonExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname

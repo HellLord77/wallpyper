@@ -3,9 +3,8 @@ import contextlib
 import enum
 import functools
 import threading
-from typing import (
-    Any, Callable, ContextManager, Iterable, Mapping,
-    MutableMapping, MutableSequence, Optional)
+from typing import (Any, Callable, ContextManager, Iterable, Mapping,
+                    MutableMapping, MutableSequence, Optional)
 
 import win32
 from libs import callables, utils

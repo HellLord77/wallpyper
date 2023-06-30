@@ -1,6 +1,8 @@
 import functools
 import json
+import os
 import re
+import urllib.parse
 from typing import Any, Callable, Iterator, Optional, TypedDict
 
 import gui
@@ -38,7 +40,7 @@ def _json_loads(response: request.Response) -> Any:
 
 class ZeroChan(Source):  # https://www.zerochan.net/api
     NAME = 'zerochan'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_FILTER: str,
@@ -109,9 +111,11 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                 yield
                 continue
             json_item = _json_loads(response)
-            yield ImageFile(json_item['full'], url=request.join_url(URL_BASE, str(
-                json_item['id'])), width=json_item['width'], height=json_item['height'],
-                            sketchy='Ecchi' in json_item['tags'], md5=json_item['hash'])
+            link = json_item['full']
+            yield ImageFile(link, ''.join(urllib.parse.unquote_plus(os.path.basename(
+                request.strip_url(link))).rsplit('full.', 1)), url=request.join_url(
+                URL_BASE, str(json_item['id'])), width=json_item['width'], height=json_item[
+                'height'], sketchy='Ecchi' in json_item['tags'], md5=json_item['hash'])
 
     @classmethod
     def _on_sort(cls, enable: Callable[[bool], bool], sort: str):

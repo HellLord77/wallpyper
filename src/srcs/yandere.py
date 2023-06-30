@@ -1,3 +1,5 @@
+import os
+import urllib.parse
 from typing import Iterator, Optional, TypedDict
 
 from libs import request
@@ -15,7 +17,7 @@ _CONTENT_END = b'[]'
 
 class YandeRe(Source):  # https://yande.re/help/api
     NAME = 'yande.re'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
@@ -55,8 +57,10 @@ class YandeRe(Source):  # https://yande.re/help/api
                     yield
                     continue
             post = posts.pop(0)
-            yield ImageFile(post['file_url'], size=post['file_size'], url=request.join_url(
-                URL_INFO, str(post['id'])), width=post['width'],
+            link = post['file_url']
+            yield ImageFile(link, urllib.parse.unquote_plus(os.path.basename(
+                request.strip_url(link))).removeprefix('yande.re '), post['file_size'],
+                            request.join_url(URL_INFO, str(post['id'])), width=post['width'],
                             height=post['height'], sketchy=post['rating'] == 'q',
                             nsfw=post['rating'] == 'e', md5=post['md5'])
 

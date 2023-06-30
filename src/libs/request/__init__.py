@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.6'
+__version__ = '0.2.7'
 
 import base64
 import bz2
@@ -202,30 +202,42 @@ class Header:
 
 
 class _DecoderMeta(type):
-    _token_: str | Iterable[str]
+    _encoding_: str | Iterable[str]
 
     _decoders: dict[str, _DecoderMeta] = {}
 
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if isinstance(cls._token_, str):
-            cls._token_ = cls._token_,
-        for token in cls._token_:
-            cls._decoders[token.lower()] = cls
+        if isinstance(cls._encoding_, str):
+            cls._encoding_ = cls._encoding_,
+        for encoding in cls._encoding_:
+            cls[encoding] = cls
+
+    def __contains__(self, encoding: str) -> bool:
+        return encoding.lower() in self._decoders
+
+    def __getitem__(self, encoding: str) -> _DecoderMeta:
+        return self._decoders[encoding.lower()]
+
+    def __setitem__(self, encoding: str, decoder: _DecoderMeta):
+        self._decoders[encoding.lower()] = decoder
+
+    def __delitem__(self, encoding: str):
+        del self._decoders[encoding.lower()]
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._decoders)
 
-    def get(cls, tokens: Optional[str | Iterable[str]] = None) -> Optional[Decoder]:
-        if isinstance(tokens, str):
-            tokens = urllib.request.parse_http_list(tokens)
-        if tokens:
-            decoders = (cls._decoders[token.lower()]() for token in tokens)
-            return next(decoders) if len(tokens) == 1 else MultiDecoder(*decoders)
+    def get(cls, encoding: Optional[str | Iterable[str]] = None) -> Optional[Decoder]:
+        if isinstance(encoding, str):
+            encoding = urllib.request.parse_http_list(encoding)
+        if encoding:
+            decoders = (cls[token]() for token in encoding)
+            return next(decoders) if len(encoding) == 1 else MultiDecoder(*decoders)
 
 
 class Decoder(metaclass=_DecoderMeta):
-    _token_: str | Iterable[str] = ()
+    _encoding_: str | Iterable[str] = ()
 
     def flush(self) -> bytes:
         return b''
@@ -235,14 +247,14 @@ class Decoder(metaclass=_DecoderMeta):
 
 
 class IdentityDecoder(Decoder):
-    _token_ = 'identity'
+    _encoding_ = 'identity'
 
     def decode(self, data: bytes) -> bytes:
         return data
 
 
 class DeflateDecoder(Decoder):
-    _token_ = 'deflate'
+    _encoding_ = 'deflate'
 
     _tried = False
 
@@ -269,7 +281,7 @@ class DeflateDecoder(Decoder):
 
 
 class GzipDecoder(DeflateDecoder):
-    _token_ = 'gzip', 'x-gzip'
+    _encoding_ = 'gzip', 'x-gzip'
 
     def __init__(self):
         super().__init__(16 + zlib.MAX_WBITS)
@@ -279,7 +291,7 @@ class GzipDecoder(DeflateDecoder):
 
 
 class Bzip2Decoder(Decoder):
-    _token_ = 'bzip2', 'x-bzip2'
+    _encoding_ = 'bzip2', 'x-bzip2'
 
     def __init__(self):
         self._decoder = bz2.BZ2Decompressor()
@@ -292,7 +304,7 @@ class Bzip2Decoder(Decoder):
 
 
 class LzmaDecoder(Bzip2Decoder):
-    _token_ = 'lzma', 'x-lzma'
+    _encoding_ = 'lzma', 'x-lzma'
 
     # noinspection PyMissingConstructor
     def __init__(self):
@@ -527,7 +539,7 @@ _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
 def default_accept_encoding(*encodings: str) -> str:
-    return ', '.join(itertools.chain(Decoder, encodings))
+    return ','.join(itertools.chain(Decoder, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -536,11 +548,11 @@ def default_accept_language(*languages: str | tuple[str | Iterable[str], float])
         if not isinstance(language, str):
             language, quality = language
             if not isinstance(language, str):
-                language = ', '.join(language)
+                language = ','.join(language)
             if quality != 1.0:
                 language = f'{language};q={quality}'
         accept_languages.append(language)
-    return ', '.join(accept_languages)
+    return ','.join(accept_languages)
 
 
 def default_user_agent(name: str = 'python-' + __name__) -> str:
@@ -1376,7 +1388,7 @@ def get_headers(keep_alive: Optional[bool] = True, accept_encoding: bool | str |
         if accept_encoding is True:
             accept_encoding = default_accept_encoding()
         elif not isinstance(accept_encoding, str):
-            accept_encoding = ', '.join(accept_encoding)
+            accept_encoding = ','.join(accept_encoding)
         headers[Header.ACCEPT_ENCODING] = accept_encoding
     if user_agent:
         if user_agent is True:

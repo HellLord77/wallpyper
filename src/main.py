@@ -16,7 +16,11 @@ import uuid
 import webbrowser
 from typing import Callable, Iterable, NoReturn, Optional, TypedDict
 
+import __feature__
+import __flag__
 import consts
+# noinspection PyUnresolvedReferences
+import exts as _
 import gui
 import langs
 import pipe
@@ -25,7 +29,6 @@ import validator
 import win32
 from libs import (callables, config, console, easings, files, lens, pyinstall,
                   request, singleton, spinners, timer, typed, utils)
-from win32 import brotli
 
 UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
 RES_TEMPLATE = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -93,7 +96,7 @@ TCONFIG = TypedDict('TCONFIG', {
     consts.CONFIG_TRANSITION_EASE: str,
     consts.CONFIG_TRANSITION_STYLE: str})
 DEFAULT_CONFIG: TCONFIG = {
-    consts.CONFIG_FIRST_RUN: consts.FEATURE_FIRST_RUN,
+    consts.CONFIG_FIRST_RUN: __flag__.FIRST_RUN,
     consts.CONFIG_RECENT_IMAGES: [],
     consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
     consts.CONFIG_ACTIVE_SOURCE: 'folder',
@@ -133,7 +136,7 @@ def fix_config(saving: bool = False):
     _fix_config(validator.ensure_unique, consts.CONFIG_RECENT_IMAGES, pickle.dumps)
     _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, right=True)
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
-    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if consts.FEATURE_SOURCE_DEV else (
+    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if __flag__.SOURCE_DEV else (
         name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
     _fix_config(validator.ensure_contains, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
     _fix_config(validator.ensure_contains_name, consts.CONFIG_FIT_STYLE, win32.display.Style)
@@ -175,7 +178,7 @@ def create_menu():
     with gui.set_menu(gui.add_submenu(_text('MENU_ACTIONS'), icon=RES_TEMPLATE.format(consts.RES_ACTIONS))):
         gui.add_menu_item(_text('LABEL_STOP'), on_click=functools.partial(
             STOP.set, True)).set_icon(RES_TEMPLATE.format(consts.RES_STOP))
-        if consts.FEATURE_CONSOLE_VIEW:
+        if __flag__.CONSOLE_VIEW:
             gui.add_menu_item(_text('LABEL_CONSOLE'), on_click=on_toggle_console).set_icon(
                 RES_TEMPLATE.format(consts.RES_CONSOLE))
         with gui.set_menu(gui.add_submenu(_text('MENU_LINKS'), icon=RES_TEMPLATE.format(consts.RES_LINKS))):
@@ -189,30 +192,30 @@ def create_menu():
             gui.add_menu_item(_text('LABEL_REMOVE_START_MENU'), on_click=on_remove_start_shortcut).set_icon(
                 RES_TEMPLATE.format(consts.RES_UNLINK))
             gui.add_separator()
-            gui.add_menu_item(_text('LABEL_PIN'), enable=consts.FEATURE_SYSTRAY_PIN,
+            gui.add_menu_item(_text('LABEL_PIN'), enable=__flag__.SYSTRAY_PIN,
                               on_click=on_pin_to_taskbar).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
-            gui.add_menu_item(_text('LABEL_UNPIN'), enable=consts.FEATURE_SYSTRAY_PIN,
+            gui.add_menu_item(_text('LABEL_UNPIN'), enable=__flag__.SYSTRAY_PIN,
                               on_click=on_unpin_from_taskbar).set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_separator()
             item_unpin_start = gui.add_menu_item(
-                _text('LABEL_UNPIN_START'), enable=consts.FEATURE_SYSTRAY_PIN, on_click=on_unpin_from_start)
+                _text('LABEL_UNPIN_START'), enable=__flag__.SYSTRAY_PIN, on_click=on_unpin_from_start)
             item_unpin_start.set_icon(RES_TEMPLATE.format(consts.RES_UNPIN))
             gui.add_menu_item(
-                _text('LABEL_PIN_START'), enable=consts.FEATURE_SYSTRAY_PIN, on_click=functools.partial(
+                _text('LABEL_PIN_START'), enable=__flag__.SYSTRAY_PIN, on_click=functools.partial(
                     on_pin_to_start, item_unpin_start.enable), args=(gui.MenuItemMethod.ENABLE,),
                 position=-1).set_icon(RES_TEMPLATE.format(consts.RES_PIN))
         gui.add_separator()
         gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
             on_reset, False)).set_icon(RES_TEMPLATE.format(consts.RES_RESET_SOURCE))
-        gui.add_menu_item(_text('LABEL_RESET'), enable=consts.FEATURE_RESTART_PROCESS, on_click=functools.partial(
+        gui.add_menu_item(_text('LABEL_RESET'), enable=__feature__.BROTLI, on_click=functools.partial(
             on_reset, source=False)).set_icon(RES_TEMPLATE.format(consts.RES_RESET))
-        gui.add_menu_item(_text('LABEL_RESET_ALL'), enable=consts.FEATURE_RESTART_PROCESS,
+        gui.add_menu_item(_text('LABEL_RESET_ALL'), enable=__feature__.BROTLI,
                           on_click=on_reset).set_icon(RES_TEMPLATE.format(consts.RES_RESET_ALL))
         gui.add_separator()
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_TEMPLATE.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_TEMPLATE.format(consts.RES_CLEAR_CACHE))
-        gui.add_menu_item(_text('LABEL_RESTART'), enable=consts.FEATURE_RESTART_PROCESS,
+        gui.add_menu_item(_text('LABEL_RESTART'), enable=__feature__.BROTLI,
                           on_click=on_restart).set_icon(RES_TEMPLATE.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_TEMPLATE.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_TEMPLATE.format(consts.RES_AUTO))):
@@ -233,7 +236,7 @@ def create_menu():
                                          args=(gui.MenuItemMethod.SET_TOOLTIP,))
             item_dir.set_icon(RES_TEMPLATE.format(consts.RES_SAVE_DIR))
             on_modify_save(item_dir.set_tooltip, CURRENT_CONFIG[consts.CONFIG_SAVE_DIR])
-        if consts.FEATURE_ROTATE_IMAGE:
+        if __flag__.ROTATE_IMAGE:
             gui.add_submenu_radio(_text('MENU_ROTATE'), {rotate.name: _text(
                 f'ROTATE_{rotate.name}') for rotate in win32.display.Rotate},
                                   CURRENT_CONFIG, consts.CONFIG_ROTATE_BY,
@@ -275,7 +278,7 @@ def create_menu():
                                              CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
                                              on_click=on_source, icon=RES_TEMPLATE.format(consts.RES_SOURCE))
         on_source(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
-        if not consts.FEATURE_SOURCE_DEV:
+        if not __flag__.SOURCE_DEV:
             for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
                 if source.VERSION == srcs.Source.VERSION:
                     item_source.enable(False)
@@ -353,19 +356,6 @@ def load_config(path: str = CONFIG_PATH):
     RESET.clear()
 
 
-class BrotliDecoder(request.Decoder):
-    _token_ = 'br'
-
-    def __init__(self):
-        self._decoder = brotli.Decompressor()
-
-    def flush(self) -> bytes:
-        return self._decoder.unused_data
-
-    def decode(self, data: bytes) -> bytes:
-        return self._decoder.decompress(data)
-
-
 def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_SAVE_CONFIG]:
         json = config.JSONConfig()
@@ -408,7 +398,7 @@ def try_reapply_wallpaper(_: Optional[bool] = None, force: bool = False):
 
 
 def try_alert_error(exc: BaseException, force: bool = False):
-    if force or (consts.FEATURE_ERROR_HOOK and not pyinstall.FROZEN):
+    if force or (__flag__.ERROR_HOOK and not pyinstall.FROZEN):
         threading.Thread(target=win32.alert_error, args=(type(
             exc), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
             traceback.format_exception(type(exc), exc, exc.__traceback__)))).start()
@@ -485,8 +475,8 @@ def download_image(image: srcs.File) -> Optional[str]:
         STOP.clear()
         try:
             if (image.request.url == request.from_path(path) or
-                (image.checksize(path) and (consts.FEATURE_UNSAFE_CACHE or image.checksum(path))) or image.download(
-                        path, query_download)) and image.fill(path, not consts.FEATURE_UNSAFE_CACHE):
+                (image.checksize(path) and (__flag__.UNSAFE_CACHE or image.checksum(path))) or image.download(
+                        path, query_download)) and image.fill(path, not __flag__.UNSAFE_CACHE):
                 return path
         finally:
             PROGRESS[0] = -1
@@ -640,7 +630,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(_text('LABEL_OPEN'), on_click=functools.partial(
                         on_image, os.startfile, image, _text('LABEL_OPEN'),
                         _text('FAIL_OPEN'))).set_icon(RES_TEMPLATE.format(consts.RES_OPEN))
-                    if consts.FEATURE_OPEN_WITH:
+                    if __flag__.OPEN_WITH:
                         gui.add_menu_item(_text('LABEL_OPEN_WITH'), on_click=functools.partial(
                             on_image, win32.open_file_with_ex, image, _text('LABEL_OPEN_WITH'),
                             _text('FAIL_OPEN_WITH'))).set_icon(RES_TEMPLATE.format(consts.RES_OPEN_WITH))
@@ -659,7 +649,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                     gui.add_menu_item(_text('LABEL_COPY_URL'), enable=simple, on_click=functools.partial(
                         on_copy_url, image.request.url)).set_icon(RES_TEMPLATE.format(consts.RES_COPY_URL))
                     gui.add_separator()
-                    if consts.FEATURE_SEARCH_GOOGLE:
+                    if __flag__.SEARCH_GOOGLE:
                         gui.add_menu_item(_text('LABEL_GOOGLE'), on_click=functools.partial(
                             on_image, search_image, image, _text('LABEL_GOOGLE'),
                             _text('FAIL_SEARCH'))).set_icon(RES_TEMPLATE.format(consts.RES_GOOGLE))
@@ -675,7 +665,7 @@ def _update_recent_menu(item: win32.gui.MenuItem):
                 image.name, consts.MAX_LABEL_LEN), RES_TEMPLATE.format(
                 consts.TEMPLATE_RES_DIGIT.format(index + 1)), submenu=submenu)
             item_image.set_tooltip(f'{image.name} ({files.Size(image.size)})', icon_res_or_path_or_bitmap=_temp(
-                image.name) if consts.FEATURE_TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
+                image.name) if __flag__.TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.name)
     for uid, item_image in items.items():
         if uid and uid not in RECENT:
@@ -709,7 +699,7 @@ def on_easing_direction(enable_ease: Callable[[bool], bool], _: bool):
 
 
 def _get_blocker(blocker: str) -> str:
-    if consts.FEATURE_BLOCKER_NAME:
+    if __flag__.BLOCKER_NAME:
         try:
             blocker = BLOCKERS[os.path.basename(blocker)]
         except KeyError:
@@ -759,7 +749,7 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
         enable = len(DISPLAYS) > 1
         for submenu_item in submenu:
             submenu_item.enable(enable)
-        if consts.FEATURE_DISPLAY_EXTRA:
+        if __flag__.DISPLAY_EXTRA:
             gui.add_separator()
             gui.add_menu_item(_text('LABEL_DISPLAY_UPDATE'), on_click=functools.partial(
                 on_display_change, item, 1)).set_icon(RES_TEMPLATE.format(consts.RES_DISPLAY_UPDATE))
@@ -934,14 +924,13 @@ def apply_auto_start(auto_start: bool) -> bool:
 def start():
     singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(
         print, 'Crash'), functools.partial(print, 'Wait'), functools.partial(print, 'Exit'))
-    consts.FEATURE_RESTART_PROCESS = bool(multiprocessing.parent_process())
     win32.display.TEMP_WALLPAPER_DIR = _temp()
     pyinstall.clean_temp()
     _update_display()
     sys.modules['request'] = sys.modules['libs.request']  # FIXME https://github.com/cython/cython/issues/3867
     load_config()
     gui.init(consts.NAME)
-    gui.enable_menuitem_icon(consts.FEATURE_MENUITEM_ICON)
+    gui.enable_menuitem_icon(__flag__.MENUITEM_ICON)
     create_menu()
     gui.enable_animated_icon(CURRENT_CONFIG[consts.CONFIG_ANIMATE_ICON])
     apply_auto_start(CURRENT_CONFIG[consts.CONFIG_AUTO_START])
@@ -958,7 +947,7 @@ def stop():
 
 
 def main() -> NoReturn:
-    if consts.FEATURE_ERROR_HOOK:
+    if __flag__.ERROR_HOOK:
         utils.hook_except(win32.alert_error, True)
     try:
         start()

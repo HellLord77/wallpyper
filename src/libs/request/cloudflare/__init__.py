@@ -6,6 +6,7 @@ import random
 import urllib.request
 from typing import Optional
 
+from .. import Decoder as _Decoder
 from .. import Header as _Header
 from .. import Session as _Session
 from .. import _TAuth
@@ -22,7 +23,7 @@ class UserAgent:
     def __init__(self, desktop: bool = True, mobile: bool = True,
                  linux: bool = True, windows: bool = True, darwin: bool = True,
                  android: bool = True, ios: bool = True, chrome: bool = True,
-                 firefox: bool = True, allow_brotli: bool = False):
+                 firefox: bool = True, allow_brotli: Optional[bool] = None):
         devices = []
         if desktop:
             devices.append('desktop')
@@ -49,6 +50,8 @@ class UserAgent:
         if firefox:
             browsers.append('firefox')
         self.browser = random.choice(browsers)
+        if allow_brotli is None:
+            allow_brotli = 'br' in _Decoder
         self.allow_brotli = allow_brotli
 
     def encode(self, request: Optional[urllib.request.Request] = None) -> tuple[dict[str, str], tuple[str, ...]]:
@@ -64,7 +67,7 @@ class UserAgent:
             except ValueError:
                 pass
             else:
-                headers[_Header.ACCEPT_ENCODING] = ', '.join(encodings)
+                headers[_Header.ACCEPT_ENCODING] = ','.join(encodings)
         if request is not None:
             for header in headers:
                 request.add_header(*header)
