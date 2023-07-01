@@ -29,7 +29,8 @@ LOCALES = (
 
 
 def _authenticate(key: str) -> bool:
-    return bool(request.get(URL_CURATED, {'per_page': '1'}, headers={request.Header.AUTHORIZATION: key}))
+    return bool(request.get(URL_CURATED, {'per_page': '1'},
+                            headers={request.Header.AUTHORIZATION: key}))
 
 
 class Pexels(Source):  # https://www.pexels.com/api/documentation
