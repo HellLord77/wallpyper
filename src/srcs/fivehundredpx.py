@@ -103,7 +103,7 @@ class FiveHundredPx(Source):  # https://github.com/500px/legacy-api-documentatio
                     yield
                     continue
             photo = photos.pop(0)
-            yield ImageFile(photo['image_url'][0], f'{photo["name"].strip()}.{photo["image_format"]}',
+            yield ImageFile(photo['image_url'][0], f'{photo["name"]}.{photo["image_format"]}',
                             url=request.join_url(cls.URL, photo['url']), width=photo[
                     'width'], height=photo['height'], sketchy=photo['has_nsfw_tags'], nsfw=photo['nsfw'])
 

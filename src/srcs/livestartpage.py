@@ -53,7 +53,7 @@ class LiveStartPage(Source):
         item_random = gui.add_menu_item(
             cls._text('LABEL_RESET'), on_click=cls._on_reset)
         cls._set_tooltip = item_random.set_tooltip
-        cls._set_tooltip(cls._text('TOOLTIP_TEMPLATE_CURSOR').format(_CURSOR))
+        cls._set_tooltip(cls._text('TOOLTIP_FMT_CURSOR').format(_CURSOR))
         on_random = functools.partial(cls._on_random, item_random.enable)
         gui.add_menu_item_check(cls._text('LABEL_RANDOM'), cls.CURRENT_CONFIG,
                                 CONFIG_RANDOM, on_click=on_random, position=1)
@@ -68,7 +68,7 @@ class LiveStartPage(Source):
         _CURSOR.set(params.pop(CONFIG_CURSOR))
         while True:
             cls._set_tooltip(
-                cls._text('TOOLTIP_TEMPLATE_CURSOR').format(_CURSOR))
+                cls._text('TOOLTIP_FMT_CURSOR').format(_CURSOR))
             if not random:
                 params[CONFIG_CURSOR] = str(_CURSOR)
             response = request.get(URL_PHOTO, params)
@@ -94,4 +94,4 @@ class LiveStartPage(Source):
     @classmethod
     def _on_reset(cls):
         cursor = cls.CURRENT_CONFIG[CONFIG_CURSOR] = cls.DEFAULT_CONFIG[CONFIG_CURSOR]
-        cls._set_tooltip(cls._text('TOOLTIP_TEMPLATE_CURSOR').format(cursor))
+        cls._set_tooltip(cls._text('TOOLTIP_FMT_CURSOR').format(cursor))

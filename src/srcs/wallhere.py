@@ -31,7 +31,7 @@ COLORS = (
     '', 'FF2000', 'A24615', 'FF7C00', 'FF9F9C', 'FFFA00', 'FFCF00', '90E200',
     '00AB00', '00B2D4', '0062C6', '8C20BA', 'F52394', 'FFFFFF', '7C7C7C', '000000')
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_FMT_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 _ATTRS_END = {'data-score': ''}
 _ATTRS_JSON = {'type': 'application/ld+json'}
 
@@ -89,7 +89,7 @@ class WallHere(Source):
             if color:
                 rgb = colornames.hex_to_rgb(color)
                 srgb = tuple(c / 255 for c in rgb)
-                item.set_tooltip(_TEMPLATE_COLOR.format(colornames.format_cmyk(
+                item.set_tooltip(_FMT_COLOR.format(colornames.format_cmyk(
                     *colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(*srgb))),
                     colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)),
                     colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),

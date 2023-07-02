@@ -14,16 +14,15 @@ CONFIG_ORDER = 'sort_order'
 
 SORTS = {
     'name': str,
-    'size': os.path.getsize,
-    'created': os.path.getctime,
     'modified': os.path.getmtime,
-    'accessed': os.path.getatime}
+    'type': files.get_ext,
+    'size': os.path.getsize}
 ORDERS = 'ascending', 'descending'
 
 
 class Folder(Source):
     NAME = 'Folder [offline]'
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool, bool],

@@ -40,7 +40,7 @@ TIMES = 'all', 'today', '7days', '30days', '60days'
 SORTS = 'latest', 'views', 'downloads', 'favorites', 'rating', 'color'
 ORDERS = 'desc', 'asc'
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_FMT_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
 
 def _on_color_right(event):
@@ -107,7 +107,7 @@ class Wallscloud(Source):
             if color:
                 rgb = colornames.hex_to_rgb(color)
                 srgb = tuple(c / 255 for c in rgb)
-                item.set_tooltip(_TEMPLATE_COLOR.format(colornames.format_cmyk(
+                item.set_tooltip(_FMT_COLOR.format(colornames.format_cmyk(
                     *colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(*srgb))),
                     colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)),
                     colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),

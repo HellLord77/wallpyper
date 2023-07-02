@@ -37,7 +37,7 @@ COLORS = (
     'ff9900', 'ff6600', 'cc6633', '996633', '663300', '000000', '999999', 'cccccc', 'ffffff', '424153')
 RE_PURITY = re.compile('^(?!000)[01]{3}$')
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_FMT_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 
 
 def _on_color_right(event):
@@ -133,7 +133,7 @@ class Wallhaven(Source):  # https://wallhaven.cc/help/api
             if color:
                 rgb = colornames.hex_to_rgb(color)
                 srgb = tuple(c / 255 for c in rgb)
-                item.set_tooltip(_TEMPLATE_COLOR.format(colornames.format_cmyk(
+                item.set_tooltip(_FMT_COLOR.format(colornames.format_cmyk(
                     *colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(*srgb))),
                     colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)),
                     colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),

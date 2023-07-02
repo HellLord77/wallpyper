@@ -9,7 +9,7 @@ CONFIG_VARIANT = 'variant'
 
 VARIANTS = 'person',
 
-_TEMPLATE_URL = 'https://this{}doesnotexist.com'
+URL_FMT = 'https://this{}doesnotexist.com'
 
 
 class ThisXDoesNotExist(Source):
@@ -33,6 +33,6 @@ class ThisXDoesNotExist(Source):
 
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[File]]:
-        url = _TEMPLATE_URL.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
+        url = URL_FMT.format(cls.CURRENT_CONFIG[CONFIG_VARIANT])
         while True:
             yield File(url, f'{uuid.uuid4()}.jpg')

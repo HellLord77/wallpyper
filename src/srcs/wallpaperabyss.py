@@ -50,7 +50,7 @@ CATEGORIES = (
     1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 14, 15, 13, 16, 17, 18,
     19, 20, 22, 24, 25, 26, 27, 28, 30, 29, 31, 32, 34, 33)
 
-_TEMPLATE_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
+_FMT_COLOR = 'CMYK: {}\nHSV: {}\nHSL: {}'
 _ATTRS_NEXT_PAGE = {'id': 'next_page'}
 
 
@@ -117,7 +117,7 @@ class WallpaperAbyss(Source):
         for item, color in zip(item_color.get_submenu(), COLORS):
             rgb = colornames.hex_to_rgb(color)
             srgb = tuple(c / 255 for c in rgb)
-            item.set_tooltip(_TEMPLATE_COLOR.format(colornames.format_cmyk(
+            item.set_tooltip(_FMT_COLOR.format(colornames.format_cmyk(
                 *colornames.cmy_to_cmyk(*colornames.srgb_to_cmy(*srgb))),
                 colornames.format_hsv(*colorsys.rgb_to_hsv(*srgb)),
                 colornames.format_hls(*colorsys.rgb_to_hls(*srgb))),

@@ -26,8 +26,8 @@ COLORS = (
     'red', 'orange', 'yellow', 'green', 'turquoise', 'blue',
     'lilac', 'pink', 'white', 'gray', 'black', 'brown', '')
 
-_TEMPLATE_TOP = f'{URL_BASE}/top/{{}}/'
-_TEMPLATE_PICTURE = f'{URL_BASE}/wpic/{{}}_{{}}/'
+_FMT_TOP = f'{URL_BASE}/top/{{}}/'
+_FMT_PICTURE = f'{URL_BASE}/wpic/{{}}_{{}}/'
 
 
 class WallpaperTip(Source):
@@ -83,7 +83,7 @@ class WallpaperTip(Source):
             if not items:
                 params['page'] = str(page)
                 response = request.get(URL_SEARCH if search else
-                                       _TEMPLATE_TOP.format(params.pop('page')), params)
+                                       _FMT_TOP.format(params.pop('page')), params)
                 if response:
                     html = sgml.loads(response.text)
                     items = list(html.find_all('div', classes='item'))
@@ -101,7 +101,7 @@ class WallpaperTip(Source):
             path = request.split_url(link[0]['data-original'])[-1]
             name = path.split('_', 1)[1]
             width, height = map(int, item[1][1][0].get_text().split('x'))
-            yield ImageFile(request.join_url(URL_IMAGE, path), name, url=_TEMPLATE_PICTURE.format(
+            yield ImageFile(request.join_url(URL_IMAGE, path), name, url=_FMT_PICTURE.format(
                 request.split_url(link['href'])[-1].split('_', 1)[0], os.path.splitext(name)[0]),
                             width=width, height=height)
 
