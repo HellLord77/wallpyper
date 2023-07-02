@@ -18,7 +18,7 @@ $NoConsole = $True
 $OneFile = $False
 $ElevatedProc = $False
 $RemoteProc = $False
-$UPX = $False
+$UPX = $True
 $ModuleGraph = $True
 $EntryPoint = "src/init.py"
 $Icon = "src/res/icon.ico"
@@ -35,8 +35,8 @@ $CythonSourceGlobs = @(
 	"src/libs/ctyped/{const,enum,winrt}/*.py"
 	# "src/libs/ctyped/{_utils,struct,union}.py"
 	"src/libs/ctyped/{__init__,handle,macro}.py"
-	"src/{plat,win32}/**/*.py"
-	"src/{exts,langs,libs,srcs}/*.py"
+	"src/{plat,srcs,win32}/**/*.py"
+	"src/{exts,langs,libs}/*.py"
 	"src/*.py")
 $CythonExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
@@ -115,6 +115,7 @@ $CodeModuleGraphSmartTemplate = @(
 	"graph.process_post_graph_hooks(analysis)"
 	"print(';'.join(module.identifier for module in graph.iter_graph()))")
 $MinifyJsonLocal = $False
+$StripSymbols = $False
 $ModuleGraphSmart = $True
 $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
@@ -326,6 +327,7 @@ function Get-PyInstallerArgs {
 		$ArgList += "--upx-dir=$UPXDir"
 	}
 	else { $ArgList += "--noupx" }
+	if ($StripSymbols) { $ArgList += "--strip" }
 	return $ArgList
 }
 

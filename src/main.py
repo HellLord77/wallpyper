@@ -1,5 +1,4 @@
 import collections
-import copy
 import datetime
 import functools
 import itertools
@@ -55,7 +54,7 @@ BLOCKERS: dict[str, str] = {
 win32.display.ANIMATION_POLL_INTERVAL = 0
 gui.ANIMATION_PATH = RES_FMT.format(consts.RES_BUSY)
 
-RESET: MutableSequence[str]
+RESET: MutableSequence[str] = []
 PROGRESS = [-1, request.RETRIEVE_UNKNOWN_SIZE]
 DISPLAYS: dict[str, tuple[str, tuple[int, int]]] = {}
 STOP = utils.MutableBool()
@@ -136,8 +135,7 @@ def fix_config(saving: bool = False):
     _fix_config(validator.ensure_unique, consts.CONFIG_RECENT_IMAGES, pickle.dumps)
     _fix_config(validator.ensure_max_len, consts.CONFIG_RECENT_IMAGES, consts.MAX_RECENT_LEN, right=True)
     _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_DISPLAY, DISPLAYS)
-    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES if __flag__.SOURCE_DEV else (
-        name for name, source in srcs.SOURCES.items() if source.VERSION != srcs.Source.VERSION))
+    _fix_config(validator.ensure_contains, consts.CONFIG_ACTIVE_SOURCE, srcs.SOURCES)
     _fix_config(validator.ensure_contains, consts.CONFIG_CHANGE_INTERVAL, CHANGE_INTERVALS)
     _fix_config(validator.ensure_contains_name, consts.CONFIG_FIT_STYLE, win32.display.Style)
     _fix_config(validator.ensure_contains, consts.CONFIG_MAXIMIZED_ACTION, MAXIMIZED_ACTIONS)
@@ -205,17 +203,10 @@ def create_menu():
                     on_pin_to_start, item_unpin_start.enable), args=(gui.MenuItemMethod.ENABLE,),
                 position=-1).set_icon(RES_FMT.format(consts.RES_PIN))
         gui.add_separator()
-        gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
-            on_reset, False)).set_icon(RES_FMT.format(consts.RES_RESET_SOURCE))
-        gui.add_menu_item(_text('LABEL_RESET'), enable=__feature__.BROTLI, on_click=functools.partial(
-            on_reset, source=False)).set_icon(RES_FMT.format(consts.RES_RESET))
-        gui.add_menu_item(_text('LABEL_RESET_ALL'), enable=__feature__.BROTLI,
-                          on_click=on_reset).set_icon(RES_FMT.format(consts.RES_RESET_ALL))
-        gui.add_separator()
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_FMT.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_FMT.format(consts.RES_CLEAR_CACHE))
-        gui.add_menu_item(_text('LABEL_RESTART'), enable=__feature__.BROTLI,
+        gui.add_menu_item(_text('LABEL_RESTART'), enable=__feature__.RESTART,
                           on_click=on_restart).set_icon(RES_FMT.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_FMT.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_FMT.format(consts.RES_AUTO))):
@@ -272,16 +263,11 @@ def create_menu():
                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
                 gui.add_menu_item_check(_text('EASE_DIRECTION_OUT'), CURRENT_CONFIG, consts.CONFIG_EASE_OUT,
                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
-        item_sources = gui.add_submenu_radio(_text('MENU_SOURCE'), {
-            name: source.NAME for name, source in sorted(
-                srcs.SOURCES.items(), key=lambda source: source[1].NAME.casefold())},
-                                             CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
-                                             on_click=on_source, icon=RES_FMT.format(consts.RES_SOURCE))
+        # noinspection PyTypeChecker
+        gui.add_submenu_radio(_text('MENU_SOURCE'), {name: source.NAME for name, source in sorted(
+            srcs.SOURCES.items(), key=_sort_source)}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
+                              on_click=on_source, icon=RES_FMT.format(consts.RES_SOURCE))
         on_source(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
-        if not __flag__.SOURCE_DEV:
-            for item_source, source in zip(item_sources.get_submenu(), srcs.SOURCES.values()):
-                if source.VERSION == srcs.Source.VERSION:
-                    item_source.enable(False)
         item_display = gui.add_submenu(_text('MENU_DISPLAY'), icon=RES_FMT.format(consts.RES_DISPLAY))
         gui.GUI.bind(gui.GuiEvent.DISPLAY_CHANGE, functools.partial(on_display_change, item_display))
         on_display_change(item_display, 0)
@@ -303,6 +289,15 @@ def create_menu():
         gui.add_menu_item_check(_text('LABEL_CACHE'), CURRENT_CONFIG, consts.CONFIG_KEEP_CACHE)
         gui.add_menu_item_check(_text('LABEL_START'), CURRENT_CONFIG, consts.CONFIG_AUTO_START)
         gui.add_menu_item_check(_text('LABEL_SETTINGS_AUTO_SAVE'), CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
+        gui.add_separator()
+        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART,
+                                          icon=RES_FMT.format(consts.RES_SETTINGS_RESET))):
+            gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
+                on_reset, False)).set_icon(RES_FMT.format(consts.RES_RESET_SOURCE))
+            gui.add_menu_item(_text('LABEL_RESET'), on_click=functools.partial(
+                on_reset, source=False)).set_icon(RES_FMT.format(consts.RES_RESET))
+            gui.add_menu_item(_text('LABEL_RESET_ALL'),
+                              on_click=on_reset).set_icon(RES_FMT.format(consts.RES_RESET_ALL))
     gui.add_menu_item(_text('LABEL_QUIT'), on_click=on_quit, on_thread=False).set_icon(
         RES_FMT.format(consts.RES_QUIT))
 
@@ -402,6 +397,12 @@ def try_alert_error(exc: BaseException, force: bool = False):
         threading.Thread(target=win32.alert_error, args=(type(
             exc), f'Process {multiprocessing.current_process().name}:\n' + ''.join(
             traceback.TracebackException.from_exception(exc).format()))).start()
+
+
+def _sort_source(source: tuple[str, type[srcs.Source]]) -> tuple[int, tuple[str, ...]]:
+    parts = source[0].split('.')
+    parts[-1] = source[1].NAME
+    return len(parts), tuple(map(str.casefold, parts))
 
 
 @timer.on_thread
@@ -856,13 +857,10 @@ def on_reset(main_: bool = True, source: bool = True):
     if main_:
         RESET.append(consts.NAME)
         if source:
-            RESET.append(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
-        on_restart()
+            RESET.extend(srcs.SOURCES)
     elif source:
-        name = CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE]
-        source = srcs.SOURCES[name]
-        source.CURRENT_CONFIG = copy.deepcopy(source.DEFAULT_CONFIG)
-        on_source(name)
+        RESET.append(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
+    on_restart()
 
 
 def on_restart():

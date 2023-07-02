@@ -1,7 +1,7 @@
 import __feature__
-from libs import request
 
 if __feature__.BROTLI:
+    from libs import request
     from plat import brotli
 
 

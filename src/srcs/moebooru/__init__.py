@@ -10,7 +10,7 @@ import validator
 from libs import request
 from .. import CONFIG_ORIENTATIONS, ImageFile, Source
 
-URL_FMT_POST = request.join_url('{}', 'post.json')
+URL_FMT_TAG = request.join_url('{}', 'post.json')
 URL_FMT_INFO = request.join_url('{}', 'post', 'show')
 URL_FMT_POOL = request.join_url('{}', 'pool', 'show', '{}.json')
 URL_FMT_POPULAR = request.join_url('{}', 'post', 'popular_{}.json')
@@ -29,7 +29,7 @@ CONFIG_DAY = 'day'
 CONFIG_MONTH = 'month'
 CONFIG_YEAR = 'year'
 
-MODES = 'post', 'pool', 'popular'
+MODES = 'tag', 'pool', 'popular'
 RATINGS = 's', 'q', 'e'
 ORDERS = (
     'id', 'id_desc', 'score', 'score_asc', 'mpixels',
@@ -88,7 +88,6 @@ def _param_time(day: int, month: int, year: int) -> Iterator[tuple[str, str]]:
 
 
 class MoebooruSource(Source, source=False):
-    VERSION = '0.0.1'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_MODE: str,
@@ -140,7 +139,7 @@ class MoebooruSource(Source, source=False):
     @classmethod
     def create_menu(cls):
         gui.add_separator()
-        item_post = gui.add_submenu(cls._text('MENU_POST'))
+        item_post = gui.add_submenu(cls._text('MENU_TAG'))
         with gui.set_menu(item_post):
             gui.add_submenu_check(cls._text('MENU_RATING'), (cls._text(
                 f'RATING_{rating}') for rating in range(3)),
@@ -180,7 +179,7 @@ class MoebooruSource(Source, source=False):
         posts = []
         mode = params.pop(CONFIG_MODE)
         if mode == MODES[0]:
-            url = URL_FMT_POST.format(cls.URL)
+            url = URL_FMT_TAG.format(cls.URL)
             tags = set(params[CONFIG_TAGS])
             tags.update(_tag_rating(params[CONFIG_RATING]))
             tags.update(_tag_order(params[CONFIG_ORDER]))
