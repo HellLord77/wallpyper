@@ -93,7 +93,7 @@ MENU_IF_MAXIMIZED = 'If Other App Maximized'
 
 TOOLTIP_CHANGE_START = 'Automatically change wallpaper on starting Wallpyper'
 TOOLTIP_AUTO_SAVE = 'Automatically save the applied image to the selected folder'
-TOOLTIP_TEMPLATE_SAVE_DIR = 'Save location: {}'
+TOOLTIP_FMT_SAVE_DIR = 'Save location: {}'
 
 STATUS_CHANGE = 'Changing Wallpaper...'
 STATUS_FETCH = 'Fetching Image...'
@@ -717,10 +717,9 @@ FOLDER_MENU_ORDER = 'Image Sort Order'
 FOLDER_MENU_ORIENTATIONS = 'Orientation'
 
 FOLDER_SORT_name = 'Name'
+FOLDER_SORT_modified = 'Date Modified'
+FOLDER_SORT_type = 'Type'
 FOLDER_SORT_size = 'Size'
-FOLDER_SORT_created = 'Creation Time'
-FOLDER_SORT_modified = 'Last Modified'
-FOLDER_SORT_accessed = 'Access Time'
 
 FOLDER_ORDER_ascending = 'Ascending'
 FOLDER_ORDER_descending = 'Descending'
@@ -851,7 +850,7 @@ KEKAIART_ORIENTATION_1 = 'Portrait'
 LIVESTARTPAGE_LABEL_RANDOM = 'Random'
 LIVESTARTPAGE_LABEL_RESET = 'Reset Cursor'
 
-LIVESTARTPAGE_TOOLTIP_TEMPLATE_CURSOR = 'Current cursor: {}'
+LIVESTARTPAGE_TOOLTIP_FMT_CURSOR = 'Current cursor: {}'
 
 LIVESTARTPAGE_MENU_CATEGORY = 'Category'
 
@@ -989,7 +988,7 @@ REDDIT_TIME_all = 'All Time'
 
 SIMPLEDESKTOPS_LABEL_RESET = 'Reset Pagination'
 
-SIMPLEDESKTOPS_TOOLTIP_TEMPLATE_PAGE = 'Current page: {}'
+SIMPLEDESKTOPS_TOOLTIP_FMT_PAGE = 'Current page: {}'
 
 SPOTLIGHT_MENU_LOCALE = 'Locale'
 SPOTLIGHT_MENU_ORIENTATION = 'Orientation'
@@ -2001,16 +2000,6 @@ WALLUP_SORT_rand = 'Random'
 WALLUP_ORDER_ASC = 'Ascending'
 WALLUP_ORDER_DESC = 'Descending'
 
-YANDERE_MENU_ORIENTATIONS = 'Orientation'
-YANDERE_MENU_RATINGS = 'Rating'
-
-YANDERE_RATING_0 = 'Safe'
-YANDERE_RATING_1 = 'Questionable'
-YANDERE_RATING_2 = 'Explicit'
-
-YANDERE_ORIENTATION_0 = 'Landscape'
-YANDERE_ORIENTATION_1 = 'Portrait'
-
 ZEROCHAN_MENU_SORT = 'Sort by'
 ZEROCHAN_MENU_TIME = 'Sort Range'
 ZEROCHAN_MENU_DIMENSION = 'Dimension'
@@ -2040,3 +2029,54 @@ ZEROCHAN_COLOR_purple = 'Purple'
 ZEROCHAN_COLOR_red = 'Red'
 ZEROCHAN_COLOR_white = 'White'
 ZEROCHAN_COLOR_yellow = 'Yellow'
+
+MOEBOORU_MENU_MODE = 'Mode'
+MOEBOORU_MENU_POST = 'Post Settings'
+MOEBOORU_MENU_RATING = 'Rating'
+MOEBOORU_MENU_ORDER = 'Order'
+MOEBOORU_MENU_WIDTH = 'Width'
+MOEBOORU_MENU_HEIGHT = 'Height'
+MOEBOORU_MENU_SIZE = 'Size'
+MOEBOORU_MENU_POPULAR = 'Popular Settings'
+MOEBOORU_MENU_POPULARITY = 'Popularity'
+MOEBOORU_MENU_PERIOD = 'Period'
+MOEBOORU_MENU_ORIENTATIONS = 'Orientation'
+
+MOEBOORU_MODE_post = 'Post'
+MOEBOORU_MODE_pool = 'Pool'
+MOEBOORU_MODE_popular = 'Popular'
+
+MOEBOORU_RATING_0 = 'Safe'
+MOEBOORU_RATING_1 = 'Questionable'
+MOEBOORU_RATING_2 = 'Explicit'
+
+MOEBOORU_ORDER_id = 'Date\t↑'
+MOEBOORU_ORDER_id_desc = 'Date\t↓'
+MOEBOORU_ORDER_score = 'Score\t↓'
+MOEBOORU_ORDER_score_asc = 'Score\t↑'
+MOEBOORU_ORDER_mpixels = 'Size\t↓'
+MOEBOORU_ORDER_mpixels_asc = 'Size\t↑'
+MOEBOORU_ORDER_landscape = 'Ratio\t↓'
+MOEBOORU_ORDER_portrait = 'Ratio\t↑'
+MOEBOORU_ORDER_random = 'Random\t↕'
+
+MOEBOORU_WIDTH_0 = 'Any'
+
+MOEBOORU_HEIGHT_0 = 'Any'
+
+MOEBOORU_SIZE_bigger = 'Bigger'
+MOEBOORU_SIZE_exact = 'Exact'
+MOEBOORU_SIZE_smaller = 'Smaller'
+
+MOEBOORU_POPULARITY_recent = 'Recent'
+MOEBOORU_POPULARITY_by_day = 'By Day'
+MOEBOORU_POPULARITY_by_week = 'By Week'
+MOEBOORU_POPULARITY_by_month = 'By Month'
+
+MOEBOORU_PERIOD_1d = '24 Hours'
+MOEBOORU_PERIOD_1w = '1 Week'
+MOEBOORU_PERIOD_1m = '1 Month'
+MOEBOORU_PERIOD_1y = '1 Year'
+
+MOEBOORU_ORIENTATION_0 = 'Landscape'
+MOEBOORU_ORIENTATION_1 = 'Portrait'
