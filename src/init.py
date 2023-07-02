@@ -21,11 +21,10 @@ import consts
 def target(reset: multiprocessing.managers.ListProxy,
            restart: multiprocessing.managers.ValueProxy):
     import main
-    main.RESET = reset[:]
+    main.RESET = reset
     try:
         main.main()
     except SystemExit:
-        reset[:] = main.RESET
         restart.value = main.RESTART.get()
 
 

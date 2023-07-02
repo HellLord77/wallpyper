@@ -1,4 +1,4 @@
-__version__ = '0.0.25'
+__version__ = '0.0.26'
 
 import ast
 import base64
@@ -30,7 +30,7 @@ import typing
 import uuid
 import zipfile
 import zlib
-from typing import Any, AnyStr, Callable, IO, Iterable, Iterator, Literal, Mapping, Optional
+from typing import Any, AnyStr, Callable, Iterable, Iterator, Literal, Mapping, Optional
 
 import _hashlib
 
@@ -447,11 +447,6 @@ def randint_ex() -> int:
     return secrets.choice(secrets.token_bytes())
 
 
-def reversed_ex(*items) -> Any:
-    for ele in reversed(items):
-        yield ele
-
-
 def replace_ex(string: str, a: str, b: str) -> str:
     return ''.join(a if char == b else b if char == a else char for char in string)
 
@@ -517,10 +512,31 @@ def clear_queue(queue: queue.Queue) -> int:
     return tasks
 
 
-def iter_stream(stream: IO[AnyStr], size: int = sys.maxsize) -> Iterator[AnyStr]:
-    read = stream.read
-    while chunk := read(size):
-        yield chunk
+@typing.overload
+def iindex(it: Iterable[T], stop, /) -> Iterator[T]:
+    pass
+
+
+@typing.overload
+def iindex(it: Iterable[T], start, stop: Optional, step: int = 1, /) -> Iterator[T]:
+    pass
+
+
+def iindex(it, start, stop=DEFAULT, step=1):
+    if stop is DEFAULT:
+        stop = start
+        started = 0
+    else:
+        started = -1
+    for index, ele in enumerate(it):
+        if ele == stop:
+            break
+        elif started == -1:
+            if ele == start:
+                yield ele
+                started = index
+        elif not (index - started) % step:
+            yield ele
 
 
 def re_join(base: str, *child: str, sep: str = os.sep) -> str:

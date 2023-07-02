@@ -15,7 +15,7 @@ import time
 import weakref
 from typing import Any, Callable, Container, Iterator, NoReturn, Optional
 
-_TEMPLATE_THREAD_NAME = f'{__name__}-{__version__}-{{}}({{}})'
+_FMT_THREAD_NAME = f'{__name__}-{__version__}-{{}}({{}})'
 
 
 def _get_params(args: tuple, kwargs: dict[str, Any]) -> Any:
@@ -42,9 +42,9 @@ class _Callable(Callable):
 class _RunningQueryable:
     _selves: weakref.WeakSet[_RunningQueryable]
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, *args, **kwargs):
         cls._selves = weakref.WeakSet()
-        super().__init_subclass__(**kwargs)
+        super().__init_subclass__(*args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         self._selves.add(self)
@@ -98,7 +98,7 @@ class ThreadedCallable(_Callable):
 
     def __call__(self, *args, **kwargs):
         threading.Thread(target=lambda: setattr(self, '_res', self.__func__(
-            *args, **kwargs)), name=_TEMPLATE_THREAD_NAME.format(
+            *args, **kwargs)), name=_FMT_THREAD_NAME.format(
             type(self).__name__, self.__func__.__name__)).start()
 
     def get_result(self) -> Any:
@@ -166,7 +166,7 @@ class QueueThreadCallable(_Callable, _RunningQueryable):
     def __init__(self, func: Callable):
         self._works = queue.Queue()
         threading.Thread(
-            target=self._worker, name=_TEMPLATE_THREAD_NAME.format(
+            target=self._worker, name=_FMT_THREAD_NAME.format(
                 type(self).__name__, func.__name__), daemon=True).start()
         super().__init__(func)
 

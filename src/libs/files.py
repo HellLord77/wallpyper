@@ -80,6 +80,13 @@ class Size(int):
         return self.zetta_byte / self.unit
 
 
+def get_ext(path: str, dot: bool = False) -> str:
+    ext = os.path.splitext(path)[1]
+    if not dot:
+        ext = ext[1:]
+    return ext
+
+
 def replace_ext(path: str, ext: str) -> str:
     if ext.startswith('.'):
         ext = ext[1:]
