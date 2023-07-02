@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.6'
+__version__ = '0.3.0'
 
 import binascii
 import dataclasses
@@ -54,8 +54,9 @@ class File:
         if not self.name:
             self.name = urllib.parse.unquote_plus(
                 os.path.basename(request.strip_url(self.request.url)))
-        self.name = utils.shrink_string_mid(
-            win32.sanitize_filename(self.name), consts.MAX_FILENAME_LEN)
+        name, ext = os.path.splitext(self.name)
+        self.name = utils.shrink_string_mid(win32.sanitize_filename(
+            name.strip().removesuffix(ext) + ext), consts.MAX_FILENAME_LEN)
         if self.url is None and self.is_simple():
             self.url = self.request.url
         for algorithm, hash_ in self._iter_hashes():
@@ -199,7 +200,7 @@ class ImageFile(File):
         return True
 
     def is_animated(self) -> bool:  # TODO
-        return os.path.splitext(self.name)[1].lower() in ('.gif', '.webp')
+        return files.get_ext(self.name).lower() in ('gif', 'webp')
 
     def is_square(self, tolerance: float = 0.05) -> bool:
         return self.ratio <= tolerance
@@ -212,7 +213,7 @@ class Source:
     NAME: str = ''
     VERSION: str = '0.0.0'
     ICON: str = 'ico'
-    URL: Optional[str] = None
+    URL: str = ''
     TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_RATINGS: list[bool]}, total=False)
@@ -222,16 +223,26 @@ class Source:
     _orientations: bool
     _ratings: bool
 
-    def __init_subclass__(cls):
-        uid = cls.__module__.split('.')[-1]
-        if not cls.NAME:
-            cls.NAME = cls.__name__
-        cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
-        cls.CURRENT_CONFIG = {}
-        cls._orientations = CONFIG_ORIENTATIONS in cls.DEFAULT_CONFIG
-        cls._ratings = CONFIG_RATINGS in cls.DEFAULT_CONFIG
-        cls.get_image = callables.LastCacheCallable(cls.get_image)
-        SOURCES[uid] = cls
+    def __init_subclass__(cls, source: bool = True):
+        if source:
+            uid = cls.__module__.removeprefix(Source.__module__ + '.')
+            if not cls.NAME:
+                cls.NAME = cls.__name__
+            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
+            tconfig = cls.TCONFIG
+            default_config = cls.DEFAULT_CONFIG
+            for base in utils.iindex(cls.__mro__[::-1], Source, cls):
+                # noinspection PyUnresolvedReferences
+                tconfig_ = base.TCONFIG
+                tconfig.__required_keys__ |= tconfig_.__required_keys__
+                tconfig.__optional_keys__ |= tconfig_.__optional_keys__
+                # noinspection PyUnresolvedReferences
+                default_config.update(base.DEFAULT_CONFIG)
+            cls.CURRENT_CONFIG = {}
+            cls._orientations = CONFIG_ORIENTATIONS in cls.DEFAULT_CONFIG
+            cls._ratings = CONFIG_RATINGS in cls.DEFAULT_CONFIG
+            cls.get_image = callables.LastCacheCallable(cls.get_image)
+            SOURCES[uid] = cls
 
     # noinspection PyShadowingNames
     @classmethod
@@ -240,23 +251,11 @@ class Source:
         return validator(cls.CURRENT_CONFIG, cls.DEFAULT_CONFIG, key, *args, **kwargs)
 
     @classmethod
-    @final
-    def _fix_orientations(cls, key: str = CONFIG_ORIENTATIONS):
-        cls._fix_config(validator.ensure_len, key, len(cls.DEFAULT_CONFIG[key]))
-        cls._fix_config(validator.ensure_truthy, key, any)
-
-    @classmethod
-    @final
-    def _fix_ratings(cls, key: str = CONFIG_RATINGS):
-        cls._fix_config(validator.ensure_len, key, len(cls.DEFAULT_CONFIG[key]))
-        cls._fix_config(validator.ensure_truthy, key, any)
-
-    @classmethod
     def fix_config(cls, saving: bool = False):
-        if cls._orientations:
-            cls._fix_orientations()
-        if cls._ratings:
-            cls._fix_ratings()
+        for key in itertools.compress((CONFIG_ORIENTATIONS, CONFIG_RATINGS),
+                                      (cls._orientations, cls._ratings)):
+            cls._fix_config(validator.ensure_len, key, len(cls.DEFAULT_CONFIG[key]))
+            cls._fix_config(validator.ensure_truthy, key, any)
 
     @classmethod
     @final
@@ -265,25 +264,17 @@ class Source:
             langs.DEFAULT, f'{cls.__module__.split(".", 1)[1].upper()}_{message}')
 
     @classmethod
-    @final
-    def _create_orientations(cls, key: str = CONFIG_ORIENTATIONS):
-        gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
-            f'ORIENTATION_{orientation}') for orientation in range(
-            len(cls.DEFAULT_CONFIG[key]))), (1, None), cls.CURRENT_CONFIG, key)
-
-    @classmethod
-    @final
-    def _create_ratings(cls, key: str = CONFIG_RATINGS):
-        gui.add_submenu_check(cls._text('MENU_RATINGS'), (cls._text(
-            f'RATING_{rating}') for rating in range(
-            len(cls.DEFAULT_CONFIG[key]))), (1, None), cls.CURRENT_CONFIG, key)
-
-    @classmethod
     def create_menu(cls):
         if cls._orientations:
-            cls._create_orientations()
+            gui.add_submenu_check(cls._text('MENU_ORIENTATIONS'), (cls._text(
+                f'ORIENTATION_{orientation}') for orientation in range(
+                len(cls.DEFAULT_CONFIG[CONFIG_ORIENTATIONS]))),
+                                  (1, None), cls.CURRENT_CONFIG, CONFIG_ORIENTATIONS)
         if cls._ratings:
-            cls._create_ratings()
+            gui.add_submenu_check(cls._text('MENU_RATINGS'), (cls._text(
+                f'RATING_{rating}') for rating in range(
+                len(cls.DEFAULT_CONFIG[CONFIG_RATINGS]))),
+                                  (1, None), cls.CURRENT_CONFIG, CONFIG_RATINGS)
 
     @classmethod
     @final
@@ -366,5 +357,5 @@ from . import (
     wallpapertip,
     wallscloud,
     wallup,
-    yandere,
-    zerochan)  # NOQA: E402
+    zerochan,
+    moebooru)  # NOQA: E402
