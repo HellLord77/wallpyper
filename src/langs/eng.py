@@ -861,10 +861,10 @@ LIVESTARTPAGE_CATEGORY_44 = 'Animals'
 
 LWALPAPERS_MENU_SORT = 'Sort by'
 
-LWALPAPERS_SORT_oldest = 'Date\t↑'
 LWALPAPERS_SORT_newest = 'Date\t↓'
-LWALPAPERS_SORT_smallest = 'Size\t↑'
+LWALPAPERS_SORT_oldest = 'Date\t↑'
 LWALPAPERS_SORT_largest = 'Size\t↓'
+LWALPAPERS_SORT_smallest = 'Size\t↑'
 LWALPAPERS_SORT_random = 'Random\t↕'
 
 PEXELS_LABEL_CURATED = 'Curated Photos'

@@ -23,7 +23,7 @@ CONTESTS = (
     'eoan', 'focal', 'groovy', 'hirsute', 'impish', 'jammy', 'kinetic', 'lunar')
 SORTS = {
     'oldest': lambda x: x,
-    'newest': lambda x: reversed(x),
+    'newest': reversed,
     'random': lambda x: random.sample(x, k=len(x))}
 
 

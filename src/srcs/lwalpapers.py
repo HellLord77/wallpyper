@@ -1,3 +1,4 @@
+import operator
 import random
 from typing import Iterator, Optional, TypedDict
 
@@ -12,10 +13,10 @@ URL_BASE = request.join_url('https://api.github.com', 'repos', 'whoisYoges',
 CONFIG_SORT = 'sort'
 
 SORTS = {
+    'newest': reversed,
     'oldest': lambda x: x,
-    'newest': lambda x: reversed(x),
-    'smallest': lambda x: sorted(x, key=lambda y: y['size']),
-    'largest': lambda x: sorted(x, key=lambda y: y['size'], reverse=True),
+    'largest': lambda x: sorted(x, key=operator.itemgetter('size'), reverse=True),
+    'smallest': lambda x: sorted(x, key=operator.itemgetter('size')),
     'random': lambda x: random.sample(x, k=len(x))}
 
 
@@ -28,7 +29,7 @@ def _get_json() -> Iterator[dict]:
             if etag != (etag := response.headers[request.Header.ETAG]):
                 json = response.json()
         else:
-            json = {}
+            json = ()
         yield json
 
 
@@ -37,13 +38,13 @@ _GET_JSON = _get_json()
 
 class Lwalpapers(Source):
     NAME = 'lwalpapers'
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
     ICON = 'png'
     URL = 'https://wallpaper.castorisdead.xyz'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_SORT: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_SORT: tuple(SORTS)[1]}
+        CONFIG_SORT: next(iter(SORTS))}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
