@@ -2,6 +2,7 @@ import datetime
 import functools
 import itertools
 import os
+import re
 import urllib.parse
 from typing import Callable, Iterator, Optional, TypedDict
 
@@ -41,6 +42,7 @@ POPULARITIES = 'recent', 'by_day', 'by_week', 'by_month'
 PERIODS = '1d', '1w', '1m', '1y'
 
 _CONTENT_END = b'[]'
+_RE_PREFIX = re.compile(r'^\D*')
 
 
 def _tag_rating(ratings: list[bool]) -> Iterator[str]:
@@ -213,7 +215,7 @@ class MoebooruSource(Source, source=False):
             post = posts.pop(0)
             link = post['file_url']
             rating = post['rating']
-            yield ImageFile(link, cls._format_name(urllib.parse.unquote_plus(
+            yield ImageFile(link, _RE_PREFIX.sub('', urllib.parse.unquote_plus(
                 os.path.basename(request.strip_url(link)))), post['file_size'],
                             request.join_url(URL_FMT_INFO.format(cls.URL), str(post['id'])),
                             width=post['width'], height=post['height'],
@@ -229,11 +231,8 @@ class MoebooruSource(Source, source=False):
     def _on_dimension(cls, enable: Callable[[bool], bool], _: Optional[int] = None):
         enable(bool(cls.CURRENT_CONFIG[CONFIG_WIDTH] or cls.CURRENT_CONFIG[CONFIG_HEIGHT]))
 
-    @classmethod
-    def _format_name(cls, name: str) -> str:
-        return name.removeprefix(cls.NAME)
-
 
 from . import (
     konachan,
-    yandere)  # NOQA: E402
+    yandere,
+    myimouto)  # NOQA: E402

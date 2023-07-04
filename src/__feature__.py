@@ -1,8 +1,11 @@
 import multiprocessing
 
+from plat import brotli
+
+# noinspection PyBroadException
 try:
-    from plat import brotli as _
-except ImportError:
+    brotli.Decompressor()
+except BaseException:
     BROTLI = False
 else:
     BROTLI = True

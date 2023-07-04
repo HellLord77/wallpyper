@@ -638,7 +638,13 @@ def _test_inheritance():
 
 
 def _test():
-    pass
+    import urllib.request
+    'https://www.fonstola.ru'  # User-Agent
+    url = 'https://www.deviantart.com'
+    req = urllib.request.Request(url)
+    # req.add_header('User-Agent', 'HellLord77')
+    resp = urllib.request.urlopen(req)
+    print(resp.status)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
