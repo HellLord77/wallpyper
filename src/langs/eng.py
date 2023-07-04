@@ -206,6 +206,21 @@ COLOR_MODE_AUTO = 'System'
 COLOR_MODE_LIGHT = 'Light'
 COLOR_MODE_DARK = 'Dark'
 
+ASIACHAN_MENU_SORT = 'Sort by'
+ASIACHAN_MENU_TIME = 'Sort Range'
+ASIACHAN_MENU_ORIENTATIONS = 'Orientation'
+
+ASIACHAN_SORT_id = 'Recent'
+ASIACHAN_SORT_fav = 'Popular'
+ASIACHAN_SORT_random = 'Random'
+
+ASIACHAN_TIME_0 = 'All Time'
+ASIACHAN_TIME_1 = 'Last Week'
+ASIACHAN_TIME_2 = 'Last 3 Months'
+
+ASIACHAN_ORIENTATION_0 = 'Landscape'
+ASIACHAN_ORIENTATION_1 = 'Portrait'
+
 BACKIEE_MENU_LIST = 'Collections'
 BACKIEE_MENU_RESOLUTIONS = 'Ultra HD'
 BACKIEE_MENU_SORT = 'Sort by'
@@ -2008,6 +2023,7 @@ ZEROCHAN_MENU_COLOR = 'Color'
 
 ZEROCHAN_SORT_id = 'Recent'
 ZEROCHAN_SORT_fav = 'Popular'
+ZEROCHAN_SORT_random = 'Random'
 
 ZEROCHAN_TIME_0 = 'All Time'
 ZEROCHAN_TIME_1 = 'Last Week'

@@ -323,6 +323,7 @@ class Source:
 
 
 from . import (
+    asiachan,
     backiee,
     besthdwallpaper,
     bing,
