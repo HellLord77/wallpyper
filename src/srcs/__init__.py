@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 import binascii
+import copy
 import dataclasses
 import fractions
 import functools
@@ -26,7 +27,48 @@ SOURCES: dict[str, type[Source]] = {}
 CONFIG_ORIENTATIONS = '_orientations_'
 CONFIG_RATINGS = '_ratings_'
 
+# noinspection PyUnresolvedReferences
+_cache = hashlib.__builtin_constructor_cache
 _reduced = functools.cache(callables.ReducedCallable)
+
+
+class Hash:
+    # noinspection PyShadowingBuiltins
+    def __init_subclass__(cls, hash: bool = True):
+        if hash:
+            _cache[cls.name] = cls
+            # noinspection PyUnresolvedReferences
+            hashlib.algorithms_available.add(cls.name)
+
+    # noinspection PyUnusedLocal
+    def __init__(self, data: bytes = b''):
+        raise NotImplementedError
+
+    def update(self, data: bytes):
+        raise NotImplementedError
+
+    def digest(self) -> bytes:
+        return bytes.fromhex(self.hexdigest())
+
+    def hexdigest(self) -> str:
+        return binascii.hexlify(self.digest()).decode()
+
+    def copy(self) -> Hash:
+        return copy.deepcopy(self)
+
+    @property
+    def digest_size(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def block_size(self) -> int:
+        raise NotImplementedError
+
+    # noinspection PyPropertyDefinition
+    @classmethod
+    @property
+    def name(cls) -> str:
+        return cls.__name__.lower()
 
 
 @dataclasses.dataclass
@@ -38,6 +80,8 @@ class File:
     url: Optional[str] = dataclasses.field(default=None, repr=False)
     sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
     md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
+    hash: Optional[dict[str | type[Hash] | Hash, bytes | str]] = \
+        dataclasses.field(default=None, repr=False, kw_only=True)
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -59,6 +103,13 @@ class File:
             name.strip().removesuffix(ext) + ext), consts.MAX_FILENAME_LEN)
         if self.url is None and self.is_simple():
             self.url = self.request.url
+        if self.hash is not None:
+            for hash_ in tuple(self.hash.keys()):
+                if not isinstance(hash_, str):
+                    # noinspection PyTypeChecker
+                    self.hash[hash_.name] = self.hash.pop(hash_)
+            vars(self).update(self.hash)
+            self.hash = None
         for algorithm, hash_ in self._iter_hashes():
             if not isinstance(hash_, bytes):
                 setattr(self, algorithm, bytes.fromhex(hash_))
@@ -77,8 +128,8 @@ class File:
 
     @classmethod
     def fromdict(cls, data: dict[str, Any]) -> Optional[File]:
-        request_ = utils.decrypt(data.pop('request'), KEY)
-        if request_ is not utils.DEFAULT:
+        request_ = utils.decrypt(data.pop('request'), KEY, on_error=None)
+        if request_ is not None:
             return _reduced(cls)(request_, **data)
 
     def _iter_hashes(self, filled: bool = False) -> Iterator[tuple[str, bytes | str]]:
@@ -94,8 +145,10 @@ class File:
             result['size'] = self.size
         if self.url and self.url != self.request.url and self.is_simple():
             result['url'] = self.url
-        for algorithm, hash_ in self._iter_hashes(True):
-            result[algorithm] = binascii.hexlify(hash_).decode()
+        hashes = {algorith: binascii.hexlify(
+            hash_).decode() for algorith, hash_ in self._iter_hashes(True)}
+        if hashes:
+            result['hash'] = hashes
         return result
 
     def checksize(self, path: str) -> bool:
@@ -182,8 +235,8 @@ class ImageFile(File):
             result['sketchy'] = self.sketchy
         if self.nsfw:
             result['nsfw'] = self.nsfw
-        for algorithm, _ in self._iter_hashes(True):
-            result[algorithm] = result.pop(algorithm)
+        if 'hash' in result:
+            result['hash'] = result.pop('hash')
         return result
 
     # noinspection PyShadowingBuiltins
@@ -359,4 +412,5 @@ from . import (
     wallscloud,
     wallup,
     zerochan,
+    gelbooru,
     moebooru)  # NOQA: E402

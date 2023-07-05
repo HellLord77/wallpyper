@@ -241,7 +241,7 @@ class Element:
         pass
 
     def get_text(self, start=None, stop=None, step=None, /, sep=' '):
-        return sep.join(map(str.strip, self.datas[start:stop:step]))
+        return sep.join(map(str.strip, self.datas[start:stop:step])).strip()
 
     @property
     def doctype(self) -> Optional[str]:

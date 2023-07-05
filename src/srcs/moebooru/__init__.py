@@ -179,7 +179,7 @@ class MoebooruSource(Source, source=False):
     @classmethod
     def get_image(cls, **params) -> Iterator[Optional[ImageFile]]:
         posts = []
-        mode = params.pop(CONFIG_MODE)
+        mode = params[CONFIG_MODE]
         if mode == MODES[0]:
             url = URL_FMT_TAG.format(cls.URL)
             tags = set(params[CONFIG_TAGS])

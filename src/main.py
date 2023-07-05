@@ -402,7 +402,7 @@ def try_alert_error(exc: BaseException, force: bool = False):
 def _sort_source(source: tuple[str, type[srcs.Source]]) -> tuple[int, tuple[str, ...]]:
     parts = source[0].split('.')
     parts[-1] = source[1].NAME
-    return len(parts), tuple(map(str.casefold, parts))
+    return len(parts) != 1, tuple(map(str.casefold, parts))
 
 
 @timer.on_thread
