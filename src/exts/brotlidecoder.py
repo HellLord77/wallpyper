@@ -1,6 +1,6 @@
 import __feature__
 
-if __feature__.BROTLI:
+if __feature__.BROTLI_DECODE:
     from libs import request
     from plat import brotli
 

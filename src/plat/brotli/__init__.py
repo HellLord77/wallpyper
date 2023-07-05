@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import itertools
 import os
@@ -40,7 +40,22 @@ def _version(version: int) -> tuple[int, int, int]:
     return version >> 24, (version >> 12) & 0xFFF, version & 0xFFF
 
 
-class Decompressor:
+class _Brotli(type):
+    _obj: Optional[ctyped.Pointer[ctyped.struct.BrotliDecoderState] |
+                   ctyped.Pointer[ctyped.struct.BrotliEncoderState]] = None
+
+    def __bool__(self):
+        # noinspection PyBroadException
+        try:
+            # noinspection PyUnresolvedReferences
+            self.get_version()
+        except BaseException:
+            return False
+        else:
+            return True
+
+
+class Decompressor(metaclass=_Brotli):
     def __init__(self):
         self._obj = brotlidec.BrotliDecoderCreateInstance(_ALLOC, _FREE, None)
         self.unused_data = b''
@@ -109,7 +124,7 @@ class TextDecompressor(Decompressor):
         return super().decompress(data).decode()
 
 
-class _Compressor:
+class _Compressor(metaclass=_Brotli):
     def __init__(self, mode: Optional[enum_brotli.BrotliEncoderMode] = None, quality: Optional[int] = None,
                  lgwin: Optional[int] = None, lgblock: Optional[int] = None):
         self._obj = brotlienc.BrotliEncoderCreateInstance(_ALLOC, _FREE, None)

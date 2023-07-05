@@ -206,7 +206,7 @@ def create_menu():
         gui.add_menu_item(_text('LABEL_ABOUT'), on_click=on_about).set_icon(RES_FMT.format(consts.RES_ABOUT))
         gui.add_menu_item(_text('LABEL_CLEAR_CACHE'), on_click=on_clear_cache).set_icon(
             RES_FMT.format(consts.RES_CLEAR_CACHE))
-        gui.add_menu_item(_text('LABEL_RESTART'), enable=__feature__.RESTART,
+        gui.add_menu_item(_text('LABEL_RESTART'), enable=__feature__.RESTART_APP,
                           on_click=on_restart).set_icon(RES_FMT.format(consts.RES_RESTART))
     with gui.set_menu(gui.add_submenu(_text('MENU_SETTINGS'), icon=RES_FMT.format(consts.RES_SETTINGS))):
         with gui.set_menu(gui.add_submenu(_text('MENU_AUTO'), icon=RES_FMT.format(consts.RES_AUTO))):
@@ -290,7 +290,7 @@ def create_menu():
         gui.add_menu_item_check(_text('LABEL_START'), CURRENT_CONFIG, consts.CONFIG_AUTO_START)
         gui.add_menu_item_check(_text('LABEL_SETTINGS_AUTO_SAVE'), CURRENT_CONFIG, consts.CONFIG_SAVE_CONFIG)
         gui.add_separator()
-        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART,
+        with gui.set_menu(gui.add_submenu(_text('MENU_RESET'), __feature__.RESTART_APP,
                                           icon=RES_FMT.format(consts.RES_SETTINGS_RESET))):
             gui.add_menu_item(_text('LABEL_RESET_SOURCE'), on_click=functools.partial(
                 on_reset, False)).set_icon(RES_FMT.format(consts.RES_RESET_SOURCE))

@@ -2,11 +2,7 @@ import multiprocessing
 
 from plat import brotli
 
-# noinspection PyBroadException
-try:
-    brotli.Decompressor()
-except BaseException:
-    BROTLI = False
-else:
-    BROTLI = True
-RESTART = bool(multiprocessing.parent_process())
+RESTART_APP = bool(multiprocessing.parent_process())
+
+BROTLI_DECODE = bool(brotli.Decompressor)
+BROTLI_ENCODE = bool(brotli.Compressor)

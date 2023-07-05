@@ -638,6 +638,10 @@ def _test_inheritance():
 
 
 def _test():
+    from plat import brotli
+    print(bool(brotli.Decompressor))
+    exit()
+
     import urllib.request
     'https://www.fonstola.ru'  # User-Agent
     url = 'https://www.deviantart.com'
