@@ -227,7 +227,7 @@ if __debug__:
         import urllib.parse
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
-            'https://raw.githubusercontent.com/meodai/color-names/master/dist',
+            'https://raw.githubusercontent.com/meodai/color-names/master/dist/',
             _PATH), os.path.join(os.path.dirname(__file__), _PATH))
         load.cache_clear()
         load()

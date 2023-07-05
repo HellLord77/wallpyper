@@ -147,7 +147,7 @@ if __debug__:
                 path = os.path.join(os.path.dirname(__file__),
                                     f'iso_{obj._BASE_.__name__[4:].replace("_", "-")}.json')
                 urllib.request.urlretrieve(urllib.parse.urljoin(
-                    'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data',
+                    'https://salsa.debian.org/iso-codes-team/iso-codes/-/raw/main/data/',
                     os.path.basename(path)), path)
                 obj.load.cache_clear()
                 obj.load()

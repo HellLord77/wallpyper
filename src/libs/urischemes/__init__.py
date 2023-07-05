@@ -67,7 +67,7 @@ if __debug__:
         import urllib.parse
         import urllib.request
         urllib.request.urlretrieve(urllib.parse.urljoin(
-            'https://www.iana.org/assignments/uri-schemes',
+            'https://www.iana.org/assignments/uri-schemes/',
             _PATH), os.path.join(os.path.dirname(__file__), _PATH))
         load.cache_clear()
         load()

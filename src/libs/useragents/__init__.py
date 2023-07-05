@@ -1,4 +1,4 @@
-__version__ = '0.0.3'  # https://github.com/intoli/user-agents
+__version__ = '0.0.4'  # https://github.com/intoli/user-agents
 
 import enum
 import functools
@@ -15,6 +15,8 @@ class AppName(enum.StrEnum):
 
 
 class EffectiveType(enum.StrEnum):
+    ET_2G_SLOW = 'slow-2g'
+    ET_2G = '2g'
     ET_3G = '3g'
     ET_4G = '4g'
 
@@ -43,6 +45,7 @@ class Vendor(enum.StrEnum):
     NAVER = 'NAVER Corp.'
     APPLE = 'Apple Computer, Inc.'
     GOOGLE = 'Google Inc.'
+    MEMES = 'Memes'
 
 
 class DeviceCategory(enum.StrEnum):
@@ -160,6 +163,6 @@ if __debug__:
         import gzip
         with open(os.path.join(os.path.dirname(__file__), _PATH), 'wb') as file:
             file.write(gzip.decompress(urllib.request.urlopen(urllib.parse.urljoin(
-                'https://github.com/intoli/user-agents/raw/master/src', f'{_PATH}.gz')).read()))
+                'https://github.com/intoli/user-agents/raw/master/src/', f'{_PATH}.gz')).read()))
         load.cache_clear()
         load()
