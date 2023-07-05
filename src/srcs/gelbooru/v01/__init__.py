@@ -175,4 +175,12 @@ class GelbooruV01Source(GelbooruSource, source=False):
 
 
 from . import (
-    allgirl)  # NOQA: E402
+    allgirl,
+    blackedbooru,
+    celebbooru,
+    drunkenpumken,
+    footfetishbooru,
+    holobooru,
+    myfapbooru,
+    steambanners,
+    thecollection)  # NOQA: E402
