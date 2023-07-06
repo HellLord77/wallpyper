@@ -38,6 +38,7 @@ $CythonSourceGlobs = @(
 	"src/{plat,srcs,win32}/**/*.py"
 	"src/{exts,langs,libs}/*.py"
 	"src/*.py")
+# $CythonSourceGlobs = @()
 $CythonExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
 	"src/libs/ctyped/enum/__init__.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
@@ -230,7 +231,7 @@ function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 		Write-Host "choco -> $Package"
 		choco install $Package --yes
 	}
-	return (Get-Command $Command).Source
+	return (Get-Command $Command).Path
 }
 
 function Start-PythonCode([string[]]$Lines) {
@@ -323,8 +324,8 @@ function Get-PyInstallerArgs {
 			if (-not $UPXDir) {
 				$UPXDir = Split-Path (Install-PackageChoco "upx") -Parent
 			}
+			$ArgList += "--upx-dir=$UPXDir"
 		}
-		$ArgList += "--upx-dir=$UPXDir"
 	}
 	else { $ArgList += "--noupx" }
 	if ($StripSymbols) { $ArgList += "--strip" }
@@ -363,7 +364,7 @@ function Remove-Cython([bool]$Throw = $True) {
 	Remove-pyd (Get-CythonSources) $Throw
 	if ($CythonRemoveC) {
 		foreach ($Source in Get-CythonSources) {
-			Remove-Item "$(Source.Substring(0, $Source.LastIndexOf("."))).c" -Force -ErrorAction SilentlyContinue 
+			Remove-Item "$(Source.Substring(0, $Source.LastIndexOf("."))).c" -Force -ErrorAction SilentlyContinue
 		}
 	}
 }
