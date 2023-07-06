@@ -31,7 +31,13 @@ class _Module(_ModuleType):
     def __getattr__(self, name: str):
         if self._module is None:
             del _sys.modules[self.__name__]
-            self._module = _importlib.import_module(self.__name__)
+            try:
+                self._module = _importlib.import_module(self.__name__)
+            except KeyError as exc:  # FIXME https://github.com/cython/cython/issues/3867
+                if self.__name__ == exc.args[0]:
+                    self._module = _importlib.import_module(self.__name__)
+                else:
+                    raise
         _replace_object(self, self._module)
         return getattr(self._module, name)
 
@@ -200,7 +206,7 @@ def _resolve_type(annot, _args: _Optional[dict] = None) -> _Any:
 
 def _iter_modules(path: str = _os.path.dirname(__file__), prefix: str = __package__,
                   recursive: bool = False) -> _Iterator[_pkgutil.ModuleInfo]:
-    prefix = f'{prefix}.'
+    prefix += '.'
     for module in _pkgutil.iter_modules((path,), prefix):
         yield module
         if recursive and module.ispkg:
