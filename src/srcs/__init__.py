@@ -104,7 +104,7 @@ class File:
         if self.url is None and self.is_simple():
             self.url = self.request.url
         if self.hash is not None:
-            for hash_ in tuple(self.hash.keys()):
+            for hash_ in tuple(self.hash):
                 if not isinstance(hash_, str):
                     # noinspection PyTypeChecker
                     self.hash[hash_.name] = self.hash.pop(hash_)

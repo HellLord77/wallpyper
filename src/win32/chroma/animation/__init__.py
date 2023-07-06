@@ -23,7 +23,8 @@ def cleanup() -> bool:
 
 
 def _get_base_layer(layer: str, get: bool = True) -> ctyped.type.c_char_p:
-    name = ctyped.type.c_char_p(ntpath.join(ntpath.dirname(__file__), 'Animations', f'{layer}.chroma').encode())
+    name = ctyped.type.c_char_p(ntpath.join(ntpath.dirname(
+        __file__), 'Animations', f'{layer}.chroma').encode())
     CChromaEditorLibrary.PluginCloseAnimationName(name)
     if get:
         CChromaEditorLibrary.PluginGetAnimation(name)

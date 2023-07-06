@@ -19,13 +19,13 @@ class Timer:
     _selves = []
     last_start = math.inf
 
-    def __init__(self, interval: float, target: functools.partial | Callable, once: bool = False, start: bool = False):
+    def __init__(self, interval: float, target: functools.partial | Callable,
+                 once: bool = False, start: bool = False):
         self._interval = interval
         self.target = target
         self.once = once
         self._running = 0
-        self._name = (f'{__name__}-{__version__}-{type(self).__name__}'
-                      f'({(target.func if isinstance(target, functools.partial) else target).__name__})')
+        self._name = f'{__name__}-{__version__}-{type(self).__name__}({target})'
         self._timers: list[threading.Timer] = []
         self._selves.append(self)
         if start:
@@ -73,7 +73,8 @@ class Timer:
     def start(self, after: Optional[float] = None):
         self.stop()
         self._clean_timers()
-        timer = threading.Timer(self._interval if after is None else after, self._callback)
+        timer = threading.Timer(
+            self._interval if after is None else after, self._callback)
         timer.name = self._name
         timer.daemon = True
         timer.start()

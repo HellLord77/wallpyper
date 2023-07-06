@@ -45,11 +45,10 @@ class _Brotli(type):
                    ctyped.Pointer[ctyped.struct.BrotliEncoderState]] = None
 
     def __bool__(self):
-        # noinspection PyBroadException
         try:
             # noinspection PyUnresolvedReferences
             self.get_version()
-        except BaseException:
+        except:  # NOQA E722
             return False
         else:
             return True
