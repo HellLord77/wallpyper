@@ -1,4 +1,4 @@
-$Version = "0.3.2"
+$Version = "0.3.3"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -214,7 +214,7 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
 	if (-not (Get-Command mt -ErrorAction SilentlyContinue)) { $Env:PATH += ";$(Get-DeveloperPath)" }
-	mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo
+	mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo | Write-Host
 	$TempStream = [System.IO.File]::OpenRead($TempFile)
 	$ExeStream = [System.IO.File]::OpenWrite($ExePath)
 	$TempStream.Seek($( Get-ExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null
@@ -229,7 +229,7 @@ function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 	if (-not $Command) { $Command = $Package }
 	if ($Force -or -not (Get-Command $Command -ErrorAction SilentlyContinue)) {
 		Write-Host "choco -> $Package"
-		choco install $Package --yes
+		choco install $Package --yes | Write-Host
 	}
 	return (Get-Command $Command).Path
 }
