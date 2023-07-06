@@ -118,6 +118,7 @@ $CodeModuleGraphSmartTemplate = @(
 $MinifyJsonLocal = $False
 $StripSymbols = $False
 $ModuleGraphSmart = $True
+$ModuleGraphReduce = $False  # TODO
 $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
 $mypycCacheDir = ".mypy_cache"
@@ -147,7 +148,7 @@ function Get-RemovedArray([array]$Array, $Index) {
 	return ToArray $Array
 }
 
-function Get-RemovedItemArray([array]$Array, $Item, $Count = [double]::PositiveInfinity) {
+function Get-RemovedItemArray([array]$Array, $Item, [int]$Count = 1) {
 	for ($i = 0; $i -lt $Count; $i++) {
 		if (-not $Array) { break }
 		$Index = $Array.IndexOf($Item)
@@ -214,7 +215,7 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile = New-TemporaryFile
 	Copy-Item $ExePath -Destination $TempFile
 	if (-not (Get-Command mt -ErrorAction SilentlyContinue)) { $Env:PATH += ";$(Get-DeveloperPath)" }
-	mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo | Write-Host
+	mt -updateresource:"$ExePath;#1" -manifest "$ManifestPath" -nologo
 	$TempStream = [System.IO.File]::OpenRead($TempFile)
 	$ExeStream = [System.IO.File]::OpenWrite($ExePath)
 	$TempStream.Seek($( Get-ExeSize $TempStream ), [System.IO.SeekOrigin]::Begin) | Out-Null
@@ -259,8 +260,8 @@ function Get-ExtSuffix {
 	return $Global:ExtSuffix
 }
 
-function Get-ModuleGraph {
-	if ($ModuleGraphSmart) {
+function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
+	if ($Smart) {
 		Remove-Cython $False
 		Remove-Nuitka $False
 		Remove-mypyc $False
@@ -273,7 +274,7 @@ function Get-ModuleGraph {
 		$CodeModuleGraphSmartProcess[7] = $CodeModuleGraphSmartTemplate[7] -f $EntryPoint
 		$Modules = (Start-PythonCode $CodeModuleGraphSmartProcess) -Split ";"
 		Remove-Item $TempDir -Force -Recurse
-		return $Modules[1..($Modules.length - 1)]
+		$Modules = $Modules[1..($Modules.length - 1)]
 	}
 	else {
 		$CodeModuleGraph = @() + $CodeModuleGraphTemplate
@@ -281,8 +282,9 @@ function Get-ModuleGraph {
 		foreach ($Exclude in $Excludes) {
 			$CodeModuleGraph = Get-InsertedArray $CodeModuleGraph 5 ($CodeModuleGraphTemplate[4] -f "-x=$Exclude")
 		}
-		return (Start-PythonCode $CodeModuleGraph) -Split ";"
+		$Modules = (Start-PythonCode $CodeModuleGraph) -Split ";"
 	}
+	return ToArray $Modules
 }
 
 function Get-PyInstallerArgs {
@@ -329,7 +331,19 @@ function Get-PyInstallerArgs {
 	}
 	else { $ArgList += "--noupx" }
 	if ($StripSymbols) { $ArgList += "--strip" }
-	return $ArgList
+	return ToArray $ArgList
+}
+
+function Get-PyInstallerArgsReduced([string[]]$ArgList) {
+	if ($ModuleGraphReduce) {
+		$_, $Modules = Get-ModuleGraph $False
+		Write-Host "Found modules:"
+		Write-Host $Modules
+		foreach ($Module in $Modules) {
+			$ArgList = Get-RemovedItemArray $ArgList "--hidden-import=$Module"
+		}
+	}
+	return ToArray $ArgList
 }
 
 function Remove-pyd([string[]]$Sources, [bool]$Throw) {
@@ -353,7 +367,7 @@ function Get-CythonSources {
 		foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonExcludeGlob
 			foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";") {
-				$Global:CythonSources = Get-RemovedItemArray $Global:CythonSources ($Exclude -Replace "\\", "/")
+				$Global:CythonSources = Get-RemovedItemArray $Global:CythonSources ($Exclude -Replace "\\", "/") ([int]::MaxValue)
 			}
 		}
 	}
@@ -466,6 +480,7 @@ function Write-Build {
 			Pop-Location
 		}
 	}
+	$PyInstallerArgs = Get-PyInstallerArgsReduced $PyInstallerArgs
 
 	$Name = Get-ProjectName
 	$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
