@@ -311,7 +311,7 @@ def get_image() -> Optional[srcs.File]:
     params = {key: val for key, val in source.CURRENT_CONFIG.items()
               if not key.startswith('_')}
     first_image = None
-    while True:
+    for _ in range(consts.MAX_SKIP_AMT):
         try:
             next_image = next(source.get_image(**params))
         except:  # NOQA: E722

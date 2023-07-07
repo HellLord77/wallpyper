@@ -1,6 +1,7 @@
 ALL_DISPLAY = 'DISPLAY'
 URL_GOOGLE = 'https://www.google.com/searchbyimage/upload'
 
+MAX_SKIP_AMT = 9
 MAX_NOTIFY_LEN = 256
 MAX_LABEL_LEN = 25
 MAX_RECENT_LEN = 9
