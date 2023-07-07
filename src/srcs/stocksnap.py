@@ -83,7 +83,7 @@ class StockSnap(Source):
                 results.insert(0, result)
                 yield
                 continue
-            html = sgml.loads(response.text, void=sgml.VOID_HTML5)
+            html = sgml.loads(response.text, sgml.VOID_HTML5)
             data_ = {field['name']: field['value'] for field in html.find(
                 'form', _ATTRS_DOWNLOAD).children[:2]}
             name = os.path.basename(json.loads(html.find(

@@ -15,7 +15,7 @@ URL_TOKEN = request.join_url(
 URL_IMAGE = request.join_url('https://i.redd.it')
 
 CONFIG_ID = '_client_id'
-CONFIG_STATIC = '_skip_animated'
+CONFIG_STATIC = '_static'
 CONFIG_SUBS = 'subreddits'
 CONFIG_SORT = 'sort'
 CONFIG_TIME = 't'
@@ -143,7 +143,7 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:
-        if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
+        if cls.CURRENT_CONFIG[CONFIG_STATIC] and not image.is_static():
             return False
         return super().filter_image(image)
 

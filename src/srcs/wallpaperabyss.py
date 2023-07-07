@@ -59,7 +59,7 @@ def _on_color_right(event):
 
 
 class WallpaperAbyss(Source):
-    NAME = 'Wallpaper Abyss [cloudflare]'
+    NAME = 'Wallpaper Abyss'
     VERSION = '0.0.4'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {

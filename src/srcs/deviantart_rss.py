@@ -9,7 +9,7 @@ from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
 
 URL_BASE = request.join_url('https://backend.deviantart.com', 'rss.xml')
 
-CONFIG_STATIC = '_skip_animated'
+CONFIG_STATIC = '_static'
 CONFIG_SEARCH = 'q'
 CONFIG_ORDER = 'order'
 
@@ -77,6 +77,6 @@ class DeviantArt(Source):
 
     @classmethod
     def filter_image(cls, image: ImageFile) -> bool:
-        if cls.CURRENT_CONFIG[CONFIG_STATIC] and image.is_animated():
+        if cls.CURRENT_CONFIG[CONFIG_STATIC] and not image.is_static():
             return False
         return super().filter_image(image)
