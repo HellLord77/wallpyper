@@ -6,7 +6,7 @@ import math
 import ntpath
 import string as _string
 import threading
-from typing import Any, Callable, ContextManager, Iterator, Literal, Optional
+from typing import Any, Callable, ContextManager, Iterable, Iterator, Literal, Optional
 
 from libs import ctyped
 from libs.ctyped.interface.um import d2d1_3, d2d1svg, objidlbase
@@ -1282,7 +1282,7 @@ class ImageCodec:
     @classmethod
     @contextlib.contextmanager
     def get_decoders(cls, count: Optional[int] = None,
-                     size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
+                     size: Optional[int] = None) -> ContextManager[Optional[Iterator[ctyped.struct.ImageCodecInfo]]]:
         _ = _Token()
         if count is None or size is None:
             count, size = cls.get_decoders_count_and_size()
@@ -1290,7 +1290,7 @@ class ImageCodec:
             if buffer:
                 codecs = ctyped.cast(buffer, ctyped.struct.ImageCodecInfo)
                 if _OK == GdiPlus.GdipGetImageDecoders(count, size, codecs):
-                    yield tuple(codecs[index] for index in range(count))
+                    yield (codecs[index] for index in range(count))
                     return
         yield
 
@@ -1304,7 +1304,7 @@ class ImageCodec:
     @classmethod
     @contextlib.contextmanager
     def get_encoders(cls, count: Optional[int] = None,
-                     size: Optional[int] = None) -> ContextManager[Optional[tuple[ctyped.struct.ImageCodecInfo]]]:
+                     size: Optional[int] = None) -> ContextManager[Optional[Iterator[ctyped.struct.ImageCodecInfo]]]:
         _ = _Token()
         if count is None or size is None:
             count, size = cls.get_encoders_count_and_size()
@@ -1312,12 +1312,12 @@ class ImageCodec:
             if buffer:
                 codecs = ctyped.cast(buffer, ctyped.struct.ImageCodecInfo)
                 if _OK == GdiPlus.GdipGetImageEncoders(count, size, codecs):
-                    yield tuple(codecs[index] for index in range(count))
+                    yield (codecs[index] for index in range(count))
                     return
         yield
 
     @staticmethod
-    def _get_codec(prov: Callable[[], ContextManager[tuple[ctyped.struct.ImageCodecInfo]]],
+    def _get_codec(prov: Callable[[], ContextManager[Iterable[ctyped.struct.ImageCodecInfo]]],
                    prop: Literal['FormatDescription', 'CodecName', 'FilenameExtension', 'MimeType'],
                    val: str) -> Optional[ctyped.struct.ImageCodecInfo]:
         val = val.casefold()
