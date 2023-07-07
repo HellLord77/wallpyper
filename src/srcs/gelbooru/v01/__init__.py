@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import functools
 import hashlib
-import itertools
 import json
 import os
 from typing import Callable, Iterator, Optional, TypedDict
@@ -10,7 +9,7 @@ from typing import Callable, Iterator, Optional, TypedDict
 import gui
 import validator
 from libs import request, sgml
-from .. import GelbooruSource
+from .. import GelbooruSource, _tag_rating, _yaml_to_json
 from ... import CONFIG_ORIENTATIONS, Hash, ImageFile
 
 URL_FMT = request.join_url('{}', 'index.php')
@@ -23,34 +22,17 @@ CONFIG_ID = 'id'
 MODES = 'tag', 'favorite', 'random'
 RATINGS = 'Safe', 'Questionable', 'Explicit'
 
-_IGNORES = 'center',
-_PARAMS_TAGS = {'page': 'post', 's': 'list'}
-_PARAMS_RANDOM = {'page': 'post', 's': 'random'}
+_PARAMS = dict(zip(MODES, (
+    {'page': 'post', 's': 'list'},
+    {'page': 'favorites', 's': 'view'},
+    {'page': 'post', 's': 'random'})))
 _PARAMS_POST = {'page': 'post', 's': 'view'}
 _ATTRS_PAGE = {'id': 'paginator'}
+_ATTRS_IMAGE = {'id': 'image'}
 _ATTRS_TAGS = {'id': 'tag_list'}
-_ATTRS_IMAGE = {'id': "image"}
 
 
-def _yml_to_json(yml: str) -> str:
-    return '{"' + yml.replace(':\n', ': null\n').replace(
-        '\n', '","').replace(': ', '":"') + '"}'
-
-
-def _tag_rating(ratings: list[bool]) -> Iterator[str]:
-    count = sum(ratings)
-    filtered = itertools.compress(RATINGS, ratings)
-    if count == 1:
-        yield 'rating:' + next(filtered)
-    elif count == 2:
-        filtered = tuple(filtered)
-        for rating in RATINGS:
-            if rating not in filtered:
-                yield '-rating:' + rating
-                break
-
-
-class GelbooruHash(Hash):
+class GelbooruV01Hash(Hash):
     # noinspection PyMissingConstructor
     def __init__(self, data: bytes = b''):
         self._md5 = hashlib.new('md5', data)
@@ -61,7 +43,7 @@ class GelbooruHash(Hash):
     def hexdigest(self):
         return hashlib.sha1(self._md5.hexdigest().encode()).hexdigest()
 
-    def copy(self) -> GelbooruHash:
+    def copy(self) -> GelbooruV01Hash:
         other = type(self)()
         other._md5 = self._md5.copy()
         return other
@@ -116,29 +98,25 @@ class GelbooruV01Source(GelbooruSource, source=False):
         posts = []
         url = URL_FMT.format(cls.URL)
         mode = params[CONFIG_MODE]
+        mode_random = mode == MODES[2]
+        query = _PARAMS[mode].copy()
         if mode == MODES[0]:
             tags = set(params[CONFIG_TAGS])
-            tags.update(_tag_rating(params[CONFIG_RATING]))
-            params = _PARAMS_TAGS.copy()
+            tags.update(_tag_rating(RATINGS, params[CONFIG_RATING]))
             if tags:
-                params[CONFIG_TAGS] = ' '.join(tags)
+                query[CONFIG_TAGS] = ' '.join(tags)
         elif mode == MODES[1]:
-            params = {
-                CONFIG_ID: str(params[CONFIG_ID]),
-                'page': 'favorites',
-                's': 'view'}
-        else:
-            params = _PARAMS_RANDOM
+            query[CONFIG_ID] = str(params[CONFIG_ID])
         pid = '0'
         while True:
             if not posts:
-                params['pid'] = pid
-                response = request.get(url, params, allow_redirects=False)
+                query['pid'] = pid
+                response = request.get(url, query, allow_redirects=False)
                 if response:
-                    if mode == MODES[2]:
+                    if mode_random:
                         posts = [request.extract_params(response.next.full_url)['id'][0]]
                     else:
-                        html = sgml.loads(response.text, ignore=_IGNORES)
+                        html = sgml.loads(response.text)
                         posts = [thumb[0]['id'][1:] for thumb
                                  in html.find_all('span', classes='thumb')]
                         next_page = html.find('div', _ATTRS_PAGE).find(
@@ -160,13 +138,13 @@ class GelbooruV01Source(GelbooruSource, source=False):
             html_post = sgml.loads(response_post.text)
             link = html_post.find('img', _ATTRS_IMAGE)['src']
             tags = html_post.find('div', _ATTRS_TAGS)[1]
-            stats = json.loads(_yml_to_json(tags.get_text(sep='\n')))
-            name, ext = os.path.splitext(os.path.basename(link))
+            stats = json.loads(_yaml_to_json(tags.get_text(sep='\n')))
+            hash_, ext = os.path.splitext(os.path.basename(link))
             width, height = map(int, stats['Size'].split('x'))
             rating = stats['Rating']
             yield ImageFile(link, f'{post} ' + ' '.join(request.get_params(
                 tag['href'])['tags'][0] for tag in tags.find_all('a')) + ext, url=url_post,
-                            hash={GelbooruHash: name}, width=width, height=height,
+                            hashes={GelbooruV01Hash: hash_}, width=width, height=height,
                             sketchy=rating == RATINGS[1], nsfw=rating == RATINGS[2])
 
     @classmethod

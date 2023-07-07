@@ -59,16 +59,16 @@ def _tag_rating(ratings: list[bool]) -> Iterator[str]:
 
 
 def _tag_order(order: str) -> Iterator[str]:
-    if order != ORDERS[1]:
+    if order != MoebooruSource.DEFAULT_CONFIG[CONFIG_ORDER]:
         yield 'order:' + order
 
 
-def _tag_dimension(width: int, height: int, size: str) -> Iterator[str]:
+def _tag_dimension(size: str, width: int, height: int) -> Iterator[str]:
     fmt = '{}'
     if size == SIZES[0]:
-        fmt = '{}..'
+        fmt = '>={}'
     elif size == SIZES[2]:
-        fmt = '..{}'
+        fmt = '<={}'
     if width:
         yield 'width:' + fmt.format(width)
     if height:
@@ -96,9 +96,9 @@ class MoebooruSource(Source, source=False):
         CONFIG_TAGS: list[str],
         CONFIG_RATING: list[bool],
         CONFIG_ORDER: str,
+        CONFIG_SIZE: str,
         CONFIG_WIDTH: int,
         CONFIG_HEIGHT: int,
-        CONFIG_SIZE: str,
         CONFIG_POOL: int,
         CONFIG_POPULARITY: str,
         CONFIG_PERIOD: str,
@@ -111,9 +111,9 @@ class MoebooruSource(Source, source=False):
         CONFIG_TAGS: [],
         CONFIG_RATING: [True, True, True],
         CONFIG_ORDER: ORDERS[1],
+        CONFIG_SIZE: SIZES[0],
         CONFIG_WIDTH: WIDTHS[9],
         CONFIG_HEIGHT: HEIGHTS[10],
-        CONFIG_SIZE: SIZES[0],
         CONFIG_POOL: 0,
         CONFIG_POPULARITY: POPULARITIES[0],
         CONFIG_PERIOD: PERIODS[0],
@@ -181,18 +181,18 @@ class MoebooruSource(Source, source=False):
         posts = []
         mode = params[CONFIG_MODE]
         if mode == MODES[0]:
-            url = URL_FMT_TAG.format(cls.URL)
+            url = URL_FMT_TAG.format(cls.URL_API)
             tags = set(params[CONFIG_TAGS])
             tags.update(_tag_rating(params[CONFIG_RATING]))
             tags.update(_tag_order(params[CONFIG_ORDER]))
-            tags.update(_tag_dimension(params[CONFIG_WIDTH],
-                                       params[CONFIG_HEIGHT], params[CONFIG_SIZE]))
+            tags.update(_tag_dimension(
+                params[CONFIG_SIZE], params[CONFIG_WIDTH], params[CONFIG_HEIGHT]))
             params = {CONFIG_TAGS: ' '.join(tags)}
         elif mode == MODES[1]:
-            url = URL_FMT_POOL.format(cls.URL, params[CONFIG_POOL])
+            url = URL_FMT_POOL.format(cls.URL_API, params[CONFIG_POOL])
             params.clear()
         else:
-            url = URL_FMT_POPULAR.format(cls.URL, params[CONFIG_POPULARITY])
+            url = URL_FMT_POPULAR.format(cls.URL_API, params[CONFIG_POPULARITY])
             params = {CONFIG_PERIOD: params[CONFIG_PERIOD]} | dict(_param_time(
                 params[CONFIG_DAY], params[CONFIG_MONTH], params[CONFIG_YEAR]))
         page = 1
@@ -217,7 +217,7 @@ class MoebooruSource(Source, source=False):
             rating = post['rating']
             yield ImageFile(link, _RE_PREFIX.sub('', urllib.parse.unquote_plus(
                 os.path.basename(request.strip_url(link)))), post['file_size'],
-                            request.join_url(URL_FMT_INFO.format(cls.URL), str(post['id'])),
+                            request.join_url(URL_FMT_INFO.format(cls.URL_API), str(post['id'])),
                             width=post['width'], height=post['height'],
                             sketchy=rating == 'q', nsfw=rating == 'e', md5=post['md5'])
 

@@ -8,6 +8,7 @@ import decimal
 import enum
 import fractions
 import ipaddress
+import itertools
 import os
 import pathlib
 import pprint
@@ -638,7 +639,16 @@ def _test_inheritance():
 
 
 def _test():
-    pass
+    from libs.request import cloudflare
+    url = 'https://furry.booru.org/index.php?page=dapi&s=post&q=index&json=1'
+    sess = cloudflare.Session()
+    resp = sess.get(url)
+    print(resp.status_code)
+    print(resp.text)
+    time.sleep(5)
+    resp = sess.get(url)
+    print(resp.status_code)
+    print(resp.text)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

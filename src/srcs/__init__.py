@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 import binascii
 import copy
@@ -12,20 +12,24 @@ import itertools
 import os
 import tempfile
 import urllib.parse
-from typing import Any, Callable, Iterator, Optional, TypedDict, final
+from typing import Any, Callable, Container, Iterator, Optional, TypedDict, final
 
 import consts
 import gui
 import langs
 import validator
 import win32
-from libs import callables, files, request, utils
+from libs import callables, files, mimetype, request, utils
 
 KEY: Optional[bytes | str] = None
 SOURCES: dict[str, type[Source]] = {}
 
 CONFIG_ORIENTATIONS = '_orientations_'
 CONFIG_RATINGS = '_ratings_'
+
+EXT_VIDEO = set(itertools.chain.from_iterable(
+    exts for mime, exts in mimetype.iter_extensions() if mime.startswith('video')))
+EXT_ANIMATED = {'apng', 'avif', 'gif', 'webp'}
 
 # noinspection PyUnresolvedReferences
 _cache = hashlib.__builtin_constructor_cache
@@ -77,11 +81,12 @@ class File:
     name: str = ''
     # noinspection PyUnresolvedReferences
     size: int = request.RETRIEVE_UNKNOWN_SIZE
-    url: Optional[str] = dataclasses.field(default=None, repr=False)
-    sha256: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
-    md5: bytes | str = dataclasses.field(default=b'', repr=False, kw_only=True)
-    hash: Optional[dict[str | type[Hash] | Hash, bytes | str]] = \
-        dataclasses.field(default=None, repr=False, kw_only=True)
+    url: str = dataclasses.field(default='', repr=False)
+    md5: Optional[bytes | str] = dataclasses.field(default=None, repr=False, kw_only=True)
+    sha1: Optional[bytes | str] = dataclasses.field(default=None, repr=False, kw_only=True)
+    sha256: Optional[bytes | str] = dataclasses.field(default=None, repr=False, kw_only=True)
+    hashes: dict[str | type[Hash] | Hash, bytes | str] = dataclasses.field(
+        default_factory=dict, repr=False, kw_only=True)
 
     def __init_subclass__(cls):
         super().__init_subclass__()
@@ -101,18 +106,20 @@ class File:
         name, ext = os.path.splitext(self.name)
         self.name = utils.shrink_string_mid(win32.sanitize_filename(
             name.strip().removesuffix(ext) + ext), consts.MAX_FILENAME_LEN)
-        if self.url is None and self.is_simple():
+        if not self.url and self.is_simple():
             self.url = self.request.url
-        if self.hash is not None:
-            for hash_ in tuple(self.hash):
-                if not isinstance(hash_, str):
-                    # noinspection PyTypeChecker
-                    self.hash[hash_.name] = self.hash.pop(hash_)
-            vars(self).update(self.hash)
-            self.hash = None
-        for algorithm, hash_ in self._iter_hashes():
+        hashes = {}
+        for algorithm in hashlib.algorithms_available:
+            hash_ = getattr(self, algorithm, None)
+            if hash_ is not None:
+                self.hashes[algorithm] = hash_
+        for algorithm, hash_ in self.hashes.items():
+            if not isinstance(algorithm, str):
+                algorithm = algorithm.name
             if not isinstance(hash_, bytes):
-                setattr(self, algorithm, bytes.fromhex(hash_))
+                hash_ = bytes.fromhex(hash_)
+            hashes[algorithm] = hash_
+        self.hashes = hashes
 
     def __hash__(self):
         return hash(self.name)
@@ -132,35 +139,28 @@ class File:
         if request_ is not None:
             return _reduced(cls)(request_, **data)
 
-    def _iter_hashes(self, filled: bool = False) -> Iterator[tuple[str, bytes | str]]:
-        for algorithm in hashlib.algorithms_available:
-            hash_ = getattr(self, algorithm, None)
-            if hash_ is not None and (not filled or hash_):
-                yield algorithm, hash_
-
     def asdict(self) -> dict[str, Any]:
-        result: dict = {'request': utils.encrypt(
+        result = {'request': utils.encrypt(
             self.request, KEY, as_string=True), 'name': self.name}
         if self.size != request.RETRIEVE_UNKNOWN_SIZE:
             result['size'] = self.size
         if self.url and self.url != self.request.url and self.is_simple():
             result['url'] = self.url
-        hashes = {algorith: binascii.hexlify(
-            hash_).decode() for algorith, hash_ in self._iter_hashes(True)}
+        hashes = {algorithm: binascii.hexlify(
+            hash_).decode() for algorithm, hash_ in self.hashes.items()}
         if hashes:
-            result['hash'] = hashes
+            result['hashes'] = hashes
         return result
 
-    def checksize(self, path: str) -> bool:
-        if self.size:
+    def checksize(self, path: str) -> Optional[bool]:
+        if self.size != request.RETRIEVE_UNKNOWN_SIZE:
             try:
                 return self.size == os.path.getsize(path)
             except OSError:
-                pass
-        return False
+                return False
 
-    def checksum(self, path: str) -> bool:
-        for algorithm, hash_ in self._iter_hashes(True):
+    def checksum(self, path: str) -> Optional[bool]:
+        for algorithm, hash_ in self.hashes.items():
             try:
                 return files.checksum(path, hash_, algorithm)
             except OSError:
@@ -168,21 +168,18 @@ class File:
 
     # noinspection PyShadowingBuiltins
     def fill(self, path: str, hash: bool = True) -> bool:
-        if not self.size:
+        if self.size == request.RETRIEVE_UNKNOWN_SIZE:
             try:
                 self.size = os.path.getsize(path)
             except OSError:
                 return False
-        if hash and not any(self._iter_hashes(True)):
-            for algorithm, hash_ in self._iter_hashes():
-                if not hash_:
-                    try:
-                        hash_ = files.get_hash(path, algorithm)
-                    except OSError:
-                        return False
-                    else:
-                        setattr(self, algorithm, hash_.digest())
-                        break
+        if hash and not self.hashes:
+            try:
+                hash_ = files.get_hash(path)
+            except OSError:
+                return False
+            else:
+                self.hashes[hash_.name] = hash_.digest()
         return True
 
     def is_simple(self) -> bool:
@@ -252,8 +249,11 @@ class ImageFile(File):
                         self.height = dimensions_[1]
         return True
 
-    def is_animated(self) -> bool:  # TODO
-        return files.get_ext(self.name).lower() in ('gif', 'webp')
+    def is_static(self, includes: Container[str] = (), excludes: Container[str] = ()) -> bool:  # TODO
+        ext = files.get_ext(self.name).lower()
+        return ext in includes or (ext not in excludes and
+                                   ext not in EXT_ANIMATED and
+                                   ext not in EXT_VIDEO)
 
     def is_square(self, tolerance: float = 0.05) -> bool:
         return self.ratio <= tolerance
@@ -267,6 +267,7 @@ class Source:
     VERSION: str = '0.0.0'
     ICON: str = 'ico'
     URL: str = ''
+    URL_API: str = ''
     TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
         CONFIG_RATINGS: list[bool]}, total=False)
@@ -281,10 +282,14 @@ class Source:
             uid = cls.__module__.removeprefix(Source.__module__ + '.')
             if not cls.NAME:
                 cls.NAME = cls.__name__
-            cls.ICON = os.path.join(os.path.dirname(__file__), 'res', f'{uid}.{cls.ICON}')
+            cls.ICON = os.path.join(os.path.dirname(
+                __file__), 'res', f'{uid}.{cls.ICON}')
+            if not cls.URL_API:
+                cls.URL_API = cls.URL
+            bases = cls.__mro__
             tconfig = cls.TCONFIG
             default_config = cls.DEFAULT_CONFIG
-            for base in utils.iindex(cls.__mro__[::-1], Source, cls):
+            for base in bases[bases.index(Source)::-1]:
                 # noinspection PyUnresolvedReferences
                 tconfig_ = base.TCONFIG
                 tconfig.__required_keys__ |= tconfig_.__required_keys__
