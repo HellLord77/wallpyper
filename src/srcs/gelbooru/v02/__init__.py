@@ -253,6 +253,7 @@ class GelbooruV02Source(GelbooruSource, source=False):
 
 
 from . import (
+    furrybooru,
     hypnohub,
     realbooru,
     rule34,
