@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 import functools
 import html.parser
@@ -30,9 +30,8 @@ VOID_HTML5 = {
 
 
 class _Parser(html.parser.HTMLParser):
-    def __init__(self, void: Container[str], ignore: Container[str]):
+    def __init__(self, void: Container[str]):
         self.void = void
-        self.ignore = ignore
         self.root = None
         self.elems = []
         self.decls = []
@@ -44,20 +43,20 @@ class _Parser(html.parser.HTMLParser):
             self.root.decls = tuple(self.decls)
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]):
-        if tag not in self.ignore:
-            elem = Element(tag, {
-                name: '' if value is None else value for name, value in reversed(
-                    attrs)}, self.elems[-1] if self.elems else None)
-            if self.root is None:
-                self.root = elem
-            if tag not in self.void:
-                self.elems.append(elem)
+        elem = Element(tag, {
+            name: '' if value is None else value for name, value in reversed(
+                attrs)}, self.elems[-1] if self.elems else None)
+        if self.root is None:
+            self.root = elem
+        if tag not in self.void:
+            self.elems.append(elem)
 
     def handle_endtag(self, tag: str):
-        if tag not in self.void and tag not in self.ignore:
-            while self.elems[-1].name != tag:
-                del self.elems[-1]
-            del self.elems[-1]
+        if tag not in self.void:
+            for index, elem in enumerate(reversed(self.elems)):
+                if elem.name == tag:
+                    del self.elems[-index - 1:]
+                    break
 
     def handle_data(self, data: str):
         if self.elems:
@@ -321,15 +320,13 @@ def find_elements(elements: Iterable[Element], name: Optional[_TPattern] = None,
         count -= 1
 
 
-def load(file: TextIO, void: Container[str] = (),
-         ignore: Container[str] = ()) -> Optional[Element]:
-    parser = _Parser(void, ignore)
+def load(file: TextIO, void: Container[str] = ()) -> Optional[Element]:
+    parser = _Parser(void)
     while buffer := file.read(MAX_CHUNK):
         parser.feed(buffer)
     parser.close()
     return parser.root
 
 
-def loads(data: str, void: Container[str] = (),
-          ignore: Container[str] = ()) -> Optional[Element]:
-    return load(io.StringIO(data), void, ignore)
+def loads(data: str, void: Container[str] = ()) -> Optional[Element]:
+    return load(io.StringIO(data), void)

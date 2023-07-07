@@ -41,7 +41,7 @@ def _type_iterable(obj: Iterable) -> type:
 
 
 def _type_mapping(obj: Mapping) -> type:
-    return type(obj)[_type_union(obj.keys()), _type_union(obj.values())]
+    return type(obj)[_type_union(obj), _type_union(obj.values())]
 
 
 def type_ex(obj) -> type:

@@ -475,9 +475,11 @@ def download_image(image: srcs.File) -> Optional[str]:
             print_progress()
         STOP.clear()
         try:
-            if (image.request.url == request.from_path(path) or
-                (image.checksize(path) and (__flag__.UNSAFE_CACHE or image.checksum(path))) or image.download(
-                        path, query_download)) and image.fill(path, not __flag__.UNSAFE_CACHE):
+            if ((image.request.url == request.from_path(path) or
+                 (image.checksize(path) and (__flag__.UNSAFE_CACHE or image.checksum(path))) or
+                 image.download(path, query_download)) and (image.checksize(path) is not False and (
+                    __flag__.UNSAFE_CACHE or image.checksum(path)) is not False) and
+                    image.fill(path, not __flag__.UNSAFE_CACHE)):
                 return path
         finally:
             PROGRESS[0] = -1
