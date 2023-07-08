@@ -85,10 +85,10 @@ class Session(_Session):
                  verify: Optional[_TVerify] = None, trust_env: bool = True, cookies: Optional[_TCookies] = None,
                  timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, force_auth: Optional[bool] = None,
                  max_repeats: Optional[int] = None, max_redirections: Optional[int] = None,
-                 http_debug: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None,
+                 http_debug_level: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None,
                  user_agent: Optional[_TUserAgent] = None):
         super().__init__(headers, auth, proxies, params, stream, verify, trust_env, cookies, timeout,
-                         allow_redirects, force_auth, max_repeats, max_redirections, http_debug, unredirected_hdrs)
+                         allow_redirects, force_auth, max_repeats, max_redirections, http_debug_level, unredirected_hdrs)
         self.user_agent = user_agent
 
     @property

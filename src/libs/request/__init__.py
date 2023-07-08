@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.7'
+__version__ = '0.2.8'
 
 import base64
 import bz2
@@ -242,14 +242,14 @@ class Decoder(metaclass=_DecoderMeta):
     def flush(self) -> bytes:
         return b''
 
-    def decode(self, data: bytes) -> bytes:
+    def decompress(self, data: bytes) -> bytes:
         raise NotImplementedError
 
 
 class IdentityDecoder(Decoder):
     _encoding_ = 'identity'
 
-    def decode(self, data: bytes) -> bytes:
+    def decompress(self, data: bytes) -> bytes:
         return data
 
 
@@ -264,7 +264,7 @@ class DeflateDecoder(Decoder):
     def flush(self) -> bytes:
         return self._decoder.flush()
 
-    def decode(self, data: bytes) -> bytes:
+    def decompress(self, data: bytes) -> bytes:
         if self._tried:
             return self._decoder.decompress(data)
         else:
@@ -273,7 +273,7 @@ class DeflateDecoder(Decoder):
             except zlib.error:
                 self.__init__(-zlib.MAX_WBITS)
                 self._tried = True
-                data = self.decode(data)
+                data = self.decompress(data)
             else:
                 if data:
                     self._tried = True
@@ -286,7 +286,7 @@ class GzipDecoder(DeflateDecoder):
     def __init__(self):
         super().__init__(16 + zlib.MAX_WBITS)
 
-    def decode(self, data: bytes) -> bytes:
+    def decompress(self, data: bytes) -> bytes:
         return self._decoder.decompress(data)
 
 
@@ -299,7 +299,7 @@ class Bzip2Decoder(Decoder):
     def flush(self) -> bytes:
         return self._decoder.unused_data
 
-    def decode(self, data: bytes) -> bytes:
+    def decompress(self, data: bytes) -> bytes:
         return self._decoder.decompress(data)
 
 
@@ -318,9 +318,9 @@ class MultiDecoder(Decoder):
     def flush(self) -> bytes:
         return self._decoder[-1].flush()
 
-    def decode(self, data: bytes) -> bytes:
+    def decompress(self, data: bytes) -> bytes:
         for decoder in self._decoder:
-            data = decoder.decode(data)
+            data = decoder.decompress(data)
         return data
 
 
@@ -475,6 +475,10 @@ class ProxyDigestAuth(ProxyAuth, HTTPDigestAuth):
 class AuthManager(urllib.request.HTTPPasswordMgr):
     passwd: dict[Optional[str], dict[tuple[tuple[str, str], ...], HTTPAuth]]
 
+    def __init__(self, *auths: _TAuth):
+        super().__init__()
+        merge_auths(*auths, man=self)
+
     def add_auth(self, auth: HTTPAuth, url: Optional[str | Iterable[str]] = None, realm: Optional[str] = None):
         if url is None:
             url = ''
@@ -531,15 +535,66 @@ _RETRIEVE_CHUNK_SIZE = 64 * 1024
 _BYTES_PATH = b"!$&'()*+,;=:@/"
 _BYTES_FRAGMENT = _BYTES_QUERY = _BYTES_PATH + b'?'
 _FILE_SCHEME = 'file'
-_STATUS_CODES_REDIRECT = (
-    Status.MOVED_PERMANENTLY, Status.FOUND, Status.SEE_OTHER,
-    Status.TEMPORARY_REDIRECT, Status.PERMANENT_REDIRECT)
+_STATUS_REDIRECT_PERMANENT = (
+    Status.MOVED_PERMANENTLY, Status.PERMANENT_REDIRECT)
+_STATUS_REDIRECT = (
+    *_STATUS_REDIRECT_PERMANENT, Status.FOUND,
+    Status.SEE_OTHER, Status.TEMPORARY_REDIRECT)
 _RE_ENCODED = re.compile(r'%[a-fA-F0-9]{2}')
 _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
 
 
+def eq_case_insensitive(string: str, other: str) -> bool:
+    return string.lower() == other.lower()
+
+
+def startswith_case_insensitive(string: str, prefix: str) -> bool:
+    return string.lower().startswith(prefix.lower())
+
+
+def endswith_case_insensitive(string: str, suffix: str) -> bool:
+    return string.lower().endswith(suffix.lower())
+
+
+def iter_case_insensitive(iterable: Iterable[str]) -> Iterator[str]:
+    for key in iterable:
+        yield key.lower()
+
+
+def index_case_insensitive(iterable: Iterable[str], key: str) -> int:
+    key = key.lower()
+    for index, key_ in enumerate(iter_case_insensitive(iterable)):
+        if key == key_:
+            return index
+    raise ValueError(f'{key!r} is not in iterable')
+
+
+def contains_case_insensitive(iterable: Iterable[str], key: str) -> bool:
+    try:
+        index_case_insensitive(iterable, key)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def getitem_case_insensitive(mapping: Mapping[str, Any], key: str) -> Any:
+    key = key.lower()
+    for key_, val in zip(iter_case_insensitive(mapping), mapping.values()):
+        if key == key_:
+            return val
+    raise KeyError(key)
+
+
+def get_case_insensitive(mapping: Mapping[str, Any], key: str, default: Any = None) -> Any:
+    try:
+        return getitem_case_insensitive(mapping, key)
+    except KeyError:
+        return default
+
+
 def default_accept_encoding(*encodings: str) -> str:
-    return ','.join(itertools.chain(Decoder, encodings))
+    return ', '.join(itertools.chain(Decoder, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -548,11 +603,11 @@ def default_accept_language(*languages: str | tuple[str | Iterable[str], float])
         if not isinstance(language, str):
             language, quality = language
             if not isinstance(language, str):
-                language = ','.join(language)
+                language = ', '.join(language)
             if quality != 1.0:
                 language = f'{language};q={quality}'
         accept_languages.append(language)
-    return ','.join(accept_languages)
+    return ', '.join(accept_languages)
 
 
 def default_user_agent(name: str = 'python-' + __name__) -> str:
@@ -605,8 +660,7 @@ class _OpenerDirector(urllib.request.OpenerDirector):
     # noinspection PyShadowingNames
     def open_ex(self, request: urllib.request.Request) -> Response:
         if getattr(request, 'timeout', None) is None:
-            # noinspection PyUnresolvedReferences,PyProtectedMember
-            request.timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+            request.timeout = socket.getdefaulttimeout()
         start = time.perf_counter()
         response = self.open(request, timeout=request.timeout)
         response.elapsed = datetime.timedelta(seconds=time.perf_counter() - start)
@@ -630,6 +684,10 @@ class _ProxyHandler(urllib.request.ProxyHandler):
             return self.proxy_open(request, proxy, request.type)
 
 
+class _HTTPHandler(urllib.request.HTTPHandler):
+    pass
+
+
 class _HTTPSHandler(urllib.request.HTTPSHandler):
     # noinspection PyShadowingNames
     def https_open(self, request: urllib.request.Request) -> http.client.HTTPResponse:
@@ -642,14 +700,14 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, request: urllib.request.Request,
                          response: http.client.HTTPResponse, status: int, reason: str,
                          headers: http.client.HTTPMessage, url: str) -> Optional[urllib.request.Request]:
-        request_ = request.next = super().redirect_request(
+        request_next = request.next = super().redirect_request(
             request, response, status, reason, headers, url)
-        _request_set_private(request_, getattr(request, '_auths', None), getattr(
+        _request_set_private(request_next, getattr(request, '_auths', None), getattr(
             request, '_cookies', None), getattr(request, '_proxies', None), getattr(
             request, '_verify', None), allow_redirects := getattr(
             request, '_allow_redirects', None), getattr(request, '_force_auth', None))
         if allow_redirects is not False:
-            return request_
+            return request_next
 
 
 class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
@@ -671,8 +729,8 @@ class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
 
 
 class _HTTPAuthHandler(urllib.request.BaseHandler):
-    scheme: str
-    tauth: type[HTTPAuth]
+    _scheme_: str
+    _tauth_: type[HTTPAuth]
 
     def __init_subclass__(cls):
         cls.handler_order = cls.handler_order
@@ -680,10 +738,10 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
 
     # noinspection PyShadowingNames
     def retry_auth(self, request: urllib.request.Request,
-                   auths: list[str]) -> Optional[http.client.HTTPResponse]:
+                   auths: Iterable[str]) -> Optional[http.client.HTTPResponse]:
         for auth in auths:
             if (params := get_case_insensitive(get_chals(
-                    auth), self.scheme)) is not None:
+                    auth), self._scheme_)) is not None:
                 if self.encode(request, params):
                     return self.parent.open(request, timeout=request.timeout)
 
@@ -698,7 +756,7 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
                 if (val := get_case_insensitive(params, 'realm')) is not None:
                     realm = val[0]
             auth = man.get_auth(request.full_url, realm)
-            if isinstance(auth, self.tauth) and auth.encode(
+            if isinstance(auth, self._tauth_) and auth.encode(
                     params, request) is not None:
                 request._tried_auth = True
                 return True
@@ -728,18 +786,18 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
 
 
 class _HTTPBasicAuthHandler(_HTTPAuthHandler):
-    scheme = 'basic'
-    tauth = HTTPBasicAuth
+    _scheme_ = 'basic'
+    _tauth_ = HTTPBasicAuth
 
 
 class _HTTPBearerAuthHandler(_HTTPAuthHandler):
-    scheme = 'bearer'
-    tauth = HTTPBearerAuth
+    _scheme_ = 'bearer'
+    _tauth_ = HTTPBearerAuth
 
 
 class _HTTPDigestAuthHandler(_HTTPAuthHandler):
-    scheme = 'digest'
-    tauth = HTTPDigestAuth
+    _scheme_ = 'digest'
+    _tauth_ = HTTPDigestAuth
 
     # noinspection PyShadowingNames
     def http_request(self, request: urllib.request.Request) -> urllib.request.Request:
@@ -863,12 +921,11 @@ class Response:
 
     @property
     def is_redirect(self) -> bool:
-        return Header.LOCATION in self.headers and self.status_code in _STATUS_CODES_REDIRECT
+        return Header.LOCATION in self.headers and self.status_code in _STATUS_REDIRECT
 
     @property
     def is_permanent_redirect(self) -> bool:
-        return Header.LOCATION in self.headers and self.status_code in (
-            Status.MOVED_PERMANENTLY, Status.PERMANENT_REDIRECT)
+        return self.is_redirect and self.status_code in _STATUS_REDIRECT_PERMANENT
 
     @property
     def next(self) -> Optional[urllib.request.Request]:
@@ -917,30 +974,36 @@ class Response:
     def read(self, amt: Optional[int] = None, decode_content: bool = True) -> bytes:
         data = self.raw.read(amt)
         if decode_content and self._decoder is not None:
-            data = self._decoder.decode(data)
+            data = self._decoder.decompress(data)
             if not data:
                 data = self._decoder.flush()
         return data
 
 
 class Session:
-    __attrs__ = ('headers', 'auth', 'proxies', 'params', 'stream', 'verify', 'trust_env', 'cookies',
-                 'timeout', 'allow_redirects', 'force_auth', 'max_repeats', 'max_redirections', 'unredirected_hdrs')
-    _handlers = (
+    _tredirect_ = _HTTPRedirectHandler
+    _thttp_ = _HTTPHandler
+    _thttps_ = _HTTPSHandler
+    _tcookie_ = _HTTPCookieProcessor
+    _shared_handlers_ = (
         urllib.request.HTTPErrorProcessor(), _HTTPDefaultErrorHandler(), _ProxyHandler(),
         urllib.request.UnknownHandler(), urllib.request.FileHandler(), urllib.request.FTPHandler(),
         _HTTPBasicAuthHandler(), _HTTPBearerAuthHandler(), _HTTPDigestAuthHandler())
+
+    _attrs = ('headers', 'auth', 'proxies', 'params', 'stream', 'verify', 'trust_env', 'cookies', 'timeout',
+              'allow_redirects', 'force_auth', 'max_repeats', 'max_redirections', 'http_debug_level', 'unredirected_hdrs')
 
     def __init__(self, headers: Optional[_THeaders] = None, auth: Optional[_TAuth] = None,
                  proxies: Optional[_TProxies] = None, params: Optional[_TParams] = None, stream: Optional[bool] = None,
                  verify: Optional[_TVerify] = None, trust_env: bool = True, cookies: Optional[_TCookies] = None,
                  timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, force_auth: Optional[bool] = None,
                  max_repeats: Optional[int] = None, max_redirections: Optional[int] = None,
-                 http_debug: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None):
-        self._redirect_handler = _HTTPRedirectHandler()
-        self._http_handler = urllib.request.HTTPHandler()
-        self._https_handler = _HTTPSHandler()
-        self._cookie_processor = _HTTPCookieProcessor()
+                 http_debug_level: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None):
+        self._redirect_handler = self._tredirect_()
+        self._http_handler = self._thttp_()
+        self._https_handler = self._thttps_()
+        self._cookie_handler = self._tcookie_()
+
         if headers is None:
             headers = default_headers()
         self.headers = headers
@@ -961,14 +1024,15 @@ class Session:
             self.max_repeats = max_repeats
         if max_redirections is not None:
             self.max_redirections = max_redirections
-        if http_debug is not None:
-            self.http_debug_level = http_debug
+        if http_debug_level is not None:
+            self.http_debug_level = http_debug_level
         self.unredirected_hdrs = unredirected_hdrs
-        self._opener = _OpenerDirector(*self._handlers, self._redirect_handler,
-                                       self._http_handler, self._https_handler, self._cookie_processor)
+
+        self._opener = _OpenerDirector(*self._shared_handlers_, self._redirect_handler,
+                                       self._http_handler, self._https_handler, self._cookie_handler)
 
     def __repr__(self):
-        attrs = (f'{name}={val}' for name in self.__attrs__
+        attrs = (f'{name}={val}' for name in self._attrs
                  if (val := getattr(self, name)) is not None)
         return f'<{type(self).__name__}: <{", ".join(attrs)}>>'
 
@@ -1024,13 +1088,13 @@ class Session:
 
     @property
     def cookies(self) -> Optional[http.cookiejar.CookieJar]:
-        return self._cookie_processor.cookiejar
+        return self._cookie_handler.cookiejar
 
     @cookies.setter
     def cookies(self, cookies: Optional[_TCookies]):
         if cookies is not None:
             cookies = encode_cookies(cookies)
-        self._cookie_processor.cookiejar = cookies
+        self._cookie_handler.cookiejar = cookies
 
     @property
     def max_repeats(self) -> int:
@@ -1115,9 +1179,9 @@ class Session:
                 timeout: Optional[float] = None, allow_redirects: Optional[bool] = None, proxies: Optional[_TProxies] = None,
                 stream: Optional[bool] = None, verify: Optional[_TVerify] = None, json: Optional[_TJSON] = None,
                 force_auth: Optional[bool] = None, unredirected_hdrs: Optional[_THeaders] = None) -> Response:
-        request_ = self.prepare_request(Request(method, url, headers, files, data, params,
-                                                auth, cookies, json, unredirected_hdrs))
-        return self.send(request_, **self.merge_environment_settings(
+        request_prep = self.prepare_request(Request(method, url, headers, files, data, params,
+                                                    auth, cookies, json, unredirected_hdrs))
+        return self.send(request_prep, **self.merge_environment_settings(
             proxies, stream, verify, timeout, allow_redirects, force_auth))
 
     def get(self, url: _TURL, params: Optional[_TParams] = None, data: Optional[_TData] = None,
@@ -1244,55 +1308,6 @@ def _merge_setting(request_setting, session_setting) -> Any:
         return request_setting
 
 
-def eq_case_insensitive(string: str, other: str) -> bool:
-    return string.lower() == other.lower()
-
-
-def startswith_case_insensitive(string: str, prefix: str) -> bool:
-    return string.lower().startswith(prefix.lower())
-
-
-def endswith_case_insensitive(string: str, suffix: str) -> bool:
-    return string.lower().endswith(suffix.lower())
-
-
-def iter_case_insensitive(iterable: Iterable[str]) -> Iterator[str]:
-    for key in iterable:
-        yield key.lower()
-
-
-def index_case_insensitive(iterable: Iterable[str], key: str) -> int:
-    key = key.lower()
-    for index, key_ in enumerate(iter_case_insensitive(iterable)):
-        if key == key_:
-            return index
-    raise ValueError(f'{key!r} is not in iterable')
-
-
-def contains_case_insensitive(iterable: Iterable[str], key: str) -> bool:
-    try:
-        index_case_insensitive(iterable, key)
-    except ValueError:
-        return False
-    else:
-        return True
-
-
-def getitem_case_insensitive(mapping: Mapping[str, Any], key: str) -> Any:
-    key = key.lower()
-    for key_, val in zip(iter_case_insensitive(mapping), mapping.values()):
-        if key == key_:
-            return val
-    raise KeyError(key)
-
-
-def get_case_insensitive(mapping: Mapping[str, Any], key: str, default: Any = None) -> Any:
-    try:
-        return getitem_case_insensitive(mapping, key)
-    except KeyError:
-        return default
-
-
 def is_path(url: str) -> bool:
     return _FILE_SCHEME == urllib.parse.urlsplit(url).scheme
 
@@ -1388,7 +1403,7 @@ def get_headers(keep_alive: Optional[bool] = True, accept_encoding: bool | str |
         if accept_encoding is True:
             accept_encoding = default_accept_encoding()
         elif not isinstance(accept_encoding, str):
-            accept_encoding = ','.join(accept_encoding)
+            accept_encoding = ', '.join(accept_encoding)
         headers[Header.ACCEPT_ENCODING] = accept_encoding
     if user_agent:
         if user_agent is True:
@@ -1553,9 +1568,11 @@ def encode_headers(headers: _THeaders, unredirected: bool = False,
             headers = http.client.parse_headers(headers)
         else:
             headers = dict(headers)
-    headers = {key: val for key, val in headers.items() if val is not None}
+    headers = {key.capitalize(): val for key, val in headers.items() if val is not None}
     if request is not None:
-        (request.unredirected_hdrs if unredirected else request.headers).update(headers)
+        add_header = request.add_unredirected_header if unredirected else request.add_header
+        for header in headers.items():
+            add_header(*header)
     return headers
 
 

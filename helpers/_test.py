@@ -7,6 +7,7 @@ import datetime
 import decimal
 import enum
 import fractions
+import http
 import ipaddress
 import os
 import pathlib
@@ -638,7 +639,24 @@ def _test_inheritance():
 
 
 def _test():
-    pass
+    import http.client
+    import urllib3
+    _ = urllib3
+
+    # can only reuse conn if steam=False
+    # could track conn state if read and then reuse
+    # may create thread inconsistency, use lock?
+    # connectionpool.py#636
+
+    paths = '/headers', '/ip', '/user-agent'
+    hdrs = request.default_headers()
+    # conn = http.client.HTTPSConnection('httpbin.org')
+    conn = urllib3.HTTPSConnectionPool('httpbin.org')
+    st = time.time()
+    for path in paths:
+        conn.request('GET', path, headers=hdrs, preload_content=False)
+        # print(conn.getresponse().read())
+    print(time.time() - st)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

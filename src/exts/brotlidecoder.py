@@ -14,5 +14,5 @@ if __feature__.BROTLI_DECODE:
         def flush(self) -> bytes:
             return self._decoder.unused_data
 
-        def decode(self, data: bytes) -> bytes:
+        def decompress(self, data: bytes) -> bytes:
             return self._decoder.decompress(data)
