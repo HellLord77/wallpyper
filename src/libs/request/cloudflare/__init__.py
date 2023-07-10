@@ -87,8 +87,8 @@ class Session(_Session):
                  max_repeats: Optional[int] = None, max_redirections: Optional[int] = None,
                  http_debug_level: Optional[bool | int] = None, unredirected_hdrs: Optional[_THeaders] = None,
                  user_agent: Optional[_TUserAgent] = None):
-        super().__init__(headers, auth, proxies, params, stream, verify, trust_env, cookies, timeout,
-                         allow_redirects, force_auth, max_repeats, max_redirections, http_debug_level, unredirected_hdrs)
+        super().__init__(headers, auth, proxies, params, stream, verify, trust_env, cookies, timeout, allow_redirects,
+                         force_auth, max_repeats, max_redirections, http_debug_level, unredirected_hdrs)
         self.user_agent = user_agent
 
     @property
@@ -96,7 +96,7 @@ class Session(_Session):
         return self.headers, self.verify.get_ciphers()
 
     @user_agent.setter
-    def user_agent(self, user_agent: Optional[_TUserAgent] = None):
+    def user_agent(self, user_agent: Optional[_TUserAgent]):
         if user_agent is None:
             user_agent = UserAgent(mobile=False)
         if isinstance(user_agent, UserAgent):

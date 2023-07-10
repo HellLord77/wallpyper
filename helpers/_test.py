@@ -13,6 +13,7 @@ import os
 import pathlib
 import pprint
 import re
+import socket
 import sys
 import time
 import uuid
@@ -641,21 +642,31 @@ def _test_inheritance():
 def _test():
     import http.client
     import urllib3
+    import requests
+    import requests.auth
+    from libs.request import __pool as pool
     _ = urllib3
+
+    url = 'https://jigsaw.w3.org/HTTP/Digest/'
+    sess = request.Session(auth=request.HTTPDigestAuth('guest', 'guest'))
+    resp = sess.get(url)
+    print(resp)
+    print(resp.request.headers)
+    print(resp.request.unredirected_hdrs)
+    exit()
 
     # can only reuse conn if steam=False
     # could track conn state if read and then reuse
     # may create thread inconsistency, use lock?
     # connectionpool.py#636
 
-    paths = '/headers', '/ip', '/user-agent'
-    hdrs = request.default_headers()
-    # conn = http.client.HTTPSConnection('httpbin.org')
-    conn = urllib3.HTTPSConnectionPool('httpbin.org')
+    paths = 'headers', 'ip', 'user-agent'
+    base = 'https://google.com'
+    sess = pool.Session()
     st = time.time()
-    for path in paths:
-        conn.request('GET', path, headers=hdrs, preload_content=False)
-        # print(conn.getresponse().read())
+    for _ in range(5):
+        resp = sess.get(base)
+        print(resp)
     print(time.time() - st)
 
 

@@ -195,7 +195,7 @@ class _COMBase(_Generic[_TInterface]):
     def __enter__(self) -> _TInterface:
         return self._obj
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, *_, **__):
         pass
 
 

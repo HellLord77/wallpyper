@@ -67,7 +67,7 @@ class Decompressor(metaclass=_Brotli):
     def __enter__(self) -> Decompressor:
         return self
 
-    def __exit__(self, _, __, ___):
+    def __exit__(self, *_, **__):
         self.__del__()
 
     def decompress(self, data: bytes) -> bytes:

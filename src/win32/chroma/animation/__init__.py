@@ -35,7 +35,7 @@ class _AnimationMeta(type):
     def __enter__(self) -> bool:
         return init() and self()
 
-    def __exit__(self, _, __, ___):
+    def __exit__(self, *_, **__):
         cleanup()
 
     def __call__(cls: type[_Animation], keyboard: bool = True, chroma_link: bool = True,

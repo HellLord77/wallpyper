@@ -211,7 +211,7 @@ class _DecoderMeta(type):
         if isinstance(cls._encoding_, str):
             cls._encoding_ = cls._encoding_,
         for encoding in cls._encoding_:
-            cls[encoding] = cls
+            cls[encoding.lower()] = cls
 
     def __contains__(self, encoding: str) -> bool:
         return encoding.lower() in self._decoders
@@ -489,7 +489,7 @@ class AuthManager(urllib.request.HTTPPasswordMgr):
         for default_port in True, False:
             # noinspection PyTypeChecker
             self.passwd[realm][tuple(self.reduce_uri(
-                u, default_port) for u in url)] = auth
+                uri, default_port) for uri in url)] = auth
 
     def find_auths(self, url: str, realm: Optional[str] = None) -> Iterator[HTTPAuth]:
         if (auth := extract_auth(url)) is not None:
@@ -594,7 +594,7 @@ def get_case_insensitive(mapping: Mapping[str, Any], key: str, default: Any = No
 
 
 def default_accept_encoding(*encodings: str) -> str:
-    return ', '.join(itertools.chain(Decoder, encodings))
+    return ','.join(itertools.chain(Decoder, encodings))
 
 
 def default_accept_language(*languages: str | tuple[str | Iterable[str], float]) -> str:
@@ -603,11 +603,11 @@ def default_accept_language(*languages: str | tuple[str | Iterable[str], float])
         if not isinstance(language, str):
             language, quality = language
             if not isinstance(language, str):
-                language = ', '.join(language)
+                language = ','.join(language)
             if quality != 1.0:
                 language = f'{language};q={quality}'
         accept_languages.append(language)
-    return ', '.join(accept_languages)
+    return ','.join(accept_languages)
 
 
 def default_user_agent(name: str = 'python-' + __name__) -> str:
@@ -659,10 +659,11 @@ class _OpenerDirector(urllib.request.OpenerDirector):
 
     # noinspection PyShadowingNames
     def open_ex(self, request: urllib.request.Request) -> Response:
-        if getattr(request, 'timeout', None) is None:
-            request.timeout = socket.getdefaulttimeout()
+        timeout = getattr(request, 'timeout', None)
+        if timeout is None:
+            timeout = socket.getdefaulttimeout()
         start = time.perf_counter()
-        response = self.open(request, timeout=request.timeout)
+        response = self.open(request, timeout=timeout)
         response.elapsed = datetime.timedelta(seconds=time.perf_counter() - start)
         return Response(request, response)
 
@@ -685,7 +686,9 @@ class _ProxyHandler(urllib.request.ProxyHandler):
 
 
 class _HTTPHandler(urllib.request.HTTPHandler):
-    pass
+    # noinspection PyShadowingNames
+    def http_open(self, request: urllib.request.Request) -> http.client.HTTPResponse:
+        return self.do_open(http.client.HTTPConnection, request)
 
 
 class _HTTPSHandler(urllib.request.HTTPSHandler):
@@ -704,7 +707,7 @@ class _HTTPRedirectHandler(urllib.request.HTTPRedirectHandler):
             request, response, status, reason, headers, url)
         _request_set_private(request_next, getattr(request, '_auths', None), getattr(
             request, '_cookies', None), getattr(request, '_proxies', None), getattr(
-            request, '_verify', None), allow_redirects := getattr(
+            request, '_stream', None), getattr(request, '_verify', None), allow_redirects := getattr(
             request, '_allow_redirects', None), getattr(request, '_force_auth', None))
         if allow_redirects is not False:
             return request_next
@@ -907,7 +910,7 @@ class Response:
     def __enter__(self) -> Response:
         return self
 
-    def __exit__(self, _, __, ___):
+    def __exit__(self, *_, **__):
         self.close()
 
     @property
@@ -1251,7 +1254,7 @@ class Session:
         if timeout is not None:
             request.timeout = timeout
         _request_set_private(request, getattr(request, '_auths', None), getattr(
-            request, '_cookies', None), proxies, verify, allow_redirects, force_auth)
+            request, '_cookies', None), proxies, stream, verify, allow_redirects, force_auth)
         try:
             response = self._opener.open_ex(request)
         except urllib.error.URLError as exc:  # TODO better handling
@@ -1288,10 +1291,12 @@ def _str(o: bytes | str) -> str:
 # noinspection PyShadowingNames
 def _request_set_private(request: urllib.request.Request, auths: Optional[AuthManager],
                          cookies: Optional[http.cookiejar.CookieJar], proxies: Optional[_TProxies],
-                         verify: Optional[_TVerify], allow_redirects: Optional[bool], force_auth: Optional[bool]):
+                         stream: Optional[bool], verify: Optional[_TVerify],
+                         allow_redirects: Optional[bool], force_auth: Optional[bool]):
     request._auths = auths
     request._cookies = cookies
     request._proxies = proxies
+    request._stream = stream
     request._verify = verify
     request._allow_redirects = allow_redirects
     request._force_auth = force_auth
@@ -1403,7 +1408,7 @@ def get_headers(keep_alive: Optional[bool] = True, accept_encoding: bool | str |
         if accept_encoding is True:
             accept_encoding = default_accept_encoding()
         elif not isinstance(accept_encoding, str):
-            accept_encoding = ', '.join(accept_encoding)
+            accept_encoding = ','.join(accept_encoding)
         headers[Header.ACCEPT_ENCODING] = accept_encoding
     if user_agent:
         if user_agent is True:
@@ -1467,8 +1472,7 @@ def get_chals(header: str) -> dict[str, list[dict[str, list[Optional[str]]]]]:
         else:
             if key not in params:
                 params[key] = []
-            params[key].extend(val__ for val_ in val.split(
-                ',') if (val__ := val_.strip()))
+            params[key].extend(dict(get_header_list(val)))
     return chals
 
 

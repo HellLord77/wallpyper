@@ -57,7 +57,7 @@ class _Control:
     def __enter__(self):
         pass
 
-    def __exit__(self, _, __, ___):
+    def __exit__(self, *_, **__):
         self.__del__()
 
 
@@ -65,7 +65,7 @@ class _Profile(enum.Enum):
     def __enter__(self) -> bool:
         return self.set()
 
-    def __exit__(self, _, __, ___):
+    def __exit__(self, *_, **__):
         self.clear()
 
     def set(self, loop: bool = True):
@@ -105,7 +105,7 @@ class _Game:
     def __enter__(self) -> _Game:
         return self
 
-    def __exit__(self, _, __, ___):
+    def __exit__(self, *_, **__):
         self.__del__()
 
 
