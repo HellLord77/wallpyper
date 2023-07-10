@@ -24,20 +24,21 @@ from . import get_header_list as _get_header_list
 class _ConnectionPoolMeta(type):
     _scheme_: str
 
-    _pools: dict[str, _ConnectionPoolMeta] = {}
+    _pools: dict[str, type[ConnectionPool]] = {}
 
     def __init__(cls, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if cls._scheme_:
+            # noinspection PyTypeChecker
             cls[cls._scheme_.lower()] = cls
 
     def __contains__(self, scheme: str) -> bool:
         return scheme.lower() in self._pools
 
-    def __getitem__(self, scheme: str) -> _ConnectionPoolMeta:
+    def __getitem__(self, scheme: str) -> type[ConnectionPool]:
         return self._pools[scheme.lower()]
 
-    def __setitem__(self, scheme: str, pool: _ConnectionPoolMeta):
+    def __setitem__(self, scheme: str, pool: type[ConnectionPool]):
         self._pools[scheme.lower()] = pool
 
     def __delitem__(self, scheme: str):
@@ -93,13 +94,15 @@ class ConnectionPool(metaclass=_ConnectionPoolMeta):
         if url.startswith('/'):
             return True
         else:
+            if '://' not in url:
+                url = '//' + url
             components = urllib.parse.urlsplit(url)
             scheme = components.scheme
             port = components.port
-            hostname = components.hostname
+            host = components.hostname
             return (scheme == '' or _eq_case_insensitive(scheme, self._scheme_) and
-                    (port is None or port == self._port_) and
-                    (hostname is None or _eq_case_insensitive(hostname, self._host)))
+                    (port is None or port == self._port) and
+                    (host is None or _eq_case_insensitive(host, self._host)))
 
 
 class HTTPConnectionPool(ConnectionPool):
@@ -109,17 +112,21 @@ class HTTPConnectionPool(ConnectionPool):
 
     def __getitem__(self, url: str, timeout: Optional[float] = None) -> http.client.HTTPConnection:
         ConnectionPool.__getitem__(self, url)
-        conn = None
         try:
             conn = self._pool.get(self.block, timeout)
         except queue.Empty:
             if self.block:
                 raise
-        if conn is not None and conn.sock is None:
-            conn.close()
+            else:
+                conn = None
         if conn is None:
             conn = self._tconn_(self._host, self._port,
                                 self.timeout, **self.conn_kwargs)
+        else:
+            # noinspection PyProtectedMember
+            response = conn._HTTPConnection__response
+            if conn.sock is None or (response is not None and not response.isclosed()):
+                conn.close()
         return conn
 
     def __setitem__(self, url: str, value: http.client.HTTPConnection):
@@ -169,7 +176,7 @@ class ConnectionPoolManager:
         self.pool_from_key = functools.lru_cache(value)(self)
 
     def close(self):
-        self.pool_from_key = None
+        self.pool_from_key = None  # TODO close all pools
 
     def pool_from_context(self, context) -> ConnectionPool:
         return self.pool_from_key(ConnectionPool[context['scheme']].get_key(context))
@@ -177,7 +184,7 @@ class ConnectionPoolManager:
     def pool_from_host(self, scheme: str, host: str,
                        port: Optional[int] = None, **pool_kwargs) -> ConnectionPool:
         if port is None:
-            # noinspection PyUnresolvedReferences,PyProtectedMember
+            # noinspection PyProtectedMember
             port = ConnectionPool[scheme]._port_
         context = self.pool_kwargs.copy()
         for key, value in pool_kwargs.items():
@@ -207,21 +214,20 @@ class _AbstractHTTPPoolHandler(urllib.request.AbstractHTTPHandler):
         super().__init__(debuglevel)
         self._man = ConnectionPoolManager()
 
+    def __del__(self):
+        self._man.close()
+
     def do_open(self, conn_pool: HTTPConnectionPool,
                 request: urllib.request.Request, **_) -> http.client.HTTPResponse:
-        host = request.host
-        if not host:
-            raise urllib.error.URLError('no host given')
-
-        conn = conn_pool[host]
+        conn = conn_pool[request.host]
         conn.timeout = request.timeout
         # noinspection PyUnresolvedReferences
         conn.set_debuglevel(self._debuglevel)
 
         headers = dict(request.unredirected_hdrs)
-        headers.update({k: v for k, v in request.headers.items()
-                        if k not in headers})
-        headers = {name.title(): val for name, val in headers.items()}
+        headers.update({key: value for key, value in request.headers.items()
+                        if key not in headers})
+        headers = {key.title(): value for key, value in headers.items()}
 
         # noinspection PyUnresolvedReferences,PyProtectedMember
         if request._tunnel_host:
@@ -244,9 +250,8 @@ class _AbstractHTTPPoolHandler(urllib.request.AbstractHTTPHandler):
         except:  # NOQA E722
             conn.close()
             raise
-        if conn.sock and (getattr(request, '_stream', True) is True or
-                          request.has_proxy() or _contains_case_insensitive(
-                    dict(_get_header_list(response.getheader(_Header.CONNECTION, ''))), 'close')):
+        if conn.sock and (request.has_proxy() or _contains_case_insensitive(
+                dict(_get_header_list(response.getheader(_Header.CONNECTION, ''))), 'close')):
             conn.sock.close()
             conn.sock = None
         else:

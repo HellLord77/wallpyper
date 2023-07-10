@@ -1,4 +1,3 @@
-# https://github.com/venomous/cloudscraper
 import functools
 import json
 import os

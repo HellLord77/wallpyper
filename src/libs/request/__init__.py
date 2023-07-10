@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.8'
+__version__ = '0.2.9'
 
 import base64
 import bz2
@@ -18,6 +18,7 @@ import json as json_
 import lzma
 import os
 import re
+import secrets
 import socket
 import ssl
 import sys
@@ -325,10 +326,17 @@ class MultiDecoder(Decoder):
 
 
 class HTTPAuth:
+    _scheme_: str
     _header_ = Header.AUTHORIZATION
 
     # noinspection PyShadowingNames
-    def encode(self, params: dict[str, list[Optional[str]]] = None,
+    def _encode(self, auth: str, request: Optional[urllib.request.Request] = None) -> str:
+        if request is not None:
+            request.add_unredirected_header(self._header_, f'{self._scheme_} {auth}')
+        return auth
+
+    # noinspection PyShadowingNames
+    def encode(self, params: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> Optional[str]:
         raise NotImplementedError
 
@@ -343,17 +351,15 @@ class HTTPBasicAuth(HTTPAuth):
     username: bytes | str
     password: bytes | str
 
+    _scheme_ = 'Basic'
+
     # noinspection PyShadowingNames
-    def encode(self, _: dict[str, list[Optional[str]]] = None,
+    def encode(self, _: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> str:
-        if isinstance(self.username, str):
-            self.username = self.username.encode('latin1')
-        if isinstance(self.password, str):
-            self.password = self.password.encode('latin1')
-        auth = f'Basic {base64.b64encode(self.username + b":" + self.password).decode()}'
-        if request is not None:
-            request.add_unredirected_header(self._header_, auth)
-        return auth
+        self.username = _bytes(self.username, 'latin1')
+        self.password = _bytes(self.password, 'latin1')
+        return self._encode(base64.b64encode(
+            self.username + b":" + self.password).decode(), request)
 
 
 @dataclasses.dataclass
@@ -365,15 +371,13 @@ class ProxyBasicAuth(ProxyAuth, HTTPBasicAuth):
 class HTTPBearerAuth(HTTPAuth):
     token: bytes | str
 
+    _scheme_ = 'Bearer'
+
     # noinspection PyShadowingNames
-    def encode(self, _: dict[str, list[Optional[str]]] = None,
+    def encode(self, _: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> str:
-        if isinstance(self.token, str):
-            self.token = self.token.encode('latin1')
-        auth = f'Bearer {self.token.decode()}'
-        if request is not None:
-            request.add_unredirected_header(self._header_, auth)
-        return auth
+        self.token = _bytes(self.token, 'latin1')
+        return self._encode(self.token.decode(), request)
 
 
 @dataclasses.dataclass
@@ -386,6 +390,8 @@ class HTTPDigestAuth(HTTPAuth):
     username: bytes | str
     password: bytes | str
 
+    _scheme_ = 'Digest'
+
     _last_nonce = ''
     _nonce_count = 1
     _algorithms = (
@@ -397,10 +403,8 @@ class HTTPDigestAuth(HTTPAuth):
                request: Optional[urllib.request.Request] = None) -> Optional[str]:
         if params is None:
             return
-        if isinstance(self.username, bytes):
-            self.username = self.username.decode('latin1')
-        if isinstance(self.password, bytes):
-            self.password = self.password.decode('latin1')
+        self.username = _str(self.username, 'latin1')
+        self.password = _str(self.password, 'latin1')
         realm = get_case_insensitive(params, 'realm')[0]
         nonce = get_case_insensitive(params, 'nonce')[0]
         qop = get_case_insensitive(params, 'qop')
@@ -444,10 +448,7 @@ class HTTPDigestAuth(HTTPAuth):
         params_.append(f'response="{response}"')
         if opaque is not None:
             params_.append(f'opaque="{opaque}"')
-        auth = f'Digest {", ".join(params_)}'
-        if request is not None:
-            request.add_unredirected_header(self._header_, auth)
-        return auth
+        return self._encode(','.join(params_), request)
 
     @classmethod
     def get_algorithm(cls, algorithms: Sequence[str]) -> tuple[Optional[Callable[[bytes | str], str]], str]:
@@ -455,7 +456,7 @@ class HTTPDigestAuth(HTTPAuth):
         for algorithm, algorithm_ in cls._algorithms:
             if algorithm in hashlib.algorithms_available and algorithm_ in algorithms_:
                 try:
-                    index = index_case_insensitive(algorithms, f'{algorithm_}-SESS')
+                    index = index_case_insensitive(algorithms, algorithm_ + '-SESS')
                 except ValueError:
                     index = index_case_insensitive(algorithms, algorithm_)
                 return lambda string: hashlib.new(
@@ -464,7 +465,7 @@ class HTTPDigestAuth(HTTPAuth):
 
     def get_cnonce(self, nonce: str):
         return hashlib.sha1(f'{self._nonce_count}:{nonce}:{time.ctime()}:'.encode()
-                            + os.urandom(8)).hexdigest()[:16]
+                            + secrets.token_bytes()).hexdigest()[:16]
 
 
 @dataclasses.dataclass
@@ -732,7 +733,6 @@ class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
 
 
 class _HTTPAuthHandler(urllib.request.BaseHandler):
-    _scheme_: str
     _tauth_: type[HTTPAuth]
 
     def __init_subclass__(cls):
@@ -743,8 +743,9 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
     def retry_auth(self, request: urllib.request.Request,
                    auths: Iterable[str]) -> Optional[http.client.HTTPResponse]:
         for auth in auths:
+            # noinspection PyProtectedMember
             if (params := get_case_insensitive(get_chals(
-                    auth), self._scheme_)) is not None:
+                    auth), self._tauth_._scheme_)) is not None:
                 if self.encode(request, params):
                     return self.parent.open(request, timeout=request.timeout)
 
@@ -775,31 +776,30 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
     def http_error_401(self, request: urllib.request.Request,
                        _: http.client.HTTPResponse, __: int, ___: str,
                        headers: http.client.HTTPMessage) -> http.client.HTTPResponse:
-        if (auths := headers.get_all(Header.WWW_AUTHENTICATE)) is not None:
+        if not request.has_header(Header.AUTHORIZATION) and (
+                auths := headers.get_all(Header.WWW_AUTHENTICATE)) is not None:
             return self.retry_auth(request, auths)
 
     # noinspection PyShadowingNames
     def http_error_407(self, request: urllib.request.Request,
                        _: http.client.HTTPResponse, __: int, ___: str,
                        headers: http.client.HTTPMessage) -> http.client.HTTPResponse:
-        if (auths := headers.get_all(Header.PROXY_AUTHENTICATE)) is not None:
+        if not request.has_header(Header.PROXY_AUTHORIZATION) and (
+                auths := headers.get_all(Header.PROXY_AUTHENTICATE)) is not None:
             return self.retry_auth(request, auths)
 
     https_request = http_request
 
 
 class _HTTPBasicAuthHandler(_HTTPAuthHandler):
-    _scheme_ = 'basic'
     _tauth_ = HTTPBasicAuth
 
 
 class _HTTPBearerAuthHandler(_HTTPAuthHandler):
-    _scheme_ = 'bearer'
     _tauth_ = HTTPBearerAuth
 
 
 class _HTTPDigestAuthHandler(_HTTPAuthHandler):
-    _scheme_ = 'digest'
     _tauth_ = HTTPDigestAuth
 
     # noinspection PyShadowingNames
@@ -1280,12 +1280,12 @@ class Session:
             'force_auth': _merge_setting(force_auth, self.force_auth)}
 
 
-def _bytes(o: bytes | str) -> bytes:
-    return o.encode() if isinstance(o, str) else o
+def _bytes(o: bytes | str, encoding: str = 'utf-8') -> bytes:
+    return o.encode(encoding) if isinstance(o, str) else o
 
 
-def _str(o: bytes | str) -> str:
-    return o.decode() if isinstance(o, bytes) else o
+def _str(o: bytes | str, encoding: str = 'utf-8') -> str:
+    return o.decode(encoding) if isinstance(o, bytes) else o
 
 
 # noinspection PyShadowingNames

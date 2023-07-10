@@ -644,13 +644,17 @@ def _test():
     import urllib3
     import requests
     import requests.auth
-    from libs.request import __pool as pool
+    import requests_oauthlib
+    from libs.request import pool
     _ = urllib3
 
-    url = 'https://jigsaw.w3.org/HTTP/Digest/'
-    sess = request.Session(auth=request.HTTPDigestAuth('guest', 'guest'))
+    url = 'https://httpbingo.org/digest-auth/auth/guest/guest/MD5'
+    # url = 'https://jigsaw.w3.org/HTTP/Digest/'
+    sess = pool.Session(auth=request.HTTPDigestAuth('guest', 'guest'))
     resp = sess.get(url)
+    print('####################')
     print(resp)
+    print(resp.elapsed)
     print(resp.request.headers)
     print(resp.request.unredirected_hdrs)
     exit()
@@ -661,10 +665,10 @@ def _test():
     # connectionpool.py#636
 
     paths = 'headers', 'ip', 'user-agent'
-    base = 'https://google.com'
+    base = 'http://localhost:32770/delay/1'
     sess = pool.Session()
     st = time.time()
-    for _ in range(5):
+    for _ in range(3):
         resp = sess.get(base)
         print(resp)
     print(time.time() - st)
