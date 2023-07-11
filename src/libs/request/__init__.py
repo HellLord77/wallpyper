@@ -325,14 +325,14 @@ class MultiDecoder(Decoder):
         return data
 
 
-class HTTPAuth:
+class Auth:
     _scheme_: str
-    _header_ = Header.AUTHORIZATION
 
     # noinspection PyShadowingNames
-    def _encode(self, auth: str, request: Optional[urllib.request.Request] = None) -> str:
+    def add_header(self, auth: str, request: Optional[urllib.request.Request] = None) -> str:
         if request is not None:
-            request.add_unredirected_header(self._header_, f'{self._scheme_} {auth}')
+            request.add_unredirected_header(
+                Header.AUTHORIZATION, f'{self._scheme_} {auth}')
         return auth
 
     # noinspection PyShadowingNames
@@ -342,55 +342,60 @@ class HTTPAuth:
 
 
 # noinspection PyAbstractClass
-class ProxyAuth(HTTPAuth):
-    _header_ = Header.PROXY_AUTHORIZATION
+class ProxyAuth(Auth):
+    # noinspection PyShadowingNames
+    def add_header(self, auth: str, request: Optional[urllib.request.Request] = None) -> str:
+        if request is not None:
+            request.add_unredirected_header(
+                Header.PROXY_AUTHORIZATION, f'{self._scheme_} {auth}')
+        return auth
 
 
 @dataclasses.dataclass
-class HTTPBasicAuth(HTTPAuth):
+class BasicAuth(Auth):
+    _scheme_ = 'Basic'
+
     username: bytes | str
     password: bytes | str
-
-    _scheme_ = 'Basic'
 
     # noinspection PyShadowingNames
     def encode(self, _: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> str:
         self.username = _bytes(self.username, 'latin1')
         self.password = _bytes(self.password, 'latin1')
-        return self._encode(base64.b64encode(
+        return self.add_header(base64.b64encode(
             self.username + b":" + self.password).decode(), request)
 
 
 @dataclasses.dataclass
-class ProxyBasicAuth(ProxyAuth, HTTPBasicAuth):
+class ProxyBasicAuth(ProxyAuth, BasicAuth):
     pass
 
 
 @dataclasses.dataclass
-class HTTPBearerAuth(HTTPAuth):
-    token: bytes | str
-
+class BearerAuth(Auth):
     _scheme_ = 'Bearer'
+
+    token: bytes | str
 
     # noinspection PyShadowingNames
     def encode(self, _: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> str:
         self.token = _bytes(self.token, 'latin1')
-        return self._encode(self.token.decode(), request)
+        return self.add_header(self.token.decode(), request)
 
 
 @dataclasses.dataclass
-class ProxyBearerAuth(ProxyAuth, HTTPBearerAuth):
+class ProxyBearerAuth(ProxyAuth, BearerAuth):
     pass
 
 
 @dataclasses.dataclass
-class HTTPDigestAuth(HTTPAuth):
+class DigestAuth(Auth):
+    _scheme_ = 'Digest'
+
     username: bytes | str
     password: bytes | str
-
-    _scheme_ = 'Digest'
 
     _last_nonce = ''
     _nonce_count = 1
@@ -448,7 +453,7 @@ class HTTPDigestAuth(HTTPAuth):
         params_.append(f'response="{response}"')
         if opaque is not None:
             params_.append(f'opaque="{opaque}"')
-        return self._encode(','.join(params_), request)
+        return self.add_header(','.join(params_), request)
 
     @classmethod
     def get_algorithm(cls, algorithms: Sequence[str]) -> tuple[Optional[Callable[[bytes | str], str]], str]:
@@ -469,18 +474,18 @@ class HTTPDigestAuth(HTTPAuth):
 
 
 @dataclasses.dataclass
-class ProxyDigestAuth(ProxyAuth, HTTPDigestAuth):
+class ProxyDigestAuth(ProxyAuth, DigestAuth):
     pass
 
 
 class AuthManager(urllib.request.HTTPPasswordMgr):
-    passwd: dict[Optional[str], dict[tuple[tuple[str, str], ...], HTTPAuth]]
+    passwd: dict[Optional[str], dict[tuple[tuple[str, str], ...], Auth]]
 
     def __init__(self, *auths: _TAuth):
         super().__init__()
         merge_auths(*auths, man=self)
 
-    def add_auth(self, auth: HTTPAuth, url: Optional[str | Iterable[str]] = None, realm: Optional[str] = None):
+    def add_auth(self, auth: Auth, url: Optional[str | Iterable[str]] = None, realm: Optional[str] = None):
         if url is None:
             url = ''
         if isinstance(url, str):
@@ -492,7 +497,7 @@ class AuthManager(urllib.request.HTTPPasswordMgr):
             self.passwd[realm][tuple(self.reduce_uri(
                 uri, default_port) for uri in url)] = auth
 
-    def find_auths(self, url: str, realm: Optional[str] = None) -> Iterator[HTTPAuth]:
+    def find_auths(self, url: str, realm: Optional[str] = None) -> Iterator[Auth]:
         if (auth := extract_auth(url)) is not None:
             yield auth
         if (auth := self.find_user_password(realm, url)) != (None, None):
@@ -507,7 +512,7 @@ class AuthManager(urllib.request.HTTPPasswordMgr):
                 auth := domains.get((('', '/'),))) is not None:
             yield auth
 
-    def get_auth(self, url: str, realm: Optional[str] = None) -> Optional[HTTPAuth]:
+    def get_auth(self, url: str, realm: Optional[str] = None) -> Optional[Auth]:
         for auth in self.find_auths(url, realm):
             return auth
 
@@ -525,7 +530,7 @@ _TCookies = Iterable[_TCookie] | Mapping[
 _TFiles = Mapping[str, bytes | str | BinaryIO | tuple[
     bytes | str | BinaryIO] | tuple[bytes | str | BinaryIO, bytes | str] | tuple[
                       bytes | str | BinaryIO, bytes | str, Mapping[str, Optional[str]]]]
-_TAuth = bytes | str | tuple[bytes | str, bytes | str] | HTTPAuth | AuthManager
+_TAuth = bytes | str | tuple[bytes | str, bytes | str] | Auth | AuthManager
 _TAuths = Iterable[_TAuth] | Mapping[str | Iterable[str], _TAuth] | AuthManager
 _TJSON = bool | int | float | str | tuple | list | dict
 _TProxies = str | Iterable[tuple[str, str]] | Mapping[str, Optional[str]]
@@ -733,7 +738,7 @@ class _HTTPCookieProcessor(urllib.request.HTTPCookieProcessor):
 
 
 class _HTTPAuthHandler(urllib.request.BaseHandler):
-    _tauth_: type[HTTPAuth]
+    _tauth_: type[Auth]
 
     def __init_subclass__(cls):
         cls.handler_order = cls.handler_order
@@ -792,15 +797,15 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
 
 
 class _HTTPBasicAuthHandler(_HTTPAuthHandler):
-    _tauth_ = HTTPBasicAuth
+    _tauth_ = BasicAuth
 
 
 class _HTTPBearerAuthHandler(_HTTPAuthHandler):
-    _tauth_ = HTTPBearerAuth
+    _tauth_ = BearerAuth
 
 
 class _HTTPDigestAuthHandler(_HTTPAuthHandler):
-    _tauth_ = HTTPDigestAuth
+    _tauth_ = DigestAuth
 
     # noinspection PyShadowingNames
     def http_request(self, request: urllib.request.Request) -> urllib.request.Request:
@@ -864,7 +869,7 @@ class Request:
 
 
 class Response:
-    status_code: Status
+    status_code: int | Status
     headers: http.client.HTTPMessage
     url: str
     raw: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError
@@ -879,10 +884,12 @@ class Response:
                  raw: urllib.response.addinfourl | http.client.HTTPResponse | urllib.error.URLError):
         self._next = getattr(request, 'next', None)
         if isinstance(raw, urllib.error.URLError):
-            self.status_code = Status(getattr(
-                raw, 'status', Status.IM_A_TEAPOT))
+            status = getattr(raw, 'status', Status.IM_A_TEAPOT)
+            try:
+                self.status_code = Status(status)
+            except ValueError:
+                self.status_code = status
         elif isinstance(raw, urllib.response.addinfourl):
-            # noinspection PyTypeChecker
             self.status_code = Status.OK
         else:
             self.status_code = Status(raw.status)
@@ -1364,13 +1371,13 @@ def extract_cookies(cookies: _TCookies,
     return list(cookies) if request is None else cookies._cookies_for_request(request)
 
 
-def extract_auth(url: _TURL) -> Optional[HTTPBasicAuth]:
+def extract_auth(url: _TURL) -> Optional[BasicAuth]:
     # noinspection PyUnresolvedReferences,PyProtectedMember
     username, password = urllib.parse.urlsplit(url)._userinfo
     if username is not None or password is not None:
         username = '' if username is None else urllib.parse.unquote(username)
         password = '' if password is None else urllib.parse.unquote(password)
-        return HTTPBasicAuth(username, password)
+        return BasicAuth(username, password)
 
 
 def get_header_list(*headers: str) -> Iterator[tuple[str, Optional[str]]]:
@@ -1415,9 +1422,9 @@ def get_headers(keep_alive: Optional[bool] = True, accept_encoding: bool | str |
             user_agent = default_user_agent()
         headers[Header.USER_AGENT] = user_agent
     if basic_auth is not None:
-        headers[Header.AUTHORIZATION] = HTTPBasicAuth(*basic_auth).encode()
+        headers[Header.AUTHORIZATION] = BasicAuth(*basic_auth).encode()
     if proxy_basic_auth is not None:
-        headers[Header.PROXY_AUTHORIZATION] = HTTPBasicAuth(*proxy_basic_auth).encode()
+        headers[Header.PROXY_AUTHORIZATION] = BasicAuth(*proxy_basic_auth).encode()
     if disable_cache:
         headers[Header.CACHE_CONTROL] = 'no-cache'
     return headers
@@ -1492,9 +1499,9 @@ def merge_auths(*auths: _TAuth, man: Optional[AuthManager] = None) -> AuthManage
             man.passwd.update(auth.passwd)
         else:
             if isinstance(auth, (bytes, str)):
-                auth = HTTPBearerAuth(auth)
-            elif not isinstance(auth, HTTPAuth):
-                auth = HTTPBasicAuth(*auth)
+                auth = BearerAuth(auth)
+            elif not isinstance(auth, Auth):
+                auth = BasicAuth(*auth)
             man.add_auth(auth)
     return man
 
@@ -1661,7 +1668,7 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
 
 # noinspection PyShadowingNames
 def encode_auth(auth: _TAuth, request: Optional[urllib.request.Request] = None) -> AuthManager:
-    if isinstance(auth, (bytes, str, HTTPAuth, AuthManager)):
+    if isinstance(auth, (bytes, str, Auth, AuthManager)):
         auth = auth,
     elif isinstance(auth, tuple) and len(auth) == 2:
         auth = auth,

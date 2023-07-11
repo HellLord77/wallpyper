@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import functools
 import http.client
+import itertools
 import queue
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Iterator, Mapping, Optional
+from typing import Any, Callable, Hashable, Iterator, Mapping, MutableMapping, Optional
 
 from . import Header as _Header
 from . import Session as _Session
@@ -19,6 +20,72 @@ from . import _TVerify
 from . import contains_case_insensitive as _contains_case_insensitive
 from . import eq_case_insensitive as _eq_case_insensitive
 from . import get_header_list as _get_header_list
+
+
+class _LRUMap(MutableMapping):
+    __marker = object()
+
+    def __init__(self, maxsize: int = 10, dispose: Optional[Callable] = None):
+        assert maxsize >= 0
+        self._lock = threading.RLock()
+        self._map = {}
+        self.maxsize = maxsize
+        self.dispose = dispose
+
+    def __str__(self):
+        return f'{type(self).__name__}({self._map})'
+
+    def __getitem__(self, key):
+        with self._lock:
+            value = self._map.pop(key)
+            self._map[key] = value
+            return value
+
+    def __setitem__(self, key, value):
+        with self._lock:
+            value_ = self._map.pop(key, self.__marker)
+            self._map[key] = value
+            if len(self) > self._maxsize:
+                value_ = self._map.pop(next(iter(self)))
+        if value_ is not self.__marker and self.dispose is not None:
+            self.dispose(value_)
+
+    def __delitem__(self, key):
+        with self._lock:
+            value = self._map.pop(key)
+        if self.dispose is not None:
+            self.dispose(value)
+
+    def __iter__(self):
+        return iter(self._map)
+
+    def __len__(self):
+        return len(self._map)
+
+    def popitem(self, last: bool = True) -> tuple:
+        with self._lock:
+            if last:
+                try:
+                    key = next(reversed(self._map))
+                except StopIteration:
+                    raise KeyError
+                value = self.pop(key)
+            else:
+                key, value = super().popitem()
+        return key, value
+
+    @property
+    def maxsize(self) -> int:
+        return self._maxsize
+
+    @maxsize.setter
+    def maxsize(self, value: int):
+        with self._lock:
+            dlen = len(self) - value
+            if dlen > 0:
+                for key in tuple(itertools.islice(self, None, dlen)):
+                    del self[key]
+            self._maxsize = value
 
 
 class _ConnectionPoolMeta(type):
@@ -46,10 +113,6 @@ class _ConnectionPoolMeta(type):
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._pools)
-
-    @staticmethod
-    def get_key(context: Mapping[str, Any]):
-        return frozenset(context.items())
 
 
 class ConnectionPool(metaclass=_ConnectionPoolMeta):
@@ -86,6 +149,10 @@ class ConnectionPool(metaclass=_ConnectionPoolMeta):
 
     def __exit__(self, *_, **__):
         self.close()
+
+    @classmethod
+    def get_key(cls, context: Mapping[str, Any]) -> Hashable:
+        return frozenset(context.items())
 
     def close(self):
         self._pool = None
@@ -133,6 +200,13 @@ class HTTPConnectionPool(ConnectionPool):
         if not ConnectionPool.__setitem__(self, url, value):
             value.close()
 
+    @classmethod
+    def get_key(cls, context: Mapping[str, Any]) -> frozenset[tuple[str, Any]]:
+        return frozenset((('host', context.get('host')),
+                          ('port', context.get('port')),
+                          ('source_address', context.get('source_address')),
+                          ('blocksize', context.get('blocksize'))))
+
     def close(self):
         if self._pool is not None:
             pool, self._pool = self._pool, None
@@ -151,10 +225,17 @@ class HTTPSConnectionPool(HTTPConnectionPool):
     _port_ = http.client.HTTPS_PORT
     _tconn_ = http.client.HTTPSConnection
 
+    @classmethod
+    def get_key(cls, context: Mapping[str, Any]) -> frozenset[tuple[str, Any]]:
+        return frozenset((*super().get_key(context),
+                          ('context', context.get('context'))))
+
 
 class ConnectionPoolManager:
-    def __init__(self, count: int = 10, **pool_kwargs):
-        self.count = count
+    def __init__(self, count: Optional[int] = None, **pool_kwargs):
+        self._pools = _LRUMap(dispose=lambda pool: pool.close())
+        if count is not None:
+            self.count = count
         self.pool_kwargs = pool_kwargs
 
     def __enter__(self):
@@ -163,23 +244,25 @@ class ConnectionPoolManager:
     def __exit__(self, *_, **__):
         self.close()
 
-    def __call__(self, key) -> ConnectionPool:
-        pool_kwargs = dict(key)
-        return ConnectionPool[pool_kwargs.pop('scheme')](**pool_kwargs)
-
     @property
     def count(self) -> int:
-        return self.pool_from_key.cache_info().maxsize
+        return self._pools.maxsize
 
     @count.setter
     def count(self, value: int):
-        self.pool_from_key = functools.lru_cache(value)(self)
+        self._pools.maxsize = value
 
     def close(self):
-        self.pool_from_key = None  # TODO close all pools
+        self._pools.clear()
 
-    def pool_from_context(self, context) -> ConnectionPool:
-        return self.pool_from_key(ConnectionPool[context['scheme']].get_key(context))
+    def pool_from_key(self, key, context: dict[str, Any]) -> ConnectionPool:
+        if key not in self._pools:
+            self._pools[key] = ConnectionPool[context.pop('scheme')](**context)
+        return self._pools[key]
+
+    def pool_from_context(self, context: dict[str, Any]) -> ConnectionPool:
+        return self.pool_from_key(ConnectionPool[context[
+            'scheme']].get_key(context), context)
 
     def pool_from_host(self, scheme: str, host: str,
                        port: Optional[int] = None, **pool_kwargs) -> ConnectionPool:
@@ -298,6 +381,9 @@ class Session(_Session):
         super().__init__(headers, auth, proxies, params, stream, verify, trust_env, cookies, timeout, allow_redirects,
                          force_auth, max_repeats, max_redirections, http_debug_level, unredirected_hdrs)
         self.pool_manager = pool_manager
+
+    def __del__(self):
+        self.pool_manager.close()
 
     @property
     def pool_manager(self) -> _TPoolManager:

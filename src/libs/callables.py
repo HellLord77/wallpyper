@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 import collections
 import functools
@@ -18,8 +18,12 @@ from typing import Any, Callable, Container, Iterator, NoReturn, Optional
 _FMT_THREAD_NAME = f'{__name__}-{__version__}-{{}}({{}})'
 
 
-def _get_params(args: tuple, kwargs: dict[str, Any]) -> Any:
+def _get_params(args: tuple, kwargs: dict[str, Any],
+                typed: bool = False) -> Any:
     params = args + tuple(kwargs.items())
+    if typed:
+        params += tuple(type(arg) for arg in args)
+        params += tuple(type(arg) for arg in kwargs.values())
     try:
         params = hash(params)
     except TypeError:
