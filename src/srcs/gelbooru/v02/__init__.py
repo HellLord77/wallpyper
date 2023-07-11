@@ -177,17 +177,18 @@ class GelbooruV02Source(GelbooruSource, source=False):
                         posts = [request.extract_params(response.next.full_url)['id'][0]]
                     else:
                         html = sgml.loads(response.text)
-                        posts = [(thumb[0] if mode_favorite else thumb)['id'][1:] for thumb
-                                 in html.find_all('span', classes='thumb')]
-                        next_page = html.find('div', _ATTRS_PAGE).find(
-                            'b').get_next_sibling()
-                        if next_page is None:
+                        posts = [(thumb[0] if mode_favorite else thumb)['id'][1:]
+                                 for thumb in html.find_all(classes='thumb')]
+                        paginator = html.find('div', _ATTRS_PAGE)
+                        if paginator is not None:
+                            paginator = paginator.find('b').get_next_sibling()
+                        if paginator is None:
                             pid = '0'
                         else:
                             if mode_favorite:
-                                pid = _RE_PID.search(next_page['onclick']).group(1)
+                                pid = _RE_PID.search(paginator['onclick']).group(1)
                             else:
-                                pid = request.extract_params(next_page['href'])['pid'][0]
+                                pid = request.extract_params(paginator['href'])['pid'][0]
                 if not posts:
                     yield
                     continue
