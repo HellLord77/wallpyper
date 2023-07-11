@@ -392,6 +392,7 @@ from . import (
     fivehundredpx,
     folder,
     fonstola,
+    heytap,
     infinitynewtab,
     kekaiart,
     livestartpage,

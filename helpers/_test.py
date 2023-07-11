@@ -7,13 +7,11 @@ import datetime
 import decimal
 import enum
 import fractions
-import http
 import ipaddress
 import os
 import pathlib
 import pprint
 import re
-import socket
 import sys
 import time
 import uuid
@@ -640,11 +638,7 @@ def _test_inheritance():
 
 
 def _test():
-    import http.client
     import urllib3
-    import requests
-    import requests.auth
-    import requests_oauthlib
     from libs.request import pool
     _ = urllib3
 
