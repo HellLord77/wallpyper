@@ -1,4 +1,4 @@
-$Version = "0.3.3"
+$Version = "0.3.4"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -18,7 +18,7 @@ $NoConsole = $True
 $OneFile = $False
 $ElevatedProc = $False
 $RemoteProc = $False
-$UPX = $True
+$UPX = $False
 $ModuleGraph = $True
 $EntryPoint = "src/init.py"
 $Icon = "src/res/icon.ico"
@@ -29,7 +29,7 @@ $CythonSourceGlobs = @(
 	"src/libs/request/**/*.py"
 	"src/libs/{colornames,isocodes,mimetype,spinners,urischemes,useragents}/__init__.py"
 	# "src/libs/ctyped/interface/**/*.py"
-	# "src/libs/ctyped/lib/*.py"  FIXME https://github.com/cython/cython/issues/3838
+	# "src/libs/ctyped/lib/*.py"  # FIXME https://github.com/cython/cython/issues/3838
 	"src/libs/ctyped/lib/__init__.py"
 	# "src/libs/ctyped/type/*.py"
 	"src/libs/ctyped/{const,enum,winrt}/*.py"
@@ -235,9 +235,9 @@ function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 	return (Get-Command $Command).Path
 }
 
-function Start-PythonCode([string[]]$Lines) {
+function Start-PythonCode([string[]]$Lines, [bool]$Verbose = $True) {
 	$Code = $Lines -Join "; "
-	Write-Host "python <- $Code"
+	if ($Verbose) { Write-Host "python -> $Code" }
 	return python -c $Code
 }
 
@@ -248,14 +248,14 @@ function Get-ProjectName {
 
 function Get-IsPython64Bit {
 	if ($null -eq $Global:IsPython64Bit) {
-		$Global:IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit))
+		$Global:IsPython64Bit = [System.Convert]::ToBoolean((Start-PythonCode $CodePythonIs64Bit $False))
 	}
 	return $Global:IsPython64Bit
 }
 
 function Get-ExtSuffix {
 	if ($null -eq $Global:ExtSuffix) {
-		$Global:ExtSuffix = Start-PythonCode $CodeExtSuffix
+		$Global:ExtSuffix = Start-PythonCode $CodeExtSuffix $False
 	}
 	return $Global:ExtSuffix
 }
@@ -419,21 +419,21 @@ function Install-Requirements {
 	pip install setuptools --upgrade
 	pip install wheel --upgrade
 
-	# $TempDir = Join-Path $Env:TEMP (New-Guid) FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
+	# $TempDir = Join-Path $Env:TEMP (New-Guid)  # FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
 	$TempDir = Join-Path (Split-Path (Get-Location) -Qualifier) (Get-Random)
 	New-Item $TempDir -ItemType Directory
 	Push-Location $TempDir
 	pip download pyinstaller --no-deps --no-binary pyinstaller
 	$Source = (Get-ChildItem -Attributes Archive).FullName
 	tar -xf $Source
-	Set-Location $Source.Substring(0, $Source.Length - 7)
-	Remove-Item (Join-Path "PyInstaller" "bootloader") -Force -Recurse
-	python setup.py build
+	Set-Location (Join-Path $Source.Substring(0, $Source.Length - 7) "bootloader")
+	python ./waf all
+	Set-Location ..
 	pip install .
 	Pop-Location
 	Remove-Item $TempDir -Force -Recurse
 
-	if ($CythonSourceGlobs) { pip install cython==3.0.0b2 }  # FIXME https://github.com/cython/cython/milestone/58
+	if ($CythonSourceGlobs) { pip install cython==3.0.0rc1 }  # FIXME https://github.com/cython/cython/milestone/58
 	if ($NuitkaSources) { pip install nuitka }
 	if ($mypycSources) { pip install mypy }
 

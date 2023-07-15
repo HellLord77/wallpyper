@@ -7,13 +7,11 @@ import datetime
 import decimal
 import enum
 import fractions
-import http
 import ipaddress
 import os
 import pathlib
 import pprint
 import re
-import socket
 import sys
 import time
 import uuid
@@ -640,38 +638,7 @@ def _test_inheritance():
 
 
 def _test():
-    import http.client
-    import urllib3
-    import requests
-    import requests.auth
-    import requests_oauthlib
-    from libs.request import pool
-    _ = urllib3
-
-    # url = 'https://httpbingo.org/digest-auth/auth/guest/guest/MD5'
-    # # url = 'https://jigsaw.w3.org/HTTP/Digest/'
-    # sess = pool.Session(auth=request.DigestAuth('guest', 'guest'))
-    # resp = sess.get(url)
-    # print('####################')
-    # print(resp)
-    # print(resp.elapsed)
-    # print(resp.request.headers)
-    # print(resp.request.unredirected_hdrs)
-    # exit()
-
-    # can only reuse conn if steam=False
-    # could track conn state if read and then reuse
-    # may create thread inconsistency, use lock?
-    # connectionpool.py#636
-
-    paths = 'headers', 'ip', 'user-agent'
-    base = 'https://www.google.com'
-    sess = pool.Session()
-    st = time.time()
-    for _ in range(5):
-        resp = sess.get(base)
-        print(resp)
-    print(time.time() - st)
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
