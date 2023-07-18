@@ -19,14 +19,16 @@ from types import ModuleType
 from typing import AnyStr, Callable, Optional, TypeVar, NamedTuple
 from xml.etree import ElementTree
 
+import consts
 import win32
 from libs import ctyped, config, request
 # noinspection PyUnresolvedReferences
 from libs import sgml
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
+from libs.ctyped.interface.winrt.Windows.Data.Xml import Dom as Windows_Data_Xml_Dom
 from libs.ctyped.lib import kernel32, user32, python
-from win32 import _utils
+from win32 import _handle, _utils
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -637,6 +639,30 @@ def _test_inheritance():
     print(typ, bool(typ))
 
 
+def _test_toast():
+    from libs.ctyped.interface.winrt.Windows.UI import Notifications as Windows_UI_Notifications
+    from libs.ctyped.const import runtimeclass
+    uid = f'{consts.AUTHOR}.{consts.NAME}'
+    with ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotificationManagerStatics](
+            runtimeclass.Windows.UI.Notifications.ToastNotificationManager) as manager:
+        print(manager, bool(manager))
+        xml = ctyped.interface.WinRT[Windows_Data_Xml_Dom.IXmlDocument]()
+        manager.GetTemplateContent(
+            ctyped.enum.Windows.UI.Notifications.ToastTemplateType.ToastText01, ~xml)
+        print(xml, bool(xml))
+        print(_utils.dumps_xml(xml))
+        man_toast = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotification]()
+        with ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotificationFactory](
+                runtimeclass.Windows.UI.Notifications.ToastNotification) as factory:
+            factory.CreateToastNotification(xml._obj, ~man_toast)
+        print(man_toast, bool(man_toast))
+        man_notifier = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotifier]()
+        manager.CreateToastNotifierWithId(_handle.HSTRING.from_string(uid), ~man_notifier)
+        print(man_notifier, bool(man_notifier))
+        with man_notifier as notifier, man_toast as toast:
+            print(notifier.Show(toast))
+
+
 def _test():
     pass
 
@@ -646,5 +672,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _test()
+    _test_toast()
     sys.exit()

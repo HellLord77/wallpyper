@@ -9,6 +9,7 @@ from libs.ctyped import winrt
 from libs.ctyped.const import runtimeclass
 from libs.ctyped.interface.um import DispEx, d2d1, d2d1svg, oaidl, objidlbase
 from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
+from libs.ctyped.interface.winrt.Windows.Data.Xml import Dom as Windows_Data_Xml_Dom
 from libs.ctyped.interface.winrt.Windows.Storage import Streams as Windows_Storage_Streams
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
 from libs.ctyped.lib import kernel32, ole32, shlwapi, shell32, cfgmgr32, oleaut32, d2d1 as d2d1_
@@ -283,6 +284,15 @@ def get_bstr(string: Optional[str] = None) -> ContextManager[ctyped.type.BSTR]:
     finally:
         if bstr:
             oleaut32.SysFreeString(bstr)
+
+
+def dumps_xml(xml_document: ctyped.interface.WinRT[Windows_Data_Xml_Dom.IXmlDocument]) -> Optional[str]:
+    if xml_document:
+        with xml_document[Windows_Data_Xml_Dom.IXmlNodeSerializer] as xml_node_serializer:
+            if xml_node_serializer:
+                hstring = _handle.HSTRING()
+                if ctyped.macro.SUCCEEDED(xml_node_serializer.GetXml(ctyped.byref(hstring))):
+                    return hstring.get_string()
 
 
 # noinspection PyShadowingBuiltins

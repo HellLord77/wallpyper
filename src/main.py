@@ -36,12 +36,10 @@ CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
     sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 
-CHANGE_INTERVALS: tuple[int, int, int, int, int, int, int] = (
-    0, 300, 900, 1800, 3600, 10800, 21600)
-TRANSITION_DURATIONS: tuple[float, float, float, float, float] = (
-    0.5, 1.0, 2.5, 5.0, 10.0)
-MAXIMIZED_ACTIONS: tuple[str, str, str] = 'ignore', 'postpone', 'skip'
-BLOCKERS: dict[str, str] = {
+CHANGE_INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
+TRANSITION_DURATIONS = 0.5, 1.0, 2.5, 5.0, 10.0
+MAXIMIZED_ACTIONS = 'ignore', 'postpone', 'skip'
+BLOCKERS = {
     'lwservice.exe': 'Live2DViewerEX',
     'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
     'DPPlayer.exe': 'N0va Desktop',
@@ -265,7 +263,7 @@ def create_menu():
                                         on_click=functools.partial(on_easing_direction, item_ease_enable))
         # noinspection PyTypeChecker
         gui.add_submenu_radio(_text('MENU_SOURCE'), {name: source.NAME for name, source in sorted(
-            srcs.SOURCES.items(), key=_sort_source)}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
+            srcs.SOURCES.items(), key=_key_source)}, CURRENT_CONFIG, consts.CONFIG_ACTIVE_SOURCE,
                               on_click=on_source, icon=RES_FMT.format(consts.RES_SOURCE))
         on_source(CURRENT_CONFIG[consts.CONFIG_ACTIVE_SOURCE])
         item_display = gui.add_submenu(_text('MENU_DISPLAY'), icon=RES_FMT.format(consts.RES_DISPLAY))
@@ -399,7 +397,7 @@ def try_alert_error(exc: BaseException, force: bool = False):
             traceback.TracebackException.from_exception(exc).format()))).start()
 
 
-def _sort_source(source: tuple[str, type[srcs.Source]]) -> tuple[int, tuple[str, ...]]:
+def _key_source(source: tuple[str, type[srcs.Source]]) -> tuple[int, tuple[str, ...]]:
     parts = source[0].split('.')
     parts[-1] = source[1].NAME
     return len(parts) != 1, tuple(map(str.casefold, parts))
@@ -453,7 +451,13 @@ def print_progress():
                 console.ProgressState.NORMAL, round(current * 100))
         print(f'\r{pre}{mid}{post}', end='', flush=True)
         time.sleep(interval)
-    print(f'\r[✅] [{utils.get_progress(1, (len_mid or (os.get_terminal_size() - 6)) - 1)}'
+    if not len_mid:
+        try:
+            len_mid = os.get_terminal_size().columns
+        except (OSError, ValueError):  # TODO remote console
+            len_mid = 120
+        len_mid -= 6
+    print(f'\r[✅] [{utils.get_progress(1, max(0, len_mid - 1))}'
           f'{console.progress(console.ProgressState.NOPROGRESS)}]{console.show_cursor()}')
 
 

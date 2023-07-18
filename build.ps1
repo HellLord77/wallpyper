@@ -1,4 +1,4 @@
-$Version = "0.3.4"
+$Version = "0.3.5"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -426,14 +426,14 @@ function Install-Requirements {
 	pip download pyinstaller --no-deps --no-binary pyinstaller
 	$Source = (Get-ChildItem -Attributes Archive).FullName
 	tar -xf $Source
-	Set-Location (Join-Path $Source.Substring(0, $Source.Length - 7) "bootloader")
+	Set-Location (Join-Path $Source.Substring(0, $Source.Length - ".tar.gz".Length) "bootloader")
 	python ./waf all
 	Set-Location ..
 	pip install .
 	Pop-Location
 	Remove-Item $TempDir -Force -Recurse
 
-	if ($CythonSourceGlobs) { pip install cython==3.0.0rc1 }  # FIXME https://github.com/cython/cython/milestone/58
+	if ($CythonSourceGlobs) { pip install cython }  # FIXME https://github.com/cython/cython/issues/5542
 	if ($NuitkaSources) { pip install nuitka }
 	if ($mypycSources) { pip install mypy }
 
