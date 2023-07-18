@@ -1,6 +1,6 @@
 import operator
 import random
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator, Optional, Sequence, TypedDict
 
 import gui
 import validator
@@ -20,9 +20,9 @@ SORTS = {
     'random': lambda x: random.sample(x, k=len(x))}
 
 
-def _get_json() -> Iterator[dict]:
+def _get_json() -> Iterator[Sequence[dict]]:
     etag = ''
-    json = {}
+    json = ()
     while True:
         response = request.get(URL_BASE)
         if response:
@@ -38,7 +38,7 @@ _GET_JSON = _get_json()
 
 class Lwalpapers(Source):
     NAME = 'lwalpapers'
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
     ICON = 'png'
     URL = 'https://wallpaper.castorisdead.xyz'
     TCONFIG = TypedDict('TCONFIG', {
