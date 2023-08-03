@@ -41,7 +41,8 @@ $CythonSourceGlobs = @(
 # $CythonSourceGlobs = @()
 $CythonExcludeGlobs = @(
 	"src/init.py"  # FIXME https://pyinstaller.org/en/stable/usage.html#cmdoption-arg-scriptname
-	"src/libs/ctyped/enum/__init__.py")  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
+	"src/libs/ctyped/enum/__init__.py"  # FIXME https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1002
+	"src/srcs/{facets,lwalpapers}.py")  # FIXME https://github.com/cython/cython/issues/5542
 $CythonNoDocstrings = $True
 $CythonRemove = $True
 

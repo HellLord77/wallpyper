@@ -672,5 +672,5 @@ if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
     # _test_cfg_json()
     # _test_winrt()
     # _test_hook()
-    _test_toast()
+    _test()
     sys.exit()
