@@ -1,7 +1,7 @@
 import datetime
 import http.cookiejar
 import urllib.request
-from typing import AnyStr, Iterable, Mapping, MutableMapping, Optional
+from typing import AnyStr, Iterable, Mapping, MutableMapping, NotRequired, Optional, TypedDict
 
 from . import Header as _Header
 from . import Request as _Request
@@ -13,7 +13,118 @@ from . import extract_cookies as _extract_cookies
 from . import extract_params as _extract_params
 from . import strip_url as _strip_url
 
-_TRequest = urllib.request.Request | _Request
+_TTimings = TypedDict('_TTimings', {
+    'blocked': NotRequired[float],
+    'dns': NotRequired[float],
+    'connect': NotRequired[float],
+    'send': float,
+    'wait': float,
+    'receive': float,
+    'ssl': NotRequired[float],
+    'comment': NotRequired[str]})
+_TBeforeAfterRequest = TypedDict('_TBeforeAfterRequest', {
+    'expires': NotRequired[str],
+    'lastAccess': str,
+    'eTag': str,
+    'hitCount': int,
+    'comment': NotRequired[str]})
+_TCache = TypedDict('_TCache', {
+    'beforeRequest': NotRequired[_TBeforeAfterRequest],
+    'afterRequest': NotRequired[_TBeforeAfterRequest],
+    'comment': NotRequired[str]})
+_TContent = TypedDict('_TContent', {
+    'size': int,
+    'compression': NotRequired[int],
+    'mimeType': str,
+    'text': NotRequired[str],
+    'encoding': NotRequired[str],
+    'comment': NotRequired[str]})
+_TParam = TypedDict('_TParam', {
+    'name': str,
+    'value': NotRequired[str],
+    'fileName': NotRequired[str],
+    'contentType': NotRequired[str],
+    'comment': NotRequired[str]})
+_TPostData = TypedDict('_TPostData', {
+    'mimeType': str,
+    'params': NotRequired[list[_TParam]],
+    'text': NotRequired[str],
+    'comment': NotRequired[str]})
+_TQueryString = TypedDict('_TQueryString', {
+    'name': str,
+    'value': str,
+    'comment': NotRequired[str]})
+_THeader = TypedDict('_THeader', {
+    'name': str,
+    'value': str,
+    'comment': NotRequired[str]})
+_TCookie = TypedDict('_TCookie', {
+    'name': str,
+    'value': str,
+    'path': NotRequired[str],
+    'domain': NotRequired[str],
+    'expires': NotRequired[str],
+    'httpOnly': NotRequired[bool],
+    'secure': NotRequired[bool],
+    'comment': NotRequired[str]})
+_TResponse = TypedDict('_TResponse', {
+    'status': int,
+    'statusText': str,
+    'httpVersion': str,
+    'cookies': list[_TCookie],
+    'headers': list[_THeader],
+    'content': _TContent,
+    'redirectURL': str,
+    'headersSize': int,
+    'bodySize': int,
+    'comment': NotRequired[str]})
+_TRequest = TypedDict('_TRequest', {
+    'method': str,
+    'url': str,
+    'httpVersion': str,
+    'cookies': list[_TCookie],
+    'headers': list[_THeader],
+    'queryString': list[_TQueryString],
+    'postData': NotRequired[_TPostData],
+    'headersSize': int,
+    'bodySize': int,
+    'comment': NotRequired[str]})
+_TEntry = TypedDict('_TEntry', {
+    'pageref': NotRequired[str],
+    'startedDateTime': str,
+    'time': float,
+    'request': _TRequest,
+    'response': _TResponse,
+    'cache': _TCache,
+    'timings': _TTimings,
+    'serverIPAddress': NotRequired[str],
+    'connection': NotRequired[str],
+    'comment': NotRequired[str]})
+_THARPageTimings = TypedDict('_THARPageTimings', {
+    'onContentLoad': NotRequired[float],
+    'onLoad': NotRequired[float],
+    'comment': NotRequired[str]})
+_TPage = TypedDict('_TPage', {
+    'startedDateTime': str,
+    'id': str,
+    'title': str,
+    'pageTimings': _THARPageTimings,
+    'comment': NotRequired[str]})
+_TBrowser = TypedDict('_TBrowser', {
+    'name': str,
+    'version': str,
+    'comment': NotRequired[str]})
+_TCreator = TypedDict('_TCreator', {
+    'name': str,
+    'version': str,
+    'comment': NotRequired[str]})
+_TLog = TypedDict('_TLog', {
+    'version': str,
+    'creator': _TCreator,
+    'browser': NotRequired[_TBrowser],
+    'pages': NotRequired[list[_TPage]],
+    'entries': list[_TEntry],
+    'comment': NotRequired[str]})
 
 
 def default_har(name: str = _name, version: str = _version) -> dict:
@@ -42,12 +153,10 @@ def encode_cookies(cookies: Iterable[http.cookiejar.Cookie],
 
 
 def encode_headers(headers: Iterable[tuple[str, str]],
-                   request: Optional[MutableMapping] = None) -> list:
-    encoded = []
-    for header in headers:
-        encoded.append({'name': header[0], 'value': header[1]})
+                   request: Optional[MutableMapping] = None) -> tuple[list[dict[str, str]], int]:
+    encoded = [{'name': name, 'value': value} for name, value in headers], -1
     if request is not None:
-        request['headers'] = encoded
+        request['headers'], request['headersSize'] = encoded
     return encoded
 
 
@@ -70,7 +179,7 @@ def encode_body(mime: str, body: bytes | str,
     return encoded
 
 
-def encode_request(request: _TRequest,
+def encode_request(request: urllib.request.Request | _Request,
                    entry: Optional[MutableMapping] = None) -> dict:
     if isinstance(request, _Request):
         request = request.prepare()
@@ -82,7 +191,6 @@ def encode_request(request: _TRequest,
     encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)
     encode_headers(request.header_items(), encoded)
     encode_params(_extract_params(request.full_url), encoded)
-    encoded['headersSize'] = -1
     if request.data is not None:
         encode_body(_caseinsensitive.getitem(
             request.headers, _Header.CONTENT_TYPE), request.data, encoded)
@@ -91,7 +199,8 @@ def encode_request(request: _TRequest,
     return encoded
 
 
-def encode(*requests: _TRequest | tuple[_TRequest, float | datetime.datetime]) -> dict:
+def encode(*requests: urllib.request.Request | _Request | tuple[urllib.request.Request | _Request,
+                                                                float | datetime.datetime]) -> dict:
     encoded = default_har()
     for request_started in requests:
         if isinstance(request_started, tuple):

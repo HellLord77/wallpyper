@@ -364,8 +364,8 @@ class BasicAuth(Auth):
     # noinspection PyShadowingNames
     def encode(self, _: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> str:
-        self.username = _bytes(self.username, 'latin1')
-        self.password = _bytes(self.password, 'latin1')
+        self.username = _bytes(self.username)
+        self.password = _bytes(self.password)
         return self.add_header(base64.b64encode(
             self.username + b":" + self.password).decode(), request)
 
@@ -384,7 +384,7 @@ class BearerAuth(Auth):
     # noinspection PyShadowingNames
     def encode(self, _: Optional[dict[str, list[Optional[str]]]] = None,
                request: Optional[urllib.request.Request] = None) -> str:
-        self.token = _bytes(self.token, 'latin1')
+        self.token = _bytes(self.token)
         return self.add_header(self.token.decode(), request)
 
 
@@ -411,8 +411,8 @@ class DigestAuth(Auth):
                request: Optional[urllib.request.Request] = None) -> Optional[str]:
         if params is None:
             return
-        self.username = _str(self.username, 'latin1')
-        self.password = _str(self.password, 'latin1')
+        self.username = _str(self.username)
+        self.password = _str(self.password)
         realm = _caseinsensitive.get(params, 'realm')[0]
         nonce = _caseinsensitive.get(params, 'nonce')[0]
         qop = _caseinsensitive.get(params, 'qop')
@@ -1241,11 +1241,11 @@ class Session:
             'force_auth': _merge_setting(force_auth, self.force_auth)}
 
 
-def _bytes(o: bytes | str, encoding: str = 'utf-8') -> bytes:
+def _bytes(o: bytes | str, encoding: str = 'latin1') -> bytes:
     return o.encode(encoding) if isinstance(o, str) else o
 
 
-def _str(o: bytes | str, encoding: str = 'utf-8') -> str:
+def _str(o: bytes | str, encoding: str = 'latin1') -> str:
     return o.decode(encoding) if isinstance(o, bytes) else o
 
 
