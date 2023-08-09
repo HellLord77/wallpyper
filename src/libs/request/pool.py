@@ -17,8 +17,7 @@ from . import _THeaders
 from . import _TParams
 from . import _TProxies
 from . import _TVerify
-from . import contains_case_insensitive as _contains_case_insensitive
-from . import eq_case_insensitive as _eq_case_insensitive
+from . import _caseinsensitive
 from . import get_header_list as _get_header_list
 
 
@@ -167,9 +166,9 @@ class ConnectionPool(metaclass=_ConnectionPoolMeta):
             scheme = components.scheme
             port = components.port
             host = components.hostname
-            return (scheme == '' or _eq_case_insensitive(scheme, self._scheme_) and
+            return (scheme == '' or _caseinsensitive.eq(scheme, self._scheme_) and
                     (port is None or port == self._port) and
-                    (host is None or _eq_case_insensitive(host, self._host)))
+                    (host is None or _caseinsensitive.eq(host, self._host)))
 
 
 class HTTPConnectionPool(ConnectionPool):
@@ -333,7 +332,7 @@ class _AbstractHTTPPoolHandler(urllib.request.AbstractHTTPHandler):
         except:  # NOQA E722
             conn.close()
             raise
-        if conn.sock and (request.has_proxy() or _contains_case_insensitive(
+        if conn.sock and (request.has_proxy() or _caseinsensitive.contains(
                 dict(_get_header_list(response.getheader(_Header.CONNECTION, ''))), 'close')):
             conn.sock.close()
             conn.sock = None

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.2.9'
+__version__ = '0.2.10'
 
 import base64
 import bz2
@@ -30,7 +30,10 @@ import urllib.request
 import urllib.response
 import uuid
 import zlib
-from typing import Any, AnyStr, BinaryIO, Callable, Iterator, Iterable, Mapping, NoReturn, Optional, Sequence
+from typing import (Any, AnyStr, BinaryIO, Callable, Iterator,
+                    Iterable, Mapping, NoReturn, Optional, Sequence)
+
+from . import _caseinsensitive
 
 CONTENT_CHUNK_SIZE = 10 * 1024
 RETRIEVE_UNKNOWN_SIZE = 0
@@ -410,11 +413,11 @@ class DigestAuth(Auth):
             return
         self.username = _str(self.username, 'latin1')
         self.password = _str(self.password, 'latin1')
-        realm = get_case_insensitive(params, 'realm')[0]
-        nonce = get_case_insensitive(params, 'nonce')[0]
-        qop = get_case_insensitive(params, 'qop')
-        algorithm = get_case_insensitive(params, 'algorithm', ('MD5',))
-        opaque = get_case_insensitive(params, 'opaque', (None,))[0]
+        realm = _caseinsensitive.get(params, 'realm')[0]
+        nonce = _caseinsensitive.get(params, 'nonce')[0]
+        qop = _caseinsensitive.get(params, 'qop')
+        algorithm = _caseinsensitive.get(params, 'algorithm', ('MD5',))
+        opaque = _caseinsensitive.get(params, 'opaque', (None,))[0]
         hash_, algorithm_ = self.get_algorithm(algorithm)
         if hash_ is None:
             return
@@ -428,17 +431,17 @@ class DigestAuth(Auth):
         else:
             self._nonce_count = 1
         cnonce = self.get_cnonce(nonce)
-        if endswith_case_insensitive(algorithm_, '-sess'):
+        if _caseinsensitive.endswith(algorithm_, '-sess'):
             ha1 = f'{ha1}:{nonce}:{cnonce}'
         nc = f'{self._nonce_count:08x}'
         if qop is None:
             qop_ = None
             response = hash_(f'{ha1}:{nonce}:{ha2}')
         else:
-            if contains_case_insensitive(qop, 'auth-int'):
+            if _caseinsensitive.contains(qop, 'auth-int'):
                 qop_ = 'auth-int'
                 ha2 = hash_(f'{a2}:{hash_(request.data or b"")}')
-            elif contains_case_insensitive(qop, 'auth'):
+            elif _caseinsensitive.contains(qop, 'auth'):
                 qop_ = 'auth'
             else:
                 return
@@ -461,9 +464,9 @@ class DigestAuth(Auth):
         for algorithm, algorithm_ in cls._algorithms:
             if algorithm in hashlib.algorithms_available and algorithm_ in algorithms_:
                 try:
-                    index = index_case_insensitive(algorithms, algorithm_ + '-SESS')
+                    index = _caseinsensitive.index(algorithms, algorithm_ + '-SESS')
                 except ValueError:
-                    index = index_case_insensitive(algorithms, algorithm_)
+                    index = _caseinsensitive.index(algorithms, algorithm_)
                 return lambda string: hashlib.new(
                     algorithm, _bytes(string)).hexdigest(), algorithms[index]
         return None, ''
@@ -548,55 +551,6 @@ _STATUS_REDIRECT = (
     Status.SEE_OTHER, Status.TEMPORARY_REDIRECT)
 _RE_ENCODED = re.compile(r'%[a-fA-F0-9]{2}')
 _RE_LINKS = re.compile(r'\s*?<(\S*?)>;?\s*([^<]*)')
-
-
-def eq_case_insensitive(string: str, other: str) -> bool:
-    return string.lower() == other.lower()
-
-
-def startswith_case_insensitive(string: str, prefix: str) -> bool:
-    return string.lower().startswith(prefix.lower())
-
-
-def endswith_case_insensitive(string: str, suffix: str) -> bool:
-    return string.lower().endswith(suffix.lower())
-
-
-def iter_case_insensitive(iterable: Iterable[str]) -> Iterator[str]:
-    for key in iterable:
-        yield key.lower()
-
-
-def index_case_insensitive(iterable: Iterable[str], key: str) -> int:
-    key = key.lower()
-    for index, key_ in enumerate(iter_case_insensitive(iterable)):
-        if key == key_:
-            return index
-    raise ValueError(f'{key!r} is not in iterable')
-
-
-def contains_case_insensitive(iterable: Iterable[str], key: str) -> bool:
-    try:
-        index_case_insensitive(iterable, key)
-    except ValueError:
-        return False
-    else:
-        return True
-
-
-def getitem_case_insensitive(mapping: Mapping[str, Any], key: str) -> Any:
-    key = key.lower()
-    for key_, val in zip(iter_case_insensitive(mapping), mapping.values()):
-        if key == key_:
-            return val
-    raise KeyError(key)
-
-
-def get_case_insensitive(mapping: Mapping[str, Any], key: str, default: Any = None) -> Any:
-    try:
-        return getitem_case_insensitive(mapping, key)
-    except KeyError:
-        return default
 
 
 def default_accept_encoding(*encodings: str) -> str:
@@ -749,7 +703,7 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
                    auths: Iterable[str]) -> Optional[http.client.HTTPResponse]:
         for auth in auths:
             # noinspection PyProtectedMember
-            if (params := get_case_insensitive(get_chals(
+            if (params := _caseinsensitive.get(get_chals(
                     auth), self._tauth_._scheme_)) is not None:
                 if self.encode(request, params):
                     return self.parent.open(request, timeout=request.timeout)
@@ -762,7 +716,7 @@ class _HTTPAuthHandler(urllib.request.BaseHandler):
             realm = None
             if params is not None:
                 params = params[0]
-                if (val := get_case_insensitive(params, 'realm')) is not None:
+                if (val := _caseinsensitive.get(params, 'realm')) is not None:
                     realm = val[0]
             auth = man.get_auth(request.full_url, realm)
             if isinstance(auth, self._tauth_) and auth.encode(

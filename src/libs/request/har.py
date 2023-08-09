@@ -7,6 +7,7 @@ from . import Header as _Header
 from . import Request as _Request
 from . import __name__ as _name
 from . import __version__ as _version
+from . import _caseinsensitive
 from . import _str
 from . import extract_cookies as _extract_cookies
 from . import extract_params as _extract_params
@@ -83,7 +84,8 @@ def encode_request(request: _TRequest,
     encode_params(_extract_params(request.full_url), encoded)
     encoded['headersSize'] = -1
     if request.data is not None:
-        encode_body(request.headers[_Header.CONTENT_TYPE], request.data, encoded)
+        encode_body(_caseinsensitive.getitem(
+            request.headers, _Header.CONTENT_TYPE), request.data, encoded)
     if entry is not None:
         entry['request'] = encoded
     return encoded
