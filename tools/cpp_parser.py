@@ -13,7 +13,7 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\WinBase.h'
+SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\NotificationActivationCallback.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -46,8 +46,8 @@ MSVC_INCLUDE_DIRS = (
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
 ENUM = False
-FUNCTION = True
-INTERFACE = False
+FUNCTION = False
+INTERFACE = True
 GUID = False
 AST = False
 
@@ -500,6 +500,7 @@ def print_ast(cursor: clang.cindex.Cursor, depth: int = 0):
 
 
 def main():
+    clang.cindex.Config.set_library_path(CLANG_DIR)
     ctyped.lib.add_path(CLANG_DIR)
     index = clang.cindex.Index.create()
     args = ['-x', 'c++']

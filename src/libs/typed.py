@@ -4,7 +4,6 @@ import copy
 import dataclasses
 import typing
 from types import NoneType, UnionType
-# noinspection PyProtectedMember
 from typing import (Any, Callable, ItemsView, Iterable, Literal, Mapping, MutableMapping,
                     MutableSequence, NotRequired, Optional, Sequence, Required, Tuple, TypedDict, Union)
 

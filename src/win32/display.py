@@ -510,7 +510,6 @@ def get_wallpaper(monitor: Optional[str] = None) -> str:
             if monitor is None else _get_wallpaper_idesktopwallpaper(monitor)[0])
 
 
-# FIXME https://github.com/cython/cython/pull/4897
 def _get_rotate_flip(rotate: Rotate, flip: Flip) -> ctyped.enum.RotateFlipType:
     if (rotate is Rotate.RIGHT and flip is Flip.NONE) or (
             rotate is Rotate.LEFT and flip is Flip.BOTH):

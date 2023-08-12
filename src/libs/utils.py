@@ -30,7 +30,7 @@ import typing
 import uuid
 import zipfile
 import zlib
-from typing import Any, AnyStr, Callable, Iterable, Iterator, Literal, Mapping, Optional
+from typing import Any, AnyStr, Callable, Iterable, Iterator, Literal, Mapping, Optional, Sequence
 
 import _hashlib
 
@@ -402,6 +402,19 @@ def cycle_ex(it: Iterable, func: Optional[Callable] = None) -> Iterator:
             yield ele
         if func is not None:
             func()
+
+
+def get_recursive(it: Mapping | Sequence, *keys: Any, default: Any = DEFAULT) -> Any:
+    for key in keys:
+        try:
+            it = it[key]
+        except:  # NOQA E722
+            if default is DEFAULT:
+                raise
+            else:
+                it = default
+                break
+    return it
 
 
 def enquote(string: str, quote: str = '"') -> str:
