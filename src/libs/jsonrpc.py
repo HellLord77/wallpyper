@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 import json
 import socketserver
@@ -7,6 +7,12 @@ import xmlrpc.client
 import xmlrpc.server
 from typing import Any, AnyStr
 from xml.etree import ElementTree
+
+
+def _xml_to_json_header(keyword: str, value: str) -> tuple[str, str]:
+    if keyword == 'Content-Type' and value == 'text/xml':
+        value = 'application/json'
+    return keyword, value
 
 
 def _marshal_struct(element: ElementTree.Element) -> tuple[str, Any]:
@@ -136,14 +142,11 @@ def loads(data, use_datetime=False, use_builtin_types=False):
 
 class _Headers(list):
     def append(self, __object):
-        key, value = __object
-        if key == 'Content-Type' and value == 'text/xml':
-            value = 'application/json'
-        super().append((key, value))
+        super().append(_xml_to_json_header(*__object))
 
 
 class Transport(xmlrpc.client.Transport):
-    user_agent = f'Python-jsonrpc/{__version__}'
+    user_agent = f'Python-{__name__.rsplit(".", 1)[-1]}/{__version__}'
 
     def __init__(self, use_datetime=False,
                  use_builtin_types=False, *, headers=()):
@@ -184,9 +187,7 @@ class SimpleJSONRPCDispatcher(xmlrpc.server.SimpleXMLRPCDispatcher):
 
 class SimpleJSONRPCRequestHandler(xmlrpc.server.SimpleXMLRPCRequestHandler):
     def send_header(self, keyword: str, value: str):
-        if keyword == 'Content-Type' and value == 'text/xml':
-            value = 'application/json'
-        super().send_header(keyword, value)
+        super().send_header(*_xml_to_json_header(keyword, value))
 
 
 class SimpleJSONRPCServer(xmlrpc.server.SimpleXMLRPCServer, SimpleJSONRPCDispatcher):
