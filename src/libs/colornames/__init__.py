@@ -1,4 +1,4 @@
-__version__ = '0.0.7'  # https://github.com/meodai/color-names/
+__version__ = '0.0.7'  # https://github.com/meodai/color-names
 
 import functools
 import json

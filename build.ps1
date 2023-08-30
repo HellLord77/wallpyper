@@ -434,8 +434,7 @@ function Install-Requirements {
 	Pop-Location
 	Remove-Item $TempDir -Force -Recurse
 
-	if ($CythonSourceGlobs) { pip install cython==3.0.0 }  # FIXME https://github.com/cython/cython/issues/5643
-	# FIXME https://github.com/cython/cython/issues/5542
+	if ($CythonSourceGlobs) { pip install cython }  # FIXME https://github.com/cython/cython/issues/5542
 	if ($NuitkaSources) { pip install nuitka }
 	if ($mypycSources) { pip install mypy }
 
