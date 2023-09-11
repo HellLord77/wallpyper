@@ -64,6 +64,8 @@ $CodeRunBefore = @(
 $CodeRunBeforeRemote = @(
 	"from src.libs.colornames import download"
 	"download()"
+	"from src.libs.emojis import download"
+	"download()"
 	"from src.libs.isocodes import download"
 	"download()"
 	"from src.libs.mimetype import download"
@@ -80,6 +82,7 @@ $CodeRunAfter = @()
 $CodeRunAfterRemote = @()
 $MinifyJsonRegExs = @(
 	"src/libs/colornames/colornames.min.json"
+	"src/libs/emojis/emoji.json"
 	"src/libs/isocodes/iso_*.json"
 	"src/libs/mimetype/db.json"
 	"src/libs/request/cloudflare/browsers.json"
