@@ -8,7 +8,6 @@ import decimal
 import enum
 import fractions
 import ipaddress
-import json
 import os
 import pathlib
 import pprint
@@ -17,7 +16,7 @@ import sys
 import time
 import uuid
 from types import ModuleType
-from typing import AnyStr, Callable, Optional, TypeVar, NamedTuple, TypedDict, Union, Literal
+from typing import AnyStr, Callable, Optional, TypeVar, NamedTuple
 from xml.etree import ElementTree
 
 import consts
@@ -665,14 +664,7 @@ def _test_toast():
 
 
 def _test():
-    from libs.request import __har
-    from libs import typed
-    req = request.Request(request.Method.POST, 'https://www.google.com', {'head': 'tail'},
-                          data='data', params={'by': 'request'}, cookies={'cookie': 'cream'},
-                          unredirected_hdrs={'unredirected': 'header'})
-    enc = __har.encode(req)
-    print(json.dumps(enc, indent=2))
-    print(typed.isinstance_ex(enc, __har.THAR))
+    pprint.pprint(request.get('http://192.168.0.100:7070/headers').json(), sort_dicts=False)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

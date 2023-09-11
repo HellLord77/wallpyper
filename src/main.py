@@ -5,6 +5,7 @@ import itertools
 import multiprocessing
 import os
 import pickle
+import re
 import sys
 import sysconfig
 import tempfile
@@ -26,26 +27,26 @@ import pipe
 import srcs
 import validator
 import win32
-from libs import (callables, config, console, easings, files, lens, pyinstall,
-                  request, singleton, spinners, timer, typed, utils)
+from libs import (callables, config, console, easings, files, lens, log,
+                  pyinstall, request, singleton, spinners, timer, typed, utils)
 
 UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
 RES_FMT = os.path.join(os.path.dirname(__file__), 'res', '{}')
 CONFIG_PATH = fr'D:\Projects\wallpyper\{consts.NAME}.json'
 # CONFIG_PATH = os.path.join(win32.SAVE_DIR, f'{consts.NAME}.json')  # TODO
+LOG_PATH = files.replace_ext(CONFIG_PATH, 'log')
 PIPE_PATH = files.replace_ext(pipe.__file__.removesuffix(
     sysconfig.get_config_var('EXT_SUFFIX')), 'exe')
 
 CHANGE_INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS = 0.5, 1.0, 2.5, 5.0, 10.0
 MAXIMIZED_ACTIONS = 'ignore', 'postpone', 'skip'
-BLOCKERS = {
+BLOCKERS: dict[str | re.Pattern, str] = {
     'lwservice.exe': 'Live2DViewerEX',
     'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
     'DPPlayer.exe': 'N0va Desktop',
     'RazerAxon.Player.exe': 'Razer Axon',
-    'wallpaper32.exe': 'Wallpaper Engine',
-    'wallpaper64.exe': 'Wallpaper Engine'}
+    re.compile(r'wallpaper(?:32|64)\.exe'): 'Wallpaper Engine'}
 
 # webbrowser.WindowsDefault = type('WindowsDefault', (  # FIXME picks edge
 #     webbrowser.BaseBrowser,), {'open': lambda self, *_, **__: False})
@@ -333,15 +334,15 @@ def filter_image(image: srcs.File) -> bool:
 
 
 def load_config(path: str = CONFIG_PATH):
-    json = config.JSONConfig()
+    loader = config.JSONConfig()
     if os.path.isfile(path):
         try:
-            json.load(path)
+            loader.load(path)
         except BaseException as exc:
             try_alert_error(exc, True)
     for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
         if name not in RESET:
-            current_config = json.get(name)
+            current_config = loader.get(name)
             if isinstance(current_config, dict):
                 source.CURRENT_CONFIG.update(current_config)
         typed.intersection_update(source.CURRENT_CONFIG, source.DEFAULT_CONFIG, source.TCONFIG)
@@ -351,13 +352,13 @@ def load_config(path: str = CONFIG_PATH):
 
 def try_save_config(path: str = CONFIG_PATH, force: bool = False) -> bool:
     if force or CURRENT_CONFIG[consts.CONFIG_SAVE_CONFIG]:
-        json = config.JSONConfig()
+        dumper = config.JSONConfig()
         for name, source in ({consts.NAME: sys.modules[__name__]} | srcs.SOURCES).items():
             source.fix_config(True)
             if section := {var: source.CURRENT_CONFIG[var] for var, val in sorted(
                     source.DEFAULT_CONFIG.items()) if source.CURRENT_CONFIG[var] != val}:
-                json[name] = section
-        json.dump(path, '\t')
+                dumper[name] = section
+        dumper.dump(path, '\t')
         return os.path.isfile(path)
     return True
 
@@ -705,15 +706,11 @@ def on_easing_direction(enable_ease: Callable[[bool], bool], _: bool):
     try_reapply_wallpaper()
 
 
-def _get_blocker(blocker: str) -> str:
-    if __flag__.BLOCKER_NAME:
-        try:
-            blocker = BLOCKERS[os.path.basename(blocker)]
-        except KeyError:
-            pass
-        blocker = f': {blocker}'
-    else:
-        blocker = ''
+def _get_blocker_name(blocker: str) -> str:
+    for pattern, name in BLOCKERS.items():
+        if (pattern.search if isinstance(
+                pattern, re.Pattern) else pattern.__eq__)(blocker):
+            return name
     return blocker
 
 
@@ -723,8 +720,8 @@ def notify_blocked(_: Optional[bool | str] = None, auto: bool = True):
         displays = get_displays() if auto else DISPLAYS
         if not all(win32.display.is_desktop_unblocked(*displays).values()):
             count = itertools.count(1)
-            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}'
-                             f'{_get_blocker(blocker[1])}' for monitor, blocker
+            text = '\n'.join(f'{_text(next(count))}. {_get_monitor_name(monitor, DISPLAYS)}' +
+                             f': {_get_blocker_name(blocker[1])}' if __flag__.BLOCKER_NAME else '' for monitor, blocker
                              in win32.display.get_desktop_blocker(*displays).items() if blocker is not None)
             try_show_notification(_text('BLOCKED_TITLE'), text, force=True)
         elif not auto:
@@ -753,9 +750,10 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
             monitors[monitor] = (f'{_text(index)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{_text(DISPLAYS[monitor][1][0])} × {_text(DISPLAYS[monitor][1][1])}')
         gui.add_submenu_radio(item, monitors, CURRENT_CONFIG, consts.CONFIG_ACTIVE_DISPLAY, on_click=notify_blocked)
-        enable = len(DISPLAYS) > 1
-        for submenu_item in submenu:
-            submenu_item.enable(enable)
+        if __flag__.DISPLAY_SINGLE:
+            enable = len(DISPLAYS) > 1
+            for submenu_item in submenu:
+                submenu_item.enable(enable)
         if __flag__.DISPLAY_EXTRA:
             gui.add_separator()
             gui.add_menu_item(_text('LABEL_DISPLAY_UPDATE'), on_click=functools.partial(
@@ -929,6 +927,9 @@ def apply_auto_start(auto_start: bool) -> bool:
 def start():
     singleton.init(UUID, consts.NAME, consts.ARG_WAIT in sys.argv, functools.partial(
         print, 'Crash'), functools.partial(print, 'Wait'), functools.partial(print, 'Exit'))
+    if __flag__.DEBUG_APP:
+        log.redirect_stdout(LOG_PATH, True) if pyinstall.FROZEN else log.write_on_exception(LOG_PATH)
+        log.init((r'^exts', r'^srcs', r'^win32'), level=log.Level.DEBUG, check_comp=False)
     win32.display.TEMP_WALLPAPER_DIR = _temp()
     pyinstall.clean_temp()
     _update_display()

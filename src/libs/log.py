@@ -1,4 +1,4 @@
-__version__ = '0.0.13'
+__version__ = '0.0.14'
 
 import atexit
 import datetime
@@ -25,7 +25,7 @@ _ANSI = re.compile(r'\x1B(?:[#-Z\\-_]|\[[0-?]*[ -/]*[#-~])')
 _GENERATOR = (_ for _ in ()).__name__
 _BASE = os.path.dirname(getattr(sys.modules['__main__'], '__file__', ''))
 _INCLUDES = re.compile('.*')
-_EXCLUDES = re.compile('')
+_EXCLUDES = re.compile('^$')
 _STACK = {}
 _STREAM = io.StringIO()
 _WRITE: Optional[Callable] = None
@@ -139,7 +139,7 @@ def _on_trace(frame: FrameType, event: str, arg) -> Optional[Callable]:
             path = os.path.relpath(path, _BASE)
         except ValueError:
             pass
-        if (_INCLUDES.fullmatch(path) and not _EXCLUDES.fullmatch(path) and __name__ is not
+        if (_INCLUDES.search(path) and not _EXCLUDES.search(path) and __name__ is not
                 frame.f_globals['__name__'] and _filter(event, arg, frame.f_code.co_name)):
             thread = threading.current_thread()
             if thread not in _STACK:
