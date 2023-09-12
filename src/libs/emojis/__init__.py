@@ -1,9 +1,12 @@
-__version__ = '0.0.1'  # https://github.com/github/gemoji
+__version__ = '0.0.2'  # https://github.com/github/gemoji
 
+import collections
 import enum
 import functools
 import json
 import os
+import sys
+import traceback
 from typing import NamedTuple
 
 _PATH = 'emoji.json'
@@ -45,9 +48,34 @@ def get(emoji: str, default=None) -> Emoji:
             return default
 
 
+def guess(string: str) -> Emoji:
+    emoji = get(string)
+    if emoji is None:
+        min_distance = sys.maxsize
+        guessed = None
+        for emoji_ in load()[1]:
+            # noinspection PyUnresolvedReferences,PyProtectedMember
+            distance = traceback._levenshtein_distance(string, emoji_, min_distance)
+            if distance < min_distance:
+                min_distance = distance
+                guessed = emoji_
+        emoji = get(guessed)
+    return emoji
+
+
+class _GuessEmojis(collections.UserDict[str, str]):
+    def __missing__(self, key: str) -> str:
+        return guess(key).emoji
+
+
 # noinspection PyShadowingBuiltins
-def format(string: str) -> str:
-    return string.format_map(load()[1])
+def format(string: str, strict: bool = True) -> str:
+    emojis = load()[1]
+    if not strict:
+        emojis_ = _GuessEmojis()
+        emojis_.data = emojis
+        emojis = emojis_
+    return string.format_map(emojis)
 
 
 @functools.cache

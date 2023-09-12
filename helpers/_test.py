@@ -664,7 +664,9 @@ def _test_toast():
 
 
 def _test():
-    pprint.pprint(request.get('http://192.168.0.100:7070/headers').json(), sort_dicts=False)
+    from libs import emojis
+    print(emojis.guess('snek'))
+    print(emojis.format('i am a {snek}', strict=False))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
