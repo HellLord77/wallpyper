@@ -1,4 +1,4 @@
-$Version = "0.3.5"
+$Version = "0.3.6"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -230,9 +230,26 @@ function MergeManifest([string]$ExePath, [string]$ManifestPath) {
 	$TempFile.Delete()
 }
 
+function Install-PackagePip($Package, $Import = "", $Force = $False) {
+	if (-not $Import) { $Import = $Package }
+	if (-not $Force) {
+		Start-PythonCode "import $Import" $False | Out-Null
+		if (-not $?) { $Force = $True }
+	}
+	if ($Force) {
+		Write-Host "pip -> $Package"
+		pip install $Package --upgrade | Write-Host
+	}
+	return (Start-PythonCode "import $Import; print($Import.__file__)" $False)
+}
+
 function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 	if (-not $Command) { $Command = $Package }
-	if ($Force -or -not (Get-Command $Command -ErrorAction SilentlyContinue)) {
+	if (-not $Force) {
+		Get-Command $Command -ErrorAction SilentlyContinue | Out-Null
+		if (-not $?) { $Force = $True }
+	}
+	if ($Force) {
 		Write-Host "choco -> $Package"
 		choco install $Package --yes | Write-Host
 	}
@@ -388,7 +405,7 @@ function Remove-Cython([bool]$Throw = $True) {
 }
 
 function Get-CythonArgs {
-	$ArgsList = @("-3", "--inplace")
+	$ArgsList = @("--inplace")
 	if ($CythonNoDocstrings) {
 		$ArgsList += "--no-docstrings"
 	}
@@ -426,18 +443,20 @@ function Install-Requirements {
 	# $TempDir = Join-Path $Env:TEMP (New-Guid)  # FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
 	$TempDir = Join-Path (Split-Path (Get-Location) -Qualifier) (Get-Random)
 	New-Item $TempDir -ItemType Directory
-	Push-Location $TempDir
-	pip download pyinstaller --no-deps --no-binary pyinstaller
-	$Source = (Get-ChildItem -Attributes Archive).FullName
-	tar -xf $Source
-	Set-Location (Join-Path $Source.Substring(0, $Source.Length - ".tar.gz".Length) "bootloader")
-	python ./waf all
-	Set-Location ..
-	pip install .
-	Pop-Location
-	Remove-Item $TempDir -Force -Recurse
+	try {
+		Push-Location $TempDir
+		pip download pyinstaller<6 --no-deps --no-binary pyinstaller  # FIXME https://github.com/pyinstaller/pyinstaller/pull/7713
+		$Source = (Get-ChildItem -Attributes Archive).FullName
+		tar -xf $Source
+		Set-Location (Join-Path $Source.Substring(0, $Source.Length - ".tar.gz".Length) "bootloader")
+		python ./waf all
+		Set-Location ..
+		pip install .
+		Pop-Location
+ }
+	finally { Remove-Item $TempDir -Force -Recurse }
 
-	if ($CythonSourceGlobs) { pip install cython }  # FIXME https://github.com/cython/cython/issues/5542
+	if ($CythonSourceGlobs) { pip install cython }
 	if ($NuitkaSources) { pip install nuitka }
 	if ($mypycSources) { pip install mypy }
 

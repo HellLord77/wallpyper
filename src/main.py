@@ -2,6 +2,7 @@ import collections
 import datetime
 import functools
 import itertools
+import logging
 import multiprocessing
 import os
 import pickle
@@ -29,6 +30,8 @@ import validator
 import win32
 from libs import (callables, config, console, easings, files, lens, log,
                   pyinstall, request, singleton, spinners, timer, typed, utils)
+
+logger = logging.getLogger(__name__)
 
 UUID = srcs.KEY = f'{consts.AUTHOR}.{consts.NAME}'
 RES_FMT = os.path.join(os.path.dirname(__file__), 'res', '{}')
@@ -672,7 +675,8 @@ def _update_recent_menu(item: win32.gui.MenuItem):
             item_image = menu.insert_item(index, utils.shrink_string(
                 image.name, consts.MAX_LABEL_LEN), RES_FMT.format(
                 consts.FMT_RES_DIGIT.format(index + 1)), submenu=submenu)
-            item_image.set_tooltip(f'{image.name} ({files.Size(image.size)})', icon_res_or_path_or_bitmap=_temp(
+            item_image.set_tooltip(_text('TOOLTIP_FMT_IMAGE').format(
+                files.Size(image.size), image.size), image.name, _temp(
                 image.name) if __flag__.TOOLTIP_ICON else gui.MenuItemTooltipIcon.NONE)
             item_image.set_uid(image.name)
     for uid, item_image in items.items():

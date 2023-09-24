@@ -10,6 +10,7 @@ __status__ = 'Development'
 
 import ctypes
 import itertools
+import logging
 import multiprocessing
 import multiprocessing.managers
 import sys
@@ -20,6 +21,7 @@ import consts
 # noinspection PyUnresolvedReferences
 def target(reset: multiprocessing.managers.ListProxy,
            restart: multiprocessing.managers.ValueProxy):
+    logging.basicConfig()
     import main
     main.RESET = reset
     try:

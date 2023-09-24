@@ -6,12 +6,15 @@ import contextlib
 import dataclasses
 import functools
 import itertools
+import logging
 import threading
 from typing import Any, Callable, ContextManager, Iterable, Iterator, Optional
 
 from libs import ctyped
 from libs.ctyped.lib import user32, shell32
 from . import _gdiplus, _handle, _utils
+
+logger = logging.getLogger(__name__)
 
 _NOTIFYICONDATAA_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAA, 'szTip', 64)
 _NOTIFYICONDATAW_V1_SIZE = ctyped.macro.FIELD_OFFSET(ctyped.struct.NOTIFYICONDATAW, 'szTip', 64)
@@ -1104,6 +1107,10 @@ class MenuItem(_Control):
 
     def set_tooltip(self, text: str, title: str = '',  # TODO wrong position with scrollbar
                     icon_res_or_path_or_bitmap: int | str | _gdiplus.Bitmap = MenuItemTooltipIcon.NONE):
+        if not text:
+            logger.warning('Tooltip text cannot be empty')
+        if not title and icon_res_or_path_or_bitmap:
+            logger.warning('Tooltip title cannot be empty when icon is set')
         self._tooltip_text = text
         self._tooltip_title = title
         if not isinstance(icon_res_or_path_or_bitmap, int):
