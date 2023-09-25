@@ -293,7 +293,7 @@ function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
 		$CodeModuleGraphSmartProcess[4] = $CodeModuleGraphSmartTemplate[4] -f $TempDir
 		$CodeModuleGraphSmartProcess[6] = $CodeModuleGraphSmartTemplate[6] -f "$Excludes", ($HooksDirs -Join ";")
 		$CodeModuleGraphSmartProcess[7] = $CodeModuleGraphSmartTemplate[7] -f $EntryPoint
-		$Modules = (Start-PythonCode $CodeModuleGraphSmartProcess) -Split ";"
+		$Modules = (Start-PythonCode $CodeModuleGraphSmartProcess $False) -Split ";"
 		Remove-Item $TempDir -Force -Recurse
 		$Modules = $Modules[1..($Modules.length - 1)]
 	}
@@ -303,7 +303,7 @@ function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
 		foreach ($Exclude in $Excludes) {
 			$CodeModuleGraph = Get-InsertedArray $CodeModuleGraph 5 ($CodeModuleGraphTemplate[4] -f "-x=$Exclude")
 		}
-		$Modules = (Start-PythonCode $CodeModuleGraph) -Split ";"
+		$Modules = (Start-PythonCode $CodeModuleGraph $False) -Split ";"
 	}
 	return ToArray $Modules
 }
@@ -381,13 +381,13 @@ function Get-CythonSources {
 		$CodeGlob = @() + $CodeGlobTemplate
 		foreach ($CythonSourceGlob in $CythonSourceGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonSourceGlob
-			foreach ($Source in (Start-PythonCode $CodeGlob) -Split ";") {
+			foreach ($Source in (Start-PythonCode $CodeGlob $False) -Split ";") {
 				$Global:CythonSources += $Source -Replace "\\", "/"
 			}
 		}
 		foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
 			$CodeGlob[1] = $CodeGlobTemplate[1] -f $CythonExcludeGlob
-			foreach ($Exclude in (Start-PythonCode $CodeGlob) -Split ";") {
+			foreach ($Exclude in (Start-PythonCode $CodeGlob $False) -Split ";") {
 				$Global:CythonSources = Get-RemovedItemArray $Global:CythonSources ($Exclude -Replace "\\", "/") ([int]::MaxValue)
 			}
 		}
@@ -405,7 +405,7 @@ function Remove-Cython([bool]$Throw = $True) {
 }
 
 function Get-CythonArgs {
-	$ArgsList = @("--inplace")
+	$ArgsList = @("-3", "--inplace")
 	if ($CythonNoDocstrings) {
 		$ArgsList += "--no-docstrings"
 	}
