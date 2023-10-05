@@ -436,31 +436,30 @@ function Get-mypycArgs {
 }
 
 function Install-Requirements {
-	python -m pip install pip --upgrade
-	pip install setuptools --upgrade
-	pip install wheel --upgrade
+	python -m ensurepip --upgrade
+	python -m pip install wheel --upgrade
 
 	# $TempDir = Join-Path $Env:TEMP (New-Guid)  # FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
 	$TempDir = Join-Path (Split-Path (Get-Location) -Qualifier) (Get-Random)
 	New-Item $TempDir -ItemType Directory
 	try {
 		Push-Location $TempDir
-		pip download pyinstaller<6 --no-deps --no-binary pyinstaller  # FIXME https://github.com/pyinstaller/pyinstaller/pull/7713
+		python -m pip download pyinstaller<6 --no-deps --no-binary pyinstaller  # FIXME https://github.com/pyinstaller/pyinstaller/pull/7713
 		$Source = (Get-ChildItem -Attributes Archive).FullName
 		tar -xf $Source
 		Set-Location (Join-Path $Source.Substring(0, $Source.Length - ".tar.gz".Length) "bootloader")
 		python ./waf all
 		Set-Location ..
-		pip install .
+		python -m pip install .
 		Pop-Location
  }
 	finally { Remove-Item $TempDir -Force -Recurse }
 
-	if ($CythonSourceGlobs) { pip install cython }
-	if ($NuitkaSources) { pip install nuitka }
-	if ($mypycSources) { pip install mypy }
+	if ($CythonSourceGlobs) { python -m pip install cython }
+	if ($NuitkaSources) { python -m pip install nuitka }
+	if ($mypycSources) { python -m pip install mypy }
 
-	if (Test-Path requirements.txt -PathType Leaf) { pip install -r requirements.txt }
+	if (Test-Path requirements.txt -PathType Leaf) { python -m pip install -r requirements.txt }
 }
 
 function Write-Build {

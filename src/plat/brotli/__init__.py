@@ -291,8 +291,7 @@ def decompress_known(data: bytes, max_length: Optional[int] = None) -> bytes:
 
 
 def compress(data: bytes | str) -> bytes:
-    # FIXME https://github.com/cython/cython/issues/5403
-    with TextCompressor() if isinstance(data, str) else Compressor() as com:
+    with (TextCompressor if isinstance(data, str) else Compressor)() as com:
         return com.compress(data) + com.finish()
 
 
