@@ -3,11 +3,12 @@ import json
 import os
 import re
 import urllib.parse
-from typing import Any, Callable, Iterator, Optional, TypedDict
+from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
 from libs import request, sgml
+from libs.request import cloudflare
 from . import CONFIG_ORIENTATIONS, ImageFile, Source
 
 URL_BASE = 'https://kpop.asiachan.com'
@@ -24,14 +25,9 @@ _ATTRS = {'type': 'application/ld+json'}
 _RE_HTML = re.compile(r'<div.*</div>', re.DOTALL)
 
 
-def _json_loads(response: request.Response) -> Any:
-    return json.loads(_RE_HTML.sub('', response.text, 1).replace(
-        'next: ', '"next": ').replace('\\', '\\\\'))
-
-
 class AsiaChan(Source):
     NAME = 'asiachan'
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
@@ -71,24 +67,25 @@ class AsiaChan(Source):
         if params[CONFIG_SORT] == SORTS[1]:
             params[CONFIG_TIME] = time
         params['json'] = ''
+        session = cloudflare.Session()
         page = 1
         while True:
             if not items:
                 params['p'] = str(page)
-                response = request.get(url, params)
+                response = session.get(url, params)
                 if (page != 1 and response.status_code == request.Status.OK
                         and response.content == _CONTENT_END):
                     page = 1
                     continue
                 if response:
-                    items = _json_loads(response)['items']
+                    items = json.loads(_RE_HTML.sub('', response.text, 1))['items']
                     page += 1
                 if not items:
                     yield
                     continue
             item = items.pop(0)
             url_item = request.join_url(URL_BASE, str(item['id']))
-            response = request.get(url_item)
+            response = session.get(url_item)
             if not response:
                 items.insert(0, item)
                 yield

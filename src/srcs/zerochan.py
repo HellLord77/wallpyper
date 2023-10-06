@@ -1,9 +1,7 @@
 import functools
-import json
 import os
-import re
 import urllib.parse
-from typing import Any, Callable, Iterator, Optional, TypedDict
+from typing import Callable, Iterator, Optional, TypedDict
 
 import gui
 import validator
@@ -26,21 +24,14 @@ DIMENSIONS = '', 'large', 'huge', 'landscape', 'portrait', 'square'
 COLORS = '', 'black', 'blue', 'brown', 'green', 'pink', 'purple', 'red', 'white', 'yellow'
 
 _CONTENT_END = (
-    b'{\r\n<div style="margin: 100px auto 100px auto; width: 400px; '
-    b'text-align: center; "><img src="https://s1.zerochan.net/lost.jpg" '
-    b'style="width: 200px; "><br><h2>Page number too high</h2></div>}\r\n')
+    b'{}', b'{\r\n  "items": [\r\n\r\n  ]\r\n}\r\n',
+    b'{"error": "Page number too high, use `o` (ID offset) instead to paginate. "}')
 _PARAMS = {'json': ''}
-_RE_HTML = re.compile(r'<div.*</div>', re.DOTALL)
-
-
-def _json_loads(response: request.Response) -> Any:
-    return json.loads(_RE_HTML.sub('', response.text, 1).replace(
-        'next: ', '"next": ').replace('\\', '\\\\'))
 
 
 class ZeroChan(Source):  # https://www.zerochan.net/api
     NAME = 'zerochan'
-    VERSION = '0.0.4'
+    VERSION = '0.0.5'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_FILTER: list[str],
@@ -97,12 +88,12 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
             if not items:
                 params['p'] = str(page)
                 response = session.get(url, params)
-                if (page != 1 and response.status_code == request.Status.FORBIDDEN
-                        and response.content == _CONTENT_END):
+                if (page != 1 and response.status_code == request.Status.OK
+                        and response.content in _CONTENT_END):
                     page = 1
                     continue
                 if response:
-                    items = _json_loads(response)['items']
+                    items = response.json()['items']
                     page += 1
                 if not items:
                     yield
@@ -114,7 +105,7 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
                 items.insert(0, item)
                 yield
                 continue
-            json_item = _json_loads(response)
+            json_item = response.json()
             link = json_item['full']
             yield ImageFile(link, ''.join(urllib.parse.unquote_plus(os.path.basename(
                 request.strip_url(link))).rsplit('full.', 1)), url=url_item,
