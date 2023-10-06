@@ -1,4 +1,4 @@
-$Version = "0.3.7"
+$Version = "0.3.8"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -27,7 +27,7 @@ $MainManifest = "manifest.xml"
 
 $CythonSourceGlobs = @(
 	"src/libs/request/**/*.py"
-	"src/libs/{colornames,isocodes,mimetype,spinners,urischemes,useragents}/__init__.py"
+	"src/libs/{colornames,emojis,isocodes,mimetype,spinners,urischemes,useragents}/__init__.py"
 	# "src/libs/ctyped/interface/**/*.py"
 	# "src/libs/ctyped/lib/*.py"  # FIXME https://github.com/cython/cython/issues/3838
 	"src/libs/ctyped/lib/__init__.py"
@@ -98,7 +98,8 @@ $CodeExtSuffix = @(
 	"print(get_config_var('EXT_SUFFIX'))")
 $CodeSysTag = @(
 	"from setuptools._vendor.packaging import tags"
-	"print(next(tags.sys_tags()))"
+	"tag = next(tags.sys_tags())"
+	"print(f'{tag._interpreter}-{tag.platform}')"
 )
 $CodeGlobTemplate = @(
 	"from Cython.Build.Dependencies import extended_iglob"
@@ -466,6 +467,12 @@ function Install-Requirements {
 	if (Test-Path requirements.txt -PathType Leaf) { python -m pip install -r requirements.txt }
 }
 
+function Remove-All([bool]$Throw = $False) {
+	Remove-Cython $Throw
+	Remove-Nuitka $Throw
+	Remove-mypyc $Throw
+}
+
 function Write-Build {
 	if ($CodeRunBefore) {
 		Start-PythonCode $CodeRunBefore
@@ -557,6 +564,7 @@ $ErrorActionPreference = "Stop"
 if ($Args) {
 	switch ($Args[0]) {
 		"install" { Install-Requirements; Break }
+		"clean" { Remove-All; Break }
 		"build" { Write-Build; Break }
 		"upload" { Write-MEGA; Break }
 		Default { throw }

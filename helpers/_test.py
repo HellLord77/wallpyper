@@ -667,6 +667,7 @@ def _test():
     from libs import emojis
     print(emojis.guess('snek'))
     print(emojis.format('i am a {snek}', strict=False))
+    print(kernel32.__file__)
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
