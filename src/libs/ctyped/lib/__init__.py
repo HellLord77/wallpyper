@@ -39,7 +39,10 @@ class _CLib:
             func.__name__ = name
             func.__doc__ = _func_doc(name, func.restype, func.argtypes, _fmt_annot(annot))
             self._dict[name] = func
-        return self._dict[name]
+        try:
+            return self._dict[name]
+        except KeyError:
+            raise AttributeError(f'lib {self._name!r} has no function {name!r}')
 
     def __dir__(self):
         return self._annots
