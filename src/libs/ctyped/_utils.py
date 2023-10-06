@@ -1,9 +1,8 @@
 import ctypes as _ctypes
 import functools as _functools
-import gc as _gc
-import importlib as _importlib
-import os as _os
-import pkgutil as _pkgutil
+import importlib.abc as _importlib_abc
+import importlib.machinery as _importlib_machinery
+import importlib.util as _importlib_util
 import sys as _sys
 import typing as _typing
 from types import ModuleType as _ModuleType
@@ -25,21 +24,17 @@ class _Pointer(_Generic[_CT], _Sequence[_CT]):
     value: _CT
 
 
-class _Module(_ModuleType):
-    _module = None
+class _LazyFinder(_importlib_abc.MetaPathFinder):
+    _fullnames = set()
 
-    def __getattr__(self, name: str):
-        if self._module is None:
-            del _sys.modules[self.__name__]
-            try:
-                self._module = _importlib.import_module(self.__name__)
-            except KeyError as exc:  # FIXME https://github.com/cython/cython/issues/3867
-                if self.__name__ == exc.args[0]:
-                    self._module = _importlib.import_module(self.__name__)
-                else:
-                    raise
-        _replace_object(self, self._module)
-        return getattr(self._module, name)
+    @classmethod
+    def find_spec(cls, fullname: str, path: _Optional[_Sequence[str]] = None,
+                  target: _Optional[_ModuleType] = None) -> _Optional[_importlib_machinery.ModuleSpec]:
+        if fullname.startswith(__package__) and fullname not in cls._fullnames:
+            cls._fullnames.add(fullname)
+            spec = _importlib_util.find_spec(fullname)
+            spec.loader = _importlib_util.LazyLoader(spec.loader)
+            return spec
 
 
 class _Globals(dict):
@@ -174,15 +169,6 @@ def _fields_repr(self: _ctypes.Structure | _ctypes.Union) -> str:
     return f'<{"Struct" if isinstance(self, _ctypes.Structure) else "Union"}: {type(self).__name__}<{", ".join(f"{item_[0]}={getattr(self, item_[0])}" for item_ in self._fields_)}>>'
 
 
-def _replace_object(old, new):
-    _gc.collect()
-    for referrer in _gc.get_referrers(old):
-        if isinstance(referrer, dict):
-            for key, val in referrer.items():
-                if val is old:
-                    referrer[key] = new
-
-
 def _resolve_type(annot, _args: _Optional[dict] = None) -> _Any:
     if _args is not None and hasattr(annot, '_args'):
         annot = annot.__mro__[1][tuple(_args.values())]
@@ -204,23 +190,11 @@ def _resolve_type(annot, _args: _Optional[dict] = None) -> _Any:
     return annot
 
 
-def _iter_modules(path: str = _os.path.dirname(__file__), prefix: str = __package__,
-                  recursive: bool = False) -> _Iterator[_pkgutil.ModuleInfo]:
-    prefix += '.'
-    for module in _pkgutil.iter_modules((path,), prefix):
-        yield module
-        if recursive and module.ispkg:
-            yield from _iter_modules(_os.path.join(
-                path, module.name.removeprefix(prefix)), module.name, recursive)
-
-
 def _init():
     globals_ = globals()
     for func in (_addressof, _sizeof, _byref):
         globals_[func.__name__] = getattr(_ctypes, func.__name__[1:])
-    for module in _iter_modules(recursive=True):
-        if module.name not in _sys.modules:
-            _sys.modules[module.name] = _Module(module.name)
+    _sys.meta_path.insert(0, _LazyFinder())
 
 
 _init()

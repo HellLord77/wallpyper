@@ -5,36 +5,41 @@ import ctypes.util as _ctypes_util
 import functools as _functools
 import os as _os
 import sys as _sys
-from types import ModuleType as _ModuleType
 from typing import Optional as _Optional
 
 from .. import const as _const
 from .._utils import _fmt_annot, _func_doc, _resolve_type
 
 
-class _CLib(_ModuleType):
+class _CLib:
     _loader = _ctypes.CDLL
 
     def __init__(self, name: str, name_fmt: _Optional[str] = None,
                  arg_32: str = '', arg_64: str = '', prefix: str = ''):
-        super().__init__(name)
         module = _sys.modules[name]
         self._annots = module.__annotations__
         self._dict = module.__dict__
         self._name = (name.removeprefix(f'{__name__}.') if name_fmt is None else
                       name_fmt.format(arg_32 if _const.is_32bits else arg_64))
         self._prefix = prefix
-        _sys.modules[name] = self
+        self._ord = {}
+        for name, val in tuple(self._dict.items()):
+            if name in self._annots and isinstance(val, int):
+                self._ord[name] = val
+                delattr(module, name)
+        module.__getattr__ = self.__getattr__
+        module.__dir__ = self.__dir__
+        module.__file__ = self.__file__
 
     def __getattr__(self, name: str):
         if name in self._annots:
-            func = self._lib[self._dict.get(name, self._prefix + name)]
+            func = self._lib[self._ord.get(name, self._prefix + name)]
             annot = self._annots[name]
             func.restype, *func.argtypes = _resolve_type(eval(annot, self._dict))
             func.__name__ = name
             func.__doc__ = _func_doc(name, func.restype, func.argtypes, _fmt_annot(annot))
-            setattr(self, name, func)
-        return super().__getattribute__(name)
+            self._dict[name] = func
+        return self._dict[name]
 
     def __dir__(self):
         return self._annots

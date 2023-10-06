@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = '0.4.2'
+__version__ = '0.5.0'
 
 import builtins as _builtins
 import contextlib as _contextlib
