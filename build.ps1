@@ -1,4 +1,4 @@
-$Version = "0.3.6"
+$Version = "0.3.7"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -96,6 +96,10 @@ $CodePythonIs64Bit = @(
 $CodeExtSuffix = @(
 	"from sysconfig import get_config_var"
 	"print(get_config_var('EXT_SUFFIX'))")
+$CodeSysTag = @(
+	"from setuptools._vendor.packaging import tags"
+	"print(next(tags.sys_tags()))"
+)
 $CodeGlobTemplate = @(
 	"from Cython.Build.Dependencies import extended_iglob"
 	"print(';'.join(extended_iglob(r'{0}')))")
@@ -437,7 +441,7 @@ function Get-mypycArgs {
 
 function Install-Requirements {
 	python -m ensurepip --upgrade
-	python -m pip install wheel --upgrade
+	python -m pip install pip setuptools wheel --upgrade
 
 	# $TempDir = Join-Path $Env:TEMP (New-Guid)  # FIXME https://github.com/pyinstaller/pyinstaller/issues/4824
 	$TempDir = Join-Path (Split-Path (Get-Location) -Qualifier) (Get-Random)
@@ -508,7 +512,7 @@ function Write-Build {
 	$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
 	$FullName = "$Name-$( if ($VersionLine){
         ($VersionLine -Split { $_ -eq '''' -or $_ -eq '"' })[1]
-    } else { "0.0.0" } )"
+    } else { "0.0.0" } )-$( Start-PythonCode $CodeSysTag $False )"
 	"NAME=$FullName" >> $Env:GITHUB_ENV
 
 	$CommonArgs = "--name=$FullName", $EntryPoint
