@@ -23,7 +23,7 @@ TYPE_MAP = {
     'IInspectable':                                           '_inspectable.IInspectable',
     'Windows.Foundation.Collections.IVectorChangedEventArgs': '_Windows_Foundation_Collections.IVectorChangedEventArgs'}
 ABS_IMPORTS = [
-    'from __future__ import annotations',
+    'from __future__ import annotations as _',
     'from typing import Callable as _Callable, Generic as _Generic']
 EX_IMPORTS: tuple[str, ...] = (
     '. import inspectable as _inspectable',

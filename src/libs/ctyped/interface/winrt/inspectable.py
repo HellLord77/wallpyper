@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations as _
 
 import ctypes as _ctypes
 from typing import Callable as _Callable

@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations as _
 
 import array
 import collections.abc
@@ -673,7 +673,9 @@ def _test_toast():
 
 
 def _test():
-    pass
+    for name in tuple(sys.modules):
+        if name.startswith('libs.ctyped.lib'):
+            print(name, type(sys.modules[name]))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

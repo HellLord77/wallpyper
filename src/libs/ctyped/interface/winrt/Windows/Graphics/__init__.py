@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations as _
 
 from ... import inspectable as _inspectable
 
