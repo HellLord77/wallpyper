@@ -1,4 +1,4 @@
-$Version = "0.3.8"
+$Version = "0.3.9"
 ################################################################################
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
@@ -24,6 +24,7 @@ $EntryPoint = "src/init.py"
 $Icon = "src/res/icon.ico"
 $Manifest = ""  # FIXME https://stackoverflow.com/questions/13964909/setting-uac-to-requireadministrator-using-pyinstaller-onefile-option-and-manifes
 $MainManifest = "manifest.xml"
+$ExtraArgs = @()
 
 $CythonSourceGlobs = @(
 	"src/libs/request/**/*.py"
@@ -45,12 +46,15 @@ $CythonExcludeGlobs = @(
 	"src/srcs/{facets,lwalpapers}.py")  # FIXME https://github.com/cython/cython/issues/5542
 $CythonNoDocstrings = $True
 $CythonRemove = $True
+$CythonExtraArgs = @()
 
 $NuitkaSources = @()
 $NuitkaRemove = $True
+$NuitkaExtraArgs = @()
 
 $mypycSources = @()  # TODO
 $mypycRemove = $True
+$mypycExtraArgs = @()
 
 $CodeRunBefore = @(
 	"from sys import argv"
@@ -130,6 +134,7 @@ $ModuleGraphSmart = $True
 $ModuleGraphReduce = $False  # TODO
 $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
+$RemoveOnThrow = $True
 $mypycCacheDir = ".mypy_cache"
 ################################################################################
 $IsPython64Bit = $null
@@ -197,7 +202,7 @@ function Get-ExeSize([System.IO.FileStream]$Stream) {
 }
 
 function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0) {
-	Write-Host "$Source -> $Destination"
+	Write-Host "[Copy] $Source -> $Destination"
 	New-Item (Split-Path $Destination -Parent) -ItemType Directory -ErrorAction SilentlyContinue
 	$EndTime = [int](Get-Date -UFormat %s) + $Timeout
 	do {
@@ -208,7 +213,7 @@ function Copy-File([string]$Source, [string]$Destination, [int]$Timeout = 0) {
 
 function MinifyJsonFile([string]$Path, [string]$OutPath) {
 	if (-not $OutPath) { $OutPath = $Path }
-	Write-Host "Minify $Path -> $OutPath"
+	Write-Host "[Minify] $Path -> $OutPath"
 	ConvertFrom-Json (Get-Content -Raw $Path) | ConvertTo-Json -Depth 100 -Compress | Set-Content $OutPath
 }
 
@@ -242,7 +247,7 @@ function Install-PackagePip($Package, $Import = "", $Force = $False) {
 		if (-not $?) { $Force = $True }
 	}
 	if ($Force) {
-		Write-Host "pip -> $Package"
+		Write-Host "[pip] $Package"
 		pip install $Package --upgrade | Write-Host
 	}
 	return (Start-PythonCode "import $Import; print($Import.__file__)" $False)
@@ -255,7 +260,7 @@ function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 		if (-not $?) { $Force = $True }
 	}
 	if ($Force) {
-		Write-Host "choco -> $Package"
+		Write-Host "[choco] $Package"
 		choco install $Package --yes | Write-Host
 	}
 	return (Get-Command $Command).Path
@@ -263,7 +268,7 @@ function Install-PackageChoco($Package, $Command = "", $Force = $False) {
 
 function Start-PythonCode([string[]]$Lines, [bool]$Verbose = $True) {
 	$Code = $Lines -Join "; "
-	if ($Verbose) { Write-Host "python -> $Code" }
+	if ($Verbose) { Write-Host "[python] $Code" }
 	return python -c $Code
 }
 
@@ -288,9 +293,7 @@ function Get-ExtSuffix {
 
 function Get-ModuleGraph([bool]$Smart = $ModuleGraphSmart) {
 	if ($Smart) {
-		Remove-Cython $False
-		Remove-Nuitka $False
-		Remove-mypyc $False
+		Remove-All $False
 		$TempDir = Join-Path $Env:TEMP (New-Guid)
 		New-Item $TempDir -ItemType Directory
 		$CodeModuleGraphSmartProcess = @() + $CodeModuleGraphSmartTemplate
@@ -357,14 +360,12 @@ function Get-PyInstallerArgs {
 	}
 	else { $ArgList += "--noupx" }
 	if ($StripSymbols) { $ArgList += "--strip" }
-	return ToArray $ArgList
+	return ToArray ($ArgList + $ExtraArgs)
 }
 
 function Get-PyInstallerArgsReduced([string[]]$ArgList) {
 	if ($ModuleGraphReduce) {
 		$_, $Modules = Get-ModuleGraph $False
-		Write-Host "Found modules:"
-		Write-Host $Modules
 		foreach ($Module in $Modules) {
 			$ArgList = Get-RemovedItemArray $ArgList "--hidden-import=$Module"
 		}
@@ -372,10 +373,13 @@ function Get-PyInstallerArgsReduced([string[]]$ArgList) {
 	return ToArray $ArgList
 }
 
-function Remove-pyd([string[]]$Sources, [bool]$Throw) {
+function Remove-pyd([string[]]$Sources, [bool]$Verbose, [bool]$Throw) {
 	foreach ($Source in $Sources) {
-		$Root = $Source.Substring(0, $Source.LastIndexOf("."))
-		try { Remove-Item "$Root$(Get-ExtSuffix)" -Force }
+		$Path = $Source.Substring(0, $Source.LastIndexOf(".")) + $(Get-ExtSuffix)
+		try {
+			Remove-Item $Path -Force
+			if ($Verbose) { Write-Host "[Removed] $Path" }
+  }
 		catch { if ($Throw) { throw } }
 	}
 }
@@ -400,11 +404,14 @@ function Get-CythonSources {
 	return $Global:CythonSources
 }
 
-function Remove-Cython([bool]$Throw = $True) {
-	Remove-pyd (Get-CythonSources) $Throw
+function Remove-Cython([bool]$Verbose = $False, [bool]$Throw = $True) {
+	Remove-pyd (Get-CythonSources) $Verbose $Throw
 	if ($CythonRemoveC) {
 		foreach ($Source in Get-CythonSources) {
-			Remove-Item "$(Source.Substring(0, $Source.LastIndexOf("."))).c" -Force -ErrorAction SilentlyContinue
+			$Path = "$(Source.Substring(0, $Source.LastIndexOf("."))).c"
+			if (Remove-Item $Path -Force -ErrorAction SilentlyContinue) {
+				if ($Verbose) { Write-Host "[Removed] $Path" }
+			}
 		}
 	}
 }
@@ -417,27 +424,27 @@ function Get-CythonArgs {
 	foreach ($CythonExcludeGlob in $CythonExcludeGlobs) {
 		$ArgsList += "--exclude=$CythonExcludeGlob"
 	}
-	return $ArgsList + $CythonSourceGlobs
+	return ToArray ($ArgsList + $CythonSourceGlobs + $CythonExtraArgs)
 }
 
-function Remove-Nuitka([bool]$Throw = $True) {
-	Remove-pyd $NuitkaSources $Throw
+function Remove-Nuitka([bool]$Verbose = $False, [bool]$Throw = $True) {
+	Remove-pyd $NuitkaSources $Verbose $Throw
 }
 
 function Get-NuitkaArgs {
 	$ArgList = @("--assume-yes-for-downloads", "--no-pyi-file", "--module")
 	if ($NuitkaRemoveBuild) { $ArgList += "--remove-output" }
-	return $ArgList
+	return ToArray ($ArgList + $NuitkaExtraArgs)
 }
 
-function Remove-mypyc([bool]$Throw = $True) {
-	Remove-pyd $mypycSources $Throw
+function Remove-mypyc([bool]$Verbose = $False, [bool]$Throw = $True) {
+	Remove-pyd $mypycSources $Verbose $Throw
 }
 
 function Get-mypycArgs {
 	$ArgList = @("--install-types", "--non-interactive")
 	if ($mypycCacheDir) { $ArgList += "--cache-dir=$(Join-Path $PSScriptRoot $mypycCacheDir)" }
-	return $ArgList
+	return ToArray ($ArgList + $mypycExtraArgs)
 }
 
 function Install-Requirements {
@@ -467,82 +474,85 @@ function Install-Requirements {
 	if (Test-Path requirements.txt -PathType Leaf) { python -m pip install -r requirements.txt }
 }
 
-function Remove-All([bool]$Throw = $False) {
-	Remove-Cython $Throw
-	Remove-Nuitka $Throw
-	Remove-mypyc $Throw
+function Remove-All([bool]$Verbose = $True, [bool]$Throw = $False) {
+	Remove-Cython $Verbose $Throw
+	Remove-Nuitka $Verbose $Throw
+	Remove-mypyc $Verbose $Throw
 }
 
 function Write-Build {
-	if ($CodeRunBefore) {
-		Start-PythonCode $CodeRunBefore
-	}
-	if ($IsRemote -and $CodeRunBeforeRemote) {
-		Start-PythonCode $CodeRunBeforeRemote
-	}
+	try {
+		if ($CodeRunBefore) {
+			Start-PythonCode $CodeRunBefore
+		}
+		if ($IsRemote -and $CodeRunBeforeRemote) {
+			Start-PythonCode $CodeRunBeforeRemote
+		}
 
-	if ($MinifyJsonLocal -or $IsRemote) {
-		foreach ($MinifyJsonRegEx in $MinifyJsonRegExs) {
-			foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx) {
-				MinifyJsonFile $Json.FullName
+		if ($MinifyJsonLocal -or $IsRemote) {
+			foreach ($MinifyJsonRegEx in $MinifyJsonRegExs) {
+				foreach ($Json in  Get-ChildItem -Path . -Filter $MinifyJsonRegEx) {
+					MinifyJsonFile $Json.FullName
+				}
 			}
 		}
-	}
 
-	$PyInstallerArgs = Get-PyInstallerArgs
-	if ($CythonSourceGlobs) {
-		$CythonArgs = Get-CythonArgs
-		Write-Host "cythonize $CythonArgs"
-		cythonize $CythonArgs
-	}
-	if ($NuitkaSources) {
-		$NuitkaArgsBase = Get-NuitkaArgs
-		foreach ($Source in $NuitkaSources) {
-			$NuitkaArgs = $NuitkaArgsBase + @("--output-dir=$(Split-Path $Source -Parent)", $Source)
-			Write-Host "nuitka $NuitkaArgs"
-			nuitka $NuitkaArgs
+		$PyInstallerArgs = Get-PyInstallerArgs
+		if ($CythonSourceGlobs) {
+			$CythonArgs = Get-CythonArgs
+			Write-Host "cythonize $CythonArgs"
+			cythonize $CythonArgs
 		}
-	}
-	if ($mypycSources) {
-		$mypycArgsBase = Get-mypycArgs
-		foreach ($Source in $mypycSources) {
-			Push-Location (Split-Path $Source -Parent)
-			$mypycArgs = $mypycArgsBase + @(Split-Path $Source -Leaf)
-			Write-Host "mypyc $mypycArgs"
-			mypyc $mypycArgs
-			Pop-Location
+		if ($NuitkaSources) {
+			$NuitkaArgsBase = Get-NuitkaArgs
+			foreach ($Source in $NuitkaSources) {
+				$NuitkaArgs = $NuitkaArgsBase + @("--output-dir=$(Split-Path $Source -Parent)", $Source)
+				Write-Host "nuitka $NuitkaArgs"
+				nuitka $NuitkaArgs
+			}
 		}
-	}
-	$PyInstallerArgs = Get-PyInstallerArgsReduced $PyInstallerArgs
+		if ($mypycSources) {
+			$mypycArgsBase = Get-mypycArgs
+			foreach ($Source in $mypycSources) {
+				Push-Location (Split-Path $Source -Parent)
+				$mypycArgs = $mypycArgsBase + @(Split-Path $Source -Leaf)
+				Write-Host "mypyc $mypycArgs"
+				mypyc $mypycArgs
+				Pop-Location
+			}
+		}
+		$PyInstallerArgs = Get-PyInstallerArgsReduced $PyInstallerArgs
 
-	$Name = Get-ProjectName
-	$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
-	$FullName = "$Name-$( if ($VersionLine){
+		$Name = Get-ProjectName
+		$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
+		$FullName = "$Name-$( if ($VersionLine){
         ($VersionLine -Split { $_ -eq '''' -or $_ -eq '"' })[1]
     } else { "0.0.0" } )-$( Start-PythonCode $CodeSysTag $False )"
-	"NAME=$FullName" >> $Env:GITHUB_ENV
+		"NAME=$FullName" >> $Env:GITHUB_ENV
 
-	$CommonArgs = "--name=$FullName", $EntryPoint
-	$Env:PYTHONOPTIMIZE = $OptimizationLevel
-	$PyInstallerArgs += $CommonArgs
-	Write-Host "pyinstaller $PyInstallerArgs"
-	pyinstaller $PyInstallerArgs
+		$CommonArgs = "--name=$FullName", $EntryPoint
+		$Env:PYTHONOPTIMIZE = $OptimizationLevel
+		$PyInstallerArgs += $CommonArgs
+		Write-Host "pyinstaller $PyInstallerArgs"
+		pyinstaller $PyInstallerArgs
 
-	$DistPath = Join-Path "dist" $FullName
-	if ($OneFile) { $ExePath = "$DistPath.exe" }
-	else {
-		$ExePath = Join-Path $DistPath "$Name.exe"
-		Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
+		$DistPath = Join-Path "dist" $FullName
+		if ($OneFile) { $ExePath = "$DistPath.exe" }
+		else {
+			$ExePath = Join-Path $DistPath "$Name.exe"
+			Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
+		}
+
+		if ($MainManifest) { MergeManifest $ExePath $MainManifest }
+
+		if ($CythonRemove) { Remove-Cython }
+		if ($NuitkaRemove) { Remove-Nuitka }
+		if ($mypycRemove) { Remove-mypyc }
+
+		if ($CodeRunAfter) { Start-PythonCode $CodeRunAfter }
+		if ($IsRemote -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote }
 	}
-
-	if ($MainManifest) { MergeManifest $ExePath $MainManifest }
-
-	if ($CythonRemove) { Remove-Cython }
-	if ($NuitkaRemove) { Remove-Nuitka }
-	if ($mypycRemove) { Remove-mypyc }
-
-	if ($CodeRunAfter) { Start-PythonCode $CodeRunAfter }
-	if ($IsRemote -and $CodeRunAfterRemote) { Start-PythonCode $CodeRunAfterRemote }
+ finally { if ($RemoveOnThrow) { Remove-All $False } }
 }
 
 function Write-MEGA {
@@ -564,7 +574,7 @@ $ErrorActionPreference = "Stop"
 if ($Args) {
 	switch ($Args[0]) {
 		"install" { Install-Requirements; Break }
-		"clean" { Remove-All; Break }
+		"remove" { Remove-All; Break }
 		"build" { Write-Build; Break }
 		"upload" { Write-MEGA; Break }
 		Default { throw }

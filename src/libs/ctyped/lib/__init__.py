@@ -26,7 +26,7 @@ class _CLib:
         self._prefix = prefix
         self._ord = {}
         for name, val in tuple(self._dict.items()):
-            if name in self._annots and isinstance(val, int):
+            if name in self._annots:
                 self._ord[name] = val
                 delattr(module, name)
         module.__getattr__ = self.__getattr__
