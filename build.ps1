@@ -524,24 +524,24 @@ function Write-Build {
 		}
 		$PyInstallerArgs = Get-PyInstallerArgsReduced $PyInstallerArgs
 
-		$Name = Get-ProjectName
-		$VersionLine = Get-Content $EntryPoint | Select-String -Pattern "__version__.\s*=\s*['`"].*['`"]"
-		$FullName = "$Name-$( if ($VersionLine){
-        ($VersionLine -Split { $_ -eq '''' -or $_ -eq '"' })[1]
-    } else { "0.0.0" } )-$( Start-PythonCode $CodeSysTag $False )"
-		"NAME=$FullName" >> $Env:GITHUB_ENV
+		$BuildName = Get-ProjectName
+		$BuildVersion = Get-Content $EntryPoint | Select-String -Pattern "__version__\s*=\s*['`"](.*)['`"]" | ForEach-Object { $_.Matches.Groups[1].Value }
+		if (-not $BuildVersion) { $BuildVersion = "0.0.0" }
+		$Name = "$BuildName-$BuildVersion-$( Start-PythonCode $CodeSysTag $False )"
+		"NAME=$Name" >> $Env:GITHUB_ENV
 
-		$CommonArgs = "--name=$FullName", $EntryPoint
+		$PyInstallerArgs += @("--name=$Name", $EntryPoint)
+		$OptimizationLevelOld = $Env:PYTHONOPTIMIZE
 		$Env:PYTHONOPTIMIZE = $OptimizationLevel
-		$PyInstallerArgs += $CommonArgs
 		Write-Host "pyinstaller $PyInstallerArgs"
 		pyinstaller $PyInstallerArgs
+		$Env:PYTHONOPTIMIZE = $OptimizationLevelOld
 
-		$DistPath = Join-Path "dist" $FullName
+		$DistPath = Join-Path "dist" $Name
 		if ($OneFile) { $ExePath = "$DistPath.exe" }
 		else {
-			$ExePath = Join-Path $DistPath "$Name.exe"
-			Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
+			$ExePath = Join-Path $DistPath "$BuildName.exe"
+			Move-Item (Join-Path $DistPath "$Name.exe") $ExePath -Force
 		}
 
 		if ($MainManifest) { MergeManifest $ExePath $MainManifest }
