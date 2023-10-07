@@ -1,8 +1,8 @@
 __version__ = '0.1.1'
 
-import builtins
 import copy
 import dataclasses
+import logging
 import typing
 from types import NoneType
 from types import UnionType
@@ -14,28 +14,32 @@ from typing import Literal
 from typing import Mapping
 from typing import MutableMapping
 from typing import MutableSequence
+# noinspection PyProtectedMember
 from typing import NotRequired
 from typing import Optional
+# noinspection PyProtectedMember
 from typing import Required
 from typing import Sequence
 from typing import Tuple
 from typing import TypedDict
 from typing import Union
 
-
-def _type_tuple(obj: tuple) -> builtins.type:
-    return tuple[tuple(map(type, obj))]
+logger = logging.getLogger(__name__)
 
 
-def _type_dict(obj: dict) -> builtins.type:
-    return TypedDict(builtins.type(obj).__name__, {key: type(
+def _type_tuple(obj: tuple) -> type:
+    return tuple[tuple(map(type_ex, obj))]
+
+
+def _type_dict(obj: dict) -> type:
+    return TypedDict(type(obj).__name__, {key: type_ex(
         val) for key, val in obj.items()}) if set(
-        map(type, obj)) == {str} else _type_mapping(obj)
+        map(type_ex, obj)) == {str} else _type_mapping(obj)
 
 
-def _type_union(obj: Iterable) -> builtins.type:
+def _type_union(obj: Iterable) -> type:
     optional = False
-    types = set(map(type, obj))
+    types = set(map(type_ex, obj))
     if NoneType in types:
         optional = True
         types.remove(NoneType)
@@ -50,35 +54,34 @@ def _type_union(obj: Iterable) -> builtins.type:
     return type_
 
 
-def _type_iterable(obj: Iterable) -> builtins.type:
-    return builtins.type(obj)[_type_union(obj)]
+def _type_iterable(obj: Iterable) -> type:
+    return type(obj)[_type_union(obj)]
 
 
-def _type_mapping(obj: Mapping) -> builtins.type:
-    return builtins.type(obj)[_type_union(obj), _type_union(obj.values())]
+def _type_mapping(obj: Mapping) -> type:
+    return type(obj)[_type_union(obj), _type_union(obj.values())]
 
 
-# noinspection PyShadowingBuiltins
-def type(obj) -> builtins.type:
-    if builtins.isinstance(obj, (bytes, str)):
-        return builtins.type(obj)
-    elif builtins.isinstance(obj, tuple):
+def type_ex(obj) -> type:
+    if isinstance(obj, (bytes, str)):
+        return type(obj)
+    elif isinstance(obj, tuple):
         return _type_tuple(obj)
-    elif builtins.isinstance(obj, dict):
+    elif isinstance(obj, dict):
         return _type_dict(obj)
-    elif builtins.isinstance(obj, Mapping):
+    elif isinstance(obj, Mapping):
         return _type_mapping(obj)
-    elif builtins.isinstance(obj, Iterable):
+    elif isinstance(obj, Iterable):
         return _type_iterable(obj)
     else:
-        return builtins.type(obj)
+        return type(obj)
 
 
 def type_dataclass_asdict(cls):
     type_hints = typing.get_type_hints(cls)
     # noinspection PyUnresolvedReferences,PyProtectedMember
     return TypedDict(cls.__name__, {name: (
-        Required if builtins.isinstance(field.default, dataclasses._MISSING_TYPE) else NotRequired)[
+        Required if isinstance(field.default, dataclasses._MISSING_TYPE) else NotRequired)[
         type_hints[name]] for name, field in cls.__dataclass_fields__.items()})
 
 
@@ -90,19 +93,19 @@ def _issubclass_tuple(cls) -> bool:
 def _issubclass_namedtuple(cls) -> bool:
     bases = getattr(cls, '__bases__', None)
     fields = getattr(cls, '_fields', None)
-    return builtins.type(bases) is tuple and len(bases) == 1 and bases[0] is tuple and builtins.type(
-        fields) is tuple and all(type_ is str for type_ in map(builtins.type, fields))
+    return type(bases) is tuple and len(bases) == 1 and bases[0] is tuple and type(
+        fields) is tuple and all(type_ is str for type_ in map(type, fields))
 
 
 def _issubclass_typeddict(cls) -> bool:
     bases = getattr(cls, '__bases__', None)
     required_keys = getattr(cls, '__required_keys__', None)
     optional_keys = getattr(cls, '__optional_keys__', None)
-    return builtins.type(bases) is tuple and len(bases) == 1 and bases[0] is dict and builtins.type(
+    return type(bases) is tuple and len(bases) == 1 and bases[0] is dict and type(
         getattr(cls, '__required_keys__', None)) is frozenset and all(
-        type_ is str for type_ in map(builtins.type, required_keys)) and builtins.type(
+        type_ is str for type_ in map(type, required_keys)) and type(
         getattr(cls, '__optional_keys__', None)) is frozenset and all(
-        type_ is str for type_ in map(builtins.type, optional_keys))
+        type_ is str for type_ in map(type, optional_keys))
 
 
 def _issubclass_any(cls) -> bool:
@@ -138,15 +141,14 @@ def _issubclass_itemsview(cls) -> bool:
 
 
 def _isinstance_tuple(obj, cls) -> bool:
-    if builtins.isinstance(obj, typing.get_origin(cls)):
+    if isinstance(obj, typing.get_origin(cls)):
         args = typing.get_args(cls)
         if args:
             if len(args) == 2 and args[1] is ...:
                 type_ele = args[0]
-                # noinspection PyTypeHints
-                return all(isinstance(ele, type_ele) for ele in obj)
+                return all(isinstance_ex(ele, type_ele) for ele in obj)
             else:
-                return len(obj) == len(args) and all(isinstance(
+                return len(obj) == len(args) and all(isinstance_ex(
                     *ele_type_ele) for ele_type_ele in zip(obj, args))
         else:
             return True
@@ -155,17 +157,15 @@ def _isinstance_tuple(obj, cls) -> bool:
 
 
 def _isinstance_namedtuple(obj, cls) -> bool:
-    if _issubclass_namedtuple(builtins.type(obj)):
+    if _issubclass_namedtuple(type(obj)):
         type_hints = typing.get_type_hints(cls)
-        # noinspection PyUnresolvedReferences
         for field in cls._fields:
             try:
                 val = getattr(obj, field)
             except AttributeError:
                 return False
             else:
-                # noinspection PyTypeHints
-                if not isinstance(val, type_hints[field]):
+                if not isinstance_ex(val, type_hints[field]):
                     return False
         return True
     else:
@@ -173,9 +173,8 @@ def _isinstance_namedtuple(obj, cls) -> bool:
 
 
 def _isinstance_typeddict(obj, cls) -> bool:
-    if builtins.isinstance(obj, dict):
+    if isinstance(obj, dict):
         type_hints = typing.get_type_hints(cls)
-        # noinspection PyUnresolvedReferences
         for optional, keys in enumerate((
                 cls.__required_keys__, cls.__optional_keys__)):
             for key in keys:
@@ -185,8 +184,7 @@ def _isinstance_typeddict(obj, cls) -> bool:
                     if not optional:
                         return False
                 else:
-                    # noinspection PyTypeHints
-                    if not isinstance(val, type_hints[key]):
+                    if not isinstance_ex(val, type_hints[key]):
                         return False
         return True
     else:
@@ -198,16 +196,15 @@ def _isinstance_literal(obj, cls) -> bool:
 
 
 def _isinstance_union(obj, cls) -> bool:
-    return any(isinstance(obj, type_) for type_ in typing.get_args(cls))
+    return any(isinstance_ex(obj, type_) for type_ in typing.get_args(cls))
 
 
 def _isinstance_iterable(obj, cls) -> bool:
-    if builtins.isinstance(obj, typing.get_origin(cls)):
+    if isinstance(obj, typing.get_origin(cls)):
         args = typing.get_args(cls)
         if args:
             type_ele = args[0]
-            # noinspection PyTypeHints
-            return all(isinstance(ele, type_ele) for ele in obj)
+            return all(isinstance_ex(ele, type_ele) for ele in obj)
         else:
             return True
     else:
@@ -215,7 +212,8 @@ def _isinstance_iterable(obj, cls) -> bool:
 
 
 def _isinstance_callable(obj, cls) -> bool:
-    if builtins.isinstance(obj, typing.get_origin(cls)):
+    logging.debug(f'Incompletely implemented {_isinstance_callable.__name__!r} called')
+    if isinstance(obj, typing.get_origin(cls)):
         args = typing.get_args(cls)
         if args:
             type_args, type_ret = args
@@ -233,11 +231,11 @@ def _isinstance_callable(obj, cls) -> bool:
 
 
 def _isinstance_mapping(obj, cls) -> bool:
-    if builtins.isinstance(obj, typing.get_origin(cls)):
+    if isinstance(obj, typing.get_origin(cls)):
         args = typing.get_args(cls)
         if args:
             type_key, type_val = args
-            return all(isinstance(key, type_key) and isinstance(
+            return all(isinstance_ex(key, type_key) and isinstance_ex(
                 val, type_val) for key, val in obj.items())
         else:
             return True
@@ -246,11 +244,11 @@ def _isinstance_mapping(obj, cls) -> bool:
 
 
 def _isinstance_itemsview(obj, cls) -> bool:
-    if builtins.isinstance(obj, typing.get_origin(cls)):
+    if isinstance(obj, typing.get_origin(cls)):
         args = typing.get_args(cls)
         if args:
             type_key, type_val = args
-            return all(isinstance(key, type_key) and isinstance(
+            return all(isinstance_ex(key, type_key) and isinstance_ex(
                 val, type_val) for key, val in obj)
         else:
             return True
@@ -258,8 +256,7 @@ def _isinstance_itemsview(obj, cls) -> bool:
         return False
 
 
-# noinspection PyShadowingBuiltins
-def isinstance(obj, cls) -> bool:
+def isinstance_ex(obj, cls) -> bool:
     if _issubclass_any(cls):
         return True
     elif _issubclass_literal(cls):
@@ -281,25 +278,25 @@ def isinstance(obj, cls) -> bool:
     elif _issubclass_callable(cls):
         return _isinstance_callable(obj, cls)
     else:
-        return builtins.isinstance(obj, cls)
+        return isinstance(obj, cls)
 
 
 def is_namedtuple(obj) -> bool:
-    if not builtins.isinstance(obj, builtins.type):
-        obj = builtins.type(obj)
+    if not isinstance(obj, type):
+        obj = type(obj)
     return _issubclass_namedtuple(obj)
 
 
 def is_typeddict(obj) -> bool:
-    if not builtins.isinstance(obj, builtins.type):
-        obj = builtins.type(obj)
+    if not isinstance(obj, type):
+        obj = type(obj)
     return _issubclass_typeddict(obj)
 
 
 def _update_sequence(self: MutableSequence, cls):
     remove = []
     for index, val in enumerate(self):
-        if not isinstance(val, cls):
+        if not isinstance_ex(val, cls):
             remove.append(index)
     for index in reversed(remove):
         del self[index]
@@ -308,14 +305,14 @@ def _update_sequence(self: MutableSequence, cls):
 def _update_mapping(self: MutableMapping, val, cls, callback, key):
     if key in self:
         val_ = self[key]
-        if isinstance(val_, cls):
+        if isinstance_ex(val_, cls):
             return
-        elif builtins.isinstance(val, Mapping):
-            if builtins.isinstance(val_, MutableMapping):
+        elif isinstance(val, Mapping):
+            if isinstance(val_, MutableMapping):
                 intersection_update(val_, val, cls, callback)
                 return
-        elif builtins.isinstance(val, Sequence):
-            if builtins.isinstance(val_, MutableSequence) and isinstance(
+        elif isinstance(val, Sequence):
+            if isinstance(val_, MutableSequence) and isinstance_ex(
                     val_, typing.get_origin(cls)):
                 _update_sequence(val_, typing.get_args(cls)[0])
                 return
@@ -324,7 +321,7 @@ def _update_mapping(self: MutableMapping, val, cls, callback, key):
 
 def intersection_update(self: MutableMapping, other: Mapping, cls,
                         factory: Callable[[Any], Any] = copy.deepcopy):
-    assert isinstance(other, cls)
+    assert isinstance_ex(other, cls)
     if _issubclass_typeddict(cls):
         for key, cls_ in typing.get_type_hints(cls).items():
             _update_mapping(self, other[key], cls_, factory, key)

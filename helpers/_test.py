@@ -591,8 +591,15 @@ def _test_toast():
             print(notifier.Show(toast))
 
 
-def _test():
+def foo(arg: AnyStr) -> None:
     pass
+
+
+def _test():
+    from libs import typed
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    print(typed.isinstance_ex(foo, Callable[[int], Optional[str]]))
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("

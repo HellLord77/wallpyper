@@ -310,8 +310,8 @@ def create_handler(callback: _Callable[[...], _type.HRESULT], interface: type[_T
                    name: _Optional[str] = None) -> COM[_TInterface]:
     impl_name = interface.__name__
     if (args := getattr(interface, '_args', None)) is not None:
-        impl_name = impl_name.split("_", 1)[0]
-    impl_name = f'{impl_name}_impl'
+        impl_name = impl_name.split('_', 1)[0]
+    impl_name += '_impl'
     cls = getattr(_inspect.getmodule(interface), impl_name)
     if args is not None:
         cls = cls[tuple(args.values())]
