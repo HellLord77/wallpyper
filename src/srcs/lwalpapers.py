@@ -1,11 +1,15 @@
 import operator
 import random
-from typing import Iterator, Optional, Sequence, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import Sequence
+from typing import TypedDict
 
 import gui
 import validator
 from libs import request
-from . import File, Source
+from . import File
+from . import Source
 
 URL_BASE = request.join_url('https://api.github.com', 'repos', 'whoisYoges',
                             'lwalpapers', 'contents', 'wallpapers')
@@ -13,11 +17,11 @@ URL_BASE = request.join_url('https://api.github.com', 'repos', 'whoisYoges',
 CONFIG_SORT = 'sort'
 
 SORTS = {
-    'newest': reversed,
-    'oldest': lambda x: x,
-    'largest': lambda x: sorted(x, key=operator.itemgetter('size'), reverse=True),
+    'newest':   reversed,
+    'oldest':   lambda x: x,
+    'largest':  lambda x: sorted(x, key=operator.itemgetter('size'), reverse=True),
     'smallest': lambda x: sorted(x, key=operator.itemgetter('size')),
-    'random': lambda x: random.sample(x, k=len(x))}
+    'random':   lambda x: random.sample(x, k=len(x))}
 
 
 def _get_json() -> Iterator[Sequence[dict]]:

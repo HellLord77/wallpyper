@@ -1,10 +1,14 @@
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from . import ImageFile, Source
+from libs import request
+from libs import sgml
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://wallup.net'
 URL_AJAX = request.join_url(URL_BASE, 'wp-admin', 'admin-ajax.php')
@@ -38,19 +42,19 @@ class Wallup(Source):
     VERSION = '0.0.1'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_SEARCH: str,
-        CONFIG_CATEGORIES: list[str],
-        CONFIG_SKETCHY: bool,
+        CONFIG_SEARCH:      str,
+        CONFIG_CATEGORIES:  list[str],
+        CONFIG_SKETCHY:     bool,
         CONFIG_RESOLUTIONS: list[str],
-        CONFIG_SORT: str,
-        CONFIG_ORDER: str})
+        CONFIG_SORT:        str,
+        CONFIG_ORDER:       str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_SEARCH: '',
-        CONFIG_CATEGORIES: [],
-        CONFIG_SKETCHY: False,
+        CONFIG_SEARCH:      '',
+        CONFIG_CATEGORIES:  [],
+        CONFIG_SKETCHY:     False,
         CONFIG_RESOLUTIONS: [],
-        CONFIG_SORT: SORTS[3],
-        CONFIG_ORDER: ORDERS[1]}
+        CONFIG_SORT:        SORTS[3],
+        CONFIG_ORDER:       ORDERS[1]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

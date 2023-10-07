@@ -2,14 +2,20 @@ from __future__ import annotations
 
 import ctypes as _ctypes
 import typing as _typing
-from typing import Any as _Any, Callable as _Callable, Union as _Union
+from typing import Any as _Any
+from typing import Callable as _Callable
+from typing import Union as _Union
 
 import _ctypes as __ctypes
 
 from .. import const as _const
 from .. import enum as _enum
 from .. import struct as _struct
-from .._utils import _Globals, _Pointer, _PyCSimpleType, _SimpleCData, _resolve_type
+from .._utils import _Globals
+from .._utils import _Pointer
+from .._utils import _PyCSimpleType
+from .._utils import _SimpleCData
+from .._utils import _resolve_type
 from ..enum import iCUESDK as _enum_iCUESDK
 from ..enum import libclang as _enum_libclang
 

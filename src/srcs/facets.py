@@ -1,10 +1,13 @@
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 from libs import request
-from . import File, Source
+from . import File
+from . import Source
 
 URL_BASE = request.join_url('https://facets.api.manifoldxyz.dev', 'art')
 
@@ -49,15 +52,15 @@ class Facets(Source):
     ICON = 'png'
     URL = 'https://facets.la'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_YEAR: list[bool],
-        CONFIG_SERIES: str,
+        CONFIG_YEAR:        list[bool],
+        CONFIG_SERIES:      str,
         CONFIG_PURCHASABLE: bool,
-        CONFIG_DEVICE: str})
+        CONFIG_DEVICE:      str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_YEAR: [True] * len(YEARS),
-        CONFIG_SERIES: SERIES[0],
+        CONFIG_YEAR:        [True] * len(YEARS),
+        CONFIG_SERIES:      SERIES[0],
         CONFIG_PURCHASABLE: False,
-        CONFIG_DEVICE: DEVICES[1]}
+        CONFIG_DEVICE:      DEVICES[1]}
 
     _purchasable: dict[int, bool]
 

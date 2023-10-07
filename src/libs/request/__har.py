@@ -1,7 +1,13 @@
 import datetime
 import http.cookiejar
 import urllib.request
-from typing import AnyStr, Iterable, Mapping, MutableMapping, NotRequired, Optional, TypedDict
+from typing import AnyStr
+from typing import Iterable
+from typing import Mapping
+from typing import MutableMapping
+from typing import NotRequired
+from typing import Optional
+from typing import TypedDict
 
 from . import Header as _Header
 from . import Request as _Request
@@ -167,7 +173,7 @@ class THAR(TypedDict):
 
 def default_har(name: str = _name, version: str = _version) -> THAR:
     # noinspection PyTypeChecker
-    return {'log': {'version': '1.2', 'creator': {
+    return {'log': {'version':                        '1.2', 'creator': {
         'name': name, 'version': version}, 'entries': []}}
 
 
@@ -230,8 +236,8 @@ def encode_request(request: urllib.request.Request | _Request,
     if isinstance(request, _Request):
         request = request.prepare()
     encoded = {
-        'method': request.method,
-        'url': _strip_url(request.full_url, fragment=False),
+        'method':      request.method,
+        'url':         _strip_url(request.full_url, fragment=False),
         'httpVersion': 'HTTP/1.1'}
     cookies = getattr(request, '_cookies', None)
     encode_cookies([] if cookies is None else _extract_cookies(cookies), encoded)
@@ -246,7 +252,7 @@ def encode_request(request: urllib.request.Request | _Request,
 
 
 def encode(*requests: urllib.request.Request | _Request | tuple[
-        urllib.request.Request | _Request, float | datetime.datetime]) -> THAR:
+    urllib.request.Request | _Request, float | datetime.datetime]) -> THAR:
     encoded = default_har()
     for request_started in requests:
         if isinstance(request_started, tuple):

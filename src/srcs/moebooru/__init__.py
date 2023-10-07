@@ -4,12 +4,17 @@ import itertools
 import os
 import re
 import urllib.parse
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 from libs import request
-from .. import CONFIG_ORIENTATIONS, ImageFile, Source
+from .. import CONFIG_ORIENTATIONS
+from .. import ImageFile
+from .. import Source
 
 URL_FMT_TAG = request.join_url('{}', 'post.json')
 URL_FMT_INFO = request.join_url('{}', 'post', 'show')
@@ -92,34 +97,34 @@ def _param_time(day: int, month: int, year: int) -> Iterator[tuple[str, str]]:
 class MoebooruSource(Source, source=False):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_MODE: str,
-        CONFIG_TAGS: list[str],
-        CONFIG_RATING: list[bool],
-        CONFIG_ORDER: str,
-        CONFIG_SIZE: str,
-        CONFIG_WIDTH: int,
-        CONFIG_HEIGHT: int,
-        CONFIG_POOL: int,
-        CONFIG_POPULARITY: str,
-        CONFIG_PERIOD: str,
-        CONFIG_DAY: int,
-        CONFIG_MONTH: int,
-        CONFIG_YEAR: int})
+        CONFIG_MODE:         str,
+        CONFIG_TAGS:         list[str],
+        CONFIG_RATING:       list[bool],
+        CONFIG_ORDER:        str,
+        CONFIG_SIZE:         str,
+        CONFIG_WIDTH:        int,
+        CONFIG_HEIGHT:       int,
+        CONFIG_POOL:         int,
+        CONFIG_POPULARITY:   str,
+        CONFIG_PERIOD:       str,
+        CONFIG_DAY:          int,
+        CONFIG_MONTH:        int,
+        CONFIG_YEAR:         int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_MODE: MODES[0],
-        CONFIG_TAGS: [],
-        CONFIG_RATING: [True, True, True],
-        CONFIG_ORDER: ORDERS[1],
-        CONFIG_SIZE: SIZES[0],
-        CONFIG_WIDTH: WIDTHS[9],
-        CONFIG_HEIGHT: HEIGHTS[10],
-        CONFIG_POOL: 0,
-        CONFIG_POPULARITY: POPULARITIES[0],
-        CONFIG_PERIOD: PERIODS[0],
-        CONFIG_DAY: 0,
-        CONFIG_MONTH: 0,
-        CONFIG_YEAR: 0}
+        CONFIG_MODE:         MODES[0],
+        CONFIG_TAGS:         [],
+        CONFIG_RATING:       [True, True, True],
+        CONFIG_ORDER:        ORDERS[1],
+        CONFIG_SIZE:         SIZES[0],
+        CONFIG_WIDTH:        WIDTHS[9],
+        CONFIG_HEIGHT:       HEIGHTS[10],
+        CONFIG_POOL:         0,
+        CONFIG_POPULARITY:   POPULARITIES[0],
+        CONFIG_PERIOD:       PERIODS[0],
+        CONFIG_DAY:          0,
+        CONFIG_MONTH:        0,
+        CONFIG_YEAR:         0}
 
     def __init_subclass__(cls, *args, **kwargs):
         cls._text = MoebooruSource._text

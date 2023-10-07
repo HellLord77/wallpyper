@@ -3,7 +3,9 @@ import threading
 
 from libs import ctyped
 from libs.ctyped.interface.package import WebView2
-from libs.ctyped.lib import user32, kernel32, WebView2Loader
+from libs.ctyped.lib import WebView2Loader
+from libs.ctyped.lib import kernel32
+from libs.ctyped.lib import user32
 from win32 import _handle
 from win32.__browser import _webview2
 

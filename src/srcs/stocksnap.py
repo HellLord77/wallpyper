@@ -1,12 +1,17 @@
 import json
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
+from libs import request
+from libs import sgml
 from libs.request import cloudflare
-from . import CONFIG_ORIENTATIONS, ImageFile, Source
+from . import CONFIG_ORIENTATIONS
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://stocksnap.io'
 URL_PHOTOS = request.join_url(URL_BASE, 'api', 'load-photos')
@@ -30,12 +35,12 @@ class StockSnap(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_SORT: str,
-        CONFIG_ORDER: str})
+        CONFIG_SORT:         str,
+        CONFIG_ORDER:        str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_ORDER: ORDERS[0]}
+        CONFIG_SORT:         SORTS[0],
+        CONFIG_ORDER:        ORDERS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

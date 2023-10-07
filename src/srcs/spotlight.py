@@ -1,11 +1,16 @@
 import base64
 import json
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import files, isocodes, request
-from . import ImageFile, Source
+from libs import files
+from libs import isocodes
+from libs import request
+from . import ImageFile
+from . import Source
 
 URL_BASE = request.join_url('https://arc.msn.com', 'v3', 'Delivery', 'Placement')
 
@@ -23,10 +28,10 @@ class WindowsSpotlight(Source):  # https://github.com/ORelio/Spotlight-Downloade
     URL = 'https://en.wikipedia.org/wiki/Windows_Spotlight'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATION: str,
-        CONFIG_LOCALE: str})
+        CONFIG_LOCALE:      str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_LOCALE: LOCALES[0]}
+        CONFIG_LOCALE:      LOCALES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

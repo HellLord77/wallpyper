@@ -2,18 +2,32 @@ import contextlib
 import ntpath
 import os
 import winreg
-from typing import Any, Callable, ContextManager, Optional
+from typing import Any
+from typing import Callable
+from typing import ContextManager
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped import winrt
 from libs.ctyped.const import runtimeclass
-from libs.ctyped.interface.um import DispEx, d2d1, d2d1svg, oaidl, objidlbase
+from libs.ctyped.interface.um import DispEx
+from libs.ctyped.interface.um import d2d1
+from libs.ctyped.interface.um import d2d1svg
+from libs.ctyped.interface.um import oaidl
+from libs.ctyped.interface.um import objidlbase
 from libs.ctyped.interface.winrt.Windows import Storage as Windows_Storage
 from libs.ctyped.interface.winrt.Windows.Data.Xml import Dom as Windows_Data_Xml_Dom
 from libs.ctyped.interface.winrt.Windows.Storage import Streams as Windows_Storage_Streams
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
-from libs.ctyped.lib import kernel32, ole32, shlwapi, shell32, cfgmgr32, oleaut32, d2d1 as d2d1_
-from . import _com, _handle
+from libs.ctyped.lib import cfgmgr32
+from libs.ctyped.lib import d2d1 as d2d1_
+from libs.ctyped.lib import kernel32
+from libs.ctyped.lib import ole32
+from libs.ctyped.lib import oleaut32
+from libs.ctyped.lib import shell32
+from libs.ctyped.lib import shlwapi
+from . import _com
+from . import _handle
 
 POLL_INTERVAL = 0.1
 HINSTANCE = kernel32.GetModuleHandleW(None)

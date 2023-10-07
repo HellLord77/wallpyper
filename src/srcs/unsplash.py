@@ -1,10 +1,16 @@
 import functools
-from typing import Callable, ItemsView, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import ItemsView
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import files, request
-from . import File, Source
+from libs import files
+from libs import request
+from . import File
+from . import Source
 
 URL_BASE = 'https://api.unsplash.com'
 URL_EDITORIAL = request.join_url(URL_BASE, 'photos')
@@ -34,22 +40,22 @@ class Unsplash(Source):  # https://unsplash.com/documentation
     ICON = 'png'
     URL = 'https://unsplash.com'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_ID: str,
-        CONFIG_EDITORIAL: bool,
-        'query': str,
-        CONFIG_ORDER: str,
-        'collections': str,
-        CONFIG_FILTER: str,
-        CONFIG_COLOR: str,
+        CONFIG_ID:          str,
+        CONFIG_EDITORIAL:   bool,
+        'query':            str,
+        CONFIG_ORDER:       str,
+        'collections':      str,
+        CONFIG_FILTER:      str,
+        CONFIG_COLOR:       str,
         CONFIG_ORIENTATION: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_ID: '',
-        CONFIG_EDITORIAL: True,
-        'query': '',
-        CONFIG_ORDER: '',
-        'collections': '',
-        CONFIG_FILTER: FILTERS[0],
-        CONFIG_COLOR: COLORS[0],
+        CONFIG_ID:          '',
+        CONFIG_EDITORIAL:   True,
+        'query':            '',
+        CONFIG_ORDER:       '',
+        'collections':      '',
+        CONFIG_FILTER:      FILTERS[0],
+        CONFIG_COLOR:       COLORS[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0]}
 
     @classmethod
@@ -85,7 +91,7 @@ class Unsplash(Source):  # https://unsplash.com/documentation
         if params.pop(CONFIG_EDITORIAL):
             url = URL_EDITORIAL
             params = {
-                CONFIG_ID: params[CONFIG_ID],
+                CONFIG_ID:    params[CONFIG_ID],
                 CONFIG_ORDER: params[CONFIG_ORDER]}
         else:
             url = URL_SEARCH

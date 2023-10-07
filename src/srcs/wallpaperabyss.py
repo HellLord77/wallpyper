@@ -1,14 +1,20 @@
 import colorsys
 import functools
 import os
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 import win32
-from libs import colornames, request, sgml
+from libs import colornames
+from libs import request
+from libs import sgml
 from libs.request import cloudflare
-from . import ImageFile, Source
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://wall.alphacoders.com'
 URL_INFO = request.join_url(URL_BASE, 'big.php')
@@ -63,25 +69,25 @@ class WallpaperAbyss(Source):
     VERSION = '0.0.4'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_METHOD: str,
-        CONFIG_SEARCH: str,
+        CONFIG_METHOD:            str,
+        CONFIG_SEARCH:            str,
         CONFIG_RESOLUTION_FILTER: str,
         CONFIG_RESOLUTION_EQUALS: str,
-        CONFIG_SORT: str,
-        CONFIG_RESOLUTION: str,
-        CONFIG_LICENSE: int,
-        CONFIG_COLOR: str,
-        CONFIG_CATEGORY: int})
+        CONFIG_SORT:              str,
+        CONFIG_RESOLUTION:        str,
+        CONFIG_LICENSE:           int,
+        CONFIG_COLOR:             str,
+        CONFIG_CATEGORY:          int})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_METHOD: METHODS[2],
-        CONFIG_SEARCH: '',
+        CONFIG_METHOD:            METHODS[2],
+        CONFIG_SEARCH:            '',
         CONFIG_RESOLUTION_FILTER: RESOLUTION_FILTERS[0],
         CONFIG_RESOLUTION_EQUALS: RESOLUTION_EQUALS[0],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_RESOLUTION: RESOLUTIONS[4],
-        CONFIG_LICENSE: LICENSES[7],
-        CONFIG_COLOR: COLORS[67],
-        CONFIG_CATEGORY: CATEGORIES[0]}
+        CONFIG_SORT:              SORTS[0],
+        CONFIG_RESOLUTION:        RESOLUTIONS[4],
+        CONFIG_LICENSE:           LICENSES[7],
+        CONFIG_COLOR:             COLORS[67],
+        CONFIG_CATEGORY:          CATEGORIES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -151,10 +157,10 @@ class WallpaperAbyss(Source):
         elif method == METHODS[13]:
             query[CONFIG_CATEGORY] = str(params.pop(CONFIG_CATEGORY))
         cookies = {
-            'AlphaCodersView': 'paged',
+            'AlphaCodersView':  'paged',
             'ResolutionFilter': params.pop(CONFIG_RESOLUTION_FILTER),
             'ResolutionEquals': params.pop(CONFIG_RESOLUTION_EQUALS),
-            'Sorting': params.pop(CONFIG_SORT)}
+            'Sorting':          params.pop(CONFIG_SORT)}
         session = cloudflare.Session()
         page = 1
         while True:

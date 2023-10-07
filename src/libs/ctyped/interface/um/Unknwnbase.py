@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import Callable as _Callable
 
-from .. import _Interface, _Interface_impl
+from .. import _Interface
+from .. import _Interface_impl
 from ... import const as _const
 from ... import struct as _struct
 from ... import type as _type
-from ..._utils import _CArgObject, _Pointer
+from ..._utils import _CArgObject
+from ..._utils import _Pointer
 from ...const import error as _error
 from ...lib import ole32 as _ole32
 

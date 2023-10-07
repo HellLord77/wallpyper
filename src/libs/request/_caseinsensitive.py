@@ -1,4 +1,7 @@
-from typing import Any, Iterator, Iterable, Mapping
+from typing import Any
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
 
 
 def eq(string: str, other: str) -> bool:

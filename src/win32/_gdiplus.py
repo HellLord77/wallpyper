@@ -6,21 +6,31 @@ import math
 import ntpath
 import string as _string
 import threading
-from typing import Any, Callable, ContextManager, Iterable, Iterator, Literal, Optional
+from typing import Any
+from typing import Callable
+from typing import ContextManager
+from typing import Iterable
+from typing import Iterator
+from typing import Literal
+from typing import Optional
 
 from libs import ctyped
-from libs.ctyped.interface.um import d2d1_3, d2d1svg, objidlbase
-from libs.ctyped.lib import GdiPlus, shlwapi
-from . import _handle, _utils
+from libs.ctyped.interface.um import d2d1_3
+from libs.ctyped.interface.um import d2d1svg
+from libs.ctyped.interface.um import objidlbase
+from libs.ctyped.lib import GdiPlus
+from libs.ctyped.lib import shlwapi
+from . import _handle
+from . import _utils
 
 _OK = ctyped.enum.GpStatus.Ok
 _TAG_TYPE_TO_TYPE = {
-    ctyped.const.PropertyTagTypeByte: ctyped.type.c_byte,
-    ctyped.const.PropertyTagTypeShort: ctyped.type.c_ushort,
-    ctyped.const.PropertyTagTypeLong: ctyped.type.c_ulong,
-    ctyped.const.PropertyTagTypeRational: ctyped.struct.Rational,
+    ctyped.const.PropertyTagTypeByte:      ctyped.type.c_byte,
+    ctyped.const.PropertyTagTypeShort:     ctyped.type.c_ushort,
+    ctyped.const.PropertyTagTypeLong:      ctyped.type.c_ulong,
+    ctyped.const.PropertyTagTypeRational:  ctyped.struct.Rational,
     ctyped.const.PropertyTagTypeUndefined: ctyped.type.c_byte,
-    ctyped.const.PropertyTagTypeSLONG: ctyped.type.c_long}
+    ctyped.const.PropertyTagTypeSLONG:     ctyped.type.c_long}
 
 
 def _get_obj(float_obj, int_obj, *decimals: Optional[int | float]) -> Any:

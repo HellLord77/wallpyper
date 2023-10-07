@@ -1,5 +1,6 @@
 import urllib.parse
-from typing import Iterator, Optional
+from typing import Iterator
+from typing import Optional
 
 from . import GelbooruV02Source
 from ... import ImageFile

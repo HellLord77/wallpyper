@@ -1,11 +1,17 @@
 import os
 import pprint
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
+from libs import request
+from libs import sgml
+from . import CONFIG_ORIENTATIONS
+from . import CONFIG_RATINGS
+from . import ImageFile
+from . import Source
 
 URL_BASE = request.join_url('https://backend.deviantart.com', 'rss.xml')
 
@@ -24,16 +30,16 @@ class DeviantArt(Source):
     URL = 'https://www.deviantart.com'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_RATINGS: list[bool],
-        CONFIG_STATIC: bool,
-        CONFIG_SEARCH: str,
-        CONFIG_ORDER: str})
+        CONFIG_RATINGS:      list[bool],
+        CONFIG_STATIC:       bool,
+        CONFIG_SEARCH:       str,
+        CONFIG_ORDER:        str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_RATINGS: [True, True],
-        CONFIG_STATIC: True,
-        CONFIG_SEARCH: '',
-        CONFIG_ORDER: ORDERS[3]}
+        CONFIG_RATINGS:      [True, True],
+        CONFIG_STATIC:       True,
+        CONFIG_SEARCH:       '',
+        CONFIG_ORDER:        ORDERS[3]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

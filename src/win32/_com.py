@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import inspect
 import typing
-from typing import Callable, Optional
+from typing import Callable
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.interface.um import Unknwnbase

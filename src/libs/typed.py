@@ -4,9 +4,23 @@ import builtins
 import copy
 import dataclasses
 import typing
-from types import NoneType, UnionType
-from typing import (Any, Callable, ItemsView, Iterable, Literal, Mapping, MutableMapping,
-                    MutableSequence, NotRequired, Optional, Sequence, Required, Tuple, TypedDict, Union)
+from types import NoneType
+from types import UnionType
+from typing import Any
+from typing import Callable
+from typing import ItemsView
+from typing import Iterable
+from typing import Literal
+from typing import Mapping
+from typing import MutableMapping
+from typing import MutableSequence
+from typing import NotRequired
+from typing import Optional
+from typing import Required
+from typing import Sequence
+from typing import Tuple
+from typing import TypedDict
+from typing import Union
 
 
 def _type_tuple(obj: tuple) -> builtins.type:

@@ -1,10 +1,15 @@
 import random
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from . import CONFIG_ORIENTATIONS, ImageFile, Source
+from libs import request
+from libs import sgml
+from . import CONFIG_ORIENTATIONS
+from . import ImageFile
+from . import Source
 
 # noinspection HttpUrlsUsage
 URL_BASE = 'http://www.kekaiart.com'
@@ -21,12 +26,12 @@ class KekaiKotaki(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[int],
-        CONFIG_RANDOM: bool,
-        CONFIG_GALLERY: str})
+        CONFIG_RANDOM:       bool,
+        CONFIG_GALLERY:      str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_RANDOM: False,
-        CONFIG_GALLERY: GALLERIES[0]}
+        CONFIG_RANDOM:       False,
+        CONFIG_GALLERY:      GALLERIES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

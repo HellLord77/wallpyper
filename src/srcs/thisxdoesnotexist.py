@@ -1,9 +1,12 @@
 import uuid
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from . import File, Source
+from . import File
+from . import Source
 
 CONFIG_VARIANT = 'variant'
 

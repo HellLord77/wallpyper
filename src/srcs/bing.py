@@ -1,10 +1,14 @@
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import isocodes, request
-from . import ImageFile, Source
+from libs import isocodes
+from libs import request
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://www.bing.com'
 URL_ARCHIVE = request.join_url(URL_BASE, 'HPImageArchive.aspx')
@@ -25,12 +29,12 @@ class Bing(Source):  # https://github.com/timothymctim/Bing-wallpapers
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_RESOLUTION: str,
-        CONFIG_DAY: int,
-        CONFIG_MARKET: str})
+        CONFIG_DAY:        int,
+        CONFIG_MARKET:     str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_RESOLUTION: RESOLUTIONS[5],
-        CONFIG_DAY: next(iter(DAYS)),
-        CONFIG_MARKET: MARKETS[0]}
+        CONFIG_DAY:        next(iter(DAYS)),
+        CONFIG_MARKET:     MARKETS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

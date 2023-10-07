@@ -1,11 +1,17 @@
 import os
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 import win32
-from libs import files, request
-from . import CONFIG_ORIENTATIONS, ImageFile, Source
+from libs import files
+from libs import request
+from . import CONFIG_ORIENTATIONS
+from . import ImageFile
+from . import Source
 
 CONFIG_DIR = 'dir'
 CONFIG_RECURSE = 'recursive'
@@ -13,10 +19,10 @@ CONFIG_SORT = 'sort_by'
 CONFIG_ORDER = 'sort_order'
 
 SORTS = {
-    'name': str,
+    'name':     str,
     'modified': os.path.getmtime,
-    'type': files.get_ext,
-    'size': os.path.getsize}
+    'type':     files.get_ext,
+    'size':     os.path.getsize}
 ORDERS = 'ascending', 'descending'
 
 
@@ -26,16 +32,16 @@ class Folder(Source):
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool, bool],
-        CONFIG_DIR: str,
-        CONFIG_RECURSE: bool,
-        CONFIG_SORT: str,
-        CONFIG_ORDER: str})
+        CONFIG_DIR:          str,
+        CONFIG_RECURSE:      bool,
+        CONFIG_SORT:         str,
+        CONFIG_ORDER:        str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_DIR: win32.PICTURES_DIR,
-        CONFIG_RECURSE: True,
-        CONFIG_SORT: next(iter(SORTS)),
-        CONFIG_ORDER: ORDERS[0]}
+        CONFIG_DIR:          win32.PICTURES_DIR,
+        CONFIG_RECURSE:      True,
+        CONFIG_SORT:         next(iter(SORTS)),
+        CONFIG_ORDER:        ORDERS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

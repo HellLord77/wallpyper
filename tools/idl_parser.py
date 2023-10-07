@@ -7,7 +7,9 @@ import os
 import re
 import sys
 import warnings
-from typing import Optional, Any, Callable
+from typing import Any
+from typing import Callable
+from typing import Optional
 
 import bs4
 import markdown
@@ -17,8 +19,8 @@ from libs import ctyped
 SDK_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0'
 DOC_DIR = r'D:\Projects\winrt-api'
 TYPE_MAP = {
-    'IUnknown': '_Unknwnbase.IUnknown',
-    'IInspectable': '_inspectable.IInspectable',
+    'IUnknown':                                               '_Unknwnbase.IUnknown',
+    'IInspectable':                                           '_inspectable.IInspectable',
     'Windows.Foundation.Collections.IVectorChangedEventArgs': '_Windows_Foundation_Collections.IVectorChangedEventArgs'}
 ABS_IMPORTS = [
     'from __future__ import annotations',
@@ -32,18 +34,18 @@ EX_IMPORTS: tuple[str, ...] = (
     '... import type as _type',
     '..._utils import _Pointer')
 EX_ENUMS = {
-    'Windows.Foundation.AsyncStatus': {
-        'Started': '0',
+    'Windows.Foundation.AsyncStatus':                  {
+        'Started':   '0',
         'Completed': '1',
-        'Canceled': '2',
-        'Error': '3'},
+        'Canceled':  '2',
+        'Error':     '3'},
     'Windows.Foundation.Collections.CollectionChange': {
-        'Reset': '0',
+        'Reset':        '0',
         'ItemInserted': '1',
-        'ItemRemoved': '2',
-        'ItemChanged': '3'}}
+        'ItemRemoved':  '2',
+        'ItemChanged':  '3'}}
 DATA_INTERFACE: dict[str, str] = {
-    'Windows.Foundation': '''
+    'Windows.Foundation':             '''
 class _IAsyncOperationProgressHandler(_Template):
     Invoke: _Callable[[IAsyncOperationWithProgress[_TResult, _TProgress],  # asyncInfo
                        _TProgress],  # progressInfo

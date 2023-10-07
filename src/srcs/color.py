@@ -1,13 +1,17 @@
 import itertools
 import os
 import random
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 import win32
-from libs import colornames, request
-from . import ImageFile, Source
+from libs import colornames
+from libs import request
+from . import ImageFile
+from . import Source
 
 CONFIG_LUMINANCES = '_luminances'
 CONFIG_WIDTH = 'width'
@@ -24,12 +28,12 @@ class Color(Source):
     ICON = 'png'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_LUMINANCES: list[bool, bool],
-        CONFIG_WIDTH: int,
-        CONFIG_HEIGHT: int})
+        CONFIG_WIDTH:      int,
+        CONFIG_HEIGHT:     int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_LUMINANCES: [True, True],
-        CONFIG_WIDTH: WIDTHS[10],
-        CONFIG_HEIGHT: HEIGHTS[10]}
+        CONFIG_WIDTH:      WIDTHS[10],
+        CONFIG_HEIGHT:     HEIGHTS[10]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

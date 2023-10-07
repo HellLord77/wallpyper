@@ -10,7 +10,13 @@ import re
 import shutil
 import textwrap
 import typing
-from typing import Callable, Container, Iterable, Iterator, Mapping, Optional, TextIO
+from typing import Callable
+from typing import Container
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
+from typing import Optional
+from typing import TextIO
 
 _TPattern = (bool | int | bytes | str | re.Pattern |
              Iterable['_TPattern'] | Container[str] | Callable[[str], bool])

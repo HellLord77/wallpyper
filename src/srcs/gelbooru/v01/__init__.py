@@ -4,13 +4,21 @@ import functools
 import hashlib
 import json
 import os
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from .. import GelbooruSource, _tag_rating, _yaml_to_json
-from ... import CONFIG_ORIENTATIONS, Hash, ImageFile
+from libs import request
+from libs import sgml
+from .. import GelbooruSource
+from .. import _tag_rating
+from .. import _yaml_to_json
+from ... import CONFIG_ORIENTATIONS
+from ... import Hash
+from ... import ImageFile
 
 URL_FMT = request.join_url('{}', 'index.php')
 
@@ -58,16 +66,16 @@ class GelbooruV01Hash(Hash):
 class GelbooruV01Source(GelbooruSource, source=False):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_MODE: str,
-        CONFIG_TAGS: list[str],
-        CONFIG_RATING: list[bool],
-        CONFIG_ID: int})
+        CONFIG_MODE:         str,
+        CONFIG_TAGS:         list[str],
+        CONFIG_RATING:       list[bool],
+        CONFIG_ID:           int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_MODE: MODES[0],
-        CONFIG_TAGS: [],
-        CONFIG_RATING: [True, True, True],
-        CONFIG_ID: 0}
+        CONFIG_MODE:         MODES[0],
+        CONFIG_TAGS:         [],
+        CONFIG_RATING:       [True, True, True],
+        CONFIG_ID:           0}
 
     def __init_subclass__(cls, *args, **kwargs):
         cls._text = GelbooruV01Source._text

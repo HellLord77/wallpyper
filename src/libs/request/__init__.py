@@ -30,8 +30,16 @@ import urllib.request
 import urllib.response
 import uuid
 import zlib
-from typing import (Any, AnyStr, BinaryIO, Callable, Iterator,
-                    Iterable, Mapping, NoReturn, Optional, Sequence)
+from typing import Any
+from typing import AnyStr
+from typing import BinaryIO
+from typing import Callable
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
+from typing import NoReturn
+from typing import Optional
+from typing import Sequence
 
 from . import _caseinsensitive
 
@@ -576,11 +584,11 @@ def default_user_agent(name: str = 'python-' + __name__.rsplit('.', 1)[-1]) -> s
 
 def default_headers() -> dict[str, str]:
     return {
-        Header.CONNECTION: 'keep-alive',
-        Header.ACCEPT: '*/*',
+        Header.CONNECTION:      'keep-alive',
+        Header.ACCEPT:          '*/*',
         Header.ACCEPT_ENCODING: default_accept_encoding(),
         Header.ACCEPT_LANGUAGE: default_accept_language(),
-        Header.USER_AGENT: default_user_agent()}
+        Header.USER_AGENT:      default_user_agent()}
 
 
 def default_verify() -> ssl.SSLContext:
@@ -1233,12 +1241,12 @@ class Session:
         if self.trust_env:
             proxies = _merge_setting(proxies, urllib.request.getproxies())
         return {
-            'proxies': _merge_setting(proxies, self.proxies),
-            'stream': _merge_setting(stream, self.stream),
-            'verify': _merge_setting(verify, self.verify),
-            'timeout': _merge_setting(timeout, self.timeout),
+            'proxies':         _merge_setting(proxies, self.proxies),
+            'stream':          _merge_setting(stream, self.stream),
+            'verify':          _merge_setting(verify, self.verify),
+            'timeout':         _merge_setting(timeout, self.timeout),
             'allow_redirects': _merge_setting(allow_redirects, self.allow_redirects),
-            'force_auth': _merge_setting(force_auth, self.force_auth)}
+            'force_auth':      _merge_setting(force_auth, self.force_auth)}
 
 
 def _bytes(o: bytes | str, encoding: str = 'latin1') -> bytes:
@@ -1579,8 +1587,8 @@ def encode_body(data: Optional[_TData] = None, files: Optional[_TFiles] = None, 
                 vals = vals,
             headers = {
                 Header.CONTENT_DISPOSITION: f'form-data; name="{_str(name)}"',
-                Header.CONTENT_TYPE: None,
-                Header.CONTENT_LOCATION: None}
+                Header.CONTENT_TYPE:        None,
+                Header.CONTENT_LOCATION:    None}
             filename = None
             if len(vals) > 1:
                 filename = vals[1]

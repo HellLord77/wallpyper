@@ -24,8 +24,16 @@ import sys
 import typing
 import uuid
 from types import NoneType
-from typing import (Any, AnyStr, BinaryIO, Callable, ContextManager,
-                    Iterable, Iterator, Mapping, Optional, TextIO)
+from typing import Any
+from typing import AnyStr
+from typing import BinaryIO
+from typing import Callable
+from typing import ContextManager
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
+from typing import Optional
+from typing import TextIO
 from xml.etree import ElementTree
 
 _T = typing.TypeVar('_T')
@@ -145,60 +153,60 @@ class JSONConfig(_Config):
     LOADERS: list[Callable[[Any], Any]] = [_loader]
     # noinspection PyUnresolvedReferences
     TYPE_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
-        complex: lambda data: [data.real, data.imag],
-        range: lambda data: [data.start, data.stop, data.step],
-        slice: lambda data: [data.start, data.stop, data.step],
-        ElementTree.QName: operator.attrgetter('text'),
-        array.array: lambda data: [data.typecode, data.tolist()],
-        collections.ChainMap: operator.attrgetter('maps'),
-        collections.deque: lambda data: [list(data), data.maxlen],
-        datetime.date: datetime.date.isoformat,
-        datetime.time: datetime.time.isoformat,
-        datetime.datetime: datetime.datetime.isoformat,
-        datetime.timedelta: lambda data: [
+        complex:                 lambda data: [data.real, data.imag],
+        range:                   lambda data: [data.start, data.stop, data.step],
+        slice:                   lambda data: [data.start, data.stop, data.step],
+        ElementTree.QName:       operator.attrgetter('text'),
+        array.array:             lambda data: [data.typecode, data.tolist()],
+        collections.ChainMap:    operator.attrgetter('maps'),
+        collections.deque:       lambda data: [list(data), data.maxlen],
+        datetime.date:           datetime.date.isoformat,
+        datetime.time:           datetime.time.isoformat,
+        datetime.datetime:       datetime.datetime.isoformat,
+        datetime.timedelta:      lambda data: [
             data.days, data.seconds, data.microseconds],
-        decimal.Decimal: decimal.Decimal.__str__,
-        fractions.Fraction: lambda data: [data.numerator, data.denominator],
-        ipaddress.IPv4Address: ipaddress.IPv4Address.__int__,
+        decimal.Decimal:         decimal.Decimal.__str__,
+        fractions.Fraction:      lambda data: [data.numerator, data.denominator],
+        ipaddress.IPv4Address:   ipaddress.IPv4Address.__int__,
         ipaddress.IPv4Interface: ipaddress.IPv4Interface.__str__,
-        ipaddress.IPv4Network: ipaddress.IPv4Network.__str__,
-        ipaddress.IPv6Address: ipaddress.IPv6Address.__int__,
+        ipaddress.IPv4Network:   ipaddress.IPv4Network.__str__,
+        ipaddress.IPv6Address:   ipaddress.IPv6Address.__int__,
         ipaddress.IPv6Interface: ipaddress.IPv6Interface.__str__,
-        ipaddress.IPv6Network: ipaddress.IPv6Network.__str__,
-        re.Pattern: lambda data: [data.pattern, data.flags],
-        uuid.UUID: uuid.UUID.__getstate__}
+        ipaddress.IPv6Network:   ipaddress.IPv6Network.__str__,
+        re.Pattern:              lambda data: [data.pattern, data.flags],
+        uuid.UUID:               uuid.UUID.__getstate__}
     TYPE_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
-        complex: _loader_args,
-        memoryview: lambda _, data: memoryview(bytes(data)),
-        range: _loader_args,
-        slice: _loader_args,
-        ElementTree.QName: _loader_arg,
-        array.array: _loader_args,
-        collections.ChainMap: _loader_args,
-        collections.Counter: _loader_arg,
-        collections.deque: _loader_args,
-        datetime.date: _loader_datetime,
-        datetime.time: _loader_datetime,
-        datetime.datetime: _loader_datetime,
-        datetime.timedelta: _loader_args,
-        decimal.Decimal: _loader_arg,
-        fractions.Fraction: _loader_args,
-        ipaddress.IPv4Address: _loader_arg,
-        ipaddress.IPv4Network: _loader_arg,
+        complex:                 _loader_args,
+        memoryview:              lambda _, data: memoryview(bytes(data)),
+        range:                   _loader_args,
+        slice:                   _loader_args,
+        ElementTree.QName:       _loader_arg,
+        array.array:             _loader_args,
+        collections.ChainMap:    _loader_args,
+        collections.Counter:     _loader_arg,
+        collections.deque:       _loader_args,
+        datetime.date:           _loader_datetime,
+        datetime.time:           _loader_datetime,
+        datetime.datetime:       _loader_datetime,
+        datetime.timedelta:      _loader_args,
+        decimal.Decimal:         _loader_arg,
+        fractions.Fraction:      _loader_args,
+        ipaddress.IPv4Address:   _loader_arg,
+        ipaddress.IPv4Network:   _loader_arg,
         ipaddress.IPv4Interface: _loader_arg,
-        ipaddress.IPv6Address: _loader_arg,
+        ipaddress.IPv6Address:   _loader_arg,
         ipaddress.IPv6Interface: _loader_arg,
-        ipaddress.IPv6Network: _loader_arg,
-        re.Pattern: lambda _, data: re.compile(*data),
-        uuid.UUID: _loader_state}
+        ipaddress.IPv6Network:   _loader_arg,
+        re.Pattern:              lambda _, data: re.compile(*data),
+        uuid.UUID:               _loader_state}
     TYPES_DUMPERS: dict[type[_T], Callable[[_T], Any]] = {
         collections.UserString: operator.attrgetter('data'),
-        enum.Enum: operator.attrgetter('value'),
-        pathlib.PurePath: lambda data: list(data.parts)}
+        enum.Enum:              operator.attrgetter('value'),
+        pathlib.PurePath:       lambda data: list(data.parts)}
     TYPES_LOADERS: dict[type[_T], Callable[[type[_T], Any], _T]] = {
         collections.UserString: _loader_arg,
-        enum.Enum: _loader_arg,
-        pathlib.PurePath: _loader_args}
+        enum.Enum:              _loader_arg,
+        pathlib.PurePath:       _loader_args}
 
     @classmethod
     def _dump_type(cls, obj) -> str:

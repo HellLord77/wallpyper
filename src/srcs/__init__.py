@@ -12,14 +12,24 @@ import itertools
 import os
 import tempfile
 import urllib.parse
-from typing import Any, Callable, Container, Iterator, Optional, TypedDict, final
+from typing import Any
+from typing import Callable
+from typing import Container
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
+from typing import final
 
 import consts
 import gui
 import langs
 import validator
 import win32
-from libs import callables, files, mimetype, request, utils
+from libs import callables
+from libs import files
+from libs import mimetype
+from libs import request
+from libs import utils
 
 KEY: Optional[bytes | str] = None
 SOURCES: dict[str, type[Source]] = {}
@@ -140,7 +150,7 @@ class File:
             return _reduced(cls)(request_, **data)
 
     def asdict(self) -> dict[str, Any]:
-        result = {'request': utils.encrypt(
+        result = {'request':                            utils.encrypt(
             self.request, KEY, as_string=True), 'name': self.name}
         if self.size != request.RETRIEVE_UNKNOWN_SIZE:
             result['size'] = self.size
@@ -270,7 +280,7 @@ class Source:
     URL_API: str = ''
     TCONFIG: type[TypedDict] = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_RATINGS: list[bool]}, total=False)
+        CONFIG_RATINGS:      list[bool]}, total=False)
     DEFAULT_CONFIG: TCONFIG = {}
     CURRENT_CONFIG: TCONFIG = {}
 

@@ -3,7 +3,9 @@ __version__ = '0.0.2'  # https://github.com/jshttp/mime-types
 import functools
 import json
 import os
-from typing import Any, Iterator, Optional
+from typing import Any
+from typing import Iterator
+from typing import Optional
 
 _PATH = 'db.json'
 

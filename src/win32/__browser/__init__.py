@@ -6,14 +6,23 @@ import ntpath
 import threading
 import time
 import uuid
-from typing import ContextManager, Optional
+from typing import ContextManager
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.interface.package import WebView2
-from libs.ctyped.interface.um import DispEx, ExDisp, oaidl, ocidl
-from libs.ctyped.lib import user32, shlwapi, oleaut32, WebView2Loader
-from . import _mshtml, _webview2
-from .. import _handle, _utils
+from libs.ctyped.interface.um import DispEx
+from libs.ctyped.interface.um import ExDisp
+from libs.ctyped.interface.um import oaidl
+from libs.ctyped.interface.um import ocidl
+from libs.ctyped.lib import WebView2Loader
+from libs.ctyped.lib import oleaut32
+from libs.ctyped.lib import shlwapi
+from libs.ctyped.lib import user32
+from . import _mshtml
+from . import _webview2
+from .. import _handle
+from .. import _utils
 
 DATA_DIR = ntpath.dirname(__file__)
 

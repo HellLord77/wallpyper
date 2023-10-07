@@ -7,7 +7,12 @@ from typing import Optional as _Optional
 from . import const as _const
 from . import struct as _struct
 from . import type as _type
-from ._utils import _CT, _Pointer, _PyCSimpleType, _cast_int, _byref, _sizeof
+from ._utils import _CT
+from ._utils import _Pointer
+from ._utils import _PyCSimpleType
+from ._utils import _byref
+from ._utils import _cast_int
+from ._utils import _sizeof
 from .lib import kernel32 as _kernel32
 from .lib import ole32 as _ole32
 

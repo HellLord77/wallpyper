@@ -8,7 +8,8 @@ from ... import const as _const
 from ... import enum as _enum
 from ... import struct as _struct
 from ... import type as _type
-from ..._utils import _Pointer, _addressof
+from ..._utils import _Pointer
+from ..._utils import _addressof
 from ...lib import combase as _combase
 
 

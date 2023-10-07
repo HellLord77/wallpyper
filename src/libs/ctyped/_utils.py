@@ -6,8 +6,11 @@ import importlib.util as _importlib_util
 import sys as _sys
 import typing as _typing
 from types import ModuleType as _ModuleType
-from typing import (Any as _Any, Generic as _Generic, Iterator as _Iterator,
-                    Optional as _Optional, Sequence as _Sequence)
+from typing import Any as _Any
+from typing import Generic as _Generic
+from typing import Iterator as _Iterator
+from typing import Optional as _Optional
+from typing import Sequence as _Sequence
 
 import _ctypes as __ctypes
 

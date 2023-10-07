@@ -8,7 +8,9 @@ import sys as _sys
 from typing import Optional as _Optional
 
 from .. import const as _const
-from .._utils import _fmt_annot, _func_doc, _resolve_type
+from .._utils import _fmt_annot
+from .._utils import _func_doc
+from .._utils import _resolve_type
 
 
 class _CLib:

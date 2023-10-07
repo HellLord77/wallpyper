@@ -1,12 +1,18 @@
 import colorsys
 import functools
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 import win32
-from libs import colornames, request, sgml
-from . import ImageFile, Source
+from libs import colornames
+from libs import request
+from libs import sgml
+from . import ImageFile
+from . import Source
 
 URL_BASE = request.join_url('https://wallscloud.net', 'en')
 URL_CATEGORY = request.join_url(URL_BASE, 'category')
@@ -51,25 +57,25 @@ class Wallscloud(Source):
     VERSION = '0.0.1'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_MODE: str,
-        CONFIG_CATEGORY: str,
-        CONFIG_TOP: str,
-        CONFIG_SEARCH: str,
-        CONFIG_COLOR: str,
+        CONFIG_MODE:        str,
+        CONFIG_CATEGORY:    str,
+        CONFIG_TOP:         str,
+        CONFIG_SEARCH:      str,
+        CONFIG_COLOR:       str,
         CONFIG_ORIENTATION: str,
-        CONFIG_TIME: str,
-        CONFIG_SORT: str,
-        CONFIG_ORDER: str})
+        CONFIG_TIME:        str,
+        CONFIG_SORT:        str,
+        CONFIG_ORDER:       str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_MODE: MODES[1],
-        CONFIG_CATEGORY: CATEGORIES[0],
-        CONFIG_TOP: TOPS[0],
-        CONFIG_SEARCH: '',
-        CONFIG_COLOR: COLORS[0],
+        CONFIG_MODE:        MODES[1],
+        CONFIG_CATEGORY:    CATEGORIES[0],
+        CONFIG_TOP:         TOPS[0],
+        CONFIG_SEARCH:      '',
+        CONFIG_COLOR:       COLORS[0],
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_TIME: TIMES[0],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_ORDER: ORDERS[0]}
+        CONFIG_TIME:        TIMES[0],
+        CONFIG_SORT:        SORTS[0],
+        CONFIG_ORDER:       ORDERS[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):
@@ -138,7 +144,7 @@ class Wallscloud(Source):
             url = request.join_url(URL_TOP, top)
             params = {
                 CONFIG_ORIENTATION: params[CONFIG_ORIENTATION],
-                CONFIG_TIME: params[CONFIG_TIME]}
+                CONFIG_TIME:        params[CONFIG_TIME]}
         elif mode == MODES[2]:
             url = URL_RANDOM
             params = {}

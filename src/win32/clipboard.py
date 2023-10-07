@@ -1,9 +1,14 @@
 import contextlib
-from typing import ContextManager, Optional
+from typing import ContextManager
+from typing import Optional
 
 from libs import ctyped
-from libs.ctyped.lib import kernel32, user32, gdi32, msvcrt
-from . import _gdiplus, _handle
+from libs.ctyped.lib import gdi32
+from libs.ctyped.lib import kernel32
+from libs.ctyped.lib import msvcrt
+from libs.ctyped.lib import user32
+from . import _gdiplus
+from . import _handle
 
 
 @contextlib.contextmanager

@@ -2,7 +2,13 @@ import enum
 import os
 import re
 import sys
-from typing import Any, AnyStr, Callable, Hashable, Iterable, MutableSequence, Optional
+from typing import Any
+from typing import AnyStr
+from typing import Callable
+from typing import Hashable
+from typing import Iterable
+from typing import MutableSequence
+from typing import Optional
 
 
 def ensure_truthy(current: dict, default: dict, key: str,

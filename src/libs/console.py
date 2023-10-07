@@ -60,22 +60,22 @@ class Control(enum.IntEnum):
 
 
 CONTROL_CODE = {
-    Control.BELL: lambda: BEL,
-    Control.CARRIAGE_RETURN: lambda: CR,
-    Control.HOME: lambda: f'{ESC}[H',
-    Control.CLEAR: lambda: f'{ESC}[2J',
-    Control.SHOW_CURSOR: lambda: f'{ESC}[?25h',
-    Control.HIDE_CURSOR: lambda: f'{ESC}[?25l',
-    Control.ENABLE_ALT_SCREEN: lambda: f'{ESC}[?1049h',
-    Control.DISABLE_ALT_SCREEN: lambda: f'{ESC}[?1049l',
-    Control.CURSOR_UP: lambda param: f'{ESC}[{param}A',
-    Control.CURSOR_DOWN: lambda param: f'{ESC}[{param}B',
-    Control.CURSOR_FORWARD: lambda param: f'{ESC}[{param}C',
-    Control.CURSOR_BACKWARD: lambda param: f'{ESC}[{param}D',
+    Control.BELL:                  lambda: BEL,
+    Control.CARRIAGE_RETURN:       lambda: CR,
+    Control.HOME:                  lambda: f'{ESC}[H',
+    Control.CLEAR:                 lambda: f'{ESC}[2J',
+    Control.SHOW_CURSOR:           lambda: f'{ESC}[?25h',
+    Control.HIDE_CURSOR:           lambda: f'{ESC}[?25l',
+    Control.ENABLE_ALT_SCREEN:     lambda: f'{ESC}[?1049h',
+    Control.DISABLE_ALT_SCREEN:    lambda: f'{ESC}[?1049l',
+    Control.CURSOR_UP:             lambda param: f'{ESC}[{param}A',
+    Control.CURSOR_DOWN:           lambda param: f'{ESC}[{param}B',
+    Control.CURSOR_FORWARD:        lambda param: f'{ESC}[{param}C',
+    Control.CURSOR_BACKWARD:       lambda param: f'{ESC}[{param}D',
     Control.CURSOR_MOVE_TO_COLUMN: lambda param: f'{ESC}[{param + 1}G',
-    Control.ERASE_IN_LINE: lambda param: f'{ESC}[{param}K',
-    Control.CURSOR_MOVE_TO: lambda param1, param2: f'{ESC}[{param2 + 1};{param1 + 1}H',
-    Control.SET_WINDOW_TITLE: lambda title: f'{ESC}]0;{title}{BEL}'}
+    Control.ERASE_IN_LINE:         lambda param: f'{ESC}[{param}K',
+    Control.CURSOR_MOVE_TO:        lambda param1, param2: f'{ESC}[{param2 + 1};{param1 + 1}H',
+    Control.SET_WINDOW_TITLE:      lambda title: f'{ESC}]0;{title}{BEL}'}
 
 
 def bell() -> str:

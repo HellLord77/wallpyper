@@ -1,10 +1,16 @@
 import operator
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml, utils
-from . import File, Source
+from libs import request
+from libs import sgml
+from libs import utils
+from . import File
+from . import Source
 
 # noinspection HttpUrlsUsage
 URL_BASE = 'http://simpledesktops.com'

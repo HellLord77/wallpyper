@@ -13,7 +13,12 @@ import sys
 import threading
 import time
 import weakref
-from typing import Any, Callable, Container, Iterator, NoReturn, Optional
+from typing import Any
+from typing import Callable
+from typing import Container
+from typing import Iterator
+from typing import NoReturn
+from typing import Optional
 
 _FMT_THREAD_NAME = f'{__name__}-{__version__}-{{}}({{}})'
 

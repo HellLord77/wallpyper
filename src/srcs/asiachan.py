@@ -3,13 +3,19 @@ import json
 import os
 import re
 import urllib.parse
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
+from libs import request
+from libs import sgml
 from libs.request import cloudflare
-from . import CONFIG_ORIENTATIONS, ImageFile, Source
+from . import CONFIG_ORIENTATIONS
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://kpop.asiachan.com'
 
@@ -31,14 +37,14 @@ class AsiaChan(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_FILTER: list[str],
-        CONFIG_SORT: str,
-        CONFIG_TIME: int})
+        CONFIG_FILTER:       list[str],
+        CONFIG_SORT:         str,
+        CONFIG_TIME:         int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_FILTER: [],
-        CONFIG_SORT: SORTS[1],
-        CONFIG_TIME: TIMES[2]}
+        CONFIG_FILTER:       [],
+        CONFIG_SORT:         SORTS[1],
+        CONFIG_TIME:         TIMES[2]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

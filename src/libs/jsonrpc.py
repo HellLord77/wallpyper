@@ -5,7 +5,8 @@ import socketserver
 import urllib.parse
 import xmlrpc.client
 import xmlrpc.server
-from typing import Any, AnyStr
+from typing import Any
+from typing import AnyStr
 from xml.etree import ElementTree
 
 

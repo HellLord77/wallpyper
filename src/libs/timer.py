@@ -5,7 +5,8 @@ import functools
 import math
 import threading
 import time
-from typing import Callable, Optional
+from typing import Callable
+from typing import Optional
 
 
 class _TimerExit(SystemExit):

@@ -4,7 +4,9 @@ import csv
 import enum
 import functools
 import os
-from typing import Iterator, NamedTuple, Optional
+from typing import Iterator
+from typing import NamedTuple
+from typing import Optional
 
 _PATH = 'uri-schemes-1.csv'
 

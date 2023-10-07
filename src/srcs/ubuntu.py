@@ -2,12 +2,17 @@ import functools
 import itertools
 import os
 import random
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from . import File, Source
+from libs import request
+from libs import sgml
+from . import File
+from . import Source
 
 URL_BASE = request.join_url('https://git.launchpad.net', 'ubuntu',
                             '+source', 'ubuntu-wallpapers', 'plain')
@@ -34,10 +39,10 @@ class UbuntuWallpapers(Source):
     URL = 'https://launchpad.net/ubuntu-wallpapers'
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_CONTEST: list[str],
-        CONFIG_SORT: str})
+        CONFIG_SORT:    str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_CONTEST: list(CONTESTS),
-        CONFIG_SORT: tuple(SORTS)[1]}
+        CONFIG_SORT:    tuple(SORTS)[1]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

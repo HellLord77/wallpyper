@@ -1,10 +1,14 @@
 import re
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from . import ImageFile, Source
+from libs import request
+from libs import sgml
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://wallha.com'
 
@@ -22,10 +26,10 @@ class Wallha(Source):
     VERSION = '0.0.1'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_LIST: str,
+        CONFIG_LIST:   str,
         CONFIG_SEARCH: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_LIST: LISTS[0],
+        CONFIG_LIST:   LISTS[0],
         CONFIG_SEARCH: ''}
 
     @classmethod

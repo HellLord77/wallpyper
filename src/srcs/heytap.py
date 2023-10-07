@@ -1,14 +1,17 @@
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 from libs import request
-from . import File, Source
+from . import File
+from . import Source
 
 URL_BASE = 'https://osp.haokan.mobi'
 URL_API = request.join_url(URL_BASE, 'api', 'list')
-URL_DETAILS = request.join_url(URL_BASE,  'detail')
+URL_DETAILS = request.join_url(URL_BASE, 'detail')
 
 CONFIG_TYPE = 'typeName'
 

@@ -7,7 +7,13 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Callable, Hashable, Iterator, Mapping, MutableMapping, Optional
+from typing import Any
+from typing import Callable
+from typing import Hashable
+from typing import Iterator
+from typing import Mapping
+from typing import MutableMapping
+from typing import Optional
 
 from . import Header as _Header
 from . import Session as _Session

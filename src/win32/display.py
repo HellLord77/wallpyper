@@ -12,15 +12,28 @@ import tempfile
 import threading
 import time
 import winreg
-from typing import Callable, Iterable, NamedTuple, Optional
+from typing import Callable
+from typing import Iterable
+from typing import NamedTuple
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped import winrt
-from libs.ctyped.const import error, runtimeclass
-from libs.ctyped.interface.um import ShlObj_core, ShObjIdl_core
+from libs.ctyped.const import error
+from libs.ctyped.const import runtimeclass
+from libs.ctyped.interface.um import ShObjIdl_core
+from libs.ctyped.interface.um import ShlObj_core
 from libs.ctyped.interface.winrt.Windows.System import UserProfile as Windows_System_UserProfile
-from libs.ctyped.lib import user32, kernel32, gdi32, msimg32, dwmapi, psapi, shell32
-from . import _gdiplus, _handle, _utils
+from libs.ctyped.lib import dwmapi
+from libs.ctyped.lib import gdi32
+from libs.ctyped.lib import kernel32
+from libs.ctyped.lib import msimg32
+from libs.ctyped.lib import psapi
+from libs.ctyped.lib import shell32
+from libs.ctyped.lib import user32
+from . import _gdiplus
+from . import _handle
+from . import _utils
 
 _HISTORY_KEY = ntpath.join('Software', 'Microsoft', 'Windows', 'CurrentVersion', 'Explorer', 'Wallpapers')
 

@@ -1,13 +1,17 @@
 import functools
 import os
 import urllib.parse
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 from libs import request
 from libs.request import cloudflare
-from . import ImageFile, Source
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://www.zerochan.net'
 
@@ -34,19 +38,19 @@ class ZeroChan(Source):  # https://www.zerochan.net/api
     VERSION = '0.0.5'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_FILTER: list[str],
-        CONFIG_SORT: str,
-        CONFIG_TIME: int,
+        CONFIG_FILTER:    list[str],
+        CONFIG_SORT:      str,
+        CONFIG_TIME:      int,
         CONFIG_DIMENSION: str,
-        CONFIG_COLOR: str,
-        CONFIG_STRICT: bool})
+        CONFIG_COLOR:     str,
+        CONFIG_STRICT:    bool})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_FILTER: [],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_TIME: TIMES[2],
+        CONFIG_FILTER:    [],
+        CONFIG_SORT:      SORTS[0],
+        CONFIG_TIME:      TIMES[2],
         CONFIG_DIMENSION: DIMENSIONS[0],
-        CONFIG_COLOR: COLORS[0],
-        CONFIG_STRICT: False}
+        CONFIG_COLOR:     COLORS[0],
+        CONFIG_STRICT:    False}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

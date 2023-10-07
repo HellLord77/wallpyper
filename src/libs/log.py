@@ -13,7 +13,11 @@ import shutil
 import sys
 import threading
 from types import FrameType
-from typing import Any, Callable, Iterable, Mapping, Optional
+from typing import Any
+from typing import Callable
+from typing import Iterable
+from typing import Mapping
+from typing import Optional
 
 _CALL = 'call'
 _EXCEPTION = 'exception'

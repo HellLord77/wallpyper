@@ -1,4 +1,5 @@
-from . import _WIN32, _MAC
+from . import _MAC
+from . import _WIN32
 
 # activprof.h
 ACTIVPROF_E_PROFILER_PRESENT = 0x80040200

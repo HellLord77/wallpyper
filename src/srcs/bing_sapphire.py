@@ -1,10 +1,13 @@
 import os
-from typing import Iterator, Optional, TypedDict
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 from libs import request
-from . import File, Source
+from . import File
+from . import Source
 
 URL_LIST = request.join_url('https://wallpaper.sapphire.microsoftapp.net',
                             'api', 'v1', 'app', 'photo', 'list', 'bing')

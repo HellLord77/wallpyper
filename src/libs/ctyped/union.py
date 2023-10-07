@@ -6,7 +6,11 @@ import typing as _typing
 from . import const as _const
 from . import struct as _struct
 from . import type as _type
-from ._utils import _Globals, _Pointer, _CT, _fields_repr, _resolve_type
+from ._utils import _CT
+from ._utils import _Globals
+from ._utils import _Pointer
+from ._utils import _fields_repr
+from ._utils import _resolve_type
 
 if None:
     from dataclasses import dataclass as _union

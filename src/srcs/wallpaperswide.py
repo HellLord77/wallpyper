@@ -1,10 +1,15 @@
 import functools
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
-from . import ImageFile, Source
+from libs import request
+from libs import sgml
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://wallpaperswide.com'
 URL_SEARCH = request.join_url(URL_BASE, 'search')
@@ -152,22 +157,22 @@ class WallpapersWide(Source):
     VERSION = '0.0.2'
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_ORDER: list[str],
-        CONFIG_QUALITY: str,
-        CONFIG_GALLERY: str,
-        CONFIG_SEARCH: str,
-        CONFIG_RATIO: str,
-        CONFIG_RESOLUTION: str,
-        CONFIG_CATEGORY: str,
+        CONFIG_ORDER:       list[str],
+        CONFIG_QUALITY:     str,
+        CONFIG_GALLERY:     str,
+        CONFIG_SEARCH:      str,
+        CONFIG_RATIO:       str,
+        CONFIG_RESOLUTION:  str,
+        CONFIG_CATEGORY:    str,
         CONFIG_RESOLUTIONS: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_ORDER: list(ORDER),
-        CONFIG_QUALITY: QUALITIES[1],
-        CONFIG_GALLERY: GALLERIES[0],
-        CONFIG_SEARCH: '',
-        CONFIG_RATIO: RATIOS[0],
-        CONFIG_RESOLUTION: RESOLUTIONS[0],
-        CONFIG_CATEGORY: CATEGORIES[0],
+        CONFIG_ORDER:       list(ORDER),
+        CONFIG_QUALITY:     QUALITIES[1],
+        CONFIG_GALLERY:     GALLERIES[0],
+        CONFIG_SEARCH:      '',
+        CONFIG_RATIO:       RATIOS[0],
+        CONFIG_RESOLUTION:  RESOLUTIONS[0],
+        CONFIG_CATEGORY:    CATEGORIES[0],
         CONFIG_RESOLUTIONS: RESOLUTIONS[28]}
 
     @classmethod

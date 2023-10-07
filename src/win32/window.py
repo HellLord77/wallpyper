@@ -3,8 +3,11 @@ import ntpath
 from typing import Optional
 
 from libs import ctyped
-from libs.ctyped.lib import gdi32, user32
-from . import _gdiplus, _handle, gui
+from libs.ctyped.lib import gdi32
+from libs.ctyped.lib import user32
+from . import _gdiplus
+from . import _handle
+from . import gui
 
 
 class ImageWindow:

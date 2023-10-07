@@ -1,10 +1,15 @@
 import functools
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import isocodes, request
-from . import ImageFile, Source
+from libs import isocodes
+from libs import request
+from . import ImageFile
+from . import Source
 
 URL_BASE = request.join_url('https://api.pexels.com', 'v1')
 URL_CURATED = request.join_url(URL_BASE, 'curated')
@@ -37,21 +42,21 @@ class Pexels(Source):  # https://www.pexels.com/api/documentation
     VERSION = '0.0.3'
     URL = 'https://www.pexels.com'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_KEY: str,
-        CONFIG_CURATED: bool,
-        'query': str,
+        CONFIG_KEY:         str,
+        CONFIG_CURATED:     bool,
+        'query':            str,
         CONFIG_ORIENTATION: str,
-        CONFIG_SIZE: str,
-        CONFIG_COLOR: str,
-        CONFIG_LOCALE: str})
+        CONFIG_SIZE:        str,
+        CONFIG_COLOR:       str,
+        CONFIG_LOCALE:      str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_KEY: '',
-        CONFIG_CURATED: False,
-        'query': '',
+        CONFIG_KEY:         '',
+        CONFIG_CURATED:     False,
+        'query':            '',
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_SIZE: SIZES[0],
-        CONFIG_COLOR: COLORS[0],
-        CONFIG_LOCALE: LOCALES[0]}
+        CONFIG_SIZE:        SIZES[0],
+        CONFIG_COLOR:       COLORS[0],
+        CONFIG_LOCALE:      LOCALES[0]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

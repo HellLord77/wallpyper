@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-from typing import Callable as _Callable, Generic as _Generic
+from typing import Callable as _Callable
+from typing import Generic as _Generic
 
 from ... import inspectable as _inspectable
-from .... import _T, _TArgs, _TProgress, _TResult, _TSender, _Template
+from .... import _T
+from .... import _TArgs
+from .... import _TProgress
+from .... import _TResult
+from .... import _TSender
+from .... import _Template
 from ....um import Unknwnbase as _Unknwnbase
 from ..... import enum as _enum
 from ..... import struct as _struct

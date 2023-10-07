@@ -4,14 +4,21 @@ import functools
 import json
 import os
 import re
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, sgml
+from libs import request
+from libs import sgml
 from libs.request import cloudflare
-from .. import GelbooruSource, _tag_rating, _yaml_to_json
-from ... import CONFIG_ORIENTATIONS, ImageFile
+from .. import GelbooruSource
+from .. import _tag_rating
+from .. import _yaml_to_json
+from ... import CONFIG_ORIENTATIONS
+from ... import ImageFile
 
 URL_FMT = request.join_url('{}', 'index.php')
 
@@ -72,30 +79,30 @@ def _tag_sort(sort: str, order: str) -> Iterator[str]:
 class GelbooruV02Source(GelbooruSource, source=False):
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_STATIC: bool,
-        CONFIG_MODE: str,
-        CONFIG_TAGS: list[str],
-        CONFIG_RATING: list[bool],
-        CONFIG_SORT: str,
-        CONFIG_ORDER: str,
-        CONFIG_SIZE: str,
-        CONFIG_WIDTH: int,
-        CONFIG_HEIGHT: int,
-        CONFIG_FAVORITE: int,
-        CONFIG_POOL: int})
+        CONFIG_STATIC:       bool,
+        CONFIG_MODE:         str,
+        CONFIG_TAGS:         list[str],
+        CONFIG_RATING:       list[bool],
+        CONFIG_SORT:         str,
+        CONFIG_ORDER:        str,
+        CONFIG_SIZE:         str,
+        CONFIG_WIDTH:        int,
+        CONFIG_HEIGHT:       int,
+        CONFIG_FAVORITE:     int,
+        CONFIG_POOL:         int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_STATIC: False,
-        CONFIG_MODE: MODES[0],
-        CONFIG_TAGS: [],
-        CONFIG_RATING: [True, True, True],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_ORDER: ORDERS[1],
-        CONFIG_SIZE: SIZES[0],
-        CONFIG_WIDTH: WIDTHS[9],
-        CONFIG_HEIGHT: HEIGHTS[10],
-        CONFIG_FAVORITE: 0,
-        CONFIG_POOL: 0}
+        CONFIG_STATIC:       False,
+        CONFIG_MODE:         MODES[0],
+        CONFIG_TAGS:         [],
+        CONFIG_RATING:       [True, True, True],
+        CONFIG_SORT:         SORTS[0],
+        CONFIG_ORDER:        ORDERS[1],
+        CONFIG_SIZE:         SIZES[0],
+        CONFIG_WIDTH:        WIDTHS[9],
+        CONFIG_HEIGHT:       HEIGHTS[10],
+        CONFIG_FAVORITE:     0,
+        CONFIG_POOL:         0}
 
     def __init_subclass__(cls, *args, **kwargs):
         cls._text = GelbooruV02Source._text

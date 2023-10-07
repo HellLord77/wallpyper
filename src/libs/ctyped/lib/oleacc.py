@@ -1,6 +1,7 @@
 from __future__ import annotations as _
 
-from typing import Callable as _Callable, Optional as _Optional
+from typing import Callable as _Callable
+from typing import Optional as _Optional
 
 from . import _WinLib
 from .. import type as _type

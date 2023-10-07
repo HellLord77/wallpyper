@@ -15,7 +15,12 @@ import time
 import traceback
 import uuid
 import webbrowser
-from typing import Callable, Iterable, MutableSequence, NoReturn, Optional, TypedDict
+from typing import Callable
+from typing import Iterable
+from typing import MutableSequence
+from typing import NoReturn
+from typing import Optional
+from typing import TypedDict
 
 import __feature__
 import __flag__
@@ -28,8 +33,20 @@ import pipe
 import srcs
 import validator
 import win32
-from libs import (callables, config, console, easings, files, lens, log,
-                  pyinstall, request, singleton, spinners, timer, typed, utils)
+from libs import callables
+from libs import config
+from libs import console
+from libs import easings
+from libs import files
+from libs import lens
+from libs import log
+from libs import pyinstall
+from libs import request
+from libs import singleton
+from libs import spinners
+from libs import timer
+from libs import typed
+from libs import utils
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +62,10 @@ CHANGE_INTERVALS = 0, 300, 900, 1800, 3600, 10800, 21600
 TRANSITION_DURATIONS = 0.5, 1.0, 2.5, 5.0, 10.0
 MAXIMIZED_ACTIONS = 'ignore', 'postpone', 'skip'
 BLOCKERS: dict[str | re.Pattern, str] = {
-    'lwservice.exe': 'Live2DViewerEX',
-    'Lively.PlayerCefSharp.exe': 'Lively Wallpaper',
-    'DPPlayer.exe': 'N0va Desktop',
-    'RazerAxon.Player.exe': 'Razer Axon',
+    'lwservice.exe':                        'Live2DViewerEX',
+    'Lively.PlayerCefSharp.exe':            'Lively Wallpaper',
+    'DPPlayer.exe':                         'N0va Desktop',
+    'RazerAxon.Player.exe':                 'Razer Axon',
     re.compile(r'wallpaper(?:32|64)\.exe'): 'Wallpaper Engine'}
 
 # webbrowser.WindowsDefault = type('WindowsDefault', (  # FIXME picks edge
@@ -68,63 +85,63 @@ PIPE: pipe.StringNamedPipeClient = pipe.StringNamedPipeClient(
     f'{UUID}.{uuid.uuid4().hex}')
 
 TCONFIG = TypedDict('TCONFIG', {
-    consts.CONFIG_FIRST_RUN: bool,
-    consts.CONFIG_RECENT_IMAGES: list[typed.type_dataclass_asdict(srcs.ImageFile)],
-    consts.CONFIG_ACTIVE_DISPLAY: str,
-    consts.CONFIG_ACTIVE_SOURCE: str,
-    consts.CONFIG_ANIMATE_ICON: bool,
-    consts.CONFIG_AUTO_START: bool,
-    consts.CONFIG_AUTO_SAVE: bool,
-    consts.CONFIG_CHANGE_INTERVAL: int,
-    consts.CONFIG_CHANGE_START: bool,
-    consts.CONFIG_EASE_IN: bool,
-    consts.CONFIG_EASE_OUT: bool,
-    consts.CONFIG_FIT_STYLE: str,
-    consts.CONFIG_FLIP_HORIZONTAL: bool,
-    consts.CONFIG_FLIP_VERTICAL: bool,
-    consts.CONFIG_KEEP_CACHE: bool,
-    consts.CONFIG_MAXIMIZED_ACTION: str,
-    consts.CONFIG_MENU_COLOR: str,
-    consts.CONFIG_NOTIFY_BLOCKED: bool,
-    consts.CONFIG_NOTIFY_ERROR: bool,
-    consts.CONFIG_REAPPLY_IMAGE: bool,
-    consts.CONFIG_RESTORE_IMAGE: bool,
-    consts.CONFIG_ROTATE_BY: str,
-    consts.CONFIG_SAVE_CONFIG: bool,
-    consts.CONFIG_SAVE_DIR: str,
-    consts.CONFIG_SKIP_RECENT: bool,
+    consts.CONFIG_FIRST_RUN:           bool,
+    consts.CONFIG_RECENT_IMAGES:       list[typed.type_dataclass_asdict(srcs.ImageFile)],
+    consts.CONFIG_ACTIVE_DISPLAY:      str,
+    consts.CONFIG_ACTIVE_SOURCE:       str,
+    consts.CONFIG_ANIMATE_ICON:        bool,
+    consts.CONFIG_AUTO_START:          bool,
+    consts.CONFIG_AUTO_SAVE:           bool,
+    consts.CONFIG_CHANGE_INTERVAL:     int,
+    consts.CONFIG_CHANGE_START:        bool,
+    consts.CONFIG_EASE_IN:             bool,
+    consts.CONFIG_EASE_OUT:            bool,
+    consts.CONFIG_FIT_STYLE:           str,
+    consts.CONFIG_FLIP_HORIZONTAL:     bool,
+    consts.CONFIG_FLIP_VERTICAL:       bool,
+    consts.CONFIG_KEEP_CACHE:          bool,
+    consts.CONFIG_MAXIMIZED_ACTION:    str,
+    consts.CONFIG_MENU_COLOR:          str,
+    consts.CONFIG_NOTIFY_BLOCKED:      bool,
+    consts.CONFIG_NOTIFY_ERROR:        bool,
+    consts.CONFIG_REAPPLY_IMAGE:       bool,
+    consts.CONFIG_RESTORE_IMAGE:       bool,
+    consts.CONFIG_ROTATE_BY:           str,
+    consts.CONFIG_SAVE_CONFIG:         bool,
+    consts.CONFIG_SAVE_DIR:            str,
+    consts.CONFIG_SKIP_RECENT:         bool,
     consts.CONFIG_TRANSITION_DURATION: float,
-    consts.CONFIG_TRANSITION_EASE: str,
-    consts.CONFIG_TRANSITION_STYLE: str})
+    consts.CONFIG_TRANSITION_EASE:     str,
+    consts.CONFIG_TRANSITION_STYLE:    str})
 DEFAULT_CONFIG: TCONFIG = {
-    consts.CONFIG_FIRST_RUN: True,
-    consts.CONFIG_RECENT_IMAGES: [],
-    consts.CONFIG_ACTIVE_DISPLAY: consts.ALL_DISPLAY,
-    consts.CONFIG_ACTIVE_SOURCE: 'folder',
-    consts.CONFIG_ANIMATE_ICON: True,
-    consts.CONFIG_AUTO_START: False,
-    consts.CONFIG_AUTO_SAVE: False,
-    consts.CONFIG_CHANGE_INTERVAL: CHANGE_INTERVALS[0],
-    consts.CONFIG_CHANGE_START: False,
-    consts.CONFIG_EASE_IN: True,
-    consts.CONFIG_EASE_OUT: True,
-    consts.CONFIG_FIT_STYLE: win32.display.Style.FILL.name,
-    consts.CONFIG_FLIP_HORIZONTAL: False,
-    consts.CONFIG_FLIP_VERTICAL: False,
-    consts.CONFIG_KEEP_CACHE: False,
-    consts.CONFIG_MAXIMIZED_ACTION: MAXIMIZED_ACTIONS[0],
-    consts.CONFIG_MENU_COLOR: win32.ColorMode.AUTO.name,
-    consts.CONFIG_NOTIFY_BLOCKED: False,
-    consts.CONFIG_NOTIFY_ERROR: True,
-    consts.CONFIG_REAPPLY_IMAGE: True,
-    consts.CONFIG_RESTORE_IMAGE: False,
-    consts.CONFIG_ROTATE_BY: win32.display.Rotate.NONE.name,
-    consts.CONFIG_SAVE_CONFIG: False,
-    consts.CONFIG_SAVE_DIR: os.path.join(win32.PICTURES_DIR, consts.NAME),
-    consts.CONFIG_SKIP_RECENT: False,
+    consts.CONFIG_FIRST_RUN:           True,
+    consts.CONFIG_RECENT_IMAGES:       [],
+    consts.CONFIG_ACTIVE_DISPLAY:      consts.ALL_DISPLAY,
+    consts.CONFIG_ACTIVE_SOURCE:       'folder',
+    consts.CONFIG_ANIMATE_ICON:        True,
+    consts.CONFIG_AUTO_START:          False,
+    consts.CONFIG_AUTO_SAVE:           False,
+    consts.CONFIG_CHANGE_INTERVAL:     CHANGE_INTERVALS[0],
+    consts.CONFIG_CHANGE_START:        False,
+    consts.CONFIG_EASE_IN:             True,
+    consts.CONFIG_EASE_OUT:            True,
+    consts.CONFIG_FIT_STYLE:           win32.display.Style.FILL.name,
+    consts.CONFIG_FLIP_HORIZONTAL:     False,
+    consts.CONFIG_FLIP_VERTICAL:       False,
+    consts.CONFIG_KEEP_CACHE:          False,
+    consts.CONFIG_MAXIMIZED_ACTION:    MAXIMIZED_ACTIONS[0],
+    consts.CONFIG_MENU_COLOR:          win32.ColorMode.AUTO.name,
+    consts.CONFIG_NOTIFY_BLOCKED:      False,
+    consts.CONFIG_NOTIFY_ERROR:        True,
+    consts.CONFIG_REAPPLY_IMAGE:       True,
+    consts.CONFIG_RESTORE_IMAGE:       False,
+    consts.CONFIG_ROTATE_BY:           win32.display.Rotate.NONE.name,
+    consts.CONFIG_SAVE_CONFIG:         False,
+    consts.CONFIG_SAVE_DIR:            os.path.join(win32.PICTURES_DIR, consts.NAME),
+    consts.CONFIG_SKIP_RECENT:         False,
     consts.CONFIG_TRANSITION_DURATION: TRANSITION_DURATIONS[2],
-    consts.CONFIG_TRANSITION_EASE: easings.Ease.CUBIC.name,
-    consts.CONFIG_TRANSITION_STYLE: win32.display.Transition.FADE.name}
+    consts.CONFIG_TRANSITION_EASE:     easings.Ease.CUBIC.name,
+    consts.CONFIG_TRANSITION_STYLE:    win32.display.Transition.FADE.name}
 CURRENT_CONFIG: TCONFIG = {}
 
 
@@ -748,8 +765,7 @@ def on_display_change(item: win32.gui.MenuItem, update: int, _: Optional[gui.Gui
     submenu.clear_items()
     with gui.set_menu(submenu):
         size = win32.display.get_display_size()
-        monitors = {consts.ALL_DISPLAY: f'{_text(0)}. {_text("DISPLAY_ALL")}\t'
-                                        f'{_text(size[0])} × {_text(size[1])}'}
+        monitors = {consts.ALL_DISPLAY: f'{_text(0)}. {_text("DISPLAY_ALL")}\t{_text(size[0])} × {_text(size[1])}'}
         for index, monitor in enumerate(DISPLAYS, 1):
             monitors[monitor] = (f'{_text(index)}. {_get_monitor_name(monitor, DISPLAYS)}'
                                  f'\t{_text(DISPLAYS[monitor][1][0])} × {_text(DISPLAYS[monitor][1][1])}')

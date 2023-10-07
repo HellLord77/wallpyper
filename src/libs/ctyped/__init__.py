@@ -7,8 +7,10 @@ import contextlib as _contextlib
 import ctypes as _ctypes
 import typing as _typing
 from types import ModuleType as _ModuleType
-from typing import (ContextManager as _ContextManager, Final as _Final,
-                    MutableSequence as _MutableSequence, Optional as _Optional)
+from typing import ContextManager as _ContextManager
+from typing import Final as _Final
+from typing import MutableSequence as _MutableSequence
+from typing import Optional as _Optional
 
 from . import const
 from . import enum
@@ -18,9 +20,15 @@ from . import macro
 from . import struct
 from . import type
 from . import union
-from ._utils import (_CT as CT, _Pointer as Pointer, _addressof as addressof,
-                     _byref as byref, _cast as cast, _cast_int as cast_int,
-                     _is_unsigned as is_unsigned, _pointer as pointer, _sizeof as sizeof)
+from ._utils import _CT as CT
+from ._utils import _Pointer as Pointer
+from ._utils import _addressof as addressof
+from ._utils import _byref as byref
+from ._utils import _cast as cast
+from ._utils import _cast_int as cast_int
+from ._utils import _is_unsigned as is_unsigned
+from ._utils import _pointer as pointer
+from ._utils import _sizeof as sizeof
 from .const import python as _const_python
 from .lib import msvcrt as _msvcrt
 from .lib import python as _python

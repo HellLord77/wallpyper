@@ -16,19 +16,28 @@ import sys
 import time
 import uuid
 from types import ModuleType
-from typing import AnyStr, Callable, Optional, TypeVar, NamedTuple
+from typing import AnyStr
+from typing import Callable
+from typing import NamedTuple
+from typing import Optional
+from typing import TypeVar
 from xml.etree import ElementTree
 
 import consts
 import win32
-from libs import ctyped, config, request
+from libs import config
+from libs import ctyped
+from libs import request
 # noinspection PyUnresolvedReferences
 from libs import sgml
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
 from libs.ctyped.interface.winrt.Windows.Data.Xml import Dom as Windows_Data_Xml_Dom
-from libs.ctyped.lib import kernel32, user32, python
-from win32 import _handle, _utils
+from libs.ctyped.lib import kernel32
+from libs.ctyped.lib import python
+from libs.ctyped.lib import user32
+from win32 import _handle
+from win32 import _utils
 
 
 def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struct.COMPATIBILITY_CONTEXT_ELEMENT, ...]:
@@ -163,33 +172,33 @@ class UD(collections.UserDict):
 def _test_cfg():
     data = {
         # 'ntt': NT(1, 2, 3),
-        'tough': collections.deque([1, (1, 2), '3'], maxlen=3),
-        'name': 'A Test \'of\' the "TOML" Parser',
-        'e_text': '',
-        'od': collections.OrderedDict([('a', 1), ('b', 2)]),
-        'num': 123,
-        'map': {},
+        'tough':   collections.deque([1, (1, 2), '3'], maxlen=3),
+        'name':    'A Test \'of\' the "TOML" Parser',
+        'e_text':  '',
+        'od':      collections.OrderedDict([('a', 1), ('b', 2)]),
+        'num':     123,
+        'map':     {},
         'boolean': True,
-        'null': None,
-        't_list': [],
-        'e_tup': (),
+        'null':    None,
+        't_list':  [],
+        'e_tup':   (),
         't_tuple': (1, 2, '3'),
-        'set': {1, '2', 3},
-        'barr': bytearray(b'123'),
-        'fzst': frozenset({'1', 2, 3}),
-        'list2': [1, 2, '3'],
-        'bytes': b'\x01\x02\x03\x04',
+        'set':     {1, '2', 3},
+        'barr':    bytearray(b'123'),
+        'fzst':    frozenset({'1', 2, 3}),
+        'list2':   [1, 2, '3'],
+        'bytes':   b'\x01\x02\x03\x04',
         'complex': 1 + 2j,
-        'things': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
-                   {'a': 'Something else',
-                    'b': 'zxcv',
-                    'multiLine': 'Multiline string',
-                    'objs': [{'x': 1},
-                             {'x': {
-                                 'list2': [1, 2, '3'],
-                                 'bytes': b'\x01\x02\x03\x04'}},
-                             {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
-                   {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
+        'things':  [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
+                    {'a':         'Something else',
+                     'b':         'zxcv',
+                     'multiLine': 'Multiline string',
+                     'objs':      [{'x': 1},
+                                   {'x': {
+                                       'list2': [1, 2, '3'],
+                                       'bytes': b'\x01\x02\x03\x04'}},
+                                   {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
+                    {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
     # pprint.pprint(data, sort_dicts=False)
     config_ = config.JSONConfig(data)
     dumped = config_.dumps()
@@ -228,75 +237,75 @@ def _test_cfg_json():
     data = {
         'ElementTree': {
             'QName': ElementTree.QName('ns', 'name')},
-        'array': {
+        'array':       {
             'array': array.array('i', [1, 2, 3])},
         'collections': {
-            'ChainMap': collections.ChainMap({'a': 1, 'b': 2}, {'c': 3, 'd': 4}),
-            'Counter': collections.Counter({'red': 4, 'blue': 2}),
+            'ChainMap':    collections.ChainMap({'a': 1, 'b': 2}, {'c': 3, 'd': 4}),
+            'Counter':     collections.Counter({'red': 4, 'blue': 2}),
             'OrderedDict': collections.OrderedDict([('b', 420), ('a', 69)]),
-            'UserDict': UD({'a': 1, 'b': 2}),
-            'UserList': UL([1, 2, 3]),
-            'UserString': US('usd'),
-            'deque': collections.deque([1, (1, 2), '3'], maxlen=3),
-            'namedtuple': NT(1, 2, 3)},
+            'UserDict':    UD({'a': 1, 'b': 2}),
+            'UserList':    UL([1, 2, 3]),
+            'UserString':  US('usd'),
+            'deque':       collections.deque([1, (1, 2), '3'], maxlen=3),
+            'namedtuple':  NT(1, 2, 3)},
         'dataclasses': {
             'dataclass': DC(69, DC(420))},
-        'datetime': {
-            'date': datetime.date.today(),
-            'time': datetime.time(1, 2, 3, 4),
-            'datetime': datetime.datetime.now(),
+        'datetime':    {
+            'date':      datetime.date.today(),
+            'time':      datetime.time(1, 2, 3, 4),
+            'datetime':  datetime.datetime.now(),
             'timedelta': datetime.timedelta(1, 2, 3, 4)},
-        'decimal': {
+        'decimal':     {
             'Decimal': decimal.Decimal('123.456')},
-        'enum': {
+        'enum':        {
             'enum': E.A},
-        'fractions': {
+        'fractions':   {
             'Fraction': fractions.Fraction(1, 2)},
-        'ipaddress': {
-            'IPv4Address': ipaddress.IPv4Address('192.168.0.1'),
+        'ipaddress':   {
+            'IPv4Address':   ipaddress.IPv4Address('192.168.0.1'),
             'IPv4Interface': ipaddress.IPv4Interface('192.0.2.5/24'),
-            'IPv4Network': ipaddress.IPv4Network('192.0.2.0/28'),
-            'IPv6Address': ipaddress.IPv6Address('2001:db8::1'),
+            'IPv4Network':   ipaddress.IPv4Network('192.0.2.0/28'),
+            'IPv6Address':   ipaddress.IPv6Address('2001:db8::1'),
             'IPv6Interface': ipaddress.IPv6Interface('2001:db8::1/64'),
-            'IPv6Network': ipaddress.IPv6Network('2001:db8::/32')},
-        'pathlib': {
+            'IPv6Network':   ipaddress.IPv6Network('2001:db8::/32')},
+        'pathlib':     {
             'PurePath': pathlib.PurePath('c:/temp/test.txt')},
-        're': {
+        're':          {
             'Pattern': re.compile(r'(?P<first>\w+) (?P<last>\w+)', re.IGNORECASE)},
-        'typing': {
+        'typing':      {
             'NamedTuple': TNT(1, 2, 3, NT(4, 5, 6))},
-        'uuid': {
+        'uuid':        {
             'UUID': uuid.uuid4()},
-        'NoneType': None,
+        'NoneType':    None,
         # 'EllipsisType': ...,
-        'bytes': b'\x01\x02\x03\x04',
-        'bytes_': b'',
-        'str': 'A Test \'of\' the "JSONConfig"',
-        'str_': '',
-        'int': 123,
-        'float': 123.456,
-        'bool': True,
-        'complex': 1 + 2j,
-        'bytearray': bytearray(b'123'),
-        'frozenset': frozenset({'1', 2, 3}),
-        'tuple': (1, 2, '3'),
-        'tuple_': (),
-        'list': [1, 2, '3'],
-        'list_': [],
-        'set': {1, '2', 3},
-        'set_': set(),
-        'dict': {'a': 1, 'b': 2},
-        'dict_': {},
-        'memoryview': memoryview(b'123'),
-        'range': range(1, 10, 2),
-        'slice': slice(1, 10, 2),
-        'nest': [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
-                 {'objs': [{'x': 1},
-                           {'x': {
-                               'list2': [1, 2, '3'],
-                               'bytes': b'\x01\x02\x03\x04'}},
-                           {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
-                 {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
+        'bytes':       b'\x01\x02\x03\x04',
+        'bytes_':      b'',
+        'str':         'A Test \'of\' the "JSONConfig"',
+        'str_':        '',
+        'int':         123,
+        'float':       123.456,
+        'bool':        True,
+        'complex':     1 + 2j,
+        'bytearray':   bytearray(b'123'),
+        'frozenset':   frozenset({'1', 2, 3}),
+        'tuple':       (1, 2, '3'),
+        'tuple_':      (),
+        'list':        [1, 2, '3'],
+        'list_':       [],
+        'set':         {1, '2', 3},
+        'set_':        set(),
+        'dict':        {'a': 1, 'b': 2},
+        'dict_':       {},
+        'memoryview':  memoryview(b'123'),
+        'range':       range(1, 10, 2),
+        'slice':       slice(1, 10, 2),
+        'nest':        [{'a': 'thing1', 'b': ('fdsa', 69), 'multiLine': 'Some sample text.'},
+                        {'objs': [{'x': 1},
+                                  {'x': {
+                                      'list2': [1, 2, '3'],
+                                      'bytes': b'\x01\x02\x03\x04'}},
+                                  {'morethings': [{'y': [2, 3, 4]}, {'y': 9}], 'x': 7}]},
+                        {'a': '3', 'b': 'asdf', 'multiLine': 'thing 3.\nanother line'}]}
     config_ = config.JSONConfig(data)
     dumped = config_.dumps()
     print(dumped)
@@ -322,80 +331,80 @@ def _test_500px():
     url = 'https://api.500px.com/graphql'
     data = {
         "operationName": "DiscoverQueryRendererQuery",
-        "variables": {
+        "variables":     {
             "filters": [
                 {
-                    "key": "FEATURE_NAME",
+                    "key":   "FEATURE_NAME",
                     "value": "popular"
                 },
                 {
-                    "key": "FOLLOWERS_COUNT",
+                    "key":   "FOLLOWERS_COUNT",
                     "value": "gte:0"
                 }
             ],
-            "sort": "POPULAR_PULSE"
+            "sort":    "POPULAR_PULSE"
         },
-        "query": "query DiscoverQueryRendererQuery($filters: [PhotoDiscoverSearchFilter!], $sort: PhotoDiscoverSort) {\n"
-                 "  ...DiscoverPaginationContainer_query_1OEZSy\n"
-                 "}\n"
-                 "\n"
-                 "fragment DiscoverPaginationContainer_query_1OEZSy on Query {\n"
-                 "  photos: photoDiscoverSearch(first: 50, filters: $filters, sort: $sort) {\n"
-                 "    edges {\n"
-                 "      node {\n"
-                 "        id\n"
-                 "        legacyId\n"
-                 "        canonicalPath\n"
-                 "        name\n"
-                 "        description\n"
-                 "        category\n"
-                 "        uploadedAt\n"
-                 "        location\n"
-                 "        width\n"
-                 "        height\n"
-                 "        isLikedByMe\n"
-                 "        notSafeForWork\n"
-                 "        tags\n"
-                 "        photographer: uploader {\n"
-                 "          id\n"
-                 "          legacyId\n"
-                 "          username\n"
-                 "          displayName\n"
-                 "          canonicalPath\n"
-                 "          avatar {\n"
-                 "            images {\n"
-                 "              url\n"
-                 "              id\n"
-                 "            }\n"
-                 "            id\n"
-                 "          }\n"
-                 "          followedBy {\n"
-                 "            totalCount\n"
-                 "            isFollowedByMe\n"
-                 "          }\n"
-                 "        }\n"
-                 "        images(sizes: [33, 35]) {\n"
-                 "          size\n"
-                 "          url\n"
-                 "          jpegUrl\n"
-                 "          webpUrl\n"
-                 "          id\n"
-                 "        }\n"
-                 "        pulse {\n"
-                 "          highest\n"
-                 "          id\n"
-                 "        }\n"
-                 "        __typename\n"
-                 "      }\n"
-                 "      cursor\n"
-                 "    }\n"
-                 "    totalCount\n"
-                 "    pageInfo {\n"
-                 "      endCursor\n"
-                 "      hasNextPage\n"
-                 "    }\n"
-                 "  }\n"
-                 "}\n"}
+        "query":         "query DiscoverQueryRendererQuery($filters: [PhotoDiscoverSearchFilter!], $sort: PhotoDiscoverSort) {\n"
+                         "  ...DiscoverPaginationContainer_query_1OEZSy\n"
+                         "}\n"
+                         "\n"
+                         "fragment DiscoverPaginationContainer_query_1OEZSy on Query {\n"
+                         "  photos: photoDiscoverSearch(first: 50, filters: $filters, sort: $sort) {\n"
+                         "    edges {\n"
+                         "      node {\n"
+                         "        id\n"
+                         "        legacyId\n"
+                         "        canonicalPath\n"
+                         "        name\n"
+                         "        description\n"
+                         "        category\n"
+                         "        uploadedAt\n"
+                         "        location\n"
+                         "        width\n"
+                         "        height\n"
+                         "        isLikedByMe\n"
+                         "        notSafeForWork\n"
+                         "        tags\n"
+                         "        photographer: uploader {\n"
+                         "          id\n"
+                         "          legacyId\n"
+                         "          username\n"
+                         "          displayName\n"
+                         "          canonicalPath\n"
+                         "          avatar {\n"
+                         "            images {\n"
+                         "              url\n"
+                         "              id\n"
+                         "            }\n"
+                         "            id\n"
+                         "          }\n"
+                         "          followedBy {\n"
+                         "            totalCount\n"
+                         "            isFollowedByMe\n"
+                         "          }\n"
+                         "        }\n"
+                         "        images(sizes: [33, 35]) {\n"
+                         "          size\n"
+                         "          url\n"
+                         "          jpegUrl\n"
+                         "          webpUrl\n"
+                         "          id\n"
+                         "        }\n"
+                         "        pulse {\n"
+                         "          highest\n"
+                         "          id\n"
+                         "        }\n"
+                         "        __typename\n"
+                         "      }\n"
+                         "      cursor\n"
+                         "    }\n"
+                         "    totalCount\n"
+                         "    pageInfo {\n"
+                         "      endCursor\n"
+                         "      hasNextPage\n"
+                         "    }\n"
+                         "  }\n"
+                         "}\n"}
     resp = request.post(url, json=data)
     if resp:
         pprint.pprint(resp.json(), sort_dicts=False)

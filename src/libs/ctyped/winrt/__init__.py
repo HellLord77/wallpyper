@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import functools as _functools
 import threading as _threading
-from typing import Callable as _Callable, Generic as _Generic, Optional as _Optional
+from typing import Callable as _Callable
+from typing import Generic as _Generic
+from typing import Optional as _Optional
 
 from .. import byref as _byref
 from .. import const as _const
@@ -12,7 +14,8 @@ from .. import macro as _macro
 from .. import type as _type
 from .._utils import _Pointer
 # noinspection PyProtectedMember
-from ..interface import _TProgress, _TResult
+from ..interface import _TProgress
+from ..interface import _TResult
 from ..interface.winrt import asyncinfo as _asyncinfo
 from ..interface.winrt import inspectable as _inspectable
 from ..interface.winrt.Windows import Foundation as _Windows_Foundation

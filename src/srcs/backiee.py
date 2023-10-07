@@ -1,11 +1,16 @@
 import functools
 import os
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import isocodes, request
-from . import ImageFile, Source
+from libs import isocodes
+from libs import request
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://backiee.com'
 URL_LIST = request.join_url(URL_BASE, 'api', 'wallpaper', 'list.php')
@@ -71,28 +76,28 @@ class Backiee(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_ORIENTATION: str,
-        CONFIG_LIST: str,
+        CONFIG_LIST:        str,
         CONFIG_RESOLUTIONS: list[bool],
-        CONFIG_SORT: str,
-        CONFIG_CATEGORY: str,
-        CONFIG_POPULAR: str,
-        CONFIG_SELECTION: str,
-        CONFIG_COUNTRY: str,
-        CONFIG_RESOLUTION: str,
-        CONFIG_PUBLISHER: int,
-        CONFIG_SEARCH: str})
+        CONFIG_SORT:        str,
+        CONFIG_CATEGORY:    str,
+        CONFIG_POPULAR:     str,
+        CONFIG_SELECTION:   str,
+        CONFIG_COUNTRY:     str,
+        CONFIG_RESOLUTION:  str,
+        CONFIG_PUBLISHER:   int,
+        CONFIG_SEARCH:      str})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_ORIENTATION: ORIENTATIONS[0],
-        CONFIG_LIST: LISTS[1],
+        CONFIG_LIST:        LISTS[1],
         CONFIG_RESOLUTIONS: [False, False, False],
-        CONFIG_SORT: SORTS[0],
-        CONFIG_CATEGORY: CATEGORIES[0],
-        CONFIG_POPULAR: POPULARS[4],
-        CONFIG_SELECTION: SELECTIONS[0],
-        CONFIG_COUNTRY: COUNTRY[0],
-        CONFIG_RESOLUTION: RESOLUTIONS[0],
-        CONFIG_PUBLISHER: 0,
-        CONFIG_SEARCH: ''}
+        CONFIG_SORT:        SORTS[0],
+        CONFIG_CATEGORY:    CATEGORIES[0],
+        CONFIG_POPULAR:     POPULARS[4],
+        CONFIG_SELECTION:   SELECTIONS[0],
+        CONFIG_COUNTRY:     COUNTRY[0],
+        CONFIG_RESOLUTION:  RESOLUTIONS[0],
+        CONFIG_PUBLISHER:   0,
+        CONFIG_SEARCH:      ''}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

@@ -1,11 +1,16 @@
 import ntpath
-from typing import MutableSequence, Optional
+from typing import MutableSequence
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
-from libs.ctyped.lib import user32, shell32, shlwapi, comdlg32
-from . import _gdiplus, _utils
+from libs.ctyped.lib import comdlg32
+from libs.ctyped.lib import shell32
+from libs.ctyped.lib import shlwapi
+from libs.ctyped.lib import user32
+from . import _gdiplus
+from . import _utils
 
 
 def _set_folder(dialog: ShObjIdl_core.IFileDialog, path: Optional[str] = None) -> bool:

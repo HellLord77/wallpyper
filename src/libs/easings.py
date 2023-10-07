@@ -2,7 +2,8 @@ __version__ = '0.0.1'  # https://github.com/ai/easings.net
 
 import enum
 import math
-from typing import Callable, Optional
+from typing import Callable
+from typing import Optional
 
 _c1 = 1.70158
 _c2 = _c1 * 1.525

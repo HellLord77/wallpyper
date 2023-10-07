@@ -11,7 +11,10 @@ import sys
 import tempfile
 import time
 import uuid
-from typing import AnyStr, Callable, NoReturn, Optional
+from typing import AnyStr
+from typing import Callable
+from typing import NoReturn
+from typing import Optional
 
 WAIT_INTERVAL = 5
 POLL_INTERVAL = 1

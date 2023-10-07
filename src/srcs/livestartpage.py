@@ -1,12 +1,17 @@
 import functools
 import operator
 import os
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import request, utils
-from . import ImageFile, Source
+from libs import request
+from libs import utils
+from . import ImageFile
+from . import Source
 
 URL_BASE = 'https://livestartpage.com'
 URL_PHOTO = request.join_url(URL_BASE, 'gallery', 'api', 'getPhotoByTags')
@@ -26,12 +31,12 @@ class LiveStartPage(Source):
     URL = URL_BASE
     TCONFIG = TypedDict('TCONFIG', {
         CONFIG_CATEGORY: list[int],
-        CONFIG_RANDOM: bool,
-        CONFIG_CURSOR: int})
+        CONFIG_RANDOM:   bool,
+        CONFIG_CURSOR:   int})
     DEFAULT_CONFIG: TCONFIG = {
         CONFIG_CATEGORY: list(CATEGORIES),
-        CONFIG_RANDOM: True,
-        CONFIG_CURSOR: 0}
+        CONFIG_RANDOM:   True,
+        CONFIG_CURSOR:   0}
 
     _set_tooltip: Callable[[str], bool]
 

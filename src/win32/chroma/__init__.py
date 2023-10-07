@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import enum
-from typing import Callable, Iterable, Optional
+from typing import Callable
+from typing import Iterable
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped.const import ChromaSDK as const_ChromaSDK

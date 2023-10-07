@@ -7,15 +7,39 @@ import os
 import subprocess
 import time
 import winreg
-from typing import ContextManager, Iterator, Mapping, Optional
+from typing import ContextManager
+from typing import Iterator
+from typing import Mapping
+from typing import Optional
 
 from libs import ctyped
 from libs.ctyped import winrt
-from libs.ctyped.const import error, runtimeclass
-from libs.ctyped.interface.um import oaidl, objidl, ocidl, propsys, ShObjIdl, ShObjIdl_core, strmif
+from libs.ctyped.const import error
+from libs.ctyped.const import runtimeclass
+from libs.ctyped.interface.um import ShObjIdl
+from libs.ctyped.interface.um import ShObjIdl_core
+from libs.ctyped.interface.um import oaidl
+from libs.ctyped.interface.um import objidl
+from libs.ctyped.interface.um import ocidl
+from libs.ctyped.interface.um import propsys
+from libs.ctyped.interface.um import strmif
 from libs.ctyped.interface.winrt.Windows import System as Windows_System
-from libs.ctyped.lib import kernel32, user32, uxtheme, shell32, ole32, ntdll, oleaut32, setupapi
-from . import _gdiplus, _utils, clipboard, console, dialog, display, gui, window
+from libs.ctyped.lib import kernel32
+from libs.ctyped.lib import ntdll
+from libs.ctyped.lib import ole32
+from libs.ctyped.lib import oleaut32
+from libs.ctyped.lib import setupapi
+from libs.ctyped.lib import shell32
+from libs.ctyped.lib import user32
+from libs.ctyped.lib import uxtheme
+from . import _gdiplus
+from . import _utils
+from . import clipboard
+from . import console
+from . import dialog
+from . import display
+from . import gui
+from . import window
 from ._utils import sanitize_filename
 
 _PIN_TIMEOUT = 3

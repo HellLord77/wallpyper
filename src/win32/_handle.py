@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import Optional
 
 from libs import ctyped
-from libs.ctyped.lib import combase, gdi32, user32
+from libs.ctyped.lib import combase
+from libs.ctyped.lib import gdi32
+from libs.ctyped.lib import user32
 
 _HMENU_MF = ctyped.const.MF_BYCOMMAND, ctyped.const.MF_BYPOSITION
 

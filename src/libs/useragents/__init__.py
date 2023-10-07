@@ -5,7 +5,11 @@ import functools
 import json
 import os
 import random
-from typing import Container, Iterator, MutableMapping, NamedTuple, Optional
+from typing import Container
+from typing import Iterator
+from typing import MutableMapping
+from typing import NamedTuple
+from typing import Optional
 
 _PATH = 'user-agents.json'
 

@@ -2,12 +2,20 @@ import copy
 import functools
 import os
 import time
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
-from libs import callables, files, request
-from . import CONFIG_ORIENTATIONS, CONFIG_RATINGS, ImageFile, Source
+from libs import callables
+from libs import files
+from libs import request
+from . import CONFIG_ORIENTATIONS
+from . import CONFIG_RATINGS
+from . import ImageFile
+from . import Source
 
 URL_BASE = request.join_url('https://oauth.reddit.com', 'r')
 URL_TOKEN = request.join_url(
@@ -26,7 +34,7 @@ TIMES = 'hour', 'day', 'week', 'month', 'year', 'all'
 _TOKEN_TOLERANCE = 30.0
 _TOKEN_DATA = {
     'grant_type': 'https://oauth.reddit.com/grants/installed_client',
-    'device_id': 'DO_NOT_TRACK_THIS_DEVICE'}
+    'device_id':  'DO_NOT_TRACK_THIS_DEVICE'}
 
 
 @callables.LastCacheCallable
@@ -80,21 +88,21 @@ class Reddit(Source):  # https://www.reddit.com/dev/api
     ICON = 'png'
     URL = 'https://reddit.com'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_ID: str,
+        CONFIG_ID:           str,
         CONFIG_ORIENTATIONS: list[bool],
-        CONFIG_RATINGS: list[bool],
-        CONFIG_STATIC: bool,
-        CONFIG_SUBS: str,
-        CONFIG_SORT: str,
-        CONFIG_TIME: str})
+        CONFIG_RATINGS:      list[bool],
+        CONFIG_STATIC:       bool,
+        CONFIG_SUBS:         str,
+        CONFIG_SORT:         str,
+        CONFIG_TIME:         str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_ID: '',
+        CONFIG_ID:           '',
         CONFIG_ORIENTATIONS: [True, True],
-        CONFIG_RATINGS: [True, False],
-        CONFIG_STATIC: True,
-        CONFIG_SUBS: 'wallpaper',
-        CONFIG_SORT: SORTS[0],
-        CONFIG_TIME: TIMES[1]}
+        CONFIG_RATINGS:      [True, False],
+        CONFIG_STATIC:       True,
+        CONFIG_SUBS:         'wallpaper',
+        CONFIG_SORT:         SORTS[0],
+        CONFIG_TIME:         TIMES[1]}
 
     @classmethod
     def fix_config(cls, saving: bool = False):

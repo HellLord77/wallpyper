@@ -1,13 +1,18 @@
 import colorsys
 import functools
 import re
-from typing import Callable, Iterator, Optional, TypedDict
+from typing import Callable
+from typing import Iterator
+from typing import Optional
+from typing import TypedDict
 
 import gui
 import validator
 import win32
-from libs import colornames, request
-from . import ImageFile, Source
+from libs import colornames
+from libs import request
+from . import ImageFile
+from . import Source
 
 URL_LIST = request.join_url('https://api.infinitynewtab.com', 'v2', 'get_wallpaper_list')
 URL_RANDOM = request.join_url('https://infinity-api.infinitynewtab.com', 'random-wallpaper')
@@ -42,16 +47,16 @@ class InfinityNewTab(Source):
     VERSION = '0.0.1'
     URL = 'https://www.infinitytab.com'
     TCONFIG = TypedDict('TCONFIG', {
-        CONFIG_MODE: str,
-        CONFIG_ORDER: str,
-        CONFIG_COLOR: str,
-        CONFIG_LABEL: str,
+        CONFIG_MODE:   str,
+        CONFIG_ORDER:  str,
+        CONFIG_COLOR:  str,
+        CONFIG_LABEL:  str,
         CONFIG_SOURCE: str})
     DEFAULT_CONFIG: TCONFIG = {
-        CONFIG_MODE: MODES[0],
-        CONFIG_ORDER: ORDERS[2],
-        CONFIG_COLOR: COLORS[0],
-        CONFIG_LABEL: LABELS[0],
+        CONFIG_MODE:   MODES[0],
+        CONFIG_ORDER:  ORDERS[2],
+        CONFIG_COLOR:  COLORS[0],
+        CONFIG_LABEL:  LABELS[0],
         CONFIG_SOURCE: SOURCES[0]}
 
     @classmethod

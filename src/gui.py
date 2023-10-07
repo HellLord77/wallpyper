@@ -3,11 +3,18 @@ import contextlib
 import enum
 import functools
 import threading
-from typing import (Any, Callable, ContextManager, Iterable, Mapping,
-                    MutableMapping, MutableSequence, Optional)
+from typing import Any
+from typing import Callable
+from typing import ContextManager
+from typing import Iterable
+from typing import Mapping
+from typing import MutableMapping
+from typing import MutableSequence
+from typing import Optional
 
 import win32
-from libs import callables, utils
+from libs import callables
+from libs import utils
 from win32 import gui
 
 ANIMATION_PATH = ''

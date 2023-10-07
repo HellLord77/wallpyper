@@ -6,14 +6,20 @@ import functools as _functools
 import inspect as _inspect
 import typing as _typing
 from types import MethodType as _MethodType
-from typing import Callable as _Callable, Generic as _Generic, Iterable as _Iterable, Optional as _Optional
+from typing import Callable as _Callable
+from typing import Generic as _Generic
+from typing import Iterable as _Iterable
+from typing import Optional as _Optional
 
 from .. import const as _const
 from .. import enum as _enum
 from .. import macro as _macro
 from .. import struct as _struct
 from .. import type as _type
-from .._utils import _Pointer, _addressof, _byref, _resolve_type
+from .._utils import _Pointer
+from .._utils import _addressof
+from .._utils import _byref
+from .._utils import _resolve_type
 from ..lib import combase as _combase
 from ..lib import ole32 as _ole32
 

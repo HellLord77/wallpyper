@@ -3,9 +3,12 @@ from __future__ import annotations
 from typing import Optional
 
 from libs import ctyped
-from libs.ctyped.interface.um import ExDisp, MsHTML, oaidl
+from libs.ctyped.interface.um import ExDisp
+from libs.ctyped.interface.um import MsHTML
+from libs.ctyped.interface.um import oaidl
 from libs.ctyped.lib import oleaut32
-from .. import _com, _utils
+from .. import _com
+from .. import _utils
 
 
 class _HTMLElementGetter(_com.Getter):

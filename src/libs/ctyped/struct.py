@@ -9,7 +9,12 @@ from . import const as _const
 from . import enum as _enum
 from . import type as _type
 from . import union as _union
-from ._utils import _CT, _Globals, _Pointer, _fields_repr, _resolve_type, _sizeof
+from ._utils import _CT
+from ._utils import _Globals
+from ._utils import _Pointer
+from ._utils import _fields_repr
+from ._utils import _resolve_type
+from ._utils import _sizeof
 from .const import ChromaSDK as _const_ChromaSDK
 from .const import iCUESDK as _const_iCUESDK
 from .enum import ChromaSDK as _enum_ChromaSDK
