@@ -18,7 +18,7 @@ $NoConsole = $True
 $OneFile = $False
 $ElevatedProc = $False
 $RemoteProc = $False
-$UPX = $False
+$UPX = $True
 $ModuleGraph = $True
 $EntryPoint = "src/init.py"
 $Icon = "src/res/icon.ico"
@@ -129,6 +129,7 @@ $CodeModuleGraphSmartTemplate = @(
 	"graph.process_post_graph_hooks(analysis)"
 	"print(';'.join(module.identifier for module in graph.iter_graph()))")
 $MinifyJsonLocal = $False
+$UPXLocal = $False
 $StripSymbols = $False
 $ModuleGraphSmart = $True
 $ModuleGraphReduce = $False  # TODO
@@ -350,7 +351,7 @@ function Get-PyInstallerArgs {
 		if (-not $DataDst) { $DataDst = "." }
 		$ArgList += "--add-data=""$DataSrc;$DataDst"""
 	}
-	if ($UPX) {
+	if ($UPX -and ($UPXLocal -or $IsRemote)) {
 		if (-not (Get-Command upx -ErrorAction SilentlyContinue)) {
 			if (-not $UPXDir) {
 				$UPXDir = Split-Path (Install-PackageChoco "upx") -Parent
