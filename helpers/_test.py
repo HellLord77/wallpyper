@@ -10,7 +10,6 @@ import fractions
 import ipaddress
 import os
 import pathlib
-import pprint
 import re
 import sys
 import time
@@ -27,15 +26,18 @@ import consts
 import win32
 from libs import config
 from libs import ctyped
-from libs import request
 # noinspection PyUnresolvedReferences
 from libs import sgml
 from libs.ctyped.const import error
 from libs.ctyped.interface.um import ShObjIdl_core
+from libs.ctyped.interface.um import d2d1
+from libs.ctyped.interface.um import dwrite
 from libs.ctyped.interface.winrt.Windows.Data.Xml import Dom as Windows_Data_Xml_Dom
+from libs.ctyped.lib import DWrite
 from libs.ctyped.lib import kernel32
 from libs.ctyped.lib import python
 from libs.ctyped.lib import user32
+from win32 import _gdiplus
 from win32 import _handle
 from win32 import _utils
 
@@ -67,28 +69,28 @@ def _get_context_compatibility(path: Optional[str] = None) -> tuple[ctyped.struc
     return compatibility
 
 
-# def _test_font():
-#     bitmap = gdiplus.Bitmap.from_dimension(100, 100)
-#     with win32._utils.get_d2d1_dc_render_target() as target, ctyped.interface.COM[
-#         dwrite.IDWriteFactory]() as factory, ctyped.interface.COM[
-#         dwrite.IDWriteTextFormat]() as text_format, ctyped.interface.COM[
-#         d2d1.ID2D1SolidColorBrush]() as brush, gdiplus.Graphics.from_image(bitmap).get_managed_hdc() as hdc:
-#         if target and ctyped.macro.SUCCEEDED(ctyped.lib.DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(
-#                 ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
-#             factory.CreateTextFormat("Comic Sans MS", ctyped.NULLPTR, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL,
-#                                      ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
-#             print(text_format.GetFontSize())
-#             col = ctyped.struct.D3DCOLORVALUE(1, 0, 0, 1)
-#             print(target.CreateSolidColorBrush(ctyped.byref(col), ctyped.NULLPTR, ctyped.byref(brush)))
-#             rect2 = ctyped.struct.RECT(0, 0, 100, 100)
-#             rect = ctyped.struct.D2D_RECT_F(0, 0, 100, 100)
-#             target.BindDC(hdc, ctyped.byref(rect2))
-#             text = 'Hello World!'
-#             target.BeginDraw()
-#             target.DrawText(text, len(text), text_format, ctyped.byref(rect), brush,
-#                             ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
-#             target.EndDraw(ctyped.NULLPTR, ctyped.NULLPTR)
-#     gdiplus.image_save(bitmap, 'd:\\test.png')
+def _test_font():
+    bitmap = _gdiplus.Bitmap.from_dimension(100, 100)
+    with _utils.get_d2d1_dc_render_target() as target, ctyped.interface.COM[
+        dwrite.IDWriteFactory]() as factory, ctyped.interface.COM[
+        dwrite.IDWriteTextFormat]() as text_format, ctyped.interface.COM[
+        d2d1.ID2D1SolidColorBrush]() as brush, _gdiplus.Graphics.from_image(bitmap).get_managed_hdc() as hdc:
+        if target and ctyped.macro.SUCCEEDED(DWrite.DWriteCreateFactory(ctyped.enum.DWRITE_FACTORY_TYPE.ISOLATED, ctyped.byref(
+                ctyped.get_guid(ctyped.const.IID_IDWriteFactory)), ctyped.byref(factory))):
+            factory.CreateTextFormat("Comic Sans MS", ctyped.NULLPTR, ctyped.enum.DWRITE_FONT_WEIGHT.NORMAL, ctyped.enum.DWRITE_FONT_STYLE.NORMAL,
+                                     ctyped.enum.DWRITE_FONT_STRETCH.NORMAL, 16, "en-US", ctyped.byref(text_format))
+            print(text_format.GetFontSize())
+            col = ctyped.struct.D3DCOLORVALUE(1, 0, 0, 1)
+            print(target.CreateSolidColorBrush(ctyped.byref(col), ctyped.NULLPTR, ctyped.byref(brush)))
+            rect2 = ctyped.struct.RECT(0, 0, 100, 100)
+            rect = ctyped.struct.D2D_RECT_F(0, 0, 100, 100)
+            target.BindDC(hdc, ctyped.byref(rect2))
+            text = 'Hello World!'
+            target.BeginDraw()
+            target.DrawText(text, len(text), text_format, ctyped.byref(rect), brush,
+                            ctyped.enum.D2D1_DRAW_TEXT_OPTIONS.ENABLE_COLOR_FONT, ctyped.enum.DWRITE_MEASURING_MODE.NATURAL)
+            target.EndDraw(ctyped.NULLPTR, ctyped.NULLPTR)
+    _gdiplus.image_save(bitmap, 'd:\\test.png')
 
 
 def _test_load_string_from_lib():
@@ -325,89 +327,6 @@ def _test_winrt():
             os.remove(dst)
         except FileNotFoundError:
             pass
-
-
-def _test_500px():
-    url = 'https://api.500px.com/graphql'
-    data = {
-        "operationName": "DiscoverQueryRendererQuery",
-        "variables":     {
-            "filters": [
-                {
-                    "key":   "FEATURE_NAME",
-                    "value": "popular"
-                },
-                {
-                    "key":   "FOLLOWERS_COUNT",
-                    "value": "gte:0"
-                }
-            ],
-            "sort":    "POPULAR_PULSE"
-        },
-        "query":         "query DiscoverQueryRendererQuery($filters: [PhotoDiscoverSearchFilter!], $sort: PhotoDiscoverSort) {\n"
-                         "  ...DiscoverPaginationContainer_query_1OEZSy\n"
-                         "}\n"
-                         "\n"
-                         "fragment DiscoverPaginationContainer_query_1OEZSy on Query {\n"
-                         "  photos: photoDiscoverSearch(first: 50, filters: $filters, sort: $sort) {\n"
-                         "    edges {\n"
-                         "      node {\n"
-                         "        id\n"
-                         "        legacyId\n"
-                         "        canonicalPath\n"
-                         "        name\n"
-                         "        description\n"
-                         "        category\n"
-                         "        uploadedAt\n"
-                         "        location\n"
-                         "        width\n"
-                         "        height\n"
-                         "        isLikedByMe\n"
-                         "        notSafeForWork\n"
-                         "        tags\n"
-                         "        photographer: uploader {\n"
-                         "          id\n"
-                         "          legacyId\n"
-                         "          username\n"
-                         "          displayName\n"
-                         "          canonicalPath\n"
-                         "          avatar {\n"
-                         "            images {\n"
-                         "              url\n"
-                         "              id\n"
-                         "            }\n"
-                         "            id\n"
-                         "          }\n"
-                         "          followedBy {\n"
-                         "            totalCount\n"
-                         "            isFollowedByMe\n"
-                         "          }\n"
-                         "        }\n"
-                         "        images(sizes: [33, 35]) {\n"
-                         "          size\n"
-                         "          url\n"
-                         "          jpegUrl\n"
-                         "          webpUrl\n"
-                         "          id\n"
-                         "        }\n"
-                         "        pulse {\n"
-                         "          highest\n"
-                         "          id\n"
-                         "        }\n"
-                         "        __typename\n"
-                         "      }\n"
-                         "      cursor\n"
-                         "    }\n"
-                         "    totalCount\n"
-                         "    pageInfo {\n"
-                         "      endCursor\n"
-                         "      hasNextPage\n"
-                         "    }\n"
-                         "  }\n"
-                         "}\n"}
-    resp = request.post(url, json=data)
-    if resp:
-        pprint.pprint(resp.json(), sort_dicts=False)
 
 
 PageAddress = TypeVar('PageAddress', bound=int)
@@ -673,9 +592,7 @@ def _test_toast():
 
 
 def _test():
-    for name in tuple(sys.modules):
-        if name.startswith('libs.ctyped.lib'):
-            print(name, type(sys.modules[name]))
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
