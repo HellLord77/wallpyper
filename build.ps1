@@ -1,5 +1,8 @@
-$Version = "0.3.9"
+$Version = "0.3.10"
 ################################################################################
+$PythonOptimize = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issues/3379
+$PythonHashSeed = 0
+
 $Datas = @(
 	"libs/request/cloudflare/browsers.json"  # FIXME https://pyinstaller.org/en/stable/hooks.html#PyInstaller.utils.hooks.is_package
 	"res"
@@ -12,7 +15,6 @@ $Imports = @()
 $Excludes = @()
 $HooksDirs = @("hooks")
 $RuntimeHooks = @()
-$OptimizationLevel = 2  # FIXME https://github.com/pyinstaller/pyinstaller/issues/3379
 $Debug = $False
 $NoConsole = $True
 $OneFile = $False
@@ -137,10 +139,17 @@ $CythonRemoveC = $False
 $NuitkaRemoveBuild = $True
 $RemoveOnThrow = $True
 $mypycCacheDir = ".mypy_cache"
+$PatSemVer = "(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
 ################################################################################
 $IsPython64Bit = $null
 $ExtSuffix = $null
 $CythonSources = $null
+
+function Get-IntFromBytes([byte[]]$Bytes, [System.Numerics.BigInteger[]]$Range = $null) {
+	$Integer = [System.Numerics.BigInteger]::new($Bytes)
+	if ($Range) { $Integer = $Integer % $Range[1] + $Range[0] }
+	return $Integer
+}
 
 function ToArray($Object) {
 	if ($Object -isnot [array]) { $Object = @($Object) }
@@ -525,23 +534,32 @@ function Write-Build {
 		$PyInstallerArgs = Get-PyInstallerArgsReduced $PyInstallerArgs
 
 		$BuildName = Get-ProjectName
-		$BuildVersion = Get-Content $EntryPoint | Select-String -Pattern "__version__\s*=\s*['`"](.*)['`"]" | ForEach-Object { $_.Matches.Groups[1].Value }
-		if (-not $BuildVersion) { $BuildVersion = "0.0.0" }
-		$Name = "$BuildName-$BuildVersion-$( Start-PythonCode $CodeSysTag $False )"
-		"NAME=$Name" >> $Env:GITHUB_ENV
+		$MatchInfo = Select-String $EntryPoint -Pattern "__version__\s*=\s*['`"](?<semver>$PatSemVer)['`"]"
+		$BuildVersion = if ($MatchInfo) { $MatchInfo.Matches[0].Groups["semver"].Value } else { "0.0.0" }
+		$BuildTag = Start-PythonCode $CodeSysTag $False
+		$FullName = "$BuildName-$BuildVersion-$BuildTag"
+		if ($IsRemote) { "NAME=$FullName" >> $Env:GITHUB_ENV }
 
-		$PyInstallerArgs += @("--name=$Name", $EntryPoint)
-		$OptimizationLevelOld = $Env:PYTHONOPTIMIZE
-		$Env:PYTHONOPTIMIZE = $OptimizationLevel
+		$PythonOptimizeOld = $Env:PYTHONOPTIMIZE
+		$PythonHashSeedOld = $Env:PYTHONHASHSEED
+		$Env:PYTHONOPTIMIZE = $PythonOptimize
+		if (-not $PythonHashSeed) { $PythonHashSeed = Get-IntFromBytes ([System.Text.Encoding]::ASCII.GetBytes($FullName)) @(1, 4294967295) }
+		$Env:PYTHONHASHSEED = $PythonHashSeed
+		Write-Host "[PYTHONOPTIMIZE] $Env:PYTHONOPTIMIZE"
+		Write-Host "[PYTHONHASHSEED] $Env:PYTHONHASHSEED"
+
+		$PyInstallerArgs += @("--name=$FullName", $EntryPoint)
 		Write-Host "pyinstaller $PyInstallerArgs"
 		pyinstaller $PyInstallerArgs
-		$Env:PYTHONOPTIMIZE = $OptimizationLevelOld
 
-		$DistPath = Join-Path "dist" $Name
+		$Env:PYTHONOPTIMIZE = $PythonOptimizeOld
+		$Env:PYTHONHASHSEED = $PythonHashSeedOld
+
+		$DistPath = Join-Path "dist" $FullName
 		if ($OneFile) { $ExePath = "$DistPath.exe" }
 		else {
 			$ExePath = Join-Path $DistPath "$BuildName.exe"
-			Move-Item (Join-Path $DistPath "$Name.exe") $ExePath -Force
+			Move-Item (Join-Path $DistPath "$FullName.exe") $ExePath -Force
 		}
 
 		if ($MainManifest) { MergeManifest $ExePath $MainManifest }

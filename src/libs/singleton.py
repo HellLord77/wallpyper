@@ -75,8 +75,8 @@ def _memory(uid: str, wait: bool, _, on_waiting: Optional[Callable],
 
 def _socket(uid: str, wait: bool, _, on_waiting: Optional[Callable],
             on_exiting: Optional[Callable]) -> Optional[NoReturn]:
-    address = socket.gethostname(), int.from_bytes(
-        uid.encode(), sys.byteorder) % 48128 + 1024
+    # noinspection PyArgumentList
+    address = socket.gethostname(), int.from_bytes(uid.encode()) % 48128 + 1024
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     end_time = time.monotonic() + wait * WAIT_INTERVAL
     while True:

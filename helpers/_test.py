@@ -592,7 +592,7 @@ def _test_toast():
 
 
 def _test():
-    pass
+    int.from_bytes('name'.encode())
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
