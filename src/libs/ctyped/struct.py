@@ -62,6 +62,15 @@ class WINDOWCOMPOSITIONATTRIBDATA:
     cbData: _type.SIZE_T
 
 
+# noinspection PyPep8Naming
+@_struct
+class ACCENT_POLICY:
+    AccentState: _enum.ACCENT_STATE
+    AccentFlags: _type.UINT
+    GradientColor: _type.COLORREF
+    AnimationId: _type.LONG
+
+
 @_struct
 class FILE:
     _Placeholder: _type.c_void_p

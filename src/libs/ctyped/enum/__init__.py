@@ -63,16 +63,16 @@ else:
 
 # noinspection PyPep8Naming
 class IMMERSIVE_HC_CACHE_MODE(_Enum):
-    USE_CACHED_VALUE = _AUTO
-    REFRESH = _AUTO
+    USE_CACHED_VALUE = 0
+    REFRESH = 1
 
 
 class PreferredAppMode(_Enum):
-    Default = _AUTO
-    AllowDark = _AUTO
-    ForceDark = _AUTO
-    ForceLight = _AUTO
-    Max = _AUTO
+    Default = 0
+    AllowDark = 1
+    ForceDark = 2
+    ForceLight = 3
+    Max = 4
 
 
 class WINDOWCOMPOSITIONATTRIB(_Enum):
@@ -104,6 +104,17 @@ class WINDOWCOMPOSITIONATTRIB(_Enum):
     PASSIVEUPDATEMODE = 25
     USEDARKMODECOLORS = 26
     LAST = 27
+
+
+# noinspection PyPep8Naming
+class ACCENT_STATE(_Enum):
+    DISABLED = 0
+    ENABLE_GRADIENT = 1
+    ENABLE_TRANSPARENTGRADIENT = 2
+    ENABLE_BLURBEHIND = 3
+    ENABLE_ACRYLICBLURBEHIND = 4
+    ENABLE_HOSTBACKDROP = 5
+    INVALID_STATE = 6
 
 
 class DebugEventLevel(_Enum):

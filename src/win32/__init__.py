@@ -87,8 +87,7 @@ def set_color_mode(mode: int | str | ColorMode = ColorMode.DEFAULT, flush: bool 
         mode = ColorMode[mode.upper()]
     if isinstance(mode, ColorMode):
         mode = mode.value
-    # noinspection PyTypeChecker
-    uxtheme.SetPreferredAppMode(mode)
+    uxtheme.SetPreferredAppMode(ctyped.enum.PreferredAppMode(mode))
     if flush:
         uxtheme.FlushMenuThemes()
 
