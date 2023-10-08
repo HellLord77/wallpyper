@@ -714,10 +714,10 @@ def set_lock_background(path: str) -> bool:
     if (p_file := _utils.open_file(path)) and (
             p_statics := ctyped.interface.WinRT[Windows_System_UserProfile.ILockScreenStatics](
                 runtimeclass.Windows.System.UserProfile.LockScreen)):
-        action = winrt.AsyncAction()
+        p_action = winrt.AsyncAction()
         with p_file as file, p_statics as statics:
-            if ctyped.macro.SUCCEEDED(statics.SetImageFileAsync(file, ~action)):
-                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == action.wait()
+            if ctyped.macro.SUCCEEDED(statics.SetImageFileAsync(file, ~p_action)):
+                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == p_action.wait()
     return False
 
 

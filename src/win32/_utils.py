@@ -130,42 +130,42 @@ def sanitize_filename(name: str, dir: Optional[str] = None) -> Optional[str]:
 
 
 def open_file(path: str) -> Optional[ctyped.interface.WinRT[Windows_Storage.IStorageFile]]:
-    operation = winrt.AsyncOperation(Windows_Storage.IStorageFile)
+    p_operation = winrt.AsyncOperation(Windows_Storage.IStorageFile)
     with ctyped.interface.WinRT[Windows_Storage.IStorageFileStatics](
             runtimeclass.Windows.Storage.StorageFile) as statics:
         if ctyped.macro.SUCCEEDED(statics.GetFileFromPathAsync(
-                _handle.HSTRING.from_string(path), ~operation)) and (file := operation.get()):
+                _handle.HSTRING.from_string(path), ~p_operation)) and (file := p_operation.get()):
             return ctyped.interface.WinRT[Windows_Storage.IStorageFile](file.value)
 
 
 def open_file_stream(path: str, mode: int = ctyped.const.STGM_READ) -> Optional[ctyped.interface.COM[objidlbase.IStream]]:
-    stream = ctyped.interface.COM[objidlbase.IStream]()
-    if ctyped.macro.SUCCEEDED(shlwapi.SHCreateStreamOnFileW(path, mode, ~stream)):
-        return stream
+    p_stream = ctyped.interface.COM[objidlbase.IStream]()
+    if ctyped.macro.SUCCEEDED(shlwapi.SHCreateStreamOnFileW(path, mode, ~p_stream)):
+        return p_stream
 
 
 def get_input_stream(file: Windows_Storage.IStorageFile) -> \
         Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]]:
-    operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
+    p_operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
     if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.Read,
-                                             ~operation)) and (stream := operation.get()):
-        input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
-        hr = stream.GetInputStreamAt(0, ~input_stream)
+                                             ~p_operation)) and (stream := p_operation.get()):
+        p_input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
+        hr = stream.GetInputStreamAt(0, ~p_input_stream)
         stream.Release()
         if ctyped.macro.SUCCEEDED(hr):
-            return input_stream
+            return p_input_stream
 
 
 def get_output_stream(file: Windows_Storage.IStorageFile) -> \
         Optional[ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]]:
-    operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
+    p_operation = winrt.AsyncOperation(Windows_Storage_Streams.IRandomAccessStream)
     if ctyped.macro.SUCCEEDED(file.OpenAsync(ctyped.enum.Windows.Storage.FileAccessMode.ReadWrite,
-                                             ~operation)) and (stream := operation.get()):
-        output_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]()
-        hr = stream.GetOutputStreamAt(0, ~output_stream)
+                                             ~p_operation)) and (stream := p_operation.get()):
+        p_output_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IOutputStream]()
+        hr = stream.GetOutputStreamAt(0, ~p_output_stream)
         stream.Release()
         if ctyped.macro.SUCCEEDED(hr):
-            return output_stream
+            return p_output_stream
 
 
 def get_lock_background_input_stream() -> \
@@ -175,10 +175,10 @@ def get_lock_background_input_stream() -> \
         p_random = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStream]()
         with p_statics as statics:
             if ctyped.macro.SUCCEEDED(statics.GetImageStream(~p_random)):
-                input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
+                p_input_stream = ctyped.interface.WinRT[Windows_Storage_Streams.IInputStream]()
                 with p_random as random:
-                    if ctyped.macro.SUCCEEDED(random.GetInputStreamAt(0, ~input_stream)):
-                        return input_stream
+                    if ctyped.macro.SUCCEEDED(random.GetInputStreamAt(0, ~p_input_stream)):
+                        return p_input_stream
 
 
 def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
@@ -187,9 +187,9 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
     p_statics = ctyped.interface.WinRT[Windows_Storage_Streams.IRandomAccessStreamStatics](
         runtimeclass.Windows.Storage.Streams.RandomAccessStream)
     if p_statics:
-        operation = winrt.AsyncOperationWithProgress(ctyped.type.UINT64, ctyped.type.UINT64)
+        p_operation = winrt.AsyncOperationWithProgress(ctyped.type.UINT64, ctyped.type.UINT64)
         with p_statics as statics:
-            if ctyped.macro.SUCCEEDED(statics.CopyAndCloseAsync(input_stream, output_stream, ~operation)):
+            if ctyped.macro.SUCCEEDED(statics.CopyAndCloseAsync(input_stream, output_stream, ~p_operation)):
                 if progress_callback is not None:
                     def handler(_, __, progress: int):
                         try:
@@ -197,8 +197,8 @@ def copy_stream(input_stream: Windows_Storage_Streams.IInputStream,
                         finally:
                             return ctyped.const.NOERROR
 
-                    operation.on_progress(handler)
-                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == operation.wait()
+                    p_operation.on_progress(handler)
+                return ctyped.enum.Windows.Foundation.AsyncStatus.Completed == p_operation.wait()
     return False
 
 

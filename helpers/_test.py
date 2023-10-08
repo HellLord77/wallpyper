@@ -574,25 +574,25 @@ def _test_toast():
     with ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotificationManagerStatics](
             runtimeclass.Windows.UI.Notifications.ToastNotificationManager) as manager:
         print(manager, bool(manager))
-        xml = ctyped.interface.WinRT[Windows_Data_Xml_Dom.IXmlDocument]()
+        p_xml = ctyped.interface.WinRT[Windows_Data_Xml_Dom.IXmlDocument]()
         manager.GetTemplateContent(
-            ctyped.enum.Windows.UI.Notifications.ToastTemplateType.ToastText01, ~xml)
-        print(xml, bool(xml))
-        print(_utils.dumps_xml(xml))
-        man_toast = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotification]()
+            ctyped.enum.Windows.UI.Notifications.ToastTemplateType.ToastText01, ~p_xml)
+        print(p_xml, bool(p_xml))
+        print(_utils.dumps_xml(p_xml))
+        p_toast = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotification]()
         with ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotificationFactory](
                 runtimeclass.Windows.UI.Notifications.ToastNotification) as factory:
-            factory.CreateToastNotification(xml._obj, ~man_toast)
-        print(man_toast, bool(man_toast))
-        man_notifier = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotifier]()
-        manager.CreateToastNotifierWithId(_handle.HSTRING.from_string(uid), ~man_notifier)
-        print(man_notifier, bool(man_notifier))
-        with man_notifier as notifier, man_toast as toast:
+            factory.CreateToastNotification(p_xml._obj, ~p_toast)
+        print(p_toast, bool(p_toast))
+        p_notifier = ctyped.interface.WinRT[Windows_UI_Notifications.IToastNotifier]()
+        manager.CreateToastNotifierWithId(_handle.HSTRING.from_string(uid), ~p_notifier)
+        print(p_notifier, bool(p_notifier))
+        with p_notifier as notifier, p_toast as toast:
             print(notifier.Show(toast))
 
 
 def _test():
-    int.from_bytes('name'.encode())
+    pass
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
