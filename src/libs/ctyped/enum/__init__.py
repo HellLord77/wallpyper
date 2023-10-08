@@ -10102,6 +10102,37 @@ class MSHCTX(_Enum):
     CONTAINER = 5
 
 
+# MddBootstrap
+class MddBootstrapInitializeOptions(_Enum):
+    """
+    Options for Bootstrap initialization
+    """
+    None_ = 0
+    """
+    Default behavior
+    """
+    OnError_DebugBreak = 1
+    """
+    If not successful call DebugBreak()
+    """
+    OnError_DebugBreak_IfDebuggerAttached = 2
+    """
+    If not successful call DebugBreak() if a debugger is attached to the process
+    """
+    OnError_FailFast = 4
+    """
+    If not successful perform a fail-fast
+    """
+    OnNoMatch_ShowUI = 8
+    """
+    If a compatible Windows App Runtime framework package is not found show UI
+    """
+    OnPackageIdentity_NOOP = 16
+    """
+    Do nothing (do not error) if the process has package identity
+    """
+
+
 GpStatus = Status
 GpFillMode = FillMode
 GpWrapMode = WrapMode

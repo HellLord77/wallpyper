@@ -16,7 +16,8 @@ from libs import ctyped
 from libs.ctyped.enum import libclang as enum_libclang
 from libs.ctyped.lib import libclang
 
-SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\NotificationActivationCallback.h'
+# SOURCE_PATH = r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\NotificationActivationCallback.h'
+SOURCE_PATH = r'D:\Projects\WinUI3\packages\Microsoft.WindowsAppSDK.1.4.230913002\include\MddBootstrap.h'
 INCLUDES = ('<Windows.h>',)
 INCLUDE_DIRS = ()
 CLANG_DIR = r'C:\msys64\mingw64\bin'
@@ -48,9 +49,9 @@ MSVC_INCLUDE_DIRS = (
     r'C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt')
 VCPKG_INCLUDE_DIRS = r'D:\Projects\vcpkg\installed\x64-windows\include',
 
-ENUM = False
+ENUM = True
 FUNCTION = False
-INTERFACE = True
+INTERFACE = False
 GUID = False
 AST = False
 
@@ -372,7 +373,10 @@ def str_enum(spelling: str, data: tuple[dict[str, tuple[int, Optional[str]]], Op
         formatted += str_comment(data[1])
     if data[0]:
         for enum_spelling, (value, comment) in data[0].items():
-            formatted += f'{INDENT}{ENUM_CONSTANT_DECL.format(enum_spelling.removeprefix(prefix).removeprefix(spelling), value)}\n'
+            enum_spelling_ = enum_spelling.removeprefix(prefix).removeprefix(spelling)
+            if enum_spelling_ == 'None':
+                enum_spelling_ += '_'
+            formatted += f'{INDENT}{ENUM_CONSTANT_DECL.format(enum_spelling_, value)}\n'
             if comment:
                 formatted += str_comment(comment)
     if not any(data):

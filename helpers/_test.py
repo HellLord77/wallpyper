@@ -592,7 +592,14 @@ def _test_toast():
 
 
 def _test():
-    pass
+    ctyped.lib.add_path(r'D:\Projects\wallpyper\helpers')
+    from libs.ctyped.lib import Microsoft_WindowsAppRuntime_Bootstrap
+    from libs.ctyped.const import WindowsAppSDK
+    hr = Microsoft_WindowsAppRuntime_Bootstrap.Initialize2(WindowsAppSDK.Release.MajorMinor, WindowsAppSDK.Release.VersionTag, ctyped.struct.PACKAGE_VERSION(
+        ctyped.union.PACKAGE_VERSION_U(WindowsAppSDK.Runtime.Version.UInt64)), ctyped.enum.MddBootstrapInitializeOptions.OnNoMatch_ShowUI)
+    print(hr)
+    if ctyped.macro.SUCCEEDED(hr):
+        Microsoft_WindowsAppRuntime_Bootstrap.Shutdown()
 
 
 if __name__ == '__main__':  # FIXME replace "[tuple(" -> "[*("
